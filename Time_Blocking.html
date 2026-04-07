@@ -8,6 +8,7 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E%F0%9F%95%92%3C/text%3E%3C/svg%3E"
     />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
       :root {
         --Fondo: #f3efe7;
@@ -1177,10 +1178,13 @@
         box-shadow: none;
       }
 
+      /* El editor ocupa el alto disponible y scrollea
+         internamente cuando los campos exceden el modal. */
       .Tarea_Modal_Cuerpo .Editor_Tarea {
-        margin-top: 14px;
-        border-top: 1px solid var(--Borde);
-        padding-top: 14px;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding-right: 4px;
       }
 
       /* --- Modal de resumen semanal --- */
@@ -2764,9 +2768,268 @@
         font-size: 13px;
         cursor: pointer;
       }
+
+      /* --- Pantalla de autenticación --- */
+      .Auth_Overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(
+          circle at top right,
+          #f8efe0 0%, #efe7d9 46%, #e9e2d6 100%
+        );
+        z-index: 9990;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .Auth_Overlay.Activo {
+        display: flex;
+      }
+
+      .Auth_Panel {
+        background: var(--Panel);
+        border: 1px solid var(--Borde);
+        border-radius: 20px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.18);
+        width: 100%;
+        max-width: 400px;
+        padding: 32px 28px 26px;
+      }
+
+      .Auth_Logo {
+        text-align: center;
+        font-size: 44px;
+        margin-bottom: 4px;
+      }
+
+      .Auth_Titulo {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 4px;
+        color: var(--Texto);
+      }
+
+      .Auth_Subtitulo {
+        text-align: center;
+        font-size: 13px;
+        color: var(--Texto_Suave);
+        margin: 0 0 20px;
+      }
+
+      .Auth_Campo {
+        margin-bottom: 12px;
+      }
+
+      .Auth_Campo label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--Texto_Suave);
+        letter-spacing: 0.4px;
+        margin-bottom: 4px;
+      }
+
+      .Auth_Input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--Borde);
+        border-radius: 10px;
+        font-size: 14px;
+        background: #fff;
+        box-sizing: border-box;
+      }
+
+      .Auth_Input:focus {
+        outline: none;
+        border-color: var(--Acento);
+        box-shadow: 0 0 0 3px rgba(15, 95, 90, 0.12);
+      }
+
+      .Auth_Btn_Principal {
+        width: 100%;
+        padding: 12px;
+        background: var(--Acento);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 6px;
+      }
+
+      .Auth_Btn_Principal:hover {
+        filter: brightness(1.1);
+      }
+
+      .Auth_Btn_Principal:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .Auth_Cambiar_Modo {
+        text-align: center;
+        margin-top: 16px;
+        font-size: 13px;
+        color: var(--Texto_Suave);
+      }
+
+      .Auth_Cambiar_Modo a {
+        color: var(--Acento);
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .Auth_Cambiar_Modo a:hover {
+        text-decoration: underline;
+      }
+
+      .Auth_Mensaje {
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-size: 12px;
+        text-align: center;
+        display: none;
+      }
+
+      .Auth_Mensaje.Activo {
+        display: block;
+      }
+
+      .Auth_Mensaje.Error {
+        background: #fde8ea;
+        color: #9b2040;
+        border: 1px solid #e8b8c0;
+      }
+
+      .Auth_Mensaje.Exito {
+        background: #d7ece8;
+        color: #0f5f5a;
+        border: 1px solid #b8d6d2;
+      }
+
+      /* --- Indicador de sincronización --- */
+      .Sync_Indicador {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        color: var(--Texto_Suave);
+        padding: 0 8px;
+        height: 32px;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+
+      .Sync_Punto {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #6cb56c;
+      }
+
+      .Sync_Indicador.Guardando .Sync_Punto {
+        background: #c9a800;
+        animation: Sync_Pulse 1s ease-in-out infinite;
+      }
+
+      .Sync_Indicador.Error .Sync_Punto {
+        background: #c0392b;
+      }
+
+      @keyframes Sync_Pulse {
+        0%, 100% { opacity: 1; }
+        50%      { opacity: 0.4; }
+      }
+
+      /* Loader inicial */
+      .App_Loader {
+        position: fixed;
+        inset: 0;
+        background: var(--Fondo);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9995;
+        font-size: 16px;
+        color: var(--Texto_Suave);
+      }
+
+      .App_Loader.Oculto {
+        display: none;
+      }
     </style>
   </head>
   <body>
+    <!-- Loader inicial mientras se verifica sesión -->
+    <div class="App_Loader" id="App_Loader">Cargando...</div>
+
+    <!-- Pantalla de autenticación -->
+    <div class="Auth_Overlay" id="Auth_Overlay">
+      <div class="Auth_Panel">
+        <div class="Auth_Logo">🕒</div>
+        <h1 class="Auth_Titulo" id="Auth_Titulo">Timeblock</h1>
+        <p class="Auth_Subtitulo" id="Auth_Subtitulo">
+          Iniciá sesión para continuar
+        </p>
+
+        <form id="Auth_Form" autocomplete="on">
+          <div class="Auth_Campo">
+            <label for="Auth_Email">Email</label>
+            <input
+              class="Auth_Input"
+              id="Auth_Email"
+              type="email"
+              required
+              autocomplete="email"
+              placeholder="tu@email.com"
+            />
+          </div>
+          <div class="Auth_Campo">
+            <label for="Auth_Password">Contraseña</label>
+            <input
+              class="Auth_Input"
+              id="Auth_Password"
+              type="password"
+              required
+              autocomplete="current-password"
+              minlength="6"
+              placeholder="Mínimo 6 caracteres"
+            />
+          </div>
+
+          <button
+            class="Auth_Btn_Principal"
+            id="Auth_Btn_Submit"
+            type="submit"
+          >Iniciar sesión</button>
+        </form>
+
+        <div
+          class="Auth_Mensaje"
+          id="Auth_Mensaje"
+        ></div>
+
+        <div class="Auth_Cambiar_Modo">
+          <span id="Auth_Cambiar_Texto">¿No tenés cuenta?</span>
+          <a id="Auth_Cambiar_Link">Crear cuenta</a>
+        </div>
+
+        <div
+          class="Auth_Cambiar_Modo"
+          style="margin-top:8px;font-size:12px"
+        >
+          <a id="Auth_Olvide">Olvidé mi contraseña</a>
+        </div>
+      </div>
+    </div>
+
     <div class="App_Contenedor">
       <section class="Panel Panel_Lateral">
         <div class="Panel_Cuerpo">
@@ -2831,7 +3094,15 @@
               title="Ir a hoy"
             >Hoy</button>
           </div>
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:6px;align-items:center">
+            <span
+              class="Sync_Indicador"
+              id="Sync_Indicador"
+              title="Estado de sincronización"
+            >
+              <span class="Sync_Punto"></span>
+              <span id="Sync_Texto">Guardado</span>
+            </span>
             <button
               class="Config_Boton"
               id="Resumen_Sem_Boton"
@@ -3030,6 +3301,23 @@
                 margin:6px 0 0">
                 Exporta tareas, eventos, patrones y config a JSON.
               </p>
+            </div>
+
+            <div class="Config_Seccion">
+              <p class="Config_Seccion_Titulo">Cuenta</p>
+              <div class="Config_Fila">
+                <span class="Config_Label" id="Cfg_Email_Usuario"
+                  style="font-size:12px"
+                >—</span>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button
+                  type="button"
+                  id="Cfg_Cerrar_Sesion"
+                  class="Config_Cat_Btn"
+                  style="padding:6px 14px;font-size:13px"
+                >Cerrar sesión</button>
+              </div>
             </div>
 
             <div class="Config_Seccion">
@@ -6280,7 +6568,28 @@
             alert("Archivo inválido: faltan Tareas o Eventos.");
             return;
           }
+          // Guardar en localStorage como caché.
           localStorage.setItem(Clave_Local, Texto);
+          // Si hay sesión activa, subir a Supabase ANTES de
+          // recargar (sino el reload pisa el import con lo
+          // que haya en remoto).
+          if (Supa && Usuario_Actual) {
+            try {
+              const { error } = await Supa
+                .from("estado_usuario")
+                .upsert({
+                  user_id: Usuario_Actual.id,
+                  estado: Obj
+                });
+              if (error) throw error;
+            } catch (E) {
+              alert(
+                "Error subiendo el import a la nube: " +
+                E.message
+              );
+              return;
+            }
+          }
           location.reload();
         } catch (Err) {
           alert("Error importando: " + Err.message);
@@ -8098,8 +8407,9 @@
         El_Mostrar_Creador.classList.remove("Oculto");
       }
 
-      function Guardar_Estado() {
-        localStorage.setItem(Clave_Local, JSON.stringify({
+      function Construir_Estado_Completo() {
+        // Construye el blob de estado completo para serializar.
+        return {
           Tareas,
           Eventos,
           Slots_Muertos,
@@ -8135,7 +8445,17 @@
           Slots_Muertos_Tipos,
           Abordajes_Migrados_V1: true,
           Semanas_Con_Defaults: Array.from(Semanas_Con_Defaults)
-        }));
+        };
+      }
+
+      function Guardar_Estado() {
+        // 1) Persistir en localStorage como caché inmediato.
+        const Estado = Construir_Estado_Completo();
+        localStorage.setItem(Clave_Local, JSON.stringify(Estado));
+        // 2) Disparar sync con Supabase (con debounce).
+        if (typeof Backend_Sync_Programar === "function") {
+          Backend_Sync_Programar();
+        }
       }
 
       function Cargar_Estado() {
@@ -9325,6 +9645,13 @@
 
         if (El_Overlay) El_Overlay.classList.add("Activo");
 
+        // Si el editor está abierto, el resumen se oculta para
+        // que ambos paneles no se solapen dentro del modal.
+        if (Modo_Editor_Abierto) {
+          El_Resumen_Tarea.classList.add("Oculto");
+          return;
+        }
+
         const Horas_Restantes = Calcular_Horas_Restantes(Tarea);
         El_Resumen_Tarea.classList.remove("Oculto");
         El_Resumen_Nombre.textContent = Tarea.Nombre || "Sin nombre";
@@ -10470,6 +10797,9 @@
         if (!Tarea_Seleccionada()) return;
         Modo_Editor_Abierto = true;
         Datos_Editor_Borrador = Obtener_Datos_Tarea(Tarea_Seleccionada());
+        // Re-renderizar también el resumen para que se oculte
+        // cuando el editor pasa a estar abierto.
+        Render_Resumen_Tarea();
         Render_Editor();
         Guardar_Estado();
       });
@@ -10892,7 +11222,420 @@
         );
       }
 
-      Inicializar();
+      // ============================================================
+      //  BACKEND: Supabase + autenticación + sincronización
+      // ============================================================
+
+      const Supabase_Url =
+        "https://cprdnxkkhuuhdispubds.supabase.co";
+      const Supabase_Anon_Key =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" +
+        ".eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwcmRueGtraHV1aGRpc3" +
+        "B1YmRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NzgxMTQsImV4" +
+        "cCI6MjA5MTE1NDExNH0" +
+        ".lKLesAkMG4zUzaD6urbNDnmcC3vOL7VNeTGDwoTaDTI";
+
+      // Cliente de Supabase (se inicializa al cargar la página).
+      let Supa = null;
+      // Usuario actualmente logueado (objeto de Supabase).
+      let Usuario_Actual = null;
+      // Timer del debounce de sincronización.
+      let Sync_Timer_Id = null;
+      // Estado actual del indicador de sync.
+      let Sync_Estado = "Guardado";
+      // Flag para evitar guardados durante la carga inicial.
+      let Cargando_Inicial = true;
+
+      function Inicializar_Supabase() {
+        // Crea el cliente de Supabase usando el SDK del CDN.
+        if (!window.supabase || !window.supabase.createClient) {
+          alert(
+            "No se pudo cargar el SDK de Supabase. " +
+            "Verificá tu conexión a internet."
+          );
+          return false;
+        }
+        Supa = window.supabase.createClient(
+          Supabase_Url,
+          Supabase_Anon_Key,
+          { auth: { persistSession: true } }
+        );
+        return true;
+      }
+
+      // ----- Indicador visual de sincronización -----
+
+      function Actualizar_Sync_Indicador(Estado_Nuevo) {
+        Sync_Estado = Estado_Nuevo;
+        const El = document.getElementById("Sync_Indicador");
+        const Tx = document.getElementById("Sync_Texto");
+        if (!El || !Tx) return;
+        El.classList.remove("Guardando", "Error");
+        if (Estado_Nuevo === "Guardando") {
+          El.classList.add("Guardando");
+          Tx.textContent = "Guardando...";
+        } else if (Estado_Nuevo === "Error") {
+          El.classList.add("Error");
+          Tx.textContent = "Error al guardar";
+        } else {
+          Tx.textContent = "Guardado";
+        }
+      }
+
+      // ----- Sincronización con Supabase -----
+
+      function Backend_Sync_Programar() {
+        // Debounce: se acumulan cambios y a los 2s se manda uno.
+        if (Cargando_Inicial) return;
+        if (!Usuario_Actual) return;
+        if (Sync_Timer_Id) clearTimeout(Sync_Timer_Id);
+        Actualizar_Sync_Indicador("Guardando");
+        Sync_Timer_Id = setTimeout(
+          Backend_Sync_Ejecutar, 2000
+        );
+      }
+
+      async function Backend_Sync_Ejecutar() {
+        if (!Supa || !Usuario_Actual) return;
+        try {
+          const Estado = Construir_Estado_Completo();
+          const { error } = await Supa
+            .from("estado_usuario")
+            .upsert({
+              user_id: Usuario_Actual.id,
+              estado: Estado
+            });
+          if (error) throw error;
+          Actualizar_Sync_Indicador("Guardado");
+        } catch (E) {
+          console.error("Error sincronizando:", E);
+          Actualizar_Sync_Indicador("Error");
+        }
+      }
+
+      async function Backend_Cargar_Estado_Remoto() {
+        // Trae el estado del usuario desde Supabase y lo aplica.
+        // Devuelve true si encontró estado, false si no.
+        if (!Supa || !Usuario_Actual) return false;
+        try {
+          const { data, error } = await Supa
+            .from("estado_usuario")
+            .select("estado")
+            .eq("user_id", Usuario_Actual.id)
+            .maybeSingle();
+          if (error) throw error;
+          if (!data || !data.estado) return false;
+          if (
+            !data.estado.Tareas ||
+            !Array.isArray(data.estado.Tareas)
+          ) {
+            return false;
+          }
+          // Sobrescribir localStorage con el estado remoto.
+          localStorage.setItem(
+            Clave_Local, JSON.stringify(data.estado)
+          );
+          return true;
+        } catch (E) {
+          console.error("Error cargando estado:", E);
+          return false;
+        }
+      }
+
+      // ----- Migración del localStorage viejo -----
+
+      async function Backend_Migrar_Local_A_Cuenta() {
+        // Si hay datos en localStorage pero el estado remoto
+        // está vacío, ofrece subirlos a la cuenta.
+        if (!Supa || !Usuario_Actual) return;
+        const Raw = localStorage.getItem(Clave_Local);
+        if (!Raw) return;
+        try {
+          const Local = JSON.parse(Raw);
+          if (
+            !Local.Tareas ||
+            !Array.isArray(Local.Tareas) ||
+            Local.Tareas.length === 0
+          ) {
+            return;
+          }
+          // Verificar si la cuenta ya tiene estado.
+          const { data } = await Supa
+            .from("estado_usuario")
+            .select("estado")
+            .eq("user_id", Usuario_Actual.id)
+            .maybeSingle();
+          if (data && data.estado &&
+              Array.isArray(data.estado.Tareas) &&
+              data.estado.Tareas.length > 0) {
+            // La cuenta ya tiene datos, no migrar.
+            return;
+          }
+          // La cuenta está vacía y hay datos locales: subir.
+          const Confirmar = confirm(
+            "Encontramos datos guardados en este navegador.\n\n" +
+            "¿Querés importarlos a tu cuenta?\n\n" +
+            "(Si decís que no, los datos locales se mantienen " +
+            "pero no se sincronizarán con tu cuenta.)"
+          );
+          if (!Confirmar) return;
+          await Supa.from("estado_usuario").upsert({
+            user_id: Usuario_Actual.id,
+            estado: Local
+          });
+        } catch (E) {
+          console.error("Error en migración:", E);
+        }
+      }
+
+      // ----- UI de autenticación -----
+
+      let Auth_Modo = "Login"; // "Login" o "Registro"
+
+      function Mostrar_Auth() {
+        document.getElementById("App_Loader")
+          .classList.add("Oculto");
+        document.getElementById("Auth_Overlay")
+          .classList.add("Activo");
+        document.getElementById("Auth_Email").focus();
+      }
+
+      function Ocultar_Auth() {
+        document.getElementById("Auth_Overlay")
+          .classList.remove("Activo");
+      }
+
+      function Configurar_Auth_UI() {
+        const Tit = document.getElementById("Auth_Titulo");
+        const Sub = document.getElementById("Auth_Subtitulo");
+        const Btn = document.getElementById("Auth_Btn_Submit");
+        const Tx = document.getElementById("Auth_Cambiar_Texto");
+        const Lk = document.getElementById("Auth_Cambiar_Link");
+        const Pw = document.getElementById("Auth_Password");
+        if (Auth_Modo === "Login") {
+          Tit.textContent = "Timeblock";
+          Sub.textContent = "Iniciá sesión para continuar";
+          Btn.textContent = "Iniciar sesión";
+          Tx.textContent = "¿No tenés cuenta?";
+          Lk.textContent = "Crear cuenta";
+          Pw.setAttribute("autocomplete", "current-password");
+        } else {
+          Tit.textContent = "Crear cuenta";
+          Sub.textContent = "Empezá a usar Timeblock gratis";
+          Btn.textContent = "Crear cuenta";
+          Tx.textContent = "¿Ya tenés cuenta?";
+          Lk.textContent = "Iniciar sesión";
+          Pw.setAttribute("autocomplete", "new-password");
+        }
+        Mostrar_Auth_Mensaje("");
+      }
+
+      function Mostrar_Auth_Mensaje(Texto, Tipo = "Error") {
+        const El = document.getElementById("Auth_Mensaje");
+        if (!El) return;
+        if (!Texto) {
+          El.classList.remove("Activo", "Error", "Exito");
+          El.textContent = "";
+          return;
+        }
+        El.classList.add("Activo");
+        El.classList.toggle("Error", Tipo === "Error");
+        El.classList.toggle("Exito", Tipo === "Exito");
+        El.textContent = Texto;
+      }
+
+      async function Auth_Manejar_Submit(Ev) {
+        Ev.preventDefault();
+        const Email = document.getElementById("Auth_Email")
+          .value.trim();
+        const Pass = document.getElementById("Auth_Password")
+          .value;
+        const Btn = document.getElementById("Auth_Btn_Submit");
+        if (!Email || !Pass) return;
+        Btn.disabled = true;
+        Mostrar_Auth_Mensaje("");
+
+        try {
+          let Resultado;
+          if (Auth_Modo === "Login") {
+            Resultado = await Supa.auth
+              .signInWithPassword({ email: Email, password: Pass });
+          } else {
+            Resultado = await Supa.auth
+              .signUp({ email: Email, password: Pass });
+          }
+
+          if (Resultado.error) {
+            Mostrar_Auth_Mensaje(
+              Traducir_Error_Auth(Resultado.error.message)
+            );
+            Btn.disabled = false;
+            return;
+          }
+
+          if (
+            Auth_Modo === "Registro" &&
+            !Resultado.data.session
+          ) {
+            // Registro con confirmación por mail activada.
+            Mostrar_Auth_Mensaje(
+              "Cuenta creada. Revisá tu email para confirmar.",
+              "Exito"
+            );
+            Btn.disabled = false;
+            return;
+          }
+
+          // Login exitoso o registro sin confirmación.
+          Usuario_Actual = Resultado.data.user;
+          Btn.disabled = false;
+          await Iniciar_App_Logueada();
+        } catch (E) {
+          console.error("Error de auth:", E);
+          Mostrar_Auth_Mensaje("Error inesperado: " + E.message);
+          Btn.disabled = false;
+        }
+      }
+
+      async function Auth_Olvide_Password() {
+        const Email = document.getElementById("Auth_Email")
+          .value.trim();
+        if (!Email) {
+          Mostrar_Auth_Mensaje(
+            "Escribí tu email arriba primero."
+          );
+          return;
+        }
+        try {
+          const { error } = await Supa.auth
+            .resetPasswordForEmail(Email);
+          if (error) {
+            Mostrar_Auth_Mensaje(
+              Traducir_Error_Auth(error.message)
+            );
+            return;
+          }
+          Mostrar_Auth_Mensaje(
+            "Te enviamos un mail para recuperar tu contraseña.",
+            "Exito"
+          );
+        } catch (E) {
+          Mostrar_Auth_Mensaje("Error: " + E.message);
+        }
+      }
+
+      function Traducir_Error_Auth(Msg) {
+        const M = (Msg || "").toLowerCase();
+        if (M.includes("invalid login")) {
+          return "Email o contraseña incorrectos.";
+        }
+        if (M.includes("email not confirmed")) {
+          return "Falta confirmar tu email. Revisá tu bandeja.";
+        }
+        if (M.includes("user already registered")) {
+          return "Ya existe una cuenta con ese email.";
+        }
+        if (M.includes("password should be at least")) {
+          return "La contraseña debe tener al menos 6 caracteres.";
+        }
+        if (M.includes("invalid email")) {
+          return "Email inválido.";
+        }
+        return "Error: " + Msg;
+      }
+
+      async function Cerrar_Sesion() {
+        if (!Supa) return;
+        const Confirmar = confirm("¿Cerrar sesión?");
+        if (!Confirmar) return;
+        // Forzar último sync pendiente antes de salir.
+        if (Sync_Timer_Id) {
+          clearTimeout(Sync_Timer_Id);
+          await Backend_Sync_Ejecutar();
+        }
+        await Supa.auth.signOut();
+        location.reload();
+      }
+
+      // ----- Inicio de la app después de loguear -----
+
+      async function Iniciar_App_Logueada() {
+        // 1) Migrar datos del localStorage si corresponde.
+        await Backend_Migrar_Local_A_Cuenta();
+
+        // 2) Cargar el estado remoto a localStorage.
+        const Habia_Remoto = await Backend_Cargar_Estado_Remoto();
+
+        // 3) Ocultar pantalla de login y mostrar la app.
+        Ocultar_Auth();
+        document.getElementById("App_Loader")
+          .classList.add("Oculto");
+
+        // 4) Mostrar email del usuario en Config.
+        const El_Email = document.getElementById(
+          "Cfg_Email_Usuario"
+        );
+        if (El_Email && Usuario_Actual) {
+          El_Email.textContent = Usuario_Actual.email;
+        }
+
+        // 5) Llamar al Inicializar original (carga estado).
+        Cargando_Inicial = true;
+        Inicializar();
+        Cargando_Inicial = false;
+
+        Actualizar_Sync_Indicador("Guardado");
+
+        // 6) Si era usuario nuevo (sin estado remoto previo),
+        // forzar un primer guardado para crear su fila.
+        if (!Habia_Remoto) {
+          await Backend_Sync_Ejecutar();
+        }
+      }
+
+      // ----- Bootstrap: punto de entrada de la app -----
+
+      async function Bootstrap() {
+        if (!Inicializar_Supabase()) return;
+
+        // Listener del formulario de auth.
+        document.getElementById("Auth_Form")
+          .addEventListener("submit", Auth_Manejar_Submit);
+        document.getElementById("Auth_Cambiar_Link")
+          .addEventListener("click", () => {
+            Auth_Modo = Auth_Modo === "Login"
+              ? "Registro" : "Login";
+            Configurar_Auth_UI();
+          });
+        document.getElementById("Auth_Olvide")
+          .addEventListener("click", Auth_Olvide_Password);
+        Configurar_Auth_UI();
+
+        // Listener del botón cerrar sesión.
+        const Btn_Cerrar = document.getElementById(
+          "Cfg_Cerrar_Sesion"
+        );
+        if (Btn_Cerrar) {
+          Btn_Cerrar.addEventListener("click", Cerrar_Sesion);
+        }
+
+        // Verificar si hay sesión activa.
+        const { data: { session } } =
+          await Supa.auth.getSession();
+        if (session && session.user) {
+          Usuario_Actual = session.user;
+          await Iniciar_App_Logueada();
+        } else {
+          // No hay sesión: mostrar pantalla de login.
+          Mostrar_Auth();
+        }
+      }
+
+      // Listener para refresh de sesión (si expira el token).
+      // Se atacha cuando ya inicializamos Supa.
+      window.addEventListener("DOMContentLoaded", () => {
+        Bootstrap();
+      });
     </script>
   </body>
 </html>
