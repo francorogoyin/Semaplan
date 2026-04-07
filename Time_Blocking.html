@@ -11345,46 +11345,56 @@
       // ----- Migración del localStorage viejo -----
 
       async function Backend_Migrar_Local_A_Cuenta() {
-        // Si hay datos en localStorage pero el estado remoto
-        // está vacío, ofrece subirlos a la cuenta.
+        // Sube el localStorage a Supabase si la cuenta está vacía.
         if (!Supa || !Usuario_Actual) return;
         const Raw = localStorage.getItem(Clave_Local);
-        if (!Raw) return;
+        if (!Raw) {
+          console.log("[Migración] Sin localStorage, nada que migrar.");
+          return;
+        }
         try {
           const Local = JSON.parse(Raw);
-          if (
-            !Local.Tareas ||
-            !Array.isArray(Local.Tareas) ||
-            Local.Tareas.length === 0
-          ) {
-            return;
-          }
-          // Verificar si la cuenta ya tiene estado.
-          const { data } = await Supa
+          const Cantidad = Array.isArray(Local.Tareas)
+            ? Local.Tareas.length : 0;
+          console.log("[Migración] localStorage tiene", Cantidad, "tareas.");
+          if (Cantidad === 0) return;
+
+          // Verificar si la cuenta ya tiene estado con tareas.
+          const { data, error } = await Supa
             .from("estado_usuario")
             .select("estado")
             .eq("user_id", Usuario_Actual.id)
             .maybeSingle();
-          if (data && data.estado &&
-              Array.isArray(data.estado.Tareas) &&
-              data.estado.Tareas.length > 0) {
-            // La cuenta ya tiene datos, no migrar.
+
+          if (error) {
+            console.error("[Migración] Error consultando remoto:", error);
             return;
           }
-          // La cuenta está vacía y hay datos locales: subir.
-          const Confirmar = confirm(
-            "Encontramos datos guardados en este navegador.\n\n" +
-            "¿Querés importarlos a tu cuenta?\n\n" +
-            "(Si decís que no, los datos locales se mantienen " +
-            "pero no se sincronizarán con tu cuenta.)"
-          );
-          if (!Confirmar) return;
-          await Supa.from("estado_usuario").upsert({
-            user_id: Usuario_Actual.id,
-            estado: Local
-          });
+
+          const Tiene_Remoto = data &&
+            data.estado &&
+            Array.isArray(data.estado.Tareas) &&
+            data.estado.Tareas.length > 0;
+
+          console.log("[Migración] Tiene estado remoto:", Tiene_Remoto);
+
+          if (Tiene_Remoto) return;
+
+          // Subir localStorage a la cuenta.
+          console.log("[Migración] Subiendo localStorage a Supabase...");
+          const { error: Err_Upsert } = await Supa
+            .from("estado_usuario")
+            .upsert({
+              user_id: Usuario_Actual.id,
+              estado: Local
+            });
+          if (Err_Upsert) {
+            console.error("[Migración] Error subiendo:", Err_Upsert);
+          } else {
+            console.log("[Migración] Migración completada.");
+          }
         } catch (E) {
-          console.error("Error en migración:", E);
+          console.error("[Migración] Error:", E);
         }
       }
 
