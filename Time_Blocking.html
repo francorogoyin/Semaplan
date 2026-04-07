@@ -11360,6 +11360,20 @@
           console.log("[Migración] localStorage tiene", Cantidad, "tareas.");
           if (Cantidad === 0) return;
 
+          // No migrar si son exactamente las tareas demo de inicio.
+          const Nombres_Demo = new Set(
+            ["Proyecto foco", "Entrenamiento", "Llamadas"]
+          );
+          const Son_Demo =
+            Cantidad === 3 &&
+            Local.Tareas.every(
+              (T) => Nombres_Demo.has(T.Nombre)
+            );
+          if (Son_Demo) {
+            console.log("[Migración] Son tareas demo, no migrar.");
+            return;
+          }
+
           // Verificar si la cuenta ya tiene estado con tareas.
           const { data, error } = await Supa
             .from("estado_usuario")
