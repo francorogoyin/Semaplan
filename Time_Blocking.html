@@ -3114,6 +3114,7 @@
             <button class="Config_Boton" id="Patron_Boton" type="button" title="Aplicar patrón semanal">📋</button>
             <button class="Config_Boton" id="Limpiar_Semana_Boton" type="button" title="Limpiar semana">🧹</button>
             <button class="Config_Boton" id="Config_Abrir" type="button" title="Configuración">&#9881;</button>
+            <button class="Config_Boton" id="Logout_Boton" type="button" title="Cerrar sesión" style="font-size:13px">↪</button>
           </div>
         </div>
 
@@ -11556,7 +11557,21 @@
 
       async function Cerrar_Sesion() {
         if (!Supa) return;
-        const Confirmar = confirm("¿Cerrar sesión?");
+        const Confirmar = await Mostrar_Dialogo(
+          "¿Cerrar sesión?",
+          [
+            {
+              Etiqueta: "Cerrar sesión",
+              Valor: true,
+              Tipo: "Peligro"
+            },
+            {
+              Etiqueta: "Cancelar",
+              Valor: false,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
         if (!Confirmar) return;
         // Forzar último sync pendiente antes de salir.
         if (Sync_Timer_Id) {
@@ -11621,12 +11636,16 @@
           .addEventListener("click", Auth_Olvide_Password);
         Configurar_Auth_UI();
 
-        // Listener del botón cerrar sesión.
+        // Listeners de cerrar sesión (Config + barra superior).
         const Btn_Cerrar = document.getElementById(
           "Cfg_Cerrar_Sesion"
         );
         if (Btn_Cerrar) {
           Btn_Cerrar.addEventListener("click", Cerrar_Sesion);
+        }
+        const Btn_Logout = document.getElementById("Logout_Boton");
+        if (Btn_Logout) {
+          Btn_Logout.addEventListener("click", Cerrar_Sesion);
         }
 
         // Verificar si hay sesión activa.
