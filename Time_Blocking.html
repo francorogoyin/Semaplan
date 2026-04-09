@@ -707,7 +707,7 @@
       .Semana_Navegacion {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 14px;
       }
 
       .Semana_Boton {
@@ -746,11 +746,69 @@
       }
 
       .Semana_Label {
-        min-width: 148px;
-        font-size: 13px;
-        font-weight: 700;
+        min-width: 132px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+      }
+
+      .Semana_Principal_Fila {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        min-height: 42px;
+      }
+
+      .Semana_Contador {
+        font-size: 19px;
+        font-weight: 800;
         text-align: center;
         color: var(--Texto);
+        line-height: 1.1;
+        letter-spacing: -0.01em;
+      }
+
+      .Semana_Rango {
+        font-size: 11px;
+        font-weight: 600;
+        text-align: center;
+        color: var(--Texto_Suave);
+        line-height: 1.1;
+      }
+
+      .Semana_Porcentaje {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 24px;
+        padding: 0 10px 0 8px;
+        border-radius: 999px;
+        border: 1px solid var(--Semana_Pct_Borde, #d8cdbd);
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.78),
+            rgba(255, 255, 255, 0.18)
+          ),
+          var(--Semana_Pct_Fondo, #efe3d1);
+        color: var(--Semana_Pct_Texto, #6b4e2f);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
+        align-self: center;
+      }
+
+      .Semana_Porcentaje::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.72;
       }
 
       .Calendario_Config {
@@ -2113,6 +2171,691 @@
         flex: 1;
       }
 
+      .Selector_Etiquetas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .Selector_Etiquetas_Vacio {
+        font-size: 12px;
+        color: var(--Texto_Suave);
+      }
+
+      .Etiqueta_Chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--Borde);
+        background: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+      }
+
+      .Etiqueta_Chip input {
+        display: none;
+      }
+
+      .Etiqueta_Chip.Activa {
+        border-color: var(--Acento);
+        background: var(--Acento_Suave);
+        color: var(--Acento);
+      }
+
+      .Etiquetas_Linea {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .Etiqueta_Badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #f3efe8;
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .Baul_Panel {
+        position: relative;
+        width: min(1220px, calc(100vw - 28px));
+        max-width: 1220px;
+        max-height: min(90vh, 960px);
+      }
+
+      .Baul_Cuerpo {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding-top: 20px;
+        padding-right: 54px;
+      }
+
+      .Baul_Cerrar_Flotante {
+        position: absolute;
+        top: 16px;
+        right: 18px;
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.94);
+        color: var(--Texto_Suave);
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        z-index: 2;
+      }
+
+      .Baul_Mensaje {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: #e8f3ef;
+        border: 1px solid #bdd7cb;
+        color: #215847;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .Baul_Barra_Superior {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-end;
+        justify-content: space-between;
+      }
+
+      .Baul_Filtros {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fit,
+          minmax(138px, 1fr)
+        );
+        gap: 12px;
+        flex: 1 1 860px;
+      }
+
+      .Baul_Campo_Boton {
+        justify-content: flex-end;
+      }
+
+      .Baul_Campo_Boton label {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .Baul_Accion_Btn_Icono {
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        border-radius: 14px;
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .Baul_Vistas {
+        display: inline-flex;
+        gap: 6px;
+        padding: 5px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.05);
+        align-self: flex-start;
+      }
+
+      .Baul_Vista_Btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 8px 12px;
+        background: transparent;
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .Baul_Vista_Btn.Activa {
+        background: #fff;
+        color: var(--Texto);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      }
+
+      .Baul_Contexto_Barra {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 16px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .Baul_Contexto_Datos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        min-width: 0;
+      }
+
+      .Baul_Contexto_Titulo {
+        font-size: 14px;
+        font-weight: 900;
+        color: var(--Texto);
+      }
+
+      .Baul_Contexto_Conteo {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--Texto_Suave);
+      }
+
+      .Baul_Filtros_Check {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--Texto_Suave);
+      }
+
+      .Baul_Contenido {
+        display: grid;
+        grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.95fr);
+        gap: 18px;
+        min-height: 0;
+      }
+
+      .Baul_Contenido.Sin_Detalle {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .Baul_Libreria,
+      .Baul_Detalle {
+        border-radius: 20px;
+        border: 1px solid var(--Borde);
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.9),
+            rgba(255, 255, 255, 0.72)
+          );
+        min-height: 0;
+        height: min(64vh, 720px);
+        overflow: hidden;
+      }
+
+      .Baul_Libreria {
+        padding: 12px;
+        display: flex;
+      }
+
+      .Baul_Lista {
+        --Baul-Tareas-Por-Fila: 5;
+        display: grid;
+        grid-template-columns: repeat(
+          var(--Baul-Tareas-Por-Fila),
+          minmax(0, 1fr)
+        );
+        gap: 10px;
+        align-content: start;
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding-right: 4px;
+      }
+
+      .Baul_Lista.Lista {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .Baul_Card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 136px;
+        padding: 10px 10px 12px;
+        border-radius: 18px;
+        border: 1px solid var(--Borde);
+        background:
+          radial-gradient(
+            circle at top,
+            rgba(255, 255, 255, 0.95),
+            rgba(245, 239, 229, 0.94)
+          );
+        cursor: pointer;
+        transition:
+          transform 140ms ease,
+          box-shadow 140ms ease,
+          border-color 140ms ease;
+        overflow: hidden;
+      }
+
+      .Baul_Card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      }
+
+      .Baul_Card.Activa {
+        border-color: var(--Acento);
+        box-shadow: 0 0 0 3px rgba(15, 95, 90, 0.14);
+        min-height: 168px;
+      }
+
+      .Baul_Card.Archivada {
+        opacity: 0.68;
+      }
+
+      .Baul_Card_Top {
+        display: flex;
+        justify-content: flex-end;
+        min-height: 12px;
+      }
+
+      .Baul_Estado_Punto {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        color: var(--Baul-Estado-Texto, #6c5f50);
+        background: currentColor;
+        box-shadow:
+          0 0 0 3px rgba(255, 255, 255, 0.78),
+          0 0 0 1px rgba(31, 31, 31, 0.08);
+      }
+
+      .Baul_Card_Cuerpo {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 0;
+        align-items: center;
+        text-align: center;
+      }
+
+      .Baul_Card_Emoji {
+        width: 58px;
+        height: 58px;
+        border-radius: 17px;
+        border: 1px solid #ddd4c7;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.78),
+            rgba(255, 255, 255, 0.2)
+          ),
+          #efe7da;
+        display: grid;
+        place-items: center;
+        font-size: 30px;
+        flex-shrink: 0;
+      }
+
+      .Baul_Card_Nombre {
+        font-size: 14px;
+        font-weight: 900;
+        line-height: 1.16;
+        color: var(--Texto);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-width: 100%;
+      }
+
+      .Baul_Estado_Marca {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.74);
+        border: 1px solid var(--Baul-Estado-Borde, #d7cfc2);
+        color: var(--Baul-Estado-Texto, #6c5f50);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .Baul_Estado_Marca::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.82;
+      }
+
+      .Baul_Card_Meta,
+      .Baul_Card_Etiquetas,
+      .Baul_Fila_Meta {
+        display: none;
+      }
+
+      .Baul_Card_Meta,
+      .Baul_Card_Etiquetas {
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: center;
+      }
+
+      .Baul_Card.Activa .Baul_Card_Meta,
+      .Baul_Card.Activa .Baul_Card_Etiquetas {
+        display: flex;
+      }
+
+      .Baul_Pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+      }
+
+      .Baul_Pill_Tipo {
+        background: #efebe4;
+        color: #66594a;
+      }
+
+      .Baul_Pill_Categoria {
+        background: #f7f2ea;
+        color: #7b6c5b;
+      }
+
+      .Baul_Pill_Estado_Activa {
+        background: #efebe4;
+        color: #66594a;
+      }
+
+      .Baul_Pill_Estado_Realizada {
+        background: #dcefe5;
+        color: #1e6a4f;
+      }
+
+      .Baul_Pill_Estado_Postergada {
+        background: #f8e7d0;
+        color: #9a6221;
+      }
+
+      .Baul_Pill_Estado_Anulada {
+        background: #f4d9d8;
+        color: #8b2c2c;
+      }
+
+      .Baul_Card_Etiquetas {
+        justify-content: center;
+      }
+
+      .Baul_Fila {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 11px 12px;
+        border-radius: 16px;
+        border: 1px solid var(--Borde);
+        background: rgba(255, 255, 255, 0.84);
+        cursor: pointer;
+      }
+
+      .Baul_Fila:hover {
+        background: rgba(255, 255, 255, 1);
+      }
+
+      .Baul_Fila.Activa {
+        border-color: var(--Acento);
+        box-shadow: 0 0 0 3px rgba(15, 95, 90, 0.12);
+      }
+
+      .Baul_Fila.Archivada {
+        opacity: 0.68;
+      }
+
+      .Baul_Fila_Emoji {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        border: 1px solid #ddd4c7;
+        background: #f1ece3;
+        display: grid;
+        place-items: center;
+        font-size: 22px;
+        flex-shrink: 0;
+      }
+
+      .Baul_Fila_Textos {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .Baul_Fila_Nombre {
+        font-size: 14px;
+        font-weight: 900;
+        color: var(--Texto);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .Baul_Fila.Activa .Baul_Fila_Meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .Baul_Detalle {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .Baul_Detalle.Oculto {
+        display: none;
+      }
+
+      .Baul_Detalle_Scroll {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding-right: 4px;
+      }
+
+      .Baul_Detalle_Head {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--Borde);
+      }
+
+      .Baul_Detalle_Preview {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .Baul_Detalle_Emoji {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        border: 1px solid #ddd4c7;
+        background: #efe8db;
+        display: grid;
+        place-items: center;
+        font-size: 32px;
+        flex-shrink: 0;
+      }
+
+      .Baul_Detalle_Kicker {
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--Texto_Suave);
+      }
+
+      .Baul_Detalle_Titulo {
+        margin-top: 2px;
+        font-size: 18px;
+        font-weight: 900;
+        line-height: 1.2;
+        color: var(--Texto);
+      }
+
+      .Baul_Detalle_Subtitulo {
+        margin-top: 5px;
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--Texto_Suave);
+      }
+
+      .Baul_Detalle_Acciones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .Baul_Detalle_Cerrar {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--Texto_Suave);
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .Baul_Form_Grid {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fit,
+          minmax(150px, 1fr)
+        );
+        gap: 12px;
+      }
+
+      .Baul_Acciones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .Baul_Accion_Btn {
+        border: 0;
+        border-radius: 10px;
+        padding: 8px 10px;
+        background: rgba(0, 0, 0, 0.06);
+        color: var(--Texto);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .Baul_Accion_Btn_Primario {
+        background: var(--Acento);
+        color: #fff;
+      }
+
+      .Baul_Accion_Btn_Peligro {
+        background: #f2d8d7;
+        color: #852d2d;
+      }
+
+      .Baul_Accion_Btn:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+
+      .Baul_Vacio {
+        padding: 16px;
+        border: 1px dashed var(--Borde);
+        border-radius: 14px;
+        color: var(--Texto_Suave);
+        font-size: 13px;
+        text-align: center;
+        grid-column: 1 / -1;
+      }
+
+      .Baul_Semanas_Lista {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 260px;
+        overflow: auto;
+        padding-right: 4px;
+      }
+
+      .Baul_Semana_Fila {
+        display: grid;
+        grid-template-columns: 90px 1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .Baul_Semana_Fila.Rango {
+        grid-template-columns: 90px 1fr 1fr auto;
+      }
+
+      .Baul_Semana_Tipo {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--Texto_Suave);
+      }
+
+      .Baul_Semanas_Acciones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      @media (max-width: 720px) {
+        .Baul_Cuerpo {
+          padding-right: 16px;
+        }
+
+        .Baul_Contenido,
+        .Baul_Semana_Fila,
+        .Baul_Semana_Fila.Rango {
+          grid-template-columns: 1fr;
+        }
+
+        .Baul_Barra_Superior,
+        .Baul_Contexto_Barra {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .Baul_Lista {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .Baul_Lista.Lista {
+          display: flex;
+        }
+      }
+
       .Evento {
         position: absolute;
         left: 6px;
@@ -2672,6 +3415,13 @@
         color: var(--Texto);
       }
 
+      .Config_Nota {
+        margin: 6px 0 0;
+        font-size: 11px;
+        color: var(--Texto_Suave);
+        line-height: 1.4;
+      }
+
       /* Chips de días visibles */
       .Config_Dias_Grid {
         display: flex;
@@ -2745,6 +3495,412 @@
         margin-top: 22px;
         padding-top: 16px;
         border-top: 1px solid var(--Borde);
+      }
+
+      .Ayuda_Panel {
+        width: min(780px, calc(100vw - 28px));
+      }
+
+      .Ayuda_Cuerpo {
+        padding: 18px 20px 22px;
+        max-height: min(78vh, 760px);
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .Ayuda_Bloque {
+        border: 1px solid var(--Borde);
+        border-radius: 14px;
+        background: #fff;
+        padding: 14px 15px;
+      }
+
+      .Ayuda_Bloque h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+      }
+
+      .Ayuda_Bloque p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--Texto);
+      }
+
+      .Ayuda_Bloque p + p {
+        margin-top: 8px;
+      }
+
+      .Ayuda_Hero {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 14px;
+        align-items: center;
+      }
+
+      .Ayuda_Hero_Icono {
+        width: 72px;
+        height: 72px;
+        border-radius: 20px;
+        border: 1px solid var(--Borde);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.95),
+          rgba(240, 233, 221, 0.9)
+        );
+        display: grid;
+        place-items: center;
+        font-size: 36px;
+      }
+
+      .Ayuda_Hero_Titulo {
+        margin: 0 0 6px;
+        font-size: 18px;
+        font-weight: 900;
+        color: var(--Texto);
+      }
+
+      .Ayuda_Grid {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fit,
+          minmax(150px, 1fr)
+        );
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .Ayuda_Mini_Card {
+        border: 1px solid var(--Borde);
+        border-radius: 14px;
+        background: #fbf8f2;
+        padding: 12px;
+      }
+
+      .Ayuda_Mini_Kicker {
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--Texto_Suave);
+      }
+
+      .Ayuda_Mini_Titulo {
+        margin-top: 6px;
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--Texto);
+      }
+
+      .Ayuda_Mini_Card p {
+        margin-top: 6px;
+        font-size: 12px;
+      }
+
+      .Ayuda_Chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .Ayuda_Chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 28px;
+        padding: 0 10px;
+        border-radius: 999px;
+        border: 1px solid var(--Borde);
+        background: #f6f1e7;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--Texto);
+      }
+
+      .Ayuda_Flujo {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fit,
+          minmax(140px, 1fr)
+        );
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .Ayuda_Flujo_Paso {
+        border: 1px solid var(--Borde);
+        border-radius: 14px;
+        background: #fffaf1;
+        padding: 12px;
+      }
+
+      .Ayuda_Flujo_Num {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--Acento);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .Ayuda_Flujo_Paso strong {
+        display: block;
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--Texto);
+      }
+
+      .Ayuda_Flujo_Paso p {
+        margin-top: 6px;
+        font-size: 12px;
+      }
+
+      .Ayuda_Leyenda {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fit,
+          minmax(160px, 1fr)
+        );
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .Ayuda_Leyenda_Item {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        border: 1px solid var(--Borde);
+        border-radius: 14px;
+        background: #faf6ee;
+        padding: 10px 12px;
+        font-size: 12px;
+        color: var(--Texto);
+      }
+
+      .Ayuda_Leyenda_Punto {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .Ayuda_Leyenda_Punto.Guardado {
+        background: #6cb56c;
+      }
+
+      .Ayuda_Leyenda_Punto.Guardando {
+        background: #c9a800;
+      }
+
+      .Ayuda_Leyenda_Punto.Error {
+        background: #c0392b;
+      }
+
+      .Ayuda_Tira {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .Ayuda_Tira_Item {
+        flex: 1 1 150px;
+        border: 1px solid var(--Borde);
+        border-radius: 14px;
+        padding: 11px 12px;
+        background: #f8f3ea;
+      }
+
+      .Ayuda_Tira_Item strong {
+        display: block;
+        font-size: 13px;
+        color: var(--Texto);
+      }
+
+      .Ayuda_Tira_Item p {
+        margin-top: 6px;
+        font-size: 12px;
+      }
+
+      .Ayuda_Atajo {
+        font-family: ui-monospace, "SFMono-Regular", Consolas,
+          "Liberation Mono", Menlo, monospace;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .Plan_Boton {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 96px;
+        padding: 0 16px;
+        border-radius: 999px;
+        border: 1px solid #d7c9b6;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.88),
+            rgba(255, 255, 255, 0.2)
+          ),
+          #f2e5d2;
+        color: #765a36;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      }
+
+      .Plan_Boton::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.72;
+      }
+
+      .Plan_Boton.Upgrade {
+        border-color: #0b605b;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.18),
+            rgba(255, 255, 255, 0)
+          ),
+          linear-gradient(
+            135deg,
+            #177f78,
+            #0f5f5a 58%,
+            #0b4b47
+          );
+        color: #effcf9;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.18),
+          0 8px 18px rgba(15, 95, 90, 0.18);
+      }
+
+      .Suscripcion_Panel {
+        width: min(860px, calc(100vw - 28px));
+      }
+
+      .Suscripcion_Cuerpo {
+        padding: 18px 20px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .Suscripcion_Intro {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .Suscripcion_Intro h3 {
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.1;
+      }
+
+      .Suscripcion_Intro p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--Texto_Suave);
+      }
+
+      .Suscripcion_Grid {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fit,
+          minmax(240px, 1fr)
+        );
+        gap: 14px;
+      }
+
+      .Suscripcion_Card {
+        border: 1px solid var(--Borde);
+        border-radius: 20px;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.96),
+            rgba(247, 241, 231, 0.92)
+          );
+        padding: 18px 18px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .Suscripcion_Card.Activa {
+        border-color: var(--Acento);
+        box-shadow: 0 0 0 3px rgba(15, 95, 90, 0.12);
+      }
+
+      .Suscripcion_Badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: #f2ede3;
+        color: #6d614f;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .Suscripcion_Card.Activa .Suscripcion_Badge {
+        background: rgba(15, 95, 90, 0.12);
+        color: var(--Acento);
+      }
+
+      .Suscripcion_Nombre {
+        font-size: 24px;
+        font-weight: 900;
+        color: var(--Texto);
+      }
+
+      .Suscripcion_Precio {
+        font-size: 28px;
+        font-weight: 900;
+        color: var(--Texto);
+      }
+
+      .Suscripcion_Precio small {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--Texto_Suave);
+      }
+
+      .Suscripcion_Features {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .Suscripcion_Feature {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        font-size: 13px;
+        line-height: 1.4;
+        color: var(--Texto);
+      }
+
+      .Suscripcion_Feature::before {
+        content: "•";
+        color: var(--Acento);
+        font-weight: 900;
       }
 
       .Config_Boton_Guardar {
@@ -3070,6 +4226,11 @@
             <label for="Categoria_Tarea">Categoría</label>
             <select id="Categoria_Tarea"></select>
           </div>
+          <div class="Campo" id="Campo_Etiquetas_Nuevas">
+            <label>Etiquetas</label>
+            <div class="Selector_Etiquetas"
+              id="Etiquetas_Tarea"></div>
+          </div>
           <div class="Creador_Acciones">
             <button class="Boton_Principal" id="Crear_Tarea" type="button">Crear tarea</button>
             <button class="Boton_Secundario" id="Ocultar_Creador" type="button">Ocultar</button>
@@ -3085,7 +4246,16 @@
         <div class="Calendario_Top">
           <div class="Semana_Navegacion">
             <button class="Semana_Boton" id="Semana_Anterior" type="button" aria-label="Semana anterior">&lsaquo;</button>
-            <div class="Semana_Label" id="Semana_Label"></div>
+            <div class="Semana_Principal_Fila"
+              id="Semana_Principal_Fila">
+              <div class="Semana_Label" id="Semana_Label">
+                <div class="Semana_Contador"
+                  id="Semana_Contador"></div>
+                <div class="Semana_Rango" id="Semana_Rango"></div>
+              </div>
+              <div class="Semana_Porcentaje"
+                id="Semana_Porcentaje"></div>
+            </div>
             <button class="Semana_Boton" id="Semana_Siguiente" type="button" aria-label="Semana siguiente">&rsaquo;</button>
             <button
               class="Semana_Hoy_Btn"
@@ -3103,16 +4273,23 @@
               <span class="Sync_Punto"></span>
               <span id="Sync_Texto">Guardado</span>
             </span>
+            <button class="Config_Boton Plan_Boton"
+              id="Plan_Boton"
+              type="button"
+              title="Ver planes">Plan: Free</button>
             <button
               class="Config_Boton"
               id="Resumen_Sem_Boton"
               type="button"
               title="Resumen semanal"
-              style="position:relative;z-index:9999"
               onclick="if(typeof Abrir_Resumen_Semanal==='function'){Abrir_Resumen_Semanal()}else{alert('ERROR: la función Abrir_Resumen_Semanal no existe. El JS no terminó de cargar o tiene un error.')}"
             >📊</button>
+            <button class="Config_Boton" id="Baul_Boton"
+              type="button" title="Baúl de tareas">🧰</button>
             <button class="Config_Boton" id="Patron_Boton" type="button" title="Aplicar patrón semanal">📋</button>
             <button class="Config_Boton" id="Limpiar_Semana_Boton" type="button" title="Limpiar semana">🧹</button>
+            <button class="Config_Boton" id="Ayuda_Boton"
+              type="button" title="Ayuda">?</button>
             <button class="Config_Boton" id="Config_Abrir" type="button" title="Configuración">&#9881;</button>
             <button class="Config_Boton" id="Logout_Boton" type="button" title="Cerrar sesión" style="font-size:13px">↪</button>
           </div>
@@ -3176,6 +4353,19 @@
             <div class="Config_Seccion">
               <p class="Config_Seccion_Titulo">Días visibles</p>
               <div class="Config_Dias_Grid" id="Cfg_Dias_Visibles"></div>
+              <div class="Config_Fila" style="margin-top:10px">
+                <span class="Config_Label">Quitar automáticamente</span>
+                <select class="Config_Select"
+                  id="Cfg_Ocultar_Dias_Automatico">
+                  <option value="Ninguno">No</option>
+                  <option value="Anteriores">Días anteriores</option>
+                  <option value="Siguientes">Días siguientes</option>
+                  <option value="Ambos">Solo hoy</option>
+                </select>
+              </div>
+              <p class="Config_Nota">
+                Solo se aplica cuando mirás la semana actual.
+              </p>
             </div>
 
             <div class="Config_Seccion">
@@ -3208,6 +4398,21 @@
             </div>
 
             <div class="Config_Seccion">
+              <p class="Config_Seccion_Titulo">Etiquetas</p>
+              <div id="Cfg_Etiquetas_Lista"></div>
+              <div class="Config_Cat_Nueva">
+                <input type="text"
+                  class="Config_Cat_Input Config_Cat_Input_Nombre"
+                  id="Cfg_Etiqueta_Nombre"
+                  placeholder="Nueva etiqueta">
+                <button type="button"
+                  class="Config_Cat_Btn"
+                  id="Cfg_Etiqueta_Agregar"
+                  style="font-size:18px;padding:2px 8px">+</button>
+              </div>
+            </div>
+
+            <div class="Config_Seccion">
               <p class="Config_Seccion_Titulo">Comportamiento</p>
               <div class="Config_Fila">
                 <span class="Config_Label">Resize personalizado</span>
@@ -3221,6 +4426,47 @@
                 <span class="Config_Label">Mostrar tareas archivadas</span>
                 <input type="checkbox" id="Cfg_Mostrar_Archivadas">
               </div>
+            </div>
+
+            <div class="Config_Seccion">
+              <p class="Config_Seccion_Titulo">Contador de semanas</p>
+              <div class="Config_Fila">
+                <span class="Config_Label">Mostrar arriba</span>
+                <input type="checkbox"
+                  id="Cfg_Contador_Semanas_Activo">
+              </div>
+              <div class="Config_Fila">
+                <span class="Config_Label">Modo</span>
+                <select class="Config_Select"
+                  id="Cfg_Contador_Semanas_Modo">
+                  <option value="Ano">Por año</option>
+                  <option value="Personalizado">Personalizado</option>
+                  <option value="Vida">Vida</option>
+                </select>
+              </div>
+              <div class="Config_Fila"
+                id="Cfg_Contador_Ref_Fila">
+                <span class="Config_Label"
+                  id="Cfg_Contador_Ref_Label">
+                  Fecha base
+                </span>
+                <input type="date" class="Config_Select"
+                  id="Cfg_Contador_Semanas_Fecha_Ref">
+              </div>
+              <div class="Config_Fila">
+                <span class="Config_Label">Mostrar porcentaje</span>
+                <input type="checkbox"
+                  id="Cfg_Contador_Semanas_Porcentaje">
+              </div>
+              <div class="Config_Fila"
+                id="Cfg_Contador_Final_Fila">
+                <span class="Config_Label">Fecha final</span>
+                <input type="date" class="Config_Select"
+                  id="Cfg_Contador_Semanas_Fecha_Final">
+              </div>
+              <p class="Config_Nota" id="Cfg_Contador_Nota">
+                El porcentaje usa la fecha final que definas.
+              </p>
             </div>
 
             <div class="Config_Seccion">
@@ -3311,7 +4557,21 @@
                   style="font-size:12px"
                 >—</span>
               </div>
+              <div class="Config_Fila">
+                <span class="Config_Label">Plan actual</span>
+                <select class="Config_Select"
+                  id="Cfg_Plan_Actual">
+                  <option value="Free">Free</option>
+                  <option value="Upgrade">Upgrade</option>
+                </select>
+              </div>
               <div style="display:flex;gap:8px;margin-top:8px">
+                <button
+                  type="button"
+                  id="Cfg_Ver_Planes"
+                  class="Config_Cat_Btn"
+                  style="padding:6px 14px;font-size:13px"
+                >Ver planes</button>
                 <button
                   type="button"
                   id="Cfg_Cerrar_Sesion"
@@ -3338,6 +4598,309 @@
           </div>
         </div>
 
+        <div class="Patron_Modal_Overlay" id="Ayuda_Overlay">
+          <div class="Patron_Modal_Panel Ayuda_Panel">
+            <div class="Patron_Modal_Cabecera">
+              <span class="Patron_Modal_Titulo">Ayuda</span>
+              <button class="Config_Cerrar" id="Ayuda_Cerrar"
+                type="button">&times;</button>
+            </div>
+            <div class="Ayuda_Cuerpo">
+              <div class="Ayuda_Bloque">
+                <div class="Ayuda_Hero">
+                  <div class="Ayuda_Hero_Icono">🧭</div>
+                  <div>
+                    <div class="Ayuda_Hero_Titulo">
+                      Cómo se mueve la semana
+                    </div>
+                    <p>
+                      Pensá la app como un tablero semanal con tres
+                      capas: tareas a la izquierda, bloques en el
+                      calendario y revisión arriba. Todo lo que hagas
+                      cae en una de esas tres zonas.
+                    </p>
+                    <div class="Ayuda_Chips">
+                      <span class="Ayuda_Chip">🧰 Baúl</span>
+                      <span class="Ayuda_Chip">📅 Calendario</span>
+                      <span class="Ayuda_Chip">📊 Resumen</span>
+                      <span class="Ayuda_Chip">☁ Sync</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="Ayuda_Bloque">
+                <h3>Mapa rápido</h3>
+                <div class="Ayuda_Flujo">
+                  <div class="Ayuda_Flujo_Paso">
+                    <div class="Ayuda_Flujo_Num">1</div>
+                    <strong>Elegí una tarea</strong>
+                    <p>
+                      Creala en el sidebar o sacala del baúl si ya es
+                      un molde reutilizable.
+                    </p>
+                  </div>
+                  <div class="Ayuda_Flujo_Paso">
+                    <div class="Ayuda_Flujo_Num">2</div>
+                    <strong>Ubicala en la semana</strong>
+                    <p>
+                      Arrastrá el emoji al día y hora que corresponda.
+                      El sistema evita choques de bloques.
+                    </p>
+                  </div>
+                  <div class="Ayuda_Flujo_Paso">
+                    <div class="Ayuda_Flujo_Num">3</div>
+                    <strong>Ajustá el bloque</strong>
+                    <p>
+                      Movelo, repetilo o cambiá la duración desde el
+                      borde inferior del evento.
+                    </p>
+                  </div>
+                  <div class="Ayuda_Flujo_Paso">
+                    <div class="Ayuda_Flujo_Num">4</div>
+                    <strong>Revisá avance</strong>
+                    <p>
+                      Usá resumen, contador de semanas y subtareas para
+                      ver si la carga semanal cierra.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="Ayuda_Bloque">
+                <h3>Calendario y bloques</h3>
+                <p>
+                  Arrastrá un emoji desde la barra lateral al
+                  calendario para crear bloques. Arrastrá un bloque
+                  existente para moverlo y usá el borde inferior para
+                  cambiar la duración.
+                </p>
+                <p>
+                  Doble click sobre una hora la bloquea o desbloquea.
+                  Click en el encabezado del día abre acciones como
+                  bloquear el día completo, copiarlo o pegarlo.
+                </p>
+                <div class="Ayuda_Grid">
+                  <div class="Ayuda_Mini_Card">
+                    <div class="Ayuda_Mini_Kicker">Crear</div>
+                    <div class="Ayuda_Mini_Titulo">Drag & drop</div>
+                    <p>
+                      Si soltás una tarea sobre un slot libre, se crea
+                      un evento con la duración por defecto.
+                    </p>
+                  </div>
+                  <div class="Ayuda_Mini_Card">
+                    <div class="Ayuda_Mini_Kicker">Editar</div>
+                    <div class="Ayuda_Mini_Titulo">Mover y resize</div>
+                    <p>
+                      Un bloque puede moverse o estirarse mientras no
+                      invada otro evento ni un slot bloqueado.
+                    </p>
+                  </div>
+                  <div class="Ayuda_Mini_Card">
+                    <div class="Ayuda_Mini_Kicker">Marcar</div>
+                    <div class="Ayuda_Mini_Titulo">Slots muertos</div>
+                    <p>
+                      Sirven para sueño, descanso u otros tiempos que
+                      querés reservar visualmente.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="Ayuda_Bloque">
+                <h3>Días visibles y navegación</h3>
+                <p>
+                  En Configuración podés elegir qué días se muestran
+                  siempre y además ocultar automáticamente los días
+                  anteriores, los siguientes o dejar solo hoy en la
+                  semana actual.
+                </p>
+                <p>
+                  Eso no borra eventos: solo cambia qué columnas se
+                  muestran.
+                </p>
+                <div class="Ayuda_Tira">
+                  <div class="Ayuda_Tira_Item">
+                    <strong>Semana actual</strong>
+                    <p>
+                      Puede esconder días pasados, futuros o dejar solo
+                      hoy para que el foco sea más fuerte.
+                    </p>
+                  </div>
+                  <div class="Ayuda_Tira_Item">
+                    <strong>Otras semanas</strong>
+                    <p>
+                      Conservan la vista normal para que no pierdas
+                      contexto histórico o futuro.
+                    </p>
+                  </div>
+                  <div class="Ayuda_Tira_Item">
+                    <strong>Encabezados</strong>
+                    <p>
+                      Desde cada día podés copiar, pegar, bloquear o
+                      limpiar sin tocar los demás.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="Ayuda_Bloque">
+                <h3>Baúl, subtareas y semanas</h3>
+                <p>
+                  El baúl es una biblioteca de moldes. Click normal
+                  selecciona una tarjeta; click derecho permite agregar
+                  la tarea a la semana actual, próxima, una elegida o
+                  varias semanas.
+                </p>
+                <p>
+                  Las subtareas pueden vivir solo en esta semana o
+                  propagarse hacia adelante. Cuando una subtarea es
+                  local a la semana actual, los cambios quedan ahí y
+                  no se copian al resto.
+                </p>
+                <p>
+                  El contador de semanas también se configura desde
+                  Configuración. Puede mostrar semana del año, una
+                  cuenta personalizada o semanas de vida, con un
+                  porcentaje opcional hasta una fecha final.
+                </p>
+                <div class="Ayuda_Grid">
+                  <div class="Ayuda_Mini_Card">
+                    <div class="Ayuda_Mini_Kicker">Baúl</div>
+                    <div class="Ayuda_Mini_Titulo">Molde reusable</div>
+                    <p>
+                      Guarda nombre, emoji, tipo, categoría y etiquetas
+                      para crear tareas nuevas cuando haga falta.
+                    </p>
+                  </div>
+                  <div class="Ayuda_Mini_Card">
+                    <div class="Ayuda_Mini_Kicker">Subtareas</div>
+                    <div class="Ayuda_Mini_Titulo">Alcance claro</div>
+                    <p>
+                      Si la subtarea no pertenece a una plantilla, se
+                      edita solo en esa semana.
+                    </p>
+                  </div>
+                  <div class="Ayuda_Mini_Card">
+                    <div class="Ayuda_Mini_Kicker">Contador</div>
+                    <div class="Ayuda_Mini_Titulo">Semana y porcentaje</div>
+                    <p>
+                      Puede medir año, un hito personal o semanas de
+                      vida según la fecha base que definas.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="Ayuda_Bloque">
+                <h3>Cuenta y sincronización</h3>
+                <p>
+                  Cuando estás logueado, la app guarda una copia local
+                  inmediata y además sincroniza con Supabase con un
+                  pequeño debounce para no disparar una subida por cada
+                  click.
+                </p>
+                <div class="Ayuda_Leyenda">
+                  <div class="Ayuda_Leyenda_Item">
+                    <span class="Ayuda_Leyenda_Punto Guardado"></span>
+                    <span>
+                      <strong>Guardado</strong><br>
+                      No hay cambios pendientes.
+                    </span>
+                  </div>
+                  <div class="Ayuda_Leyenda_Item">
+                    <span class="Ayuda_Leyenda_Punto Guardando"></span>
+                    <span>
+                      <strong>Guardando…</strong><br>
+                      Hay cambios en cola o una subida en curso.
+                    </span>
+                  </div>
+                  <div class="Ayuda_Leyenda_Item">
+                    <span class="Ayuda_Leyenda_Punto Error"></span>
+                    <span>
+                      <strong>Error</strong><br>
+                      La copia local quedó, pero la nube falló.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="Ayuda_Bloque">
+                <h3>Atajos</h3>
+                <p><span class="Ayuda_Atajo">← / →</span> cambia de
+                  semana.</p>
+                <p><span class="Ayuda_Atajo">T</span> vuelve a hoy.</p>
+                <p><span class="Ayuda_Atajo">Ctrl+Z</span> deshace el
+                  último cambio disponible.</p>
+                <p><span class="Ayuda_Atajo">Esc</span> cierra modales
+                  o limpia la selección.</p>
+                <p><span class="Ayuda_Atajo">?</span> abre esta ayuda.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="Patron_Modal_Overlay" id="Suscripcion_Overlay">
+          <div class="Patron_Modal_Panel Suscripcion_Panel">
+            <div class="Patron_Modal_Cabecera">
+              <span class="Patron_Modal_Titulo">Planes</span>
+              <button class="Config_Cerrar"
+                id="Suscripcion_Cerrar"
+                type="button">&times;</button>
+            </div>
+            <div class="Suscripcion_Cuerpo">
+              <div class="Suscripcion_Intro">
+                <h3>Elegí cómo querés usar Timeblock</h3>
+                <p>
+                  Free deja resuelta la base. Upgrade suma la capa
+                  premium y, en este modelo, cuesta 1 dólar.
+                </p>
+              </div>
+              <div class="Suscripcion_Grid">
+                <div class="Suscripcion_Card"
+                  id="Suscripcion_Card_Free">
+                  <span class="Suscripcion_Badge">Base</span>
+                  <div class="Suscripcion_Nombre">Free</div>
+                  <div class="Suscripcion_Precio">
+                    $0 <small>para siempre</small>
+                  </div>
+                  <div class="Suscripcion_Features">
+                    <div class="Suscripcion_Feature">
+                      Calendario semanal completo
+                    </div>
+                    <div class="Suscripcion_Feature">
+                      Baúl, patrones y subtareas
+                    </div>
+                    <div class="Suscripcion_Feature">
+                      Sync y configuración de cuenta
+                    </div>
+                  </div>
+                  <button class="Boton_Secundario"
+                    id="Suscripcion_Elegir_Free"
+                    type="button">Usar Free</button>
+                </div>
+                <div class="Suscripcion_Card"
+                  id="Suscripcion_Card_Upgrade">
+                  <span class="Suscripcion_Badge">Premium</span>
+                  <div class="Suscripcion_Nombre">Upgrade</div>
+                  <div class="Suscripcion_Precio">
+                    $1 <small>pago único</small>
+                  </div>
+                  <div class="Suscripcion_Features">
+                    <div class="Suscripcion_Feature">
+                      Señal visual de plan premium
+                    </div>
+                    <div class="Suscripcion_Feature">
+                      Preparado para futuras funciones pagas
+                    </div>
+                    <div class="Suscripcion_Feature">
+                      Mismo flujo simple, sin pantalla recargada
+                    </div>
+                  </div>
+                  <button class="Boton_Principal"
+                    id="Suscripcion_Elegir_Upgrade"
+                    type="button">Elegir Upgrade</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="Calendario_Viewport">
           <div class="Calendario_Grid" id="Calendario_Grid"></div>
         </div>
@@ -3353,6 +4916,209 @@
           <input class="Dialogo_Input" id="Dialogo_Input_Campo" type="date">
         </div>
         <div class="Dialogo_Botones" id="Dialogo_Botones"></div>
+      </div>
+    </div>
+
+    <div class="Patron_Modal_Overlay" id="Baul_Overlay">
+      <div class="Patron_Modal_Panel Baul_Panel">
+        <div class="Patron_Modal_Cabecera">
+          <span class="Patron_Modal_Titulo">Baúl de tareas</span>
+          <button class="Config_Cerrar" id="Baul_Cerrar"
+            type="button">&times;</button>
+        </div>
+        <div class="Patron_Modal_Cuerpo Baul_Cuerpo">
+          <div class="Baul_Mensaje Oculto" id="Baul_Mensaje"></div>
+          <div class="Baul_Barra_Superior">
+            <div class="Baul_Filtros">
+              <div class="Campo">
+                <label for="Baul_Buscar_Input">Buscar</label>
+                <input id="Baul_Buscar_Input" type="text"
+                  placeholder="Nombre de tarea">
+              </div>
+              <div class="Campo">
+                <label for="Baul_Filtro_Categoria">Categoría</label>
+                <select id="Baul_Filtro_Categoria"></select>
+              </div>
+              <div class="Campo">
+                <label for="Baul_Filtro_Etiqueta">Etiqueta</label>
+                <select id="Baul_Filtro_Etiqueta"></select>
+              </div>
+              <div class="Campo">
+                <label for="Baul_Filtro_Estado">Estado</label>
+                <select id="Baul_Filtro_Estado">
+                  <option value="">Todos</option>
+                  <option value="Activa">Activas</option>
+                  <option value="Realizada">Realizadas</option>
+                  <option value="Postergada">Postergadas</option>
+                  <option value="Anulada">Anuladas</option>
+                </select>
+              </div>
+              <label class="Baul_Filtros_Check">
+                <input type="checkbox"
+                  id="Baul_Mostrar_Archivadas">
+                <span>Mostrar archivadas</span>
+              </label>
+            </div>
+            <div class="Baul_Vistas">
+              <button class="Baul_Vista_Btn Activa"
+                id="Baul_Vista_Biblioteca"
+                type="button">Biblioteca</button>
+              <button class="Baul_Vista_Btn"
+                id="Baul_Vista_Lista"
+                type="button">Lista</button>
+            </div>
+          </div>
+
+          <div class="Baul_Contenido Sin_Detalle" id="Baul_Contenido">
+            <div class="Baul_Libreria" id="Baul_Libreria">
+              <div class="Baul_Libreria_Cabecera">
+                <div>
+                  <div class="Baul_Libreria_Titulo">
+                    Biblioteca
+                  </div>
+                  <div class="Baul_Libreria_Sub"
+                    id="Baul_Conteo"></div>
+                </div>
+                <div class="Baul_Libreria_Acciones">
+                  <button class="Baul_Accion_Btn"
+                    id="Baul_Nueva_Libreria"
+                    type="button">Nueva</button>
+                  <div class="Baul_Libreria_Ayuda">
+                    Click para seleccionar. Click derecho
+                    para agregar o editar.
+                  </div>
+                </div>
+              </div>
+              <div class="Baul_Lista" id="Baul_Lista"></div>
+            </div>
+
+            <div class="Baul_Detalle Oculto" id="Baul_Detalle">
+              <div class="Baul_Detalle_Head">
+                <button class="Baul_Detalle_Cerrar"
+                  id="Baul_Detalle_Cerrar"
+                  type="button"
+                  aria-label="Cerrar editor">&times;</button>
+                <div class="Baul_Detalle_Preview">
+                  <div class="Baul_Detalle_Emoji"
+                    id="Baul_Detalle_Emoji">🧰</div>
+                  <div>
+                    <div class="Baul_Detalle_Kicker"
+                      id="Baul_Detalle_Kicker">
+                      Nueva tarea
+                    </div>
+                    <div class="Baul_Detalle_Titulo"
+                      id="Baul_Detalle_Titulo">
+                      Cargá una tarea al baúl
+                    </div>
+                    <div class="Baul_Detalle_Subtitulo"
+                      id="Baul_Detalle_Subtitulo">
+                      Elegí una tarjeta para editarla o
+                      agregá una nueva al baúl.
+                    </div>
+                  </div>
+                </div>
+                <div class="Baul_Detalle_Acciones">
+                  <button class="Baul_Accion_Btn
+                    Baul_Accion_Btn_Primario"
+                    id="Baul_Accion_Agregar"
+                    type="button">Agregar</button>
+                  <button class="Baul_Accion_Btn"
+                    id="Baul_Accion_Nueva"
+                    type="button">Nueva</button>
+                  <button class="Baul_Accion_Btn"
+                    id="Baul_Accion_Archivar"
+                    type="button">Archivar</button>
+                </div>
+              </div>
+
+              <div class="Baul_Detalle_Scroll">
+                <div class="Baul_Form_Grid">
+                  <div class="Campo">
+                    <label for="Baul_Nombre_Input">Nombre</label>
+                    <input id="Baul_Nombre_Input" type="text"
+                      placeholder="Llamar al médico">
+                  </div>
+                  <div class="Campo">
+                    <label for="Baul_Emoji_Input">Emoji</label>
+                    <input id="Baul_Emoji_Input" type="text"
+                      placeholder="📌">
+                  </div>
+                  <div class="Campo">
+                    <label for="Baul_Tipo_Input">Tipo</label>
+                    <select id="Baul_Tipo_Input">
+                      <option value="No">Tarea normal</option>
+                      <option value="Si">Bolsa de horas</option>
+                    </select>
+                  </div>
+                  <div class="Campo">
+                    <label for="Baul_Categoria_Input">
+                      Categoría
+                    </label>
+                    <select id="Baul_Categoria_Input"></select>
+                  </div>
+                  <div class="Campo">
+                    <label for="Baul_Estado_Input">Estado</label>
+                    <select id="Baul_Estado_Input">
+                      <option value="Activa">Activa</option>
+                      <option value="Realizada">Realizada</option>
+                      <option value="Postergada">Postergada</option>
+                      <option value="Anulada">Anulada</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="Campo">
+                  <label>Etiquetas</label>
+                  <div class="Selector_Etiquetas"
+                    id="Baul_Etiquetas_Input"></div>
+                </div>
+                <div class="Creador_Acciones">
+                  <button class="Boton_Principal"
+                    id="Baul_Guardar"
+                    type="button">Guardar en el baúl</button>
+                  <button class="Boton_Secundario"
+                    id="Baul_Cancelar_Edicion"
+                    type="button">Revertir</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="Patron_Modal_Overlay" id="Baul_Semanas_Overlay">
+      <div class="Patron_Modal_Panel">
+        <div class="Patron_Modal_Cabecera">
+          <span class="Patron_Modal_Titulo"
+            id="Baul_Semanas_Titulo">Varias semanas</span>
+          <button class="Config_Cerrar"
+            id="Baul_Semanas_Cerrar"
+            type="button">&times;</button>
+        </div>
+        <div class="Patron_Modal_Cuerpo">
+          <p class="Config_Nota" style="margin:0">
+            Mezclá semanas puntuales y rangos consecutivos.
+            Si elegís cualquier día, se toma el lunes de esa semana.
+          </p>
+          <div class="Baul_Semanas_Acciones">
+            <button class="Baul_Accion_Btn"
+              id="Baul_Semanas_Agregar_Semana"
+              type="button">+ Semana puntual</button>
+            <button class="Baul_Accion_Btn"
+              id="Baul_Semanas_Agregar_Rango"
+              type="button">+ Rango consecutivo</button>
+          </div>
+          <div class="Baul_Semanas_Lista"
+            id="Baul_Semanas_Lista"></div>
+        </div>
+        <div class="Patron_Modal_Acciones">
+          <button class="Config_Boton_Cancelar"
+            id="Baul_Semanas_Cancelar"
+            type="button">Cancelar</button>
+          <button class="Config_Boton_Guardar"
+            id="Baul_Semanas_Confirmar"
+            type="button">Agregar</button>
+        </div>
       </div>
     </div>
 
@@ -3472,6 +5238,11 @@
               <label for="Editor_Categoria_Input">Categoría</label>
               <select id="Editor_Categoria_Input"></select>
             </div>
+            <div class="Campo" id="Editor_Etiquetas_Campo">
+              <label>Etiquetas</label>
+              <div class="Selector_Etiquetas"
+                id="Editor_Etiquetas_Input"></div>
+            </div>
 
             <div class="Editor_Acciones">
               <button class="Boton_Principal" id="Editor_Guardar">Guardar</button>
@@ -3554,6 +5325,7 @@
         Duracion_Default: 1,
         Scroll_Inicial: 8,
         Dias_Visibles: [0, 1, 2, 3, 4, 5, 6],
+        Ocultar_Dias_Automatico: "Ninguno",
         Slots_Muertos_Default: {},
         Agrupar_Por_Categorias: false,
         Globito_Modo: "Horas",
@@ -3566,7 +5338,13 @@
         Color_Fracasada: "#8c2f2f",
         Resize_Personalizado: false,
         Notas_Hover: false,
-        Mostrar_Archivadas: false
+        Mostrar_Archivadas: false,
+        Plan_Actual: "Free",
+        Contador_Semanas_Activo: false,
+        Contador_Semanas_Modo: "Ano",
+        Contador_Semanas_Fecha_Ref: "",
+        Contador_Semanas_Porcentaje: false,
+        Contador_Semanas_Fecha_Final: ""
       };
 
       const Dias = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
@@ -3579,6 +5357,8 @@
       let Semanas_Con_Defaults = new Set();
       let Plantillas_Subtareas = [];
       let Categorias = [];
+      let Etiquetas = [];
+      let Baul_Tareas = [];
       let Patrones = [];
       let Patron_En_Edicion = null;
       let Patron_En_Edicion_Snapshot = null;
@@ -3606,6 +5386,14 @@
       let Semana_Actual = null;
       let Datos_Editor_Borrador = null;
       let Subtarea_En_Edicion_Id = null;
+      let Baul_Seleccion_Id = null;
+      let Baul_En_Edicion_Id = null;
+      let Baul_Editor_Abierto = false;
+      let Baul_Borrador_Forzado = false;
+      let Baul_Vista_Modo = "Biblioteca";
+      let Baul_Mensaje_Timer = null;
+      let Baul_Semanas_Resolver = null;
+      let Baul_Semanas_Borrador = [];
 
       const El_Lista_Emojis = document.getElementById("Barra_Emojis");
       const El_Resumen_Tarea = document.getElementById("Resumen_Tarea");
@@ -3628,6 +5416,10 @@
       const El_Es_Bolsa = document.getElementById("Es_Bolsa");
       const El_Periodicidad_Tarea = document.getElementById("Periodicidad_Tarea");
       const El_Semana_Label = document.getElementById("Semana_Label");
+      const El_Semana_Principal_Fila = document.getElementById("Semana_Principal_Fila");
+      const El_Semana_Rango = document.getElementById("Semana_Rango");
+      const El_Semana_Contador = document.getElementById("Semana_Contador");
+      const El_Semana_Porcentaje = document.getElementById("Semana_Porcentaje");
       const El_Semana_Anterior = document.getElementById("Semana_Anterior");
       const El_Semana_Siguiente = document.getElementById("Semana_Siguiente");
       const El_Editor = document.getElementById("Editor_Tarea");
@@ -3642,7 +5434,11 @@
       const El_Editor_Periodicidad_Input = document.getElementById("Editor_Periodicidad_Input");
       const El_Resumen_Editar = document.getElementById("Resumen_Editar");
       const El_Categoria_Tarea = document.getElementById("Categoria_Tarea");
+      const El_Etiquetas_Tarea = document.getElementById("Etiquetas_Tarea");
       const El_Editor_Categoria_Input = document.getElementById("Editor_Categoria_Input");
+      const El_Editor_Etiquetas_Input = document.getElementById(
+        "Editor_Etiquetas_Input"
+      );
       const El_Resumen_Subtarea_Agregar = document.getElementById("Resumen_Subtarea_Agregar");
       const El_Resumen_Fracasada = document.getElementById("Resumen_Fracasada");
       const El_Resumen_Borrar = document.getElementById("Resumen_Borrar");
@@ -3654,6 +5450,100 @@
       const El_Config_Cerrar_Btn = document.getElementById("Config_Cerrar");
       const El_Config_Cancelar = document.getElementById("Config_Cancelar");
       const El_Config_Guardar_Btn = document.getElementById("Config_Guardar_Btn");
+      const El_Plan_Boton = document.getElementById("Plan_Boton");
+      const El_Ayuda_Overlay = document.getElementById("Ayuda_Overlay");
+      const El_Ayuda_Boton = document.getElementById("Ayuda_Boton");
+      const El_Suscripcion_Overlay = document.getElementById(
+        "Suscripcion_Overlay"
+      );
+      const El_Cfg_Plan_Actual = document.getElementById(
+        "Cfg_Plan_Actual"
+      );
+      const El_Cfg_Ver_Planes = document.getElementById(
+        "Cfg_Ver_Planes"
+      );
+      const El_Baul_Boton = document.getElementById("Baul_Boton");
+      const El_Baul_Overlay = document.getElementById("Baul_Overlay");
+      const El_Baul_Contenido = document.getElementById("Baul_Contenido");
+      const El_Baul_Libreria = document.getElementById("Baul_Libreria");
+      const El_Baul_Lista = document.getElementById("Baul_Lista");
+      const El_Baul_Mensaje = document.getElementById("Baul_Mensaje");
+      const El_Baul_Conteo = document.getElementById("Baul_Conteo");
+      const El_Baul_Vista_Biblioteca = document.getElementById(
+        "Baul_Vista_Biblioteca"
+      );
+      const El_Baul_Vista_Lista = document.getElementById(
+        "Baul_Vista_Lista"
+      );
+      const El_Baul_Detalle_Emoji = document.getElementById(
+        "Baul_Detalle_Emoji"
+      );
+      const El_Baul_Detalle = document.getElementById("Baul_Detalle");
+      const El_Baul_Detalle_Kicker = document.getElementById(
+        "Baul_Detalle_Kicker"
+      );
+      const El_Baul_Detalle_Titulo = document.getElementById(
+        "Baul_Detalle_Titulo"
+      );
+      const El_Baul_Detalle_Subtitulo = document.getElementById(
+        "Baul_Detalle_Subtitulo"
+      );
+      const El_Baul_Nombre_Input =
+        document.getElementById("Baul_Nombre_Input");
+      const El_Baul_Emoji_Input =
+        document.getElementById("Baul_Emoji_Input");
+      const El_Baul_Tipo_Input = document.getElementById("Baul_Tipo_Input");
+      const El_Baul_Categoria_Input =
+        document.getElementById("Baul_Categoria_Input");
+      const El_Baul_Estado_Input = document.getElementById(
+        "Baul_Estado_Input"
+      );
+      const El_Baul_Etiquetas_Input =
+        document.getElementById("Baul_Etiquetas_Input");
+      const El_Baul_Buscar_Input =
+        document.getElementById("Baul_Buscar_Input");
+      const El_Baul_Filtro_Categoria = document.getElementById(
+        "Baul_Filtro_Categoria"
+      );
+      const El_Baul_Filtro_Etiqueta = document.getElementById(
+        "Baul_Filtro_Etiqueta"
+      );
+      const El_Baul_Filtro_Estado = document.getElementById(
+        "Baul_Filtro_Estado"
+      );
+      const El_Baul_Mostrar_Archivadas = document.getElementById(
+        "Baul_Mostrar_Archivadas"
+      );
+      const El_Baul_Nueva_Libreria = document.getElementById(
+        "Baul_Nueva_Libreria"
+      );
+      const El_Baul_Semanas_Overlay = document.getElementById(
+        "Baul_Semanas_Overlay"
+      );
+      const El_Baul_Semanas_Lista = document.getElementById(
+        "Baul_Semanas_Lista"
+      );
+      const El_Baul_Semanas_Titulo = document.getElementById(
+        "Baul_Semanas_Titulo"
+      );
+      const El_Baul_Accion_Agregar = document.getElementById(
+        "Baul_Accion_Agregar"
+      );
+      const El_Baul_Accion_Nueva = document.getElementById(
+        "Baul_Accion_Nueva"
+      );
+      const El_Baul_Accion_Archivar = document.getElementById(
+        "Baul_Accion_Archivar"
+      );
+      const El_Baul_Detalle_Cerrar = document.getElementById(
+        "Baul_Detalle_Cerrar"
+      );
+      const El_Suscripcion_Card_Free = document.getElementById(
+        "Suscripcion_Card_Free"
+      );
+      const El_Suscripcion_Card_Upgrade = document.getElementById(
+        "Suscripcion_Card_Upgrade"
+      );
       const El_Resumen_Copiar = document.getElementById("Resumen_Copiar");
 
       // --- Estado del sistema de diálogos ---
@@ -3738,6 +5628,1127 @@
           El_Botones.appendChild(Btn_Cancelar);
           document.getElementById("Dialogo_Overlay").classList.add("Activo");
         });
+      }
+
+      function Mostrar_Dialogo_Con_Numero(
+        Mensaje,
+        Valor_Default,
+        Minimo = 1
+      ) {
+        if (Dialogo_Abierto) return Promise.resolve(null);
+        Dialogo_Abierto = true;
+        return new Promise((Resolver) => {
+          const Cerrar_Con = (Valor) => {
+            document.getElementById("Dialogo_Overlay")
+              .classList.remove("Activo");
+            document.getElementById("Dialogo_Input_Contenedor")
+              .style.display = "none";
+            Dialogo_Abierto = false;
+            Resolver(Valor);
+          };
+
+          document.getElementById("Dialogo_Mensaje").textContent =
+            Mensaje;
+          const El_Campo = document.getElementById(
+            "Dialogo_Input_Campo"
+          );
+          El_Campo.type = "number";
+          El_Campo.min = String(Minimo);
+          El_Campo.step = "1";
+          El_Campo.value = Valor_Default ?? "";
+          document.getElementById("Dialogo_Input_Contenedor")
+            .style.display = "block";
+
+          const El_Botones = document.getElementById(
+            "Dialogo_Botones"
+          );
+          El_Botones.innerHTML = "";
+
+          const Btn_OK = document.createElement("button");
+          Btn_OK.textContent = "Confirmar";
+          Btn_OK.className =
+            "Dialogo_Boton Dialogo_Boton_Primario";
+          Btn_OK.addEventListener("click", () => {
+            const Valor = Math.round(Number(El_Campo.value));
+            if (!Number.isFinite(Valor) || Valor < Minimo) {
+              return;
+            }
+            Cerrar_Con(Valor);
+          }, { once: true });
+
+          const Btn_Cancelar = document.createElement("button");
+          Btn_Cancelar.textContent = "Cancelar";
+          Btn_Cancelar.className =
+            "Dialogo_Boton Dialogo_Boton_Cancelar";
+          Btn_Cancelar.addEventListener("click", () => {
+            Cerrar_Con(null);
+          }, { once: true });
+
+          El_Botones.appendChild(Btn_OK);
+          El_Botones.appendChild(Btn_Cancelar);
+          document.getElementById("Dialogo_Overlay")
+            .classList.add("Activo");
+        });
+      }
+
+      function Normalizar_Clave_Semana_Desde_Fecha(Fecha_Str) {
+        const Fecha = Parsear_Fecha_ISO(Fecha_Str);
+        if (!Fecha) return null;
+        return Formatear_Fecha_ISO(Obtener_Lunes(Fecha));
+      }
+
+      function Crear_Tarea_Semanal_Con_Datos(Datos, Semana_Clave) {
+        const Id = Crear_Id();
+        const Horas = Datos.Es_Bolsa
+          ? Normalizar_Duracion(Datos.Horas_Semanales)
+          : 0;
+        const Tarea = {
+          Id,
+          Familia_Id: Id,
+          Fracasos_Semanales: {},
+          Subtareas_Semanales: {},
+          Subtareas_Contraidas_Semanales: {},
+          Subtareas_Excluidas_Semanales: {},
+          Nombre: Datos.Nombre,
+          Emoji: Normalizar_Emoji(Datos.Emoji),
+          Color: Datos.Color || Obtener_Color_Default(),
+          Horas_Semanales: Horas,
+          Restante: Horas,
+          Es_Bolsa: Boolean(Datos.Es_Bolsa),
+          Es_Fija: false,
+          Semana_Base: Semana_Clave,
+          Semana_Inicio: null,
+          Semana_Fin: null,
+          Categoria_Id: Datos.Categoria_Id || null,
+          Etiquetas_Ids: Normalizar_Etiquetas_Ids(
+            Datos.Etiquetas_Ids
+          )
+        };
+        Tareas.push(Tarea);
+        return Tarea;
+      }
+
+      function Mostrar_Mensaje_Baul(Texto) {
+        if (!El_Baul_Mensaje) return;
+        clearTimeout(Baul_Mensaje_Timer);
+        El_Baul_Mensaje.textContent = Texto;
+        El_Baul_Mensaje.classList.remove("Oculto");
+        Baul_Mensaje_Timer = setTimeout(() => {
+          El_Baul_Mensaje.classList.add("Oculto");
+          El_Baul_Mensaje.textContent = "";
+        }, 2400);
+      }
+
+      function Obtener_Baul_Tarea_Seleccionada() {
+        return Baul_Tareas.find(
+          (Tarea) => Tarea.Id === Baul_Seleccion_Id
+        ) || null;
+      }
+
+      function Obtener_Baul_Tarea_En_Edicion() {
+        return Baul_Tareas.find(
+          (Tarea) => Tarea.Id === Baul_En_Edicion_Id
+        ) || null;
+      }
+
+      function Obtener_Paleta_Estado_Baul(Estado) {
+        switch (Estado) {
+          case "Realizada":
+            return {
+              Fondo: "#dcefe5",
+              Borde: "#b9d8c9",
+              Texto: "#1e6a4f"
+            };
+          case "Postergada":
+            return {
+              Fondo: "#f8e7d0",
+              Borde: "#e5cda8",
+              Texto: "#9a6221"
+            };
+          case "Anulada":
+            return {
+              Fondo: "#f4d9d8",
+              Borde: "#e0b9b8",
+              Texto: "#8b2c2c"
+            };
+          default:
+            return {
+              Fondo: "#efebe4",
+              Borde: "#d7cfc2",
+              Texto: "#66594a"
+            };
+        }
+      }
+
+      function Aplicar_Estilo_Estado_Baul(El, Estado) {
+        if (!El) return;
+        const Paleta = Obtener_Paleta_Estado_Baul(Estado);
+        El.style.setProperty(
+          "--Baul-Estado-Borde",
+          Paleta.Borde
+        );
+        El.style.setProperty(
+          "--Baul-Estado-Texto",
+          Paleta.Texto
+        );
+      }
+
+      function Obtener_Emoji_Borrador_Baul() {
+        const Texto = (El_Baul_Emoji_Input?.value || "").trim();
+        if (Texto) return Normalizar_Emoji(Texto);
+        const Tarea = Obtener_Baul_Tarea_En_Edicion()
+          || Obtener_Baul_Tarea_Seleccionada();
+        return Tarea?.Emoji || "🧰";
+      }
+
+      function Obtener_Borrador_Baul() {
+        const Tarea = Obtener_Baul_Tarea_En_Edicion();
+        return {
+          Id: Tarea?.Id || null,
+          Nombre: (El_Baul_Nombre_Input?.value || "").trim(),
+          Emoji: Obtener_Emoji_Borrador_Baul(),
+          Es_Bolsa: El_Baul_Tipo_Input?.value === "Si",
+          Categoria_Id: El_Baul_Categoria_Input?.value || null,
+          Etiquetas_Ids: Obtener_Etiquetas_Seleccionadas(
+            El_Baul_Etiquetas_Input
+          ),
+          Estado: Obtener_Estado_Baul_Normalizado(
+            El_Baul_Estado_Input?.value || Tarea?.Estado
+          ),
+          Archivada: Boolean(Tarea?.Archivada)
+        };
+      }
+
+      function Formatear_Subtitulo_Baul(Borrador) {
+        const Partes = [
+          Borrador.Es_Bolsa ? "Bolsa de horas" : "Tarea normal"
+        ];
+        const Categoria = Obtener_Nombre_Categoria(
+          Borrador.Categoria_Id
+        );
+        if (Categoria) {
+          Partes.push(`${Categoria.Emoji} ${Categoria.Nombre}`);
+        }
+        const Etiquetas_Nombres = Obtener_Nombres_Etiquetas(
+          Borrador.Etiquetas_Ids
+        );
+        if (Etiquetas_Nombres.length) {
+          Partes.push(
+            Etiquetas_Nombres.map((Etiqueta) =>
+              `#${Etiqueta}`
+            ).join(" ")
+          );
+        }
+        Partes.push(Borrador.Estado);
+        if (Borrador.Archivada) {
+          Partes.push("Archivada");
+        }
+        return Partes.join(" · ");
+      }
+
+      function Limpiar_Form_Baul(Forzar_Borrador = false) {
+        Baul_En_Edicion_Id = null;
+        Baul_Borrador_Forzado = Boolean(Forzar_Borrador);
+        if (El_Baul_Nombre_Input) El_Baul_Nombre_Input.value = "";
+        if (El_Baul_Emoji_Input) El_Baul_Emoji_Input.value = "";
+        if (El_Baul_Tipo_Input) El_Baul_Tipo_Input.value = "No";
+        if (El_Baul_Estado_Input) {
+          El_Baul_Estado_Input.value = "Activa";
+        }
+        Poblar_Select_Categorias(El_Baul_Categoria_Input, null);
+        Render_Selector_Etiquetas(
+          El_Baul_Etiquetas_Input,
+          [],
+          Render_Detalle_Baul
+        );
+        if (Baul_Editor_Abierto) {
+          Render_Detalle_Baul();
+        }
+      }
+
+      function Cargar_Tarea_En_Form_Baul(Tarea) {
+        if (!Tarea) {
+          Limpiar_Form_Baul();
+          return;
+        }
+        Baul_En_Edicion_Id = Tarea.Id;
+        Baul_Borrador_Forzado = false;
+        El_Baul_Nombre_Input.value = Tarea.Nombre || "";
+        El_Baul_Emoji_Input.value = Tarea.Emoji || "";
+        El_Baul_Tipo_Input.value = Tarea.Es_Bolsa ? "Si" : "No";
+        Poblar_Select_Categorias(
+          El_Baul_Categoria_Input,
+          Tarea.Categoria_Id || null
+        );
+        if (El_Baul_Estado_Input) {
+          El_Baul_Estado_Input.value =
+            Obtener_Estado_Baul_Normalizado(Tarea.Estado);
+        }
+        Render_Selector_Etiquetas(
+          El_Baul_Etiquetas_Input,
+          Tarea.Etiquetas_Ids,
+          Render_Detalle_Baul
+        );
+        if (Baul_Editor_Abierto) {
+          Render_Detalle_Baul();
+        }
+      }
+
+      function Cancelar_Edicion_Baul() {
+        const Tarea = Obtener_Baul_Tarea_En_Edicion();
+        if (Tarea) {
+          Cargar_Tarea_En_Form_Baul(Tarea);
+          return;
+        }
+        Limpiar_Form_Baul(true);
+      }
+
+      function Obtener_Datos_Form_Baul() {
+        const Nombre = (El_Baul_Nombre_Input?.value || "").trim();
+        if (!Nombre) return null;
+        const Existente = Baul_Tareas.find(
+          (Tarea) => Tarea.Id === Baul_En_Edicion_Id
+        );
+        return Normalizar_Baul_Tarea({
+          Id: Existente?.Id || Crear_Id_Baul_Tarea(),
+          Nombre,
+          Emoji: El_Baul_Emoji_Input?.value || "",
+          Es_Bolsa: El_Baul_Tipo_Input?.value === "Si",
+          Categoria_Id: El_Baul_Categoria_Input?.value || null,
+          Etiquetas_Ids: Obtener_Etiquetas_Seleccionadas(
+            El_Baul_Etiquetas_Input
+          ),
+          Estado: Obtener_Estado_Baul_Normalizado(
+            El_Baul_Estado_Input?.value || Existente?.Estado
+          ),
+          Archivada: Boolean(Existente?.Archivada)
+        });
+      }
+
+      function Actualizar_Vista_Baul() {
+        El_Baul_Vista_Biblioteca?.classList.toggle(
+          "Activa",
+          Baul_Vista_Modo === "Biblioteca"
+        );
+        El_Baul_Vista_Lista?.classList.toggle(
+          "Activa",
+          Baul_Vista_Modo === "Lista"
+        );
+      }
+
+      function Abrir_Editor_Baul(Baul_Id = null) {
+        const Id = Baul_Id || Baul_Seleccion_Id || null;
+        const Tarea = Id
+          ? Baul_Tareas.find((Item) => Item.Id === Id) || null
+          : null;
+        Baul_Editor_Abierto = true;
+        if (Tarea) {
+          Baul_Seleccion_Id = Tarea.Id;
+          Cargar_Tarea_En_Form_Baul(Tarea);
+        } else {
+          Baul_Seleccion_Id = null;
+          Limpiar_Form_Baul(true);
+        }
+        Render_Baul();
+        requestAnimationFrame(() => {
+          El_Baul_Nombre_Input?.focus();
+        });
+      }
+
+      function Cerrar_Editor_Baul() {
+        Baul_Editor_Abierto = false;
+        Baul_En_Edicion_Id = null;
+        Baul_Borrador_Forzado = false;
+        Render_Baul();
+      }
+
+      function Render_Detalle_Baul() {
+        if (!El_Baul_Detalle) return;
+        El_Baul_Detalle.classList.toggle(
+          "Oculto",
+          !Baul_Editor_Abierto
+        );
+        El_Baul_Contenido?.classList.toggle(
+          "Sin_Detalle",
+          !Baul_Editor_Abierto
+        );
+        if (!Baul_Editor_Abierto) {
+          return;
+        }
+        const Tarea = Obtener_Baul_Tarea_En_Edicion();
+        const Borrador = Obtener_Borrador_Baul();
+        if (El_Baul_Detalle_Emoji) {
+          El_Baul_Detalle_Emoji.textContent = Borrador.Emoji;
+          const Paleta = Obtener_Paleta_Estado_Baul(Borrador.Estado);
+          El_Baul_Detalle_Emoji.style.borderColor = Paleta.Borde;
+          El_Baul_Detalle_Emoji.style.background = Paleta.Fondo;
+          El_Baul_Detalle_Emoji.style.color = Paleta.Texto;
+        }
+        if (El_Baul_Detalle_Kicker) {
+          El_Baul_Detalle_Kicker.textContent = Tarea
+            ? "Editando molde"
+            : "Nuevo molde";
+        }
+        if (El_Baul_Detalle_Titulo) {
+          El_Baul_Detalle_Titulo.textContent = Borrador.Nombre
+            || (Tarea
+              ? "Sin nombre"
+              : "Nueva tarea del baúl");
+        }
+        if (El_Baul_Detalle_Subtitulo) {
+          El_Baul_Detalle_Subtitulo.textContent = Tarea
+            ? Formatear_Subtitulo_Baul(Borrador)
+            : "Completá los datos del molde y guardalo " +
+              "para reutilizarlo después.";
+        }
+        if (El_Baul_Accion_Agregar) {
+          El_Baul_Accion_Agregar.disabled = !Tarea;
+        }
+        if (El_Baul_Accion_Archivar) {
+          El_Baul_Accion_Archivar.disabled = !Tarea;
+          El_Baul_Accion_Archivar.textContent = Tarea
+            ? (Tarea.Archivada ? "Desarchivar" : "Archivar")
+            : "Archivar";
+        }
+        const Btn_Guardar = document.getElementById("Baul_Guardar");
+        if (Btn_Guardar) {
+          Btn_Guardar.textContent = Tarea
+            ? "Guardar cambios"
+            : "Guardar en el baúl";
+        }
+        const Btn_Cancelar = document.getElementById(
+          "Baul_Cancelar_Edicion"
+        );
+        if (Btn_Cancelar) {
+          Btn_Cancelar.textContent = Tarea
+            ? "Revertir"
+            : "Limpiar";
+        }
+      }
+
+      function Poblar_Filtros_Baul() {
+        Poblar_Select_Categorias(
+          El_Baul_Categoria_Input,
+          El_Baul_Categoria_Input?.value || null
+        );
+        Poblar_Select_Categorias(
+          El_Baul_Filtro_Categoria,
+          El_Baul_Filtro_Categoria?.value || null,
+          "Todas"
+        );
+        Poblar_Select_Etiquetas_Filtro(
+          El_Baul_Filtro_Etiqueta,
+          El_Baul_Filtro_Etiqueta?.value || "",
+          "Todas"
+        );
+      }
+
+      function Crear_Badge_Tipo_Baul(Texto, Clase) {
+        const Badge = document.createElement("span");
+        Badge.className = `Baul_Pill ${Clase}`;
+        Badge.textContent = Texto;
+        return Badge;
+      }
+
+      function Obtener_Etiquetas_Resumen_Baul(
+        Etiquetas_Ids,
+        Limite = 2
+      ) {
+        const Etiquetas_Nombres = Obtener_Nombres_Etiquetas(
+          Etiquetas_Ids
+        );
+        return {
+          Visibles: Etiquetas_Nombres.slice(0, Limite),
+          Restantes: Math.max(0, Etiquetas_Nombres.length - Limite)
+        };
+      }
+
+      function Crear_Grupos_Baul(Items) {
+        const Grupos = [];
+        Categorias.forEach((Categoria) => {
+          const Grupo = Items.filter(
+            (Tarea) => Tarea.Categoria_Id === Categoria.Id
+          );
+          if (!Grupo.length) return;
+          Grupos.push({
+            Titulo: `${Categoria.Emoji} ${Categoria.Nombre}`,
+            Items: Grupo
+          });
+        });
+        const Sin_Categoria = Items.filter((Tarea) => {
+          if (!Tarea.Categoria_Id) return true;
+          return !Categorias.some(
+            (Categoria) => Categoria.Id === Tarea.Categoria_Id
+          );
+        });
+        if (Sin_Categoria.length) {
+          Grupos.push({
+            Titulo: "Sin categoría",
+            Items: Sin_Categoria
+          });
+        }
+        return Grupos;
+      }
+
+      function Obtener_Baul_Tareas_Filtradas() {
+        const Texto = (
+          El_Baul_Buscar_Input?.value || ""
+        ).trim().toLowerCase();
+        const Categoria_Id = El_Baul_Filtro_Categoria?.value || "";
+        const Etiqueta_Id = El_Baul_Filtro_Etiqueta?.value || "";
+        const Estado = El_Baul_Filtro_Estado?.value || "";
+        const Mostrar_Archivadas = Boolean(
+          El_Baul_Mostrar_Archivadas?.checked
+        );
+        return Baul_Tareas.filter((Tarea) => {
+          if (!Mostrar_Archivadas && Tarea.Archivada) return false;
+          if (
+            Texto &&
+            !Tarea.Nombre.toLowerCase().includes(Texto)
+          ) {
+            return false;
+          }
+          if (Categoria_Id && Tarea.Categoria_Id !== Categoria_Id) {
+            return false;
+          }
+          if (
+            Etiqueta_Id &&
+            !Normalizar_Etiquetas_Ids(Tarea.Etiquetas_Ids)
+              .includes(Etiqueta_Id)
+          ) {
+            return false;
+          }
+          if (Estado && Tarea.Estado !== Estado) return false;
+          return true;
+        });
+      }
+
+      function Mostrar_Menu_Baul(Tarea, X, Y) {
+        const Menu = document.getElementById("Dia_Accion_Menu");
+        if (!Menu || !Tarea) return;
+        Menu.innerHTML =
+          `<button class="Dia_Accion_Item" type="button"` +
+          ` data-acc="visible">Agregar a semana actual</button>` +
+          `<button class="Dia_Accion_Item" type="button"` +
+          ` data-acc="siguiente">Agregar a semana próxima</button>` +
+          `<button class="Dia_Accion_Item" type="button"` +
+          ` data-acc="manual">Elegir semana</button>` +
+          `<button class="Dia_Accion_Item" type="button"` +
+          ` data-acc="varias">Agregar a varias</button>` +
+          `<button class="Dia_Accion_Item" type="button"` +
+          ` data-acc="editar">Editar</button>` +
+          `<button class="Dia_Accion_Item" type="button"` +
+          ` data-acc="archivar">` +
+          (Tarea.Archivada ? "Desarchivar" : "Archivar") +
+          `</button>`;
+        Menu.style.left = `${X}px`;
+        Menu.style.top = `${Y}px`;
+        Menu.classList.add("Activo");
+
+        requestAnimationFrame(() => {
+          const Rect = Menu.getBoundingClientRect();
+          const VH = window.innerHeight;
+          const VW = window.innerWidth;
+          if (Rect.bottom > VH - 8) {
+            Menu.style.top =
+              `${Math.max(8, VH - Rect.height - 8)}px`;
+          }
+          if (Rect.right > VW - 8) {
+            Menu.style.left =
+              `${Math.max(8, VW - Rect.width - 8)}px`;
+          }
+        });
+
+        const Vincular = (Accion, Fn) => {
+          Menu.querySelector(`[data-acc="${Accion}"]`)
+            ?.addEventListener("click", async (Ev) => {
+              Ev.stopPropagation();
+              Cerrar_Menu_Dia();
+              await Fn();
+            });
+        };
+
+        Vincular("visible", async () => {
+          await Agregar_Baul_A_Semanas(Tarea, "visible");
+        });
+        Vincular("siguiente", async () => {
+          await Agregar_Baul_A_Semanas(Tarea, "siguiente");
+        });
+        Vincular("manual", async () => {
+          await Agregar_Baul_A_Semanas(Tarea, "manual");
+        });
+        Vincular("varias", async () => {
+          await Agregar_Baul_A_Semanas(Tarea, "varias");
+        });
+        Vincular("editar", async () => {
+          Abrir_Editor_Baul(Tarea.Id);
+        });
+        Vincular("archivar", async () => {
+          Alternar_Archivado_Baul(Tarea);
+        });
+
+        if (Fn_Cierre_Menu) {
+          document.removeEventListener("click", Fn_Cierre_Menu);
+          Fn_Cierre_Menu = null;
+        }
+        Fn_Cierre_Menu = (Ev) => {
+          if (!Menu.contains(Ev.target)) Cerrar_Menu_Dia();
+        };
+        document.addEventListener("click", Fn_Cierre_Menu);
+      }
+
+      function Crear_Card_Baul(Tarea) {
+        const Esta_Seleccionada = Tarea.Id === Baul_Seleccion_Id;
+        const Card = document.createElement("button");
+        Card.type = "button";
+        Card.className = "Baul_Card";
+        if (Esta_Seleccionada) {
+          Card.classList.add("Activa");
+        }
+        if (Tarea.Archivada) {
+          Card.classList.add("Archivada");
+        }
+        Card.addEventListener("click", () => {
+          Seleccionar_Baul_Tarea(Tarea.Id);
+        });
+        Card.addEventListener("contextmenu", (Ev) => {
+          Ev.preventDefault();
+          Seleccionar_Baul_Tarea(Tarea.Id);
+          Mostrar_Menu_Baul(Tarea, Ev.clientX, Ev.clientY);
+        });
+
+        const Top = document.createElement("div");
+        Top.className = "Baul_Card_Top";
+
+        const Estado = document.createElement("span");
+        Estado.className = "Baul_Estado_Marca";
+        Estado.textContent = Tarea.Estado;
+        Aplicar_Estilo_Estado_Baul(Estado, Tarea.Estado);
+
+        Top.appendChild(Estado);
+
+        const Cuerpo = document.createElement("div");
+        Cuerpo.className = "Baul_Card_Cuerpo";
+
+        const Emoji = document.createElement("div");
+        Emoji.className = "Baul_Card_Emoji";
+        Emoji.textContent = Tarea.Emoji || "•";
+
+        const Nombre = document.createElement("div");
+        Nombre.className = "Baul_Card_Nombre";
+        Nombre.textContent = Tarea.Nombre;
+
+        Cuerpo.appendChild(Emoji);
+        Cuerpo.appendChild(Nombre);
+        if (Esta_Seleccionada) {
+          const Meta = document.createElement("div");
+          Meta.className = "Baul_Card_Meta";
+          Meta.appendChild(
+            Crear_Badge_Tipo_Baul(
+              Tarea.Es_Bolsa ? "Bolsa" : "Normal",
+              "Baul_Pill_Tipo"
+            )
+          );
+          const Categoria = Obtener_Nombre_Categoria(
+            Tarea.Categoria_Id
+          );
+          if (Categoria) {
+            Meta.appendChild(
+              Crear_Badge_Tipo_Baul(
+                `${Categoria.Emoji} ${Categoria.Nombre}`,
+                "Baul_Pill_Categoria"
+              )
+            );
+          }
+          Cuerpo.appendChild(Meta);
+
+          const Resumen_Etiquetas = Obtener_Etiquetas_Resumen_Baul(
+            Tarea.Etiquetas_Ids
+          );
+          if (
+            Resumen_Etiquetas.Visibles.length ||
+            Resumen_Etiquetas.Restantes
+          ) {
+            const Etiquetas = document.createElement("div");
+            Etiquetas.className = "Baul_Card_Etiquetas";
+            Resumen_Etiquetas.Visibles.forEach((Etiqueta) => {
+              const Badge = document.createElement("span");
+              Badge.className = "Etiqueta_Badge";
+              Badge.textContent = `#${Etiqueta}`;
+              Etiquetas.appendChild(Badge);
+            });
+            if (Resumen_Etiquetas.Restantes > 0) {
+              const Mas = document.createElement("span");
+              Mas.className = "Etiqueta_Badge";
+              Mas.textContent =
+                `+${Resumen_Etiquetas.Restantes}`;
+              Etiquetas.appendChild(Mas);
+            }
+            Cuerpo.appendChild(Etiquetas);
+          }
+        }
+
+        Card.appendChild(Top);
+        Card.appendChild(Cuerpo);
+        return Card;
+      }
+
+      function Crear_Fila_Baul(Tarea) {
+        const Esta_Seleccionada = Tarea.Id === Baul_Seleccion_Id;
+        const Fila = document.createElement("button");
+        Fila.type = "button";
+        Fila.className = "Baul_Fila";
+        if (Esta_Seleccionada) {
+          Fila.classList.add("Activa");
+        }
+        if (Tarea.Archivada) {
+          Fila.classList.add("Archivada");
+        }
+        Fila.addEventListener("click", () => {
+          Seleccionar_Baul_Tarea(Tarea.Id);
+        });
+        Fila.addEventListener("contextmenu", (Ev) => {
+          Ev.preventDefault();
+          Seleccionar_Baul_Tarea(Tarea.Id);
+          Mostrar_Menu_Baul(Tarea, Ev.clientX, Ev.clientY);
+        });
+
+        const Emoji = document.createElement("div");
+        Emoji.className = "Baul_Fila_Emoji";
+        Emoji.textContent = Tarea.Emoji || "•";
+
+        const Textos = document.createElement("div");
+        Textos.className = "Baul_Fila_Textos";
+
+        const Nombre = document.createElement("div");
+        Nombre.className = "Baul_Fila_Nombre";
+        Nombre.textContent = Tarea.Nombre;
+
+        const Meta = document.createElement("div");
+        Meta.className = "Baul_Fila_Meta";
+        Meta.appendChild(
+          Crear_Badge_Tipo_Baul(
+            Tarea.Es_Bolsa ? "Bolsa" : "Normal",
+            "Baul_Pill_Tipo"
+          )
+        );
+        if (Esta_Seleccionada) {
+          const Categoria = Obtener_Nombre_Categoria(
+            Tarea.Categoria_Id
+          );
+          if (Categoria) {
+            Meta.appendChild(
+              Crear_Badge_Tipo_Baul(
+                `${Categoria.Emoji} ${Categoria.Nombre}`,
+                "Baul_Pill_Categoria"
+              )
+            );
+          }
+          const Resumen_Etiquetas = Obtener_Etiquetas_Resumen_Baul(
+            Tarea.Etiquetas_Ids
+          );
+          Resumen_Etiquetas.Visibles.forEach((Etiqueta) => {
+            const Badge = document.createElement("span");
+            Badge.className = "Etiqueta_Badge";
+            Badge.textContent = `#${Etiqueta}`;
+            Meta.appendChild(Badge);
+          });
+          if (Resumen_Etiquetas.Restantes > 0) {
+            const Mas = document.createElement("span");
+            Mas.className = "Etiqueta_Badge";
+            Mas.textContent =
+              `+${Resumen_Etiquetas.Restantes}`;
+            Meta.appendChild(Mas);
+          }
+        }
+        const Estado = document.createElement("span");
+        Estado.className = "Baul_Estado_Marca";
+        Estado.textContent = Tarea.Estado;
+        Aplicar_Estilo_Estado_Baul(Estado, Tarea.Estado);
+
+        Textos.appendChild(Nombre);
+        Textos.appendChild(Meta);
+
+        Fila.appendChild(Emoji);
+        Fila.appendChild(Textos);
+        Fila.appendChild(Estado);
+        return Fila;
+      }
+
+      function Seleccionar_Baul_Tarea(Baul_Id) {
+        const Tarea = Baul_Tareas.find(
+          (Item) => Item.Id === Baul_Id
+        );
+        if (!Tarea) return;
+        Baul_Seleccion_Id = Tarea.Id;
+        if (Baul_Editor_Abierto) {
+          Cargar_Tarea_En_Form_Baul(Tarea);
+        }
+        Render_Baul();
+      }
+
+      function Deseleccionar_Baul_Tarea() {
+        if (Baul_Editor_Abierto) return;
+        if (!Baul_Seleccion_Id) return;
+        Baul_Seleccion_Id = null;
+        Render_Baul();
+      }
+
+      function Render_Baul() {
+        if (!El_Baul_Lista) return;
+        Poblar_Filtros_Baul();
+        Actualizar_Vista_Baul();
+        El_Baul_Lista.innerHTML = "";
+        const Items = Obtener_Baul_Tareas_Filtradas();
+        if (El_Baul_Conteo) {
+          El_Baul_Conteo.textContent = `${Items.length} tarea(s)`;
+        }
+        if (!Items.some((Tarea) => Tarea.Id === Baul_Seleccion_Id)) {
+          Baul_Seleccion_Id = null;
+        }
+        if (
+          Baul_Editor_Abierto &&
+          !Baul_Borrador_Forzado &&
+          !Items.some((Tarea) => Tarea.Id === Baul_En_Edicion_Id)
+        ) {
+          Baul_Editor_Abierto = false;
+          Baul_En_Edicion_Id = null;
+        }
+        if (!Items.length) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Baul_Vacio";
+          Vacio.textContent =
+            "No hay tareas en el baúl con ese filtro.";
+          El_Baul_Lista.appendChild(Vacio);
+          Render_Detalle_Baul();
+          return;
+        }
+
+        Crear_Grupos_Baul(Items).forEach((Grupo) => {
+          const Contenedor = document.createElement("div");
+          Contenedor.className = "Baul_Grupo";
+
+          const Titulo = document.createElement("div");
+          Titulo.className = "Baul_Grupo_Titulo";
+          Titulo.textContent = Grupo.Titulo;
+          Contenedor.appendChild(Titulo);
+
+          const Items_Grupo = document.createElement("div");
+          Items_Grupo.className = "Baul_Grupo_Items" +
+            (Baul_Vista_Modo === "Lista" ? " Lista" : "");
+
+          Grupo.Items.forEach((Tarea) => {
+            Items_Grupo.appendChild(
+              Baul_Vista_Modo === "Lista"
+                ? Crear_Fila_Baul(Tarea)
+                : Crear_Card_Baul(Tarea)
+            );
+          });
+
+          Contenedor.appendChild(Items_Grupo);
+          El_Baul_Lista.appendChild(Contenedor);
+        });
+        Render_Detalle_Baul();
+      }
+
+      function Editar_Baul_Tarea(Baul_Id) {
+        Abrir_Editor_Baul(Baul_Id);
+      }
+
+      function Abrir_Baul() {
+        Poblar_Filtros_Baul();
+        Baul_Seleccion_Id = null;
+        Baul_Editor_Abierto = false;
+        Baul_Borrador_Forzado = false;
+        Limpiar_Form_Baul();
+        Render_Baul();
+        El_Baul_Overlay?.classList.add("Activo");
+      }
+
+      function Cerrar_Baul() {
+        Cerrar_Menu_Dia();
+        Baul_Seleccion_Id = null;
+        Baul_Editor_Abierto = false;
+        Baul_Borrador_Forzado = false;
+        Limpiar_Form_Baul();
+        El_Baul_Overlay?.classList.remove("Activo");
+      }
+
+      function Guardar_Baul_Tarea() {
+        const Datos = Obtener_Datos_Form_Baul();
+        if (!Datos) return;
+        const Existente = Baul_Tareas.find(
+          (Tarea) => Tarea.Id === Datos.Id
+        );
+        if (Existente) {
+          Object.assign(Existente, Datos);
+          Mostrar_Mensaje_Baul("Tarea del baúl actualizada.");
+          Baul_Seleccion_Id = Existente.Id;
+        } else {
+          Baul_Tareas.unshift(Datos);
+          Mostrar_Mensaje_Baul("Tarea guardada en el baúl.");
+          Baul_Seleccion_Id = Datos.Id;
+        }
+        Baul_Editor_Abierto = false;
+        Baul_En_Edicion_Id = null;
+        Baul_Borrador_Forzado = false;
+        Render_Baul();
+        Guardar_Estado();
+      }
+
+      function Alternar_Archivado_Baul(Tarea) {
+        if (!Tarea) return;
+        Tarea.Archivada = !Boolean(Tarea.Archivada);
+        Render_Baul();
+        Guardar_Estado();
+        Mostrar_Mensaje_Baul(
+          Tarea.Archivada
+            ? "Tarea archivada en el baúl."
+            : "Tarea desarchivada del baúl."
+        );
+      }
+
+      function Agregar_Fila_Baul_Semanas(Tipo) {
+        const Fecha_Base = Formatear_Fecha_ISO(Semana_Actual);
+        Baul_Semanas_Borrador.push({
+          Id: Crear_Id(),
+          Tipo,
+          Fecha: Fecha_Base,
+          Desde: Fecha_Base,
+          Hasta: Formatear_Fecha_ISO(Sumar_Dias(Semana_Actual, 7))
+        });
+        Render_Baul_Semanas();
+      }
+
+      function Render_Baul_Semanas() {
+        if (!El_Baul_Semanas_Lista) return;
+        El_Baul_Semanas_Lista.innerHTML = "";
+        if (!Baul_Semanas_Borrador.length) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Baul_Vacio";
+          Vacio.textContent =
+            "Todavía no agregaste semanas a la lista.";
+          El_Baul_Semanas_Lista.appendChild(Vacio);
+          return;
+        }
+        Baul_Semanas_Borrador.forEach((Fila) => {
+          const Item = document.createElement("div");
+          Item.className = `Baul_Semana_Fila${
+            Fila.Tipo === "Rango" ? " Rango" : ""
+          }`;
+
+          const Tipo = document.createElement("div");
+          Tipo.className = "Baul_Semana_Tipo";
+          Tipo.textContent = Fila.Tipo === "Rango"
+            ? "Rango"
+            : "Semana";
+          Item.appendChild(Tipo);
+
+          if (Fila.Tipo === "Rango") {
+            const Desde = document.createElement("input");
+            Desde.type = "date";
+            Desde.className = "Config_Select";
+            Desde.value = Fila.Desde || "";
+            Desde.addEventListener("input", () => {
+              Fila.Desde = Desde.value;
+            });
+
+            const Hasta = document.createElement("input");
+            Hasta.type = "date";
+            Hasta.className = "Config_Select";
+            Hasta.value = Fila.Hasta || "";
+            Hasta.addEventListener("input", () => {
+              Fila.Hasta = Hasta.value;
+            });
+
+            Item.appendChild(Desde);
+            Item.appendChild(Hasta);
+          } else {
+            const Fecha = document.createElement("input");
+            Fecha.type = "date";
+            Fecha.className = "Config_Select";
+            Fecha.value = Fila.Fecha || "";
+            Fecha.addEventListener("input", () => {
+              Fila.Fecha = Fecha.value;
+            });
+            Item.appendChild(Fecha);
+          }
+
+          const Borrar = document.createElement("button");
+          Borrar.type = "button";
+          Borrar.className =
+            "Baul_Accion_Btn Baul_Accion_Btn_Peligro";
+          Borrar.textContent = "×";
+          Borrar.addEventListener("click", () => {
+            Baul_Semanas_Borrador = Baul_Semanas_Borrador
+              .filter((Item_Borrador) => Item_Borrador.Id !== Fila.Id);
+            Render_Baul_Semanas();
+          });
+          Item.appendChild(Borrar);
+          El_Baul_Semanas_Lista.appendChild(Item);
+        });
+      }
+
+      function Cerrar_Baul_Semanas(Resultado = null) {
+        El_Baul_Semanas_Overlay?.classList.remove("Activo");
+        const Resolver = Baul_Semanas_Resolver;
+        Baul_Semanas_Resolver = null;
+        Baul_Semanas_Borrador = [];
+        if (Resolver) Resolver(Resultado);
+      }
+
+      function Obtener_Semanas_Baul_Semanas() {
+        const Semanas = new Set();
+        for (const Fila of Baul_Semanas_Borrador) {
+          if (Fila.Tipo === "Rango") {
+            const Desde = Normalizar_Clave_Semana_Desde_Fecha(
+              Fila.Desde
+            );
+            const Hasta = Normalizar_Clave_Semana_Desde_Fecha(
+              Fila.Hasta
+            );
+            if (!Desde || !Hasta) return null;
+            let Cursor = Parsear_Fecha_ISO(Desde);
+            const Fin = Parsear_Fecha_ISO(Hasta);
+            if (!Cursor || !Fin || Cursor > Fin) return null;
+            while (Cursor <= Fin) {
+              Semanas.add(Formatear_Fecha_ISO(Cursor));
+              Cursor = Sumar_Dias(Cursor, 7);
+            }
+          } else {
+            const Clave = Normalizar_Clave_Semana_Desde_Fecha(
+              Fila.Fecha
+            );
+            if (!Clave) return null;
+            Semanas.add(Clave);
+          }
+        }
+        return Array.from(Semanas).sort();
+      }
+
+      function Mostrar_Dialogo_Baul_Semanas(Nombre) {
+        if (Baul_Semanas_Resolver) return Promise.resolve(null);
+        Baul_Semanas_Borrador = [];
+        Agregar_Fila_Baul_Semanas("Semana");
+        if (El_Baul_Semanas_Titulo) {
+          El_Baul_Semanas_Titulo.textContent =
+            `Agregar "${Nombre}" a varias semanas`;
+        }
+        El_Baul_Semanas_Overlay?.classList.add("Activo");
+        return new Promise((Resolver) => {
+          Baul_Semanas_Resolver = Resolver;
+        });
+      }
+
+      async function Solicitar_Horas_Baul(Tarea) {
+        if (!Tarea.Es_Bolsa) return 0;
+        return await Mostrar_Dialogo_Con_Numero(
+          `¿Cuántas horas semanales querés asignar a "${Tarea.Nombre}"?`,
+          1,
+          1
+        );
+      }
+
+      async function Solicitar_Semanas_Destino_Baul(
+        Tarea,
+        Destino_Forzado = null
+      ) {
+        let Eleccion = Destino_Forzado;
+        if (!Eleccion) {
+          Eleccion = await Mostrar_Dialogo(
+            `¿A qué semana querés agregar "${Tarea.Nombre}"?`,
+            [
+              {
+                Etiqueta: "Semana actual",
+                Valor: "visible",
+                Tipo: "Primario"
+              },
+              {
+                Etiqueta: "Semana próxima",
+                Valor: "siguiente",
+                Tipo: "Secundario"
+              },
+              {
+                Etiqueta: "Elegir una",
+                Valor: "manual",
+                Tipo: "Secundario"
+              },
+              {
+                Etiqueta: "Varias semanas",
+                Valor: "varias",
+                Tipo: "Secundario"
+              },
+              {
+                Etiqueta: "Cancelar",
+                Valor: null,
+                Tipo: "Cancelar"
+              }
+            ]
+          );
+        }
+        if (!Eleccion) return null;
+        if (Eleccion === "visible") {
+          return [Clave_Semana_Actual()];
+        }
+        if (Eleccion === "siguiente") {
+          return [
+            Formatear_Fecha_ISO(Sumar_Dias(Semana_Actual, 7))
+          ];
+        }
+        if (Eleccion === "manual") {
+          const Fecha = await Mostrar_Dialogo_Con_Fecha(
+            "Elegí cualquier día de la semana destino:",
+            Formatear_Fecha_ISO(Semana_Actual)
+          );
+          const Clave = Normalizar_Clave_Semana_Desde_Fecha(Fecha);
+          return Clave ? [Clave] : null;
+        }
+        return await Mostrar_Dialogo_Baul_Semanas(Tarea.Nombre);
+      }
+
+      async function Agregar_Baul_A_Semanas(
+        Tarea_Baul,
+        Destino_Forzado = null
+      ) {
+        if (!Tarea_Baul) return;
+        const Horas = await Solicitar_Horas_Baul(Tarea_Baul);
+        if (Horas === null) return;
+        const Semanas = await Solicitar_Semanas_Destino_Baul(
+          Tarea_Baul,
+          Destino_Forzado
+        );
+        if (!Semanas || !Semanas.length) return;
+
+        const Creadas = Semanas.map((Semana_Clave) =>
+          Crear_Tarea_Semanal_Con_Datos(
+            {
+              Nombre: Tarea_Baul.Nombre,
+              Emoji: Tarea_Baul.Emoji,
+              Color: Obtener_Color_Default(),
+              Es_Bolsa: Tarea_Baul.Es_Bolsa,
+              Horas_Semanales: Horas,
+              Categoria_Id: Tarea_Baul.Categoria_Id,
+              Etiquetas_Ids: Tarea_Baul.Etiquetas_Ids
+            },
+            Semana_Clave
+          )
+        );
+
+        Normalizar_Estado();
+        const Visible = Creadas.find(
+          (Tarea) => Tarea.Semana_Base === Clave_Semana_Actual()
+        );
+        if (Visible) {
+          Tarea_Seleccionada_Id = Visible.Id;
+          Modo_Editor_Abierto = false;
+        }
+        Render_Emojis();
+        Render_Resumen_Tarea();
+        Render_Editor();
+        Guardar_Estado();
+        Mostrar_Mensaje_Baul(
+          `${Tarea_Baul.Nombre} agregada a ${Semanas.length} semana(s).`
+        );
       }
 
       // --- Funciones del menú de día ---
@@ -3861,18 +6872,6 @@
             );
             if (!Tarea) return;
 
-            // En Completar/Realizados, no pisar eventos preservados.
-            if (Modo === "Completar" || Modo === "Realizados") {
-              const Ocupado = Eventos.some((Ev) => {
-                if (Ev.Fecha !== Fecha_ISO) return false;
-                return (
-                  Ev.Inicio < Franja.Hasta &&
-                  (Ev.Inicio + Ev.Duracion) > Franja.Desde
-                );
-              });
-              if (Ocupado) return;
-            }
-
             const Dur_Max = Franja.Hasta - Franja.Desde;
             let Dur_Evento;
             if (Tarea.Es_Bolsa) {
@@ -3881,6 +6880,16 @@
               Dur_Evento = Math.min(Dur_Max, Horas_Disp);
             } else {
               Dur_Evento = Dur_Max;
+            }
+
+            if (
+              Obtener_Motivo_Conflicto_Evento(
+                Fecha_ISO,
+                Franja.Desde,
+                Dur_Evento
+              )
+            ) {
+              return;
             }
 
             Eventos.push({
@@ -3905,7 +6914,7 @@
           new Date().getHours() + new Date().getMinutes() / 60
         );
 
-        Config.Dias_Visibles.forEach((Dia_Idx) => {
+        Obtener_Dias_Visibles_Efectivos().forEach((Dia_Idx) => {
           const Fecha_ISO = Formatear_Fecha_ISO(
             Obtener_Fecha_Semana(Dia_Idx)
           );
@@ -4072,7 +7081,7 @@
 
         // Detectar si la semana visible incluye hoy o días pasados.
         const Hoy_ISO = Formatear_Fecha_ISO(new Date());
-        const Fechas = Config.Dias_Visibles.map(
+        const Fechas = Obtener_Dias_Visibles_Efectivos().map(
           (Dia_Idx) =>
             Formatear_Fecha_ISO(Obtener_Fecha_Semana(Dia_Idx))
         );
@@ -4139,13 +7148,20 @@
         );
       }
 
-      function Mostrar_Menu_Dia(Fecha_ISO, Rect) {
+      function Mostrar_Menu_Dia(
+        Fecha_ISO, Rect, Dia_Index = null
+      ) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         const Todo_Muerto =
           Todos_Los_Slots_Son_Muertos(Fecha_ISO);
         const Etiqueta_Block = Todo_Muerto
           ? "Desbloquear día completo"
           : "Bloquear día completo";
+        const Dias_Base = Obtener_Dias_Visibles_Base();
+        const Puede_Ocultar =
+          Dia_Index !== null &&
+          Dias_Base.includes(Dia_Index) &&
+          Dias_Base.length > 1;
 
         const Patrones_Diarios = Patrones.filter(
           (P) => P.Tipo === "Diario"
@@ -4153,7 +7169,15 @@
 
         let Html =
           `<button class="Dia_Accion_Item" type="button"` +
-          ` data-accion="block">${Etiqueta_Block}</button>` +
+          ` data-accion="block">${Etiqueta_Block}</button>`;
+
+        if (Puede_Ocultar) {
+          Html +=
+            `<button class="Dia_Accion_Item" type="button"` +
+            ` data-accion="ocultar">Ocultar este día</button>`;
+        }
+
+        Html +=
           `<button class="Dia_Accion_Item" type="button"` +
           ` data-accion="copiar">Copiar día</button>`;
 
@@ -4188,6 +7212,21 @@
             if (!Tipo_Id) return;
             Bloquear_Dia_Completo(Fecha_ISO, Tipo_Id);
           });
+
+        const Btn_Ocultar = Menu.querySelector(
+          `[data-accion="ocultar"]`
+        );
+        if (Btn_Ocultar) {
+          Btn_Ocultar.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Config.Dias_Visibles = Dias_Base.filter(
+              (Dia) => Dia !== Dia_Index
+            );
+            Render_Calendario();
+            Guardar_Estado();
+          });
+        }
 
         Menu.querySelector(`[data-accion="copiar"]`)
           .addEventListener("click", (Ev) => {
@@ -4321,16 +7360,12 @@
 
         // Pegar eventos respetando ocupación en modo Completar.
         Portapapeles_Dia.Eventos.forEach((Plantilla) => {
-          if (Modo === "Completar") {
-            const Ocupado = Eventos.some((Ev) => {
-              if (Ev.Fecha !== Fecha_ISO) return false;
-              return (
-                Ev.Inicio < (Plantilla.Inicio + Plantilla.Duracion) &&
-                (Ev.Inicio + Ev.Duracion) > Plantilla.Inicio
-              );
-            });
-            if (Ocupado) return;
-          }
+          const Motivo_Conflicto = Obtener_Motivo_Conflicto_Evento(
+            Fecha_ISO,
+            Plantilla.Inicio,
+            Plantilla.Duracion
+          );
+          if (Motivo_Conflicto) return;
           const Tarea = Tarea_Por_Id(Plantilla.Tarea_Id);
           if (!Tarea) return;
           if (Tarea.Es_Bolsa) {
@@ -4518,7 +7553,7 @@
         const Snap = Capturar_Snapshot_Undo();
 
         // Recolectar las fechas ISO de los días visibles.
-        const Fechas_Semana = Config.Dias_Visibles.map(
+        const Fechas_Semana = Obtener_Dias_Visibles_Efectivos().map(
           (Dia_Idx) =>
             Formatear_Fecha_ISO(Obtener_Fecha_Semana(Dia_Idx))
         );
@@ -4695,18 +7730,19 @@
 
         // Crear una copia del evento por cada día visible
         // que no sea el día de origen y que esté libre.
-        Config.Dias_Visibles.forEach((Dia_Index) => {
+        Obtener_Dias_Visibles_Efectivos().forEach((Dia_Index) => {
           const Fecha = Formatear_Fecha_ISO(
             Obtener_Fecha_Semana(Dia_Index)
           );
           if (Fecha === Evento_Origen.Fecha) return;
 
-          // Omitir si ya hay un evento en ese horario.
-          const Ocupado = Eventos.some((Ev) =>
-            Ev.Fecha === Fecha &&
-            Ev.Inicio === Evento_Origen.Inicio
-          );
-          if (Ocupado) return;
+          if (
+            Obtener_Motivo_Conflicto_Evento(
+              Fecha,
+              Evento_Origen.Inicio,
+              Evento_Origen.Duracion
+            )
+          ) return;
 
           // Omitir si la bolsa no tiene horas suficientes.
           if (Tarea?.Es_Bolsa) {
@@ -4877,6 +7913,112 @@
         ).join("");
       }
 
+      function Actualizar_Config_Contador_Semanas() {
+        const Activo = Boolean(
+          document.getElementById(
+            "Cfg_Contador_Semanas_Activo"
+          )?.checked
+        );
+        const Modo =
+          document.getElementById(
+            "Cfg_Contador_Semanas_Modo"
+          )?.value || "Ano";
+        const Mostrar_Pct = Boolean(
+          document.getElementById(
+            "Cfg_Contador_Semanas_Porcentaje"
+          )?.checked
+        );
+        const Fila_Ref =
+          document.getElementById("Cfg_Contador_Ref_Fila");
+        const Fila_Final =
+          document.getElementById("Cfg_Contador_Final_Fila");
+        const Nota =
+          document.getElementById("Cfg_Contador_Nota");
+        const Label_Ref =
+          document.getElementById("Cfg_Contador_Ref_Label");
+
+        if (Label_Ref) {
+          Label_Ref.textContent =
+            Modo === "Vida"
+              ? "Fecha de nacimiento"
+              : "Fecha base";
+        }
+        if (Fila_Ref) {
+          Fila_Ref.style.display =
+            Activo && Modo !== "Ano" ? "flex" : "none";
+        }
+        if (Fila_Final) {
+          Fila_Final.style.display =
+            Activo && (Mostrar_Pct || Modo === "Vida")
+              ? "flex"
+              : "none";
+        }
+        if (Nota) {
+          Nota.style.display = Activo ? "block" : "none";
+          if (!Activo) {
+            Nota.textContent = "";
+          } else if (Modo === "Ano") {
+            Nota.textContent =
+              "Muestra el número ISO de la semana visible.";
+          } else if (Modo === "Vida") {
+            Nota.textContent =
+              "La semana 1 empieza en la semana del nacimiento.";
+          } else {
+            Nota.textContent =
+              "La semana 1 empieza en el lunes de esa fecha.";
+          }
+          if (Activo && (Mostrar_Pct || Modo === "Vida")) {
+            Nota.textContent +=
+              " El porcentaje usa la fecha final.";
+          }
+        }
+      }
+
+      function Normalizar_Plan_Actual(Plan) {
+        return Plan === "Upgrade" ? "Upgrade" : "Free";
+      }
+
+      function Actualizar_UI_Plan() {
+        Config.Plan_Actual = Normalizar_Plan_Actual(
+          Config.Plan_Actual
+        );
+        if (El_Plan_Boton) {
+          El_Plan_Boton.textContent =
+            `Plan: ${Config.Plan_Actual}`;
+          El_Plan_Boton.classList.toggle(
+            "Upgrade",
+            Config.Plan_Actual === "Upgrade"
+          );
+        }
+        if (El_Cfg_Plan_Actual) {
+          El_Cfg_Plan_Actual.value = Config.Plan_Actual;
+        }
+        El_Suscripcion_Card_Free?.classList.toggle(
+          "Activa",
+          Config.Plan_Actual === "Free"
+        );
+        El_Suscripcion_Card_Upgrade?.classList.toggle(
+          "Activa",
+          Config.Plan_Actual === "Upgrade"
+        );
+      }
+
+      function Abrir_Suscripcion() {
+        Actualizar_UI_Plan();
+        El_Suscripcion_Overlay?.classList.add("Activo");
+      }
+
+      function Cerrar_Suscripcion() {
+        El_Suscripcion_Overlay?.classList.remove("Activo");
+      }
+
+      function Seleccionar_Plan_Actual(Plan) {
+        Config.Plan_Actual = Normalizar_Plan_Actual(Plan);
+        Actualizar_UI_Plan();
+        Guardar_Estado();
+        Cerrar_Suscripcion();
+      }
+
       function Abrir_Config() {
         const El_Inicio = document.getElementById("Cfg_Inicio_Hora");
         const El_Fin = document.getElementById("Cfg_Fin_Hora");
@@ -4893,17 +8035,22 @@
           Config.Duracion_Default;
 
         const El_Dias = document.getElementById("Cfg_Dias_Visibles");
+        const Dias_Base = Obtener_Dias_Visibles_Base();
         El_Dias.innerHTML = Dias.map((Nombre_Dia, Index) =>
           `<div class="Config_Dia_Chip">` +
           `<input type="checkbox" id="Cfg_Dia_${Index}"` +
           ` value="${Index}"` +
-          (Config.Dias_Visibles.includes(Index) ? " checked" : "") +
+          (Dias_Base.includes(Index) ? " checked" : "") +
           `><label for="Cfg_Dia_${Index}">${Nombre_Dia}</label>` +
           `</div>`
         ).join("");
+        document.getElementById(
+          "Cfg_Ocultar_Dias_Automatico"
+        ).value = Config.Ocultar_Dias_Automatico || "Ninguno";
 
         Render_Config_Slots_Muertos();
         Render_Config_Categorias();
+        Render_Config_Etiquetas();
         Patrones_Backup_Config =
           JSON.parse(JSON.stringify(Patrones));
         Render_Config_Patrones();
@@ -4927,6 +8074,30 @@
           Config.Notas_Hover;
         document.getElementById("Cfg_Mostrar_Archivadas").checked =
           Config.Mostrar_Archivadas;
+        if (El_Cfg_Plan_Actual) {
+          El_Cfg_Plan_Actual.value = Normalizar_Plan_Actual(
+            Config.Plan_Actual
+          );
+        }
+        document.getElementById(
+          "Cfg_Contador_Semanas_Activo"
+        ).checked = Boolean(Config.Contador_Semanas_Activo);
+        document.getElementById(
+          "Cfg_Contador_Semanas_Modo"
+        ).value = Config.Contador_Semanas_Modo || "Ano";
+        document.getElementById(
+          "Cfg_Contador_Semanas_Fecha_Ref"
+        ).value = Config.Contador_Semanas_Fecha_Ref || "";
+        document.getElementById(
+          "Cfg_Contador_Semanas_Porcentaje"
+        ).checked = Boolean(
+          Config.Contador_Semanas_Porcentaje
+        );
+        document.getElementById(
+          "Cfg_Contador_Semanas_Fecha_Final"
+        ).value = Config.Contador_Semanas_Fecha_Final || "";
+        Actualizar_Config_Contador_Semanas();
+        Actualizar_UI_Plan();
         Render_Config_Tipos_Slot();
         // Wire export/import una vez.
         const Btn_Exp = document.getElementById("Cfg_Exportar_Btn");
@@ -5137,6 +8308,106 @@
         }
       }
 
+      function Render_Config_Etiquetas() {
+        const El_Lista = document.getElementById("Cfg_Etiquetas_Lista");
+        if (!El_Lista) return;
+        El_Lista.innerHTML = "";
+        Etiquetas.forEach((Etiqueta, Idx) => {
+          const Fila = document.createElement("div");
+          Fila.className = "Config_Cat_Fila";
+
+          const Inp_Nombre = document.createElement("input");
+          Inp_Nombre.type = "text";
+          Inp_Nombre.value = Etiqueta.Nombre;
+          Inp_Nombre.className =
+            "Config_Cat_Input Config_Cat_Input_Nombre";
+          Inp_Nombre.title = "Nombre de etiqueta";
+          Inp_Nombre.addEventListener("input", () => {
+            Etiqueta.Nombre = Inp_Nombre.value.trim();
+          });
+
+          Fila.appendChild(Inp_Nombre);
+
+          const Btn_Subir = document.createElement("button");
+          Btn_Subir.type = "button";
+          Btn_Subir.className = "Config_Cat_Btn";
+          Btn_Subir.textContent = "↑";
+          Btn_Subir.title = "Subir";
+          Btn_Subir.disabled = Idx === 0;
+          Btn_Subir.addEventListener("click", () => {
+            Etiquetas.splice(Idx, 1);
+            Etiquetas.splice(Idx - 1, 0, Etiqueta);
+            Render_Config_Etiquetas();
+          });
+
+          const Btn_Bajar = document.createElement("button");
+          Btn_Bajar.type = "button";
+          Btn_Bajar.className = "Config_Cat_Btn";
+          Btn_Bajar.textContent = "↓";
+          Btn_Bajar.title = "Bajar";
+          Btn_Bajar.disabled = Idx === Etiquetas.length - 1;
+          Btn_Bajar.addEventListener("click", () => {
+            Etiquetas.splice(Idx, 1);
+            Etiquetas.splice(Idx + 1, 0, Etiqueta);
+            Render_Config_Etiquetas();
+          });
+
+          const Btn_Borrar = document.createElement("button");
+          Btn_Borrar.type = "button";
+          Btn_Borrar.className = "Config_Cat_Btn";
+          Btn_Borrar.textContent = "×";
+          Btn_Borrar.title = "Borrar etiqueta";
+          Btn_Borrar.addEventListener("click", () => {
+            Etiquetas.splice(Idx, 1);
+            Render_Config_Etiquetas();
+            Render_Selector_Etiquetas(El_Etiquetas_Tarea);
+            Render_Selector_Etiquetas(
+              El_Editor_Etiquetas_Input,
+              Obtener_Etiquetas_Seleccionadas(
+                El_Editor_Etiquetas_Input
+              ),
+              Actualizar_Borrador_Editor
+            );
+            Render_Selector_Etiquetas(
+              El_Baul_Etiquetas_Input,
+              Obtener_Etiquetas_Seleccionadas(
+                El_Baul_Etiquetas_Input
+              )
+            );
+            Poblar_Select_Etiquetas_Filtro(
+              El_Baul_Filtro_Etiqueta,
+              El_Baul_Filtro_Etiqueta?.value || ""
+            );
+          });
+
+          Fila.appendChild(Btn_Subir);
+          Fila.appendChild(Btn_Bajar);
+          Fila.appendChild(Btn_Borrar);
+          El_Lista.appendChild(Fila);
+        });
+
+        const Btn_Agregar = document.getElementById(
+          "Cfg_Etiqueta_Agregar"
+        );
+        const Nueva_Fn = () => {
+          const Nombre = (
+            document.getElementById("Cfg_Etiqueta_Nombre")?.value || ""
+          ).trim();
+          if (!Nombre) return;
+          Etiquetas.push({
+            Id: Crear_Id_Etiqueta(),
+            Nombre
+          });
+          document.getElementById("Cfg_Etiqueta_Nombre").value = "";
+          Render_Config_Etiquetas();
+        };
+        if (Btn_Agregar) {
+          const Clon = Btn_Agregar.cloneNode(true);
+          Btn_Agregar.parentNode.replaceChild(Clon, Btn_Agregar);
+          Clon.addEventListener("click", Nueva_Fn);
+        }
+      }
+
       function Crear_Options_Horas() {
         // Genera opciones de horas 0-24 para selects de franja.
         let Html = "";
@@ -5279,9 +8550,7 @@
           }
           const Dias_Labels =
             ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
-          const Dias_Disponibles = Config.Dias_Visibles.length
-            ? Config.Dias_Visibles
-            : [0, 1, 2, 3, 4, 5, 6];
+          const Dias_Disponibles = Obtener_Dias_Visibles_Base();
 
           const Dia_Key_Actual =
             Dia_Activo_Key !== null
@@ -5389,9 +8658,9 @@
         Patron_En_Edicion_Snapshot = JSON.stringify(
           Patron_En_Edicion
         );
-        Patron_Modal_Dia_Activo = String(
-          Config.Dias_Visibles[0] ?? 0
-        );
+          Patron_Modal_Dia_Activo = String(
+            Obtener_Dias_Visibles_Base()[0] ?? 0
+          );
         document.getElementById("Patron_Modal_Titulo")
           .textContent = Patron_Id
             ? "Editar patrón"
@@ -5454,9 +8723,7 @@
           if (Mostrar_Dias) {
             const Dias_Labels =
               ["L","M","X","J","V","S","D"];
-            const Dias_Visibles = Config.Dias_Visibles.length
-              ? Config.Dias_Visibles
-              : [0,1,2,3,4,5,6];
+            const Dias_Visibles = Obtener_Dias_Visibles_Base();
 
             // Inicializar Dias a todos los días visibles si vacío.
             if (!Array.isArray(Franja.Dias)) {
@@ -5666,9 +8933,7 @@
           };
           if (Mostrar_Dias) {
             Nueva_Franja.Dias =
-              [...(Config.Dias_Visibles.length
-                ? Config.Dias_Visibles
-                : [0,1,2,3,4,5,6])];
+              [...Obtener_Dias_Visibles_Base()];
           }
           Franjas_Arr.push(Nueva_Franja);
           Render_Modal_Patron();
@@ -5720,9 +8985,9 @@
           // Al pasar a Semanal, inicializar Dias en todas
           // las franjas preexistentes que no lo tengan.
           if (Patron_En_Edicion.Tipo === "Semanal") {
-            const Dias_Def = Config.Dias_Visibles.length
-              ? [...Config.Dias_Visibles]
-              : [0, 1, 2, 3, 4, 5, 6];
+            const Dias_Def = [
+              ...Obtener_Dias_Visibles_Base()
+            ];
             Patron_En_Edicion.Franjas.forEach((F) => {
               if (!Array.isArray(F.Dias)) {
                 F.Dias = [...Dias_Def];
@@ -5772,9 +9037,9 @@
         if (!Array.isArray(Patron.Franjas)) Patron.Franjas = [];
 
         if (Patron.Tipo === "Semanal") {
-          const Dias_Def = Config.Dias_Visibles.length
-            ? [...Config.Dias_Visibles]
-            : [0, 1, 2, 3, 4, 5, 6];
+          const Dias_Def = [
+            ...Obtener_Dias_Visibles_Base()
+          ];
           Patron.Franjas.forEach((F) => {
             if (
               !Array.isArray(F.Dias) ||
@@ -6454,7 +9719,10 @@
           return;
         }
 
-        Config.Dias_Visibles = Dias_Elegidos;
+        const Ocultar_Dias_Automatico =
+          document.getElementById(
+            "Cfg_Ocultar_Dias_Automatico"
+          )?.value || "Ninguno";
 
         // Slots_Muertos_Default ya se actualiza en tiempo real
         // desde los listeners de Render_Config_Slots_Muertos.
@@ -6489,6 +9757,59 @@
         Config.Mostrar_Archivadas = Boolean(
           document.getElementById("Cfg_Mostrar_Archivadas")?.checked
         );
+        Config.Plan_Actual = Normalizar_Plan_Actual(
+          El_Cfg_Plan_Actual?.value || Config.Plan_Actual
+        );
+        const Contador_Semanas_Activo = Boolean(
+          document.getElementById(
+            "Cfg_Contador_Semanas_Activo"
+          )?.checked
+        );
+        const Contador_Semanas_Modo =
+          document.getElementById(
+            "Cfg_Contador_Semanas_Modo"
+          )?.value || "Ano";
+        const Contador_Semanas_Fecha_Ref =
+          document.getElementById(
+            "Cfg_Contador_Semanas_Fecha_Ref"
+          )?.value || "";
+        const Contador_Semanas_Porcentaje = Boolean(
+          document.getElementById(
+            "Cfg_Contador_Semanas_Porcentaje"
+          )?.checked
+        );
+        const Contador_Semanas_Fecha_Final =
+          document.getElementById(
+            "Cfg_Contador_Semanas_Fecha_Final"
+          )?.value || "";
+
+        if (
+          Contador_Semanas_Activo &&
+          Contador_Semanas_Modo !== "Ano" &&
+          !Contador_Semanas_Fecha_Ref
+        ) {
+          alert("Elegí una fecha base para el contador.");
+          return;
+        }
+        if (
+          Contador_Semanas_Activo &&
+          Contador_Semanas_Porcentaje &&
+          !Contador_Semanas_Fecha_Final
+        ) {
+          alert("Elegí una fecha final para el porcentaje.");
+          return;
+        }
+
+        Config.Dias_Visibles = Dias_Elegidos;
+        Config.Ocultar_Dias_Automatico = Ocultar_Dias_Automatico;
+        Config.Contador_Semanas_Activo = Contador_Semanas_Activo;
+        Config.Contador_Semanas_Modo = Contador_Semanas_Modo;
+        Config.Contador_Semanas_Fecha_Ref =
+          Contador_Semanas_Fecha_Ref;
+        Config.Contador_Semanas_Porcentaje =
+          Contador_Semanas_Porcentaje;
+        Config.Contador_Semanas_Fecha_Final =
+          Contador_Semanas_Fecha_Final;
 
         // Aplicar colores de estado al DOM.
         Aplicar_Colores_Config();
@@ -6499,6 +9820,7 @@
         // Confirmar el backup al guardar (no restaurar).
         Patrones_Backup_Config = null;
 
+        Actualizar_UI_Plan();
         Cerrar_Config();
         Render_Emojis();
         Render_Calendario();
@@ -6642,14 +9964,159 @@
         return `Cat_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
       }
 
-      function Poblar_Select_Categorias(El_Select, Valor_Actual) {
+      function Crear_Id_Etiqueta() {
+        return `Tag_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      }
+
+      function Crear_Id_Baul_Tarea() {
+        return `Baul_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      }
+
+      function Normalizar_Etiqueta(Etiqueta) {
+        const Nombre = (Etiqueta?.Nombre || "").toString().trim();
+        if (!Nombre) return null;
+        return {
+          Id: Etiqueta?.Id || Crear_Id_Etiqueta(),
+          Nombre
+        };
+      }
+
+      function Normalizar_Etiquetas_Ids(Ids) {
+        const Permitidas = new Set(
+          Etiquetas.map((Etiqueta) => Etiqueta.Id)
+        );
+        return Array.from(
+          new Set(
+            (Array.isArray(Ids) ? Ids : [])
+              .map((Id) => (Id || "").toString())
+              .filter(Boolean)
+          )
+        ).filter((Id) => Permitidas.has(Id));
+      }
+
+      function Obtener_Nombre_Categoria(Categoria_Id) {
+        return Categorias.find(
+          (Categoria) => Categoria.Id === Categoria_Id
+        ) || null;
+      }
+
+      function Obtener_Nombres_Etiquetas(Etiquetas_Ids) {
+        return Normalizar_Etiquetas_Ids(Etiquetas_Ids)
+          .map((Etiqueta_Id) =>
+            Etiquetas.find((Etiqueta) => Etiqueta.Id === Etiqueta_Id)
+          )
+          .filter(Boolean)
+          .map((Etiqueta) => Etiqueta.Nombre);
+      }
+
+      function Obtener_Estado_Baul_Normalizado(Estado) {
+        const Valor = (Estado || "").toString();
+        if (
+          Valor === "Realizada" ||
+          Valor === "Postergada" ||
+          Valor === "Anulada"
+        ) {
+          return Valor;
+        }
+        return "Activa";
+      }
+
+      function Normalizar_Baul_Tarea(Tarea) {
+        const Nombre = (Tarea?.Nombre || "").toString().trim();
+        if (!Nombre) return null;
+        return {
+          Id: Tarea?.Id || Crear_Id_Baul_Tarea(),
+          Nombre,
+          Emoji: Normalizar_Emoji(Tarea?.Emoji),
+          Es_Bolsa: Boolean(Tarea?.Es_Bolsa),
+          Categoria_Id: Tarea?.Categoria_Id || null,
+          Etiquetas_Ids: Normalizar_Etiquetas_Ids(Tarea?.Etiquetas_Ids),
+          Estado: Obtener_Estado_Baul_Normalizado(Tarea?.Estado),
+          Archivada: Boolean(Tarea?.Archivada)
+        };
+      }
+
+      function Poblar_Select_Categorias(
+        El_Select,
+        Valor_Actual,
+        Etiqueta_Vacia = "Sin categoría"
+      ) {
         if (!El_Select) return;
         El_Select.innerHTML =
-          `<option value="">Sin categoría</option>` +
+          `<option value="">${Etiqueta_Vacia}</option>` +
           Categorias.map((Cat) =>
             `<option value="${Cat.Id}">${Cat.Emoji} ${Cat.Nombre}</option>`
           ).join("");
         El_Select.value = Valor_Actual || "";
+      }
+
+      function Poblar_Select_Etiquetas_Filtro(
+        El_Select,
+        Valor_Actual,
+        Etiqueta_Todas = "Todas"
+      ) {
+        if (!El_Select) return;
+        El_Select.innerHTML =
+          `<option value="">${Etiqueta_Todas}</option>` +
+          Etiquetas.map((Etiqueta) =>
+            `<option value="${Etiqueta.Id}">${Etiqueta.Nombre}</option>`
+          ).join("");
+        El_Select.value = Valor_Actual || "";
+      }
+
+      function Obtener_Etiquetas_Seleccionadas(Contenedor) {
+        if (!Contenedor) return [];
+        return Array.from(
+          Contenedor.querySelectorAll(
+            'input[type="checkbox"]:checked'
+          )
+        )
+          .map((Input) => Input.value)
+          .filter(Boolean);
+      }
+
+      function Render_Selector_Etiquetas(
+        Contenedor,
+        Etiquetas_Ids = [],
+        Al_Cambiar = null
+      ) {
+        if (!Contenedor) return;
+        const Seleccion = new Set(
+          Normalizar_Etiquetas_Ids(Etiquetas_Ids)
+        );
+        Contenedor.innerHTML = "";
+        if (!Etiquetas.length) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Selector_Etiquetas_Vacio";
+          Vacio.textContent = "Sin etiquetas creadas todavía.";
+          Contenedor.appendChild(Vacio);
+          return;
+        }
+        Etiquetas.forEach((Etiqueta) => {
+          const Chip = document.createElement("label");
+          Chip.className = "Etiqueta_Chip";
+          if (Seleccion.has(Etiqueta.Id)) {
+            Chip.classList.add("Activa");
+          }
+
+          const Input = document.createElement("input");
+          Input.type = "checkbox";
+          Input.value = Etiqueta.Id;
+          Input.checked = Seleccion.has(Etiqueta.Id);
+          Input.addEventListener("change", () => {
+            Chip.classList.toggle("Activa", Input.checked);
+            if (typeof Al_Cambiar === "function") {
+              Al_Cambiar();
+            }
+          });
+
+          const Texto = document.createElement("span");
+          Texto.textContent = Etiqueta.Nombre;
+
+          Chip.appendChild(Input);
+          Chip.appendChild(Texto);
+          Contenedor.appendChild(Chip);
+        });
       }
 
       function Normalizar_Emoji(Texto) {
@@ -6729,6 +10196,241 @@
         const Inicio_Texto = `${Inicio.getDate().toString().padStart(2, "0")}/${(Inicio.getMonth() + 1).toString().padStart(2, "0")}`;
         const Fin_Texto = `${Fin.getDate().toString().padStart(2, "0")}/${(Fin.getMonth() + 1).toString().padStart(2, "0")}`;
         return `${Inicio_Texto} - ${Fin_Texto}`;
+      }
+
+      function Obtener_Dias_Visibles_Base() {
+        const Base =
+          Array.isArray(Config.Dias_Visibles) &&
+          Config.Dias_Visibles.length
+            ? Config.Dias_Visibles
+            : [0, 1, 2, 3, 4, 5, 6];
+        return [...new Set(
+          Base.filter((Dia) => Dia >= 0 && Dia <= 6)
+        )].sort((A, B) => A - B);
+      }
+
+      function Semana_Visible_Es_Actual() {
+        return (
+          Formatear_Fecha_ISO(Semana_Actual) ===
+          Formatear_Fecha_ISO(Obtener_Lunes(new Date()))
+        );
+      }
+
+      function Obtener_Dia_Hoy_Index() {
+        const Dia_JS = new Date().getDay();
+        return Dia_JS === 0 ? 6 : Dia_JS - 1;
+      }
+
+      function Obtener_Dias_Visibles_Efectivos() {
+        const Base = Obtener_Dias_Visibles_Base();
+        const Modo = Config.Ocultar_Dias_Automatico || "Ninguno";
+        if (Modo === "Ninguno" || !Semana_Visible_Es_Actual()) {
+          return Base;
+        }
+
+        const Dia_Hoy = Obtener_Dia_Hoy_Index();
+        const Filtrados = Base.filter((Dia) => {
+          if (Modo === "Anteriores") return Dia >= Dia_Hoy;
+          if (Modo === "Siguientes") return Dia <= Dia_Hoy;
+          if (Modo === "Ambos") return Dia === Dia_Hoy;
+          return true;
+        });
+        return Filtrados.length ? Filtrados : Base;
+      }
+
+      function Obtener_Info_Semana_ISO(Fecha) {
+        const Base = new Date(
+          Fecha.getFullYear(),
+          Fecha.getMonth(),
+          Fecha.getDate()
+        );
+        Base.setHours(0, 0, 0, 0);
+        Base.setDate(
+          Base.getDate() + 3 - ((Base.getDay() + 6) % 7)
+        );
+        const Ano = Base.getFullYear();
+        const Jueves_1 = new Date(Ano, 0, 4);
+        const Numero = 1 + Math.round(
+          (
+            (Base - Jueves_1) / 86400000 -
+            3 +
+            ((Jueves_1.getDay() + 6) % 7)
+          ) / 7
+        );
+        const Total = Obtener_Total_Semanas_ISO(Ano);
+        return { Ano, Numero, Total };
+      }
+
+      function Obtener_Total_Semanas_ISO(Ano) {
+        const Fecha_Final = new Date(Ano, 11, 28);
+        const Base = new Date(
+          Fecha_Final.getFullYear(),
+          Fecha_Final.getMonth(),
+          Fecha_Final.getDate()
+        );
+        Base.setHours(0, 0, 0, 0);
+        Base.setDate(
+          Base.getDate() + 3 - ((Base.getDay() + 6) % 7)
+        );
+        const Jueves_1 = new Date(Ano, 0, 4);
+        return 1 + Math.round(
+          (
+            (Base - Jueves_1) / 86400000 -
+            3 +
+            ((Jueves_1.getDay() + 6) % 7)
+          ) / 7
+        );
+      }
+
+      function Dias_Entre(Desde, Hasta) {
+        const A = new Date(
+          Desde.getFullYear(),
+          Desde.getMonth(),
+          Desde.getDate()
+        );
+        const B = new Date(
+          Hasta.getFullYear(),
+          Hasta.getMonth(),
+          Hasta.getDate()
+        );
+        return Math.round((B - A) / 86400000);
+      }
+
+      function Semanas_Entre(Desde, Hasta) {
+        const Inicio = Obtener_Lunes(Desde);
+        const Fin = Obtener_Lunes(Hasta);
+        return Math.round(Dias_Entre(Inicio, Fin) / 7);
+      }
+
+      function Debe_Mostrar_Porcentaje_Contador(Modo) {
+        if (Config.Contador_Semanas_Porcentaje) return true;
+        if (Modo !== "Vida") return false;
+        return Boolean(
+          Parsear_Fecha_ISO(Config.Contador_Semanas_Fecha_Final)
+        );
+      }
+
+      function Obtener_Porcentaje_Contador(Fecha_Inicio, Modo) {
+        if (!Debe_Mostrar_Porcentaje_Contador(Modo)) return null;
+        const Fecha_Final = Parsear_Fecha_ISO(
+          Config.Contador_Semanas_Fecha_Final
+        );
+        if (!Fecha_Inicio || !Fecha_Final) return null;
+        if (Modo === "Ano") {
+          const Info = Obtener_Info_Semana_ISO(Semana_Actual);
+          const Ratio = Math.max(
+            0,
+            Math.min(1, Info.Numero / Info.Total)
+          );
+          return {
+            Texto: `${Math.round(Ratio * 100)}%`,
+            Ratio
+          };
+        }
+        const Total_Semanas = Semanas_Entre(
+          Fecha_Inicio,
+          Fecha_Final
+        );
+        if (Total_Semanas <= 0) return null;
+        const Avance = Semanas_Entre(Fecha_Inicio, Semana_Actual);
+        const Ratio = Math.max(
+          0,
+          Math.min(1, Avance / Total_Semanas)
+        );
+        return {
+          Texto: `${Math.round(Ratio * 100)}%`,
+          Ratio
+        };
+      }
+
+      function Obtener_Datos_Contador_Semanas() {
+        if (!Config.Contador_Semanas_Activo) {
+          return {
+            Titulo: "",
+            Porcentaje_Texto: "",
+            Porcentaje_Ratio: null
+          };
+        }
+
+        const Modo = Config.Contador_Semanas_Modo || "Ano";
+        let Titulo = "";
+        let Fecha_Inicio = null;
+
+        if (Modo === "Ano") {
+          const Info = Obtener_Info_Semana_ISO(Semana_Actual);
+          Titulo = `Semana ${Info.Numero}`;
+          Fecha_Inicio = new Date(Info.Ano, 0, 1);
+        } else {
+          const Fecha_Ref = Parsear_Fecha_ISO(
+            Config.Contador_Semanas_Fecha_Ref
+          );
+          if (!Fecha_Ref) {
+            return {
+              Titulo: "",
+              Porcentaje_Texto: "",
+              Porcentaje_Ratio: null
+            };
+          }
+          const Inicio = Obtener_Lunes(Fecha_Ref);
+          const Delta = Math.floor(
+            Dias_Entre(Inicio, Semana_Actual) / 7
+          );
+          if (Delta < 0) {
+            return {
+              Titulo: Modo === "Vida"
+                ? "Vida pendiente"
+                : "Semana pendiente",
+              Porcentaje_Texto: "",
+              Porcentaje_Ratio: null
+            };
+          }
+          Titulo = `Semana ${Delta + 1}`;
+          Fecha_Inicio = Fecha_Ref;
+        }
+
+        const Pct = Obtener_Porcentaje_Contador(
+          Fecha_Inicio,
+          Modo
+        );
+        return {
+          Titulo,
+          Porcentaje_Texto: Pct?.Texto || "",
+          Porcentaje_Ratio: Pct?.Ratio ?? null
+        };
+      }
+
+      function Aplicar_Estilo_Porcentaje_Contador(Ratio) {
+        const Valor = Math.max(0, Math.min(1, Ratio ?? 0));
+        const Hue = 32 + Valor * 96;
+        const Fondo = `hsl(${Hue} 62% ${92 - Valor * 9}%)`;
+        const Borde = `hsl(${Hue} 44% ${76 - Valor * 12}%)`;
+        const Texto = `hsl(${Hue} 46% ${31 - Valor * 4}%)`;
+        return { Fondo, Borde, Texto };
+      }
+
+      function Obtener_Layout_Calendario(Cantidad_Dias) {
+        const Umbral_Compacto = 3;
+        const Ancho_Columna_Horas = 62;
+        const Ancho_Columna_Dia = 220;
+
+        if (Cantidad_Dias <= Umbral_Compacto) {
+          return {
+            Template:
+              `62px repeat(${Cantidad_Dias}, ` +
+              `${Ancho_Columna_Dia}px)`,
+            Ancho: `${
+              Ancho_Columna_Horas +
+              Cantidad_Dias * Ancho_Columna_Dia
+            }px`
+          };
+        }
+
+        return {
+          Template:
+            `62px repeat(${Cantidad_Dias}, ` +
+            `minmax(0, 1fr))`,
+          Ancho: "100%"
+        };
       }
 
       function Obtener_Color_Default() {
@@ -6986,15 +10688,20 @@
       }
 
       async function Resolver_Alcance_Edicion_Subtarea(Tarea, Subtarea) {
-        // Solo preguntar si la subtarea tiene instancias en otras
-        // semanas (es decir, tiene un Plantilla_Id activo).
-        if (!Boolean(Subtarea?.Plantilla_Id)) return "Semana";
+        const Tiene_Plantilla = Boolean(Subtarea?.Plantilla_Id);
+        if (!Tiene_Plantilla) return "Semana";
         return await Solicitar_Alcance_Subtarea_Edicion();
       }
 
-      async function Resolver_Alcance_Reorden_Subtarea(Tarea) {
-        // Solo preguntar si la tarea tiene copias hacia adelante.
-        if (!Tarea_Tiene_Copias_Adelante(Tarea)) return "Semana";
+      async function Resolver_Alcance_Reorden_Subtarea(
+        Tarea, Subtarea_Origen, Subtarea_Destino
+      ) {
+        if (!Tarea) return "Semana";
+        const Tiene_Plantilla = Boolean(
+          Subtarea_Origen?.Plantilla_Id ||
+          Subtarea_Destino?.Plantilla_Id
+        );
+        if (!Tiene_Plantilla) return "Semana";
         return await Solicitar_Alcance_Subtarea_Edicion();
       }
 
@@ -7755,7 +11462,10 @@
             ? Normalizar_Duracion(Tarea?.Horas_Semanales)
             : 0,
           Es_Fija: Boolean(Tarea?.Es_Fija),
-          Categoria_Id: Tarea?.Categoria_Id || null
+          Categoria_Id: Tarea?.Categoria_Id || null,
+          Etiquetas_Ids: Normalizar_Etiquetas_Ids(
+            Tarea?.Etiquetas_Ids
+          )
         };
       }
 
@@ -7770,7 +11480,10 @@
             ? Normalizar_Duracion(El_Editor_Horas_Input.value)
             : 0,
           Es_Fija: El_Editor_Periodicidad_Input.value === "Fija",
-          Categoria_Id: El_Editor_Categoria_Input?.value || null
+          Categoria_Id: El_Editor_Categoria_Input?.value || null,
+          Etiquetas_Ids: Obtener_Etiquetas_Seleccionadas(
+            El_Editor_Etiquetas_Input
+          )
         };
       }
 
@@ -7806,7 +11519,11 @@
           Color: Base_Tarea.Color,
           Es_Bolsa: Base_Tarea.Es_Bolsa,
           Horas_Semanales: Base_Tarea.Horas_Semanales,
-          Restante: Base_Tarea.Horas_Semanales
+          Restante: Base_Tarea.Horas_Semanales,
+          Categoria_Id: Base_Tarea.Categoria_Id || null,
+          Etiquetas_Ids: Normalizar_Etiquetas_Ids(
+            Base_Tarea.Etiquetas_Ids
+          )
         };
         Tareas.push(Override);
         return Override;
@@ -7830,7 +11547,10 @@
           Es_Bolsa: Datos.Es_Bolsa,
           Horas_Semanales: Datos.Horas_Semanales,
           Restante: Datos.Horas_Semanales,
-          Categoria_Id: Datos.Categoria_Id || null
+          Categoria_Id: Datos.Categoria_Id || null,
+          Etiquetas_Ids: Normalizar_Etiquetas_Ids(
+            Datos.Etiquetas_Ids
+          )
         };
         Tareas.push(Segmento);
         return Segmento;
@@ -7844,6 +11564,9 @@
         Tarea.Horas_Semanales = Datos.Horas_Semanales;
         Tarea.Restante = Datos.Horas_Semanales;
         Tarea.Categoria_Id = Datos.Categoria_Id || null;
+        Tarea.Etiquetas_Ids = Normalizar_Etiquetas_Ids(
+          Datos.Etiquetas_Ids
+        );
       }
 
       function Reasignar_Eventos_Familia(Familia_Id, Desde_Semana, Nuevo_Tarea_Id, Solo_Semana = false) {
@@ -7997,7 +11720,7 @@
 
       async function Solicitar_Alcance_Accion_Tarea() {
         return await Mostrar_Dialogo(
-          "Esta tarea tiene copias en semanas siguientes. ¿Dónde aplicar?",
+          "Esta tarea aparece en otras semanas. ¿Dónde aplicar?",
           [
             {
               Etiqueta: "Solo esta semana",
@@ -8007,6 +11730,11 @@
             {
               Etiqueta: "Esta y las siguientes",
               Valor: "Adelante",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: "Todas las semanas",
+              Valor: "Todas",
               Tipo: "Secundario"
             },
             { Etiqueta: "Cancelar", Valor: null, Tipo: "Cancelar" }
@@ -8075,6 +11803,10 @@
           Tarea_Resultante = Aplicar_Cambios_Hacia_Adelante(
             Tarea, Datos
           );
+        } else if (Alcance === "Todas") {
+          Tarea_Resultante = Aplicar_Cambios_Todas_Las_Semanas(
+            Tarea, Datos
+          );
         } else if (Datos.Es_Fija && !Tarea.Es_Fija) {
           // Convertir a fija por primera vez.
           Aplicar_Datos_A_Tarea(Tarea, Datos);
@@ -8119,6 +11851,97 @@
 
       function Slot_Es_Muerto(Fecha, Hora) {
         return Slots_Muertos.includes(Clave_Slot(Fecha, Hora));
+      }
+
+      function Rangos_Horarios_Se_Solapan(
+        Inicio_A, Dur_A, Inicio_B, Dur_B
+      ) {
+        const Fin_A = Inicio_A + Dur_A;
+        const Fin_B = Inicio_B + Dur_B;
+        return (
+          Inicio_A < Fin_B - 0.0001 &&
+          Fin_A > Inicio_B + 0.0001
+        );
+      }
+
+      function Evento_Cae_En_Slot_Muerto(
+        Fecha, Inicio, Duracion
+      ) {
+        const Fin = Inicio + Duracion;
+        for (
+          let Hora = Math.floor(Inicio);
+          Hora < Math.ceil(Fin - 0.0001);
+          Hora++
+        ) {
+          if (Slot_Es_Muerto(Fecha, Hora)) return true;
+        }
+        return false;
+      }
+
+      function Obtener_Evento_Conflicto(
+        Fecha, Inicio, Duracion, Evento_Omitir_Id = null
+      ) {
+        return Eventos.find((Ev) =>
+          Ev.Fecha === Fecha &&
+          Ev.Id !== Evento_Omitir_Id &&
+          Rangos_Horarios_Se_Solapan(
+            Ev.Inicio,
+            Ev.Duracion,
+            Inicio,
+            Duracion
+          )
+        ) || null;
+      }
+
+      function Obtener_Motivo_Conflicto_Evento(
+        Fecha, Inicio, Duracion, Evento_Omitir_Id = null
+      ) {
+        const Fin = Inicio + Duracion;
+        if (
+          Inicio < Config.Inicio_Hora ||
+          Fin > Config.Fin_Hora + 0.0001
+        ) {
+          return "Ese bloque se sale del horario visible.";
+        }
+        if (Evento_Cae_En_Slot_Muerto(Fecha, Inicio, Duracion)) {
+          return "Ese rango toca horas bloqueadas.";
+        }
+        if (
+          Obtener_Evento_Conflicto(
+            Fecha,
+            Inicio,
+            Duracion,
+            Evento_Omitir_Id
+          )
+        ) {
+          return "Ese horario ya está ocupado.";
+        }
+        return "";
+      }
+
+      function Calcular_Max_Duracion_Evento(
+        Fecha, Inicio, Evento_Omitir_Id = null
+      ) {
+        let Max_Dur = Config.Fin_Hora - Inicio;
+        Eventos.forEach((Otro) => {
+          if (Otro.Id === Evento_Omitir_Id) return;
+          if (Otro.Fecha !== Fecha) return;
+          if (Otro.Inicio < Inicio + 0.0001) return;
+          const Dist = Otro.Inicio - Inicio;
+          if (Dist < Max_Dur) Max_Dur = Dist;
+        });
+        for (
+          let Hora = Math.floor(Inicio);
+          Hora < Config.Fin_Hora;
+          Hora++
+        ) {
+          if (!Slot_Es_Muerto(Fecha, Hora)) continue;
+          if (Hora < Inicio + 0.0001) continue;
+          const Dist = Hora - Inicio;
+          if (Dist < Max_Dur) Max_Dur = Dist;
+          break;
+        }
+        return Math.max(0, Max_Dur);
       }
 
       function Obtener_Tipos_Slot() {
@@ -8401,6 +12224,7 @@
         El_Mostrar_Creador.classList.add("Oculto");
         // Actualizar el selector de categorías con las actuales.
         Poblar_Select_Categorias(El_Categoria_Tarea, null);
+        Render_Selector_Etiquetas(El_Etiquetas_Tarea);
       }
 
       function Ocultar_Creador() {
@@ -8416,6 +12240,8 @@
           Slots_Muertos,
           Plantillas_Subtareas,
           Categorias,
+          Etiquetas,
+          Baul_Tareas,
           Patrones,
           Contador_Eventos,
           Tarea_Seleccionada_Id: null,
@@ -8428,6 +12254,8 @@
             Scroll_Inicial: Config.Scroll_Inicial,
             Duracion_Default: Config.Duracion_Default,
             Dias_Visibles: Config.Dias_Visibles,
+            Ocultar_Dias_Automatico:
+              Config.Ocultar_Dias_Automatico,
             Slots_Muertos_Default: Config.Slots_Muertos_Default,
             Agrupar_Por_Categorias: Config.Agrupar_Por_Categorias,
             Globito_Modo: Config.Globito_Modo,
@@ -8440,7 +12268,18 @@
             Color_Fracasada: Config.Color_Fracasada,
             Resize_Personalizado: Config.Resize_Personalizado,
             Notas_Hover: Config.Notas_Hover,
-            Mostrar_Archivadas: Config.Mostrar_Archivadas
+            Mostrar_Archivadas: Config.Mostrar_Archivadas,
+            Plan_Actual: Config.Plan_Actual,
+            Contador_Semanas_Activo:
+              Config.Contador_Semanas_Activo,
+            Contador_Semanas_Modo:
+              Config.Contador_Semanas_Modo,
+            Contador_Semanas_Fecha_Ref:
+              Config.Contador_Semanas_Fecha_Ref,
+            Contador_Semanas_Porcentaje:
+              Config.Contador_Semanas_Porcentaje,
+            Contador_Semanas_Fecha_Final:
+              Config.Contador_Semanas_Fecha_Final
           },
           Tipos_Slot,
           Slots_Muertos_Tipos,
@@ -8497,6 +12336,9 @@
               Config.Duracion_Default = Extra.Duracion_Default;
             if (Array.isArray(Extra.Dias_Visibles))
               Config.Dias_Visibles = Extra.Dias_Visibles;
+            if (Extra.Ocultar_Dias_Automatico)
+              Config.Ocultar_Dias_Automatico =
+                Extra.Ocultar_Dias_Automatico;
             if (Extra.Slots_Muertos_Default)
               Config.Slots_Muertos_Default = Extra.Slots_Muertos_Default;
             if (Extra.Agrupar_Por_Categorias !== undefined)
@@ -8524,6 +12366,28 @@
               Config.Notas_Hover = Extra.Notas_Hover;
             if (typeof Extra.Mostrar_Archivadas === "boolean")
               Config.Mostrar_Archivadas = Extra.Mostrar_Archivadas;
+            if (Extra.Plan_Actual !== undefined)
+              Config.Plan_Actual =
+                Normalizar_Plan_Actual(Extra.Plan_Actual);
+            if (typeof Extra.Contador_Semanas_Activo === "boolean")
+              Config.Contador_Semanas_Activo =
+                Extra.Contador_Semanas_Activo;
+            if (Extra.Contador_Semanas_Modo)
+              Config.Contador_Semanas_Modo =
+                Extra.Contador_Semanas_Modo;
+            if (Extra.Contador_Semanas_Fecha_Ref !== undefined)
+              Config.Contador_Semanas_Fecha_Ref =
+                Extra.Contador_Semanas_Fecha_Ref || "";
+            if (
+              typeof Extra.Contador_Semanas_Porcentaje ===
+              "boolean"
+            ) {
+              Config.Contador_Semanas_Porcentaje =
+                Extra.Contador_Semanas_Porcentaje;
+            }
+            if (Extra.Contador_Semanas_Fecha_Final !== undefined)
+              Config.Contador_Semanas_Fecha_Final =
+                Extra.Contador_Semanas_Fecha_Final || "";
           }
           if (Array.isArray(Estado.Tipos_Slot)) {
             Tipos_Slot = Estado.Tipos_Slot;
@@ -8536,6 +12400,12 @@
           }
           if (Array.isArray(Estado.Categorias)) {
             Categorias = Estado.Categorias;
+          }
+          if (Array.isArray(Estado.Etiquetas)) {
+            Etiquetas = Estado.Etiquetas;
+          }
+          if (Array.isArray(Estado.Baul_Tareas)) {
+            Baul_Tareas = Estado.Baul_Tareas;
           }
           if (Array.isArray(Estado.Patrones)) {
             Patrones = Estado.Patrones;
@@ -8561,6 +12431,12 @@
       }
 
       function Normalizar_Estado() {
+        Etiquetas = Array.isArray(Etiquetas)
+          ? Etiquetas
+            .map((Etiqueta) => Normalizar_Etiqueta(Etiqueta))
+            .filter(Boolean)
+          : [];
+
         Plantillas_Subtareas = Array.isArray(Plantillas_Subtareas)
           ? Plantillas_Subtareas
             .map((Plantilla) => {
@@ -8640,11 +12516,20 @@
             Restante: Horas_Semanales,
             Es_Bolsa,
             Es_Fija,
+            Etiquetas_Ids: Normalizar_Etiquetas_Ids(
+              Tarea.Etiquetas_Ids
+            ),
             Semana_Base: Es_Fija ? null : Semana_Base,
             Semana_Inicio: Es_Fija ? Semana_Inicio : null,
             Semana_Fin: Es_Fija ? Semana_Fin : null
           };
         });
+
+        Baul_Tareas = Array.isArray(Baul_Tareas)
+          ? Baul_Tareas
+            .map((Tarea) => Normalizar_Baul_Tarea(Tarea))
+            .filter(Boolean)
+          : [];
 
         Eventos = Eventos.map((Evento) => {
           const Inicio = Normalizar_Hora(Evento.Inicio);
@@ -8741,9 +12626,17 @@
           }
         }
         Boton.dataset.tareaId = Tarea.Id;
+        const Etiquetas_Titulo = Obtener_Nombres_Etiquetas(
+          Tarea.Etiquetas_Ids
+        );
+        const Sufijo_Tags = Etiquetas_Titulo.length
+          ? ` · ${Etiquetas_Titulo.map((Etiqueta) =>
+            `#${Etiqueta}`
+          ).join(" ")}`
+          : "";
         Boton.title = Fracasada
-          ? `${Tarea.Nombre} · semana anulada`
-          : Tarea.Nombre;
+          ? `${Tarea.Nombre} · semana anulada${Sufijo_Tags}`
+          : `${Tarea.Nombre}${Sufijo_Tags}`;
         Boton.draggable = true;
         Boton.addEventListener("click", (Ev) => {
           // Ctrl/Cmd + click: toggle multi-selección.
@@ -8883,7 +12776,7 @@
       }
 
       function Calcular_Datos_Resumen_Semanal() {
-        const Fechas = Config.Dias_Visibles.map(
+        const Fechas = Obtener_Dias_Visibles_Efectivos().map(
           (D) => Formatear_Fecha_ISO(Obtener_Fecha_Semana(D))
         );
         const Set_Fechas = new Set(Fechas);
@@ -9152,7 +13045,7 @@
         // Devuelve [{Dia_Idx, Fecha_ISO, Nombre, Items, Asig,
         //   Hechas}], donde Items es lista por tarea.
         const Hoy_ISO = Formatear_Fecha_ISO(new Date());
-        return Config.Dias_Visibles.map((Dia_Idx) => {
+        return Obtener_Dias_Visibles_Efectivos().map((Dia_Idx) => {
           const Fecha_Obj = Obtener_Fecha_Semana(Dia_Idx);
           const Fecha_ISO = Formatear_Fecha_ISO(Fecha_Obj);
           const Mapa = new Map();
@@ -9656,6 +13549,20 @@
         const Horas_Restantes = Calcular_Horas_Restantes(Tarea);
         El_Resumen_Tarea.classList.remove("Oculto");
         El_Resumen_Nombre.textContent = Tarea.Nombre || "Sin nombre";
+        const Categoria = Obtener_Nombre_Categoria(Tarea.Categoria_Id);
+        const Etiquetas_Tarea = Obtener_Nombres_Etiquetas(
+          Tarea.Etiquetas_Ids
+        );
+        const Meta_Subtitulo = [
+          Categoria
+            ? `${Categoria.Emoji} ${Categoria.Nombre}`
+            : "",
+          ...Etiquetas_Tarea.map((Etiqueta) => `#${Etiqueta}`)
+        ].filter(Boolean).join(" · ");
+        El_Resumen_Subtitulo.textContent = Meta_Subtitulo;
+        El_Resumen_Subtitulo.style.display = Meta_Subtitulo
+          ? "inline"
+          : "none";
         const Total_Horas = Number(Tarea.Horas_Semanales) || 0;
         // Horas hechas = horas tildadas en eventos.
         const Horas_Hechas = Obtener_Eventos_Tarea(Tarea)
@@ -9774,7 +13681,18 @@
               "application/x-timeblock-subtarea-order"
             );
             const Destino_Id = Item.dataset.subtareaId;
-            const Alcance = await Resolver_Alcance_Reorden_Subtarea(Tarea);
+            const Lista = Obtener_Subtareas_Semana(Tarea, true);
+            const Subtarea_Origen = Lista.find(
+              (Entrada) => Entrada.Id === Origen_Id
+            );
+            const Subtarea_Destino = Lista.find(
+              (Entrada) => Entrada.Id === Destino_Id
+            );
+            const Alcance = await Resolver_Alcance_Reorden_Subtarea(
+              Tarea,
+              Subtarea_Origen,
+              Subtarea_Destino
+            );
             if (!Alcance) return;
             if (!Aplicar_Reorden_Subtarea(
               Tarea, Origen_Id, Destino_Id, Alcance
@@ -9809,7 +13727,10 @@
 
         const Datos = Datos_Editor_Borrador || Obtener_Datos_Tarea(Tarea);
         El_Editor.classList.remove("Oculto");
-        Datos_Editor_Borrador = { ...Datos };
+        Datos_Editor_Borrador = {
+          ...Datos,
+          Etiquetas_Ids: [...(Datos.Etiquetas_Ids || [])]
+        };
         El_Editor_Nombre_Input.value = Datos.Nombre || "";
         El_Editor_Emoji_Input.value = Datos.Emoji || "";
         El_Editor_Color_Input.value = Datos.Color || Obtener_Color_Default();
@@ -9818,6 +13739,11 @@
         El_Editor_Periodicidad_Input.value = Datos.Es_Fija ? "Fija" : "Semana";
         Poblar_Select_Categorias(
           El_Editor_Categoria_Input, Datos.Categoria_Id
+        );
+        Render_Selector_Etiquetas(
+          El_Editor_Etiquetas_Input,
+          Datos.Etiquetas_Ids,
+          Actualizar_Borrador_Editor
         );
         Actualizar_Resumen_Editor(Tarea, Datos);
         Render_Colores_Compactos(El_Swatches_Editor, Datos.Color || Obtener_Color_Default(), (Color) => {
@@ -9862,8 +13788,13 @@
       function Render_Calendario() {
         Aplicar_Slots_Muertos_Default_Si_Necesario();
         El_Calendario.innerHTML = "";
+        const Dias_Visibles =
+          Obtener_Dias_Visibles_Efectivos();
+        const Layout_Cal =
+          Obtener_Layout_Calendario(Dias_Visibles.length);
         El_Calendario.style.gridTemplateColumns =
-          `62px repeat(${Config.Dias_Visibles.length}, minmax(0, 1fr))`;
+          Layout_Cal.Template;
+        El_Calendario.style.width = Layout_Cal.Ancho;
 
         const Columna_Horas = document.createElement("div");
         Columna_Horas.className = "Hora_Columna";
@@ -9878,7 +13809,7 @@
         }
         El_Calendario.appendChild(Columna_Horas);
 
-        Config.Dias_Visibles.forEach((Dia_Index) => {
+        Dias_Visibles.forEach((Dia_Index) => {
           const Dia = Dias[Dia_Index];
           const Fecha = Obtener_Fecha_Semana(Dia_Index);
           const Fecha_ISO = Formatear_Fecha_ISO(Fecha);
@@ -9900,7 +13831,8 @@
             Ev.stopPropagation();
             Mostrar_Menu_Dia(
               Fecha_ISO,
-              Ev.currentTarget.getBoundingClientRect()
+              Ev.currentTarget.getBoundingClientRect(),
+              Dia_Index
             );
           });
 
@@ -10078,21 +14010,11 @@
 
         // Calcular el máximo real al que se puede estirar.
         const Tarea = Tarea_Por_Id(Evento.Tarea_Id);
-
-        // 1) Fin del día.
-        let Max_Dur = Config.Fin_Hora - Evento.Inicio;
-
-        // 2) Próximo evento del mismo día en horario posterior.
-        Eventos.forEach((Otro) => {
-          if (Otro.Id === Evento.Id) return;
-          if (Otro.Fecha !== Evento.Fecha) return;
-          if (Otro.Inicio < Evento.Inicio) return;
-          // Ignorar si comienza antes o igual al inicio (el otro
-          // no está después, es raro pero por seguridad).
-          if (Otro.Inicio < Evento.Inicio + 0.001) return;
-          const Dist = Otro.Inicio - Evento.Inicio;
-          if (Dist < Max_Dur) Max_Dur = Dist;
-        });
+        let Max_Dur = Calcular_Max_Duracion_Evento(
+          Evento.Fecha,
+          Evento.Inicio,
+          Evento.Id
+        );
 
         // 3) Bolsa de horas: limitar por horas disponibles.
         // Horas disponibles = restantes + lo que ya ocupa este bloque.
@@ -10145,6 +14067,13 @@
             // que no hay solapamiento ni bolsa insuficiente.
             for (let I = 1; I < Cantidad; I++) {
               const Inicio_N = Evento.Inicio + I * Dur_Cfg;
+              if (
+                Obtener_Motivo_Conflicto_Evento(
+                  Evento.Fecha,
+                  Inicio_N,
+                  Dur_Cfg
+                )
+              ) break;
               Eventos.push({
                 Id: `Evento_${Contador_Eventos++}`,
                 Tarea_Id: Evento.Tarea_Id,
@@ -10313,13 +14242,14 @@
 
         // Advertir si hay eventos que serán borrados.
         let Tiene_Eventos;
-        if (Alcance === "Adelante") {
+        if (Alcance === "Adelante" || Alcance === "Todas") {
           const Familia_Id = Obtener_Familia_Tarea(Tarea);
           const Clave_Actual = Clave_Semana_Actual();
           const Ids_A_Borrar = Tareas
             .filter((Item) => {
               if (Obtener_Familia_Tarea(Item) !== Familia_Id)
                 return false;
+              if (Alcance === "Todas") return true;
               if (Boolean(Item.Es_Fija)) return true;
               return (
                 Obtener_Semana_Base_Tarea(Item) >= Clave_Actual
@@ -10352,6 +14282,22 @@
 
         if (Alcance === "Adelante") {
           Borrar_Familia_Desde_Esta_Semana(Tarea);
+        } else if (Alcance === "Todas") {
+          // Borrar todas las instancias de la familia completa.
+          const Familia_Id_Borrar = Obtener_Familia_Tarea(Tarea);
+          const Ids_Familia = new Set(
+            Tareas
+              .filter((T) =>
+                Obtener_Familia_Tarea(T) === Familia_Id_Borrar
+              )
+              .map((T) => T.Id)
+          );
+          Tareas = Tareas.filter((T) => !Ids_Familia.has(T.Id));
+          Eventos = Eventos.filter(
+            (Ev) => !Ids_Familia.has(Ev.Tarea_Id)
+          );
+          if (Ids_Familia.has(Tarea_Seleccionada_Id))
+            Tarea_Seleccionada_Id = null;
         } else if (Boolean(Tarea.Es_Fija)) {
           // Tarea fija: solo eliminar esta semana, no todo el segmento.
           Borrar_Tarea_Fija_Esta_Semana(Tarea);
@@ -10365,6 +14311,8 @@
 
         const Msg_Undo = Alcance === "Adelante"
           ? `"${Nombre_Tarea}" y copias siguientes eliminadas`
+          : Alcance === "Todas"
+          ? `"${Nombre_Tarea}" y todas sus semanas eliminadas`
           : `Tarea "${Nombre_Tarea}" eliminada`;
         Mostrar_Toast_Undo(Msg_Undo, Snap_Undo);
 
@@ -10430,6 +14378,15 @@
             alert("No hay horas suficientes en la bolsa.");
             return;
           }
+          const Motivo_Conflicto = Obtener_Motivo_Conflicto_Evento(
+            Fecha,
+            Hora,
+            Duracion
+          );
+          if (Motivo_Conflicto) {
+            alert(Motivo_Conflicto);
+            return;
+          }
 
           Eventos.push({
             Id: `Evento_${Contador_Eventos++}`,
@@ -10451,6 +14408,16 @@
         if (Payload.Tipo === "Evento") {
           const Bloque = Evento_Por_Id(Payload.Evento_Id);
           if (!Bloque) return;
+          const Motivo_Conflicto = Obtener_Motivo_Conflicto_Evento(
+            Fecha,
+            Hora,
+            Bloque.Duracion,
+            Bloque.Id
+          );
+          if (Motivo_Conflicto) {
+            alert(Motivo_Conflicto);
+            return;
+          }
           Bloque.Fecha = Fecha;
           Bloque.Inicio = Hora;
           Render_Eventos();
@@ -10490,6 +14457,15 @@
             alert("No hay horas suficientes en la bolsa.");
             return;
           }
+          const Motivo_Conflicto = Obtener_Motivo_Conflicto_Evento(
+            Fecha,
+            Hora,
+            Duracion
+          );
+          if (Motivo_Conflicto) {
+            alert(Motivo_Conflicto);
+            return;
+          }
 
           Eventos.push({
             Id: `Evento_${Contador_Eventos++}`,
@@ -10512,6 +14488,16 @@
         if (Payload.Tipo === "Evento") {
           const Bloque = Evento_Por_Id(Payload.Evento_Id);
           if (!Bloque) return;
+          const Motivo_Conflicto = Obtener_Motivo_Conflicto_Evento(
+            Fecha,
+            Hora,
+            Bloque.Duracion,
+            Bloque.Id
+          );
+          if (Motivo_Conflicto) {
+            alert(Motivo_Conflicto);
+            return;
+          }
           Bloque.Fecha = Fecha;
           Bloque.Inicio = Hora;
           Render_Eventos();
@@ -10520,7 +14506,58 @@
       }
 
       function Actualizar_Dias() {
-        El_Semana_Label.textContent = Formatear_Rango_Semana();
+        if (El_Semana_Rango) {
+          El_Semana_Rango.textContent = Formatear_Rango_Semana();
+        }
+        if (El_Semana_Contador || El_Semana_Porcentaje) {
+          const Datos_Contador =
+            Obtener_Datos_Contador_Semanas();
+          if (El_Semana_Principal_Fila) {
+            El_Semana_Principal_Fila.style.display = "flex";
+          }
+          if (El_Semana_Contador) {
+            El_Semana_Contador.textContent =
+              Datos_Contador.Titulo;
+            El_Semana_Contador.style.display =
+              Datos_Contador.Titulo ? "block" : "none";
+          }
+          if (El_Semana_Porcentaje) {
+            El_Semana_Porcentaje.textContent =
+              Datos_Contador.Porcentaje_Texto;
+            El_Semana_Porcentaje.style.display =
+              Datos_Contador.Porcentaje_Texto
+                ? "inline-flex"
+                : "none";
+            if (Datos_Contador.Porcentaje_Texto) {
+              const Estilo_Pct =
+                Aplicar_Estilo_Porcentaje_Contador(
+                  Datos_Contador.Porcentaje_Ratio
+                );
+              El_Semana_Porcentaje.style.setProperty(
+                "--Semana_Pct_Fondo",
+                Estilo_Pct.Fondo
+              );
+              El_Semana_Porcentaje.style.setProperty(
+                "--Semana_Pct_Borde",
+                Estilo_Pct.Borde
+              );
+              El_Semana_Porcentaje.style.setProperty(
+                "--Semana_Pct_Texto",
+                Estilo_Pct.Texto
+              );
+            } else {
+              El_Semana_Porcentaje.style.removeProperty(
+                "--Semana_Pct_Fondo"
+              );
+              El_Semana_Porcentaje.style.removeProperty(
+                "--Semana_Pct_Borde"
+              );
+              El_Semana_Porcentaje.style.removeProperty(
+                "--Semana_Pct_Texto"
+              );
+            }
+          }
+        }
 
         document.querySelectorAll(".Dia_Header").forEach((Header) => {
           const Dia_Index = parseInt(Header.dataset.dia, 10);
@@ -10555,7 +14592,10 @@
           Semana_Base: Es_Fija ? null : Clave_Semana_Actual(),
           Semana_Inicio: Es_Fija ? Clave_Semana_Actual() : null,
           Semana_Fin: null,
-          Categoria_Id: El_Categoria_Tarea?.value || null
+          Categoria_Id: El_Categoria_Tarea?.value || null,
+          Etiquetas_Ids: Obtener_Etiquetas_Seleccionadas(
+            El_Etiquetas_Tarea
+          )
         };
 
         Tareas.push(Tarea);
@@ -10563,6 +14603,7 @@
         El_Nombre_Tarea.value = "";
         El_Emoji_Tarea.value = "";
         El_Horas_Semanales.value = "";
+        Render_Selector_Etiquetas(El_Etiquetas_Tarea);
         Ocultar_Creador();
         Normalizar_Estado();
         Render_Creador_Colores();
@@ -10594,6 +14635,150 @@
       El_Config_Guardar_Btn.addEventListener("click", Guardar_Config);
       El_Config_Overlay.addEventListener("click", (Ev) => {
         if (Ev.target === El_Config_Overlay) Cerrar_Config();
+      });
+      El_Plan_Boton?.addEventListener("click", Abrir_Suscripcion);
+      El_Cfg_Ver_Planes?.addEventListener("click", Abrir_Suscripcion);
+      El_Cfg_Plan_Actual?.addEventListener("change", () => {
+        El_Suscripcion_Card_Free?.classList.toggle(
+          "Activa",
+          El_Cfg_Plan_Actual.value === "Free"
+        );
+        El_Suscripcion_Card_Upgrade?.classList.toggle(
+          "Activa",
+          El_Cfg_Plan_Actual.value === "Upgrade"
+        );
+      });
+      El_Ayuda_Boton.addEventListener("click", Abrir_Ayuda);
+      document.getElementById("Ayuda_Cerrar")
+        .addEventListener("click", Cerrar_Ayuda);
+      El_Ayuda_Overlay.addEventListener("click", (Ev) => {
+        if (Ev.target === El_Ayuda_Overlay) Cerrar_Ayuda();
+      });
+      document.getElementById("Suscripcion_Cerrar")
+        ?.addEventListener("click", Cerrar_Suscripcion);
+      document.getElementById("Suscripcion_Elegir_Free")
+        ?.addEventListener("click", () => {
+          Seleccionar_Plan_Actual("Free");
+        });
+      document.getElementById("Suscripcion_Elegir_Upgrade")
+        ?.addEventListener("click", () => {
+          Seleccionar_Plan_Actual("Upgrade");
+        });
+      El_Suscripcion_Overlay?.addEventListener("click", (Ev) => {
+        if (Ev.target === El_Suscripcion_Overlay) {
+          Cerrar_Suscripcion();
+        }
+      });
+      El_Baul_Boton?.addEventListener("click", Abrir_Baul);
+      document.getElementById("Baul_Cerrar")
+        ?.addEventListener("click", Cerrar_Baul);
+      document.getElementById("Baul_Cancelar_Edicion")
+        ?.addEventListener("click", () => {
+          Cancelar_Edicion_Baul();
+          Render_Baul();
+        });
+      document.getElementById("Baul_Guardar")
+        ?.addEventListener("click", Guardar_Baul_Tarea);
+      El_Baul_Nueva_Libreria?.addEventListener("click", () => {
+        Abrir_Editor_Baul();
+      });
+      El_Baul_Vista_Biblioteca?.addEventListener("click", () => {
+        if (Baul_Vista_Modo === "Biblioteca") return;
+        Baul_Vista_Modo = "Biblioteca";
+        Render_Baul();
+      });
+      El_Baul_Vista_Lista?.addEventListener("click", () => {
+        if (Baul_Vista_Modo === "Lista") return;
+        Baul_Vista_Modo = "Lista";
+        Render_Baul();
+      });
+      El_Baul_Accion_Agregar?.addEventListener("click", async () => {
+        const Tarea = Obtener_Baul_Tarea_En_Edicion();
+        if (!Tarea) return;
+        await Agregar_Baul_A_Semanas(Tarea);
+      });
+      El_Baul_Accion_Nueva?.addEventListener("click", () => {
+        Abrir_Editor_Baul();
+      });
+      El_Baul_Accion_Archivar?.addEventListener("click", () => {
+        const Tarea = Obtener_Baul_Tarea_En_Edicion();
+        if (!Tarea) return;
+        Alternar_Archivado_Baul(Tarea);
+      });
+      El_Baul_Detalle_Cerrar?.addEventListener("click", () => {
+        Cerrar_Editor_Baul();
+      });
+      El_Baul_Overlay?.addEventListener("click", (Ev) => {
+        if (Ev.target === El_Baul_Overlay) Cerrar_Baul();
+      });
+      El_Baul_Libreria?.addEventListener("click", (Ev) => {
+        if (Baul_Editor_Abierto) return;
+        if (Ev.target.closest(".Baul_Card, .Baul_Fila")) return;
+        Deseleccionar_Baul_Tarea();
+      });
+      [
+        El_Baul_Nombre_Input,
+        El_Baul_Emoji_Input,
+        El_Baul_Tipo_Input,
+        El_Baul_Categoria_Input,
+        El_Baul_Estado_Input
+      ].forEach((El) => {
+        El?.addEventListener("input", Render_Detalle_Baul);
+        El?.addEventListener("change", Render_Detalle_Baul);
+      });
+      [
+        El_Baul_Buscar_Input,
+        El_Baul_Filtro_Categoria,
+        El_Baul_Filtro_Etiqueta,
+        El_Baul_Filtro_Estado,
+        El_Baul_Mostrar_Archivadas
+      ].forEach((El) => {
+        El?.addEventListener("input", Render_Baul);
+        El?.addEventListener("change", Render_Baul);
+      });
+      document.getElementById("Baul_Semanas_Agregar_Semana")
+        ?.addEventListener("click", () => {
+          Agregar_Fila_Baul_Semanas("Semana");
+        });
+      document.getElementById("Baul_Semanas_Agregar_Rango")
+        ?.addEventListener("click", () => {
+          Agregar_Fila_Baul_Semanas("Rango");
+        });
+      [
+        "Baul_Semanas_Cerrar",
+        "Baul_Semanas_Cancelar"
+      ].forEach((Id) => {
+        document.getElementById(Id)
+          ?.addEventListener("click", () => {
+            Cerrar_Baul_Semanas(null);
+          });
+      });
+      document.getElementById("Baul_Semanas_Confirmar")
+        ?.addEventListener("click", () => {
+          const Semanas = Obtener_Semanas_Baul_Semanas();
+          if (!Semanas || !Semanas.length) {
+            alert(
+              "Revisá las semanas cargadas. " +
+              "Necesitás al menos una fecha válida."
+            );
+            return;
+          }
+          Cerrar_Baul_Semanas(Semanas);
+        });
+      El_Baul_Semanas_Overlay?.addEventListener("click", (Ev) => {
+        if (Ev.target === El_Baul_Semanas_Overlay) {
+          Cerrar_Baul_Semanas(null);
+        }
+      });
+      [
+        "Cfg_Contador_Semanas_Activo",
+        "Cfg_Contador_Semanas_Modo",
+        "Cfg_Contador_Semanas_Porcentaje"
+      ].forEach((Id) => {
+        document.getElementById(Id)?.addEventListener(
+          "change",
+          Actualizar_Config_Contador_Semanas
+        );
       });
 
       document.getElementById("Patron_Boton")
@@ -11086,6 +15271,7 @@
 
         Normalizar_Estado();
         Aplicar_Colores_Config();
+        Actualizar_UI_Plan();
         Render_Creador_Colores();
         Render_Emojis();
         Render_Resumen_Tarea();
@@ -11127,9 +15313,23 @@
         const Resumen_Abierto = document
           .getElementById("Resumen_Sem_Overlay")
           ?.classList.contains("Activo");
+        const Ayuda_Abierta = document
+          .getElementById("Ayuda_Overlay")
+          ?.classList.contains("Activo");
+        const Baul_Abierto = document
+          .getElementById("Baul_Overlay")
+          ?.classList.contains("Activo");
+        const Baul_Semanas_Abierto = document
+          .getElementById("Baul_Semanas_Overlay")
+          ?.classList.contains("Activo");
 
         if (Ev.key === "Escape") {
           if (Dialogo_Abierto_DOM) return;
+          if (Baul_Semanas_Abierto) {
+            Cerrar_Baul_Semanas(null);
+            Ev.preventDefault();
+            return;
+          }
           if (Modal_Abordaje_Abierto) {
             Cerrar_Modal_Abordaje();
             Ev.preventDefault();
@@ -11148,6 +15348,16 @@
           if (Resumen_Abierto) {
             document.getElementById("Resumen_Sem_Overlay")
               .classList.remove("Activo");
+            Ev.preventDefault();
+            return;
+          }
+          if (Ayuda_Abierta) {
+            Cerrar_Ayuda();
+            Ev.preventDefault();
+            return;
+          }
+          if (Baul_Abierto) {
+            Cerrar_Baul();
             Ev.preventDefault();
             return;
           }
@@ -11170,7 +15380,10 @@
           Modal_Patron_Abierto ||
           Modal_Abordaje_Abierto ||
           Config_Abierto ||
-          Resumen_Abierto
+          Resumen_Abierto ||
+          Ayuda_Abierta ||
+          Baul_Abierto ||
+          Baul_Semanas_Abierto
         ) return;
 
         // Ctrl+Z / Cmd+Z: deshacer el último undo disponible.
@@ -11205,22 +15418,16 @@
         }
       });
 
-      async function Mostrar_Ayuda_Atajos() {
-        await Mostrar_Dialogo(
-          "Atajos de teclado:\n\n" +
-          "← → : Semana anterior/siguiente\n" +
-          "T : Ir a hoy\n" +
-          "Ctrl+Z : Deshacer\n" +
-          "Esc : Cerrar/deseleccionar\n" +
-          "? : Esta ayuda",
-          [
-            {
-              Etiqueta: "Entendido",
-              Valor: true,
-              Tipo: "Primario"
-            }
-          ]
-        );
+      function Abrir_Ayuda() {
+        El_Ayuda_Overlay?.classList.add("Activo");
+      }
+
+      function Cerrar_Ayuda() {
+        El_Ayuda_Overlay?.classList.remove("Activo");
+      }
+
+      function Mostrar_Ayuda_Atajos() {
+        Abrir_Ayuda();
       }
 
       // ============================================================
@@ -11242,6 +15449,8 @@
       let Usuario_Actual = null;
       // Timer del debounce de sincronización.
       let Sync_Timer_Id = null;
+      // Indica si hay una subida activa a la nube.
+      let Sync_En_Curso = false;
       // Estado actual del indicador de sync.
       let Sync_Estado = "Guardado";
       // Flag para evitar guardados durante la carga inicial.
@@ -11296,8 +15505,16 @@
         );
       }
 
+      function Hay_Sync_Pendiente() {
+        return Boolean(Sync_Timer_Id) ||
+          Boolean(Sync_En_Curso) ||
+          Sync_Estado === "Guardando";
+      }
+
       async function Backend_Sync_Ejecutar() {
         if (!Supa || !Usuario_Actual) return;
+        Sync_Timer_Id = null;
+        Sync_En_Curso = true;
         try {
           const Estado = Construir_Estado_Completo();
           const { error } = await Supa
@@ -11311,6 +15528,8 @@
         } catch (E) {
           console.error("Error sincronizando:", E);
           Actualizar_Sync_Indicador("Error");
+        } finally {
+          Sync_En_Curso = false;
         }
       }
 
@@ -11637,6 +15856,12 @@
       async function Bootstrap() {
         if (!Inicializar_Supabase()) return;
 
+        window.addEventListener("beforeunload", (Ev) => {
+          if (!Hay_Sync_Pendiente()) return;
+          Ev.preventDefault();
+          Ev.returnValue = "";
+        });
+
         // Listener del formulario de auth.
         document.getElementById("Auth_Form")
           .addEventListener("submit", Auth_Manejar_Submit);
@@ -11682,4 +15907,3 @@
     </script>
   </body>
 </html>
-
