@@ -3055,20 +3055,22 @@
         gap: 14px;
       }
 
-      /* Barra de filtros: sin container, separador abajo */
+      /* Barra de filtros: una sola fila nivelada */
       .Metas_Barra {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px 16px;
+        gap: 12px;
         align-items: center;
         padding-bottom: 14px;
         border-bottom: 1px solid var(--Borde);
       }
 
+      /* Campo inline: label + select en fila, select sin ancho fijo */
       .Metas_Barra .Campo {
         margin-bottom: 0;
         min-width: 0;
         display: flex;
+        flex-direction: row;
         align-items: center;
         gap: 8px;
       }
@@ -3081,12 +3083,20 @@
         letter-spacing: 0.05em;
         color: var(--Texto_Suave);
         white-space: nowrap;
+        margin-bottom: 0;
       }
 
+      .Metas_Barra .Campo select {
+        width: auto;
+        min-width: 120px;
+        padding: 6px 10px;
+        font-size: 13px;
+      }
+
+      /* Checkbox pegado al select, botón empujado a la derecha */
       .Metas_Barra_Extras {
         display: flex;
-        flex-wrap: wrap;
-        gap: 8px 14px;
+        gap: 12px;
         align-items: center;
         margin-left: auto;
       }
@@ -3094,9 +3104,10 @@
       .Metas_Check {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 7px;
         font-size: 12px;
         color: var(--Texto_Suave);
+        cursor: pointer;
       }
 
       .Metas_Mensaje {
@@ -3173,6 +3184,22 @@
         opacity: 0.55;
       }
 
+      /* Tinte de borde izquierdo según estado */
+      .Meta_Card.Estado_En_Ritmo {
+        border-left: 3px solid rgba(15, 95, 90, 0.45);
+      }
+      .Meta_Card.Estado_Adelantada,
+      .Meta_Card.Estado_Cumplida {
+        border-left: 3px solid rgba(31, 107, 79, 0.45);
+      }
+      .Meta_Card.Estado_Atrasada,
+      .Meta_Card.Estado_Vencida {
+        border-left: 3px solid rgba(140, 47, 47, 0.45);
+      }
+      .Meta_Card.Estado_Proxima {
+        border-left: 3px solid rgba(138, 120, 105, 0.3);
+      }
+
       .Meta_Card_Punto {
         position: absolute;
         top: 12px;
@@ -3228,6 +3255,44 @@
         font-size: 12px;
         font-weight: 600;
         color: var(--Texto_Suave);
+      }
+
+      /* Mini barra de progreso en tarjeta colapsada */
+      .Meta_Card_Mini_Track {
+        width: 80%;
+        height: 3px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-top: -2px;
+      }
+
+      .Meta_Card_Mini_Track_Real {
+        height: 100%;
+        border-radius: inherit;
+        background: var(--Acento);
+        transition: width 300ms ease;
+      }
+
+      /* Sparkline de historial semanal */
+      .Meta_Sparkline_Wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .Meta_Sparkline_Label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--Texto_Suave);
+      }
+
+      .Meta_Sparkline {
+        width: 100%;
+        height: 36px;
+        display: block;
       }
 
       /* Vista expandida: detalle completo */
@@ -5895,13 +5960,14 @@
                 <option value="Todas">Todas</option>
               </select>
             </div>
+            <label class="Metas_Check">
+              <input type="checkbox"
+                id="Metas_Mostrar_Archivadas">
+              <span>Archivadas</span>
+            </label>
             <div class="Metas_Barra_Extras">
-              <label class="Metas_Check">
-                <input type="checkbox"
-                  id="Metas_Mostrar_Archivadas">
-                <span>Mostrar archivadas</span>
-              </label>
-              <button class="Boton_Principal" id="Metas_Nueva_Btn"
+              <button class="Boton_Principal"
+                id="Metas_Nueva_Btn"
                 type="button">+ Nueva meta</button>
             </div>
           </div>
@@ -9690,12 +9756,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Calcular_Datos_Meta(Meta) {
         const Rango = Obtener_Rango_Meta(Meta);
-        const Horas_Hechas = Eventos.reduce((Total, Evento) => {
-          if (!Evento_Cuenta_Meta(Meta, Evento, Rango)) {
-            return Total;
-          }
-          return Total + (Number(Evento.Duracion) || 0);
-        }, 0);
+        const Horas_Hechas = Eventos.reduce(
+          (Total, Evento) => {
+            if (!Evento_Cuenta_Meta(
+              Meta, Evento, Rango
+            )) {
+              return Total;
+            }
+            return Total + (Number(Evento.Duracion) || 0);
+          },
+          0
+        );
 
         const Ratio_Meta_Real =
           Meta.Horas_Objetivo > 0
@@ -9708,13 +9779,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Ratio_Tiempo,
           Rango
         );
+        const Horas_Faltantes = Math.max(
+          0,
+          Meta.Horas_Objetivo - Horas_Hechas
+        );
+
+        // Ritmo semanal necesario para llegar a tiempo.
+        let Ritmo_Semanal = 0;
+        if (Rango) {
+          const Ahora_Ritmo = new Date();
+          const Ms_Restantes = Math.max(
+            0,
+            Rango.Fin - Ahora_Ritmo
+          );
+          const Semanas_Restantes =
+            Ms_Restantes / (7 * 24 * 3600 * 1000);
+          Ritmo_Semanal = Semanas_Restantes > 0.14
+            ? Horas_Faltantes / Semanas_Restantes
+            : 0;
+        }
+
+        // Horas agrupadas por semana para sparkline.
+        const Horas_Semanales =
+          Obtener_Horas_Semanales_Meta(Meta, Rango);
 
         return {
           Horas_Hechas,
-          Horas_Faltantes: Math.max(
-            0,
-            Meta.Horas_Objetivo - Horas_Hechas
-          ),
+          Horas_Faltantes,
           Ratio_Meta_Real,
           Ratio_Meta_Track: Math.max(
             0,
@@ -9724,9 +9815,128 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado,
           Fuente_Texto: Obtener_Fuente_Meta_Texto(Meta),
           Periodo_Texto: Rango?.Texto || "—",
-          Porcentaje_Meta: Math.round(Ratio_Meta_Real * 100),
-          Porcentaje_Tiempo: Math.round(Ratio_Tiempo * 100)
+          Porcentaje_Meta: Math.round(
+            Ratio_Meta_Real * 100
+          ),
+          Porcentaje_Tiempo: Math.round(
+            Ratio_Tiempo * 100
+          ),
+          Ritmo_Semanal,
+          Horas_Semanales
         };
+      }
+
+      // Agrupa eventos por semana para una meta dada.
+      function Obtener_Horas_Semanales_Meta(
+        Meta, Rango
+      ) {
+        if (!Rango) return [];
+        const Semanas = [];
+        let Cursor = Obtener_Lunes(Rango.Desde);
+        const Fin_Lunes = Obtener_Lunes(Rango.Hasta);
+        while (Cursor <= Fin_Lunes) {
+          const Lunes_ISO = Formatear_Fecha_ISO(Cursor);
+          const Dom_ISO = Formatear_Fecha_ISO(
+            Sumar_Dias(Cursor, 6)
+          );
+          const Horas = Eventos.reduce(
+            (Tot, Ev) => {
+              if (!Evento_Cuenta_Meta(
+                Meta, Ev, Rango
+              )) return Tot;
+              if (
+                Ev.Fecha < Lunes_ISO ||
+                Ev.Fecha > Dom_ISO
+              ) return Tot;
+              return Tot + (Number(Ev.Duracion) || 0);
+            },
+            0
+          );
+          Semanas.push({ Lunes: Lunes_ISO, Horas });
+          Cursor = Sumar_Dias(Cursor, 7);
+        }
+        return Semanas;
+      }
+
+      // Genera un SVG sparkline a partir de datos semanales.
+      function Crear_Sparkline_Meta(Semanas) {
+        if (!Semanas || Semanas.length < 3) return null;
+        const SVG_NS = "http://www.w3.org/2000/svg";
+        const Max = Math.max(
+          ...Semanas.map((S) => S.Horas), 1
+        );
+        const W = 200;
+        const H = 36;
+        const P = 4;
+
+        const Puntos = Semanas.map((S, I) => {
+          const X = P + (I / (Semanas.length - 1))
+            * (W - 2 * P);
+          const Y = H - P - (S.Horas / Max)
+            * (H - 2 * P);
+          return { X, Y };
+        });
+
+        const Linea_Pts = Puntos
+          .map((Pt) => `${Pt.X},${Pt.Y}`)
+          .join(" ");
+
+        // Area rellena debajo de la línea.
+        const Area_Pts =
+          `${Puntos[0].X},${H} ` +
+          Linea_Pts +
+          ` ${Puntos[Puntos.length - 1].X},${H}`;
+
+        const Svg = document.createElementNS(
+          SVG_NS, "svg"
+        );
+        Svg.setAttribute(
+          "viewBox", `0 0 ${W} ${H}`
+        );
+        Svg.setAttribute(
+          "preserveAspectRatio", "none"
+        );
+        Svg.setAttribute("class", "Meta_Sparkline");
+
+        const Area = document.createElementNS(
+          SVG_NS, "polygon"
+        );
+        Area.setAttribute("points", Area_Pts);
+        Area.setAttribute(
+          "fill", "rgba(15, 95, 90, 0.08)"
+        );
+        Svg.appendChild(Area);
+
+        const Polyline = document.createElementNS(
+          SVG_NS, "polyline"
+        );
+        Polyline.setAttribute("points", Linea_Pts);
+        Polyline.setAttribute("fill", "none");
+        Polyline.setAttribute(
+          "stroke", "var(--Acento)"
+        );
+        Polyline.setAttribute("stroke-width", "1.5");
+        Polyline.setAttribute(
+          "stroke-linecap", "round"
+        );
+        Polyline.setAttribute(
+          "stroke-linejoin", "round"
+        );
+        Svg.appendChild(Polyline);
+
+        // Punto en cada semana.
+        Puntos.forEach((Pt) => {
+          const C = document.createElementNS(
+            SVG_NS, "circle"
+          );
+          C.setAttribute("cx", Pt.X);
+          C.setAttribute("cy", Pt.Y);
+          C.setAttribute("r", "2");
+          C.setAttribute("fill", "var(--Acento)");
+          Svg.appendChild(C);
+        });
+
+        return Svg;
       }
 
       function Obtener_Hitos_Meta_Configurados() {
@@ -10086,6 +10296,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Esta_Seleccionada = Meta.Id === Meta_Seleccion_Id;
         const Card = document.createElement("article");
         Card.className = "Meta_Card";
+        Card.classList.add(
+          `Estado_${Datos.Estado.Clase}`
+        );
         if (Esta_Seleccionada) {
           Card.classList.add("Activa");
         }
@@ -10121,9 +10334,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `${Formatear_Horas(Datos.Horas_Hechas)} / ` +
           `${Formatear_Horas(Meta.Horas_Objetivo)}`;
 
+        // Mini barra de progreso en tarjeta colapsada.
+        const Mini_Track = document.createElement("div");
+        Mini_Track.className = "Meta_Card_Mini_Track";
+        const Mini_Real = document.createElement("div");
+        Mini_Real.className = "Meta_Card_Mini_Track_Real";
+        Mini_Real.style.width =
+          `${Datos.Ratio_Meta_Track * 100}%`;
+        Mini_Track.appendChild(Mini_Real);
+
         Cuerpo.appendChild(Icono);
         Cuerpo.appendChild(Titulo);
         Cuerpo.appendChild(Resumen);
+        Cuerpo.appendChild(Mini_Track);
         Card.appendChild(Cuerpo);
 
         const Detalle = document.createElement("div");
@@ -10189,7 +10412,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Track.appendChild(Track_Esperado);
         Detalle.appendChild(Track);
 
-        const Datos_Grid = document.createElement("div");
+        // Sparkline de historial semanal.
+        const Sparkline_Svg = Crear_Sparkline_Meta(
+          Datos.Horas_Semanales
+        );
+        if (Sparkline_Svg) {
+          const Spark_Wrap = document.createElement(
+            "div"
+          );
+          Spark_Wrap.className =
+            "Meta_Sparkline_Wrap";
+          const Spark_Label = document.createElement(
+            "span"
+          );
+          Spark_Label.className =
+            "Meta_Sparkline_Label";
+          Spark_Label.textContent =
+            "Horas por semana";
+          Spark_Wrap.appendChild(Spark_Label);
+          Spark_Wrap.appendChild(Sparkline_Svg);
+          Detalle.appendChild(Spark_Wrap);
+        }
+
+        // Texto de ritmo semanal formateado.
+        const Ritmo_Txt = Datos.Ritmo_Semanal > 0
+          ? `${Datos.Ritmo_Semanal.toFixed(1)} h`
+          : "—";
+
+        const Datos_Grid = document.createElement(
+          "div"
+        );
         Datos_Grid.className = "Meta_Card_Datos";
         Datos_Grid.appendChild(
           Crear_Dato_Meta(
@@ -10211,8 +10463,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Datos_Grid.appendChild(
           Crear_Dato_Meta(
-            "Objetivo",
-            Formatear_Horas(Meta.Horas_Objetivo)
+            "Ritmo",
+            Ritmo_Txt + "/sem"
           )
         );
         Detalle.appendChild(Datos_Grid);
