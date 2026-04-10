@@ -3038,32 +3038,64 @@
         max-width: 1080px;
       }
 
+      /* Cabecera del modal de Metas con carácter */
+      .Metas_Panel .Patron_Modal_Cabecera {
+        padding: 18px 22px 16px;
+        background: linear-gradient(
+          180deg,
+          rgba(15, 95, 90, 0.08) 0%,
+          rgba(15, 95, 90, 0.02) 100%
+        );
+        border-bottom: 1px solid rgba(15, 95, 90, 0.22);
+      }
+
+      .Metas_Panel .Patron_Modal_Titulo {
+        font-size: 20px;
+        font-weight: 900;
+        color: var(--Acento);
+        letter-spacing: -0.025em;
+      }
+
       .Metas_Cuerpo {
         display: flex;
         flex-direction: column;
         gap: 14px;
       }
 
+      /* Barra de filtros como toolbar compacto */
       .Metas_Barra {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px 14px;
-        align-items: flex-end;
+        gap: 8px 12px;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--Borde);
+        border-radius: 12px;
+        padding: 8px 12px;
       }
 
       .Metas_Barra .Campo {
         margin-bottom: 0;
-        min-width: 180px;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .Metas_Barra .Campo label {
-        padding-left: 2px;
+        padding-left: 0;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--Texto_Suave);
+        white-space: nowrap;
       }
 
       .Metas_Barra_Extras {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px 16px;
+        gap: 8px 14px;
         align-items: center;
         margin-left: auto;
       }
@@ -3072,7 +3104,7 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        font-size: 13px;
+        font-size: 12px;
         color: var(--Texto_Suave);
       }
 
@@ -3147,15 +3179,42 @@
         border-color: #d4c3ab;
       }
 
+      /* Tarjeta activa: fila completa, layout horizontal */
       .Meta_Card.Activa {
-        grid-column: span 2;
+        grid-column: 1 / -1;
+        flex-direction: row;
         border-color: var(--Acento);
-        box-shadow: 0 0 0 2px rgba(15, 95, 90, 0.12);
-        min-height: 286px;
+        border-width: 1.5px;
+        box-shadow: 0 4px 24px rgba(15, 95, 90, 0.12);
+        min-height: auto;
+        padding: 0;
+        overflow: hidden;
+        transform: none;
+      }
+
+      .Meta_Card.Activa:hover {
+        transform: none;
       }
 
       .Meta_Card.Activa::after {
         opacity: 1;
+      }
+
+      /* Panel izquierdo (resumen) al expandir */
+      .Meta_Card.Activa .Meta_Card_Cuerpo {
+        width: 160px;
+        flex-shrink: 0;
+        flex: none;
+        padding: 22px 16px;
+        background: rgba(15, 95, 90, 0.05);
+        border-right: 1px solid rgba(217, 207, 192, 0.8);
+        border-radius: 0;
+        justify-content: center;
+      }
+
+      /* El punto de estado se oculta: el badge lo reemplaza */
+      .Meta_Card.Activa .Meta_Card_Punto {
+        display: none;
       }
 
       .Meta_Card.Archivada {
@@ -3238,14 +3297,17 @@
         color: var(--Texto_Suave);
       }
 
+      /* Panel derecho (detalle) al expandir */
       .Meta_Card_Detalle {
         display: none;
         flex-direction: column;
-        gap: 12px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(217, 207, 192, 0.9);
+        gap: 10px;
+        padding: 14px 18px;
+        border-top: none;
         position: relative;
         z-index: 1;
+        flex: 1;
+        min-width: 0;
       }
 
       .Meta_Card.Activa .Meta_Card_Detalle {
@@ -3254,28 +3316,35 @@
 
       .Meta_Card_Top {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        gap: 12px;
+        gap: 10px;
       }
 
-      .Meta_Card_Fuente,
+      .Meta_Card_Fuente {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--Texto);
+      }
+
       .Meta_Card_Periodo {
-        font-size: 12px;
+        font-size: 11px;
         color: var(--Texto_Suave);
+        margin-top: 1px;
       }
 
       .Meta_Estado {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 28px;
-        padding: 0 10px;
+        height: 26px;
+        padding: 0 11px;
         border-radius: 999px;
         font-size: 11px;
         font-weight: 800;
         white-space: nowrap;
         border: 1px solid transparent;
+        flex-shrink: 0;
       }
 
       .Meta_Estado.Proxima {
@@ -3304,11 +3373,15 @@
         color: #8c2f2f;
       }
 
+      /* Horas destacadas en color acento */
       .Meta_Card_Horas {
-        font-size: 30px;
+        font-size: 26px;
         font-weight: 900;
         line-height: 1;
-        color: var(--Texto);
+        color: var(--Acento);
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
       }
 
       .Meta_Card_Horas small {
@@ -3317,11 +3390,12 @@
         color: var(--Texto_Suave);
       }
 
+      /* Barra de progreso más limpia y delgada */
       .Meta_Track {
         position: relative;
-        height: 14px;
+        height: 8px;
         border-radius: 999px;
-        background: rgba(0, 0, 0, 0.06);
+        background: rgba(0, 0, 0, 0.07);
         overflow: hidden;
       }
 
@@ -3335,8 +3409,8 @@
         border-radius: inherit;
         background: linear-gradient(
           90deg,
-          rgba(15, 95, 90, 0.88),
-          rgba(15, 95, 90, 0.64)
+          var(--Acento),
+          rgba(15, 95, 90, 0.68)
         );
       }
 
@@ -3345,59 +3419,76 @@
         top: -2px;
         bottom: -2px;
         left: var(--Meta-Progreso-Esperado, 0%);
-        width: 3px;
+        width: 2.5px;
         border-radius: 999px;
         background: #9b2040;
         transform: translateX(-50%);
       }
 
+      /* Stats en 4 pills horizontales */
       .Meta_Card_Datos {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px 12px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
       }
 
       .Meta_Dato {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 3px;
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 10px;
+        padding: 8px 10px;
       }
 
       .Meta_Dato_Label {
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 800;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.05em;
         text-transform: uppercase;
         color: var(--Texto_Suave);
       }
 
       .Meta_Dato_Valor {
-        font-size: 14px;
-        font-weight: 700;
+        font-size: 16px;
+        font-weight: 800;
         color: var(--Texto);
       }
 
+      /* Acciones: Eliminar empujado al extremo derecho */
       .Meta_Card_Acciones {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 6px;
+        margin-top: auto;
         padding-top: 2px;
       }
 
       .Meta_Btn {
-        border: none;
-        border-radius: 10px;
-        padding: 8px 10px;
-        background: rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 6px 14px;
+        background: rgba(255, 255, 255, 0.85);
         color: var(--Texto);
         font-size: 12px;
         font-weight: 700;
         cursor: pointer;
+        transition: background 100ms;
+      }
+
+      .Meta_Btn:hover {
+        background: #fff;
       }
 
       .Meta_Btn.Peligro {
-        background: #f2d8d7;
-        color: #852d2d;
+        background: rgba(140, 47, 47, 0.08);
+        color: #8c2f2f;
+        border-color: rgba(140, 47, 47, 0.18);
+        margin-left: auto;
+      }
+
+      .Meta_Btn.Peligro:hover {
+        background: rgba(140, 47, 47, 0.14);
       }
 
       .Metas_Vacio {
@@ -3436,6 +3527,13 @@
         .Metas_Barra {
           flex-direction: column;
           align-items: stretch;
+          gap: 10px;
+        }
+
+        .Metas_Barra .Campo {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
         }
 
         .Metas_Barra_Extras {
@@ -3443,12 +3541,32 @@
           justify-content: space-between;
         }
 
-        .Meta_Card_Datos {
-          grid-template-columns: 1fr;
+        .Meta_Card.Activa {
+          grid-column: 1;
+          flex-direction: column;
+          padding: 14px 12px 13px;
         }
 
-        .Meta_Card.Activa {
-          grid-column: span 1;
+        .Meta_Card.Activa .Meta_Card_Cuerpo {
+          width: auto;
+          border-right: none;
+          border-bottom: 1px solid rgba(217, 207, 192, 0.8);
+          border-radius: 0;
+          padding: 14px 12px;
+          flex: none;
+        }
+
+        .Meta_Card.Activa .Meta_Card_Punto {
+          display: block;
+        }
+
+        .Meta_Card_Detalle {
+          padding: 10px 0 0;
+          border-top: 1px solid rgba(217, 207, 192, 0.9);
+        }
+
+        .Meta_Card_Datos {
+          grid-template-columns: repeat(2, 1fr);
         }
       }
 
