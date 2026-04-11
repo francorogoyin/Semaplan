@@ -1709,6 +1709,26 @@
         background: #f5f0e8;
       }
 
+      /* Sub bloqueada porque ya está hecha a nivel semana:
+         look verde + controles deshabilitados visualmente. */
+      .Abordaje_Item.Bloqueada {
+        background: rgba(31, 107, 79, 0.1);
+        border-color: rgba(31, 107, 79, 0.35);
+        opacity: 0.85;
+      }
+
+      .Abordaje_Item.Bloqueada .Abordaje_Item_Texto {
+        color: #1f6b4f;
+      }
+
+      .Abordaje_Item.Bloqueada .Abordaje_Toggle_Btn {
+        cursor: not-allowed;
+      }
+
+      .Abordaje_Item.Bloqueada .Abordaje_Check {
+        cursor: not-allowed;
+      }
+
       .Abordaje_Check {
         width: 18px;
         height: 18px;
@@ -1862,6 +1882,42 @@
         border-radius: 6px;
         font-family: inherit;
         user-select: none;
+      }
+
+      /* Toggle "X ya hechas" que colapsa las subs ya
+         completadas al fondo de la lista de Abordaje. */
+      .Abordaje_Hechas_Toggle {
+        display: flex;
+        margin: 6px 0 4px;
+      }
+
+      .Abordaje_Hechas_Btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-family: inherit;
+        user-select: none;
+      }
+
+      .Abordaje_Hechas_Btn:hover {
+        background: var(--Acento_Suave);
+        color: var(--Acento);
+      }
+
+      .Abordaje_Hechas_Chevron {
+        font-size: 10px;
+        line-height: 1;
+        display: inline-block;
+        width: 10px;
+        text-align: center;
       }
 
       .Abordaje_Filtro_Btn:hover {
@@ -2646,32 +2702,22 @@
         color: #3a6fa6;
       }
 
-      /* PLANEADA pendiente (rojo): estaba en el plan y no se
-         hizo ni se abordó. Aplica solo si NO está hecha y NO
-         está abordada. */
-      .Focus_Sub_Item.Planeada_Aqui:not(.Hecha):not(.Abordada_Aqui) {
+      /* PLANEADA pendiente: solo se pinta en rojo cuando el
+         bloque ya pasó (Bloque_Atrasado). En En_Curso o futuro
+         queda neutral porque todavía hay tiempo de cumplirla.
+         La ★ amarilla sigue marcando que está en el plan en
+         cualquier estado. */
+      .Focus_Subtareas.Bloque_Atrasado
+        .Focus_Sub_Item.Planeada_Aqui:not(.Hecha):not(.Abordada_Aqui) {
         background: rgba(196, 68, 68, 0.14);
         border-color: rgba(196, 68, 68, 0.5);
         opacity: 1;
       }
 
-      .Focus_Sub_Item.Planeada_Aqui:not(.Hecha):not(.Abordada_Aqui)
+      .Focus_Subtareas.Bloque_Atrasado
+        .Focus_Sub_Item.Planeada_Aqui:not(.Hecha):not(.Abordada_Aqui)
         .Focus_Sub_Texto {
         color: #c44;
-      }
-
-      /* Override para bloques próximos: las planeadas
-         pendientes no son rojas (todavía no llegó el momento),
-         sino grises neutrales. La estrellita ★ sigue marcando
-         que está en el plan. */
-      .Focus_Subtareas.Bloque_Proximo .Focus_Sub_Item.Planeada_Aqui:not(.Hecha):not(.Abordada_Aqui) {
-        background: rgba(255, 255, 255, 0.55);
-        border-color: var(--Borde);
-      }
-
-      .Focus_Subtareas.Bloque_Proximo .Focus_Sub_Item.Planeada_Aqui:not(.Hecha):not(.Abordada_Aqui)
-        .Focus_Sub_Texto {
-        color: var(--Texto);
       }
 
       .Focus_Sub_Star {
@@ -5796,6 +5842,35 @@
         border-color: var(--Acento);
       }
 
+      /* Estilo para botones de la barra superior que
+         corresponden a funcionalidades Premium cuando el
+         plan activo es Free. Mantienen el click activo
+         (que dispara el diálogo de upgrade) pero se ven
+         atenuados y muestran un pequeño candado en la
+         esquina inferior derecha. */
+      .Config_Boton.Menu_Btn.Bloqueada {
+        opacity: 0.55;
+        position: relative;
+      }
+
+      .Config_Boton.Menu_Btn.Bloqueada:hover {
+        opacity: 0.9;
+      }
+
+      .Config_Boton.Menu_Btn.Bloqueada::after {
+        content: "🔒";
+        position: absolute;
+        right: -3px;
+        bottom: -3px;
+        font-size: 9px;
+        line-height: 1;
+        background: #fff;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        padding: 1px 2px;
+        pointer-events: none;
+      }
+
       /* Popover del menú hamburguesa: lista vertical de botones
          que aparece debajo del icono ☰ cuando el modo Hamburguesa
          está activo. */
@@ -5803,7 +5878,7 @@
         display: none;
         position: absolute;
         top: calc(var(--Calendario_Top_Altura) - 4px);
-        right: 60px;
+        right: 12px;
         background: var(--Panel);
         border: 1px solid var(--Borde);
         border-radius: 12px;
@@ -5851,6 +5926,20 @@
       .Menu_Hamburguesa_Item_Texto {
         flex: 1;
         min-width: 0;
+      }
+
+      .Menu_Hamburguesa_Item_Candado {
+        font-size: 12px;
+        line-height: 1;
+        opacity: 0.55;
+        flex-shrink: 0;
+      }
+
+      .Menu_Hamburguesa_Item.Bloqueada
+        .Menu_Hamburguesa_Item_Icono,
+      .Menu_Hamburguesa_Item.Bloqueada
+        .Menu_Hamburguesa_Item_Texto {
+        opacity: 0.55;
       }
 
       /* Cuando el modo Hamburguesa está activo, ocultar todos
@@ -6107,6 +6196,26 @@
         background: #fff;
         font-size: 13px;
         color: var(--Texto);
+        width: 160px;
+        box-sizing: border-box;
+      }
+
+      /* Variantes de ancho para campos que necesitan más
+         espacio: dobles o triples del estándar (160px). */
+      .Config_Select.Doble {
+        width: 320px;
+      }
+
+      .Config_Select.Triple {
+        width: 480px;
+      }
+
+      /* Filas con múltiples controles inline (ej: "Desde X
+         hasta Y"). Los selects internos no usan el ancho
+         estándar sino el natural. */
+      .Config_Fila_Multi .Config_Select {
+        width: auto;
+        min-width: 0;
       }
 
       .Config_Nota {
@@ -6892,19 +7001,27 @@
 
       .Selector_Emojis_Tabs {
         display: flex;
-        gap: 2px;
-        margin-bottom: 6px;
+        gap: 0;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--Borde);
         flex-wrap: nowrap;
-        overflow-x: auto;
+        overflow: hidden;
+        justify-content: space-between;
       }
 
       .Selector_Emojis_Tab {
-        flex: 0 0 auto;
+        flex: 1 1 0;
+        min-width: 0;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         border: none;
         background: transparent;
         cursor: pointer;
         font-size: 16px;
-        padding: 4px 6px;
+        padding: 0;
         border-radius: 6px;
         line-height: 1;
         opacity: 0.55;
@@ -7159,10 +7276,10 @@
               data-menu-key="Ayuda_Boton"
               data-menu-nombre="Ayuda"
               type="button" title="Ayuda">?</button>
+            <button class="Config_Boton" id="Config_Abrir" type="button" title="Configuración">&#9881;</button>
             <button class="Config_Boton" id="Menu_Hamburguesa_Boton"
               type="button" title="Menú"
               style="display:none">&#9776;</button>
-            <button class="Config_Boton" id="Config_Abrir" type="button" title="Configuración">&#9881;</button>
             <button class="Config_Boton Menu_Btn" id="Logout_Boton"
               data-menu-key="Logout_Boton"
               data-menu-nombre="Cerrar sesión"
@@ -7189,7 +7306,7 @@
                 <span class="Config_Hint_Icono">ⓘ</span>
                 <span class="Config_Hint_Texto">Define qué franja del día se muestra en el calendario y la hora a la que arranca el scroll inicial.</span>
               </p>
-              <div class="Config_Fila">
+              <div class="Config_Fila Config_Fila_Multi">
                 <span class="Config_Label">Mostrar desde</span>
                 <select class="Config_Select" id="Cfg_Inicio_Hora"></select>
                 <span style="font-size:12px;color:var(--Texto_Suave)">hasta</span>
@@ -7207,7 +7324,7 @@
                 <span class="Config_Hint_Icono">ⓘ</span>
                 <span class="Config_Hint_Texto">A partir de este momento, re-fijar el plan de la semana cuenta como cambio sobre la marcha.</span>
               </p>
-              <div class="Config_Fila">
+              <div class="Config_Fila Config_Fila_Multi">
                 <span class="Config_Label">Día</span>
                 <select class="Config_Select" id="Cfg_Inicio_Semana_Dia"></select>
                 <span style="font-size:12px;color:var(--Texto_Suave)">a las</span>
@@ -7428,6 +7545,13 @@
                 </span>
                 <input type="date" class="Config_Select"
                   id="Cfg_Contador_Semanas_Fecha_Ref">
+              </div>
+              <div class="Config_Fila"
+                id="Cfg_Contador_Vida_Anios_Fila">
+                <span class="Config_Label">Años de vida</span>
+                <input type="number" class="Config_Select"
+                  id="Cfg_Contador_Vida_Anios"
+                  min="1" max="120" step="1">
               </div>
               <div class="Config_Fila"
                 id="Cfg_Contador_Final_Fila">
@@ -8858,6 +8982,9 @@
         Contador_Semanas_Fecha_Ref: "",
         Contador_Semanas_Porcentaje: false,
         Contador_Semanas_Fecha_Final: "",
+        // Solo aplica al modo "Vida": cuántos años se viven.
+        // La fecha final se calcula como nacimiento + estos años.
+        Contador_Semanas_Vida_Anios: 80,
         // Día/hora a partir del cual la semana se considera
         // "ya iniciada". Re-fijar el plan después de este corte
         // suma al contador de re-fijadas; antes no.
@@ -8915,6 +9042,10 @@
       // - Bloques en curso/futuros → solo las planeadas.
       // Cuando está apagado, se ven todas las subs de la semana.
       let Abordaje_Filtro_Activo = false;
+      // Si las subs ya hechas (Sub.Hecha=true) están expandidas
+      // en el modal o colapsadas en el toggle "X ya hechas".
+      // Default colapsado: no aportan al armar el plan.
+      let Abordaje_Hechas_Expandido = false;
       // Multi-selección de tareas y subtareas.
       let Tareas_Multi_Seleccion = new Set();
       let Subtareas_Multi_Seleccion = new Set();
@@ -11284,6 +11415,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Abrir_Baul() {
+        if (!Validar_Acceso_Premium("Baúl de tareas")) {
+          return;
+        }
         Baul_Drag_Origen_Id = null;
         Limpiar_Estado_Drag_Baul();
         if (
@@ -13432,6 +13566,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Abrir_Metas() {
+        if (!Validar_Acceso_Premium("Metas")) return;
         Render_Metas();
         El_Metas_Overlay?.classList.add("Activo");
       }
@@ -14965,6 +15100,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           document.getElementById("Cfg_Contador_Ref_Fila");
         const Fila_Final =
           document.getElementById("Cfg_Contador_Final_Fila");
+        const Fila_Vida_Anios =
+          document.getElementById(
+            "Cfg_Contador_Vida_Anios_Fila"
+          );
         const Nota =
           document.getElementById("Cfg_Contador_Nota");
         const Label_Ref =
@@ -14980,9 +15119,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fila_Ref.style.display =
             Activo && Modo !== "Ano" ? "flex" : "none";
         }
+        if (Fila_Vida_Anios) {
+          // Solo visible en modo Vida.
+          Fila_Vida_Anios.style.display =
+            Activo && Modo === "Vida" ? "flex" : "none";
+        }
         if (Fila_Final) {
+          // En Vida, ocultar Fecha final (se calcula a partir
+          // de nacimiento + años). En los demás modos, mostrar
+          // si el porcentaje está activo.
           Fila_Final.style.display =
-            Activo && (Mostrar_Pct || Modo === "Vida")
+            Activo && Mostrar_Pct && Modo !== "Vida"
               ? "flex"
               : "none";
         }
@@ -15023,6 +15170,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : "🌱";
       }
 
+      function Es_Premium() {
+        // Devuelve true cuando el plan activo del
+        // usuario es Premium (internamente "Upgrade").
+        // Es la fuente de verdad para cualquier guard
+        // que tenga que decidir si una funcionalidad
+        // queda habilitada o bloqueada.
+
+        return Normalizar_Plan_Actual(
+          Config.Plan_Actual
+        ) === "Upgrade";
+      }
+
+      function Validar_Acceso_Premium(
+        Nombre_Funcionalidad
+      ) {
+        // Guard de acceso para funcionalidades Premium.
+        // Si el plan ya es Premium devuelve true y la
+        // función llamadora puede continuar normalmente.
+        // Si el plan es Free, muestra un diálogo que
+        // explica el bloqueo y ofrece abrir el modal de
+        // planes, y devuelve false para que la función
+        // llamadora aborte sin efectos secundarios.
+
+        if (Es_Premium()) return true;
+        const Mensaje = (
+          `"${Nombre_Funcionalidad}" es una ` +
+          "funcionalidad Premium. Mejorá tu plan " +
+          "para desbloquearla."
+        );
+        Mostrar_Dialogo(Mensaje, [
+          {
+            Etiqueta: "Cancelar",
+            Valor: false,
+            Tipo: "Secundario"
+          },
+          {
+            Etiqueta: "Ver planes",
+            Valor: true,
+            Tipo: "Primario"
+          }
+        ]).then((Resultado) => {
+          if (Resultado) Abrir_Suscripcion();
+        });
+        return false;
+      }
+
       function Actualizar_UI_Plan() {
         Config.Plan_Actual = Normalizar_Plan_Actual(
           Config.Plan_Actual
@@ -15057,6 +15250,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Activa",
           Config.Plan_Actual === "Upgrade"
         );
+        // Reflejar el bloqueo Premium en los botones
+        // inline de la barra superior. Cada uno se marca
+        // con .Bloqueada cuando el plan es Free para que
+        // se vean atenuados y con un candado en la
+        // esquina, igual que en el menú hamburguesa.
+        const Ids_Botones_Premium = [
+          "Resumen_Sem_Boton",
+          "Metas_Boton",
+          "Baul_Boton"
+        ];
+        const Bloquear = !Es_Premium();
+        Ids_Botones_Premium.forEach((Id_Boton) => {
+          const El = document.getElementById(Id_Boton);
+          if (!El) return;
+          El.classList.toggle("Bloqueada", Bloquear);
+          if (Bloquear) {
+            El.dataset.tituloOriginal =
+              El.dataset.tituloOriginal || El.title || "";
+            El.title = "Disponible en Premium";
+          } else if (El.dataset.tituloOriginal !== undefined) {
+            El.title = El.dataset.tituloOriginal;
+          }
+        });
       }
 
       function Abrir_Suscripcion() {
@@ -15208,6 +15424,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         document.getElementById(
           "Cfg_Contador_Semanas_Fecha_Final"
         ).value = Config.Contador_Semanas_Fecha_Final || "";
+        const El_Anios = document.getElementById(
+          "Cfg_Contador_Vida_Anios"
+        );
+        if (El_Anios) {
+          El_Anios.value =
+            Config.Contador_Semanas_Vida_Anios || 80;
+        }
         Actualizar_Config_Contador_Semanas();
         Actualizar_Config_Notificaciones_Meta();
         Actualizar_UI_Plan();
@@ -15471,7 +15694,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Inp_Emoji = document.createElement("input");
           Inp_Emoji.type = "text";
           Inp_Emoji.value = Cat.Emoji;
-          Inp_Emoji.className = "Config_Cat_Input Config_Cat_Input_Emoji";
+          Inp_Emoji.className = "Config_Cat_Input Config_Cat_Input_Emoji Con_Selector_Emoji";
           Inp_Emoji.title = "Emoji de categoría";
           Inp_Emoji.addEventListener("input", () => {
             Cat.Emoji = Inp_Emoji.value.trim() || "🏷️";
@@ -16400,6 +16623,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Marcado: Boolean(Prev),
             Estado: Prev?.Estado || "Abordado",
             Planeada: Boolean(Prev?.Planeada),
+            // Flag de si la sub real ya está marcada como hecha
+            // (a nivel semana). Lo usamos para colapsar las
+            // hechas en el modal.
+            Hecha_Global: Boolean(Sub.Hecha),
             Suelta: false
           });
         });
@@ -16421,6 +16648,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
 
         Abordaje_Borrador = Items;
+        // Las subs ya hechas arrancan colapsadas siempre.
+        Abordaje_Hechas_Expandido = false;
         // Default del filtro según el estado del bloque:
         // - Bloque pasado: ON si hay items con trabajo (Marcado).
         //   Arranca colapsado mostrando solo lo abordado, con la
@@ -16528,6 +16757,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Items_Subs = Abordaje_Filtro_Activo
           ? Items_Subs_Todos.filter(Filtra_Item)
           : Items_Subs_Todos;
+
+        // Separar las que están globalmente hechas (Sub.Hecha)
+        // de las pendientes. Las hechas van colapsadas al final
+        // bajo un toggle, así no roban espacio cuando estás
+        // armando el plan de un bloque futuro o actual.
+        const Items_Pendientes = Items_Subs.filter(
+          (I) => !I.Hecha_Global
+        );
+        const Items_Hechas = Items_Subs.filter(
+          (I) => I.Hecha_Global
+        );
+
         if (Items_Subs.length === 0) {
           const V = document.createElement("div");
           V.className = "Abordaje_Vacio";
@@ -16540,13 +16781,58 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           Cuerpo.appendChild(V);
         } else {
-          Items_Subs.forEach((Item) => {
-            Cuerpo.appendChild(
-              Crear_Fila_Abordaje(
-                Item, false, Permitir_Planear
-              )
-            );
-          });
+          // Pendientes (no hechas) primero, sin colapsar.
+          if (Items_Pendientes.length === 0) {
+            const V = document.createElement("div");
+            V.className = "Abordaje_Vacio";
+            V.textContent = "Sin subtareas pendientes.";
+            Cuerpo.appendChild(V);
+          } else {
+            Items_Pendientes.forEach((Item) => {
+              Cuerpo.appendChild(
+                Crear_Fila_Abordaje(
+                  Item, false, Permitir_Planear
+                )
+              );
+            });
+          }
+
+          // Hechas: colapsadas en un toggle al final.
+          if (Items_Hechas.length > 0) {
+            const Toggle_Cont = document.createElement("div");
+            Toggle_Cont.className =
+              "Abordaje_Hechas_Toggle";
+            const Btn_Toggle = document.createElement("button");
+            Btn_Toggle.type = "button";
+            Btn_Toggle.className = "Abordaje_Hechas_Btn";
+            const Chev = document.createElement("span");
+            Chev.className = "Abordaje_Hechas_Chevron";
+            Chev.textContent = Abordaje_Hechas_Expandido
+              ? "▾" : "▸";
+            const Lbl = document.createElement("span");
+            Lbl.textContent =
+              `${Items_Hechas.length} ya hecha` +
+              (Items_Hechas.length === 1 ? "" : "s");
+            Btn_Toggle.appendChild(Chev);
+            Btn_Toggle.appendChild(Lbl);
+            Btn_Toggle.addEventListener("click", () => {
+              Abordaje_Hechas_Expandido =
+                !Abordaje_Hechas_Expandido;
+              Render_Modal_Abordaje();
+            });
+            Toggle_Cont.appendChild(Btn_Toggle);
+            Cuerpo.appendChild(Toggle_Cont);
+
+            if (Abordaje_Hechas_Expandido) {
+              Items_Hechas.forEach((Item) => {
+                Cuerpo.appendChild(
+                  Crear_Fila_Abordaje(
+                    Item, false, Permitir_Planear
+                  )
+                );
+              });
+            }
+          }
         }
 
         // Sección 2: ítems sueltos. Cuando el filtro está activo
@@ -16659,18 +16945,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Item, Es_Suelta, Permitir_Planear = true
       ) {
         const Fila = document.createElement("div");
+        // Si la sub real ya está hecha (a nivel semana), la
+        // fila se renderiza bloqueada: checkbox tildado, toggle
+        // como Completado, y todos los controles deshabilitados.
+        // No tiene sentido permitir cambiar el estado en este
+        // bloque cuando ya quedó hecha en otro contexto.
+        const Bloqueada = Boolean(Item.Hecha_Global);
         Fila.className = "Abordaje_Item" +
-          (Item.Marcado ? " Marcado" : "") +
-          (Item.Planeada ? " Planeada" : "");
+          (Item.Marcado || Bloqueada ? " Marcado" : "") +
+          (Item.Planeada ? " Planeada" : "") +
+          (Bloqueada ? " Bloqueada" : "");
+        if (Bloqueada) {
+          Fila.title = "Esta subtarea ya está hecha";
+        }
 
         const Chk = document.createElement("input");
         Chk.type = "checkbox";
         Chk.className = "Abordaje_Check";
-        Chk.checked = Item.Marcado;
-        Chk.addEventListener("change", () => {
-          Item.Marcado = Chk.checked;
-          Render_Modal_Abordaje();
-        });
+        Chk.checked = Bloqueada || Item.Marcado;
+        Chk.disabled = Bloqueada;
+        if (!Bloqueada) {
+          Chk.addEventListener("change", () => {
+            Item.Marcado = Chk.checked;
+            Render_Modal_Abordaje();
+          });
+        }
 
         const Em = document.createElement("span");
         Em.className = "Abordaje_Item_Emoji";
@@ -16678,7 +16977,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Tx = document.createElement("span");
         Tx.className = "Abordaje_Item_Texto";
-        if (Item.Marcado && Item.Estado === "Completado") {
+        if (
+          Bloqueada ||
+          (Item.Marcado && Item.Estado === "Completado")
+        ) {
           Tx.classList.add("Tachado");
         }
         Tx.textContent = Item.Texto;
@@ -16686,44 +16988,63 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Toggle Completado / Abordado.
         // El toggle solo se muestra como activo si el ítem está
         // marcado. Si está destildado, ningún botón aparece activo.
+        // Si la fila está bloqueada (sub ya hecha), el toggle
+        // muestra Completado siempre activo y los botones no
+        // responden al click.
         const Tog = document.createElement("div");
         Tog.className = "Abordaje_Toggle";
 
         const Btn_C = document.createElement("button");
         Btn_C.type = "button";
         Btn_C.className = "Abordaje_Toggle_Btn" +
-          (Item.Marcado && Item.Estado === "Completado"
-            ? " Activo" : "");
+          (
+            Bloqueada ||
+            (Item.Marcado && Item.Estado === "Completado")
+              ? " Activo" : ""
+          );
         Btn_C.textContent = "✓";
-        Btn_C.title = "Completado";
-        Btn_C.addEventListener("click", () => {
-          // Si ya estaba marcado como Completado, destilda todo.
-          if (Item.Marcado && Item.Estado === "Completado") {
-            Item.Marcado = false;
-          } else {
-            Item.Marcado = true;
-            Item.Estado = "Completado";
-          }
-          Render_Modal_Abordaje();
-        });
+        Btn_C.title = Bloqueada
+          ? "Ya está hecha"
+          : "Completado";
+        Btn_C.disabled = Bloqueada;
+        if (!Bloqueada) {
+          Btn_C.addEventListener("click", () => {
+            // Si ya estaba marcado como Completado, destilda todo.
+            if (Item.Marcado && Item.Estado === "Completado") {
+              Item.Marcado = false;
+            } else {
+              Item.Marcado = true;
+              Item.Estado = "Completado";
+            }
+            Render_Modal_Abordaje();
+          });
+        }
 
         const Btn_A = document.createElement("button");
         Btn_A.type = "button";
         Btn_A.className = "Abordaje_Toggle_Btn" +
-          (Item.Marcado && Item.Estado === "Abordado"
-            ? " Activo" : "");
+          (
+            !Bloqueada &&
+            Item.Marcado && Item.Estado === "Abordado"
+              ? " Activo" : ""
+          );
         Btn_A.textContent = "•";
-        Btn_A.title = "Abordado";
-        Btn_A.addEventListener("click", () => {
-          // Si ya estaba marcado como Abordado, destilda todo.
-          if (Item.Marcado && Item.Estado === "Abordado") {
-            Item.Marcado = false;
-          } else {
-            Item.Marcado = true;
-            Item.Estado = "Abordado";
-          }
-          Render_Modal_Abordaje();
-        });
+        Btn_A.title = Bloqueada
+          ? "Ya está hecha"
+          : "Abordado";
+        Btn_A.disabled = Bloqueada;
+        if (!Bloqueada) {
+          Btn_A.addEventListener("click", () => {
+            // Si ya estaba marcado como Abordado, destilda todo.
+            if (Item.Marcado && Item.Estado === "Abordado") {
+              Item.Marcado = false;
+            } else {
+              Item.Marcado = true;
+              Item.Estado = "Abordado";
+            }
+            Render_Modal_Abordaje();
+          });
+        }
 
         Tog.appendChild(Btn_C);
         Tog.appendChild(Btn_A);
@@ -16734,9 +17055,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Fila.appendChild(Tog);
 
         // Botón Planear (★): toggle de la intención. Solo
-        // disponible cuando el bloque es actual o futuro. Para
-        // bloques pasados desaparece (planear es prospectivo).
-        if (Permitir_Planear) {
+        // disponible cuando el bloque es actual o futuro Y la
+        // sub no está bloqueada (ya hecha). Para bloques pasados
+        // o subs ya completadas, planear no tiene sentido.
+        if (Permitir_Planear && !Bloqueada) {
           const Btn_Planear = document.createElement("button");
           Btn_Planear.type = "button";
           Btn_Planear.className = "Abordaje_Planear_Btn" +
@@ -16751,8 +17073,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           Fila.appendChild(Btn_Planear);
         } else if (Item.Planeada) {
-          // Bloque pasado pero el item ya estaba planeado:
-          // mostramos la estrella como indicador no clickeable.
+          // Bloque pasado o sub ya hecha: mostramos la estrella
+          // como indicador no clickeable.
           const Star = document.createElement("span");
           Star.className = "Abordaje_Planear_Indicador";
           Star.textContent = "★";
@@ -17130,11 +17452,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Aplicar_Estilo_Menu() {
         // Aplica el modo Iconos o Hamburguesa según la config.
-        // En Iconos: cada botón con .Menu_Btn se muestra u oculta
-        // según Menu_Botones_Visibles. El ☰ está oculto.
-        // En Hamburguesa: todos los .Menu_Btn se ocultan; solo se
-        // ven ☰ + ⚙ Config_Abrir. El popover del ☰ se rellena
-        // con los botones marcados como visibles.
+        // En Iconos: cada botón visible inline; los desmarcados
+        //   caen dentro del ☰ (que aparece solo si hay alguno
+        //   oculto, así no perdés acceso a esas funciones).
+        // En Hamburguesa: TODOS los botones colapsan en el ☰
+        //   (independiente de si están "visibles" o no), y se
+        //   esconden de la barra inline.
+        // El ⚙ Config y el ☰ siempre quedan visibles.
         const Estilo = Config.Menu_Estilo === "Hamburguesa"
           ? "Hamburguesa" : "Iconos";
         const Visibles = Config.Menu_Botones_Visibles || {};
@@ -17147,14 +17471,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Estilo === "Iconos") {
           // Mostrar cada botón inline según su flag de visible.
+          let Hay_Ocultos = false;
           Btns.forEach((B) => {
             const Key = B.dataset.menuKey;
             const Vis = Key
               ? (Visibles[Key] !== false) : true;
             B.style.display = Vis ? "" : "none";
+            if (!Vis) Hay_Ocultos = true;
           });
-          if (Btn_Hamb) Btn_Hamb.style.display = "none";
-          Cerrar_Menu_Hamburguesa();
+          // El ☰ aparece solo si hay al menos un icono oculto;
+          // sino no tiene contenido y queda escondido.
+          if (Btn_Hamb) {
+            Btn_Hamb.style.display = Hay_Ocultos ? "" : "none";
+          }
+          if (!Hay_Ocultos) Cerrar_Menu_Hamburguesa();
         } else {
           // Modo hamburguesa: ocultar todos los botones inline,
           // mostrar el ☰. El popover se arma cuando se clickea.
@@ -17164,26 +17494,53 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Mostrar_Menu_Hamburguesa() {
-        // Construye el popover del ☰ con los botones que están
-        // marcados como visibles. Cada item del popover dispara
-        // el click() del botón original (reusa toda la lógica).
+        // Construye el popover del ☰ con los botones que NO son
+        // visibles inline. En modo Iconos = los desmarcados.
+        // En modo Hamburguesa = todos los Menu_Btn. Cada item
+        // dispara el click() del botón original (reusa la
+        // lógica existente).
         const Pop = document.getElementById(
           "Menu_Hamburguesa_Popup"
         );
         if (!Pop) return;
         Pop.innerHTML = "";
 
+        const Estilo = Config.Menu_Estilo === "Hamburguesa"
+          ? "Hamburguesa" : "Iconos";
         const Visibles = Config.Menu_Botones_Visibles || {};
         const Btns = document.querySelectorAll(
           "#Calendario_Top_Acciones .Menu_Btn"
         );
+        // Conjunto de keys cuyo botón corresponde a una
+        // funcionalidad Premium. Si el plan activo es Free
+        // se muestran con un candado para que el usuario
+        // sepa de un vistazo que están bloqueadas; el
+        // click sigue funcionando y dispara el diálogo de
+        // upgrade desde el guard de cada función.
+        const Keys_Premium = new Set([
+          "Resumen_Sem_Boton",
+          "Metas_Boton",
+          "Baul_Boton"
+        ]);
+        const Bloquear_Premium = !Es_Premium();
         Btns.forEach((Btn_Original) => {
           const Key = Btn_Original.dataset.menuKey;
           if (!Key) return;
-          if (Visibles[Key] === false) return;
+          // En modo Iconos: solo entran al popover los que
+          // están desmarcados (Visibles[Key] === false).
+          // En modo Hamburguesa: entran TODOS.
+          if (Estilo === "Iconos" && Visibles[Key] !== false) {
+            return;
+          }
+          const Es_Item_Bloqueado = (
+            Bloquear_Premium && Keys_Premium.has(Key)
+          );
           const Item = document.createElement("button");
           Item.type = "button";
           Item.className = "Menu_Hamburguesa_Item";
+          if (Es_Item_Bloqueado) {
+            Item.classList.add("Bloqueada");
+          }
           const Icon = document.createElement("span");
           Icon.className = "Menu_Hamburguesa_Item_Icono";
           Icon.textContent = Btn_Original.textContent.trim();
@@ -17194,6 +17551,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Btn_Original.title || Key;
           Item.appendChild(Icon);
           Item.appendChild(Txt);
+          if (Es_Item_Bloqueado) {
+            const Candado = document.createElement("span");
+            Candado.className =
+              "Menu_Hamburguesa_Item_Candado";
+            Candado.textContent = "🔒";
+            Candado.setAttribute(
+              "aria-label", "Premium"
+            );
+            Item.appendChild(Candado);
+            Item.title = "Disponible en Premium";
+          }
           Item.addEventListener("click", (Ev) => {
             Ev.stopPropagation();
             Cerrar_Menu_Hamburguesa();
@@ -17449,10 +17817,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "Cfg_Contador_Semanas_Porcentaje"
           )?.checked
         );
-        const Contador_Semanas_Fecha_Final =
+        let Contador_Semanas_Fecha_Final =
           document.getElementById(
             "Cfg_Contador_Semanas_Fecha_Final"
           )?.value || "";
+        const Contador_Semanas_Vida_Anios = Math.max(
+          1,
+          Math.min(
+            120,
+            parseInt(
+              document.getElementById(
+                "Cfg_Contador_Vida_Anios"
+              )?.value || "80",
+              10
+            ) || 80
+          )
+        );
 
         if (
           Contador_Semanas_Activo &&
@@ -17462,9 +17842,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           alert("Elegí una fecha base para el contador.");
           return;
         }
+
+        // En modo Vida, la fecha final se calcula como
+        // nacimiento + años de vida (ignora cualquier valor
+        // que haya en el campo Fecha final, que está oculto).
+        if (
+          Contador_Semanas_Activo &&
+          Contador_Semanas_Modo === "Vida" &&
+          Contador_Semanas_Fecha_Ref
+        ) {
+          const F_Nac = Parsear_Fecha_ISO(
+            Contador_Semanas_Fecha_Ref
+          );
+          if (F_Nac) {
+            const F_Fin = new Date(F_Nac);
+            F_Fin.setFullYear(
+              F_Fin.getFullYear() + Contador_Semanas_Vida_Anios
+            );
+            Contador_Semanas_Fecha_Final =
+              Formatear_Fecha_ISO(F_Fin);
+          }
+        }
+
         if (
           Contador_Semanas_Activo &&
           Contador_Semanas_Porcentaje &&
+          Contador_Semanas_Modo !== "Vida" &&
           !Contador_Semanas_Fecha_Final
         ) {
           alert("Elegí una fecha final para el porcentaje.");
@@ -17481,6 +17884,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Contador_Semanas_Porcentaje;
         Config.Contador_Semanas_Fecha_Final =
           Contador_Semanas_Fecha_Final;
+        Config.Contador_Semanas_Vida_Anios =
+          Contador_Semanas_Vida_Anios;
 
         // Aplicar colores de estado al DOM.
         Aplicar_Colores_Config();
@@ -20352,6 +20757,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Config.Contador_Semanas_Porcentaje,
             Contador_Semanas_Fecha_Final:
               Config.Contador_Semanas_Fecha_Final,
+            Contador_Semanas_Vida_Anios:
+              Config.Contador_Semanas_Vida_Anios,
             Inicio_Semana_Dia: Config.Inicio_Semana_Dia,
             Inicio_Semana_Hora: Config.Inicio_Semana_Hora
           },
@@ -20533,6 +20940,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (Extra.Contador_Semanas_Fecha_Final !== undefined)
               Config.Contador_Semanas_Fecha_Final =
                 Extra.Contador_Semanas_Fecha_Final || "";
+            if (Extra.Contador_Semanas_Vida_Anios !== undefined) {
+              const Anios_Num = parseInt(
+                Extra.Contador_Semanas_Vida_Anios, 10
+              );
+              if (
+                Number.isFinite(Anios_Num) &&
+                Anios_Num >= 1 && Anios_Num <= 120
+              ) {
+                Config.Contador_Semanas_Vida_Anios = Anios_Num;
+              }
+            }
             if (Extra.Inicio_Semana_Dia !== undefined) {
               const Dia_Num = Number(Extra.Inicio_Semana_Dia);
               if (
@@ -20917,6 +21335,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Abrir_Resumen_Semanal() {
+        if (!Validar_Acceso_Premium(
+          "Resumen semanal"
+        )) {
+          return;
+        }
         Render_Resumen_Semanal();
         document.getElementById("Resumen_Sem_Overlay")
           .classList.add("Activo");
@@ -25439,22 +25862,54 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Focus_Navegar_Bloque(Direccion) {
-        // Mueve el focus al bloque anterior o siguiente del mismo
-        // día. Si estamos en modo auto, primero fija el bloque
-        // detectado y desde ahí navega.
+        // Mueve el focus al bloque anterior o siguiente, sin
+        // importar si está en otro día. Recorre todos los
+        // eventos del calendario en orden cronológico (Fecha +
+        // Inicio) y salta los días vacíos directamente al
+        // próximo bloque que exista.
         const Bloque = Focus_Buscar_Bloque();
         if (!Bloque) return;
-        const Lista = Focus_Obtener_Eventos_Dia_Ordenados(
-          Bloque.Evento.Fecha
-        );
-        const Idx = Lista.findIndex(
+        const Lista_Global = Eventos
+          .filter((Ev) => Ev.Fecha)
+          .sort((A, B) => {
+            if (A.Fecha !== B.Fecha) {
+              return A.Fecha < B.Fecha ? -1 : 1;
+            }
+            return (A.Inicio || 0) - (B.Inicio || 0);
+          });
+        const Idx = Lista_Global.findIndex(
           (E) => E.Id === Bloque.Evento.Id
         );
         if (Idx < 0) return;
         const Idx_Nuevo = Idx + Direccion;
-        if (Idx_Nuevo < 0 || Idx_Nuevo >= Lista.length) return;
-        Focus_Navegacion_Id = Lista[Idx_Nuevo].Id;
+        if (
+          Idx_Nuevo < 0 ||
+          Idx_Nuevo >= Lista_Global.length
+        ) return;
+        Focus_Navegacion_Id = Lista_Global[Idx_Nuevo].Id;
         Focus_Sub_Editando_Id = null;
+        // Si el bloque destino está en otra semana, navegar el
+        // calendario también para que se vea correctamente
+        // detrás del modal y se sincronice el contexto.
+        const Evento_Nuevo = Lista_Global[Idx_Nuevo];
+        const Fecha_Nueva = Parsear_Fecha_ISO(
+          Evento_Nuevo.Fecha
+        );
+        if (Fecha_Nueva) {
+          const Lunes_Nueva = Obtener_Lunes(Fecha_Nueva);
+          const Lunes_Actual = new Date(Semana_Actual);
+          if (
+            Formatear_Fecha_ISO(Lunes_Nueva) !==
+            Formatear_Fecha_ISO(Lunes_Actual)
+          ) {
+            Semana_Actual = Lunes_Nueva;
+            Aplicar_Slots_Muertos_Default_Si_Necesario();
+            Render_Calendario();
+            Render_Eventos();
+            Render_Emojis();
+            Guardar_Estado();
+          }
+        }
         Render_Focus_Mode();
       }
 
@@ -25565,23 +26020,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Emoji = Tarea ? Tarea.Emoji : "•";
         const Nombre = Tarea ? Tarea.Nombre : "Sin tarea";
 
-        // Tinte del modal según el estado del bloque. Solo el
-        // bloque En_Curso conserva el color de la tarea original.
-        // Los demás reciben un tinte semántico (rojo / verde /
-        // azul) y un poco más de opacidad para que se note al
-        // navegar con las flechas.
+        // Tinte del modal según el estado del bloque. Si el
+        // bloque está marcado como Hecho, gana siempre el verde
+        // (independiente del estado: en curso, próximo o
+        // pasado). Sino, color semántico por estado.
         if (Tinte) {
           let Color_Tinte = Color;
           let Opacidad_Tinte = 0.18;
-          if (Bloque.Estado === "Vencido") {
+          if (Evento.Hecho) {
+            Color_Tinte = "#1f6b4f";
+            Opacidad_Tinte = 0.3;
+          } else if (Bloque.Estado === "Vencido") {
             Color_Tinte = "#c44";
             Opacidad_Tinte = 0.32;
           } else if (Bloque.Estado === "Pasado") {
-            if (Evento.Hecho) {
-              Color_Tinte = "#1f6b4f";
-            } else {
-              Color_Tinte = "#c44";
-            }
+            Color_Tinte = "#c44";
             Opacidad_Tinte = 0.3;
           } else if (Bloque.Estado === "Proximo") {
             Color_Tinte = "#5a8fc4";
@@ -25745,12 +26198,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cuerpo.appendChild(Tit);
 
           const Lista = document.createElement("div");
-          // Marcar como "Bloque_Proximo" cuando es un bloque
-          // futuro: en ese caso las planeadas pendientes se ven
-          // grises (todavía no llegó su momento), no rojas.
-          Lista.className = "Focus_Subtareas" +
-            (Bloque.Estado === "Proximo"
-              ? " Bloque_Proximo" : "");
+          // Marcar la clase del wrapper según el estado del
+          // bloque. Solo en bloques pasados (Pasado/Vencido)
+          // las planeadas pendientes se pintan en rojo. En
+          // los demás se ven neutrales: en futuro y en curso
+          // todavía hay tiempo de cumplirlas.
+          let Clase_Wrap = "Focus_Subtareas";
+          if (
+            Bloque.Estado === "Pasado" ||
+            Bloque.Estado === "Vencido"
+          ) {
+            Clase_Wrap += " Bloque_Atrasado";
+          }
+          Lista.className = Clase_Wrap;
           Lista.id = "Focus_Subtareas_Lista";
 
           if (!Subs_Originales || Subs_Originales.length === 0) {
@@ -25848,21 +26308,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         let Tiene_Antes = false;
         let Tiene_Despues = false;
         if (Bloque) {
-          const Lista_Dia = Focus_Obtener_Eventos_Dia_Ordenados(
-            Bloque.Evento.Fecha
-          );
-          const Idx = Lista_Dia.findIndex(
+          // Lista global de eventos en orden cronológico para
+          // chequear si hay anterior/siguiente cruzando días.
+          const Lista_Global = Eventos
+            .filter((Ev) => Ev.Fecha)
+            .sort((A, B) => {
+              if (A.Fecha !== B.Fecha) {
+                return A.Fecha < B.Fecha ? -1 : 1;
+              }
+              return (A.Inicio || 0) - (B.Inicio || 0);
+            });
+          const Idx = Lista_Global.findIndex(
             (E) => E.Id === Bloque.Evento.Id
           );
           Tiene_Antes = Idx > 0;
           Tiene_Despues =
-            Idx >= 0 && Idx < Lista_Dia.length - 1;
+            Idx >= 0 && Idx < Lista_Global.length - 1;
         }
         const Btn_Antes = document.createElement("button");
         Btn_Antes.type = "button";
         Btn_Antes.className = "Focus_Nav_Btn";
         Btn_Antes.textContent = "‹";
-        Btn_Antes.title = "Bloque anterior del día";
+        Btn_Antes.title = "Bloque anterior";
         Btn_Antes.disabled = !Tiene_Antes;
         Btn_Antes.addEventListener("click", () => {
           Focus_Navegar_Bloque(-1);
@@ -25873,7 +26340,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Btn_Despues.type = "button";
         Btn_Despues.className = "Focus_Nav_Btn";
         Btn_Despues.textContent = "›";
-        Btn_Despues.title = "Bloque siguiente del día";
+        Btn_Despues.title = "Bloque siguiente";
         Btn_Despues.disabled = !Tiene_Despues;
         Btn_Despues.addEventListener("click", () => {
           Focus_Navegar_Bloque(1);
