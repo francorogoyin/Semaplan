@@ -17934,8 +17934,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : [];
 
         // Pre-poblar con subtareas de la semana actual de la
-        // tarea. Solo se marca si ya estaba en el abordaje
-        // previo del evento (no por el estado Hecha de la sub).
+        // tarea. Se marca si ya estaba en el abordaje previo
+        // del evento. Caso especial: subs hechas globalmente
+        // (Sub.Hecha=true) que NO tienen entry en el abordaje
+        // de este evento — típicamente se cerraron en otro
+        // bloque. Las pre-marcamos como Completado y dejamos
+        // un flag para que el guardado sepa que es un estado
+        // sintético: si el usuario no las modifica, no agregan
+        // basura al Evento.Abordaje.
         const Subs = Obtener_Subtareas_Semana(Tarea);
         const Items = [];
         Subs.forEach((Sub) => {
@@ -17948,19 +17954,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               I.Texto === (Sub.Texto || "") &&
               !I.Plantilla_Id && !I.Suelta)
           );
+          const Es_Hecha_Solo_Global =
+            !Prev && Boolean(Sub.Hecha);
           Items.push({
             Id: Prev?.Id || Crear_Id_Abordaje(),
             Plantilla_Id: Plant_Id,
             Sub_Id_Local: Sub.Id,
             Texto: (Sub.Texto || "").trim() || "Sin texto",
             Emoji: Sub.Emoji || "•",
-            Marcado: Boolean(Prev),
-            Estado: Prev?.Estado || "Abordado",
+            Marcado: Boolean(Prev) || Es_Hecha_Solo_Global,
+            Estado: Prev?.Estado ||
+              (Es_Hecha_Solo_Global
+                ? "Completado"
+                : "Abordado"),
             Planeada: Boolean(Prev?.Planeada),
             // Flag de si la sub real ya está marcada como hecha
             // (a nivel semana). Lo usamos para colapsar las
             // hechas en el modal.
             Hecha_Global: Boolean(Sub.Hecha),
+            // Flag interno: arrancó como "hecha en otro bloque
+            // sin trabajo registrado acá". Si el usuario no
+            // toca nada, este item NO debe agregarse al
+            // Evento.Abordaje al guardar.
+            Hecha_Solo_Global: Es_Hecha_Solo_Global,
             Suelta: false
           });
         });
@@ -18097,19 +18113,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : Items_Subs_Todos;
 
         // Separar las que están globalmente hechas (Sub.Hecha)
-        // PERO no se cerraron en este bloque, en una sección
-        // colapsada al final. Las hechas globales que SÍ se
-        // marcaron como completadas en este bloque (típicamente
-        // recién tildadas en el Focus) quedan arriba con las
-        // pendientes para que el usuario las vea de una y
-        // confirme que el trabajo quedó registrado acá.
-        const Marcada_Aqui = (I) =>
-          Boolean(I.Marcado) && I.Estado === "Completado";
+        // PERO sin trabajo registrado en este bloque, en una
+        // sección colapsada al final. Las hechas globales con
+        // CUALQUIER trabajo registrado acá (Marcado, ya sea
+        // Completado o Abordado) quedan arriba con las
+        // pendientes para que el usuario las vea de una. La
+        // regla simple: si tiene Marcado=true en este bloque,
+        // pertenece a este bloque y va arriba.
+        const Tiene_Trabajo_Aqui = (I) => Boolean(I.Marcado);
         const Items_Pendientes = Items_Subs.filter(
-          (I) => !I.Hecha_Global || Marcada_Aqui(I)
+          (I) => !I.Hecha_Global || Tiene_Trabajo_Aqui(I)
         );
         const Items_Hechas = Items_Subs.filter(
-          (I) => I.Hecha_Global && !Marcada_Aqui(I)
+          (I) => I.Hecha_Global && !Tiene_Trabajo_Aqui(I)
         );
 
         if (Items_Subs.length === 0) {
@@ -18125,12 +18141,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cuerpo.appendChild(V);
         } else {
           // Pendientes (no hechas) primero, sin colapsar.
-          if (Items_Pendientes.length === 0) {
+          // Si solo hay items en la sección colapsada (todas
+          // ya hechas en otros bloques), no mostramos un
+          // mensaje "vacío" arriba — quedaría redundante con
+          // el toggle "X ya hechas" justo abajo.
+          if (
+            Items_Pendientes.length === 0 &&
+            Items_Hechas.length === 0
+          ) {
             const V = document.createElement("div");
             V.className = "Abordaje_Vacio";
-            V.textContent = "Sin subtareas pendientes.";
+            V.textContent = Es_Pasado
+              ? "No abordaste nada en este bloque."
+              : "Ninguna subtarea pendiente.";
             Cuerpo.appendChild(V);
-          } else {
+          } else if (Items_Pendientes.length > 0) {
             Items_Pendientes.forEach((Item) => {
               Cuerpo.appendChild(
                 Crear_Fila_Abordaje(
@@ -18288,31 +18313,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Item, Es_Suelta, Permitir_Planear = true
       ) {
         const Fila = document.createElement("div");
-        // Si la sub real ya está hecha (a nivel semana), la
-        // fila se renderiza bloqueada: checkbox tildado, toggle
-        // como Completado, y todos los controles deshabilitados.
-        // No tiene sentido permitir cambiar el estado en este
-        // bloque cuando ya quedó hecha en otro contexto.
-        const Bloqueada = Boolean(Item.Hecha_Global);
+        // Todas las filas son editables. Las subs hechas en
+        // otros bloques arrancan pre-marcadas como Completado
+        // (ver Abrir_Modal_Abordaje), así el usuario puede
+        // destildarlas o cambiar su estado desde acá. La
+        // sincronización con Sub.Hecha la hace el guardado.
         Fila.className = "Abordaje_Item" +
-          (Item.Marcado || Bloqueada ? " Marcado" : "") +
-          (Item.Planeada ? " Planeada" : "") +
-          (Bloqueada ? " Bloqueada" : "");
-        if (Bloqueada) {
-          Fila.title = "Esta subtarea ya está hecha";
-        }
+          (Item.Marcado ? " Marcado" : "") +
+          (Item.Planeada ? " Planeada" : "");
 
         const Chk = document.createElement("input");
         Chk.type = "checkbox";
         Chk.className = "Abordaje_Check";
-        Chk.checked = Bloqueada || Item.Marcado;
-        Chk.disabled = Bloqueada;
-        if (!Bloqueada) {
-          Chk.addEventListener("change", () => {
-            Item.Marcado = Chk.checked;
-            Render_Modal_Abordaje();
-          });
-        }
+        Chk.checked = Boolean(Item.Marcado);
+        Chk.addEventListener("change", () => {
+          Item.Marcado = Chk.checked;
+          // Cuando el usuario destilda manualmente, salimos
+          // del estado sintético "solo Hecha global": ahora
+          // hay un cambio explícito que SÍ tiene que
+          // reflejarse al guardar.
+          Item.Hecha_Solo_Global = false;
+          Render_Modal_Abordaje();
+        });
 
         const Em = document.createElement("span");
         Em.className = "Abordaje_Item_Emoji";
@@ -18320,20 +18342,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Tx = document.createElement("span");
         Tx.className = "Abordaje_Item_Texto";
-        if (
-          Bloqueada ||
-          (Item.Marcado && Item.Estado === "Completado")
-        ) {
+        if (Item.Marcado && Item.Estado === "Completado") {
           Tx.classList.add("Tachado");
         }
         Tx.textContent = Item.Texto;
 
         // Toggle Completado / Abordado.
-        // El toggle solo se muestra como activo si el ítem está
-        // marcado. Si está destildado, ningún botón aparece activo.
-        // Si la fila está bloqueada (sub ya hecha), el toggle
-        // muestra Completado siempre activo y los botones no
-        // responden al click.
+        // El toggle solo se muestra como activo si el ítem
+        // está marcado. Si está destildado, ningún botón
+        // aparece activo.
         const Tog = document.createElement("div");
         Tog.className = "Abordaje_Toggle";
 
@@ -18341,53 +18358,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Btn_C.type = "button";
         Btn_C.className = "Abordaje_Toggle_Btn" +
           (
-            Bloqueada ||
-            (Item.Marcado && Item.Estado === "Completado")
+            Item.Marcado && Item.Estado === "Completado"
               ? " Activo" : ""
           );
         Btn_C.textContent = "✓";
-        Btn_C.title = Bloqueada
-          ? "Ya está hecha"
-          : "Completado";
-        Btn_C.disabled = Bloqueada;
-        if (!Bloqueada) {
-          Btn_C.addEventListener("click", () => {
-            // Si ya estaba marcado como Completado, destilda todo.
-            if (Item.Marcado && Item.Estado === "Completado") {
-              Item.Marcado = false;
-            } else {
-              Item.Marcado = true;
-              Item.Estado = "Completado";
-            }
-            Render_Modal_Abordaje();
-          });
-        }
+        Btn_C.title = "Completado";
+        Btn_C.addEventListener("click", () => {
+          // Si ya estaba marcado como Completado, destilda
+          // todo. Si no, lo marca como Completado.
+          if (Item.Marcado && Item.Estado === "Completado") {
+            Item.Marcado = false;
+          } else {
+            Item.Marcado = true;
+            Item.Estado = "Completado";
+          }
+          Item.Hecha_Solo_Global = false;
+          Render_Modal_Abordaje();
+        });
 
         const Btn_A = document.createElement("button");
         Btn_A.type = "button";
         Btn_A.className = "Abordaje_Toggle_Btn" +
           (
-            !Bloqueada &&
             Item.Marcado && Item.Estado === "Abordado"
               ? " Activo" : ""
           );
         Btn_A.textContent = "•";
-        Btn_A.title = Bloqueada
-          ? "Ya está hecha"
-          : "Abordado";
-        Btn_A.disabled = Bloqueada;
-        if (!Bloqueada) {
-          Btn_A.addEventListener("click", () => {
-            // Si ya estaba marcado como Abordado, destilda todo.
-            if (Item.Marcado && Item.Estado === "Abordado") {
-              Item.Marcado = false;
-            } else {
-              Item.Marcado = true;
-              Item.Estado = "Abordado";
-            }
-            Render_Modal_Abordaje();
-          });
-        }
+        Btn_A.title = "Abordado";
+        Btn_A.addEventListener("click", () => {
+          // Si ya estaba marcado como Abordado, destilda todo.
+          if (Item.Marcado && Item.Estado === "Abordado") {
+            Item.Marcado = false;
+          } else {
+            Item.Marcado = true;
+            Item.Estado = "Abordado";
+          }
+          Item.Hecha_Solo_Global = false;
+          Render_Modal_Abordaje();
+        });
 
         Tog.appendChild(Btn_C);
         Tog.appendChild(Btn_A);
@@ -18398,10 +18406,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Fila.appendChild(Tog);
 
         // Botón Planear (★): toggle de la intención. Solo
-        // disponible cuando el bloque es actual o futuro Y la
-        // sub no está bloqueada (ya hecha). Para bloques pasados
-        // o subs ya completadas, planear no tiene sentido.
-        if (Permitir_Planear && !Bloqueada) {
+        // disponible cuando el bloque es actual o futuro.
+        // Para bloques pasados, planear no tiene sentido y se
+        // muestra solo como indicador no clickeable cuando la
+        // sub estaba planeada.
+        if (Permitir_Planear) {
           const Btn_Planear = document.createElement("button");
           Btn_Planear.type = "button";
           Btn_Planear.className = "Abordaje_Planear_Btn" +
@@ -18416,8 +18425,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           Fila.appendChild(Btn_Planear);
         } else if (Item.Planeada) {
-          // Bloque pasado o sub ya hecha: mostramos la estrella
-          // como indicador no clickeable.
+          // Bloque pasado: mostramos la estrella como
+          // indicador no clickeable.
           const Star = document.createElement("span");
           Star.className = "Abordaje_Planear_Indicador";
           Star.textContent = "★";
@@ -18491,8 +18500,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Construir el abordaje final con todo lo que tenga
         // alguna marca: items Marcados (con Estado) o items
         // Planeados (con flag de intención). Pueden coexistir.
+        // Excepción: items con Hecha_Solo_Global=true son
+        // estados sintéticos que el modal usa para mostrar
+        // "esta sub está hecha en otro bloque, podés editarla
+        // si querés". Si el usuario no tocó la fila, ese estado
+        // no representa trabajo real en este bloque y no debe
+        // agregarse al Evento.Abordaje (sino lo poluciona).
         const Final = Abordaje_Borrador
-          .filter((I) => I.Marcado || I.Planeada)
+          .filter((I) => {
+            if (I.Hecha_Solo_Global) return false;
+            return I.Marcado || I.Planeada;
+          })
           .map((I) => {
             const Out = {
               Id: I.Id,
@@ -18521,11 +18539,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         //  - Marcado + Completado → Sub.Hecha = true
         //  - Marcado + Abordado → Sub.Hecha = false (downgrade
         //    explícito; el usuario está diciendo "esto NO está
-        //    terminado, solo lo aborbé")
-        //  - No marcado → no se toca (el usuario no afirma nada)
+        //    terminado, solo lo abordé")
+        //  - Estaba Hecha_Global, el usuario destildó la fila
+        //    en este modal → Sub.Hecha = false (el usuario
+        //    está diciendo "esto ya no está hecho").
+        //  - No marcado y no era Hecha_Global → no se toca (el
+        //    usuario no afirma nada).
         // Esto cierra el desacople Abordaje → Focus: cambiar el
-        // estado en el modal ahora se refleja en Sub.Hecha y por
-        // ende en el Focus la próxima vez que se renderice.
+        // estado en el modal ahora se refleja en Sub.Hecha y
+        // por ende en el Focus la próxima vez que se renderice.
         if (Tarea) {
           const Subs = Obtener_Subtareas_Semana(Tarea);
           Abordaje_Borrador.forEach((I) => {
@@ -18537,6 +18559,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (I.Marcado && I.Estado === "Completado") {
               Sub.Hecha = true;
             } else if (I.Marcado && I.Estado === "Abordado") {
+              Sub.Hecha = false;
+            } else if (
+              !I.Marcado && I.Hecha_Global &&
+              !I.Hecha_Solo_Global
+            ) {
+              // El usuario destildó manualmente una sub que
+              // estaba Hecha_Global. Hecha_Solo_Global ya fue
+              // limpiado por el listener al destildar, así
+              // que esta condición captura el caso real.
               Sub.Hecha = false;
             }
           });
