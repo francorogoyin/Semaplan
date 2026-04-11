@@ -1705,27 +1705,47 @@
         background: #fff;
       }
 
+      /* Sub con trabajo registrado en este bloque. Color de
+         base verde; las dos variantes específicas de abajo
+         le pisan el tono según sea Completado (verde) o
+         Abordado (azul). */
       .Abordaje_Item.Marcado {
-        background: #f5f0e8;
-      }
-
-      /* Sub bloqueada porque ya está hecha a nivel semana:
-         look verde + controles deshabilitados visualmente. */
-      .Abordaje_Item.Bloqueada {
         background: rgba(31, 107, 79, 0.1);
-        border-color: rgba(31, 107, 79, 0.35);
-        opacity: 0.85;
+        border-color: rgba(31, 107, 79, 0.28);
       }
 
-      .Abordaje_Item.Bloqueada .Abordaje_Item_Texto {
-        color: #1f6b4f;
+      .Abordaje_Item.Marcado_Completado {
+        background: rgba(31, 107, 79, 0.12);
+        border-color: rgba(31, 107, 79, 0.32);
       }
 
-      .Abordaje_Item.Bloqueada .Abordaje_Toggle_Btn {
+      .Abordaje_Item.Marcado_Abordado {
+        background: rgba(40, 100, 175, 0.1);
+        border-color: rgba(40, 100, 175, 0.3);
+      }
+
+      /* Sub planeada en este bloque pero sin trabajo
+         registrado (no se la abordó ni se la completó acá).
+         Se pinta en rojo y se mantiene siempre visible para
+         que el plan incumplido quede a la vista. */
+      .Abordaje_Item.Planeada_Sin_Abordar {
+        background: rgba(180, 50, 50, 0.1);
+        border-color: rgba(180, 50, 50, 0.35);
+      }
+
+      .Abordaje_Item.Planeada_Sin_Abordar
+        .Abordaje_Item_Texto {
+        color: #8c2f2f;
+      }
+
+      /* Sub hecha en otro bloque (Hecha_Externa): controles
+         de check y ✓ deshabilitados visualmente. El cursor no
+         responde para esos elementos. */
+      .Abordaje_Item.Hecha_Externa .Abordaje_Toggle_Btn:disabled {
         cursor: not-allowed;
       }
 
-      .Abordaje_Item.Bloqueada .Abordaje_Check {
+      .Abordaje_Item.Hecha_Externa .Abordaje_Check:disabled {
         cursor: not-allowed;
       }
 
@@ -1832,14 +1852,12 @@
         flex-shrink: 0;
       }
 
-      .Abordaje_Item.Planeada {
-        background: rgba(31, 107, 79, 0.1);
-        border-color: rgba(31, 107, 79, 0.28);
-      }
-
-      .Abordaje_Item.Planeada.Marcado {
-        background: rgba(31, 107, 79, 0.16);
-      }
+      /* La clase .Planeada por sí sola (sin Marcado) es solo
+         un marcador semántico para el sort y para activar el
+         estilo Planeada_Sin_Abordar cuando corresponde. No
+         pinta nada por defecto: el color real lo pone
+         Marcado_Completado / Marcado_Abordado o
+         Planeada_Sin_Abordar. */
 
       /* Modal de Abordaje sobre un bloque ya pasado: se pinta
          con un fondo distinto para que el usuario distinga
@@ -1854,18 +1872,21 @@
       }
 
       .Patron_Modal_Panel.Abordaje_Bloque_Pasado
-        .Abordaje_Item.Marcado {
-        background: #ede5d4;
+        .Abordaje_Item.Marcado_Completado {
+        background: rgba(31, 107, 79, 0.18);
+        border-color: rgba(31, 107, 79, 0.36);
       }
 
       .Patron_Modal_Panel.Abordaje_Bloque_Pasado
-        .Abordaje_Item.Planeada {
-        background: rgba(31, 107, 79, 0.14);
+        .Abordaje_Item.Marcado_Abordado {
+        background: rgba(40, 100, 175, 0.15);
+        border-color: rgba(40, 100, 175, 0.34);
       }
 
       .Patron_Modal_Panel.Abordaje_Bloque_Pasado
-        .Abordaje_Item.Planeada.Marcado {
-        background: rgba(31, 107, 79, 0.2);
+        .Abordaje_Item.Planeada_Sin_Abordar {
+        background: rgba(180, 50, 50, 0.15);
+        border-color: rgba(180, 50, 50, 0.4);
       }
 
       .Abordaje_Item_Promover {
@@ -18116,16 +18137,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         }
 
-        // Función de filtro y label dependen del estado del
-        // bloque: pasado filtra por trabajo, futuro/curso
-        // filtra por intención de plan O por trabajo ya
-        // registrado en este bloque (las subs que el usuario
-        // marcó desde el Focus también tienen que aparecer
-        // acá aunque no hubieran estado planeadas — sino se
-        // pierden de vista al volver al modal de Abordaje).
-        const Filtra_Item = Es_Pasado
-          ? (I) => Boolean(I.Marcado)
-          : (I) => Boolean(I.Planeada) || Boolean(I.Marcado);
+        // El filtro siempre pasa items con trabajo (Marcado)
+        // o con intención (Planeada). Las planeadas-sin-
+        // abordar quedan visibles también en bloques pasados
+        // (se pintan en rojo abajo de todo) para que el plan
+        // incumplido no se esconda.
+        const Filtra_Item = (I) =>
+          Boolean(I.Marcado) || Boolean(I.Planeada);
         const Texto_Solo = Es_Pasado
           ? "Mostrar solo lo abordado"
           : "Mostrar solo planeadas";
@@ -18188,19 +18206,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? Items_Subs_Todos.filter(Filtra_Item)
           : Items_Subs_Todos;
 
-        // Ordenar planeadas primero. Sort estable conserva
-        // el orden original entre items del mismo grupo
-        // (ES2019+). Esto aplica tanto en filtro ON (lista
-        // visible) como en OFF (lista expandida con todo).
-        const Sortear_Planeadas_Arriba = (Lista) =>
-          [...Lista].sort((A, B) => {
-            const PA = Boolean(A.Planeada);
-            const PB = Boolean(B.Planeada);
-            if (PA === PB) return 0;
-            return PA ? -1 : 1;
-          });
-        const Items_Visibles = Sortear_Planeadas_Arriba(
-          Items_Subs
+        // Orden de la lista visible:
+        //   1) Subs con trabajo en este bloque (Marcado=true),
+        //      con las planeadas primero entre ellas.
+        //   2) Subs planeadas-sin-abordar (Planeada && !Marcado)
+        //      al FINAL — son los planes incumplidos en rojo,
+        //      siempre visibles para que no se pierdan.
+        //   3) Lo demás (no Marcado, no Planeada) solo aparece
+        //      cuando el filtro está OFF; va al final también.
+        // Sort estable conserva el orden original entre items
+        // del mismo grupo (ES2019+).
+        const Prioridad_Visible = (I) => {
+          if (I.Marcado) {
+            return I.Planeada ? 0 : 1;
+          }
+          if (I.Planeada) return 2; // planeada sin abordar
+          return 3; // resto
+        };
+        const Items_Visibles = [...Items_Subs].sort(
+          (A, B) =>
+            Prioridad_Visible(A) - Prioridad_Visible(B)
         );
 
         if (Items_Visibles.length === 0) {
@@ -18347,10 +18372,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // solo aplica cuando la sub vino hecha de otro lado.
         const Bloqueada =
           Boolean(Item.Bloqueada_Por_Hecha_Externa);
+        // Una sub planeada-sin-abordar muestra el plan
+        // incumplido en rojo. Solo aplica en bloques pasados
+        // (cuando ya no se puede cambiar el desenlace) y
+        // cuando la sub no tiene trabajo registrado en este
+        // bloque. !Permitir_Planear es proxy de "es pasado".
+        const Es_Pasado_Local = !Permitir_Planear;
+        const Planeada_Sin_Abordar =
+          Es_Pasado_Local &&
+          Boolean(Item.Planeada) &&
+          !Item.Marcado;
+        const Es_Marcado_Completado =
+          Item.Marcado && Item.Estado === "Completado";
+        const Es_Marcado_Abordado =
+          Item.Marcado && Item.Estado === "Abordado";
         Fila.className = "Abordaje_Item" +
           (Item.Marcado || Bloqueada ? " Marcado" : "") +
+          (Es_Marcado_Completado
+            ? " Marcado_Completado" : "") +
+          (Es_Marcado_Abordado
+            ? " Marcado_Abordado" : "") +
           (Item.Planeada ? " Planeada" : "") +
-          (Bloqueada ? " Hecha_Externa" : "");
+          (Bloqueada ? " Hecha_Externa" : "") +
+          (Planeada_Sin_Abordar
+            ? " Planeada_Sin_Abordar" : "");
 
         const Chk = document.createElement("input");
         Chk.type = "checkbox";
