@@ -86,3 +86,18 @@ que haga el usuario en el chat, revisar `Proximos_Avances.txt`:
    "perfecto" o similar tras un cambio funcional), commitear y
    pushear los cambios. No esperar a que el usuario lo pida
    explícitamente si ya hay trabajo completo sin commitear.
+
+## Sesiones paralelas y staging de commits
+
+Es habitual que el usuario tenga varias sesiones de Claude/Codex
+trabajando sobre este repo a la vez. Para evitar que una sesión
+arrastre el trabajo de otra dentro de un commit con mensaje
+equivocado:
+
+- **Nunca** usar `git add -A`, `git add .` ni `git commit -a`.
+- Stagear siempre archivos puntuales por nombre
+  (`git add Time_Blocking.html Proximos_Avances.txt`).
+- Si al revisar `git status` aparecen cambios en archivos que
+  esta sesión no tocó, no incluirlos en el commit: probablemente
+  son de otra sesión paralela y le corresponden a ella commitearlos
+  con su propio mensaje.
