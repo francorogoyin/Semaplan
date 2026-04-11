@@ -5236,6 +5236,492 @@
         }
       }
 
+      /* ===== Archivero (Premium) =====
+         Modal para guardar notas sueltas (frases, ideas,
+         links, conceptos) en cajones reutilizables. Sigue
+         el mismo lenguaje visual que el Baúl pero más
+         simple: dos columnas (cajones / notas). */
+
+      .Archivero_Panel {
+        position: relative;
+        width: min(960px, calc(100vw - 28px));
+        max-width: 960px;
+        height: min(86vh, 820px);
+        max-height: min(86vh, 820px);
+      }
+
+      .Archivero_Cuerpo {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        /* Padding simétrico: así la cabecera, el layout
+           y el banner inferior quedan todos centrados al
+           modal. La cabecera reserva su propio espacio
+           extra a la derecha para no chocar con el X. */
+        padding: 20px 18px 18px 18px;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .Archivero_Cabecera {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+        /* Reserva el espacio del botón flotante de cerrar
+           solo en la primera fila. */
+        padding-right: 36px;
+      }
+
+      .Archivero_Titulo {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--Texto);
+        flex: 1;
+      }
+
+      .Archivero_Buscar {
+        flex: 1;
+        max-width: 280px;
+        padding: 8px 12px;
+        border: 1px solid var(--Borde);
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 13px;
+        background: #fff;
+        color: var(--Texto);
+      }
+
+      .Archivero_Buscar:focus {
+        outline: none;
+        border-color: var(--Acento);
+      }
+
+      .Archivero_Layout {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        gap: 14px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .Archivero_Sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 0;
+        border: 1px solid var(--Borde);
+        border-radius: 12px;
+        padding: 10px;
+        background: #fafaf7;
+      }
+
+      .Archivero_Sidebar_Lista {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .Archivero_Cajon_Item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--Texto);
+        background: transparent;
+        border: 1px solid transparent;
+        text-align: left;
+        font-family: inherit;
+        width: 100%;
+      }
+
+      .Archivero_Cajon_Item:hover {
+        background: var(--Acento_Suave);
+      }
+
+      .Archivero_Cajon_Item.Activo {
+        background: #fff;
+        border-color: var(--Acento);
+        color: var(--Acento);
+        font-weight: 600;
+      }
+
+      .Archivero_Cajon_Emoji {
+        font-size: 16px;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+
+      .Archivero_Cajon_Nombre {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .Archivero_Cajon_Conteo {
+        font-size: 11px;
+        color: var(--Texto_Suave);
+        background: rgba(0, 0, 0, 0.06);
+        border-radius: 999px;
+        padding: 1px 8px;
+        flex-shrink: 0;
+      }
+
+      .Archivero_Cajon_Item.Activo
+        .Archivero_Cajon_Conteo {
+        background: var(--Acento_Suave);
+      }
+
+      .Archivero_Cajon_Acciones {
+        display: none;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+
+      .Archivero_Cajon_Item:hover
+        .Archivero_Cajon_Acciones,
+      .Archivero_Cajon_Item.Activo
+        .Archivero_Cajon_Acciones {
+        display: flex;
+      }
+
+      .Archivero_Cajon_Mini_Btn {
+        background: transparent;
+        border: none;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        font-size: 12px;
+        padding: 2px 4px;
+        border-radius: 4px;
+        line-height: 1;
+      }
+
+      .Archivero_Cajon_Mini_Btn:hover {
+        background: rgba(0, 0, 0, 0.08);
+        color: var(--Texto);
+      }
+
+      .Archivero_Sidebar_Pie {
+        flex-shrink: 0;
+        padding-top: 8px;
+        border-top: 1px solid var(--Borde);
+      }
+
+      .Archivero_Btn_Nuevo_Cajon {
+        width: 100%;
+        padding: 8px;
+        border: 1px dashed var(--Borde);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12px;
+      }
+
+      .Archivero_Btn_Nuevo_Cajon:hover {
+        border-color: var(--Acento);
+        color: var(--Acento);
+      }
+
+      .Archivero_Contenido {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-height: 0;
+      }
+
+      .Archivero_Contenido_Cabecera {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+
+      .Archivero_Contenido_Titulo {
+        flex: 1;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--Texto);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .Archivero_Btn_Nueva_Nota_Icono {
+        flex-shrink: 0;
+        width: 26px;
+        height: 26px;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 15px;
+        line-height: 1;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        transition: color 0.15s, background 0.15s,
+          border-color 0.15s;
+      }
+
+      .Archivero_Btn_Nueva_Nota_Icono:hover {
+        background: var(--Acento_Suave);
+        color: var(--Acento);
+        border-color: var(--Acento);
+      }
+
+      .Archivero_Notas_Lista {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+        padding-right: 4px;
+      }
+
+      .Archivero_Nota_Card {
+        border: 1px solid var(--Borde);
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: #fff;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .Archivero_Nota_Card.Tipo_Link {
+        background: #f4f9ff;
+        border-color: #c9dfff;
+      }
+
+      .Archivero_Nota_Texto {
+        font-size: 13px;
+        color: var(--Texto);
+        line-height: 1.45;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .Archivero_Nota_Texto a {
+        color: var(--Acento);
+        text-decoration: underline;
+      }
+
+      .Archivero_Nota_Meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--Texto_Suave);
+        flex-wrap: wrap;
+      }
+
+      .Archivero_Nota_Origen {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .Archivero_Nota_Acciones {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        display: none;
+        gap: 4px;
+      }
+
+      .Archivero_Nota_Card:hover
+        .Archivero_Nota_Acciones {
+        display: flex;
+      }
+
+      .Archivero_Nota_Mini_Btn {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid var(--Borde);
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        font-size: 11px;
+        padding: 3px 6px;
+        border-radius: 6px;
+        line-height: 1;
+      }
+
+      .Archivero_Nota_Mini_Btn:hover {
+        background: var(--Acento_Suave);
+        color: var(--Acento);
+        border-color: var(--Acento);
+      }
+
+      .Archivero_Vacio {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 8px;
+        padding: 30px 16px;
+        color: var(--Texto_Suave);
+        font-size: 13px;
+        flex: 1;
+      }
+
+      .Archivero_Vacio_Emoji {
+        font-size: 36px;
+        opacity: 0.6;
+      }
+
+      .Archivero_Extension_Aviso {
+        flex-shrink: 0;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: #fff8ed;
+        border: 1px dashed #e5c889;
+        color: #8a5a20;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .Archivero_Extension_Aviso a {
+        color: #8a5a20;
+        text-decoration: underline;
+        font-weight: 600;
+      }
+
+      /* Submodales (crear/editar nota o cajón). */
+      .Archivero_Sub_Panel {
+        position: relative;
+        width: min(520px, calc(100vw - 28px));
+        max-width: 520px;
+      }
+
+      .Archivero_Sub_Cuerpo {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .Archivero_Sub_Campo {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .Archivero_Sub_Campo label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--Texto_Suave);
+      }
+
+      .Archivero_Sub_Campo textarea,
+      .Archivero_Sub_Campo input[type="text"],
+      .Archivero_Sub_Campo select {
+        padding: 8px 10px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 13px;
+        background: #fff;
+        color: var(--Texto);
+      }
+
+      .Archivero_Sub_Campo textarea {
+        resize: vertical;
+        min-height: 90px;
+      }
+
+      .Archivero_Sub_Campo textarea:focus,
+      .Archivero_Sub_Campo input:focus,
+      .Archivero_Sub_Campo select:focus {
+        outline: none;
+        border-color: var(--Acento);
+      }
+
+      .Archivero_Sub_Acciones {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding-top: 4px;
+      }
+
+      .Archivero_Sub_Btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--Borde);
+        background: #fff;
+        color: var(--Texto);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 13px;
+      }
+
+      .Archivero_Sub_Btn.Primario {
+        background: var(--Acento);
+        color: #fff;
+        border-color: var(--Acento);
+        font-weight: 600;
+      }
+
+      .Archivero_Sub_Btn:hover {
+        opacity: 0.9;
+      }
+
+      .Archivero_Sub_Emoji_Grid {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 4px;
+        max-height: 140px;
+        overflow-y: auto;
+        padding: 6px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fafaf7;
+      }
+
+      .Archivero_Sub_Emoji_Btn {
+        padding: 6px;
+        border-radius: 6px;
+        border: 1px solid transparent;
+        background: transparent;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .Archivero_Sub_Emoji_Btn:hover {
+        background: #fff;
+      }
+
+      .Archivero_Sub_Emoji_Btn.Activo {
+        border-color: var(--Acento);
+        background: var(--Acento_Suave);
+      }
+
+      @media (max-width: 720px) {
+        .Archivero_Cuerpo {
+          padding-right: 16px;
+        }
+        .Archivero_Layout {
+          grid-template-columns: 1fr;
+        }
+        .Archivero_Sidebar {
+          max-height: 200px;
+        }
+      }
+
       .Evento {
         position: absolute;
         left: 6px;
@@ -7264,6 +7750,11 @@
               data-menu-key="Baul_Boton"
               data-menu-nombre="Baúl de tareas"
               type="button" title="Baúl de tareas">🧰</button>
+            <button class="Config_Boton Menu_Btn"
+              id="Archivero_Boton"
+              data-menu-key="Archivero_Boton"
+              data-menu-nombre="Archivero"
+              type="button" title="Archivero">🗃️</button>
             <button class="Config_Boton Menu_Btn" id="Patron_Boton"
               data-menu-key="Patron_Boton"
               data-menu-nombre="Aplicar patrón"
@@ -8165,6 +8656,9 @@
                       Resumen y revisión semanal
                     </div>
                     <div class="Suscripcion_Feature">
+                      Archivero de notas, frases e ideas
+                    </div>
+                    <div class="Suscripcion_Feature">
                       Sync entre dispositivos
                     </div>
                   </div>
@@ -8437,6 +8931,151 @@
             </div>
           </div>
           <div class="Baul_Footer" id="Baul_Conteo"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal del Archivero (Premium): cajones de notas
+         sueltas tipo frases, ideas, links y conceptos. -->
+    <div class="Patron_Modal_Overlay" id="Archivero_Overlay">
+      <div class="Patron_Modal_Panel Archivero_Panel">
+        <div class="Patron_Modal_Cuerpo Archivero_Cuerpo">
+          <button class="Baul_Cerrar_Flotante"
+            id="Archivero_Cerrar"
+            type="button"
+            aria-label="Cerrar archivero">&times;</button>
+          <div class="Archivero_Cabecera">
+            <span class="Archivero_Titulo">🗃️ Archivero</span>
+            <button type="button"
+              class="Archivero_Btn_Nueva_Nota_Icono"
+              id="Archivero_Btn_Nueva_Nota"
+              title="Nueva nota (A)">+</button>
+            <input type="text"
+              id="Archivero_Buscar_Input"
+              class="Archivero_Buscar"
+              placeholder="Buscar en notas...">
+          </div>
+          <div class="Archivero_Layout">
+            <aside class="Archivero_Sidebar">
+              <div class="Archivero_Sidebar_Lista"
+                id="Archivero_Sidebar_Lista"></div>
+              <div class="Archivero_Sidebar_Pie">
+                <button type="button"
+                  class="Archivero_Btn_Nuevo_Cajon"
+                  id="Archivero_Btn_Nuevo_Cajon">
+                  + Nuevo cajón
+                </button>
+              </div>
+            </aside>
+            <section class="Archivero_Contenido">
+              <div class="Archivero_Contenido_Cabecera">
+                <div class="Archivero_Contenido_Titulo"
+                  id="Archivero_Contenido_Titulo"></div>
+              </div>
+              <div class="Archivero_Notas_Lista"
+                id="Archivero_Notas_Lista"></div>
+            </section>
+          </div>
+          <div class="Archivero_Extension_Aviso">
+            <strong>¿Querés capturar frases con click
+            derecho desde cualquier página web?</strong>
+            La extensión del navegador está en camino —
+            <a href="#"
+              id="Archivero_Extension_Link"
+              onclick="event.preventDefault()">avisame
+              cuando esté disponible</a>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submodal: crear/editar una nota del archivero. -->
+    <div class="Patron_Modal_Overlay"
+      id="Archivero_Nota_Overlay">
+      <div class="Patron_Modal_Panel Archivero_Sub_Panel">
+        <div class="Patron_Modal_Cabecera">
+          <span class="Patron_Modal_Titulo"
+            id="Archivero_Nota_Titulo">Nueva nota</span>
+          <button class="Config_Cerrar"
+            id="Archivero_Nota_Cerrar"
+            type="button">&times;</button>
+        </div>
+        <div class="Patron_Modal_Cuerpo
+          Archivero_Sub_Cuerpo">
+          <div class="Archivero_Sub_Campo">
+            <label for="Archivero_Nota_Texto_Input">
+              Texto
+            </label>
+            <textarea id="Archivero_Nota_Texto_Input"
+              placeholder="Pegá la frase, idea o link..."
+            ></textarea>
+          </div>
+          <div class="Archivero_Sub_Campo">
+            <label for="Archivero_Nota_Origen_Input">
+              Origen (opcional)
+            </label>
+            <input type="text"
+              id="Archivero_Nota_Origen_Input"
+              placeholder="URL o de dónde sacaste esto">
+          </div>
+          <div class="Archivero_Sub_Campo">
+            <label for="Archivero_Nota_Cajon_Select">
+              Cajón
+            </label>
+            <select
+              id="Archivero_Nota_Cajon_Select"></select>
+          </div>
+          <div class="Archivero_Sub_Acciones">
+            <button type="button"
+              class="Archivero_Sub_Btn"
+              id="Archivero_Nota_Cancelar">Cancelar</button>
+            <button type="button"
+              class="Archivero_Sub_Btn Primario"
+              id="Archivero_Nota_Guardar">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submodal: crear/editar un cajón. -->
+    <div class="Patron_Modal_Overlay"
+      id="Archivero_Cajon_Overlay">
+      <div class="Patron_Modal_Panel Archivero_Sub_Panel">
+        <div class="Patron_Modal_Cabecera">
+          <span class="Patron_Modal_Titulo"
+            id="Archivero_Cajon_Titulo">Nuevo cajón</span>
+          <button class="Config_Cerrar"
+            id="Archivero_Cajon_Cerrar"
+            type="button">&times;</button>
+        </div>
+        <div class="Patron_Modal_Cuerpo
+          Archivero_Sub_Cuerpo">
+          <div class="Archivero_Sub_Campo">
+            <label for="Archivero_Cajon_Nombre_Input">
+              Nombre
+            </label>
+            <input type="text"
+              id="Archivero_Cajon_Nombre_Input"
+              placeholder="Ej: Frases de libros">
+          </div>
+          <div class="Archivero_Sub_Campo">
+            <label for="Archivero_Cajon_Emoji_Input">
+              Emoji
+            </label>
+            <input type="text"
+              id="Archivero_Cajon_Emoji_Input"
+              class="Con_Selector_Emoji"
+              placeholder="🗃️"
+              maxlength="4">
+          </div>
+          <div class="Archivero_Sub_Acciones">
+            <button type="button"
+              class="Archivero_Sub_Btn"
+              id="Archivero_Cajon_Cancelar">Cancelar</button>
+            <button type="button"
+              class="Archivero_Sub_Btn Primario"
+              id="Archivero_Cajon_Guardar">Guardar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -8965,6 +9604,7 @@
           Cerrar_Semana_Boton: true,
           Historial_Planes_Boton: true,
           Baul_Boton: true,
+          Archivero_Boton: true,
           Patron_Boton: true,
           Limpiar_Semana_Boton: true,
           Ayuda_Boton: true,
@@ -9030,6 +9670,19 @@
       let Categorias = [];
       let Etiquetas = [];
       let Baul_Tareas = [];
+      // Archivero: cajones para guardar notas sueltas
+      // (frases, ideas, links, conceptos). Funcionalidad
+      // Premium. Cada Archivero tiene Id, Nombre, Emoji,
+      // Color y Fecha_Creacion. Cada Nota tiene Id,
+      // Archivero_Id, Texto, Origen (URL o descripción
+      // libre), Tipo ("Texto" | "Link") y Fecha_Creacion.
+      let Archiveros = [];
+      let Notas_Archivero = [];
+      // Estado de UI del modal Archivero.
+      let Archivero_Seleccion_Id = null;
+      let Archivero_Busqueda = "";
+      let Archivero_Nota_En_Edicion_Id = null;
+      let Archivero_Cajon_En_Edicion_Id = null;
       let Patrones = [];
       let Patron_En_Edicion = null;
       let Patron_En_Edicion_Snapshot = null;
@@ -11455,6 +12108,686 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Baul_Overlay?.classList.remove("Activo");
         Render_Barra_Multi_Seleccion();
       }
+
+      // ===== ARCHIVERO (Premium) =====
+      // Cajones de notas sueltas: frases, ideas, links,
+      // conceptos. Persiste con el resto del estado y
+      // sincroniza con Supabase. La UI vive en el modal
+      // Archivero_Overlay (lista de cajones a la izquierda
+      // y notas filtradas a la derecha).
+
+      const Archivero_Cajones_Default = [
+        { Nombre: "Notas mentales", Emoji: "🧠" },
+        { Nombre: "Ideas", Emoji: "💡" },
+        { Nombre: "Frases", Emoji: "💬" },
+        { Nombre: "Links", Emoji: "🔗" },
+        { Nombre: "Conceptos", Emoji: "📚" }
+      ];
+
+      function Generar_Id_Archivero() {
+        // Id único compuesto por timestamp + random
+        // corto. Suficiente para colisión cero en uso
+        // local; no necesita UUID completo.
+        return (
+          "ar_" +
+          Date.now().toString(36) +
+          "_" +
+          Math.random().toString(36).slice(2, 7)
+        );
+      }
+
+      function Es_URL_Archivero(Texto) {
+        // Detecta si el texto es solamente una URL
+        // (con o sin protocolo). Sirve para marcar la
+        // nota con tipo "Link" automáticamente.
+        if (!Texto) return false;
+        const Limpio = Texto.trim();
+        if (/\s/.test(Limpio)) return false;
+        return /^(https?:\/\/|www\.)/i.test(Limpio) ||
+          /^[\w-]+\.[a-z]{2,}(\/|$)/i.test(Limpio);
+      }
+
+      function Inferir_Tipo_Nota_Archivero(Texto) {
+        // Devuelve "Link" si el texto es una URL sola,
+        // "Texto" en cualquier otro caso.
+        return Es_URL_Archivero(Texto) ? "Link" : "Texto";
+      }
+
+      function Inicializar_Archiveros_Default() {
+        // Si el usuario todavía no tiene cajones, crea
+        // los cinco cajones por defecto para que el
+        // archivero no arranque vacío.
+        if (Archiveros.length > 0) return;
+        Archivero_Cajones_Default.forEach((Cajon) => {
+          Archiveros.push({
+            Id: Generar_Id_Archivero(),
+            Nombre: Cajon.Nombre,
+            Emoji: Cajon.Emoji,
+            Fecha_Creacion: Date.now()
+          });
+        });
+      }
+
+      function Contar_Notas_Cajon(Cajon_Id) {
+        return Notas_Archivero.filter(
+          (Nota) => Nota.Archivero_Id === Cajon_Id
+        ).length;
+      }
+
+      function Obtener_Cajon_Por_Id(Cajon_Id) {
+        return Archiveros.find(
+          (Cajon) => Cajon.Id === Cajon_Id
+        ) || null;
+      }
+
+      function Filtrar_Notas_Archivero() {
+        // Devuelve las notas del cajón seleccionado
+        // filtradas por el texto del buscador (full-text
+        // sobre Texto y Origen, case-insensitive).
+        const Texto = (Archivero_Busqueda || "")
+          .trim()
+          .toLowerCase();
+        return Notas_Archivero
+          .filter((Nota) => {
+            if (
+              Archivero_Seleccion_Id &&
+              Nota.Archivero_Id !== Archivero_Seleccion_Id
+            ) {
+              return false;
+            }
+            if (!Texto) return true;
+            const Hay_Texto = (Nota.Texto || "")
+              .toLowerCase()
+              .includes(Texto);
+            const Hay_Origen = (Nota.Origen || "")
+              .toLowerCase()
+              .includes(Texto);
+            return Hay_Texto || Hay_Origen;
+          })
+          .sort(
+            (A, B) =>
+              (B.Fecha_Creacion || 0) -
+              (A.Fecha_Creacion || 0)
+          );
+      }
+
+      function Abrir_Archivero() {
+        // Guard de Premium. Si el plan es Free, el
+        // usuario ve el diálogo de upgrade y la función
+        // sale sin abrir nada.
+        if (!Validar_Acceso_Premium("Archivero")) {
+          return;
+        }
+        Inicializar_Archiveros_Default();
+        if (
+          !Archivero_Seleccion_Id ||
+          !Obtener_Cajon_Por_Id(Archivero_Seleccion_Id)
+        ) {
+          Archivero_Seleccion_Id =
+            Archiveros[0]?.Id || null;
+        }
+        Render_Archivero();
+        document.getElementById(
+          "Archivero_Overlay"
+        )?.classList.add("Activo");
+        // Limpiar el buscador al abrir.
+        const Buscador = document.getElementById(
+          "Archivero_Buscar_Input"
+        );
+        if (Buscador) {
+          Buscador.value = Archivero_Busqueda || "";
+        }
+      }
+
+      function Cerrar_Archivero() {
+        document.getElementById(
+          "Archivero_Overlay"
+        )?.classList.remove("Activo");
+      }
+
+      function Render_Archivero() {
+        Render_Archivero_Sidebar();
+        Render_Archivero_Notas();
+      }
+
+      function Render_Archivero_Sidebar() {
+        const Cont = document.getElementById(
+          "Archivero_Sidebar_Lista"
+        );
+        if (!Cont) return;
+        Cont.innerHTML = "";
+        if (Archiveros.length === 0) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Archivero_Vacio";
+          Vacio.textContent =
+            "No hay cajones todavía.";
+          Cont.appendChild(Vacio);
+          return;
+        }
+        Archiveros.forEach((Cajon) => {
+          const Item = document.createElement("button");
+          Item.type = "button";
+          Item.className = "Archivero_Cajon_Item";
+          if (Cajon.Id === Archivero_Seleccion_Id) {
+            Item.classList.add("Activo");
+          }
+          const Emoji = document.createElement("span");
+          Emoji.className = "Archivero_Cajon_Emoji";
+          Emoji.textContent = Cajon.Emoji || "🗃️";
+          const Nombre = document.createElement("span");
+          Nombre.className = "Archivero_Cajon_Nombre";
+          Nombre.textContent = Cajon.Nombre;
+          const Conteo = document.createElement("span");
+          Conteo.className = "Archivero_Cajon_Conteo";
+          Conteo.textContent = String(
+            Contar_Notas_Cajon(Cajon.Id)
+          );
+          const Acciones = document.createElement("span");
+          Acciones.className =
+            "Archivero_Cajon_Acciones";
+          const Btn_Editar = document.createElement(
+            "button"
+          );
+          Btn_Editar.type = "button";
+          Btn_Editar.className =
+            "Archivero_Cajon_Mini_Btn";
+          Btn_Editar.textContent = "✎";
+          Btn_Editar.title = "Editar cajón";
+          Btn_Editar.addEventListener(
+            "click",
+            (Ev) => {
+              Ev.stopPropagation();
+              Abrir_Modal_Cajon_Archivero(Cajon.Id);
+            }
+          );
+          const Btn_Borrar = document.createElement(
+            "button"
+          );
+          Btn_Borrar.type = "button";
+          Btn_Borrar.className =
+            "Archivero_Cajon_Mini_Btn";
+          Btn_Borrar.textContent = "✕";
+          Btn_Borrar.title = "Borrar cajón";
+          Btn_Borrar.addEventListener(
+            "click",
+            (Ev) => {
+              Ev.stopPropagation();
+              Borrar_Cajon_Archivero(Cajon.Id);
+            }
+          );
+          Acciones.appendChild(Btn_Editar);
+          Acciones.appendChild(Btn_Borrar);
+          Item.appendChild(Emoji);
+          Item.appendChild(Nombre);
+          Item.appendChild(Conteo);
+          Item.appendChild(Acciones);
+          Item.addEventListener("click", () => {
+            Archivero_Seleccion_Id = Cajon.Id;
+            Render_Archivero();
+          });
+          Cont.appendChild(Item);
+        });
+      }
+
+      function Render_Archivero_Notas() {
+        const Titulo = document.getElementById(
+          "Archivero_Contenido_Titulo"
+        );
+        const Lista = document.getElementById(
+          "Archivero_Notas_Lista"
+        );
+        if (!Titulo || !Lista) return;
+        Titulo.innerHTML = "";
+        Lista.innerHTML = "";
+        const Cajon = Obtener_Cajon_Por_Id(
+          Archivero_Seleccion_Id
+        );
+        if (!Cajon) {
+          Titulo.textContent = "Sin cajón seleccionado";
+          const Vacio = document.createElement("div");
+          Vacio.className = "Archivero_Vacio";
+          Vacio.innerHTML =
+            '<div class="Archivero_Vacio_Emoji">🗃️</div>' +
+            "<div>Creá un cajón para empezar.</div>";
+          Lista.appendChild(Vacio);
+          return;
+        }
+        Titulo.innerHTML =
+          `<span>${Cajon.Emoji || "🗃️"}</span>` +
+          `<span>${Escape_Html(Cajon.Nombre)}</span>`;
+        const Notas = Filtrar_Notas_Archivero();
+        if (Notas.length === 0) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Archivero_Vacio";
+          Vacio.innerHTML =
+            '<div class="Archivero_Vacio_Emoji">📝</div>' +
+            "<div>No hay notas en este cajón.</div>" +
+            '<div style="font-size:11px;opacity:0.7">' +
+            "Tocá <b>+ Nueva nota</b> para sumar una." +
+            "</div>";
+          Lista.appendChild(Vacio);
+          return;
+        }
+        Notas.forEach((Nota) => {
+          Lista.appendChild(
+            Render_Archivero_Nota_Card(Nota)
+          );
+        });
+      }
+
+      function Render_Archivero_Nota_Card(Nota) {
+        const Card = document.createElement("div");
+        Card.className = "Archivero_Nota_Card";
+        if (Nota.Tipo === "Link") {
+          Card.classList.add("Tipo_Link");
+        }
+        const Texto = document.createElement("div");
+        Texto.className = "Archivero_Nota_Texto";
+        if (Nota.Tipo === "Link") {
+          const Link = document.createElement("a");
+          const Href = (Nota.Texto || "").trim();
+          Link.href = /^https?:\/\//i.test(Href)
+            ? Href
+            : `https://${Href}`;
+          Link.target = "_blank";
+          Link.rel = "noopener noreferrer";
+          Link.textContent = Nota.Texto;
+          Texto.appendChild(Link);
+        } else {
+          Texto.textContent = Nota.Texto;
+        }
+        Card.appendChild(Texto);
+        const Meta = document.createElement("div");
+        Meta.className = "Archivero_Nota_Meta";
+        const Fecha = document.createElement("span");
+        Fecha.textContent = Formatear_Fecha_Nota(
+          Nota.Fecha_Creacion
+        );
+        Meta.appendChild(Fecha);
+        if (Nota.Origen) {
+          const Sep = document.createElement("span");
+          Sep.textContent = "·";
+          Meta.appendChild(Sep);
+          const Origen = document.createElement(
+            "span"
+          );
+          Origen.className = "Archivero_Nota_Origen";
+          Origen.textContent = Nota.Origen;
+          Origen.title = Nota.Origen;
+          Meta.appendChild(Origen);
+        }
+        Card.appendChild(Meta);
+        const Acciones = document.createElement("div");
+        Acciones.className = "Archivero_Nota_Acciones";
+        const Btn_Editar = document.createElement(
+          "button"
+        );
+        Btn_Editar.type = "button";
+        Btn_Editar.className = "Archivero_Nota_Mini_Btn";
+        Btn_Editar.textContent = "✎";
+        Btn_Editar.title = "Editar nota";
+        Btn_Editar.addEventListener("click", () => {
+          Abrir_Modal_Nota_Archivero(Nota.Id);
+        });
+        const Btn_Borrar = document.createElement(
+          "button"
+        );
+        Btn_Borrar.type = "button";
+        Btn_Borrar.className = "Archivero_Nota_Mini_Btn";
+        Btn_Borrar.textContent = "✕";
+        Btn_Borrar.title = "Borrar nota";
+        Btn_Borrar.addEventListener("click", () => {
+          Borrar_Nota_Archivero(Nota.Id);
+        });
+        Acciones.appendChild(Btn_Editar);
+        Acciones.appendChild(Btn_Borrar);
+        Card.appendChild(Acciones);
+        return Card;
+      }
+
+      function Escape_Html(Texto) {
+        // Escape mínimo para insertar texto del usuario
+        // dentro de innerHTML sin riesgo de inyección.
+        const Div = document.createElement("div");
+        Div.textContent = Texto || "";
+        return Div.innerHTML;
+      }
+
+      function Formatear_Fecha_Nota(Timestamp) {
+        if (!Timestamp) return "";
+        const F = new Date(Timestamp);
+        const Hoy = new Date();
+        const Mismo_Dia =
+          F.getFullYear() === Hoy.getFullYear() &&
+          F.getMonth() === Hoy.getMonth() &&
+          F.getDate() === Hoy.getDate();
+        if (Mismo_Dia) {
+          return (
+            "Hoy " +
+            String(F.getHours()).padStart(2, "0") +
+            ":" +
+            String(F.getMinutes()).padStart(2, "0")
+          );
+        }
+        return (
+          String(F.getDate()).padStart(2, "0") +
+          "/" +
+          String(F.getMonth() + 1).padStart(2, "0") +
+          "/" +
+          String(F.getFullYear()).slice(2)
+        );
+      }
+
+      // --- Submodal: nota ---
+
+      function Abrir_Modal_Nota_Archivero(Nota_Id) {
+        // Si Nota_Id está, edita esa nota. Si no, crea
+        // una nueva en el cajón actualmente seleccionado.
+        Archivero_Nota_En_Edicion_Id = Nota_Id || null;
+        const Es_Edicion = !!Nota_Id;
+        const Nota = Es_Edicion
+          ? Notas_Archivero.find(
+            (N) => N.Id === Nota_Id
+          )
+          : null;
+        const Titulo = document.getElementById(
+          "Archivero_Nota_Titulo"
+        );
+        if (Titulo) {
+          Titulo.textContent = Es_Edicion
+            ? "Editar nota"
+            : "Nueva nota";
+        }
+        const Texto = document.getElementById(
+          "Archivero_Nota_Texto_Input"
+        );
+        const Origen = document.getElementById(
+          "Archivero_Nota_Origen_Input"
+        );
+        const Select = document.getElementById(
+          "Archivero_Nota_Cajon_Select"
+        );
+        if (!Texto || !Origen || !Select) return;
+        Select.innerHTML = "";
+        Archiveros.forEach((Cajon) => {
+          const Op = document.createElement("option");
+          Op.value = Cajon.Id;
+          Op.textContent =
+            (Cajon.Emoji || "🗃️") + "  " + Cajon.Nombre;
+          Select.appendChild(Op);
+        });
+        if (Nota) {
+          Texto.value = Nota.Texto || "";
+          Origen.value = Nota.Origen || "";
+          Select.value = Nota.Archivero_Id;
+        } else {
+          Texto.value = "";
+          Origen.value = "";
+          Select.value =
+            Archivero_Seleccion_Id ||
+            Archiveros[0]?.Id ||
+            "";
+        }
+        document.getElementById(
+          "Archivero_Nota_Overlay"
+        )?.classList.add("Activo");
+        setTimeout(() => Texto.focus(), 30);
+      }
+
+      function Cerrar_Modal_Nota_Archivero() {
+        Archivero_Nota_En_Edicion_Id = null;
+        document.getElementById(
+          "Archivero_Nota_Overlay"
+        )?.classList.remove("Activo");
+      }
+
+      function Guardar_Nota_Archivero_Desde_Modal() {
+        const Texto = document.getElementById(
+          "Archivero_Nota_Texto_Input"
+        );
+        const Origen = document.getElementById(
+          "Archivero_Nota_Origen_Input"
+        );
+        const Select = document.getElementById(
+          "Archivero_Nota_Cajon_Select"
+        );
+        if (!Texto || !Origen || !Select) return;
+        const Texto_Valor = Texto.value.trim();
+        if (!Texto_Valor) {
+          Mostrar_Dialogo("La nota no puede estar vacía.", [
+            { Etiqueta: "OK", Valor: true,
+              Tipo: "Primario" }
+          ]);
+          return;
+        }
+        const Cajon_Id = Select.value;
+        const Cajon = Obtener_Cajon_Por_Id(Cajon_Id);
+        if (!Cajon) {
+          Mostrar_Dialogo("Elegí un cajón válido.", [
+            { Etiqueta: "OK", Valor: true,
+              Tipo: "Primario" }
+          ]);
+          return;
+        }
+        if (Archivero_Nota_En_Edicion_Id) {
+          const Nota = Notas_Archivero.find(
+            (N) => N.Id === Archivero_Nota_En_Edicion_Id
+          );
+          if (Nota) {
+            Nota.Texto = Texto_Valor;
+            Nota.Origen = Origen.value.trim();
+            Nota.Archivero_Id = Cajon_Id;
+            Nota.Tipo =
+              Inferir_Tipo_Nota_Archivero(Texto_Valor);
+          }
+        } else {
+          Notas_Archivero.push({
+            Id: Generar_Id_Archivero(),
+            Archivero_Id: Cajon_Id,
+            Texto: Texto_Valor,
+            Origen: Origen.value.trim(),
+            Tipo:
+              Inferir_Tipo_Nota_Archivero(Texto_Valor),
+            Fecha_Creacion: Date.now()
+          });
+          Archivero_Seleccion_Id = Cajon_Id;
+        }
+        Guardar_Estado();
+        Cerrar_Modal_Nota_Archivero();
+        Render_Archivero();
+      }
+
+      function Borrar_Nota_Archivero(Nota_Id) {
+        const Nota = Notas_Archivero.find(
+          (N) => N.Id === Nota_Id
+        );
+        if (!Nota) return;
+        Mostrar_Dialogo(
+          "¿Borrar esta nota? No se puede deshacer.",
+          [
+            { Etiqueta: "Cancelar", Valor: false,
+              Tipo: "Secundario" },
+            { Etiqueta: "Borrar", Valor: true,
+              Tipo: "Primario" }
+          ]
+        ).then((Confirmar) => {
+          if (!Confirmar) return;
+          Notas_Archivero = Notas_Archivero.filter(
+            (N) => N.Id !== Nota_Id
+          );
+          Guardar_Estado();
+          Render_Archivero();
+        });
+      }
+
+      // --- Submodal: cajón ---
+
+      function Abrir_Modal_Cajon_Archivero(Cajon_Id) {
+        Archivero_Cajon_En_Edicion_Id = Cajon_Id || null;
+        const Es_Edicion = !!Cajon_Id;
+        const Cajon = Es_Edicion
+          ? Obtener_Cajon_Por_Id(Cajon_Id)
+          : null;
+        const Titulo = document.getElementById(
+          "Archivero_Cajon_Titulo"
+        );
+        if (Titulo) {
+          Titulo.textContent = Es_Edicion
+            ? "Editar cajón"
+            : "Nuevo cajón";
+        }
+        const Nombre = document.getElementById(
+          "Archivero_Cajon_Nombre_Input"
+        );
+        const Emoji = document.getElementById(
+          "Archivero_Cajon_Emoji_Input"
+        );
+        if (!Nombre || !Emoji) return;
+        if (Cajon) {
+          Nombre.value = Cajon.Nombre || "";
+          Emoji.value = Cajon.Emoji || "🗃️";
+        } else {
+          Nombre.value = "";
+          Emoji.value = "🗃️";
+        }
+        document.getElementById(
+          "Archivero_Cajon_Overlay"
+        )?.classList.add("Activo");
+        setTimeout(() => Nombre.focus(), 30);
+      }
+
+      function Cerrar_Modal_Cajon_Archivero() {
+        Archivero_Cajon_En_Edicion_Id = null;
+        document.getElementById(
+          "Archivero_Cajon_Overlay"
+        )?.classList.remove("Activo");
+      }
+
+      function Guardar_Cajon_Archivero_Desde_Modal() {
+        const Nombre = document.getElementById(
+          "Archivero_Cajon_Nombre_Input"
+        );
+        const Emoji = document.getElementById(
+          "Archivero_Cajon_Emoji_Input"
+        );
+        if (!Nombre || !Emoji) return;
+        const Nombre_Valor = Nombre.value.trim();
+        if (!Nombre_Valor) {
+          Mostrar_Dialogo(
+            "El cajón necesita un nombre.",
+            [
+              { Etiqueta: "OK", Valor: true,
+                Tipo: "Primario" }
+            ]
+          );
+          return;
+        }
+        const Emoji_Valor =
+          (Emoji.value || "").trim() || "🗃️";
+        if (Archivero_Cajon_En_Edicion_Id) {
+          const Cajon = Obtener_Cajon_Por_Id(
+            Archivero_Cajon_En_Edicion_Id
+          );
+          if (Cajon) {
+            Cajon.Nombre = Nombre_Valor;
+            Cajon.Emoji = Emoji_Valor;
+          }
+        } else {
+          const Nuevo = {
+            Id: Generar_Id_Archivero(),
+            Nombre: Nombre_Valor,
+            Emoji: Emoji_Valor,
+            Fecha_Creacion: Date.now()
+          };
+          Archiveros.push(Nuevo);
+          Archivero_Seleccion_Id = Nuevo.Id;
+        }
+        Guardar_Estado();
+        Cerrar_Modal_Cajon_Archivero();
+        Render_Archivero();
+      }
+
+      function Borrar_Cajon_Archivero(Cajon_Id) {
+        const Cajon = Obtener_Cajon_Por_Id(Cajon_Id);
+        if (!Cajon) return;
+        const Cantidad = Contar_Notas_Cajon(Cajon_Id);
+        const Mensaje = Cantidad > 0
+          ? `¿Borrar el cajón "${Cajon.Nombre}"? ` +
+            `Esto va a borrar ${Cantidad} nota` +
+            (Cantidad === 1 ? "" : "s") +
+            " que tiene adentro. No se puede deshacer."
+          : `¿Borrar el cajón "${Cajon.Nombre}"? ` +
+            "No se puede deshacer.";
+        Mostrar_Dialogo(Mensaje, [
+          { Etiqueta: "Cancelar", Valor: false,
+            Tipo: "Secundario" },
+          { Etiqueta: "Borrar todo", Valor: true,
+            Tipo: "Primario" }
+        ]).then((Confirmar) => {
+          if (!Confirmar) return;
+          Notas_Archivero = Notas_Archivero.filter(
+            (N) => N.Archivero_Id !== Cajon_Id
+          );
+          Archiveros = Archiveros.filter(
+            (C) => C.Id !== Cajon_Id
+          );
+          if (Archivero_Seleccion_Id === Cajon_Id) {
+            Archivero_Seleccion_Id =
+              Archiveros[0]?.Id || null;
+          }
+          Guardar_Estado();
+          Render_Archivero();
+        });
+      }
+
+      // --- Hook público para la futura extensión ---
+
+      function Agregar_Nota_Archivero(
+        Texto,
+        Origen,
+        Cajon_Id
+      ) {
+        // Punto de entrada que la futura extensión del
+        // navegador (o cualquier integración externa)
+        // puede invocar para agregar una nota sin abrir
+        // la UI. Si no recibe Cajon_Id, usa el cajón
+        // seleccionado actualmente o el primero. Si no
+        // hay cajones, crea los defaults primero.
+        // Devuelve la nota creada.
+
+        if (!Texto || !Texto.trim()) return null;
+        Inicializar_Archiveros_Default();
+        const Destino_Id =
+          Cajon_Id ||
+          Archivero_Seleccion_Id ||
+          Archiveros[0]?.Id;
+        if (!Destino_Id) return null;
+        const Nota = {
+          Id: Generar_Id_Archivero(),
+          Archivero_Id: Destino_Id,
+          Texto: Texto.trim(),
+          Origen: (Origen || "").trim(),
+          Tipo: Inferir_Tipo_Nota_Archivero(Texto),
+          Fecha_Creacion: Date.now()
+        };
+        Notas_Archivero.push(Nota);
+        Guardar_Estado();
+        // Si el modal está abierto, refrescar.
+        if (
+          document
+            .getElementById("Archivero_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Archivero();
+        }
+        return Nota;
+      }
+
+      // Exponer el hook como global para que cualquier
+      // extensión / script externo pueda llamarlo desde
+      // la consola o vía postMessage en el futuro.
+      window.Agregar_Nota_Archivero =
+        Agregar_Nota_Archivero;
 
       function Guardar_Baul_Tarea() {
         const Datos = Obtener_Datos_Form_Baul();
@@ -15258,7 +16591,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Ids_Botones_Premium = [
           "Resumen_Sem_Boton",
           "Metas_Boton",
-          "Baul_Boton"
+          "Baul_Boton",
+          "Archivero_Boton"
         ];
         const Bloquear = !Es_Premium();
         Ids_Botones_Premium.forEach((Id_Boton) => {
@@ -16700,11 +18034,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Es_Pasado = Estado_Bloque === "Pasado";
 
         // Función de filtro y label dependen del estado del
-        // bloque: pasado filtra por trabajo, futuro/curso filtra
-        // por intención de plan.
+        // bloque: pasado filtra por trabajo, futuro/curso
+        // filtra por intención de plan O por trabajo ya
+        // registrado en este bloque (las subs que el usuario
+        // marcó desde el Focus también tienen que aparecer
+        // acá aunque no hubieran estado planeadas — sino se
+        // pierden de vista al volver al modal de Abordaje).
         const Filtra_Item = Es_Pasado
           ? (I) => Boolean(I.Marcado)
-          : (I) => Boolean(I.Planeada);
+          : (I) => Boolean(I.Planeada) || Boolean(I.Marcado);
         const Texto_Solo = Es_Pasado
           ? "Mostrar solo lo abordado"
           : "Mostrar solo planeadas";
@@ -16759,14 +18097,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : Items_Subs_Todos;
 
         // Separar las que están globalmente hechas (Sub.Hecha)
-        // de las pendientes. Las hechas van colapsadas al final
-        // bajo un toggle, así no roban espacio cuando estás
-        // armando el plan de un bloque futuro o actual.
+        // PERO no se cerraron en este bloque, en una sección
+        // colapsada al final. Las hechas globales que SÍ se
+        // marcaron como completadas en este bloque (típicamente
+        // recién tildadas en el Focus) quedan arriba con las
+        // pendientes para que el usuario las vea de una y
+        // confirme que el trabajo quedó registrado acá.
+        const Marcada_Aqui = (I) =>
+          Boolean(I.Marcado) && I.Estado === "Completado";
         const Items_Pendientes = Items_Subs.filter(
-          (I) => !I.Hecha_Global
+          (I) => !I.Hecha_Global || Marcada_Aqui(I)
         );
         const Items_Hechas = Items_Subs.filter(
-          (I) => I.Hecha_Global
+          (I) => I.Hecha_Global && !Marcada_Aqui(I)
         );
 
         if (Items_Subs.length === 0) {
@@ -17520,7 +18863,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Keys_Premium = new Set([
           "Resumen_Sem_Boton",
           "Metas_Boton",
-          "Baul_Boton"
+          "Baul_Boton",
+          "Archivero_Boton"
         ]);
         const Bloquear_Premium = !Es_Premium();
         Btns.forEach((Btn_Original) => {
@@ -20698,6 +22042,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Categorias,
           Etiquetas,
           Baul_Tareas,
+          Archiveros,
+          Notas_Archivero,
           Patrones,
           Contador_Eventos,
           Tarea_Seleccionada_Id: null,
@@ -20989,6 +22335,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (Array.isArray(Estado.Baul_Tareas)) {
             Baul_Tareas = Estado.Baul_Tareas;
+          }
+          if (Array.isArray(Estado.Archiveros)) {
+            Archiveros = Estado.Archiveros;
+          }
+          if (Array.isArray(Estado.Notas_Archivero)) {
+            Notas_Archivero = Estado.Notas_Archivero;
           }
           if (Array.isArray(Estado.Metas)) {
             Metas = Estado.Metas;
@@ -23593,6 +24945,90 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       El_Baul_Boton?.addEventListener("click", Abrir_Baul);
       document.getElementById("Baul_Cerrar")
         ?.addEventListener("click", Cerrar_Baul);
+      // --- Listeners del Archivero (Premium) ---
+      document.getElementById("Archivero_Boton")
+        ?.addEventListener("click", Abrir_Archivero);
+      document.getElementById("Archivero_Cerrar")
+        ?.addEventListener("click", Cerrar_Archivero);
+      document.getElementById("Archivero_Overlay")
+        ?.addEventListener("click", (Ev) => {
+          if (Ev.target.id === "Archivero_Overlay") {
+            Cerrar_Archivero();
+          }
+        });
+      document.getElementById("Archivero_Buscar_Input")
+        ?.addEventListener("input", (Ev) => {
+          Archivero_Busqueda = Ev.target.value || "";
+          Render_Archivero_Notas();
+        });
+      document.getElementById("Archivero_Btn_Nuevo_Cajon")
+        ?.addEventListener("click", () => {
+          Abrir_Modal_Cajon_Archivero(null);
+        });
+      document.getElementById("Archivero_Btn_Nueva_Nota")
+        ?.addEventListener("click", () => {
+          if (Archiveros.length === 0) {
+            Abrir_Modal_Cajon_Archivero(null);
+            return;
+          }
+          Abrir_Modal_Nota_Archivero(null);
+        });
+      // Submodal nota.
+      document.getElementById("Archivero_Nota_Cerrar")
+        ?.addEventListener(
+          "click", Cerrar_Modal_Nota_Archivero
+        );
+      document.getElementById("Archivero_Nota_Cancelar")
+        ?.addEventListener(
+          "click", Cerrar_Modal_Nota_Archivero
+        );
+      document.getElementById("Archivero_Nota_Guardar")
+        ?.addEventListener(
+          "click", Guardar_Nota_Archivero_Desde_Modal
+        );
+      document.getElementById("Archivero_Nota_Overlay")
+        ?.addEventListener("click", (Ev) => {
+          if (Ev.target.id === "Archivero_Nota_Overlay") {
+            Cerrar_Modal_Nota_Archivero();
+          }
+        });
+      // Ctrl+Enter dentro del textarea (o cualquier
+      // input del submodal de nota) guarda directo. Es
+      // el segundo atajo del flujo: A → escribir →
+      // Ctrl+Enter → nota archivada.
+      const El_Archivero_Nota_Submodal = document
+        .getElementById("Archivero_Nota_Overlay");
+      El_Archivero_Nota_Submodal?.addEventListener(
+        "keydown",
+        (Ev) => {
+          if (
+            (Ev.ctrlKey || Ev.metaKey) &&
+            Ev.key === "Enter"
+          ) {
+            Ev.preventDefault();
+            Guardar_Nota_Archivero_Desde_Modal();
+          }
+        }
+      );
+      // Submodal cajón.
+      document.getElementById("Archivero_Cajon_Cerrar")
+        ?.addEventListener(
+          "click", Cerrar_Modal_Cajon_Archivero
+        );
+      document.getElementById("Archivero_Cajon_Cancelar")
+        ?.addEventListener(
+          "click", Cerrar_Modal_Cajon_Archivero
+        );
+      document.getElementById("Archivero_Cajon_Guardar")
+        ?.addEventListener(
+          "click", Guardar_Cajon_Archivero_Desde_Modal
+        );
+      document.getElementById("Archivero_Cajon_Overlay")
+        ?.addEventListener("click", (Ev) => {
+          if (Ev.target.id === "Archivero_Cajon_Overlay") {
+            Cerrar_Modal_Cajon_Archivero();
+          }
+        });
       document.getElementById("Baul_Cancelar_Edicion")
         ?.addEventListener("click", () => {
           Cancelar_Edicion_Baul();
@@ -26157,8 +27593,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Subs_Originales, Evento
               )
             : [];
+          // Una sub que está hecha globalmente pero NO fue
+          // completada en este bloque puntual cuenta como
+          // "hecha en otro bloque": aunque siga apareciendo
+          // en el Abordaje de este evento (porque estaba
+          // planeada acá), no aporta nada a este bloque y
+          // tiene que quedar oculta en el filtro colapsado,
+          // visible solo cuando el usuario expande "Mostrar
+          // todas".
+          const Es_Hecha_En_Otro_Bloque_Focus = (S) =>
+            S.Hecha &&
+            Focus_Estado_Sub_En_Abordaje(Evento, S) !==
+              "Completado";
           const Subs_Filtradas = Subs_Ordenadas.filter(
-            (S) => Focus_Sub_En_Abordaje_Cualquier(Evento, S)
+            (S) =>
+              Focus_Sub_En_Abordaje_Cualquier(Evento, S) &&
+              !Es_Hecha_En_Otro_Bloque_Focus(S)
           );
           // Mostrar el toggle siempre que el filtro pueda
           // ocultar algo: o sea cuando el set filtrado es más
@@ -26878,15 +28328,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Focus_Calcular_Orden_Inicial(Subs, Evento) {
         // Devuelve los Sub.Id en el orden de display inicial
-        // del Focus para este evento. Seis grupos:
+        // del Focus para este evento. Siete grupos:
         //   1) Hechas en ESTE bloque, planeadas (★ + ✓ verde)
         //   2) Hechas en ESTE bloque, no planeadas (✓ verde)
         //   3) Abordadas en este bloque, planeadas (★ amber)
         //      o solo planeadas sin laburo todavía
         //   4) Abordadas en este bloque, no planeadas (◐ amber)
         //   5) Pendientes (sin marca, sin Hecha global)
-        //   6) Hechas en otros bloques (Hecha global, sin
-        //      Completado en el abordaje de este event)
+        //   6a) Hechas en otro bloque pero estaban PLANEADAS
+        //       acá: van primero del grupo "hechas en otros"
+        //       porque siguen siendo relevantes a este bloque
+        //       (le ponen la estrella en el render).
+        //   6b) Hechas en otros bloques sin haber sido
+        //       planeadas acá: al final, son las menos
+        //       relevantes para este bloque.
         // Dentro de cada grupo se respeta el orden base de la
         // tarea (el del sidebar).
         const G1 = []; // hechas aquí + planeadas
@@ -26894,7 +28349,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const G3 = []; // abordadas/planeadas pendientes (con ★)
         const G4 = []; // abordadas no planeadas (◐)
         const G5 = []; // pendientes sin nada
-        const G6 = []; // hechas en otros bloques
+        const G6a = []; // hechas en otro bloque + planeadas acá
+        const G6b = []; // hechas en otro bloque sin plan acá
         Subs.forEach((S) => {
           const Estado = Focus_Estado_Sub_En_Abordaje(Evento, S);
           const Planeada =
@@ -26902,17 +28358,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (S.Hecha && Estado === "Completado") {
             if (Planeada) G1.push(S);
             else G2.push(S);
+          } else if (S.Hecha) {
+            // Hecha en otro bloque: aunque haya estado
+            // planeada acá, va al final (no aporta a este
+            // bloque puntual). Esta rama tiene que ir antes
+            // que la de Planeada/Abordado para que la
+            // prioridad sea "ya está hecha → al final" y no
+            // "estaba planeada → al medio". Las que SÍ
+            // estaban planeadas acá quedan arriba dentro
+            // de "hechas en otros".
+            if (Planeada) G6a.push(S);
+            else G6b.push(S);
           } else if (Planeada || Estado === "Abordado") {
             if (Planeada) G3.push(S);
             else G4.push(S);
-          } else if (!S.Hecha) {
-            G5.push(S);
           } else {
-            G6.push(S);
+            G5.push(S);
           }
         });
-        return [...G1, ...G2, ...G3, ...G4, ...G5, ...G6]
-          .map((S) => S.Id);
+        return [
+          ...G1, ...G2, ...G3, ...G4, ...G5, ...G6a, ...G6b
+        ].map((S) => S.Id);
       }
 
       function Focus_Obtener_Subs_Ordenadas(Subs, Evento) {
@@ -27962,6 +29428,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.preventDefault();
             return;
           }
+          // Submodales y modal principal del Archivero.
+          // Se evalúan en orden de prioridad: primero los
+          // submodales (que están encima visualmente),
+          // después el modal raíz.
+          if (
+            document
+              .getElementById("Archivero_Cajon_Overlay")
+              ?.classList.contains("Activo")
+          ) {
+            Cerrar_Modal_Cajon_Archivero();
+            Ev.preventDefault();
+            return;
+          }
+          if (
+            document
+              .getElementById("Archivero_Nota_Overlay")
+              ?.classList.contains("Activo")
+          ) {
+            Cerrar_Modal_Nota_Archivero();
+            Ev.preventDefault();
+            return;
+          }
+          if (
+            document
+              .getElementById("Archivero_Overlay")
+              ?.classList.contains("Activo")
+          ) {
+            Cerrar_Archivero();
+            Ev.preventDefault();
+            return;
+          }
           // Si hay multi-selección, primero limpiarla.
           if (
             Tareas_Multi_Seleccion.size > 0 ||
@@ -28036,6 +29533,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else if (Ev.key === "b" || Ev.key === "B") {
           if (typeof Abrir_Baul === "function") {
             Abrir_Baul();
+            Ev.preventDefault();
+          }
+        } else if (Ev.key === "a" || Ev.key === "A") {
+          // Captura rápida de nota al Archivero. Abre el
+          // submodal de "Nueva nota" sin pasar por el
+          // modal grande del Archivero, para que el flujo
+          // sea: A → escribir → Ctrl+Enter → guardado.
+          // Pasa por el guard Premium.
+          if (typeof Abrir_Modal_Nota_Archivero ===
+            "function") {
+            if (Validar_Acceso_Premium("Archivero")) {
+              Inicializar_Archiveros_Default();
+              Abrir_Modal_Nota_Archivero(null);
+            }
             Ev.preventDefault();
           }
         } else if (Ev.key === "m" || Ev.key === "M") {
