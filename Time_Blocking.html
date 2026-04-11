@@ -16165,17 +16165,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tiene_Nota = Boolean(
           (Evento_Data.Nota || "").trim()
         );
-        const Tiene_Abordaje =
-          Array.isArray(Evento_Data.Abordaje) &&
-          Evento_Data.Abordaje.length > 0;
 
         let Html = "";
         if (!Desde_Focus) {
           Html +=
             `<button class="Dia_Accion_Item" type="button"` +
-            ` data-acc="abordaje">` +
-            (Tiene_Abordaje ? "Editar abordaje" : "Abordaje") +
-            `</button>`;
+            ` data-acc="abordaje">Abordaje</button>`;
           Html +=
             `<button class="Dia_Accion_Item" type="button"` +
             ` data-acc="nota">` +
@@ -18166,17 +18161,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Hay_Subs_No_Sueltas = Abordaje_Borrador.some(
           (I) => !I.Suelta
         );
-        const Hay_Filtrables = Abordaje_Borrador.some(Filtra_Item);
 
         // Toggle de chevron para expandir/colapsar la lista.
-        // Aparece cuando hay items que el filtro pueda
-        // colapsar/expandir, o cuando el filtro está activo
-        // (ese caso incluye "bloque pasado sin abordaje": el
-        // filtro cierra todo y el chevron es la única manera
-        // de ver y editar las subtareas).
-        const Mostrar_Filtro_Toggle =
-          Hay_Filtrables ||
-          (Abordaje_Filtro_Activo && Hay_Subs_No_Sueltas);
+        // Aparece siempre que haya subs, así el usuario
+        // puede ir y volver entre vista comprimida y vista
+        // expandida sin perder el control del filtro (antes
+        // se ocultaba al expandir un bloque sin abordaje y
+        // dejaba al usuario sin forma de comprimir de nuevo).
+        const Mostrar_Filtro_Toggle = Hay_Subs_No_Sueltas;
         if (Mostrar_Filtro_Toggle) {
           const Filtro_Cont = document.createElement("div");
           Filtro_Cont.className = "Abordaje_Filtro";
