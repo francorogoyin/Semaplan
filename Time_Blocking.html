@@ -1816,11 +1816,56 @@
         color: #e8a838;
         flex-shrink: 0;
         line-height: 1;
-        padding: 0 4px;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Spacer invisible que ocupa el mismo lugar que el
+         botón ★ o el indicador, así las filas planeadas y no
+         planeadas quedan alineadas en el mismo eje vertical. */
+      .Abordaje_Planear_Spacer {
+        width: 26px;
+        height: 26px;
+        flex-shrink: 0;
       }
 
       .Abordaje_Item.Planeada {
-        background: rgba(232, 168, 56, 0.08);
+        background: rgba(31, 107, 79, 0.1);
+        border-color: rgba(31, 107, 79, 0.28);
+      }
+
+      .Abordaje_Item.Planeada.Marcado {
+        background: rgba(31, 107, 79, 0.16);
+      }
+
+      /* Modal de Abordaje sobre un bloque ya pasado: se pinta
+         con un fondo distinto para que el usuario distinga
+         visualmente que está editando algo del pasado. */
+      .Patron_Modal_Panel.Abordaje_Bloque_Pasado {
+        background: #efeae1;
+      }
+
+      .Patron_Modal_Panel.Abordaje_Bloque_Pasado
+        .Abordaje_Item {
+        background: #f7f3ec;
+      }
+
+      .Patron_Modal_Panel.Abordaje_Bloque_Pasado
+        .Abordaje_Item.Marcado {
+        background: #ede5d4;
+      }
+
+      .Patron_Modal_Panel.Abordaje_Bloque_Pasado
+        .Abordaje_Item.Planeada {
+        background: rgba(31, 107, 79, 0.14);
+      }
+
+      .Patron_Modal_Panel.Abordaje_Bloque_Pasado
+        .Abordaje_Item.Planeada.Marcado {
+        background: rgba(31, 107, 79, 0.2);
       }
 
       .Abordaje_Item_Promover {
@@ -18009,10 +18054,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Estado_Bloque_Abrir =
           Focus_Calcular_Estado_Evento(Evento);
         if (Estado_Bloque_Abrir === "Pasado") {
-          Abordaje_Filtro_Activo = Items.some(
-            (I) => I.Marcado
-          );
+          // Bloques pasados arrancan SIEMPRE colapsados.
+          // Si tenían trabajo (Marcado), arrancan mostrando
+          // solo el trabajo. Si no tenían nada, arrancan
+          // mostrando "no se realizó ningún abordaje" y la
+          // flechita para expandir y editar a posteriori.
+          Abordaje_Filtro_Activo = true;
         } else {
+          // Curso/futuro: filtro ON solo si hay plan, así no
+          // arrancás con una lista vacía cuando todavía no
+          // armaste nada.
           Abordaje_Filtro_Activo = Items.some(
             (I) => I.Planeada
           );
@@ -18049,6 +18100,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado_Bloque === "Proximo";
         const Es_Pasado = Estado_Bloque === "Pasado";
 
+        // Marcar el panel del modal con una clase distintiva
+        // cuando el bloque ya pasó, así se ve con otro fondo.
+        const Panel = document
+          .getElementById("Abordaje_Modal_Overlay")
+          ?.querySelector(".Patron_Modal_Panel");
+        if (Panel) {
+          Panel.classList.toggle(
+            "Abordaje_Bloque_Pasado", Es_Pasado
+          );
+        }
+
         // Función de filtro y label dependen del estado del
         // bloque: pasado filtra por trabajo, futuro/curso
         // filtra por intención de plan O por trabajo ya
@@ -18067,12 +18129,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? "Subtareas abordadas"
           : "Subtareas planeadas";
 
+        const Hay_Subs_No_Sueltas = Abordaje_Borrador.some(
+          (I) => !I.Suelta
+        );
         const Hay_Filtrables = Abordaje_Borrador.some(Filtra_Item);
 
         // Toggle de chevron para expandir/colapsar la lista.
-        // Aparece solo cuando hay items para filtrar; sino se
-        // oculta y el usuario ve todas para planear desde cero.
-        if (Hay_Filtrables) {
+        // Aparece cuando hay items que el filtro pueda
+        // colapsar/expandir, o cuando el filtro está activo
+        // (ese caso incluye "bloque pasado sin abordaje": el
+        // filtro cierra todo y el chevron es la única manera
+        // de ver y editar las subtareas).
+        const Mostrar_Filtro_Toggle =
+          Hay_Filtrables ||
+          (Abordaje_Filtro_Activo && Hay_Subs_No_Sueltas);
+        if (Mostrar_Filtro_Toggle) {
           const Filtro_Cont = document.createElement("div");
           Filtro_Cont.className = "Abordaje_Filtro";
           const Btn = document.createElement("button");
@@ -18121,11 +18192,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // regla simple: si tiene Marcado=true en este bloque,
         // pertenece a este bloque y va arriba.
         const Tiene_Trabajo_Aqui = (I) => Boolean(I.Marcado);
-        const Items_Pendientes = Items_Subs.filter(
-          (I) => !I.Hecha_Global || Tiene_Trabajo_Aqui(I)
+        // Ordenar planeadas primero dentro de cada subset.
+        // Sort estable conserva el orden original entre items
+        // del mismo grupo (ES2019+).
+        const Sortear_Planeadas_Arriba = (Lista) =>
+          [...Lista].sort((A, B) => {
+            const PA = Boolean(A.Planeada);
+            const PB = Boolean(B.Planeada);
+            if (PA === PB) return 0;
+            return PA ? -1 : 1;
+          });
+        const Items_Pendientes = Sortear_Planeadas_Arriba(
+          Items_Subs.filter(
+            (I) => !I.Hecha_Global || Tiene_Trabajo_Aqui(I)
+          )
         );
-        const Items_Hechas = Items_Subs.filter(
-          (I) => I.Hecha_Global && !Tiene_Trabajo_Aqui(I)
+        const Items_Hechas = Sortear_Planeadas_Arriba(
+          Items_Subs.filter(
+            (I) => I.Hecha_Global && !Tiene_Trabajo_Aqui(I)
+          )
         );
 
         if (Items_Subs.length === 0) {
@@ -18133,7 +18218,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           V.className = "Abordaje_Vacio";
           if (Abordaje_Filtro_Activo) {
             V.textContent = Es_Pasado
-              ? "No abordaste nada en este bloque."
+              ? "No se realizó ningún abordaje en este bloque."
               : "Ninguna subtarea planeada todavía.";
           } else {
             V.textContent = "Esta tarea no tiene subtareas.";
@@ -18400,39 +18485,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Tog.appendChild(Btn_C);
         Tog.appendChild(Btn_A);
 
-        Fila.appendChild(Chk);
-        Fila.appendChild(Em);
-        Fila.appendChild(Tx);
-        Fila.appendChild(Tog);
-
-        // Botón Planear (★): toggle de la intención. Solo
-        // disponible cuando el bloque es actual o futuro.
-        // Para bloques pasados, planear no tiene sentido y se
-        // muestra solo como indicador no clickeable cuando la
-        // sub estaba planeada.
+        // Botón Planear (★) o indicador: cuando el bloque es
+        // actual o futuro es clickeable; en pasados es solo
+        // un ícono read-only. Si la sub no está planeada en
+        // bloques pasados, igual reservamos el espacio con
+        // un spacer para que todas las filas queden alineadas
+        // en el mismo eje (★ siempre a la izquierda del
+        // toggle).
+        let Planear_El;
         if (Permitir_Planear) {
-          const Btn_Planear = document.createElement("button");
-          Btn_Planear.type = "button";
-          Btn_Planear.className = "Abordaje_Planear_Btn" +
+          Planear_El = document.createElement("button");
+          Planear_El.type = "button";
+          Planear_El.className = "Abordaje_Planear_Btn" +
             (Item.Planeada ? " Activo" : "");
-          Btn_Planear.textContent = "★";
-          Btn_Planear.title = Item.Planeada
+          Planear_El.textContent = "★";
+          Planear_El.title = Item.Planeada
             ? "Quitar del plan"
             : "Planear esta sub para este bloque";
-          Btn_Planear.addEventListener("click", () => {
+          Planear_El.addEventListener("click", () => {
             Item.Planeada = !Item.Planeada;
             Render_Modal_Abordaje();
           });
-          Fila.appendChild(Btn_Planear);
         } else if (Item.Planeada) {
-          // Bloque pasado: mostramos la estrella como
-          // indicador no clickeable.
-          const Star = document.createElement("span");
-          Star.className = "Abordaje_Planear_Indicador";
-          Star.textContent = "★";
-          Star.title = "Estaba planeada";
-          Fila.appendChild(Star);
+          Planear_El = document.createElement("span");
+          Planear_El.className = "Abordaje_Planear_Indicador";
+          Planear_El.textContent = "★";
+          Planear_El.title = "Estaba planeada";
+        } else {
+          Planear_El = document.createElement("span");
+          Planear_El.className = "Abordaje_Planear_Spacer";
         }
+
+        Fila.appendChild(Chk);
+        Fila.appendChild(Em);
+        Fila.appendChild(Tx);
+        Fila.appendChild(Planear_El);
+        Fila.appendChild(Tog);
 
         if (Es_Suelta) {
           // Botón promover (convertir en subtarea real).
