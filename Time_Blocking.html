@@ -1284,7 +1284,7 @@
       }
 
       .Resumen_Sem_Cabecera {
-        padding: 14px 12px 14px 18px;
+        padding: 14px 18px;
         border-bottom: 1px solid var(--Borde);
         display: flex;
         align-items: center;
@@ -1299,8 +1299,7 @@
       }
 
       .Resumen_Sem_Cuerpo {
-        padding: 16px 6px 16px 18px;
-        margin-right: 18px;
+        padding: 16px 18px;
         overflow-y: auto;
         flex: 1;
       }
@@ -2162,7 +2161,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        padding: 14px 11px 0 22px;
+        padding: 14px 18px 0 22px;
       }
 
       .Focus_Top_Acciones {
@@ -2194,8 +2193,7 @@
       .Focus_Cuerpo {
         position: relative;
         z-index: 1;
-        padding: 14px 10px 20px 28px;
-        margin-right: 18px;
+        padding: 14px 28px 20px;
         display: flex;
         flex-direction: column;
         gap: 16px;
@@ -2965,7 +2963,7 @@
       }
 
       .Patron_Modal_Cabecera {
-        padding: 14px 12px 14px 18px;
+        padding: 14px 18px;
         border-bottom: 1px solid var(--Borde);
         display: flex;
         align-items: center;
@@ -2980,8 +2978,7 @@
       }
 
       .Patron_Modal_Cuerpo {
-        padding: 16px 6px 16px 18px;
-        margin-right: 18px;
+        padding: 16px 18px;
         overflow-y: auto;
         flex: 1;
       }
@@ -3847,7 +3844,6 @@
         gap: 14px;
         padding-top: 20px;
         padding-right: 54px;
-        margin-right: 0;
         min-height: 0;
         overflow: hidden;
       }
@@ -5894,17 +5890,59 @@
         overflow: hidden;
       }
 
-      /* Cuerpo scrolleable del modal Config. Usa scroll nativo
-         (estilo unificado con Ayuda y demás modales) con
-         margin-right para empujar la scrollbar hacia adentro y
-         alinearla verticalmente con el centro del botón de
-         cerrar (X) del header. Ver patrón compartido abajo. */
+      /* Cuerpo scrolleable del modal Config. El scroll queda
+         pegado al borde derecho del panel; el estilo del thumb
+         (flotante, corto, centrado vertical) se define abajo en
+         el bloque de "Scroll unificado de modales". */
       .Config_Cuerpo {
         flex: 1 1 auto;
         min-height: 0;
         overflow-y: auto;
-        padding: 4px 8px 20px 24px;
-        margin-right: 18px;
+        padding: 4px 24px 20px 24px;
+      }
+
+      /* --- Scroll unificado de modales ---
+         Todos los cuerpos scrolleables de modales comparten
+         este estilo. Scroll pegado al borde derecho, track
+         transparente y thumb flotante acortado con margen
+         vertical para que no llegue nunca al área donde vive
+         el botón de cerrar (X) del header, evitando que
+         compitan visualmente. */
+      .Config_Cuerpo::-webkit-scrollbar,
+      .Patron_Modal_Cuerpo::-webkit-scrollbar,
+      .Resumen_Sem_Cuerpo::-webkit-scrollbar,
+      .Focus_Cuerpo::-webkit-scrollbar,
+      .Ayuda_Cuerpo::-webkit-scrollbar {
+        width: 14px;
+      }
+
+      .Config_Cuerpo::-webkit-scrollbar-track,
+      .Patron_Modal_Cuerpo::-webkit-scrollbar-track,
+      .Resumen_Sem_Cuerpo::-webkit-scrollbar-track,
+      .Focus_Cuerpo::-webkit-scrollbar-track,
+      .Ayuda_Cuerpo::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 48px 0;
+      }
+
+      .Config_Cuerpo::-webkit-scrollbar-thumb,
+      .Patron_Modal_Cuerpo::-webkit-scrollbar-thumb,
+      .Resumen_Sem_Cuerpo::-webkit-scrollbar-thumb,
+      .Focus_Cuerpo::-webkit-scrollbar-thumb,
+      .Ayuda_Cuerpo::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.22);
+        border-radius: 999px;
+        border: 4px solid transparent;
+        background-clip: content-box;
+      }
+
+      .Config_Cuerpo::-webkit-scrollbar-thumb:hover,
+      .Patron_Modal_Cuerpo::-webkit-scrollbar-thumb:hover,
+      .Resumen_Sem_Cuerpo::-webkit-scrollbar-thumb:hover,
+      .Focus_Cuerpo::-webkit-scrollbar-thumb:hover,
+      .Ayuda_Cuerpo::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.38);
+        background-clip: content-box;
       }
 
       /* Cuando el modal Config está abierto, anular el scroll
@@ -5923,7 +5961,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 20px 12px 16px 24px;
+        padding: 20px 24px 16px 24px;
         flex-shrink: 0;
       }
 
@@ -6161,8 +6199,7 @@
       }
 
       .Ayuda_Cuerpo {
-        padding: 18px 8px 22px 20px;
-        margin-right: 18px;
+        padding: 18px 20px 22px;
         max-height: min(78vh, 760px);
         overflow-y: auto;
         display: flex;
@@ -16189,7 +16226,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Meta.className = "Patron_Modal_Meta";
 
         const Emoji_In = document.createElement("input");
-        Emoji_In.className = "Patron_Modal_Emoji_Input";
+        Emoji_In.className = "Patron_Modal_Emoji_Input Con_Selector_Emoji";
         Emoji_In.type = "text";
         Emoji_In.maxLength = 4;
         Emoji_In.value = Patron_En_Edicion.Emoji || "📅";
@@ -21879,7 +21916,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           const Emoji_Input = document.createElement("input");
           Emoji_Input.type = "text";
-          Emoji_Input.className = "Subtarea_Emoji_Input";
+          Emoji_Input.className = "Subtarea_Emoji_Input Con_Selector_Emoji";
           Emoji_Input.value = Subtarea.Emoji || "\u2022";
           Emoji_Input.dataset.rol = "emoji";
           Emoji_Input.maxLength = 4;
@@ -26067,7 +26104,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           // Modo edición: emoji + texto en inputs reales.
           const Emoji_Inp = document.createElement("input");
           Emoji_Inp.type = "text";
-          Emoji_Inp.className = "Focus_Sub_Emoji_Input";
+          Emoji_Inp.className = "Focus_Sub_Emoji_Input Con_Selector_Emoji";
           Emoji_Inp.value = Sub.Emoji || "•";
           Emoji_Inp.maxLength = 4;
           Fila.appendChild(Emoji_Inp);
