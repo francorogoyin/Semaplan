@@ -66,3 +66,23 @@ Seguir el estilo global del proyecto:
 - Todo en español.
 - Sin librerías externas.
 - Líneas ≤ 70 caracteres.
+
+## Flujo de trabajo por sesión
+
+Al arrancar cada sesión, **antes** de actuar sobre cualquier pedido
+que haga el usuario en el chat, revisar `Proximos_Avances.txt`:
+
+1. Leer la sección **Inmediatos**. Si tiene ítems, preguntarle al
+   usuario si quiere avanzar alguno, además de lo que haya pedido
+   explícitamente en el chat.
+2. Si **Inmediatos** está vacía, preguntar por **Próximas mejoras
+   (post-launch)** con el mismo criterio.
+3. Cada vez que se completa un ítem de **Inmediatos** o **Próximas**,
+   editar `Proximos_Avances.txt` en el mismo turno:
+   - Si la tarea quedó 100% resuelta, borrar la línea.
+   - Si quedó parcialmente hecha o derivó en otro trabajo pendiente,
+     reformularla para reflejar lo que falta.
+4. Al final de la sesión (cuando el usuario dice "listo", "ok",
+   "perfecto" o similar tras un cambio funcional), commitear y
+   pushear los cambios. No esperar a que el usuario lo pida
+   explícitamente si ya hay trabajo completo sin commitear.
