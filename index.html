@@ -1750,6 +1750,11 @@
         color: #8c2f2f;
       }
 
+      .Abordaje_Item.Slot_Anulado {
+        opacity: 0.72;
+        border-style: dashed;
+      }
+
       /* Sub hecha en otro bloque (Hecha_Externa): controles
          de check y ✓ deshabilitados visualmente. El cursor no
          responde para esos elementos. */
@@ -1931,6 +1936,12 @@
       .Abordaje_Item_Borrar:hover {
         background: #fde8ea;
         color: #c0392b;
+      }
+
+      .Abordaje_Toggle_Btn.Anulado.Activo {
+        background: #c44;
+        color: #fff;
+        border-color: #c44;
       }
 
       .Abordaje_Seccion_Titulo {
@@ -3664,16 +3675,11 @@
         right: 6px;
         bottom: 6px;
         z-index: 1;
-        min-width: 18px;
-        height: 18px;
-        padding: 0 5px;
-        border-radius: 999px;
-        background: rgba(15, 95, 90, 0.9);
-        color: #fff;
-        font-size: 10px;
-        font-weight: 700;
-        line-height: 18px;
-        text-align: center;
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+        background: #1f6b4f;
+        border: 1px solid #15523c;
         pointer-events: none;
       }
 
@@ -12338,7 +12344,7 @@
           "slot.editar_nombre": "Editar nombre",
           "slot.nombre_corto": "Nombre del slot",
           "slot.nombre_prompt":
-            "Nombre del slot (vacío para borrar):",
+            "Nombre del slot (vacío para borrar)",
           "slot.nombre_ph":
             "Ej. Almuerzo, Traslado, Gimnasio",
           "slot.item_ph": "Tarea rápida",
@@ -12346,6 +12352,12 @@
           "slot.estado_abordado": "Abordado",
           "slot.estado_realizado": "Realizado",
           "slot.estado_anulado": "Anulado",
+          "slot.anular_title": "Anular",
+          "slot.reactivar_title": "Quitar anulado",
+          "slot.borrar_plan": "Borrar plan",
+          "slot.borrar_plan_confirm":
+            "¿Borrar el plan de este slot?",
+          "slot.sin_items": "Sin items todavía.",
           "slot.agregar_item": "Agregar item",
           "slot.sin_patrones_para":
             "No hay patrones para {tipo}.",
@@ -14116,7 +14128,7 @@
           "slot.editar_nombre": "Edit name",
           "slot.nombre_corto": "Slot name",
           "slot.nombre_prompt":
-            "Slot name (leave empty to clear):",
+            "Slot name (leave empty to clear)",
           "slot.nombre_ph":
             "E.g. Lunch, Commute, Gym",
           "slot.item_ph": "Quick task",
@@ -14124,6 +14136,12 @@
           "slot.estado_abordado": "Started",
           "slot.estado_realizado": "Done",
           "slot.estado_anulado": "Cancelled",
+          "slot.anular_title": "Cancel",
+          "slot.reactivar_title": "Undo cancelled",
+          "slot.borrar_plan": "Delete plan",
+          "slot.borrar_plan_confirm":
+            "Delete this slot plan?",
+          "slot.sin_items": "No items yet.",
           "slot.agregar_item": "Add item",
           "slot.sin_patrones_para":
             "There are no patterns for {tipo}.",
@@ -15983,7 +16001,7 @@
           "slot.editar_nombre": "Editar nome",
           "slot.nombre_corto": "Nome do slot",
           "slot.nombre_prompt":
-            "Nome do slot (vazio para apagar):",
+            "Nome do slot (vazio para apagar)",
           "slot.nombre_ph":
             "Ex. Almoço, Deslocamento, Academia",
           "slot.item_ph": "Tarefa rápida",
@@ -15991,6 +16009,12 @@
           "slot.estado_abordado": "Abordado",
           "slot.estado_realizado": "Realizado",
           "slot.estado_anulado": "Anulado",
+          "slot.anular_title": "Anular",
+          "slot.reactivar_title": "Remover anulado",
+          "slot.borrar_plan": "Apagar plano",
+          "slot.borrar_plan_confirm":
+            "Apagar o plano deste slot?",
+          "slot.sin_items": "Sem itens ainda.",
           "slot.agregar_item": "Adicionar item",
           "slot.sin_patrones_para":
             "Não há padrões para {tipo}.",
@@ -25926,48 +25950,94 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Render_Fila_Plan_Slot(Item, Lista) {
         const Fila = document.createElement("div");
-        Fila.className = "Abordaje_Item";
+        const Estado = Item.Estado || "Planeado";
+        Fila.className = "Abordaje_Item" +
+          (Estado === "Planeado" ? " Planeada" : "") +
+          (Estado === "Abordado"
+            ? " Marcado Marcado_Abordado" : "") +
+          (Estado === "Realizado"
+            ? " Marcado Marcado_Completado" : "") +
+          (Estado === "Anulado" ? " Slot_Anulado" : "");
 
-        const Emoji = document.createElement("input");
-        Emoji.type = "text";
-        Emoji.maxLength = 4;
-        Emoji.value = Item.Emoji || "•";
-        Emoji.className =
-          "Patron_Modal_Emoji_Input Con_Selector_Emoji";
-        Emoji.style.width = "52px";
-        Emoji.addEventListener("input", () => {
-          Item.Emoji = Emoji.value.trim() || "•";
+        const Emoji = document.createElement("span");
+        Emoji.className = "Abordaje_Item_Emoji";
+        Emoji.textContent = Item.Emoji || "•";
+
+        const Texto = document.createElement("span");
+        Texto.className = "Abordaje_Item_Texto";
+        Texto.textContent = Item.Texto || "";
+        if (
+          Estado === "Realizado" ||
+          Estado === "Anulado"
+        ) {
+          Texto.classList.add("Tachado");
+        }
+
+        const Btn_P = document.createElement("button");
+        Btn_P.type = "button";
+        Btn_P.className = "Abordaje_Planear_Btn" +
+          (Estado === "Planeado" ? " Activo" : "");
+        Btn_P.textContent = "★";
+        Btn_P.title = Estado === "Planeado"
+          ? t("abordaje.plan_quitar_title")
+          : t("abordaje.plan_poner_title");
+        Btn_P.addEventListener("click", () => {
+          Item.Estado = "Planeado";
+          Render_Modal_Plan_Slot();
         });
 
-        const Texto = document.createElement("input");
-        Texto.type = "text";
-        Texto.value = Item.Texto || "";
-        Texto.placeholder = t("slot.item_ph");
-        Texto.className = "Patron_Modal_Nombre_Input";
-        Texto.style.flex = "1";
-        Texto.addEventListener("input", () => {
-          Item.Texto = Texto.value;
+        const Tog = document.createElement("div");
+        Tog.className = "Abordaje_Toggle";
+
+        const Btn_C = document.createElement("button");
+        Btn_C.type = "button";
+        Btn_C.className = "Abordaje_Toggle_Btn" +
+          (Estado === "Realizado" ? " Activo" : "");
+        Btn_C.textContent = "✓";
+        Btn_C.title = t("abordaje.completado_title");
+        Btn_C.addEventListener("click", () => {
+          Item.Estado = Estado === "Realizado"
+            ? "Planeado"
+            : "Realizado";
+          Render_Modal_Plan_Slot();
         });
 
-        const Estado = document.createElement("select");
-        Estado.className = "Patron_Modal_Sel";
-        Estado.style.width = "120px";
-        Obtener_Estados_Plan_Slot_UI().forEach(
-          ({ Valor, Label }) => {
-          const Opt = document.createElement("option");
-          Opt.value = Valor;
-          Opt.textContent = Label;
-          Estado.appendChild(Opt);
+        const Btn_A = document.createElement("button");
+        Btn_A.type = "button";
+        Btn_A.className = "Abordaje_Toggle_Btn" +
+          (Estado === "Abordado" ? " Activo" : "");
+        Btn_A.textContent = "•";
+        Btn_A.title = t("abordaje.abordado_title");
+        Btn_A.addEventListener("click", () => {
+          Item.Estado = Estado === "Abordado"
+            ? "Planeado"
+            : "Abordado";
+          Render_Modal_Plan_Slot();
         });
-        Estado.value = Item.Estado || "Planeado";
-        Estado.addEventListener("change", () => {
-          Item.Estado = Estado.value;
+
+        const Btn_X = document.createElement("button");
+        Btn_X.type = "button";
+        Btn_X.className = "Abordaje_Toggle_Btn Anulado" +
+          (Estado === "Anulado" ? " Activo" : "");
+        Btn_X.textContent = "!";
+        Btn_X.title = Estado === "Anulado"
+          ? t("slot.reactivar_title")
+          : t("slot.anular_title");
+        Btn_X.addEventListener("click", () => {
+          Item.Estado = Estado === "Anulado"
+            ? "Planeado"
+            : "Anulado";
+          Render_Modal_Plan_Slot();
         });
+        Tog.appendChild(Btn_C);
+        Tog.appendChild(Btn_A);
+        Tog.appendChild(Btn_X);
 
         const Borrar = document.createElement("button");
         Borrar.type = "button";
-        Borrar.className = "Config_Patron_Btn";
+        Borrar.className = "Abordaje_Item_Borrar";
         Borrar.textContent = "×";
+        Borrar.title = t("abordaje.borrar_item_title");
         Borrar.addEventListener("click", () => {
           const Idx = Lista.findIndex((I) => I.Id === Item.Id);
           if (Idx >= 0) Lista.splice(Idx, 1);
@@ -25976,9 +26046,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Fila.appendChild(Emoji);
         Fila.appendChild(Texto);
-        Fila.appendChild(Estado);
+        Fila.appendChild(Btn_P);
+        Fila.appendChild(Tog);
         Fila.appendChild(Borrar);
         return Fila;
+      }
+
+      function Agregar_Item_Plan_Slot() {
+        const Input = document.getElementById(
+          "Plan_Slot_Nuevo_Input"
+        );
+        const Input_Emoji = document.getElementById(
+          "Plan_Slot_Nuevo_Emoji"
+        );
+        if (!Input || !Input_Emoji) return;
+        const Texto = (Input.value || "").trim();
+        if (!Texto) return;
+        Plan_Slot_Borrador.push({
+          Id: Crear_Id_Plan_Slot_Item(),
+          Emoji: Normalizar_Emoji(
+            Input_Emoji.value || "•"
+          ) || "•",
+          Texto,
+          Estado: "Planeado"
+        });
+        Input.value = "";
+        Input_Emoji.value = "•";
+        Render_Modal_Plan_Slot();
+        document.getElementById("Plan_Slot_Nuevo_Input")
+          ?.focus();
       }
 
       function Render_Modal_Plan_Slot() {
@@ -25986,11 +26082,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           document.getElementById("Plan_Slot_Cuerpo");
         if (!Cuerpo || !Plan_Slot_Clave_Activa) return;
         Cuerpo.innerHTML = "";
-        Plan_Slot_Borrador.forEach((Item) => {
-          Cuerpo.appendChild(
-            Render_Fila_Plan_Slot(Item, Plan_Slot_Borrador)
-          );
-        });
+        if (Plan_Slot_Borrador.length === 0) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Abordaje_Vacio";
+          Vacio.textContent = t("slot.sin_items");
+          Cuerpo.appendChild(Vacio);
+        } else {
+          Plan_Slot_Borrador.forEach((Item) => {
+            Cuerpo.appendChild(
+              Render_Fila_Plan_Slot(
+                Item, Plan_Slot_Borrador
+              )
+            );
+          });
+        }
         const Acciones = document.createElement("div");
         Acciones.style.display = "flex";
         Acciones.style.gap = "8px";
@@ -26002,13 +26107,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Btn_Agregar.textContent = t("slot.agregar_tarea");
         Btn_Agregar.style.flex = "1";
         Btn_Agregar.addEventListener("click", () => {
-          Plan_Slot_Borrador.push({
-            Id: Crear_Id_Plan_Slot_Item(),
-            Emoji: "•",
-            Texto: "",
-            Estado: "Planeado"
-          });
-          Render_Modal_Plan_Slot();
+          document.getElementById("Plan_Slot_Nuevo_Input")
+            ?.focus();
         });
         Acciones.appendChild(Btn_Agregar);
 
@@ -26054,6 +26154,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Acciones.appendChild(Btn_Guardar_Patron);
         }
         Cuerpo.appendChild(Acciones);
+
+        const Cont = document.createElement("div");
+        Cont.className = "Abordaje_Nuevo_Cont";
+        Cont.style.marginTop = "10px";
+
+        const Input_Emoji = document.createElement("input");
+        Input_Emoji.type = "text";
+        Input_Emoji.maxLength = 4;
+        Input_Emoji.value = "•";
+        Input_Emoji.id = "Plan_Slot_Nuevo_Emoji";
+        Input_Emoji.className =
+          "Patron_Modal_Emoji_Input Con_Selector_Emoji";
+        Input_Emoji.style.width = "52px";
+
+        const Input = document.createElement("input");
+        Input.type = "text";
+        Input.className = "Abordaje_Nuevo_Input";
+        Input.placeholder = t("slot.item_ph");
+        Input.id = "Plan_Slot_Nuevo_Input";
+        Input.addEventListener("keydown", (Ev) => {
+          if (Ev.key === "Enter") {
+            Ev.preventDefault();
+            Agregar_Item_Plan_Slot();
+          }
+        });
+
+        const Btn = document.createElement("button");
+        Btn.type = "button";
+        Btn.className = "Abordaje_Nuevo_Btn";
+        Btn.textContent = "+";
+        Btn.addEventListener("click", Agregar_Item_Plan_Slot);
+
+        Cont.appendChild(Input_Emoji);
+        Cont.appendChild(Input);
+        Cont.appendChild(Btn);
+        Cuerpo.appendChild(Cont);
       }
 
       function Formatear_Titulo_Plan_Slot(Fecha, Hora) {
@@ -26312,6 +26448,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      async function Borrar_Plan_Slot_Con_Confirmacion(
+        Fecha, Hora
+      ) {
+        if (Contar_Items_Plan_Slot(Fecha, Hora) <= 0) return;
+        const Confirmar = await Mostrar_Dialogo(
+          t("slot.borrar_plan_confirm"),
+          [
+            { Label: t("cancelar"), Valor: false },
+            {
+              Label: t("dialog.confirmar_btn"),
+              Valor: true,
+              Primario: true
+            }
+          ]
+        );
+        if (!Confirmar) return;
+        delete Planes_Slot[Clave_Slot(Fecha, Hora)];
+        if (Plan_Slot_Clave_Activa === Clave_Slot(Fecha, Hora)) {
+          Cerrar_Modal_Plan_Slot();
+        }
+        Render_Calendario();
+        Guardar_Estado();
+      }
+
       function Mostrar_Menu_Slot(Fecha, Hora, X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         const Tiene_Plan = Contar_Items_Plan_Slot(Fecha, Hora) > 0;
@@ -26327,6 +26487,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Html +=
             `<button class="Dia_Accion_Item" type="button" data-acc="guardar-patron-slot">` +
             t("slot.guardar_como_patron") +
+            `</button>` +
+            `<button class="Dia_Accion_Item" type="button" data-acc="borrar-plan-slot">` +
+            t("slot.borrar_plan") +
             `</button>`;
         }
         Menu.innerHTML = Html;
@@ -26365,6 +26528,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Guardar_Plan_Slot_Como_Patron(Fecha, Hora);
+          });
+        Menu.querySelector(`[data-acc="borrar-plan-slot"]`)
+          ?.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Borrar_Plan_Slot_Con_Confirmacion(
+              Fecha, Hora
+            );
           });
       }
 
@@ -32060,7 +32231,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Conteo_Plan_Slot > 0) {
             const Marca_Plan = document.createElement("div");
             Marca_Plan.className = "Slot_Plan_Marca";
-            Marca_Plan.textContent = String(Conteo_Plan_Slot);
             Marca_Plan.title = t("slot.marca_title");
             Slot.appendChild(Marca_Plan);
           }
