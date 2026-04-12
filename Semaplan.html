@@ -9,6 +9,7 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E%F0%9F%95%92%3C/text%3E%3C/svg%3E"
     />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
       :root {
         --Fondo: #f3efe7;
@@ -7732,10 +7733,19 @@
               type="password"
               required
               autocomplete="current-password"
-              minlength="6"
-              placeholder="Mínimo 6 caracteres"
+              minlength="8"
+              placeholder="Mín. 8, mayús., minús. y número"
             />
           </div>
+
+          <div
+            class="cf-turnstile"
+            data-sitekey=
+              "0x4AAAAAAC8T05jdmepDyUTR"
+            data-theme="light"
+            data-language="es"
+            style="margin-bottom:12px"
+          ></div>
 
           <button
             class="Auth_Btn_Principal"
@@ -7785,8 +7795,8 @@
               id="Auth_Recovery_Pass"
               type="password"
               required
-              minlength="6"
-              placeholder="Mínimo 6 caracteres"
+              minlength="8"
+              placeholder="Mín. 8, mayús., minús. y número"
             />
           </div>
           <button
@@ -30518,6 +30528,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Mostrar_Auth_Mensaje("");
       }
 
+      function Resetear_Captcha() {
+        // Resetea el widget de Turnstile para
+        // que se pueda usar de nuevo.
+        if (window.turnstile) {
+          window.turnstile.reset();
+        }
+      }
+
       function Mostrar_Auth_Mensaje(Texto, Tipo = "Error") {
         const El = document.getElementById("Auth_Mensaje");
         if (!El) return;
@@ -30547,6 +30565,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Auth_Modo !== "Olvide" && !Pass) {
           return;
         }
+
+        // Obtener token del CAPTCHA Turnstile.
+        const Captcha_Token =
+          document.querySelector(
+            "[name='cf-turnstile-response']"
+          )?.value;
+        if (!Captcha_Token) {
+          Mostrar_Auth_Mensaje(
+            "Completá la verificación de " +
+            "seguridad."
+          );
+          return;
+        }
+        const Captcha_Opts = {
+          captchaToken: Captcha_Token,
+        };
+
         Btn.disabled = true;
         Mostrar_Auth_Mensaje("");
 
@@ -30556,7 +30591,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           try {
             const { error } =
               await Supa.auth
-                .resetPasswordForEmail(Email);
+                .resetPasswordForEmail(
+                  Email,
+                  { captchaToken: Captcha_Token }
+                );
             if (error) {
               Mostrar_Auth_Mensaje(
                 Traducir_Error_Auth(
@@ -30576,6 +30614,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           }
           Btn.disabled = false;
+          Resetear_Captcha();
           return;
         }
 
@@ -30586,12 +30625,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               .signInWithPassword({
                 email: Email,
                 password: Pass,
+                options: Captcha_Opts,
               });
           } else {
             Resultado = await Supa.auth
               .signUp({
                 email: Email,
                 password: Pass,
+                options: Captcha_Opts,
               });
           }
 
@@ -30600,6 +30641,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Traducir_Error_Auth(Resultado.error.message)
             );
             Btn.disabled = false;
+          Resetear_Captcha();
             return;
           }
 
@@ -30613,17 +30655,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               "Exito"
             );
             Btn.disabled = false;
+          Resetear_Captcha();
             return;
           }
 
           // Login exitoso o registro sin confirmación.
           Usuario_Actual = Resultado.data.user;
           Btn.disabled = false;
+          Resetear_Captcha();
           await Iniciar_App_Logueada();
         } catch (E) {
           console.error("Error de auth:", E);
           Mostrar_Auth_Mensaje("Error inesperado: " + E.message);
           Btn.disabled = false;
+          Resetear_Captcha();
         }
       }
 

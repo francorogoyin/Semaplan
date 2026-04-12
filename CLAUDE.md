@@ -6,6 +6,9 @@ El dominio de producción es **semaplan.com** (registrado en
 Namecheap). El sitio se sirve desde GitHub Pages:
 `https://francorogoyin.github.io/Semaplan`
 
+El dominio también está configurado en Cloudflare (DNS, CDN,
+y Turnstile para CAPTCHA en el login).
+
 ## Estructura del proyecto
 
 Aplicación de planificación semanal en un único archivo HTML autocontenido
