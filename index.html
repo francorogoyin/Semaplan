@@ -25654,7 +25654,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return [{
             Desde: Def.Desde,
             Hasta: Def.Hasta,
-            Tipo_Id: "Sueno"
+            Tipo_Id: "Sueno",
+            Nombre: ""
           }];
         };
 
@@ -25692,7 +25693,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Franjas.forEach((Franja, F_Idx) => {
               const F = document.createElement("div");
               F.style.cssText =
-                "display:flex;align-items:center;gap:5px";
+                "display:flex;align-items:center;gap:5px;" +
+                "flex-wrap:wrap";
 
               const Desde_S = document.createElement("select");
               Desde_S.className = "Config_Select";
@@ -25732,6 +25734,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Franja.Tipo_Id = Tipo_S.value;
               });
 
+              const Nombre_In = document.createElement("input");
+              Nombre_In.type = "text";
+              Nombre_In.className = "Config_Input";
+              Nombre_In.placeholder = "Nombre del slot";
+              Nombre_In.value = Franja.Nombre || "";
+              Nombre_In.style.cssText =
+                "flex:1 1 100%;min-width:0";
+              Nombre_In.addEventListener("input", () => {
+                Franja.Nombre = Nombre_In.value;
+              });
+
               const Btn_D = document.createElement("button");
               Btn_D.type = "button";
               Btn_D.textContent = "×";
@@ -25751,6 +25764,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               F.appendChild(Sep);
               F.appendChild(Hasta_S);
               F.appendChild(Tipo_S);
+              F.appendChild(Nombre_In);
               F.appendChild(Btn_D);
               Col.appendChild(F);
             });
@@ -25783,7 +25797,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Franjas.push({
                 Desde: D,
                 Hasta: Math.min(D + 1, 24),
-                Tipo_Id: Tipos[0]?.Id || "Sueno"
+                Tipo_Id: Tipos[0]?.Id || "Sueno",
+                Nombre: ""
               });
               Render_Franjas();
             });
@@ -26389,11 +26404,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Franjas_D = Array.isArray(Def)
             ? Def
             : [{ Desde: Def.Desde, Hasta: Def.Hasta,
-                 Tipo_Id: "Sueno" }];
+                 Tipo_Id: "Sueno", Nombre: "" }];
 
           Franjas_D.forEach((Franja) => {
             const Tipo_D =
               Franja.Tipo_Id || Franja.Naturaleza || "Sueno";
+            const Nombre_D = (Franja.Nombre || "").trim();
             for (
               let Hora = Franja.Desde;
               Hora < Franja.Hasta;
@@ -26402,7 +26418,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               const Clave = Clave_Slot(Fecha, Hora);
               if (!Slots_Muertos.includes(Clave)) {
                 Slots_Muertos.push(Clave);
-                Slots_Muertos_Tipos[Clave] = Tipo_D;
+              }
+              Slots_Muertos_Tipos[Clave] = Tipo_D;
+              if (Nombre_D) {
+                Slots_Muertos_Nombres[Clave] = Nombre_D;
+              } else {
+                delete Slots_Muertos_Nombres[Clave];
               }
             }
           });
