@@ -1,4 +1,4 @@
-# Timeblock
+# Semaplan
 
 Aplicación web de planificación semanal con calendario,
 bolsa de horas, subtareas, patrones, abordajes y resumen
@@ -31,13 +31,13 @@ dispositivo.
 
 ### 3. Abrir la app
 
-Abrí `Time_Blocking.html` en el navegador. Va a aparecer la
+Abrí `Semaplan.html` en el navegador. Va a aparecer la
 pantalla de login. Hacé click en "Crear cuenta", poné tu mail
 y una contraseña, y listo.
 
 ## Estructura del proyecto
 
-- `Time_Blocking.html` — la app (HTML autocontenido)
+- `Semaplan.html` — la app (HTML autocontenido)
 - `Supabase_Schema.sql` — esquema de la base de datos
 - `README.md` — este archivo
 
@@ -55,8 +55,8 @@ y una contraseña, y listo.
 
 ## Migración de datos del HTML viejo (sin backend)
 
-Si ya usabas Timeblock con localStorage en otra carpeta, la
-primera vez que entres a tu cuenta nueva, la app te va a
-preguntar si querés importar los datos del localStorage actual
-de este navegador a tu cuenta. Si decís que sí, los sube y
-quedan asociados a tu user_id.
+Si ya usabas Semaplan (antes "Timeblock") con localStorage
+en otra carpeta, la primera vez que entres a tu cuenta nueva,
+la app te va a preguntar si querés importar los datos del
+localStorage actual de este navegador a tu cuenta. Si decís
+que sí, los sube y quedan asociados a tu user_id.

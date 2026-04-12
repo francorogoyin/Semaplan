@@ -1,15 +1,15 @@
-# Time Blocking — AGENTS.md
+# Semaplan — AGENTS.md
 
 ## Estructura del proyecto
 
 Aplicación de planificación semanal en un único archivo HTML autocontenido
-(`Time_Blocking.html`). Sin frameworks, sin dependencias externas, sin
+(`Semaplan.html`). Sin frameworks, sin dependencias externas, sin
 proceso de build. Todo el CSS y JS está inline en el mismo archivo.
 
 ## Estado global
 
 El estado vive en variables JS globales y se persiste en `localStorage`
-bajo la clave `Time_Blocking_Estado_V2`. Las variables principales son:
+bajo la clave `Semaplan_Estado_V2`. Las variables principales son:
 
 - `Tareas` — lista de tareas del sidebar
 - `Eventos` — bloques colocados en el calendario
@@ -96,7 +96,7 @@ equivocado:
 
 - **Nunca** usar `git add -A`, `git add .` ni `git commit -a`.
 - Stagear siempre archivos puntuales por nombre
-  (`git add Time_Blocking.html Proximos_Avances.txt`).
+  (`git add Semaplan.html Proximos_Avances.txt`).
 - Si al revisar `git status` aparecen cambios en archivos que
   esta sesión no tocó, no incluirlos en el commit: probablemente
   son de otra sesión paralela y le corresponden a ella commitearlos

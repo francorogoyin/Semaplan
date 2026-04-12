@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Timeblock</title>
+    <title>Semaplan</title>
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E%F0%9F%95%92%3C/text%3E%3C/svg%3E"
@@ -7668,7 +7668,7 @@
     <div class="Auth_Overlay" id="Auth_Overlay">
       <div class="Auth_Panel">
         <div class="Auth_Logo">🕒</div>
-        <h1 class="Auth_Titulo" id="Auth_Titulo">Timeblock</h1>
+        <h1 class="Auth_Titulo" id="Auth_Titulo">Semaplan</h1>
         <p class="Auth_Subtitulo" id="Auth_Subtitulo">
           Iniciá sesión para continuar
         </p>
@@ -8833,8 +8833,8 @@
                     <span class="Suscripcion_Badge">Premium</span>
                     <div class="Suscripcion_Nombre">Premium</div>
                     <div class="Suscripcion_Precio">
-                      <span class="Suscripcion_Precio_Num">$5</span>
-                      <span class="Suscripcion_Precio_Lbl">pago único</span>
+                      <span class="Suscripcion_Precio_Num">$999</span>
+                      <span class="Suscripcion_Precio_Lbl">Mensuales</span>
                     </div>
                   </div>
                   <div class="Suscripcion_Features">
@@ -9849,7 +9849,19 @@
         "Dic"
       ];
       const Colores_Preset = ["#f1b77e", "#a6c8e5", "#c1d7ae", "#e4b3d4", "#f2a4a0", "#f2e08b", "#b8c7e0", "#c7b7ef"];
-      const Clave_Local = "Time_Blocking_Estado_V2";
+      const Clave_Local = "Semaplan_Estado_V2";
+      // Migración one-time: si el usuario tiene datos
+      // con la clave vieja (Time_Blocking_Estado_V2) y
+      // no tiene datos con la nueva, copiar.
+      if (
+        !localStorage.getItem(Clave_Local) &&
+        localStorage.getItem("Time_Blocking_Estado_V2")
+      ) {
+        localStorage.setItem(
+          Clave_Local,
+          localStorage.getItem("Time_Blocking_Estado_V2")
+        );
+      }
 
       let Tareas = [];
       let Eventos = [];
@@ -19557,7 +19569,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Fecha = new Date().toISOString().slice(0, 10);
           const Enlace = document.createElement("a");
           Enlace.href = Url;
-          Enlace.download = `Time_Blocking_${Fecha}.json`;
+          Enlace.download = `Semaplan_${Fecha}.json`;
           document.body.appendChild(Enlace);
           Enlace.click();
           document.body.removeChild(Enlace);
@@ -30180,7 +30192,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Lk = document.getElementById("Auth_Cambiar_Link");
         const Pw = document.getElementById("Auth_Password");
         if (Auth_Modo === "Login") {
-          Tit.textContent = "Timeblock";
+          Tit.textContent = "Semaplan";
           Sub.textContent = "Iniciá sesión para continuar";
           Btn.textContent = "Iniciar sesión";
           Tx.textContent = "¿No tenés cuenta?";
@@ -30188,7 +30200,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Pw.setAttribute("autocomplete", "current-password");
         } else {
           Tit.textContent = "Crear cuenta";
-          Sub.textContent = "Empezá a usar Timeblock gratis";
+          Sub.textContent = "Empezá a usar Semaplan gratis";
           Btn.textContent = "Crear cuenta";
           Tx.textContent = "¿Ya tenés cuenta?";
           Lk.textContent = "Iniciar sesión";
