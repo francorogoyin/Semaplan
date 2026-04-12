@@ -16467,6 +16467,7 @@
       let Abordaje_Borrador = [];
       let Plan_Slot_Clave_Activa = null;
       let Plan_Slot_Borrador = [];
+      let Plan_Slot_Mostrando_Nuevo = false;
       // Filtro del modal Abordaje. Cuando está activo, solo se
       // muestra un subset de subs según el estado del bloque:
       // - Bloques pasados → solo las que tienen trabajo (Marcado).
@@ -26070,11 +26071,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto,
           Estado: "Planeado"
         });
+        Plan_Slot_Mostrando_Nuevo = false;
         Input.value = "";
         Input_Emoji.value = "•";
         Render_Modal_Plan_Slot();
-        document.getElementById("Plan_Slot_Nuevo_Input")
-          ?.focus();
       }
 
       function Render_Modal_Plan_Slot() {
@@ -26107,6 +26107,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Btn_Agregar.textContent = t("slot.agregar_tarea");
         Btn_Agregar.style.flex = "1";
         Btn_Agregar.addEventListener("click", () => {
+          if (!Plan_Slot_Mostrando_Nuevo) {
+            Plan_Slot_Mostrando_Nuevo = true;
+            Render_Modal_Plan_Slot();
+            setTimeout(() => {
+              document.getElementById("Plan_Slot_Nuevo_Input")
+                ?.focus();
+            }, 0);
+            return;
+          }
           document.getElementById("Plan_Slot_Nuevo_Input")
             ?.focus();
         });
@@ -26155,41 +26164,47 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Cuerpo.appendChild(Acciones);
 
-        const Cont = document.createElement("div");
-        Cont.className = "Abordaje_Nuevo_Cont";
-        Cont.style.marginTop = "10px";
+        if (Plan_Slot_Mostrando_Nuevo) {
+          const Cont = document.createElement("div");
+          Cont.className = "Abordaje_Nuevo_Cont";
+          Cont.style.marginTop = "10px";
 
-        const Input_Emoji = document.createElement("input");
-        Input_Emoji.type = "text";
-        Input_Emoji.maxLength = 4;
-        Input_Emoji.value = "•";
-        Input_Emoji.id = "Plan_Slot_Nuevo_Emoji";
-        Input_Emoji.className =
-          "Patron_Modal_Emoji_Input Con_Selector_Emoji";
-        Input_Emoji.style.width = "52px";
+          const Input_Emoji = document.createElement("input");
+          Input_Emoji.type = "text";
+          Input_Emoji.maxLength = 4;
+          Input_Emoji.value = "•";
+          Input_Emoji.id = "Plan_Slot_Nuevo_Emoji";
+          Input_Emoji.className =
+            "Patron_Modal_Emoji_Input Con_Selector_Emoji";
+          Input_Emoji.style.width = "52px";
 
-        const Input = document.createElement("input");
-        Input.type = "text";
-        Input.className = "Abordaje_Nuevo_Input";
-        Input.placeholder = t("slot.item_ph");
-        Input.id = "Plan_Slot_Nuevo_Input";
-        Input.addEventListener("keydown", (Ev) => {
-          if (Ev.key === "Enter") {
-            Ev.preventDefault();
-            Agregar_Item_Plan_Slot();
-          }
-        });
+          const Input = document.createElement("input");
+          Input.type = "text";
+          Input.className = "Abordaje_Nuevo_Input";
+          Input.placeholder = t("slot.item_ph");
+          Input.id = "Plan_Slot_Nuevo_Input";
+          Input.addEventListener("keydown", (Ev) => {
+            if (Ev.key === "Enter") {
+              Ev.preventDefault();
+              Agregar_Item_Plan_Slot();
+            } else if (Ev.key === "Escape") {
+              Ev.preventDefault();
+              Plan_Slot_Mostrando_Nuevo = false;
+              Render_Modal_Plan_Slot();
+            }
+          });
 
-        const Btn = document.createElement("button");
-        Btn.type = "button";
-        Btn.className = "Abordaje_Nuevo_Btn";
-        Btn.textContent = "+";
-        Btn.addEventListener("click", Agregar_Item_Plan_Slot);
+          const Btn = document.createElement("button");
+          Btn.type = "button";
+          Btn.className = "Abordaje_Nuevo_Btn";
+          Btn.textContent = "+";
+          Btn.addEventListener("click", Agregar_Item_Plan_Slot);
 
-        Cont.appendChild(Input_Emoji);
-        Cont.appendChild(Input);
-        Cont.appendChild(Btn);
-        Cuerpo.appendChild(Cont);
+          Cont.appendChild(Input_Emoji);
+          Cont.appendChild(Input);
+          Cont.appendChild(Btn);
+          Cuerpo.appendChild(Cont);
+        }
       }
 
       function Formatear_Titulo_Plan_Slot(Fecha, Hora) {
@@ -26237,6 +26252,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Plan_Slot_Borrador = JSON.parse(
           JSON.stringify(Plan?.Items || [])
         );
+        Plan_Slot_Mostrando_Nuevo = false;
         const Titulo = document.getElementById("Plan_Slot_Titulo");
         if (Titulo) {
           Titulo.textContent =
@@ -26250,6 +26266,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Cerrar_Modal_Plan_Slot() {
         Plan_Slot_Clave_Activa = null;
         Plan_Slot_Borrador = [];
+        Plan_Slot_Mostrando_Nuevo = false;
         document.getElementById("Plan_Slot_Overlay")
           ?.classList.remove("Activo");
       }
