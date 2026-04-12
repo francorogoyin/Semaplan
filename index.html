@@ -16328,6 +16328,9 @@
         if (typeof Configurar_Auth_UI === "function") {
           Configurar_Auth_UI();
         }
+        if (typeof Configurar_Recovery_UI === "function") {
+          Configurar_Recovery_UI();
+        }
         if (typeof Marcar_Idioma_Activo === "function") {
           Marcar_Idioma_Activo();
         }
@@ -38947,6 +38950,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Mostrar_Auth_Mensaje("");
       }
 
+      function Configurar_Recovery_UI() {
+        const Btn = document.getElementById(
+          "Auth_Recovery_Btn"
+        );
+        if (Btn && !Btn.disabled) {
+          Btn.textContent =
+            t("auth.guardar_password");
+        }
+      }
+
       function Resetear_Captcha() {
         // Resetea el widget de Turnstile para
         // que se pueda usar de nuevo.
@@ -39541,6 +39554,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Oculta el panel de login y muestra
         // el formulario de nueva contraseña.
         Aplicar_Traducciones();
+        Configurar_Recovery_UI();
         Marcar_Idioma_Activo();
 
         document.getElementById(
@@ -39696,6 +39710,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Configurar_Auth_UI();
           });
         Configurar_Auth_UI();
+        Configurar_Recovery_UI();
         Renderizar_Turnstile_Auth();
 
         // Listeners de cerrar sesión (Config + barra superior).
