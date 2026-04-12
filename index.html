@@ -33767,12 +33767,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // --- Notas en eventos ---
 
       let El_Popup_Nota_Activo = null;
+      let El_Popup_Nota_Trigger_Activo = null;
+      let Fn_Cerrar_Popup_Nota_Externo = null;
 
       function Cerrar_Popup_Nota() {
+        if (Fn_Cerrar_Popup_Nota_Externo) {
+          document.removeEventListener(
+            "click",
+            Fn_Cerrar_Popup_Nota_Externo
+          );
+          Fn_Cerrar_Popup_Nota_Externo = null;
+        }
         if (El_Popup_Nota_Activo) {
           El_Popup_Nota_Activo.remove();
           El_Popup_Nota_Activo = null;
         }
+        El_Popup_Nota_Trigger_Activo = null;
       }
 
       let El_Popup_Abordaje_Activo = null;
@@ -33844,6 +33854,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Mostrar_Popup_Nota(Evento, Cerca_De) {
+        const Ya_Estaba_Abierto =
+          El_Popup_Nota_Activo
+          && El_Popup_Nota_Trigger_Activo === Cerca_De;
+        if (Ya_Estaba_Abierto) {
+          Cerrar_Popup_Nota();
+          return;
+        }
         Cerrar_Popup_Nota();
         const Pop = document.createElement("div");
         Pop.className = "Evento_Nota_Popup";
@@ -33858,19 +33875,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
         document.body.appendChild(Pop);
         El_Popup_Nota_Activo = Pop;
+        El_Popup_Nota_Trigger_Activo = Cerca_De;
 
         // Cerrar al hacer click fuera (modo click).
         if (!Config.Notas_Hover) {
           setTimeout(() => {
-            const Cerrar_Externo = (Ev) => {
+            Fn_Cerrar_Popup_Nota_Externo = (Ev) => {
               if (!Pop.contains(Ev.target)) {
                 Cerrar_Popup_Nota();
-                document.removeEventListener(
-                  "click", Cerrar_Externo
-                );
               }
             };
-            document.addEventListener("click", Cerrar_Externo);
+            document.addEventListener(
+              "click",
+              Fn_Cerrar_Popup_Nota_Externo
+            );
           }, 0);
         }
       }
