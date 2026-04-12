@@ -2347,7 +2347,8 @@
       }
 
       .Focus_Estado.Vencido,
-      .Focus_Estado.Pendiente {
+      .Focus_Estado.Pendiente,
+      .Focus_Estado.Anulado {
         color: #c44;
       }
 
@@ -2411,6 +2412,26 @@
 
       .Focus_Nav_Hecho.Activo:hover {
         background: #248055;
+      }
+
+      .Focus_Nav_Anulada {
+        color: #c44;
+        border-color: rgba(196, 68, 68, 0.4);
+      }
+
+      .Focus_Nav_Anulada:hover {
+        background: rgba(196, 68, 68, 0.12);
+      }
+
+      .Focus_Nav_Anulada.Activo {
+        background: #c44;
+        border-color: #c44;
+        color: #fff;
+        box-shadow: 0 0 0 2px rgba(196, 68, 68, 0.25);
+      }
+
+      .Focus_Nav_Anulada.Activo:hover {
+        background: #d55;
       }
 
       .Focus_Nav_Btn:disabled {
@@ -5964,6 +5985,23 @@
       .Evento_Hecho .Evento_Boton {
         background: rgba(255, 255, 255, 0.18);
         color: #f6fbf8;
+      }
+
+      .Evento_Anulado {
+        background: var(
+          --Color-Estado-Fracasada, #8c2f2f
+        ) !important;
+        color: #faf0f0;
+        opacity: 0.7;
+      }
+
+      .Evento_Anulado .Evento_Meta {
+        color: rgba(250, 240, 240, 0.88);
+      }
+
+      .Evento_Anulado .Evento_Boton {
+        background: rgba(255, 255, 255, 0.18);
+        color: #faf0f0;
       }
 
       .Evento_Linea {
@@ -16890,35 +16928,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Verificar_Suscripcion_Remota(
       ) {
         // Consulta el estado de suscripción del
-        // usuario en el backend. Actualiza la
-        // variable global y la UI.
+        // usuario en el backend usando el SDK
+        // de Supabase (maneja auth automático).
 
         if (!Supa || !Usuario_Actual) return;
         try {
-          const { data: { session: Sesion } } =
-            await Supa.auth.getSession();
-          if (!Sesion) return;
-
-          const Respuesta = await fetch(
-            Supabase_Url +
-              "/functions/v1/" +
+          const { data, error } =
+            await Supa.functions.invoke(
               "estado-suscripcion",
-            {
-              headers: {
-                Authorization:
-                  "Bearer " +
-                  Sesion.access_token,
-                apikey: Supabase_Anon_Key,
-                "Content-Type":
-                  "application/json",
-              },
-            }
-          );
-          if (!Respuesta.ok) return;
+              { method: "GET" }
+            );
+          if (error || !data) return;
 
-          const Datos = await Respuesta.json();
           Suscripcion_Remota =
-            Datos.Es_Premium === true;
+            data.Es_Premium === true;
           Config.Plan_Actual =
             Suscripcion_Remota
               ? "Upgrade"
@@ -16946,48 +16969,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
 
         try {
-          const { data: { session: Sesion } } =
-            await Supa.auth.getSession();
-          if (!Sesion) {
-            alert(
-              "Sesión expirada. " +
-              "Volvé a iniciar sesión."
-            );
-            return;
-          }
-
-          const Respuesta = await fetch(
-            Supabase_Url +
-              "/functions/v1/" +
+          const { data: Datos, error } =
+            await Supa.functions.invoke(
               "crear-suscripcion",
-            {
-              method: "POST",
-              headers: {
-                Authorization:
-                  "Bearer " +
-                  Sesion.access_token,
-                apikey: Supabase_Anon_Key,
-                "Content-Type":
-                  "application/json",
-              },
-              body: JSON.stringify({
-                Back_Url:
-                  window.location.origin +
-                  window.location.pathname,
-              }),
-            }
-          );
+              {
+                body: {
+                  Back_Url:
+                    window.location.origin +
+                    window.location.pathname,
+                },
+              }
+            );
 
-          const Datos = await Respuesta.json();
-
-          if (!Respuesta.ok || !Datos) {
+          if (error || !Datos) {
             console.error(
               "Error creando suscripción:",
-              Datos
+              error, Datos
             );
             alert(
               "Error al procesar el pago: " +
-              JSON.stringify(Datos)
+              (error?.message ||
+                JSON.stringify(Datos))
             );
             return;
           }
@@ -27733,7 +27735,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         //    Sirve como recordatorio de "te pasaste".
         const Vencidos = Eventos_Hoy
           .filter((Ev) => {
-            if (Ev.Hecho) return false;
+            if (Ev.Hecho || Ev.Anulada) return false;
             const Fin = (Number(Ev.Inicio) || 0) +
               (Number(Ev.Duracion) || 0);
             return Fin <= Hora_Ahora && Fin >= Hora_Ahora - 1;
@@ -27746,7 +27748,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // 3) Próximo evento no hecho desde ahora.
         const Candidatos = Eventos
           .filter((Ev) => {
-            if (!Ev.Fecha || Ev.Hecho) return false;
+            if (!Ev.Fecha || Ev.Hecho || Ev.Anulada)
+              return false;
             if (Ev.Fecha > Hoy_ISO) return true;
             if (Ev.Fecha < Hoy_ISO) return false;
             const Inicio = Number(Ev.Inicio) || 0;
@@ -28236,6 +28239,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (Bloque.Evento.Hecho) {
               Clase_Estado += " Hecho";
               Texto_Estado = "✓ Bloque hecho";
+            } else if (Bloque.Evento.Anulada) {
+              Clase_Estado += " Anulado";
+              Texto_Estado = "● Bloque anulado";
             } else {
               Clase_Estado += " Pendiente";
               Texto_Estado = "● Quedó pendiente";
