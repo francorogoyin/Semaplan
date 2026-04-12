@@ -11637,6 +11637,14 @@
             "Nota del bloque",
           "focus.nota_ph":
             "Escribí lo que estás pensando, blockers, ideas...",
+          "focus.slot_plan":
+            "Plan del slot",
+          "focus.slot_sin_items":
+            "Este slot no tiene items.",
+          "focus.slot_muerto":
+            "Slot bloqueado",
+          "focus.slot_vacio":
+            "Slot vacío",
           "focus.subtareas_semana":
             "Subtareas de la semana",
           "focus.badge_planeadas_title":
@@ -12332,6 +12340,10 @@
           "slot.nombre_ph":
             "Ej. Almuerzo, Traslado, Gimnasio",
           "slot.item_ph": "Tarea rápida",
+          "slot.estado_planeado": "Planeado",
+          "slot.estado_abordado": "Abordado",
+          "slot.estado_realizado": "Realizado",
+          "slot.estado_anulado": "Anulado",
           "slot.agregar_item": "Agregar item",
           "slot.sin_patrones_para":
             "No hay patrones para {tipo}.",
@@ -13426,6 +13438,16 @@
             "you'll be able to focus here.",
           "focus.nota_bloque":
             "Block note",
+          "focus.nota_ph":
+            "Write what you're thinking, blockers, ideas...",
+          "focus.slot_plan":
+            "Slot plan",
+          "focus.slot_sin_items":
+            "This slot has no items.",
+          "focus.slot_muerto":
+            "Blocked slot",
+          "focus.slot_vacio":
+            "Empty slot",
           "focus.subtareas_semana":
             "Week subtasks",
           "focus.sin_bloques":
@@ -14094,6 +14116,10 @@
           "slot.nombre_ph":
             "E.g. Lunch, Commute, Gym",
           "slot.item_ph": "Quick task",
+          "slot.estado_planeado": "Planned",
+          "slot.estado_abordado": "Started",
+          "slot.estado_realizado": "Done",
+          "slot.estado_anulado": "Cancelled",
           "slot.agregar_item": "Add item",
           "slot.sin_patrones_para":
             "There are no patterns for {tipo}.",
@@ -15254,6 +15280,16 @@
             "vai poder focar aqui.",
           "focus.nota_bloque":
             "Nota do bloco",
+          "focus.nota_ph":
+            "Escreva o que você está pensando, bloqueios, ideias...",
+          "focus.slot_plan":
+            "Plano do slot",
+          "focus.slot_sin_items":
+            "Este slot não tem itens.",
+          "focus.slot_muerto":
+            "Slot bloqueado",
+          "focus.slot_vacio":
+            "Slot vazio",
           "focus.subtareas_semana":
             "Subtarefas da semana",
           "focus.sin_bloques":
@@ -15945,6 +15981,10 @@
           "slot.nombre_ph":
             "Ex. Almoço, Deslocamento, Academia",
           "slot.item_ph": "Tarefa rápida",
+          "slot.estado_planeado": "Planejado",
+          "slot.estado_abordado": "Abordado",
+          "slot.estado_realizado": "Realizado",
+          "slot.estado_anulado": "Anulado",
           "slot.agregar_item": "Adicionar item",
           "slot.sin_patrones_para":
             "Não há padrões para {tipo}.",
@@ -24866,6 +24906,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Contenedor.appendChild(Btn_Add);
       }
 
+      function Obtener_Estados_Plan_Slot_UI() {
+        return [
+          {
+            Valor: "Planeado",
+            Label: t("slot.estado_planeado")
+          },
+          {
+            Valor: "Abordado",
+            Label: t("slot.estado_abordado")
+          },
+          {
+            Valor: "Realizado",
+            Label: t("slot.estado_realizado")
+          },
+          {
+            Valor: "Anulado",
+            Label: t("slot.estado_anulado")
+          }
+        ];
+      }
+
       function Render_Modal_Items_Patron_Slot(
         Contenedor,
         Items_Arr
@@ -24899,15 +24960,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Estado = document.createElement("select");
           Estado.className = "Patron_Modal_Sel";
           Estado.style.width = "120px";
-          [
-            "Planeado",
-            "Abordado",
-            "Realizado",
-            "Anulado"
-          ].forEach((Valor) => {
+          Obtener_Estados_Plan_Slot_UI().forEach(
+            ({ Valor, Label }) => {
             const Opt = document.createElement("option");
             Opt.value = Valor;
-            Opt.textContent = Valor;
+            Opt.textContent = Label;
             Estado.appendChild(Opt);
           });
           Estado.value = Item.Estado || "Planeado";
@@ -25889,15 +25946,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Estado = document.createElement("select");
         Estado.className = "Patron_Modal_Sel";
         Estado.style.width = "120px";
-        [
-          "Planeado",
-          "Abordado",
-          "Realizado",
-          "Anulado"
-        ].forEach((Valor) => {
+        Obtener_Estados_Plan_Slot_UI().forEach(
+          ({ Valor, Label }) => {
           const Opt = document.createElement("option");
           Opt.value = Valor;
-          Opt.textContent = Valor;
+          Opt.textContent = Label;
           Estado.appendChild(Opt);
         });
         Estado.value = Item.Estado || "Planeado";
@@ -35384,76 +35437,191 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return "Pasado";
       }
 
+      function Focus_Clave_Slot_Foco(Fecha, Hora) {
+        return `Slot|${Fecha}|${Hora}`;
+      }
+
+      function Focus_Obtener_Slots_Plan() {
+        return Object.keys(Planes_Slot || {})
+          .map((Clave) => {
+            const [Fecha, Hora_Txt] = Clave.split("|");
+            const Hora = Number(Hora_Txt);
+            const Plan = Planes_Slot[Clave];
+            if (
+              !Fecha ||
+              !Number.isFinite(Hora) ||
+              !Array.isArray(Plan?.Items) ||
+              Plan.Items.length === 0
+            ) {
+              return null;
+            }
+            return {
+              Clave,
+              Fecha,
+              Hora,
+              Plan,
+              Es_Muerto: Slot_Es_Muerto(Fecha, Hora),
+              Nombre: Obtener_Nombre_Slot(Fecha, Hora),
+              Aplica_A: Obtener_Aplica_A_Slot(Fecha, Hora)
+            };
+          })
+          .filter(Boolean);
+      }
+
+      function Focus_Estado_Cierre_Slot(Slot) {
+        const Items = Array.isArray(Slot?.Plan?.Items)
+          ? Slot.Plan.Items
+          : [];
+        if (!Items.length) return "Pendiente";
+        const Hay_Realizado = Items.some(
+          (Item) => Item.Estado === "Realizado"
+        );
+        const Todos_Cerrados = Items.every((Item) =>
+          ["Realizado", "Anulado"].includes(Item.Estado)
+        );
+        if (!Todos_Cerrados) return "Pendiente";
+        return Hay_Realizado ? "Hecho" : "Anulado";
+      }
+
+      function Focus_Calcular_Estado_Slot(Slot) {
+        if (!Slot?.Fecha) return "Proximo";
+        const Hoy_ISO = Formatear_Fecha_ISO(new Date());
+        if (Slot.Fecha < Hoy_ISO) return "Pasado";
+        if (Slot.Fecha > Hoy_ISO) return "Proximo";
+        const Inicio = Number(Slot.Hora) || 0;
+        const Fin = Inicio + 1;
+        const Hora_Ahora = Focus_Tiempo_Actual_Horas();
+        if (Hora_Ahora < Inicio) return "Proximo";
+        if (Hora_Ahora < Fin) return "En_Curso";
+        return "Pasado";
+      }
+
+      function Focus_Target_Esta_Cerrado(Target) {
+        if (!Target) return true;
+        if (Target.Tipo === "Evento") {
+          return Boolean(
+            Target.Evento?.Hecho || Target.Evento?.Anulada
+          );
+        }
+        const Estado = Focus_Estado_Cierre_Slot(Target.Slot);
+        return Estado === "Hecho" || Estado === "Anulado";
+      }
+
+      function Focus_Obtener_Objetivos_Ordenados() {
+        const Objetivos_Eventos = Eventos
+          .filter((Ev) => Ev.Fecha)
+          .map((Ev) => ({
+            Tipo: "Evento",
+            Evento: Ev,
+            Fecha: Ev.Fecha,
+            Inicio: Number(Ev.Inicio) || 0
+          }));
+        const Objetivos_Slots = Focus_Obtener_Slots_Plan()
+          .map((Slot) => ({
+            Tipo: "Slot",
+            Slot,
+            Fecha: Slot.Fecha,
+            Inicio: Slot.Hora
+          }));
+        return [
+          ...Objetivos_Eventos,
+          ...Objetivos_Slots
+        ].sort((A, B) => {
+          if (A.Fecha !== B.Fecha) {
+            return A.Fecha < B.Fecha ? -1 : 1;
+          }
+          if (A.Inicio !== B.Inicio) {
+            return A.Inicio - B.Inicio;
+          }
+          return A.Tipo === "Evento" ? -1 : 1;
+        });
+      }
+
+      function Focus_Clave_Target(Target) {
+        if (!Target) return null;
+        if (Target.Tipo === "Evento") {
+          return Target.Evento?.Id || null;
+        }
+        return Focus_Clave_Slot_Foco(
+          Target.Slot?.Fecha,
+          Target.Slot?.Hora
+        );
+      }
+
       function Focus_Buscar_Bloque() {
-        // Devuelve el bloque relevante para mostrar en el focus.
-        // - Si hay navegación manual activa, fuerza ese evento.
-        // - En modo auto: prioridad bloque en curso → bloque
-        //   recién vencido sin marcar → próximo bloque.
+        // Devuelve el objetivo relevante para mostrar en focus.
+        // Puede ser un Evento normal o un Slot con plan.
         if (Focus_Navegacion_Id) {
-          const Forzado = Eventos.find(
-            (E) => E.Id === Focus_Navegacion_Id
+          const Forzado = Focus_Obtener_Objetivos_Ordenados().find(
+            (Item) => Focus_Clave_Target(Item) === Focus_Navegacion_Id
           );
           if (Forzado) {
             return {
-              Evento: Forzado,
-              Estado: Focus_Calcular_Estado_Evento(Forzado),
+              ...Forzado,
+              Estado: Forzado.Tipo === "Evento"
+                ? Focus_Calcular_Estado_Evento(Forzado.Evento)
+                : Focus_Calcular_Estado_Slot(Forzado.Slot),
               Manual: true
             };
           }
-          // El evento ya no existe (se borró): volvemos a auto.
           Focus_Navegacion_Id = null;
         }
 
         const Hoy_ISO = Formatear_Fecha_ISO(new Date());
         const Hora_Ahora = Focus_Tiempo_Actual_Horas();
+        const Objetivos = Focus_Obtener_Objetivos_Ordenados();
 
-        const Eventos_Hoy = Eventos
-          .filter((Ev) => Ev.Fecha === Hoy_ISO)
-          .sort((A, B) => A.Inicio - B.Inicio);
-
-        // 1) ¿Hay un bloque cuyo rango contiene la hora actual?
-        for (const Ev of Eventos_Hoy) {
-          const Inicio = Number(Ev.Inicio) || 0;
-          const Fin = Inicio + (Number(Ev.Duracion) || 0);
-          if (Hora_Ahora >= Inicio && Hora_Ahora < Fin) {
-            return { Evento: Ev, Estado: "En_Curso" };
+        for (const Item of Objetivos) {
+          if (Item.Fecha !== Hoy_ISO) continue;
+          const Fin = Item.Tipo === "Evento"
+            ? Item.Inicio + (Number(Item.Evento.Duracion) || 0)
+            : Item.Inicio + 1;
+          if (Hora_Ahora >= Item.Inicio && Hora_Ahora < Fin) {
+            return {
+              ...Item,
+              Estado: "En_Curso"
+            };
           }
         }
 
-        // 2) ¿Hay un bloque que recién terminó (dentro de los
-        //    últimos 60 min) y no está marcado como hecho?
-        //    Sirve como recordatorio de "te pasaste".
-        const Vencidos = Eventos_Hoy
-          .filter((Ev) => {
-            if (Ev.Hecho || Ev.Anulada) return false;
-            const Fin = (Number(Ev.Inicio) || 0) +
-              (Number(Ev.Duracion) || 0);
+        const Vencidos = Objetivos
+          .filter((Item) => {
+            if (Item.Fecha !== Hoy_ISO) return false;
+            if (Focus_Target_Esta_Cerrado(Item)) return false;
+            const Fin = Item.Tipo === "Evento"
+              ? Item.Inicio + (Number(Item.Evento.Duracion) || 0)
+              : Item.Inicio + 1;
             return Fin <= Hora_Ahora && Fin >= Hora_Ahora - 1;
           })
           .sort((A, B) => B.Inicio - A.Inicio);
         if (Vencidos.length > 0) {
-          return { Evento: Vencidos[0], Estado: "Vencido" };
+          return {
+            ...Vencidos[0],
+            Estado: "Vencido"
+          };
         }
 
-        // 3) Próximo evento no hecho desde ahora.
-        const Candidatos = Eventos
-          .filter((Ev) => {
-            if (!Ev.Fecha || Ev.Hecho || Ev.Anulada)
+        const Candidatos = Objetivos
+          .filter((Item) => {
+            if (Focus_Target_Esta_Cerrado(Item)) {
               return false;
-            if (Ev.Fecha > Hoy_ISO) return true;
-            if (Ev.Fecha < Hoy_ISO) return false;
-            const Inicio = Number(Ev.Inicio) || 0;
-            return Inicio >= Hora_Ahora;
+            }
+            if (Item.Fecha > Hoy_ISO) return true;
+            if (Item.Fecha < Hoy_ISO) return false;
+            return Item.Inicio >= Hora_Ahora;
           })
           .sort((A, B) => {
             if (A.Fecha !== B.Fecha) {
               return A.Fecha < B.Fecha ? -1 : 1;
             }
-            return (A.Inicio || 0) - (B.Inicio || 0);
+            return A.Inicio - B.Inicio;
           });
 
         if (Candidatos.length > 0) {
-          return { Evento: Candidatos[0], Estado: "Proximo" };
+          return {
+            ...Candidatos[0],
+            Estado: "Proximo"
+          };
         }
 
         return null;
@@ -35468,23 +35636,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Focus_Navegar_Bloque(Direccion) {
-        // Mueve el focus al bloque anterior o siguiente, sin
-        // importar si está en otro día. Recorre todos los
-        // eventos del calendario en orden cronológico (Fecha +
-        // Inicio) y salta los días vacíos directamente al
-        // próximo bloque que exista.
+        // Mueve el focus al objetivo anterior o siguiente:
+        // eventos y slots con plan, en orden cronológico.
         const Bloque = Focus_Buscar_Bloque();
         if (!Bloque) return;
-        const Lista_Global = Eventos
-          .filter((Ev) => Ev.Fecha)
-          .sort((A, B) => {
-            if (A.Fecha !== B.Fecha) {
-              return A.Fecha < B.Fecha ? -1 : 1;
-            }
-            return (A.Inicio || 0) - (B.Inicio || 0);
-          });
+        const Lista_Global = Focus_Obtener_Objetivos_Ordenados();
         const Idx = Lista_Global.findIndex(
-          (E) => E.Id === Bloque.Evento.Id
+          (Item) =>
+            Focus_Clave_Target(Item) ===
+            Focus_Clave_Target(Bloque)
         );
         if (Idx < 0) return;
         const Idx_Nuevo = Idx + Direccion;
@@ -35492,14 +35652,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Idx_Nuevo < 0 ||
           Idx_Nuevo >= Lista_Global.length
         ) return;
-        Focus_Navegacion_Id = Lista_Global[Idx_Nuevo].Id;
+        Focus_Navegacion_Id =
+          Focus_Clave_Target(Lista_Global[Idx_Nuevo]);
         Focus_Sub_Editando_Id = null;
-        // Si el bloque destino está en otra semana, navegar el
-        // calendario también para que se vea correctamente
-        // detrás del modal y se sincronice el contexto.
-        const Evento_Nuevo = Lista_Global[Idx_Nuevo];
+        const Objetivo_Nuevo = Lista_Global[Idx_Nuevo];
         const Fecha_Nueva = Parsear_Fecha_ISO(
-          Evento_Nuevo.Fecha
+          Objetivo_Nuevo.Fecha
         );
         if (Fecha_Nueva) {
           const Lunes_Nueva = Obtener_Lunes(Fecha_Nueva);
@@ -35550,7 +35708,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             return;
           }
           const Bloque = Focus_Buscar_Bloque();
-          const Id_Nuevo = Bloque?.Evento?.Id || null;
+          const Id_Nuevo = Focus_Clave_Target(Bloque);
           if (Id_Nuevo !== Focus_Evento_Id_Actual) {
             Render_Focus_Mode();
           } else {
@@ -35601,7 +35759,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
 
         const Bloque = Focus_Buscar_Bloque();
-        Focus_Evento_Id_Actual = Bloque?.Evento?.Id || null;
+        Focus_Evento_Id_Actual =
+          Focus_Clave_Target(Bloque);
 
         // Top bar siempre tiene al menos el botón cerrar.
         Focus_Construir_Top_Bar(Top, Bloque);
@@ -35616,6 +35775,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             t("focus.sin_bloque") + " " +
             t("focus.sin_bloque_desc");
           Cuerpo.appendChild(Vacio);
+          return;
+        }
+
+        if (Bloque.Tipo === "Slot") {
+          Render_Focus_Slot(Cuerpo, Tinte, Bloque);
+          Actualizar_Countdown_Focus();
           return;
         }
 
@@ -35917,6 +36082,157 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      function Focus_Guardar_Slot(Bloque) {
+        if (!Bloque?.Slot?.Clave) return;
+        Planes_Slot[Bloque.Slot.Clave] = {
+          Items: Bloque.Slot.Plan.Items
+        };
+        Render_Calendario();
+        Guardar_Estado();
+      }
+
+      function Focus_Crear_Fila_Slot(Bloque, Item) {
+        const Fila = document.createElement("div");
+        Fila.className = "Focus_Sub_Item";
+
+        const Emoji = document.createElement("span");
+        Emoji.className = "Focus_Sub_Emoji";
+        Emoji.textContent = Item.Emoji || "•";
+        Fila.appendChild(Emoji);
+
+        const Texto = document.createElement("span");
+        Texto.className = "Focus_Sub_Texto";
+        Texto.textContent = Item.Texto || "";
+        Fila.appendChild(Texto);
+
+        const Estado = document.createElement("select");
+        Estado.className = "Patron_Modal_Sel";
+        Estado.style.width = "140px";
+        Obtener_Estados_Plan_Slot_UI().forEach(
+          ({ Valor, Label }) => {
+          const Opt = document.createElement("option");
+          Opt.value = Valor;
+          Opt.textContent = Label;
+          Estado.appendChild(Opt);
+        });
+        Estado.value = Item.Estado || "Planeado";
+        Estado.addEventListener("change", () => {
+          Item.Estado = Estado.value;
+          Focus_Guardar_Slot(Bloque);
+          Render_Focus_Mode();
+        });
+        Fila.appendChild(Estado);
+
+        return Fila;
+      }
+
+      function Render_Focus_Slot(Cuerpo, Tinte, Bloque) {
+        const Slot = Bloque.Slot;
+        const Nombre = Slot.Nombre ||
+          (Slot.Es_Muerto
+            ? Obtener_Label_Aplica_Patron_Slot(
+              Slot.Aplica_A
+            )
+            : t("focus.slot_vacio"));
+        const Emoji = Slot.Es_Muerto ? "🧱" : "🧩";
+        const Color = Slot.Es_Muerto
+          ? Obtener_Color_Tipo_Slot(Slot.Aplica_A)
+          : "#5a8fc4";
+
+        if (Tinte) {
+          let Opacidad_Tinte = 0.22;
+          let Color_Tinte = Color;
+          const Estado_Cierre =
+            Focus_Estado_Cierre_Slot(Slot);
+          if (Bloque.Estado === "Vencido") {
+            Color_Tinte = "#c44";
+            Opacidad_Tinte = 0.32;
+          } else if (Bloque.Estado === "Proximo") {
+            Color_Tinte = "#5a8fc4";
+            Opacidad_Tinte = 0.26;
+          } else if (
+            Bloque.Estado === "Pasado" &&
+            Estado_Cierre !== "Pendiente"
+          ) {
+            Color_Tinte = Estado_Cierre === "Anulado"
+              ? "#c44"
+              : "#1f6b4f";
+            Opacidad_Tinte = 0.28;
+          }
+          Tinte.style.background = Color_Tinte;
+          Tinte.style.opacity = Opacidad_Tinte;
+        }
+
+        const Cabecera = document.createElement("div");
+        Cabecera.className = "Focus_Cabecera";
+
+        const El_Emoji = document.createElement("div");
+        El_Emoji.className = "Focus_Emoji";
+        El_Emoji.textContent = Emoji;
+        Cabecera.appendChild(El_Emoji);
+
+        const El_Titulo = document.createElement("div");
+        El_Titulo.className = "Focus_Titulo";
+        const El_Nombre = document.createElement("h2");
+        El_Nombre.className = "Focus_Nombre";
+        El_Nombre.textContent = Nombre;
+        El_Titulo.appendChild(El_Nombre);
+        const El_Rango = document.createElement("div");
+        El_Rango.className = "Focus_Rango";
+        El_Rango.textContent = Focus_Texto_Rango_Slot(Slot);
+        El_Titulo.appendChild(El_Rango);
+        Cabecera.appendChild(El_Titulo);
+        Cuerpo.appendChild(Cabecera);
+
+        const Fila_CD = document.createElement("div");
+        Fila_CD.className = "Focus_Countdown_Row";
+        const Card = document.createElement("div");
+        Card.className = "Focus_Countdown_Card";
+        Card.id = "Focus_Countdown_Card";
+        const Etiqueta = document.createElement("div");
+        Etiqueta.className = "Focus_Countdown_Etiqueta";
+        Etiqueta.id = "Focus_Countdown_Etiqueta";
+        const Numero = document.createElement("div");
+        Numero.className = "Focus_Countdown_Numero";
+        Numero.id = "Focus_Countdown_Numero";
+        const Track = document.createElement("div");
+        Track.className = "Focus_Progreso_Track";
+        const Barra = document.createElement("div");
+        Barra.className = "Focus_Progreso_Barra";
+        Barra.id = "Focus_Progreso_Barra";
+        Track.appendChild(Barra);
+        Card.appendChild(Etiqueta);
+        Card.appendChild(Numero);
+        Card.appendChild(Track);
+        Fila_CD.appendChild(Card);
+        Cuerpo.appendChild(Fila_CD);
+        Actualizar_Countdown_Focus();
+
+        const Tit = document.createElement("div");
+        Tit.className = "Focus_Seccion_Titulo";
+        Tit.textContent = t("focus.slot_plan");
+        Cuerpo.appendChild(Tit);
+
+        const Lista = document.createElement("div");
+        Lista.className = "Focus_Subtareas";
+        const Items = Array.isArray(Slot.Plan?.Items)
+          ? Slot.Plan.Items
+          : [];
+        if (!Items.length) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Focus_Vacio";
+          Vacio.textContent = t("focus.slot_sin_items");
+          Lista.appendChild(Vacio);
+        } else {
+          Items.forEach((Item) => {
+            Lista.appendChild(
+              Focus_Crear_Fila_Slot(Bloque, Item)
+            );
+          });
+        }
+        Cuerpo.appendChild(Lista);
+      }
+
       function Focus_Construir_Top_Bar(Top, Bloque) {
         // Llena la barra superior del Focus mode con: estado +
         // navegación + botón cerrar. Compacta todo en una sola
@@ -35927,6 +36243,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         let Clase_Estado = "Focus_Estado";
         let Texto_Estado = t("focus.sin_bloques");
         if (Bloque) {
+          const Es_Slot = Bloque.Tipo === "Slot";
+          const Estado_Slot = Es_Slot
+            ? Focus_Estado_Cierre_Slot(Bloque.Slot)
+            : "Pendiente";
           if (Bloque.Estado === "En_Curso") {
             Clase_Estado += " En_Curso";
             Texto_Estado = t("focus.estado_en_curso");
@@ -35934,10 +36254,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Clase_Estado += " Vencido";
             Texto_Estado = t("focus.estado_vencido");
           } else if (Bloque.Estado === "Pasado") {
-            if (Bloque.Evento.Hecho) {
+            if (
+              !Es_Slot &&
+              Bloque.Evento.Hecho
+            ) {
               Clase_Estado += " Hecho";
               Texto_Estado = t("focus.estado_hecho");
-            } else if (Bloque.Evento.Anulada) {
+            } else if (
+              !Es_Slot &&
+              Bloque.Evento.Anulada
+            ) {
+              Clase_Estado += " Anulado";
+              Texto_Estado = t("focus.estado_anulado");
+            } else if (Es_Slot && Estado_Slot === "Hecho") {
+              Clase_Estado += " Hecho";
+              Texto_Estado = t("focus.estado_hecho");
+            } else if (Es_Slot && Estado_Slot === "Anulado") {
               Clase_Estado += " Anulado";
               Texto_Estado = t("focus.estado_anulado");
             } else {
@@ -35972,18 +36304,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         let Tiene_Antes = false;
         let Tiene_Despues = false;
         if (Bloque) {
-          // Lista global de eventos en orden cronológico para
-          // chequear si hay anterior/siguiente cruzando días.
-          const Lista_Global = Eventos
-            .filter((Ev) => Ev.Fecha)
-            .sort((A, B) => {
-              if (A.Fecha !== B.Fecha) {
-                return A.Fecha < B.Fecha ? -1 : 1;
-              }
-              return (A.Inicio || 0) - (B.Inicio || 0);
-            });
+          const Lista_Global = Focus_Obtener_Objetivos_Ordenados();
           const Idx = Lista_Global.findIndex(
-            (E) => E.Id === Bloque.Evento.Id
+            (Item) =>
+              Focus_Clave_Target(Item) ===
+              Focus_Clave_Target(Bloque)
           );
           Tiene_Antes = Idx > 0;
           Tiene_Despues =
@@ -36016,7 +36341,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // está hecho queda activo (verde) y al click destilda.
         // Replica la lógica del botón hecho del calendario,
         // incluyendo la notificación de hitos cruzados de metas.
-        if (Bloque) {
+        if (Bloque && Bloque.Tipo === "Evento") {
           const Btn_Hecho = document.createElement("button");
           Btn_Hecho.type = "button";
           Btn_Hecho.className = "Focus_Nav_Btn Focus_Nav_Hecho" +
@@ -36086,7 +36411,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Botón ⋯ con opciones del bloque (repetir, limpiar,
         // eliminar). Vive en la top bar para no comer espacio
         // en la cabecera.
-        if (Bloque) {
+        if (Bloque && Bloque.Tipo === "Evento") {
           const Btn_Menu = document.createElement("button");
           Btn_Menu.type = "button";
           Btn_Menu.className = "Focus_Nav_Btn";
@@ -36893,9 +37218,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return;
         }
 
-        const Evento = Bloque.Evento;
-        const Inicio_H = Number(Evento.Inicio) || 0;
-        const Dur_H = Number(Evento.Duracion) || 0;
+        const Es_Slot = Bloque.Tipo === "Slot";
+        const Evento = Es_Slot ? null : Bloque.Evento;
+        const Slot = Es_Slot ? Bloque.Slot : null;
+        const Inicio_H = Es_Slot
+          ? (Number(Slot?.Hora) || 0)
+          : (Number(Evento?.Inicio) || 0);
+        const Dur_H = Es_Slot
+          ? 1
+          : (Number(Evento?.Duracion) || 0);
         const Fin_H = Inicio_H + Dur_H;
         const Ahora = new Date();
         const Hoy_ISO = Formatear_Fecha_ISO(Ahora);
@@ -36944,18 +37275,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           // irrelevante: mostramos solo "—" porque no hay nada
           // útil que decir. Si quedó pendiente, sí mostramos
           // cuánto hace que venció para señalar el atraso.
-          if (Evento.Hecho) {
+          const Estado_Cierre = Es_Slot
+            ? Focus_Estado_Cierre_Slot(Slot)
+            : (Evento.Hecho
+              ? "Realizado"
+              : (Evento.Anulada
+                ? "Anulado"
+                : "Pendiente"));
+          if (Estado_Cierre === "Hecho") {
             Numero.textContent = "—";
             Numero.title =
               `Bloque del ${Inicio_HM} a ${Fin_HM}`;
             Etiqueta.textContent = t("focus.hecho");
-          } else if (Evento.Anulada) {
+          } else if (Estado_Cierre === "Anulado") {
             Numero.textContent = "—";
             Numero.title =
               `Bloque anulado · ${Inicio_HM} a ${Fin_HM}`;
             Etiqueta.textContent = t("focus.anulado");
           } else {
-            const Fecha_Inicio = Parsear_Fecha_ISO(Evento.Fecha);
+            const Fecha_Base = Es_Slot
+              ? Slot?.Fecha
+              : Evento?.Fecha;
+            const Fecha_Inicio = Parsear_Fecha_ISO(Fecha_Base);
             if (Fecha_Inicio) {
               const H = Math.floor(Inicio_H);
               const M = Math.round((Inicio_H - H) * 60);
@@ -36987,7 +37328,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Barra) Barra.style.width = "100%";
         } else {
           // Próximo: cuánto falta hasta que arranque.
-          const Fecha_Inicio = Parsear_Fecha_ISO(Evento.Fecha);
+          const Fecha_Base = Es_Slot
+            ? Slot?.Fecha
+            : Evento?.Fecha;
+          const Fecha_Inicio = Parsear_Fecha_ISO(Fecha_Base);
           if (!Fecha_Inicio) {
             Numero.textContent = "--:--:--";
             Numero.title = "";
@@ -37005,7 +37349,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               (Fecha_Inicio.getTime() - Ahora.getTime()) / 1000
             )
           );
-          if (Evento.Fecha === Hoy_ISO && Diff_S < 24 * 3600) {
+          if (Fecha_Base === Hoy_ISO && Diff_S < 24 * 3600) {
             Numero.textContent = Focus_Formatear_HMS(Diff_S);
           } else {
             Numero.textContent =
@@ -37063,6 +37407,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Mes = Meses_Cortos[Fecha.getMonth()] || "";
         const Rango = Formatear_Rango(
           Evento.Inicio, Evento.Duracion
+        );
+        return `${Dia_Nombre} ${Dia_Num} ${Mes} · ${Rango}`;
+      }
+
+      function Focus_Texto_Rango_Slot(Slot) {
+        const Fecha = Parsear_Fecha_ISO(Slot.Fecha);
+        if (!Fecha) {
+          return Formatear_Rango(
+            Number(Slot.Hora) || 0, 1
+          );
+        }
+        const Dia_Nombre = Dias[(Fecha.getDay() + 6) % 7];
+        const Dia_Num = Fecha.getDate();
+        const Mes = Meses_Cortos[Fecha.getMonth()] || "";
+        const Rango = Formatear_Rango(
+          Number(Slot.Hora) || 0, 1
         );
         return `${Dia_Nombre} ${Dia_Num} ${Mes} · ${Rango}`;
       }
@@ -37144,7 +37504,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Encuentra la primera subtarea pendiente del bloque
         // visible y la marca como hecha (con su sync de Abordaje).
         const Bloque = Focus_Buscar_Bloque();
-        if (!Bloque) return;
+        if (!Bloque || Bloque.Tipo !== "Evento") return;
         const Tarea = Tarea_Por_Id(Bloque.Evento.Tarea_Id);
         if (!Tarea) return;
         const Clave = Obtener_Clave_Semana_Evento(Bloque.Evento);
@@ -37159,7 +37519,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Focus_Atajo_Nueva_Subtarea() {
         // Atajo "N" para crear una sub vacía y entrar en edición.
         const Bloque = Focus_Buscar_Bloque();
-        if (!Bloque) return;
+        if (!Bloque || Bloque.Tipo !== "Evento") return;
         const Tarea = Tarea_Por_Id(Bloque.Evento.Tarea_Id);
         if (!Tarea) return;
         Focus_Agregar_Subtarea(Tarea, Bloque.Evento);
