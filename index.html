@@ -7491,6 +7491,16 @@
         padding: 32px 28px 26px;
       }
 
+      .Auth_Panel.Auth_Recovery {
+        max-width: 430px;
+        padding: 34px 28px 24px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.96),
+          rgba(249, 244, 236, 0.98)
+        );
+      }
+
       .Auth_Logo {
         text-align: center;
         font-size: 44px;
@@ -7510,6 +7520,38 @@
         font-size: 13px;
         color: var(--Texto_Suave);
         margin: 0 0 20px;
+      }
+
+      .Auth_Recovery_Badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 auto 14px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(15, 95, 90, 0.09);
+        border: 1px solid rgba(15, 95, 90, 0.18);
+        color: var(--Acento);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .Auth_Recovery_Card {
+        margin-top: 18px;
+        padding: 14px 14px 12px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(15, 95, 90, 0.14);
+      }
+
+      .Auth_Recovery_Hint {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--Texto_Suave);
+        text-align: center;
       }
 
       .Auth_Campo {
@@ -7914,14 +7956,23 @@
            (se muestra al clickear el link de
            recovery del email). -->
       <div
-        class="Auth_Panel"
+        class="Auth_Panel Auth_Recovery"
         id="Auth_Recovery_Panel"
         style="display:none"
       >
+        <div class="Auth_Logo">🔐</div>
+        <div class="Auth_Recovery_Badge"
+          data-i18n="auth.recovery_badge">
+          Recuperación segura
+        </div>
         <h2 class="Auth_Titulo"
           data-i18n="auth.nueva_password">
           Nueva contraseña
         </h2>
+        <p class="Auth_Subtitulo"
+          data-i18n="auth.recovery_subtitulo">
+          Elegí una contraseña nueva para volver a entrar.
+        </p>
         <form id="Auth_Recovery_Form">
           <div class="Auth_Campo">
             <label for="Auth_Recovery_Pass"
@@ -7944,10 +7995,28 @@
           data-i18n="auth.guardar_password"
           >Guardar contraseña</button>
         </form>
+        <div class="Auth_Recovery_Card">
+          <p class="Auth_Recovery_Hint"
+            data-i18n="auth.recovery_hint">
+            Usá una contraseña larga y única. Cuando la guardes,
+            Semaplan va a iniciar tu sesión automáticamente.
+          </p>
+        </div>
         <div
           class="Auth_Mensaje"
           id="Auth_Recovery_Msg"
         ></div>
+        <div class="Auth_Idioma">
+          <button type="button"
+            class="Idioma_Btn_Mini"
+            data-lang="es">ES</button>
+          <button type="button"
+            class="Idioma_Btn_Mini"
+            data-lang="en">EN</button>
+          <button type="button"
+            class="Idioma_Btn_Mini"
+            data-lang="pt">PT</button>
+        </div>
       </div>
     </div>
 
@@ -10629,6 +10698,12 @@
           "auth.olvide": "Olvidé mi contraseña",
           "auth.nueva_password":
             "Nueva contraseña",
+          "auth.recovery_badge":
+            "Recuperación segura",
+          "auth.recovery_subtitulo":
+            "Elegí una contraseña nueva para volver a entrar.",
+          "auth.recovery_hint":
+            "Usá una contraseña larga y única. Cuando la guardes, Semaplan va a iniciar tu sesión automáticamente.",
           "auth.password_nueva":
             "Contraseña nueva",
           "auth.guardar_password":
@@ -12476,6 +12551,12 @@
           "auth.olvide": "Forgot my password",
           "auth.nueva_password":
             "New password",
+          "auth.recovery_badge":
+            "Secure recovery",
+          "auth.recovery_subtitulo":
+            "Choose a new password to sign back in.",
+          "auth.recovery_hint":
+            "Use a long, unique password. Once you save it, Semaplan will sign you in automatically.",
           "auth.password_nueva":
             "New password",
           "auth.guardar_password":
@@ -14265,6 +14346,12 @@
             "Esqueci minha senha",
           "auth.nueva_password":
             "Nova senha",
+          "auth.recovery_badge":
+            "Recuperação segura",
+          "auth.recovery_subtitulo":
+            "Escolha uma nova senha para entrar de novo.",
+          "auth.recovery_hint":
+            "Use uma senha longa e única. Quando você salvar, o Semaplan vai iniciar sua sessão automaticamente.",
           "auth.password_nueva":
             "Senha nova",
           "auth.guardar_password":
@@ -38706,9 +38793,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .classList.add("Oculto");
         document.getElementById("Auth_Overlay")
           .classList.add("Activo");
-        document.getElementById(
-          "Auth_Email"
-        ).focus();
+        const Recovery_Visible =
+          document.getElementById("Auth_Recovery_Panel")
+            ?.style.display !== "none";
+        const Campo_Foco = Recovery_Visible
+          ? "Auth_Recovery_Pass"
+          : "Auth_Email";
+        document.getElementById(Campo_Foco)?.focus();
       }
 
       function Ocultar_Auth() {
@@ -39358,6 +39449,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Mostrar_Recovery() {
         // Oculta el panel de login y muestra
         // el formulario de nueva contraseña.
+        Aplicar_Traducciones();
+        Marcar_Idioma_Activo();
 
         document.getElementById(
           "Auth_Panel_Login"
@@ -39365,6 +39458,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         document.getElementById(
           "Auth_Recovery_Panel"
         ).style.display = "";
+        document.getElementById(
+          "Auth_Recovery_Pass"
+        )?.focus();
         Mostrar_Auth();
       }
 
