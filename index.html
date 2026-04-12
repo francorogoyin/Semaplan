@@ -11715,6 +11715,8 @@
             "Te pasaste",
           "focus.hecho": "Hecho",
           "focus.anulado": "Anulado",
+          "focus.sin_pendientes":
+            "Sin pendientes abiertas",
           "focus.pendiente_desde":
             "Pendiente desde hace",
           "focus.empieza_en":
@@ -13515,6 +13517,8 @@
             "Overtime",
           "focus.hecho": "Done",
           "focus.anulado": "Cancelled",
+          "focus.sin_pendientes":
+            "No open pending items",
           "focus.pendiente_desde":
             "Pending since",
           "focus.empieza_en":
@@ -15358,6 +15362,8 @@
             "Passou do tempo",
           "focus.hecho": "Feito",
           "focus.anulado": "Anulado",
+          "focus.sin_pendientes":
+            "Sem pendências abertas",
           "focus.pendiente_desde":
             "Pendente há",
           "focus.empieza_en":
@@ -37278,7 +37284,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Estado_Cierre = Es_Slot
             ? Focus_Estado_Cierre_Slot(Slot)
             : (Evento.Hecho
-              ? "Realizado"
+              ? "Hecho"
               : (Evento.Anulada
                 ? "Anulado"
                 : "Pendiente"));
@@ -37292,6 +37298,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Numero.title =
               `Bloque anulado · ${Inicio_HM} a ${Fin_HM}`;
             Etiqueta.textContent = t("focus.anulado");
+          } else if (
+            !Es_Slot &&
+            !Focus_Evento_Tiene_Subs_Pendientes(Evento)
+          ) {
+            Numero.textContent = "—";
+            Numero.title =
+              `Bloque del ${Inicio_HM} a ${Fin_HM}`;
+            Etiqueta.textContent = t("focus.sin_pendientes");
           } else {
             const Fecha_Base = Es_Slot
               ? Slot?.Fecha
@@ -37394,6 +37408,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const MM = M.toString().padStart(2, "0");
         if (Dias > 0) return `${Dias}d ${HH}:${MM}`;
         return `${HH}:${MM}`;
+      }
+
+      function Focus_Evento_Tiene_Subs_Pendientes(Evento) {
+        if (!Evento?.Tarea_Id) return false;
+        const Tarea = Tarea_Por_Id(Evento.Tarea_Id);
+        if (!Tarea) return false;
+        const Clave = Obtener_Clave_Semana_Evento(Evento);
+        const Subs = Obtener_Subtareas_Semana(
+          Tarea, true, Clave
+        );
+        return Subs.some((Sub) => !Sub.Hecha);
       }
 
       function Focus_Texto_Rango_Evento(Evento) {
