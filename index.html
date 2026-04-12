@@ -35020,6 +35020,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Selector_Emojis_Input_Activo = null;
       let Selector_Emojis_Cat_Activa = "caras";
       let Selector_Emojis_Construido = false;
+      let Selector_Emojis_Input_Bloqueado = null;
 
       function Normalizar_Texto_Selector(Texto) {
         // Devuelve el texto en minúsculas y sin acentos para
@@ -35250,6 +35251,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Selector_Emojis_Input_Activo = null;
       }
 
+      function Selector_Emojis_Bloquear_Reapertura(Input) {
+        Selector_Emojis_Input_Bloqueado = Input || null;
+        setTimeout(() => {
+          if (Selector_Emojis_Input_Bloqueado === Input) {
+            Selector_Emojis_Input_Bloqueado = null;
+          }
+        }, 0);
+      }
+
       function Aplicar_Emoji_Selector(Emoji) {
         // Aplica el emoji elegido al input target activo y
         // dispara los eventos input/change para que cualquier
@@ -35268,6 +35278,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           new Event("change", { bubbles: true })
         );
         Cerrar_Selector_Emojis();
+        Selector_Emojis_Bloquear_Reapertura(Input);
         // Devolver el foco al input original para que
         // la edición (ej. subtareas) siga activa y el
         // focusout se dispare recién al salir del item.
@@ -35286,6 +35297,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             T.classList &&
             T.classList.contains("Con_Selector_Emoji")
           ) {
+            if (T === Selector_Emojis_Input_Bloqueado) return;
             Abrir_Selector_Emojis(T);
           }
         });
@@ -35296,6 +35308,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             T.classList &&
             T.classList.contains("Con_Selector_Emoji")
           ) {
+            if (T === Selector_Emojis_Input_Bloqueado) return;
             Abrir_Selector_Emojis(T);
           }
         });
