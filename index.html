@@ -4276,8 +4276,29 @@
         gap: 10px;
       }
 
-      .Baul_Grupo .Cat_Header {
+      .Baul_Grupo_Header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
         padding: 0 2px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .Baul_Grupo_Header .Cat_Header {
+        padding: 0;
+        flex: 1;
+      }
+
+      .Baul_Grupo_Chevron {
+        width: 16px;
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        line-height: 1;
+        flex-shrink: 0;
       }
 
       .Cat_Header_Horas {
@@ -16288,6 +16309,7 @@
       let Baul_Editor_Abierto = false;
       let Baul_Editor_Modo = "Detalle";
       let Baul_Borrador_Forzado = false;
+      let Baul_Grupos_Colapsados = {};
       let Baul_Vista_Modo = Config.Baul_Vista_Modo || "Biblioteca";
       let Baul_Multi_Seleccion = new Set();
       let Baul_Mensaje_Timer = null;
@@ -25223,6 +25245,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Bloqueada) {
           Chk.addEventListener("change", () => {
             Item.Marcado = Chk.checked;
+            if (Chk.checked) {
+              Item.Estado = "Completado";
+            }
             Render_Modal_Abordaje();
           });
         }
