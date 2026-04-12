@@ -17961,6 +17961,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Grupos;
       }
 
+      function Obtener_Clave_UI_Grupo_Baul(Clave, Modo) {
+        return `${Modo || "Ninguno"}|${Clave || ""}`;
+      }
+
+      function Grupo_Baul_Esta_Colapsado(Clave, Modo) {
+        const Clave_UI = Obtener_Clave_UI_Grupo_Baul(
+          Clave,
+          Modo
+        );
+        return Boolean(Baul_Grupos_Colapsados[Clave_UI]);
+      }
+
+      function Alternar_Grupo_Baul(Clave, Modo) {
+        const Clave_UI = Obtener_Clave_UI_Grupo_Baul(
+          Clave,
+          Modo
+        );
+        if (Baul_Grupos_Colapsados[Clave_UI]) {
+          delete Baul_Grupos_Colapsados[Clave_UI];
+        } else {
+          Baul_Grupos_Colapsados[Clave_UI] = true;
+        }
+        Render_Baul();
+        Guardar_Estado();
+      }
+
       // Decide si una tarea del baúl cae dentro de un
       // período (se usa la Timeline / fecha límite).
       function Tarea_Cumple_Periodo_Baul(Tarea, Periodo) {
@@ -18634,6 +18660,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Contenedor = document.createElement("section");
           Contenedor.className = "Baul_Grupo";
 
+          const Colapsado = Grupo_Baul_Esta_Colapsado(
+            Grupo.Clave,
+            Modo_Agrupacion
+          );
+          const Header_Btn = document.createElement("button");
+          Header_Btn.type = "button";
+          Header_Btn.className = "Baul_Grupo_Header";
+          Header_Btn.addEventListener("click", () => {
+            Alternar_Grupo_Baul(
+              Grupo.Clave,
+              Modo_Agrupacion
+            );
+          });
+          const Chevron = document.createElement("span");
+          Chevron.className = "Baul_Grupo_Chevron";
+          Chevron.textContent = Colapsado ? "▸" : "▾";
           const Header = document.createElement("div");
           Header.className = "Cat_Header";
           Header.textContent = Grupo.Titulo;
@@ -18650,13 +18692,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Conteo_H.textContent = ` (${Txt})`;
             Header.appendChild(Conteo_H);
           }
-          Contenedor.appendChild(Header);
+          Header_Btn.appendChild(Chevron);
+          Header_Btn.appendChild(Header);
+          Contenedor.appendChild(Header_Btn);
 
           const Lista_Grupo = document.createElement("div");
           Lista_Grupo.className = "Baul_Grupo_Items";
           if (Baul_Vista_Modo === "Lista") {
             Lista_Grupo.classList.add("Lista");
           }
+          Lista_Grupo.classList.toggle("Oculto", Colapsado);
           Grupo.Items.forEach((Tarea) => {
             Lista_Grupo.appendChild(
               Baul_Vista_Modo === "Lista"
@@ -22561,6 +22606,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Tarea_Seleccionada_Id,
           Meta_Seleccion_Id,
           Baul_Seleccion_Id,
+          Baul_Grupos_Colapsados: JSON.parse(
+            JSON.stringify(Baul_Grupos_Colapsados)
+          ),
           Baul_Multi_Seleccion: Array.from(
             Baul_Multi_Seleccion
           )
@@ -22687,6 +22735,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Tarea_Seleccionada_Id = Snap.Tarea_Seleccionada_Id;
         Meta_Seleccion_Id = Snap.Meta_Seleccion_Id || null;
         Baul_Seleccion_Id = Snap.Baul_Seleccion_Id || null;
+        if (Snap.Baul_Grupos_Colapsados &&
+            typeof Snap.Baul_Grupos_Colapsados === "object") {
+          Baul_Grupos_Colapsados = Snap.Baul_Grupos_Colapsados;
+        } else {
+          Baul_Grupos_Colapsados = {};
+        }
         Baul_Multi_Seleccion = new Set(
           Array.isArray(Snap.Baul_Multi_Seleccion)
             ? Snap.Baul_Multi_Seleccion
@@ -29077,6 +29131,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Categorias,
           Etiquetas,
           Baul_Tareas,
+          Baul_Grupos_Colapsados,
           Archiveros,
           Notas_Archivero,
           Patrones,
@@ -29382,6 +29437,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (Array.isArray(Estado.Baul_Tareas)) {
             Baul_Tareas = Estado.Baul_Tareas;
+          }
+          if (
+            Estado.Baul_Grupos_Colapsados &&
+            typeof Estado.Baul_Grupos_Colapsados === "object"
+          ) {
+            Baul_Grupos_Colapsados =
+              Estado.Baul_Grupos_Colapsados;
+          } else {
+            Baul_Grupos_Colapsados = {};
           }
           if (Array.isArray(Estado.Archiveros)) {
             Archiveros = Estado.Archiveros;
