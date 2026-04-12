@@ -38947,6 +38947,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El.textContent = Texto;
       }
 
+      function Mostrar_Recovery_Mensaje(
+        Texto, Tipo = "Error"
+      ) {
+        const El = document.getElementById(
+          "Auth_Recovery_Msg"
+        );
+        if (!El) return;
+        if (!Texto) {
+          El.classList.remove("Activo", "Error", "Exito");
+          El.textContent = "";
+          return;
+        }
+        El.classList.add("Activo");
+        El.classList.toggle("Error", Tipo === "Error");
+        El.classList.toggle("Exito", Tipo === "Exito");
+        El.textContent = Texto;
+      }
+
       async function Auth_Manejar_Submit(Ev) {
         Ev.preventDefault();
         const Email = document.getElementById(
@@ -39525,18 +39543,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Pass_Confirm = document.getElementById(
               "Auth_Recovery_Pass_Confirm"
             ).value;
-            const Msg = document.getElementById(
-              "Auth_Recovery_Msg"
-            );
             const Btn = document.getElementById(
               "Auth_Recovery_Btn"
             );
 
+            Mostrar_Recovery_Mensaje("");
+
             if (Pass !== Pass_Confirm) {
-              Msg.textContent =
-                t("auth.err_password_no_coincide");
-              Msg.className =
-                "Auth_Mensaje Error";
+              Mostrar_Recovery_Mensaje(
+                t("auth.err_password_no_coincide")
+              );
               return;
             }
 
@@ -39552,12 +39568,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   password: Pass,
                 });
               if (error) {
-                Msg.textContent =
+                Mostrar_Recovery_Mensaje(
                   Traducir_Error_Auth(
                     error.message
-                  );
-                Msg.className =
-                  "Auth_Mensaje Error";
+                  )
+                );
                 if (Btn) {
                   Btn.disabled = false;
                   Btn.textContent =
@@ -39565,10 +39580,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 }
                 return;
               }
-              Msg.textContent =
-                t("auth.password_actualizada");
-              Msg.className =
-                "Auth_Mensaje Exito";
+              Mostrar_Recovery_Mensaje(
+                t("auth.password_actualizada"),
+                "Exito"
+              );
 
               // Redirigir a la app después
               // de 1.5 segundos.
@@ -39590,12 +39605,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 }
               }, 1500);
             } catch (E) {
-              Msg.textContent =
+              Mostrar_Recovery_Mensaje(
                 t("auth.err_generico", {
                   Msg: E.message
-                });
-              Msg.className =
-                "Auth_Mensaje Error";
+                })
+              );
               if (Btn) {
                 Btn.disabled = false;
                 Btn.textContent =
@@ -39701,6 +39715,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ".Idioma_Btn, .Idioma_Btn_Mini"
       ).forEach(function(B) {
         B.addEventListener("click", function() {
+          document.querySelectorAll(
+            ".Idioma_Btn, .Idioma_Btn_Mini"
+          ).forEach(function(Otro) {
+            Otro.classList.toggle(
+              "Activo",
+              Otro.dataset.lang === B.dataset.lang
+            );
+          });
           Cambiar_Idioma(B.dataset.lang);
           Marcar_Idioma_Activo();
           // Si estamos en el auth, re-render.
