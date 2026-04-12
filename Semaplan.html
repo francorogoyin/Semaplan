@@ -30431,14 +30431,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       // ----- UI de autenticación -----
 
-      let Auth_Modo = "Login"; // "Login" o "Registro"
+      // "Login", "Registro" o "Olvide".
+      let Auth_Modo = "Login";
 
       function Mostrar_Auth() {
         document.getElementById("App_Loader")
           .classList.add("Oculto");
         document.getElementById("Auth_Overlay")
           .classList.add("Activo");
-        document.getElementById("Auth_Email").focus();
+        document.getElementById(
+          "Auth_Email"
+        ).focus();
       }
 
       function Ocultar_Auth() {
@@ -30447,26 +30450,70 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Configurar_Auth_UI() {
-        const Tit = document.getElementById("Auth_Titulo");
-        const Sub = document.getElementById("Auth_Subtitulo");
-        const Btn = document.getElementById("Auth_Btn_Submit");
-        const Tx = document.getElementById("Auth_Cambiar_Texto");
-        const Lk = document.getElementById("Auth_Cambiar_Link");
-        const Pw = document.getElementById("Auth_Password");
+        const Tit = document.getElementById(
+          "Auth_Titulo"
+        );
+        const Sub = document.getElementById(
+          "Auth_Subtitulo"
+        );
+        const Btn = document.getElementById(
+          "Auth_Btn_Submit"
+        );
+        const Tx = document.getElementById(
+          "Auth_Cambiar_Texto"
+        );
+        const Lk = document.getElementById(
+          "Auth_Cambiar_Link"
+        );
+        const Pw = document.getElementById(
+          "Auth_Password"
+        );
+        const Olvide = document.getElementById(
+          "Auth_Olvide"
+        );
+
         if (Auth_Modo === "Login") {
           Tit.textContent = "Semaplan";
-          Sub.textContent = "Iniciá sesión para continuar";
+          Sub.textContent =
+            "Iniciá sesión para continuar";
           Btn.textContent = "Iniciar sesión";
           Tx.textContent = "¿No tenés cuenta?";
           Lk.textContent = "Crear cuenta";
-          Pw.setAttribute("autocomplete", "current-password");
-        } else {
+          Pw.parentElement.style.display = "";
+          Pw.setAttribute(
+            "autocomplete",
+            "current-password"
+          );
+          Pw.required = true;
+          Olvide.parentElement.style.display =
+            "";
+        } else if (Auth_Modo === "Registro") {
           Tit.textContent = "Crear cuenta";
-          Sub.textContent = "Empezá a usar Semaplan gratis";
+          Sub.textContent =
+            "Empezá a usar Semaplan gratis";
           Btn.textContent = "Crear cuenta";
           Tx.textContent = "¿Ya tenés cuenta?";
           Lk.textContent = "Iniciar sesión";
-          Pw.setAttribute("autocomplete", "new-password");
+          Pw.parentElement.style.display = "";
+          Pw.setAttribute(
+            "autocomplete",
+            "new-password"
+          );
+          Pw.required = true;
+          Olvide.parentElement.style.display =
+            "";
+        } else if (Auth_Modo === "Olvide") {
+          Tit.textContent = "Recuperar cuenta";
+          Sub.textContent =
+            "Te enviaremos un link por email";
+          Btn.textContent =
+            "Enviar link de recuperación";
+          Tx.textContent = "";
+          Lk.textContent = "Volver al login";
+          Pw.parentElement.style.display = "none";
+          Pw.required = false;
+          Olvide.parentElement.style.display =
+            "none";
         }
         Mostrar_Auth_Mensaje("");
       }
@@ -30487,23 +30534,65 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Auth_Manejar_Submit(Ev) {
         Ev.preventDefault();
-        const Email = document.getElementById("Auth_Email")
-          .value.trim();
-        const Pass = document.getElementById("Auth_Password")
-          .value;
-        const Btn = document.getElementById("Auth_Btn_Submit");
-        if (!Email || !Pass) return;
+        const Email = document.getElementById(
+          "Auth_Email"
+        ).value.trim();
+        const Pass = document.getElementById(
+          "Auth_Password"
+        ).value;
+        const Btn = document.getElementById(
+          "Auth_Btn_Submit"
+        );
+        if (!Email) return;
+        if (Auth_Modo !== "Olvide" && !Pass) {
+          return;
+        }
         Btn.disabled = true;
         Mostrar_Auth_Mensaje("");
+
+        // Modo "Olvidé mi contraseña": solo
+        // enviar el email de recovery.
+        if (Auth_Modo === "Olvide") {
+          try {
+            const { error } =
+              await Supa.auth
+                .resetPasswordForEmail(Email);
+            if (error) {
+              Mostrar_Auth_Mensaje(
+                Traducir_Error_Auth(
+                  error.message
+                )
+              );
+            } else {
+              Mostrar_Auth_Mensaje(
+                "Te enviamos un link " +
+                  "a tu email.",
+                "Exito"
+              );
+            }
+          } catch (E) {
+            Mostrar_Auth_Mensaje(
+              "Error: " + E.message
+            );
+          }
+          Btn.disabled = false;
+          return;
+        }
 
         try {
           let Resultado;
           if (Auth_Modo === "Login") {
             Resultado = await Supa.auth
-              .signInWithPassword({ email: Email, password: Pass });
+              .signInWithPassword({
+                email: Email,
+                password: Pass,
+              });
           } else {
             Resultado = await Supa.auth
-              .signUp({ email: Email, password: Pass });
+              .signUp({
+                email: Email,
+                password: Pass,
+              });
           }
 
           if (Resultado.error) {
@@ -31020,14 +31109,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Listener del formulario de auth.
         document.getElementById("Auth_Form")
           .addEventListener("submit", Auth_Manejar_Submit);
-        document.getElementById("Auth_Cambiar_Link")
-          .addEventListener("click", () => {
-            Auth_Modo = Auth_Modo === "Login"
-              ? "Registro" : "Login";
+        document.getElementById(
+          "Auth_Cambiar_Link"
+        ).addEventListener("click", () => {
+            if (Auth_Modo === "Olvide") {
+              Auth_Modo = "Login";
+            } else {
+              Auth_Modo =
+                Auth_Modo === "Login"
+                  ? "Registro"
+                  : "Login";
+            }
             Configurar_Auth_UI();
           });
         document.getElementById("Auth_Olvide")
-          .addEventListener("click", Auth_Olvide_Password);
+          .addEventListener("click", () => {
+            Auth_Modo = "Olvide";
+            Configurar_Auth_UI();
+          });
         Configurar_Auth_UI();
 
         // Listeners de cerrar sesión (Config + barra superior).
