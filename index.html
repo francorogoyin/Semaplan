@@ -24242,16 +24242,86 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               "estado-suscripcion",
               { method: "GET" }
             );
-          if (error || !data) return;
+          if (!error && data) {
+            Suscripcion_Remota =
+              data.Es_Premium === true;
+            Suscripcion_Detalle_Remota =
+              data.Suscripcion || null;
+            Suscripcion_Historial_Remoto =
+              Array.isArray(data.Historial)
+                ? data.Historial
+                : [];
+            Config.Plan_Actual =
+              Suscripcion_Remota
+                ? "Upgrade"
+                : "Free";
+            Actualizar_UI_Plan();
+          }
 
-          Suscripcion_Remota =
-            data.Es_Premium === true;
+          const Necesita_Fallback =
+            error ||
+            !data ||
+            (
+              !Suscripcion_Detalle_Remota &&
+              !Suscripcion_Historial_Remoto.length
+            );
+
+          if (!Necesita_Fallback) {
+            return;
+          }
+
+          const {
+            data: Suscripcion_Db,
+            error: Error_Suscripcion_Db,
+          } = await Supa
+            .from("suscripciones")
+            .select(
+              "estado, monto, moneda, " +
+                "payer_email, " +
+                "mp_preapproval_id, " +
+                "fecha_creacion, " +
+                "fecha_actualizacion"
+            )
+            .eq("usuario_id", Usuario_Actual.id)
+            .order("fecha_creacion", {
+              ascending: false,
+            })
+            .limit(1)
+            .maybeSingle();
+
+          const {
+            data: Historial_Db,
+            error: Error_Historial_Db,
+          } = await Supa
+            .from("suscripciones_historial")
+            .select(
+              "estado, monto, moneda, " +
+                "payer_email, " +
+                "mp_preapproval_id, " +
+                "fecha_evento"
+            )
+            .eq("usuario_id", Usuario_Actual.id)
+            .order("fecha_evento", {
+              ascending: false,
+            })
+            .limit(12);
+
+          if (Error_Suscripcion_Db) {
+            throw Error_Suscripcion_Db;
+          }
+          if (Error_Historial_Db) {
+            throw Error_Historial_Db;
+          }
+
           Suscripcion_Detalle_Remota =
-            data.Suscripcion || null;
+            Suscripcion_Db || null;
           Suscripcion_Historial_Remoto =
-            Array.isArray(data.Historial)
-              ? data.Historial
+            Array.isArray(Historial_Db)
+              ? Historial_Db
               : [];
+          Suscripcion_Remota =
+            Suscripcion_Detalle_Remota?.estado ===
+            "authorized";
           Config.Plan_Actual =
             Suscripcion_Remota
               ? "Upgrade"
