@@ -88,7 +88,9 @@ Deno.serve(async (Req) => {
         .select(
           "estado, monto, moneda, " +
             "mp_preapproval_id, " +
-            "fecha_creacion"
+            "payer_email, " +
+            "fecha_creacion, " +
+            "fecha_actualizacion"
         )
         .eq("usuario_id", Usuario.id)
         .order("fecha_creacion", {
@@ -113,6 +115,42 @@ Deno.serve(async (Req) => {
       );
     }
 
+    const {
+      data: Historial,
+      error: Error_Historial,
+    } = await Supa_Usuario
+      .from("suscripciones_historial")
+      .select(
+        "estado, monto, moneda, " +
+          "payer_email, " +
+          "mp_preapproval_id, " +
+          "fecha_evento"
+      )
+      .eq("usuario_id", Usuario.id)
+      .order("fecha_evento", {
+        ascending: false,
+      })
+      .limit(12);
+
+    if (Error_Historial) {
+      console.error(
+        "Error historial:",
+        Error_Historial
+      );
+      return new Response(
+        JSON.stringify({
+          Error: "Error consultando historial",
+        }),
+        {
+          status: 500,
+          headers: {
+            ...Cors_Headers,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
     const Es_Premium =
       Suscripcion?.estado === "authorized";
 
@@ -121,6 +159,7 @@ Deno.serve(async (Req) => {
         Es_Premium,
         Estado: Suscripcion?.estado || null,
         Suscripcion: Suscripcion || null,
+        Historial: Historial || [],
       }),
       {
         status: 200,

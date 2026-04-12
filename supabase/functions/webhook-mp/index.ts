@@ -1,9 +1,3 @@
-// Edge Function: Webhook de Mercado Pago.
-// MP envía un POST con { type, data: { id } }
-// cuando cambia el estado de una suscripción.
-// Esta función consulta el estado actual a la
-// API de MP y actualiza la tabla suscripciones.
-
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const Cors_Headers = {
@@ -23,13 +17,6 @@ Deno.serve(async (Req) => {
 
   try {
     const Body = await Req.json();
-    console.log(
-      "Webhook recibido:",
-      JSON.stringify(Body)
-    );
-
-    // Solo procesar notificaciones de
-    // suscripciones (preapproval).
     if (
       Body.type !== "subscription_preapproval"
     ) {
@@ -64,9 +51,6 @@ Deno.serve(async (Req) => {
     const Mp_Access_Token = Deno.env.get(
       "MP_ACCESS_TOKEN"
     )!;
-
-    // Consultar el estado actual de la
-    // suscripción en MP.
     const Mp_Response = await fetch(
       "https://api.mercadopago.com" +
         `/preapproval/${Mp_Id}`,
@@ -79,10 +63,6 @@ Deno.serve(async (Req) => {
     );
 
     if (!Mp_Response.ok) {
-      console.error(
-        "Error consultando MP:",
-        Mp_Response.status
-      );
       return new Response(
         JSON.stringify({
           Error: "Error consultando MP",
@@ -100,12 +80,25 @@ Deno.serve(async (Req) => {
     const Mp_Data = await Mp_Response.json();
     const Estado = Mp_Data.status;
     const Payer_Email = Mp_Data.payer_email;
-
-    console.log(
-      `Suscripción ${Mp_Id}: ` +
-        `estado=${Estado}, ` +
-        `email=${Payer_Email}`
-    );
+    const External_Reference = String(
+      Mp_Data.external_reference || ""
+    ).trim() || null;
+    const Mp_Plan_Id =
+      Mp_Data.preapproval_plan_id || null;
+    const Registro_Base = {
+      mp_preapproval_id: Mp_Id,
+      mp_plan_id: Mp_Plan_Id,
+      external_reference: External_Reference,
+      estado: Estado,
+      payer_email: Payer_Email,
+      monto:
+        Mp_Data.auto_recurring
+          ?.transaction_amount || null,
+      moneda:
+        Mp_Data.auto_recurring?.currency_id ||
+        "ARS",
+      detalle: Mp_Data,
+    };
 
     const Supa_Admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -114,60 +107,41 @@ Deno.serve(async (Req) => {
       )!
     );
 
-    // Buscar al usuario por su email en la
-    // tabla suscripciones (lo registramos al
-    // iniciar el checkout).
-    const { data: Suscripcion_Existente } =
-      await Supa_Admin
-        .from("suscripciones")
-        .select("usuario_id")
-        .eq("payer_email", Payer_Email)
-        .limit(1)
-        .maybeSingle();
+    let Usuario_Id = External_Reference;
 
-    if (Suscripcion_Existente) {
-      // Actualizar la suscripción existente
-      // con el ID de MP y el nuevo estado.
-      await Supa_Admin
-        .from("suscripciones")
-        .update({
-          mp_preapproval_id: Mp_Id,
-          estado: Estado,
-        })
-        .eq(
-          "usuario_id",
-          Suscripcion_Existente.usuario_id
-        );
-
-      console.log(
-        "Suscripción actualizada para " +
-          Suscripcion_Existente.usuario_id
-      );
-    } else {
-      // No encontramos al usuario por email.
-      // Guardar la suscripción igual para que
-      // se pueda vincular después.
-      await Supa_Admin
-        .from("suscripciones")
-        .insert({
-          mp_preapproval_id: Mp_Id,
-          estado: Estado,
-          payer_email: Payer_Email,
-          monto:
-            Mp_Data.auto_recurring
-              ?.transaction_amount,
-          moneda:
-            Mp_Data.auto_recurring
-              ?.currency_id || "ARS",
-        });
-
-      console.log(
-        "Suscripción nueva sin usuario: " +
-          Payer_Email
-      );
+    if (!Usuario_Id && Payer_Email) {
+      const { data: Suscripcion_Existente } =
+        await Supa_Admin
+          .from("suscripciones")
+          .select("usuario_id")
+          .eq("payer_email", Payer_Email)
+          .limit(1)
+          .maybeSingle();
+      Usuario_Id =
+        Suscripcion_Existente?.usuario_id || null;
     }
 
-    // Siempre devolver 200.
+    if (Usuario_Id) {
+      await Supa_Admin
+        .from("suscripciones")
+        .upsert(
+          {
+            usuario_id: Usuario_Id,
+            ...Registro_Base,
+          },
+          {
+            onConflict: "usuario_id",
+          }
+        );
+    }
+
+    await Supa_Admin
+      .from("suscripciones_historial")
+      .insert({
+        usuario_id: Usuario_Id,
+        ...Registro_Base,
+      });
+
     return new Response(
       JSON.stringify({ Ok: true }),
       {
@@ -178,11 +152,7 @@ Deno.serve(async (Req) => {
         },
       }
     );
-  } catch (Error_General) {
-    console.error(
-      "Webhook error:",
-      Error_General
-    );
+  } catch (_) {
     return new Response(
       JSON.stringify({ Ok: true }),
       {

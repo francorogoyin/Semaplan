@@ -3935,6 +3935,78 @@
         margin: 14px 0 12px;
       }
 
+      .Cfg_Pagos_Historial {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .Cfg_Pagos_Vacio {
+        font-size: 12px;
+        color: var(--Texto_Suave);
+        padding: 10px 12px;
+        border: 1px dashed var(--Borde);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.55);
+      }
+
+      .Cfg_Pago_Item {
+        border: 1px solid var(--Borde);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.78);
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .Cfg_Pago_Top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .Cfg_Pago_Estado {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(0,0,0,0.06);
+        color: var(--Texto);
+      }
+
+      .Cfg_Pago_Estado.Authorized {
+        background: rgba(31,107,79,0.14);
+        color: #1f6b4f;
+      }
+
+      .Cfg_Pago_Estado.Pending {
+        background: rgba(170,120,20,0.14);
+        color: #9a6a14;
+      }
+
+      .Cfg_Pago_Estado.Cancelled {
+        background: rgba(140,47,47,0.14);
+        color: #8c2f2f;
+      }
+
+      .Cfg_Pago_Monto {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--Texto);
+      }
+
+      .Cfg_Pago_Meta {
+        font-size: 12px;
+        color: var(--Texto_Suave);
+        line-height: 1.45;
+      }
+
       .Config_Dato_Nota {
         font-size: 11px;
         line-height: 1.5;
@@ -8902,6 +8974,15 @@
                 </div>
               </div>
 
+              <div class="Cfg_Cuenta_Campo">
+                <span class="Cfg_Cuenta_Etiqueta"
+                  data-i18n="config.historial_pagos">
+                  Historial de pagos
+                </span>
+                <div class="Cfg_Pagos_Historial"
+                  id="Cfg_Pagos_Historial"></div>
+              </div>
+
               <div class="Cfg_Cuenta_Separador"></div>
 
               <div class="Config_Dato_Acciones">
@@ -11154,6 +11235,26 @@
           "config.free_plan": "🌱 Free",
           "config.premium_plan":
             "⭐ Premium",
+          "config.historial_pagos":
+            "Historial de pagos",
+          "config.sin_pagos":
+            "Todavía no hay pagos registrados.",
+          "config.pago_email_cuenta":
+            "Cuenta Semaplan",
+          "config.pago_email_mp":
+            "Mercado Pago",
+          "config.pago_sin_email":
+            "sin email",
+          "config.pago_estado_authorized":
+            "Aprobado",
+          "config.pago_estado_pending":
+            "Pendiente",
+          "config.pago_estado_cancelled":
+            "Cancelado",
+          "config.pago_estado_paused":
+            "Pausado",
+          "config.pago_estado_unknown":
+            "Sin estado",
           "config.ver_planes": "Ver planes",
           "config.contrasena": "Contraseña",
           "config.cambiar_password":
@@ -13003,6 +13104,26 @@
           "config.free_plan": "🌱 Free",
           "config.premium_plan":
             "⭐ Premium",
+          "config.historial_pagos":
+            "Payment history",
+          "config.sin_pagos":
+            "There are no recorded payments yet.",
+          "config.pago_email_cuenta":
+            "Semaplan account",
+          "config.pago_email_mp":
+            "Mercado Pago",
+          "config.pago_sin_email":
+            "no email",
+          "config.pago_estado_authorized":
+            "Approved",
+          "config.pago_estado_pending":
+            "Pending",
+          "config.pago_estado_cancelled":
+            "Cancelled",
+          "config.pago_estado_paused":
+            "Paused",
+          "config.pago_estado_unknown":
+            "No status",
           "config.ver_planes": "View plans",
           "config.contrasena": "Password",
           "config.cambiar_password":
@@ -14846,6 +14967,26 @@
           "config.free_plan": "🌱 Free",
           "config.premium_plan":
             "⭐ Premium",
+          "config.historial_pagos":
+            "Histórico de pagamentos",
+          "config.sin_pagos":
+            "Ainda não há pagamentos registrados.",
+          "config.pago_email_cuenta":
+            "Conta Semaplan",
+          "config.pago_email_mp":
+            "Mercado Pago",
+          "config.pago_sin_email":
+            "sem email",
+          "config.pago_estado_authorized":
+            "Aprovado",
+          "config.pago_estado_pending":
+            "Pendente",
+          "config.pago_estado_cancelled":
+            "Cancelado",
+          "config.pago_estado_paused":
+            "Pausado",
+          "config.pago_estado_unknown":
+            "Sem status",
           "config.ver_planes": "Ver planos",
           "config.contrasena": "Senha",
           "config.cambiar_password":
@@ -23779,6 +23920,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // Se actualiza al iniciar la app y al volver
       // del checkout de Mercado Pago.
       let Suscripcion_Remota = null;
+      let Suscripcion_Detalle_Remota = null;
+      let Suscripcion_Historial_Remoto = [];
 
       function Normalizar_Plan_Actual(Plan) {
         return Plan === "Upgrade"
@@ -23811,6 +23954,175 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Normalizar_Plan_Actual(
           Config.Plan_Actual
         ) === "Upgrade";
+      }
+
+      function Obtener_Locale_Actual() {
+        if (Idioma_Actual === "en") {
+          return "en-US";
+        }
+        if (Idioma_Actual === "pt") {
+          return "pt-BR";
+        }
+        return "es-AR";
+      }
+
+      function Formatear_Monto_Pago(
+        Monto,
+        Moneda = "ARS"
+      ) {
+        const Numero = Number(Monto);
+        if (!isFinite(Numero)) {
+          return "—";
+        }
+        try {
+          return new Intl.NumberFormat(
+            Obtener_Locale_Actual(),
+            {
+              style: "currency",
+              currency: Moneda || "ARS",
+              maximumFractionDigits: 2,
+            }
+          ).format(Numero);
+        } catch (_) {
+          return `${Moneda || ""} ${Numero.toFixed(2)}`;
+        }
+      }
+
+      function Formatear_Fecha_Pago(Valor) {
+        if (!Valor) return "—";
+        const Fecha = new Date(Valor);
+        if (isNaN(Fecha.getTime())) {
+          return "—";
+        }
+        return Fecha.toLocaleString(
+          Obtener_Locale_Actual(),
+          {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }
+        );
+      }
+
+      function Traducir_Estado_Suscripcion(
+        Estado
+      ) {
+        const Key = String(
+          Estado || "unknown"
+        ).toLowerCase();
+        if (Key === "authorized") {
+          return t("config.pago_estado_authorized");
+        }
+        if (Key === "pending") {
+          return t("config.pago_estado_pending");
+        }
+        if (Key === "cancelled") {
+          return t("config.pago_estado_cancelled");
+        }
+        if (Key === "paused") {
+          return t("config.pago_estado_paused");
+        }
+        return t("config.pago_estado_unknown");
+      }
+
+      function Clase_Estado_Suscripcion(
+        Estado
+      ) {
+        const Key = String(
+          Estado || ""
+        ).toLowerCase();
+        if (Key === "authorized") {
+          return "Authorized";
+        }
+        if (Key === "pending") {
+          return "Pending";
+        }
+        if (Key === "cancelled") {
+          return "Cancelled";
+        }
+        return "";
+      }
+
+      function Renderizar_Historial_Pagos_Cuenta() {
+        const El = document.getElementById(
+          "Cfg_Pagos_Historial"
+        );
+        if (!El) return;
+        El.innerHTML = "";
+
+        const Historial = Array.isArray(
+          Suscripcion_Historial_Remoto
+        )
+          ? Suscripcion_Historial_Remoto
+          : [];
+        const Items = Historial.length
+          ? Historial
+          : Suscripcion_Detalle_Remota
+            ? [Suscripcion_Detalle_Remota]
+            : [];
+
+        if (!Items.length) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Cfg_Pagos_Vacio";
+          Vacio.textContent = t("config.sin_pagos");
+          El.appendChild(Vacio);
+          return;
+        }
+
+        Items.forEach((Pago) => {
+          const Item = document.createElement("div");
+          Item.className = "Cfg_Pago_Item";
+
+          const Top = document.createElement("div");
+          Top.className = "Cfg_Pago_Top";
+
+          const Estado = document.createElement("span");
+          Estado.className =
+            "Cfg_Pago_Estado " +
+            Clase_Estado_Suscripcion(Pago.estado);
+          Estado.textContent =
+            Traducir_Estado_Suscripcion(Pago.estado);
+
+          const Monto = document.createElement("span");
+          Monto.className = "Cfg_Pago_Monto";
+          Monto.textContent = Formatear_Monto_Pago(
+            Pago.monto,
+            Pago.moneda || "ARS"
+          );
+
+          Top.appendChild(Estado);
+          Top.appendChild(Monto);
+          Item.appendChild(Top);
+
+          const Fecha = document.createElement("div");
+          Fecha.className = "Cfg_Pago_Meta";
+          Fecha.textContent = Formatear_Fecha_Pago(
+            Pago.fecha_evento ||
+            Pago.fecha_actualizacion ||
+            Pago.fecha_creacion
+          );
+          Item.appendChild(Fecha);
+
+          const Email_Mp = document.createElement("div");
+          Email_Mp.className = "Cfg_Pago_Meta";
+          Email_Mp.textContent =
+            `${t("config.pago_email_mp")}: ` +
+            `${Pago.payer_email || t("config.pago_sin_email")}`;
+          Item.appendChild(Email_Mp);
+
+          if (Usuario_Actual?.email) {
+            const Email_Cuenta = document.createElement("div");
+            Email_Cuenta.className = "Cfg_Pago_Meta";
+            Email_Cuenta.textContent =
+              `${t("config.pago_email_cuenta")}: ` +
+              `${Usuario_Actual.email}`;
+            Item.appendChild(Email_Cuenta);
+          }
+
+          El.appendChild(Item);
+        });
       }
 
       function Validar_Acceso_Premium(
@@ -23934,6 +24246,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           Suscripcion_Remota =
             data.Es_Premium === true;
+          Suscripcion_Detalle_Remota =
+            data.Suscripcion || null;
+          Suscripcion_Historial_Remoto =
+            Array.isArray(data.Historial)
+              ? data.Historial
+              : [];
           Config.Plan_Actual =
             Suscripcion_Remota
               ? "Upgrade"
@@ -39425,6 +39743,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             El_Desde.textContent = "—";
           }
         }
+        Renderizar_Historial_Pagos_Cuenta();
       }
 
       async function Cuenta_Cambiar_Mail() {
