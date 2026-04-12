@@ -10659,6 +10659,19 @@
       //  SISTEMA DE IDIOMAS (i18n)
       // ================================================
 
+      const Query_Inicial =
+        new URLSearchParams(window.location.search);
+      const Idioma_Url_Inicial =
+        Query_Inicial.get("lang");
+      if (
+        Idioma_Url_Inicial &&
+        ["es", "en", "pt"].includes(Idioma_Url_Inicial)
+      ) {
+        localStorage.setItem(
+          "Semaplan_Idioma",
+          Idioma_Url_Inicial
+        );
+      }
       let Idioma_Actual = localStorage.getItem(
         "Semaplan_Idioma"
       ) || "es";
@@ -38630,6 +38643,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       const Hash_Inicial = window.location.hash;
       const Es_Recovery_Redirect =
         Hash_Inicial.includes("type=recovery");
+      const Clave_Recovery_Activa =
+        "Semaplan_Recovery_Activa";
 
       // Cliente de Supabase (se inicializa al cargar la página).
       let Supa = null;
@@ -38978,11 +38993,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Obtener_Url_Redirect_Recovery() {
-        return (
+        const Url = new URL(
           window.location.origin +
           window.location.pathname +
           window.location.search
         );
+        Url.searchParams.set("lang", Idioma_Actual);
+        return Url.toString();
+      }
+
+      function Marcar_Recovery_Activa() {
+        sessionStorage.setItem(
+          Clave_Recovery_Activa, "1"
+        );
+      }
+
+      function Limpiar_Recovery_Activa() {
+        sessionStorage.removeItem(
+          Clave_Recovery_Activa
+        );
+      }
+
+      function Recovery_Esta_Activa() {
+        return sessionStorage.getItem(
+          Clave_Recovery_Activa
+        ) === "1";
       }
 
       function Mostrar_Auth_Mensaje(Texto, Tipo = "Error") {
@@ -39553,6 +39588,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Mostrar_Recovery() {
         // Oculta el panel de login y muestra
         // el formulario de nueva contraseña.
+        Marcar_Recovery_Activa();
         Aplicar_Traducciones();
         Configurar_Recovery_UI();
         Marcar_Idioma_Activo();
@@ -39641,6 +39677,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               // Redirigir a la app después
               // de 1.5 segundos.
               setTimeout(async () => {
+                Limpiar_Recovery_Activa();
                 document.getElementById(
                   "Auth_Recovery_Panel"
                 ).style.display = "none";
@@ -39731,6 +39768,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Es_Recovery_Redirect) {
           // Esperar a que Supabase procese el
           // token del hash y cree la sesión.
+          Marcar_Recovery_Activa();
           await new Promise((R) =>
             setTimeout(R, 500)
           );
@@ -39741,6 +39779,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Verificar si hay sesión activa.
         const { data: { session } } =
           await Supa.auth.getSession();
+        if (Recovery_Esta_Activa()) {
+          if (session && session.user) {
+            Mostrar_Recovery();
+            return;
+          }
+          Limpiar_Recovery_Activa();
+        }
         if (session && session.user) {
           Usuario_Actual = session.user;
           await Iniciar_App_Logueada();
