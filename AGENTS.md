@@ -1,5 +1,11 @@
 # Semaplan — AGENTS.md
 
+## Dominio y hosting
+
+El dominio de producción es **semaplan.com** (registrado en
+Namecheap). El sitio se sirve desde GitHub Pages:
+`https://francorogoyin.github.io/Semaplan`
+
 ## Estructura del proyecto
 
 Aplicación de planificación semanal en un único archivo HTML autocontenido

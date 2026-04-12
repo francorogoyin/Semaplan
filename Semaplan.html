@@ -24395,6 +24395,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Bloque = document.createElement("div");
           Bloque.className = "Evento";
           if (Evento.Hecho) Bloque.classList.add("Evento_Hecho");
+          if (Evento.Anulada) Bloque.classList.add("Evento_Anulado");
           Bloque.draggable = true;
           Bloque.dataset.id = Evento.Id;
           Bloque.dataset.duracion = Evento.Duracion.toString();
@@ -24423,6 +24424,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ? Obtener_Hitos_Cruzados_Por_Evento(Evento)
               : [];
             Evento.Hecho = !Evento.Hecho;
+            if (Evento.Hecho) Evento.Anulada = false;
             Render_Emojis();
             Render_Resumen_Tarea();
             Render_Editor();
@@ -27946,6 +27948,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Evento.Hecho) {
             Color_Tinte = "#1f6b4f";
             Opacidad_Tinte = 0.3;
+          } else if (Evento.Anulada) {
+            Color_Tinte = "#c44";
+            Opacidad_Tinte = 0.3;
           } else if (Bloque.Estado === "Vencido") {
             Color_Tinte = "#c44";
             Opacidad_Tinte = 0.32;
@@ -28333,6 +28338,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ? Obtener_Hitos_Cruzados_Por_Evento(Ev_Bloque)
               : [];
             Ev_Bloque.Hecho = !Ev_Bloque.Hecho;
+            // Mutuamente excluyente con Anulada.
+            if (Ev_Bloque.Hecho)
+              Ev_Bloque.Anulada = false;
             Guardar_Estado();
             Render_Emojis();
             Render_Resumen_Tarea();
@@ -28344,6 +28352,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           });
           Acc.appendChild(Btn_Hecho);
+
+          // Botón ! para anular el bloque. Solo visible
+          // en bloques pasados o vencidos. Marca el bloque
+          // como cerrado (anulado) y para el contador.
+          // Mutuamente excluyente con Hecho.
+          const Es_Pasado =
+            Bloque.Estado === "Pasado" ||
+            Bloque.Estado === "Vencido";
+          if (Es_Pasado || Bloque.Evento.Anulada) {
+            const Btn_Anulada =
+              document.createElement("button");
+            Btn_Anulada.type = "button";
+            Btn_Anulada.className =
+              "Focus_Nav_Btn Focus_Nav_Anulada" +
+              (Bloque.Evento.Anulada
+                ? " Activo" : "");
+            Btn_Anulada.title =
+              Bloque.Evento.Anulada
+                ? "Bloque marcado como anulado"
+                : "Marcar bloque como anulado";
+            Btn_Anulada.textContent = "!";
+            Btn_Anulada.addEventListener("click", () => {
+              const Ev_Bloque = Bloque.Evento;
+              Ev_Bloque.Anulada =
+                !Ev_Bloque.Anulada;
+              if (Ev_Bloque.Anulada)
+                Ev_Bloque.Hecho = false;
+              Guardar_Estado();
+              Render_Emojis();
+              Render_Resumen_Tarea();
+              Render_Editor();
+              Render_Eventos();
+              Render_Focus_Mode();
+            });
+            Acc.appendChild(Btn_Anulada);
+          }
         }
 
         // Botón ⋯ con opciones del bloque (repetir, limpiar,
@@ -29207,6 +29251,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Numero.title =
               `Bloque del ${Inicio_HM} a ${Fin_HM}`;
             Etiqueta.textContent = "Hecho";
+          } else if (Evento.Anulada) {
+            Numero.textContent = "—";
+            Numero.title =
+              `Bloque anulado · ${Inicio_HM} a ${Fin_HM}`;
+            Etiqueta.textContent = "Anulado";
           } else {
             const Fecha_Inicio = Parsear_Fecha_ISO(Evento.Fecha);
             if (Fecha_Inicio) {
