@@ -30250,6 +30250,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         "cCI6MjA5MTE1NDExNH0" +
         ".lKLesAkMG4zUzaD6urbNDnmcC3vOL7VNeTGDwoTaDTI";
 
+      // Capturar el hash de la URL antes de que
+      // el SDK de Supabase lo consuma al
+      // inicializarse. Se usa para detectar
+      // redirects de recovery.
+      const Hash_Inicial = window.location.hash;
+      const Es_Recovery_Redirect =
+        Hash_Inicial.includes("type=recovery");
+
       // Cliente de Supabase (se inicializa al cargar la página).
       let Supa = null;
       // Usuario actualmente logueado (objeto de Supabase).
@@ -31186,12 +31194,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Btn_Logout.addEventListener("click", Cerrar_Sesion);
         }
 
-        // Verificar si es un redirect de recovery
-        // (la URL tiene type=recovery en el hash).
-        const Hash_Params = new URLSearchParams(
-          window.location.hash.substring(1)
-        );
-        if (Hash_Params.get("type") === "recovery") {
+        // Si es un redirect de recovery (el hash
+        // original tenía type=recovery), mostrar
+        // el formulario de nueva contraseña.
+        if (Es_Recovery_Redirect) {
+          // Esperar a que Supabase procese el
+          // token del hash y cree la sesión.
+          await new Promise((R) =>
+            setTimeout(R, 500)
+          );
           Mostrar_Recovery();
           return;
         }
