@@ -87,6 +87,7 @@ Deno.serve(async (Req) => {
         .from("suscripciones")
         .select(
           "estado, monto, moneda, " +
+            "detalle, " +
             "mp_preapproval_id, " +
             "payer_email, " +
             "fecha_creacion, " +

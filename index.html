@@ -3935,6 +3935,65 @@
         margin: 14px 0 12px;
       }
 
+      .Cfg_Suscripcion_Aviso {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border: 1px solid rgba(190, 178, 160, 0.9);
+        border-radius: 18px;
+        background: rgba(255,255,255,0.82);
+        margin: 8px 0 14px;
+      }
+
+      .Cfg_Suscripcion_Aviso[hidden] {
+        display: none;
+      }
+
+      .Cfg_Suscripcion_Aviso_Contenido {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
+      .Cfg_Suscripcion_Aviso_Icono {
+        width: 28px;
+        height: 28px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15,95,90,0.08);
+        color: var(--Acento);
+        flex: 0 0 auto;
+        font-size: 15px;
+      }
+
+      .Cfg_Suscripcion_Aviso.Cancelada
+      .Cfg_Suscripcion_Aviso_Icono {
+        background: rgba(170,120,20,0.12);
+        color: #9a6a14;
+      }
+
+      .Cfg_Suscripcion_Aviso.Pendiente
+      .Cfg_Suscripcion_Aviso_Icono {
+        background: rgba(84,102,150,0.12);
+        color: #546696;
+      }
+
+      .Cfg_Suscripcion_Aviso_Texto {
+        font-size: 14px;
+        line-height: 1.45;
+        color: var(--Texto);
+      }
+
+      .Cfg_Suscripcion_Aviso_Accion {
+        flex: 0 0 auto;
+      }
+
       .Cfg_Pagos_Historial {
         width: 100%;
       }
@@ -4029,6 +4088,20 @@
       }
 
       @media (max-width: 640px) {
+        .Cfg_Suscripcion_Aviso {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .Cfg_Suscripcion_Aviso_Accion {
+          width: 100%;
+        }
+
+        .Cfg_Suscripcion_Aviso_Accion .Config_Dato_Btn {
+          width: 100%;
+          min-width: 0;
+        }
+
         .Cfg_Pagos_Tabla thead {
           display: none;
         }
@@ -9006,6 +9079,10 @@
                 </div>
               </div>
 
+              <div class="Cfg_Suscripcion_Aviso"
+                id="Cfg_Suscripcion_Aviso"
+                hidden></div>
+
               <div class="Cfg_Cuenta_Campo">
                 <span class="Cfg_Cuenta_Etiqueta"
                   data-i18n="config.contrasena"
@@ -11320,6 +11397,14 @@
             "Pausado",
           "config.pago_estado_unknown":
             "Sin estado",
+          "config.suscripcion_renueva":
+            "Tu suscripción se renovará el {Fecha}.",
+          "config.suscripcion_cancelada":
+            "Tu suscripción se cancelará el {Fecha}.",
+          "config.suscripcion_pendiente":
+            "Tu suscripción está pendiente de confirmación.",
+          "config.volver_suscribirse":
+            "Volver a suscribirse",
           "config.ver_planes": "Ver planes",
           "config.contrasena": "Contraseña",
           "config.cambiar_password":
@@ -13197,6 +13282,14 @@
             "Paused",
           "config.pago_estado_unknown":
             "No status",
+          "config.suscripcion_renueva":
+            "Your subscription will renew on {Fecha}.",
+          "config.suscripcion_cancelada":
+            "Your subscription will cancel on {Fecha}.",
+          "config.suscripcion_pendiente":
+            "Your subscription is pending confirmation.",
+          "config.volver_suscribirse":
+            "Resubscribe",
           "config.ver_planes": "View plans",
           "config.contrasena": "Password",
           "config.cambiar_password":
@@ -15068,6 +15161,14 @@
             "Pausado",
           "config.pago_estado_unknown":
             "Sem status",
+          "config.suscripcion_renueva":
+            "Sua assinatura será renovada em {Fecha}.",
+          "config.suscripcion_cancelada":
+            "Sua assinatura será cancelada em {Fecha}.",
+          "config.suscripcion_pendiente":
+            "Sua assinatura está pendente de confirmação.",
+          "config.volver_suscribirse":
+            "Voltar a assinar",
           "config.ver_planes": "Ver planos",
           "config.contrasena": "Senha",
           "config.cambiar_password":
@@ -24087,6 +24188,153 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Formatear_Fecha_Suscripcion(
+        Valor
+      ) {
+        if (!Valor) return null;
+        const Fecha = new Date(Valor);
+        if (isNaN(Fecha.getTime())) {
+          return null;
+        }
+        return Fecha.toLocaleDateString(
+          Obtener_Locale_Actual(),
+          {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }
+        );
+      }
+
+      function Obtener_Fecha_Aviso_Suscripcion(
+        Suscripcion
+      ) {
+        const Detalle = Suscripcion?.detalle || {};
+        const Auto = Detalle?.auto_recurring || {};
+        return (
+          Detalle.next_payment_date
+          || Auto.next_payment_date
+          || Auto.end_date
+          || Suscripcion?.fecha_actualizacion
+          || Suscripcion?.fecha_creacion
+          || null
+        );
+      }
+
+      function Obtener_Modelo_Aviso_Suscripcion() {
+        const Suscripcion = Suscripcion_Detalle_Remota;
+        if (!Suscripcion) return null;
+        const Estado = String(
+          Suscripcion.estado || ""
+        ).toLowerCase();
+        const Fecha = Formatear_Fecha_Suscripcion(
+          Obtener_Fecha_Aviso_Suscripcion(
+            Suscripcion
+          )
+        );
+        if (Estado === "authorized" && Fecha) {
+          return {
+            Clase: "Renueva",
+            Icono: "🗓️",
+            Texto: t(
+              "config.suscripcion_renueva",
+              { Fecha }
+            ),
+            Accion: null,
+          };
+        }
+        if (
+          (Estado === "cancelled"
+            || Estado === "paused")
+          && Fecha
+        ) {
+          return {
+            Clase: "Cancelada",
+            Icono: "🗓️",
+            Texto: t(
+              "config.suscripcion_cancelada",
+              { Fecha }
+            ),
+            Accion: {
+              Etiqueta: t(
+                "config.volver_suscribirse"
+              ),
+              Click: Abrir_Suscripcion,
+            },
+          };
+        }
+        if (Estado === "pending") {
+          return {
+            Clase: "Pendiente",
+            Icono: "🕓",
+            Texto: t(
+              "config.suscripcion_pendiente"
+            ),
+            Accion: null,
+          };
+        }
+        return null;
+      }
+
+      function Renderizar_Aviso_Suscripcion() {
+        const El = document.getElementById(
+          "Cfg_Suscripcion_Aviso"
+        );
+        if (!El) return;
+        El.innerHTML = "";
+        El.hidden = true;
+        El.className = "Cfg_Suscripcion_Aviso";
+
+        const Modelo =
+          Obtener_Modelo_Aviso_Suscripcion();
+        if (!Modelo) return;
+
+        El.hidden = false;
+        if (Modelo.Clase) {
+          El.classList.add(Modelo.Clase);
+        }
+
+        const Contenido =
+          document.createElement("div");
+        Contenido.className =
+          "Cfg_Suscripcion_Aviso_Contenido";
+
+        const Icono =
+          document.createElement("span");
+        Icono.className =
+          "Cfg_Suscripcion_Aviso_Icono";
+        Icono.textContent = Modelo.Icono || "🗓️";
+
+        const Texto =
+          document.createElement("div");
+        Texto.className =
+          "Cfg_Suscripcion_Aviso_Texto";
+        Texto.textContent = Modelo.Texto;
+
+        Contenido.appendChild(Icono);
+        Contenido.appendChild(Texto);
+        El.appendChild(Contenido);
+
+        if (Modelo.Accion) {
+          const Accion =
+            document.createElement("div");
+          Accion.className =
+            "Cfg_Suscripcion_Aviso_Accion";
+          const Boton =
+            document.createElement("button");
+          Boton.type = "button";
+          Boton.className = "Config_Dato_Btn";
+          Boton.textContent =
+            Modelo.Accion.Etiqueta;
+          Boton.addEventListener(
+            "click",
+            Modelo.Accion.Click
+          );
+          Accion.appendChild(Boton);
+          El.appendChild(Accion);
+        }
+      }
+
       function Traducir_Estado_Suscripcion(
         Estado
       ) {
@@ -24371,6 +24619,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             (
               !Suscripcion_Detalle_Remota &&
               !Suscripcion_Historial_Remoto.length
+            ) ||
+            Boolean(
+              Suscripcion_Detalle_Remota &&
+              !Suscripcion_Detalle_Remota.detalle
             );
 
           if (!Necesita_Fallback) {
@@ -24385,6 +24637,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .select(
               "estado, monto, moneda, " +
                 "payer_email, " +
+                "detalle, " +
                 "mp_preapproval_id, " +
                 "fecha_creacion, " +
                 "fecha_actualizacion"
@@ -39920,6 +40173,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             El_Desde.textContent = "—";
           }
         }
+        Renderizar_Aviso_Suscripcion();
         Renderizar_Historial_Pagos_Cuenta();
       }
 
