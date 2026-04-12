@@ -7989,8 +7989,24 @@
               data-i18n-ph="auth.password_ph"
             />
           </div>
+          <div class="Auth_Campo">
+            <label for="Auth_Recovery_Pass_Confirm"
+              data-i18n="auth.password_nueva_confirmar">
+              Repetir contraseña nueva
+            </label>
+            <input
+              class="Auth_Input"
+              id="Auth_Recovery_Pass_Confirm"
+              type="password"
+              required
+              minlength="8"
+              placeholder="Mín. 8, mayús., minús. y número"
+              data-i18n-ph="auth.password_ph"
+            />
+          </div>
           <button
             class="Auth_Btn_Principal"
+            id="Auth_Recovery_Btn"
             type="submit"
           data-i18n="auth.guardar_password"
           >Guardar contraseña</button>
@@ -10706,8 +10722,12 @@
             "Usá una contraseña larga y única. Cuando la guardes, Semaplan va a iniciar tu sesión automáticamente.",
           "auth.password_nueva":
             "Contraseña nueva",
+          "auth.password_nueva_confirmar":
+            "Repetir contraseña nueva",
           "auth.guardar_password":
-            "Guardar contraseña",
+            "Establecer nueva contraseña",
+          "auth.guardando_password":
+            "Guardando...",
           "auth.registro_titulo": "Crear cuenta",
           "auth.registro_subtitulo":
             "Empezá a usar Semaplan gratis",
@@ -10736,6 +10756,8 @@
             "recuperar tu contraseña.",
           "auth.password_actualizada":
             "Contraseña actualizada.",
+          "auth.err_password_no_coincide":
+            "Las dos contraseñas no coinciden.",
           "auth.err_login":
             "Email o contraseña incorrectos.",
           "auth.err_no_confirmado":
@@ -12559,8 +12581,12 @@
             "Use a long, unique password. Once you save it, Semaplan will sign you in automatically.",
           "auth.password_nueva":
             "New password",
+          "auth.password_nueva_confirmar":
+            "Repeat new password",
           "auth.guardar_password":
-            "Save password",
+            "Set new password",
+          "auth.guardando_password":
+            "Saving...",
           "auth.registro_titulo":
             "Create account",
           "auth.registro_subtitulo":
@@ -12591,6 +12617,8 @@
             "recover your password.",
           "auth.password_actualizada":
             "Password updated.",
+          "auth.err_password_no_coincide":
+            "The two passwords do not match.",
           "auth.err_login":
             "Wrong email or password.",
           "auth.err_no_confirmado":
@@ -14354,8 +14382,12 @@
             "Use uma senha longa e única. Quando você salvar, o Semaplan vai iniciar sua sessão automaticamente.",
           "auth.password_nueva":
             "Senha nova",
+          "auth.password_nueva_confirmar":
+            "Repetir nova senha",
           "auth.guardar_password":
-            "Salvar senha",
+            "Definir nova senha",
+          "auth.guardando_password":
+            "Salvando...",
           "auth.registro_titulo":
             "Criar conta",
           "auth.registro_subtitulo":
@@ -14390,6 +14422,8 @@
             "recuperar sua senha.",
           "auth.password_actualizada":
             "Senha atualizada.",
+          "auth.err_password_no_coincide":
+            "As duas senhas não coincidem.",
           "auth.err_login":
             "Email ou senha incorretos.",
           "auth.err_no_confirmado":
@@ -39488,9 +39522,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Pass = document.getElementById(
               "Auth_Recovery_Pass"
             ).value;
+            const Pass_Confirm = document.getElementById(
+              "Auth_Recovery_Pass_Confirm"
+            ).value;
             const Msg = document.getElementById(
               "Auth_Recovery_Msg"
             );
+            const Btn = document.getElementById(
+              "Auth_Recovery_Btn"
+            );
+
+            if (Pass !== Pass_Confirm) {
+              Msg.textContent =
+                t("auth.err_password_no_coincide");
+              Msg.className =
+                "Auth_Mensaje Error";
+              return;
+            }
+
+            if (Btn) {
+              Btn.disabled = true;
+              Btn.textContent =
+                t("auth.guardando_password");
+            }
 
             try {
               const { error } =
@@ -39504,6 +39558,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   );
                 Msg.className =
                   "Auth_Mensaje Error";
+                if (Btn) {
+                  Btn.disabled = false;
+                  Btn.textContent =
+                    t("auth.guardar_password");
+                }
                 return;
               }
               Msg.textContent =
@@ -39537,6 +39596,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 });
               Msg.className =
                 "Auth_Mensaje Error";
+              if (Btn) {
+                Btn.disabled = false;
+                Btn.textContent =
+                  t("auth.guardar_password");
+              }
             }
           }
         );
