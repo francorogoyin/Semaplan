@@ -18,6 +18,18 @@ function Suscripcion_Sigue_Vigente(Suscripcion: any) {
   const Estado = String(
     Suscripcion.estado || ""
   ).toLowerCase();
+  if (Estado === "trial") {
+    const Fecha_Trial =
+      Suscripcion.trial_hasta
+      || Suscripcion.detalle?.trial_hasta
+      || null;
+    if (!Fecha_Trial) return false;
+    const Limite_Trial = new Date(Fecha_Trial);
+    if (Number.isNaN(Limite_Trial.getTime())) {
+      return false;
+    }
+    return Date.now() < Limite_Trial.getTime();
+  }
   if (Estado === "authorized") {
     return true;
   }
@@ -119,6 +131,9 @@ Deno.serve(async (Req) => {
         .select(
           "estado, monto, moneda, " +
             "detalle, " +
+            "trial_hasta, " +
+            "trial_iniciado_en, " +
+            "trial_origen, " +
             "mp_preapproval_id, " +
             "payer_email, " +
             "fecha_creacion, " +
