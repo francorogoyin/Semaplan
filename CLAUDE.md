@@ -76,6 +76,17 @@ Seguir el estilo global del proyecto:
 - Sin librerías externas.
 - Líneas ≤ 70 caracteres.
 
+## Comunicación
+
+La fórmula `Entendí que...` se usa solo al iniciar una tarea nueva,
+cuando el agente va a ponerse a ejecutar algo.
+
+No usar `Entendí que...` en estos casos:
+
+- cuando el usuario hace una pregunta y no está encargando una tarea;
+- cuando el agente solo responde una duda o aclara una regla;
+- cuando el agente solo notifica avance de algo ya iniciado.
+
 ## Flujo de trabajo por sesión
 
 Al arrancar cada sesión, **antes** de actuar sobre cualquier pedido
