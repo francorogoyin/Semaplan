@@ -38788,6 +38788,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      function Obtener_Url_Redirect_Recovery() {
+        return (
+          window.location.origin +
+          window.location.pathname +
+          window.location.search
+        );
+      }
+
       function Mostrar_Auth_Mensaje(Texto, Tipo = "Error") {
         const El = document.getElementById("Auth_Mensaje");
         if (!El) return;
@@ -38844,7 +38852,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               await Supa.auth
                 .resetPasswordForEmail(
                   Email,
-                  { captchaToken: Captcha_Token }
+                  {
+                    captchaToken: Captcha_Token,
+                    redirectTo:
+                      Obtener_Url_Redirect_Recovery()
+                  }
                 );
             if (error) {
               Mostrar_Auth_Mensaje(
@@ -38936,7 +38948,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         try {
           const { error } = await Supa.auth
-            .resetPasswordForEmail(Email);
+            .resetPasswordForEmail(
+              Email,
+              {
+                redirectTo:
+                  Obtener_Url_Redirect_Recovery()
+              }
+            );
           if (error) {
             Mostrar_Auth_Mensaje(
               Traducir_Error_Auth(error.message)
@@ -39099,7 +39117,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Confirmar) return;
         try {
           const { error } = await Supa.auth
-            .resetPasswordForEmail(Email);
+            .resetPasswordForEmail(
+              Email,
+              {
+                redirectTo:
+                  Obtener_Url_Redirect_Recovery()
+              }
+            );
           if (error) {
             await Mostrar_Dialogo(
               "No se pudo enviar el mail: " +
