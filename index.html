@@ -16337,7 +16337,8 @@
       let Resumen_Sem_Metrica = "Horas";
       // Mapea clave de slot → "Sueno" | "Descanso".
       let Slots_Muertos_Tipos = {};
-      // Mapea clave de slot → nombre editable del slot.
+      // Mapea clave de slot → nombre editable del slot
+      // (tanto muerto como vacío).
       let Slots_Muertos_Nombres = {};
       // Tipos de slot personalizables. Cada uno:
       // { Id: string, Nombre: string, Color: string }
@@ -20515,9 +20516,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Tipo: Slots_Muertos_Tipos[C] || "Sueno",
             Nombre: Slots_Muertos_Nombres[C] || ""
           }));
+        const Nombres_Slots = Object.keys(
+          Slots_Muertos_Nombres
+        )
+          .filter((C) => C.startsWith(Prefijo))
+          .map((C) => ({
+            Hora: parseFloat(C.slice(Prefijo.length)),
+            Nombre: Slots_Muertos_Nombres[C] || ""
+          }));
         Portapapeles_Dia = {
           Eventos: Eventos_Dia,
-          Slots: Slots_Dia
+          Slots: Slots_Dia,
+          Nombres_Slots
         };
       }
 
@@ -20570,6 +20580,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Slots_Muertos.push(Clave);
           }
           Slots_Muertos_Tipos[Clave] = S.Tipo;
+          if (S.Nombre) {
+            Slots_Muertos_Nombres[Clave] = S.Nombre;
+          } else {
+            delete Slots_Muertos_Nombres[Clave];
+          }
+        });
+
+        (Portapapeles_Dia.Nombres_Slots || []).forEach((S) => {
+          const Clave = Clave_Slot(Fecha_ISO, S.Hora);
           if (S.Nombre) {
             Slots_Muertos_Nombres[Clave] = S.Nombre;
           } else {
@@ -24892,6 +24911,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Patron_En_Edicion.Tipo = Tipo_Sel.value;
           if (!Array.isArray(Patron_En_Edicion.Franjas))
             Patron_En_Edicion.Franjas = [];
+          if (Patron_En_Edicion.Tipo === "Slot") {
+            Patron_En_Edicion.Aplica_A =
+              Normalizar_Aplica_Patron_Slot(
+                Patron_En_Edicion.Aplica_A
+              );
+          }
           // Al pasar a Semanal, inicializar Dias en todas
           // las franjas preexistentes que no lo tengan.
           if (Patron_En_Edicion.Tipo === "Semanal") {
@@ -24910,6 +24935,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Meta.appendChild(Emoji_In);
         Meta.appendChild(Nombre_In);
         Meta.appendChild(Tipo_Sel);
+        if (Patron_En_Edicion.Tipo === "Slot") {
+          Patron_En_Edicion.Aplica_A =
+            Normalizar_Aplica_Patron_Slot(
+              Patron_En_Edicion.Aplica_A
+            );
+          const Aplica_Sel =
+            document.createElement("select");
+          Aplica_Sel.className = "Patron_Modal_Tipo_Sel";
+          Aplica_Sel.innerHTML =
+            Obtener_Opciones_Aplica_Patron_Slot()
+              .map((Opcion) =>
+                `<option value="${Opcion.Valor}">` +
+                `${Opcion.Texto}</option>`
+              ).join("");
+          Aplica_Sel.value =
+            Patron_En_Edicion.Aplica_A;
+          Aplica_Sel.addEventListener("change", () => {
+            Patron_En_Edicion.Aplica_A =
+              Normalizar_Aplica_Patron_Slot(
+                Aplica_Sel.value
+              );
+          });
+          Meta.appendChild(Aplica_Sel);
+        }
         Cuerpo.appendChild(Meta);
 
         if (Patron_En_Edicion.Tipo === "Diario") {
@@ -24970,6 +25019,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           delete Patron.Franjas_Por_Dia;
           delete Patron.Items;
+          delete Patron.Aplica_A;
         } else if (Patron.Tipo === "Diario") {
           // Diario: eliminar campos semanales.
           Patron.Franjas.forEach((F) => {
@@ -24977,7 +25027,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           delete Patron.Franjas_Por_Dia;
           delete Patron.Items;
+          delete Patron.Aplica_A;
         } else {
+          Patron.Aplica_A =
+            Normalizar_Aplica_Patron_Slot(
+              Patron.Aplica_A
+            );
           if (!Array.isArray(Patron.Items)) Patron.Items = [];
           Patron.Items = Patron.Items
             .map((Item) => ({
@@ -25927,17 +25982,75 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
-      function Obtener_Patrones_Slot() {
-        return Patrones.filter((P) => P.Tipo === "Slot");
+      function Normalizar_Aplica_Patron_Slot(Aplica_A) {
+        if (Aplica_A === "Slot_Vacio") return "Slot_Vacio";
+        const Tipos = Obtener_Tipos_Slot();
+        return Tipos.some((Tipo) => Tipo.Id === Aplica_A)
+          ? Aplica_A
+          : "Slot_Vacio";
+      }
+
+      function Obtener_Opciones_Aplica_Patron_Slot() {
+        return [
+          {
+            Valor: "Slot_Vacio",
+            Texto: "Slot vacío"
+          },
+          ...Obtener_Tipos_Slot().map((Tipo) => ({
+            Valor: Tipo.Id,
+            Texto: Tipo.Nombre
+          }))
+        ];
+      }
+
+      function Obtener_Label_Aplica_Patron_Slot(Aplica_A) {
+        if (
+          Normalizar_Aplica_Patron_Slot(Aplica_A) ===
+          "Slot_Vacio"
+        ) {
+          return "Slot vacío";
+        }
+        const Tipo = Obtener_Tipos_Slot().find(
+          (Item) => Item.Id === Aplica_A
+        );
+        return Tipo?.Nombre || "Slot vacío";
+      }
+
+      function Obtener_Aplica_A_Slot(Fecha, Hora) {
+        if (!Slot_Es_Muerto(Fecha, Hora)) {
+          return "Slot_Vacio";
+        }
+        const Clave = Clave_Slot(Fecha, Hora);
+        return Normalizar_Aplica_Patron_Slot(
+          Slots_Muertos_Tipos[Clave] || "Slot_Vacio"
+        );
+      }
+
+      function Obtener_Patrones_Slot(Aplica_A = null) {
+        const Aplica_Normalizada = Aplica_A
+          ? Normalizar_Aplica_Patron_Slot(Aplica_A)
+          : null;
+        return Patrones.filter((P) => {
+          if (P.Tipo !== "Slot") return false;
+          const Aplica_Patron =
+            Normalizar_Aplica_Patron_Slot(P.Aplica_A);
+          return !Aplica_Normalizada ||
+            Aplica_Patron === Aplica_Normalizada;
+        });
       }
 
       async function Resolver_Items_Patron_Slot(
-        Items_Actuales = []
+        Items_Actuales = [],
+        Aplica_A = "Slot_Vacio"
       ) {
-        const Patrones_Slot = Obtener_Patrones_Slot();
+        const Patrones_Slot = Obtener_Patrones_Slot(
+          Aplica_A
+        );
         if (!Patrones_Slot.length) {
           await Mostrar_Dialogo(
-            "No hay patrones de slot cargados.",
+            `No hay patrones para ${Obtener_Label_Aplica_Patron_Slot(
+              Aplica_A
+            ).toLowerCase()}.`,
             [{ Etiqueta: t("entendido"), Valor: null, Tipo: "Primario" }]
           );
           return null;
@@ -25987,7 +26100,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Clave = Clave_Slot(Fecha, Hora);
         const Actual = Obtener_Plan_Slot(Fecha, Hora, false);
         const Items = await Resolver_Items_Patron_Slot(
-          Actual?.Items || []
+          Actual?.Items || [],
+          Obtener_Aplica_A_Slot(Fecha, Hora)
         );
         if (!Items) return;
         Planes_Slot[Clave] = { Items };
@@ -25995,7 +26109,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
-      function Abrir_Items_Plan_Slot_Como_Patron(Items_Base) {
+      function Abrir_Items_Plan_Slot_Como_Patron(
+        Items_Base,
+        Aplica_A = "Slot_Vacio"
+      ) {
         const Items = JSON.parse(
           JSON.stringify(Items_Base || [])
         ).filter((Item) => (Item.Texto || "").trim());
@@ -26006,6 +26123,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Nombre: "",
           Emoji: "🧩",
           Tipo: "Slot",
+          Aplica_A: Normalizar_Aplica_Patron_Slot(
+            Aplica_A
+          ),
           Items
         };
         Patron_En_Edicion_Snapshot = JSON.stringify(
@@ -26021,18 +26141,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Guardar_Plan_Slot_Como_Patron(Fecha, Hora) {
         const Plan = Obtener_Plan_Slot(Fecha, Hora, false);
         Abrir_Items_Plan_Slot_Como_Patron(
-          Plan?.Items || []
+          Plan?.Items || [],
+          Obtener_Aplica_A_Slot(Fecha, Hora)
         );
       }
 
       function Mostrar_Menu_Slot(Fecha, Hora, X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         const Tiene_Plan = Contar_Items_Plan_Slot(Fecha, Hora) > 0;
-        const Es_Muerto = Slot_Es_Muerto(Fecha, Hora);
         let Html =
-          (Es_Muerto
-            ? `<button class="Dia_Accion_Item" type="button" data-acc="editar-nombre-slot">Editar nombre</button>`
-            : ``) +
+          `<button class="Dia_Accion_Item" type="button" data-acc="editar-nombre-slot">Editar nombre</button>` +
           `<button class="Dia_Accion_Item" type="button" data-acc="plan-slot">Plan</button>` +
           `<button class="Dia_Accion_Item" type="button" data-acc="insertar-patron-slot">Insertar patrón</button>`;
         if (Tiene_Plan) {
@@ -26056,7 +26174,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.addEventListener("click", async (Ev) => {
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
-            await Editar_Nombre_Slot_Muerto(Fecha, Hora);
+            await Editar_Nombre_Slot(Fecha, Hora);
           });
         Menu.querySelector(`[data-acc="plan-slot"]`)
           ?.addEventListener("click", (Ev) => {
@@ -26105,7 +26223,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             : Patron.Tipo === "Semanal"
               ? t("patron.tipo_semanal")
               : Patron.Tipo === "Slot"
-                ? "Slot"
+                ? Obtener_Label_Aplica_Patron_Slot(
+                  Patron.Aplica_A
+                )
                 : Patron.Tipo;
 
           const Btn_Edit = document.createElement("button");
@@ -29298,7 +29418,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Slots_Muertos.includes(Clave_Slot(Fecha, Hora));
       }
 
-      function Obtener_Nombre_Slot_Muerto(Fecha, Hora) {
+      function Obtener_Nombre_Slot(Fecha, Hora) {
         const Clave = Clave_Slot(Fecha, Hora);
         return Slots_Muertos_Nombres[Clave] || "";
       }
@@ -29466,20 +29586,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             // Último tipo → Libre.
             Slots_Muertos.splice(Index, 1);
             delete Slots_Muertos_Tipos[Clave];
-            delete Slots_Muertos_Nombres[Clave];
           }
         }
         Render_Calendario();
         Guardar_Estado();
       }
 
-      async function Editar_Nombre_Slot_Muerto(Fecha, Hora) {
+      async function Editar_Nombre_Slot(Fecha, Hora) {
         const Clave = Clave_Slot(Fecha, Hora);
-        if (!Slots_Muertos.includes(Clave)) return;
         const Nombre_Actual =
           Slots_Muertos_Nombres[Clave] || "";
         const Valor = await Mostrar_Dialogo_Con_Texto(
-          "Nombre del slot bloqueado (vacío para borrar):",
+          "Nombre del slot (vacío para borrar):",
           {
             Default: Nombre_Actual,
             Placeholder:
@@ -29495,6 +29613,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Render_Calendario();
         Guardar_Estado();
+      }
+
+      async function Editar_Nombre_Slot_Muerto(Fecha, Hora) {
+        await Editar_Nombre_Slot(Fecha, Hora);
       }
 
       function Limpiar_Seleccion() {
@@ -30103,7 +30225,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Metas = Estado.Metas;
           }
           if (Array.isArray(Estado.Patrones)) {
-            Patrones = Estado.Patrones;
+            Patrones = Estado.Patrones.map((Patron) => {
+              if (Patron?.Tipo === "Slot") {
+                return {
+                  ...Patron,
+                  Aplica_A: Normalizar_Aplica_Patron_Slot(
+                    Patron.Aplica_A
+                  )
+                };
+              }
+              return Patron;
+            });
           }
           if (Array.isArray(Estado.Semanas_Con_Defaults)) {
             Semanas_Con_Defaults = new Set(Estado.Semanas_Con_Defaults);
@@ -31742,15 +31874,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               "--Slot-Muerto-Color",
               Obtener_Color_Tipo_Slot(Tipo_M)
             );
-            const Nombre_Slot =
-              Obtener_Nombre_Slot_Muerto(Fecha_ISO, Hora);
-            if (Nombre_Slot) {
-              const Nombre_El = document.createElement("div");
-              Nombre_El.className = "Slot_Muerto_Nombre";
-              Nombre_El.textContent = Nombre_Slot;
-              Slot.title = Nombre_Slot;
-              Slot.appendChild(Nombre_El);
-            }
+          }
+          const Nombre_Slot =
+            Obtener_Nombre_Slot(Fecha_ISO, Hora);
+          if (Nombre_Slot) {
+            const Nombre_El = document.createElement("div");
+            Nombre_El.className = "Slot_Muerto_Nombre";
+            Nombre_El.textContent = Nombre_Slot;
+            Slot.title = Nombre_Slot;
+            Slot.appendChild(Nombre_El);
           }
           const Conteo_Plan_Slot =
             Contar_Items_Plan_Slot(Fecha_ISO, Hora);
