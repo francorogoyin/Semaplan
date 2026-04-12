@@ -7704,7 +7704,8 @@
 
     <!-- Pantalla de autenticación -->
     <div class="Auth_Overlay" id="Auth_Overlay">
-      <div class="Auth_Panel">
+      <div class="Auth_Panel"
+        id="Auth_Panel_Login">
         <div class="Auth_Logo">🕒</div>
         <h1 class="Auth_Titulo" id="Auth_Titulo">Semaplan</h1>
         <p class="Auth_Subtitulo" id="Auth_Subtitulo">
@@ -7757,8 +7758,46 @@
           class="Auth_Cambiar_Modo"
           style="margin-top:8px;font-size:12px"
         >
-          <a id="Auth_Olvide">Olvidé mi contraseña</a>
+          <a id="Auth_Olvide">
+            Olvidé mi contraseña
+          </a>
         </div>
+      </div>
+
+      <!-- Formulario de nueva contraseña
+           (se muestra al clickear el link de
+           recovery del email). -->
+      <div
+        class="Auth_Panel"
+        id="Auth_Recovery_Panel"
+        style="display:none"
+      >
+        <h2 class="Auth_Titulo">
+          Nueva contraseña
+        </h2>
+        <form id="Auth_Recovery_Form">
+          <div class="Auth_Campo">
+            <label for="Auth_Recovery_Pass">
+              Contraseña nueva
+            </label>
+            <input
+              class="Auth_Input"
+              id="Auth_Recovery_Pass"
+              type="password"
+              required
+              minlength="6"
+              placeholder="Mínimo 6 caracteres"
+            />
+          </div>
+          <button
+            class="Auth_Btn_Principal"
+            type="submit"
+          >Guardar contraseña</button>
+        </form>
+        <div
+          class="Auth_Mensaje"
+          id="Auth_Recovery_Msg"
+        ></div>
       </div>
     </div>
 
@@ -30872,10 +30911,105 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      // ----- Recovery: nueva contraseña -----
+
+      function Mostrar_Recovery() {
+        // Oculta el panel de login y muestra
+        // el formulario de nueva contraseña.
+
+        document.getElementById(
+          "Auth_Panel_Login"
+        ).style.display = "none";
+        document.getElementById(
+          "Auth_Recovery_Panel"
+        ).style.display = "";
+        Mostrar_Auth();
+      }
+
+      function Configurar_Recovery_Listener() {
+        // Escucha el evento PASSWORD_RECOVERY
+        // de Supabase Auth para mostrar el
+        // formulario de nueva contraseña.
+
+        Supa.auth.onAuthStateChange(
+          (Evento, Sesion) => {
+            if (
+              Evento === "PASSWORD_RECOVERY"
+            ) {
+              Mostrar_Recovery();
+            }
+          }
+        );
+
+        document.getElementById(
+          "Auth_Recovery_Form"
+        ).addEventListener(
+          "submit",
+          async (Ev) => {
+            Ev.preventDefault();
+            const Pass = document.getElementById(
+              "Auth_Recovery_Pass"
+            ).value;
+            const Msg = document.getElementById(
+              "Auth_Recovery_Msg"
+            );
+
+            try {
+              const { error } =
+                await Supa.auth.updateUser({
+                  password: Pass,
+                });
+              if (error) {
+                Msg.textContent =
+                  Traducir_Error_Auth(
+                    error.message
+                  );
+                Msg.className =
+                  "Auth_Mensaje Error";
+                return;
+              }
+              Msg.textContent =
+                "Contraseña actualizada.";
+              Msg.className =
+                "Auth_Mensaje Exito";
+
+              // Redirigir a la app después
+              // de 1.5 segundos.
+              setTimeout(async () => {
+                document.getElementById(
+                  "Auth_Recovery_Panel"
+                ).style.display = "none";
+                document.getElementById(
+                  "Auth_Panel_Login"
+                ).style.display = "";
+                const {
+                  data: { session },
+                } =
+                  await Supa.auth.getSession();
+                if (session?.user) {
+                  Usuario_Actual =
+                    session.user;
+                  await Iniciar_App_Logueada();
+                }
+              }, 1500);
+            } catch (E) {
+              Msg.textContent =
+                "Error: " + E.message;
+              Msg.className =
+                "Auth_Mensaje Error";
+            }
+          }
+        );
+      }
+
       // ----- Bootstrap: punto de entrada de la app -----
 
       async function Bootstrap() {
         if (!Inicializar_Supabase()) return;
+
+        // Listener de recovery (nueva contraseña
+        // desde link de email).
+        Configurar_Recovery_Listener();
 
         window.addEventListener("beforeunload", (Ev) => {
           if (!Hay_Sync_Pendiente()) return;
