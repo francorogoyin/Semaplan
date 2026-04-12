@@ -75,6 +75,9 @@ Seguir el estilo global del proyecto:
 - Todo en español.
 - Sin librerías externas.
 - Líneas ≤ 70 caracteres.
+- Toda función nueva, texto nuevo o cambio visible en UI debe quedar
+  traducido en español, inglés y portugués en el mismo turno.
+- No dejar textos hardcodeados en una sola lengua para "después".
 
 ## Comunicación
 
