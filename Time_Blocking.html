@@ -27114,6 +27114,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) {
           return;
         }
+        // El input de emoji no debe aceptar texto escrito
+        // directamente: el valor solo se setea a través del
+        // popover (Aplicar_Emoji_Selector). Marcamos readOnly
+        // acá y no en el HTML porque los inputs pueden crearse
+        // dinámicamente y no controlamos todos.
+        Input_El.readOnly = true;
         Construir_Selector_Emojis();
         Selector_Emojis_Input_Activo = Input_El;
         const Buscador = document.getElementById(
@@ -27127,6 +27133,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Selector_Emojis_Input_Activo === Input_El) {
             Posicionar_Selector_Emojis(Input_El);
           }
+          // Enfocar el buscador del selector para que el
+          // usuario pueda empezar a tipear de una sin tener
+          // que clickearlo. El RAF garantiza que el popover
+          // ya está posicionado y visible.
+          if (Buscador) Buscador.focus();
         });
       }
 
