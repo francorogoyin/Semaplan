@@ -3886,13 +3886,46 @@
         border-color: #c44;
       }
 
-      /* Sección Cuenta: campos con label arriba y valor + acción
-         abajo, separados visualmente. */
+      .Cfg_Cuenta_Grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      /* Sección Cuenta: tarjetas compactas y limpias. */
       .Cfg_Cuenta_Campo {
         display: flex;
         flex-direction: column;
-        gap: 4px;
-        margin-bottom: 12px;
+        gap: 8px;
+        margin-bottom: 0;
+        padding: 15px 16px;
+        border: 1px solid rgba(190, 178, 160, 0.9);
+        border-radius: 20px;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255,255,255,0.9),
+            rgba(255,255,255,0.74)
+          );
+        box-shadow: 0 14px 32px rgba(88, 74, 56, 0.06);
+      }
+
+      .Cfg_Cuenta_Campo_Plan {
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255,255,255,0.96),
+            rgba(247, 243, 236, 0.92)
+          );
+      }
+
+      .Cfg_Cuenta_Campo_Historial {
+        gap: 14px;
+      }
+
+      .Cfg_Cuenta_Campo_Acciones {
+        gap: 14px;
       }
 
       .Cfg_Cuenta_Etiqueta {
@@ -3910,23 +3943,57 @@
       }
 
       .Cfg_Cuenta_Valor {
-        font-size: 13px;
+        font-size: 14px;
         color: var(--Texto);
         flex: 1 1 auto;
         min-width: 0;
         word-break: break-word;
       }
 
-      /* Botones de la sección Cuenta: todos con el mismo ancho
-         y texto perfectamente centrado. */
       .Cfg_Cuenta_Valor_Fila .Config_Dato_Btn {
-        width: 160px;
-        min-width: 160px;
+        width: auto;
+        min-width: 140px;
         height: 32px;
-        padding: 0 12px;
+        padding: 0 14px;
         text-align: center;
         line-height: 1;
         flex-shrink: 0;
+      }
+
+      .Cfg_Cuenta_Valor_Principal {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .Cfg_Cuenta_Badge_Plan {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        background: rgba(15,95,90,0.1);
+        color: var(--Acento);
+      }
+
+      .Cfg_Cuenta_Badge_Plan.Free {
+        background: rgba(143, 166, 74, 0.14);
+        color: #5f7b1d;
+      }
+
+      .Cfg_Cuenta_Badge_Plan.Premium {
+        background: rgba(223, 186, 70, 0.18);
+        color: #8f6210;
+      }
+
+      .Cfg_Cuenta_Valor_Secundario {
+        font-size: 12px;
+        color: var(--Texto_Suave);
+        line-height: 1.5;
       }
 
       .Cfg_Cuenta_Separador {
@@ -3945,6 +4012,11 @@
         border-radius: 18px;
         background: rgba(255,255,255,0.82);
         margin: 8px 0 14px;
+      }
+
+      .Cfg_Cuenta_Grid > .Cfg_Suscripcion_Aviso {
+        grid-column: 1 / -1;
+        margin: 0;
       }
 
       .Cfg_Suscripcion_Aviso[hidden] {
@@ -3992,6 +4064,16 @@
 
       .Cfg_Suscripcion_Aviso_Accion {
         flex: 0 0 auto;
+      }
+
+      .Cfg_Cuenta_Acciones_Fila {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .Cfg_Cuenta_Acciones_Fila .Config_Dato_Btn {
+        min-width: 160px;
       }
 
       .Cfg_Pagos_Historial {
@@ -4087,6 +4169,10 @@
       }
 
       @media (max-width: 640px) {
+        .Cfg_Cuenta_Grid {
+          grid-template-columns: 1fr;
+        }
+
         .Cfg_Suscripcion_Aviso {
           flex-direction: column;
           align-items: stretch;
@@ -4097,6 +4183,12 @@
         }
 
         .Cfg_Suscripcion_Aviso_Accion .Config_Dato_Btn {
+          width: 100%;
+          min-width: 0;
+        }
+
+        .Cfg_Cuenta_Acciones_Fila .Config_Dato_Btn,
+        .Cfg_Cuenta_Valor_Fila .Config_Dato_Btn {
           width: 100%;
           min-width: 0;
         }
@@ -9048,6 +9140,7 @@
                   >Tu sesión activa, plan, contraseña y acciones de cuenta. Eliminar cuenta es definitivo y borra todo tu estado.</span>
               </p>
 
+              <div class="Cfg_Cuenta_Grid">
               <div class="Cfg_Cuenta_Campo">
                 <span class="Cfg_Cuenta_Etiqueta"
                   data-i18n="config.email"
@@ -9063,13 +9156,20 @@
                 </div>
               </div>
 
-              <div class="Cfg_Cuenta_Campo">
+              <div class="Cfg_Cuenta_Campo Cfg_Cuenta_Campo_Plan">
                 <span class="Cfg_Cuenta_Etiqueta"
                   data-i18n="config.plan_actual"
                   >Plan actual</span>
                 <div class="Cfg_Cuenta_Valor_Fila">
-                  <span class="Cfg_Cuenta_Valor"
-                    id="Cfg_Plan_Actual_Texto">🌱 Free</span>
+                  <div class="Cfg_Cuenta_Valor">
+                    <div class="Cfg_Cuenta_Valor_Principal">
+                      <span class="Cfg_Cuenta_Badge_Plan Free"
+                        id="Cfg_Plan_Actual_Badge">🌱 Free</span>
+                      <span id="Cfg_Plan_Actual_Texto">🌱 Free</span>
+                    </div>
+                    <div class="Cfg_Cuenta_Valor_Secundario"
+                      id="Cfg_Plan_Actual_Detalle">—</div>
+                  </div>
                   <button type="button"
                     id="Cfg_Ver_Planes"
                     class="Config_Dato_Btn"
@@ -9106,8 +9206,9 @@
                     id="Cfg_Miembro_Desde">—</span>
                 </div>
               </div>
+              </div>
 
-              <div class="Cfg_Cuenta_Campo">
+              <div class="Cfg_Cuenta_Campo Cfg_Cuenta_Campo_Historial">
                 <span class="Cfg_Cuenta_Etiqueta"
                   data-i18n="config.historial_pagos">
                   Historial de pagos
@@ -9118,7 +9219,12 @@
 
               <div class="Cfg_Cuenta_Separador"></div>
 
-              <div class="Config_Dato_Acciones">
+              <div class="Cfg_Cuenta_Campo Cfg_Cuenta_Campo_Acciones">
+                <span class="Cfg_Cuenta_Etiqueta"
+                  data-i18n="config.acciones_cuenta">
+                  Acciones de cuenta
+                </span>
+                <div class="Cfg_Cuenta_Acciones_Fila">
                 <button type="button"
                   id="Cfg_Cerrar_Sesion"
                   class="Config_Dato_Btn">
@@ -9127,12 +9233,20 @@
                     >Cerrar sesión</span>
                 </button>
                 <button type="button"
+                  id="Cfg_Cancelar_Suscripcion_Btn"
+                  class="Config_Dato_Btn Config_Dato_Btn_Peligro">
+                  <span class="Config_Dato_Btn_Icono">⏸</span>
+                  <span data-i18n="config.cancelar_suscripcion"
+                    >Cancelar suscripción</span>
+                </button>
+                <button type="button"
                   id="Cfg_Eliminar_Cuenta_Btn"
                   class="Config_Dato_Btn Config_Dato_Btn_Peligro">
                   <span class="Config_Dato_Btn_Icono">⚠</span>
                   <span data-i18n="config.eliminar_cuenta"
                     >Eliminar cuenta</span>
                 </button>
+              </div>
               </div>
             </div>
 
@@ -11368,6 +11482,10 @@
           "config.free_plan": "🌱 Free",
           "config.premium_plan":
             "⭐ Premium",
+          "config.plan_free_detalle":
+            "Acceso base sin renovación activa.",
+          "config.plan_premium_detalle":
+            "Suscripción mensual administrada por Mercado Pago.",
           "config.historial_pagos":
             "Historial de pagos",
           "config.pagos_fecha":
@@ -11405,6 +11523,10 @@
           "config.volver_suscribirse":
             "Volver a suscribirse",
           "config.ver_planes": "Ver planes",
+          "config.acciones_cuenta":
+            "Acciones de cuenta",
+          "config.cancelar_suscripcion":
+            "Cancelar suscripción",
           "config.contrasena": "Contraseña",
           "config.cambiar_password":
             "Cambiar contraseña",
@@ -11819,6 +11941,27 @@
             "Te vamos a enviar un mail con " +
             "un link para cambiar tu " +
             "contraseña a:\n\n{Email}",
+          "dialog.cancelar_suscripcion_msg":
+            "¿Seguro que querés cancelar tu " +
+            "suscripción? No se va a renovar " +
+            "automáticamente después del " +
+            "próximo vencimiento.",
+          "dialog.cancelar_suscripcion_password":
+            "Para cancelar la suscripción, " +
+            "ingresá tu contraseña actual.",
+          "dialog.cancelar_suscripcion_password_ph":
+            "Tu contraseña",
+          "dialog.cancelar_suscripcion_btn":
+            "Cancelar suscripción",
+          "dialog.no_hay_suscripcion":
+            "No hay una suscripción activa " +
+            "para cancelar.",
+          "dialog.suscripcion_cancelada":
+            "Listo. Tu suscripción quedará " +
+            "cancelada el {Fecha}.",
+          "dialog.no_cancelar_suscripcion":
+            "No se pudo cancelar la " +
+            "suscripción: {Msg}",
           "dialog.enviar_mail":
             "Enviar mail",
           "dialog.mail_pw_enviado":
@@ -13253,6 +13396,10 @@
           "config.free_plan": "🌱 Free",
           "config.premium_plan":
             "⭐ Premium",
+          "config.plan_free_detalle":
+            "Basic access without an active renewal.",
+          "config.plan_premium_detalle":
+            "Monthly subscription managed by Mercado Pago.",
           "config.historial_pagos":
             "Payment history",
           "config.pagos_fecha":
@@ -13290,6 +13437,10 @@
           "config.volver_suscribirse":
             "Resubscribe",
           "config.ver_planes": "View plans",
+          "config.acciones_cuenta":
+            "Account actions",
+          "config.cancelar_suscripcion":
+            "Cancel subscription",
           "config.contrasena": "Password",
           "config.cambiar_password":
             "Change password",
@@ -13690,6 +13841,27 @@
             "We'll send you an email " +
             "with a link to change your " +
             "password to:\n\n{Email}",
+          "dialog.cancelar_suscripcion_msg":
+            "Are you sure you want to " +
+            "cancel your subscription? It " +
+            "won't renew automatically " +
+            "after the next billing date.",
+          "dialog.cancelar_suscripcion_password":
+            "To cancel the subscription, " +
+            "enter your current password.",
+          "dialog.cancelar_suscripcion_password_ph":
+            "Your password",
+          "dialog.cancelar_suscripcion_btn":
+            "Cancel subscription",
+          "dialog.no_hay_suscripcion":
+            "There is no active " +
+            "subscription to cancel.",
+          "dialog.suscripcion_cancelada":
+            "Done. Your subscription will " +
+            "be cancelled on {Fecha}.",
+          "dialog.no_cancelar_suscripcion":
+            "Couldn't cancel the " +
+            "subscription: {Msg}",
           "dialog.enviar_mail": "Send email",
           "dialog.mail_pw_enviado":
             "We sent you an email with " +
@@ -15132,6 +15304,10 @@
           "config.free_plan": "🌱 Free",
           "config.premium_plan":
             "⭐ Premium",
+          "config.plan_free_detalle":
+            "Acesso básico sem renovação ativa.",
+          "config.plan_premium_detalle":
+            "Assinatura mensal gerenciada pelo Mercado Pago.",
           "config.historial_pagos":
             "Histórico de pagamentos",
           "config.pagos_fecha":
@@ -15169,6 +15345,10 @@
           "config.volver_suscribirse":
             "Voltar a assinar",
           "config.ver_planes": "Ver planos",
+          "config.acciones_cuenta":
+            "Ações da conta",
+          "config.cancelar_suscripcion":
+            "Cancelar assinatura",
           "config.contrasena": "Senha",
           "config.cambiar_password":
             "Alterar senha",
@@ -15601,6 +15781,28 @@
             "Vamos enviar um email com " +
             "um link para alterar sua " +
             "senha para:\n\n{Email}",
+          "dialog.cancelar_suscripcion_msg":
+            "Tem certeza de que quer " +
+            "cancelar sua assinatura? Ela " +
+            "não será renovada " +
+            "automaticamente após a " +
+            "próxima cobrança.",
+          "dialog.cancelar_suscripcion_password":
+            "Para cancelar a assinatura, " +
+            "digite sua senha atual.",
+          "dialog.cancelar_suscripcion_password_ph":
+            "Sua senha",
+          "dialog.cancelar_suscripcion_btn":
+            "Cancelar assinatura",
+          "dialog.no_hay_suscripcion":
+            "Não há uma assinatura ativa " +
+            "para cancelar.",
+          "dialog.suscripcion_cancelada":
+            "Pronto. Sua assinatura será " +
+            "cancelada em {Fecha}.",
+          "dialog.no_cancelar_suscripcion":
+            "Não foi possível cancelar a " +
+            "assinatura: {Msg}",
           "dialog.enviar_mail":
             "Enviar email",
           "dialog.mail_pw_enviado":
@@ -24115,6 +24317,48 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : "Free";
       }
 
+      function Obtener_Fecha_Suscripcion(
+        Suscripcion
+      ) {
+        const Detalle = Suscripcion?.detalle || {};
+        const Auto = Detalle?.auto_recurring || {};
+        return (
+          Detalle.next_payment_date
+          || Auto.next_payment_date
+          || Auto.end_date
+          || Suscripcion?.fecha_actualizacion
+          || Suscripcion?.fecha_creacion
+          || null
+        );
+      }
+
+      function Suscripcion_Sigue_Vigente(
+        Suscripcion
+      ) {
+        if (!Suscripcion) return false;
+        const Estado = String(
+          Suscripcion.estado || ""
+        ).toLowerCase();
+        if (Estado === "authorized") {
+          return true;
+        }
+        if (
+          Estado !== "cancelled"
+          && Estado !== "paused"
+        ) {
+          return false;
+        }
+        const Fecha = Obtener_Fecha_Suscripcion(
+          Suscripcion
+        );
+        if (!Fecha) return false;
+        const Limite = new Date(Fecha);
+        if (isNaN(Limite.getTime())) {
+          return false;
+        }
+        return Date.now() < Limite.getTime();
+      }
+
       function Obtener_Emoji_Plan(Plan) {
         return Normalizar_Plan_Actual(Plan) === "Upgrade"
           ? "💎"
@@ -24131,6 +24375,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Suscripcion_Remota !== null) {
           return Suscripcion_Remota === true;
+        }
+        if (
+          Suscripcion_Detalle_Remota &&
+          Suscripcion_Sigue_Vigente(
+            Suscripcion_Detalle_Remota
+          )
+        ) {
+          return true;
         }
         return Normalizar_Plan_Actual(
           Config.Plan_Actual
@@ -24208,15 +24460,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Obtener_Fecha_Aviso_Suscripcion(
         Suscripcion
       ) {
-        const Detalle = Suscripcion?.detalle || {};
-        const Auto = Detalle?.auto_recurring || {};
-        return (
-          Detalle.next_payment_date
-          || Auto.next_payment_date
-          || Auto.end_date
-          || Suscripcion?.fecha_actualizacion
-          || Suscripcion?.fecha_creacion
-          || null
+        return Obtener_Fecha_Suscripcion(
+          Suscripcion
         );
       }
 
@@ -24239,7 +24484,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               "config.suscripcion_renueva",
               { Fecha }
             ),
-            Accion: null,
+            Accion: {
+              Etiqueta: t(
+                "config.cancelar_suscripcion"
+              ),
+              Click: Cuenta_Cancelar_Suscripcion,
+            },
           };
         }
         if (
@@ -24593,6 +24843,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Array.isArray(data.Historial)
                 ? data.Historial
                 : [];
+            if (Suscripcion_Detalle_Remota) {
+              Suscripcion_Remota =
+                data.Es_Premium === true
+                || Suscripcion_Sigue_Vigente(
+                  Suscripcion_Detalle_Remota
+                );
+            }
             Config.Plan_Actual =
               Suscripcion_Remota
                 ? "Upgrade"
@@ -24667,8 +24924,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ? Historial_Db
               : [];
           Suscripcion_Remota =
-            Suscripcion_Detalle_Remota?.estado ===
-            "authorized";
+            Suscripcion_Sigue_Vigente(
+              Suscripcion_Detalle_Remota
+            );
           Config.Plan_Actual =
             Suscripcion_Remota
               ? "Upgrade"
@@ -34246,6 +34504,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", Cuenta_Cambiar_Mail);
       document.getElementById("Cfg_Cambiar_Password_Btn")
         ?.addEventListener("click", Cuenta_Cambiar_Password);
+      document.getElementById("Cfg_Cancelar_Suscripcion_Btn")
+        ?.addEventListener("click", Cuenta_Cancelar_Suscripcion);
       document.getElementById("Cfg_Eliminar_Cuenta_Btn")
         ?.addEventListener("click", Cuenta_Eliminar_Cuenta);
       El_Ayuda_Boton.addEventListener("click", Abrir_Ayuda);
@@ -40134,14 +40394,53 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const El_Plan = document.getElementById(
           "Cfg_Plan_Actual_Texto"
         );
-        if (El_Plan) {
-          const Plan = Normalizar_Plan_Actual(
-            Config.Plan_Actual
+        const El_Plan_Badge = document.getElementById(
+          "Cfg_Plan_Actual_Badge"
+        );
+        const El_Plan_Detalle = document.getElementById(
+          "Cfg_Plan_Actual_Detalle"
+        );
+        const El_Cancelar_Suscripcion =
+          document.getElementById(
+            "Cfg_Cancelar_Suscripcion_Btn"
           );
+        if (El_Plan) {
+          const Plan = Es_Premium()
+            ? "Upgrade"
+            : Normalizar_Plan_Actual(
+              Config.Plan_Actual
+            );
           El_Plan.textContent =
             Plan === "Upgrade"
               ? t("config.premium_plan")
               : t("config.free_plan");
+          if (El_Plan_Badge) {
+            El_Plan_Badge.textContent =
+              El_Plan.textContent;
+            El_Plan_Badge.className =
+              "Cfg_Cuenta_Badge_Plan " +
+              (
+                Plan === "Upgrade"
+                  ? "Premium"
+                  : "Free"
+              );
+          }
+          if (El_Plan_Detalle) {
+            El_Plan_Detalle.textContent =
+              Plan === "Upgrade"
+                ? t("config.plan_premium_detalle")
+                : t("config.plan_free_detalle");
+          }
+        }
+        if (El_Cancelar_Suscripcion) {
+          const Estado = String(
+            Suscripcion_Detalle_Remota?.estado || ""
+          ).toLowerCase();
+          const Mostrar =
+            Estado === "authorized"
+            || Estado === "pending";
+          El_Cancelar_Suscripcion.style.display =
+            Mostrar ? "" : "none";
         }
         const El_Desde = document.getElementById(
           "Cfg_Miembro_Desde"
@@ -40270,6 +40569,145 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } catch (E) {
           await Mostrar_Dialogo(
             "Error inesperado: " + E.message,
+            [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
+          );
+        }
+      }
+
+      async function Cuenta_Cancelar_Suscripcion() {
+        if (!Supa || !Usuario_Actual) return;
+        const Suscripcion = Suscripcion_Detalle_Remota;
+        if (
+          !Suscripcion ||
+          !Suscripcion.mp_preapproval_id
+        ) {
+          await Mostrar_Dialogo(
+            t("dialog.no_hay_suscripcion"),
+            [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
+          );
+          return;
+        }
+
+        const Confirmar = await Mostrar_Dialogo(
+          t("dialog.cancelar_suscripcion_msg"),
+          [
+            {
+              Etiqueta: t("cancelar"),
+              Valor: false,
+              Tipo: "Cancelar"
+            },
+            {
+              Etiqueta: t(
+                "config.cancelar_suscripcion"
+              ),
+              Valor: true,
+              Tipo: "Peligro"
+            }
+          ]
+        );
+        if (!Confirmar) return;
+
+        const Pass = await Mostrar_Dialogo_Con_Texto(
+          t(
+            "dialog.cancelar_suscripcion_password"
+          ),
+          {
+            Tipo: "password",
+            Placeholder: t(
+              "dialog.cancelar_suscripcion_password_ph"
+            ),
+            Etiqueta_Confirmar: t(
+              "dialog.cancelar_suscripcion_btn"
+            ),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (!Pass) return;
+
+        const Email = Usuario_Actual.email || "";
+        try {
+          const { error: Err_Sign } = await Supa.auth
+            .signInWithPassword({
+              email: Email,
+              password: Pass
+            });
+          if (Err_Sign) {
+            await Mostrar_Dialogo(
+              Traducir_Error_Auth(
+                Err_Sign.message
+              ),
+              [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
+            );
+            return;
+          }
+        } catch (E) {
+          await Mostrar_Dialogo(
+            t(
+              "dialog.no_cancelar_suscripcion",
+              { Msg: E.message || String(E) }
+            ),
+            [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
+          );
+          return;
+        }
+
+        try {
+          const { data, error } =
+            await Supa.functions.invoke(
+              "cancelar-suscripcion",
+              { method: "POST" }
+            );
+          if (error || !data?.Suscripcion) {
+            await Mostrar_Dialogo(
+              t(
+                "dialog.no_cancelar_suscripcion",
+                {
+                  Msg:
+                    error?.message
+                    || data?.Error
+                    || "Error"
+                }
+              ),
+              [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
+            );
+            return;
+          }
+
+          Suscripcion_Detalle_Remota =
+            data.Suscripcion;
+          Suscripcion_Historial_Remoto =
+            Array.isArray(data.Historial)
+              ? data.Historial
+              : Suscripcion_Historial_Remoto;
+          Suscripcion_Remota =
+            data.Es_Premium === true
+            || Suscripcion_Sigue_Vigente(
+              Suscripcion_Detalle_Remota
+            );
+          Config.Plan_Actual =
+            Suscripcion_Remota
+              ? "Upgrade"
+              : "Free";
+          Actualizar_UI_Plan();
+
+          const Fecha = Formatear_Fecha_Suscripcion(
+            Obtener_Fecha_Aviso_Suscripcion(
+              Suscripcion_Detalle_Remota
+            )
+          ) || "—";
+          await Mostrar_Dialogo(
+            t(
+              "dialog.suscripcion_cancelada",
+              { Fecha }
+            ),
+            [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
+          );
+        } catch (E) {
+          await Mostrar_Dialogo(
+            t(
+              "dialog.no_cancelar_suscripcion",
+              { Msg: E.message || String(E) }
+            ),
             [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
           );
         }
