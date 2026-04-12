@@ -17572,7 +17572,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (El_Baul_Timeline_Input) {
           El_Baul_Timeline_Input.value = "";
         }
-        Poblar_Select_Categorias(El_Baul_Categoria_Input, null);
+        Poblar_Select_Categorias_Baul(null);
         Render_Selector_Etiquetas(
           El_Baul_Etiquetas_Input,
           [],
@@ -17598,8 +17598,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Baul_Nombre_Input.value = Tarea.Nombre || "";
         El_Baul_Emoji_Input.value = Tarea.Emoji || "";
         El_Baul_Tipo_Input.value = Tarea.Es_Bolsa ? "Si" : "No";
-        Poblar_Select_Categorias(
-          El_Baul_Categoria_Input,
+        Poblar_Select_Categorias_Baul(
           Tarea.Categoria_Id || null
         );
         if (El_Baul_Estado_Input) {
@@ -17778,9 +17777,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Baul_Vista_Modo = Normalizar_Baul_Vista_Modo(
           Config.Baul_Vista_Modo
         );
-        Poblar_Select_Categorias(
-          El_Baul_Categoria_Input,
-          El_Baul_Categoria_Input?.value || null
+        Poblar_Select_Categorias_Baul(
+          El_Baul_Categoria_Input?.dataset.valorReal ||
+            El_Baul_Categoria_Input?.value || null
         );
         Poblar_Select_Categorias(
           El_Baul_Filtro_Categoria,
@@ -27243,8 +27242,87 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `<option value="">${Etiq}</option>` +
           Categorias.map((Cat) =>
             `<option value="${Cat.Id}">${Cat.Emoji} ${Cat.Nombre}</option>`
-          ).join("");
+        ).join("");
         El_Select.value = Valor_Actual || "";
+      }
+
+      const VALOR_NUEVA_CATEGORIA_BAUL =
+        "__nueva_categoria_baul__";
+
+      function Poblar_Select_Categorias_Baul(
+        Valor_Actual = null
+      ) {
+        Poblar_Select_Categorias(
+          El_Baul_Categoria_Input,
+          Valor_Actual
+        );
+        if (!El_Baul_Categoria_Input) return;
+        const Opt_Nueva = document.createElement("option");
+        Opt_Nueva.value = VALOR_NUEVA_CATEGORIA_BAUL;
+        Opt_Nueva.textContent = "+ Nueva categoría…";
+        El_Baul_Categoria_Input.appendChild(Opt_Nueva);
+        El_Baul_Categoria_Input.value = Valor_Actual || "";
+        El_Baul_Categoria_Input.dataset.valorReal =
+          Valor_Actual || "";
+      }
+
+      async function Crear_Categoria_Desde_Baul() {
+        const Nombre_Actual = (
+          El_Baul_Nombre_Input?.value || ""
+        ).trim();
+        const Nombre = await Mostrar_Dialogo_Con_Texto(
+          "Nombre de la nueva categoría:",
+          {
+            Default: "",
+            Placeholder: Nombre_Actual || "Ej. Trabajo, Salud, Estudio",
+            Etiqueta_Confirmar: "Crear"
+          }
+        );
+        if (Nombre === null) {
+          Poblar_Select_Categorias_Baul(
+            El_Baul_Categoria_Input?.dataset.valorReal || null
+          );
+          Render_Detalle_Baul();
+          return;
+        }
+        const Nombre_Limpio = Nombre.trim();
+        if (!Nombre_Limpio) {
+          Poblar_Select_Categorias_Baul(
+            El_Baul_Categoria_Input?.dataset.valorReal || null
+          );
+          Render_Detalle_Baul();
+          return;
+        }
+        const Existente = Categorias.find((Categoria) =>
+          Normalizar_Texto_Meta_Tarea(Categoria.Nombre) ===
+            Normalizar_Texto_Meta_Tarea(Nombre_Limpio)
+        );
+        const Categoria_Id = Existente?.Id || Crear_Id_Categoria();
+        if (!Existente) {
+          Categorias.push({
+            Id: Categoria_Id,
+            Emoji: "🏷️",
+            Nombre: Nombre_Limpio,
+            Metadatos: []
+          });
+        }
+        Poblar_Select_Categorias_Baul(Categoria_Id);
+        Poblar_Select_Categorias(
+          El_Categoria_Tarea,
+          El_Categoria_Tarea?.value || null
+        );
+        Poblar_Select_Categorias(
+          El_Baul_Filtro_Categoria,
+          El_Baul_Filtro_Categoria?.value || null,
+          t("todas")
+        );
+        Render_Metadatos_Baul(
+          Categoria_Id,
+          Obtener_Valores_Metadatos_Baul(),
+          Render_Detalle_Baul
+        );
+        Render_Detalle_Baul();
+        Guardar_Estado();
       }
 
       function Poblar_Select_Etiquetas_Filtro(
@@ -32871,6 +32949,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El?.addEventListener("change", Render_Detalle_Baul);
       });
       El_Baul_Categoria_Input?.addEventListener("change", () => {
+        if (
+          El_Baul_Categoria_Input.value ===
+          VALOR_NUEVA_CATEGORIA_BAUL
+        ) {
+          Crear_Categoria_Desde_Baul();
+          return;
+        }
+        El_Baul_Categoria_Input.dataset.valorReal =
+          El_Baul_Categoria_Input.value || "";
         Render_Metadatos_Baul(
           El_Baul_Categoria_Input.value || null,
           Obtener_Valores_Metadatos_Baul(),
