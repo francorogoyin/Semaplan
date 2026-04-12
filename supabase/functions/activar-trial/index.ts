@@ -37,6 +37,13 @@ Deno.serve(async (Req) => {
   }
 
   try {
+    const Cuerpo = Req.method === "POST"
+      ? await Req.json().catch(() => ({}))
+      : {};
+    const Origen = String(
+      Cuerpo?.Origen || "app"
+    ).trim() || "app";
+
     const Auth_Header = Req.headers.get(
       "Authorization"
     );
@@ -192,7 +199,7 @@ Deno.serve(async (Req) => {
       },
       trial_iniciado_en: Ahora.toISOString(),
       trial_hasta: Trial_Hasta.toISOString(),
-      trial_origen: "app",
+      trial_origen: Origen,
     };
 
     const { error: Error_Upsert } =

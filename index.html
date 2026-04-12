@@ -12021,6 +12021,20 @@
             "Listo. Tu mes gratis queda activo hasta el {Fecha}.",
           "dialog.no_activar_trial":
             "No se pudo activar el mes gratis: {Msg}",
+          "dialog.no_activar_trial_generico":
+            "Hubo un problema activando el mes gratis. Reintentá en unos minutos.",
+          "dialog.trial_bienvenida":
+            "Bienvenido. Tenés un mes gratis de Premium hasta el {Fecha}.",
+          "dialog.trial_bienvenida_ok":
+            "Seguir",
+          "dialog.trial_bienvenida_planes":
+            "Ver planes",
+          "dialog.trial_vencido":
+            "Tu mes gratis terminó. ¿Querés pasar a Premium?",
+          "dialog.trial_vencido_despues":
+            "Después",
+          "dialog.trial_vencido_planes":
+            "Ver planes",
           "dialog.no_hay_suscripcion":
             "No hay una suscripción activa " +
             "para cancelar.",
@@ -13949,6 +13963,20 @@
             "Done. Your free month is active until {Fecha}.",
           "dialog.no_activar_trial":
             "Could not activate the free month: {Msg}",
+          "dialog.no_activar_trial_generico":
+            "There was a problem activating the free month. Try again in a few minutes.",
+          "dialog.trial_bienvenida":
+            "Welcome. Your Premium free month is active until {Fecha}.",
+          "dialog.trial_bienvenida_ok":
+            "Continue",
+          "dialog.trial_bienvenida_planes":
+            "View plans",
+          "dialog.trial_vencido":
+            "Your free month ended. Do you want to switch to Premium?",
+          "dialog.trial_vencido_despues":
+            "Later",
+          "dialog.trial_vencido_planes":
+            "View plans",
           "dialog.no_hay_suscripcion":
             "There is no active " +
             "subscription to cancel.",
@@ -15918,6 +15946,20 @@
             "Pronto. Seu mês grátis fica ativo até {Fecha}.",
           "dialog.no_activar_trial":
             "Não foi possível ativar o mês grátis: {Msg}",
+          "dialog.no_activar_trial_generico":
+            "Houve um problema ao ativar o mês grátis. Tente novamente em alguns minutos.",
+          "dialog.trial_bienvenida":
+            "Bem-vindo. Seu mês grátis de Premium fica ativo até {Fecha}.",
+          "dialog.trial_bienvenida_ok":
+            "Continuar",
+          "dialog.trial_bienvenida_planes":
+            "Ver planos",
+          "dialog.trial_vencido":
+            "Seu mês grátis terminou. Quer passar para o Premium?",
+          "dialog.trial_vencido_despues":
+            "Depois",
+          "dialog.trial_vencido_planes":
+            "Ver planos",
           "dialog.no_hay_suscripcion":
             "Não há uma assinatura ativa " +
             "para cancelar.",
@@ -26756,14 +26798,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 body: { Origen },
               }
             );
+          const Msg_Error = data?.Error
+            || (
+              error?.message &&
+              error.message.includes("non-2xx")
+                ? t("dialog.no_activar_trial_generico")
+                : error?.message
+            )
+            || "Error";
           if (error || !data?.Suscripcion) {
             if (Mostrar_Mensaje) {
               await Mostrar_Dialogo(
                 t("dialog.no_activar_trial", {
-                  Msg:
-                    error?.message
-                    || data?.Error
-                    || "Error"
+                  Msg: Msg_Error
                 }),
                 [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
               );
@@ -26800,6 +26847,186 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           return false;
         }
+      }
+
+      function Obtener_Clave_Trial_Modal(
+        Tipo,
+        Fecha
+      ) {
+        const User_Id = Usuario_Actual?.id || "anon";
+        return `Semaplan_Trial_${Tipo}_${User_Id}_${Fecha || "sin_fecha"}`;
+      }
+
+      async function Mostrar_Modal_Bienvenida_Trial() {
+        if (
+          Trial_Modal_Abierto
+          || !Suscripcion_Detalle_Remota
+        ) {
+          return;
+        }
+        const Fecha =
+          Formatear_Fecha_Suscripcion(
+            Obtener_Fecha_Aviso_Suscripcion(
+              Suscripcion_Detalle_Remota
+            )
+          ) || "—";
+        const Clave = Obtener_Clave_Trial_Modal(
+          "bienvenida",
+          Suscripcion_Detalle_Remota.trial_hasta
+          || Suscripcion_Detalle_Remota.detalle?.trial_hasta
+          || Fecha
+        );
+        if (localStorage.getItem(Clave)) {
+          return;
+        }
+        Trial_Modal_Abierto = true;
+        try {
+          const Ir_Planes = await Mostrar_Dialogo(
+            t("dialog.trial_bienvenida", {
+              Fecha
+            }),
+            [
+              {
+                Etiqueta: t(
+                  "dialog.trial_bienvenida_ok"
+                ),
+                Valor: false,
+                Tipo: "Cancelar"
+              },
+              {
+                Etiqueta: t(
+                  "dialog.trial_bienvenida_planes"
+                ),
+                Valor: true,
+                Tipo: "Primario"
+              }
+            ]
+          );
+          localStorage.setItem(Clave, "1");
+          if (Ir_Planes) {
+            Abrir_Suscripcion();
+          }
+        } finally {
+          Trial_Modal_Abierto = false;
+        }
+      }
+
+      async function Mostrar_Modal_Trial_Vencido() {
+        if (
+          Trial_Modal_Abierto
+          || !Suscripcion_Detalle_Remota
+        ) {
+          return;
+        }
+        const Estado = String(
+          Suscripcion_Detalle_Remota.estado || ""
+        ).toLowerCase();
+        const Fecha_Trial =
+          Suscripcion_Detalle_Remota.trial_hasta
+          || Suscripcion_Detalle_Remota.detalle?.trial_hasta
+          || null;
+        if (
+          Estado !== "trial"
+          || !Fecha_Trial
+          || Trial_Activo()
+          || Es_Premium()
+        ) {
+          return;
+        }
+        const Clave = Obtener_Clave_Trial_Modal(
+          "vencido",
+          Fecha_Trial
+        );
+        if (localStorage.getItem(Clave)) {
+          return;
+        }
+        Trial_Modal_Abierto = true;
+        try {
+          const Ir_Planes = await Mostrar_Dialogo(
+            t("dialog.trial_vencido"),
+            [
+              {
+                Etiqueta: t(
+                  "dialog.trial_vencido_despues"
+                ),
+                Valor: false,
+                Tipo: "Cancelar"
+              },
+              {
+                Etiqueta: t(
+                  "dialog.trial_vencido_planes"
+                ),
+                Valor: true,
+                Tipo: "Primario"
+              }
+            ]
+          );
+          localStorage.setItem(Clave, "1");
+          if (Ir_Planes) {
+            Abrir_Suscripcion();
+          }
+        } finally {
+          Trial_Modal_Abierto = false;
+        }
+      }
+
+      async function Limpiar_Bandera_Trial_Pendiente() {
+        if (!Supa || !Usuario_Actual) return;
+        const Meta = {
+          ...(Usuario_Actual.user_metadata || {})
+        };
+        if (!Meta.trial_pendiente) return;
+        delete Meta.trial_pendiente;
+        try {
+          const { data, error } =
+            await Supa.auth.updateUser({
+              data: Meta
+            });
+          if (!error && data?.user) {
+            Usuario_Actual = data.user;
+          } else {
+            Usuario_Actual = {
+              ...Usuario_Actual,
+              user_metadata: Meta
+            };
+          }
+        } catch (_) {
+          Usuario_Actual = {
+            ...Usuario_Actual,
+            user_metadata: Meta
+          };
+        }
+      }
+
+      async function Intentar_Activacion_Trial_Inicial() {
+        if (!Supa || !Usuario_Actual) return false;
+        const Meta =
+          Usuario_Actual.user_metadata || {};
+        if (!Meta.trial_pendiente) {
+          return false;
+        }
+        if (!Trial_Disponible()) {
+          await Limpiar_Bandera_Trial_Pendiente();
+          return false;
+        }
+        const Ok = await Activar_Trial(
+          "registro_auto",
+          false
+        );
+        if (!Ok) {
+          await Mostrar_Dialogo(
+            t("dialog.no_activar_trial", {
+              Msg: t(
+                "dialog.no_activar_trial_generico"
+              )
+            }),
+            [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
+          );
+          return false;
+        }
+        await Limpiar_Bandera_Trial_Pendiente();
+        await Mostrar_Modal_Bienvenida_Trial();
+        return true;
       }
 
       function Guardar_Modal_Patron() {
@@ -40134,6 +40361,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_Estado = "Guardado";
       // Flag para evitar guardados durante la carga inicial.
       let Cargando_Inicial = true;
+      let Trial_Modal_Abierto = false;
 
       function Inicializar_Supabase() {
         // Crea el cliente de Supabase usando el SDK del CDN.
@@ -40718,6 +40946,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   data: {
                     name: Nombre,
                     nombre: Nombre,
+                    trial_pendiente: true,
                   },
                 },
               });
@@ -41315,6 +41544,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // 5c) Verificar estado de suscripción en
         // el backend (Mercado Pago).
         await Verificar_Suscripcion_Remota();
+        const Trial_Activado_Ahora =
+          await Intentar_Activacion_Trial_Inicial();
+        if (!Trial_Activado_Ahora) {
+          await Mostrar_Modal_Trial_Vencido();
+        }
 
         Actualizar_Sync_Indicador("Guardado");
 
