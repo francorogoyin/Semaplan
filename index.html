@@ -3659,6 +3659,24 @@
         -webkit-box-orient: vertical;
       }
 
+      .Slot_Plan_Marca {
+        position: absolute;
+        right: 6px;
+        bottom: 6px;
+        z-index: 1;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: rgba(15, 95, 90, 0.9);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 18px;
+        text-align: center;
+        pointer-events: none;
+      }
+
       .Slot_Pasado {
         background: rgba(180, 168, 152, 0.32);
       }
@@ -8851,7 +8869,7 @@
                       data-i18n="ayuda.paso4_titulo"
                       >Revisá avance</strong>
                     <p data-i18n="ayuda.paso4_desc">
-                      Usá resumen, metas, abordaje y subtareas
+                      Usá resumen, metas, plan y subtareas
                       para ver si la carga semanal cierra.
                     </p>
                   </div>
@@ -8964,12 +8982,12 @@
               </div>
               <div class="Ayuda_Bloque">
                 <h3 data-i18n="ayuda.abordaje_titulo"
-                  >Abordaje</h3>
+                  >Plan</h3>
                 <p data-i18n="ayuda.abordaje_p1">
-                  Cada bloque del calendario tiene un Abordaje:
+                  Cada bloque del calendario tiene un Plan:
                   el registro de qué subtareas se trabajaron en
                   ese horario puntual. Abrilo con click derecho
-                  sobre el bloque → "Abordaje".
+                  sobre el bloque → "Plan".
                 </p>
                 <div class="Ayuda_Grid">
                   <div class="Ayuda_Mini_Card">
@@ -8982,7 +9000,7 @@
                     <p data-i18n="ayuda.abordaje_estrella_desc">
                       Marcá con ★ las subs que pensás abordar
                       en ese bloque. El plan queda visible
-                      al abrir el abordaje del bloque.
+                      al abrir el plan del bloque.
                     </p>
                   </div>
                   <div class="Ayuda_Mini_Card">
@@ -9040,11 +9058,11 @@
                   Muestra el bloque en curso (o el próximo)
                   a pantalla grande con countdown vivo, mini
                   barra del día, nota editable y acceso directo
-                  a las subtareas y al abordaje del bloque.
+                  a las subtareas y al plan del bloque.
                 </p>
                 <p data-i18n-html="ayuda.focus_p2">
                   Las subtareas que tildes en el Focus quedan
-                  registradas como "Completado" en el abordaje
+                  registradas como "Completado" en el plan
                   del bloque. Editar, borrar y reordenar
                   funciona como atajo a la tarea real.
                 </p>
@@ -9073,7 +9091,7 @@
                     </div>
                     <p data-i18n="ayuda.focus_opciones_desc">
                       Doble click en el nombre del bloque (o el
-                      botón ⋯) abre el menú con abordaje, nota,
+                      botón ⋯) abre el menú con plan, nota,
                       repetir y limpiar.
                     </p>
                   </div>
@@ -10448,10 +10466,10 @@
     <div class="Patron_Modal_Overlay" id="Abordaje_Modal_Overlay">
       <div class="Patron_Modal_Panel">
 	        <div class="Patron_Modal_Cabecera">
-	          <span class="Patron_Modal_Titulo"
-	            id="Abordaje_Modal_Titulo"
-	            data-i18n="abordaje.titulo"
-	            >Abordaje</span>
+          <span class="Patron_Modal_Titulo"
+            id="Abordaje_Modal_Titulo"
+            data-i18n="abordaje.titulo"
+	            >Plan</span>
 	          <button class="Config_Boton"
 	            id="Abordaje_Modal_Cerrar"
 	            type="button"
@@ -10467,7 +10485,31 @@
           <button class="Config_Boton_Guardar"
             id="Abordaje_Modal_Guardar_Btn"
             data-i18n="abordaje.guardar"
-            type="button">Guardar abordaje</button>
+            type="button">Guardar plan</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="Patron_Modal_Overlay" id="Plan_Slot_Overlay">
+      <div class="Patron_Modal_Panel">
+        <div class="Patron_Modal_Cabecera">
+          <span class="Patron_Modal_Titulo"
+            id="Plan_Slot_Titulo">Plan</span>
+          <button class="Config_Boton"
+            id="Plan_Slot_Cerrar"
+            type="button"
+            style="font-size:16px">×</button>
+        </div>
+        <div class="Patron_Modal_Cuerpo"
+          id="Plan_Slot_Cuerpo"></div>
+        <div class="Patron_Modal_Acciones">
+          <button class="Config_Boton_Cancelar"
+            id="Plan_Slot_Cancelar"
+            data-i18n="cancelar"
+            type="button">Cancelar</button>
+          <button class="Config_Boton_Guardar"
+            id="Plan_Slot_Guardar"
+            type="button">Guardar plan</button>
         </div>
       </div>
     </div>
@@ -11220,9 +11262,10 @@
           "patron.sin_nombre": "Sin nombre",
           "patron.tipo_diario": "Diario",
           "patron.tipo_semanal": "Semanal",
-          "abordaje.titulo": "Abordaje",
+          "patron.tipo_slot": "Slot",
+          "abordaje.titulo": "Plan",
           "abordaje.guardar":
-            "Guardar abordaje",
+            "Guardar plan",
           "abordaje.sin_subtareas":
             "Esta tarea no tiene subtareas.",
           "abordaje.items_sueltos":
@@ -11503,9 +11546,9 @@
           "resumen.metric_subtareas":
             "Subtareas",
           "resumen.mostrar_abordajes":
-            "Mostrar abordajes",
+            "Mostrar planes",
           "resumen.ocultar_abordajes":
-            "Ocultar abordajes",
+            "Ocultar planes",
           "resumen.ocultar_grafico":
             "Ocultar gráfico",
           "resumen.ver_grafico":
@@ -11519,7 +11562,7 @@
           "resumen.asignado": "Asignado",
           "resumen.realizado": "Realizado",
           "resumen.bloques": "Bloques",
-          "contexto.abordaje": "Abordaje",
+          "contexto.abordaje": "Plan",
           "contexto.agregar_nota":
             "Agregar nota",
           "contexto.editar_nota":
@@ -11727,7 +11770,7 @@
             "Revisá avance",
           "ayuda.paso4_desc":
             "Usá resumen, metas, " +
-            "abordaje y subtareas para " +
+            "plan y subtareas para " +
             "ver si la carga semanal " +
             "cierra.",
           "ayuda.cal_titulo":
@@ -11831,17 +11874,17 @@
             " se aplican cada semana " +
             "como punto de partida.",
           "ayuda.abordaje_titulo":
-            "Abordaje",
+            "Plan",
           "ayuda.abordaje_p1":
             "Cada bloque del " +
             "calendario tiene un " +
-            "Abordaje: el registro " +
+            "Plan: el registro " +
             "de qué subtareas se " +
             "trabajaron en ese " +
             "horario puntual. Abrilo" +
             " con click derecho " +
             "sobre el bloque → " +
-            "\"Abordaje\".",
+            "\"Plan\".",
           "ayuda.abordaje_planear":
             "Planear",
           "ayuda.abordaje_estrella":
@@ -11851,7 +11894,7 @@
             "que pensás abordar en " +
             "ese bloque. El plan " +
             "queda visible al abrir " +
-            "el abordaje del bloque.",
+            "el plan del bloque.",
           "ayuda.abordaje_marcar":
             "Marcar",
           "ayuda.abordaje_completado":
@@ -11909,15 +11952,15 @@
             "día, nota editable y " +
             "acceso directo a las " +
             "subtareas y al " +
-            "abordaje del bloque.",
+            "plan del bloque.",
           "ayuda.focus_p2":
             "Las subtareas que " +
             "tildes en el Focus " +
             "quedan registradas " +
             "como \"Completado\" en" +
-            " el abordaje del " +
-            "bloque. Editar, borrar" +
-            " y reordenar funciona " +
+            " el plan del bloque. " +
+            "Editar, borrar y " +
+            "reordenar funciona " +
             "como atajo a la tarea " +
             "real.",
           "ayuda.focus_vencidos":
@@ -11938,9 +11981,8 @@
             "Doble click en el " +
             "nombre del bloque (o " +
             "el botón ⋯) abre el " +
-            "menú con abordaje, " +
-            "nota, repetir y " +
-            "limpiar.",
+            "menú con plan, nota, " +
+            "repetir y limpiar.",
           "ayuda.metas_titulo":
             "Metas 🎯",
           "ayuda.metas_p1":
@@ -12987,9 +13029,10 @@
           "patron.sin_nombre": "Untitled",
           "patron.tipo_diario": "Daily",
           "patron.tipo_semanal": "Weekly",
-          "abordaje.titulo": "Approach",
+          "patron.tipo_slot": "Slot",
+          "abordaje.titulo": "Plan",
           "abordaje.guardar":
-            "Save approach",
+            "Save plan",
           "abordaje.sin_subtareas":
             "This task has no subtasks.",
           "abordaje.items_sueltos":
@@ -13267,9 +13310,9 @@
           "resumen.metric_subtareas":
             "Subtasks",
           "resumen.mostrar_abordajes":
-            "Show approach",
+            "Show plans",
           "resumen.ocultar_abordajes":
-            "Hide approach",
+            "Hide plans",
           "resumen.ocultar_grafico":
             "Hide chart",
           "resumen.ver_grafico":
@@ -13283,7 +13326,7 @@
           "resumen.asignado": "Assigned",
           "resumen.realizado": "Completed",
           "resumen.bloques": "Blocks",
-          "contexto.abordaje": "Approach",
+          "contexto.abordaje": "Plan",
           "contexto.agregar_nota":
             "Add note",
           "contexto.editar_nota":
@@ -13481,7 +13524,7 @@
             "Review progress",
           "ayuda.paso4_desc":
             "Use summary, goals, " +
-            "approach and subtasks to " +
+            "plan and subtasks to " +
             "check the weekly load.",
           "ayuda.cal_titulo":
             "Calendar and blocks",
@@ -13571,16 +13614,16 @@
             "each week as a " +
             "starting point.",
           "ayuda.abordaje_titulo":
-            "Approach",
+            "Plan",
           "ayuda.abordaje_p1":
             "Each calendar block " +
-            "has an Approach: the " +
+            "has a Plan: the " +
             "record of which " +
             "subtasks were worked " +
             "on during that time " +
             "slot. Open it by " +
             "right-clicking the " +
-            "block → \"Approach\".",
+            "block → \"Plan\".",
           "ayuda.abordaje_planear":
             "Plan",
           "ayuda.abordaje_estrella":
@@ -13590,7 +13633,7 @@
             " to tackle in that " +
             "block. The plan stays " +
             "visible when you open " +
-            "the block's approach.",
+            "the block's plan.",
           "ayuda.abordaje_marcar": "Mark",
           "ayuda.abordaje_completado":
             "✓ Completed / • Worked on",
@@ -13647,17 +13690,16 @@
             "bar, editable note " +
             "and direct access to " +
             "subtasks and the " +
-            "block's approach.",
+            "block's plan.",
           "ayuda.focus_p2":
             "Subtasks you check " +
             "off in Focus are " +
             "recorded as " +
             "\"Completed\" in the " +
-            "block's approach. " +
-            "Edit, delete and " +
-            "reorder work as " +
-            "shortcuts to the " +
-            "actual task.",
+            "block's plan. Edit, " +
+            "delete and reorder " +
+            "work as shortcuts to " +
+            "the actual task.",
           "ayuda.focus_vencidos":
             "Overdue",
           "ayuda.focus_no_pierdas":
@@ -13677,9 +13719,8 @@
             "Double-click the block" +
             " name (or the ⋯ " +
             "button) to open the " +
-            "menu with approach, " +
-            "note, repeat and " +
-            "clear.",
+            "menu with plan, note, " +
+            "repeat and clear.",
           "ayuda.metas_titulo":
             "Goals 🎯",
           "ayuda.metas_p1":
@@ -14783,9 +14824,10 @@
           "patron.sin_nombre": "Sem nome",
           "patron.tipo_diario": "Diário",
           "patron.tipo_semanal": "Semanal",
-          "abordaje.titulo": "Abordagem",
+          "patron.tipo_slot": "Slot",
+          "abordaje.titulo": "Plano",
           "abordaje.guardar":
-            "Salvar abordagem",
+            "Salvar plano",
           "abordaje.sin_subtareas":
             "Esta tarefa não tem " +
             "subtarefas.",
@@ -15069,9 +15111,9 @@
           "resumen.metric_subtareas":
             "Subtarefas",
           "resumen.mostrar_abordajes":
-            "Mostrar abordagens",
+            "Mostrar planos",
           "resumen.ocultar_abordajes":
-            "Ocultar abordagens",
+            "Ocultar planos",
           "resumen.ocultar_grafico":
             "Ocultar gráfico",
           "resumen.ver_grafico":
@@ -15085,7 +15127,7 @@
           "resumen.asignado": "Atribuído",
           "resumen.realizado": "Realizado",
           "resumen.bloques": "Blocos",
-          "contexto.abordaje": "Abordagem",
+          "contexto.abordaje": "Plano",
           "contexto.agregar_nota":
             "Adicionar nota",
           "contexto.editar_nota":
@@ -15289,7 +15331,7 @@
             "Revise o progresso",
           "ayuda.paso4_desc":
             "Use resumo, metas, " +
-            "abordagem e subtarefas " +
+            "plano e subtarefas " +
             "para ver se a carga " +
             "semanal fecha.",
           "ayuda.cal_titulo":
@@ -15385,17 +15427,17 @@
             " semana como ponto " +
             "de partida.",
           "ayuda.abordaje_titulo":
-            "Abordagem",
+            "Plano",
           "ayuda.abordaje_p1":
             "Cada bloco do " +
             "calendário tem uma " +
-            "Abordagem: o registro" +
+            "Plano: o registro" +
             " de quais subtarefas " +
             "foram trabalhadas " +
             "naquele horário. Abra" +
             " com clique direito " +
             "sobre o bloco → " +
-            "\"Abordagem\".",
+            "\"Plano\".",
           "ayuda.abordaje_planear":
             "Planejar",
           "ayuda.abordaje_estrella":
@@ -15405,8 +15447,7 @@
             "que pretende abordar " +
             "nesse bloco. O plano " +
             "fica visível ao abrir" +
-            " a abordagem do " +
-            "bloco.",
+            " o plano do bloco.",
           "ayuda.abordaje_marcar":
             "Marcar",
           "ayuda.abordaje_completado":
@@ -15465,17 +15506,17 @@
             "mini barra do dia, " +
             "nota editável e " +
             "acesso direto às " +
-            "subtarefas e à " +
-            "abordagem do bloco.",
+            "subtarefas e ao " +
+            "plano do bloco.",
           "ayuda.focus_p2":
             "As subtarefas que " +
             "você marcar no Foco " +
             "ficam registradas " +
             "como \"Completado\" " +
-            "na abordagem do " +
-            "bloco. Editar, apagar" +
-            " e reordenar funciona" +
-            " como atalho para a " +
+            "no plano do bloco. " +
+            "Editar, apagar e " +
+            "reordenar funciona " +
+            "como atalho para a " +
             "tarefa real.",
           "ayuda.focus_vencidos":
             "Vencidos",
@@ -15495,8 +15536,8 @@
             "Clique duplo no nome " +
             "do bloco (ou o botão " +
             "⋯) abre o menu com " +
-            "abordagem, nota, " +
-            "repetir e limpar.",
+            "plano, nota, repetir " +
+            "e limpar.",
           "ayuda.metas_titulo":
             "Metas 🎯",
           "ayuda.metas_p1":
@@ -16242,6 +16283,7 @@
       // diff vs estado actual, y cierre con nota.
       // Clave = ISO del lunes ("2026-04-06").
       let Planes_Semana = {};
+      let Planes_Slot = {};
       // Modal de planificación: pestaña activa.
       let Plan_Modal_Modo = "Planear";
       // Histórico: ISO seleccionado en el modal de historial.
@@ -16272,6 +16314,8 @@
       let Patron_Modal_Dia_Activo = "0";
       let Abordaje_Evento_Id = null;
       let Abordaje_Borrador = [];
+      let Plan_Slot_Clave_Activa = null;
+      let Plan_Slot_Borrador = [];
       // Filtro del modal Abordaje. Cuando está activo, solo se
       // muestra un subset de subs según el estado del bloque:
       // - Bloques pasados → solo las que tienen trabajo (Marcado).
@@ -24723,6 +24767,87 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Contenedor.appendChild(Btn_Add);
       }
 
+      function Render_Modal_Items_Patron_Slot(
+        Contenedor,
+        Items_Arr
+      ) {
+        if (!Contenedor || !Array.isArray(Items_Arr)) return;
+        Contenedor.innerHTML = "";
+        Items_Arr.forEach((Item, Idx) => {
+          const Fila = document.createElement("div");
+          Fila.className = "Patron_Modal_Franja";
+
+          const Emoji = document.createElement("input");
+          Emoji.type = "text";
+          Emoji.maxLength = 4;
+          Emoji.value = Item.Emoji || "•";
+          Emoji.className =
+            "Patron_Modal_Emoji_Input Con_Selector_Emoji";
+          Emoji.style.width = "52px";
+          Emoji.addEventListener("input", () => {
+            Item.Emoji = Emoji.value.trim() || "•";
+          });
+
+          const Texto = document.createElement("input");
+          Texto.type = "text";
+          Texto.className = "Patron_Modal_Nombre_Input";
+          Texto.placeholder = "Tarea rápida";
+          Texto.value = Item.Texto || "";
+          Texto.addEventListener("input", () => {
+            Item.Texto = Texto.value;
+          });
+
+          const Estado = document.createElement("select");
+          Estado.className = "Patron_Modal_Sel";
+          Estado.style.width = "120px";
+          [
+            "Planeado",
+            "Abordado",
+            "Realizado",
+            "Anulado"
+          ].forEach((Valor) => {
+            const Opt = document.createElement("option");
+            Opt.value = Valor;
+            Opt.textContent = Valor;
+            Estado.appendChild(Opt);
+          });
+          Estado.value = Item.Estado || "Planeado";
+          Estado.addEventListener("change", () => {
+            Item.Estado = Estado.value;
+          });
+
+          const Borrar = document.createElement("button");
+          Borrar.type = "button";
+          Borrar.className = "Config_Patron_Btn";
+          Borrar.textContent = "×";
+          Borrar.addEventListener("click", () => {
+            Items_Arr.splice(Idx, 1);
+            Render_Modal_Patron();
+          });
+
+          Fila.appendChild(Emoji);
+          Fila.appendChild(Texto);
+          Fila.appendChild(Estado);
+          Fila.appendChild(Borrar);
+          Contenedor.appendChild(Fila);
+        });
+
+        const Btn_Add = document.createElement("button");
+        Btn_Add.className = "Patron_Modal_Agregar_Franja";
+        Btn_Add.type = "button";
+        Btn_Add.textContent = "Agregar item";
+        Btn_Add.addEventListener("click", () => {
+          Items_Arr.push({
+            Id: Crear_Id_Plan_Slot_Item(),
+            Emoji: "•",
+            Texto: "",
+            Estado: "Planeado"
+          });
+          Render_Modal_Patron();
+        });
+        Contenedor.appendChild(Btn_Add);
+      }
+
       function Render_Modal_Patron() {
         // Reconstruye el cuerpo del modal con el patrón
         // que está siendo editado actualmente.
@@ -24760,7 +24885,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `<option value="Diario">` +
           `${t("patron.tipo_diario")}</option>` +
           `<option value="Semanal">` +
-          `${t("patron.tipo_semanal")}</option>`;
+          `${t("patron.tipo_semanal")}</option>` +
+          `<option value="Slot">` +
+          `${t("patron.tipo_slot")}</option>`;
         Tipo_Sel.value = Patron_En_Edicion.Tipo;
         Tipo_Sel.addEventListener("change", () => {
           Patron_En_Edicion.Tipo = Tipo_Sel.value;
@@ -24795,7 +24922,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Cont, Patron_En_Edicion.Franjas, false
           );
           Cuerpo.appendChild(Cont);
-        } else {
+        } else if (Patron_En_Edicion.Tipo === "Semanal") {
           // Patrón semanal: lista plana con días por franja.
           if (!Array.isArray(Patron_En_Edicion.Franjas)) {
             Patron_En_Edicion.Franjas = [];
@@ -24803,6 +24930,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Cont = document.createElement("div");
           Render_Modal_Franjas(
             Cont, Patron_En_Edicion.Franjas, true
+          );
+          Cuerpo.appendChild(Cont);
+        } else {
+          if (!Array.isArray(Patron_En_Edicion.Items)) {
+            Patron_En_Edicion.Items = [];
+          }
+          const Cont = document.createElement("div");
+          Render_Modal_Items_Patron_Slot(
+            Cont,
+            Patron_En_Edicion.Items
           );
           Cuerpo.appendChild(Cont);
         }
@@ -24833,11 +24970,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           });
           delete Patron.Franjas_Por_Dia;
-        } else {
+          delete Patron.Items;
+        } else if (Patron.Tipo === "Diario") {
           // Diario: eliminar campos semanales.
           Patron.Franjas.forEach((F) => {
             delete F.Dias;
           });
+          delete Patron.Franjas_Por_Dia;
+          delete Patron.Items;
+        } else {
+          if (!Array.isArray(Patron.Items)) Patron.Items = [];
+          Patron.Items = Patron.Items
+            .map((Item) => ({
+              Id: Item.Id || Crear_Id_Plan_Slot_Item(),
+              Emoji: (Item.Emoji || "•").trim() || "•",
+              Texto: (Item.Texto || "").trim(),
+              Estado: Item.Estado || "Planeado"
+            }))
+            .filter((Item) => Item.Texto);
+          Patron.Franjas = [];
           delete Patron.Franjas_Por_Dia;
         }
       }
@@ -24985,7 +25136,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         document.getElementById("Abordaje_Modal_Titulo")
           .textContent =
-            `Abordaje · ${Tarea.Nombre || "Sin nombre"}`;
+            `Plan · ${Tarea.Nombre || "Sin nombre"}`;
         Render_Modal_Abordaje();
         document.getElementById("Abordaje_Modal_Overlay")
           .classList.add("Activo");
@@ -25575,6 +25726,325 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
+      function Render_Fila_Plan_Slot(Item, Lista) {
+        const Fila = document.createElement("div");
+        Fila.className = "Abordaje_Item";
+
+        const Emoji = document.createElement("input");
+        Emoji.type = "text";
+        Emoji.maxLength = 4;
+        Emoji.value = Item.Emoji || "•";
+        Emoji.className =
+          "Patron_Modal_Emoji_Input Con_Selector_Emoji";
+        Emoji.style.width = "52px";
+        Emoji.addEventListener("input", () => {
+          Item.Emoji = Emoji.value.trim() || "•";
+        });
+
+        const Texto = document.createElement("input");
+        Texto.type = "text";
+        Texto.value = Item.Texto || "";
+        Texto.placeholder = "Tarea rápida";
+        Texto.className = "Patron_Modal_Nombre_Input";
+        Texto.style.flex = "1";
+        Texto.addEventListener("input", () => {
+          Item.Texto = Texto.value;
+        });
+
+        const Estado = document.createElement("select");
+        Estado.className = "Patron_Modal_Sel";
+        Estado.style.width = "120px";
+        [
+          "Planeado",
+          "Abordado",
+          "Realizado",
+          "Anulado"
+        ].forEach((Valor) => {
+          const Opt = document.createElement("option");
+          Opt.value = Valor;
+          Opt.textContent = Valor;
+          Estado.appendChild(Opt);
+        });
+        Estado.value = Item.Estado || "Planeado";
+        Estado.addEventListener("change", () => {
+          Item.Estado = Estado.value;
+        });
+
+        const Borrar = document.createElement("button");
+        Borrar.type = "button";
+        Borrar.className = "Config_Patron_Btn";
+        Borrar.textContent = "×";
+        Borrar.addEventListener("click", () => {
+          const Idx = Lista.findIndex((I) => I.Id === Item.Id);
+          if (Idx >= 0) Lista.splice(Idx, 1);
+          Render_Modal_Plan_Slot();
+        });
+
+        Fila.appendChild(Emoji);
+        Fila.appendChild(Texto);
+        Fila.appendChild(Estado);
+        Fila.appendChild(Borrar);
+        return Fila;
+      }
+
+      function Render_Modal_Plan_Slot() {
+        const Cuerpo =
+          document.getElementById("Plan_Slot_Cuerpo");
+        if (!Cuerpo || !Plan_Slot_Clave_Activa) return;
+        Cuerpo.innerHTML = "";
+        Plan_Slot_Borrador.forEach((Item) => {
+          Cuerpo.appendChild(
+            Render_Fila_Plan_Slot(Item, Plan_Slot_Borrador)
+          );
+        });
+        const Acciones = document.createElement("div");
+        Acciones.style.display = "flex";
+        Acciones.style.gap = "8px";
+        Acciones.style.marginTop = "8px";
+
+        const Btn_Agregar = document.createElement("button");
+        Btn_Agregar.type = "button";
+        Btn_Agregar.className = "Config_Boton";
+        Btn_Agregar.textContent = "+ Tarea";
+        Btn_Agregar.style.flex = "1";
+        Btn_Agregar.addEventListener("click", () => {
+          Plan_Slot_Borrador.push({
+            Id: Crear_Id_Plan_Slot_Item(),
+            Emoji: "•",
+            Texto: "",
+            Estado: "Planeado"
+          });
+          Render_Modal_Plan_Slot();
+        });
+        Acciones.appendChild(Btn_Agregar);
+
+        const Btn_Insertar_Patron =
+          document.createElement("button");
+        Btn_Insertar_Patron.type = "button";
+        Btn_Insertar_Patron.className = "Config_Boton";
+        Btn_Insertar_Patron.textContent = "Insertar patrón";
+        Btn_Insertar_Patron.style.flex = "1";
+        Btn_Insertar_Patron.addEventListener(
+          "click",
+          async () => {
+            const Nuevos_Items =
+              await Resolver_Items_Patron_Slot(
+                Plan_Slot_Borrador
+              );
+            if (!Nuevos_Items) return;
+            Plan_Slot_Borrador = Nuevos_Items;
+            Render_Modal_Plan_Slot();
+          }
+        );
+        Acciones.appendChild(Btn_Insertar_Patron);
+
+        if (Plan_Slot_Borrador.some((I) =>
+          (I.Texto || "").trim()
+        )) {
+          const Btn_Guardar_Patron =
+            document.createElement("button");
+          Btn_Guardar_Patron.type = "button";
+          Btn_Guardar_Patron.className = "Config_Boton";
+          Btn_Guardar_Patron.textContent =
+            "Guardar como patrón";
+          Btn_Guardar_Patron.style.flex = "1";
+          Btn_Guardar_Patron.addEventListener(
+            "click",
+            () => {
+              Abrir_Items_Plan_Slot_Como_Patron(
+                Plan_Slot_Borrador
+              );
+            }
+          );
+          Acciones.appendChild(Btn_Guardar_Patron);
+        }
+        Cuerpo.appendChild(Acciones);
+      }
+
+      function Abrir_Modal_Plan_Slot(Fecha, Hora) {
+        Plan_Slot_Clave_Activa = Clave_Slot(Fecha, Hora);
+        const Plan = Obtener_Plan_Slot(Fecha, Hora, false);
+        Plan_Slot_Borrador = JSON.parse(
+          JSON.stringify(Plan?.Items || [])
+        );
+        const Titulo = document.getElementById("Plan_Slot_Titulo");
+        if (Titulo) {
+          Titulo.textContent =
+            `Plan · ${Fecha} ${String(Hora).padStart(2, "0")}:00`;
+        }
+        Render_Modal_Plan_Slot();
+        document.getElementById("Plan_Slot_Overlay")
+          ?.classList.add("Activo");
+      }
+
+      function Cerrar_Modal_Plan_Slot() {
+        Plan_Slot_Clave_Activa = null;
+        Plan_Slot_Borrador = [];
+        document.getElementById("Plan_Slot_Overlay")
+          ?.classList.remove("Activo");
+      }
+
+      function Guardar_Modal_Plan_Slot() {
+        if (!Plan_Slot_Clave_Activa) return;
+        const Items = Plan_Slot_Borrador
+          .map((Item) => ({
+            Id: Item.Id || Crear_Id_Plan_Slot_Item(),
+            Emoji: (Item.Emoji || "•").trim() || "•",
+            Texto: (Item.Texto || "").trim(),
+            Estado: Item.Estado || "Planeado"
+          }))
+          .filter((Item) => Item.Texto);
+        if (Items.length) {
+          Planes_Slot[Plan_Slot_Clave_Activa] = { Items };
+        } else {
+          delete Planes_Slot[Plan_Slot_Clave_Activa];
+        }
+        Cerrar_Modal_Plan_Slot();
+        Render_Calendario();
+        Guardar_Estado();
+      }
+
+      function Obtener_Patrones_Slot() {
+        return Patrones.filter((P) => P.Tipo === "Slot");
+      }
+
+      async function Resolver_Items_Patron_Slot(
+        Items_Actuales = []
+      ) {
+        const Patrones_Slot = Obtener_Patrones_Slot();
+        if (!Patrones_Slot.length) {
+          await Mostrar_Dialogo(
+            "No hay patrones de slot cargados.",
+            [{ Etiqueta: t("entendido"), Valor: null, Tipo: "Primario" }]
+          );
+          return null;
+        }
+        const Patron_Id = await Mostrar_Dialogo(
+          "¿Qué patrón querés insertar?",
+          [
+            ...Patrones_Slot.map((P) => ({
+              Etiqueta: `${P.Emoji || "🧩"} ${P.Nombre}`,
+              Valor: P.Id,
+              Tipo: "Secundario"
+            })),
+            { Etiqueta: t("cancelar"), Valor: null, Tipo: "Cancelar" }
+          ]
+        );
+        if (!Patron_Id) return null;
+        const Patron = Patrones_Slot.find((P) => P.Id === Patron_Id);
+        if (!Patron) return null;
+        const Hay_Actual =
+          Array.isArray(Items_Actuales) &&
+          Items_Actuales.length > 0;
+        let Modo = "Reemplazar";
+        if (Hay_Actual) {
+          Modo = await Mostrar_Dialogo(
+            "¿Cómo insertar el patrón en el slot?",
+            [
+              { Etiqueta: "Reemplazar", Valor: "Reemplazar", Tipo: "Primario" },
+              { Etiqueta: "Agregar", Valor: "Agregar", Tipo: "Secundario" },
+              { Etiqueta: t("cancelar"), Valor: null, Tipo: "Cancelar" }
+            ]
+          );
+          if (!Modo) return null;
+        }
+        const Base = Modo === "Agregar"
+          ? JSON.parse(JSON.stringify(Items_Actuales || []))
+          : [];
+        const Nuevos = (Patron.Items || []).map((Item) => ({
+          Id: Crear_Id_Plan_Slot_Item(),
+          Emoji: Item.Emoji || "•",
+          Texto: Item.Texto || "",
+          Estado: Item.Estado || "Planeado"
+        }));
+        return [...Base, ...Nuevos];
+      }
+
+      async function Insertar_Patron_En_Slot(Fecha, Hora) {
+        const Clave = Clave_Slot(Fecha, Hora);
+        const Actual = Obtener_Plan_Slot(Fecha, Hora, false);
+        const Items = await Resolver_Items_Patron_Slot(
+          Actual?.Items || []
+        );
+        if (!Items) return;
+        Planes_Slot[Clave] = { Items };
+        Render_Calendario();
+        Guardar_Estado();
+      }
+
+      function Abrir_Items_Plan_Slot_Como_Patron(Items_Base) {
+        const Items = JSON.parse(
+          JSON.stringify(Items_Base || [])
+        ).filter((Item) => (Item.Texto || "").trim());
+        if (!Items.length) return;
+        Cerrar_Modal_Plan_Slot();
+        Patron_En_Edicion = {
+          Id: `Patron_${Date.now()}`,
+          Nombre: "",
+          Emoji: "🧩",
+          Tipo: "Slot",
+          Items
+        };
+        Patron_En_Edicion_Snapshot = JSON.stringify(
+          Patron_En_Edicion
+        );
+        document.getElementById("Patron_Modal_Titulo")
+          .textContent = "Nuevo patrón";
+        Render_Modal_Patron();
+        document.getElementById("Patron_Modal_Overlay")
+          .classList.add("Activo");
+      }
+
+      function Guardar_Plan_Slot_Como_Patron(Fecha, Hora) {
+        const Plan = Obtener_Plan_Slot(Fecha, Hora, false);
+        Abrir_Items_Plan_Slot_Como_Patron(
+          Plan?.Items || []
+        );
+      }
+
+      function Mostrar_Menu_Slot_Vacio(Fecha, Hora, X, Y) {
+        const Menu = document.getElementById("Dia_Accion_Menu");
+        const Tiene_Plan = Contar_Items_Plan_Slot(Fecha, Hora) > 0;
+        let Html =
+          `<button class="Dia_Accion_Item" type="button" data-acc="plan-slot">Plan</button>` +
+          `<button class="Dia_Accion_Item" type="button" data-acc="insertar-patron-slot">Insertar patrón</button>`;
+        if (Tiene_Plan) {
+          Html +=
+            `<button class="Dia_Accion_Item" type="button" data-acc="guardar-patron-slot">Guardar como patrón</button>`;
+        }
+        Menu.innerHTML = Html;
+        Menu.style.left = `${X}px`;
+        Menu.style.top = `${Y}px`;
+        Menu.classList.add("Activo");
+        requestAnimationFrame(() => {
+          const Rect = Menu.getBoundingClientRect();
+          if (Rect.right > window.innerWidth - 8) {
+            Menu.style.left = `${Math.max(8, window.innerWidth - Rect.width - 8)}px`;
+          }
+          if (Rect.bottom > window.innerHeight - 8) {
+            Menu.style.top = `${Math.max(8, window.innerHeight - Rect.height - 8)}px`;
+          }
+        });
+        Menu.querySelector(`[data-acc="plan-slot"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Abrir_Modal_Plan_Slot(Fecha, Hora);
+          });
+        Menu.querySelector(`[data-acc="insertar-patron-slot"]`)
+          ?.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Insertar_Patron_En_Slot(Fecha, Hora);
+          });
+        Menu.querySelector(`[data-acc="guardar-patron-slot"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Guardar_Plan_Slot_Como_Patron(Fecha, Hora);
+          });
+      }
+
       function Render_Config_Patrones() {
         // Renderiza la lista de patrones en el panel Config.
         const Lista =
@@ -25601,7 +26071,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? t("patron.tipo_diario")
             : Patron.Tipo === "Semanal"
               ? t("patron.tipo_semanal")
-              : Patron.Tipo;
+              : Patron.Tipo === "Slot"
+                ? "Slot"
+                : Patron.Tipo;
 
           const Btn_Edit = document.createElement("button");
           Btn_Edit.className = "Config_Patron_Btn";
@@ -28662,6 +29134,45 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return `${Fecha}|${Hora}`;
       }
 
+      function Crear_Id_Plan_Slot_Item() {
+        return `Plan_Slot_${Date.now()}_${Math.floor(
+          Math.random() * 1000
+        )}`;
+      }
+
+      function Obtener_Plan_Slot(Fecha, Hora, Crear = false) {
+        const Clave = Clave_Slot(Fecha, Hora);
+        if (
+          !Planes_Slot[Clave] ||
+          typeof Planes_Slot[Clave] !== "object"
+        ) {
+          if (!Crear) return null;
+          Planes_Slot[Clave] = { Items: [] };
+        }
+        if (!Array.isArray(Planes_Slot[Clave].Items)) {
+          Planes_Slot[Clave].Items = [];
+        }
+        return Planes_Slot[Clave];
+      }
+
+      function Slot_Tiene_Evento(Fecha, Hora) {
+        return Boolean(
+          Obtener_Evento_Conflicto(Fecha, Hora, 1)
+        );
+      }
+
+      function Slot_Esta_Vacio(Fecha, Hora) {
+        return !Slot_Es_Muerto(Fecha, Hora) &&
+          !Slot_Tiene_Evento(Fecha, Hora);
+      }
+
+      function Contar_Items_Plan_Slot(Fecha, Hora) {
+        const Plan = Obtener_Plan_Slot(Fecha, Hora, false);
+        return Array.isArray(Plan?.Items)
+          ? Plan.Items.length
+          : 0;
+      }
+
       function Es_Slot_Pasado(Fecha_ISO, Hora) {
         const Ahora = new Date();
         const Hoy_ISO = Formatear_Fecha_ISO(Ahora);
@@ -29150,6 +29661,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Metas,
           Slots_Muertos,
           Plantillas_Subtareas,
+          Planes_Slot,
           Categorias,
           Etiquetas,
           Baul_Tareas,
@@ -29491,6 +30003,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Semana = Estado.Planes_Semana;
           } else {
             Planes_Semana = {};
+          }
+          if (
+            Estado.Planes_Slot &&
+            typeof Estado.Planes_Slot === "object"
+          ) {
+            Planes_Slot = Estado.Planes_Slot;
+          } else {
+            Planes_Slot = {};
           }
 
           return true;
@@ -31120,18 +31640,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Slot.appendChild(Nombre_El);
             }
           }
+          const Conteo_Plan_Slot =
+            Contar_Items_Plan_Slot(Fecha_ISO, Hora);
+          if (Conteo_Plan_Slot > 0) {
+            const Marca_Plan = document.createElement("div");
+            Marca_Plan.className = "Slot_Plan_Marca";
+            Marca_Plan.textContent = String(Conteo_Plan_Slot);
+            Marca_Plan.title = "Plan del slot";
+            Slot.appendChild(Marca_Plan);
+          }
           if (Es_Slot_Pasado(Fecha_ISO, Hora)) Slot.classList.add("Slot_Pasado");
           Slot.addEventListener("dragover", (Evento) => Evento.preventDefault());
           Slot.addEventListener("drop", Manejar_Drop);
           Slot.addEventListener("dblclick", () => Alternar_Slot_Muerto(Fecha_ISO, Hora));
           Slot.addEventListener("contextmenu", async (Evento) => {
-            if (!Slot_Es_Muerto(Fecha_ISO, Hora)) return;
             Evento.preventDefault();
             Evento.stopPropagation();
-            await Editar_Nombre_Slot_Muerto(
-              Fecha_ISO,
-              Hora
-            );
+            if (Slot_Es_Muerto(Fecha_ISO, Hora)) {
+              await Editar_Nombre_Slot_Muerto(
+                Fecha_ISO,
+                Hora
+              );
+              return;
+            }
+            if (Slot_Esta_Vacio(Fecha_ISO, Hora)) {
+              Mostrar_Menu_Slot_Vacio(
+                Fecha_ISO,
+                Hora,
+                Evento.clientX,
+                Evento.clientY
+              );
+            }
           });
           Cuerpo.appendChild(Slot);
           }
@@ -32499,6 +33038,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.target ===
             document.getElementById("Abordaje_Modal_Overlay")
           ) Cerrar_Modal_Abordaje();
+        });
+      document.getElementById("Plan_Slot_Cerrar")
+        .addEventListener("click", Cerrar_Modal_Plan_Slot);
+      document.getElementById("Plan_Slot_Cancelar")
+        .addEventListener("click", Cerrar_Modal_Plan_Slot);
+      document.getElementById("Plan_Slot_Guardar")
+        .addEventListener("click", Guardar_Modal_Plan_Slot);
+      document.getElementById("Plan_Slot_Overlay")
+        .addEventListener("click", (Ev) => {
+          if (
+            Ev.target ===
+            document.getElementById("Plan_Slot_Overlay")
+          ) Cerrar_Modal_Plan_Slot();
         });
 
       document.getElementById("Resumen_Contraer")
