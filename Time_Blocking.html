@@ -27914,10 +27914,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Hay_Ocultas =
             Subs_Filtradas.length < Subs_Ordenadas.length;
 
-          // Conteo de subs trabajadas en este bloque vs
-          // total, para el badge "3/5" del título.
-          const Total_Subs = Subs_Originales.length;
-          const Trabajadas_Aqui = Subs_Originales.filter(
+          // Conteo de planeadas cumplidas en este bloque
+          // para el badge "2/3" del título. Solo se muestra
+          // si hay al menos una sub planeada (★) en el
+          // abordaje de este evento; sino no hay plan que
+          // medir y el badge no aporta dato.
+          const Planeadas_Aqui = Subs_Originales.filter(
+            (S) =>
+              Focus_Sub_Planeada_En_Abordaje(Evento, S)
+          );
+          const Planeadas_Cumplidas = Planeadas_Aqui.filter(
             (S) =>
               Focus_Estado_Sub_En_Abordaje(Evento, S) !==
               "Sin"
@@ -27930,17 +27936,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Tit_Texto = document.createElement("span");
           Tit_Texto.textContent = "Subtareas de la semana";
           Tit.appendChild(Tit_Texto);
-          if (Total_Subs > 0) {
+          if (Planeadas_Aqui.length > 0) {
             const Badge = document.createElement("span");
             Badge.className = "Focus_Sub_Badge";
             Badge.textContent =
-              `${Trabajadas_Aqui}/${Total_Subs}`;
+              `${Planeadas_Cumplidas}` +
+              `/${Planeadas_Aqui.length}`;
             Badge.title =
-              `${Trabajadas_Aqui} de ${Total_Subs}` +
-              " trabajadas en este bloque";
+              `${Planeadas_Cumplidas} de ` +
+              `${Planeadas_Aqui.length} planeadas ` +
+              "cumplidas en este bloque";
             if (
-              Trabajadas_Aqui > 0 &&
-              Trabajadas_Aqui >= Total_Subs
+              Planeadas_Cumplidas > 0 &&
+              Planeadas_Cumplidas >= Planeadas_Aqui.length
             ) {
               Badge.classList.add("Completo");
             }
