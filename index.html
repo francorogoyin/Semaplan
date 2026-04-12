@@ -7907,6 +7907,7 @@
 
           <div
             class="cf-turnstile"
+            id="Auth_Turnstile"
             data-sitekey=
               "0x4AAAAAAC8T05jdmepDyUTR"
             data-theme="light"
@@ -16304,16 +16305,6 @@
           Meses_Cortos.length = 0;
           Meses_Cortos.push(...M);
         }
-        // Actualizar idioma del Turnstile.
-        const Turnstile = document.querySelector(
-          ".cf-turnstile"
-        );
-        if (Turnstile) {
-          Turnstile.setAttribute(
-            "data-language",
-            Idioma_Actual
-          );
-        }
       }
 
       // Cambia el idioma activo y re-renderiza
@@ -16334,6 +16325,15 @@
           "Semaplan_Idioma", Nuevo
         );
         Aplicar_Traducciones();
+        if (typeof Configurar_Auth_UI === "function") {
+          Configurar_Auth_UI();
+        }
+        if (typeof Marcar_Idioma_Activo === "function") {
+          Marcar_Idioma_Activo();
+        }
+        if (typeof Renderizar_Turnstile_Auth === "function") {
+          Renderizar_Turnstile_Auth();
+        }
         // Re-renderizar componentes que
         // generan HTML dinámico.
         if (
@@ -38821,6 +38821,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       // "Login", "Registro" o "Olvide".
       let Auth_Modo = "Login";
+      let Auth_Turnstile_Widget_Id = null;
 
       function Mostrar_Auth() {
         document.getElementById("App_Loader")
@@ -38834,6 +38835,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? "Auth_Recovery_Pass"
           : "Auth_Email";
         document.getElementById(Campo_Foco)?.focus();
+      }
+
+      function Renderizar_Turnstile_Auth() {
+        const Cont = document.getElementById(
+          "Auth_Turnstile"
+        );
+        if (!Cont || !window.turnstile) return;
+        try {
+          if (
+            Auth_Turnstile_Widget_Id !== null &&
+            typeof window.turnstile.remove === "function"
+          ) {
+            window.turnstile.remove(
+              Auth_Turnstile_Widget_Id
+            );
+          }
+        } catch (_) {}
+        Cont.innerHTML = "";
+        if (typeof window.turnstile.render !== "function") {
+          return;
+        }
+        Auth_Turnstile_Widget_Id = window.turnstile.render(
+          Cont,
+          {
+            sitekey: "0x4AAAAAAC8T05jdmepDyUTR",
+            theme: "light",
+            language: Idioma_Actual
+          }
+        );
       }
 
       function Ocultar_Auth() {
@@ -38921,6 +38951,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Resetea el widget de Turnstile para
         // que se pueda usar de nuevo.
         if (window.turnstile) {
+          if (
+            Auth_Turnstile_Widget_Id !== null &&
+            typeof window.turnstile.reset === "function"
+          ) {
+            window.turnstile.reset(
+              Auth_Turnstile_Widget_Id
+            );
+            return;
+          }
           window.turnstile.reset();
         }
       }
@@ -39657,6 +39696,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Configurar_Auth_UI();
           });
         Configurar_Auth_UI();
+        Renderizar_Turnstile_Auth();
 
         // Listeners de cerrar sesión (Config + barra superior).
         const Btn_Cerrar = document.getElementById(
