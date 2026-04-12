@@ -25860,6 +25860,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Cuerpo.appendChild(Acciones);
       }
 
+      function Formatear_Titulo_Plan_Slot(Fecha, Hora) {
+        const Fecha_Obj = Parsear_Fecha_ISO(Fecha);
+        const Fecha_Txt = Fecha_Obj
+          ? Fecha_Obj.toLocaleDateString("es-AR", {
+            weekday: "long",
+            day: "numeric",
+            month: "long"
+          })
+          : Fecha;
+        const Hora_Num = Number(Hora) || 0;
+        const Es_Entera = Math.abs(
+          Hora_Num - Math.round(Hora_Num)
+        ) < 0.001;
+        const Hora_Txt = Es_Entera
+          ? `${Math.round(Hora_Num)} horas`
+          : `${String(Math.floor(Hora_Num)).padStart(2, "0")}:${String(
+            Math.round((Hora_Num % 1) * 60)
+          ).padStart(2, "0")}`;
+        const Fecha_Capitalizada =
+          Fecha_Txt.charAt(0).toUpperCase() +
+          Fecha_Txt.slice(1);
+        return `Plan · ${Fecha_Capitalizada} · ${Hora_Txt}`;
+      }
+
       function Abrir_Modal_Plan_Slot(Fecha, Hora) {
         Plan_Slot_Clave_Activa = Clave_Slot(Fecha, Hora);
         const Plan = Obtener_Plan_Slot(Fecha, Hora, false);
@@ -25869,7 +25893,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Titulo = document.getElementById("Plan_Slot_Titulo");
         if (Titulo) {
           Titulo.textContent =
-            `Plan · ${Fecha} ${String(Hora).padStart(2, "0")}:00`;
+            Formatear_Titulo_Plan_Slot(Fecha, Hora);
         }
         Render_Modal_Plan_Slot();
         document.getElementById("Plan_Slot_Overlay")
@@ -26001,10 +26025,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
-      function Mostrar_Menu_Slot_Vacio(Fecha, Hora, X, Y) {
+      function Mostrar_Menu_Slot(Fecha, Hora, X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         const Tiene_Plan = Contar_Items_Plan_Slot(Fecha, Hora) > 0;
+        const Es_Muerto = Slot_Es_Muerto(Fecha, Hora);
         let Html =
+          (Es_Muerto
+            ? `<button class="Dia_Accion_Item" type="button" data-acc="editar-nombre-slot">Editar nombre</button>`
+            : ``) +
           `<button class="Dia_Accion_Item" type="button" data-acc="plan-slot">Plan</button>` +
           `<button class="Dia_Accion_Item" type="button" data-acc="insertar-patron-slot">Insertar patrón</button>`;
         if (Tiene_Plan) {
@@ -26024,6 +26052,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Menu.style.top = `${Math.max(8, window.innerHeight - Rect.height - 8)}px`;
           }
         });
+        Menu.querySelector(`[data-acc="editar-nombre-slot"]`)
+          ?.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Editar_Nombre_Slot_Muerto(Fecha, Hora);
+          });
         Menu.querySelector(`[data-acc="plan-slot"]`)
           ?.addEventListener("click", (Ev) => {
             Ev.stopPropagation();
@@ -31734,15 +31768,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slot.addEventListener("contextmenu", async (Evento) => {
             Evento.preventDefault();
             Evento.stopPropagation();
-            if (Slot_Es_Muerto(Fecha_ISO, Hora)) {
-              await Editar_Nombre_Slot_Muerto(
-                Fecha_ISO,
-                Hora
-              );
-              return;
-            }
-            if (Slot_Esta_Vacio(Fecha_ISO, Hora)) {
-              Mostrar_Menu_Slot_Vacio(
+            if (
+              Slot_Es_Muerto(Fecha_ISO, Hora) ||
+              Slot_Esta_Vacio(Fecha_ISO, Hora)
+            ) {
+              Mostrar_Menu_Slot(
                 Fecha_ISO,
                 Hora,
                 Evento.clientX,
