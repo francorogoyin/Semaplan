@@ -12313,6 +12313,10 @@
             "Se desarchivaron {n} tareas del baúl.",
           "baul.dialog_eliminar_multi":
             "¿Eliminar {n} tarea(s) del baúl? ({nombres})",
+          "baul.conteo_sing": "{n} tarea",
+          "baul.conteo_plur": "{n} tareas",
+          "baul.vacio_filtro":
+            "No hay tareas en el baúl con ese filtro.",
           "baul.semanas_vacio":
             "Todavía no agregaste semanas a la lista.",
           "baul.todas_las_tareas": "Todas las tareas",
@@ -14048,6 +14052,10 @@
             "{n} tasks unarchived from the vault.",
           "baul.dialog_eliminar_multi":
             "Delete {n} tasks from the vault? ({nombres})",
+          "baul.conteo_sing": "{n} task",
+          "baul.conteo_plur": "{n} tasks",
+          "baul.vacio_filtro":
+            "There are no vault tasks with that filter.",
           "baul.semanas_vacio":
             "You haven't added any weeks to the list yet.",
           "baul.todas_las_tareas": "All tasks",
@@ -15872,6 +15880,10 @@
             "Foram desarquivadas {n} tarefas do baú.",
           "baul.dialog_eliminar_multi":
             "Excluir {n} tarefa(s) do baú? ({nombres})",
+          "baul.conteo_sing": "{n} tarefa",
+          "baul.conteo_plur": "{n} tarefas",
+          "baul.vacio_filtro":
+            "Não há tarefas no baú com esse filtro.",
           "baul.semanas_vacio":
             "Você ainda não adicionou semanas à lista.",
           "baul.todas_las_tareas": "Todas as tarefas",
@@ -18659,8 +18671,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
         if (El_Baul_Conteo) {
           El_Baul_Conteo.textContent =
-            `${Items.length} tarea` +
-            `${Items.length === 1 ? "" : "s"}`;
+            Items.length === 1
+              ? t("baul.conteo_sing", { n: Items.length })
+              : t("baul.conteo_plur", { n: Items.length });
         }
         if (!Items.some((Tarea) => Tarea.Id === Baul_Seleccion_Id)) {
           const Ids = Array.from(Baul_Multi_Seleccion);
@@ -18682,8 +18695,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Items.length) {
           const Vacio = document.createElement("div");
           Vacio.className = "Baul_Vacio";
-          Vacio.textContent =
-            "No hay tareas en el baúl con ese filtro.";
+          Vacio.textContent = t("baul.vacio_filtro");
           El_Baul_Lista.appendChild(Vacio);
           Render_Detalle_Baul();
           Render_Barra_Multi_Seleccion();
