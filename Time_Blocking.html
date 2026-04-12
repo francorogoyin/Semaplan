@@ -5607,6 +5607,21 @@
         white-space: nowrap;
       }
 
+      .Archivero_Nota_Etiquetas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .Archivero_Nota_Etiqueta {
+        font-size: 10px;
+        padding: 1px 7px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--Texto_Suave);
+        white-space: nowrap;
+      }
+
       .Archivero_Nota_Acciones {
         position: absolute;
         top: 8px;
@@ -9181,6 +9196,14 @@
               placeholder="URL o de dónde sacaste esto">
           </div>
           <div class="Archivero_Sub_Campo">
+            <label for="Archivero_Nota_Etiquetas_Input">
+              Etiquetas (opcional)
+            </label>
+            <input type="text"
+              id="Archivero_Nota_Etiquetas_Input"
+              placeholder="filosofía, memorable, libro...">
+          </div>
+          <div class="Archivero_Sub_Campo">
             <label for="Archivero_Nota_Cajon_Select">
               Cajón
             </label>
@@ -12345,7 +12368,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Filtrar_Notas_Archivero() {
         // Devuelve las notas del cajón seleccionado
         // filtradas por el texto del buscador (full-text
-        // sobre Texto y Origen, case-insensitive).
+        // sobre Texto, Origen y Etiquetas, case-insensitive).
         const Texto = (Archivero_Busqueda || "")
           .trim()
           .toLowerCase();
@@ -12364,7 +12387,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Hay_Origen = (Nota.Origen || "")
               .toLowerCase()
               .includes(Texto);
-            return Hay_Texto || Hay_Origen;
+            const Hay_Etiqueta = Array.isArray(
+              Nota.Etiquetas
+            ) && Nota.Etiquetas.some(
+              (T) => T.toLowerCase().includes(Texto)
+            );
+            return Hay_Texto || Hay_Origen || Hay_Etiqueta;
           })
           .sort(
             (A, B) =>
@@ -12579,6 +12607,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Meta.appendChild(Origen);
         }
         Card.appendChild(Meta);
+        // Badges de etiquetas (si la nota tiene).
+        if (
+          Array.isArray(Nota.Etiquetas) &&
+          Nota.Etiquetas.length > 0
+        ) {
+          const Tags = document.createElement("div");
+          Tags.className = "Archivero_Nota_Etiquetas";
+          Nota.Etiquetas.forEach((Tag) => {
+            const Badge = document.createElement("span");
+            Badge.className = "Archivero_Nota_Etiqueta";
+            Badge.textContent = Tag;
+            Tags.appendChild(Badge);
+          });
+          Card.appendChild(Tags);
+        }
         const Acciones = document.createElement("div");
         Acciones.className = "Archivero_Nota_Acciones";
         const Btn_Editar = document.createElement(
@@ -12666,6 +12709,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Origen = document.getElementById(
           "Archivero_Nota_Origen_Input"
         );
+        const Etiq = document.getElementById(
+          "Archivero_Nota_Etiquetas_Input"
+        );
         const Select = document.getElementById(
           "Archivero_Nota_Cajon_Select"
         );
@@ -12681,10 +12727,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Nota) {
           Texto.value = Nota.Texto || "";
           Origen.value = Nota.Origen || "";
+          if (Etiq) {
+            Etiq.value = Array.isArray(Nota.Etiquetas)
+              ? Nota.Etiquetas.join(", ")
+              : "";
+          }
           Select.value = Nota.Archivero_Id;
         } else {
           Texto.value = "";
           Origen.value = "";
+          if (Etiq) Etiq.value = "";
           Select.value =
             Archivero_Seleccion_Id ||
             Archiveros[0]?.Id ||
@@ -12703,12 +12755,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         )?.classList.remove("Activo");
       }
 
+      function Parsear_Etiquetas_Archivero(Valor) {
+        // Parsea un string "tag1, tag2, tag3" a un array
+        // limpio de strings únicos, sin vacíos.
+        if (!Valor) return [];
+        return [...new Set(
+          Valor.split(",")
+            .map((T) => T.trim())
+            .filter(Boolean)
+        )];
+      }
+
       function Guardar_Nota_Archivero_Desde_Modal() {
         const Texto = document.getElementById(
           "Archivero_Nota_Texto_Input"
         );
         const Origen = document.getElementById(
           "Archivero_Nota_Origen_Input"
+        );
+        const Etiq = document.getElementById(
+          "Archivero_Nota_Etiquetas_Input"
         );
         const Select = document.getElementById(
           "Archivero_Nota_Cajon_Select"
@@ -12731,6 +12797,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ]);
           return;
         }
+        const Etiquetas_Valor =
+          Parsear_Etiquetas_Archivero(Etiq?.value);
         if (Archivero_Nota_En_Edicion_Id) {
           const Nota = Notas_Archivero.find(
             (N) => N.Id === Archivero_Nota_En_Edicion_Id
@@ -12738,6 +12806,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Nota) {
             Nota.Texto = Texto_Valor;
             Nota.Origen = Origen.value.trim();
+            Nota.Etiquetas = Etiquetas_Valor;
             Nota.Archivero_Id = Cajon_Id;
             Nota.Tipo =
               Inferir_Tipo_Nota_Archivero(Texto_Valor);
@@ -12748,6 +12817,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Archivero_Id: Cajon_Id,
             Texto: Texto_Valor,
             Origen: Origen.value.trim(),
+            Etiquetas: Etiquetas_Valor,
             Tipo:
               Inferir_Tipo_Nota_Archivero(Texto_Valor),
             Fecha_Creacion: Date.now()
@@ -12907,7 +12977,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Agregar_Nota_Archivero(
         Texto,
         Origen,
-        Cajon_Id
+        Cajon_Id,
+        Etiquetas
       ) {
         // Punto de entrada que la futura extensión del
         // navegador (o cualquier integración externa)
@@ -12915,6 +12986,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // la UI. Si no recibe Cajon_Id, usa el cajón
         // seleccionado actualmente o el primero. Si no
         // hay cajones, crea los defaults primero.
+        // Etiquetas es un array opcional de strings.
         // Devuelve la nota creada.
 
         if (!Texto || !Texto.trim()) return null;
@@ -12929,6 +13001,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Archivero_Id: Destino_Id,
           Texto: Texto.trim(),
           Origen: (Origen || "").trim(),
+          Etiquetas: Array.isArray(Etiquetas)
+            ? Etiquetas.filter(Boolean) : [],
           Tipo: Inferir_Tipo_Nota_Archivero(Texto),
           Fecha_Creacion: Date.now()
         };
