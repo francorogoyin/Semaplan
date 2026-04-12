@@ -3936,9 +3936,38 @@
       }
 
       .Cfg_Pagos_Historial {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+        width: 100%;
+      }
+
+      .Cfg_Pagos_Tabla {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .Cfg_Pagos_Tabla th,
+      .Cfg_Pagos_Tabla td {
+        text-align: left;
+        padding: 10px 4px;
+        border-bottom: 1px solid
+          rgba(217, 207, 192, 0.72);
+        vertical-align: top;
+      }
+
+      .Cfg_Pagos_Tabla th {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--Texto_Suave);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .Cfg_Pagos_Tabla td {
+        font-size: 13px;
+        color: var(--Texto);
+      }
+
+      .Cfg_Pagos_Tabla tr:last-child td {
+        border-bottom: none;
       }
 
       .Cfg_Pagos_Vacio {
@@ -3948,24 +3977,6 @@
         border: 1px dashed var(--Borde);
         border-radius: 12px;
         background: rgba(255,255,255,0.55);
-      }
-
-      .Cfg_Pago_Item {
-        border: 1px solid var(--Borde);
-        border-radius: 14px;
-        background: rgba(255,255,255,0.78);
-        padding: 10px 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .Cfg_Pago_Top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        flex-wrap: wrap;
       }
 
       .Cfg_Pago_Estado {
@@ -3999,12 +4010,58 @@
         font-size: 13px;
         font-weight: 700;
         color: var(--Texto);
+        white-space: nowrap;
       }
 
       .Cfg_Pago_Meta {
         font-size: 12px;
         color: var(--Texto_Suave);
         line-height: 1.45;
+      }
+
+      .Cfg_Pago_Fecha {
+        white-space: nowrap;
+      }
+
+      .Cfg_Pago_Fuente {
+        max-width: 280px;
+        word-break: break-word;
+      }
+
+      @media (max-width: 640px) {
+        .Cfg_Pagos_Tabla thead {
+          display: none;
+        }
+
+        .Cfg_Pagos_Tabla,
+        .Cfg_Pagos_Tabla tbody,
+        .Cfg_Pagos_Tabla tr,
+        .Cfg_Pagos_Tabla td {
+          display: block;
+          width: 100%;
+        }
+
+        .Cfg_Pagos_Tabla tr {
+          padding: 10px 0;
+          border-bottom: 1px solid
+            rgba(217, 207, 192, 0.72);
+        }
+
+        .Cfg_Pagos_Tabla td {
+          border-bottom: none;
+          padding: 3px 0;
+        }
+
+        .Cfg_Pagos_Tabla td::before {
+          content: attr(data-label);
+          display: block;
+          font-size: 10px;
+          font-weight: 700;
+          color: var(--Texto_Suave);
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          margin-bottom: 2px;
+        }
       }
 
       .Config_Dato_Nota {
@@ -11237,6 +11294,14 @@
             "⭐ Premium",
           "config.historial_pagos":
             "Historial de pagos",
+          "config.pagos_fecha":
+            "Fecha",
+          "config.pagos_total":
+            "Total",
+          "config.pagos_estado":
+            "Estado",
+          "config.pagos_fuente":
+            "Pago con",
           "config.sin_pagos":
             "Todavía no hay pagos registrados.",
           "config.pago_email_cuenta":
@@ -13106,6 +13171,14 @@
             "⭐ Premium",
           "config.historial_pagos":
             "Payment history",
+          "config.pagos_fecha":
+            "Date",
+          "config.pagos_total":
+            "Total",
+          "config.pagos_estado":
+            "Status",
+          "config.pagos_fuente":
+            "Paid with",
           "config.sin_pagos":
             "There are no recorded payments yet.",
           "config.pago_email_cuenta":
@@ -14969,6 +15042,14 @@
             "⭐ Premium",
           "config.historial_pagos":
             "Histórico de pagamentos",
+          "config.pagos_fecha":
+            "Data",
+          "config.pagos_total":
+            "Total",
+          "config.pagos_estado":
+            "Status",
+          "config.pagos_fuente":
+            "Pago com",
           "config.sin_pagos":
             "Ainda não há pagamentos registrados.",
           "config.pago_email_cuenta":
@@ -24071,58 +24152,84 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return;
         }
 
+        const Tabla = document.createElement("table");
+        Tabla.className = "Cfg_Pagos_Tabla";
+
+        const Head = document.createElement("thead");
+        const Head_Row = document.createElement("tr");
+        [
+          t("config.pagos_fecha"),
+          t("config.pagos_total"),
+          t("config.pagos_estado"),
+          t("config.pagos_fuente")
+        ].forEach((Texto) => {
+          const Th = document.createElement("th");
+          Th.textContent = Texto;
+          Head_Row.appendChild(Th);
+        });
+        Head.appendChild(Head_Row);
+        Tabla.appendChild(Head);
+
+        const Body = document.createElement("tbody");
+
         Items.forEach((Pago) => {
-          const Item = document.createElement("div");
-          Item.className = "Cfg_Pago_Item";
+          const Row = document.createElement("tr");
 
-          const Top = document.createElement("div");
-          Top.className = "Cfg_Pago_Top";
+          const Fecha = document.createElement("td");
+          Fecha.className = "Cfg_Pago_Fecha";
+          Fecha.setAttribute(
+            "data-label",
+            t("config.pagos_fecha")
+          );
+          Fecha.textContent = Formatear_Fecha_Pago(
+            Pago.fecha_evento ||
+            Pago.fecha_actualizacion ||
+            Pago.fecha_creacion
+          );
 
+          const Monto = document.createElement("td");
+          Monto.className = "Cfg_Pago_Monto";
+          Monto.setAttribute(
+            "data-label",
+            t("config.pagos_total")
+          );
+          Monto.textContent = Formatear_Monto_Pago(
+            Pago.monto,
+            Pago.moneda || "ARS"
+          );
+
+          const Estado_Cell = document.createElement("td");
+          Estado_Cell.setAttribute(
+            "data-label",
+            t("config.pagos_estado")
+          );
           const Estado = document.createElement("span");
           Estado.className =
             "Cfg_Pago_Estado " +
             Clase_Estado_Suscripcion(Pago.estado);
           Estado.textContent =
             Traducir_Estado_Suscripcion(Pago.estado);
+          Estado_Cell.appendChild(Estado);
 
-          const Monto = document.createElement("span");
-          Monto.className = "Cfg_Pago_Monto";
-          Monto.textContent = Formatear_Monto_Pago(
-            Pago.monto,
-            Pago.moneda || "ARS"
+          const Fuente = document.createElement("td");
+          Fuente.className = "Cfg_Pago_Fuente";
+          Fuente.setAttribute(
+            "data-label",
+            t("config.pagos_fuente")
           );
+          Fuente.textContent =
+            Pago.payer_email || Usuario_Actual?.email ||
+            t("config.pago_sin_email");
 
-          Top.appendChild(Estado);
-          Top.appendChild(Monto);
-          Item.appendChild(Top);
-
-          const Fecha = document.createElement("div");
-          Fecha.className = "Cfg_Pago_Meta";
-          Fecha.textContent = Formatear_Fecha_Pago(
-            Pago.fecha_evento ||
-            Pago.fecha_actualizacion ||
-            Pago.fecha_creacion
-          );
-          Item.appendChild(Fecha);
-
-          const Email_Mp = document.createElement("div");
-          Email_Mp.className = "Cfg_Pago_Meta";
-          Email_Mp.textContent =
-            `${t("config.pago_email_mp")}: ` +
-            `${Pago.payer_email || t("config.pago_sin_email")}`;
-          Item.appendChild(Email_Mp);
-
-          if (Usuario_Actual?.email) {
-            const Email_Cuenta = document.createElement("div");
-            Email_Cuenta.className = "Cfg_Pago_Meta";
-            Email_Cuenta.textContent =
-              `${t("config.pago_email_cuenta")}: ` +
-              `${Usuario_Actual.email}`;
-            Item.appendChild(Email_Cuenta);
-          }
-
-          El.appendChild(Item);
+          Row.appendChild(Fecha);
+          Row.appendChild(Monto);
+          Row.appendChild(Estado_Cell);
+          Row.appendChild(Fuente);
+          Body.appendChild(Row);
         });
+
+        Tabla.appendChild(Body);
+        El.appendChild(Tabla);
       }
 
       function Validar_Acceso_Premium(
