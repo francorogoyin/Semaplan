@@ -2673,6 +2673,21 @@
         gap: 10px;
       }
 
+      .Focus_Sub_Badge {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--Texto_Suave);
+        background: rgba(0, 0, 0, 0.06);
+        padding: 1px 8px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+
+      .Focus_Sub_Badge.Completo {
+        background: rgba(31, 107, 79, 0.12);
+        color: #1f6b4f;
+      }
+
       .Focus_Sub_Filtro_Btn {
         display: inline-flex;
         align-items: center;
@@ -27899,13 +27914,38 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Hay_Ocultas =
             Subs_Filtradas.length < Subs_Ordenadas.length;
 
-          // Título + chevron toggle (cuando aplica).
+          // Conteo de subs trabajadas en este bloque vs
+          // total, para el badge "3/5" del título.
+          const Total_Subs = Subs_Originales.length;
+          const Trabajadas_Aqui = Subs_Originales.filter(
+            (S) =>
+              Focus_Estado_Sub_En_Abordaje(Evento, S) !==
+              "Sin"
+          ).length;
+
+          // Título + badge + chevron toggle.
           const Tit = document.createElement("div");
           Tit.className = "Focus_Seccion_Titulo " +
             "Focus_Seccion_Titulo_Fila";
           const Tit_Texto = document.createElement("span");
           Tit_Texto.textContent = "Subtareas de la semana";
           Tit.appendChild(Tit_Texto);
+          if (Total_Subs > 0) {
+            const Badge = document.createElement("span");
+            Badge.className = "Focus_Sub_Badge";
+            Badge.textContent =
+              `${Trabajadas_Aqui}/${Total_Subs}`;
+            Badge.title =
+              `${Trabajadas_Aqui} de ${Total_Subs}` +
+              " trabajadas en este bloque";
+            if (
+              Trabajadas_Aqui > 0 &&
+              Trabajadas_Aqui >= Total_Subs
+            ) {
+              Badge.classList.add("Completo");
+            }
+            Tit.appendChild(Badge);
+          }
           if (Hay_Ocultas) {
             const Btn_Toggle = document.createElement("button");
             Btn_Toggle.type = "button";
