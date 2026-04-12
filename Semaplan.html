@@ -11544,8 +11544,12 @@
             "enfocarte acá.",
           "focus.nota_bloque":
             "Nota del bloque",
+          "focus.nota_ph":
+            "Escribí lo que estás pensando, blockers, ideas...",
           "focus.subtareas_semana":
             "Subtareas de la semana",
+          "focus.badge_planeadas_title":
+            "{cumplidas} de {total} planeadas cumplidas en este bloque",
           "focus.sin_bloques":
             "Sin bloques",
           "focus.sin_sub_filtradas":
@@ -16679,7 +16683,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         return {
           Clave: "__todos__",
-          Titulo: "Todas"
+          Titulo: t("todas")
         };
       }
 
@@ -18783,7 +18787,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Snap = Capturar_Snapshot_Undo();
           Object.assign(Existente, Datos);
           Mostrar_Toast_Undo(
-            "Molde del baúl actualizado",
+            t("toast.baul_molde_actualizado"),
             Snap
           );
           Baul_Seleccion_Id = Existente.Id;
@@ -18792,7 +18796,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           // personalizado de las demás (Orden ya viene asignado
           // por Preparar_Orden_Nueva_Tarea_Baul).
           Baul_Tareas.push(Datos);
-          Mostrar_Mensaje_Baul("Tarea guardada en el baúl.");
+          Mostrar_Mensaje_Baul(t("baul.msg_guardada"));
           Baul_Seleccion_Id = Datos.Id;
         }
         Baul_Multi_Seleccion.clear();
@@ -18811,15 +18815,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
         Mostrar_Mensaje_Baul(
           Tarea.Archivada
-            ? "Tarea archivada en el baúl."
-            : "Tarea desarchivada del baúl."
+            ? t("baul.msg_archivada")
+            : t("baul.msg_desarchivada")
         );
       }
 
       async function Eliminar_Baul_Tarea(Tarea) {
         if (!Tarea) return;
         const Confirmar = await Mostrar_Dialogo(
-          `¿Eliminar "${Tarea.Nombre}" del baúl?`,
+          t("baul.dialog_eliminar_una", {
+            nombre: Tarea.Nombre
+          }),
           [
             {
               Etiqueta: t("eliminar"),
@@ -18851,7 +18857,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Baul();
         Guardar_Estado();
         Mostrar_Toast_Undo(
-          "Molde eliminado del baúl",
+          t("toast.baul_molde_eliminado"),
           Snap
         );
       }
@@ -18869,9 +18875,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Baul();
         Guardar_Estado();
         Mostrar_Mensaje_Baul(
-          `${Cant} tarea(s) ${Archivar
-            ? "archivada(s)"
-            : "desarchivada(s)"} en el baúl.`
+          Archivar
+            ? t("baul.msg_multi_archivadas", { n: Cant })
+            : t("baul.msg_multi_desarchivadas", { n: Cant })
         );
       }
 
@@ -18886,7 +18892,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           })
           .join(", ");
         const Confirmar = await Mostrar_Dialogo(
-          `¿Eliminar ${Ids.length} tarea(s) del baúl? (${Nombres})`,
+          t("baul.dialog_eliminar_multi", {
+            n: Ids.length,
+            nombres: Nombres
+          }),
           [
             {
               Etiqueta: t("eliminar"),
@@ -18919,7 +18928,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Baul();
         Guardar_Estado();
         Mostrar_Toast_Undo(
-          `${Ids.length} molde(s) eliminados del baúl`,
+          t("toast.baul_moldes_eliminados", { n: Ids.length }),
           Snap
         );
       }
@@ -18942,8 +18951,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Baul_Semanas_Borrador.length) {
           const Vacio = document.createElement("div");
           Vacio.className = "Baul_Vacio";
-          Vacio.textContent =
-            "Todavía no agregaste semanas a la lista.";
+          Vacio.textContent = t("baul.semanas_vacio");
           El_Baul_Semanas_Lista.appendChild(Vacio);
           return;
         }
@@ -19803,7 +19811,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
         });
 
-        Mostrar_Toast_Undo("Día pegado", Snap);
+        Mostrar_Toast_Undo(t("toast.dia_pegado"), Snap);
         Render_Calendario();
         Render_Emojis();
         Render_Resumen_Tarea();
@@ -21709,11 +21717,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Existente) {
           const Snap = Capturar_Snapshot_Undo();
           Object.assign(Existente, Datos);
-          Mostrar_Toast_Undo("Meta actualizada", Snap);
+          Mostrar_Toast_Undo(t("toast.meta_actualizada"), Snap);
           Meta_Seleccion_Id = Existente.Id;
         } else {
           Metas.unshift(Datos);
-          Mostrar_Mensaje_Metas("Meta creada.");
+          Mostrar_Mensaje_Metas(t("metas.msg_creada"));
           Meta_Seleccion_Id = Datos.Id;
         }
 
@@ -21728,7 +21736,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Snap = Capturar_Snapshot_Undo();
         Meta.Archivada = !Meta.Archivada;
         Mostrar_Toast_Undo(
-          Meta.Archivada ? "Meta archivada" : "Meta recuperada",
+          Meta.Archivada
+            ? t("toast.meta_archivada")
+            : t("toast.meta_recuperada"),
           Snap
         );
         if (Meta_En_Edicion_Id === Meta.Id) {
@@ -21745,7 +21755,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Meta = Meta_Por_Id(Meta_Id);
         if (!Meta) return;
         const Confirmado = await Mostrar_Dialogo(
-          `¿Eliminar la meta "${Meta.Nombre}"?`,
+          t("metas.dialog_eliminar", { nombre: Meta.Nombre }),
           [
             {
               Etiqueta: t("eliminar"),
@@ -21768,7 +21778,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Meta_En_Edicion_Id === Meta_Id) {
           Cerrar_Editor_Meta();
         }
-        Mostrar_Toast_Undo("Meta eliminada", Snap);
+        Mostrar_Toast_Undo(t("toast.meta_eliminada"), Snap);
         Render_Metas();
         Guardar_Estado();
       }
@@ -22017,7 +22027,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           // Reaplicar slots por defecto de Config.
           Semanas_Con_Defaults.delete(Clave);
           Aplicar_Slots_Muertos_Default_Si_Necesario();
-          Mostrar_Toast_Undo("Semana limpiada", Snap);
+          Mostrar_Toast_Undo(t("toast.semana_limpiada"), Snap);
         } else {
           Eventos = Eventos.filter(
             (Ev) =>
@@ -22025,7 +22035,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Boolean(Ev.Hecho)
           );
           Mostrar_Toast_Undo(
-            "Eventos no tildados eliminados", Snap
+            t("toast.eventos_no_tildados_eliminados"), Snap
           );
         }
 
@@ -22039,9 +22049,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Limpiar_Eventos_Tarea_Semana(Evento_Data) {
         // Borra todos los eventos de una tarea en la semana actual.
         const Tarea = Tarea_Por_Id(Evento_Data.Tarea_Id);
-        const Nombre = Tarea?.Nombre || "esta tarea";
+        const Nombre = Tarea?.Nombre || t("evento.esta_tarea");
         const Confirmar = await Mostrar_Dialogo(
-          `¿Borrar todos los bloques de "${Nombre}" en esta semana?`,
+          t("evento.dialog_borrar_bloques_semana", {
+            nombre: Nombre
+          }),
           [
             { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
             { Etiqueta: t("borrar"), Valor: true, Tipo: "Peligro" }
@@ -22059,7 +22071,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
 
         Mostrar_Toast_Undo(
-          `Bloques de "${Nombre}" eliminados`, Snap
+          t("toast.bloques_de_tarea_eliminados", {
+            nombre: Nombre
+          }),
+          Snap
         );
         Render_Emojis();
         Render_Resumen_Tarea();
@@ -22192,9 +22207,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             const Tarea = Tarea_Por_Id(Evento_Data.Tarea_Id);
-            const Nombre = Tarea?.Nombre || "este bloque";
+            const Nombre = Tarea?.Nombre || t("evento.este_bloque");
             const Confirmado = await Mostrar_Dialogo(
-              `¿Eliminar el bloque de "${Nombre}"?`,
+              t("evento.dialog_eliminar_bloque", { nombre: Nombre }),
               [
                 {
                   Etiqueta: t("cancelar"),
@@ -22211,7 +22226,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (!Confirmado) return;
             const Snap = Capturar_Snapshot_Undo();
             Borrar_Evento(Evento_Data.Id);
-            Mostrar_Toast_Undo("Bloque eliminado", Snap);
+            Mostrar_Toast_Undo(t("toast.bloque_eliminado"), Snap);
             if (
               typeof Focus_Esta_Abierto === "function" &&
               Focus_Esta_Abierto()
@@ -27083,7 +27098,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Movidas === 0) {
           await Mostrar_Dialogo(
-            "No se pudo trasladar ninguna subtarea.",
+            t("subtareas.no_trasladadas"),
             [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
           );
           return;
@@ -27095,7 +27110,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Editor();
         Guardar_Estado();
         Mostrar_Toast_Undo(
-          `${Movidas} subtarea(s) trasladada(s)`, Snap
+          t("toast.subtareas_trasladadas", { n: Movidas }),
+          Snap
         );
       }
 
@@ -28024,18 +28040,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           Barra.classList.add("Activa");
           Conteo.textContent =
-            `${Cant_B} molde${Cant_B !== 1 ? "s" : ""}`;
+            `${Cant_B} ` +
+            (Cant_B !== 1
+              ? t("multi.molde_plur")
+              : t("multi.molde_sing"));
           Acc.innerHTML = "";
           Acc.appendChild(
-            Crear_Btn_Multi("🗑 Eliminar", true, () => {
+            Crear_Btn_Multi(`🗑 ${t("eliminar")}`, true, () => {
               Eliminar_Baul_Tareas_Multi();
             })
           );
           Acc.appendChild(
             Crear_Btn_Multi(
               Todos_Archivados
-                ? "📤 Desarchivar"
-                : "📦 Archivar",
+                ? `📤 ${t("desarchivar")}`
+                : `📦 ${t("archivar")}`,
               false,
               () => {
                 Archivar_Baul_Tareas_Multi(
@@ -28061,42 +28080,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Cant_T > 0 && Cant_S === 0) {
           Conteo.textContent =
-            `${Cant_T} tarea${Cant_T !== 1 ? "s" : ""}`;
+            `${Cant_T} ` +
+            (Cant_T !== 1
+              ? t("multi.tarea_plur")
+              : t("multi.tarea_sing"));
           Acc.appendChild(
-            Crear_Btn_Multi("🗑 Borrar", true, () => {
+            Crear_Btn_Multi(`🗑 ${t("borrar")}`, true, () => {
               Borrar_Tareas_Multi();
             })
           );
           Acc.appendChild(
-            Crear_Btn_Multi("📦 Archivar", false, () => {
+            Crear_Btn_Multi(`📦 ${t("archivar")}`, false, () => {
               Archivar_Tareas_Multi(true);
             })
           );
           Acc.appendChild(
-            Crear_Btn_Multi("📤 Desarchivar", false, () => {
+            Crear_Btn_Multi(`📤 ${t("desarchivar")}`, false, () => {
               Archivar_Tareas_Multi(false);
             })
           );
         } else if (Cant_S > 0 && Cant_T === 0) {
           Conteo.textContent =
-            `${Cant_S} subtarea${Cant_S !== 1 ? "s" : ""}`;
+            `${Cant_S} ` +
+            (Cant_S !== 1
+              ? t("multi.subtarea_plur")
+              : t("multi.subtarea_sing"));
           Acc.appendChild(
-            Crear_Btn_Multi("🗑 Borrar", true, () => {
+            Crear_Btn_Multi(`🗑 ${t("borrar")}`, true, () => {
               Borrar_Subtareas_Multi();
             })
           );
           Acc.appendChild(
-            Crear_Btn_Multi("✓ Marcar hechas", false, () => {
+            Crear_Btn_Multi(`✓ ${t("multi.marcar_hechas")}`, false, () => {
               Marcar_Subtareas_Multi(true);
             })
           );
           Acc.appendChild(
-            Crear_Btn_Multi("□ Desmarcar", false, () => {
+            Crear_Btn_Multi(`□ ${t("multi.desmarcar")}`, false, () => {
               Marcar_Subtareas_Multi(false);
             })
           );
         } else {
-          Conteo.textContent = `${Total} items`;
+          Conteo.textContent =
+            `${Total} ` +
+            (Total !== 1
+              ? t("multi.item_plur")
+              : t("multi.item_sing"));
         }
       }
 
@@ -28116,7 +28145,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .map((Id) => Tarea_Por_Id(Id)?.Nombre || "?")
           .join(", ");
         const Confirmar = await Mostrar_Dialogo(
-          `¿Borrar ${Ids.length} tarea(s)? (${Nombres})`,
+          t("multi.dialog_borrar_tareas", {
+            n: Ids.length,
+            nombres: Nombres
+          }),
           [
             {
               Etiqueta: t("dialog.borrar_todas"),
@@ -28139,7 +28171,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
         Tareas_Multi_Seleccion.clear();
         Mostrar_Toast_Undo(
-          `${Ids.length} tarea(s) eliminada(s)`, Snap
+          t("toast.tareas_eliminadas", { n: Ids.length }),
+          Snap
         );
         Render_Calendario();
         Render_Emojis();
@@ -28158,8 +28191,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Cant = Tareas_Multi_Seleccion.size;
         Tareas_Multi_Seleccion.clear();
         Mostrar_Toast_Undo(
-          `${Cant} tarea(s) ${Archivar
-            ? "archivada(s)" : "desarchivada(s)"}`,
+          Archivar
+            ? t("toast.tareas_archivadas", { n: Cant })
+            : t("toast.tareas_desarchivadas", { n: Cant }),
           Snap
         );
         Render_Emojis();
@@ -28173,7 +28207,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Tarea) return;
         const Ids = Array.from(Subtareas_Multi_Seleccion);
         const Confirmar = await Mostrar_Dialogo(
-          `¿Borrar ${Ids.length} subtarea(s)?`,
+          t("multi.dialog_borrar_subtareas", { n: Ids.length }),
           [
             {
               Etiqueta: t("dialog.borrar_todas"),
@@ -28194,7 +28228,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
         Subtareas_Multi_Seleccion.clear();
         Mostrar_Toast_Undo(
-          `${Ids.length} subtarea(s) eliminada(s)`, Snap
+          t("toast.subtareas_eliminadas", { n: Ids.length }),
+          Snap
         );
         Render_Emojis();
         Render_Resumen_Tarea();
@@ -30434,7 +30469,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           // Toast de deshacer solo si realmente cambió algo.
           if (Hubo_Cambio) {
             Mostrar_Toast_Undo(
-              "Tamaño del bloque modificado", Snap_Resize
+              t("toast.tamano_bloque_modificado"),
+              Snap_Resize
             );
           }
         };
@@ -31768,7 +31804,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Resumen_Tarea();
           Guardar_Estado();
           Mostrar_Toast_Undo(
-            `Subtarea "${Subtarea.Texto || "sin nombre"}" eliminada`,
+            t("toast.subtarea_eliminada", {
+              texto: Subtarea.Texto || t("toast.sin_nombre")
+            }),
             Snap_Undo_Sub
           );
           return;
@@ -33823,10 +33861,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Nota_Tit.textContent = t("focus.nota_bloque");
         Cuerpo.appendChild(Nota_Tit);
 
-        const Nota_Editor = document.createElement("textarea");
+          const Nota_Editor = document.createElement("textarea");
         Nota_Editor.className = "Focus_Nota_Editor";
-        Nota_Editor.placeholder =
-          "Escribí lo que estás pensando, blockers, ideas...";
+        Nota_Editor.placeholder = t("focus.nota_ph");
         Nota_Editor.value = Evento.Nota || "";
         Nota_Editor.id = "Focus_Nota_Editor";
         Nota_Editor.addEventListener("focus", () => {
@@ -33931,10 +33968,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Badge.textContent =
               `${Planeadas_Cumplidas}` +
               `/${Planeadas_Aqui.length}`;
-            Badge.title =
-              `${Planeadas_Cumplidas} de ` +
-              `${Planeadas_Aqui.length} planeadas ` +
-              "cumplidas en este bloque";
+            Badge.title = t(
+              "focus.badge_planeadas_title",
+              {
+                cumplidas: Planeadas_Cumplidas,
+                total: Planeadas_Aqui.length
+              }
+            );
             if (
               Planeadas_Cumplidas > 0 &&
               Planeadas_Cumplidas >= Planeadas_Aqui.length
@@ -34244,9 +34284,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Card = document.createElement("div");
         Card.className = "Focus_Donut_Card";
-        Card.title =
-          `${Formatear_Horas(Horas_Hechas)} hechas de ` +
-          `${Formatear_Horas(Horas_Plan)} planeadas hoy`;
+        Card.title = t("focus.donut_title", {
+          hechas: Formatear_Horas(Horas_Hechas),
+          plan: Formatear_Horas(Horas_Plan)
+        });
 
         const Wrap = document.createElement("div");
         Wrap.className = "Focus_Donut_Wrap";
@@ -34284,10 +34325,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Etiqueta = document.createElement("div");
         Etiqueta.className = "Focus_Donut_Etiqueta";
-        Etiqueta.innerHTML =
-          "del día<strong>" +
-          `${Formatear_Horas(Horas_Hechas)} / ` +
-          `${Formatear_Horas(Horas_Plan)}</strong>`;
+        Etiqueta.innerHTML = t(
+          "focus.donut_label_html",
+          {
+            hechas: Formatear_Horas(Horas_Hechas),
+            plan: Formatear_Horas(Horas_Plan)
+          }
+        );
         Card.appendChild(Etiqueta);
 
         return Card;
@@ -34905,7 +34949,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Resumen_Tarea();
           Render_Eventos();
           Render_Focus_Mode();
-          Mostrar_Toast_Undo("Subtarea actualizada", Snap);
+          Mostrar_Toast_Undo(t("toast.subtarea_actualizada"), Snap);
           return;
         }
 
@@ -34921,7 +34965,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Subs = Obtener_Subtareas_Semana(Tarea, true);
         const Sub = Subs.find((S) => S.Id === Sub_Id);
         if (!Sub) return;
-        const Texto_Sub = (Sub.Texto || "").trim() || "sin nombre";
+        const Texto_Sub =
+          (Sub.Texto || "").trim() || t("toast.sin_nombre");
         const Snap = Capturar_Snapshot_Undo();
         Borrar_Subtarea_Con_Alcance(Tarea, Sub, "Semana");
         if (Focus_Sub_Editando_Id === Sub_Id) {
@@ -34933,7 +34978,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Eventos();
         Render_Focus_Mode();
         Mostrar_Toast_Undo(
-          `Subtarea "${Texto_Sub}" eliminada`, Snap
+          t("toast.subtarea_eliminada", { texto: Texto_Sub }),
+          Snap
         );
       }
 
