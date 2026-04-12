@@ -10750,6 +10750,8 @@
             "recuperar tu contraseña.",
           "auth.password_actualizada":
             "Contraseña actualizada.",
+          "auth.password_actualizada_login":
+            "Contraseña actualizada. Iniciá sesión con la nueva contraseña.",
           "auth.err_password_no_coincide":
             "Las dos contraseñas no coinciden.",
           "auth.err_login":
@@ -12613,6 +12615,8 @@
             "recover your password.",
           "auth.password_actualizada":
             "Password updated.",
+          "auth.password_actualizada_login":
+            "Password updated. Sign in with your new password.",
           "auth.err_password_no_coincide":
             "The two passwords do not match.",
           "auth.err_login":
@@ -14420,6 +14424,8 @@
             "recuperar sua senha.",
           "auth.password_actualizada":
             "Senha atualizada.",
+          "auth.password_actualizada_login":
+            "Senha atualizada. Entre com a nova senha.",
           "auth.err_password_no_coincide":
             "As duas senhas não coincidem.",
           "auth.err_login":
@@ -39666,25 +39672,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 "Exito"
               );
 
-              // Redirigir a la app después
-              // de 1.5 segundos.
+              // Volver al login después de
+              // guardar la nueva contraseña.
               setTimeout(async () => {
                 Limpiar_Recovery_Activa();
+                await Supa.auth.signOut();
+                Auth_Modo = "Login";
                 document.getElementById(
                   "Auth_Recovery_Panel"
                 ).style.display = "none";
                 document.getElementById(
                   "Auth_Panel_Login"
                 ).style.display = "";
-                const {
-                  data: { session },
-                } =
-                  await Supa.auth.getSession();
-                if (session?.user) {
-                  Usuario_Actual =
-                    session.user;
-                  await Iniciar_App_Logueada();
-                }
+                document.getElementById(
+                  "Auth_Recovery_Form"
+                )?.reset();
+                Configurar_Auth_UI();
+                Mostrar_Auth();
+                Mostrar_Auth_Mensaje(
+                  t("auth.password_actualizada_login"),
+                  "Exito"
+                );
+                try {
+                  const Url_Limpia = new URL(
+                    window.location.href
+                  );
+                  Url_Limpia.hash = "";
+                  Url_Limpia.searchParams.delete("lang");
+                  history.replaceState(
+                    null,
+                    "",
+                    Url_Limpia.toString()
+                  );
+                } catch (_) {}
               }, 1500);
             } catch (E) {
               Mostrar_Recovery_Mensaje(
