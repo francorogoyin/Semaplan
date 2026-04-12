@@ -96,11 +96,72 @@ CREATE TRIGGER trigger_usuario_nuevo
   EXECUTE FUNCTION public.crear_estado_para_usuario_nuevo();
 
 -- ============================================================
+-- Tabla de suscripciones (Mercado Pago).
+-- Cada fila = una suscripción de un usuario.
+-- Las Edge Functions la usan con service_role_key.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.suscripciones (
+  id                  UUID PRIMARY KEY
+                      DEFAULT gen_random_uuid(),
+  usuario_id          UUID NOT NULL
+                      REFERENCES auth.users(id)
+                      ON DELETE CASCADE,
+  mp_preapproval_id   TEXT,
+  estado              TEXT NOT NULL
+                      DEFAULT 'pending',
+  payer_email         TEXT,
+  monto               NUMERIC(10, 2),
+  moneda              TEXT DEFAULT 'ARS',
+  fecha_creacion      TIMESTAMPTZ NOT NULL
+                      DEFAULT NOW(),
+  fecha_actualizacion TIMESTAMPTZ NOT NULL
+                      DEFAULT NOW()
+);
+
+-- Un usuario = una suscripción activa a la vez.
+CREATE UNIQUE INDEX IF NOT EXISTS
+  idx_suscripciones_usuario_unico
+  ON public.suscripciones (usuario_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS
+  idx_suscripciones_mp_id
+  ON public.suscripciones (mp_preapproval_id);
+
+ALTER TABLE public.suscripciones
+  ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Suscripcion propia: ver"
+  ON public.suscripciones;
+CREATE POLICY "Suscripcion propia: ver"
+  ON public.suscripciones
+  FOR SELECT
+  USING (auth.uid() = usuario_id);
+
+CREATE OR REPLACE FUNCTION
+  public.actualizar_timestamp_suscripcion()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.fecha_actualizacion = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS
+  trigger_suscripcion_actualizada
+  ON public.suscripciones;
+CREATE TRIGGER trigger_suscripcion_actualizada
+  BEFORE UPDATE ON public.suscripciones
+  FOR EACH ROW
+  EXECUTE FUNCTION
+    public.actualizar_timestamp_suscripcion();
+
+-- ============================================================
 -- Listo. Verificación opcional:
 -- ============================================================
 -- Para verificar que todo está bien, podés correr:
 --
 --   SELECT * FROM public.estado_usuario;
+--   SELECT * FROM public.suscripciones;
 --
--- Debería devolver 0 filas (todavía no hay usuarios) sin error.
+-- Deberían devolver 0 filas sin error.
 -- ============================================================

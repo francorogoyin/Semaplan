@@ -16745,8 +16745,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      // Estado de suscripción obtenido del backend.
+      // Se actualiza al iniciar la app y al volver
+      // del checkout de Mercado Pago.
+      let Suscripcion_Remota = null;
+
       function Normalizar_Plan_Actual(Plan) {
-        return Plan === "Upgrade" ? "Upgrade" : "Free";
+        return Plan === "Upgrade"
+          ? "Upgrade" : "Free";
       }
 
       function Obtener_Label_Plan(Plan) {
@@ -16762,12 +16768,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Es_Premium() {
-        // Devuelve true cuando el plan activo del
-        // usuario es Premium (internamente "Upgrade").
-        // Es la fuente de verdad para cualquier guard
-        // que tenga que decidir si una funcionalidad
-        // queda habilitada o bloqueada.
+        // Devuelve true cuando la suscripción
+        // remota está en estado "authorized"
+        // (pago confirmado por Mercado Pago).
+        // Si no hay suscripción remota, usa el
+        // valor local como fallback (para
+        // desarrollo o modo offline).
 
+        if (Suscripcion_Remota !== null) {
+          return Suscripcion_Remota === true;
+        }
         return Normalizar_Plan_Actual(
           Config.Plan_Actual
         ) === "Upgrade";
@@ -16873,11 +16883,146 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Cerrar_Suscripcion() {
-        El_Suscripcion_Overlay?.classList.remove("Activo");
+        El_Suscripcion_Overlay
+          ?.classList.remove("Activo");
+      }
+
+      async function Verificar_Suscripcion_Remota(
+      ) {
+        // Consulta el estado de suscripción del
+        // usuario en el backend. Actualiza la
+        // variable global y la UI.
+
+        if (!Supa || !Usuario_Actual) return;
+        try {
+          const { data: { session: Sesion } } =
+            await Supa.auth.getSession();
+          if (!Sesion) return;
+
+          const Respuesta = await fetch(
+            Supabase_Url +
+              "/functions/v1/" +
+              "estado-suscripcion",
+            {
+              headers: {
+                Authorization:
+                  "Bearer " +
+                  Sesion.access_token,
+                "Content-Type":
+                  "application/json",
+              },
+            }
+          );
+          if (!Respuesta.ok) return;
+
+          const Datos = await Respuesta.json();
+          Suscripcion_Remota =
+            Datos.Es_Premium === true;
+          Config.Plan_Actual =
+            Suscripcion_Remota
+              ? "Upgrade"
+              : "Free";
+          Actualizar_UI_Plan();
+        } catch (Error_Verificacion) {
+          console.error(
+            "Error verificando suscripción:",
+            Error_Verificacion
+          );
+        }
+      }
+
+      async function Iniciar_Checkout_Mp() {
+        // Llama a la Edge Function para crear una
+        // suscripción en Mercado Pago y redirige
+        // al usuario al checkout.
+
+        const El_Boton = document.getElementById(
+          "Suscripcion_Elegir_Upgrade"
+        );
+        if (El_Boton) {
+          El_Boton.disabled = true;
+          El_Boton.textContent = "Procesando…";
+        }
+
+        try {
+          const { data: { session: Sesion } } =
+            await Supa.auth.getSession();
+          if (!Sesion) {
+            alert(
+              "Sesión expirada. " +
+              "Volvé a iniciar sesión."
+            );
+            return;
+          }
+
+          const Respuesta = await fetch(
+            Supabase_Url +
+              "/functions/v1/" +
+              "crear-suscripcion",
+            {
+              method: "POST",
+              headers: {
+                Authorization:
+                  "Bearer " +
+                  Sesion.access_token,
+                "Content-Type":
+                  "application/json",
+              },
+              body: JSON.stringify({
+                Back_Url:
+                  window.location.origin +
+                  window.location.pathname,
+              }),
+            }
+          );
+
+          const Datos = await Respuesta.json();
+
+          if (!Respuesta.ok || !Datos) {
+            console.error(
+              "Error creando suscripción:",
+              Datos
+            );
+            alert(
+              "Error al procesar el pago. " +
+              "Intentá de nuevo."
+            );
+            return;
+          }
+
+          // Redirigir al checkout de MP.
+          const Url_Checkout =
+            Datos.Init_Point;
+
+          if (Url_Checkout) {
+            window.location.href = Url_Checkout;
+          } else {
+            alert(
+              "No se obtuvo la URL de pago. " +
+              "Intentá de nuevo."
+            );
+          }
+        } catch (Error_Checkout) {
+          console.error(
+            "Error en checkout:",
+            Error_Checkout
+          );
+          alert(
+            "Error de conexión. " +
+            "Intentá de nuevo."
+          );
+        } finally {
+          if (El_Boton) {
+            El_Boton.disabled = false;
+            El_Boton.textContent =
+              "Elegir Premium";
+          }
+        }
       }
 
       function Seleccionar_Plan_Actual(Plan) {
-        Config.Plan_Actual = Normalizar_Plan_Actual(Plan);
+        Config.Plan_Actual =
+          Normalizar_Plan_Actual(Plan);
         Actualizar_UI_Plan();
         Guardar_Estado();
         Cerrar_Suscripcion();
@@ -25231,9 +25376,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", () => {
           Seleccionar_Plan_Actual("Free");
         });
-      document.getElementById("Suscripcion_Elegir_Upgrade")
-        ?.addEventListener("click", () => {
-          Seleccionar_Plan_Actual("Upgrade");
+      document.getElementById(
+        "Suscripcion_Elegir_Upgrade"
+      )?.addEventListener("click", () => {
+          Iniciar_Checkout_Mp();
         });
       El_Suscripcion_Overlay?.addEventListener("click", (Ev) => {
         if (Ev.target === El_Suscripcion_Overlay) {
@@ -25920,6 +26066,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Tarea || !Item || Item.dataset.editando !== "1") return;
         const Relacionado = Evento.relatedTarget;
         if (Relacionado && Item.contains(Relacionado)) return;
+        // Si el foco se fue al selector de emojis, no
+        // finalizar la edición: el usuario está eligiendo
+        // un emoji desde el popover.
+        const Pop_Emoji = document.getElementById(
+          "Selector_Emojis_Popover"
+        );
+        if (
+          Relacionado &&
+          Pop_Emoji &&
+          Pop_Emoji.contains(Relacionado)
+        ) return;
         const Subtareas = Obtener_Subtareas_Semana(Tarea, true);
         const Subtarea = Subtareas.find(
           (Entrada) => Entrada.Id === Item.dataset.subtareaId
@@ -25945,11 +26102,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto_Nuevo !== (Subtarea.Texto || "");
         if (Cambio) {
           // Subtarea nueva (recién creada con +): preguntar
-          // dónde aplica al guardar, no antes.
+          // dónde aplica solo si la tarea existe en otras
+          // semanas. Si es única, aplicar directo.
           const Es_Nueva = !Subtarea.Texto;
           let Alcance;
           if (Es_Nueva) {
-            Alcance = await Solicitar_Alcance_Subtarea();
+            if (Tarea_Existe_En_Otras_Semanas(Tarea)) {
+              Alcance = await Solicitar_Alcance_Subtarea();
+            } else {
+              Alcance = "Semana";
+            }
           } else {
             Alcance = await Resolver_Alcance_Edicion_Subtarea(
               Tarea, Subtarea
@@ -27353,6 +27515,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           new Event("change", { bubbles: true })
         );
         Cerrar_Selector_Emojis();
+        // Devolver el foco al input original para que
+        // la edición (ej. subtareas) siga activa y el
+        // focusout se dispare recién al salir del item.
+        Input.focus();
       }
 
       function Configurar_Listeners_Selector_Emojis() {
@@ -30622,6 +30788,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         // 5b) Aplicar la vista del menú según la config cargada.
         Aplicar_Estilo_Menu();
+
+        // 5c) Verificar estado de suscripción en
+        // el backend (Mercado Pago).
+        await Verificar_Suscripcion_Remota();
 
         Actualizar_Sync_Indicador("Guardado");
 
