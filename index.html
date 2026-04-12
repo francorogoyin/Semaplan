@@ -7861,6 +7861,21 @@
         </p>
 
         <form id="Auth_Form" autocomplete="on">
+          <div class="Auth_Campo"
+            id="Auth_Campo_Nombre"
+            style="display:none">
+            <label for="Auth_Nombre"
+              data-i18n="auth.nombre">Nombre</label>
+            <input
+              class="Auth_Input"
+              id="Auth_Nombre"
+              type="text"
+              autocomplete="name"
+              maxlength="80"
+              data-i18n-ph="auth.nombre_ph"
+              placeholder="Tu nombre"
+            />
+          </div>
           <div class="Auth_Campo">
             <label for="Auth_Email"
               data-i18n="auth.email">Email</label>
@@ -7886,6 +7901,23 @@
               minlength="8"
               data-i18n-ph="auth.password_ph"
               placeholder="Mín. 8, mayús., minús. y número"
+            />
+          </div>
+          <div class="Auth_Campo"
+            id="Auth_Campo_Password_Confirm"
+            style="display:none">
+            <label for="Auth_Password_Confirm"
+              data-i18n="auth.password_confirmar">
+              Repetir contraseña
+            </label>
+            <input
+              class="Auth_Input"
+              id="Auth_Password_Confirm"
+              type="password"
+              autocomplete="new-password"
+              minlength="8"
+              data-i18n-ph="auth.password_ph"
+              placeholder="Contraseña"
             />
           </div>
 
@@ -10698,8 +10730,12 @@
           "auth.subtitulo":
             "Iniciá sesión para continuar",
           "auth.email": "Email",
+          "auth.nombre": "Nombre",
+          "auth.nombre_ph": "Tu nombre",
           "auth.email_ph": "tu@email.com",
           "auth.password": "Contraseña",
+          "auth.password_confirmar":
+            "Repetir contraseña",
           "auth.password_ph": "Contraseña",
           "auth.login": "Iniciar sesión",
           "auth.no_cuenta": "¿No tenés cuenta?",
@@ -10753,6 +10789,8 @@
             "Contraseña actualizada. Iniciá sesión con la nueva contraseña.",
           "auth.err_password_no_coincide":
             "Las dos contraseñas no coinciden.",
+          "auth.err_nombre_requerido":
+            "Escribí tu nombre.",
           "auth.err_login":
             "Email o contraseña incorrectos.",
           "auth.err_no_confirmado":
@@ -12557,8 +12595,12 @@
           "auth.subtitulo":
             "Sign in to continue",
           "auth.email": "Email",
+          "auth.nombre": "Name",
+          "auth.nombre_ph": "Your name",
           "auth.email_ph": "you@email.com",
           "auth.password": "Password",
+          "auth.password_confirmar":
+            "Repeat password",
           "auth.password_ph": "Password",
           "auth.login": "Sign in",
           "auth.no_cuenta":
@@ -12616,6 +12658,8 @@
             "Password updated. Sign in with your new password.",
           "auth.err_password_no_coincide":
             "The two passwords do not match.",
+          "auth.err_nombre_requerido":
+            "Enter your name.",
           "auth.err_login":
             "Wrong email or password.",
           "auth.err_no_confirmado":
@@ -14360,8 +14404,12 @@
           "auth.subtitulo":
             "Faça login para continuar",
           "auth.email": "Email",
+          "auth.nombre": "Nome",
+          "auth.nombre_ph": "Seu nome",
           "auth.email_ph": "seu@email.com",
           "auth.password": "Senha",
+          "auth.password_confirmar":
+            "Repetir senha",
           "auth.password_ph": "Senha",
           "auth.login": "Entrar",
           "auth.no_cuenta":
@@ -14423,6 +14471,8 @@
             "Senha atualizada. Entre com a nova senha.",
           "auth.err_password_no_coincide":
             "As duas senhas não coincidem.",
+          "auth.err_nombre_requerido":
+            "Digite seu nome.",
           "auth.err_login":
             "Email ou senha incorretos.",
           "auth.err_no_confirmado":
@@ -38898,6 +38948,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Olvide = document.getElementById(
           "Auth_Olvide"
         );
+        const Nombre = document.getElementById(
+          "Auth_Nombre"
+        );
+        const Campo_Nombre = document.getElementById(
+          "Auth_Campo_Nombre"
+        );
+        const Pass_Confirm = document.getElementById(
+          "Auth_Password_Confirm"
+        );
+        const Campo_Pass_Confirm =
+          document.getElementById(
+            "Auth_Campo_Password_Confirm"
+          );
 
         if (Auth_Modo === "Login") {
           Tit.textContent = t("auth.titulo");
@@ -38914,6 +38977,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "current-password"
           );
           Pw.required = true;
+          Campo_Nombre.style.display = "none";
+          Nombre.required = false;
+          Campo_Pass_Confirm.style.display =
+            "none";
+          Pass_Confirm.required = false;
           Olvide.parentElement.style.display =
             "";
         } else if (Auth_Modo === "Registro") {
@@ -38932,6 +39000,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "new-password"
           );
           Pw.required = true;
+          Campo_Nombre.style.display = "";
+          Nombre.required = true;
+          Campo_Pass_Confirm.style.display =
+            "";
+          Pass_Confirm.required = true;
+          Pass_Confirm.setAttribute(
+            "autocomplete",
+            "new-password"
+          );
           Olvide.parentElement.style.display =
             "";
         } else if (Auth_Modo === "Olvide") {
@@ -38946,6 +39023,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             t("auth.volver_login");
           Pw.parentElement.style.display = "none";
           Pw.required = false;
+          Campo_Nombre.style.display = "none";
+          Nombre.required = false;
+          Campo_Pass_Confirm.style.display =
+            "none";
+          Pass_Confirm.required = false;
           Olvide.parentElement.style.display =
             "none";
         }
@@ -39047,11 +39129,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Pass = document.getElementById(
           "Auth_Password"
         ).value;
+        const Nombre = document.getElementById(
+          "Auth_Nombre"
+        ).value.trim();
+        const Pass_Confirm = document.getElementById(
+          "Auth_Password_Confirm"
+        ).value;
         const Btn = document.getElementById(
           "Auth_Btn_Submit"
         );
         if (!Email) return;
         if (Auth_Modo !== "Olvide" && !Pass) {
+          return;
+        }
+        if (
+          Auth_Modo === "Registro" &&
+          !Nombre
+        ) {
+          Mostrar_Auth_Mensaje(
+            t("auth.err_nombre_requerido")
+          );
+          return;
+        }
+        if (
+          Auth_Modo === "Registro" &&
+          Pass !== Pass_Confirm
+        ) {
+          Mostrar_Auth_Mensaje(
+            t("auth.err_password_no_coincide")
+          );
           return;
         }
 
@@ -39125,7 +39231,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               .signUp({
                 email: Email,
                 password: Pass,
-                options: Captcha_Opts,
+                options: {
+                  ...Captcha_Opts,
+                  data: {
+                    name: Nombre,
+                    nombre: Nombre,
+                  },
+                },
               });
           }
 
