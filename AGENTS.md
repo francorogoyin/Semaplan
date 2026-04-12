@@ -95,6 +95,9 @@ que haga el usuario en el chat, revisar `Proximos_Avances.txt`:
    "perfecto" o similar tras un cambio funcional), commitear y
    pushear los cambios. No esperar a que el usuario lo pida
    explícitamente si ya hay trabajo completo sin commitear.
+5. Regla operativa de git: si una sesión hace `commit`, en ese
+   mismo flujo tiene que hacer `push`. No dejar commits locales
+   pendientes salvo que el usuario lo pida explícitamente.
 
 ## Sesiones paralelas y staging de commits
 
