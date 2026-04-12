@@ -820,6 +820,57 @@
         justify-content: flex-end;
       }
 
+      .Plan_Top_Indicador {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 32px;
+        padding: 0 12px;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.74);
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .Plan_Top_Indicador::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.72;
+        flex: 0 0 auto;
+      }
+
+      .Plan_Top_Indicador.Free {
+        color: #647260;
+        background: rgba(232, 240, 228, 0.84);
+      }
+
+      .Plan_Top_Indicador.Trial {
+        color: #8a6b12;
+        background: rgba(255, 241, 199, 0.9);
+      }
+
+      .Plan_Top_Indicador.Premium,
+      .Plan_Top_Indicador.Renueva {
+        color: var(--Acento);
+        background: rgba(215, 236, 232, 0.88);
+      }
+
+      .Plan_Top_Indicador.Cancelada {
+        color: #8a5532;
+        background: rgba(243, 224, 210, 0.9);
+      }
+
+      .Plan_Top_Indicador.Pendiente {
+        color: #6f5b2a;
+        background: rgba(240, 232, 205, 0.92);
+      }
+
       .Calendario_Config label {
         font-size: 12px;
         color: var(--Texto_Suave);
@@ -6417,6 +6468,10 @@
         .Calendario_Config {
           justify-content: flex-start;
         }
+
+        .Plan_Top_Indicador {
+          order: 3;
+        }
       }
 
       @media (max-width: 1360px) {
@@ -8432,6 +8487,8 @@
               data-i18n="nav.hoy"
             >Hoy</button>
           </div>
+          <div class="Plan_Top_Indicador Oculto"
+            id="Plan_Top_Indicador"></div>
           <div style="display:flex;gap:6px;align-items:center"
             id="Calendario_Top_Acciones">
             <span
@@ -11504,6 +11561,20 @@
             "Cerrar sesión",
           "config.eliminar_cuenta":
             "Eliminar cuenta",
+          "topbar.free":
+            "🌱 Plan Free",
+          "topbar.premium":
+            "💎 Plan Premium",
+          "topbar.trial":
+            "🎁 Mes gratis activo",
+          "topbar.trial_hasta":
+            "🎁 Trial hasta {Fecha}",
+          "topbar.renueva":
+            "💎 Renueva {Fecha}",
+          "topbar.cancela":
+            "💎 Activo hasta {Fecha}",
+          "topbar.pendiente":
+            "🕓 Suscripción pendiente",
           "baul.buscar": "Buscar",
           "baul.buscar_ph": "Nombre de tarea",
           "baul.categoria": "Categoría",
@@ -13427,6 +13498,20 @@
           "config.miembro_desde":
             "Member since",
           "config.cerrar_sesion": "Sign out",
+          "topbar.free":
+            "🌱 Free plan",
+          "topbar.premium":
+            "💎 Premium plan",
+          "topbar.trial":
+            "🎁 Free month active",
+          "topbar.trial_hasta":
+            "🎁 Trial until {Fecha}",
+          "topbar.renueva":
+            "💎 Renews {Fecha}",
+          "topbar.cancela":
+            "💎 Active until {Fecha}",
+          "topbar.pendiente":
+            "🕓 Subscription pending",
           "config.eliminar_cuenta":
             "Delete account",
           "baul.buscar": "Search",
@@ -15347,6 +15432,20 @@
           "config.miembro_desde":
             "Membro desde",
           "config.cerrar_sesion": "Sair",
+          "topbar.free":
+            "🌱 Plano Free",
+          "topbar.premium":
+            "💎 Plano Premium",
+          "topbar.trial":
+            "🎁 Mês grátis ativo",
+          "topbar.trial_hasta":
+            "🎁 Trial até {Fecha}",
+          "topbar.renueva":
+            "💎 Renova em {Fecha}",
+          "topbar.cancela":
+            "💎 Ativo até {Fecha}",
+          "topbar.pendiente":
+            "🕓 Assinatura pendente",
           "config.eliminar_cuenta":
             "Excluir conta",
           "baul.buscar": "Buscar",
@@ -24505,6 +24604,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Formatear_Fecha_Hora_Suscripcion(
+        Valor
+      ) {
+        if (!Valor) return null;
+        const Fecha = new Date(Valor);
+        if (isNaN(Fecha.getTime())) {
+          return null;
+        }
+        return Fecha.toLocaleString(
+          Obtener_Locale_Actual(),
+          {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }
+        );
+      }
+
       function Obtener_Fecha_Aviso_Suscripcion(
         Suscripcion
       ) {
@@ -24585,6 +24704,100 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           };
         }
         return null;
+      }
+
+      function Obtener_Modelo_Top_Suscripcion() {
+        const Suscripcion = Suscripcion_Detalle_Remota;
+        if (!Suscripcion) {
+          if (Trial_Activo()) {
+            return {
+              Clase: "Trial",
+              Texto: t("topbar.trial")
+            };
+          }
+          if (Es_Premium()) {
+            return {
+              Clase: "Premium",
+              Texto: t("topbar.premium")
+            };
+          }
+          return {
+            Clase: "Free",
+            Texto: t("topbar.free")
+          };
+        }
+        const Estado = String(
+          Suscripcion.estado || ""
+        ).toLowerCase();
+        const Fecha = Formatear_Fecha_Hora_Suscripcion(
+          Obtener_Fecha_Aviso_Suscripcion(
+            Suscripcion
+          )
+        );
+        if (Estado === "trial" && Fecha) {
+          return {
+            Clase: "Trial",
+            Texto: t("topbar.trial_hasta", {
+              Fecha
+            })
+          };
+        }
+        if (Estado === "authorized" && Fecha) {
+          return {
+            Clase: "Renueva",
+            Texto: t("topbar.renueva", {
+              Fecha
+            })
+          };
+        }
+        if (
+          (Estado === "cancelled"
+            || Estado === "paused")
+          && Fecha
+        ) {
+          return {
+            Clase: "Cancelada",
+            Texto: t("topbar.cancela", {
+              Fecha
+            })
+          };
+        }
+        if (Estado === "pending") {
+          return {
+            Clase: "Pendiente",
+            Texto: t("topbar.pendiente")
+          };
+        }
+        if (Es_Premium()) {
+          return {
+            Clase: "Premium",
+            Texto: t("topbar.premium")
+          };
+        }
+        return {
+          Clase: "Free",
+          Texto: t("topbar.free")
+        };
+      }
+
+      function Renderizar_Top_Suscripcion() {
+        const El = document.getElementById(
+          "Plan_Top_Indicador"
+        );
+        if (!El) return;
+        const Modelo =
+          Obtener_Modelo_Top_Suscripcion();
+        if (!Modelo) {
+          El.textContent = "";
+          El.className =
+            "Plan_Top_Indicador Oculto";
+          return;
+        }
+        El.textContent = Modelo.Texto || "";
+        El.className = "Plan_Top_Indicador";
+        if (Modelo.Clase) {
+          El.classList.add(Modelo.Clase);
+        }
       }
 
       function Renderizar_Aviso_Suscripcion() {
@@ -24820,6 +25033,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Label
           );
         }
+        Renderizar_Top_Suscripcion();
         // Refrescar el texto del plan en la sección Cuenta del
         // Config (reemplaza al viejo dropdown).
         if (typeof Renderizar_Datos_Cuenta === "function") {
