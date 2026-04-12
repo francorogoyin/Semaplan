@@ -11186,6 +11186,8 @@
           "auth.cuenta_creada":
             "Cuenta creada. Revisá tu email " +
             "para confirmar.",
+          "auth.email_confirmado_login":
+            "Email confirmado. Iniciá sesión.",
           "auth.error_inesperado":
             "Error inesperado: {Msg}",
           "auth.email_primero":
@@ -13146,6 +13148,8 @@
           "auth.cuenta_creada":
             "Account created. Check your " +
             "email to confirm.",
+          "auth.email_confirmado_login":
+            "Email confirmed. Sign in.",
           "auth.error_inesperado":
             "Unexpected error: {Msg}",
           "auth.email_primero":
@@ -15049,6 +15053,8 @@
           "auth.cuenta_creada":
             "Conta criada. Confira seu " +
             "email para confirmar.",
+          "auth.email_confirmado_login":
+            "Email confirmado. Faça login.",
           "auth.error_inesperado":
             "Erro inesperado: {Msg}",
           "auth.email_primero":
@@ -40091,8 +40097,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // inicializarse. Se usa para detectar
       // redirects de recovery.
       const Hash_Inicial = window.location.hash;
+      const Search_Params_Inicial =
+        new URLSearchParams(window.location.search);
+      const Hash_Params_Inicial =
+        new URLSearchParams(
+          Hash_Inicial.startsWith("#")
+            ? Hash_Inicial.slice(1)
+            : Hash_Inicial
+        );
+      const Tipo_Auth_Inicial =
+        Hash_Params_Inicial.get("type")
+        || Search_Params_Inicial.get("type")
+        || "";
       const Es_Recovery_Redirect =
-        Hash_Inicial.includes("type=recovery");
+        Tipo_Auth_Inicial === "recovery";
+      const Es_Confirmacion_Email_Redirect =
+        Tipo_Auth_Inicial === "signup"
+        || Tipo_Auth_Inicial === "email"
+        || Tipo_Auth_Inicial === "email_change"
+        || (
+          Search_Params_Inicial.has("code")
+          && !Es_Recovery_Redirect
+        );
       const Clave_Recovery_Activa =
         "Semaplan_Recovery_Activa";
 
@@ -40499,6 +40525,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Url.toString();
       }
 
+      function Limpiar_Url_Auth_Redirect() {
+        try {
+          const Url_Limpia = new URL(
+            window.location.href
+          );
+          Url_Limpia.hash = "";
+          [
+            "code",
+            "type",
+            "access_token",
+            "refresh_token",
+            "expires_at",
+            "expires_in",
+            "token_type",
+            "token",
+          ].forEach((Clave) => {
+            Url_Limpia.searchParams.delete(Clave);
+          });
+          history.replaceState(
+            null,
+            "",
+            Url_Limpia.toString()
+          );
+        } catch (_) {}
+      }
+
       function Marcar_Recovery_Activa() {
         sessionStorage.setItem(
           Clave_Recovery_Activa, "1"
@@ -40661,6 +40713,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 password: Pass,
                 options: {
                   ...Captcha_Opts,
+                  emailRedirectTo:
+                    Obtener_Url_Redirect_Recovery(),
                   data: {
                     name: Nombre,
                     nombre: Nombre,
@@ -41496,6 +41550,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             setTimeout(R, 500)
           );
           Mostrar_Recovery();
+          return;
+        }
+
+        if (Es_Confirmacion_Email_Redirect) {
+          await new Promise((R) =>
+            setTimeout(R, 500)
+          );
+          try {
+            await Supa.auth.signOut({
+              scope: "local"
+            });
+          } catch (_) {}
+          Usuario_Actual = null;
+          Limpiar_Recovery_Activa();
+          Auth_Modo = "Login";
+          document.getElementById(
+            "Auth_Recovery_Panel"
+          ).style.display = "none";
+          document.getElementById(
+            "Auth_Panel_Login"
+          ).style.display = "";
+          Configurar_Auth_UI();
+          Limpiar_Url_Auth_Redirect();
+          Mostrar_Auth();
+          Mostrar_Auth_Mensaje(
+            t("auth.email_confirmado_login"),
+            "Exito"
+          );
           return;
         }
 
