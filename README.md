@@ -31,13 +31,14 @@ dispositivo.
 
 ### 3. Abrir la app
 
-Abrí `Semaplan.html` en el navegador. Va a aparecer la
+Abrí `index.html` en el navegador. Va a aparecer la
 pantalla de login. Hacé click en "Crear cuenta", poné tu mail
 y una contraseña, y listo.
 
 ## Estructura del proyecto
 
-- `Semaplan.html` — la app (HTML autocontenido)
+- `index.html` — la app (HTML autocontenido)
+- `Semaplan.html` — redirect de compatibilidad
 - `Supabase_Schema.sql` — esquema de la base de datos
 - `README.md` — este archivo
 
