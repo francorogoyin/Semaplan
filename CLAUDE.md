@@ -76,7 +76,8 @@ Seguir el estilo global del proyecto:
 - Sin librerías externas.
 - Líneas ≤ 70 caracteres.
 - Toda función nueva, texto nuevo o cambio visible en UI debe quedar
-  traducido en español, inglés y portugués en el mismo turno.
+  traducido en todos los idiomas disponibles en la app en ese momento,
+  dentro del mismo turno.
 - No dejar textos hardcodeados en una sola lengua para "después".
 
 ## Comunicación
