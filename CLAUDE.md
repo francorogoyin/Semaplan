@@ -110,7 +110,8 @@ realizadas.
    que no tengan la etiqueta `Pospuesto`.
 9. Si una tarea de ese cajón fue realizada por el agente, borrar la
    nota del Archivero y dejar registro con fecha y hora en
-   `Registro_Avance.txt`, basándose en la plantilla de ese archivo.
+   `Registro_Avance.txt`, basándose en la plantilla de ese archivo. Ese
+   registro se agrega siempre al final, una vez terminada la tarea.
 
 ### Procedimiento 2: test de funciones
 
