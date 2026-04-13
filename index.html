@@ -28889,6 +28889,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Fecha, Hora
             );
           });
+        if (Fn_Cierre_Menu) {
+          document.removeEventListener(
+            "click", Fn_Cierre_Menu
+          );
+          Fn_Cierre_Menu = null;
+        }
+        Fn_Cierre_Menu = (Ev) => {
+          if (!Menu.contains(Ev.target)) {
+            Cerrar_Menu_Dia();
+          }
+        };
+        document.addEventListener("click", Fn_Cierre_Menu);
       }
 
       function Render_Config_Patrones() {
@@ -35717,12 +35729,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener(
           "click", Guardar_Nota_Archivero_Desde_Modal
         );
-      document.getElementById("Archivero_Nota_Overlay")
-        ?.addEventListener("click", (Ev) => {
-          if (Ev.target.id === "Archivero_Nota_Overlay") {
-            Cerrar_Modal_Nota_Archivero();
-          }
-        });
       // Ctrl+Enter dentro del textarea (o cualquier
       // input del submodal de nota) guarda directo. Es
       // el segundo atajo del flujo: A → escribir →
