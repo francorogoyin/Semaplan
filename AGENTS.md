@@ -91,6 +91,11 @@ No usar `Entendí que...` en estos casos:
 - cuando el agente solo responde una duda o aclara una regla;
 - cuando el agente solo notifica avance de algo ya iniciado.
 
+Si el usuario da una instrucción explícita y ejecutable, el agente debe
+actuar sin pedir confirmación previa. Solo corresponde frenar para
+preguntar cuando haya ambigüedad material, impacto destructivo o un
+riesgo no obvio que pueda cambiar la decisión.
+
 ## Flujo de trabajo por sesión
 
 Al arrancar cada sesión, **antes** de actuar sobre cualquier pedido
