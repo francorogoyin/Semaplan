@@ -46,6 +46,10 @@ riesgo no obvio que pueda cambiar la decisión.
 Si el usuario pide actualizar `AGENTS.md` o `CLAUDE.md`, actualizar
 siempre ambos archivos aunque solo nombre uno de los dos.
 
+Toda fecha u hora escrita por el agente debe usar hora local de
+Argentina (`America/Buenos_Aires`). Esto incluye
+`Registro_Avance.txt`.
+
 ## Flujo de trabajo por sesión
 
 Al arrancar cada sesión, distinguir cuál de estos dos procedimientos
