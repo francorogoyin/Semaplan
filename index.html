@@ -4368,6 +4368,17 @@
         flex: 1;
       }
 
+      .Baul_Color_Fila {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .Baul_Color_Fila .Boton_Secundario {
+        min-height: 40px;
+        white-space: nowrap;
+      }
+
       .Selector_Etiquetas {
         display: flex;
         flex-wrap: wrap;
@@ -4763,8 +4774,11 @@
         min-height: 124px;
         padding: 14px 12px 13px;
         border-radius: 18px;
-        border: 1px solid #dbcdb9;
-        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid var(--Baul-Borde, #dbcdb9);
+        background: var(
+          --Baul-Fondo,
+          rgba(255, 255, 255, 0.96)
+        );
         cursor: pointer;
         transition:
           transform 140ms ease,
@@ -4789,7 +4803,10 @@
       }
 
       .Baul_Card.Con_Sombra_Estado {
-        background: rgba(255, 255, 255, 0.98);
+        background: var(
+          --Baul-Fondo-Sombra,
+          rgba(255, 255, 255, 0.98)
+        );
       }
 
       .Baul_Card.Con_Sombra_Estado::after {
@@ -4883,8 +4900,8 @@
         width: 100%;
         padding: 7px 12px;
         border-radius: 10px;
-        border: 1px solid transparent;
-        background: transparent;
+        border: 1px solid var(--Baul-Borde-Fila, transparent);
+        background: var(--Baul-Fondo-Fila, transparent);
         cursor: pointer;
         overflow: hidden;
         transition:
@@ -4905,7 +4922,10 @@
       }
 
       .Baul_Fila.Con_Sombra_Estado {
-        background: rgba(255, 255, 255, 0.97);
+        background: var(
+          --Baul-Fondo-Fila-Sombra,
+          rgba(255, 255, 255, 0.97)
+        );
       }
 
       .Baul_Fila.Con_Sombra_Estado::after {
@@ -9112,6 +9132,9 @@
                   id="Cfg_Cat_Emoji"
                   placeholder="😀"
                   maxlength="4">
+                <input type="color"
+                  class="Config_Cat_Input"
+                  id="Cfg_Cat_Color">
                 <input type="text"
                   class="Config_Cat_Input Config_Cat_Input_Nombre"
                   id="Cfg_Cat_Nombre"
@@ -10478,6 +10501,22 @@
                       <select id="Baul_Categoria_Input"></select>
                     </div>
                     <div class="Campo">
+                      <label for="Baul_Color_Input"
+                        data-i18n="baul.color_fondo">
+                        Color del bloque
+                      </label>
+                      <div class="Baul_Color_Fila">
+                        <input id="Baul_Color_Input"
+                          type="color">
+                        <button type="button"
+                          class="Boton_Secundario"
+                          id="Baul_Color_Categoria_Btn"
+                          data-i18n="baul.color_categoria">
+                          Usar color del baúl
+                        </button>
+                      </div>
+                    </div>
+                    <div class="Campo">
                       <label for="Baul_Estado_Input"
                         data-i18n="baul.estado"
                         >Estado</label>
@@ -11782,6 +11821,8 @@
             "Emoji de categoría",
           "config.cat_nombre_title":
             "Nombre de categoría",
+          "config.cat_color_title":
+            "Color por defecto del baúl",
           "config.editar_metadatos":
             "Editar metadatos",
           "config.subir": "Subir",
@@ -12012,6 +12053,9 @@
           "baul.buscar": "Buscar",
           "baul.buscar_ph": "Nombre de tarea",
           "baul.categoria": "Categoría",
+          "baul.color_fondo": "Color del bloque",
+          "baul.color_categoria":
+            "Usar color del baúl",
           "baul.etiqueta": "Etiqueta",
           "baul.estado": "Estado",
           "baul.activas": "Activas",
@@ -13841,6 +13885,8 @@
             "Category emoji",
           "config.cat_nombre_title":
             "Category name",
+          "config.cat_color_title":
+            "Default vault color",
           "config.editar_metadatos":
             "Edit metadata",
           "config.subir": "Move up",
@@ -14060,6 +14106,9 @@
           "baul.buscar": "Search",
           "baul.buscar_ph": "Task name",
           "baul.categoria": "Category",
+          "baul.color_fondo": "Block color",
+          "baul.color_categoria":
+            "Use vault color",
           "baul.etiqueta": "Tag",
           "baul.estado": "Status",
           "baul.activas": "Active",
@@ -15870,6 +15919,8 @@
             "Emoji da categoria",
           "config.cat_nombre_title":
             "Nome da categoria",
+          "config.cat_color_title":
+            "Cor padrao do bau",
           "config.editar_metadatos":
             "Editar metadados",
           "config.subir": "Subir",
@@ -16105,6 +16156,9 @@
           "baul.buscar_ph":
             "Nome da tarefa",
           "baul.categoria": "Categoria",
+          "baul.color_fondo": "Cor do bloco",
+          "baul.color_categoria":
+            "Usar cor do bau",
           "baul.etiqueta": "Tag",
           "baul.estado": "Status",
           "baul.activas": "Ativas",
@@ -18228,6 +18282,7 @@
       let Baul_Editor_Abierto = false;
       let Baul_Editor_Modo = "Detalle";
       let Baul_Borrador_Forzado = false;
+      let Baul_Color_Modo = "Categoria";
       let Baul_Grupos_Colapsados = {};
       let Baul_Vista_Modo = Config.Baul_Vista_Modo || "Biblioteca";
       let Baul_Multi_Seleccion = new Set();
@@ -18453,6 +18508,11 @@
       const El_Baul_Tipo_Input = document.getElementById("Baul_Tipo_Input");
       const El_Baul_Categoria_Input =
         document.getElementById("Baul_Categoria_Input");
+      const El_Baul_Color_Input =
+        document.getElementById("Baul_Color_Input");
+      const El_Baul_Color_Categoria_Btn = document.getElementById(
+        "Baul_Color_Categoria_Btn"
+      );
       const El_Baul_Estado_Input = document.getElementById(
         "Baul_Estado_Input"
       );
@@ -19532,6 +19592,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tarea = Obtener_Baul_Tarea_En_Edicion();
         const Categoria_Id =
           El_Baul_Categoria_Input?.value || null;
+        const Color_Categoria =
+          Obtener_Color_Categoria_Baul(Categoria_Id);
+        const Color_Actual =
+          Normalizar_Color_Hex(El_Baul_Color_Input?.value);
         return {
           Id: Tarea?.Id || null,
           Nombre: (El_Baul_Nombre_Input?.value || "").trim(),
@@ -19549,6 +19613,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             El_Baul_Estado_Input?.value || Tarea?.Estado
           ),
           Archivada: Boolean(Tarea?.Archivada),
+          Color_Baul:
+            Baul_Color_Modo === "Personalizado" &&
+            Color_Actual &&
+            Color_Actual !== Color_Categoria
+              ? Color_Actual
+              : "",
           Horas_Aprox: Number(
             El_Baul_Horas_Aprox_Input?.value
           ) || (Tarea?.Horas_Aprox || 0),
@@ -19604,6 +19674,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Limpiar_Form_Baul(Forzar_Borrador = false) {
         Baul_En_Edicion_Id = null;
         Baul_Borrador_Forzado = Boolean(Forzar_Borrador);
+        Baul_Color_Modo = "Categoria";
         if (El_Baul_Nombre_Input) El_Baul_Nombre_Input.value = "";
         if (El_Baul_Emoji_Input) El_Baul_Emoji_Input.value = "";
         if (El_Baul_Tipo_Input) El_Baul_Tipo_Input.value = "No";
@@ -19617,6 +19688,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Baul_Timeline_Input.value = "";
         }
         Poblar_Select_Categorias_Baul(null);
+        Actualizar_Input_Color_Baul_Desde_Categoria();
         Render_Selector_Etiquetas(
           El_Baul_Etiquetas_Input,
           [],
@@ -19639,12 +19711,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Baul_En_Edicion_Id = Tarea.Id;
         Baul_Borrador_Forzado = false;
+        Baul_Color_Modo = Tarea.Color_Baul
+          ? "Personalizado"
+          : "Categoria";
         El_Baul_Nombre_Input.value = Tarea.Nombre || "";
         El_Baul_Emoji_Input.value = Tarea.Emoji || "";
         El_Baul_Tipo_Input.value = Tarea.Es_Bolsa ? "Si" : "No";
         Poblar_Select_Categorias_Baul(
           Tarea.Categoria_Id || null
         );
+        if (El_Baul_Color_Input) {
+          El_Baul_Color_Input.value =
+            Tarea.Color_Baul ||
+            Obtener_Color_Categoria_Baul(
+              Tarea.Categoria_Id
+            ) || Obtener_Color_Default();
+        }
         if (El_Baul_Estado_Input) {
           El_Baul_Estado_Input.value =
             Obtener_Estado_Baul_Normalizado(Tarea.Estado);
@@ -19697,6 +19779,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Emoji: El_Baul_Emoji_Input?.value || "",
           Es_Bolsa: El_Baul_Tipo_Input?.value === "Si",
           Categoria_Id,
+          Color_Baul:
+            Baul_Color_Modo === "Personalizado"
+              ? Normalizar_Color_Hex(
+                  El_Baul_Color_Input?.value
+                )
+              : "",
           Etiquetas_Ids: Obtener_Etiquetas_Seleccionadas(
             El_Baul_Etiquetas_Input
           ),
@@ -20393,6 +20481,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Card.classList.add("Reordenable");
           Card.draggable = true;
         }
+        Aplicar_Color_Baul_En_Elemento(Card, Tarea);
         Aplicar_Sombra_Estado_Baul(Card, Tarea.Estado);
         Card.addEventListener("click", (Ev) => {
           Seleccionar_Baul_Tarea(Tarea.Id, {
@@ -20521,6 +20610,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fila.classList.add("Reordenable");
           Fila.draggable = true;
         }
+        Aplicar_Color_Baul_En_Elemento(Fila, Tarea);
         Aplicar_Sombra_Estado_Baul(Fila, Tarea.Estado);
         Fila.addEventListener("click", (Ev) => {
           Seleccionar_Baul_Tarea(Tarea.Id, {
@@ -27850,6 +27940,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Cat.Nombre = Inp_Nombre.value.trim();
           });
 
+          const Inp_Color = document.createElement("input");
+          Inp_Color.type = "color";
+          Inp_Color.className = "Config_Cat_Input";
+          Inp_Color.value =
+            Cat.Color_Baul || Obtener_Color_Default();
+          Inp_Color.title = t("config.cat_color_title");
+          Inp_Color.addEventListener("input", () => {
+            Cat.Color_Baul = Normalizar_Color_Hex(
+              Inp_Color.value
+            ) || Cat.Color_Baul;
+          });
+
           const Btn_Meta = document.createElement("button");
           Btn_Meta.type = "button";
           Btn_Meta.className =
@@ -27899,6 +28001,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           Fila.appendChild(Inp_Emoji);
           Fila.appendChild(Inp_Nombre);
+          Fila.appendChild(Inp_Color);
           Fila.appendChild(Btn_Meta);
           Fila.appendChild(Btn_Subir);
           Fila.appendChild(Btn_Bajar);
@@ -27912,6 +28015,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Emoji_Val = (
             document.getElementById("Cfg_Cat_Emoji")?.value || "🏷️"
           ).trim() || "🏷️";
+          const Color_Val =
+            Normalizar_Color_Hex(
+              document.getElementById("Cfg_Cat_Color")?.value
+            ) || Obtener_Color_Preset_Categoria(Categorias.length);
           const Nombre_Val = (
             document.getElementById("Cfg_Cat_Nombre")?.value || ""
           ).trim();
@@ -27920,9 +28027,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Id: Crear_Id_Categoria(),
             Emoji: Emoji_Val,
             Nombre: Nombre_Val,
+            Color_Baul: Color_Val,
             Metadatos: []
           });
           document.getElementById("Cfg_Cat_Emoji").value = "";
+          document.getElementById("Cfg_Cat_Color").value =
+            Obtener_Color_Preset_Categoria(Categorias.length);
           document.getElementById("Cfg_Cat_Nombre").value = "";
           Render_Config_Categorias();
         };
@@ -27932,8 +28042,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Clon.addEventListener("click", Nueva_Fn);
         }
         const Input_Emoji = document.getElementById("Cfg_Cat_Emoji");
+        const Input_Color = document.getElementById("Cfg_Cat_Color");
         const Input_Nombre = document.getElementById("Cfg_Cat_Nombre");
-        [Input_Emoji, Input_Nombre].forEach((Input) => {
+        if (Input_Color && !Input_Color.value) {
+          Input_Color.value =
+            Obtener_Color_Preset_Categoria(Categorias.length);
+        }
+        [Input_Emoji, Input_Color, Input_Nombre].forEach((Input) => {
           if (!Input) return;
           Input.onkeydown = (Ev) => {
             if (Ev.key !== "Enter") return;
@@ -31888,13 +32003,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
-      function Normalizar_Categoria(Categoria) {
+      function Normalizar_Categoria(Categoria, Indice = 0) {
         const Nombre = (Categoria?.Nombre || "").toString().trim();
         if (!Nombre) return null;
         return {
           Id: Categoria?.Id || Crear_Id_Categoria(),
           Emoji: Normalizar_Emoji(Categoria?.Emoji || "🏷️"),
           Nombre,
+          Color_Baul: Normalizar_Color_Hex(
+            Categoria?.Color_Baul
+          ) || Obtener_Color_Preset_Categoria(Indice),
           Metadatos: Array.isArray(Categoria?.Metadatos)
             ? Categoria.Metadatos
               .map((Metadato) =>
@@ -32003,6 +32121,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ),
           Estado: Obtener_Estado_Baul_Normalizado(Tarea?.Estado),
           Archivada: Boolean(Tarea?.Archivada),
+          Color_Baul: Normalizar_Color_Hex(Tarea?.Color_Baul),
           Horas_Aprox:
             Number.isFinite(Horas_Aprox_Raw) &&
             Horas_Aprox_Raw > 0
@@ -32101,6 +32220,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Id: Categoria_Id,
             Emoji: "🏷️",
             Nombre: Nombre_Limpio,
+            Color_Baul: Obtener_Color_Preset_Categoria(
+              Categorias.length
+            ),
             Metadatos: []
           });
         }
@@ -32119,6 +32241,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Obtener_Valores_Metadatos_Baul(),
           Render_Detalle_Baul
         );
+        if (Baul_Color_Modo !== "Personalizado") {
+          Actualizar_Input_Color_Baul_Desde_Categoria();
+        }
         Render_Detalle_Baul();
         Guardar_Estado();
       }
@@ -32510,6 +32635,97 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Obtener_Color_Default() {
         return Colores_Preset[0];
+      }
+
+      function Normalizar_Color_Hex(Valor) {
+        const Texto = (Valor || "").toString().trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(Texto)) {
+          return Texto.toLowerCase();
+        }
+        return "";
+      }
+
+      function Hex_A_Rgba(Color, Alpha) {
+        const Hex = Normalizar_Color_Hex(Color);
+        if (!Hex) return "";
+        const Rojo = Number.parseInt(Hex.slice(1, 3), 16);
+        const Verde = Number.parseInt(Hex.slice(3, 5), 16);
+        const Azul = Number.parseInt(Hex.slice(5, 7), 16);
+        return `rgba(${Rojo}, ${Verde}, ${Azul}, ${Alpha})`;
+      }
+
+      function Obtener_Color_Preset_Categoria(Indice = 0) {
+        if (!Colores_Preset.length) return Obtener_Color_Default();
+        const Seguro = Math.max(0, Number(Indice) || 0);
+        return Colores_Preset[Seguro % Colores_Preset.length];
+      }
+
+      function Obtener_Categoria_Baul(Categoria_Id) {
+        return Categorias.find((Categoria) => {
+          return Categoria.Id === Categoria_Id;
+        }) || null;
+      }
+
+      function Obtener_Color_Categoria_Baul(Categoria_Id) {
+        return Obtener_Categoria_Baul(Categoria_Id)?.Color_Baul || "";
+      }
+
+      function Obtener_Color_Activo_Baul(Tarea) {
+        return Normalizar_Color_Hex(Tarea?.Color_Baul) ||
+          Obtener_Color_Categoria_Baul(Tarea?.Categoria_Id);
+      }
+
+      function Actualizar_Input_Color_Baul_Desde_Categoria() {
+        if (!El_Baul_Color_Input) return;
+        const Color = Obtener_Color_Categoria_Baul(
+          El_Baul_Categoria_Input?.dataset.valorReal ||
+            El_Baul_Categoria_Input?.value || null
+        ) || Obtener_Color_Default();
+        El_Baul_Color_Input.value = Color;
+      }
+
+      function Aplicar_Color_Baul_En_Elemento(El, Tarea) {
+        if (!El) return;
+        const Color = Obtener_Color_Activo_Baul(Tarea);
+        if (!Color) {
+          [
+            "--Baul-Color-Base",
+            "--Baul-Fondo",
+            "--Baul-Fondo-Sombra",
+            "--Baul-Borde",
+            "--Baul-Fondo-Fila",
+            "--Baul-Fondo-Fila-Sombra",
+            "--Baul-Borde-Fila"
+          ].forEach((Clave) => {
+            El.style.removeProperty(Clave);
+          });
+          return;
+        }
+        El.style.setProperty("--Baul-Color-Base", Color);
+        El.style.setProperty(
+          "--Baul-Fondo",
+          Hex_A_Rgba(Color, 0.26)
+        );
+        El.style.setProperty(
+          "--Baul-Fondo-Sombra",
+          Hex_A_Rgba(Color, 0.3)
+        );
+        El.style.setProperty(
+          "--Baul-Borde",
+          Hex_A_Rgba(Color, 0.55)
+        );
+        El.style.setProperty(
+          "--Baul-Fondo-Fila",
+          Hex_A_Rgba(Color, 0.16)
+        );
+        El.style.setProperty(
+          "--Baul-Fondo-Fila-Sombra",
+          Hex_A_Rgba(Color, 0.2)
+        );
+        El.style.setProperty(
+          "--Baul-Borde-Fila",
+          Hex_A_Rgba(Color, 0.42)
+        );
       }
 
       function Tarea_Por_Id(Tarea_Id) {
@@ -34955,7 +35171,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Categorias = Array.isArray(Categorias)
           ? Categorias
-            .map((Categoria) => Normalizar_Categoria(Categoria))
+            .map((Categoria, Indice) =>
+              Normalizar_Categoria(Categoria, Indice)
+            )
             .filter(Boolean)
           : [];
 
@@ -38052,6 +38270,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Obtener_Valores_Metadatos_Baul(),
           Render_Detalle_Baul
         );
+        if (Baul_Color_Modo !== "Personalizado") {
+          Actualizar_Input_Color_Baul_Desde_Categoria();
+        }
+        Render_Detalle_Baul();
+      });
+      El_Baul_Color_Input?.addEventListener("input", () => {
+        Baul_Color_Modo = "Personalizado";
+        Render_Detalle_Baul();
+      });
+      El_Baul_Color_Categoria_Btn?.addEventListener("click", () => {
+        Baul_Color_Modo = "Categoria";
+        Actualizar_Input_Color_Baul_Desde_Categoria();
         Render_Detalle_Baul();
       });
       [
