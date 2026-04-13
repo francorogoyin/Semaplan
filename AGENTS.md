@@ -91,9 +91,10 @@ corresponde según el pedido del usuario.
 8. Si la nota corresponde a una tarea pospuesta, usar la etiqueta
    `Pospuesto`.
 9. Cuando una sesión deje una regla operativa útil para el futuro,
-   registrar la regla y no el relato detallado de cómo se llegó a ella.
-   Priorizar instrucciones reutilizables y evitar historial de prueba y
-   error que no aporte decisión operativa.
+   registrar la regla en esta sección de notas operativas y no el
+   relato detallado de cómo se llegó a ella. Priorizar instrucciones
+   reutilizables y evitar historial de prueba y error que no aporte
+   decisión operativa.
 10. Si Playwright no puede abrir el perfil de navegador en uso para
     leer o editar `Semaplan.com`, usar una copia temporal del perfil y
     no trabajar sobre el perfil real bloqueado.
