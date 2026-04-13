@@ -18,6 +18,71 @@ const Cors_Headers = {
     "POST, OPTIONS",
 };
 
+function Obtener_Fecha_Vigencia(Suscripcion: any) {
+  const Detalle = Suscripcion?.detalle || {};
+  const Auto = Detalle?.auto_recurring || {};
+  return (
+    Suscripcion?.trial_hasta
+    || Detalle.trial_hasta
+    || Detalle.next_payment_date
+    || Auto.next_payment_date
+    || Auto.end_date
+    || Suscripcion?.fecha_actualizacion
+    || Suscripcion?.fecha_creacion
+    || null
+  );
+}
+
+function Trial_Activo(Suscripcion: any) {
+  if (!Suscripcion) return false;
+  const Estado = String(
+    Suscripcion.estado || ""
+  ).toLowerCase();
+  if (Estado === "authorized") {
+    return false;
+  }
+  const Hasta = Obtener_Fecha_Vigencia(
+    Suscripcion
+  );
+  if (!Hasta) return false;
+  const Fecha = new Date(Hasta);
+  if (Number.isNaN(Fecha.getTime())) {
+    return false;
+  }
+  return Date.now() < Fecha.getTime() && Boolean(
+    Suscripcion.trial_hasta
+    || Suscripcion.detalle?.trial_hasta
+  );
+}
+
+function Suscripcion_Sigue_Vigente(Suscripcion: any) {
+  if (!Suscripcion) return false;
+  const Estado = String(
+    Suscripcion.estado || ""
+  ).toLowerCase();
+  if (Trial_Activo(Suscripcion)) {
+    return true;
+  }
+  if (Estado === "authorized") {
+    return true;
+  }
+  if (
+    Estado !== "cancelled"
+    && Estado !== "paused"
+  ) {
+    return false;
+  }
+  const Fecha = Obtener_Fecha_Vigencia(
+    Suscripcion
+  );
+  if (!Fecha) return false;
+  const Limite = new Date(Fecha);
+  if (Number.isNaN(Limite.getTime())) {
+    return false;
+  }
+  return Date.now() < Limite.getTime();
+}
+
 Deno.serve(async (Req) => {
   if (Req.method === "OPTIONS") {
     return new Response("ok", {
@@ -91,15 +156,71 @@ Deno.serve(async (Req) => {
       Supa_Service_Key
     );
 
+    const {
+      data: Suscripcion_Existente,
+      error: Error_Consulta,
+    } = await Supa_Admin
+      .from("suscripciones")
+      .select("*")
+      .eq("usuario_id", Usuario.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (Error_Consulta) {
+      return new Response(
+        JSON.stringify({
+          Error: "Error consultando suscripción",
+          Detalle: Error_Consulta,
+        }),
+        {
+          status: 500,
+          headers: {
+            ...Cors_Headers,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
+    const Estado_Registro =
+      Trial_Activo(Suscripcion_Existente)
+        ? "trial"
+        : Suscripcion_Sigue_Vigente(
+            Suscripcion_Existente
+          )
+        ? String(
+            Suscripcion_Existente?.estado
+            || "pending"
+          ).toLowerCase()
+        : "pending";
+
     const Registro = {
       usuario_id: Usuario.id,
-      mp_preapproval_id: null,
+      mp_preapproval_id:
+        Suscripcion_Existente?.mp_preapproval_id
+        || null,
       mp_plan_id: Mp_Plan_Id,
       external_reference: Usuario.id,
-      estado: "pending",
-      payer_email: Usuario.email,
-      monto: 999,
-      moneda: "ARS",
+      estado: Estado_Registro,
+      payer_email:
+        Usuario.email
+        || Suscripcion_Existente?.payer_email
+        || null,
+      monto:
+        Suscripcion_Existente?.monto || 999,
+      moneda:
+        Suscripcion_Existente?.moneda || "ARS",
+      detalle:
+        Suscripcion_Existente?.detalle || null,
+      trial_hasta:
+        Suscripcion_Existente?.trial_hasta
+        || null,
+      trial_iniciado_en:
+        Suscripcion_Existente?.trial_iniciado_en
+        || null,
+      trial_origen:
+        Suscripcion_Existente?.trial_origen
+        || null,
     };
 
     const { error: Error_Upsert } =
