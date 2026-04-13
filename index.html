@@ -11454,6 +11454,14 @@
             "Tipos de slot bloqueado",
           "config.eliminar_tipo_slot_title":
             "Eliminar tipo",
+          "config.eliminar_tipo_slot_msg":
+            "¿Eliminar el tipo \"{Nombre}\"?",
+          "config.eliminar_tipo_slot_con_slots":
+            "Hay {Cantidad} slots muertos de tipo \"{Nombre}\" en el calendario. ¿Querés borrarlos también?",
+          "config.eliminar_tipo_slot_solo_tipo":
+            "Borrar solo el tipo",
+          "config.eliminar_tipo_slot_y_slots":
+            "Borrar tipo y slots",
           "config.tipos_slot_hint":
             "Categorías para los slots no " +
             "disponibles (sueño, descanso, " +
@@ -13398,6 +13406,14 @@
             "Percentage uses the end date.",
           "config.eliminar_tipo_slot_title":
             "Delete type",
+          "config.eliminar_tipo_slot_msg":
+            "Delete the \"{Nombre}\" type?",
+          "config.eliminar_tipo_slot_con_slots":
+            "There are {Cantidad} blocked slots of type \"{Nombre}\" in the calendar. Do you want to delete them too?",
+          "config.eliminar_tipo_slot_solo_tipo":
+            "Delete type only",
+          "config.eliminar_tipo_slot_y_slots":
+            "Delete type and slots",
           "config.fecha_final": "End date",
           "config.colores": "Colors",
           "config.colores_hint":
@@ -15359,6 +15375,16 @@
           "config.anulada": "Anulada",
           "config.tipos_slot":
             "Tipos de slot bloqueado",
+          "config.eliminar_tipo_slot_title":
+            "Excluir tipo",
+          "config.eliminar_tipo_slot_msg":
+            "Excluir o tipo \"{Nombre}\"?",
+          "config.eliminar_tipo_slot_con_slots":
+            "Há {Cantidad} slots bloqueados do tipo \"{Nombre}\" no calendário. Quer excluí-los também?",
+          "config.eliminar_tipo_slot_solo_tipo":
+            "Excluir só o tipo",
+          "config.eliminar_tipo_slot_y_slots":
+            "Excluir tipo e slots",
           "config.tipos_slot_hint":
             "Categorias para os slots " +
             "indisponíveis (sono, " +
@@ -17399,6 +17425,7 @@
       // Tipos de slot personalizables. Cada uno:
       // { Id: string, Nombre: string, Color: string }
       let Tipos_Slot = [];
+      let Tipos_Slot_Inicializados = false;
       let Patrones_Backup_Config = null;
       let Contador_Eventos = 1;
       let Tarea_Seleccionada_Id = null;
@@ -23722,6 +23749,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slots_Muertos_Nombres: JSON.parse(
             JSON.stringify(Slots_Muertos_Nombres)
           ),
+          Tipos_Slot: JSON.parse(
+            JSON.stringify(Tipos_Slot)
+          ),
+          Tipos_Slot_Inicializados,
           Tarea_Seleccionada_Id,
           Meta_Seleccion_Id,
           Baul_Seleccion_Id,
@@ -23883,6 +23914,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           Slots_Muertos_Nombres = {};
         }
+        if (Array.isArray(Snap.Tipos_Slot)) {
+          Tipos_Slot = Snap.Tipos_Slot;
+        }
+        Tipos_Slot_Inicializados = Boolean(
+          Snap.Tipos_Slot_Inicializados
+        );
 
         Render_Calendario();
         Render_Emojis();
@@ -25494,6 +25531,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (Tipos_Slot.length === 0) {
               Tipos_Slot = JSON.parse(JSON.stringify(Tipos));
             }
+            Tipos_Slot_Inicializados = true;
             const En_Lista = Tipos_Slot.find(
               (T) => T.Id === Tipo.Id
             );
@@ -25509,17 +25547,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Btn_Borrar.textContent = "×";
           Btn_Borrar.style.fontSize = "14px";
           Btn_Borrar.title = t("config.eliminar_tipo_slot_title");
-          // No permitir borrar si quedaría sin tipos.
-          if (Tipos.length <= 1) Btn_Borrar.disabled = true;
-          Btn_Borrar.addEventListener("click", () => {
-            if (Tipos_Slot.length === 0) {
-              Tipos_Slot =
-                JSON.parse(JSON.stringify(Tipos));
-            }
-            Tipos_Slot = Tipos_Slot.filter(
-              (T) => T.Id !== Tipo.Id
-            );
-            Render_Config_Tipos_Slot();
+          Btn_Borrar.addEventListener("click", async () => {
+            await Borrar_Tipo_Slot_Config(Tipo);
           });
 
           Fila.appendChild(Muestra);
@@ -25546,6 +25575,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 JSON.stringify(Obtener_Tipos_Slot())
               );
             }
+            Tipos_Slot_Inicializados = true;
             Tipos_Slot.push({
               Id: `Tipo_${Date.now()}`,
               Nombre,
@@ -26716,6 +26746,119 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Patron.Franjas = [];
           delete Patron.Franjas_Por_Dia;
         }
+      }
+
+      function Contar_Slots_Muertos_Por_Tipo(Tipo_Id) {
+        return Slots_Muertos.filter(
+          (Clave) => Slots_Muertos_Tipos[Clave] === Tipo_Id
+        ).length;
+      }
+
+      function Borrar_Slots_Muertos_De_Tipo(Tipo_Id) {
+        Slots_Muertos = Slots_Muertos.filter((Clave) => {
+          const Es_Tipo =
+            Slots_Muertos_Tipos[Clave] === Tipo_Id;
+          if (Es_Tipo) {
+            delete Slots_Muertos_Tipos[Clave];
+            delete Slots_Muertos_Nombres[Clave];
+          }
+          return !Es_Tipo;
+        });
+      }
+
+      async function Borrar_Tipo_Slot_Config(Tipo) {
+        const Snap = Capturar_Snapshot_Undo();
+        const Cantidad =
+          Contar_Slots_Muertos_Por_Tipo(Tipo.Id);
+        let Borrar_Slots = false;
+
+        if (Cantidad > 0) {
+          const Opcion = await Mostrar_Dialogo(
+            t("config.eliminar_tipo_slot_con_slots", {
+              Nombre: Tipo.Nombre,
+              Cantidad
+            }),
+            [
+              {
+                Etiqueta: t(
+                  "config.eliminar_tipo_slot_y_slots"
+                ),
+                Valor: "Borrar_Todo",
+                Tipo: "Peligro"
+              },
+              {
+                Etiqueta: t(
+                  "config.eliminar_tipo_slot_solo_tipo"
+                ),
+                Valor: "Solo_Tipo",
+                Tipo: "Primario"
+              },
+              {
+                Etiqueta: t("cancelar"),
+                Valor: null,
+                Tipo: "Cancelar"
+              }
+            ]
+          );
+          if (!Opcion) return;
+          Borrar_Slots = Opcion === "Borrar_Todo";
+        } else {
+          const Confirmar = await Mostrar_Dialogo(
+            t("config.eliminar_tipo_slot_msg", {
+              Nombre: Tipo.Nombre
+            }),
+            [
+              {
+                Etiqueta: t("cancelar"),
+                Valor: false,
+                Tipo: "Cancelar"
+              },
+              {
+                Etiqueta: t(
+                  "config.eliminar_tipo_slot_title"
+                ),
+                Valor: true,
+                Tipo: "Peligro"
+              }
+            ]
+          );
+          if (!Confirmar) return;
+        }
+
+        Tipos_Slot_Inicializados = true;
+        if (Tipos_Slot.length === 0) {
+          Tipos_Slot = JSON.parse(
+            JSON.stringify(Obtener_Tipos_Slot())
+          );
+        }
+        Tipos_Slot = Tipos_Slot.filter(
+          (T) => T.Id !== Tipo.Id
+        );
+
+        if (Borrar_Slots) {
+          Borrar_Slots_Muertos_De_Tipo(Tipo.Id);
+        } else {
+          const Tipo_Reemplazo =
+            Tipos_Slot[0]?.Id || null;
+          Object.keys(Slots_Muertos_Tipos).forEach((Clave) => {
+            if (Slots_Muertos_Tipos[Clave] === Tipo.Id) {
+              if (Tipo_Reemplazo) {
+                Slots_Muertos_Tipos[Clave] =
+                  Tipo_Reemplazo;
+              } else {
+                delete Slots_Muertos_Tipos[Clave];
+              }
+            }
+          });
+        }
+
+        Mostrar_Toast_Undo(
+          t("config.eliminar_tipo_slot_title"),
+          Snap
+        );
+        Render_Config_Tipos_Slot();
+        Render_Calendario();
+        Guardar_Estado();
       }
 
       async function Activar_Trial(
@@ -31623,6 +31766,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Obtener_Tipos_Slot() {
         // Si no hay tipos definidos, retorna los dos por defecto.
+        if (Tipos_Slot_Inicializados) return Tipos_Slot;
         if (Tipos_Slot.length > 0) return Tipos_Slot;
         return [
           {
@@ -32073,6 +32217,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Inicio_Semana_Hora: Config.Inicio_Semana_Hora
           },
           Tipos_Slot,
+          Tipos_Slot_Inicializados,
           Slots_Muertos_Tipos,
           Slots_Muertos_Nombres,
           Abordajes_Migrados_V1: true,
@@ -32285,6 +32430,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (Array.isArray(Estado.Tipos_Slot)) {
             Tipos_Slot = Estado.Tipos_Slot;
+          }
+          if (
+            Estado.Tipos_Slot_Inicializados !== undefined
+          ) {
+            Tipos_Slot_Inicializados = Boolean(
+              Estado.Tipos_Slot_Inicializados
+            );
+          } else {
+            Tipos_Slot_Inicializados =
+              Array.isArray(Estado.Tipos_Slot);
           }
           if (
             Estado.Slots_Muertos_Tipos &&
