@@ -4343,6 +4343,45 @@
         margin: 10px 0 0;
       }
 
+      .Config_Backup_Lista {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .Config_Backup_Item {
+        border: 1px solid rgba(143, 124, 98, 0.18);
+        background: rgba(246, 241, 232, 0.96);
+        border-radius: 12px;
+        padding: 10px 12px;
+      }
+
+      .Config_Backup_Cabecera {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .Config_Backup_Titulo {
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .Config_Backup_Meta {
+        font-size: 12px;
+        color: var(--Texto_Suave);
+      }
+
+      .Config_Backup_Acciones {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+
       .Config_Cat_Nueva {
         display: flex;
         gap: 6px;
@@ -9447,6 +9486,37 @@
                   id="Cfg_Importar_Input"
                   accept=".json,application/json"
                   style="display:none">
+                <div class="Config_Fila_Check">
+                  <input type="checkbox"
+                    id="Cfg_Backup_Auto_Activo">
+                  <label for="Cfg_Backup_Auto_Activo"
+                    data-i18n="config.backup_auto">
+                    Copias automáticas
+                  </label>
+                </div>
+                <div class="Config_Fila">
+                  <span class="Config_Label"
+                    data-i18n="config.backup_cada">
+                    Frecuencia
+                  </span>
+                  <select class="Config_Select"
+                    id="Cfg_Backup_Auto_Horas">
+                    <option value="6">6 h</option>
+                    <option value="12">12 h</option>
+                    <option value="24">24 h</option>
+                    <option value="48">48 h</option>
+                  </select>
+                </div>
+                <button type="button"
+                  id="Cfg_Backup_Manual_Btn"
+                  class="Config_Dato_Btn">
+                  <span class="Config_Dato_Btn_Icono">💾</span>
+                  <span data-i18n="config.backup_crear">
+                    Crear copia ahora
+                  </span>
+                </button>
+                <div id="Cfg_Backup_Lista"
+                  class="Config_Backup_Lista"></div>
               </div>
             </div>
 
@@ -18149,6 +18219,9 @@
         Baul_Agrupar_Por: "Ninguno",
         Baul_Mostrar_Archivadas: false,
         Plan_Actual: "Free",
+        Backup_Auto_Activo: false,
+        Backup_Auto_Horas: 24,
+        Backup_Auto_Ultimo: 0,
         Contador_Semanas_Activo: false,
         Contador_Semanas_Modo: "Ano",
         Contador_Semanas_Fecha_Ref: "",
@@ -18182,6 +18255,9 @@
       ];
       const Colores_Preset = ["#f1b77e", "#a6c8e5", "#c1d7ae", "#e4b3d4", "#f2a4a0", "#f2e08b", "#b8c7e0", "#c7b7ef"];
       const Clave_Local = "Semaplan_Estado_V2";
+      const Clave_Backups = "Semaplan_Backups_V1";
+      const Max_Backups_Locales = 12;
+      let Backups_Locales = [];
       // Migración one-time desde el nombre viejo del
       // proyecto: si el usuario tiene datos con la
       // clave legacy (Time_Blocking_Estado_V2) y no
@@ -27689,6 +27765,51 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (F) Importar_Estado_Json(F);
           });
         }
+        const Cfg_Backup_Auto = document.getElementById(
+          "Cfg_Backup_Auto_Activo"
+        );
+        const Cfg_Backup_Horas = document.getElementById(
+          "Cfg_Backup_Auto_Horas"
+        );
+        if (Cfg_Backup_Auto) {
+          Cfg_Backup_Auto.checked = Boolean(
+            Config.Backup_Auto_Activo
+          );
+        }
+        if (Cfg_Backup_Horas) {
+          Cfg_Backup_Horas.value = String(
+            Config.Backup_Auto_Horas || 24
+          );
+        }
+        if (Cfg_Backup_Auto && !Cfg_Backup_Auto._Listener) {
+          Cfg_Backup_Auto._Listener = true;
+          Cfg_Backup_Auto.addEventListener("change", () => {
+            Config.Backup_Auto_Activo = Boolean(
+              Cfg_Backup_Auto.checked
+            );
+            Guardar_Estado({ Omitir_Backup_Auto: true });
+          });
+        }
+        if (Cfg_Backup_Horas && !Cfg_Backup_Horas._Listener) {
+          Cfg_Backup_Horas._Listener = true;
+          Cfg_Backup_Horas.addEventListener("change", () => {
+            Config.Backup_Auto_Horas = Math.max(
+              1,
+              Number(Cfg_Backup_Horas.value) || 24
+            );
+            Guardar_Estado({ Omitir_Backup_Auto: true });
+          });
+        }
+        const Btn_Backup_Manual = document.getElementById(
+          "Cfg_Backup_Manual_Btn"
+        );
+        if (Btn_Backup_Manual && !Btn_Backup_Manual._Listener) {
+          Btn_Backup_Manual._Listener = true;
+          Btn_Backup_Manual.addEventListener("click", () => {
+            Crear_Backup_Local("Manual");
+          });
+        }
+        Render_Config_Backups();
         El_Config_Overlay.classList.add("Activo");
         // Bloquear scroll del fondo (html + body + viewport del
         // calendario) para que no compita con el scroll interno
@@ -31685,41 +31806,68 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
-      function Exportar_Estado_Json() {
-        // Exporta todo el estado a un archivo JSON descargable.
-        const Raw = localStorage.getItem(Clave_Local);
-        if (!Raw) {
-          alert(t("dialog.sin_estado_exportar"));
-          return;
-        }
+      function Cargar_Backups_Locales() {
         try {
-          const Obj = JSON.parse(Raw);
-          const Texto = JSON.stringify(Obj, null, 2);
-          const Blob_Obj = new Blob(
-            [Texto],
-            { type: "application/json" }
-          );
-          const Url = URL.createObjectURL(Blob_Obj);
-          const Fecha = new Date().toISOString().slice(0, 10);
-          const Enlace = document.createElement("a");
-          Enlace.href = Url;
-          Enlace.download = `Semaplan_${Fecha}.json`;
-          document.body.appendChild(Enlace);
-          Enlace.click();
-          document.body.removeChild(Enlace);
-          URL.revokeObjectURL(Url);
-        } catch (Err) {
-          alert(t("dialog.error_exportar",
-            { Msg: Err.message }));
+          const Raw = localStorage.getItem(Clave_Backups);
+          const Lista = Raw ? JSON.parse(Raw) : [];
+          Backups_Locales = Array.isArray(Lista)
+            ? Lista.filter((Item) => {
+                return Item &&
+                  Array.isArray(Item.Estado?.Tareas) &&
+                  Array.isArray(Item.Estado?.Eventos);
+              })
+            : [];
+        } catch {
+          Backups_Locales = [];
         }
+        return Backups_Locales;
       }
 
-      async function Importar_Estado_Json(Archivo) {
-        // Importa estado desde archivo JSON.
-        if (!Archivo) return;
+      function Guardar_Backups_Locales() {
+        localStorage.setItem(
+          Clave_Backups,
+          JSON.stringify(Backups_Locales)
+        );
+      }
+
+      function Crear_Id_Backup_Local() {
+        return `Backup_${Date.now()}_${Math.floor(
+          Math.random() * 1000
+        )}`;
+      }
+
+      function Formatear_Fecha_Backup(Valor) {
+        const Fecha = new Date(Number(Valor) || Date.now());
+        return new Intl.DateTimeFormat(
+          Idioma_Actual === "en" ? "en-US" : "es-AR",
+          {
+            dateStyle: "short",
+            timeStyle: "medium",
+            timeZone: "America/Buenos_Aires"
+          }
+        ).format(Fecha);
+      }
+
+      function Descargar_Json_Respaldo(Obj, Base = "Semaplan") {
+        const Texto = JSON.stringify(Obj, null, 2);
+        const Blob_Obj = new Blob(
+          [Texto],
+          { type: "application/json" }
+        );
+        const Url = URL.createObjectURL(Blob_Obj);
+        const Fecha = new Date().toISOString().slice(0, 10);
+        const Enlace = document.createElement("a");
+        Enlace.href = Url;
+        Enlace.download = `${Base}_${Fecha}.json`;
+        document.body.appendChild(Enlace);
+        Enlace.click();
+        document.body.removeChild(Enlace);
+        URL.revokeObjectURL(Url);
+      }
+
+      async function Aplicar_Importacion_Objeto(Obj) {
         const Confirmar = await Mostrar_Dialogo(
-          "Esto reemplazará todo el estado actual. " +
-          "¿Continuar?",
+          t("dialog.backup_restaurar"),
           [
             {
               Etiqueta: t("dialog.si_importar"),
@@ -31733,41 +31881,168 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           ]
         );
-        if (!Confirmar) return;
+        if (!Confirmar) return false;
+        if (
+          !Array.isArray(Obj?.Tareas) ||
+          !Array.isArray(Obj?.Eventos)
+        ) {
+          alert(t("dialog.archivo_invalido"));
+          return false;
+        }
+        localStorage.setItem(Clave_Local, JSON.stringify(Obj));
+        if (Supa && Usuario_Actual) {
+          try {
+            const { error } = await Supa
+              .from("estado_usuario")
+              .upsert({
+                user_id: Usuario_Actual.id,
+                estado: Obj
+              });
+            if (error) throw error;
+          } catch (E) {
+            alert(
+              "Error subiendo el import a la nube: " +
+              E.message
+            );
+            return false;
+          }
+        }
+        location.reload();
+        return true;
+      }
+
+      function Crear_Backup_Local(Tipo = "Manual") {
+        Cargar_Backups_Locales();
+        const Backup = {
+          Id: Crear_Id_Backup_Local(),
+          Tipo: Tipo === "Auto" ? "Auto" : "Manual",
+          Fecha: Date.now(),
+          Estado: Construir_Estado_Completo()
+        };
+        Backups_Locales.unshift(Backup);
+        Backups_Locales = Backups_Locales.slice(
+          0,
+          Max_Backups_Locales
+        );
+        Guardar_Backups_Locales();
+        Render_Config_Backups();
+        return Backup;
+      }
+
+      function Intentar_Backup_Automatico() {
+        if (!Config.Backup_Auto_Activo) return false;
+        const Ahora = Date.now();
+        const Intervalo =
+          Math.max(1, Number(Config.Backup_Auto_Horas) || 24) *
+          3600 * 1000;
+        if (
+          Config.Backup_Auto_Ultimo &&
+          Ahora - Config.Backup_Auto_Ultimo < Intervalo
+        ) {
+          return false;
+        }
+        Crear_Backup_Local("Auto");
+        Config.Backup_Auto_Ultimo = Ahora;
+        return true;
+      }
+
+      function Render_Config_Backups() {
+        const Lista = document.getElementById("Cfg_Backup_Lista");
+        if (!Lista) return;
+        Cargar_Backups_Locales();
+        Lista.innerHTML = "";
+        if (!Backups_Locales.length) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Config_Dato_Nota";
+          Vacio.textContent = t("config.backup_vacio");
+          Lista.appendChild(Vacio);
+          return;
+        }
+        Backups_Locales.forEach((Backup) => {
+          const Item = document.createElement("div");
+          Item.className = "Config_Backup_Item";
+
+          const Cab = document.createElement("div");
+          Cab.className = "Config_Backup_Cabecera";
+
+          const Tit = document.createElement("div");
+          Tit.className = "Config_Backup_Titulo";
+          Tit.textContent = Backup.Tipo === "Auto"
+            ? t("config.backup_automatico")
+            : t("config.backup_manual");
+
+          const Meta = document.createElement("div");
+          Meta.className = "Config_Backup_Meta";
+          Meta.textContent = Formatear_Fecha_Backup(
+            Backup.Fecha
+          );
+
+          const Acc = document.createElement("div");
+          Acc.className = "Config_Backup_Acciones";
+
+          const Btn_Rest = document.createElement("button");
+          Btn_Rest.type = "button";
+          Btn_Rest.className = "Config_Dato_Btn";
+          Btn_Rest.textContent = t("config.backup_restaurar");
+          Btn_Rest.addEventListener("click", async () => {
+            await Aplicar_Importacion_Objeto(Backup.Estado);
+          });
+
+          const Btn_Exp = document.createElement("button");
+          Btn_Exp.type = "button";
+          Btn_Exp.className = "Config_Dato_Btn";
+          Btn_Exp.textContent = t("config.backup_exportar");
+          Btn_Exp.addEventListener("click", () => {
+            Descargar_Json_Respaldo(
+              Backup.Estado,
+              "Semaplan_backup"
+            );
+          });
+
+          const Btn_Borrar = document.createElement("button");
+          Btn_Borrar.type = "button";
+          Btn_Borrar.className =
+            "Config_Dato_Btn Config_Dato_Btn_Peligro";
+          Btn_Borrar.textContent = t("config.backup_borrar");
+          Btn_Borrar.addEventListener("click", () => {
+            Backups_Locales = Backups_Locales.filter((Item) => {
+              return Item.Id !== Backup.Id;
+            });
+            Guardar_Backups_Locales();
+            Render_Config_Backups();
+          });
+
+          Cab.appendChild(Tit);
+          Cab.appendChild(Meta);
+          Acc.appendChild(Btn_Rest);
+          Acc.appendChild(Btn_Exp);
+          Acc.appendChild(Btn_Borrar);
+          Item.appendChild(Cab);
+          Item.appendChild(Acc);
+          Lista.appendChild(Item);
+        });
+      }
+
+      function Exportar_Estado_Json() {
+        const Raw = localStorage.getItem(Clave_Local);
+        if (!Raw) {
+          alert(t("dialog.sin_estado_exportar"));
+          return;
+        }
+        try {
+          Descargar_Json_Respaldo(JSON.parse(Raw), "Semaplan");
+        } catch (Err) {
+          alert(t("dialog.error_exportar",
+            { Msg: Err.message }));
+        }
+      }
+
+      async function Importar_Estado_Json(Archivo) {
+        if (!Archivo) return;
         try {
           const Texto = await Archivo.text();
           const Obj = JSON.parse(Texto);
-          // Validación mínima: debe tener Tareas y Eventos.
-          if (
-            !Array.isArray(Obj.Tareas) ||
-            !Array.isArray(Obj.Eventos)
-          ) {
-            alert(t("dialog.archivo_invalido"));
-            return;
-          }
-          // Guardar en localStorage como caché.
-          localStorage.setItem(Clave_Local, Texto);
-          // Si hay sesión activa, subir a Supabase ANTES de
-          // recargar (sino el reload pisa el import con lo
-          // que haya en remoto).
-          if (Supa && Usuario_Actual) {
-            try {
-              const { error } = await Supa
-                .from("estado_usuario")
-                .upsert({
-                  user_id: Usuario_Actual.id,
-                  estado: Obj
-                });
-              if (error) throw error;
-            } catch (E) {
-              alert(
-                "Error subiendo el import a la nube: " +
-                E.message
-              );
-              return;
-            }
-          }
-          location.reload();
+          await Aplicar_Importacion_Objeto(Obj);
         } catch (Err) {
           alert(t("dialog.error_importar",
             { Msg: Err.message }));
@@ -34819,6 +35094,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Baul_Mostrar_Archivadas:
               Config.Baul_Mostrar_Archivadas,
             Plan_Actual: Config.Plan_Actual,
+            Backup_Auto_Activo:
+              Config.Backup_Auto_Activo,
+            Backup_Auto_Horas:
+              Config.Backup_Auto_Horas,
+            Backup_Auto_Ultimo:
+              Config.Backup_Auto_Ultimo,
             Contador_Semanas_Activo:
               Config.Contador_Semanas_Activo,
             Contador_Semanas_Modo:
@@ -34844,7 +35125,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
-      function Guardar_Estado() {
+      function Guardar_Estado(Opciones = {}) {
+        if (
+          !Opciones.Omitir_Backup_Auto &&
+          Intentar_Backup_Automatico()
+        ) {
+          return Guardar_Estado({
+            ...Opciones,
+            Omitir_Backup_Auto: true
+          });
+        }
         // 1) Persistir en localStorage como caché inmediato.
         const Estado = Construir_Estado_Completo();
         localStorage.setItem(Clave_Local, JSON.stringify(Estado));
@@ -34997,6 +35287,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ) {
               Config.Baul_Mostrar_Archivadas =
                 Extra.Baul_Mostrar_Archivadas;
+            }
+            if (typeof Extra.Backup_Auto_Activo === "boolean") {
+              Config.Backup_Auto_Activo =
+                Extra.Backup_Auto_Activo;
+            }
+            if (Extra.Backup_Auto_Horas !== undefined) {
+              Config.Backup_Auto_Horas = Math.max(
+                1,
+                Number(Extra.Backup_Auto_Horas) || 24
+              );
+            }
+            if (Extra.Backup_Auto_Ultimo !== undefined) {
+              Config.Backup_Auto_Ultimo =
+                Number(Extra.Backup_Auto_Ultimo) || 0;
             }
             if (Extra.Plan_Actual !== undefined)
               Config.Plan_Actual =
