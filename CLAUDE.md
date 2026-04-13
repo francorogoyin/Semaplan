@@ -104,7 +104,8 @@ realizadas.
 8. Las próximas tareas a realizar son siempre las notas de ese cajón
    que no tengan la etiqueta `Pospuesto`.
 9. Si una tarea de ese cajón fue realizada por el agente, borrar la
-   nota del Archivero y dejar registro en `Registro_Avance.txt`.
+   nota del Archivero y dejar registro con fecha y hora en
+   `Registro_Avance.txt`.
 
 ### Procedimiento 2: test de funciones
 
