@@ -13242,6 +13242,7 @@
             "Subtarea actualizada",
           "toast.subtareas_trasladadas":
             "Se trasladaron {n} subtareas",
+          "toast.tarea_copiada": "Tarea copiada",
           "toast.tareas_eliminadas":
             "Se eliminaron {n} tareas",
           "toast.tareas_archivadas":
@@ -15205,6 +15206,7 @@
             "Subtask updated",
           "toast.subtareas_trasladadas":
             "{n} subtasks moved",
+          "toast.tarea_copiada": "Task copied",
           "toast.tareas_eliminadas":
             "{n} tasks deleted",
           "toast.tareas_archivadas":
@@ -17263,6 +17265,7 @@
             "Subtarefa atualizada",
           "toast.subtareas_trasladadas":
             "Foram movidas {n} subtarefas",
+          "toast.tarea_copiada": "Tarefa copiada",
           "toast.tareas_eliminadas":
             "Foram excluídas {n} tarefas",
           "toast.tareas_archivadas":
@@ -24643,6 +24646,77 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
+      function Mostrar_Toast_Info(
+        Mensaje,
+        Icono = "📋",
+        Duracion_Ms = 5000
+      ) {
+        const Contenedor = document.getElementById(
+          "Undo_Contenedor"
+        );
+        if (!Contenedor) return;
+        const Inicio_Ms = Date.now();
+
+        const El_Toast = document.createElement("div");
+        El_Toast.className = "Undo_Toast";
+
+        const El_Icono = document.createElement("span");
+        El_Icono.className = "Undo_Toast_Icono";
+        El_Icono.textContent = Icono;
+
+        const El_Texto = document.createElement("span");
+        El_Texto.className = "Undo_Toast_Texto";
+        El_Texto.textContent = Mensaje;
+
+        const El_Seg = document.createElement("span");
+        El_Seg.className = "Undo_Toast_Segundos";
+        El_Seg.textContent = String(
+          Math.ceil(Duracion_Ms / 1000)
+        );
+
+        const El_Barra_Cont = document.createElement("div");
+        El_Barra_Cont.className =
+          "Undo_Toast_Barra_Contenedor";
+        const El_Barra = document.createElement("div");
+        El_Barra.className = "Undo_Toast_Barra";
+        El_Barra_Cont.appendChild(El_Barra);
+
+        El_Toast.appendChild(El_Icono);
+        El_Toast.appendChild(El_Texto);
+        El_Toast.appendChild(El_Seg);
+        El_Toast.appendChild(El_Barra_Cont);
+
+        Contenedor.insertBefore(
+          El_Toast,
+          Contenedor.firstChild
+        );
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            El_Toast.classList.add("Activo");
+            El_Barra.style.transition =
+              `width ${Duracion_Ms}ms linear`;
+            El_Barra.style.width = "0%";
+          });
+        });
+
+        const Intervalo_Id = setInterval(() => {
+          const Restante = Math.max(
+            0,
+            Math.ceil(
+              (Duracion_Ms - (Date.now() - Inicio_Ms)) / 1000
+            )
+          );
+          El_Seg.textContent = Restante.toString();
+        }, 250);
+
+        setTimeout(() => {
+          clearInterval(Intervalo_Id);
+          El_Toast.classList.remove("Activo");
+          setTimeout(() => El_Toast.remove(), 300);
+        }, Duracion_Ms);
+      }
+
       function Eliminar_Toast_Undo(Id) {
         const Entrada = Undo_Activos.get(Id);
         if (!Entrada) return;
@@ -25225,6 +25299,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Normalizar_Estado();
         Render_Emojis();
         Render_Resumen_Tarea();
+        Mostrar_Toast_Info(
+          t("toast.tarea_copiada"),
+          "📄",
+          5000
+        );
         Guardar_Estado();
       }
 
