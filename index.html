@@ -35250,6 +35250,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Marca_Plan.title = t("slot.marca_title");
             Slot.appendChild(Marca_Plan);
           }
+          let Hover_Plan_Slot_Timer_Id = null;
+          if (Conteo_Plan_Slot > 0) {
+            Slot.addEventListener("mouseenter", () => {
+              if (Hover_Plan_Slot_Timer_Id) {
+                clearTimeout(Hover_Plan_Slot_Timer_Id);
+              }
+              Hover_Plan_Slot_Timer_Id = setTimeout(() => {
+                Mostrar_Popup_Plan_Slot(
+                  Fecha_ISO,
+                  Hora,
+                  Slot
+                );
+              }, 2000);
+            });
+            Slot.addEventListener("mouseleave", () => {
+              if (Hover_Plan_Slot_Timer_Id) {
+                clearTimeout(Hover_Plan_Slot_Timer_Id);
+                Hover_Plan_Slot_Timer_Id = null;
+              }
+              Cerrar_Popup_Abordaje();
+            });
+            Slot.addEventListener("mousedown", () => {
+              if (Hover_Plan_Slot_Timer_Id) {
+                clearTimeout(Hover_Plan_Slot_Timer_Id);
+                Hover_Plan_Slot_Timer_Id = null;
+              }
+              Cerrar_Popup_Abordaje();
+            });
+          }
           if (Es_Slot_Pasado(Fecha_ISO, Hora)) Slot.classList.add("Slot_Pasado");
           Slot.addEventListener("dragover", (Evento) => Evento.preventDefault());
           Slot.addEventListener("drop", Manejar_Drop);
@@ -35577,13 +35606,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
-      function Mostrar_Popup_Abordaje(Evento, Cerca_De) {
-        // Muestra un tooltip al lado del bloque con el abordaje
-        // de ese evento. Si no hay abordaje cargado, no aparece
-        // (para no mostrar un cartelito vacío).
+      function Mostrar_Popup_Items_Slot(
+        Cerca_De,
+        Titulo_Texto,
+        Items
+      ) {
         Cerrar_Popup_Abordaje();
-        const Items = Array.isArray(Evento.Abordaje)
-          ? Evento.Abordaje : [];
         if (Items.length === 0) return;
 
         const Pop = document.createElement("div");
@@ -35591,7 +35619,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Tit = document.createElement("div");
         Tit.className = "Evento_Abordaje_Popup_Titulo";
-        Tit.textContent = t("abordaje.titulo");
+        Tit.textContent = Titulo_Texto;
         Pop.appendChild(Tit);
 
         const Lista = document.createElement("div");
@@ -35599,8 +35627,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Items.forEach((Item) => {
           const Fila = document.createElement("div");
           Fila.className = "Evento_Abordaje_Popup_Item";
-          const Estado_Sym = Item.Estado === "Completado"
-            ? "✓" : "•";
+          const Estado = Item.Estado || "Abordado";
+          const Estado_Sym = Estado === "Completado" ||
+              Estado === "Realizado"
+            ? "✓"
+            : Estado === "Planeado"
+              ? "★"
+              : Estado === "Anulado"
+                ? "!"
+                : "•";
           Fila.dataset.estado = Item.Estado || "Abordado";
           const Sym = document.createElement("span");
           Sym.className = "Evento_Abordaje_Popup_Sym";
@@ -35634,6 +35669,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Pop.style.left = `${Left}px`;
         Pop.style.top = `${Top}px`;
+      }
+
+      function Mostrar_Popup_Abordaje(Evento, Cerca_De) {
+        // Muestra un tooltip al lado del bloque con el abordaje
+        // de ese evento. Si no hay abordaje cargado, no aparece
+        // (para no mostrar un cartelito vacío).
+        const Items = Array.isArray(Evento.Abordaje)
+          ? Evento.Abordaje : [];
+        Mostrar_Popup_Items_Slot(
+          Cerca_De,
+          t("abordaje.titulo"),
+          Items
+        );
+      }
+
+      function Mostrar_Popup_Plan_Slot(
+        Fecha,
+        Hora,
+        Cerca_De
+      ) {
+        const Items = Obtener_Plan_Slot(Fecha, Hora, false)
+          ?.Items || [];
+        Mostrar_Popup_Items_Slot(
+          Cerca_De,
+          t("focus.slot_plan"),
+          Items
+        );
       }
 
       function Mostrar_Popup_Nota(Evento, Cerca_De) {
