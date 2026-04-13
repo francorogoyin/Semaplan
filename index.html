@@ -13396,6 +13396,8 @@
             "Molde eliminado del baúl",
           "toast.baul_moldes_eliminados":
             "Se eliminaron {n} moldes del baúl",
+          "toast.baul_moldes_movidos_categoria":
+            "Se movieron {n} moldes a {categoria}",
           "toast.dia_pegado": "Día pegado",
           "toast.meta_actualizada": "Meta actualizada",
           "toast.meta_archivada": "Meta archivada",
@@ -13438,6 +13440,8 @@
           "baul.msg_archivada": "Tarea archivada en el baúl.",
           "baul.msg_desarchivada":
             "Tarea desarchivada del baúl.",
+          "baul.mover_categoria_destino":
+            "¿A qué categoría querés mover estos moldes?",
           "baul.sin_nombre": "Sin nombre",
           "baul.guardar_cambios": "Guardar cambios",
           "baul.limpiar": "Limpiar",
@@ -15396,6 +15400,8 @@
             "Vault template deleted",
           "toast.baul_moldes_eliminados":
             "{n} templates deleted from the vault",
+          "toast.baul_moldes_movidos_categoria":
+            "{n} templates moved to {categoria}",
           "toast.dia_pegado": "Day pasted",
           "toast.meta_actualizada": "Goal updated",
           "toast.meta_archivada": "Goal archived",
@@ -15439,6 +15445,8 @@
             "Task archived in the vault.",
           "baul.msg_desarchivada":
             "Task unarchived from the vault.",
+          "baul.mover_categoria_destino":
+            "Which category should these templates move to?",
           "baul.sin_nombre": "Untitled",
           "baul.guardar_cambios": "Save changes",
           "baul.limpiar": "Clear",
@@ -17491,6 +17499,8 @@
             "Modelo removido do baú",
           "toast.baul_moldes_eliminados":
             "Foram removidos {n} modelos do baú",
+          "toast.baul_moldes_movidos_categoria":
+            "Foram movidos {n} modelos para {categoria}",
           "toast.dia_pegado": "Dia colado",
           "toast.meta_actualizada": "Meta atualizada",
           "toast.meta_archivada": "Meta arquivada",
@@ -17533,6 +17543,8 @@
           "baul.msg_archivada": "Tarefa arquivada no baú.",
           "baul.msg_desarchivada":
             "Tarefa desarquivada do baú.",
+          "baul.mover_categoria_destino":
+            "Para qual categoria você quer mover estes modelos?",
           "baul.sin_nombre": "Sem nome",
           "baul.guardar_cambios": "Salvar alterações",
           "baul.limpiar": "Limpar",
@@ -22549,6 +22561,68 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
         Mostrar_Toast_Undo(
           t("toast.baul_moldes_eliminados", { n: Ids.length }),
+          Snap
+        );
+      }
+
+      async function Solicitar_Categoria_Destino_Baul_Multi() {
+        const Opciones = Categorias.map((Categoria, Indice) => ({
+          Etiqueta:
+            `${Categoria.Emoji || "🏷️"} ${Categoria.Nombre}`,
+          Valor: Categoria.Id,
+          Tipo: Indice === 0 ? "Primario" : "Secundario"
+        }));
+        Opciones.push({
+          Etiqueta: t("plan.sin_categoria"),
+          Valor: "__sin_categoria__",
+          Tipo: Opciones.length === 0
+            ? "Primario"
+            : "Secundario"
+        });
+        Opciones.push({
+          Etiqueta: t("cancelar"),
+          Valor: null,
+          Tipo: "Cancelar"
+        });
+        return await Mostrar_Dialogo(
+          t("baul.mover_categoria_destino"),
+          Opciones
+        );
+      }
+
+      async function Mover_Tareas_Baul_Seleccionadas_A_Categoria() {
+        const Ids = Array.from(Baul_Multi_Seleccion);
+        if (!Ids.length) return;
+        const Categoria_Destino = await Solicitar_Categoria_Destino_Baul_Multi();
+        if (Categoria_Destino === null) return;
+        const Categoria_Id = Categoria_Destino === "__sin_categoria__"
+          ? null
+          : Categoria_Destino;
+        const Snap = Capturar_Snapshot_Undo();
+        let Movidas = 0;
+        Baul_Tareas.forEach((Tarea) => {
+          if (!Baul_Multi_Seleccion.has(Tarea.Id)) return;
+          if ((Tarea.Categoria_Id || null) === Categoria_Id) return;
+          Tarea.Categoria_Id = Categoria_Id;
+          Tarea.Metadatos = Normalizar_Metadatos_Baul(
+            Tarea.Metadatos,
+            Categoria_Id
+          );
+          Movidas += 1;
+        });
+        if (Movidas === 0) return;
+        const Categoria = Obtener_Nombre_Categoria(Categoria_Id);
+        const Nombre_Categoria = Categoria
+          ? `${Categoria.Emoji} ${Categoria.Nombre}`
+          : t("plan.sin_categoria");
+        Baul_Multi_Seleccion.clear();
+        Render_Baul();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("toast.baul_moldes_movidos_categoria", {
+            n: Movidas,
+            categoria: Nombre_Categoria
+          }),
           Snap
         );
       }
@@ -34179,6 +34253,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               false,
               () => {
                 Importar_Tareas_Baul_Seleccionadas_Al_Archivero();
+              }
+            )
+          );
+          Acc.appendChild(
+            Crear_Btn_Multi(
+              `↪️ ${t("dialog.mover")}`,
+              false,
+              () => {
+                Mover_Tareas_Baul_Seleccionadas_A_Categoria();
               }
             )
           );
