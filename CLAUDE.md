@@ -94,6 +94,14 @@ corresponde según el pedido del usuario.
    registrar la regla y no el relato detallado de cómo se llegó a ella.
    Priorizar instrucciones reutilizables y evitar historial de prueba y
    error que no aporte decisión operativa.
+10. Si Playwright no puede abrir el perfil de navegador en uso para
+    leer o editar `Semaplan.com`, usar una copia temporal del perfil y
+    no trabajar sobre el perfil real bloqueado.
+11. Si se usa una sesión clonada para consultar la fuente viva de
+    `Semaplan.com`, limpiar antes `Semaplan_Estado_V2` y
+    `Time_Blocking_Estado_V2` en esa sesión temporal para forzar carga
+    desde Supabase y evitar que `localStorage` viejo falsee el estado
+    remoto.
 
 ### Procedimiento 1: próximas tareas
 
