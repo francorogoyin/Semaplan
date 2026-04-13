@@ -6174,6 +6174,16 @@
         border-color: var(--Acento);
       }
 
+      .Archivero_Sub_Campo_Inline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .Archivero_Sub_Campo_Inline select {
+        flex: 1;
+      }
+
       .Archivero_Sub_Acciones {
         display: flex;
         justify-content: flex-end;
@@ -10429,8 +10439,16 @@
               data-i18n="archivero.cajon">
               Cajón
             </label>
-            <select
-              id="Archivero_Nota_Cajon_Select"></select>
+            <div class="Archivero_Sub_Campo_Inline">
+              <select
+                id="Archivero_Nota_Cajon_Select"></select>
+              <button type="button"
+                class="Archivero_Sub_Btn"
+                id="Archivero_Nota_Nuevo_Cajon"
+                data-i18n="archivero.nuevo_cajon">
+                Nuevo cajón
+              </button>
+            </div>
           </div>
           <div class="Archivero_Sub_Acciones">
             <button type="button"
@@ -20596,6 +20614,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       // --- Submodal: nota ---
 
+      function Poblar_Select_Cajones_Archivero(
+        Select,
+        Cajon_Id_Seleccionado = ""
+      ) {
+        if (!Select) return;
+        const Valor_Deseado =
+          Cajon_Id_Seleccionado ||
+          Select.value ||
+          Archivero_Seleccion_Id ||
+          Archiveros[0]?.Id ||
+          "";
+        Select.innerHTML = "";
+        Archiveros.forEach((Cajon) => {
+          const Op = document.createElement("option");
+          Op.value = Cajon.Id;
+          Op.textContent =
+            (Cajon.Emoji || "🗃️") + "  " + Cajon.Nombre;
+          Select.appendChild(Op);
+        });
+        Select.value = Valor_Deseado;
+      }
+
       function Abrir_Modal_Nota_Archivero(Nota_Id) {
         // Si Nota_Id está, edita esa nota. Si no, crea
         // una nueva en el cajón actualmente seleccionado.
@@ -20627,15 +20667,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Archivero_Nota_Cajon_Select"
         );
         if (!Texto || !Origen || !Select) return;
-        Select.innerHTML = "";
-        Archiveros.forEach((Cajon) => {
-          const Op = document.createElement("option");
-          Op.value = Cajon.Id;
-          Op.textContent =
-            (Cajon.Emoji || "🗃️") + "  " + Cajon.Nombre;
-          Select.appendChild(Op);
-        });
         if (Nota) {
+          Poblar_Select_Cajones_Archivero(
+            Select,
+            Nota.Archivero_Id || ""
+          );
           Texto.value = Nota.Texto || "";
           Origen.value = Nota.Origen || "";
           if (Etiq) {
@@ -20643,15 +20679,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ? Nota.Etiquetas.join(", ")
               : "";
           }
-          Select.value = Nota.Archivero_Id;
         } else {
+          Poblar_Select_Cajones_Archivero(Select);
           Texto.value = "";
           Origen.value = "";
           if (Etiq) Etiq.value = "";
-          Select.value =
-            Archivero_Seleccion_Id ||
-            Archiveros[0]?.Id ||
-            "";
         }
         document.getElementById(
           "Archivero_Nota_Overlay"
@@ -20846,6 +20878,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Archivero_Seleccion_Id = Nuevo.Id;
         }
         Guardar_Estado();
+        if (
+          document.getElementById("Archivero_Nota_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          const Select_Nota = document.getElementById(
+            "Archivero_Nota_Cajon_Select"
+          );
+          Poblar_Select_Cajones_Archivero(
+            Select_Nota,
+            Archivero_Seleccion_Id
+          );
+        }
         Cerrar_Modal_Cajon_Archivero();
         Render_Archivero();
       }
@@ -35727,6 +35771,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener(
           "click", Guardar_Nota_Archivero_Desde_Modal
         );
+      document.getElementById("Archivero_Nota_Nuevo_Cajon")
+        ?.addEventListener("click", () => {
+          Abrir_Modal_Cajon_Archivero(null);
+        });
       // Ctrl+Enter dentro del textarea (o cualquier
       // input del submodal de nota) guarda directo. Es
       // el segundo atajo del flujo: A → escribir →
