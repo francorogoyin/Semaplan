@@ -6557,6 +6557,12 @@
         margin-bottom: 16px;
       }
 
+      .Dialogo_Turnstile {
+        margin-top: 12px;
+        display: flex;
+        justify-content: center;
+      }
+
       .Dialogo_Input {
         padding: 8px 12px;
         border: 1px solid var(--Borde);
@@ -17760,6 +17766,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // --- Estado del sistema de diálogos ---
       let Dialogo_Resolver_Fn = null;
       let Dialogo_Abierto = false;
+      let Dialogo_Turnstile_Widget_Id = null;
+
+      function Limpiar_Turnstile_Dialogo() {
+        const Cont = document.getElementById(
+          "Dialogo_Turnstile_Cont"
+        );
+        try {
+          if (
+            Dialogo_Turnstile_Widget_Id !== null &&
+            window.turnstile &&
+            typeof window.turnstile.remove === "function"
+          ) {
+            window.turnstile.remove(
+              Dialogo_Turnstile_Widget_Id
+            );
+          }
+        } catch (_) {}
+        Dialogo_Turnstile_Widget_Id = null;
+        if (Cont) {
+          Cont.remove();
+        }
+      }
 
       // --- Sistema de diálogos elegantes (reemplaza confirm/prompt) ---
 
@@ -17822,6 +17850,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               .classList.remove("Activo");
             document.getElementById("Dialogo_Input_Contenedor")
               .style.display = "none";
+            Limpiar_Turnstile_Dialogo();
             El_Campo.removeEventListener(
               "keydown", On_Enter_Input
             );
@@ -17885,6 +17914,150 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Botones.appendChild(Btn_Cancelar);
           document.getElementById("Dialogo_Overlay")
             .classList.add("Activo");
+          setTimeout(() => El_Campo.focus(), 0);
+        });
+      }
+
+      function Mostrar_Dialogo_Con_Password_Y_Captcha(
+        Mensaje,
+        Opciones = {}
+      ) {
+        if (Dialogo_Abierto) return Promise.resolve(null);
+        Dialogo_Abierto = true;
+        return new Promise((Resolver) => {
+          let Captcha_Token = "";
+          const Cerrar_Con = (Valor) => {
+            document.getElementById("Dialogo_Overlay")
+              .classList.remove("Activo");
+            document.getElementById("Dialogo_Input_Contenedor")
+              .style.display = "none";
+            Limpiar_Turnstile_Dialogo();
+            El_Campo.removeEventListener(
+              "keydown", On_Enter_Input
+            );
+            El_Campo.removeEventListener(
+              "input", Actualizar_Boton
+            );
+            El_Campo.type = "text";
+            Dialogo_Abierto = false;
+            Dialogo_Resolver_Fn = null;
+            Resolver(Valor);
+          };
+          Dialogo_Resolver_Fn = () => Cerrar_Con(null);
+
+          document.getElementById("Dialogo_Mensaje")
+            .textContent = Mensaje;
+          const El_Campo = document.getElementById(
+            "Dialogo_Input_Campo"
+          );
+          El_Campo.type = "password";
+          El_Campo.value = "";
+          El_Campo.placeholder =
+            Opciones.Placeholder || "";
+
+          const El_Cont = document.getElementById(
+            "Dialogo_Input_Contenedor"
+          );
+          El_Cont.style.display = "block";
+          Limpiar_Turnstile_Dialogo();
+
+          const El_Turnstile = document.createElement("div");
+          El_Turnstile.id = "Dialogo_Turnstile_Cont";
+          El_Turnstile.className = "Dialogo_Turnstile";
+          El_Cont.appendChild(El_Turnstile);
+
+          const El_Botones = document.getElementById(
+            "Dialogo_Botones"
+          );
+          El_Botones.innerHTML = "";
+
+          const Btn_OK = document.createElement("button");
+          Btn_OK.textContent =
+            Opciones.Etiqueta_Confirmar || "Confirmar";
+          Btn_OK.className =
+            "Dialogo_Boton Dialogo_Boton_Primario";
+          Btn_OK.disabled = true;
+          Btn_OK.style.opacity = "0.65";
+          Btn_OK.style.cursor = "not-allowed";
+
+          const Actualizar_Boton = () => {
+            const Habilitado =
+              !!Captcha_Token &&
+              !!El_Campo.value.trim();
+            Btn_OK.disabled = !Habilitado;
+            Btn_OK.style.opacity = Habilitado
+              ? "1"
+              : "0.65";
+            Btn_OK.style.cursor = Habilitado
+              ? "pointer"
+              : "not-allowed";
+          };
+
+          const Confirmar = () => {
+            if (Btn_OK.disabled) return;
+            Cerrar_Con({
+              Password: El_Campo.value,
+              Captcha_Token
+            });
+          };
+          Btn_OK.addEventListener(
+            "click", Confirmar, { once: true }
+          );
+
+          const Btn_Cancelar = document.createElement("button");
+          Btn_Cancelar.textContent =
+            Opciones.Etiqueta_Cancelar || "Cancelar";
+          Btn_Cancelar.className =
+            "Dialogo_Boton Dialogo_Boton_Cancelar";
+          Btn_Cancelar.addEventListener(
+            "click", () => Cerrar_Con(null), { once: true }
+          );
+
+          const On_Enter_Input = (Ev) => {
+            if (Ev.key === "Enter" && !Btn_OK.disabled) {
+              Ev.preventDefault();
+              Confirmar();
+            }
+          };
+          El_Campo.addEventListener(
+            "keydown", On_Enter_Input
+          );
+          El_Campo.addEventListener(
+            "input", Actualizar_Boton
+          );
+
+          El_Botones.appendChild(Btn_OK);
+          El_Botones.appendChild(Btn_Cancelar);
+          document.getElementById("Dialogo_Overlay")
+            .classList.add("Activo");
+
+          if (
+            window.turnstile &&
+            typeof window.turnstile.render === "function"
+          ) {
+            Dialogo_Turnstile_Widget_Id =
+              window.turnstile.render(
+                El_Turnstile,
+                {
+                  sitekey: "0x4AAAAAAC8T05jdmepDyUTR",
+                  theme: "light",
+                  language: Idioma_Actual,
+                  callback: (Token) => {
+                    Captcha_Token = Token || "";
+                    Actualizar_Boton();
+                  },
+                  "expired-callback": () => {
+                    Captcha_Token = "";
+                    Actualizar_Boton();
+                  },
+                  "error-callback": () => {
+                    Captcha_Token = "";
+                    Actualizar_Boton();
+                  }
+                }
+              );
+          }
+
           setTimeout(() => El_Campo.focus(), 0);
         });
       }
@@ -41153,6 +41326,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (M.includes("invalid email")) {
           return t("auth.err_email_invalido");
         }
+        if (M.includes("captcha")) {
+          return t("auth.captcha");
+        }
         return t(
           "auth.err_generico", { Msg }
         );
@@ -41160,7 +41336,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Verificar_Password_Actual(
         Email,
-        Password
+        Password,
+        Captcha_Token = ""
       ) {
         if (!window.supabase?.createClient) {
           return {
@@ -41184,7 +41361,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const { error } =
             await Supa_Verif.auth.signInWithPassword({
               email: Email,
-              password: Password
+              password: Password,
+              options: Captcha_Token
+                ? { captchaToken: Captcha_Token }
+                : undefined
             });
           if (error) {
             return {
@@ -41414,12 +41594,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Confirmar) return;
 
-        const Pass = await Mostrar_Dialogo_Con_Texto(
+        const Credenciales =
+          await Mostrar_Dialogo_Con_Password_Y_Captcha(
           t(
             "dialog.cancelar_suscripcion_password"
           ),
           {
-            Tipo: "password",
             Placeholder: t(
               "dialog.cancelar_suscripcion_password_ph"
             ),
@@ -41429,13 +41609,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Etiqueta_Cancelar: t("cancelar")
           }
         );
-        if (!Pass) return;
+        if (!Credenciales?.Password) return;
 
         const Email = Usuario_Actual.email || "";
         const Verif =
           await Verificar_Password_Actual(
             Email,
-            Pass
+            Credenciales.Password,
+            Credenciales.Captcha_Token || ""
           );
         if (!Verif.Ok) {
           await Mostrar_Dialogo(
@@ -41522,22 +41703,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Email) return;
 
         // Paso 1: pedir contraseña.
-        const Pass = await Mostrar_Dialogo_Con_Texto(
+        const Credenciales =
+          await Mostrar_Dialogo_Con_Password_Y_Captcha(
           "Para eliminar tu cuenta, ingresá tu contraseña " +
             "actual. Esta acción es definitiva.",
           {
-            Tipo: "password",
             Placeholder: "Tu contraseña",
             Etiqueta_Confirmar: "Continuar",
             Etiqueta_Cancelar: "Cancelar"
           }
         );
-        if (!Pass) return;
+        if (!Credenciales?.Password) return;
 
         const Verif =
           await Verificar_Password_Actual(
             Email,
-            Pass
+            Credenciales.Password,
+            Credenciales.Captcha_Token || ""
           );
         if (!Verif.Ok) {
           await Mostrar_Dialogo(
