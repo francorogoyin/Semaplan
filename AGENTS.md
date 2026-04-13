@@ -130,7 +130,7 @@ realizadas.
 10. Si una tarea de ese cajón fue realizada por el agente, borrar la
    nota del Archivero y dejar registro con fecha y hora en
    `Registro_Avance.txt`, basándose en la plantilla de ese archivo. Ese
-   registro se agrega siempre al final, una vez terminada la tarea.
+   registro se agrega siempre al comienzo, una vez terminada la tarea.
 11. Verificar que los registros estén ordenados por fecha y hora,
    colocándose los nuevos primero. Si no están ordenados, ordenarlos.
 
