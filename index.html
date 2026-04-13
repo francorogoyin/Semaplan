@@ -36009,10 +36009,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Bloque.appendChild(Handle);
 
           Bloque.addEventListener("dragstart", (E) => {
+            Activar_AutoScroll_Calendario_Drag();
             E.dataTransfer.setData("text/plain", JSON.stringify({
               Tipo: "Evento",
               Evento_Id: Evento.Id
             }));
+          });
+          Bloque.addEventListener("dragend", () => {
+            Detener_AutoScroll_Calendario_Drag();
           });
 
           Bloque.addEventListener("contextmenu", (E) => {
@@ -36169,6 +36173,106 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       // --- Notas en eventos ---
+
+      let Calendario_Drag_AutoScroll_Timer = null;
+      let Calendario_Drag_AutoScroll_Paso = 0;
+
+      function Detener_AutoScroll_Calendario_Drag() {
+        document.removeEventListener(
+          "dragover",
+          Manejar_AutoScroll_Calendario_Drag
+        );
+        document.removeEventListener(
+          "drop",
+          Detener_AutoScroll_Calendario_Drag
+        );
+        document.removeEventListener(
+          "dragend",
+          Detener_AutoScroll_Calendario_Drag
+        );
+        if (Calendario_Drag_AutoScroll_Timer) {
+          clearInterval(Calendario_Drag_AutoScroll_Timer);
+          Calendario_Drag_AutoScroll_Timer = null;
+        }
+        Calendario_Drag_AutoScroll_Paso = 0;
+      }
+
+      function Aplicar_AutoScroll_Calendario_Drag(
+        Paso
+      ) {
+        const Viewport = document.querySelector(
+          ".Calendario_Viewport"
+        );
+        if (!Viewport) return;
+        const Paso_Nuevo = Math.max(
+          -24,
+          Math.min(24, Math.trunc(Paso))
+        );
+        if (Paso_Nuevo === 0) {
+          Detener_AutoScroll_Calendario_Drag();
+          return;
+        }
+        Calendario_Drag_AutoScroll_Paso = Paso_Nuevo;
+        if (Calendario_Drag_AutoScroll_Timer) return;
+        Calendario_Drag_AutoScroll_Timer = setInterval(() => {
+          const El_Viewport = document.querySelector(
+            ".Calendario_Viewport"
+          );
+          if (!El_Viewport) {
+            Detener_AutoScroll_Calendario_Drag();
+            return;
+          }
+          El_Viewport.scrollTop +=
+            Calendario_Drag_AutoScroll_Paso;
+        }, 16);
+      }
+
+      function Actualizar_AutoScroll_Calendario_Drag(
+        Client_Y
+      ) {
+        const Viewport = document.querySelector(
+          ".Calendario_Viewport"
+        );
+        if (!Viewport) return;
+        const Rect = Viewport.getBoundingClientRect();
+        const Margen = Math.min(72, Rect.height * 0.18);
+        const Arriba = Rect.top + Margen;
+        const Abajo = Rect.bottom - Margen;
+        if (Client_Y < Arriba) {
+          Aplicar_AutoScroll_Calendario_Drag(
+            -6 - (Arriba - Client_Y) / 4
+          );
+          return;
+        }
+        if (Client_Y > Abajo) {
+          Aplicar_AutoScroll_Calendario_Drag(
+            6 + (Client_Y - Abajo) / 4
+          );
+          return;
+        }
+        Detener_AutoScroll_Calendario_Drag();
+      }
+
+      function Manejar_AutoScroll_Calendario_Drag(Ev) {
+        Actualizar_AutoScroll_Calendario_Drag(
+          Ev.clientY || 0
+        );
+      }
+
+      function Activar_AutoScroll_Calendario_Drag() {
+        document.addEventListener(
+          "dragover",
+          Manejar_AutoScroll_Calendario_Drag
+        );
+        document.addEventListener(
+          "drop",
+          Detener_AutoScroll_Calendario_Drag
+        );
+        document.addEventListener(
+          "dragend",
+          Detener_AutoScroll_Calendario_Drag
+        );
+      }
 
       let El_Popup_Nota_Activo = null;
       let El_Popup_Nota_Trigger_Activo = null;
@@ -36539,6 +36643,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Manejar_Drop(Evento) {
         Evento.preventDefault();
         Evento.stopPropagation();
+        Detener_AutoScroll_Calendario_Drag();
         const Payload = JSON.parse(Evento.dataTransfer.getData("text/plain"));
         const Slot = Evento.currentTarget;
         const Fecha = Slot.dataset.fecha;
@@ -36616,6 +36721,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Manejar_Drop_Cuerpo(Evento) {
         Evento.preventDefault();
+        Detener_AutoScroll_Calendario_Drag();
         const Payload = JSON.parse(Evento.dataTransfer.getData("text/plain"));
         const Cuerpo = Evento.currentTarget;
         const Columna = Cuerpo.closest(".Dia_Columna");
