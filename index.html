@@ -9373,6 +9373,19 @@
               </div>
 
               <div class="Cfg_Cuenta_Campo">
+                <span class="Cfg_Cuenta_Etiqueta"
+                  data-i18n="config.version_programa"
+                  >Versión</span>
+                <select class="Config_Select"
+                  id="Cfg_Version_Programa">
+                  <option value="Demo"
+                    data-i18n="config.version_demo">
+                    Demo
+                  </option>
+                </select>
+              </div>
+
+              <div class="Cfg_Cuenta_Campo">
                 <div class="Cfg_Cuenta_Valor_Fila
                   Cfg_Cuenta_Valor_Fila_Inline">
                   <span class="Cfg_Cuenta_Etiqueta"
@@ -11761,6 +11774,8 @@
           "config.email": "Email",
           "config.cambiar": "Cambiar",
           "config.plan_actual": "Plan actual",
+          "config.version_programa": "Versión",
+          "config.version_demo": "Demo",
           "config.free_plan": "🌱 Free",
           "config.premium_plan":
             "⭐ Premium",
@@ -13768,6 +13783,8 @@
           "config.cambiar": "Change",
           "config.plan_actual":
             "Current plan",
+          "config.version_programa": "Version",
+          "config.version_demo": "Demo",
           "config.free_plan": "🌱 Free",
           "config.premium_plan":
             "⭐ Premium",
@@ -15770,6 +15787,8 @@
           "config.cambiar": "Alterar",
           "config.plan_actual":
             "Plano atual",
+          "config.version_programa": "Versão",
+          "config.version_demo": "Demo",
           "config.free_plan": "🌱 Free",
           "config.premium_plan":
             "⭐ Premium",
@@ -17678,6 +17697,7 @@
           Ayuda_Boton: true,
           Logout_Boton: true
         },
+        Version_Programa: "Demo",
         Baul_Tareas_Por_Fila: 5,
         Baul_Sombra_Estado: true,
         Baul_Vista_Modo: "Biblioteca",
@@ -26445,6 +26465,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Config.Menu_Estilo === "Hamburguesa"
               ? "Hamburguesa" : "Iconos";
         }
+        const Cfg_Version_Programa_El =
+          document.getElementById("Cfg_Version_Programa");
+        if (Cfg_Version_Programa_El) {
+          Cfg_Version_Programa_El.value =
+            Config.Version_Programa || "Demo";
+        }
         Render_Cfg_Menu_Botones_Lista();
         // El plan ahora se muestra como texto en la sección
         // Cuenta, no como dropdown editable. Se actualiza vía
@@ -30233,6 +30259,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Menu_Estilo_Sel === "Hamburguesa") {
           Config.Menu_Estilo = Menu_Estilo_Sel;
         }
+        Config.Version_Programa =
+          document.getElementById("Cfg_Version_Programa")
+            ?.value || "Demo";
         // Los checkboxes de visibilidad ya escriben directo a
         // Config.Menu_Botones_Visibles en su listener change,
         // así que no hace falta releerlos acá.
@@ -33364,6 +33393,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Menu_Estilo: Config.Menu_Estilo,
             Menu_Botones_Visibles:
               Config.Menu_Botones_Visibles,
+            Version_Programa:
+              Config.Version_Programa,
             Baul_Tareas_Por_Fila:
               Config.Baul_Tareas_Por_Fila,
             Baul_Sombra_Estado:
@@ -33507,6 +33538,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Extra.Menu_Estilo === "Hamburguesa"
             ) {
               Config.Menu_Estilo = Extra.Menu_Estilo;
+            }
+            if (Extra.Version_Programa !== undefined) {
+              Config.Version_Programa =
+                String(Extra.Version_Programa || "Demo");
             }
             if (
               Extra.Menu_Botones_Visibles &&
