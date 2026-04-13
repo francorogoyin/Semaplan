@@ -30018,6 +30018,51 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
+      function Repetir_Slot_Muerto_Semana(Fecha, Hora) {
+        const Clave_Origen = Clave_Slot(Fecha, Hora);
+        const Tipo_Origen =
+          Slots_Muertos_Tipos[Clave_Origen] ||
+          Obtener_Aplica_A_Slot(Fecha, Hora);
+        const Nombre_Origen =
+          Slots_Muertos_Nombres[Clave_Origen] || "";
+        const Plan_Origen = Obtener_Plan_Slot(
+          Fecha, Hora, false
+        );
+        Obtener_Dias_Visibles_Efectivos().forEach((Dia_Index) => {
+          const Fecha_Destino = Formatear_Fecha_ISO(
+            Obtener_Fecha_Semana(Dia_Index)
+          );
+          if (Fecha_Destino === Fecha) return;
+          const Clave_Destino = Clave_Slot(
+            Fecha_Destino, Hora
+          );
+          if (!Slots_Muertos.includes(Clave_Destino)) {
+            Slots_Muertos.push(Clave_Destino);
+          }
+          if (Tipo_Origen) {
+            Slots_Muertos_Tipos[Clave_Destino] =
+              Tipo_Origen;
+          }
+          if (Nombre_Origen) {
+            Slots_Muertos_Nombres[Clave_Destino] =
+              Nombre_Origen;
+          } else {
+            delete Slots_Muertos_Nombres[Clave_Destino];
+          }
+          if (Array.isArray(Plan_Origen?.Items) &&
+              Plan_Origen.Items.length > 0) {
+            Planes_Slot[Clave_Destino] = {
+              Items: Plan_Origen.Items.map((Item) => ({
+                ...Item,
+                Id: Crear_Id_Plan_Slot_Item()
+              }))
+            };
+          }
+        });
+        Render_Calendario();
+        Guardar_Estado();
+      }
+
       function Mostrar_Menu_Slot(Fecha, Hora, X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         const Tiene_Plan = Contar_Items_Plan_Slot(Fecha, Hora) > 0;
@@ -30033,6 +30078,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Html +=
             `<button class="Dia_Accion_Item" type="button" data-acc="guardar-patron-slot">` +
             t("slot.guardar_como_patron") +
+            `</button>` +
+            `<button class="Dia_Accion_Item" type="button" data-acc="repetir-slot">` +
+            t("contexto.repetir_semana") +
             `</button>` +
             `<button class="Dia_Accion_Item" type="button" data-acc="borrar-plan-slot">` +
             t("slot.borrar_plan") +
@@ -30074,6 +30122,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Guardar_Plan_Slot_Como_Patron(Fecha, Hora);
+          });
+        Menu.querySelector(`[data-acc="repetir-slot"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Repetir_Slot_Muerto_Semana(Fecha, Hora);
           });
         Menu.querySelector(`[data-acc="borrar-plan-slot"]`)
           ?.addEventListener("click", async (Ev) => {
