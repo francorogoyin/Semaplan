@@ -24636,6 +24636,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Opciones = await Solicitar_Opciones_Copia();
         if (!Opciones) return;
         const { Con_Subtareas, Destino } = Opciones;
+        const Clave_Origen_Subtareas = Clave_Semana_Actual();
 
         let Semana_Base_Copia = null;
         let Es_Fija_Copia = false;
@@ -24682,29 +24683,57 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Restante: Tarea.Horas_Semanales,
           Es_Bolsa: Tarea.Es_Bolsa,
           Es_Fija: Es_Fija_Copia,
+          Categoria_Id: Tarea.Categoria_Id || null,
+          Etiquetas_Ids: Normalizar_Etiquetas_Ids(
+            Tarea.Etiquetas_Ids
+          ),
           Semana_Base: Es_Fija_Copia ? null : Semana_Base_Copia,
           Semana_Inicio: Es_Fija_Copia ? Semana_Inicio_Copia : null,
           Semana_Fin: null
         };
 
-        Tareas.push(Copia);
-
-        // Copiar plantillas de subtareas si corresponde.
         if (Con_Subtareas) {
-          const Clave_Tarea_Original = Obtener_Clave_Plantilla_Tarea(Tarea);
-          const Clave_Tarea_Copia = Obtener_Clave_Plantilla_Tarea(Copia);
-          Plantillas_Subtareas
-            .filter((Plantilla) =>
-              Plantilla?.Clave_Tarea === Clave_Tarea_Original
-            )
-            .forEach((Plantilla) => {
-              Plantillas_Subtareas.push({
-                ...Plantilla,
+          const Clave_Destino_Subtareas = Es_Fija_Copia
+            ? (Semana_Inicio_Copia || Clave_Origen_Subtareas)
+            : (Semana_Base_Copia || Clave_Origen_Subtareas);
+          const Subtareas_Origen = Obtener_Subtareas_Semana(
+            Tarea,
+            true,
+            Clave_Origen_Subtareas
+          );
+          if (Subtareas_Origen.length > 0) {
+            Copia.Subtareas_Semanales[Clave_Destino_Subtareas] =
+              Subtareas_Origen.map((Subtarea) => ({
                 Id: Crear_Id_Subtarea(),
-                Clave_Tarea: Clave_Tarea_Copia
-              });
-            });
+                Plantilla_Id: Subtarea?.Plantilla_Id || null,
+                Origen_Plantilla_Id:
+                  Subtarea?.Origen_Plantilla_Id || null,
+                Emoji: Normalizar_Emoji(Subtarea?.Emoji || "\u2022"),
+                Texto: (Subtarea?.Texto || "").toString(),
+                Hecha: Boolean(Subtarea?.Hecha)
+              }));
+          }
+          const Excluidas_Origen =
+            Tarea.Subtareas_Excluidas_Semanales?.[
+              Clave_Origen_Subtareas
+            ];
+          if (Array.isArray(Excluidas_Origen) && Excluidas_Origen.length) {
+            Copia.Subtareas_Excluidas_Semanales[
+              Clave_Destino_Subtareas
+            ] = Excluidas_Origen.map((Id) => (Id || "").toString());
+          }
+          const Contraidas_Origen =
+            Tarea.Subtareas_Contraidas_Semanales?.[
+              Clave_Origen_Subtareas
+            ];
+          if (Contraidas_Origen !== undefined) {
+            Copia.Subtareas_Contraidas_Semanales[
+              Clave_Destino_Subtareas
+            ] = Boolean(Contraidas_Origen);
+          }
         }
+
+        Tareas.push(Copia);
 
         Normalizar_Estado();
         Render_Emojis();

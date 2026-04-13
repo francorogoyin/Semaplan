@@ -99,25 +99,28 @@ riesgo no obvio que pueda cambiar la decisión.
 ## Flujo de trabajo por sesión
 
 Al arrancar cada sesión, **antes** de actuar sobre cualquier pedido
-que haga el usuario en el chat, revisar `Proximos_Avances.txt`:
+que haga el usuario en el chat, revisar la referencia viva de próximas
+tareas en `Semaplan.com`, entrando con Playwright:
 
-1. Leer la sección **Inmediatos**. Si tiene ítems, preguntarle al
-   usuario si quiere avanzar alguno, además de lo que haya pedido
-   explícitamente en el chat.
-2. Si **Inmediatos** está vacía, preguntar por **Próximas mejoras
-   (post-launch)** con el mismo criterio.
-3. Cada vez que se completa un ítem de **Inmediatos** o **Próximas**,
-   editar `Proximos_Avances.txt` en el mismo turno:
-   - Si la tarea quedó 100% resuelta, borrar la línea.
-   - Si quedó parcialmente hecha o derivó en otro trabajo pendiente,
-     reformularla para reflejar lo que falta.
-4. Al final de la sesión (cuando el usuario dice "listo", "ok",
+1. Usar la cuenta `patricioe.nogueroles@gmail.com`.
+2. La contraseña está en `Credenciales.txt`.
+3. Entrar a `Semaplan.com` con Playwright.
+4. Ir a `Archivero` -> cajón `Semaplan`.
+5. Tomar ese cajón como fuente de verdad para próximas tareas.
+6. Si hay ítems ahí, preguntarle al usuario si quiere avanzar alguno,
+   además de lo que haya pedido explícitamente en el chat.
+7. Cuando el usuario pida revisar próximas tareas, no usar
+   `Proximos_Avances.txt`; usar siempre `Semaplan.com` -> `Archivero`
+   -> cajón `Semaplan`.
+8. Al final de la sesión (cuando el usuario dice "listo", "ok",
    "perfecto" o similar tras un cambio funcional), commitear y
    pushear los cambios. No esperar a que el usuario lo pida
    explícitamente si ya hay trabajo completo sin commitear.
-5. Regla operativa de git: si una sesión hace `commit`, en ese
+9. Regla operativa de git: si una sesión hace `commit`, en ese
    mismo flujo tiene que hacer `push`. No dejar commits locales
    pendientes salvo que el usuario lo pida explícitamente.
+10. Regla permanente: siempre commitear y luego pushear. No cortar
+    el flujo en `commit` dejando el `push` para después.
 
 ## Sesiones paralelas y staging de commits
 
@@ -128,7 +131,7 @@ equivocado:
 
 - **Nunca** usar `git add -A`, `git add .` ni `git commit -a`.
 - Stagear siempre archivos puntuales por nombre
-  (`git add Semaplan.html Proximos_Avances.txt`).
+  (`git add Semaplan.html AGENTS.md`).
 - Si al revisar `git status` aparecen cambios en archivos que
   esta sesión no tocó, no incluirlos en el commit: probablemente
   son de otra sesión paralela y le corresponden a ella commitearlos
