@@ -5896,6 +5896,22 @@
         width: 100%;
       }
 
+      .Archivero_Cajon_Item.Reordenable {
+        cursor: grab;
+      }
+
+      .Archivero_Cajon_Item.Reordenable:active {
+        cursor: grabbing;
+      }
+
+      .Archivero_Cajon_Item.Drop_Antes {
+        box-shadow: inset 0 3px 0 rgba(31, 107, 79, 0.55);
+      }
+
+      .Archivero_Cajon_Item.Drop_Despues {
+        box-shadow: inset 0 -3px 0 rgba(31, 107, 79, 0.55);
+      }
+
       .Archivero_Cajon_Item:hover {
         background: var(--Acento_Suave);
       }
@@ -5910,6 +5926,15 @@
       .Archivero_Cajon_Emoji {
         font-size: 16px;
         line-height: 1;
+        flex-shrink: 0;
+      }
+
+      .Archivero_Cajon_Drag {
+        color: var(--Texto_Suave);
+        font-size: 14px;
+        line-height: 1;
+        padding: 2px 4px;
+        user-select: none;
         flex-shrink: 0;
       }
 
@@ -20479,6 +20504,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) || null;
       }
 
+      function Reordenar_Archiveros(
+        Origen_Id,
+        Destino_Id,
+        Insertar_Despues = false
+      ) {
+        if (
+          !Origen_Id ||
+          !Destino_Id ||
+          Origen_Id === Destino_Id
+        ) {
+          return false;
+        }
+        const Index_Origen = Archiveros.findIndex(
+          (Cajon) => Cajon.Id === Origen_Id
+        );
+        const Index_Destino = Archiveros.findIndex(
+          (Cajon) => Cajon.Id === Destino_Id
+        );
+        if (Index_Origen < 0 || Index_Destino < 0) {
+          return false;
+        }
+        const [Movido] = Archiveros.splice(Index_Origen, 1);
+        let Index_Insercion = Archiveros.findIndex(
+          (Cajon) => Cajon.Id === Destino_Id
+        );
+        if (Index_Insercion < 0) {
+          Archiveros.splice(Index_Origen, 0, Movido);
+          return false;
+        }
+        if (Insertar_Despues) Index_Insercion += 1;
+        Archiveros.splice(Index_Insercion, 0, Movido);
+        return true;
+      }
+
       function Normalizar_Texto_Archivero(Texto) {
         return String(Texto || "")
           .normalize("NFD")
@@ -20712,9 +20771,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Item = document.createElement("button");
           Item.type = "button";
           Item.className = "Archivero_Cajon_Item";
+          Item.classList.add("Reordenable");
+          Item.draggable = true;
+          Item.dataset.cajonId = Cajon.Id;
           if (Cajon.Id === Archivero_Seleccion_Id) {
             Item.classList.add("Activo");
           }
+          const Drag = document.createElement("span");
+          Drag.className = "Archivero_Cajon_Drag";
+          Drag.title = t("focus.drag_reordenar");
+          Drag.textContent = "⋮⋮";
           const Emoji = document.createElement("span");
           Emoji.className = "Archivero_Cajon_Emoji";
           Emoji.textContent = Cajon.Emoji || "🗃️";
@@ -20761,6 +20827,56 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Acciones.appendChild(Btn_Editar);
           Acciones.appendChild(Btn_Borrar);
+          Item.addEventListener("dragstart", (Ev) => {
+            Ev.dataTransfer.effectAllowed = "move";
+            Ev.dataTransfer.setData(
+              "application/x-archivero-cajon",
+              Cajon.Id
+            );
+          });
+          Item.addEventListener("dragover", (Ev) => {
+            Ev.preventDefault();
+            Ev.dataTransfer.dropEffect = "move";
+            const Rect = Item.getBoundingClientRect();
+            const Mitad = Rect.top + Rect.height / 2;
+            Item.classList.toggle(
+              "Drop_Antes",
+              Ev.clientY < Mitad
+            );
+            Item.classList.toggle(
+              "Drop_Despues",
+              Ev.clientY >= Mitad
+            );
+          });
+          Item.addEventListener("dragleave", () => {
+            Item.classList.remove("Drop_Antes");
+            Item.classList.remove("Drop_Despues");
+          });
+          Item.addEventListener("drop", (Ev) => {
+            Ev.preventDefault();
+            const Origen_Id = Ev.dataTransfer.getData(
+              "application/x-archivero-cajon"
+            );
+            const Rect = Item.getBoundingClientRect();
+            const Insertar_Despues =
+              Ev.clientY >= Rect.top + Rect.height / 2;
+            Item.classList.remove("Drop_Antes");
+            Item.classList.remove("Drop_Despues");
+            if (
+              !Origen_Id ||
+              Origen_Id === Cajon.Id ||
+              !Reordenar_Archiveros(
+                Origen_Id,
+                Cajon.Id,
+                Insertar_Despues
+              )
+            ) {
+              return;
+            }
+            Render_Archivero();
+            Guardar_Estado();
+          });
+          Item.appendChild(Drag);
           Item.appendChild(Emoji);
           Item.appendChild(Nombre);
           Item.appendChild(Conteo);
