@@ -6119,6 +6119,15 @@
         flex-direction: column;
         gap: 6px;
       }
+      .Archivero_Nota_Card.Reordenable {
+        cursor: grab;
+      }
+      .Archivero_Nota_Card.Drop_Antes {
+        border-top: 3px solid var(--Acento);
+      }
+      .Archivero_Nota_Card.Drop_Despues {
+        border-bottom: 3px solid var(--Acento);
+      }
 
       .Archivero_Nota_Card.Tipo_Link {
         background: #f4f9ff;
@@ -10515,6 +10524,10 @@
                   </label>
                   <select class="Archivero_Control_Select"
                     id="Archivero_Orden_Select">
+                    <option value="Personalizado"
+                      data-i18n="archivero.orden_personalizado">
+                      Personalizado
+                    </option>
                     <option value="Fecha_Desc"
                       data-i18n="archivero.orden_fecha_desc">
                       Más nuevas primero
@@ -12011,6 +12024,8 @@
             "Filtrar por etiqueta",
           "archivero.filtro_tipo":
             "Filtrar por tipo",
+          "archivero.orden_personalizado":
+            "Personalizado",
           "archivero.orden_fecha_desc":
             "Más nuevas primero",
           "archivero.orden_fecha_asc":
@@ -14016,6 +14031,8 @@
             "Filter by tag",
           "archivero.filtro_tipo":
             "Filter by type",
+          "archivero.orden_personalizado":
+            "Custom",
           "archivero.orden_fecha_desc":
             "Newest first",
           "archivero.orden_fecha_asc":
@@ -16037,6 +16054,8 @@
             "Filtrar por tag",
           "archivero.filtro_tipo":
             "Filtrar por tipo",
+          "archivero.orden_personalizado":
+            "Personalizado",
           "archivero.orden_fecha_desc":
             "Mais novas primeiro",
           "archivero.orden_fecha_asc":
@@ -20590,6 +20609,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      function Reordenar_Notas_Archivero(
+        Cajon_Id,
+        Origen_Id,
+        Destino_Id,
+        Insertar_Despues = false
+      ) {
+        if (
+          !Cajon_Id ||
+          !Origen_Id ||
+          !Destino_Id ||
+          Origen_Id === Destino_Id
+        ) {
+          return false;
+        }
+        const Notas_Cajon = Notas_Archivero.filter(
+          (Nota) => Nota.Archivero_Id === Cajon_Id
+        );
+        const Index_Origen = Notas_Cajon.findIndex(
+          (Nota) => Nota.Id === Origen_Id
+        );
+        const Index_Destino = Notas_Cajon.findIndex(
+          (Nota) => Nota.Id === Destino_Id
+        );
+        if (Index_Origen < 0 || Index_Destino < 0) {
+          return false;
+        }
+        const [Movida] = Notas_Cajon.splice(Index_Origen, 1);
+        let Index_Insercion = Notas_Cajon.findIndex(
+          (Nota) => Nota.Id === Destino_Id
+        );
+        if (Index_Insercion < 0) {
+          Notas_Cajon.splice(Index_Origen, 0, Movida);
+          return false;
+        }
+        if (Insertar_Despues) Index_Insercion += 1;
+        Notas_Cajon.splice(Index_Insercion, 0, Movida);
+        let Reemplazo_Idx = 0;
+        Notas_Archivero = Notas_Archivero.map((Nota) => {
+          if (Nota.Archivero_Id !== Cajon_Id) return Nota;
+          const Reemplazo = Notas_Cajon[Reemplazo_Idx];
+          Reemplazo_Idx += 1;
+          return Reemplazo || Nota;
+        });
+        return true;
+      }
+
       function Normalizar_Texto_Archivero(Texto) {
         return String(Texto || "")
           .normalize("NFD")
@@ -20687,8 +20752,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tipo_Filtro = String(
           Archivero_Filtro_Tipo || ""
         ).trim();
-        return Notas_Archivero
-          .filter((Nota) => {
+        const Filtradas = Notas_Archivero.filter((Nota) => {
             if (
               Archivero_Seleccion_Id &&
               Nota.Archivero_Id !== Archivero_Seleccion_Id
@@ -20724,46 +20788,49 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               }
             );
             return Hay_Texto || Hay_Origen || Hay_Etiqueta;
-          })
-          .sort((A, B) => {
-            if (Archivero_Orden === "Fecha_Asc") {
-              return (
-                (A.Fecha_Creacion || 0) -
-                (B.Fecha_Creacion || 0)
-              );
-            }
-            if (Archivero_Orden === "Etiqueta") {
-              const Etiqueta_A =
-                Obtener_Primera_Etiqueta_Archivero(A);
-              const Etiqueta_B =
-                Obtener_Primera_Etiqueta_Archivero(B);
-              const Tiene_A = Boolean(Etiqueta_A);
-              const Tiene_B = Boolean(Etiqueta_B);
-              if (Tiene_A !== Tiene_B) {
-                return Tiene_A ? -1 : 1;
-              }
-              const Comp = Etiqueta_A.localeCompare(
-                Etiqueta_B,
-                "es",
-                { sensitivity: "base" }
-              );
-              if (Comp !== 0) return Comp;
-            }
-            if (Archivero_Orden === "Tipo") {
-              const Tipo_A = String(A.Tipo || "");
-              const Tipo_B = String(B.Tipo || "");
-              const Comp = Tipo_A.localeCompare(
-                Tipo_B,
-                "es",
-                { sensitivity: "base" }
-              );
-              if (Comp !== 0) return Comp;
-            }
-            return (
-              (B.Fecha_Creacion || 0) -
-              (A.Fecha_Creacion || 0)
-            );
           });
+        if (Archivero_Orden === "Personalizado") {
+          return Filtradas;
+        }
+        return Filtradas.sort((A, B) => {
+          if (Archivero_Orden === "Fecha_Asc") {
+            return (
+              (A.Fecha_Creacion || 0) -
+              (B.Fecha_Creacion || 0)
+            );
+          }
+          if (Archivero_Orden === "Etiqueta") {
+            const Etiqueta_A =
+              Obtener_Primera_Etiqueta_Archivero(A);
+            const Etiqueta_B =
+              Obtener_Primera_Etiqueta_Archivero(B);
+            const Tiene_A = Boolean(Etiqueta_A);
+            const Tiene_B = Boolean(Etiqueta_B);
+            if (Tiene_A !== Tiene_B) {
+              return Tiene_A ? -1 : 1;
+            }
+            const Comp = Etiqueta_A.localeCompare(
+              Etiqueta_B,
+              "es",
+              { sensitivity: "base" }
+            );
+            if (Comp !== 0) return Comp;
+          }
+          if (Archivero_Orden === "Tipo") {
+            const Tipo_A = String(A.Tipo || "");
+            const Tipo_B = String(B.Tipo || "");
+            const Comp = Tipo_A.localeCompare(
+              Tipo_B,
+              "es",
+              { sensitivity: "base" }
+            );
+            if (Comp !== 0) return Comp;
+          }
+          return (
+            (B.Fecha_Creacion || 0) -
+            (A.Fecha_Creacion || 0)
+          );
+        });
       }
 
       function Abrir_Archivero() {
@@ -20992,6 +21059,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Render_Archivero_Nota_Card(Nota) {
         const Card = document.createElement("div");
         Card.className = "Archivero_Nota_Card";
+        Card.classList.add("Reordenable");
+        Card.draggable = true;
+        Card.dataset.notaId = Nota.Id;
         if (Nota.Tipo === "Link") {
           Card.classList.add("Tipo_Link");
         }
@@ -21073,6 +21143,61 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Acciones.appendChild(Btn_Editar);
         Acciones.appendChild(Btn_Borrar);
         Card.appendChild(Acciones);
+        Card.addEventListener("dragstart", (Ev) => {
+          Ev.dataTransfer.effectAllowed = "move";
+          Ev.dataTransfer.setData(
+            "application/x-archivero-nota",
+            Nota.Id
+          );
+        });
+        Card.addEventListener("dragover", (Ev) => {
+          Ev.preventDefault();
+          Ev.dataTransfer.dropEffect = "move";
+          const Rect = Card.getBoundingClientRect();
+          const Mitad = Rect.top + Rect.height / 2;
+          Card.classList.toggle(
+            "Drop_Antes",
+            Ev.clientY < Mitad
+          );
+          Card.classList.toggle(
+            "Drop_Despues",
+            Ev.clientY >= Mitad
+          );
+        });
+        Card.addEventListener("dragleave", () => {
+          Card.classList.remove("Drop_Antes");
+          Card.classList.remove("Drop_Despues");
+        });
+        Card.addEventListener("drop", (Ev) => {
+          Ev.preventDefault();
+          Card.classList.remove("Drop_Antes");
+          Card.classList.remove("Drop_Despues");
+          const Origen_Id = Ev.dataTransfer.getData(
+            "application/x-archivero-nota"
+          );
+          const Rect = Card.getBoundingClientRect();
+          const Insertar_Despues =
+            Ev.clientY >= Rect.top + Rect.height / 2;
+          if (
+            !Reordenar_Notas_Archivero(
+              Nota.Archivero_Id,
+              Origen_Id,
+              Nota.Id,
+              Insertar_Despues
+            )
+          ) {
+            return;
+          }
+          Archivero_Orden = "Personalizado";
+          const Sel_Orden = document.getElementById(
+            "Archivero_Orden_Select"
+          );
+          if (Sel_Orden) {
+            Sel_Orden.value = Archivero_Orden;
+          }
+          Render_Archivero_Notas();
+          Guardar_Estado();
+        });
         return Card;
       }
 
