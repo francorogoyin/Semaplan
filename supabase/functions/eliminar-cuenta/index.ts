@@ -125,6 +125,28 @@ Deno.serve(async (Req) => {
       );
     }
 
+    const { error: Error_Estado_Usuario } =
+      await Supa_Admin
+        .from("estado_usuario")
+        .delete()
+        .eq("user_id", Usuario.id);
+
+    if (Error_Estado_Usuario) {
+      return new Response(
+        JSON.stringify({
+          Error: "No se pudo borrar el estado",
+          Detalle: Error_Estado_Usuario.message,
+        }),
+        {
+          status: 500,
+          headers: {
+            ...Cors_Headers,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
     const { error: Error_Delete_User } =
       await Supa_Admin.auth.admin.deleteUser(
         Usuario.id
