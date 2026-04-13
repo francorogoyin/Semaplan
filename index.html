@@ -29872,8 +29872,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (P.Tipo !== "Slot") return false;
           const Aplica_Patron =
             Normalizar_Aplica_Patron_Slot(P.Aplica_A);
-          return !Aplica_Normalizada ||
-            Aplica_Patron === Aplica_Normalizada;
+          if (!Aplica_Normalizada) return true;
+          if (Aplica_Patron === Aplica_Normalizada) {
+            return true;
+          }
+          return (
+            Aplica_Normalizada !== "Slot_Vacio" &&
+            Aplica_Patron === "Slot_Vacio"
+          );
         });
       }
 
