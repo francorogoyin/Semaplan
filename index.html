@@ -4072,6 +4072,14 @@
         color: #983636;
       }
 
+      .Cfg_Suscripcion_Aviso_Accion.Positiva .Config_Dato_Btn {
+        color: #1f6b4f;
+      }
+
+      .Cfg_Suscripcion_Aviso_Accion.Positiva .Config_Dato_Btn:hover {
+        color: #18513c;
+      }
+
       .Cfg_Cuenta_Acciones_Fila {
         display: flex;
         gap: 10px;
@@ -11577,8 +11585,12 @@
             "Tu suscripción está pendiente de confirmación.",
           "config.suscripcion_trial":
             "Tu prueba termina el {Fecha}.",
+          "config.suscripcion_free":
+            "Estás en plan Free.",
           "config.volver_suscribirse":
             "Volver a suscribirse",
+          "config.pasar_premium":
+            "Pasar a Premium",
           "config.ver_planes": "Ver planes",
           "config.acciones_cuenta":
             "Acciones de cuenta",
@@ -13559,8 +13571,12 @@
             "Your subscription is pending confirmation.",
           "config.suscripcion_trial":
             "Your trial ends on {Fecha}.",
+          "config.suscripcion_free":
+            "You're on the Free plan.",
           "config.volver_suscribirse":
             "Resubscribe",
+          "config.pasar_premium":
+            "Go Premium",
           "config.ver_planes": "View plans",
           "config.acciones_cuenta":
             "Account actions",
@@ -15537,8 +15553,12 @@
             "Sua assinatura está pendente de confirmação.",
           "config.suscripcion_trial":
             "Seu teste termina em {Fecha}.",
+          "config.suscripcion_free":
+            "Você está no plano Free.",
           "config.volver_suscribirse":
             "Voltar a assinar",
+          "config.pasar_premium":
+            "Ir para o Premium",
           "config.ver_planes": "Ver planos",
           "config.acciones_cuenta":
             "Ações da conta",
@@ -24962,7 +24982,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Obtener_Modelo_Aviso_Suscripcion() {
         const Suscripcion = Suscripcion_Detalle_Remota;
-        if (!Suscripcion) return null;
+        if (!Suscripcion) {
+          return {
+            Clase: "Free",
+            Icono: "🌱",
+            Texto: t("config.suscripcion_free"),
+            Accion: {
+              Etiqueta: t("config.pasar_premium"),
+              Click: Abrir_Suscripcion,
+              Variante: "Positiva",
+            },
+          };
+        }
         const Estado = String(
           Suscripcion.estado || ""
         ).toLowerCase();
@@ -24980,8 +25011,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               { Fecha }
             ),
             Accion: {
-              Etiqueta: t("config.ver_planes"),
+              Etiqueta: t("config.pasar_premium"),
               Click: Abrir_Suscripcion,
+              Variante: "Positiva",
             },
           };
         }
@@ -24998,6 +25030,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 "config.cancelar_suscripcion"
               ),
               Click: Cuenta_Cancelar_Suscripcion,
+              Variante: "Peligro",
             },
           };
         }
@@ -25018,6 +25051,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 "config.volver_suscribirse"
               ),
               Click: Abrir_Suscripcion,
+              Variante: "Positiva",
             },
           };
         }
@@ -25028,10 +25062,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Texto: t(
               "config.suscripcion_pendiente"
             ),
-            Accion: null,
+            Accion: {
+              Etiqueta: t("config.ver_planes"),
+              Click: Abrir_Suscripcion,
+              Variante: "Positiva",
+            },
           };
         }
-        return null;
+        return {
+          Clase: "Free",
+          Icono: "🌱",
+          Texto: t("config.suscripcion_free"),
+          Accion: {
+            Etiqueta: t("config.pasar_premium"),
+            Click: Abrir_Suscripcion,
+            Variante: "Positiva",
+          },
+        };
       }
 
       function Obtener_Modelo_Top_Suscripcion() {
@@ -25124,6 +25171,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             document.createElement("div");
           Accion.className =
             "Cfg_Suscripcion_Aviso_Accion";
+          if (Modelo.Accion.Variante) {
+            Accion.classList.add(
+              Modelo.Accion.Variante
+            );
+          }
           const Boton =
             document.createElement("button");
           Boton.type = "button";
