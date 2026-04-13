@@ -1748,6 +1748,22 @@
         background: #fff;
       }
 
+      .Abordaje_Item.Reordenable {
+        cursor: grab;
+      }
+
+      .Abordaje_Item.Reordenable:active {
+        cursor: grabbing;
+      }
+
+      .Abordaje_Item.Drop_Antes {
+        box-shadow: inset 0 3px 0 rgba(31, 107, 79, 0.55);
+      }
+
+      .Abordaje_Item.Drop_Despues {
+        box-shadow: inset 0 -3px 0 rgba(31, 107, 79, 0.55);
+      }
+
       /* Sub con trabajo registrado en este bloque. Color de
          base verde; las dos variantes específicas de abajo
          le pisan el tono según sea Completado (verde) o
@@ -1820,6 +1836,20 @@
         width: 22px;
         text-align: center;
         flex-shrink: 0;
+      }
+
+      .Abordaje_Item_Drag {
+        cursor: grab;
+        color: var(--Texto_Suave);
+        font-size: 14px;
+        line-height: 1;
+        padding: 2px 4px;
+        user-select: none;
+        flex-shrink: 0;
+      }
+
+      .Abordaje_Item_Drag:active {
+        cursor: grabbing;
       }
 
       .Abordaje_Item_Texto {
@@ -28336,6 +28366,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Estado === "Realizado"
             ? " Marcado Marcado_Completado" : "") +
           (Estado === "Anulado" ? " Slot_Anulado" : "");
+        Fila.classList.add("Reordenable");
+        Fila.draggable = true;
+        Fila.dataset.itemId = Item.Id;
+
+        const Drag = document.createElement("div");
+        Drag.className = "Abordaje_Item_Drag";
+        Drag.title = t("focus.drag_reordenar");
+        Drag.textContent = "⋮⋮";
 
         const Emoji = document.createElement("span");
         Emoji.className = "Abordaje_Item_Emoji";
@@ -28422,12 +28460,99 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Modal_Plan_Slot();
         });
 
+        Fila.addEventListener("dragstart", (Ev) => {
+          Ev.dataTransfer.effectAllowed = "move";
+          Ev.dataTransfer.setData(
+            "application/x-plan-slot-item",
+            Item.Id
+          );
+        });
+        Fila.addEventListener("dragover", (Ev) => {
+          Ev.preventDefault();
+          Ev.dataTransfer.dropEffect = "move";
+          const Rect = Fila.getBoundingClientRect();
+          const Mitad = Rect.top + Rect.height / 2;
+          Fila.classList.toggle(
+            "Drop_Antes",
+            Ev.clientY < Mitad
+          );
+          Fila.classList.toggle(
+            "Drop_Despues",
+            Ev.clientY >= Mitad
+          );
+        });
+        Fila.addEventListener("dragleave", () => {
+          Fila.classList.remove("Drop_Antes");
+          Fila.classList.remove("Drop_Despues");
+        });
+        Fila.addEventListener("drop", (Ev) => {
+          Ev.preventDefault();
+          const Origen_Id = Ev.dataTransfer.getData(
+            "application/x-plan-slot-item"
+          );
+          const Rect = Fila.getBoundingClientRect();
+          const Insertar_Despues =
+            Ev.clientY >= Rect.top + Rect.height / 2;
+          Fila.classList.remove("Drop_Antes");
+          Fila.classList.remove("Drop_Despues");
+          if (
+            !Origen_Id ||
+            Origen_Id === Item.Id ||
+            !Reordenar_Items_Plan_Slot(
+              Lista,
+              Origen_Id,
+              Item.Id,
+              Insertar_Despues
+            )
+          ) {
+            return;
+          }
+          Render_Modal_Plan_Slot();
+        });
+
+        Fila.appendChild(Drag);
         Fila.appendChild(Emoji);
         Fila.appendChild(Texto);
         Fila.appendChild(Btn_P);
         Fila.appendChild(Tog);
         Fila.appendChild(Borrar);
         return Fila;
+      }
+
+      function Reordenar_Items_Plan_Slot(
+        Lista,
+        Origen_Id,
+        Destino_Id,
+        Insertar_Despues = false
+      ) {
+        if (
+          !Array.isArray(Lista) ||
+          !Origen_Id ||
+          !Destino_Id ||
+          Origen_Id === Destino_Id
+        ) {
+          return false;
+        }
+        const Index_Origen = Lista.findIndex(
+          (Item) => Item.Id === Origen_Id
+        );
+        const Index_Destino = Lista.findIndex(
+          (Item) => Item.Id === Destino_Id
+        );
+        if (Index_Origen < 0 || Index_Destino < 0) {
+          return false;
+        }
+        const [Movido] = Lista.splice(Index_Origen, 1);
+        let Index_Insercion = Lista.findIndex(
+          (Item) => Item.Id === Destino_Id
+        );
+        if (Index_Insercion < 0) {
+          Lista.splice(Index_Origen, 0, Movido);
+          return false;
+        }
+        if (Insertar_Despues) Index_Insercion += 1;
+        Lista.splice(Index_Insercion, 0, Movido);
+        return true;
       }
 
       function Agregar_Item_Plan_Slot() {
