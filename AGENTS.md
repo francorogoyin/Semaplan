@@ -101,6 +101,8 @@ realizadas.
 5. Si el usuario lo pide, agregar nuevas notas en ese cajón.
 6. Si el usuario lo pide, editar notas existentes en ese cajón.
 7. Si el usuario lo pide, borrar notas existentes en ese cajón.
+8. Las próximas tareas a realizar son siempre las notas de ese cajón
+   que no tengan la etiqueta `Pospuesto`.
 
 ### Procedimiento 2: test de funciones
 
