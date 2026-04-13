@@ -6037,7 +6037,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 8px;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         padding: 4px 2px 0;
         margin-top: 4px;
       }
@@ -6049,6 +6049,7 @@
         flex-wrap: nowrap;
       }
       .Archivero_Multi_Conteo {
+        flex-basis: 100%;
         font-size: 12px;
         font-weight: 600;
         color: var(--Texto);
@@ -10640,8 +10641,6 @@
                 id="Archivero_Multi_Acciones"
                 style="display:none">
                 <div class="Archivero_Multi_Grupo">
-                  <span class="Archivero_Multi_Conteo"
-                    id="Archivero_Multi_Conteo"></span>
                   <input type="text"
                     class="Archivero_Control_Select"
                     id="Archivero_Multi_Etiquetas_Input"
@@ -10682,6 +10681,8 @@
                     Cancelar selección
                   </button>
                 </div>
+                <span class="Archivero_Multi_Conteo"
+                  id="Archivero_Multi_Conteo"></span>
               </div>
             </section>
           </div>
@@ -20993,6 +20994,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Archivero_Notas_Seleccionadas.clear();
         Render_Archivero_Notas();
+      }
+
+      function Click_Fuera_Limpia_Multi_Archivero(Ev) {
+        if (Archivero_Notas_Seleccionadas.size === 0) return;
+        if (
+          !document.getElementById("Archivero_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          return;
+        }
+        if (
+          document.getElementById("Archivero_Nota_Overlay")
+            ?.classList.contains("Activo") ||
+          document.getElementById("Archivero_Cajon_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          return;
+        }
+        const T = Ev.target;
+        if (!(T instanceof Element)) return;
+        if (T.closest(".Archivero_Nota_Card")) return;
+        if (T.closest("#Archivero_Multi_Acciones")) return;
+        Limpiar_Multi_Seleccion_Archivero();
       }
 
       function Render_Archivero_Multi_Acciones() {
@@ -37645,6 +37669,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Cerrar_Archivero();
           }
         });
+      document.getElementById("Archivero_Overlay")
+        ?.addEventListener(
+          "click",
+          Click_Fuera_Limpia_Multi_Archivero
+        );
       document.getElementById("Archivero_Buscar_Input")
         ?.addEventListener("input", (Ev) => {
           Archivero_Busqueda = Ev.target.value || "";

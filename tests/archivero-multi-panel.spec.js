@@ -60,7 +60,7 @@ async function preparar(page, estadoInicial) {
   await page.waitForFunction(() => typeof window.Inicializar === "function");
 }
 
-test("muestra la barra multi del archivero abajo y en una linea", async ({
+test("muestra la barra multi abajo y limpia al click afuera", async ({
   page
 }) => {
   const estadoInicial = {
@@ -168,15 +168,19 @@ test("muestra la barra multi del archivero abajo y en una linea", async ({
       ?.classList.add("Oculto");
     window.Inicializar();
     window.Abrir_Archivero();
+    document.getElementById("Archivero_Overlay")
+      ?.classList.add("Activo");
     Archivero_Notas_Seleccionadas = new Set(["n1", "n2"]);
     Render_Archivero_Notas();
     const Lista = document.getElementById("Archivero_Notas_Lista");
     const Barra = document.getElementById("Archivero_Multi_Acciones");
+    const Conteo = document.getElementById("Archivero_Multi_Conteo");
     const Estilo = window.getComputedStyle(Barra);
+    const Estilo_Conteo = window.getComputedStyle(Conteo);
     return {
-      flexWrap: Estilo.flexWrap,
       display: Estilo.display,
       borderTopWidth: Estilo.borderTopWidth,
+      conteoCompleto: Estilo_Conteo.flexBasis,
       abajoDeLista: Boolean(
         Lista.compareDocumentPosition(Barra)
           & Node.DOCUMENT_POSITION_FOLLOWING
@@ -184,8 +188,22 @@ test("muestra la barra multi del archivero abajo y en una linea", async ({
     };
   });
 
+  await page.evaluate(() => {
+    document.getElementById("Archivero_Buscar_Input")
+      ?.dispatchEvent(
+        new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true
+        })
+      );
+  });
+  const cantidadTrasClick = await page.evaluate(() =>
+    Archivero_Notas_Seleccionadas.size
+  );
+
   expect(estilos.display).toBe("flex");
-  expect(estilos.flexWrap).toBe("nowrap");
   expect(estilos.borderTopWidth).toBe("0px");
+  expect(estilos.conteoCompleto).toBe("100%");
+  expect(cantidadTrasClick).toBe(0);
   expect(estilos.abajoDeLista).toBe(true);
 });
