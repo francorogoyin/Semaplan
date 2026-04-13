@@ -45,44 +45,56 @@ riesgo no obvio que pueda cambiar la decisión.
 
 ## Flujo de trabajo por sesión
 
-Al arrancar cada sesión, **antes** de actuar sobre cualquier pedido
-que haga el usuario en el chat, revisar la referencia viva de próximas
-tareas en `Semaplan.com`, entrando con Playwright:
+Al arrancar cada sesión, distinguir cuál de estos dos procedimientos
+corresponde según el pedido del usuario.
 
-1. Si el pedido es **testear funciones** (Playwright/Codex),
-   usar la cuenta `tomashodel@gmail.com`.
-2. Si el pedido es **leer próximas tareas** (y también
-   agregar nuevas o borrar completadas), usar la cuenta
-   `patricioe.nogueroles@gmail.com`.
-3. Las contraseñas están en `Credenciales.txt`.
-4. Entrar a `Semaplan.com` con Playwright.
-5. Ir a `Archivero` -> cajón `Semaplan`.
-6. Tomar ese cajón como fuente de verdad para próximas tareas.
-7. Si hay ítems ahí, preguntarle al usuario si quiere avanzar alguno,
+### Procedimiento 1: próximas tareas
+
+Usar este procedimiento cuando el pedido sea leer próximas tareas,
+agregar nuevas tareas notificadas por chat, o eliminar/editar tareas ya
+realizadas.
+
+1. Usar la cuenta `patricioe.nogueroles@gmail.com`.
+2. La contraseña está en `Credenciales.txt`.
+3. Entrar a `Semaplan.com` con Playwright.
+4. Ir a `Archivero` -> cajón `Semaplan`.
+5. Tomar ese cajón como fuente de verdad para próximas tareas.
+6. Si hay ítems ahí, preguntarle al usuario si quiere avanzar alguno,
    además de lo que haya pedido explícitamente en el chat.
-8. Cuando el usuario pida revisar próximas tareas, usar siempre
+7. Cuando el usuario pida revisar próximas tareas, usar siempre
    `Semaplan.com` -> `Archivero` -> cajón `Semaplan`.
-9. Procedimiento para entrar a `Semaplan.com` cuando haga falta:
-   - Primero intentar con una sesión existente de Playwright o Chrome.
-   - Si no alcanza y hace falta bypass local de UI, setear
-     `localStorage["Semaplan_QA_Sin_Captcha"] = "1"` y recargar.
-   - Recordar que ese flag solo evita la exigencia de CAPTCHA en el
-     frontend. Si Supabase Auth sigue exigiendo CAPTCHA, también hay
-     que desactivarlo temporalmente en la configuración hospedada:
-     Dashboard del proyecto -> `Authentication` -> `Settings` ->
-     `Bot and Abuse Protection` -> desactivar
-     `Enable CAPTCHA protection` y guardar. Reactivarlo al
-     terminar la prueba.
-   - Cuando termine la prueba, remover el flag local si ya no hace
-     falta: `localStorage.removeItem("Semaplan_QA_Sin_Captcha")`.
-10. Después de cada cambio funcional o cambio de instrucciones ya
-    resuelto en esta sesión, commitear y pushear sin esperar al final
-    de la sesión ni a que el usuario lo pida explícitamente.
-11. Regla operativa de git: cada `commit` debe ir seguido en ese mismo
-    flujo por su `push`. No dejar commits locales pendientes salvo que
-    el usuario lo pida explícitamente.
-12. Regla permanente: no cortar el flujo en `commit` dejando el
-    `push` para después.
+
+### Procedimiento 2: test de funciones
+
+Usar este procedimiento cuando el pedido sea probar o testear funciones
+de Semaplan con Playwright/Codex.
+
+1. Usar la cuenta `tomashodel@gmail.com`.
+2. La contraseña está en `Credenciales.txt`.
+3. Entrar a `Semaplan.com` con Playwright.
+4. Primero intentar con una sesión existente de Playwright o Chrome.
+5. Si no alcanza y hace falta bypass local de UI, setear
+   `localStorage["Semaplan_QA_Sin_Captcha"] = "1"` y recargar.
+6. Recordar que ese flag solo evita la exigencia de CAPTCHA en el
+   frontend. Si Supabase Auth sigue exigiendo CAPTCHA, también hay
+   que desactivarlo temporalmente en la configuración hospedada:
+   Dashboard del proyecto -> `Authentication` -> `Settings` ->
+   `Bot and Abuse Protection` -> desactivar
+   `Enable CAPTCHA protection` y guardar. Reactivarlo al
+   terminar la prueba.
+7. Cuando termine la prueba, remover el flag local si ya no hace
+   falta: `localStorage.removeItem("Semaplan_QA_Sin_Captcha")`.
+
+### Git después de cada cambio
+
+1. Después de cada cambio funcional o cambio de instrucciones ya
+   resuelto en esta sesión, commitear y pushear sin esperar al final
+   de la sesión ni a que el usuario lo pida explícitamente.
+2. Regla operativa de git: cada `commit` debe ir seguido en ese mismo
+   flujo por su `push`. No dejar commits locales pendientes salvo que
+   el usuario lo pida explícitamente.
+3. Regla permanente: no cortar el flujo en `commit` dejando el
+   `push` para después.
 
 ## Sesiones paralelas y staging de commits
 
