@@ -18,7 +18,15 @@ function Suscripcion_Sigue_Vigente(Suscripcion: any) {
   const Estado = String(
     Suscripcion.estado || ""
   ).toLowerCase();
-  if (Estado === "trial") {
+  if (
+    (Estado === "trial"
+      || Estado === "pending"
+      || !Estado) &&
+    (
+      Suscripcion.trial_hasta
+      || Suscripcion.detalle?.trial_hasta
+    )
+  ) {
     const Fecha_Trial =
       Suscripcion.trial_hasta
       || Suscripcion.detalle?.trial_hasta

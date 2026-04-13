@@ -24817,10 +24817,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Trial_Activo() {
         const Suscripcion = Suscripcion_Detalle_Remota;
         if (!Suscripcion) return false;
-        if (
-          String(Suscripcion.estado || "").toLowerCase() !==
-          "trial"
-        ) {
+        const Estado = String(
+          Suscripcion.estado || ""
+        ).toLowerCase();
+        if (Estado === "authorized") {
           return false;
         }
         const Hasta =
@@ -24865,7 +24865,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Estado = String(
           Suscripcion.estado || ""
         ).toLowerCase();
-        if (Estado === "trial") {
+        const Tiene_Trial_Vigente =
+          (Estado === "trial"
+            || Estado === "pending"
+            || !Estado) &&
+          Boolean(
+            Suscripcion.trial_hasta
+            || Suscripcion.detalle?.trial_hasta
+          );
+        if (Tiene_Trial_Vigente) {
           const Hasta =
             Suscripcion.trial_hasta
             || Suscripcion.detalle?.trial_hasta
@@ -25051,7 +25059,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Suscripcion
           )
         );
-        if (Estado === "trial" && Fecha) {
+        if (Trial_Activo() && Fecha) {
           return {
             Clase: "Trial",
             Icono: "🎁",
@@ -25141,7 +25149,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Suscripcion
           )
         );
-        if (Estado === "trial" && Fecha) {
+        if (Trial_Activo() && Fecha) {
           return {
             Clase: "Trial",
             Texto: t("topbar.trial_hasta", {
