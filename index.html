@@ -3618,6 +3618,22 @@
         flex-wrap: wrap;
       }
 
+      .Patron_Modal_Franja.Reordenable {
+        cursor: grab;
+      }
+
+      .Patron_Modal_Franja.Reordenable:active {
+        cursor: grabbing;
+      }
+
+      .Patron_Modal_Franja.Drop_Antes {
+        box-shadow: inset 0 3px 0 rgba(31, 107, 79, 0.55);
+      }
+
+      .Patron_Modal_Franja.Drop_Despues {
+        box-shadow: inset 0 -3px 0 rgba(31, 107, 79, 0.55);
+      }
+
       .Patron_Modal_Sel {
         border: 1px solid var(--Borde);
         border-radius: 6px;
@@ -27299,6 +27315,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Items_Arr.forEach((Item, Idx) => {
           const Fila = document.createElement("div");
           Fila.className = "Patron_Modal_Franja";
+          Fila.classList.add("Reordenable");
+          Fila.draggable = true;
+          Fila.dataset.itemId = Item.Id;
+
+          const Drag = document.createElement("div");
+          Drag.className = "Abordaje_Item_Drag";
+          Drag.title = t("focus.drag_reordenar");
+          Drag.textContent = "⋮⋮";
 
           const Emoji = document.createElement("input");
           Emoji.type = "text";
@@ -27344,6 +27368,57 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Render_Modal_Patron();
           });
 
+          Fila.addEventListener("dragstart", (Ev) => {
+            Ev.dataTransfer.effectAllowed = "move";
+            Ev.dataTransfer.setData(
+              "application/x-plan-slot-item",
+              Item.Id
+            );
+          });
+          Fila.addEventListener("dragover", (Ev) => {
+            Ev.preventDefault();
+            Ev.dataTransfer.dropEffect = "move";
+            const Rect = Fila.getBoundingClientRect();
+            const Mitad = Rect.top + Rect.height / 2;
+            Fila.classList.toggle(
+              "Drop_Antes",
+              Ev.clientY < Mitad
+            );
+            Fila.classList.toggle(
+              "Drop_Despues",
+              Ev.clientY >= Mitad
+            );
+          });
+          Fila.addEventListener("dragleave", () => {
+            Fila.classList.remove("Drop_Antes");
+            Fila.classList.remove("Drop_Despues");
+          });
+          Fila.addEventListener("drop", (Ev) => {
+            Ev.preventDefault();
+            const Origen_Id = Ev.dataTransfer.getData(
+              "application/x-plan-slot-item"
+            );
+            const Rect = Fila.getBoundingClientRect();
+            const Insertar_Despues =
+              Ev.clientY >= Rect.top + Rect.height / 2;
+            Fila.classList.remove("Drop_Antes");
+            Fila.classList.remove("Drop_Despues");
+            if (
+              !Origen_Id ||
+              Origen_Id === Item.Id ||
+              !Reordenar_Items_Plan_Slot(
+                Items_Arr,
+                Origen_Id,
+                Item.Id,
+                Insertar_Despues
+              )
+            ) {
+              return;
+            }
+            Render_Modal_Patron();
+          });
+
+          Fila.appendChild(Drag);
           Fila.appendChild(Emoji);
           Fila.appendChild(Texto);
           Fila.appendChild(Estado);
