@@ -48,29 +48,12 @@ riesgo no obvio que pueda cambiar la decisión.
 Al arrancar cada sesión, distinguir cuál de estos dos procedimientos
 corresponde según el pedido del usuario.
 
-### Procedimiento 1: próximas tareas
+### Reglas comunes para Playwright
 
-Usar este procedimiento cuando el pedido sea leer próximas tareas,
-agregar nuevas tareas notificadas por chat, o eliminar/editar tareas ya
-realizadas.
-
-1. Usar la cuenta `patricioe.nogueroles@gmail.com`.
-2. La contraseña está en `Credenciales.txt`.
-3. Entrar a `Semaplan.com` con Playwright.
-4. Ir a `Archivero` -> cajón `Semaplan`.
-5. Tomar ese cajón como fuente de verdad para próximas tareas.
-6. Si hay ítems ahí, preguntarle al usuario si quiere avanzar alguno,
-   además de lo que haya pedido explícitamente en el chat.
-7. Cuando el usuario pida revisar próximas tareas, usar siempre
-   `Semaplan.com` -> `Archivero` -> cajón `Semaplan`.
-
-### Procedimiento 2: test de funciones
-
-Usar este procedimiento cuando el pedido sea probar o testear funciones
-de Semaplan con Playwright/Codex.
-
-1. Usar la cuenta `tomashodel@gmail.com`.
-2. La contraseña está en `Credenciales.txt`.
+1. Elegir la cuenta según el pedido:
+   `patricioe.nogueroles@gmail.com` para próximas tareas;
+   `tomashodel@gmail.com` para test de funciones.
+2. Leer la contraseña correspondiente en `Credenciales.txt`.
 3. Entrar a `Semaplan.com` con Playwright.
 4. Primero intentar con una sesión existente de Playwright o Chrome.
 5. Si no alcanza y hace falta bypass local de UI, setear
@@ -84,6 +67,42 @@ de Semaplan con Playwright/Codex.
    terminar la prueba.
 7. Cuando termine la prueba, remover el flag local si ya no hace
    falta: `localStorage.removeItem("Semaplan_QA_Sin_Captcha")`.
+
+### Notas operativas para Playwright
+
+1. Si la sesión existente pertenece a otra cuenta, hacer `signOut`
+   local antes de loguear la cuenta correcta.
+2. No leer, agregar, editar ni borrar en la app hasta que la
+   inicialización haya terminado.
+3. Referencia práctica de inicialización lista: `Semana_Actual`
+   existente y `Cargando_Inicial === false`.
+4. Después de cambios que deban persistir en Supabase, esperar a que
+   la sincronización termine antes de recargar o cerrar el paso.
+5. Referencia práctica de sincronización completa:
+   `Sync_Estado === "Guardado"` y
+   `Hay_Sync_Pendiente() === false`.
+
+### Procedimiento 1: próximas tareas
+
+Usar este procedimiento cuando el pedido sea leer próximas tareas,
+agregar nuevas tareas notificadas por chat, o eliminar/editar tareas ya
+realizadas.
+
+1. Ir a `Archivero` -> cajón `Semaplan`.
+2. Tomar ese cajón como fuente de verdad para próximas tareas.
+3. Si hay ítems ahí, preguntarle al usuario si quiere avanzar alguno,
+   además de lo que haya pedido explícitamente en el chat.
+4. Cuando el usuario pida revisar próximas tareas, usar siempre
+   `Semaplan.com` -> `Archivero` -> cajón `Semaplan`.
+
+### Procedimiento 2: test de funciones
+
+Usar este procedimiento cuando el pedido sea probar o testear funciones
+de Semaplan con Playwright/Codex.
+
+1. Ejecutar la prueba pedida con Playwright/Codex.
+2. Validar el resultado en la UI y, si corresponde, también tras
+   recargar para confirmar persistencia real.
 
 ### Git después de cada cambio
 
