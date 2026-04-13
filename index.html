@@ -8337,12 +8337,6 @@
             id="Auth_Btn_Submit"
             type="submit"
           >Iniciar sesión</button>
-          <button
-            class="Auth_Btn_Secundario"
-            id="Auth_Trial_Btn"
-            type="button"
-            data-i18n="auth.trial_cta"
-          >Obtener 1 mes gratis</button>
         </form>
 
         <div
@@ -41024,7 +41018,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // "Login", "Registro" o "Olvide".
       let Auth_Modo = "Login";
       let Auth_Turnstile_Widget_Id = null;
-      let Auth_Registro_Con_Trial = false;
 
       function Mostrar_Auth() {
         document.getElementById("App_Loader")
@@ -41090,9 +41083,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Lk = document.getElementById(
           "Auth_Cambiar_Link"
         );
-        const Btn_Trial = document.getElementById(
-          "Auth_Trial_Btn"
-        );
         const Pw = document.getElementById(
           "Auth_Password"
         );
@@ -41135,11 +41125,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Pass_Confirm.required = false;
           Olvide.parentElement.style.display =
             "";
-          if (Btn_Trial) {
-            Btn_Trial.style.display = "";
-            Btn_Trial.textContent =
-              t("auth.trial_cta");
-          }
         } else if (Auth_Modo === "Registro") {
           Tit.textContent =
             t("auth.registro_titulo");
@@ -41167,9 +41152,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Olvide.parentElement.style.display =
             "";
-          if (Btn_Trial) {
-            Btn_Trial.style.display = "none";
-          }
         } else if (Auth_Modo === "Olvide") {
           Tit.textContent =
             t("auth.recuperar_titulo");
@@ -41189,9 +41171,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Pass_Confirm.required = false;
           Olvide.parentElement.style.display =
             "none";
-          if (Btn_Trial) {
-            Btn_Trial.style.display = "none";
-          }
         }
         Mostrar_Auth_Mensaje("");
       }
@@ -41457,16 +41436,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           // Login exitoso o registro sin confirmación.
           Usuario_Actual = Resultado.data.user;
-          const Era_Registro_Con_Trial =
-            Auth_Modo === "Registro"
-            && Auth_Registro_Con_Trial;
           Btn.disabled = false;
           Resetear_Captcha();
           await Iniciar_App_Logueada();
-          if (Era_Registro_Con_Trial) {
-            await Activar_Trial("registro");
-            Auth_Registro_Con_Trial = false;
-          }
         } catch (E) {
           console.error("Error de auth:", E);
           Mostrar_Auth_Mensaje(
@@ -42267,19 +42239,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   ? "Registro"
                   : "Login";
             }
-            Auth_Registro_Con_Trial = false;
             Configurar_Auth_UI();
           });
         document.getElementById("Auth_Olvide")
           .addEventListener("click", () => {
             Auth_Modo = "Olvide";
-            Auth_Registro_Con_Trial = false;
-            Configurar_Auth_UI();
-          });
-        document.getElementById("Auth_Trial_Btn")
-          .addEventListener("click", () => {
-            Auth_Modo = "Registro";
-            Auth_Registro_Con_Trial = true;
             Configurar_Auth_UI();
           });
         Configurar_Auth_UI();
