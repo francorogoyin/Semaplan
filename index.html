@@ -6035,17 +6035,37 @@
       .Archivero_Multi_Acciones {
         display: flex;
         align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        padding: 10px 12px;
-        border: 1px solid var(--Borde);
-        border-radius: 12px;
-        background: #fffdf7;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: nowrap;
+        padding: 4px 2px 0;
+        margin-top: 4px;
+      }
+      .Archivero_Multi_Grupo {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        flex-wrap: nowrap;
       }
       .Archivero_Multi_Conteo {
         font-size: 12px;
         font-weight: 600;
         color: var(--Texto);
+        white-space: nowrap;
+      }
+      .Archivero_Multi_Grupo .Archivero_Control_Select {
+        min-height: 30px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+      }
+      .Archivero_Sub_Btn.Compacto {
+        min-height: 30px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        white-space: nowrap;
       }
 
       .Archivero_Control {
@@ -6112,6 +6132,13 @@
         background: var(--Acento_Suave);
         color: var(--Acento);
         border-color: var(--Acento);
+      }
+      .Archivero_Btn_Exportar {
+        width: auto;
+        padding: 0 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
       }
 
       .Archivero_Notas_Lista {
@@ -10371,6 +10398,10 @@
                     data-i18n="agregar"
                     type="button">Agregar</button>
                   <button class="Baul_Accion_Btn"
+                    id="Baul_Accion_Archivero"
+                    data-i18n="baul.importar_archivero"
+                    type="button">Importar al Archivero</button>
+                  <button class="Baul_Accion_Btn"
                     id="Baul_Accion_Nueva"
                     data-i18n="nueva"
                     type="button">Nueva</button>
@@ -10510,6 +10541,11 @@
               title="Nueva nota (A)"
               data-i18n-title="archivero.nueva_nota_title"
               >+</button>
+            <button type="button"
+              class="Archivero_Btn_Nueva_Nota_Icono Archivero_Btn_Exportar"
+              id="Archivero_Btn_Exportar_Cajon"
+              data-i18n="archivero.exportar_cajon"
+              >Exportar</button>
             <input type="text"
               id="Archivero_Buscar_Input"
               class="Archivero_Buscar"
@@ -10598,51 +10634,55 @@
                   </select>
                 </div>
               </div>
+              <div class="Archivero_Notas_Lista"
+                id="Archivero_Notas_Lista"></div>
               <div class="Archivero_Multi_Acciones"
                 id="Archivero_Multi_Acciones"
                 style="display:none">
-                <span class="Archivero_Multi_Conteo"
-                  id="Archivero_Multi_Conteo"></span>
-                <input type="text"
-                  class="Archivero_Control_Select"
-                  id="Archivero_Multi_Etiquetas_Input"
-                  data-i18n-ph="archivero.etiquetas_ph"
-                  placeholder="Ej. Idea, Proyecto" />
-                <button type="button"
-                  class="Archivero_Sub_Btn"
-                  id="Archivero_Multi_Etiquetas_Agregar_Btn"
-                  data-i18n="archivero.agregar_etiquetas">
-                  Agregar etiquetas
-                </button>
-                <button type="button"
-                  class="Archivero_Sub_Btn"
-                  id="Archivero_Multi_Etiquetas_Quitar_Btn"
-                  data-i18n="archivero.quitar_etiquetas">
-                  Quitar etiquetas
-                </button>
-                <select class="Archivero_Control_Select"
-                  id="Archivero_Multi_Cajon_Select"></select>
-                <button type="button"
-                  class="Archivero_Sub_Btn Primario"
-                  id="Archivero_Multi_Mover_Btn"
-                  data-i18n="archivero.mover_seleccion">
-                  Mover seleccionadas
-                </button>
-                <button type="button"
-                  class="Archivero_Sub_Btn"
-                  id="Archivero_Multi_Borrar_Btn"
-                  data-i18n="archivero.borrar_seleccion">
-                  Borrar seleccionadas
-                </button>
-                <button type="button"
-                  class="Archivero_Sub_Btn"
-                  id="Archivero_Multi_Cancelar_Btn"
-                  data-i18n="multi.cancelar_seleccion">
-                  Cancelar selección
-                </button>
+                <div class="Archivero_Multi_Grupo">
+                  <span class="Archivero_Multi_Conteo"
+                    id="Archivero_Multi_Conteo"></span>
+                  <input type="text"
+                    class="Archivero_Control_Select"
+                    id="Archivero_Multi_Etiquetas_Input"
+                    data-i18n-ph="archivero.etiquetas_ph"
+                    placeholder="Ej. Idea, Proyecto" />
+                  <button type="button"
+                    class="Archivero_Sub_Btn Compacto"
+                    id="Archivero_Multi_Etiquetas_Agregar_Btn"
+                    data-i18n="archivero.agregar_etiquetas">
+                    Agregar etiquetas
+                  </button>
+                  <button type="button"
+                    class="Archivero_Sub_Btn Compacto"
+                    id="Archivero_Multi_Etiquetas_Quitar_Btn"
+                    data-i18n="archivero.quitar_etiquetas">
+                    Quitar etiquetas
+                  </button>
+                </div>
+                <div class="Archivero_Multi_Grupo">
+                  <select class="Archivero_Control_Select"
+                    id="Archivero_Multi_Cajon_Select"></select>
+                  <button type="button"
+                    class="Archivero_Sub_Btn Primario Compacto"
+                    id="Archivero_Multi_Mover_Btn"
+                    data-i18n="archivero.mover_seleccion">
+                    Mover seleccionadas
+                  </button>
+                  <button type="button"
+                    class="Archivero_Sub_Btn Compacto"
+                    id="Archivero_Multi_Borrar_Btn"
+                    data-i18n="archivero.borrar_seleccion">
+                    Borrar seleccionadas
+                  </button>
+                  <button type="button"
+                    class="Archivero_Sub_Btn Compacto"
+                    id="Archivero_Multi_Cancelar_Btn"
+                    data-i18n="multi.cancelar_seleccion">
+                    Cancelar selección
+                  </button>
+                </div>
               </div>
-              <div class="Archivero_Notas_Lista"
-                id="Archivero_Notas_Lista"></div>
             </section>
           </div>
           <div class="Archivero_Extension_Aviso">
@@ -12079,6 +12119,16 @@
             "🗃️ Archivero",
           "archivero.nueva_nota_title":
             "Nueva nota (A)",
+          "archivero.exportar_cajon":
+            "Exportar",
+          "archivero.exportar_formato":
+            "¿En qué formato querés exportar este cajón?",
+          "archivero.exportar_txt":
+            "TXT",
+          "archivero.exportar_csv":
+            "CSV",
+          "archivero.exportar_json":
+            "JSON",
           "archivero.buscar_ph":
             "Buscar en notas...",
           "archivero.ordenar": "Ordenar",
@@ -13376,6 +13426,14 @@
             "Se eliminaron {n} subtareas",
 
           "baul.msg_guardada": "Tarea guardada en el baúl.",
+          "baul.importar_archivero":
+            "Importar al Archivero",
+          "baul.importar_archivero_destino":
+            "¿A qué cajón querés importar estas tareas?",
+          "baul.importada_archivero":
+            "\"{Nombre}\" importada a \"{Cajon}\".",
+          "baul.importadas_archivero":
+            "{N} tarea(s) importadas a \"{Cajon}\".",
           "baul.msg_archivada": "Tarea archivada en el baúl.",
           "baul.msg_desarchivada":
             "Tarea desarchivada del baúl.",
@@ -14096,6 +14154,16 @@
             "🗃️ File cabinet",
           "archivero.nueva_nota_title":
             "New note (A)",
+          "archivero.exportar_cajon":
+            "Export",
+          "archivero.exportar_formato":
+            "Which format should this drawer use?",
+          "archivero.exportar_txt":
+            "TXT",
+          "archivero.exportar_csv":
+            "CSV",
+          "archivero.exportar_json":
+            "JSON",
           "archivero.buscar_ph":
             "Search notes...",
           "archivero.ordenar": "Sort",
@@ -15358,6 +15426,14 @@
             "{n} subtasks deleted",
 
           "baul.msg_guardada": "Task saved to vault.",
+          "baul.importar_archivero":
+            "Import to archive",
+          "baul.importar_archivero_destino":
+            "Which drawer should receive these tasks?",
+          "baul.importada_archivero":
+            "\"{Nombre}\" imported into \"{Cajon}\".",
+          "baul.importadas_archivero":
+            "{N} task(s) imported into \"{Cajon}\".",
           "baul.msg_archivada":
             "Task archived in the vault.",
           "baul.msg_desarchivada":
@@ -16129,6 +16205,16 @@
             "🗃️ Arquivo",
           "archivero.nueva_nota_title":
             "Nova nota (A)",
+          "archivero.exportar_cajon":
+            "Exportar",
+          "archivero.exportar_formato":
+            "Em qual formato exportar esta gaveta?",
+          "archivero.exportar_txt":
+            "TXT",
+          "archivero.exportar_csv":
+            "CSV",
+          "archivero.exportar_json":
+            "JSON",
           "archivero.buscar_ph":
             "Buscar nas notas...",
           "archivero.ordenar": "Ordenar",
@@ -17435,6 +17521,14 @@
             "Foram excluídas {n} subtarefas",
 
           "baul.msg_guardada": "Tarefa salva no baú.",
+          "baul.importar_archivero":
+            "Importar ao arquivo",
+          "baul.importar_archivero_destino":
+            "Para qual gaveta importar essas tarefas?",
+          "baul.importada_archivero":
+            "\"{Nombre}\" importada para \"{Cajon}\".",
+          "baul.importadas_archivero":
+            "{N} tarefa(s) importadas para \"{Cajon}\".",
           "baul.msg_archivada": "Tarefa arquivada no baú.",
           "baul.msg_desarchivada":
             "Tarefa desarquivada do baú.",
@@ -17558,6 +17652,126 @@
           /\{(\w+)\}/g,
           (_, K) => Params[K] ?? ""
         );
+      }
+
+      function Obtener_Textos_Default_Por_Idioma() {
+        return {
+          es: {
+            Tareas_Demo: [
+              { Nombre: "Proyecto foco", Emoji: "🎯",
+                Color: "#f1b77e", Horas_Semanales: 10,
+                Restante: 10, Es_Bolsa: true },
+              { Nombre: "Entrenamiento", Emoji: "🏋️",
+                Color: "#a6c8e5", Horas_Semanales: 4,
+                Restante: 4, Es_Bolsa: true },
+              { Nombre: "Llamadas", Emoji: "📞",
+                Color: "#c1d7ae", Horas_Semanales: 0,
+                Restante: 0, Es_Bolsa: false }
+            ],
+            Cajones_Archivero: [
+              { Nombre: "Notas mentales", Emoji: "🧠" },
+              { Nombre: "Ideas", Emoji: "💡" },
+              { Nombre: "Frases", Emoji: "💬" },
+              { Nombre: "Links", Emoji: "🔗" },
+              { Nombre: "Conceptos", Emoji: "📚" }
+            ],
+            Tipos_Slot: {
+              Sueno: "Dormir",
+              Descanso: "Descanso"
+            }
+          },
+          en: {
+            Tareas_Demo: [
+              { Nombre: "Focus project", Emoji: "🎯",
+                Color: "#f1b77e", Horas_Semanales: 10,
+                Restante: 10, Es_Bolsa: true },
+              { Nombre: "Workout", Emoji: "🏋️",
+                Color: "#a6c8e5", Horas_Semanales: 4,
+                Restante: 4, Es_Bolsa: true },
+              { Nombre: "Calls", Emoji: "📞",
+                Color: "#c1d7ae", Horas_Semanales: 0,
+                Restante: 0, Es_Bolsa: false }
+            ],
+            Cajones_Archivero: [
+              { Nombre: "Mental notes", Emoji: "🧠" },
+              { Nombre: "Ideas", Emoji: "💡" },
+              { Nombre: "Quotes", Emoji: "💬" },
+              { Nombre: "Links", Emoji: "🔗" },
+              { Nombre: "Concepts", Emoji: "📚" }
+            ],
+            Tipos_Slot: {
+              Sueno: "Sleep",
+              Descanso: "Rest"
+            }
+          },
+          pt: {
+            Tareas_Demo: [
+              { Nombre: "Projeto foco", Emoji: "🎯",
+                Color: "#f1b77e", Horas_Semanales: 10,
+                Restante: 10, Es_Bolsa: true },
+              { Nombre: "Treino", Emoji: "🏋️",
+                Color: "#a6c8e5", Horas_Semanales: 4,
+                Restante: 4, Es_Bolsa: true },
+              { Nombre: "Ligações", Emoji: "📞",
+                Color: "#c1d7ae", Horas_Semanales: 0,
+                Restante: 0, Es_Bolsa: false }
+            ],
+            Cajones_Archivero: [
+              { Nombre: "Notas mentais", Emoji: "🧠" },
+              { Nombre: "Ideias", Emoji: "💡" },
+              { Nombre: "Frases", Emoji: "💬" },
+              { Nombre: "Links", Emoji: "🔗" },
+              { Nombre: "Conceitos", Emoji: "📚" }
+            ],
+            Tipos_Slot: {
+              Sueno: "Dormir",
+              Descanso: "Descanso"
+            }
+          }
+        };
+      }
+
+      function Obtener_Defaults_Idioma() {
+        const Textos = Obtener_Textos_Default_Por_Idioma();
+        return Textos[Idioma_Actual] || Textos.es;
+      }
+
+      function Obtener_Tareas_Demo_Default() {
+        return Obtener_Defaults_Idioma().Tareas_Demo.map((Tarea) => ({
+          Id: Crear_Id(),
+          ...Tarea
+        }));
+      }
+
+      function Obtener_Cajones_Default_Archivero() {
+        return Obtener_Defaults_Idioma().Cajones_Archivero;
+      }
+
+      function Obtener_Nombres_Tareas_Demo() {
+        const Nombres = new Set();
+        Object.values(Obtener_Textos_Default_Por_Idioma())
+          .forEach((Defaults) => {
+            Defaults.Tareas_Demo.forEach((Tarea) => {
+              Nombres.add(Tarea.Nombre);
+            });
+          });
+        return Nombres;
+      }
+
+      function Obtener_Tipos_Slot_Por_Defecto() {
+        const Nombres = Obtener_Defaults_Idioma().Tipos_Slot;
+        return [
+          {
+            Id: "Sueno",
+            Nombre: Nombres.Sueno,
+            Color: Config.Color_Sueno || "#ddd4f4"
+          },
+          {
+            Id: "Descanso",
+            Nombre: Nombres.Descanso,
+            Color: Config.Color_Descanso || "#d4e9f4"
+          }
+        ];
       }
 
       // Aplica traducciones a todos los
@@ -18271,6 +18485,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       );
       const El_Baul_Accion_Agregar = document.getElementById(
         "Baul_Accion_Agregar"
+      );
+      const El_Baul_Accion_Archivero = document.getElementById(
+        "Baul_Accion_Archivero"
       );
       const El_Baul_Accion_Nueva = document.getElementById(
         "Baul_Accion_Nueva"
@@ -20604,14 +20821,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // Archivero_Overlay (lista de cajones a la izquierda
       // y notas filtradas a la derecha).
 
-      const Archivero_Cajones_Default = [
-        { Nombre: "Notas mentales", Emoji: "🧠" },
-        { Nombre: "Ideas", Emoji: "💡" },
-        { Nombre: "Frases", Emoji: "💬" },
-        { Nombre: "Links", Emoji: "🔗" },
-        { Nombre: "Conceptos", Emoji: "📚" }
-      ];
-
       function Generar_Id_Archivero() {
         // Id único compuesto por timestamp + random
         // corto. Suficiente para colisión cero en uso
@@ -20646,7 +20855,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // los cinco cajones por defecto para que el
         // archivero no arranque vacío.
         if (Archiveros.length > 0) return;
-        Archivero_Cajones_Default.forEach((Cajon) => {
+        Obtener_Cajones_Default_Archivero().forEach((Cajon) => {
           Archiveros.push({
             Id: Generar_Id_Archivero(),
             Nombre: Cajon.Nombre,
@@ -20930,6 +21139,248 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Notas_Archivero.filter((Nota) => {
           return !Cajon_Id || Nota.Archivero_Id === Cajon_Id;
         });
+      }
+
+      function Obtener_Cajon_Activo_Archivero() {
+        return Obtener_Cajon_Por_Id(Archivero_Seleccion_Id);
+      }
+
+      function Crear_Slug_Archivo(Texto) {
+        return String(Texto || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-zA-Z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .toLowerCase() || "archivo";
+      }
+
+      function Escapar_Campo_Csv(Valor) {
+        const Texto = String(Valor ?? "");
+        if (!/[",\n]/.test(Texto)) return Texto;
+        return `"${Texto.replace(/"/g, "\"\"")}"`;
+      }
+
+      function Formatear_Fecha_Exportacion_Nota(Valor) {
+        if (!Valor) return "";
+        const Fecha = new Date(Number(Valor));
+        if (Number.isNaN(Fecha.getTime())) return "";
+        return Fecha.toISOString();
+      }
+
+      function Construir_Archivo_Exportacion_Cajon_Archivero(
+        Formato,
+        Cajon_Id = Archivero_Seleccion_Id
+      ) {
+        const Cajon = Obtener_Cajon_Por_Id(Cajon_Id);
+        if (!Cajon) return null;
+        const Notas = Obtener_Notas_Cajon_Archivero(Cajon_Id);
+        const Base = [
+          "archivero",
+          Crear_Slug_Archivo(Cajon.Nombre),
+          new Date().toISOString().slice(0, 10)
+        ].join("-");
+        if (Formato === "json") {
+          return {
+            Nombre: `${Base}.json`,
+            Tipo: "application/json;charset=utf-8",
+            Contenido: JSON.stringify({
+              Cajon: {
+                Id: Cajon.Id,
+                Nombre: Cajon.Nombre,
+                Emoji: Cajon.Emoji || "🗃️"
+              },
+              Notas
+            }, null, 2)
+          };
+        }
+        if (Formato === "csv") {
+          const Filas = [
+            ["Texto", "Origen", "Etiquetas", "Tipo", "Fecha_Creacion"]
+              .join(",")
+          ];
+          Notas.forEach((Nota) => {
+            Filas.push([
+              Escapar_Campo_Csv(Nota.Texto || ""),
+              Escapar_Campo_Csv(Nota.Origen || ""),
+              Escapar_Campo_Csv(
+                Array.isArray(Nota.Etiquetas)
+                  ? Nota.Etiquetas.join(" | ")
+                  : ""
+              ),
+              Escapar_Campo_Csv(Nota.Tipo || "Texto"),
+              Escapar_Campo_Csv(
+                Formatear_Fecha_Exportacion_Nota(
+                  Nota.Fecha_Creacion
+                )
+              )
+            ].join(","));
+          });
+          return {
+            Nombre: `${Base}.csv`,
+            Tipo: "text/csv;charset=utf-8",
+            Contenido: Filas.join("\n")
+          };
+        }
+        const Lineas = [
+          `${Cajon.Emoji || "🗃️"} ${Cajon.Nombre}`,
+          ""
+        ];
+        Notas.forEach((Nota, Indice) => {
+          Lineas.push(`${Indice + 1}. ${Nota.Texto || ""}`);
+          if (Nota.Origen) {
+            Lineas.push(`Origen: ${Nota.Origen}`);
+          }
+          if (Array.isArray(Nota.Etiquetas) && Nota.Etiquetas.length) {
+            Lineas.push(`Etiquetas: ${Nota.Etiquetas.join(", ")}`);
+          }
+          Lineas.push(
+            `Tipo: ${Nota.Tipo || "Texto"}`
+          );
+          const Fecha = Formatear_Fecha_Exportacion_Nota(
+            Nota.Fecha_Creacion
+          );
+          if (Fecha) {
+            Lineas.push(`Fecha: ${Fecha}`);
+          }
+          Lineas.push("");
+        });
+        return {
+          Nombre: `${Base}.txt`,
+          Tipo: "text/plain;charset=utf-8",
+          Contenido: Lineas.join("\n")
+        };
+      }
+
+      function Descargar_Archivo_Archivero(Archivo) {
+        if (!Archivo) return;
+        const Blob_Archivo = new Blob(
+          [Archivo.Contenido],
+          { type: Archivo.Tipo }
+        );
+        const Url = URL.createObjectURL(Blob_Archivo);
+        const Enlace = document.createElement("a");
+        Enlace.href = Url;
+        Enlace.download = Archivo.Nombre;
+        document.body.appendChild(Enlace);
+        Enlace.click();
+        document.body.removeChild(Enlace);
+        URL.revokeObjectURL(Url);
+      }
+
+      async function Exportar_Cajon_Archivero() {
+        const Cajon = Obtener_Cajon_Activo_Archivero();
+        if (!Cajon) return;
+        const Formato = await Mostrar_Dialogo(
+          t("archivero.exportar_formato"),
+          [
+            {
+              Etiqueta: t("archivero.exportar_txt"),
+              Valor: "txt",
+              Tipo: "Primario"
+            },
+            {
+              Etiqueta: t("archivero.exportar_csv"),
+              Valor: "csv",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("archivero.exportar_json"),
+              Valor: "json",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("cancelar"),
+              Valor: null,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
+        if (!Formato) return;
+        Descargar_Archivo_Archivero(
+          Construir_Archivo_Exportacion_Cajon_Archivero(
+            Formato,
+            Cajon.Id
+          )
+        );
+      }
+
+      async function Solicitar_Cajon_Destino_Archivero(
+        Clave_Titulo = "baul.importar_archivero_destino"
+      ) {
+        Inicializar_Archiveros_Default();
+        if (!Archiveros.length) return null;
+        return await Mostrar_Dialogo(
+          t(Clave_Titulo),
+          [
+            ...Archiveros.map((Cajon, Indice) => ({
+              Etiqueta: `${Cajon.Emoji || "🗃️"} ${Cajon.Nombre}`,
+              Valor: Cajon.Id,
+              Tipo: Indice === 0 ? "Primario" : "Secundario"
+            })),
+            {
+              Etiqueta: t("cancelar"),
+              Valor: null,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
+      }
+
+      function Construir_Texto_Nota_Desde_Baul(Tarea) {
+        const Emoji = Normalizar_Emoji(Tarea?.Emoji || "📝");
+        const Nombre = (Tarea?.Nombre || "").trim();
+        return `${Emoji} ${Nombre}`.trim();
+      }
+
+      function Obtener_Etiquetas_Nota_Desde_Baul(Tarea) {
+        return Obtener_Nombres_Etiquetas(Tarea?.Etiquetas_Ids);
+      }
+
+      function Importar_Tarea_Baul_Al_Archivero(Tarea, Cajon_Id) {
+        if (!Tarea || !Cajon_Id) return null;
+        return Agregar_Nota_Archivero(
+          Construir_Texto_Nota_Desde_Baul(Tarea),
+          "Baúl",
+          Cajon_Id,
+          Obtener_Etiquetas_Nota_Desde_Baul(Tarea)
+        );
+      }
+
+      async function Importar_Tareas_Baul_Seleccionadas_Al_Archivero() {
+        const Ids = Array.from(Baul_Multi_Seleccion);
+        if (!Ids.length) return;
+        const Cajon_Id = await Solicitar_Cajon_Destino_Archivero();
+        if (!Cajon_Id) return;
+        const Tareas_Seleccionadas = Baul_Tareas.filter((Tarea) =>
+          Ids.includes(Tarea.Id)
+        );
+        const Importadas = Tareas_Seleccionadas
+          .map((Tarea) => Importar_Tarea_Baul_Al_Archivero(Tarea, Cajon_Id))
+          .filter(Boolean);
+        if (!Importadas.length) return;
+        const Cajon = Obtener_Cajon_Por_Id(Cajon_Id);
+        Mostrar_Mensaje_Baul(
+          t("baul.importadas_archivero", {
+            N: Importadas.length,
+            Cajon: Cajon?.Nombre || ""
+          })
+        );
+      }
+
+      async function Importar_Tarea_Baul_Actual_Al_Archivero() {
+        const Tarea = Obtener_Baul_Tarea_En_Edicion();
+        if (!Tarea) return;
+        const Cajon_Id = await Solicitar_Cajon_Destino_Archivero();
+        if (!Cajon_Id) return;
+        const Nota = Importar_Tarea_Baul_Al_Archivero(Tarea, Cajon_Id);
+        if (!Nota) return;
+        const Cajon = Obtener_Cajon_Por_Id(Cajon_Id);
+        Mostrar_Mensaje_Baul(
+          t("baul.importada_archivero", {
+            Nombre: Tarea.Nombre,
+            Cajon: Cajon?.Nombre || ""
+          })
+        );
       }
 
       function Obtener_Primera_Etiqueta_Archivero(Nota) {
@@ -29820,11 +30271,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
+      function Formatear_Id_Tipo_Slot(Aplica_A) {
+        return String(Aplica_A || "")
+          .replace(/_/g, " ")
+          .trim();
+      }
+
+      function Es_Aplica_Patron_Slot_Valido(Aplica_A) {
+        if (Aplica_A === "Slot_Vacio") return true;
+        const Valor = String(Aplica_A || "").trim();
+        if (!Valor) return false;
+        if (
+          Obtener_Tipos_Slot().some((Tipo) => Tipo.Id === Valor)
+        ) {
+          return true;
+        }
+        if (
+          Object.values(Slots_Muertos_Tipos || {})
+            .includes(Valor)
+        ) {
+          return true;
+        }
+        return Patrones.some((Patron) => {
+          return Patron.Tipo === "Slot"
+            && String(Patron.Aplica_A || "").trim() === Valor;
+        });
+      }
+
       function Normalizar_Aplica_Patron_Slot(Aplica_A) {
-        if (Aplica_A === "Slot_Vacio") return "Slot_Vacio";
-        const Tipos = Obtener_Tipos_Slot();
-        return Tipos.some((Tipo) => Tipo.Id === Aplica_A)
-          ? Aplica_A
+        return Es_Aplica_Patron_Slot_Valido(Aplica_A)
+          ? String(Aplica_A).trim()
           : "Slot_Vacio";
       }
 
@@ -29851,7 +30327,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tipo = Obtener_Tipos_Slot().find(
           (Item) => Item.Id === Aplica_A
         );
-        return Tipo?.Nombre || t("slot.aplica_vacio");
+        return Tipo?.Nombre
+          || Formatear_Id_Tipo_Slot(Aplica_A)
+          || t("slot.aplica_vacio");
       }
 
       function Obtener_Aplica_A_Slot(Fecha, Hora) {
@@ -33507,18 +33985,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Si no hay tipos definidos, retorna los dos por defecto.
         if (Tipos_Slot_Inicializados) return Tipos_Slot;
         if (Tipos_Slot.length > 0) return Tipos_Slot;
-        return [
-          {
-            Id: "Sueno",
-            Nombre: "Sueño",
-            Color: Config.Color_Sueno || "#ddd4f4"
-          },
-          {
-            Id: "Descanso",
-            Nombre: "Descanso",
-            Color: Config.Color_Descanso || "#d4e9f4"
-          }
-        ];
+        return Obtener_Tipos_Slot_Por_Defecto();
       }
 
       function Aplicar_Colores_Config() {
@@ -33660,6 +34127,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Crear_Btn_Multi(`🗑 ${t("eliminar")}`, true, () => {
               Eliminar_Baul_Tareas_Multi();
             })
+          );
+          Acc.appendChild(
+            Crear_Btn_Multi(
+              `🗃️ ${t("baul.importar_archivero")}`,
+              false,
+              () => {
+                Importar_Tareas_Baul_Seleccionadas_Al_Archivero();
+              }
+            )
           );
           Acc.appendChild(
             Crear_Btn_Multi(
@@ -37202,6 +37678,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           Abrir_Modal_Nota_Archivero(null);
         });
+      document.getElementById("Archivero_Btn_Exportar_Cajon")
+        ?.addEventListener("click", () => {
+          Exportar_Cajon_Archivero();
+        });
       document.getElementById("Archivero_Multi_Mover_Btn")
         ?.addEventListener("click", () => {
           const Select = document.getElementById(
@@ -37330,6 +37810,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tarea = Obtener_Baul_Tarea_En_Edicion();
         if (!Tarea) return;
         await Agregar_Baul_A_Semanas(Tarea);
+      });
+      El_Baul_Accion_Archivero?.addEventListener("click", () => {
+        Importar_Tarea_Baul_Actual_Al_Archivero();
       });
       El_Baul_Accion_Nueva?.addEventListener("click", () => {
         Abrir_Nueva_Tarea_Baul();
@@ -39456,11 +39939,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Cargo = Cargar_Estado();
         if (!Cargo) {
-          Tareas = [
-            { Id: Crear_Id(), Nombre: "Proyecto foco", Emoji: "🎯", Color: "#f1b77e", Horas_Semanales: 10, Restante: 10, Es_Bolsa: true },
-            { Id: Crear_Id(), Nombre: "Entrenamiento", Emoji: "🏋️", Color: "#a6c8e5", Horas_Semanales: 4, Restante: 4, Es_Bolsa: true },
-            { Id: Crear_Id(), Nombre: "Llamadas", Emoji: "📞", Color: "#c1d7ae", Horas_Semanales: 0, Restante: 0, Es_Bolsa: false }
-          ];
+          Tareas = Obtener_Tareas_Demo_Default();
         }
 
         Normalizar_Estado();
@@ -42601,9 +43080,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Cantidad === 0) return;
 
           // No migrar si son exactamente las tareas demo de inicio.
-          const Nombres_Demo = new Set(
-            ["Proyecto foco", "Entrenamiento", "Llamadas"]
-          );
+          const Nombres_Demo = Obtener_Nombres_Tareas_Demo();
           const Son_Demo =
             Cantidad === 3 &&
             Local.Tareas.every(
