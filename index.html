@@ -20253,6 +20253,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `</button>` +
           `<button class="Dia_Accion_Item"` +
           ` type="button"` +
+          ` data-acc="archivero">` +
+          t("baul.importar_archivero") +
+          `</button>` +
+          `<button class="Dia_Accion_Item"` +
+          ` type="button"` +
           ` data-acc="editar">` +
           t("editar") +
           `</button>` +
@@ -20306,6 +20311,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
         Vincular("varias", async () => {
           await Agregar_Baul_A_Semanas(Tarea, "varias");
+        });
+        Vincular("archivero", async () => {
+          await Importar_Tarea_Baul_Al_Archivero_Con_Dialogo(
+            Tarea
+          );
         });
         Vincular("editar", async () => {
           Abrir_Editor_Baul(Tarea.Id);
@@ -21370,6 +21380,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      async function Importar_Tarea_Baul_Al_Archivero_Con_Dialogo(
+        Tarea
+      ) {
+        if (!Tarea) return null;
+        const Cajon_Id = await Solicitar_Cajon_Destino_Archivero();
+        if (!Cajon_Id) return null;
+        const Nota = Importar_Tarea_Baul_Al_Archivero(
+          Tarea,
+          Cajon_Id
+        );
+        if (!Nota) return null;
+        const Cajon = Obtener_Cajon_Por_Id(Cajon_Id);
+        Mostrar_Mensaje_Baul(
+          t("baul.importada_archivero", {
+            Nombre: Tarea.Nombre,
+            Cajon: Cajon?.Nombre || ""
+          })
+        );
+        return Nota;
+      }
+
       async function Importar_Tareas_Baul_Seleccionadas_Al_Archivero() {
         const Ids = Array.from(Baul_Multi_Seleccion);
         if (!Ids.length) return;
@@ -21394,17 +21425,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Importar_Tarea_Baul_Actual_Al_Archivero() {
         const Tarea = Obtener_Baul_Tarea_En_Edicion();
         if (!Tarea) return;
-        const Cajon_Id = await Solicitar_Cajon_Destino_Archivero();
-        if (!Cajon_Id) return;
-        const Nota = Importar_Tarea_Baul_Al_Archivero(Tarea, Cajon_Id);
-        if (!Nota) return;
-        const Cajon = Obtener_Cajon_Por_Id(Cajon_Id);
-        Mostrar_Mensaje_Baul(
-          t("baul.importada_archivero", {
-            Nombre: Tarea.Nombre,
-            Cajon: Cajon?.Nombre || ""
-          })
-        );
+        await Importar_Tarea_Baul_Al_Archivero_Con_Dialogo(Tarea);
       }
 
       function Obtener_Primera_Etiqueta_Archivero(Nota) {
