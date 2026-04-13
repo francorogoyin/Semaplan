@@ -153,6 +153,10 @@ de Semaplan con Playwright/Codex.
    el usuario lo pida explícitamente.
 4. Regla permanente: no cortar el flujo en `commit` dejando el
    `push` para después.
+5. Si en una misma sesión se resuelven varias funcionalidades
+   independientes, hacer un `commit` y `push` separado por cada
+   funcionalidad. No agrupar varias funcionalidades resueltas en un
+   solo commit.
 
 ## Sesiones paralelas y staging de commits
 
