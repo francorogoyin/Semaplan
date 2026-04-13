@@ -43,6 +43,9 @@ actuar sin pedir confirmación previa. Solo corresponde frenar para
 preguntar cuando haya ambigüedad material, impacto destructivo o un
 riesgo no obvio que pueda cambiar la decisión.
 
+Si el usuario pide actualizar `AGENTS.md` o `CLAUDE.md`, actualizar
+siempre ambos archivos aunque solo nombre uno de los dos.
+
 ## Flujo de trabajo por sesión
 
 Al arrancar cada sesión, distinguir cuál de estos dos procedimientos
@@ -105,7 +108,7 @@ realizadas.
    que no tengan la etiqueta `Pospuesto`.
 9. Si una tarea de ese cajón fue realizada por el agente, borrar la
    nota del Archivero y dejar registro con fecha y hora en
-   `Registro_Avance.txt`.
+   `Registro_Avance.txt`, basándose en la plantilla de ese archivo.
 
 ### Procedimiento 2: test de funciones
 
