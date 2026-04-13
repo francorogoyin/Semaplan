@@ -12067,6 +12067,21 @@
             "tu cuenta? Se va a borrar " +
             "todo tu estado y no se puede " +
             "deshacer.",
+          "dialog.eliminar_cuenta_password":
+            "Para eliminar tu cuenta, " +
+            "ingresá tu contraseña actual. " +
+            "Esta acción es definitiva.",
+          "dialog.eliminar_cuenta_password_ph":
+            "Tu contraseña",
+          "dialog.eliminar_cuenta_password_btn":
+            "Continuar",
+          "dialog.no_verificar_password":
+            "No se pudo verificar la " +
+            "contraseña: {Msg}",
+          "dialog.eliminar_cuenta_ultima":
+            "Última confirmación. Esta " +
+            "acción es definitiva. " +
+            "¿Eliminar tu cuenta ahora?",
           "dialog.eliminar_cuenta_btn":
             "Eliminar cuenta",
           "dialog.cuenta_eliminada":
@@ -12074,6 +12089,9 @@
           "dialog.no_eliminar":
             "No se pudo eliminar la " +
             "cuenta: {Msg}",
+          "dialog.contactar_soporte":
+            "Si el problema persiste, " +
+            "contactá soporte.",
           "dialog.sin_horas_bolsa":
             "No hay horas suficientes en " +
             "la bolsa.",
@@ -14016,6 +14034,21 @@
             "delete your account? All " +
             "your data will be erased " +
             "and this can't be undone.",
+          "dialog.eliminar_cuenta_password":
+            "To delete your account, " +
+            "enter your current password. " +
+            "This action is final.",
+          "dialog.eliminar_cuenta_password_ph":
+            "Your password",
+          "dialog.eliminar_cuenta_password_btn":
+            "Continue",
+          "dialog.no_verificar_password":
+            "Couldn't verify the " +
+            "password: {Msg}",
+          "dialog.eliminar_cuenta_ultima":
+            "Final confirmation. This " +
+            "action is permanent. " +
+            "Delete your account now?",
           "dialog.eliminar_cuenta_btn":
             "Delete account",
           "dialog.cuenta_eliminada":
@@ -14024,6 +14057,9 @@
           "dialog.no_eliminar":
             "Couldn't delete the " +
             "account: {Msg}",
+          "dialog.contactar_soporte":
+            "If the problem persists, " +
+            "contact support.",
           "dialog.sin_horas_bolsa":
             "Not enough hours in the " +
             "pool.",
@@ -16009,6 +16045,21 @@
             "excluir sua conta? Todo seu" +
             " estado será apagado e não " +
             "pode ser desfeito.",
+          "dialog.eliminar_cuenta_password":
+            "Para excluir sua conta, " +
+            "digite sua senha atual. " +
+            "Esta ação é definitiva.",
+          "dialog.eliminar_cuenta_password_ph":
+            "Sua senha",
+          "dialog.eliminar_cuenta_password_btn":
+            "Continuar",
+          "dialog.no_verificar_password":
+            "Não foi possível verificar " +
+            "a senha: {Msg}",
+          "dialog.eliminar_cuenta_ultima":
+            "Confirmação final. Esta " +
+            "ação é definitiva. " +
+            "Excluir sua conta agora?",
           "dialog.eliminar_cuenta_btn":
             "Excluir conta",
           "dialog.cuenta_eliminada":
@@ -16016,6 +16067,9 @@
           "dialog.no_eliminar":
             "Não foi possível excluir a " +
             "conta: {Msg}",
+          "dialog.contactar_soporte":
+            "Se o problema persistir, " +
+            "entre em contato com o suporte.",
           "dialog.sin_horas_bolsa":
             "Não há horas suficientes " +
             "no banco.",
@@ -41710,14 +41764,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Paso 1: pedir contraseña.
         const Credenciales =
           await Mostrar_Dialogo_Con_Password_Y_Captcha(
-          "Para eliminar tu cuenta, ingresá tu contraseña " +
-            "actual. Esta acción es definitiva.",
-          {
-            Placeholder: "Tu contraseña",
-            Etiqueta_Confirmar: "Continuar",
-            Etiqueta_Cancelar: "Cancelar"
-          }
-        );
+            t("dialog.eliminar_cuenta_password"),
+            {
+              Placeholder: t(
+                "dialog.eliminar_cuenta_password_ph"
+              ),
+              Etiqueta_Confirmar: t(
+                "dialog.eliminar_cuenta_password_btn"
+              ),
+              Etiqueta_Cancelar: t("cancelar")
+            }
+          );
         if (!Credenciales?.Password) return;
 
         const Verif =
@@ -41728,8 +41785,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         if (!Verif.Ok) {
           await Mostrar_Dialogo(
-            "No se pudo verificar la contraseña: " +
-              Verif.Msg,
+            t("dialog.no_verificar_password", {
+              Msg: Verif.Msg
+            }),
             [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
           );
           return;
@@ -41737,9 +41795,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         // Paso 2: confirmación final con doble botón.
         const Confirmar = await Mostrar_Dialogo(
-          "¿Estás seguro? Esto borrará TODA tu cuenta: " +
-            "tareas, eventos, baúl, metas, patrones y " +
-            "configuración. No se puede deshacer.",
+          t("dialog.eliminar_cuenta_msg"),
           [
             {
               Etiqueta: t("dialog.no_cancelar"),
@@ -41756,8 +41812,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Confirmar) return;
 
         const Confirmar_2 = await Mostrar_Dialogo(
-          "Última confirmación. Esta acción es DEFINITIVA. " +
-            "¿Eliminar tu cuenta ahora?",
+          t("dialog.eliminar_cuenta_ultima"),
           [
             {
               Etiqueta: t("dialog.mejor_no"),
@@ -41782,14 +41837,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           if (Error_Fn || !data?.Ok) {
             await Mostrar_Dialogo(
-              "No se pudo eliminar la cuenta: " +
-                (
+              t("dialog.no_eliminar", {
+                Msg:
                   data?.Error ||
                   Error_Fn?.message ||
                   "Error desconocido"
-                ) +
-                "\n\nSi el problema persiste, contactá " +
-                "soporte.",
+              }) +
+                "\n\n" +
+                t("dialog.contactar_soporte"),
               [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
             );
             return;
@@ -41799,7 +41854,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           location.reload();
         } catch (E) {
           await Mostrar_Dialogo(
-            "Error inesperado: " + E.message,
+            t("auth.error_inesperado", {
+              Msg: E.message
+            }),
             [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
           );
         }
