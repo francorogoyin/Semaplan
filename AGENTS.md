@@ -90,6 +90,10 @@ corresponde según el pedido del usuario.
    primera palabra en mayúscula.
 8. Si la nota corresponde a una tarea pospuesta, usar la etiqueta
    `Pospuesto`.
+9. Cuando una sesión deje una regla operativa útil para el futuro,
+   registrar la regla y no el relato detallado de cómo se llegó a ella.
+   Priorizar instrucciones reutilizables y evitar historial de prueba y
+   error que no aporte decisión operativa.
 
 ### Procedimiento 1: próximas tareas
 
