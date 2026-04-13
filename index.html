@@ -3941,6 +3941,15 @@
 
       .Config_Seccion_Cuenta .Cfg_Cuenta_Campo_Historial {
         margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .Config_Seccion_Cuenta .Cfg_Cuenta_Campo_Acciones {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
       }
 
       .Config_Seccion_Cuenta .Cfg_Cuenta_Campo > .Cfg_Cuenta_Etiqueta {
@@ -4095,11 +4104,11 @@
       }
 
       .Config_Seccion_Cuenta .Cfg_Pagos_Historial {
-        margin-top: 10px;
+        margin-top: 0;
       }
 
       .Config_Seccion_Cuenta .Cfg_Cuenta_Acciones_Fila {
-        margin-top: 14px;
+        margin-top: 0;
         align-items: flex-start;
       }
 
@@ -7755,6 +7764,17 @@
         font-weight: 700;
       }
 
+      .Suscripcion_Estado_Actual {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(15, 95, 90, 0.08);
+        color: var(--Acento);
+        font-size: 13px;
+        font-weight: 700;
+        text-align: center;
+      }
+
       @media (max-width: 620px) {
         .Suscripcion_Grid {
           grid-template-columns: 1fr;
@@ -9271,7 +9291,8 @@
 
               <div class="Cfg_Cuenta_Separador"></div>
 
-              <div class="Cfg_Cuenta_Campo">
+              <div class="Cfg_Cuenta_Campo
+                Cfg_Cuenta_Campo_Acciones">
                 <span class="Cfg_Cuenta_Etiqueta"
                   data-i18n="config.acciones_cuenta">
                   Acciones de cuenta
@@ -9865,6 +9886,10 @@
                     id="Suscripcion_Activar_Trial"
                     data-i18n="suscripcion.activar_trial"
                     type="button">Obtener 1 mes gratis</button>
+                  <div class="Suscripcion_Estado_Actual"
+                    id="Suscripcion_Estado_Free"
+                    data-i18n="suscripcion.plan_actual"
+                    hidden>Este es tu plan</div>
                 </div>
                 <div class="Suscripcion_Card
                   Suscripcion_Card_Upgrade"
@@ -9909,6 +9934,10 @@
                     id="Suscripcion_Elegir_Upgrade"
                     data-i18n="suscripcion.elegir_premium"
                     type="button">Elegir Premium</button>
+                  <div class="Suscripcion_Estado_Actual"
+                    id="Suscripcion_Estado_Upgrade"
+                    data-i18n="suscripcion.plan_actual"
+                    hidden>Este es tu plan</div>
                 </div>
               </div>
             </div>
@@ -11845,6 +11874,12 @@
             "Obtener 1 mes gratis",
           "suscripcion.elegir_premium":
             "Elegir Premium",
+          "suscripcion.pasar_premium":
+            "Pasar a Premium",
+          "suscripcion.plan_actual":
+            "Este es tu plan",
+          "suscripcion.trial_activo":
+            "Tu prueba está activa",
           "suscripcion.feat_calendario":
             "Calendario semanal completo",
           "suscripcion.feat_tareas":
@@ -13820,6 +13855,12 @@
             "Get 1 free month",
           "suscripcion.elegir_premium":
             "Choose Premium",
+          "suscripcion.pasar_premium":
+            "Go Premium",
+          "suscripcion.plan_actual":
+            "This is your plan",
+          "suscripcion.trial_activo":
+            "Your trial is active",
           "suscripcion.feat_calendario":
             "Full weekly calendar",
           "suscripcion.feat_tareas":
@@ -15825,6 +15866,12 @@
             "Obter 1 mês grátis",
           "suscripcion.elegir_premium":
             "Escolher Premium",
+          "suscripcion.pasar_premium":
+            "Ir para o Premium",
+          "suscripcion.plan_actual":
+            "Este é o seu plano",
+          "suscripcion.trial_activo":
+            "Seu teste está ativo",
           "suscripcion.feat_calendario":
             "Calendário semanal completo",
           "suscripcion.feat_tareas":
@@ -25374,11 +25421,65 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const El_Trial = document.getElementById(
           "Suscripcion_Activar_Trial"
         );
+        const El_Free_Btn = document.getElementById(
+          "Suscripcion_Elegir_Free"
+        );
+        const El_Upgrade_Btn = document.getElementById(
+          "Suscripcion_Elegir_Upgrade"
+        );
+        const El_Free_Estado = document.getElementById(
+          "Suscripcion_Estado_Free"
+        );
+        const El_Upgrade_Estado = document.getElementById(
+          "Suscripcion_Estado_Upgrade"
+        );
+        const Es_Trial = Trial_Activo();
+        const Es_Premium_Real =
+          Es_Premium() && !Es_Trial;
+
         if (El_Trial) {
-          El_Trial.style.display =
-            !Es_Premium() && Trial_Disponible()
-              ? ""
-              : "none";
+          El_Trial.style.display = "none";
+        }
+        if (El_Free_Btn) {
+          El_Free_Btn.style.display = "none";
+        }
+        if (El_Free_Estado) {
+          El_Free_Estado.hidden = true;
+          El_Free_Estado.textContent =
+            t("suscripcion.plan_actual");
+        }
+        if (El_Upgrade_Estado) {
+          El_Upgrade_Estado.hidden = true;
+          El_Upgrade_Estado.textContent =
+            t("suscripcion.plan_actual");
+        }
+        if (El_Upgrade_Btn) {
+          El_Upgrade_Btn.style.display = "";
+          El_Upgrade_Btn.textContent =
+            t("suscripcion.elegir_premium");
+        }
+
+        if (Es_Premium_Real) {
+          if (El_Upgrade_Btn) {
+            El_Upgrade_Btn.style.display = "none";
+          }
+          if (El_Upgrade_Estado) {
+            El_Upgrade_Estado.hidden = false;
+          }
+        } else if (Es_Trial) {
+          if (El_Upgrade_Btn) {
+            El_Upgrade_Btn.textContent =
+              t("suscripcion.pasar_premium");
+          }
+          if (El_Upgrade_Estado) {
+            El_Upgrade_Estado.hidden = false;
+            El_Upgrade_Estado.textContent =
+              t("suscripcion.trial_activo");
+          }
+        } else {
+          if (El_Free_Estado) {
+            El_Free_Estado.hidden = false;
+          }
         }
         El_Suscripcion_Card_Free?.classList.toggle(
           "Activa",
