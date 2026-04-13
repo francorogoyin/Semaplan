@@ -41127,6 +41127,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Auth_Modo = "Login";
       let Auth_Turnstile_Widget_Id = null;
 
+      function Auth_QA_Sin_Captcha_Activa() {
+        return localStorage.getItem(
+          "Semaplan_QA_Sin_Captcha"
+        ) === "1";
+      }
+
+      function Auth_Captcha_Activa() {
+        return !Auth_QA_Sin_Captcha_Activa();
+      }
+
       function Mostrar_Auth() {
         document.getElementById("App_Loader")
           .classList.add("Oculto");
@@ -41145,7 +41155,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Cont = document.getElementById(
           "Auth_Turnstile"
         );
-        if (!Cont || !window.turnstile) return;
+        if (!Cont) return;
         try {
           if (
             Auth_Turnstile_Widget_Id !== null &&
@@ -41156,7 +41166,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           }
         } catch (_) {}
+        Auth_Turnstile_Widget_Id = null;
         Cont.innerHTML = "";
+        Cont.style.display = Auth_Captcha_Activa()
+          ? ""
+          : "none";
+        if (!Auth_Captcha_Activa() || !window.turnstile) return;
         if (typeof window.turnstile.render !== "function") {
           return;
         }
@@ -41296,6 +41311,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Resetear_Captcha() {
         // Resetea el widget de Turnstile para
         // que se pueda usar de nuevo.
+        if (!Auth_Captcha_Activa()) return;
         if (window.turnstile) {
           if (
             Auth_Turnstile_Widget_Id !== null &&
@@ -41441,15 +41457,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           document.querySelector(
             "[name='cf-turnstile-response']"
           )?.value;
-        if (!Captcha_Token) {
+        if (Auth_Captcha_Activa() && !Captcha_Token) {
           Mostrar_Auth_Mensaje(
             t("auth.captcha")
           );
           return;
         }
-        const Captcha_Opts = {
-          captchaToken: Captcha_Token,
-        };
+        const Captcha_Opts = Captcha_Token
+          ? { captchaToken: Captcha_Token }
+          : {};
 
         Btn.disabled = true;
         Mostrar_Auth_Mensaje("");
