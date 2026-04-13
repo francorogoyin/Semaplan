@@ -696,6 +696,7 @@
 
       .Calendario_Top {
         display: flex;
+        flex-wrap: wrap;
         justify-content: space-between;
         align-items: center;
         gap: 12px;
@@ -823,52 +824,33 @@
       .Plan_Top_Indicador {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        min-height: 32px;
-        padding: 0 12px;
-        border: 1px solid var(--Borde);
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.74);
-        color: var(--Texto_Suave);
+        gap: 6px;
+        flex: 1 0 100%;
+        order: 3;
+        min-height: 0;
+        padding: 0;
+        margin-top: -4px;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        color: #b64545;
         font-size: 12px;
-        font-weight: 700;
-        white-space: nowrap;
+        font-weight: 800;
+        white-space: normal;
       }
 
       .Plan_Top_Indicador::before {
         content: "";
-        width: 7px;
-        height: 7px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
         background: currentColor;
-        opacity: 0.72;
+        opacity: 0.88;
         flex: 0 0 auto;
       }
 
-      .Plan_Top_Indicador.Free {
-        color: #647260;
-        background: rgba(232, 240, 228, 0.84);
-      }
-
-      .Plan_Top_Indicador.Trial {
-        color: #8a6b12;
-        background: rgba(255, 241, 199, 0.9);
-      }
-
-      .Plan_Top_Indicador.Premium,
-      .Plan_Top_Indicador.Renueva {
-        color: var(--Acento);
-        background: rgba(215, 236, 232, 0.88);
-      }
-
       .Plan_Top_Indicador.Cancelada {
-        color: #8a5532;
-        background: rgba(243, 224, 210, 0.9);
-      }
-
-      .Plan_Top_Indicador.Pendiente {
-        color: #6f5b2a;
-        background: rgba(240, 232, 205, 0.92);
+        color: #b64545;
       }
 
       .Calendario_Config label {
@@ -6491,7 +6473,7 @@
         }
 
         .Plan_Top_Indicador {
-          order: 3;
+          margin-top: -2px;
         }
       }
 
@@ -11595,7 +11577,7 @@
           "topbar.renueva":
             "💎 Renueva {Fecha}",
           "topbar.cancela":
-            "💎 Activo hasta {Fecha}",
+            "Tu suscripción se cancela el {Fecha}",
           "topbar.pendiente":
             "🕓 Suscripción pendiente",
           "baul.buscar": "Buscar",
@@ -13548,7 +13530,7 @@
           "topbar.renueva":
             "💎 Renews {Fecha}",
           "topbar.cancela":
-            "💎 Active until {Fecha}",
+            "Your subscription ends on {Fecha}",
           "topbar.pendiente":
             "🕓 Subscription pending",
           "config.eliminar_cuenta":
@@ -15498,7 +15480,7 @@
           "topbar.renueva":
             "💎 Renova em {Fecha}",
           "topbar.cancela":
-            "💎 Ativo até {Fecha}",
+            "Sua assinatura termina em {Fecha}",
           "topbar.pendiente":
             "🕓 Assinatura pendente",
           "config.eliminar_cuenta":
@@ -24777,24 +24759,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Obtener_Modelo_Top_Suscripcion() {
         const Suscripcion = Suscripcion_Detalle_Remota;
-        if (!Suscripcion) {
-          if (Trial_Activo()) {
-            return {
-              Clase: "Trial",
-              Texto: t("topbar.trial")
-            };
-          }
-          if (Es_Premium()) {
-            return {
-              Clase: "Premium",
-              Texto: t("topbar.premium")
-            };
-          }
-          return {
-            Clase: "Free",
-            Texto: t("topbar.free")
-          };
-        }
+        if (!Suscripcion) return null;
         const Estado = String(
           Suscripcion.estado || ""
         ).toLowerCase();
@@ -24803,22 +24768,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Suscripcion
           )
         );
-        if (Estado === "trial" && Fecha) {
-          return {
-            Clase: "Trial",
-            Texto: t("topbar.trial_hasta", {
-              Fecha
-            })
-          };
-        }
-        if (Estado === "authorized" && Fecha) {
-          return {
-            Clase: "Renueva",
-            Texto: t("topbar.renueva", {
-              Fecha
-            })
-          };
-        }
         if (
           (Estado === "cancelled"
             || Estado === "paused")
@@ -24831,22 +24780,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             })
           };
         }
-        if (Estado === "pending") {
-          return {
-            Clase: "Pendiente",
-            Texto: t("topbar.pendiente")
-          };
-        }
-        if (Es_Premium()) {
-          return {
-            Clase: "Premium",
-            Texto: t("topbar.premium")
-          };
-        }
-        return {
-          Clase: "Free",
-          Texto: t("topbar.free")
-        };
+        return null;
       }
 
       function Renderizar_Top_Suscripcion() {
