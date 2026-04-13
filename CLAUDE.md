@@ -89,7 +89,7 @@ corresponde según el pedido del usuario.
 7. Si se agregan etiquetas en notas del Archivero, escribirlas con la
    primera palabra en mayúscula.
 8. Si la nota corresponde a una tarea pospuesta, usar la etiqueta
-   `Pospuesto`.
+   `Pospuesta`.
 9. Cuando una sesión deje una regla operativa útil para el futuro,
    registrar la regla en esta sección de notas operativas y no el
    relato detallado de cómo se llegó a ella. Priorizar instrucciones
@@ -117,11 +117,13 @@ realizadas.
 4. Cuando el usuario pida revisar próximas tareas, usar siempre
    `Semaplan.com` -> `Archivero` -> cajón `Semaplan`.
 5. Si el usuario lo pide, agregar nuevas notas en ese cajón.
-6. Si el usuario lo pide, editar notas existentes en ese cajón.
-7. Si el usuario lo pide, borrar notas existentes en ese cajón.
-8. Las próximas tareas a realizar son siempre las notas de ese cajón
-   que no tengan la etiqueta `Pospuesto`.
-9. Si una tarea de ese cajón fue realizada por el agente, borrar la
+6. Cuando Codex agregue una tarea normal en ese cajón, usar la
+   etiqueta `Inmediata`.
+7. Si el usuario lo pide, editar notas existentes en ese cajón.
+8. Si el usuario lo pide, borrar notas existentes en ese cajón.
+9. Las próximas tareas a leer son siempre las notas de ese cajón
+   que tengan la etiqueta `Inmediata`.
+10. Si una tarea de ese cajón fue realizada por el agente, borrar la
    nota del Archivero y dejar registro con fecha y hora en
    `Registro_Avance.txt`, basándose en la plantilla de ese archivo. Ese
    registro se agrega siempre al final, una vez terminada la tarea.
