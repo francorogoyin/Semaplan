@@ -41152,6 +41152,54 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      async function Verificar_Password_Actual(
+        Email,
+        Password
+      ) {
+        if (!window.supabase?.createClient) {
+          return {
+            Ok: false,
+            Msg: "SDK de Supabase no disponible"
+          };
+        }
+        const Supa_Verif =
+          window.supabase.createClient(
+            Supabase_Url,
+            Supabase_Anon_Key,
+            {
+              auth: {
+                persistSession: false,
+                autoRefreshToken: false,
+                detectSessionInUrl: false,
+              },
+            }
+          );
+        try {
+          const { error } =
+            await Supa_Verif.auth.signInWithPassword({
+              email: Email,
+              password: Password
+            });
+          if (error) {
+            return {
+              Ok: false,
+              Msg: Traducir_Error_Auth(error.message)
+            };
+          }
+          try {
+            await Supa_Verif.auth.signOut({
+              scope: "local"
+            });
+          } catch (_) {}
+          return { Ok: true, Msg: "" };
+        } catch (E) {
+          return {
+            Ok: false,
+            Msg: E.message || String(E)
+          };
+        }
+      }
+
       function Renderizar_Datos_Cuenta() {
         // Pinta el email, plan actual y fecha de creación en la
         // sección Cuenta del modal Config. Llamar después de
@@ -41378,26 +41426,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Pass) return;
 
         const Email = Usuario_Actual.email || "";
-        try {
-          const { error: Err_Sign } = await Supa.auth
-            .signInWithPassword({
-              email: Email,
-              password: Pass
-            });
-          if (Err_Sign) {
-            await Mostrar_Dialogo(
-              Traducir_Error_Auth(
-                Err_Sign.message
-              ),
-              [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
-            );
-            return;
-          }
-        } catch (E) {
+        const Verif =
+          await Verificar_Password_Actual(
+            Email,
+            Pass
+          );
+        if (!Verif.Ok) {
           await Mostrar_Dialogo(
             t(
               "dialog.no_cancelar_suscripcion",
-              { Msg: E.message || String(E) }
+              { Msg: Verif.Msg }
             ),
             [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
           );
@@ -41490,20 +41528,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Pass) return;
 
-        // Validar la contraseña intentando un signIn.
-        try {
-          const { error: Err_Sign } = await Supa.auth
-            .signInWithPassword({ email: Email, password: Pass });
-          if (Err_Sign) {
-            await Mostrar_Dialogo(
-              "Contraseña incorrecta. La cuenta no se eliminó.",
-              [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
-            );
-            return;
-          }
-        } catch (E) {
+        const Verif =
+          await Verificar_Password_Actual(
+            Email,
+            Pass
+          );
+        if (!Verif.Ok) {
           await Mostrar_Dialogo(
-            "No se pudo verificar la contraseña: " + E.message,
+            "No se pudo verificar la contraseña: " +
+              Verif.Msg,
             [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
           );
           return;
