@@ -41773,16 +41773,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Confirmar_2) return;
 
-        // Paso 3: eliminar vía RPC. Requiere la función
-        // `eliminar_cuenta` en Supabase (ver nota al usuario).
+        // Paso 3: eliminar vía Edge Function.
         try {
-          const { error: Err_RPC } = await Supa.rpc(
-            "eliminar_cuenta"
-          );
-          if (Err_RPC) {
+          const { data, error: Error_Fn } =
+            await Supa.functions.invoke(
+              "eliminar-cuenta",
+              { body: {} }
+            );
+          if (Error_Fn || !data?.Ok) {
             await Mostrar_Dialogo(
               "No se pudo eliminar la cuenta: " +
-                Err_RPC.message +
+                (
+                  data?.Error ||
+                  Error_Fn?.message ||
+                  "Error desconocido"
+                ) +
                 "\n\nSi el problema persiste, contactá " +
                 "soporte.",
               [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
