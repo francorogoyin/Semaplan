@@ -112,14 +112,23 @@ tareas en `Semaplan.com`, entrando con Playwright:
 7. Cuando el usuario pida revisar próximas tareas, no usar
    `Proximos_Avances.txt`; usar siempre `Semaplan.com` -> `Archivero`
    -> cajón `Semaplan`.
-8. Al final de la sesión (cuando el usuario dice "listo", "ok",
+8. Procedimiento para entrar a `Semaplan.com` cuando haga falta:
+   - Primero intentar con una sesión existente de Playwright o Chrome.
+   - Si no alcanza y hace falta bypass local de UI, setear
+     `localStorage["Semaplan_QA_Sin_Captcha"] = "1"` y recargar.
+   - Recordar que ese flag solo evita la exigencia de CAPTCHA en el
+     frontend. Si Supabase Auth sigue exigiendo CAPTCHA, también hay
+     que desactivarlo temporalmente en la configuración hospedada.
+   - Cuando termine la prueba, remover el flag local si ya no hace
+     falta: `localStorage.removeItem("Semaplan_QA_Sin_Captcha")`.
+9. Al final de la sesión (cuando el usuario dice "listo", "ok",
    "perfecto" o similar tras un cambio funcional), commitear y
    pushear los cambios. No esperar a que el usuario lo pida
    explícitamente si ya hay trabajo completo sin commitear.
-9. Regla operativa de git: si una sesión hace `commit`, en ese
+10. Regla operativa de git: si una sesión hace `commit`, en ese
    mismo flujo tiene que hacer `push`. No dejar commits locales
    pendientes salvo que el usuario lo pida explícitamente.
-10. Regla permanente: siempre commitear y luego pushear. No cortar
+11. Regla permanente: siempre commitear y luego pushear. No cortar
     el flujo en `commit` dejando el `push` para después.
 
 ## Sesiones paralelas y staging de commits
