@@ -81,6 +81,10 @@ corresponde según el pedido del usuario.
 5. Referencia práctica de sincronización completa:
    `Sync_Estado === "Guardado"` y
    `Hay_Sync_Pendiente() === false`.
+6. Si se agregan etiquetas en notas del Archivero, escribirlas con la
+   primera palabra en mayúscula.
+7. Si la nota corresponde a una tarea pospuesta, usar la etiqueta
+   `Pospuesto`.
 
 ### Procedimiento 1: próximas tareas
 
@@ -94,6 +98,9 @@ realizadas.
    además de lo que haya pedido explícitamente en el chat.
 4. Cuando el usuario pida revisar próximas tareas, usar siempre
    `Semaplan.com` -> `Archivero` -> cajón `Semaplan`.
+5. Si el usuario lo pide, agregar nuevas notas en ese cajón.
+6. Si el usuario lo pide, editar notas existentes en ese cajón.
+7. Si el usuario lo pide, borrar notas existentes en ese cajón.
 
 ### Procedimiento 2: test de funciones
 
