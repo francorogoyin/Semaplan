@@ -41981,20 +41981,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Confirmar_2) return;
 
-        // Paso 3: eliminar vía Edge Function.
+        // Paso 3: eliminar vía RPC segura en DB.
         try {
-          const { data, error: Error_Fn } =
-            await Supa.functions.invoke(
-              "eliminar-cuenta",
-              { body: {} }
-            );
-          if (Error_Fn || !data?.Ok) {
+          const { error: Err_RPC } = await Supa.rpc(
+            "eliminar_cuenta"
+          );
+          if (Err_RPC) {
             await Mostrar_Dialogo(
               t("dialog.no_eliminar", {
-                Msg:
-                  data?.Error ||
-                  Error_Fn?.message ||
-                  "Error desconocido"
+                Msg: Err_RPC.message
               }) +
                 "\n\n" +
                 t("dialog.contactar_soporte"),
