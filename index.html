@@ -64,6 +64,16 @@
           sans-serif;
       }
 
+      .Emoji_Img {
+        width: 1em;
+        height: 1em;
+        display: inline-block;
+        vertical-align: -0.14em;
+        object-fit: contain;
+        flex: 0 0 auto;
+        pointer-events: none;
+      }
+
       .App_Contenedor {
         display: grid;
         grid-template-columns: minmax(272px, var(--Sidebar_Ancho)) minmax(0, 1fr);
@@ -20005,7 +20015,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         const Borrador = Obtener_Borrador_Baul();
         if (El_Baul_Nuevo_Emoji) {
-          El_Baul_Nuevo_Emoji.textContent = Borrador.Emoji;
+          Aplicar_Emoji_En_Elemento(
+            El_Baul_Nuevo_Emoji,
+            Borrador.Emoji || "🧰"
+          );
+        }
+        if (El_Baul_Detalle_Emoji) {
+          Aplicar_Emoji_En_Elemento(
+            El_Baul_Detalle_Emoji,
+            Borrador.Emoji || "🧰"
+          );
         }
         if (El_Baul_Nuevo_Titulo) {
           El_Baul_Nuevo_Titulo.textContent = Borrador.Nombre
@@ -20692,7 +20711,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Emoji = document.createElement("div");
         Emoji.className = "Baul_Card_Emoji";
-        Emoji.textContent = Tarea.Emoji || "•";
+        Aplicar_Emoji_En_Elemento(
+          Emoji,
+          Tarea.Emoji || "\u2022"
+        );
 
         const Nombre = document.createElement("div");
         Nombre.className = "Baul_Card_Nombre";
@@ -20818,7 +20840,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Emoji = document.createElement("div");
         Emoji.className = "Baul_Fila_Emoji";
-        Emoji.textContent = Tarea.Emoji || "•";
+        Aplicar_Emoji_En_Elemento(
+          Emoji,
+          Tarea.Emoji || "\u2022"
+        );
 
         const Textos = document.createElement("div");
         Textos.className = "Baul_Fila_Textos";
@@ -21943,7 +21968,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Drag.textContent = "⋮⋮";
           const Emoji = document.createElement("span");
           Emoji.className = "Archivero_Cajon_Emoji";
-          Emoji.textContent = Cajon.Emoji || "🗃️";
+          Aplicar_Emoji_En_Elemento(
+            Emoji,
+            Cajon.Emoji || "🗃️"
+          );
           const Nombre = document.createElement("span");
           Nombre.className = "Archivero_Cajon_Nombre";
           Nombre.textContent = Cajon.Nombre;
@@ -31107,7 +31135,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           const Emoji_Sp = document.createElement("span");
           Emoji_Sp.className = "Config_Patron_Emoji";
-          Emoji_Sp.textContent = Patron.Emoji || "📅";
+          Aplicar_Emoji_En_Elemento(
+            Emoji_Sp,
+            Patron.Emoji || "📅"
+          );
 
           const Nombre_Sp = document.createElement("span");
           Nombre_Sp.className = "Config_Patron_Nombre";
@@ -32651,6 +32682,48 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .replaceAll("Ã—", "\u00D7")
           .replaceAll("âœŽ", "\u270E");
         return Corregido.length ? Corregido : "\u2705";
+      }
+
+      function Obtener_Codigo_Emoji_Imagen(Emoji) {
+        const Texto = (Emoji || "").trim();
+        if (!Texto) return "";
+        return Array.from(Texto.normalize())
+          .map((Simbolo) => Simbolo.codePointAt(0))
+          .filter((Punto) => Punto && Punto !== 0xfe0f)
+          .map((Punto) => Punto.toString(16))
+          .join("-");
+      }
+
+      function Crear_Imagen_Emoji(Emoji) {
+        const Texto = Normalizar_Emoji(Emoji || "");
+        const Codigo = Obtener_Codigo_Emoji_Imagen(Texto);
+        if (!Codigo) {
+          return document.createTextNode(Texto);
+        }
+        const Img = document.createElement("img");
+        Img.className = "Emoji_Img";
+        Img.src =
+          "https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0" +
+          `/assets/svg/${Codigo}.svg`;
+        Img.alt = Texto;
+        Img.loading = "lazy";
+        Img.decoding = "async";
+        Img.draggable = false;
+        Img.referrerPolicy = "no-referrer";
+        Img.addEventListener("error", () => {
+          const Nodo_Texto = document.createTextNode(Texto);
+          Img.replaceWith(Nodo_Texto);
+        }, { once: true });
+        return Img;
+      }
+
+      function Aplicar_Emoji_En_Elemento(El, Emoji) {
+        if (!El) return;
+        const Texto = Normalizar_Emoji(Emoji || "");
+        El.innerHTML = "";
+        El.dataset.emojiTexto = Texto;
+        El.setAttribute("aria-label", Texto);
+        El.appendChild(Crear_Imagen_Emoji(Texto));
       }
 
       function Formatear_Horas(Horas) {
@@ -35690,7 +35763,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Fracasada) Boton.classList.add("Fracasada");
         else if (Completa) Boton.classList.add("Completa");
-        Boton.textContent = Tarea.Emoji;
+        Aplicar_Emoji_En_Elemento(
+          Boton,
+          Tarea.Emoji || "\u2022"
+        );
         if (
           Config.Globito_Activo !== false &&
           Tarea.Es_Bolsa &&
@@ -36836,7 +36912,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Tarea, Horas_Hechas, Total_Horas,
           Subs_Hechas, Total_Subs, Color_T
         );
-        El_Resumen_Emoji.textContent = Tarea.Emoji || "\u2022";
+        Aplicar_Emoji_En_Elemento(
+          El_Resumen_Emoji,
+          Tarea.Emoji || "\u2022"
+        );
         El_Resumen_Libres.textContent = "";
         El_Resumen_Total.textContent = "";
         const Porcentaje = Tarea.Es_Bolsa && Tarea.Horas_Semanales > 0
@@ -36880,7 +36959,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           const Emoji_Label = document.createElement("div");
           Emoji_Label.className = "Subtarea_Emoji_Label";
-          Emoji_Label.textContent = Subtarea.Emoji || "\u2022";
+          Aplicar_Emoji_En_Elemento(
+            Emoji_Label,
+            Subtarea.Emoji || "\u2022"
+          );
           Emoji_Label.dataset.rol = "editar";
 
           const Emoji_Input = document.createElement("input");
@@ -37024,7 +37106,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : 0;
         El_Editor_Nombre.textContent = Fuente.Nombre || "Sin nombre";
         El_Editor_Estado.textContent = Fuente.Es_Bolsa ? `${Formatear_Horas(Horas_Restantes)} libres` : "Tarea normal";
-        El_Editor_Emoji.textContent = Fuente.Emoji || "\u2022";
+        Aplicar_Emoji_En_Elemento(
+          El_Editor_Emoji,
+          Fuente.Emoji || "\u2022"
+        );
         El_Editor_Horas_Input.disabled = !Fuente.Es_Bolsa;
       }
 
@@ -40382,7 +40467,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Btn = document.createElement("button");
           Btn.type = "button";
           Btn.className = "Selector_Emojis_Tab";
-          Btn.textContent = Cat.Icono;
+          Aplicar_Emoji_En_Elemento(
+            Btn,
+            Cat.Icono || "😀"
+          );
           Btn.title = Cat.Etiqueta;
           Btn.dataset.cat = Cat.Id;
           Btn.addEventListener("mousedown", (Ev) => {
@@ -40454,7 +40542,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Btn = document.createElement("button");
           Btn.type = "button";
           Btn.className = "Selector_Emojis_Btn";
-          Btn.textContent = Item[0];
+          Aplicar_Emoji_En_Elemento(
+            Btn,
+            Item[0] || "😀"
+          );
           Btn.title = Item[1];
           Btn.addEventListener("mousedown", (Ev) => {
             Ev.preventDefault();
