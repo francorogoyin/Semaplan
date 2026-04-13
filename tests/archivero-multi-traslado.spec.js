@@ -188,19 +188,31 @@ test("permite operar con varias notas del archivero", async ({
   await expect(
     page.locator("#Archivero_Multi_Acciones")
   ).toBeVisible();
-  await page.fill("#Archivero_Multi_Etiquetas_Input", "Urgente");
+  await expect(
+    page.locator("#Archivero_Multi_Etiquetas_Input")
+  ).toHaveCount(0);
+  await expect(
+    page.locator("#Archivero_Multi_Cajon_Select")
+  ).toHaveCount(0);
+  await page.evaluate(() => {
+    window.Mostrar_Dialogo_Con_Texto = async () => "Urgente";
+  });
   await page.click("#Archivero_Multi_Etiquetas_Agregar_Btn");
   let data = await page.evaluate(() => ({
     tags: Notas_Archivero.map((nota) => nota.Etiquetas.join(","))
   }));
   expect(data.tags).toEqual(["Urgente", "Urgente"]);
-  await page.fill("#Archivero_Multi_Etiquetas_Input", "Urgente");
   await page.click("#Archivero_Multi_Etiquetas_Quitar_Btn");
   data = await page.evaluate(() => ({
     tags: Notas_Archivero.map((nota) => nota.Etiquetas.length)
   }));
   expect(data.tags).toEqual([0, 0]);
-  await page.selectOption("#Archivero_Multi_Cajon_Select", "c2");
+  await page.evaluate(() => {
+    window.Mostrar_Dialogo = async (mensaje) => {
+      if (mensaje === "Mover seleccionadas") return "c2";
+      return true;
+    };
+  });
   await page.click("#Archivero_Multi_Mover_Btn");
 
   data = await page.evaluate(() => ({
@@ -213,9 +225,6 @@ test("permite operar con varias notas del archivero", async ({
   expect(data.enDestino).toEqual(["Primera", "Segunda"]);
 
   await page.click("[data-cajon-id='c2']");
-  await page.evaluate(() => {
-    window.Mostrar_Dialogo = async () => true;
-  });
   await page.click("[data-nota-id='n1']", {
     modifiers: ["Control"]
   });

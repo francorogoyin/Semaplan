@@ -6047,6 +6047,7 @@
         gap: 6px;
         min-width: 0;
         flex-wrap: nowrap;
+        flex: 1 1 auto;
       }
       .Archivero_Multi_Conteo {
         flex-basis: 100%;
@@ -6055,10 +6056,9 @@
         color: var(--Texto);
         white-space: nowrap;
       }
-      .Archivero_Multi_Grupo .Archivero_Control_Select {
+      .Archivero_Multi_Grupo .Archivero_Sub_Btn {
         min-height: 30px;
-        padding: 4px 8px;
-        border-radius: 999px;
+        padding: 4px 10px;
         font-size: 12px;
       }
       .Archivero_Sub_Btn.Compacto {
@@ -10641,11 +10641,6 @@
                 id="Archivero_Multi_Acciones"
                 style="display:none">
                 <div class="Archivero_Multi_Grupo">
-                  <input type="text"
-                    class="Archivero_Control_Select"
-                    id="Archivero_Multi_Etiquetas_Input"
-                    data-i18n-ph="archivero.etiquetas_ph"
-                    placeholder="Ej. Idea, Proyecto" />
                   <button type="button"
                     class="Archivero_Sub_Btn Compacto"
                     id="Archivero_Multi_Etiquetas_Agregar_Btn"
@@ -10660,8 +10655,6 @@
                   </button>
                 </div>
                 <div class="Archivero_Multi_Grupo">
-                  <select class="Archivero_Control_Select"
-                    id="Archivero_Multi_Cajon_Select"></select>
                   <button type="button"
                     class="Archivero_Sub_Btn Primario Compacto"
                     id="Archivero_Multi_Mover_Btn"
@@ -12145,6 +12138,8 @@
             "Agregar etiquetas",
           "archivero.quitar_etiquetas":
             "Quitar etiquetas",
+          "archivero.sin_otros_cajones":
+            "No hay otros cajones disponibles.",
           "archivero.borrar_seleccion":
             "Borrar seleccionadas",
           "archivero.seleccion_n":
@@ -14184,6 +14179,8 @@
             "Add tags",
           "archivero.quitar_etiquetas":
             "Remove tags",
+          "archivero.sin_otros_cajones":
+            "There are no other drawers available.",
           "archivero.borrar_seleccion":
             "Delete selected",
           "archivero.seleccion_n":
@@ -16239,6 +16236,8 @@
             "Adicionar tags",
           "archivero.quitar_etiquetas":
             "Remover tags",
+          "archivero.sin_otros_cajones":
+            "Nao ha outros gaveteiros disponiveis.",
           "archivero.borrar_seleccion":
             "Apagar selecionadas",
           "archivero.seleccion_n":
@@ -21048,18 +21047,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Conteo = document.getElementById(
           "Archivero_Multi_Conteo"
         );
-        const Select = document.getElementById(
-          "Archivero_Multi_Cajon_Select"
-        );
-        const Input_Etiquetas = document.getElementById(
-          "Archivero_Multi_Etiquetas_Input"
-        );
-        if (!Barra || !Conteo || !Select) return;
+        if (!Barra || !Conteo) return;
         const Cantidad = Archivero_Notas_Seleccionadas.size;
         if (Cantidad === 0) {
           Barra.style.display = "none";
-          Select.innerHTML = "";
-          if (Input_Etiquetas) Input_Etiquetas.value = "";
           return;
         }
         Barra.style.display = "";
@@ -21069,22 +21060,66 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Destinos = Archiveros.filter(
           (Cajon) => Cajon.Id !== Archivero_Seleccion_Id
         );
-        Select.innerHTML = "";
-        Destinos.forEach((Cajon) => {
-          const Op = document.createElement("option");
-          Op.value = Cajon.Id;
-          Op.textContent =
-            (Cajon.Emoji || "🗃️") + " " + Cajon.Nombre;
-          Select.appendChild(Op);
-        });
         const Tiene_Destinos = Destinos.length > 0;
-        Select.disabled = !Tiene_Destinos;
         const Btn = document.getElementById(
           "Archivero_Multi_Mover_Btn"
         );
         if (Btn) {
           Btn.disabled = !Tiene_Destinos;
         }
+      }
+
+      async function Pedir_Etiquetas_Multi_Archivero(Modo) {
+        const Es_Agregar = Modo === "Agregar";
+        const Valor = await Mostrar_Dialogo_Con_Texto(
+          Es_Agregar
+            ? t("archivero.agregar_etiquetas")
+            : t("archivero.quitar_etiquetas"),
+          {
+            Placeholder: t("archivero.etiquetas_ph"),
+            Etiqueta_Confirmar: Es_Agregar
+              ? t("archivero.agregar_etiquetas")
+              : t("archivero.quitar_etiquetas"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (Valor == null) return;
+        Aplicar_Etiquetas_A_Notas_Seleccionadas_Archivero(
+          Modo,
+          Valor
+        );
+      }
+
+      async function Pedir_Cajon_Destino_Multi_Archivero() {
+        const Destinos = Archiveros.filter(
+          (Cajon) => Cajon.Id !== Archivero_Seleccion_Id
+        );
+        if (Destinos.length === 0) {
+          await Mostrar_Dialogo(
+            t("archivero.sin_otros_cajones"),
+            [
+              { Etiqueta: t("ok"), Valor: true,
+                Tipo: "Primario" }
+            ]
+          );
+          return "";
+        }
+        return await Mostrar_Dialogo(
+          t("archivero.mover_seleccion"),
+          [
+            ...Destinos.map((Cajon) => ({
+              Etiqueta:
+                `${Cajon.Emoji || "🗃️"} ${Cajon.Nombre}`,
+              Valor: Cajon.Id,
+              Tipo: "Secundario"
+            })),
+            {
+              Etiqueta: t("cancelar"),
+              Valor: "",
+              Tipo: "Cancelar"
+            }
+          ]
+        );
       }
 
       function Mover_Notas_Seleccionadas_Archivero(
@@ -21104,13 +21139,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Aplicar_Etiquetas_A_Notas_Seleccionadas_Archivero(
-        Modo
+        Modo,
+        Texto_Etiquetas = ""
       ) {
-        const Input = document.getElementById(
-          "Archivero_Multi_Etiquetas_Input"
-        );
         const Etiquetas = Parsear_Etiquetas_Archivero(
-          Input?.value || ""
+          Texto_Etiquetas
         );
         if (Etiquetas.length === 0) return;
         const Ids = new Set(Archivero_Notas_Seleccionadas);
@@ -21143,7 +21176,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           });
         });
-        if (Input) Input.value = "";
         Guardar_Estado();
         Render_Archivero();
       }
@@ -37816,25 +37848,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Exportar_Cajon_Archivero();
         });
       document.getElementById("Archivero_Multi_Mover_Btn")
-        ?.addEventListener("click", () => {
-          const Select = document.getElementById(
-            "Archivero_Multi_Cajon_Select"
-          );
+        ?.addEventListener("click", async () => {
+          const Cajon_Id =
+            await Pedir_Cajon_Destino_Multi_Archivero();
           Mover_Notas_Seleccionadas_Archivero(
-            Select?.value || ""
+            Cajon_Id || ""
           );
         });
       document.getElementById(
         "Archivero_Multi_Etiquetas_Agregar_Btn"
-      )?.addEventListener("click", () => {
-        Aplicar_Etiquetas_A_Notas_Seleccionadas_Archivero(
+      )?.addEventListener("click", async () => {
+        await Pedir_Etiquetas_Multi_Archivero(
           "Agregar"
         );
       });
       document.getElementById(
         "Archivero_Multi_Etiquetas_Quitar_Btn"
-      )?.addEventListener("click", () => {
-        Aplicar_Etiquetas_A_Notas_Seleccionadas_Archivero(
+      )?.addEventListener("click", async () => {
+        await Pedir_Etiquetas_Multi_Archivero(
           "Quitar"
         );
       });

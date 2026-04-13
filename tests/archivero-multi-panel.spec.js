@@ -175,12 +175,20 @@ test("muestra la barra multi abajo y limpia al click afuera", async ({
     const Lista = document.getElementById("Archivero_Notas_Lista");
     const Barra = document.getElementById("Archivero_Multi_Acciones");
     const Conteo = document.getElementById("Archivero_Multi_Conteo");
+    const Campo_Etiquetas = document.getElementById(
+      "Archivero_Multi_Etiquetas_Input"
+    );
+    const Select_Cajon = document.getElementById(
+      "Archivero_Multi_Cajon_Select"
+    );
     const Estilo = window.getComputedStyle(Barra);
     const Estilo_Conteo = window.getComputedStyle(Conteo);
     return {
       display: Estilo.display,
       borderTopWidth: Estilo.borderTopWidth,
       conteoCompleto: Estilo_Conteo.flexBasis,
+      sinCampoEtiquetas: !Campo_Etiquetas,
+      sinSelectCajon: !Select_Cajon,
       abajoDeLista: Boolean(
         Lista.compareDocumentPosition(Barra)
           & Node.DOCUMENT_POSITION_FOLLOWING
@@ -204,6 +212,8 @@ test("muestra la barra multi abajo y limpia al click afuera", async ({
   expect(estilos.display).toBe("flex");
   expect(estilos.borderTopWidth).toBe("0px");
   expect(estilos.conteoCompleto).toBe("100%");
+  expect(estilos.sinCampoEtiquetas).toBe(true);
+  expect(estilos.sinSelectCajon).toBe(true);
   expect(cantidadTrasClick).toBe(0);
   expect(estilos.abajoDeLista).toBe(true);
 });
