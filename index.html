@@ -9294,9 +9294,26 @@
                     >Hamburguesa ☰</option>
                 </select>
               </div>
-              <div id="Cfg_Menu_Botones_Lista"
-                style="display:flex;flex-direction:column;
-                  gap:4px;margin-top:8px"></div>
+              <div id="Cfg_Menu_Botones_Bloque"
+                style="margin-top:8px">
+                <div id="Cfg_Menu_Botones_Acciones"
+                  style="display:flex;gap:8px;flex-wrap:wrap;
+                    margin-bottom:8px">
+                  <button type="button"
+                    class="Config_Dato_Btn"
+                    id="Cfg_Menu_Botones_Tildar"
+                    data-i18n="config.tildar_todos"
+                    >Tildar todos</button>
+                  <button type="button"
+                    class="Config_Dato_Btn"
+                    id="Cfg_Menu_Botones_Destildar"
+                    data-i18n="config.destildar_todos"
+                    >Destildar todos</button>
+                </div>
+                <div id="Cfg_Menu_Botones_Lista"
+                  style="display:flex;flex-direction:column;
+                    gap:4px"></div>
+              </div>
             </div>
 
             <div class="Config_Seccion">
@@ -11753,6 +11770,10 @@
             "Iconos en línea",
           "config.hamburguesa_opt":
             "Hamburguesa ☰",
+          "config.tildar_todos":
+            "Tildar todos",
+          "config.destildar_todos":
+            "Destildar todos",
           "config.datos": "Datos",
           "config.datos_hint":
             "Exportar baja todo el estado " +
@@ -13763,6 +13784,10 @@
             "Inline icons",
           "config.hamburguesa_opt":
             "Hamburger ☰",
+          "config.tildar_todos":
+            "Select all",
+          "config.destildar_todos":
+            "Clear all",
           "config.datos": "Data",
           "config.datos_hint":
             "Export downloads the full " +
@@ -15768,6 +15793,10 @@
             "Ícones em linha",
           "config.hamburguesa_opt":
             "Hamburger ☰",
+          "config.tildar_todos":
+            "Marcar todos",
+          "config.destildar_todos":
+            "Desmarcar todos",
           "config.datos": "Dados",
           "config.datos_hint":
             "Exportar baixa todo o " +
@@ -30065,6 +30094,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      function Actualizar_Cfg_Menu_Botones_Bloque() {
+        const Bloque = document.getElementById(
+          "Cfg_Menu_Botones_Bloque"
+        );
+        if (!Bloque) return;
+        const Ocultar =
+          Config.Menu_Estilo === "Hamburguesa";
+        Bloque.style.display = Ocultar ? "none" : "";
+      }
+
+      function Setear_Cfg_Menu_Botones_Todos(Visible) {
+        const Btns = document.querySelectorAll(
+          "#Calendario_Top_Acciones .Menu_Btn"
+        );
+        if (!Config.Menu_Botones_Visibles) {
+          Config.Menu_Botones_Visibles = {};
+        }
+        Btns.forEach((B) => {
+          const Key = B.dataset.menuKey;
+          if (!Key) return;
+          Config.Menu_Botones_Visibles[Key] = Boolean(Visible);
+        });
+        Render_Cfg_Menu_Botones_Lista();
+        Aplicar_Estilo_Menu();
+      }
+
       function Render_Cfg_Menu_Botones_Lista() {
         // Renderiza la lista de checkboxes en el modal Config
         // para elegir qué botones del menú se ven. Lee de los
@@ -30112,6 +30167,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fila.appendChild(Lab);
           Cont.appendChild(Fila);
         });
+        Actualizar_Cfg_Menu_Botones_Bloque();
       }
 
       function Cerrar_Config() {
@@ -36357,7 +36413,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Val === "Iconos" || Val === "Hamburguesa") {
             Config.Menu_Estilo = Val;
             Aplicar_Estilo_Menu();
+            Actualizar_Cfg_Menu_Botones_Bloque();
           }
+        });
+      document.getElementById("Cfg_Menu_Botones_Tildar")
+        ?.addEventListener("click", () => {
+          Setear_Cfg_Menu_Botones_Todos(true);
+        });
+      document.getElementById("Cfg_Menu_Botones_Destildar")
+        ?.addEventListener("click", () => {
+          Setear_Cfg_Menu_Botones_Todos(false);
         });
       document.getElementById("Menu_Hamburguesa_Boton")
         ?.addEventListener("click", (Ev) => {
