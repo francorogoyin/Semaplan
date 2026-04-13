@@ -84,9 +84,11 @@ corresponde según el pedido del usuario.
 5. Referencia práctica de sincronización completa:
    `Sync_Estado === "Guardado"` y
    `Hay_Sync_Pendiente() === false`.
-6. Si se agregan etiquetas en notas del Archivero, escribirlas con la
+6. Al buscar, editar o borrar notas del Archivero por texto, comparar
+   con texto normalizado y no depender de acentos o codificación.
+7. Si se agregan etiquetas en notas del Archivero, escribirlas con la
    primera palabra en mayúscula.
-7. Si la nota corresponde a una tarea pospuesta, usar la etiqueta
+8. Si la nota corresponde a una tarea pospuesta, usar la etiqueta
    `Pospuesto`.
 
 ### Procedimiento 1: próximas tareas
@@ -121,13 +123,15 @@ de Semaplan con Playwright/Codex.
 
 ### Git después de cada cambio
 
-1. Después de cada cambio funcional o cambio de instrucciones ya
+1. Antes de cerrar un cambio funcional, validarlo con Playwright sobre
+   el flujo afectado, sea cambio, agregado, edición o borrado.
+2. Después de cada cambio funcional o cambio de instrucciones ya
    resuelto en esta sesión, commitear y pushear sin esperar al final
    de la sesión ni a que el usuario lo pida explícitamente.
-2. Regla operativa de git: cada `commit` debe ir seguido en ese mismo
+3. Regla operativa de git: cada `commit` debe ir seguido en ese mismo
    flujo por su `push`. No dejar commits locales pendientes salvo que
    el usuario lo pida explícitamente.
-3. Regla permanente: no cortar el flujo en `commit` dejando el
+4. Regla permanente: no cortar el flujo en `commit` dejando el
    `push` para después.
 
 ## Sesiones paralelas y staging de commits
