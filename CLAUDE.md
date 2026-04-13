@@ -107,6 +107,9 @@ corresponde según el pedido del usuario.
     `Time_Blocking_Estado_V2` en esa sesión temporal para forzar carga
     desde Supabase y evitar que `localStorage` viejo falsee el estado
     remoto.
+12. Si Playwright o Chromium fallan por bloqueo de sandbox o permisos,
+    pedir escalado enseguida y no repetir intentos inútiles dentro del
+    sandbox.
 
 ### Procedimiento 1: próximas tareas
 
@@ -159,6 +162,9 @@ de Semaplan con Playwright/Codex.
    independientes, hacer un `commit` y `push` separado por cada
    funcionalidad. No agrupar varias funcionalidades resueltas en un
    solo commit.
+6. Si `git add`, `git commit` o acciones sobre `.git` fallan por
+   sandbox, permisos o `index.lock`, escalar de inmediato y no seguir
+   probando la misma operación dentro del sandbox.
 
 ## Sesiones paralelas y staging de commits
 
