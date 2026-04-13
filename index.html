@@ -25528,7 +25528,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Supa || !Usuario_Actual) return;
         try {
           const { data, error } =
-            await Supa.functions.invoke(
+            await Invocar_Edge_Con_Sesion(
               "estado-suscripcion",
               { method: "GET" }
             );
@@ -25656,7 +25656,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         try {
           const { data: Datos, error } =
-            await Supa.functions.invoke(
+            await Invocar_Edge_Con_Sesion(
               "crear-suscripcion",
               {
                 body: {
@@ -27255,7 +27255,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Supa || !Usuario_Actual) return false;
         try {
           const { data, error } =
-            await Supa.functions.invoke(
+            await Invocar_Edge_Con_Sesion(
               "activar-trial",
               {
                 method: "POST",
@@ -40854,6 +40854,56 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      async function Invocar_Edge_Con_Sesion(
+        Nombre,
+        Opciones = {}
+      ) {
+        if (!Supa) {
+          return {
+            data: null,
+            error: {
+              message: "Supabase no inicializado"
+            }
+          };
+        }
+
+        let {
+          data: { session: Sesion }
+        } = await Supa.auth.getSession();
+
+        if (!Sesion?.access_token) {
+          const {
+            data,
+            error
+          } = await Supa.auth.refreshSession();
+          if (error) {
+            return { data: null, error };
+          }
+          Sesion = data?.session || null;
+        }
+
+        if (!Sesion?.access_token) {
+          return {
+            data: null,
+            error: {
+              message: "Sesión inválida"
+            }
+          };
+        }
+
+        return await Supa.functions.invoke(
+          Nombre,
+          {
+            ...Opciones,
+            headers: {
+              ...(Opciones.headers || {}),
+              Authorization:
+                `Bearer ${Sesion.access_token}`
+            }
+          }
+        );
+      }
+
       // ----- Indicador visual de sincronización -----
 
       function Actualizar_Sync_Indicador(Estado_Nuevo) {
@@ -41815,7 +41865,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         try {
           const { data, error } =
-            await Supa.functions.invoke(
+            await Invocar_Edge_Con_Sesion(
               "cancelar-suscripcion",
               { method: "POST" }
             );
