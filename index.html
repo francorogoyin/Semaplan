@@ -18795,6 +18795,7 @@
       // libre), Tipo ("Texto" | "Link") y Fecha_Creacion.
       let Archiveros = [];
       let Notas_Archivero = [];
+      let Etiquetas_Archivero = [];
       // Estado de UI del modal Archivero.
       let Archivero_Seleccion_Id = null;
       let Archivero_Busqueda = "";
@@ -21996,25 +21997,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Ids = Array.isArray(Nota_Ids)
           ? new Set(Nota_Ids)
           : null;
-        const Etiquetas = new Map();
-        Notas_Archivero.forEach((Nota) => {
-          if (Ids && !Ids.has(Nota.Id)) return;
-          if (!Array.isArray(Nota.Etiquetas)) return;
-          Nota.Etiquetas.forEach((Etiqueta) => {
-            const Limpia = String(Etiqueta || "").trim();
-            if (!Limpia) return;
-            const Clave =
-              Normalizar_Texto_Archivero(Limpia);
-            if (!Etiquetas.has(Clave)) {
-              Etiquetas.set(Clave, Limpia);
-            }
-          });
-        });
-        return [...Etiquetas.values()].sort((A, B) => {
-          return A.localeCompare(B, "es", {
-            sensitivity: "base"
-          });
-        });
+        return Obtener_Catalogo_Etiquetas_Archivero(Ids);
       }
 
       function Renderizar_Sugerencias_Nota_Archivero() {
@@ -22122,6 +22105,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto_Etiquetas
         );
         if (Etiquetas.length === 0) return;
+        if (Modo === "Agregar") {
+          Registrar_Etiquetas_Archivero(Etiquetas);
+        }
         const Ids = new Set(Archivero_Notas_Seleccionadas);
         if (Ids.size === 0) return;
         const Etiquetas_Norm = new Set(
@@ -22185,6 +22171,53 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .replace(/[\u0300-\u036f]/g, "")
           .trim()
           .toLowerCase();
+      }
+
+      function Normalizar_Etiquetas_Archivero(Lista) {
+        const Etiquetas = new Map();
+        (Array.isArray(Lista) ? Lista : []).forEach((Etiqueta) => {
+          const Limpia = String(Etiqueta || "").trim();
+          if (!Limpia) return;
+          const Clave =
+            Normalizar_Texto_Archivero(Limpia);
+          if (!Etiquetas.has(Clave)) {
+            Etiquetas.set(Clave, Limpia);
+          }
+        });
+        return [...Etiquetas.values()].sort((A, B) => {
+          return A.localeCompare(B, "es", {
+            sensitivity: "base"
+          });
+        });
+      }
+
+      function Registrar_Etiquetas_Archivero(Lista) {
+        Etiquetas_Archivero =
+          Normalizar_Etiquetas_Archivero([
+            ...Etiquetas_Archivero,
+            ...(Array.isArray(Lista) ? Lista : [])
+          ]);
+      }
+
+      function Obtener_Catalogo_Etiquetas_Archivero(
+        Nota_Ids = null
+      ) {
+        const Ids = Array.isArray(Nota_Ids)
+          ? new Set(Nota_Ids)
+          : null;
+        if (!Ids) {
+          return Normalizar_Etiquetas_Archivero(
+            Etiquetas_Archivero
+          );
+        }
+        return Normalizar_Etiquetas_Archivero(
+          Notas_Archivero.flatMap((Nota) => {
+            if (!Ids.has(Nota.Id)) return [];
+            return Array.isArray(Nota.Etiquetas)
+              ? Nota.Etiquetas
+              : [];
+          })
+        );
       }
 
       function Obtener_Notas_Cajon_Archivero(
@@ -22477,28 +22510,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Archivero_Orden_Select"
         );
         if (!Sel_Etiqueta || !Sel_Tipo || !Sel_Orden) return;
-        const Etiquetas_Unicas = new Map();
-        Obtener_Notas_Cajon_Archivero().forEach((Nota) => {
-          if (!Array.isArray(Nota.Etiquetas)) return;
-          Nota.Etiquetas.forEach((Etiqueta) => {
-            const Limpia = String(Etiqueta || "").trim();
-            if (!Limpia) return;
-            const Clave =
-              Normalizar_Texto_Archivero(Limpia);
-            if (!Etiquetas_Unicas.has(Clave)) {
-              Etiquetas_Unicas.set(Clave, Limpia);
-            }
-          });
-        });
         const Valor_Etiqueta = Archivero_Filtro_Etiqueta;
         Sel_Etiqueta.innerHTML =
           `<option value="">${t("todos")}</option>`;
-        [...Etiquetas_Unicas.values()]
-          .sort((A, B) => {
-            return A.localeCompare(B, "es", {
-              sensitivity: "base"
-            });
-          })
+        Obtener_Catalogo_Etiquetas_Archivero()
           .forEach((Etiqueta) => {
             const Opt = document.createElement("option");
             Opt.value = Etiqueta;
@@ -23283,6 +23298,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         const Etiquetas_Valor =
           Parsear_Etiquetas_Archivero(Etiq?.value);
+        Registrar_Etiquetas_Archivero(Etiquetas_Valor);
         const Color_Valor =
           (Color.dataset.modo || "Cajon") === "Cajon"
           ? ""
@@ -23532,6 +23548,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Tipo: Inferir_Tipo_Nota_Archivero(Texto),
           Fecha_Creacion: Date.now()
         };
+        Registrar_Etiquetas_Archivero(Nota.Etiquetas);
         Notas_Archivero.push(Nota);
         Guardar_Estado();
         // Si el modal está abierto, refrescar.
@@ -26734,6 +26751,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             JSON.stringify(Tipos_Slot)
           ),
           Tipos_Slot_Inicializados,
+          Etiquetas_Archivero: JSON.parse(
+            JSON.stringify(Etiquetas_Archivero)
+          ),
           Tarea_Seleccionada_Id,
           Meta_Seleccion_Id,
           Baul_Seleccion_Id,
@@ -26974,6 +26994,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Tipos_Slot_Inicializados = Boolean(
           Snap.Tipos_Slot_Inicializados
         );
+        Etiquetas_Archivero =
+          Normalizar_Etiquetas_Archivero(
+            Snap.Etiquetas_Archivero
+          );
 
         Render_Calendario();
         Render_Emojis();
@@ -36221,6 +36245,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Baul_Grupos_Colapsados,
           Archiveros,
           Notas_Archivero,
+          Etiquetas_Archivero,
           Patrones,
           Contador_Eventos,
           Tarea_Seleccionada_Id: null,
@@ -36606,6 +36631,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 };
               });
           }
+          Etiquetas_Archivero =
+            Normalizar_Etiquetas_Archivero(
+              Estado.Etiquetas_Archivero
+            );
           if (Array.isArray(Estado.Metas)) {
             Metas = Estado.Metas;
           }
@@ -36801,6 +36830,45 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Duracion
           };
         });
+
+        Archiveros = Array.isArray(Archiveros)
+          ? Archiveros.map((Cajon) => {
+            return {
+              ...Cajon,
+              Color_Fondo: Normalizar_Color_Hex(
+                Cajon?.Color_Fondo
+              )
+            };
+          })
+          : [];
+
+        Notas_Archivero = Array.isArray(Notas_Archivero)
+          ? Notas_Archivero.map((Nota) => {
+            const Etiquetas_Nota =
+              Array.isArray(Nota?.Etiquetas)
+              ? Nota.Etiquetas.join(", ")
+              : Nota?.Etiquetas || "";
+            return {
+              ...Nota,
+              Etiquetas: Parsear_Etiquetas_Archivero(
+                Etiquetas_Nota
+              ),
+              Color_Fondo: Normalizar_Color_Hex(
+                Nota?.Color_Fondo
+              )
+            };
+          })
+          : [];
+
+        Etiquetas_Archivero =
+          Normalizar_Etiquetas_Archivero([
+            ...Etiquetas_Archivero,
+            ...Notas_Archivero.flatMap((Nota) => {
+              return Array.isArray(Nota.Etiquetas)
+                ? Nota.Etiquetas
+                : [];
+            })
+          ]);
 
         Tareas.forEach((Tarea) => {
           if (!Tarea.Subtareas_Semanales || typeof Tarea.Subtareas_Semanales !== "object") return;
