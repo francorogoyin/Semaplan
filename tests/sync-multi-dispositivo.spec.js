@@ -506,6 +506,59 @@ test(
 );
 
 test(
+  "al volver al foco fuerza la revision remota " +
+  "aunque la ultima consulta sea reciente",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Solo remoto"])
+    );
+
+    await page.evaluate(({ Estado_Remoto_Nuevo }) => {
+      Sync_Remoto_Ultima_Revision_Ms = Date.now();
+      window.__Estado_Remoto = {
+        estado: Estado_Remoto_Nuevo,
+        actualizado_en: "2026-04-14T00:00:25Z",
+        version: 2
+      };
+    }, {
+      Estado_Remoto_Nuevo: Crear_Estado([
+        "Solo remoto",
+        "Cambio al volver al foco"
+      ])
+    });
+
+    const Resumen = await page.evaluate(async () => {
+      window.dispatchEvent(new Event("focus"));
+      await new Promise((Resolver) =>
+        setTimeout(Resolver, 50)
+      );
+
+      const Estado = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+
+      return {
+        nombres:
+          (Estado.Tareas || []).map(
+            (Tarea) => Tarea.Nombre
+          ),
+        syncRemotoUltimaRevisionMs:
+          Sync_Remoto_Ultima_Revision_Ms
+      };
+    });
+
+    expect(Resumen.nombres).toContain(
+      "Cambio al volver al foco"
+    );
+    expect(
+      Resumen.syncRemotoUltimaRevisionMs
+    ).toBeGreaterThan(0);
+  }
+);
+
+test(
   "bloquea la app y deja recargar la version remota " +
   "si hay conflicto",
   async ({ page }) => {
