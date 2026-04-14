@@ -84,6 +84,11 @@
         align-items: start;
       }
 
+      .App_Contenedor.Sync_Bloqueada {
+        pointer-events: none;
+        filter: grayscale(0.12) opacity(0.78);
+      }
+
       .Panel {
         background: var(--Panel);
         border: 1px solid var(--Borde);
@@ -12726,6 +12731,21 @@
           "sync.error": "Error",
           "sync.actualizado_otro_dispositivo":
             "Se cargaron cambios de otro dispositivo",
+          "sync.conflicto_cambios":
+            "Hay cambios más nuevos en otro dispositivo " +
+            "y esta pestaña también tiene cambios sin " +
+            "sincronizar. Recargar trae lo remoto. " +
+            "Conservar esta versión sobrescribe lo remoto.",
+          "sync.conflicto_recargar":
+            "Recargar cambios",
+          "sync.conflicto_conservar":
+            "Conservar esta versión",
+          "sync.conflicto_remoto_aplicado":
+            "Se aplicó la versión remota más nueva",
+          "sync.conflicto_local_aplicado":
+            "Se conservaron tus cambios en esta pestaña",
+          "sync.conflicto_local_error":
+            "No se pudo subir esta versión local",
           "evento.sin_tarea": "Sin tarea",
           "evento.marcar_hecho_title":
             "Marcar hecho",
@@ -15015,6 +15035,21 @@
           "sync.error": "Error",
           "sync.actualizado_otro_dispositivo":
             "Changes from another device were loaded",
+          "sync.conflicto_cambios":
+            "There are newer changes on another device " +
+            "and this tab also has unsynced changes. " +
+            "Reload pulls the remote version. Keep this " +
+            "version overwrites the remote one.",
+          "sync.conflicto_recargar":
+            "Reload changes",
+          "sync.conflicto_conservar":
+            "Keep this version",
+          "sync.conflicto_remoto_aplicado":
+            "The newest remote version was applied",
+          "sync.conflicto_local_aplicado":
+            "Your changes in this tab were kept",
+          "sync.conflicto_local_error":
+            "This local version could not be uploaded",
           "evento.sin_tarea": "No task",
           "evento.marcar_hecho_title":
             "Mark done",
@@ -17252,6 +17287,22 @@
           "sync.error": "Erro",
           "sync.actualizado_otro_dispositivo":
             "Foram carregadas mudanças de outro dispositivo",
+          "sync.conflicto_cambios":
+            "Há mudanças mais novas em outro " +
+            "dispositivo e esta aba também tem " +
+            "mudanças sem sincronizar. Recarregar " +
+            "traz o remoto. Manter esta versão " +
+            "sobrescreve o remoto.",
+          "sync.conflicto_recargar":
+            "Recarregar mudanças",
+          "sync.conflicto_conservar":
+            "Manter esta versão",
+          "sync.conflicto_remoto_aplicado":
+            "A versão remota mais nova foi aplicada",
+          "sync.conflicto_local_aplicado":
+            "Suas mudanças nesta aba foram mantidas",
+          "sync.conflicto_local_error":
+            "Não foi possível enviar esta versão local",
           "evento.sin_tarea": "Sem tarefa",
           "evento.marcar_hecho_title":
             "Marcar feito",
@@ -38523,6 +38574,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Guardar_Estado(Opciones = {}) {
+        if (Sync_Conflicto_Pendiente) {
+          Intentar_Mostrar_Conflicto_Sync();
+          return;
+        }
         if (
           !Opciones.Omitir_Backup_Auto &&
           Intentar_Backup_Automatico()
@@ -38537,6 +38592,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         localStorage.setItem(Clave_Local, JSON.stringify(Estado));
         if (Usuario_Actual?.id) {
           Marcar_Usuario_Cache_Local(Usuario_Actual.id);
+          if (!Cargando_Inicial) {
+            Marcar_Sync_Local_Sucio(true);
+          }
         }
         if (Metas_Abierto()) {
           Render_Metas();
@@ -47871,9 +47929,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // Estado actual del indicador de sync.
       let Sync_Estado = "Guardado";
       let Sync_Token_Actual = "";
+      let Sync_Local_Sucio = false;
       let Sync_Remoto_Marca_Ms = 0;
       let Sync_Remoto_Revisando = false;
       let Sync_Remoto_Ultima_Revision_Ms = 0;
+      let Sync_Conflicto_Pendiente = false;
+      let Sync_Conflicto_Mostrando = false;
+      let Sync_Conflicto_Marca_Ms = 0;
+      let Sync_Conflicto_Timer_Id = null;
+      let Sync_Revision_Timer_Id = null;
       // Flag para evitar guardados durante la carga inicial.
       let Cargando_Inicial = true;
       let Trial_Modal_Abierto = false;
@@ -47899,6 +47963,120 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sync_Remoto_Marca_Ms,
           Ms
         );
+      }
+
+      function Marcar_Sync_Local_Sucio(
+        Sucio = false
+      ) {
+        Sync_Local_Sucio = !!Sucio;
+      }
+
+      function Aplicar_Bloqueo_Conflicto_Sync() {
+        document.querySelector(".App_Contenedor")
+          ?.classList.toggle(
+            "Sync_Bloqueada",
+            Sync_Conflicto_Pendiente
+          );
+      }
+
+      function Limpiar_Conflicto_Sync() {
+        Sync_Conflicto_Pendiente = false;
+        Sync_Conflicto_Mostrando = false;
+        Sync_Conflicto_Marca_Ms = 0;
+        if (Sync_Conflicto_Timer_Id) {
+          clearInterval(Sync_Conflicto_Timer_Id);
+          Sync_Conflicto_Timer_Id = null;
+        }
+        Aplicar_Bloqueo_Conflicto_Sync();
+      }
+
+      async function Backend_Aplicar_Estado_Remoto() {
+        const Cargo_Remoto =
+          await Backend_Cargar_Estado_Remoto();
+        if (!Cargo_Remoto) return false;
+
+        Cargando_Inicial = true;
+        Inicializar();
+        Cargando_Inicial = false;
+        Aplicar_Estilo_Menu();
+        Aplicar_Traducciones();
+        Marcar_Idioma_Activo();
+        Actualizar_Sync_Indicador("Guardado");
+        Marcar_Sync_Local_Sucio(false);
+        return true;
+      }
+
+      function Programar_Conflicto_Sync(
+        Marca_Remota_Ms
+      ) {
+        Sync_Conflicto_Pendiente = true;
+        Sync_Conflicto_Marca_Ms = Math.max(
+          Sync_Conflicto_Marca_Ms,
+          Marca_Remota_Ms || 0
+        );
+        Aplicar_Bloqueo_Conflicto_Sync();
+        if (Sync_Conflicto_Timer_Id) return;
+        Sync_Conflicto_Timer_Id = setInterval(() => {
+          Intentar_Mostrar_Conflicto_Sync();
+        }, 250);
+        Intentar_Mostrar_Conflicto_Sync();
+      }
+
+      async function Intentar_Mostrar_Conflicto_Sync() {
+        if (!Sync_Conflicto_Pendiente) return false;
+        if (Sync_Conflicto_Mostrando) return false;
+        if (Dialogo_Abierto) return false;
+
+        Sync_Conflicto_Mostrando = true;
+        document.activeElement?.blur?.();
+
+        const Eleccion = await Mostrar_Dialogo(
+          t("sync.conflicto_cambios"),
+          [
+            {
+              Etiqueta: t("sync.conflicto_recargar"),
+              Valor: "Remoto",
+              Tipo: "Primario"
+            },
+            {
+              Etiqueta: t("sync.conflicto_conservar"),
+              Valor: "Local",
+              Tipo: "Peligro"
+            }
+          ]
+        );
+
+        Sync_Conflicto_Mostrando = false;
+
+        if (Eleccion === "Remoto") {
+          const Ok = await Backend_Aplicar_Estado_Remoto();
+          Limpiar_Conflicto_Sync();
+          if (Ok) {
+            Mostrar_Toast_Info(
+              t("sync.conflicto_remoto_aplicado"),
+              "☁️",
+              3500
+            );
+          }
+          return Ok;
+        }
+
+        if (Eleccion === "Local") {
+          Limpiar_Conflicto_Sync();
+          const Ok = await Backend_Sync_Ejecutar();
+          Mostrar_Toast_Info(
+            t(
+              Ok
+                ? "sync.conflicto_local_aplicado"
+                : "sync.conflicto_local_error"
+            ),
+            Ok ? "☁️" : "⚠️",
+            3500
+          );
+          return Ok;
+        }
+
+        return false;
       }
 
       function Inicializar_Supabase() {
@@ -48128,7 +48306,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sync_Estado === "Guardando";
       }
 
+      function Hay_Cambios_Locales_Sin_Sync() {
+        return Hay_Sync_Pendiente() ||
+          Sync_Local_Sucio ||
+          Sync_Conflicto_Pendiente;
+      }
+
       async function Backend_Sync_Ejecutar() {
+        if (Sync_Conflicto_Pendiente) return false;
         if (!Supa || !Usuario_Actual) return false;
         if (Sync_Timer_Id) {
           clearTimeout(Sync_Timer_Id);
@@ -48144,6 +48329,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               estado: Estado
             });
           if (error) throw error;
+          Marcar_Sync_Local_Sucio(false);
           Marcar_Sync_Remoto_Actualizado();
           Actualizar_Sync_Indicador("Guardado");
           return true;
@@ -48159,7 +48345,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Backend_Sync_Forzar_Keepalive() {
         if (!Usuario_Actual?.id) return false;
         if (!Sync_Token_Actual) return false;
-        if (!Hay_Sync_Pendiente()) return false;
+        if (Sync_Conflicto_Pendiente) return false;
+        if (!Hay_Cambios_Locales_Sin_Sync()) return false;
 
         if (Sync_Timer_Id) {
           clearTimeout(Sync_Timer_Id);
@@ -48196,6 +48383,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 `HTTP ${Resp.status}`
               );
             }
+            Marcar_Sync_Local_Sucio(false);
             Marcar_Sync_Remoto_Actualizado();
             Actualizar_Sync_Indicador("Guardado");
           })
@@ -48236,6 +48424,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Clave_Local, JSON.stringify(data.estado)
           );
           Marcar_Usuario_Cache_Local(Usuario_Actual.id);
+          Marcar_Sync_Local_Sucio(false);
           Marcar_Sync_Remoto_Actualizado(
             data.actualizado_en
           );
@@ -48252,6 +48441,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Supa || !Usuario_Actual) return false;
         if (document.hidden) return false;
         if (Cargando_Inicial) return false;
+        if (Sync_Conflicto_Pendiente) {
+          Intentar_Mostrar_Conflicto_Sync();
+          return false;
+        }
         if (Hay_Sync_Pendiente()) return false;
         if (Sync_Remoto_Revisando) return false;
 
@@ -48287,17 +48480,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             return false;
           }
 
-          const Cargo_Remoto =
-            await Backend_Cargar_Estado_Remoto();
-          if (!Cargo_Remoto) return false;
+          if (Sync_Local_Sucio) {
+            Programar_Conflicto_Sync(Marca_Remota_Ms);
+            return true;
+          }
 
-          Cargando_Inicial = true;
-          Inicializar();
-          Cargando_Inicial = false;
-          Aplicar_Estilo_Menu();
-          Aplicar_Traducciones();
-          Marcar_Idioma_Activo();
-          Actualizar_Sync_Indicador("Guardado");
+          const Aplico_Remoto =
+            await Backend_Aplicar_Estado_Remoto();
+          if (!Aplico_Remoto) return false;
+
           Mostrar_Toast_Info(
             t("sync.actualizado_otro_dispositivo"),
             "☁️",
@@ -49403,6 +49594,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         await Supa.auth.signOut();
         Actualizar_Token_Sync(null);
+        Marcar_Sync_Local_Sucio(false);
+        Limpiar_Conflicto_Sync();
         location.reload();
       }
 
@@ -49619,7 +49812,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Configurar_Recovery_Listener();
 
         window.addEventListener("beforeunload", (Ev) => {
-          if (!Hay_Sync_Pendiente()) return;
+          if (!Hay_Cambios_Locales_Sin_Sync()) return;
           Backend_Sync_Forzar_Keepalive();
           Ev.preventDefault();
           Ev.returnValue = "";
@@ -49643,6 +49836,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         window.addEventListener("focus", () => {
           Backend_Revisar_Cambios_Remotos();
         });
+
+        if (!Sync_Revision_Timer_Id) {
+          Sync_Revision_Timer_Id = setInterval(() => {
+            Backend_Revisar_Cambios_Remotos();
+          }, 15000);
+        }
 
         // Listener del formulario de auth.
         document.getElementById("Auth_Form")

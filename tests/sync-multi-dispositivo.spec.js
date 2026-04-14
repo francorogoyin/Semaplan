@@ -359,3 +359,172 @@ test(
     );
   }
 );
+
+test(
+  "bloquea la app y deja recargar la version remota " +
+  "si hay conflicto",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    await page.evaluate(({ Estado_Remoto_Nuevo }) => {
+      Tareas.push({
+        Id: 99,
+        Nombre: "Cambio local",
+        Emoji: "🧪",
+        Color: "#f1b77e",
+        Horas: 1,
+        Dia: 0,
+        Hora: 9,
+        Duracion: 1,
+        Subtareas: [],
+        Copias_Semana: {}
+      });
+      Guardar_Estado();
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+      Actualizar_Sync_Indicador("Guardado");
+
+      window.__Estado_Remoto = {
+        estado: Estado_Remoto_Nuevo,
+        actualizado_en: "2026-04-14T00:00:30Z"
+      };
+    }, {
+      Estado_Remoto_Nuevo: Crear_Estado([
+        "Base remota",
+        "Cambio remoto"
+      ])
+    });
+
+    await page.evaluate(async () => {
+      await Backend_Revisar_Cambios_Remotos(true);
+    });
+
+    await expect(
+      page.locator("#Dialogo_Overlay")
+    ).toHaveClass(/Activo/);
+    await expect(
+      page.locator(".App_Contenedor")
+    ).toHaveClass(/Sync_Bloqueada/);
+
+    await page.getByRole(
+      "button",
+      { name: "Recargar cambios" }
+    ).click();
+
+    const Resumen = await page.evaluate(() => {
+      const Estado = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+      return {
+        nombres:
+          (Estado.Tareas || []).map(
+            (Tarea) => Tarea.Nombre
+          ),
+        bloqueada: document
+          .querySelector(".App_Contenedor")
+          ?.classList.contains("Sync_Bloqueada"),
+        sucio: Sync_Local_Sucio,
+        conflicto: Sync_Conflicto_Pendiente
+      };
+    });
+
+    expect(Resumen.nombres).toContain("Cambio remoto");
+    expect(Resumen.nombres).not.toContain(
+      "Cambio local"
+    );
+    expect(Resumen.bloqueada).toBe(false);
+    expect(Resumen.sucio).toBe(false);
+    expect(Resumen.conflicto).toBe(false);
+  }
+);
+
+test(
+  "permite conservar la version local y " +
+  "sobrescribir la remota ante conflicto",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    await page.evaluate(({ Estado_Remoto_Nuevo }) => {
+      Tareas.push({
+        Id: 77,
+        Nombre: "Cambio local final",
+        Emoji: "🧪",
+        Color: "#f1b77e",
+        Horas: 1,
+        Dia: 0,
+        Hora: 9,
+        Duracion: 1,
+        Subtareas: [],
+        Copias_Semana: {}
+      });
+      Guardar_Estado();
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+      Actualizar_Sync_Indicador("Guardado");
+
+      window.__Estado_Remoto = {
+        estado: Estado_Remoto_Nuevo,
+        actualizado_en: "2026-04-14T00:00:40Z"
+      };
+    }, {
+      Estado_Remoto_Nuevo: Crear_Estado([
+        "Base remota",
+        "Cambio remoto"
+      ])
+    });
+
+    await page.evaluate(async () => {
+      await Backend_Revisar_Cambios_Remotos(true);
+    });
+
+    await expect(
+      page.locator("#Dialogo_Overlay")
+    ).toHaveClass(/Activo/);
+
+    await page.getByRole(
+      "button",
+      { name: "Conservar esta versión" }
+    ).click();
+
+    const Resumen = await page.evaluate(() => {
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+      return {
+        local:
+          (Estado_Local.Tareas || []).map(
+            (Tarea) => Tarea.Nombre
+          ),
+        remoto:
+          (window.__Estado_Remoto?.estado?.Tareas || [])
+            .map((Tarea) => Tarea.Nombre),
+        bloqueada: document
+          .querySelector(".App_Contenedor")
+          ?.classList.contains("Sync_Bloqueada"),
+        sucio: Sync_Local_Sucio,
+        conflicto: Sync_Conflicto_Pendiente
+      };
+    });
+
+    expect(Resumen.local).toContain(
+      "Cambio local final"
+    );
+    expect(Resumen.remoto).toContain(
+      "Cambio local final"
+    );
+    expect(Resumen.remoto).not.toContain(
+      "Cambio remoto"
+    );
+    expect(Resumen.bloqueada).toBe(false);
+    expect(Resumen.sucio).toBe(false);
+    expect(Resumen.conflicto).toBe(false);
+  }
+);
