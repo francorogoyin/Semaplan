@@ -1,0 +1,662 @@
+Plan para una app Android de Semaplan
+
+Objetivo del documento
+
+Dejar una base clara para que otro agente Codex pueda tomar
+este archivo y avanzar en una app Android de Semaplan con el
+menor margen posible de ambigüedad.
+
+Este documento no intenta cerrar todas las decisiones. Tambien
+lista que cosas todavia hay que definir, para evitar que un
+agente improvise arquitectura o UX importante sin criterio.
+
+------------------------------------------------------------
+1. Contexto actual
+------------------------------------------------------------
+
+Semaplan hoy existe como webapp.
+
+Caracteristicas relevantes del proyecto actual:
+
+- frontend grande en `index.html`;
+- sin build complejo;
+- logica inline;
+- backend en Supabase;
+- auth, sync y Edge Functions ya activas;
+- foco fuerte en calendario semanal, subtareas, baul,
+  archivero, ayuda, metas y configuracion.
+
+Eso significa algo importante:
+
+La forma mas barata de llegar a Android no es rehacer todo
+como app nativa desde cero.
+
+------------------------------------------------------------
+2. Que significa "app Android"
+------------------------------------------------------------
+
+Antes de construir, hay que decidir cual de estos objetivos
+se busca realmente.
+
+Escenario A. Android como contenedor de la webapp
+
+La app Android es basicamente una shell que carga Semaplan y
+la hace instalable desde el telefono.
+
+Pros
+
+- muchisimo mas rapido;
+- reutiliza casi todo el codigo existente;
+- casi nada de reescritura;
+- mantenimiento mas barato.
+
+Contras
+
+- UX mas limitada;
+- dependes mucho del comportamiento web en mobile;
+- funciones nativas requieren puentes.
+
+Escenario B. Android con parte web y parte nativa
+
+La mayor parte sigue siendo web, pero se agregan modulos
+nativos donde aporte valor real.
+
+Ejemplos
+
+- notificaciones push;
+- atajos;
+- compartir contenido;
+- archivos locales;
+- calendario del sistema;
+- widgets.
+
+Pros
+
+- mejor equilibrio entre velocidad y calidad;
+- no reescribis todo;
+- permite crecer despues.
+
+Contras
+
+- arquitectura mas delicada;
+- requiere definir bien limites entre web y nativo.
+
+Escenario C. Android nativa real
+
+Rehacer Semaplan como app Android real.
+
+Pros
+
+- control total de UX y rendimiento;
+- mejor integracion con Android.
+
+Contras
+
+- proyecto mucho mas grande;
+- duplicacion de logica;
+- mayor costo de mantenimiento;
+- mas riesgo de desincronizacion con web.
+
+Recomendacion
+
+Para Semaplan, lo razonable es:
+
+- Fase 1: escenario A o B liviano.
+- No arrancar por C.
+
+------------------------------------------------------------
+3. Decision principal que hay que tomar primero
+------------------------------------------------------------
+
+Antes de que un agente implemente nada, hay que decidir esto:
+
+"La app Android va a ser un wrapper de la web o una app
+movil diseñada en serio?"
+
+Mi recomendacion concreta:
+
+Hacer primero un wrapper serio, no una app nativa completa.
+
+Motivo
+
+Hoy el riesgo mayor de Semaplan no es "falta app Android". El
+riesgo mayor sigue siendo robustez, sync, Auth y calidad de la
+experiencia. Reescribir todo para Android ahora multiplicaria
+el frente de riesgo.
+
+------------------------------------------------------------
+4. Opciones tecnicas concretas
+------------------------------------------------------------
+
+Opcion 1. WebView Android simple
+
+Una app Android nativa minima que abre `semaplan.com` o una
+URL preparada para mobile.
+
+Pros
+
+- tiempo de salida muy corto;
+- casi cero reescritura;
+- ideal para validar interes.
+
+Contras
+
+- calidad muy dependiente del estado actual mobile web;
+- login y errores se sienten mas "sitio embebido";
+- poca integracion nativa.
+
+Opcion 2. TWA o enfoque tipo PWA instalada
+
+Usar la webapp como base y publicarla de manera mas cercana a
+una app instalada.
+
+Pros
+
+- esfuerzo bajo;
+- buena continuidad con web;
+- puede alcanzar para usuarios iniciales.
+
+Contras
+
+- menos control;
+- no cubre tan bien necesidades nativas;
+- depende mucho de que la web mobile este bien.
+
+Opcion 3. Capacitor
+
+Muy buena candidata si queres convertir la app web en app
+Android instalable y despues sumar plugins nativos.
+
+Pros
+
+- buen punto medio;
+- permite reutilizar la web;
+- tiene camino natural para notificaciones, archivos,
+  deep links y otras integraciones.
+
+Contras
+
+- requiere algo de estructura y empaquetado;
+- conviene ordenar ciertas partes de la app antes.
+
+Opcion 4. React Native / Flutter / Kotlin nativo
+
+No recomendado como primer paso.
+
+------------------------------------------------------------
+5. Recomendacion tecnica para arrancar
+------------------------------------------------------------
+
+Si el objetivo es llegar a Android sin abrir un proyecto
+enorme, yo haria esto:
+
+Primera eleccion recomendada:
+
+- Capacitor.
+
+Plan B si queres salir ultra rapido:
+
+- WebView Android simple.
+
+Por que Capacitor
+
+- mantiene la app web como fuente principal;
+- permite empaquetar Android real;
+- no obliga a reescribir la UI;
+- deja abierta la puerta para notificaciones, deep links,
+  archivos y otras APIs nativas;
+- es mejor base a mediano plazo que una WebView muy cruda.
+
+------------------------------------------------------------
+6. Objetivo de la V1 Android
+------------------------------------------------------------
+
+La V1 no deberia intentar hacer todo.
+
+Objetivo razonable de V1:
+
+- abrir Semaplan como app Android;
+- login propio dentro de la app;
+- sync con el mismo Supabase;
+- uso aceptable en mobile;
+- instalable como APK o app release;
+- sin funciones nativas complejas todavia.
+
+No haria en V1:
+
+- compartir sesion automaticamente con web desktop;
+- widgets;
+- offline serio;
+- integracion profunda con calendario del telefono;
+- notificaciones complejas si antes no esta bien resuelto el
+  backend de notificaciones.
+
+------------------------------------------------------------
+7. Decisiones que hay que tomar antes de implementar
+------------------------------------------------------------
+
+Estas decisiones deberian quedar respondidas explicitamente.
+
+7.1. Fuente de UI
+
+Preguntas
+
+- La app Android va a cargar `semaplan.com`?
+- O va a empaquetar una copia local del frontend?
+
+Recomendacion
+
+Empaquetar la UI dentro de la app cuando el proyecto ya tenga
+cierto orden, pero para una prueba temprana puede cargar la
+web.
+
+Decision sugerida para primer experimento
+
+- prototipo usando la web;
+- version seria empaquetando frontend.
+
+7.2. Auth
+
+Preguntas
+
+- el usuario va a loguearse dentro de Android?
+- queres handoff desde web?
+- queres magic link, password o ambos?
+
+Recomendacion
+
+- login propio dentro de Android en V1.
+
+7.3. Que pantallas son obligatorias
+
+Preguntas
+
+- queres la app completa desde el dia uno?
+- o primero solo calendario + tareas + subtareas?
+
+Recomendacion
+
+Si hay que recortar:
+
+- calendario;
+- sidebar / tareas;
+- subtareas;
+- baul;
+- sync;
+- ayuda;
+- config basica.
+
+Archivero, metas y features menos usadas pueden quedar para
+V1.1 si hace falta recortar.
+
+7.4. Modo offline
+
+Preguntas
+
+- la app Android debe seguir funcionando sin internet?
+- o alcanza con comportamiento actual de web + cache local?
+
+Recomendacion
+
+No vender offline serio hasta disenar bien conflictos y
+politica de sync.
+
+7.5. Notificaciones
+
+Preguntas
+
+- solo notificaciones locales?
+- o push remotas?
+- que eventos justifican notificacion?
+
+Recomendacion
+
+No empezar por aca salvo que sea parte central del valor.
+
+------------------------------------------------------------
+8. Riesgos de producto especificos en Android
+------------------------------------------------------------
+
+Riesgo 1. La app se vea como "sitio metido en un telefono"
+
+Si la UX mobile web no esta pulida, una app wrapper hace mas
+visible esa debilidad.
+
+Riesgo 2. Calendario dificil de usar en touch
+
+Semaplan depende mucho de drag and drop, resize y modales.
+Eso en touch puede sentirse peor que en desktop.
+
+Riesgo 3. Teclado y viewport
+
+En Android, el teclado virtual rompe rapido layouts con
+inputs, modales y areas scrolleables.
+
+Riesgo 4. Auth confusa
+
+Si la app no deja claro que tiene sesion propia, el usuario
+puede esperar que estar logueado en web implique estar
+logueado en Android.
+
+Riesgo 5. Debugging dificil
+
+Errores que en web ves facil en consola pueden ser mas
+molestos de diagnosticar dentro de Android si no hay una capa
+de logging bien pensada.
+
+------------------------------------------------------------
+9. Que revisar en la web antes de empezar Android
+------------------------------------------------------------
+
+Antes de empaquetar, conviene revisar esto:
+
+1. Responsividad real
+
+- calendario usable en ancho chico;
+- modales usables con teclado virtual;
+- overlays sin cortar botones;
+- scroll correcto;
+- textos no desbordados.
+
+2. Touch
+
+- drag and drop;
+- resize de bloques;
+- menus contextuales;
+- doble click o alternativas touch.
+
+3. Carga inicial
+
+- login;
+- loader;
+- rehidratacion de estado;
+- errores de sync en red movil.
+
+4. Errores UX
+
+- reemplazar alerts en flujos mobile sensibles;
+- mensajes mas claros si falla auth o sync.
+
+------------------------------------------------------------
+10. Features Android que si podrian aportar valor real
+------------------------------------------------------------
+
+No todo lo "nativo" vale la pena. Esto si puede aportar:
+
+- notificaciones de eventos proximos;
+- abrir rapido desde icono;
+- acceso mas directo y persistente;
+- compartir texto hacia Semaplan;
+- importar/exportar backups desde archivos del telefono;
+- deep links;
+- widget resumido del dia o semana;
+- modo foco mas usable en telefono.
+
+Esto no aporta tanto por si solo:
+
+- solo empaquetar la web sin mejorar nada mobile;
+- "tener presencia en Play Store" si la UX no acompaña.
+
+------------------------------------------------------------
+11. Arquitectura sugerida para otro agente
+------------------------------------------------------------
+
+Si otro agente Codex toma este proyecto, deberia seguir una
+estrategia incremental.
+
+Etapa 1. Auditoria mobile de la web actual
+
+Objetivo
+
+Detectar que ya funciona y que no en viewport chico y touch.
+
+Tareas
+
+- correr Semaplan en viewport Android;
+- listar pantallas rotas o incomodas;
+- clasificar problemas:
+  layout, touch, teclado, scroll, auth, sync.
+
+Entregable
+
+Un informe corto con issues concretos.
+
+Etapa 2. Prototipo wrapper
+
+Objetivo
+
+Ver la app corriendo como Android sin reescribirla.
+
+Tareas
+
+- crear proyecto Capacitor;
+- cargar la app;
+- validar login;
+- validar calendario;
+- validar subtareas;
+- validar baul;
+- validar sync.
+
+Entregable
+
+APK debug funcional.
+
+Etapa 3. Hardening mobile
+
+Objetivo
+
+Resolver los principales problemas de UX antes de pensar en
+Play Store.
+
+Tareas
+
+- adaptar modales;
+- mejorar tacto de drag/drop;
+- revisar teclado virtual;
+- revisar botones y targets touch;
+- revisar errores y loaders.
+
+Entregable
+
+Version usable en un telefono real.
+
+Etapa 4. Integracion nativa opcional
+
+Objetivo
+
+Sumar una o dos features que justifiquen la app.
+
+Opciones
+
+- notificaciones;
+- compartir a Semaplan;
+- backup local;
+- deep links.
+
+Entregable
+
+Valor concreto por encima de abrir la web en Chrome.
+
+------------------------------------------------------------
+12. Plan ejecutable por fases
+------------------------------------------------------------
+
+Fase 1. Definicion
+
+Duracion sugerida
+
+1 a 2 horas.
+
+Tareas
+
+- decidir wrapper vs nativa;
+- decidir login propio vs handoff;
+- decidir si la V1 incluye toda la app o modulo recortado;
+- decidir si el frontend se carga remoto o empaquetado.
+
+Resultado esperado
+
+Un brief cerrado para que no se re-decida todo mientras se
+implementa.
+
+Fase 2. Auditoria mobile
+
+Duracion sugerida
+
+2 a 4 horas.
+
+Tareas
+
+- revisar responsive actual;
+- revisar touch;
+- revisar teclado;
+- revisar flujos criticos.
+
+Resultado esperado
+
+Lista priorizada de problemas mobile.
+
+Fase 3. Prototipo Android
+
+Duracion sugerida
+
+4 a 8 horas.
+
+Tareas
+
+- crear app base;
+- integrar frontend;
+- generar build debug;
+- probar login y sync;
+- validar que no explote al navegar.
+
+Resultado esperado
+
+App Android instalada en un dispositivo o emulador.
+
+Fase 4. Correcciones UX mobile
+
+Duracion sugerida
+
+1 a 3 dias, segun la cantidad de problemas.
+
+Tareas
+
+- corregir layouts;
+- ajustar gestos;
+- adaptar menus contextuales;
+- revisar modales e inputs;
+- mejorar errores visibles.
+
+Resultado esperado
+
+Uso razonable en telefono real.
+
+Fase 5. Integraciones nativas
+
+Duracion sugerida
+
+Variable.
+
+Tareas
+
+- elegir 1 o 2 integraciones con valor real;
+- implementar;
+- testear en dispositivo real.
+
+Resultado esperado
+
+La app Android aporta algo mas que ser un icono.
+
+------------------------------------------------------------
+13. Criterios de exito para la V1
+------------------------------------------------------------
+
+La V1 Android deberia considerarse lograda si:
+
+- instala bien;
+- login funciona;
+- sync funciona;
+- calendario y tareas son usables;
+- subtareas y baul son usables;
+- errores no se sienten rotos;
+- el usuario puede usarla sin pensar "mejor abro Chrome".
+
+------------------------------------------------------------
+14. Criterios para NO avanzar todavia
+------------------------------------------------------------
+
+Yo no lo empujaria fuerte si todavia pasa esto:
+
+- la web mobile no es usable;
+- auth y sync aun son fragiles;
+- faltan smoke tests;
+- la UX touch actual es mala;
+- hay demasiados alerts y modales poco adaptados.
+
+En ese caso conviene endurecer primero la web.
+
+------------------------------------------------------------
+15. Decisiones abiertas que otro agente debe pedir o asumir
+------------------------------------------------------------
+
+Si un agente Codex toma esta tarea, deberia confirmar o asumir
+explicitamente estas decisiones:
+
+- tecnologia elegida:
+  WebView / TWA / Capacitor / otra;
+- fuente de frontend:
+  remoto / empaquetado;
+- auth:
+  login propio / handoff;
+- alcance V1:
+  completa / recortada;
+- integraciones nativas de V1:
+  ninguna / notificaciones / archivos / deep links;
+- objetivo de distribucion:
+  APK interna / Play Store / ambos.
+
+Si el usuario no responde, la mejor asuncion inicial es:
+
+- Capacitor;
+- frontend empaquetado en version seria;
+- login propio;
+- V1 casi completa, pero sin integraciones nativas complejas;
+- distribucion interna primero.
+
+------------------------------------------------------------
+16. Orden recomendado si esto lo toma otro agente Codex
+------------------------------------------------------------
+
+1. Auditar mobile web actual.
+2. Listar problemas bloqueantes.
+3. Crear wrapper Android minimo.
+4. Validar login, sync y calendario.
+5. Corregir UX touch.
+6. Recién despues discutir extras nativos.
+
+Ese orden minimiza trabajo desperdiciado.
+
+------------------------------------------------------------
+17. Conclusión
+------------------------------------------------------------
+
+Hacer una app Android de Semaplan es totalmente viable si se
+hace como extension de la web actual y no como una
+reimplementacion completa.
+
+La parte critica no es "hacer un APK".
+La parte critica es:
+
+- decidir bien el nivel de wrapper;
+- resolver auth sin magia;
+- hacer que la UX mobile sea realmente usable;
+- no abrir otro frente enorme de mantenimiento.
+
+La recomendacion principal es:
+
+- arrancar con Capacitor o wrapper equivalente;
+- login propio dentro de la app;
+- foco en usabilidad mobile y robustez;
+- dejar deep links, notificaciones y extras para una fase
+  posterior.
