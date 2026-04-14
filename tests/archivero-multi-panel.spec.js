@@ -175,6 +175,9 @@ test("muestra la barra multi abajo y limpia al click afuera", async ({
     const Lista = document.getElementById("Archivero_Notas_Lista");
     const Barra = document.getElementById("Archivero_Multi_Acciones");
     const Conteo = document.getElementById("Archivero_Multi_Conteo");
+    const Grupos = Array.from(
+      Barra.querySelectorAll(".Archivero_Multi_Grupo")
+    );
     const Campo_Etiquetas = document.getElementById(
       "Archivero_Multi_Etiquetas_Input"
     );
@@ -183,10 +186,26 @@ test("muestra la barra multi abajo y limpia al click afuera", async ({
     );
     const Estilo = window.getComputedStyle(Barra);
     const Estilo_Conteo = window.getComputedStyle(Conteo);
+    const Rect_Barra = Barra.getBoundingClientRect();
+    const Rect_Grupo_1 = Grupos[0]?.getBoundingClientRect();
+    const Rect_Grupo_2 = Grupos[1]?.getBoundingClientRect();
+    const Rect_Conteo = Conteo.getBoundingClientRect();
     return {
       display: Estilo.display,
+      justifyContent: Estilo.justifyContent,
       borderTopWidth: Estilo.borderTopWidth,
       conteoCompleto: Estilo_Conteo.flexBasis,
+      gruposJuntos: Boolean(
+        Rect_Grupo_1 &&
+        Rect_Grupo_2 &&
+        Math.abs(Rect_Grupo_1.top - Rect_Grupo_2.top) < 2 &&
+        Rect_Barra.right - Rect_Grupo_2.right < 8
+      ),
+      conteoDebajo: Boolean(
+        Rect_Grupo_1 &&
+        Rect_Conteo &&
+        Rect_Conteo.top > Rect_Grupo_1.bottom
+      ),
       sinCampoEtiquetas: !Campo_Etiquetas,
       sinSelectCajon: !Select_Cajon,
       abajoDeLista: Boolean(
@@ -210,8 +229,11 @@ test("muestra la barra multi abajo y limpia al click afuera", async ({
   );
 
   expect(estilos.display).toBe("flex");
+  expect(estilos.justifyContent).toBe("flex-end");
   expect(estilos.borderTopWidth).toBe("0px");
   expect(estilos.conteoCompleto).toBe("100%");
+  expect(estilos.gruposJuntos).toBe(true);
+  expect(estilos.conteoDebajo).toBe(true);
   expect(estilos.sinCampoEtiquetas).toBe(true);
   expect(estilos.sinSelectCajon).toBe(true);
   expect(cantidadTrasClick).toBe(0);
