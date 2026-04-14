@@ -113,34 +113,52 @@ test("deja espacio vertical entre acciones de cuenta y botones", async ({
     const Titulo_Version = Array.from(
       document.querySelectorAll(".Config_Seccion_Titulo")
     ).find((El) => {
-      return (El.textContent || "").includes("Versión");
+      return (El.textContent || "").includes("Versi");
     });
     const Fila_Version = document.querySelector(
       "#Cfg_Version_Programa"
     )?.closest(".Config_Fila");
+    const Seccion_Version = Fila_Version?.closest(
+      ".Config_Seccion"
+    );
     if (
+      !Campo ||
       !Titulo_Acciones ||
       !Fila ||
       !Titulo_Version ||
-      !Fila_Version
+      !Fila_Version ||
+      !Seccion_Version
     ) {
       return null;
     }
     const Rect_Etiqueta =
       Titulo_Acciones.getBoundingClientRect();
     const Rect_Fila = Fila.getBoundingClientRect();
+    const Rect_Campo = Campo.getBoundingClientRect();
     const Rect_Titulo_Version =
       Titulo_Version.getBoundingClientRect();
     const Rect_Fila_Version =
       Fila_Version.getBoundingClientRect();
+    const Rect_Seccion_Version =
+      Seccion_Version.getBoundingClientRect();
     return {
       gap: Rect_Fila.top - Rect_Etiqueta.bottom,
       gap_version:
-        Rect_Fila_Version.top - Rect_Titulo_Version.bottom
+        Rect_Fila_Version.top - Rect_Titulo_Version.bottom,
+      gap_inferior:
+        Rect_Campo.bottom - Rect_Fila.bottom,
+      gap_inferior_version:
+        Rect_Seccion_Version.bottom - Rect_Fila_Version.bottom
     };
   });
 
   expect(medida).not.toBeNull();
   expect(Math.abs(medida.gap - medida.gap_version))
     .toBeLessThanOrEqual(2);
+  expect(
+    Math.abs(
+      medida.gap_inferior -
+      medida.gap_inferior_version
+    )
+  ).toBeLessThanOrEqual(2);
 });
