@@ -299,14 +299,22 @@ test("aplica y borra fecha limite en multiaccion del baul", async ({
     Baul_Multi_Seleccion = new Set(["b1", "b2"]);
     Aplicar_Timeline_Baul_Multi("2026-04-30");
     const Con_Fecha = Baul_Tareas.map((Tarea) => Tarea.Timeline);
+    const Toast_Aplicar = document.querySelector(
+      "#Undo_Contenedor .Undo_Toast_Texto"
+    )?.textContent?.trim() || "";
     const Seleccion_Luego_De_Aplicar = Array.from(
       Baul_Multi_Seleccion
     );
     Baul_Multi_Seleccion = new Set(["b1", "b2"]);
     Borrar_Timeline_Baul_Multi();
+    const Toast_Borrar = document.querySelector(
+      "#Undo_Contenedor .Undo_Toast_Texto"
+    )?.textContent?.trim() || "";
     return {
       conFecha: Con_Fecha,
       sinFecha: Baul_Tareas.map((Tarea) => Tarea.Timeline),
+      toastAplicar: Toast_Aplicar,
+      toastBorrar: Toast_Borrar,
       multiTrasAplicar: Seleccion_Luego_De_Aplicar,
       multiTrasBorrar: Array.from(Baul_Multi_Seleccion)
     };
@@ -317,6 +325,12 @@ test("aplica y borra fecha limite en multiaccion del baul", async ({
     "2026-04-30"
   ]);
   expect(resultado.sinFecha).toEqual([null, null]);
+  expect(resultado.toastAplicar).toBe(
+    "Tareas actualizadas"
+  );
+  expect(resultado.toastBorrar).toBe(
+    "Tareas actualizadas"
+  );
   expect(resultado.multiTrasAplicar).toEqual([]);
   expect(resultado.multiTrasBorrar).toEqual([]);
 });
