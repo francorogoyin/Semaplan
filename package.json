@@ -2,16 +2,45 @@
   "name": "semaplan",
   "version": "1.0.0",
   "description": "Aplicación web de planificación semanal con calendario,\r bolsa de horas, subtareas, patrones, abordajes y resumen\r semanal. Backend en Supabase: registro, login, datos\r sincronizados en la nube y accesibles desde cualquier\r dispositivo.",
-  "main": "index.js",
+  "main": "Desktop/Main_Process.js",
   "scripts": {
     "auth:semaplan": "node scripts/save-semaplan-auth.js",
+    "desktop": "electron .",
+    "desktop:build": "electron-builder --win portable",
+    "desktop:dist": "electron-builder --dir",
+    "desktop:icon": "node scripts/Generar_Icono_Desktop.js",
     "test": "playwright test",
     "test:e2e": "playwright test"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "build": {
+    "appId": "com.semaplan.desktop",
+    "productName": "Semaplan",
+    "asar": true,
+    "directories": {
+      "output": "Dist_Desktop"
+    },
+    "files": [
+      "index.html",
+      "Semaplan.html",
+      "Semaplan.ico",
+      "Desktop/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "Semaplan.ico",
+      "target": [
+        "portable"
+      ],
+      "artifactName":
+        "Semaplan-Desktop-${version}.${ext}"
+    }
+  },
   "devDependencies": {
-    "@playwright/test": "^1.59.1"
+    "@playwright/test": "^1.59.1",
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12"
   }
 }
