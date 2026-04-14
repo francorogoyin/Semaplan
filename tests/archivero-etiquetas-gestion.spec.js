@@ -136,6 +136,16 @@ test("gestiona etiquetas desde boton discreto", async ({
 
   await Preparar(page, Estado_Inicial);
 
+  await expect(page.locator(".Archivero_Cabecera")).toContainText(
+    "#"
+  );
+  await expect(
+    page.locator(
+      "#Archivero_Btn_Nueva_Nota + " +
+      "#Archivero_Btn_Gestionar_Etiquetas"
+    )
+  ).toHaveCount(1);
+
   await page.click("#Archivero_Btn_Gestionar_Etiquetas");
   await expect(
     page.locator("#Archivero_Etiquetas_Overlay")
