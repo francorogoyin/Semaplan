@@ -4402,35 +4402,77 @@
       }
 
       .Config_Backup_Item {
+        display: flex;
+        align-items: center;
+        gap: 18px;
         padding: 10px 4px;
         border-bottom: 1px solid
           rgba(217, 207, 192, 0.72);
         background: transparent;
-      }
-
-      .Config_Backup_Cabecera {
-        display: flex;
-        justify-content: space-between;
-        gap: 8px;
-        align-items: center;
         flex-wrap: wrap;
       }
 
-      .Config_Backup_Titulo {
+      .Config_Backup_Tipo {
         font-size: 13px;
-        font-weight: 700;
+        font-weight: 400;
+        color: var(--Texto);
       }
 
       .Config_Backup_Meta {
-        font-size: 12px;
-        color: var(--Texto_Suave);
+        font-size: 13px;
+        color: var(--Texto);
+        white-space: nowrap;
       }
 
       .Config_Backup_Acciones {
         display: flex;
         gap: 8px;
         flex-wrap: wrap;
-        margin-top: 6px;
+        margin-left: auto;
+      }
+
+      .Config_Backup_Accion_Btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 26px;
+        padding: 4px 10px;
+        border: none;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+      }
+
+      .Config_Backup_Accion_Btn.Restaurar {
+        background: rgba(31,107,79,0.14);
+        color: #1f6b4f;
+      }
+
+      .Config_Backup_Accion_Btn.Exportar {
+        background: rgba(170,120,20,0.14);
+        color: #9a6a14;
+      }
+
+      .Config_Backup_Accion_Btn.Borrar {
+        background: rgba(140,47,47,0.14);
+        color: #8c2f2f;
+      }
+
+      .Config_Backup_Accion_Btn:hover {
+        filter: brightness(0.98);
+      }
+
+      @media (max-width: 640px) {
+        .Config_Backup_Item {
+          gap: 8px;
+        }
+
+        .Config_Backup_Acciones {
+          margin-left: 0;
+          width: 100%;
+        }
       }
 
       .Config_Cat_Nueva {
@@ -33588,27 +33630,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Item = document.createElement("div");
           Item.className = "Config_Backup_Item";
 
-          const Cab = document.createElement("div");
-          Cab.className = "Config_Backup_Cabecera";
-
-          const Tit = document.createElement("div");
-          Tit.className = "Config_Backup_Titulo";
-          Tit.textContent = Backup.Tipo === "Auto"
-            ? t("config.backup_automatico")
-            : t("config.backup_manual");
-
           const Meta = document.createElement("div");
           Meta.className = "Config_Backup_Meta";
           Meta.textContent = Formatear_Fecha_Backup(
             Backup.Fecha
           );
 
+          const Tipo = document.createElement("div");
+          Tipo.className = "Config_Backup_Tipo";
+          Tipo.textContent = Backup.Tipo === "Auto"
+            ? t("config.backup_automatico")
+            : t("config.backup_manual");
+
           const Acc = document.createElement("div");
           Acc.className = "Config_Backup_Acciones";
 
           const Btn_Rest = document.createElement("button");
           Btn_Rest.type = "button";
-          Btn_Rest.className = "Config_Dato_Btn";
+          Btn_Rest.className =
+            "Config_Backup_Accion_Btn Restaurar";
           Btn_Rest.textContent = t("config.backup_restaurar");
           Btn_Rest.addEventListener("click", async () => {
             await Aplicar_Importacion_Objeto(Backup.Estado);
@@ -33616,7 +33656,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           const Btn_Exp = document.createElement("button");
           Btn_Exp.type = "button";
-          Btn_Exp.className = "Config_Dato_Btn";
+          Btn_Exp.className =
+            "Config_Backup_Accion_Btn Exportar";
           Btn_Exp.textContent = t("config.backup_exportar");
           Btn_Exp.addEventListener("click", () => {
             Descargar_Json_Respaldo(
@@ -33628,7 +33669,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Btn_Borrar = document.createElement("button");
           Btn_Borrar.type = "button";
           Btn_Borrar.className =
-            "Config_Dato_Btn Config_Dato_Btn_Peligro";
+            "Config_Backup_Accion_Btn Borrar";
           Btn_Borrar.textContent = t("config.backup_borrar");
           Btn_Borrar.addEventListener("click", () => {
             Backups_Locales = Backups_Locales.filter((Item) => {
@@ -33638,12 +33679,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Render_Config_Backups();
           });
 
-          Cab.appendChild(Tit);
-          Cab.appendChild(Meta);
+          Item.appendChild(Meta);
+          Item.appendChild(Tipo);
           Acc.appendChild(Btn_Rest);
           Acc.appendChild(Btn_Exp);
           Acc.appendChild(Btn_Borrar);
-          Item.appendChild(Cab);
           Item.appendChild(Acc);
           Lista.appendChild(Item);
         });

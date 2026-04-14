@@ -117,6 +117,18 @@ test("crea backups automaticos y manuales en config", async ({
     const Estilo = Primer_Item
       ? window.getComputedStyle(Primer_Item)
       : null;
+    const Tipo = Primer_Item?.querySelector(
+      ".Config_Backup_Tipo"
+    );
+    const Estilo_Tipo = Tipo
+      ? window.getComputedStyle(Tipo)
+      : null;
+    const Boton = Primer_Item?.querySelector(
+      ".Config_Backup_Accion_Btn"
+    );
+    const Estilo_Boton = Boton
+      ? window.getComputedStyle(Boton)
+      : null;
     return {
       tipos: Lista.map((Item) => Item.Tipo),
       visibles: document.querySelectorAll(
@@ -124,7 +136,12 @@ test("crea backups automaticos y manuales en config", async ({
       ).length,
       borderRadius: Estilo?.borderRadius || "",
       background: Estilo?.backgroundColor || "",
-      bordeInferior: Estilo?.borderBottomWidth || ""
+      bordeInferior: Estilo?.borderBottomWidth || "",
+      orden_1: Primer_Item?.children?.[0]?.className || "",
+      orden_2: Primer_Item?.children?.[1]?.className || "",
+      fontWeightTipo: Estilo_Tipo?.fontWeight || "",
+      radioBoton: Estilo_Boton?.borderRadius || "",
+      fondoBoton: Estilo_Boton?.backgroundColor || ""
     };
   });
 
@@ -133,4 +150,9 @@ test("crea backups automaticos y manuales en config", async ({
   expect(resumen.borderRadius).toBe("0px");
   expect(resumen.background).toBe("rgba(0, 0, 0, 0)");
   expect(resumen.bordeInferior).toBe("1px");
+  expect(resumen.orden_1).toBe("Config_Backup_Meta");
+  expect(resumen.orden_2).toBe("Config_Backup_Tipo");
+  expect(Number(resumen.fontWeightTipo)).toBeLessThan(500);
+  expect(resumen.radioBoton).toBe("999px");
+  expect(resumen.fondoBoton).not.toBe("rgba(0, 0, 0, 0)");
 });
