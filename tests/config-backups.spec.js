@@ -111,14 +111,26 @@ test("crea backups automaticos y manuales en config", async ({
     const Lista = JSON.parse(
       localStorage.getItem("Semaplan_Backups_V1") || "[]"
     );
+    const Primer_Item = document.querySelector(
+      "#Cfg_Backup_Lista .Config_Backup_Item"
+    );
+    const Estilo = Primer_Item
+      ? window.getComputedStyle(Primer_Item)
+      : null;
     return {
       tipos: Lista.map((Item) => Item.Tipo),
       visibles: document.querySelectorAll(
         "#Cfg_Backup_Lista .Config_Backup_Item"
-      ).length
+      ).length,
+      borderRadius: Estilo?.borderRadius || "",
+      background: Estilo?.backgroundColor || "",
+      bordeInferior: Estilo?.borderBottomWidth || ""
     };
   });
 
   expect(resumen.tipos).toEqual(["Manual", "Auto"]);
   expect(resumen.visibles).toBe(2);
+  expect(resumen.borderRadius).toBe("0px");
+  expect(resumen.background).toBe("rgba(0, 0, 0, 0)");
+  expect(resumen.bordeInferior).toBe("1px");
 });
