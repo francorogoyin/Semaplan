@@ -209,3 +209,117 @@ test("aplica y alterna titulo por tipo en slots muertos", async ({
   expect(resultado.Etiqueta_Colocar).toBe("Colocar título");
   expect(resultado.Tras_Colocar).toBe("🍽️ Almuerzo");
 });
+
+test("aplica el titulo default segun el alcance elegido", async ({
+  page
+}) => {
+  const estadoInicial = {
+    Tareas: [],
+    Eventos: [],
+    Metas: [],
+    Slots_Muertos: [
+      "2026-04-07|10",
+      "2026-04-13|10",
+      "2026-04-16|10",
+      "2026-04-20|10"
+    ],
+    Plantillas_Subtareas: [],
+    Planes_Slot: {},
+    Categorias: [],
+    Etiquetas: [],
+    Baul_Tareas: [],
+    Baul_Grupos_Colapsados: {},
+    Archiveros: [],
+    Notas_Archivero: [],
+    Patrones: [],
+    Contador_Eventos: 1,
+    Tarea_Seleccionada_Id: null,
+    Modo_Editor_Abierto: false,
+    Inicio_Semana: "2026-04-13",
+    Duracion_Defecto: 1,
+    Config_Extra: {},
+    Tipos_Slot: [
+      {
+        Id: "Comida",
+        Nombre: "Comida",
+        Color: "#f3d39d",
+        Titulo: "🍽️ Almuerzo",
+        Titulo_Por_Defecto: true
+      }
+    ],
+    Tipos_Slot_Inicializados: true,
+    Slots_Muertos_Tipos: {
+      "2026-04-07|10": "Comida",
+      "2026-04-13|10": "Comida",
+      "2026-04-16|10": "Comida",
+      "2026-04-20|10": "Comida"
+    },
+    Slots_Muertos_Nombres: {
+      "2026-04-07|10": "🍽️ Almuerzo",
+      "2026-04-13|10": "🍽️ Almuerzo",
+      "2026-04-16|10": "🍽️ Almuerzo",
+      "2026-04-20|10": "🍽️ Almuerzo"
+    },
+    Abordajes_Migrados_V1: true,
+    Semanas_Con_Defaults: [],
+    Planes_Semana: {}
+  };
+
+  await preparar(page, estadoInicial);
+
+  const resultado = await page.evaluate(async () => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    window.Inicializar();
+
+    const reset = () => {
+      Slots_Muertos_Nombres["2026-04-07|10"] = "🍽️ Almuerzo";
+      Slots_Muertos_Nombres["2026-04-13|10"] = "🍽️ Almuerzo";
+      Slots_Muertos_Nombres["2026-04-16|10"] = "🍽️ Almuerzo";
+      Slots_Muertos_Nombres["2026-04-20|10"] = "🍽️ Almuerzo";
+    };
+
+    reset();
+    Aplicar_Titulo_Default_Tipo_Slot(
+      "Comida",
+      "🍝 Cena",
+      "Semana"
+    );
+    const semana = { ...Slots_Muertos_Nombres };
+
+    reset();
+    Aplicar_Titulo_Default_Tipo_Slot(
+      "Comida",
+      "🍝 Cena",
+      "Adelante"
+    );
+    const adelante = { ...Slots_Muertos_Nombres };
+
+    reset();
+    Aplicar_Titulo_Default_Tipo_Slot(
+      "Comida",
+      "🍝 Cena",
+      "Todas"
+    );
+    const todas = { ...Slots_Muertos_Nombres };
+
+    return { semana, adelante, todas };
+  });
+
+  expect(resultado.semana["2026-04-07|10"]).toBe("🍽️ Almuerzo");
+  expect(resultado.semana["2026-04-13|10"]).toBe("🍝 Cena");
+  expect(resultado.semana["2026-04-16|10"]).toBe("🍝 Cena");
+  expect(resultado.semana["2026-04-20|10"]).toBe("🍽️ Almuerzo");
+
+  expect(resultado.adelante["2026-04-07|10"]).toBe("🍽️ Almuerzo");
+  expect(resultado.adelante["2026-04-13|10"]).toBe("🍽️ Almuerzo");
+  expect(resultado.adelante["2026-04-16|10"]).toBe("🍝 Cena");
+  expect(resultado.adelante["2026-04-20|10"]).toBe("🍝 Cena");
+
+  expect(resultado.todas["2026-04-07|10"]).toBe("🍝 Cena");
+  expect(resultado.todas["2026-04-13|10"]).toBe("🍝 Cena");
+  expect(resultado.todas["2026-04-16|10"]).toBe("🍝 Cena");
+  expect(resultado.todas["2026-04-20|10"]).toBe("🍝 Cena");
+});

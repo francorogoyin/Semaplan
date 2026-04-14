@@ -213,3 +213,104 @@ test("edita y crea tipos de slot desde modal", async ({
     ])
   );
 });
+
+test("pregunta alcance al guardar titulo default de slot", async ({
+  page
+}) => {
+  const estadoInicial = {
+    Tareas: [],
+    Eventos: [],
+    Metas: [],
+    Slots_Muertos: [
+      "2026-04-13|10",
+      "2026-04-20|10"
+    ],
+    Plantillas_Subtareas: [],
+    Planes_Slot: {},
+    Categorias: [],
+    Etiquetas: [],
+    Baul_Tareas: [],
+    Baul_Grupos_Colapsados: {},
+    Archiveros: [],
+    Notas_Archivero: [],
+    Patrones: [],
+    Contador_Eventos: 1,
+    Tarea_Seleccionada_Id: null,
+    Modo_Editor_Abierto: false,
+    Inicio_Semana: "2026-04-13",
+    Duracion_Defecto: 1,
+    Config_Extra: {},
+    Tipos_Slot: [
+      {
+        Id: "Comida",
+        Nombre: "Comida",
+        Color: "#f3d39d",
+        Titulo: "🍽️ Almuerzo",
+        Titulo_Por_Defecto: true
+      }
+    ],
+    Tipos_Slot_Inicializados: true,
+    Slots_Muertos_Tipos: {
+      "2026-04-13|10": "Comida",
+      "2026-04-20|10": "Comida"
+    },
+    Slots_Muertos_Nombres: {
+      "2026-04-13|10": "🍽️ Almuerzo",
+      "2026-04-20|10": "🍽️ Almuerzo"
+    },
+    Abordajes_Migrados_V1: true,
+    Semanas_Con_Defaults: [],
+    Planes_Semana: {}
+  };
+
+  await preparar(page, estadoInicial);
+
+  const resultado = await page.evaluate(async () => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    window.Inicializar();
+    Abrir_Config();
+    window.__Preguntas_Slot = [];
+    const Dialogo_Original = Mostrar_Dialogo;
+    Mostrar_Dialogo = async (Texto, Botones = []) => {
+      window.__Preguntas_Slot.push({
+        texto: Texto,
+        botones: Botones.map((B) => B.Etiqueta)
+      });
+      return "Semana";
+    };
+
+    Abrir_Modal_Tipo_Slot_Config("Comida");
+    document.getElementById(
+      "Cfg_Tipo_Slot_Modal_Titulo_Input"
+    ).value = "🍝 Cena";
+    document.getElementById(
+      "Cfg_Tipo_Slot_Modal_Titulo_Default"
+    ).checked = true;
+
+    await Guardar_Tipo_Slot_Config_Desde_Modal();
+    Mostrar_Dialogo = Dialogo_Original;
+
+    return {
+      preguntas: window.__Preguntas_Slot,
+      actual: Slots_Muertos_Nombres["2026-04-13|10"] || "",
+      futura: Slots_Muertos_Nombres["2026-04-20|10"] || ""
+    };
+  });
+
+  expect(resultado.preguntas).toHaveLength(1);
+  expect(resultado.preguntas[0].texto).toContain(
+    "título por defecto"
+  );
+  expect(resultado.preguntas[0].botones).toEqual(
+    expect.arrayContaining([
+      "Semana actual",
+      "De acá en adelante",
+      "Todas las semanas"
+    ])
+  );
+  expect(resultado.actual).toBe("🍝 Cena");
+  expect(resultado.futura).toBe("🍽️ Almuerzo");
+});

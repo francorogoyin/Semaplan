@@ -13261,6 +13261,9 @@
             "Título opcional del slot",
           "config.titulo_slot_default":
             "Título por defecto",
+          "config.titulo_slot_aplicar":
+            "¿Dónde querés aplicar este título " +
+            "por defecto?",
           "config.patrones": "Patrones",
           "config.patrones_hint":
             "Plantillas reutilizables de " +
@@ -15586,6 +15589,9 @@
             "Optional slot title",
           "config.titulo_slot_default":
             "Default title",
+          "config.titulo_slot_aplicar":
+            "Where do you want to apply this " +
+            "default title?",
           "config.patrones": "Patterns",
           "config.patrones_hint":
             "Reusable templates of blocks " +
@@ -17901,6 +17907,9 @@
             "Título opcional do slot",
           "config.titulo_slot_default":
             "Título padrão",
+          "config.titulo_slot_aplicar":
+            "Onde você quer aplicar este " +
+            "título padrão?",
           "config.patrones": "Padrões",
           "config.patrones_hint":
             "Templates reutilizáveis de " +
@@ -31498,7 +31507,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         window.open(Url, "_blank", "noopener");
       }
 
-      function Guardar_Tipo_Slot_Config_Desde_Modal() {
+      async function Guardar_Tipo_Slot_Config_Desde_Modal() {
         const Nombre = (
           document.getElementById(
             "Cfg_Tipo_Slot_Modal_Nombre"
@@ -31543,8 +31552,50 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Normalizar_Tipo_Slot(Datos)
           );
         }
+        if (Titulo_Default && Titulo) {
+          const Hay_Slots_Del_Tipo = Object.keys(
+            Slots_Muertos_Tipos || {}
+          ).some((Clave) =>
+            Slots_Muertos_Tipos[Clave] === Datos.Id
+          );
+          if (Hay_Slots_Del_Tipo) {
+            const Alcance = await Mostrar_Dialogo(
+              t("config.titulo_slot_aplicar"),
+              [
+                {
+                  Etiqueta: t("dialog.semana_actual"),
+                  Valor: "Semana",
+                  Tipo: "Primario"
+                },
+                {
+                  Etiqueta: t("dialog.de_aca_adelante"),
+                  Valor: "Adelante",
+                  Tipo: "Secundario"
+                },
+                {
+                  Etiqueta: t("dialog.todas_semanas"),
+                  Valor: "Todas",
+                  Tipo: "Secundario"
+                },
+                {
+                  Etiqueta: t("cancelar"),
+                  Valor: "Cancelar",
+                  Tipo: "Secundario"
+                }
+              ]
+            );
+            if (Alcance && Alcance !== "Cancelar") {
+              Aplicar_Titulo_Default_Tipo_Slot(
+                Datos.Id,
+                Titulo,
+                Alcance
+              );
+            }
+          }
+        }
         Render_Config_Tipos_Slot();
         Render_Calendario();
+        Guardar_Estado();
         Cerrar_Modal_Tipo_Slot_Config();
       }
 
@@ -38818,6 +38869,61 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Slots_Muertos_Nombres[Clave] = Titulo;
         return true;
+      }
+
+      function Obtener_Fecha_Clave_Slot(Clave = "") {
+        return String(Clave || "").split("|")[0] || "";
+      }
+
+      function Obtener_Rango_Semana_Actual_Slot() {
+        const Inicio = Clave_Semana_Actual();
+        const Fin = Formatear_Fecha_ISO(
+          Sumar_Dias(Obtener_Lunes(Semana_Actual), 6)
+        );
+        return { Inicio, Fin };
+      }
+
+      function Obtener_Fecha_Referencia_Adelante_Slot() {
+        const Hoy = Formatear_Fecha_ISO(new Date());
+        const Semana = Clave_Semana_Actual();
+        return Semana > Hoy ? Semana : Hoy;
+      }
+
+      function Slot_En_Alcance_Titulo_Default(
+        Clave,
+        Alcance = "Semana"
+      ) {
+        const Fecha = Obtener_Fecha_Clave_Slot(Clave);
+        if (!Fecha) return false;
+        if (Alcance === "Todas") {
+          return true;
+        }
+        if (Alcance === "Adelante") {
+          return Fecha >=
+            Obtener_Fecha_Referencia_Adelante_Slot();
+        }
+        const Rango = Obtener_Rango_Semana_Actual_Slot();
+        return Fecha >= Rango.Inicio && Fecha <= Rango.Fin;
+      }
+
+      function Aplicar_Titulo_Default_Tipo_Slot(
+        Tipo_Id,
+        Titulo,
+        Alcance = "Semana"
+      ) {
+        const Texto = Normalizar_Texto_Titulo_Slot(Titulo);
+        if (!Tipo_Id || !Texto) return 0;
+        let Cambios = 0;
+        Object.keys(Slots_Muertos_Tipos).forEach((Clave) => {
+          if (Slots_Muertos_Tipos[Clave] !== Tipo_Id) return;
+          if (!Slot_En_Alcance_Titulo_Default(Clave, Alcance)) {
+            return;
+          }
+          if (Slots_Muertos_Nombres[Clave] === Texto) return;
+          Slots_Muertos_Nombres[Clave] = Texto;
+          Cambios += 1;
+        });
+        return Cambios;
       }
 
       function Crear_Slot_Muerto(
