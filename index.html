@@ -4387,6 +4387,22 @@
         margin-top: 12px;
       }
 
+      .Config_Backup_Auto_Detalle {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        padding: 2px 0 0 22px;
+      }
+
+      .Config_Backup_Auto_Detalle.Activo {
+        display: flex;
+      }
+
+      .Config_Backup_Proximo {
+        font-size: 12px;
+        color: var(--Texto_Suave);
+      }
+
       .Config_Backup_Item {
         display: flex;
         align-items: center;
@@ -6365,9 +6381,14 @@
         display: flex;
         flex-direction: column;
         gap: 6px;
+        cursor: pointer;
+        transition:
+          border-color 0.16s ease,
+          box-shadow 0.16s ease,
+          transform 0.16s ease;
       }
       .Archivero_Nota_Card.Reordenable {
-        cursor: grab;
+        cursor: pointer;
       }
       .Archivero_Nota_Card.Activa {
         border-color: var(--Acento);
@@ -6455,6 +6476,12 @@
       .Archivero_Nota_Card:hover
         .Archivero_Nota_Acciones {
         display: flex;
+      }
+
+      .Archivero_Nota_Card:hover {
+        border-color: rgba(26, 90, 128, 0.42);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
       }
 
       .Archivero_Etiquetas_Sugeridas {
@@ -7917,6 +7944,82 @@
 
       .Ayuda_Bloque p + p {
         margin-top: 8px;
+      }
+
+      .Ayuda_Acciones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .Ayuda_Accion_Btn {
+        min-height: 32px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid var(--Borde);
+        background: #fff;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--Texto);
+        cursor: pointer;
+      }
+
+      .Ayuda_Accion_Btn.Primario {
+        background: rgba(31,107,79,0.12);
+        border-color: rgba(31,107,79,0.2);
+        color: #1f6b4f;
+      }
+
+      .Ayuda_Faq_Lista {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .Ayuda_Faq_Item {
+        border: 1px solid var(--Borde);
+        border-radius: 12px;
+        background: #fffaf1;
+        padding: 12px;
+      }
+
+      .Ayuda_Faq_Item strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+        color: var(--Texto);
+      }
+
+      .Ayuda_Consulta_Panel {
+        width: min(520px, calc(100vw - 28px));
+      }
+
+      .Ayuda_Consulta_Cuerpo {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px 18px 18px;
+      }
+
+      .Ayuda_Consulta_Nota {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--Texto_Suave);
+      }
+
+      .Ayuda_Consulta_Actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .Ayuda_Consulta_Textarea {
+        min-height: 144px;
+        resize: vertical;
       }
 
       .Ayuda_Hero {
@@ -9799,6 +9902,21 @@
                     Copias automáticas
                   </label>
                 </div>
+                <div id="Cfg_Backup_Auto_Detalle"
+                  class="Config_Backup_Auto_Detalle">
+                  <div class="Config_Fila">
+                    <span class="Config_Label"
+                      data-i18n="config.backup_hora_inicio">
+                      Hora de inicio
+                    </span>
+                    <input type="time"
+                      id="Cfg_Backup_Auto_Inicio"
+                      class="Config_Input"
+                      step="900">
+                  </div>
+                  <div id="Cfg_Backup_Proximo"
+                    class="Config_Backup_Proximo"></div>
+                </div>
                 <div id="Cfg_Backup_Lista"
                   class="Config_Backup_Lista"></div>
               </div>
@@ -9970,6 +10088,57 @@
                 type="button">&times;</button>
             </div>
             <div class="Ayuda_Cuerpo">
+              <div class="Ayuda_Bloque">
+                <div class="Ayuda_Acciones">
+                  <button type="button"
+                    id="Ayuda_Faq_Btn"
+                    class="Ayuda_Accion_Btn">
+                    FAQ
+                  </button>
+                  <button type="button"
+                    id="Ayuda_Consulta_Btn"
+                    class="Ayuda_Accion_Btn Primario"
+                    data-i18n="ayuda.consulta_boton">
+                    Enviar consulta
+                  </button>
+                </div>
+                <div id="Ayuda_Faq_Ancla"></div>
+                <h3 data-i18n="ayuda.faq_titulo">
+                  FAQ
+                </h3>
+                <div class="Ayuda_Faq_Lista">
+                  <div class="Ayuda_Faq_Item">
+                    <strong data-i18n="ayuda.faq_1_q">
+                      ¿Cómo creo un bloque?
+                    </strong>
+                    <p data-i18n="ayuda.faq_1_a">
+                      Arrastrá una tarea al calendario o
+                      hacé click en una hora libre para crear
+                      algo nuevo desde ahí.
+                    </p>
+                  </div>
+                  <div class="Ayuda_Faq_Item">
+                    <strong data-i18n="ayuda.faq_2_q">
+                      ¿Qué guarda una copia?
+                    </strong>
+                    <p data-i18n="ayuda.faq_2_a">
+                      Guarda estado completo: calendario,
+                      tareas, baúl, metas, archivero,
+                      etiquetas, patrones y configuración.
+                    </p>
+                  </div>
+                  <div class="Ayuda_Faq_Item">
+                    <strong data-i18n="ayuda.faq_3_q">
+                      ¿Cómo sé si sincronizó?
+                    </strong>
+                    <p data-i18n="ayuda.faq_3_a">
+                      Mirá el indicador de guardado arriba.
+                      Guardado significa que no queda nada
+                      pendiente con la nube.
+                    </p>
+                  </div>
+                </div>
+              </div>
               <div class="Ayuda_Bloque">
                 <div class="Ayuda_Hero">
                   <div class="Ayuda_Hero_Icono">🧭</div>
@@ -11460,11 +11629,63 @@
 	            <kbd class="Paleta_Kbd">Esc</kbd>
 	            <span data-i18n="paleta.cerrar">cerrar</span>
 	          </span>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <div class="Patron_Modal_Overlay" id="Metas_Overlay">
+        <div class="Patron_Modal_Overlay"
+          id="Ayuda_Consulta_Overlay">
+          <div class="Patron_Modal_Panel Ayuda_Consulta_Panel">
+            <div class="Patron_Modal_Cabecera">
+              <span class="Patron_Modal_Titulo"
+                data-i18n="ayuda.consulta_titulo">
+                Enviar consulta
+              </span>
+              <button class="Config_Cerrar"
+                id="Ayuda_Consulta_Cerrar"
+                type="button">&times;</button>
+            </div>
+            <div class="Ayuda_Consulta_Cuerpo">
+              <div class="Config_Fila">
+                <span class="Config_Label"
+                  data-i18n="ayuda.consulta_asunto">
+                  Asunto
+                </span>
+                <input type="text"
+                  id="Ayuda_Consulta_Asunto"
+                  class="Config_Input">
+              </div>
+              <div class="Config_Grupo">
+                <p class="Config_Seccion_Titulo"
+                  data-i18n="ayuda.consulta_mensaje">
+                  Mensaje
+                </p>
+                <textarea
+                  id="Ayuda_Consulta_Mensaje"
+                  class="Config_Textarea
+                    Ayuda_Consulta_Textarea"></textarea>
+              </div>
+              <p id="Ayuda_Consulta_Nota"
+                class="Ayuda_Consulta_Nota"></p>
+              <div class="Ayuda_Consulta_Actions">
+                <button type="button"
+                  id="Ayuda_Consulta_Cancelar"
+                  class="Config_Dato_Btn"
+                  data-i18n="cancelar">
+                  Cancelar
+                </button>
+                <button type="button"
+                  id="Ayuda_Consulta_Enviar"
+                  class="Config_Dato_Btn"
+                  data-i18n="ayuda.consulta_enviar">
+                  Enviar mail
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="Patron_Modal_Overlay" id="Metas_Overlay">
       <div class="Patron_Modal_Panel Metas_Panel">
         <div class="Patron_Modal_Cabecera">
           <span class="Patron_Modal_Titulo"
@@ -12517,6 +12738,11 @@
           "config.backup_cada": "Frecuencia",
           "config.backup_crear":
             "Crear copia",
+          "config.backup_hora_inicio":
+            "Hora de inicio",
+          "config.backup_proximo":
+            "El próximo backup automático " +
+            "será {Fecha}.",
           "config.backup_vacio":
             "Todavía no hay copias guardadas.",
           "config.backup_manual": "Manual",
@@ -12526,6 +12752,10 @@
             "Restaurar",
           "config.backup_exportar": "Exportar",
           "config.backup_borrar": "Borrar",
+          "config.backup_aviso_manual":
+            "Copia manual guardada.",
+          "config.backup_aviso_auto":
+            "Copia automática guardada.",
           "config.cuenta": "Cuenta",
           "config.cuenta_hint":
             "Tu sesión activa, plan, " +
@@ -13187,6 +13417,21 @@
           "dialog.contactar_soporte":
             "Si el problema persiste, " +
             "contactá soporte.",
+          "dialog.backup_restaurar_confirmar":
+            "Restaurar esta copia va a " +
+            "reemplazar todo el estado " +
+            "actual. ¿Seguimos?",
+          "dialog.backup_borrar_confirmar":
+            "¿Borramos esta copia?",
+          "dialog.backup_password":
+            "Para seguir, escribí tu " +
+            "contraseña actual.",
+          "dialog.backup_password_ph":
+            "Tu contraseña",
+          "dialog.backup_restaurar_btn":
+            "Restaurar copia",
+          "dialog.backup_borrar_btn":
+            "Borrar copia",
           "dialog.sin_horas_bolsa":
             "No hay horas suficientes en " +
             "la bolsa.",
@@ -13528,6 +13773,47 @@
             "Sin cajón seleccionado",
           "archivero.sin_resultados":
             "Sin resultados",
+          "ayuda.titulo": "Ayuda",
+          "ayuda.faq_titulo": "FAQ",
+          "ayuda.consulta_boton":
+            "Enviar consulta",
+          "ayuda.consulta_titulo":
+            "Enviar consulta",
+          "ayuda.consulta_asunto": "Asunto",
+          "ayuda.consulta_mensaje": "Mensaje",
+          "ayuda.consulta_enviar":
+            "Enviar mail",
+          "ayuda.consulta_asunto_default":
+            "Consulta sobre Semaplan",
+          "ayuda.consulta_hint":
+            "El mail se abre con tu cliente " +
+            "de correo y sale marcado con " +
+            "este usuario: {Email}.",
+          "ayuda.consulta_incompleta":
+            "Completá asunto y mensaje.",
+          "ayuda.consulta_body_usuario":
+            "Usuario: {Email}",
+          "ayuda.faq_1_q":
+            "¿Cómo creo un bloque?",
+          "ayuda.faq_1_a":
+            "Arrastrá una tarea al " +
+            "calendario o hacé click en " +
+            "una hora libre para crear " +
+            "algo nuevo.",
+          "ayuda.faq_2_q":
+            "¿Qué guarda una copia?",
+          "ayuda.faq_2_a":
+            "Guarda el estado completo: " +
+            "calendario, tareas, baúl, " +
+            "metas, archivero, etiquetas, " +
+            "patrones y configuración.",
+          "ayuda.faq_3_q":
+            "¿Cómo sé si sincronizó?",
+          "ayuda.faq_3_a":
+            "Mirá el indicador de guardado " +
+            "arriba. Guardado significa " +
+            "que no queda nada pendiente " +
+            "con la nube.",
           "ayuda.como_se_mueve":
             "Cómo se mueve la semana",
           "ayuda.intro":
@@ -14638,6 +14924,11 @@
           "config.backup_cada": "Frequency",
           "config.backup_crear":
             "Create backup",
+          "config.backup_hora_inicio":
+            "Start time",
+          "config.backup_proximo":
+            "The next automatic backup " +
+            "will be {Fecha}.",
           "config.backup_vacio":
             "There are no backups yet.",
           "config.backup_manual": "Manual",
@@ -14647,6 +14938,10 @@
             "Restore",
           "config.backup_exportar": "Export",
           "config.backup_borrar": "Delete",
+          "config.backup_aviso_manual":
+            "Manual backup saved.",
+          "config.backup_aviso_auto":
+            "Automatic backup saved.",
           "config.cuenta": "Account",
           "config.cuenta_hint":
             "Your active session, plan, " +
@@ -15294,6 +15589,21 @@
           "dialog.contactar_soporte":
             "If the problem persists, " +
             "contact support.",
+          "dialog.backup_restaurar_confirmar":
+            "Restoring this backup will " +
+            "replace the entire current " +
+            "state. Continue?",
+          "dialog.backup_borrar_confirmar":
+            "Delete this backup?",
+          "dialog.backup_password":
+            "To continue, enter your " +
+            "current password.",
+          "dialog.backup_password_ph":
+            "Your password",
+          "dialog.backup_restaurar_btn":
+            "Restore backup",
+          "dialog.backup_borrar_btn":
+            "Delete backup",
           "dialog.sin_horas_bolsa":
             "Not enough hours in the " +
             "pool.",
@@ -15631,6 +15941,46 @@
             "No drawer selected",
           "archivero.sin_resultados":
             "No results",
+          "ayuda.titulo": "Help",
+          "ayuda.faq_titulo": "FAQ",
+          "ayuda.consulta_boton":
+            "Send question",
+          "ayuda.consulta_titulo":
+            "Send question",
+          "ayuda.consulta_asunto": "Subject",
+          "ayuda.consulta_mensaje": "Message",
+          "ayuda.consulta_enviar":
+            "Send email",
+          "ayuda.consulta_asunto_default":
+            "Question about Semaplan",
+          "ayuda.consulta_hint":
+            "This opens your email app " +
+            "with this signed-in user: " +
+            "{Email}.",
+          "ayuda.consulta_incompleta":
+            "Complete subject and message.",
+          "ayuda.consulta_body_usuario":
+            "User: {Email}",
+          "ayuda.faq_1_q":
+            "How do I create a block?",
+          "ayuda.faq_1_a":
+            "Drag a task into the " +
+            "calendar or click an empty " +
+            "hour to create something " +
+            "new there.",
+          "ayuda.faq_2_q":
+            "What does a backup save?",
+          "ayuda.faq_2_a":
+            "It saves the full state: " +
+            "calendar, tasks, vault, " +
+            "goals, archive, tags, " +
+            "patterns and settings.",
+          "ayuda.faq_3_q":
+            "How do I know it synced?",
+          "ayuda.faq_3_a":
+            "Check the save indicator at " +
+            "the top. Saved means nothing " +
+            "is pending with the cloud.",
           "ayuda.como_se_mueve":
             "How the week works",
           "ayuda.intro":
@@ -16756,6 +17106,11 @@
           "config.backup_cada": "Frequência",
           "config.backup_crear":
             "Criar copia",
+          "config.backup_hora_inicio":
+            "Hora de início",
+          "config.backup_proximo":
+            "O próximo backup automático " +
+            "será {Fecha}.",
           "config.backup_vacio":
             "Ainda nao ha copias salvas.",
           "config.backup_manual": "Manual",
@@ -16765,6 +17120,10 @@
             "Restaurar",
           "config.backup_exportar": "Exportar",
           "config.backup_borrar": "Apagar",
+          "config.backup_aviso_manual":
+            "Copia manual salva.",
+          "config.backup_aviso_auto":
+            "Copia automática salva.",
           "config.cuenta": "Conta",
           "config.cuenta_hint":
             "Sua sessão ativa, plano, " +
@@ -17444,6 +17803,21 @@
           "dialog.contactar_soporte":
             "Se o problema persistir, " +
             "entre em contato com o suporte.",
+          "dialog.backup_restaurar_confirmar":
+            "Restaurar este backup vai " +
+            "substituir todo o estado " +
+            "atual. Continuar?",
+          "dialog.backup_borrar_confirmar":
+            "Apagar este backup?",
+          "dialog.backup_password":
+            "Para continuar, digite sua " +
+            "senha atual.",
+          "dialog.backup_password_ph":
+            "Sua senha",
+          "dialog.backup_restaurar_btn":
+            "Restaurar backup",
+          "dialog.backup_borrar_btn":
+            "Apagar backup",
           "dialog.sin_horas_bolsa":
             "Não há horas suficientes " +
             "no banco.",
@@ -17785,6 +18159,47 @@
             " selecionada",
           "archivero.sin_resultados":
             "Sem resultados",
+          "ayuda.titulo": "Ajuda",
+          "ayuda.faq_titulo": "FAQ",
+          "ayuda.consulta_boton":
+            "Enviar consulta",
+          "ayuda.consulta_titulo":
+            "Enviar consulta",
+          "ayuda.consulta_asunto": "Assunto",
+          "ayuda.consulta_mensaje": "Mensagem",
+          "ayuda.consulta_enviar":
+            "Enviar email",
+          "ayuda.consulta_asunto_default":
+            "Consulta sobre Semaplan",
+          "ayuda.consulta_hint":
+            "O email abre no seu cliente " +
+            "de correio com este usuário: " +
+            "{Email}.",
+          "ayuda.consulta_incompleta":
+            "Preencha assunto e mensagem.",
+          "ayuda.consulta_body_usuario":
+            "Usuário: {Email}",
+          "ayuda.faq_1_q":
+            "Como crio um bloco?",
+          "ayuda.faq_1_a":
+            "Arraste uma tarefa para o " +
+            "calendário ou clique em uma " +
+            "hora livre para criar algo " +
+            "novo ali.",
+          "ayuda.faq_2_q":
+            "O que um backup salva?",
+          "ayuda.faq_2_a":
+            "Salva o estado completo: " +
+            "calendário, tarefas, baú, " +
+            "metas, arquivo, etiquetas, " +
+            "padrões e configuração.",
+          "ayuda.faq_3_q":
+            "Como sei se sincronizou?",
+          "ayuda.faq_3_a":
+            "Olhe o indicador de " +
+            "salvamento no topo. Salvo " +
+            "significa que nada ficou " +
+            "pendente com a nuvem.",
           "ayuda.como_se_mueve":
             "Como a semana funciona",
           "ayuda.intro":
@@ -18980,6 +19395,7 @@
         Plan_Actual: "Free",
         Backup_Auto_Activo: false,
         Backup_Auto_Horas: 24,
+        Backup_Auto_Inicio: "09:00",
         Backup_Auto_Ultimo: 0,
         Contador_Semanas_Activo: false,
         Contador_Semanas_Modo: "Ano",
@@ -19018,6 +19434,8 @@
         "Semaplan_Estado_Usuario_V1";
       const Clave_Backups = "Semaplan_Backups_V1";
       const Max_Backups_Locales = 12;
+      const Mail_Ayuda_Consulta =
+        "patricioe.nogueroles@gmail.com";
       let Backups_Locales = [];
       // Migración one-time desde el nombre viejo del
       // proyecto: si el usuario tiene datos con la
@@ -19353,6 +19771,10 @@
       );
       const El_Ayuda_Overlay = document.getElementById("Ayuda_Overlay");
       const El_Ayuda_Boton = document.getElementById("Ayuda_Boton");
+      const El_Ayuda_Consulta_Overlay =
+        document.getElementById(
+          "Ayuda_Consulta_Overlay"
+        );
       const El_Suscripcion_Overlay = document.getElementById(
         "Suscripcion_Overlay"
       );
@@ -19781,7 +20203,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Dialogo_Abierto) return Promise.resolve(null);
         Dialogo_Abierto = true;
         return new Promise((Resolver) => {
-          let Captcha_Token = "";
+          const Requiere_Captcha =
+            typeof Auth_Captcha_Activa === "function"
+              ? Auth_Captcha_Activa()
+              : true;
+          let Captcha_Token =
+            Requiere_Captcha ? "" : "QA";
           const Cerrar_Con = (Valor) => {
             document.getElementById("Dialogo_Overlay")
               .classList.remove("Activo");
@@ -19816,11 +20243,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           El_Cont.style.display = "block";
           Limpiar_Turnstile_Dialogo();
-
-          const El_Turnstile = document.createElement("div");
-          El_Turnstile.id = "Dialogo_Turnstile_Cont";
-          El_Turnstile.className = "Dialogo_Turnstile";
-          El_Cont.appendChild(El_Turnstile);
+          let El_Turnstile = null;
+          if (Requiere_Captcha) {
+            El_Turnstile =
+              document.createElement("div");
+            El_Turnstile.id = "Dialogo_Turnstile_Cont";
+            El_Turnstile.className =
+              "Dialogo_Turnstile";
+            El_Cont.appendChild(El_Turnstile);
+          }
 
           const El_Botones = document.getElementById(
             "Dialogo_Botones"
@@ -19838,7 +20269,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           const Actualizar_Boton = () => {
             const Habilitado =
-              !!Captcha_Token &&
+              (!Requiere_Captcha || !!Captcha_Token) &&
               !!El_Campo.value.trim();
             Btn_OK.disabled = !Habilitado;
             Btn_OK.style.opacity = Habilitado
@@ -19888,6 +20319,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .classList.add("Activo");
 
           if (
+            Requiere_Captcha &&
             window.turnstile &&
             typeof window.turnstile.render === "function"
           ) {
@@ -29337,6 +29769,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Cfg_Backup_Horas = document.getElementById(
           "Cfg_Backup_Auto_Horas"
         );
+        const Cfg_Backup_Inicio = document.getElementById(
+          "Cfg_Backup_Auto_Inicio"
+        );
         if (Cfg_Backup_Auto) {
           Cfg_Backup_Auto.checked = Boolean(
             Config.Backup_Auto_Activo
@@ -29347,12 +29782,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Config.Backup_Auto_Horas || 24
           );
         }
+        if (Cfg_Backup_Inicio) {
+          Cfg_Backup_Inicio.value =
+            Normalizar_Hora_Backup_Auto(
+              Config.Backup_Auto_Inicio
+            );
+        }
         if (Cfg_Backup_Auto && !Cfg_Backup_Auto._Listener) {
           Cfg_Backup_Auto._Listener = true;
           Cfg_Backup_Auto.addEventListener("change", () => {
             Config.Backup_Auto_Activo = Boolean(
               Cfg_Backup_Auto.checked
             );
+            Actualizar_Config_Backup_Auto_UI();
             Guardar_Estado({ Omitir_Backup_Auto: true });
           });
         }
@@ -29363,6 +29805,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               1,
               Number(Cfg_Backup_Horas.value) || 24
             );
+            Actualizar_Config_Backup_Auto_UI();
+            Guardar_Estado({ Omitir_Backup_Auto: true });
+          });
+        }
+        if (
+          Cfg_Backup_Inicio &&
+          !Cfg_Backup_Inicio._Listener
+        ) {
+          Cfg_Backup_Inicio._Listener = true;
+          Cfg_Backup_Inicio.addEventListener("change", () => {
+            Config.Backup_Auto_Inicio =
+              Normalizar_Hora_Backup_Auto(
+                Cfg_Backup_Inicio.value
+              );
+            Actualizar_Config_Backup_Auto_UI();
             Guardar_Estado({ Omitir_Backup_Auto: true });
           });
         }
@@ -29375,6 +29832,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Crear_Backup_Local("Manual");
           });
         }
+        Actualizar_Config_Backup_Auto_UI();
         Render_Config_Backups();
         El_Config_Overlay.classList.add("Activo");
         // Bloquear scroll del fondo (html + body + viewport del
@@ -33567,14 +34025,177 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Formatear_Fecha_Backup(Valor) {
         const Fecha = new Date(Number(Valor) || Date.now());
+        const Locale =
+          Idioma_Actual === "en"
+            ? "en-US"
+            : Idioma_Actual === "pt"
+              ? "pt-BR"
+              : "es-AR";
         return new Intl.DateTimeFormat(
-          Idioma_Actual === "en" ? "en-US" : "es-AR",
+          Locale,
           {
             dateStyle: "short",
             timeStyle: "medium",
             timeZone: "America/Buenos_Aires"
           }
         ).format(Fecha);
+      }
+
+      function Normalizar_Hora_Backup_Auto(Valor) {
+        if (
+          typeof Valor === "string" &&
+          /^\d{2}:\d{2}$/.test(Valor)
+        ) {
+          return Valor;
+        }
+        return "09:00";
+      }
+
+      function Obtener_Minutos_Backup_Auto() {
+        const Hora =
+          Normalizar_Hora_Backup_Auto(
+            Config.Backup_Auto_Inicio
+          );
+        const [Horas, Minutos] = Hora
+          .split(":")
+          .map((Parte) => Number(Parte) || 0);
+        return (Horas * 60) + Minutos;
+      }
+
+      function Calcular_Proximo_Backup_Automatico(
+        Referencia_Ms = Date.now()
+      ) {
+        const Intervalo_Horas = Math.max(
+          1,
+          Number(Config.Backup_Auto_Horas) || 24
+        );
+        const Intervalo_Ms =
+          Intervalo_Horas * 3600 * 1000;
+        const Base = new Date();
+        const Minutos_Base =
+          Obtener_Minutos_Backup_Auto();
+        Base.setHours(
+          Math.floor(Minutos_Base / 60),
+          Minutos_Base % 60,
+          0,
+          0
+        );
+        let Proximo_Ms = Base.getTime();
+        if (Proximo_Ms < Referencia_Ms) {
+          const Diff_Ms =
+            Referencia_Ms - Proximo_Ms;
+          const Saltos =
+            Math.floor(Diff_Ms / Intervalo_Ms) + 1;
+          Proximo_Ms += Saltos * Intervalo_Ms;
+        }
+        return Proximo_Ms;
+      }
+
+      function Actualizar_Config_Backup_Auto_UI() {
+        const El_Detalle = document.getElementById(
+          "Cfg_Backup_Auto_Detalle"
+        );
+        const El_Proximo = document.getElementById(
+          "Cfg_Backup_Proximo"
+        );
+        const El_Inicio = document.getElementById(
+          "Cfg_Backup_Auto_Inicio"
+        );
+        if (El_Inicio) {
+          El_Inicio.value =
+            Normalizar_Hora_Backup_Auto(
+              Config.Backup_Auto_Inicio
+            );
+        }
+        if (!El_Detalle || !El_Proximo) return;
+        El_Detalle.classList.toggle(
+          "Activo",
+          Boolean(Config.Backup_Auto_Activo)
+        );
+        if (!Config.Backup_Auto_Activo) {
+          El_Proximo.textContent = "";
+          return;
+        }
+        const Proximo =
+          Calcular_Proximo_Backup_Automatico(
+            Date.now()
+          );
+        El_Proximo.textContent = t(
+          "config.backup_proximo",
+          { Fecha: Formatear_Fecha_Backup(Proximo) }
+        );
+      }
+
+      async function Confirmar_Accion_Backup(
+        Tipo_Accion
+      ) {
+        const Es_Restaurar =
+          Tipo_Accion === "Restaurar";
+        const Confirmar = await Mostrar_Dialogo(
+          t(
+            Es_Restaurar
+              ? "dialog.backup_restaurar_confirmar"
+              : "dialog.backup_borrar_confirmar"
+          ),
+          [
+            {
+              Etiqueta: t("cancelar"),
+              Valor: false,
+              Tipo: "Cancelar"
+            },
+            {
+              Etiqueta: t(
+                Es_Restaurar
+                  ? "config.backup_restaurar"
+                  : "config.backup_borrar"
+              ),
+              Valor: true,
+              Tipo: Es_Restaurar
+                ? "Primario"
+                : "Peligro"
+            }
+          ]
+        );
+        if (!Confirmar) return false;
+        if (!Usuario_Actual?.email || !Supa) {
+          return true;
+        }
+        const Credenciales =
+          await Mostrar_Dialogo_Con_Password_Y_Captcha(
+            t("dialog.backup_password"),
+            {
+              Placeholder: t(
+                "dialog.backup_password_ph"
+              ),
+              Etiqueta_Confirmar: t(
+                Es_Restaurar
+                  ? "dialog.backup_restaurar_btn"
+                  : "dialog.backup_borrar_btn"
+              ),
+              Etiqueta_Cancelar: t("cancelar")
+            }
+          );
+        if (!Credenciales?.Password) return false;
+        const Verif =
+          await Verificar_Password_Actual(
+            Usuario_Actual.email || "",
+            Credenciales.Password,
+            Credenciales.Captcha_Token || ""
+          );
+        if (Verif.Ok) return true;
+        await Mostrar_Dialogo(
+          t("dialog.no_verificar_password", {
+            Msg: Verif.Msg
+          }),
+          [
+            {
+              Etiqueta: t("ok"),
+              Valor: true,
+              Tipo: "Primario"
+            }
+          ]
+        );
+        return false;
       }
 
       function Descargar_Json_Respaldo(Obj, Base = "Semaplan") {
@@ -33594,23 +34215,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         URL.revokeObjectURL(Url);
       }
 
-      async function Aplicar_Importacion_Objeto(Obj) {
-        const Confirmar = await Mostrar_Dialogo(
-          t("dialog.backup_restaurar"),
-          [
-            {
-              Etiqueta: t("dialog.si_importar"),
-              Valor: true,
-              Tipo: "Peligro"
-            },
-            {
-              Etiqueta: t("cancelar"),
-              Valor: false,
-              Tipo: "Cancelar"
-            }
-          ]
-        );
-        if (!Confirmar) return false;
+      async function Aplicar_Importacion_Objeto(
+        Obj,
+        Opciones = {}
+      ) {
+        if (!Opciones.Omitir_Confirmacion) {
+          const Confirmar = await Mostrar_Dialogo(
+            t("dialog.backup_restaurar"),
+            [
+              {
+                Etiqueta: t("dialog.si_importar"),
+                Valor: true,
+                Tipo: "Peligro"
+              },
+              {
+                Etiqueta: t("cancelar"),
+                Valor: false,
+                Tipo: "Cancelar"
+              }
+            ]
+          );
+          if (!Confirmar) return false;
+        }
         if (
           !Array.isArray(Obj?.Tareas) ||
           !Array.isArray(Obj?.Eventos)
@@ -33655,29 +34281,62 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Guardar_Backups_Locales();
         Render_Config_Backups();
+        Mostrar_Toast_Info(
+          t(
+            Tipo === "Auto"
+              ? "config.backup_aviso_auto"
+              : "config.backup_aviso_manual"
+          ),
+          "💾",
+          5000
+        );
         return Backup;
       }
 
       function Intentar_Backup_Automatico() {
         if (!Config.Backup_Auto_Activo) return false;
         const Ahora = Date.now();
-        const Intervalo =
-          Math.max(1, Number(Config.Backup_Auto_Horas) || 24) *
-          3600 * 1000;
-        if (
-          Config.Backup_Auto_Ultimo &&
-          Ahora - Config.Backup_Auto_Ultimo < Intervalo
-        ) {
+        const Proximo =
+          Calcular_Proximo_Backup_Automatico(
+            (Config.Backup_Auto_Ultimo || 0) + 1
+          );
+        if (Ahora < Proximo) {
           return false;
         }
         Crear_Backup_Local("Auto");
         Config.Backup_Auto_Ultimo = Ahora;
+        Actualizar_Config_Backup_Auto_UI();
+        return true;
+      }
+
+      async function Restaurar_Backup_Local(Backup) {
+        const Ok =
+          await Confirmar_Accion_Backup(
+            "Restaurar"
+          );
+        if (!Ok) return false;
+        return Aplicar_Importacion_Objeto(
+          Backup.Estado,
+          { Omitir_Confirmacion: true }
+        );
+      }
+
+      async function Eliminar_Backup_Local(Backup) {
+        const Ok =
+          await Confirmar_Accion_Backup("Borrar");
+        if (!Ok) return false;
+        Backups_Locales = Backups_Locales.filter((Item) => {
+          return Item.Id !== Backup.Id;
+        });
+        Guardar_Backups_Locales();
+        Render_Config_Backups();
         return true;
       }
 
       function Render_Config_Backups() {
         const Lista = document.getElementById("Cfg_Backup_Lista");
         if (!Lista) return;
+        Actualizar_Config_Backup_Auto_UI();
         Cargar_Backups_Locales();
         Lista.innerHTML = "";
         if (!Backups_Locales.length) {
@@ -33712,7 +34371,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "Config_Backup_Accion_Btn Restaurar";
           Btn_Rest.textContent = t("config.backup_restaurar");
           Btn_Rest.addEventListener("click", async () => {
-            await Aplicar_Importacion_Objeto(Backup.Estado);
+            await Restaurar_Backup_Local(Backup);
           });
 
           const Btn_Exp = document.createElement("button");
@@ -33732,12 +34391,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Btn_Borrar.className =
             "Config_Backup_Accion_Btn Borrar";
           Btn_Borrar.textContent = t("config.backup_borrar");
-          Btn_Borrar.addEventListener("click", () => {
-            Backups_Locales = Backups_Locales.filter((Item) => {
-              return Item.Id !== Backup.Id;
-            });
-            Guardar_Backups_Locales();
-            Render_Config_Backups();
+          Btn_Borrar.addEventListener("click", async () => {
+            await Eliminar_Backup_Local(Backup);
           });
 
           Item.appendChild(Meta);
@@ -36952,6 +37607,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Config.Backup_Auto_Activo,
             Backup_Auto_Horas:
               Config.Backup_Auto_Horas,
+            Backup_Auto_Inicio:
+              Config.Backup_Auto_Inicio,
             Backup_Auto_Ultimo:
               Config.Backup_Auto_Ultimo,
             Contador_Semanas_Activo:
@@ -37157,6 +37814,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 1,
                 Number(Extra.Backup_Auto_Horas) || 24
               );
+            }
+            if (Extra.Backup_Auto_Inicio !== undefined) {
+              Config.Backup_Auto_Inicio =
+                Normalizar_Hora_Backup_Auto(
+                  Extra.Backup_Auto_Inicio
+                );
             }
             if (Extra.Backup_Auto_Ultimo !== undefined) {
               Config.Backup_Auto_Ultimo =
@@ -40270,11 +40933,38 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Cfg_Eliminar_Cuenta_Btn")
         ?.addEventListener("click", Cuenta_Eliminar_Cuenta);
       El_Ayuda_Boton.addEventListener("click", Abrir_Ayuda);
+      document.getElementById("Ayuda_Faq_Btn")
+        ?.addEventListener("click", Ir_A_Faq_Ayuda);
+      document.getElementById("Ayuda_Consulta_Btn")
+        ?.addEventListener("click", Abrir_Ayuda_Consulta);
       document.getElementById("Ayuda_Cerrar")
         .addEventListener("click", Cerrar_Ayuda);
       El_Ayuda_Overlay.addEventListener("click", (Ev) => {
         if (Ev.target === El_Ayuda_Overlay) Cerrar_Ayuda();
       });
+      document.getElementById("Ayuda_Consulta_Cerrar")
+        ?.addEventListener(
+          "click",
+          Cerrar_Ayuda_Consulta
+        );
+      document.getElementById("Ayuda_Consulta_Cancelar")
+        ?.addEventListener(
+          "click",
+          Cerrar_Ayuda_Consulta
+        );
+      document.getElementById("Ayuda_Consulta_Enviar")
+        ?.addEventListener(
+          "click",
+          Enviar_Ayuda_Consulta
+        );
+      El_Ayuda_Consulta_Overlay?.addEventListener(
+        "click",
+        (Ev) => {
+          if (Ev.target === El_Ayuda_Consulta_Overlay) {
+            Cerrar_Ayuda_Consulta();
+          }
+        }
+      );
       document.getElementById("Suscripcion_Cerrar")
         ?.addEventListener("click", Cerrar_Suscripcion);
       document.getElementById("Suscripcion_Elegir_Free")
@@ -45469,6 +46159,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Ayuda_Abierta = document
           .getElementById("Ayuda_Overlay")
           ?.classList.contains("Activo");
+        const Ayuda_Consulta_Abierta = document
+          .getElementById("Ayuda_Consulta_Overlay")
+          ?.classList.contains("Activo");
         const Metas_Activo = document
           .getElementById("Metas_Overlay")
           ?.classList.contains("Activo");
@@ -45527,6 +46220,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             return;
           }
           if (Ayuda_Abierta) {
+            if (Ayuda_Consulta_Abierta) {
+              Cerrar_Ayuda_Consulta();
+              Ev.preventDefault();
+              return;
+            }
             Cerrar_Ayuda();
             Ev.preventDefault();
             return;
@@ -45703,6 +46401,109 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Cerrar_Ayuda() {
         El_Ayuda_Overlay?.classList.remove("Activo");
+        Cerrar_Ayuda_Consulta();
+      }
+
+      function Ir_A_Faq_Ayuda() {
+        const El_Ancla = document.getElementById(
+          "Ayuda_Faq_Ancla"
+        );
+        const El_Cuerpo = document.querySelector(
+          "#Ayuda_Overlay .Ayuda_Cuerpo"
+        );
+        if (!El_Ancla || !El_Cuerpo) return;
+        El_Cuerpo.scrollTo({
+          top: Math.max(
+            0,
+            El_Ancla.offsetTop - 12
+          ),
+          behavior: "smooth"
+        });
+      }
+
+      function Abrir_Ayuda_Consulta() {
+        const El_Asunto = document.getElementById(
+          "Ayuda_Consulta_Asunto"
+        );
+        const El_Mensaje = document.getElementById(
+          "Ayuda_Consulta_Mensaje"
+        );
+        const El_Nota = document.getElementById(
+          "Ayuda_Consulta_Nota"
+        );
+        if (El_Asunto && !El_Asunto.value.trim()) {
+          El_Asunto.value = t(
+            "ayuda.consulta_asunto_default"
+          );
+        }
+        if (El_Mensaje && !El_Mensaje.value.trim()) {
+          El_Mensaje.value = "";
+        }
+        if (El_Nota) {
+          El_Nota.textContent = t(
+            "ayuda.consulta_hint",
+            {
+              Email:
+                Usuario_Actual?.email || "sin login"
+            }
+          );
+        }
+        El_Ayuda_Consulta_Overlay?.classList.add(
+          "Activo"
+        );
+        setTimeout(() => El_Asunto?.focus(), 0);
+      }
+
+      function Cerrar_Ayuda_Consulta() {
+        El_Ayuda_Consulta_Overlay?.classList.remove(
+          "Activo"
+        );
+      }
+
+      async function Enviar_Ayuda_Consulta() {
+        const El_Asunto = document.getElementById(
+          "Ayuda_Consulta_Asunto"
+        );
+        const El_Mensaje = document.getElementById(
+          "Ayuda_Consulta_Mensaje"
+        );
+        const Asunto = El_Asunto?.value?.trim() || "";
+        const Mensaje = El_Mensaje?.value?.trim() || "";
+        if (!Asunto || !Mensaje) {
+          await Mostrar_Dialogo(
+            t("ayuda.consulta_incompleta"),
+            [
+              {
+                Etiqueta: t("ok"),
+                Valor: true,
+                Tipo: "Primario"
+              }
+            ]
+          );
+          return;
+        }
+        const Cuerpo = [
+          t("ayuda.consulta_body_usuario", {
+            Email:
+              Usuario_Actual?.email || "sin login"
+          }),
+          "",
+          Mensaje
+        ].join("\n");
+        const Url =
+          "mailto:" + Mail_Ayuda_Consulta +
+          "?subject=" +
+          encodeURIComponent(Asunto) +
+          "&body=" +
+          encodeURIComponent(Cuerpo);
+        const Ventana = window.open(
+          Url,
+          "_blank"
+        );
+        if (!Ventana) {
+          window.location.href = Url;
+        }
+        Cerrar_Ayuda_Consulta();
       }
 
       function Mostrar_Ayuda_Atajos() {
