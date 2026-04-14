@@ -36278,18 +36278,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Tarea_Existe_En_Otras_Semanas(Tarea) {
         if (!Tarea) return false;
         const Semana_Actual_Clave = Clave_Semana_Actual();
-        const Esta_En_Otra_Semana = (Item) => {
+        const Esta_En_Semana_Siguiente = (Item) => {
           if (!Item) return false;
           if (Boolean(Item.Es_Fija)) {
-            const Inicio = Item.Semana_Inicio || Semana_Actual_Clave;
+            const Inicio = Item.Semana_Inicio
+              || Semana_Actual_Clave;
             const Fin = Item.Semana_Fin || null;
-            if (!Fin) return true;
-            return Inicio !== Fin || Inicio !== Semana_Actual_Clave;
+            if (Inicio > Semana_Actual_Clave) return true;
+            if (!Fin) return Inicio <= Semana_Actual_Clave;
+            return Fin > Semana_Actual_Clave;
           }
-          return Obtener_Semana_Base_Tarea(Item) !== Semana_Actual_Clave;
+          return Obtener_Semana_Base_Tarea(Item)
+            > Semana_Actual_Clave;
         };
 
-        if (Esta_En_Otra_Semana(Tarea)) return true;
+        if (Esta_En_Semana_Siguiente(Tarea)) return true;
 
         const Familia_Id = Obtener_Familia_Tarea(Tarea);
         const Clave_Tarea = Obtener_Clave_Plantilla_Tarea(Tarea);
@@ -36299,7 +36302,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Obtener_Familia_Tarea(Item) === Familia_Id
             || Obtener_Clave_Plantilla_Tarea(Item) === Clave_Tarea
           )
-          && Esta_En_Otra_Semana(Item)
+          && Esta_En_Semana_Siguiente(Item)
         );
       }
 

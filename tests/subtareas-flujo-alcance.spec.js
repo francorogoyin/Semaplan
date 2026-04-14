@@ -313,6 +313,105 @@ test("al borrar una subtarea compartida pide alcance", async ({
   expect(mensaje).toContain("¿Dónde aplicar el cambio?");
 });
 
+test("si solo hay copias pasadas no pide alcance al crear subtarea", async ({
+  page
+}) => {
+  const monday = "2026-04-13";
+  const prevMonday = addDaysIso(monday, -7);
+  const estado = crearEstadoBase().estado;
+  estado.Tareas = [
+    {
+      Id: "T0",
+      Familia_Id: "F1",
+      Fracasos_Semanales: {},
+      Subtareas_Semanales: {
+        [prevMonday]: []
+      },
+      Subtareas_Contraidas_Semanales: {},
+      Subtareas_Excluidas_Semanales: {},
+      Nombre: "Proyecto repetido",
+      Emoji: "🎯",
+      Color: "#f1b77e",
+      Horas_Semanales: 4,
+      Restante: 4,
+      Es_Bolsa: true,
+      Es_Fija: false,
+      Semana_Base: prevMonday,
+      Semana_Inicio: null,
+      Semana_Fin: null,
+      Categoria_Id: null,
+      Etiquetas_Ids: []
+    },
+    {
+      Id: "T1",
+      Familia_Id: "F1",
+      Fracasos_Semanales: {},
+      Subtareas_Semanales: {
+        [monday]: []
+      },
+      Subtareas_Contraidas_Semanales: {},
+      Subtareas_Excluidas_Semanales: {},
+      Nombre: "Proyecto repetido",
+      Emoji: "🎯",
+      Color: "#f1b77e",
+      Horas_Semanales: 4,
+      Restante: 4,
+      Es_Bolsa: true,
+      Es_Fija: false,
+      Semana_Base: monday,
+      Semana_Inicio: null,
+      Semana_Fin: null,
+      Categoria_Id: null,
+      Etiquetas_Ids: []
+    }
+  ];
+  estado.Inicio_Semana = monday;
+  await preparar(page, estado);
+
+  const resultado = await page.evaluate(async (Semana_Actual) => {
+    Tarea_Seleccionada_Id = "T1";
+    Render_Resumen_Tarea();
+    const Tarea = Tarea_Por_Id("T1");
+    const Nueva_Id = Agregar_Subtarea_Semana(Tarea, "Semana");
+    Subtarea_En_Edicion_Id = Nueva_Id;
+    Render_Resumen_Tarea();
+    const Item = document.querySelector(
+      `.Subtarea_Item[data-subtarea-id="${Nueva_Id}"]`
+    );
+    const Input = Item?.querySelector(".Subtarea_Texto_Input");
+    if (!Input) return null;
+    Input.value = "Solo actual";
+    let Mensaje = "";
+    const Original = Mostrar_Dialogo;
+    Mostrar_Dialogo = async (Texto) => {
+      Mensaje = Texto;
+      return "Todas";
+    };
+    try {
+      Input.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "Enter",
+          bubbles: true
+        })
+      );
+      await new Promise((Resolver) => setTimeout(Resolver, 0));
+    } finally {
+      Mostrar_Dialogo = Original;
+    }
+    return {
+      Mensaje,
+      Plantillas: Plantillas_Subtareas.length,
+      Actual: Obtener_Subtareas_Semana(
+        Tarea_Por_Id("T1"), true, Semana_Actual
+      ).map((Sub) => Sub.Texto)
+    };
+  }, monday);
+
+  expect(resultado.Mensaje).toBe("");
+  expect(resultado.Plantillas).toBe(0);
+  expect(resultado.Actual).toContain("Solo actual");
+});
+
 test("el focus respeta alcance al editar y borrar subtareas", async ({
   page
 }) => {
