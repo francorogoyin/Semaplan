@@ -19006,7 +19006,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const El_Botones = document.getElementById("Dialogo_Botones");
           El_Botones.innerHTML = "";
           let Btn_Primario = null;
-          Opciones.forEach(({ Etiqueta, Valor, Tipo = "Secundario" }) => {
+          Opciones.forEach((Opcion) => {
+            const Etiqueta = Opcion?.Etiqueta ??
+              Opcion?.Label ?? "";
+            const Valor = Opcion?.Valor;
+            const Tipo = Opcion?.Tipo ||
+              (Opcion?.Primario ? "Primario" : "Secundario");
             const Btn = document.createElement("button");
             Btn.textContent = Etiqueta;
             Btn.className =
