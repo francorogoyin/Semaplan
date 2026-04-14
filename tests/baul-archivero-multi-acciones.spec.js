@@ -203,7 +203,7 @@ function crearEstado() {
   };
 }
 
-test("el baul usa una barra inline centrada para multiaccion", async ({
+test("el baul deja la multiaccion abajo del panel", async ({
   page
 }) => {
   await preparar(page, crearEstado());
@@ -219,26 +219,39 @@ test("el baul usa una barra inline centrada para multiaccion", async ({
     const Conteo = document.getElementById("Baul_Multi_Conteo");
     const Grupo = document.getElementById("Baul_Multi_Grupo_Acciones");
     const Global = document.getElementById("Multi_Sel_Barra");
+    const Libreria = document.getElementById("Baul_Libreria");
+    const Lista = document.getElementById("Baul_Lista");
     const Estilo = window.getComputedStyle(Barra);
+    const Estilo_Libreria = window.getComputedStyle(
+      Libreria
+    );
     const Botones = Array.from(
       Grupo.querySelectorAll("button")
     ).map((Btn) => Btn.textContent.trim());
+    const Rect_Lista = Lista.getBoundingClientRect();
+    const Rect_Barra = Barra.getBoundingClientRect();
     return {
       display: Estilo.display,
       justifyContent: Estilo.justifyContent,
+      flexDirectionLibreria:
+        Estilo_Libreria.flexDirection,
       conteo: Conteo.textContent.trim(),
       botones: Botones,
-      globalActiva: Global.classList.contains("Activa")
+      globalActiva: Global.classList.contains("Activa"),
+      barraDebajo:
+        Rect_Barra.top >= Rect_Lista.bottom - 1
     };
   });
 
   expect(resultado.display).toBe("flex");
   expect(resultado.justifyContent).toBe("center");
+  expect(resultado.flexDirectionLibreria).toBe("column");
   expect(resultado.conteo).toContain("2");
   expect(resultado.botones).toContain("Cambiar color");
   expect(resultado.botones).toContain("Agregar etiquetas");
   expect(resultado.botones).toContain("Quitar etiquetas");
   expect(resultado.globalActiva).toBe(false);
+  expect(resultado.barraDebajo).toBe(true);
 });
 
 test("aplica color y etiquetas en multiaccion del baul", async ({
