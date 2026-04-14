@@ -148,6 +148,31 @@ test("usa acciones sobrias en la cabecera del archivero", async ({
     expect(estilos.radio).toBe("0px");
   }
 
+  const Acciones = await page.evaluate(() => {
+    const Cont = document.querySelector(
+      ".Archivero_Acciones"
+    );
+    const Botones = Array.from(
+      Cont?.querySelectorAll("button") || []
+    );
+    const Gap = Cont
+      ? window.getComputedStyle(Cont).gap
+      : "";
+    return {
+      textos: Botones.map((Boton) =>
+        (Boton.textContent || "").trim()
+      ),
+      gap: Gap
+    };
+  });
+
+  expect(Acciones.textos).toEqual([
+    "Exportar",
+    "#",
+    "+"
+  ]);
+  expect(Acciones.gap).toBe("20px");
+
   const Regla_Hover = await page.evaluate(() => {
     for (const Hoja of Array.from(document.styleSheets)) {
       let Reglas = [];
