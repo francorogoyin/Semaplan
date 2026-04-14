@@ -173,4 +173,22 @@ test("permite tildar y destildar todo", async ({ page }) => {
   await expect(Checks.first()).not.toBeChecked();
   await page.click("#Cfg_Menu_Botones_Tildar");
   await expect(Checks.first()).toBeChecked();
+
+  const posicion = await page.evaluate(() => {
+    const Lista = document.getElementById(
+      "Cfg_Menu_Botones_Lista"
+    );
+    const Acciones = document.getElementById(
+      "Cfg_Menu_Botones_Acciones"
+    );
+    if (!Lista || !Acciones) return null;
+    const Rect_Lista = Lista.getBoundingClientRect();
+    const Rect_Acciones = Acciones.getBoundingClientRect();
+    return {
+      acciones_debajo: Rect_Acciones.top >= Rect_Lista.bottom
+    };
+  });
+
+  expect(posicion).not.toBeNull();
+  expect(posicion.acciones_debajo).toBeTruthy();
 });
