@@ -119,5 +119,6 @@ test("deja espacio vertical entre acciones de cuenta y botones", async ({
   });
 
   expect(medida).not.toBeNull();
-  expect(medida.gap).toBeGreaterThanOrEqual(16);
+  expect(medida.gap).toBeGreaterThanOrEqual(8);
+  expect(medida.gap).toBeLessThanOrEqual(14);
 });

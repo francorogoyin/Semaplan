@@ -1,5 +1,9 @@
 const { defineConfig } = require("@playwright/test");
 
+const COMANDO_SERVIDOR = process.platform === "win32"
+  ? "py -m http.server 4173"
+  : "python3 -m http.server 4173";
+
 module.exports = defineConfig({
   testDir: "./tests",
   timeout: 30000,
@@ -14,7 +18,7 @@ module.exports = defineConfig({
     trace: "on-first-retry"
   },
   webServer: {
-    command: "python -m http.server 4173",
+    command: COMANDO_SERVIDOR,
     url: "http://127.0.0.1:4173/index.html",
     reuseExistingServer: false,
     timeout: 30000
