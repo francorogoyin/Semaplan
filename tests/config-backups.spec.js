@@ -609,6 +609,12 @@ async ({ page }) => {
     const Detalle = document.getElementById(
       "Cfg_Backup_Auto_Detalle"
     );
+    const Campo = document.getElementById(
+      "Cfg_Backup_Auto_Inicio"
+    );
+    const Estilo = Campo
+      ? window.getComputedStyle(Campo)
+      : null;
     return {
       activo: Detalle?.classList.contains("Activo"),
       hora: document.getElementById(
@@ -616,13 +622,19 @@ async ({ page }) => {
       )?.value || "",
       proximo: document.getElementById(
         "Cfg_Backup_Proximo"
-      )?.textContent?.trim() || ""
+      )?.textContent?.trim() || "",
+      radio: Estilo?.borderRadius || "",
+      borde: Estilo?.borderTopColor || "",
+      ancho: Estilo?.width || ""
     };
   });
 
   expect(antes.activo).toBe(true);
   expect(antes.hora).toBe("09:30");
   expect(antes.proximo.length).toBeGreaterThan(10);
+  expect(antes.radio).toBe("10px");
+  expect(antes.borde).not.toBe("rgba(0, 0, 0, 0)");
+  expect(antes.ancho).toBe("160px");
 
   await page.click("#Cfg_Backup_Manual_Btn");
 
