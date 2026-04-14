@@ -2615,6 +2615,16 @@
         color: #c44;
       }
 
+      .Focus_Countdown_Card.Hecho {
+        background: rgba(31, 107, 79, 0.1);
+        border-color: rgba(31, 107, 79, 0.4);
+      }
+
+      .Focus_Countdown_Card.Hecho .Focus_Countdown_Numero,
+      .Focus_Countdown_Card.Hecho .Focus_Countdown_Etiqueta {
+        color: #1f6b4f;
+      }
+
 
       .Focus_Nota_Editor {
         background: #fff7c2;
@@ -13446,6 +13456,7 @@
           "focus.te_pasaste":
             "Te pasaste",
           "focus.hecho": "Hecho",
+          "focus.pendiente": "Pendiente",
           "focus.anulado": "Anulado",
           "focus.sin_pendientes":
             "Sin pendientes abiertas",
@@ -15549,6 +15560,7 @@
           "focus.te_pasaste":
             "Overtime",
           "focus.hecho": "Done",
+          "focus.pendiente": "Pending",
           "focus.anulado": "Cancelled",
           "focus.sin_pendientes":
             "No open pending items",
@@ -17699,6 +17711,7 @@
           "focus.te_pasaste":
             "Passou do tempo",
           "focus.hecho": "Feito",
+          "focus.pendiente": "Pendente",
           "focus.anulado": "Anulado",
           "focus.sin_pendientes":
             "Sem pendências abertas",
@@ -44424,7 +44437,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Numero || !Etiqueta) return;
 
         const Card = document.getElementById("Focus_Countdown_Card");
-        if (Card) Card.classList.remove("Vencido");
+        if (Card) Card.classList.remove("Vencido", "Hecho");
 
         const Bloque = Focus_Buscar_Bloque();
         if (!Bloque) {
@@ -44449,6 +44462,46 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Hoy_ISO = Formatear_Fecha_ISO(Ahora);
         const Inicio_HM = Focus_Formatear_HoraHM(Inicio_H);
         const Fin_HM = Focus_Formatear_HoraHM(Fin_H);
+        if (Barra) {
+          Barra.style.background = "";
+        }
+
+        if (
+          Es_Slot &&
+          (
+            Bloque.Estado === "Vencido" ||
+            Bloque.Estado === "Pasado"
+          )
+        ) {
+          const Estado_Cierre = Focus_Estado_Cierre_Slot(Slot);
+          Numero.textContent = "—";
+          if (Estado_Cierre === "Hecho") {
+            Numero.title =
+              `Slot ${Inicio_HM} a ${Fin_HM}`;
+            Etiqueta.textContent = t("focus.hecho");
+            if (Card) Card.classList.add("Hecho");
+          } else if (Estado_Cierre === "Anulado") {
+            Numero.title =
+              `Slot anulado · ${Inicio_HM} a ${Fin_HM}`;
+            Etiqueta.textContent = t("focus.anulado");
+            if (Card) Card.classList.add("Vencido");
+            if (Barra) {
+              Barra.style.background =
+                "linear-gradient(90deg, #c44, #a33)";
+            }
+          } else {
+            Numero.title =
+              `Slot ${Inicio_HM} a ${Fin_HM} sin completar`;
+            Etiqueta.textContent = t("focus.pendiente");
+            if (Card) Card.classList.add("Vencido");
+            if (Barra) {
+              Barra.style.background =
+                "linear-gradient(90deg, #c44, #a33)";
+            }
+          }
+          if (Barra) Barra.style.width = "100%";
+          return;
+        }
 
         if (Bloque.Estado === "En_Curso") {
           // Faltan X segundos para terminar.
