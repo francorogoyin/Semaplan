@@ -10,6 +10,13 @@ const {
   Iniciar_Servidor_Local,
 } = require("./Servidor_Local");
 
+const App_Id = "com.semaplan.desktop";
+const Ruta_Icono = Path.join(
+  app.getAppPath(),
+  "Desktop",
+  "Semaplan.ico"
+);
+
 let Url_App = "";
 let Servidor_Local = null;
 
@@ -49,11 +56,7 @@ function Crear_Ventana_Principal() {
   const Ventana = new BrowserWindow({
     autoHideMenuBar: true,
     height: 900,
-    icon: Path.join(
-      app.getAppPath(),
-      "Desktop",
-      "Semaplan.ico"
-    ),
+    icon: Ruta_Icono,
     minHeight: 720,
     minWidth: 1024,
     show: false,
@@ -94,6 +97,8 @@ async function Arrancar_App() {
 
   Crear_Ventana_Principal();
 }
+
+app.setAppUserModelId(App_Id);
 
 app.whenReady()
   .then(Arrancar_App)
