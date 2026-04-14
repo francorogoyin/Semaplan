@@ -916,3 +916,122 @@ test(
     );
   }
 );
+
+test(
+  "preserva baul y archivero si un cliente " +
+  "viejo sincroniza sin esas claves",
+  async ({ page }) => {
+    const Estado_Remoto = Crear_Estado([
+      "Base remota"
+    ]);
+    Estado_Remoto.Baul_Tareas = [
+      {
+        Id: "b1",
+        Nombre: "Molde remoto",
+        Emoji: "🧪",
+        Color: "#f1b77e",
+        Horas: 1,
+        Orden: 1,
+        Categoria: "",
+        Archivada: false,
+        Subtareas: [],
+        Etiquetas_Ids: [],
+        Timeline: null
+      }
+    ];
+    Estado_Remoto.Archiveros = [
+      {
+        Id: "c1",
+        Nombre: "Caja remota",
+        Emoji: "🗃️",
+        Color_Fondo: "#ffffff",
+        Fecha_Creacion: 1
+      }
+    ];
+    Estado_Remoto.Notas_Archivero = [
+      {
+        Id: "n1",
+        Archivero_Id: "c1",
+        Texto: "Nota remota",
+        Origen: "",
+        Etiquetas: [],
+        Color_Fondo: "",
+        Tipo: "Texto",
+        Fecha_Creacion: 2
+      }
+    ];
+
+    await Preparar_App(page, Estado_Remoto);
+
+    const Resumen = await page.evaluate(async () => {
+      const Construir_Original =
+        Construir_Estado_Completo;
+
+      Construir_Estado_Completo = () => {
+        const Estado = Construir_Original();
+        const {
+          Baul_Tareas,
+          Baul_Grupos_Colapsados,
+          Archiveros,
+          Notas_Archivero,
+          Etiquetas_Archivero,
+          ...Estado_Viejo
+        } = Estado;
+        return Estado_Viejo;
+      };
+
+      Tareas.push({
+        Id: 125,
+        Nombre: "Cambio desde cliente viejo",
+        Emoji: "🧪",
+        Color: "#f1b77e",
+        Horas: 1,
+        Dia: 0,
+        Hora: 9,
+        Duracion: 1,
+        Subtareas: [],
+        Copias_Semana: {}
+      });
+
+      Guardar_Estado();
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+      const Ok = await Backend_Sync_Ejecutar();
+
+      Construir_Estado_Completo =
+        Construir_Original;
+
+      return {
+        ok: Ok,
+        remotoBaul:
+          (window.__Estado_Remoto?.estado?.Baul_Tareas
+            || []).map((Tarea) => Tarea.Nombre),
+        remotoCajones:
+          (window.__Estado_Remoto?.estado?.Archiveros
+            || []).map((Cajon) => Cajon.Nombre),
+        remotoNotas:
+          (
+            window.__Estado_Remoto?.estado
+              ?.Notas_Archivero || []
+          ).map((Nota) => Nota.Texto),
+        remotoTareas:
+          (window.__Estado_Remoto?.estado?.Tareas
+            || []).map((Tarea) => Tarea.Nombre)
+      };
+    });
+
+    expect(Resumen.ok).toBe(true);
+    expect(Resumen.remotoBaul).toContain(
+      "Molde remoto"
+    );
+    expect(Resumen.remotoCajones).toContain(
+      "Caja remota"
+    );
+    expect(Resumen.remotoNotas).toContain(
+      "Nota remota"
+    );
+    expect(Resumen.remotoTareas).toContain(
+      "Cambio desde cliente viejo"
+    );
+  }
+);

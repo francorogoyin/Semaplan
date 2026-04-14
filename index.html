@@ -48499,6 +48499,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_Remoto_Fila_Existe = false;
       let Sync_Remoto_Version_Actual = 0;
       let Sync_Remoto_Marca_Ms = 0;
+      let Sync_Remoto_Estado_Ultimo = null;
       let Sync_Remoto_Revisando = false;
       let Sync_Remoto_Ultima_Revision_Ms = 0;
       let Sync_Conflicto_Pendiente = false;
@@ -48567,6 +48568,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Datos.actualizado_en
           );
         }
+        if (
+          Datos.estado &&
+          typeof Datos.estado === "object"
+        ) {
+          Sync_Remoto_Estado_Ultimo =
+            Datos.estado;
+        }
         const Corte = Obtener_Corte_Sesion_Global(
           Datos.estado
         );
@@ -48582,6 +48590,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Sync_Remoto_Fila_Existe = false;
         Sync_Remoto_Version_Actual = 0;
         Sync_Remoto_Marca_Ms = 0;
+        Sync_Remoto_Estado_Ultimo = null;
         Sync_Sesion_Global_Corte_Ms = 0;
       }
 
@@ -48621,6 +48630,83 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           data: Data_Bruta || null,
           error: Error
         };
+      }
+
+      function Es_Objeto_Json(Valor) {
+        return Boolean(
+          Valor &&
+          typeof Valor === "object" &&
+          !Array.isArray(Valor)
+        );
+      }
+
+      function Fusionar_Json_Preservando_Faltantes(
+        Base,
+        Nuevo
+      ) {
+        if (Nuevo === undefined) {
+          return Base;
+        }
+        if (
+          !Es_Objeto_Json(Base) ||
+          !Es_Objeto_Json(Nuevo)
+        ) {
+          return Nuevo;
+        }
+
+        const Resultado = {};
+        const Claves = new Set([
+          ...Object.keys(Base),
+          ...Object.keys(Nuevo)
+        ]);
+
+        Claves.forEach((Clave) => {
+          if (!Object.prototype.hasOwnProperty.call(
+            Nuevo,
+            Clave
+          )) {
+            Resultado[Clave] = Base[Clave];
+            return;
+          }
+          Resultado[Clave] =
+            Fusionar_Json_Preservando_Faltantes(
+              Base[Clave],
+              Nuevo[Clave]
+            );
+        });
+
+        return Resultado;
+      }
+
+      async function Preparar_Estado_Para_Sync(
+        Estado_Local
+      ) {
+        if (
+          !Sync_Remoto_Fila_Existe ||
+          !Usuario_Actual
+        ) {
+          return Estado_Local;
+        }
+
+        if (!Sync_Remoto_Estado_Ultimo) {
+          const Fila =
+            await Backend_Leer_Fila_Remota();
+          if (Fila.error) {
+            throw Fila.error;
+          }
+          if (Fila.data) {
+            Actualizar_Meta_Remota(Fila.data);
+          }
+        }
+
+        if (!Es_Objeto_Json(Sync_Remoto_Estado_Ultimo)) {
+          return Estado_Local;
+        }
+
+        return Fusionar_Json_Preservando_Faltantes(
+          Sync_Remoto_Estado_Ultimo,
+          Estado_Local
+        );
       }
 
       function Guardar_Mensaje_Auth_Pendiente(
@@ -48726,11 +48812,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Backend_Registrar_Sync_Exitoso(
-        Datos = null
+        Datos = null,
+        Estado_Sincronizado = null
       ) {
         Sync_Remoto_Fila_Existe = true;
         if (Datos) {
           Actualizar_Meta_Remota(Datos);
+        } else if (
+          Estado_Sincronizado &&
+          typeof Estado_Sincronizado === "object"
+        ) {
+          Sync_Remoto_Estado_Ultimo =
+            Estado_Sincronizado;
         } else if (Sync_Remoto_Version_Actual > 0) {
           Sync_Remoto_Version_Actual += 1;
         } else {
@@ -49301,7 +49394,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Sync_Promesa_En_Curso = (async () => {
           Sync_En_Curso = true;
           try {
-            const Estado = Construir_Estado_Completo();
+            const Estado_Local =
+              Construir_Estado_Completo();
+            const Estado =
+              await Preparar_Estado_Para_Sync(
+                Estado_Local
+              );
             const Conflicto = new Error(
               "sync_conflict"
             );
@@ -49353,7 +49451,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 throw Conflicto;
               }
               Backend_Registrar_Sync_Exitoso(
-                Resultado.data
+                Resultado.data,
+                Estado
               );
               Sincronizado = true;
             } else if (
@@ -49387,7 +49486,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               }
               if (Resultado.data) {
                 Backend_Registrar_Sync_Exitoso(
-                  Resultado.data
+                  Resultado.data,
+                  Estado
                 );
                 Sincronizado = true;
               }
@@ -49401,7 +49501,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   estado: Estado
                 });
               if (error) throw error;
-              Backend_Registrar_Sync_Exitoso();
+              Backend_Registrar_Sync_Exitoso(
+                null,
+                Estado
+              );
             }
 
             return true;
@@ -49455,7 +49558,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sync_Timer_Id = null;
         }
 
-        const Estado = Construir_Estado_Completo();
+        const Estado_Local =
+          Construir_Estado_Completo();
+        const Estado =
+          Fusionar_Json_Preservando_Faltantes(
+            Sync_Remoto_Estado_Ultimo,
+            Estado_Local
+          );
         Sync_En_Curso = true;
 
         const Usa_Patch =
@@ -49505,7 +49614,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 `HTTP ${Resp.status}`
               );
             }
-            Backend_Registrar_Sync_Exitoso();
+            Backend_Registrar_Sync_Exitoso(
+              null,
+              Estado
+            );
           })
           .catch((E) => {
             console.error(
