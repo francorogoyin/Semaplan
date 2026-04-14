@@ -4838,6 +4838,40 @@
         padding: 8px 4px 16px 0;
       }
 
+      .Baul_Multi_Acciones {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 4px 2px 0;
+        margin-top: 4px;
+      }
+
+      .Baul_Multi_Grupo {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        flex-wrap: nowrap;
+        flex: 0 0 auto;
+      }
+
+      .Baul_Multi_Conteo {
+        flex-basis: 100%;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--Texto);
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .Baul_Multi_Grupo .Archivero_Sub_Btn {
+        min-height: 30px;
+        padding: 4px 10px;
+        font-size: 12px;
+      }
+
       .Baul_Lista.Lista {
         display: flex;
         flex-direction: column;
@@ -11021,6 +11055,14 @@
           <div class="Baul_Contenido Sin_Detalle" id="Baul_Contenido">
             <div class="Baul_Libreria" id="Baul_Libreria">
               <div class="Baul_Lista" id="Baul_Lista"></div>
+              <div class="Baul_Multi_Acciones"
+                id="Baul_Multi_Acciones"
+                style="display:none">
+                <div class="Baul_Multi_Grupo"
+                  id="Baul_Multi_Grupo_Acciones"></div>
+                <span class="Baul_Multi_Conteo"
+                  id="Baul_Multi_Conteo"></span>
+              </div>
             </div>
 
             <div class="Baul_Detalle Oculto" id="Baul_Detalle">
@@ -11340,6 +11382,12 @@
                 id="Archivero_Multi_Acciones"
                 style="display:none">
                 <div class="Archivero_Multi_Grupo">
+                  <button type="button"
+                    class="Archivero_Sub_Btn Compacto"
+                    id="Archivero_Multi_Color_Btn"
+                    data-i18n="archivero.cambiar_color_multi">
+                    Cambiar color
+                  </button>
                   <button type="button"
                     class="Archivero_Sub_Btn Compacto"
                     id="Archivero_Multi_Etiquetas_Agregar_Btn"
@@ -13029,6 +13077,8 @@
           "archivero.quitar_etiquetas_desc":
             "Elegí una etiqueta sugerida o " +
             "escribí una nueva para quitarla.",
+          "archivero.cambiar_color_multi":
+            "Cambiar color",
           "archivero.sin_otros_cajones":
             "No hay otros cajones disponibles.",
           "archivero.borrar_seleccion":
@@ -14410,6 +14460,17 @@
             "Se desarchivaron {n} tareas del baúl.",
           "baul.dialog_eliminar_multi":
             "¿Eliminar {n} tarea(s) del baúl? ({nombres})",
+          "baul.seleccion_n":
+            "{n} tarea(s) seleccionada(s)",
+          "baul.cambiar_color_multi":
+            "Cambiar color",
+          "baul.agregar_etiquetas_multi":
+            "Agregar etiquetas",
+          "baul.quitar_etiquetas_multi":
+            "Quitar etiquetas",
+          "baul.etiquetas_multi_desc":
+            "Elegí etiquetas existentes o escribí " +
+            "nuevas separadas por comas.",
           "baul.conteo_sing": "{n} tarea",
           "baul.conteo_plur": "{n} tareas",
           "baul.vacio_filtro":
@@ -15208,6 +15269,8 @@
           "archivero.quitar_etiquetas_desc":
             "Choose a suggested tag or type " +
             "a new one to remove it.",
+          "archivero.cambiar_color_multi":
+            "Change color",
           "archivero.sin_otros_cajones":
             "There are no other drawers available.",
           "archivero.borrar_seleccion":
@@ -16554,6 +16617,17 @@
             "{n} tasks unarchived from the vault.",
           "baul.dialog_eliminar_multi":
             "Delete {n} tasks from the vault? ({nombres})",
+          "baul.seleccion_n":
+            "{n} selected task(s)",
+          "baul.cambiar_color_multi":
+            "Change color",
+          "baul.agregar_etiquetas_multi":
+            "Add tags",
+          "baul.quitar_etiquetas_multi":
+            "Remove tags",
+          "baul.etiquetas_multi_desc":
+            "Choose existing tags or type new ones " +
+            "separated by commas.",
           "baul.conteo_sing": "{n} task",
           "baul.conteo_plur": "{n} tasks",
           "baul.vacio_filtro":
@@ -17402,6 +17476,8 @@
           "archivero.quitar_etiquetas_desc":
             "Escolha uma tag sugerida ou " +
             "digite uma nova para remover.",
+          "archivero.cambiar_color_multi":
+            "Mudar cor",
           "archivero.sin_otros_cajones":
             "Nao ha outros gaveteiros disponiveis.",
           "archivero.borrar_seleccion":
@@ -18792,6 +18868,17 @@
             "Foram desarquivadas {n} tarefas do baú.",
           "baul.dialog_eliminar_multi":
             "Excluir {n} tarefa(s) do baú? ({nombres})",
+          "baul.seleccion_n":
+            "{n} tarefa(s) selecionada(s)",
+          "baul.cambiar_color_multi":
+            "Mudar cor",
+          "baul.agregar_etiquetas_multi":
+            "Adicionar tags",
+          "baul.quitar_etiquetas_multi":
+            "Remover tags",
+          "baul.etiquetas_multi_desc":
+            "Escolha tags existentes ou digite " +
+            "novas separadas por vírgulas.",
           "baul.conteo_sing": "{n} tarefa",
           "baul.conteo_plur": "{n} tarefas",
           "baul.vacio_filtro":
@@ -19801,6 +19888,15 @@
       const El_Baul_Contenido = document.getElementById("Baul_Contenido");
       const El_Baul_Libreria = document.getElementById("Baul_Libreria");
       const El_Baul_Lista = document.getElementById("Baul_Lista");
+      const El_Baul_Multi_Acciones = document.getElementById(
+        "Baul_Multi_Acciones"
+      );
+      const El_Baul_Multi_Grupo = document.getElementById(
+        "Baul_Multi_Grupo_Acciones"
+      );
+      const El_Baul_Multi_Conteo = document.getElementById(
+        "Baul_Multi_Conteo"
+      );
       const El_Baul_Mensaje = document.getElementById("Baul_Mensaje");
       const El_Baul_Conteo = document.getElementById("Baul_Conteo");
       const El_Baul_Contexto = document.getElementById("Baul_Contexto");
@@ -22924,6 +23020,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      async function Pedir_Color_Multi_Archivero() {
+        const Ids = Array.from(Archivero_Notas_Seleccionadas);
+        if (!Ids.length) return;
+        const Primera = Notas_Archivero.find(
+          (Nota) => Nota.Id === Ids[0]
+        );
+        const Color = await Mostrar_Dialogo_Con_Texto(
+          t("archivero.cambiar_color_multi"),
+          {
+            Tipo: "color",
+            Default:
+              Normalizar_Color_Hex(
+                Primera?.Color_Fondo
+              ) ||
+              Obtener_Color_Cajon_Archivero(
+                Primera?.Archivero_Id
+              ) ||
+              "#ffffff",
+            Etiqueta_Confirmar: t("guardar"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (!Color) return;
+        Aplicar_Color_A_Notas_Seleccionadas_Archivero(Color);
+      }
+
       async function Pedir_Cajon_Destino_Multi_Archivero() {
         const Destinos = Archiveros.filter(
           (Cajon) => Cajon.Id !== Archivero_Seleccion_Id
@@ -23011,6 +23133,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           });
         });
+        Guardar_Estado();
+        Render_Archivero();
+      }
+
+      function Aplicar_Color_A_Notas_Seleccionadas_Archivero(
+        Color
+      ) {
+        const Hex = Normalizar_Color_Hex(Color);
+        if (!Hex) return;
+        const Ids = new Set(Archivero_Notas_Seleccionadas);
+        if (Ids.size === 0) return;
+        let Cambios = 0;
+        Notas_Archivero.forEach((Nota) => {
+          if (!Ids.has(Nota.Id)) return;
+          if (Normalizar_Color_Hex(Nota.Color_Fondo) === Hex) {
+            return;
+          }
+          Nota.Color_Fondo = Hex;
+          Cambios += 1;
+        });
+        if (Cambios === 0) return;
         Guardar_Estado();
         Render_Archivero();
       }
@@ -24775,6 +24918,124 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
         Mostrar_Toast_Undo(
           t("toast.baul_moldes_eliminados", { n: Ids.length }),
+          Snap
+        );
+      }
+
+      async function Pedir_Color_Baul_Multi() {
+        const Ids = Array.from(Baul_Multi_Seleccion);
+        if (!Ids.length) return;
+        const Primera = Baul_Tareas.find(
+          (Tarea) => Tarea.Id === Ids[0]
+        );
+        const Color = await Mostrar_Dialogo_Con_Texto(
+          t("baul.cambiar_color_multi"),
+          {
+            Tipo: "color",
+            Default:
+              Normalizar_Color_Hex(Primera?.Color_Baul) ||
+              "#f1b77e",
+            Etiqueta_Confirmar: t("guardar"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (!Color) return;
+        Aplicar_Color_Baul_Multi(Color);
+      }
+
+      function Aplicar_Color_Baul_Multi(Color) {
+        const Hex = Normalizar_Color_Hex(Color);
+        if (!Hex) return;
+        const Ids = new Set(Baul_Multi_Seleccion);
+        if (Ids.size === 0) return;
+        const Snap = Capturar_Snapshot_Undo();
+        let Cambios = 0;
+        Baul_Tareas.forEach((Tarea) => {
+          if (!Ids.has(Tarea.Id)) return;
+          if (Normalizar_Color_Hex(Tarea.Color_Baul) === Hex) {
+            return;
+          }
+          Tarea.Color_Baul = Hex;
+          Cambios += 1;
+        });
+        if (Cambios === 0) return;
+        Baul_Multi_Seleccion.clear();
+        Render_Baul();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("toast.tareas_actualizadas"),
+          Snap
+        );
+      }
+
+      async function Pedir_Etiquetas_Baul_Multi(Modo) {
+        const Nombres = await Mostrar_Dialogo_Con_Texto(
+          t("baul.etiquetas_multi_desc"),
+          {
+            Placeholder: t("sidebar.etiquetas"),
+            Etiqueta_Confirmar:
+              Modo === "Agregar"
+                ? t("baul.agregar_etiquetas_multi")
+                : t("baul.quitar_etiquetas_multi"),
+            Etiqueta_Cancelar: t("cancelar"),
+            Sugerencias: Etiquetas.map(
+              (Etiqueta) => Etiqueta.Nombre
+            ),
+            Modo_Sugerencias: "Lista_Comas"
+          }
+        );
+        if (Nombres == null) return;
+        Aplicar_Etiquetas_Baul_Multi(Modo, Nombres);
+      }
+
+      function Aplicar_Etiquetas_Baul_Multi(Modo, Texto) {
+        const Nombres = Parsear_Nombres_Etiquetas(Texto);
+        if (Nombres.length === 0) return;
+        const Ids = new Set(Baul_Multi_Seleccion);
+        if (Ids.size === 0) return;
+        const Etiquetas_Objs =
+          Modo === "Agregar"
+            ? Nombres.map(Obtener_O_Crear_Etiqueta_Por_Nombre)
+            : Etiquetas.filter((Etiqueta) =>
+                Nombres.some(
+                  (Nombre) =>
+                    Etiqueta.Nombre.toLowerCase() ===
+                    Nombre.toLowerCase()
+                )
+              );
+        const Etiquetas_Ids = Etiquetas_Objs
+          .filter(Boolean)
+          .map((Etiqueta) => Etiqueta.Id);
+        if (Etiquetas_Ids.length === 0) return;
+        const Set_Etiquetas = new Set(Etiquetas_Ids);
+        const Snap = Capturar_Snapshot_Undo();
+        let Cambios = 0;
+        Baul_Tareas.forEach((Tarea) => {
+          if (!Ids.has(Tarea.Id)) return;
+          const Actuales = Normalizar_Etiquetas_Ids(
+            Tarea.Etiquetas_Ids
+          );
+          const Siguiente =
+            Modo === "Agregar"
+              ? Array.from(
+                  new Set([...Actuales, ...Etiquetas_Ids])
+                )
+              : Actuales.filter((Id) => !Set_Etiquetas.has(Id));
+          if (
+            JSON.stringify(Actuales) ===
+            JSON.stringify(Siguiente)
+          ) {
+            return;
+          }
+          Tarea.Etiquetas_Ids = Siguiente;
+          Cambios += 1;
+        });
+        if (Cambios === 0) return;
+        Baul_Multi_Seleccion.clear();
+        Render_Baul();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("toast.tareas_actualizadas"),
           Snap
         );
       }
@@ -34745,6 +35006,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .map((Etiqueta) => Etiqueta.Nombre);
       }
 
+      function Parsear_Nombres_Etiquetas(Texto) {
+        return Array.from(
+          new Set(
+            (Texto || "")
+              .toString()
+              .split(",")
+              .map((Parte) => Parte.trim())
+              .filter(Boolean)
+          )
+        );
+      }
+
+      function Obtener_O_Crear_Etiqueta_Por_Nombre(Nombre) {
+        const Nombre_Limpio = (Nombre || "").trim();
+        if (!Nombre_Limpio) return null;
+        const Existente = Etiquetas.find((Etiqueta) =>
+          Etiqueta.Nombre.toLowerCase() ===
+          Nombre_Limpio.toLowerCase()
+        );
+        if (Existente) return Existente;
+        const Nueva = {
+          Id: Crear_Id_Etiqueta(),
+          Nombre: Nombre_Limpio
+        };
+        Etiquetas.push(Nueva);
+        return Nueva;
+      }
+
       function Obtener_Estado_Baul_Normalizado(Estado) {
         const Valor = (Estado || "").toString();
         if (
@@ -35687,9 +35976,67 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Obtener_Claves_Vinculo_Subtarea(Subtarea) {
+        const Claves = new Set();
+        if (Subtarea?.Plantilla_Id) {
+          Claves.add(Subtarea.Plantilla_Id);
+        }
+        if (Subtarea?.Origen_Plantilla_Id) {
+          Claves.add(Subtarea.Origen_Plantilla_Id);
+        }
+        return Claves;
+      }
+
+      function Subtarea_Existe_En_Otras_Semanas(
+        Tarea,
+        Subtarea,
+        Clave_Referencia = Clave_Semana_Actual()
+      ) {
+        if (!Tarea || !Subtarea) return false;
+        const Claves = Obtener_Claves_Vinculo_Subtarea(
+          Subtarea
+        );
+        if (Claves.size === 0) return false;
+        return Tareas.some((Item) => {
+          if (!Tarea_Relacionada_Con_Subtarea(Tarea, Item)) {
+            return false;
+          }
+          if (
+            !Item?.Subtareas_Semanales ||
+            typeof Item.Subtareas_Semanales !== "object"
+          ) {
+            return false;
+          }
+          return Object.keys(Item.Subtareas_Semanales).some(
+            (Semana) => {
+              if (
+                Semana === Clave_Referencia &&
+                Item.Id === Tarea.Id
+              ) {
+                return false;
+              }
+              const Lista = Obtener_Subtareas_Semana(
+                Item, true, Semana
+              );
+              return Lista.some((Entrada) => {
+                const Claves_Entrada =
+                  Obtener_Claves_Vinculo_Subtarea(Entrada);
+                return Array.from(Claves_Entrada).some(
+                  (Clave) => Claves.has(Clave)
+                );
+              });
+            }
+          );
+        });
+      }
+
       async function Resolver_Alcance_Edicion_Subtarea(Tarea, Subtarea) {
-        const Tiene_Plantilla = Boolean(Subtarea?.Plantilla_Id);
-        if (!Tiene_Plantilla) return "Semana";
+        const Tiene_Alcance = Boolean(
+          Subtarea?.Plantilla_Id ||
+          Subtarea?.Origen_Plantilla_Id ||
+          Subtarea_Existe_En_Otras_Semanas(Tarea, Subtarea)
+        );
+        if (!Tiene_Alcance) return "Semana";
         return await Solicitar_Alcance_Subtarea_Edicion();
       }
 
@@ -37280,6 +37627,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Conteo = document.getElementById("Multi_Sel_Conteo");
         const Acc = document.getElementById("Multi_Sel_Acciones");
         if (!Barra || !Conteo || !Acc) return;
+        if (El_Baul_Multi_Acciones) {
+          El_Baul_Multi_Acciones.style.display = "none";
+        }
 
         if (Baul_Abierto() && Baul_Multi_Seleccion.size > 0) {
           const Cant_B = Baul_Multi_Seleccion.size;
@@ -37290,48 +37640,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               (Tarea) => Tarea.Id === Id
             )?.Archivada;
           });
-          Barra.classList.add("Activa");
-          Conteo.textContent =
-            `${Cant_B} ` +
-            (Cant_B !== 1
-              ? t("multi.molde_plur")
-              : t("multi.molde_sing"));
-          Acc.innerHTML = "";
-          Acc.appendChild(
-            Crear_Btn_Multi(`🗑 ${t("eliminar")}`, true, () => {
-              Eliminar_Baul_Tareas_Multi();
-            })
-          );
-          Acc.appendChild(
-            Crear_Btn_Multi(
-              `🗃️ ${t("baul.importar_archivero")}`,
-              false,
-              () => {
-                Importar_Tareas_Baul_Seleccionadas_Al_Archivero();
-              }
-            )
-          );
-          Acc.appendChild(
-            Crear_Btn_Multi(
-              `↪️ ${t("dialog.mover")}`,
-              false,
-              () => {
-                Mover_Tareas_Baul_Seleccionadas_A_Categoria();
-              }
-            )
-          );
-          Acc.appendChild(
-            Crear_Btn_Multi(
-              Todos_Archivados
-                ? `📤 ${t("desarchivar")}`
-                : `📦 ${t("archivar")}`,
-              false,
-              () => {
-                Archivar_Baul_Tareas_Multi(
-                  !Todos_Archivados
-                );
-              }
-            )
+          Barra.classList.remove("Activa");
+          Render_Acciones_Multi_Baul(
+            Cant_B,
+            Todos_Archivados
           );
           return;
         }
@@ -41050,6 +41362,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Cajon_Id || ""
           );
         });
+      document.getElementById("Archivero_Multi_Color_Btn")
+        ?.addEventListener("click", async () => {
+          await Pedir_Color_Multi_Archivero();
+        });
       document.getElementById(
         "Archivero_Multi_Etiquetas_Agregar_Btn"
       )?.addEventListener("click", async () => {
@@ -41690,11 +42006,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             (Entrada) => Entrada.Id === Item.dataset.subtareaId
           );
           if (!Subtarea) return;
-          let Alcance = "Semana";
-          if (Subtarea.Plantilla_Id) {
-            Alcance = await Solicitar_Alcance_Subtarea_Edicion();
-            if (!Alcance) return;
-          }
+          const Alcance =
+            await Resolver_Alcance_Edicion_Subtarea(
+              Tarea, Subtarea
+            );
+          if (!Alcance) return;
           // Capturar estado antes de aplicar el borrado.
           const Snap_Undo_Sub = Capturar_Snapshot_Undo();
           Borrar_Subtarea_Con_Alcance(Tarea, Subtarea, Alcance);
@@ -41790,9 +42106,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Emoji_Nuevo !== (Subtarea.Emoji || "") ||
           Texto_Nuevo !== (Subtarea.Texto || "");
         if (Cambio) {
-          const Alcance = await Resolver_Alcance_Edicion_Subtarea(
-            Tarea, Subtarea
-          );
+          const Es_Nueva = !Subtarea.Texto;
+          let Alcance;
+          if (Es_Nueva) {
+            if (Tarea_Existe_En_Otras_Semanas(Tarea)) {
+              Alcance = await Solicitar_Alcance_Subtarea();
+            } else {
+              Alcance = "Semana";
+            }
+          } else {
+            Alcance =
+              await Resolver_Alcance_Edicion_Subtarea(
+                Tarea, Subtarea
+              );
+          }
           if (!Alcance) return;
           Aplicar_Edicion_Subtarea(
             Tarea, Subtarea, Emoji_Nuevo, Texto_Nuevo, Alcance
@@ -44103,6 +44430,99 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
+      function Crear_Boton_Multi_Inline(
+        Texto,
+        On_Click,
+        Clase = ""
+      ) {
+        const Btn = document.createElement("button");
+        Btn.type = "button";
+        Btn.className =
+          "Archivero_Sub_Btn Compacto" +
+          (Clase ? ` ${Clase}` : "");
+        Btn.textContent = Texto;
+        Btn.addEventListener("click", On_Click);
+        return Btn;
+      }
+
+      function Render_Acciones_Multi_Baul(
+        Cantidad,
+        Todos_Archivados
+      ) {
+        if (
+          !El_Baul_Multi_Acciones ||
+          !El_Baul_Multi_Grupo ||
+          !El_Baul_Multi_Conteo
+        ) {
+          return;
+        }
+        El_Baul_Multi_Grupo.innerHTML = "";
+        El_Baul_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("baul.cambiar_color_multi"),
+            () => {
+              Pedir_Color_Baul_Multi();
+            }
+          )
+        );
+        El_Baul_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("baul.agregar_etiquetas_multi"),
+            () => {
+              Pedir_Etiquetas_Baul_Multi("Agregar");
+            }
+          )
+        );
+        El_Baul_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("baul.quitar_etiquetas_multi"),
+            () => {
+              Pedir_Etiquetas_Baul_Multi("Quitar");
+            }
+          )
+        );
+        El_Baul_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("dialog.mover"),
+            () => {
+              Mover_Tareas_Baul_Seleccionadas_A_Categoria();
+            },
+            "Primario"
+          )
+        );
+        El_Baul_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("baul.importar_archivero"),
+            () => {
+              Importar_Tareas_Baul_Seleccionadas_Al_Archivero();
+            }
+          )
+        );
+        El_Baul_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            Todos_Archivados
+              ? t("desarchivar")
+              : t("archivar"),
+            () => {
+              Archivar_Baul_Tareas_Multi(!Todos_Archivados);
+            }
+          )
+        );
+        El_Baul_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("eliminar"),
+            () => {
+              Eliminar_Baul_Tareas_Multi();
+            }
+          )
+        );
+        El_Baul_Multi_Conteo.textContent = t(
+          "baul.seleccion_n",
+          { n: Cantidad }
+        );
+        El_Baul_Multi_Acciones.style.display = "";
+      }
+
       function Focus_Cambiar_Estado_Item_Slot(
         Bloque,
         Item,
@@ -45152,7 +45572,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Focus_Mode();
       }
 
-      function Focus_Confirmar_Edicion_Subtarea(
+      async function Focus_Confirmar_Edicion_Subtarea(
         Tarea, Evento, Sub_Id, Emoji_Nuevo, Texto_Nuevo
       ) {
         // Persiste los cambios de texto/emoji de una subtarea.
@@ -45188,11 +45608,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Cambio) {
           // Snapshot previo para poder deshacer la edición.
           const Snap = Capturar_Snapshot_Undo();
-          // Alcance "Semana" para que el atajo del Focus solo
-          // afecte a la semana visible y no toque las plantillas
-          // recurrentes sin permiso explícito.
+          const Es_Nueva = !Sub.Texto;
+          let Alcance;
+          if (Es_Nueva) {
+            if (Tarea_Existe_En_Otras_Semanas(Tarea)) {
+              Alcance = await Solicitar_Alcance_Subtarea();
+            } else {
+              Alcance = "Semana";
+            }
+          } else {
+            Alcance =
+              await Resolver_Alcance_Edicion_Subtarea(
+                Tarea, Sub
+              );
+          }
+          if (!Alcance) {
+            Focus_Sub_Editando_Id = null;
+            Render_Focus_Mode();
+            return;
+          }
           Aplicar_Edicion_Subtarea(
-            Tarea, Sub, Emoji_Limpio, Texto_Limpio, "Semana"
+            Tarea,
+            Sub,
+            Emoji_Limpio,
+            Texto_Limpio,
+            Alcance
           );
           Focus_Sub_Editando_Id = null;
           Guardar_Estado();
@@ -45208,18 +45648,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Focus_Mode();
       }
 
-      function Focus_Borrar_Subtarea(Tarea, Sub_Id) {
-        // Borra la subtarea de la semana visible. Para subs con
-        // plantilla, se aplica alcance "Semana" (la excluye).
-        // Captura snapshot antes para poder ofrecer "Deshacer".
+      async function Focus_Borrar_Subtarea(Tarea, Sub_Id) {
+        // Borra la subtarea y, si existe en otras semanas de la
+        // misma tarea, pregunta el alcance antes de tocar la
+        // serie.
         if (!Tarea) return;
         const Subs = Obtener_Subtareas_Semana(Tarea, true);
         const Sub = Subs.find((S) => S.Id === Sub_Id);
         if (!Sub) return;
         const Texto_Sub =
           (Sub.Texto || "").trim() || t("toast.sin_nombre");
+        const Alcance =
+          await Resolver_Alcance_Edicion_Subtarea(
+            Tarea, Sub
+          );
+        if (!Alcance) return;
         const Snap = Capturar_Snapshot_Undo();
-        Borrar_Subtarea_Con_Alcance(Tarea, Sub, "Semana");
+        Borrar_Subtarea_Con_Alcance(Tarea, Sub, Alcance);
         if (Focus_Sub_Editando_Id === Sub_Id) {
           Focus_Sub_Editando_Id = null;
         }
@@ -45229,7 +45674,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Eventos();
         Render_Focus_Mode();
         Mostrar_Toast_Undo(
-          t("toast.subtarea_eliminada", { texto: Texto_Sub }),
+          t("toast.subtarea_eliminada", {
+            texto: Texto_Sub
+          }),
           Snap
         );
       }
