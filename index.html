@@ -1377,6 +1377,47 @@
         max-width: 240px;
       }
 
+      .Resumen_Sem_Filtros {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .Resumen_Sem_Filtro_Campo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .Resumen_Sem_Filtro_Campo label,
+      .Resumen_Sem_Filtro_Check {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--Texto_Suave);
+      }
+
+      .Resumen_Sem_Filtro_Campo select {
+        min-width: 150px;
+        padding: 6px 10px;
+        border: 1px solid var(--Borde);
+        border-radius: 10px;
+        background: #fff;
+        color: var(--Texto);
+        font-family: inherit;
+        font-size: 13px;
+      }
+
+      .Resumen_Sem_Filtro_Check {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        cursor: pointer;
+      }
+
       .Resumen_Sem_Metrica_Btn {
         flex: 1;
         background: none;
@@ -13627,6 +13668,17 @@
           "resumen.metric_horas": "Horas",
           "resumen.metric_subtareas":
             "Subtareas",
+          "resumen.filtro_categoria":
+            "Categoría",
+          "resumen.ordenar": "Ordenar",
+          "resumen.orden_cumplimiento":
+            "Cumplimiento",
+          "resumen.orden_horas": "Carga",
+          "resumen.orden_nombre": "Nombre",
+          "resumen.solo_pendientes":
+            "Solo pendientes",
+          "resumen.sin_resultados":
+            "No hay tareas para esos filtros.",
           "resumen.mostrar_abordajes":
             "Mostrar planes",
           "resumen.ocultar_abordajes":
@@ -15812,6 +15864,17 @@
           "resumen.metric_horas": "Hours",
           "resumen.metric_subtareas":
             "Subtasks",
+          "resumen.filtro_categoria":
+            "Category",
+          "resumen.ordenar": "Sort",
+          "resumen.orden_cumplimiento":
+            "Completion",
+          "resumen.orden_horas": "Workload",
+          "resumen.orden_nombre": "Name",
+          "resumen.solo_pendientes":
+            "Only pending",
+          "resumen.sin_resultados":
+            "There are no tasks for those filters.",
           "resumen.mostrar_abordajes":
             "Show plans",
           "resumen.ocultar_abordajes":
@@ -18039,6 +18102,17 @@
           "resumen.metric_horas": "Horas",
           "resumen.metric_subtareas":
             "Subtarefas",
+          "resumen.filtro_categoria":
+            "Categoria",
+          "resumen.ordenar": "Ordenar",
+          "resumen.orden_cumplimiento":
+            "Cumprimento",
+          "resumen.orden_horas": "Carga",
+          "resumen.orden_nombre": "Nome",
+          "resumen.solo_pendientes":
+            "Somente pendentes",
+          "resumen.sin_resultados":
+            "Nao ha tarefas para esses filtros.",
           "resumen.mostrar_abordajes":
             "Mostrar planos",
           "resumen.ocultar_abordajes":
@@ -19668,6 +19742,9 @@
       let Resumen_Sem_Mostrar_Graf = false;
       // Métrica del resumen: "Horas" o "Subtareas".
       let Resumen_Sem_Metrica = "Horas";
+      let Resumen_Sem_Filtro_Categoria = "";
+      let Resumen_Sem_Orden = "Cumplimiento";
+      let Resumen_Sem_Solo_Pendientes = false;
       // Mapea clave de slot → "Sueno" | "Descanso".
       let Slots_Muertos_Tipos = {};
       // Mapea clave de slot → nombre editable del slot
@@ -32914,7 +32991,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           async () => {
             const Nuevos_Items =
               await Resolver_Items_Patron_Slot(
-                Plan_Slot_Borrador
+                Plan_Slot_Borrador,
+                Obtener_Aplica_A_Slot(
+                  Modal_Plan_Slot_Fecha,
+                  Modal_Plan_Slot_Hora
+                )
               );
             if (!Nuevos_Items) return;
             Plan_Slot_Borrador = Nuevos_Items;
@@ -38845,6 +38926,143 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Calcular_Cumplimiento_Item_Resumen(Item) {
+        if (Resumen_Sem_Metrica === "Subtareas") {
+          const Total = Number(Item.Subs_Totales) || 0;
+          if (Total <= 0) return 0;
+          return (Number(Item.Subs_Hechas) || 0) / Total;
+        }
+        const Total = Number(
+          Item.Horas_Totales > 0
+            ? Item.Horas_Totales
+            : Item.Horas_Asignadas
+        ) || 0;
+        if (Total <= 0) return 0;
+        return (Number(Item.Horas_Hechas) || 0) / Total;
+      }
+
+      function Obtener_Tareas_Resumen_Filtradas(Datos) {
+        let Lista = [...Datos.Lista_Tareas];
+        if (Resumen_Sem_Filtro_Categoria) {
+          Lista = Lista.filter((Item) =>
+            (Item.Tarea.Categoria_Id || "") ===
+            Resumen_Sem_Filtro_Categoria
+          );
+        }
+        if (Resumen_Sem_Solo_Pendientes) {
+          Lista = Lista.filter((Item) =>
+            Calcular_Cumplimiento_Item_Resumen(Item) < 1
+          );
+        }
+        Lista.sort((A, B) => {
+          if (Resumen_Sem_Orden === "Nombre") {
+            return (A.Tarea.Nombre || "").localeCompare(
+              B.Tarea.Nombre || ""
+            );
+          }
+          if (Resumen_Sem_Orden === "Horas") {
+            const TA = Number(
+              Resumen_Sem_Metrica === "Subtareas"
+                ? A.Subs_Totales
+                : A.Horas_Totales
+            ) || 0;
+            const TB = Number(
+              Resumen_Sem_Metrica === "Subtareas"
+                ? B.Subs_Totales
+                : B.Horas_Totales
+            ) || 0;
+            return TB - TA;
+          }
+          return (
+            Calcular_Cumplimiento_Item_Resumen(A) -
+            Calcular_Cumplimiento_Item_Resumen(B)
+          );
+        });
+        return Lista;
+      }
+
+      function Render_Filtros_Resumen_Semanal(Cuerpo, Datos) {
+        const Barra = document.createElement("div");
+        Barra.className = "Resumen_Sem_Filtros";
+
+        const Campo_Cat = document.createElement("div");
+        Campo_Cat.className = "Resumen_Sem_Filtro_Campo";
+        const Label_Cat = document.createElement("label");
+        Label_Cat.textContent = t("resumen.filtro_categoria");
+        const Select_Cat = document.createElement("select");
+        const Opt_Todas = document.createElement("option");
+        Opt_Todas.value = "";
+        Opt_Todas.textContent = t("todas");
+        Select_Cat.appendChild(Opt_Todas);
+        const Categorias_Resumen = Array.from(
+          new Set(
+            Datos.Lista_Tareas
+              .map((Item) => Item.Tarea.Categoria_Id || "")
+              .filter(Boolean)
+          )
+        );
+        Categorias_Resumen.forEach((Categoria_Id) => {
+          const Categoria = Obtener_Nombre_Categoria(
+            Categoria_Id
+          );
+          if (!Categoria) return;
+          const Opt = document.createElement("option");
+          Opt.value = Categoria_Id;
+          Opt.textContent =
+            `${Categoria.Emoji || "🏷️"} ${Categoria.Nombre}`;
+          Select_Cat.appendChild(Opt);
+        });
+        Select_Cat.value = Resumen_Sem_Filtro_Categoria;
+        Select_Cat.addEventListener("change", () => {
+          Resumen_Sem_Filtro_Categoria = Select_Cat.value || "";
+          Render_Resumen_Semanal();
+        });
+        Campo_Cat.appendChild(Label_Cat);
+        Campo_Cat.appendChild(Select_Cat);
+        Barra.appendChild(Campo_Cat);
+
+        const Campo_Ord = document.createElement("div");
+        Campo_Ord.className = "Resumen_Sem_Filtro_Campo";
+        const Label_Ord = document.createElement("label");
+        Label_Ord.textContent = t("resumen.ordenar");
+        const Select_Ord = document.createElement("select");
+        [
+          ["Cumplimiento", "resumen.orden_cumplimiento"],
+          ["Horas", "resumen.orden_horas"],
+          ["Nombre", "resumen.orden_nombre"]
+        ].forEach(([Valor, Clave]) => {
+          const Opt = document.createElement("option");
+          Opt.value = Valor;
+          Opt.textContent = t(Clave);
+          Select_Ord.appendChild(Opt);
+        });
+        Select_Ord.value = Resumen_Sem_Orden;
+        Select_Ord.addEventListener("change", () => {
+          Resumen_Sem_Orden = Select_Ord.value || "Cumplimiento";
+          Render_Resumen_Semanal();
+        });
+        Campo_Ord.appendChild(Label_Ord);
+        Campo_Ord.appendChild(Select_Ord);
+        Barra.appendChild(Campo_Ord);
+
+        const Check = document.createElement("label");
+        Check.className = "Resumen_Sem_Filtro_Check";
+        const Input = document.createElement("input");
+        Input.type = "checkbox";
+        Input.checked = Resumen_Sem_Solo_Pendientes;
+        Input.addEventListener("change", () => {
+          Resumen_Sem_Solo_Pendientes = Boolean(Input.checked);
+          Render_Resumen_Semanal();
+        });
+        const Span = document.createElement("span");
+        Span.textContent = t("resumen.solo_pendientes");
+        Check.appendChild(Input);
+        Check.appendChild(Span);
+        Barra.appendChild(Check);
+
+        Cuerpo.appendChild(Barra);
+      }
+
       function Render_Cards_Totales(Datos) {
         const Cards = document.createElement("div");
         Cards.className = "Resumen_Sem_Totales";
@@ -38931,18 +39149,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Render_Resumen_Sem_Por_Tarea(Cuerpo, Datos) {
-        if (Datos.Lista_Tareas.length === 0) {
+        Render_Filtros_Resumen_Semanal(Cuerpo, Datos);
+        const Lista_Tareas =
+          Obtener_Tareas_Resumen_Filtradas(Datos);
+        if (Lista_Tareas.length === 0) {
           const Vacio = document.createElement("div");
           Vacio.style.cssText =
             "padding:20px;text-align:center;" +
             "color:var(--Texto_Suave);font-size:13px";
           Vacio.textContent =
-            t("dialog.no_eventos");
+            t("resumen.sin_resultados");
           Cuerpo.appendChild(Vacio);
           return;
         }
 
-        Datos.Lista_Tareas.forEach((Item) => {
+        Lista_Tareas.forEach((Item) => {
           const Fila = document.createElement("div");
           Fila.className = "Resumen_Sem_Tarea";
 
