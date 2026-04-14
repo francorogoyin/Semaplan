@@ -37133,6 +37133,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      let Ultimo_Click_Slot_Muerto = {
+        Clave: "",
+        Timestamp: 0
+      };
+
+      function Intentar_Doble_Click_Slot_Muerto(
+        Fecha,
+        Hora
+      ) {
+        const Clave = Clave_Slot(Fecha, Hora);
+        const Ahora = Date.now();
+        const Es_Doble =
+          Ultimo_Click_Slot_Muerto.Clave === Clave &&
+          Ahora - Ultimo_Click_Slot_Muerto.Timestamp <= 380;
+        Ultimo_Click_Slot_Muerto = Es_Doble
+          ? { Clave: "", Timestamp: 0 }
+          : { Clave, Timestamp: Ahora };
+        if (!Es_Doble) return false;
+        Alternar_Slot_Muerto(Fecha, Hora);
+        return true;
+      }
+
       function Reordenar_Tareas(Tarea_Origen_Id, Tarea_Destino_Id) {
         if (!Tarea_Origen_Id || !Tarea_Destino_Id || Tarea_Origen_Id === Tarea_Destino_Id) return false;
         const Index_Origen = Tareas.findIndex((Tarea) => Tarea.Id === Tarea_Origen_Id);
@@ -41792,6 +41814,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               if (Evento.button !== 0) return;
               Evento.preventDefault();
             });
+            Slot.addEventListener("mouseup", (Evento) => {
+              if (Evento.button !== 0) return;
+              if (Interaccion_Touch_Activa()) return;
+              Evento.preventDefault();
+              window.getSelection?.()?.removeAllRanges?.();
+              Intentar_Doble_Click_Slot_Muerto(
+                Fecha_ISO,
+                Hora
+              );
+            });
             Slot.addEventListener("selectstart", (Evento) => {
               Evento.preventDefault();
             });
@@ -41805,11 +41837,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Hora,
               Slot
             );
-          });
-          Slot.addEventListener("dblclick", (Evento) => {
-            Evento.preventDefault();
-            Evento.stopPropagation();
-            Alternar_Slot_Muerto(Fecha_ISO, Hora);
           });
           Slot.addEventListener("contextmenu", async (Evento) => {
             Evento.preventDefault();

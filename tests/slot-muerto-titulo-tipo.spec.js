@@ -322,11 +322,11 @@ test("el doble click en un slot muerto con titulo sigue alternando", async ({
   if (!box) {
     throw new Error("No se pudo medir el slot muerto");
   }
-  await page.mouse.click(
-    box.x + box.width / 2,
-    box.y + box.height / 2,
-    { clickCount: 2, delay: 40 }
-  );
+  const X = box.x + box.width / 2;
+  const Y = box.y + box.height / 2;
+  await page.mouse.click(X, Y);
+  await page.waitForTimeout(80);
+  await page.mouse.click(X, Y);
 
   const resultado = await page.evaluate(() => {
     const clave = "2026-04-13|10";
