@@ -112,7 +112,11 @@ test(
                 async maybeSingle() {
                   return { data: null, error: null };
                 },
-                async upsert() {
+                async upsert(Payload) {
+                  localStorage.setItem(
+                    "Test_Ultimo_Upsert_Estado",
+                    JSON.stringify(Payload)
+                  );
                   return { error: null };
                 }
               };
@@ -164,6 +168,12 @@ test(
 
     const Resumen = await page.evaluate(() => {
       return {
+        corte:
+          JSON.parse(
+            localStorage.getItem(
+              "Test_Ultimo_Upsert_Estado"
+            ) || "null"
+          )?.estado?.Sesion_Global_Corte_Ms || 0,
         llamadas: JSON.parse(
           localStorage.getItem(
             "Test_SignOut_Llamadas"
@@ -172,6 +182,7 @@ test(
       };
     });
 
+    expect(Resumen.corte).toBeGreaterThan(0);
     expect(Resumen.llamadas).toEqual([
       "global",
       "local"

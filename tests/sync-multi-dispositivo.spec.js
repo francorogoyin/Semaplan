@@ -99,9 +99,14 @@ async function Preparar_App(page, Estado_Remoto) {
 
       window.__Estado_Remoto = {
         estado: Estado_Remoto_Inicial,
-        actualizado_en: "2026-04-14T00:00:00Z"
+        actualizado_en: "2026-04-14T00:00:00Z",
+        version: Estado_Remoto_Inicial ? 1 : 0
       };
       window.__Keepalive_Llamadas = [];
+      window.__SignOut_Llamadas = [];
+      window.__Forzar_Error_Upsert = false;
+      window.__Forzar_Error_Update = false;
+      window.__Forzar_Error_Insert = false;
 
       const Fetch_Original =
         window.fetch.bind(window);
@@ -111,17 +116,51 @@ async function Preparar_App(page, Estado_Remoto) {
             "/rest/v1/estado_usuario"
           )
         ) {
+          const Url_Objeto = new URL(
+            String(Url),
+            window.location.origin
+          );
           window.__Keepalive_Llamadas.push({
             keepalive: !!Opciones.keepalive,
-            body: Opciones.body || ""
+            body: Opciones.body || "",
+            method: Opciones.method || "GET",
+            url: Url_Objeto.toString()
           });
           const Payload = JSON.parse(
             Opciones.body || "{}"
           );
+          const Version_Filtro = Number(
+            (
+              Url_Objeto.searchParams.get("version")
+              || ""
+            ).replace("eq.", "")
+          ) || 0;
+          if (
+            (Opciones.method || "GET") === "PATCH" &&
+            Version_Filtro > 0 &&
+            Version_Filtro !==
+              Number(window.__Estado_Remoto?.version || 0)
+          ) {
+            return {
+              ok: true,
+              status: 204,
+              async text() {
+                return "";
+              }
+            };
+          }
           window.__Estado_Remoto = {
             estado: Payload.estado,
             actualizado_en:
-              "2026-04-14T00:00:10Z"
+              "2026-04-14T00:00:10Z",
+            version:
+              Number(Payload.version) ||
+              (
+                Number(
+                  window.__Estado_Remoto?.version || 0
+                ) + 1
+              ) ||
+              1
           };
           return {
             ok: true,
@@ -157,7 +196,10 @@ async function Preparar_App(page, Estado_Remoto) {
                   }
                 };
               },
-              async signOut() {
+              async signOut(Opciones = {}) {
+                window.__SignOut_Llamadas.push(
+                  Opciones.scope || "default"
+                );
                 return { error: null };
               },
               async refreshSession() {
@@ -196,6 +238,83 @@ async function Preparar_App(page, Estado_Remoto) {
                   return this;
                 },
                 async maybeSingle() {
+                  if (this._accion === "update") {
+                    if (window.__Forzar_Error_Update) {
+                      return {
+                        data: null,
+                        error: {
+                          message: "fallo update"
+                        }
+                      };
+                    }
+                    const Actual =
+                      window.__Estado_Remoto || null;
+                    if (!Actual) {
+                      return {
+                        data: null,
+                        error: null
+                      };
+                    }
+                    if (
+                      Number(this.version || 0) !==
+                      Number(Actual.version || 0)
+                    ) {
+                      return {
+                        data: null,
+                        error: null
+                      };
+                    }
+                    window.__Estado_Remoto = {
+                      estado: this._payload.estado,
+                      actualizado_en:
+                        "2026-04-14T00:00:05Z",
+                      version:
+                        Number(this._payload.version) ||
+                        Number(Actual.version || 0) + 1
+                    };
+                    return {
+                      data: {
+                        version:
+                          window.__Estado_Remoto.version,
+                        actualizado_en:
+                          window.__Estado_Remoto.actualizado_en
+                      },
+                      error: null
+                    };
+                  }
+                  if (this._accion === "insert") {
+                    if (window.__Forzar_Error_Insert) {
+                      return {
+                        data: null,
+                        error: {
+                          message: "fallo insert"
+                        }
+                      };
+                    }
+                    if (window.__Estado_Remoto) {
+                      return {
+                        data: null,
+                        error: {
+                          code: "23505",
+                          message: "duplicate key"
+                        }
+                      };
+                    }
+                    window.__Estado_Remoto = {
+                      estado: this._payload.estado,
+                      actualizado_en:
+                        "2026-04-14T00:00:05Z",
+                      version: 1
+                    };
+                    return {
+                      data: {
+                        version: 1,
+                        actualizado_en:
+                          "2026-04-14T00:00:05Z"
+                      },
+                      error: null
+                    };
+                  }
                   if (
                     Tabla !== "estado_usuario" ||
                     this.user_id !== Usuario.id
@@ -210,12 +329,37 @@ async function Preparar_App(page, Estado_Remoto) {
                     error: null
                   };
                 },
+                update(Payload) {
+                  this._accion = "update";
+                  this._payload = Payload;
+                  return this;
+                },
+                insert(Payload) {
+                  this._accion = "insert";
+                  this._payload = Payload;
+                  return this;
+                },
                 async upsert(Payload) {
+                  if (window.__Forzar_Error_Upsert) {
+                    return {
+                      error: {
+                        message: "fallo upsert"
+                      }
+                    };
+                  }
                   if (Tabla === "estado_usuario") {
                     window.__Estado_Remoto = {
                       estado: Payload.estado,
                       actualizado_en:
-                        "2026-04-14T00:00:05Z"
+                        "2026-04-14T00:00:05Z",
+                      version:
+                        Number(Payload.version) ||
+                        (
+                          Number(
+                            window.__Estado_Remoto?.version || 0
+                          ) + 1
+                        ) ||
+                        1
                     };
                   }
                   return { error: null };
@@ -320,7 +464,8 @@ test(
     await page.evaluate(({ Estado_Remoto_Nuevo }) => {
       window.__Estado_Remoto = {
         estado: Estado_Remoto_Nuevo,
-        actualizado_en: "2026-04-14T00:00:20Z"
+        actualizado_en: "2026-04-14T00:00:20Z",
+        version: 2
       };
     }, {
       Estado_Remoto_Nuevo: Crear_Estado([
@@ -389,7 +534,8 @@ test(
 
       window.__Estado_Remoto = {
         estado: Estado_Remoto_Nuevo,
-        actualizado_en: "2026-04-14T00:00:30Z"
+        actualizado_en: "2026-04-14T00:00:30Z",
+        version: 2
       };
     }, {
       Estado_Remoto_Nuevo: Crear_Estado([
@@ -471,7 +617,8 @@ test(
 
       window.__Estado_Remoto = {
         estado: Estado_Remoto_Nuevo,
-        actualizado_en: "2026-04-14T00:00:40Z"
+        actualizado_en: "2026-04-14T00:00:40Z",
+        version: 2
       };
     }, {
       Estado_Remoto_Nuevo: Crear_Estado([
@@ -526,5 +673,135 @@ test(
     expect(Resumen.bloqueada).toBe(false);
     expect(Resumen.sucio).toBe(false);
     expect(Resumen.conflicto).toBe(false);
+  }
+);
+
+test(
+  "bloquea cerrar sesion si falla el ultimo sync",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      window.__Dialogos = [];
+      const Dialogo_Original = Mostrar_Dialogo;
+      Mostrar_Dialogo = async (
+        Texto,
+        Botones = []
+      ) => {
+        window.__Dialogos.push(Texto);
+        return Botones[0]?.Valor ?? true;
+      };
+
+      Tareas.push({
+        Id: 123,
+        Nombre: "Cambio sin guardar",
+        Emoji: "ðŸ§ª",
+        Color: "#f1b77e",
+        Horas: 1,
+        Dia: 0,
+        Hora: 9,
+        Duracion: 1,
+        Subtareas: [],
+        Copias_Semana: {}
+      });
+      Guardar_Estado();
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+      window.__Forzar_Error_Update = true;
+
+      await Cerrar_Sesion();
+      Mostrar_Dialogo = Dialogo_Original;
+
+      return {
+        dialogos: window.__Dialogos,
+        signOuts: window.__SignOut_Llamadas,
+        syncEstado: Sync_Estado
+      };
+    });
+
+    expect(Resumen.dialogos.at(0)).toContain(
+      "Cerrar sesión"
+    );
+    expect(Resumen.dialogos.at(-1)).toContain(
+      "todavía hay cambios sin guardar"
+    );
+    expect(Resumen.signOuts).toEqual([]);
+    expect(Resumen.syncEstado).toBe("Error");
+  }
+);
+
+test(
+  "detecta conflicto versionado al guardar " +
+  "y no pisa la version remota",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Resumen = await page.evaluate(async ({
+      Estado_Remoto_Nuevo
+    }) => {
+      Tareas.push({
+        Id: 124,
+        Nombre: "Cambio local versionado",
+        Emoji: "ðŸ§ª",
+        Color: "#f1b77e",
+        Horas: 1,
+        Dia: 0,
+        Hora: 9,
+        Duracion: 1,
+        Subtareas: [],
+        Copias_Semana: {}
+      });
+      Guardar_Estado();
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+
+      window.__Estado_Remoto = {
+        estado: Estado_Remoto_Nuevo,
+        actualizado_en: "2026-04-14T00:00:55Z",
+        version: 2
+      };
+
+      const Ok = await Backend_Sync_Ejecutar();
+
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+
+      return {
+        ok: Ok,
+        conflicto: Sync_Conflicto_Pendiente,
+        remoto:
+          (window.__Estado_Remoto?.estado?.Tareas || [])
+            .map((Tarea) => Tarea.Nombre),
+        local:
+          (Estado_Local.Tareas || []).map(
+            (Tarea) => Tarea.Nombre
+          )
+      };
+    }, {
+      Estado_Remoto_Nuevo: Crear_Estado([
+        "Base remota",
+        "Cambio remoto final"
+      ])
+    });
+
+    expect(Resumen.ok).toBe(false);
+    expect(Resumen.conflicto).toBe(true);
+    expect(Resumen.remoto).toContain(
+      "Cambio remoto final"
+    );
+    expect(Resumen.remoto).not.toContain(
+      "Cambio local versionado"
+    );
+    expect(Resumen.local).toContain(
+      "Cambio local versionado"
+    );
   }
 );

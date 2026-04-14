@@ -12684,6 +12684,8 @@
             "Contraseña actualizada.",
           "auth.password_actualizada_login":
             "Contraseña actualizada. Iniciá sesión con la nueva contraseña.",
+          "auth.sesion_cerrada_global":
+            "Esta sesión se cerró desde otra computadora.",
           "auth.err_password_no_coincide":
             "Las dos contraseñas no coinciden.",
           "auth.err_nombre_requerido":
@@ -12755,6 +12757,9 @@
             "Se conservaron tus cambios en esta pestaña",
           "sync.conflicto_local_error":
             "No se pudo subir esta versión local",
+          "sync.logout_sync_fallo":
+            "No se pudo cerrar sesión porque " +
+            "todavía hay cambios sin guardar.",
           "evento.sin_tarea": "Sin tarea",
           "evento.marcar_hecho_title":
             "Marcar hecho",
@@ -14997,6 +15002,8 @@
             "Password updated.",
           "auth.password_actualizada_login":
             "Password updated. Sign in with your new password.",
+          "auth.sesion_cerrada_global":
+            "This session was signed out from another computer.",
           "auth.err_password_no_coincide":
             "The two passwords do not match.",
           "auth.err_nombre_requerido":
@@ -15067,6 +15074,9 @@
             "Your changes in this tab were kept",
           "sync.conflicto_local_error":
             "This local version could not be uploaded",
+          "sync.logout_sync_fallo":
+            "Could not sign out because there " +
+            "are still unsaved changes.",
           "evento.sin_tarea": "No task",
           "evento.marcar_hecho_title":
             "Mark done",
@@ -17251,6 +17261,8 @@
             "Senha atualizada.",
           "auth.password_actualizada_login":
             "Senha atualizada. Entre com a nova senha.",
+          "auth.sesion_cerrada_global":
+            "Esta sessão foi encerrada de outro computador.",
           "auth.err_password_no_coincide":
             "As duas senhas não coincidem.",
           "auth.err_nombre_requerido":
@@ -17328,6 +17340,9 @@
             "Suas mudanças nesta aba foram mantidas",
           "sync.conflicto_local_error":
             "Não foi possível enviar esta versão local",
+          "sync.logout_sync_fallo":
+            "Não foi possível sair porque " +
+            "ainda há mudanças sem salvar.",
           "evento.sin_tarea": "Sem tarefa",
           "evento.marcar_hecho_title":
             "Marcar feito",
@@ -38527,6 +38542,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Archivero_Seleccion_Id,
           Inicio_Semana: Formatear_Fecha_ISO(Semana_Actual),
           Duracion_Defecto: Config.Duracion_Default,
+          Sesion_Global_Corte_Ms:
+            Sync_Sesion_Global_Corte_Ms,
           Config_Extra: {
             Inicio_Hora: Config.Inicio_Hora,
             Fin_Hora: Config.Fin_Hora,
@@ -47949,6 +47966,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       const Clave_Recovery_Activa =
         "Semaplan_Recovery_Activa";
+      const Clave_Auth_Mensaje_Pendiente =
+        "Semaplan_Auth_Mensaje_Pendiente";
+      const Clave_Sync_Evento_Local =
+        "Semaplan_Sync_Evento_V1";
 
       // Cliente de Supabase (se inicializa al cargar la página).
       let Supa = null;
@@ -47958,10 +47979,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_Timer_Id = null;
       // Indica si hay una subida activa a la nube.
       let Sync_En_Curso = false;
+      let Sync_Promesa_En_Curso = null;
       // Estado actual del indicador de sync.
       let Sync_Estado = "Guardado";
       let Sync_Token_Actual = "";
       let Sync_Local_Sucio = false;
+      let Sync_Remoto_Fila_Existe = false;
+      let Sync_Remoto_Version_Actual = 0;
       let Sync_Remoto_Marca_Ms = 0;
       let Sync_Remoto_Revisando = false;
       let Sync_Remoto_Ultima_Revision_Ms = 0;
@@ -47970,6 +47994,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_Conflicto_Marca_Ms = 0;
       let Sync_Conflicto_Timer_Id = null;
       let Sync_Revision_Timer_Id = null;
+      let Sync_Sesion_Global_Corte_Ms = 0;
+      let Sync_Sesion_Inicio_Local_Ms = 0;
+      let Sync_Sesion_Cerrando = false;
+      let Sync_Evento_Local_Procesado = "";
       // Flag para evitar guardados durante la carga inicial.
       let Cargando_Inicial = true;
       let Trial_Modal_Abierto = false;
@@ -47984,6 +48012,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Number.isFinite(Ms) ? Ms : 0;
       }
 
+      function Obtener_Version_Remota(
+        Datos = null
+      ) {
+        const Version = Number(Datos?.version) || 0;
+        return Version > 0 ? Version : 0;
+      }
+
+      function Obtener_Corte_Sesion_Global(
+        Estado = null
+      ) {
+        const Corte = Number(
+          Estado?.Sesion_Global_Corte_Ms
+        ) || 0;
+        return Corte > 0 ? Corte : 0;
+      }
+
       function Marcar_Sync_Remoto_Actualizado(
         Marca = ""
       ) {
@@ -47995,6 +48039,394 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sync_Remoto_Marca_Ms,
           Ms
         );
+      }
+
+      function Actualizar_Meta_Remota(
+        Datos = null
+      ) {
+        if (!Datos) return;
+        Sync_Remoto_Fila_Existe = true;
+        const Version = Obtener_Version_Remota(Datos);
+        if (Version > 0) {
+          Sync_Remoto_Version_Actual = Version;
+        }
+        if (Datos.actualizado_en) {
+          Marcar_Sync_Remoto_Actualizado(
+            Datos.actualizado_en
+          );
+        }
+        const Corte = Obtener_Corte_Sesion_Global(
+          Datos.estado
+        );
+        if (Corte > 0) {
+          Sync_Sesion_Global_Corte_Ms = Math.max(
+            Sync_Sesion_Global_Corte_Ms,
+            Corte
+          );
+        }
+      }
+
+      function Resetear_Meta_Remota() {
+        Sync_Remoto_Fila_Existe = false;
+        Sync_Remoto_Version_Actual = 0;
+        Sync_Remoto_Marca_Ms = 0;
+        Sync_Sesion_Global_Corte_Ms = 0;
+      }
+
+      function Preparar_Sesion_Local_Activa() {
+        Sync_Sesion_Inicio_Local_Ms = Date.now();
+        Sync_Sesion_Cerrando = false;
+      }
+
+      function Limpiar_Sesion_Local_Activa() {
+        Sync_Sesion_Inicio_Local_Ms = 0;
+        Sync_Sesion_Cerrando = false;
+      }
+
+      function Sesion_Global_Remota_Activa() {
+        return (
+          !Sync_Sesion_Cerrando &&
+          Sync_Sesion_Global_Corte_Ms > 0 &&
+          Sync_Sesion_Inicio_Local_Ms > 0 &&
+          Sync_Sesion_Global_Corte_Ms >
+            Sync_Sesion_Inicio_Local_Ms + 1000
+        );
+      }
+
+      function Normalizar_Fila_Resultado(
+        Resultado = {}
+      ) {
+        const Error = Resultado?.error || null;
+        const Data_Bruta =
+          Resultado?.data ?? null;
+        if (Array.isArray(Data_Bruta)) {
+          return {
+            data: Data_Bruta[0] || null,
+            error: Error
+          };
+        }
+        return {
+          data: Data_Bruta || null,
+          error: Error
+        };
+      }
+
+      function Guardar_Mensaje_Auth_Pendiente(
+        Texto,
+        Tipo = "Error"
+      ) {
+        try {
+          sessionStorage.setItem(
+            Clave_Auth_Mensaje_Pendiente,
+            JSON.stringify({ Texto, Tipo })
+          );
+        } catch (_) {}
+      }
+
+      function Mostrar_Mensaje_Auth_Pendiente() {
+        try {
+          const Raw = sessionStorage.getItem(
+            Clave_Auth_Mensaje_Pendiente
+          );
+          if (!Raw) return;
+          sessionStorage.removeItem(
+            Clave_Auth_Mensaje_Pendiente
+          );
+          const Datos = JSON.parse(Raw);
+          if (!Datos?.Texto) return;
+          Mostrar_Auth_Mensaje(
+            Datos.Texto,
+            Datos.Tipo || "Error"
+          );
+        } catch (_) {}
+      }
+
+      function Emitir_Evento_Local_Sync(
+        Tipo,
+        Extra = {}
+      ) {
+        if (!Usuario_Actual?.id) return;
+        try {
+          localStorage.setItem(
+            Clave_Sync_Evento_Local,
+            JSON.stringify({
+              Id:
+                `${Date.now()}_${Math.random()
+                  .toString(36)
+                  .slice(2)}`,
+              Tipo,
+              Usuario_Id: Usuario_Actual.id,
+              Momento_Ms: Date.now(),
+              Version: Sync_Remoto_Version_Actual,
+              Corte_Sesion_Ms:
+                Sync_Sesion_Global_Corte_Ms,
+              ...Extra
+            })
+          );
+        } catch (_) {}
+      }
+
+      function Limpiar_Estado_Sync_Local() {
+        if (Sync_Timer_Id) {
+          clearTimeout(Sync_Timer_Id);
+          Sync_Timer_Id = null;
+        }
+        Sync_En_Curso = false;
+        Sync_Promesa_En_Curso = null;
+        Sync_Remoto_Revisando = false;
+        Sync_Remoto_Ultima_Revision_Ms = 0;
+        Marcar_Sync_Local_Sucio(false);
+        Limpiar_Conflicto_Sync();
+        Resetear_Meta_Remota();
+        Limpiar_Sesion_Local_Activa();
+      }
+
+      async function Cerrar_Sesion_Por_Corte_Global() {
+        if (!Supa || Sync_Sesion_Cerrando) return true;
+        Sync_Sesion_Cerrando = true;
+        Guardar_Mensaje_Auth_Pendiente(
+          t("auth.sesion_cerrada_global")
+        );
+        try {
+          await Supa.auth.signOut({
+            scope: "local"
+          });
+        } catch (_) {}
+        Actualizar_Token_Sync(null);
+        Usuario_Actual = null;
+        Limpiar_Estado_Sync_Local();
+        location.reload();
+        return true;
+      }
+
+      async function Backend_Leer_Fila_Remota() {
+        if (!Supa || !Usuario_Actual) {
+          return {
+            data: null,
+            error: null
+          };
+        }
+        return await Supa
+          .from("estado_usuario")
+          .select("estado, actualizado_en, version")
+          .eq("user_id", Usuario_Actual.id)
+          .maybeSingle();
+      }
+
+      function Backend_Registrar_Sync_Exitoso(
+        Datos = null
+      ) {
+        Sync_Remoto_Fila_Existe = true;
+        if (Datos) {
+          Actualizar_Meta_Remota(Datos);
+        } else if (Sync_Remoto_Version_Actual > 0) {
+          Sync_Remoto_Version_Actual += 1;
+        } else {
+          Sync_Remoto_Version_Actual = 1;
+        }
+        Marcar_Sync_Local_Sucio(false);
+        Marcar_Sync_Remoto_Actualizado(
+          Datos?.actualizado_en || ""
+        );
+        Actualizar_Sync_Indicador("Guardado");
+        Emitir_Evento_Local_Sync("sync_guardado");
+      }
+
+      async function Backend_Asegurar_Sync_Antes_De_Salir() {
+        if (Sync_Conflicto_Pendiente) {
+          Intentar_Mostrar_Conflicto_Sync();
+          return false;
+        }
+        if (!Hay_Cambios_Locales_Sin_Sync()) {
+          return true;
+        }
+        if (Sync_Timer_Id) {
+          clearTimeout(Sync_Timer_Id);
+          Sync_Timer_Id = null;
+        }
+        const Ok = await Backend_Sync_Ejecutar();
+        if (Ok) return true;
+        await Mostrar_Dialogo(
+          t("sync.logout_sync_fallo"),
+          [
+            {
+              Etiqueta: t("ok"),
+              Valor: true,
+              Tipo: "Primario"
+            }
+          ]
+        );
+        return false;
+      }
+
+      function Procesar_Evento_Local_Sync(
+        Raw = ""
+      ) {
+        if (!Raw || !Usuario_Actual?.id) return;
+        try {
+          const Datos = JSON.parse(Raw);
+          if (!Datos?.Id) return;
+          if (Datos.Id === Sync_Evento_Local_Procesado) {
+            return;
+          }
+          if (Datos.Usuario_Id !== Usuario_Actual.id) {
+            return;
+          }
+          Sync_Evento_Local_Procesado = Datos.Id;
+          const Corte = Number(
+            Datos.Corte_Sesion_Ms
+          ) || 0;
+          if (
+            Datos.Tipo === "cerrar_sesion_global" &&
+            Corte > 0
+          ) {
+            Sync_Sesion_Global_Corte_Ms = Math.max(
+              Sync_Sesion_Global_Corte_Ms,
+              Corte
+            );
+            if (Sesion_Global_Remota_Activa()) {
+              Cerrar_Sesion_Por_Corte_Global();
+            }
+            return;
+          }
+          if (
+            Datos.Tipo === "sync_guardado" &&
+            !Sync_Local_Sucio &&
+            !Hay_Sync_Pendiente()
+          ) {
+            Backend_Revisar_Cambios_Remotos(true);
+          }
+        } catch (_) {}
+      }
+
+      async function Backend_Registrar_Corte_Sesion_Global() {
+        if (!Supa || !Usuario_Actual) return false;
+        const Corte_Ms = Date.now();
+        try {
+          const Resultado_Remoto =
+            await Backend_Leer_Fila_Remota();
+          if (Resultado_Remoto.error) {
+            throw Resultado_Remoto.error;
+          }
+          if (Resultado_Remoto.data) {
+            Actualizar_Meta_Remota(
+              Resultado_Remoto.data
+            );
+          }
+
+          const Estado_Base =
+            Resultado_Remoto.data?.estado &&
+            typeof Resultado_Remoto.data.estado ===
+              "object"
+              ? Resultado_Remoto.data.estado
+              : Construir_Estado_Completo();
+          const Estado = {
+            ...Estado_Base,
+            Sesion_Global_Corte_Ms: Corte_Ms
+          };
+
+          let Error = null;
+          const Tabla = Supa.from("estado_usuario");
+          if (
+            Sync_Remoto_Fila_Existe &&
+            Sync_Remoto_Version_Actual > 0 &&
+            typeof Tabla.update === "function"
+          ) {
+            const Resultado =
+              Normalizar_Fila_Resultado(
+                await Tabla
+                  .update({
+                    estado: Estado,
+                    version:
+                      Sync_Remoto_Version_Actual + 1
+                  })
+                  .eq("user_id", Usuario_Actual.id)
+                  .eq(
+                    "version",
+                    Sync_Remoto_Version_Actual
+                  )
+                  .select("version, actualizado_en")
+                  .maybeSingle()
+              );
+            if (Resultado.error) {
+              Error = Resultado.error;
+            } else if (Resultado.data) {
+              Sync_Sesion_Global_Corte_Ms = Corte_Ms;
+              Backend_Registrar_Sync_Exitoso(
+                Resultado.data
+              );
+              Emitir_Evento_Local_Sync(
+                "cerrar_sesion_global",
+                {
+                  Corte_Sesion_Ms: Corte_Ms
+                }
+              );
+              return true;
+            } else {
+              Error = {
+                message:
+                  "No se pudo registrar el corte global"
+              };
+            }
+          } else if (
+            !Sync_Remoto_Fila_Existe &&
+            typeof Tabla.insert === "function"
+          ) {
+            const Resultado =
+              Normalizar_Fila_Resultado(
+                await Tabla
+                  .insert({
+                    user_id: Usuario_Actual.id,
+                    estado: Estado
+                  })
+                  .select("version, actualizado_en")
+                  .maybeSingle()
+              );
+            if (Resultado.error) {
+              Error = Resultado.error;
+            } else if (Resultado.data) {
+              Sync_Sesion_Global_Corte_Ms = Corte_Ms;
+              Backend_Registrar_Sync_Exitoso(
+                Resultado.data
+              );
+              Emitir_Evento_Local_Sync(
+                "cerrar_sesion_global",
+                {
+                  Corte_Sesion_Ms: Corte_Ms
+                }
+              );
+              return true;
+            }
+          } else {
+            const Resultado = await Supa
+              .from("estado_usuario")
+              .upsert({
+                user_id: Usuario_Actual.id,
+                estado: Estado
+              });
+            Error = Resultado.error || null;
+            if (!Error) {
+              Sync_Sesion_Global_Corte_Ms = Corte_Ms;
+              Backend_Registrar_Sync_Exitoso();
+              Emitir_Evento_Local_Sync(
+                "cerrar_sesion_global",
+                {
+                  Corte_Sesion_Ms: Corte_Ms
+                }
+              );
+              return true;
+            }
+          }
+
+          if (Error) throw Error;
+          return false;
+        } catch (E) {
+          console.error(
+            "Error registrando corte global:",
+            E
+          );
+          return false;
+        }
       }
 
       function Marcar_Sync_Local_Sucio(
@@ -48347,31 +48779,157 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Backend_Sync_Ejecutar() {
         if (Sync_Conflicto_Pendiente) return false;
         if (!Supa || !Usuario_Actual) return false;
+        if (Sync_Promesa_En_Curso) {
+          return await Sync_Promesa_En_Curso;
+        }
         if (Sync_Timer_Id) {
           clearTimeout(Sync_Timer_Id);
         }
         Sync_Timer_Id = null;
-        Sync_En_Curso = true;
-        try {
-          const Estado = Construir_Estado_Completo();
-          const { error } = await Supa
-            .from("estado_usuario")
-            .upsert({
-              user_id: Usuario_Actual.id,
-              estado: Estado
-            });
-          if (error) throw error;
-          Marcar_Sync_Local_Sucio(false);
-          Marcar_Sync_Remoto_Actualizado();
-          Actualizar_Sync_Indicador("Guardado");
-          return true;
-        } catch (E) {
-          console.error("Error sincronizando:", E);
-          Actualizar_Sync_Indicador("Error");
-          return false;
-        } finally {
-          Sync_En_Curso = false;
-        }
+        Sync_Promesa_En_Curso = (async () => {
+          Sync_En_Curso = true;
+          try {
+            const Estado = Construir_Estado_Completo();
+            const Conflicto = new Error(
+              "sync_conflict"
+            );
+            Conflicto.Es_Conflicto_Sync = true;
+
+            if (
+              Sync_Remoto_Fila_Existe &&
+              !Sync_Remoto_Version_Actual
+            ) {
+              const Fila =
+                await Backend_Leer_Fila_Remota();
+              if (Fila.error) throw Fila.error;
+              if (Fila.data) {
+                Actualizar_Meta_Remota(Fila.data);
+              }
+            }
+
+            let Sincronizado = false;
+            const Tabla = Supa.from("estado_usuario");
+            const Soporta_Versionado =
+              typeof Tabla.update === "function" &&
+              typeof Tabla.insert === "function";
+
+            if (
+              Soporta_Versionado &&
+              Sync_Remoto_Fila_Existe &&
+              Sync_Remoto_Version_Actual > 0
+            ) {
+              const Resultado =
+                Normalizar_Fila_Resultado(
+                  await Tabla
+                    .update({
+                      estado: Estado,
+                      version:
+                        Sync_Remoto_Version_Actual + 1
+                    })
+                    .eq("user_id", Usuario_Actual.id)
+                    .eq(
+                      "version",
+                      Sync_Remoto_Version_Actual
+                    )
+                    .select("version, actualizado_en")
+                    .maybeSingle()
+              );
+              if (Resultado.error) {
+                throw Resultado.error;
+              }
+              if (!Resultado.data) {
+                throw Conflicto;
+              }
+              Backend_Registrar_Sync_Exitoso(
+                Resultado.data
+              );
+              Sincronizado = true;
+            } else if (
+              Soporta_Versionado &&
+              !Sync_Remoto_Fila_Existe
+            ) {
+              const Resultado =
+                Normalizar_Fila_Resultado(
+                await Tabla
+                  .insert({
+                    user_id: Usuario_Actual.id,
+                    estado: Estado
+                  })
+                  .select("version, actualizado_en")
+                  .maybeSingle()
+              );
+              if (Resultado.error) {
+                const Msg = String(
+                  Resultado.error.message || ""
+                ).toLowerCase();
+                const Codigo = String(
+                  Resultado.error.code || ""
+                );
+                const Es_Duplicado =
+                  Codigo === "23505" ||
+                  Msg.includes("duplicate");
+                if (!Es_Duplicado) {
+                  throw Resultado.error;
+                }
+                throw Conflicto;
+              }
+              if (Resultado.data) {
+                Backend_Registrar_Sync_Exitoso(
+                  Resultado.data
+                );
+                Sincronizado = true;
+              }
+            }
+
+            if (!Sincronizado) {
+              const { error } = await Supa
+                .from("estado_usuario")
+                .upsert({
+                  user_id: Usuario_Actual.id,
+                  estado: Estado
+                });
+              if (error) throw error;
+              Backend_Registrar_Sync_Exitoso();
+            }
+
+            return true;
+          } catch (E) {
+            try {
+              const Marca_Anterior_Ms =
+                Sync_Remoto_Marca_Ms;
+              const Fila =
+                await Backend_Leer_Fila_Remota();
+              if (Fila.error) throw Fila.error;
+              if (Fila.data) {
+                Actualizar_Meta_Remota(Fila.data);
+                if (Sesion_Global_Remota_Activa()) {
+                  await Cerrar_Sesion_Por_Corte_Global();
+                  return false;
+                }
+                const Marca_Remota_Ms =
+                  Obtener_Marca_Remota_Ms(
+                    Fila.data.actualizado_en || ""
+                  );
+                if (
+                  Marca_Remota_Ms >
+                    Marca_Anterior_Ms + 1000 ||
+                  E?.Es_Conflicto_Sync
+                ) {
+                  Programar_Conflicto_Sync(
+                    Marca_Remota_Ms
+                  );
+                }
+              }
+            } catch (_) {}
+            console.error("Error sincronizando:", E);
+            Actualizar_Sync_Indicador("Error");
+            return false;
+          } finally {
+            Sync_En_Curso = false;
+            Sync_Promesa_En_Curso = null;
+          }
+        })();
+        return await Sync_Promesa_En_Curso;
       }
 
       function Backend_Sync_Forzar_Keepalive() {
@@ -48388,24 +48946,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Estado = Construir_Estado_Completo();
         Sync_En_Curso = true;
 
+        const Usa_Patch =
+          Sync_Remoto_Fila_Existe &&
+          Sync_Remoto_Version_Actual > 0;
+        const Url = Usa_Patch
+          ? `${Supabase_Url}/rest/v1/estado_usuario` +
+            `?user_id=eq.${encodeURIComponent(
+              Usuario_Actual.id
+            )}&version=eq.${Sync_Remoto_Version_Actual}`
+          : `${Supabase_Url}/rest/v1/estado_usuario` +
+            `?on_conflict=user_id`;
+
         fetch(
-          `${Supabase_Url}/rest/v1/estado_usuario` +
-            `?on_conflict=user_id`,
+          Url,
           {
-            method: "POST",
+            method: Usa_Patch ? "PATCH" : "POST",
             headers: {
               apikey: Supabase_Anon_Key,
               Authorization:
                 `Bearer ${Sync_Token_Actual}`,
               "Content-Type": "application/json",
               Prefer:
-                "resolution=merge-duplicates," +
-                "return=minimal"
+                Usa_Patch
+                  ? "return=minimal"
+                  : "resolution=merge-duplicates," +
+                    "return=minimal"
             },
-            body: JSON.stringify({
-              user_id: Usuario_Actual.id,
-              estado: Estado
-            }),
+            body: JSON.stringify(
+              Usa_Patch
+                ? {
+                  estado: Estado,
+                  version:
+                    Sync_Remoto_Version_Actual + 1
+                }
+                : {
+                  user_id: Usuario_Actual.id,
+                  estado: Estado
+                }
+            ),
             keepalive: true
           }
         )
@@ -48415,9 +48993,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 `HTTP ${Resp.status}`
               );
             }
-            Marcar_Sync_Local_Sucio(false);
-            Marcar_Sync_Remoto_Actualizado();
-            Actualizar_Sync_Indicador("Guardado");
+            Backend_Registrar_Sync_Exitoso();
           })
           .catch((E) => {
             console.error(
@@ -48438,12 +49014,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Devuelve true si encontró estado, false si no.
         if (!Supa || !Usuario_Actual) return false;
         try {
-          const { data, error } = await Supa
-            .from("estado_usuario")
-            .select("estado, actualizado_en")
-            .eq("user_id", Usuario_Actual.id)
-            .maybeSingle();
+          const { data, error } =
+            await Backend_Leer_Fila_Remota();
           if (error) throw error;
+          if (data) {
+            Actualizar_Meta_Remota(data);
+          }
+          if (Sesion_Global_Remota_Activa()) {
+            await Cerrar_Sesion_Por_Corte_Global();
+            return false;
+          }
           if (!data || !data.estado) return false;
           if (
             !data.estado.Tareas ||
@@ -48457,9 +49037,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Marcar_Usuario_Cache_Local(Usuario_Actual.id);
           Marcar_Sync_Local_Sucio(false);
-          Marcar_Sync_Remoto_Actualizado(
-            data.actualizado_en
-          );
           return true;
         } catch (E) {
           console.error("Error cargando estado:", E);
@@ -48492,22 +49069,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Sync_Remoto_Ultima_Revision_Ms = Ahora;
 
         try {
-          const { data, error } = await Supa
-            .from("estado_usuario")
-            .select("actualizado_en")
-            .eq("user_id", Usuario_Actual.id)
-            .maybeSingle();
+          const Marca_Conocida_Ms =
+            Sync_Remoto_Marca_Ms;
+          const Corte_Conocido_Ms =
+            Sync_Sesion_Global_Corte_Ms;
+          const { data, error } =
+            await Backend_Leer_Fila_Remota();
           if (error) throw error;
 
           const Marca_Remota_Ms =
             Obtener_Marca_Remota_Ms(
               data?.actualizado_en || ""
             );
+          const Corte_Remoto_Ms =
+            Obtener_Corte_Sesion_Global(
+              data?.estado
+            );
+          if (data) {
+            Actualizar_Meta_Remota(data);
+          }
+          if (
+            Corte_Remoto_Ms > Corte_Conocido_Ms &&
+            Sesion_Global_Remota_Activa()
+          ) {
+            await Cerrar_Sesion_Por_Corte_Global();
+            return true;
+          }
           if (!Marca_Remota_Ms) return false;
           if (
-            Sync_Remoto_Marca_Ms &&
+            Marca_Conocida_Ms &&
             Marca_Remota_Ms <=
-              Sync_Remoto_Marca_Ms + 1000
+              Marca_Conocida_Ms + 1000
           ) {
             return false;
           }
@@ -48641,6 +49233,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .classList.add("Oculto");
         document.getElementById("Auth_Overlay")
           .classList.add("Activo");
+        Mostrar_Mensaje_Auth_Pendiente();
         const Recovery_Visible =
           document.getElementById("Auth_Recovery_Panel")
             ?.style.display !== "none";
@@ -49626,15 +50219,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ]
         );
         if (!Confirmar) return;
-        // Forzar último sync pendiente antes de salir.
-        if (Sync_Timer_Id) {
-          clearTimeout(Sync_Timer_Id);
-          await Backend_Sync_Ejecutar();
-        }
+        const Sync_Listo =
+          await Backend_Asegurar_Sync_Antes_De_Salir();
+        if (!Sync_Listo) return;
+        Sync_Sesion_Cerrando = true;
         await Supa.auth.signOut();
         Actualizar_Token_Sync(null);
-        Marcar_Sync_Local_Sucio(false);
-        Limpiar_Conflicto_Sync();
+        Usuario_Actual = null;
+        Limpiar_Estado_Sync_Local();
         location.reload();
       }
 
@@ -49656,17 +50248,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ]
         );
         if (!Confirmar) return;
-        if (Sync_Timer_Id) {
-          clearTimeout(Sync_Timer_Id);
-          await Backend_Sync_Ejecutar();
+        const Sync_Listo =
+          await Backend_Asegurar_Sync_Antes_De_Salir();
+        if (!Sync_Listo) return;
+        Sync_Sesion_Cerrando = true;
+        const Corte_Registrado =
+          await Backend_Registrar_Corte_Sesion_Global();
+        if (!Corte_Registrado) {
+          Sync_Sesion_Cerrando = false;
+          await Mostrar_Dialogo(
+            t("sync.logout_sync_fallo"),
+            [
+              {
+                Etiqueta: t("ok"),
+                Valor: true,
+                Tipo: "Primario"
+              }
+            ]
+          );
+          return;
         }
         await Supa.auth.signOut({ scope: "global" });
         try {
           await Supa.auth.signOut({ scope: "local" });
         } catch (_) {}
         Actualizar_Token_Sync(null);
-        Marcar_Sync_Local_Sucio(false);
-        Limpiar_Conflicto_Sync();
+        Usuario_Actual = null;
+        Limpiar_Estado_Sync_Local();
         location.reload();
       }
 
@@ -49674,6 +50282,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Iniciar_App_Logueada() {
         Aislar_Cache_Local_Por_Usuario();
+        Preparar_Sesion_Local_Activa();
 
         // 1) Migrar datos del localStorage si corresponde.
         await Backend_Migrar_Local_A_Cuenta();
@@ -49908,10 +50517,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Backend_Revisar_Cambios_Remotos();
         });
 
+        window.addEventListener("storage", (Ev) => {
+          if (Ev.key !== Clave_Sync_Evento_Local) {
+            return;
+          }
+          Procesar_Evento_Local_Sync(Ev.newValue || "");
+        });
+
         if (!Sync_Revision_Timer_Id) {
           Sync_Revision_Timer_Id = setInterval(() => {
             Backend_Revisar_Cambios_Remotos();
-          }, 15000);
+          }, 5000);
         }
 
         // Listener del formulario de auth.
@@ -50009,8 +50625,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Actualizar_Token_Sync(session || null);
 
         Supa.auth.onAuthStateChange(
-          (_, Sesion) => {
+          (Evento, Sesion) => {
             Actualizar_Token_Sync(Sesion || null);
+            if (Evento === "SIGNED_OUT") {
+              Usuario_Actual = null;
+              Limpiar_Estado_Sync_Local();
+            }
           }
         );
 
