@@ -4398,6 +4398,10 @@
         flex-wrap: wrap;
       }
 
+      .Config_Backup_Item:last-child {
+        border-bottom: none;
+      }
+
       .Config_Backup_Tipo {
         font-size: 13px;
         font-weight: 400;
@@ -19033,6 +19037,18 @@
         return localStorage.getItem(Clave_Local_Usuario) || "";
       }
 
+      function Obtener_Clave_Backups_Usuario(Id_Usuario = "") {
+        return Id_Usuario
+          ? `${Clave_Backups}_${Id_Usuario}`
+          : Clave_Backups;
+      }
+
+      function Obtener_Clave_Backups_Actual() {
+        return Obtener_Clave_Backups_Usuario(
+          Usuario_Actual?.id || ""
+        );
+      }
+
       function Marcar_Usuario_Cache_Local(Id_Usuario = "") {
         if (Id_Usuario) {
           localStorage.setItem(
@@ -19054,11 +19070,27 @@
         if (!Usuario_Actual?.id) return false;
         const Id_Cache =
           Obtener_Id_Usuario_Cache_Local();
+        const Backup_Legacy =
+          localStorage.getItem(Clave_Backups);
+        if (Backup_Legacy) {
+          const Clave_Destino =
+            Id_Cache && Id_Cache !== Usuario_Actual.id
+              ? Obtener_Clave_Backups_Usuario(Id_Cache)
+              : Obtener_Clave_Backups_Usuario(
+                Usuario_Actual.id
+              );
+          if (!localStorage.getItem(Clave_Destino)) {
+            localStorage.setItem(
+              Clave_Destino,
+              Backup_Legacy
+            );
+          }
+          localStorage.removeItem(Clave_Backups);
+        }
         if (Id_Cache === Usuario_Actual.id) {
           return false;
         }
         localStorage.removeItem(Clave_Local);
-        localStorage.removeItem(Clave_Backups);
         Marcar_Usuario_Cache_Local(Usuario_Actual.id);
         return true;
       }
@@ -33486,7 +33518,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Cargar_Backups_Locales() {
         try {
-          const Raw = localStorage.getItem(Clave_Backups);
+          const Clave_Actual =
+            Obtener_Clave_Backups_Actual();
+          const Raw_Actual =
+            localStorage.getItem(Clave_Actual);
+          const Raw_Legacy =
+            Clave_Actual !== Clave_Backups
+              ? localStorage.getItem(Clave_Backups)
+              : null;
+          const Raw = Raw_Actual || Raw_Legacy;
+          if (
+            !Raw_Actual &&
+            Raw_Legacy &&
+            Clave_Actual !== Clave_Backups
+          ) {
+            localStorage.setItem(
+              Clave_Actual,
+              Raw_Legacy
+            );
+            localStorage.removeItem(Clave_Backups);
+          }
           const Lista = Raw ? JSON.parse(Raw) : [];
           Backups_Locales = Array.isArray(Lista)
             ? Lista.filter((Item) => {
@@ -33503,7 +33554,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Guardar_Backups_Locales() {
         localStorage.setItem(
-          Clave_Backups,
+          Obtener_Clave_Backups_Actual(),
           JSON.stringify(Backups_Locales)
         );
       }
