@@ -43244,9 +43244,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
+      function Focus_Cambiar_Estado_Item_Slot(
+        Bloque,
+        Item,
+        Estado
+      ) {
+        Item.Estado = Estado;
+        Focus_Guardar_Slot(Bloque);
+        Render_Focus_Mode();
+      }
+
       function Focus_Crear_Fila_Slot(Bloque, Item) {
+        const Estado = Item.Estado || "Planeado";
         const Fila = document.createElement("div");
-        Fila.className = "Focus_Sub_Item";
+        Fila.className = "Focus_Sub_Item" +
+          (Estado === "Planeado" ? " Planeada_Aqui" : "") +
+          (Estado === "Abordado" ? " Abordada_Aqui" : "") +
+          (Estado === "Realizado"
+            ? " Hecha Completada_Aqui"
+            : "");
 
         const Emoji = document.createElement("span");
         Emoji.className = "Focus_Sub_Emoji";
@@ -43256,25 +43272,67 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Texto = document.createElement("span");
         Texto.className = "Focus_Sub_Texto";
         Texto.textContent = Item.Texto || "";
+        if (Estado === "Realizado") {
+          Texto.classList.add("Tachado");
+        }
         Fila.appendChild(Texto);
 
-        const Estado = document.createElement("select");
-        Estado.className = "Patron_Modal_Sel";
-        Estado.style.width = "140px";
-        Obtener_Estados_Plan_Slot_UI().forEach(
-          ({ Valor, Label }) => {
-          const Opt = document.createElement("option");
-          Opt.value = Valor;
-          Opt.textContent = Label;
-          Estado.appendChild(Opt);
+        const Btn_P = document.createElement("button");
+        Btn_P.type = "button";
+        Btn_P.className = "Abordaje_Planear_Btn" +
+          (Estado === "Planeado" ? " Activo" : "");
+        Btn_P.textContent = "★";
+        Btn_P.title = Estado === "Planeado"
+          ? t("abordaje.plan_quitar_title")
+          : t("abordaje.plan_poner_title");
+        Btn_P.addEventListener("click", () => {
+          Focus_Cambiar_Estado_Item_Slot(
+            Bloque,
+            Item,
+            "Planeado"
+          );
         });
-        Estado.value = Item.Estado || "Planeado";
-        Estado.addEventListener("change", () => {
-          Item.Estado = Estado.value;
-          Focus_Guardar_Slot(Bloque);
-          Render_Focus_Mode();
+
+        const Tog = document.createElement("div");
+        Tog.className = "Abordaje_Toggle";
+
+        const Btn_C = document.createElement("button");
+        Btn_C.type = "button";
+        Btn_C.className = "Abordaje_Toggle_Btn" +
+          (Estado === "Realizado" ? " Activo" : "");
+        Btn_C.textContent = "✓";
+        Btn_C.title = t("abordaje.completado_title");
+        Btn_C.addEventListener("click", () => {
+          Focus_Cambiar_Estado_Item_Slot(
+            Bloque,
+            Item,
+            Estado === "Realizado"
+              ? "Planeado"
+              : "Realizado"
+          );
         });
-        Fila.appendChild(Estado);
+
+        const Btn_A = document.createElement("button");
+        Btn_A.type = "button";
+        Btn_A.className = "Abordaje_Toggle_Btn" +
+          (Estado === "Abordado" ? " Activo" : "");
+        Btn_A.textContent = "•";
+        Btn_A.title = t("abordaje.abordado_title");
+        Btn_A.addEventListener("click", () => {
+          Focus_Cambiar_Estado_Item_Slot(
+            Bloque,
+            Item,
+            Estado === "Abordado"
+              ? "Planeado"
+              : "Abordado"
+          );
+        });
+
+        Tog.appendChild(Btn_C);
+        Tog.appendChild(Btn_A);
+
+        Fila.appendChild(Btn_P);
+        Fila.appendChild(Tog);
 
         return Fila;
       }
@@ -43368,6 +43426,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Lista = document.createElement("div");
         Lista.className = "Focus_Subtareas";
+        if (
+          Bloque.Estado === "Pasado" ||
+          Bloque.Estado === "Vencido"
+        ) {
+          Lista.classList.add("Bloque_Atrasado");
+        }
         const Items = Array.isArray(Slot.Plan?.Items)
           ? Slot.Plan.Items
           : [];
