@@ -37133,21 +37133,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
-      let Ultimo_Click_Slot_Muerto = {
+      let Ultimo_Click_Slot_Alternable = {
         Clave: "",
         Timestamp: 0
       };
 
-      function Intentar_Doble_Click_Slot_Muerto(
+      function Intentar_Alternar_Slot_Por_Doble_Click(
         Fecha,
         Hora
       ) {
         const Clave = Clave_Slot(Fecha, Hora);
         const Ahora = Date.now();
         const Es_Doble =
-          Ultimo_Click_Slot_Muerto.Clave === Clave &&
-          Ahora - Ultimo_Click_Slot_Muerto.Timestamp <= 380;
-        Ultimo_Click_Slot_Muerto = Es_Doble
+          Ultimo_Click_Slot_Alternable.Clave === Clave &&
+          Ahora - Ultimo_Click_Slot_Alternable.Timestamp <= 380;
+        Ultimo_Click_Slot_Alternable = Es_Doble
           ? { Clave: "", Timestamp: 0 }
           : { Clave, Timestamp: Ahora };
         if (!Es_Doble) return false;
@@ -41809,7 +41809,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Cerrar_Popup_Abordaje();
             });
           }
-          if (Slot_Es_Muerto(Fecha_ISO, Hora)) {
+          if (
+            Slot_Es_Muerto(Fecha_ISO, Hora) ||
+            Slot_Esta_Vacio(Fecha_ISO, Hora)
+          ) {
             Slot.addEventListener("mousedown", (Evento) => {
               if (Evento.button !== 0) return;
               Evento.preventDefault();
@@ -41819,7 +41822,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               if (Interaccion_Touch_Activa()) return;
               Evento.preventDefault();
               window.getSelection?.()?.removeAllRanges?.();
-              Intentar_Doble_Click_Slot_Muerto(
+              Intentar_Alternar_Slot_Por_Doble_Click(
                 Fecha_ISO,
                 Hora
               );
