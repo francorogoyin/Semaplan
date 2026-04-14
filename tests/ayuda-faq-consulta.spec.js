@@ -184,9 +184,9 @@ async ({ page }) => {
   expect(resultado.Es.faq).toBe("Abrir FAQ");
   expect(resultado.Es.resumen.length).toBeGreaterThan(20);
   expect(resultado.Faq_Activa).toBe(true);
-  expect(resultado.Preguntas.length).toBeGreaterThan(6);
+  expect(resultado.Preguntas.length).toBeGreaterThan(5);
   expect(resultado.Preguntas).toContain(
-    "¿Cómo creo un mail corporativo si ya tengo dominio?"
+    "¿Cómo recupero una semana si toqué algo por error?"
   );
   expect(resultado.En).toBe("Help");
   expect(resultado.Pt).toBe("Ajuda");
