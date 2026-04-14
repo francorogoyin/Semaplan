@@ -191,7 +191,7 @@ Conviene definir un modelo mobile explicito:
 
 La auditoria no recomienda arrancar ya con el wrapper Android.
 
-Recomienda primero una fase de hardening mobile web enfocada en:
+Recomienda primero una fase de adaptacion mobile web enfocada en:
 
 - topbar usable;
 - calendario usable por touch;
