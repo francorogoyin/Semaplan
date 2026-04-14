@@ -3876,26 +3876,20 @@
 
       .Config_Tipo_Slot_Fila {
         display: flex;
-        flex-direction: column;
-        align-items: stretch;
+        align-items: center;
         gap: 6px;
         padding: 4px 0;
         border-bottom: 1px solid var(--Borde);
         font-size: 13px;
       }
 
-      .Config_Tipo_Slot_Cabecera {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
       .Config_Tipo_Slot_Muestra {
-        width: 18px;
-        height: 18px;
-        border-radius: 4px;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
         flex-shrink: 0;
-        border: 1px solid rgba(0,0,0,0.1);
+        border: 1px solid var(--Borde);
+        background: #fff;
       }
 
       .Config_Tipo_Slot_Nombre {
@@ -3903,21 +3897,10 @@
         font-weight: 500;
       }
 
-      .Config_Tipo_Slot_Meta {
+      .Config_Tipo_Slot_Acciones {
         display: flex;
-        flex-wrap: wrap;
         align-items: center;
-        gap: 8px;
-        margin-left: 34px;
-      }
-
-      .Config_Tipo_Slot_Meta.Nuevo {
-        margin-left: 0;
-      }
-
-      .Config_Tipo_Slot_Titulo {
-        flex: 1;
-        min-width: 180px;
+        gap: 4px;
       }
 
       .Config_Check_Inline {
@@ -9548,37 +9531,16 @@
                     >Categorías para los slots no disponibles (sueño, descanso, comida...). Cada tipo tiene su color propio.</span>
                 </p>
                 <div id="Cfg_Tipos_Slot_Lista"></div>
-                <div class="Config_Cat_Nueva" style="margin-top:6px">
-                  <input type="color" id="Cfg_Tipo_Slot_Color"
-                    value="#e0d8f4"
-                    style="width:36px;height:28px;
-                           border:1px solid var(--Borde);
-                           border-radius:6px;cursor:pointer;
-                           flex-shrink:0">
-                  <input type="text"
-                    class="Config_Cat_Input Config_Cat_Input_Nombre"
-                    id="Cfg_Tipo_Slot_Nombre"
-                    data-i18n-ph="config.nombre_tipo_ph"
-                    placeholder="Nombre del tipo...">
+                <div class="Config_Dato_Acciones"
+                  style="margin-top:8px">
                   <button type="button"
                     class="Config_Dato_Btn"
-                    id="Cfg_Tipo_Slot_Agregar">+</button>
-                </div>
-                <div class="Config_Tipo_Slot_Meta Nuevo">
-                  <input type="text"
-                    class="Config_Cat_Input Config_Tipo_Slot_Titulo"
-                    id="Cfg_Tipo_Slot_Titulo"
-                    data-i18n-ph="config.titulo_slot_ph"
-                    placeholder="Título opcional del slot">
-                  <label class="Config_Check_Inline"
-                    for="Cfg_Tipo_Slot_Titulo_Default">
-                    <input type="checkbox"
-                      id="Cfg_Tipo_Slot_Titulo_Default">
-                    <span
-                      data-i18n="config.titulo_slot_default">
-                      Título por defecto
+                    id="Cfg_Tipo_Slot_Nuevo">
+                    <span class="Config_Dato_Btn_Icono">+</span>
+                    <span data-i18n="config.nuevo_tipo_slot">
+                      Nuevo tipo
                     </span>
-                  </label>
+                  </button>
                 </div>
               </div>
             </div>
@@ -10499,6 +10461,74 @@
             <div class="Patron_Modal_Cuerpo Config_Meta_Cuerpo">
               <div class="Config_Meta_Lista"
                 id="Cfg_Cat_Metas_Lista"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="Patron_Modal_Overlay"
+          id="Cfg_Tipo_Slot_Overlay">
+          <div class="Patron_Modal_Panel Archivero_Sub_Panel">
+            <div class="Patron_Modal_Cabecera">
+              <span class="Patron_Modal_Titulo"
+                id="Cfg_Tipo_Slot_Modal_Titulo"
+                data-i18n="config.nuevo_tipo_slot">
+                Nuevo tipo
+              </span>
+              <button class="Config_Cerrar"
+                id="Cfg_Tipo_Slot_Cerrar"
+                type="button">&times;</button>
+            </div>
+            <div class="Patron_Modal_Cuerpo
+              Archivero_Sub_Cuerpo">
+              <div class="Archivero_Sub_Campo">
+                <label for="Cfg_Tipo_Slot_Modal_Nombre"
+                  data-i18n="nombre">
+                  Nombre
+                </label>
+                <input type="text"
+                  id="Cfg_Tipo_Slot_Modal_Nombre"
+                  data-i18n-ph="config.nombre_tipo_ph"
+                  placeholder="Nombre del tipo...">
+              </div>
+              <div class="Archivero_Sub_Campo">
+                <label for="Cfg_Tipo_Slot_Modal_Color"
+                  data-i18n="color_label">
+                  Color
+                </label>
+                <input type="color"
+                  id="Cfg_Tipo_Slot_Modal_Color"
+                  value="#e0d8f4">
+              </div>
+              <div class="Archivero_Sub_Campo">
+                <label
+                  for="Cfg_Tipo_Slot_Modal_Titulo_Input"
+                  data-i18n="config.titulo_slot">
+                  Título
+                </label>
+                <input type="text"
+                  id="Cfg_Tipo_Slot_Modal_Titulo_Input"
+                  data-i18n-ph="config.titulo_slot_ph"
+                  placeholder="Título opcional del slot">
+              </div>
+              <div class="Config_Fila_Check">
+                <input type="checkbox"
+                  id="Cfg_Tipo_Slot_Modal_Titulo_Default">
+                <label
+                  for="Cfg_Tipo_Slot_Modal_Titulo_Default"
+                  data-i18n="config.titulo_slot_default">
+                  Título por defecto
+                </label>
+              </div>
+              <div class="Archivero_Sub_Acciones">
+                <button type="button"
+                  class="Archivero_Sub_Btn"
+                  id="Cfg_Tipo_Slot_Cancelar"
+                  data-i18n="cancelar">Cancelar</button>
+                <button type="button"
+                  class="Archivero_Sub_Btn Primario"
+                  id="Cfg_Tipo_Slot_Guardar"
+                  data-i18n="guardar">Guardar</button>
+              </div>
             </div>
           </div>
         </div>
@@ -12234,6 +12264,11 @@
             "color propio.",
           "config.nombre_tipo_ph":
             "Nombre del tipo...",
+          "config.nuevo_tipo_slot":
+            "Nuevo tipo",
+          "config.editar_tipo_slot":
+            "Editar tipo",
+          "config.titulo_slot": "Título",
           "config.titulo_slot_ph":
             "Título opcional del slot",
           "config.titulo_slot_default":
@@ -14336,6 +14371,11 @@
             "color.",
           "config.nombre_tipo_ph":
             "Type name...",
+          "config.nuevo_tipo_slot":
+            "New type",
+          "config.editar_tipo_slot":
+            "Edit type",
+          "config.titulo_slot": "Title",
           "config.titulo_slot_ph":
             "Optional slot title",
           "config.titulo_slot_default":
@@ -16429,6 +16469,11 @@
             "própria.",
           "config.nombre_tipo_ph":
             "Nome do tipo...",
+          "config.nuevo_tipo_slot":
+            "Novo tipo",
+          "config.editar_tipo_slot":
+            "Editar tipo",
+          "config.titulo_slot": "Título",
           "config.titulo_slot_ph":
             "Título opcional do slot",
           "config.titulo_slot_default":
@@ -18591,6 +18636,15 @@
           ) {
             Render_Config_Tipos_Slot();
           }
+          if (
+            document.getElementById(
+              "Cfg_Tipo_Slot_Overlay"
+            )?.classList.contains("Activo") &&
+            typeof Render_Modal_Tipo_Slot_Config ===
+              "function"
+          ) {
+            Render_Modal_Tipo_Slot_Config();
+          }
         }
         if (
           typeof Configurar_Auth_UI === "function"
@@ -18808,6 +18862,7 @@
       let Baul_Semanas_Borrador = [];
       let Baul_Drag_Origen_Id = null;
       let Cfg_Categoria_Meta_Activa_Id = null;
+      let Cfg_Tipo_Slot_En_Edicion_Id = null;
       let Metas = [];
       let Meta_Seleccion_Id = null;
       let Meta_En_Edicion_Id = null;
@@ -18972,6 +19027,9 @@
       );
       const El_Cfg_Cat_Metas_Overlay = document.getElementById(
         "Cfg_Cat_Metas_Overlay"
+      );
+      const El_Cfg_Tipo_Slot_Overlay = document.getElementById(
+        "Cfg_Tipo_Slot_Overlay"
       );
       const El_Cfg_Cat_Metas_Titulo = document.getElementById(
         "Cfg_Cat_Metas_Titulo"
@@ -28698,84 +28756,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Tipos.forEach((Tipo) => {
           const Fila = document.createElement("div");
           Fila.className = "Config_Tipo_Slot_Fila";
-          const Cabecera = document.createElement("div");
-          Cabecera.className = "Config_Tipo_Slot_Cabecera";
-
-          // Selector de color para el tipo de slot.
-          const Muestra = document.createElement("input");
-          Muestra.type = "color";
+          const Muestra = document.createElement("div");
           Muestra.className = "Config_Tipo_Slot_Muestra";
-          Muestra.style.cssText =
-            "width:28px;height:28px;border:1px solid " +
-            "var(--Borde);border-radius:6px;cursor:pointer;" +
-            "flex-shrink:0;padding:0";
-          Muestra.value = Tipo.Color;
-          Muestra.addEventListener("input", () => {
-            Tipo.Color = Muestra.value;
-            if (Tipos_Slot.length === 0) {
-              Crear_Tipos_Slot_Editables(Tipos);
-            }
-            const En_Lista = Tipos_Slot.find(
-              (T) => T.Id === Tipo.Id
-            );
-            if (En_Lista) En_Lista.Color = Muestra.value;
-          });
+          Muestra.style.background = Tipo.Color;
 
           const Nombre_Sp = document.createElement("span");
           Nombre_Sp.className = "Config_Tipo_Slot_Nombre";
           Nombre_Sp.textContent = Tipo.Nombre;
+          const Titulo = Normalizar_Texto_Titulo_Slot(
+            Tipo.Titulo
+          );
+          if (Titulo) {
+            Nombre_Sp.title = Tipo.Titulo_Por_Defecto
+              ? `${Titulo} · ${t("config.titulo_slot_default")}`
+              : Titulo;
+          }
 
-          const Meta = document.createElement("div");
-          Meta.className = "Config_Tipo_Slot_Meta";
-          const Titulo_Input = document.createElement("input");
-          Titulo_Input.type = "text";
-          Titulo_Input.className =
-            "Config_Cat_Input Config_Tipo_Slot_Titulo";
-          Titulo_Input.placeholder = t("config.titulo_slot_ph");
-          Titulo_Input.value = Tipo.Titulo || "";
-          const Label_Check = document.createElement("label");
-          Label_Check.className = "Config_Check_Inline";
-          const Check = document.createElement("input");
-          Check.type = "checkbox";
-          Check.checked = Boolean(Tipo.Titulo_Por_Defecto);
-          const Check_Texto = document.createElement("span");
-          Check_Texto.textContent = t(
-            "config.titulo_slot_default"
-          );
-          Label_Check.appendChild(Check);
-          Label_Check.appendChild(Check_Texto);
-          const Sincronizar_Titulo = () => {
-            const Titulo = Normalizar_Texto_Titulo_Slot(
-              Titulo_Input.value
-            );
-            if (!Titulo) {
-              Check.checked = false;
-            }
-            Check.disabled = !Titulo;
-            if (Tipos_Slot.length === 0) {
-              Crear_Tipos_Slot_Editables(Tipos);
-            }
-            Tipo.Titulo = Titulo;
-            Tipo.Titulo_Por_Defecto = Boolean(
-              Check.checked && Titulo
-            );
-            const En_Lista = Tipos_Slot.find(
-              (T) => T.Id === Tipo.Id
-            );
-            if (En_Lista) {
-              En_Lista.Titulo = Tipo.Titulo;
-              En_Lista.Titulo_Por_Defecto =
-                Tipo.Titulo_Por_Defecto;
-            }
-          };
-          Titulo_Input.addEventListener(
-            "input",
-            Sincronizar_Titulo
-          );
-          Check.addEventListener("change", Sincronizar_Titulo);
-          Sincronizar_Titulo();
+          const Acciones = document.createElement("div");
+          Acciones.className = "Config_Tipo_Slot_Acciones";
+          const Btn_Editar = document.createElement("button");
+          Btn_Editar.type = "button";
+          Btn_Editar.className = "Config_Cat_Btn";
+          Btn_Editar.textContent = "✎";
+          Btn_Editar.title = t("editar");
+          Btn_Editar.dataset.accion = "editar-tipo-slot";
+          Btn_Editar.dataset.tipoSlotId = Tipo.Id;
+          Btn_Editar.addEventListener("click", () => {
+            Abrir_Modal_Tipo_Slot_Config(Tipo.Id);
+          });
 
           const Btn_Borrar = document.createElement("button");
+          Btn_Borrar.type = "button";
           Btn_Borrar.className = "Config_Cat_Btn";
           Btn_Borrar.textContent = "×";
           Btn_Borrar.style.fontSize = "14px";
@@ -28784,83 +28795,144 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             await Borrar_Tipo_Slot_Config(Tipo);
           });
 
-          Cabecera.appendChild(Muestra);
-          Cabecera.appendChild(Nombre_Sp);
-          Cabecera.appendChild(Btn_Borrar);
-          Meta.appendChild(Titulo_Input);
-          Meta.appendChild(Label_Check);
-          Fila.appendChild(Cabecera);
-          Fila.appendChild(Meta);
+          Acciones.appendChild(Btn_Editar);
+          Acciones.appendChild(Btn_Borrar);
+          Fila.appendChild(Muestra);
+          Fila.appendChild(Nombre_Sp);
+          Fila.appendChild(Acciones);
           Lista.appendChild(Fila);
         });
 
-        const Titulo_El = document.getElementById(
-          "Cfg_Tipo_Slot_Titulo"
-        );
-        const Titulo_Default_El = document.getElementById(
-          "Cfg_Tipo_Slot_Titulo_Default"
-        );
-        const Sincronizar_Creador_Titulo = () => {
-          if (!Titulo_El || !Titulo_Default_El) return;
-          const Titulo = Normalizar_Texto_Titulo_Slot(
-            Titulo_El.value
-          );
-          if (!Titulo) {
-            Titulo_Default_El.checked = false;
-          }
-          Titulo_Default_El.disabled = !Titulo;
-        };
-        if (Titulo_El && !Titulo_El._Listener) {
-          Titulo_El._Listener = true;
-          Titulo_El.addEventListener(
-            "input",
-            Sincronizar_Creador_Titulo
-          );
-        }
-        Sincronizar_Creador_Titulo();
-
-        // Botón agregar: registrar listener una sola vez.
-        const Btn_Add =
-          document.getElementById("Cfg_Tipo_Slot_Agregar");
-        if (Btn_Add && !Btn_Add._Listener) {
-          Btn_Add._Listener = true;
-          Btn_Add.addEventListener("click", () => {
-            const Nombre_El =
-              document.getElementById("Cfg_Tipo_Slot_Nombre");
-            const Color_El =
-              document.getElementById("Cfg_Tipo_Slot_Color");
-            const Titulo_El = document.getElementById(
-              "Cfg_Tipo_Slot_Titulo"
-            );
-            const Titulo_Default_El = document.getElementById(
-              "Cfg_Tipo_Slot_Titulo_Default"
-            );
-            const Nombre = (Nombre_El?.value || "").trim();
-            const Titulo = Normalizar_Texto_Titulo_Slot(
-              Titulo_El?.value
-            );
-            if (!Nombre) return;
-            if (Tipos_Slot.length === 0) {
-              Crear_Tipos_Slot_Editables();
-            }
-            Tipos_Slot.push({
-              Id: `Tipo_${Date.now()}`,
-              Nombre,
-              Color: Color_El?.value || "#e0d8f4",
-              Titulo,
-              Titulo_Por_Defecto: Boolean(
-                Titulo_Default_El?.checked && Titulo
-              )
-            });
-            if (Nombre_El) Nombre_El.value = "";
-            if (Titulo_El) Titulo_El.value = "";
-            if (Titulo_Default_El) {
-              Titulo_Default_El.checked = false;
-              Titulo_Default_El.disabled = true;
-            }
-            Render_Config_Tipos_Slot();
+        const Btn_Nuevo =
+          document.getElementById("Cfg_Tipo_Slot_Nuevo");
+        if (Btn_Nuevo && !Btn_Nuevo._Listener) {
+          Btn_Nuevo._Listener = true;
+          Btn_Nuevo.addEventListener("click", () => {
+            Abrir_Modal_Tipo_Slot_Config(null);
           });
         }
+      }
+
+      function Sincronizar_Modal_Tipo_Slot_Config() {
+        const Titulo = document.getElementById(
+          "Cfg_Tipo_Slot_Modal_Titulo_Input"
+        );
+        const Check = document.getElementById(
+          "Cfg_Tipo_Slot_Modal_Titulo_Default"
+        );
+        if (!Titulo || !Check) return;
+        const Valor = Normalizar_Texto_Titulo_Slot(
+          Titulo.value
+        );
+        if (!Valor) {
+          Check.checked = false;
+        }
+        Check.disabled = !Valor;
+      }
+
+      function Render_Modal_Tipo_Slot_Config() {
+        const Titulo = document.getElementById(
+          "Cfg_Tipo_Slot_Modal_Titulo"
+        );
+        const Nombre = document.getElementById(
+          "Cfg_Tipo_Slot_Modal_Nombre"
+        );
+        const Color = document.getElementById(
+          "Cfg_Tipo_Slot_Modal_Color"
+        );
+        const Campo_Titulo = document.getElementById(
+          "Cfg_Tipo_Slot_Modal_Titulo_Input"
+        );
+        const Check = document.getElementById(
+          "Cfg_Tipo_Slot_Modal_Titulo_Default"
+        );
+        if (
+          !Titulo ||
+          !Nombre ||
+          !Color ||
+          !Campo_Titulo ||
+          !Check
+        ) {
+          return;
+        }
+        const Tipo = Cfg_Tipo_Slot_En_Edicion_Id
+          ? Obtener_Tipo_Slot_Por_Id(
+              Cfg_Tipo_Slot_En_Edicion_Id
+            )
+          : null;
+        Titulo.textContent = Tipo
+          ? t("config.editar_tipo_slot")
+          : t("config.nuevo_tipo_slot");
+        Nombre.value = Tipo?.Nombre || "";
+        Color.value = Tipo?.Color || "#e0d8f4";
+        Campo_Titulo.value = Tipo?.Titulo || "";
+        Check.checked = Boolean(Tipo?.Titulo_Por_Defecto);
+        Sincronizar_Modal_Tipo_Slot_Config();
+      }
+
+      function Abrir_Modal_Tipo_Slot_Config(Tipo_Id = null) {
+        Cfg_Tipo_Slot_En_Edicion_Id = Tipo_Id || null;
+        Render_Modal_Tipo_Slot_Config();
+        El_Cfg_Tipo_Slot_Overlay?.classList.add("Activo");
+        const Nombre = document.getElementById(
+          "Cfg_Tipo_Slot_Modal_Nombre"
+        );
+        setTimeout(() => Nombre?.focus(), 0);
+      }
+
+      function Cerrar_Modal_Tipo_Slot_Config() {
+        Cfg_Tipo_Slot_En_Edicion_Id = null;
+        El_Cfg_Tipo_Slot_Overlay?.classList.remove("Activo");
+      }
+
+      function Guardar_Tipo_Slot_Config_Desde_Modal() {
+        const Nombre = (
+          document.getElementById(
+            "Cfg_Tipo_Slot_Modal_Nombre"
+          )?.value || ""
+        ).trim();
+        const Color =
+          document.getElementById(
+            "Cfg_Tipo_Slot_Modal_Color"
+          )?.value || "#e0d8f4";
+        const Titulo = Normalizar_Texto_Titulo_Slot(
+          document.getElementById(
+            "Cfg_Tipo_Slot_Modal_Titulo_Input"
+          )?.value
+        );
+        const Titulo_Default = Boolean(
+          document.getElementById(
+            "Cfg_Tipo_Slot_Modal_Titulo_Default"
+          )?.checked && Titulo
+        );
+        if (!Nombre) return;
+        if (Tipos_Slot.length === 0) {
+          Crear_Tipos_Slot_Editables();
+        }
+        const Datos = {
+          Id:
+            Cfg_Tipo_Slot_En_Edicion_Id ||
+            `Tipo_${Date.now()}`,
+          Nombre,
+          Color,
+          Titulo,
+          Titulo_Por_Defecto: Titulo_Default
+        };
+        if (Cfg_Tipo_Slot_En_Edicion_Id) {
+          const Index = Tipos_Slot.findIndex((Tipo) =>
+            Tipo.Id === Cfg_Tipo_Slot_En_Edicion_Id
+          );
+          if (Index >= 0) {
+            Tipos_Slot[Index] = Normalizar_Tipo_Slot(Datos);
+          }
+        } else {
+          Tipos_Slot.push(
+            Normalizar_Tipo_Slot(Datos)
+          );
+        }
+        Render_Config_Tipos_Slot();
+        Render_Calendario();
+        Cerrar_Modal_Tipo_Slot_Config();
       }
 
       function Cerrar_Config_Metadatos() {
@@ -32535,6 +32607,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Patrones_Backup_Config = null;
         }
         Cerrar_Config_Metadatos();
+        Cerrar_Modal_Tipo_Slot_Config();
         El_Config_Overlay.classList.remove("Activo");
         // Restaurar el scroll del fondo bloqueado al abrir.
         document.documentElement.style.overflow = "";
@@ -39305,6 +39378,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       El_Config_Cerrar_Btn.addEventListener("click", Cerrar_Config);
       El_Config_Cancelar.addEventListener("click", Cerrar_Config);
       El_Config_Guardar_Btn.addEventListener("click", Guardar_Config);
+      document.getElementById("Cfg_Tipo_Slot_Cerrar")
+        ?.addEventListener(
+          "click",
+          Cerrar_Modal_Tipo_Slot_Config
+        );
+      document.getElementById("Cfg_Tipo_Slot_Cancelar")
+        ?.addEventListener(
+          "click",
+          Cerrar_Modal_Tipo_Slot_Config
+        );
+      document.getElementById("Cfg_Tipo_Slot_Guardar")
+        ?.addEventListener(
+          "click",
+          Guardar_Tipo_Slot_Config_Desde_Modal
+        );
+      document.getElementById(
+        "Cfg_Tipo_Slot_Modal_Titulo_Input"
+      )?.addEventListener(
+        "input",
+        Sincronizar_Modal_Tipo_Slot_Config
+      );
+      document.getElementById("Cfg_Tipo_Slot_Overlay")
+        ?.addEventListener("click", (Ev) => {
+          if (Ev.target.id === "Cfg_Tipo_Slot_Overlay") {
+            Cerrar_Modal_Tipo_Slot_Config();
+          }
+        });
 
       // Vista del menú: cambio de estilo en vivo desde el Config
       // (sin esperar al Guardar) y wireo del botón ☰ + toggle
@@ -44492,6 +44592,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Config_Abierto = document
           .getElementById("Config_Overlay")
           ?.classList.contains("Activo");
+        const Cfg_Tipo_Slot_Abierto = document
+          .getElementById("Cfg_Tipo_Slot_Overlay")
+          ?.classList.contains("Activo");
         const Resumen_Abierto = document
           .getElementById("Resumen_Sem_Overlay")
           ?.classList.contains("Activo");
@@ -44536,6 +44639,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (Modal_Patron_Abierto) {
             Cerrar_Modal_Patron();
+            Ev.preventDefault();
+            return;
+          }
+          if (Cfg_Tipo_Slot_Abierto) {
+            Cerrar_Modal_Tipo_Slot_Config();
             Ev.preventDefault();
             return;
           }
