@@ -170,11 +170,16 @@ test("deja en apps el mismo aire visual que pagos", async ({
         Sep_Apps.getBoundingClientRect().top -
         Boton.getBoundingClientRect().bottom
       ),
-      marginBottomApps: Estilos_Apps.marginBottom
+      marginBottomApps: Estilos_Apps.marginBottom,
+      colorSeparador: getComputedStyle(Sep_Apps)
+        .backgroundColor
     };
   });
 
   expect(resultado.marginBottomApps).toBe("10px");
+  expect(resultado.colorSeparador).toBe(
+    "rgba(143, 124, 98, 0.16)"
+  );
   expect(
     Math.abs(resultado.gapApps - resultado.gapPagos)
   ).toBeLessThanOrEqual(2);
