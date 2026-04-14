@@ -14206,6 +14206,8 @@
           "contexto.abordaje": "Plan",
           "contexto.agregar_nota":
             "Agregar nota",
+          "contexto.copiar_texto":
+            "Copiar texto",
           "contexto.editar_nota":
             "Editar nota",
           "contexto.borrar_nota":
@@ -16512,6 +16514,8 @@
           "contexto.abordaje": "Plan",
           "contexto.agregar_nota":
             "Add note",
+          "contexto.copiar_texto":
+            "Copy text",
           "contexto.editar_nota":
             "Edit note",
           "contexto.borrar_nota":
@@ -18859,6 +18863,8 @@
           "contexto.abordaje": "Plano",
           "contexto.agregar_nota":
             "Adicionar nota",
+          "contexto.copiar_texto":
+            "Copiar texto",
           "contexto.editar_nota":
             "Editar nota",
           "contexto.borrar_nota":
@@ -25080,7 +25086,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           }
         });
-        Card.addEventListener("contextmenu", async (Ev) => {
+        Card.addEventListener("contextmenu", (Ev) => {
           if (Obtener_Texto_Seleccionado()) return;
           if (
             Ev.target.closest(".Archivero_Nota_Mini_Btn") ||
@@ -25098,7 +25104,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             return;
           }
           Ev.preventDefault();
-          await Copiar_Nota_Archivero(Nota);
+          Mostrar_Menu_Nota_Archivero(
+            Nota,
+            Ev.clientX,
+            Ev.clientY
+          );
         });
         Card.addEventListener("dragstart", (Ev) => {
           Ev.dataTransfer.effectAllowed = "move";
@@ -25459,6 +25469,70 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         }
         return Copiado;
+      }
+
+      function Mostrar_Menu_Nota_Archivero(Nota, X, Y) {
+        const Menu = document.getElementById("Dia_Accion_Menu");
+        if (!Menu || !Nota) return;
+        Menu.innerHTML =
+          `<button class="Dia_Accion_Item" type="button"` +
+          ` data-acc="copiar">` +
+          t("contexto.copiar_texto") +
+          `</button>` +
+          `<button class="Dia_Accion_Item" type="button"` +
+          ` data-acc="editar">` +
+          t("contexto.editar_nota") +
+          `</button>` +
+          `<button class="Dia_Accion_Item" type="button"` +
+          ` data-acc="borrar">` +
+          t("contexto.borrar_nota") +
+          `</button>`;
+        Menu.style.left = `${X}px`;
+        Menu.style.top = `${Y}px`;
+        Menu.classList.add("Activo");
+
+        requestAnimationFrame(() => {
+          const Rect = Menu.getBoundingClientRect();
+          const VH = window.innerHeight;
+          const VW = window.innerWidth;
+          if (Rect.bottom > VH - 8) {
+            Menu.style.top =
+              `${Math.max(8, VH - Rect.height - 8)}px`;
+          }
+          if (Rect.right > VW - 8) {
+            Menu.style.left =
+              `${Math.max(8, VW - Rect.width - 8)}px`;
+          }
+        });
+
+        const Vincular = (Accion, Fn) => {
+          Menu.querySelector(`[data-acc="${Accion}"]`)
+            ?.addEventListener("click", async (Ev) => {
+              Ev.stopPropagation();
+              Cerrar_Menu_Dia();
+              await Fn();
+            });
+        };
+
+        Vincular("copiar", async () => {
+          await Copiar_Nota_Archivero(Nota);
+        });
+        Vincular("editar", async () => {
+          Abrir_Modal_Nota_Archivero(Nota.Id);
+        });
+        Vincular("borrar", async () => {
+          Borrar_Nota_Archivero(Nota.Id);
+        });
+
+        if (Fn_Cierre_Menu) {
+          document.removeEventListener("click", Fn_Cierre_Menu);
+        }
+        Fn_Cierre_Menu = (Ev) => {
+          if (!Menu.contains(Ev.target)) {
+            Cerrar_Menu_Dia();
+          }
+        };
+        document.addEventListener("click", Fn_Cierre_Menu);
       }
 
       function Guardar_Nota_Archivero_Desde_Modal() {

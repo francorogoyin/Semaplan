@@ -182,6 +182,7 @@ test("permite seleccionar y copiar una nota completa del archivero", async ({
   expect(seleccion).toEqual({ activa: false });
 
   await page.evaluate(() => {
+    window.__Texto_Copiado_Archivero = "";
     window.getSelection()?.removeAllRanges();
     const Meta = document.querySelector(
       ".Archivero_Nota_Meta"
@@ -190,6 +191,23 @@ test("permite seleccionar y copiar una nota completa del archivero", async ({
       bubbles: true,
       cancelable: true
     }));
+  });
+
+  await expect(page.locator("#Dia_Accion_Menu.Activo")).toBeVisible();
+  await expect(page.locator(
+    '#Dia_Accion_Menu [data-acc="copiar"]'
+  )).toHaveText("Copiar texto");
+
+  await expect.poll(async () => {
+    return page.evaluate(() =>
+      window.__Texto_Copiado_Archivero
+    );
+  }).toBe("");
+
+  await page.evaluate(() => {
+    document.querySelector(
+      '#Dia_Accion_Menu [data-acc="copiar"]'
+    )?.click();
   });
 
   await expect.poll(async () => {
