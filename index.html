@@ -3876,11 +3876,18 @@
 
       .Config_Tipo_Slot_Fila {
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        align-items: stretch;
         gap: 6px;
         padding: 4px 0;
         border-bottom: 1px solid var(--Borde);
         font-size: 13px;
+      }
+
+      .Config_Tipo_Slot_Cabecera {
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
 
       .Config_Tipo_Slot_Muestra {
@@ -3894,6 +3901,31 @@
       .Config_Tipo_Slot_Nombre {
         flex: 1;
         font-weight: 500;
+      }
+
+      .Config_Tipo_Slot_Meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-left: 34px;
+      }
+
+      .Config_Tipo_Slot_Meta.Nuevo {
+        margin-left: 0;
+      }
+
+      .Config_Tipo_Slot_Titulo {
+        flex: 1;
+        min-width: 180px;
+      }
+
+      .Config_Check_Inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--Texto_Suave);
       }
 
       .Config_Cat_Fila:last-child {
@@ -9532,6 +9564,22 @@
                     class="Config_Dato_Btn"
                     id="Cfg_Tipo_Slot_Agregar">+</button>
                 </div>
+                <div class="Config_Tipo_Slot_Meta Nuevo">
+                  <input type="text"
+                    class="Config_Cat_Input Config_Tipo_Slot_Titulo"
+                    id="Cfg_Tipo_Slot_Titulo"
+                    data-i18n-ph="config.titulo_slot_ph"
+                    placeholder="Título opcional del slot">
+                  <label class="Config_Check_Inline"
+                    for="Cfg_Tipo_Slot_Titulo_Default">
+                    <input type="checkbox"
+                      id="Cfg_Tipo_Slot_Titulo_Default">
+                    <span
+                      data-i18n="config.titulo_slot_default">
+                      Título por defecto
+                    </span>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -12186,6 +12234,10 @@
             "color propio.",
           "config.nombre_tipo_ph":
             "Nombre del tipo...",
+          "config.titulo_slot_ph":
+            "Título opcional del slot",
+          "config.titulo_slot_default":
+            "Título por defecto",
           "config.patrones": "Patrones",
           "config.patrones_hint":
             "Plantillas reutilizables de " +
@@ -13837,6 +13889,10 @@
             "Nombre del slot (vacío para borrar)",
           "slot.nombre_ph":
             "Ej. Almuerzo, Traslado, Gimnasio",
+          "slot.colocar_titulo":
+            "Colocar título",
+          "slot.quitar_titulo":
+            "Quitar título",
           "slot.item_ph": "Tarea rápida",
           "slot.estado_planeado": "Planeado",
           "slot.estado_abordado": "Abordado",
@@ -14280,6 +14336,10 @@
             "color.",
           "config.nombre_tipo_ph":
             "Type name...",
+          "config.titulo_slot_ph":
+            "Optional slot title",
+          "config.titulo_slot_default":
+            "Default title",
           "config.patrones": "Patterns",
           "config.patrones_hint":
             "Reusable templates of blocks " +
@@ -15887,6 +15947,10 @@
             "Slot name (leave empty to clear)",
           "slot.nombre_ph":
             "E.g. Lunch, Commute, Gym",
+          "slot.colocar_titulo":
+            "Add title",
+          "slot.quitar_titulo":
+            "Remove title",
           "slot.item_ph": "Quick task",
           "slot.estado_planeado": "Planned",
           "slot.estado_abordado": "Started",
@@ -16365,6 +16429,10 @@
             "própria.",
           "config.nombre_tipo_ph":
             "Nome do tipo...",
+          "config.titulo_slot_ph":
+            "Título opcional do slot",
+          "config.titulo_slot_default":
+            "Título padrão",
           "config.patrones": "Padrões",
           "config.patrones_hint":
             "Templates reutilizáveis de " +
@@ -18030,6 +18098,10 @@
             "Nome do slot (vazio para apagar)",
           "slot.nombre_ph":
             "Ex. Almoço, Deslocamento, Academia",
+          "slot.colocar_titulo":
+            "Colocar título",
+          "slot.quitar_titulo":
+            "Remover título",
           "slot.item_ph": "Tarefa rápida",
           "slot.estado_planeado": "Planejado",
           "slot.estado_abordado": "Abordado",
@@ -18227,9 +18299,51 @@
         return Nombres;
       }
 
+      function Normalizar_Texto_Titulo_Slot(Valor) {
+        return String(Valor || "").trim();
+      }
+
+      function Normalizar_Tipo_Slot(Tipo, Respaldo = {}) {
+        const Titulo = Normalizar_Texto_Titulo_Slot(
+          Tipo?.Titulo ?? Respaldo.Titulo
+        );
+        return {
+          Id: Tipo?.Id || Respaldo.Id || Crear_Id(),
+          Nombre: String(
+            Tipo?.Nombre || Respaldo.Nombre || ""
+          ).trim(),
+          Color:
+            Tipo?.Color || Respaldo.Color || "#e0d8f4",
+          Titulo,
+          Titulo_Por_Defecto: Boolean(
+            (Tipo?.Titulo_Por_Defecto ??
+              Respaldo.Titulo_Por_Defecto) &&
+            Titulo
+          )
+        };
+      }
+
+      function Clonar_Tipos_Slot_Base(Lista) {
+        return (Array.isArray(Lista) ? Lista : [])
+          .map((Tipo, Index) =>
+            Normalizar_Tipo_Slot(Tipo, {
+              Id: `Tipo_${Index}`,
+              Nombre: ""
+            })
+          )
+          .filter((Tipo) => Tipo.Nombre);
+      }
+
+      function Crear_Tipos_Slot_Editables(Base = null) {
+        const Origen = Base || Obtener_Tipos_Slot();
+        Tipos_Slot = Clonar_Tipos_Slot_Base(Origen);
+        Tipos_Slot_Inicializados = true;
+        return Tipos_Slot;
+      }
+
       function Obtener_Tipos_Slot_Por_Defecto() {
         const Nombres = Obtener_Defaults_Idioma().Tipos_Slot;
-        return [
+        return Clonar_Tipos_Slot_Base([
           {
             Id: "Sueno",
             Nombre: Nombres.Sueno,
@@ -18240,7 +18354,7 @@
             Nombre: Nombres.Descanso,
             Color: Config.Color_Descanso || "#d4e9f4"
           }
-        ];
+        ]);
       }
 
       // Aplica traducciones a todos los
@@ -23839,11 +23953,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tipos_Ef = Obtener_Tipos_Slot();
         const Tipo_Final = Tipo_Id || Tipos_Ef[0]?.Id || "Sueno";
         for (let H = Config.Inicio_Hora; H < Config.Fin_Hora; H++) {
-          const Clave = Clave_Slot(Fecha_ISO, H);
-          if (!Slots_Muertos.includes(Clave)) {
-            Slots_Muertos.push(Clave);
-          }
-          Slots_Muertos_Tipos[Clave] = Tipo_Final;
+          Crear_Slot_Muerto(Fecha_ISO, H, Tipo_Final);
         }
         Render_Calendario();
         Guardar_Estado();
@@ -23940,10 +24050,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Franja.Naturaleza ||
               Tipos_Ef[0]?.Id || "Sueno";
             for (let H = Franja.Desde; H < Franja.Hasta; H++) {
-              const Clave = Clave_Slot(Fecha_ISO, H);
-              if (!Slots_Muertos.includes(Clave))
-                Slots_Muertos.push(Clave);
-              Slots_Muertos_Tipos[Clave] = Naturaleza;
+              Crear_Slot_Muerto(
+                Fecha_ISO,
+                H,
+                Naturaleza
+              );
             }
             return;
           }
@@ -26780,7 +26891,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slots_Muertos_Nombres = {};
         }
         if (Array.isArray(Snap.Tipos_Slot)) {
-          Tipos_Slot = Snap.Tipos_Slot;
+          Tipos_Slot = Clonar_Tipos_Slot_Base(
+            Snap.Tipos_Slot
+          );
         }
         Tipos_Slot_Inicializados = Boolean(
           Snap.Tipos_Slot_Inicializados
@@ -28567,6 +28680,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Tipos.forEach((Tipo) => {
           const Fila = document.createElement("div");
           Fila.className = "Config_Tipo_Slot_Fila";
+          const Cabecera = document.createElement("div");
+          Cabecera.className = "Config_Tipo_Slot_Cabecera";
 
           // Selector de color para el tipo de slot.
           const Muestra = document.createElement("input");
@@ -28579,11 +28694,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Muestra.value = Tipo.Color;
           Muestra.addEventListener("input", () => {
             Tipo.Color = Muestra.value;
-            // Asegurar que está en Tipos_Slot (no solo builtin).
             if (Tipos_Slot.length === 0) {
-              Tipos_Slot = JSON.parse(JSON.stringify(Tipos));
+              Crear_Tipos_Slot_Editables(Tipos);
             }
-            Tipos_Slot_Inicializados = true;
             const En_Lista = Tipos_Slot.find(
               (T) => T.Id === Tipo.Id
             );
@@ -28594,6 +28707,56 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Nombre_Sp.className = "Config_Tipo_Slot_Nombre";
           Nombre_Sp.textContent = Tipo.Nombre;
 
+          const Meta = document.createElement("div");
+          Meta.className = "Config_Tipo_Slot_Meta";
+          const Titulo_Input = document.createElement("input");
+          Titulo_Input.type = "text";
+          Titulo_Input.className =
+            "Config_Cat_Input Config_Tipo_Slot_Titulo";
+          Titulo_Input.placeholder = t("config.titulo_slot_ph");
+          Titulo_Input.value = Tipo.Titulo || "";
+          const Label_Check = document.createElement("label");
+          Label_Check.className = "Config_Check_Inline";
+          const Check = document.createElement("input");
+          Check.type = "checkbox";
+          Check.checked = Boolean(Tipo.Titulo_Por_Defecto);
+          const Check_Texto = document.createElement("span");
+          Check_Texto.textContent = t(
+            "config.titulo_slot_default"
+          );
+          Label_Check.appendChild(Check);
+          Label_Check.appendChild(Check_Texto);
+          const Sincronizar_Titulo = () => {
+            const Titulo = Normalizar_Texto_Titulo_Slot(
+              Titulo_Input.value
+            );
+            if (!Titulo) {
+              Check.checked = false;
+            }
+            Check.disabled = !Titulo;
+            if (Tipos_Slot.length === 0) {
+              Crear_Tipos_Slot_Editables(Tipos);
+            }
+            Tipo.Titulo = Titulo;
+            Tipo.Titulo_Por_Defecto = Boolean(
+              Check.checked && Titulo
+            );
+            const En_Lista = Tipos_Slot.find(
+              (T) => T.Id === Tipo.Id
+            );
+            if (En_Lista) {
+              En_Lista.Titulo = Tipo.Titulo;
+              En_Lista.Titulo_Por_Defecto =
+                Tipo.Titulo_Por_Defecto;
+            }
+          };
+          Titulo_Input.addEventListener(
+            "input",
+            Sincronizar_Titulo
+          );
+          Check.addEventListener("change", Sincronizar_Titulo);
+          Sincronizar_Titulo();
+
           const Btn_Borrar = document.createElement("button");
           Btn_Borrar.className = "Config_Cat_Btn";
           Btn_Borrar.textContent = "×";
@@ -28603,11 +28766,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             await Borrar_Tipo_Slot_Config(Tipo);
           });
 
-          Fila.appendChild(Muestra);
-          Fila.appendChild(Nombre_Sp);
-          Fila.appendChild(Btn_Borrar);
+          Cabecera.appendChild(Muestra);
+          Cabecera.appendChild(Nombre_Sp);
+          Cabecera.appendChild(Btn_Borrar);
+          Meta.appendChild(Titulo_Input);
+          Meta.appendChild(Label_Check);
+          Fila.appendChild(Cabecera);
+          Fila.appendChild(Meta);
           Lista.appendChild(Fila);
         });
+
+        const Titulo_El = document.getElementById(
+          "Cfg_Tipo_Slot_Titulo"
+        );
+        const Titulo_Default_El = document.getElementById(
+          "Cfg_Tipo_Slot_Titulo_Default"
+        );
+        const Sincronizar_Creador_Titulo = () => {
+          if (!Titulo_El || !Titulo_Default_El) return;
+          const Titulo = Normalizar_Texto_Titulo_Slot(
+            Titulo_El.value
+          );
+          if (!Titulo) {
+            Titulo_Default_El.checked = false;
+          }
+          Titulo_Default_El.disabled = !Titulo;
+        };
+        if (Titulo_El && !Titulo_El._Listener) {
+          Titulo_El._Listener = true;
+          Titulo_El.addEventListener(
+            "input",
+            Sincronizar_Creador_Titulo
+          );
+        }
+        Sincronizar_Creador_Titulo();
 
         // Botón agregar: registrar listener una sola vez.
         const Btn_Add =
@@ -28619,21 +28811,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               document.getElementById("Cfg_Tipo_Slot_Nombre");
             const Color_El =
               document.getElementById("Cfg_Tipo_Slot_Color");
+            const Titulo_El = document.getElementById(
+              "Cfg_Tipo_Slot_Titulo"
+            );
+            const Titulo_Default_El = document.getElementById(
+              "Cfg_Tipo_Slot_Titulo_Default"
+            );
             const Nombre = (Nombre_El?.value || "").trim();
+            const Titulo = Normalizar_Texto_Titulo_Slot(
+              Titulo_El?.value
+            );
             if (!Nombre) return;
-            // Inicializar Tipos_Slot si estaba vacío.
             if (Tipos_Slot.length === 0) {
-              Tipos_Slot = JSON.parse(
-                JSON.stringify(Obtener_Tipos_Slot())
-              );
+              Crear_Tipos_Slot_Editables();
             }
-            Tipos_Slot_Inicializados = true;
             Tipos_Slot.push({
               Id: `Tipo_${Date.now()}`,
               Nombre,
-              Color: Color_El?.value || "#e0d8f4"
+              Color: Color_El?.value || "#e0d8f4",
+              Titulo,
+              Titulo_Por_Defecto: Boolean(
+                Titulo_Default_El?.checked && Titulo
+              )
             });
             if (Nombre_El) Nombre_El.value = "";
+            if (Titulo_El) Titulo_El.value = "";
+            if (Titulo_Default_El) {
+              Titulo_Default_El.checked = false;
+              Titulo_Default_El.disabled = true;
+            }
             Render_Config_Tipos_Slot();
           });
         }
@@ -29963,9 +30169,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Tipos_Slot_Inicializados = true;
         if (Tipos_Slot.length === 0) {
-          Tipos_Slot = JSON.parse(
-            JSON.stringify(Obtener_Tipos_Slot())
-          );
+          Crear_Tipos_Slot_Editables();
         }
         Tipos_Slot = Tipos_Slot.filter(
           (T) => T.Id !== Tipo.Id
@@ -31691,8 +31895,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Mostrar_Menu_Slot(Fecha, Hora, X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         const Tiene_Plan = Contar_Items_Plan_Slot(Fecha, Hora) > 0;
+        const Clave = Clave_Slot(Fecha, Hora);
+        const Tipo_Slot =
+          Slots_Muertos_Tipos[Clave] ||
+          Obtener_Aplica_A_Slot(Fecha, Hora);
+        const Tiene_Titulo = Slot_Muerto_Tiene_Titulo(
+          Fecha,
+          Hora
+        );
+        const Titulo_Tipo = Obtener_Titulo_Tipo_Slot(
+          Tipo_Slot
+        );
         let Html =
-          `<button class="Dia_Accion_Item" type="button" data-acc="editar-nombre-slot">` +
+          (
+            (Tiene_Titulo || Titulo_Tipo)
+              ? `<button class="Dia_Accion_Item" ` +
+                `type="button" data-acc="toggle-titulo-slot">` +
+                t(
+                  Tiene_Titulo
+                    ? "slot.quitar_titulo"
+                    : "slot.colocar_titulo"
+                ) +
+                `</button>`
+              : ""
+          ) +
+          `<button class="Dia_Accion_Item" type="button" ` +
+          `data-acc="editar-nombre-slot">` +
           t("slot.editar_nombre") +
           `</button>` +
           `<button class="Dia_Accion_Item" type="button" data-acc="plan-slot">Plan</button>` +
@@ -31729,6 +31957,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             await Editar_Nombre_Slot(Fecha, Hora);
+          });
+        Menu.querySelector(`[data-acc="toggle-titulo-slot"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            const Cambio = Tiene_Titulo
+              ? Quitar_Titulo_Slot_Muerto(Fecha, Hora)
+              : Colocar_Titulo_Slot_Muerto(Fecha, Hora);
+            if (!Cambio) return;
+            Render_Calendario();
+            Guardar_Estado();
           });
         Menu.querySelector(`[data-acc="plan-slot"]`)
           ?.addEventListener("click", (Ev) => {
@@ -32808,11 +33047,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Hora < Franja.Hasta;
               Hora++
             ) {
-              const Clave = Clave_Slot(Fecha, Hora);
-              if (!Slots_Muertos.includes(Clave)) {
-                Slots_Muertos.push(Clave);
-              }
-              Slots_Muertos_Tipos[Clave] = Tipo_D;
+              const Clave = Crear_Slot_Muerto(
+                Fecha,
+                Hora,
+                Tipo_D
+              );
               if (Nombre_D) {
                 Slots_Muertos_Nombres[Clave] = Nombre_D;
               } else {
@@ -35455,6 +35694,78 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return "#bcb6ab";
       }
 
+      function Obtener_Tipo_Slot_Por_Id(Tipo_Id) {
+        return Obtener_Tipos_Slot().find(
+          (Tipo) => Tipo.Id === Tipo_Id
+        ) || null;
+      }
+
+      function Obtener_Titulo_Tipo_Slot(Tipo_Id) {
+        return Normalizar_Texto_Titulo_Slot(
+          Obtener_Tipo_Slot_Por_Id(Tipo_Id)?.Titulo
+        );
+      }
+
+      function Aplicar_Titulo_Por_Defecto_Slot(
+        Clave,
+        Tipo_Id
+      ) {
+        const Tipo = Obtener_Tipo_Slot_Por_Id(Tipo_Id);
+        const Titulo = Obtener_Titulo_Tipo_Slot(Tipo_Id);
+        if (!Tipo?.Titulo_Por_Defecto || !Titulo) {
+          return false;
+        }
+        Slots_Muertos_Nombres[Clave] = Titulo;
+        return true;
+      }
+
+      function Crear_Slot_Muerto(
+        Fecha,
+        Hora,
+        Tipo_Id,
+        Aplicar_Titulo = true
+      ) {
+        const Clave = Clave_Slot(Fecha, Hora);
+        const Ya_Existia = Slots_Muertos.includes(Clave);
+        if (!Ya_Existia) {
+          Slots_Muertos.push(Clave);
+        }
+        Slots_Muertos_Tipos[Clave] = Tipo_Id;
+        if (!Ya_Existia && Aplicar_Titulo) {
+          Aplicar_Titulo_Por_Defecto_Slot(
+            Clave,
+            Tipo_Id
+          );
+        }
+        return Clave;
+      }
+
+      function Slot_Muerto_Tiene_Titulo(Fecha, Hora) {
+        return Boolean(
+          Normalizar_Texto_Titulo_Slot(
+            Obtener_Nombre_Slot(Fecha, Hora)
+          )
+        );
+      }
+
+      function Colocar_Titulo_Slot_Muerto(Fecha, Hora) {
+        const Clave = Clave_Slot(Fecha, Hora);
+        const Tipo_Id =
+          Slots_Muertos_Tipos[Clave] ||
+          Obtener_Aplica_A_Slot(Fecha, Hora);
+        const Titulo = Obtener_Titulo_Tipo_Slot(Tipo_Id);
+        if (!Titulo) return false;
+        Slots_Muertos_Nombres[Clave] = Titulo;
+        return true;
+      }
+
+      function Quitar_Titulo_Slot_Muerto(Fecha, Hora) {
+        const Clave = Clave_Slot(Fecha, Hora);
+        if (!Slots_Muertos_Nombres[Clave]) return false;
+        delete Slots_Muertos_Nombres[Clave];
+        return true;
+      }
+
       function Alternar_Slot_Muerto(Fecha, Hora) {
         // Cicla por todos los tipos configurados y luego Libre.
         const Clave = Clave_Slot(Fecha, Hora);
@@ -35463,9 +35774,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Index === -1) {
           // Libre → primer tipo.
-          Slots_Muertos.push(Clave);
-          Slots_Muertos_Tipos[Clave] =
-            Tipos[0]?.Id || "Sueno";
+          Crear_Slot_Muerto(
+            Fecha,
+            Hora,
+            Tipos[0]?.Id || "Sueno"
+          );
         } else {
           const Tipo_Actual =
             Slots_Muertos_Tipos[Clave] ||
@@ -36132,7 +36445,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           }
           if (Array.isArray(Estado.Tipos_Slot)) {
-            Tipos_Slot = Estado.Tipos_Slot;
+            Tipos_Slot = Clonar_Tipos_Slot_Base(
+              Estado.Tipos_Slot
+            );
           }
           if (
             Estado.Tipos_Slot_Inicializados !== undefined
