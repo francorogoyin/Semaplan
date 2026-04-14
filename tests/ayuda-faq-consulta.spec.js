@@ -46,21 +46,32 @@ async function preparar(page, estado) {
             async signOut() {
               return { error: null };
             }
-          },
-          functions: {
-            async invoke(nombre, opciones) {
-              window.__Invocaciones_Edge.push({
-                nombre,
-                opciones
-              });
-              return {
-                data: { Ok: true, Id: "mail_1" },
-                error: null
-              };
-            }
           }
         };
       }
+    };
+    window.fetch = async (url, opciones = {}) => {
+      if (
+        String(url).includes(
+          "/functions/v1/enviar-ayuda-consulta"
+        )
+      ) {
+        window.__Invocaciones_Edge.push({
+          url,
+          opciones
+        });
+        return {
+          ok: true,
+          status: 200,
+          async text() {
+            return JSON.stringify({
+              Ok: true,
+              Id: "mail_1"
+            });
+          }
+        };
+      }
+      throw new Error("fetch inesperado");
     };
     window.turnstile = {
       render() {
@@ -190,13 +201,16 @@ async ({ page }) => {
   );
   expect(resultado.En).toBe("Help");
   expect(resultado.Pt).toBe("Ajuda");
-  expect(resultado.Invocacion.nombre).toBe(
-    "enviar-ayuda-consulta"
+  expect(resultado.Invocacion.url).toContain(
+    "/functions/v1/enviar-ayuda-consulta"
   );
-  expect(resultado.Invocacion.opciones.body.Asunto).toBe(
+  const Cuerpo = JSON.parse(
+    resultado.Invocacion.opciones.body
+  );
+  expect(Cuerpo.Asunto).toBe(
     "Consulta"
   );
-  expect(resultado.Invocacion.opciones.body.Mensaje).toBe(
+  expect(Cuerpo.Mensaje).toBe(
     "Necesito ayuda."
   );
   expect(resultado.Dialogos).toContain(
@@ -243,5 +257,163 @@ async ({ page }) => {
   expect(estilos.Radio_Mensaje).toBe("10px");
   expect(estilos.Ancho_Mensaje).toBeGreaterThan(
     estilos.Ancho_Panel - 70
+  );
+});
+
+test("reanuda el envio de ayuda si el token del edge vence",
+async ({ page }) => {
+  await page.route(
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: ""
+      });
+    }
+  );
+  await page.route(
+    "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: ""
+      });
+    }
+  );
+  await page.addInitScript((estadoInicial) => {
+    window.__Invocaciones_Edge = [];
+    window.__Refresh_Count = 0;
+    let Sesion = {
+      access_token: "token-viejo",
+      expires_at: Math.floor(Date.now() / 1000) + 3600
+    };
+    window.supabase = {
+      createClient() {
+        return {
+          auth: {
+            async getSession() {
+              return { data: { session: Sesion } };
+            },
+            async refreshSession() {
+              window.__Refresh_Count += 1;
+              Sesion = {
+                access_token: "token-nuevo",
+                expires_at:
+                  Math.floor(Date.now() / 1000) + 3600
+              };
+              return { data: { session: Sesion }, error: null };
+            },
+            onAuthStateChange() {
+              return {
+                data: {
+                  subscription: { unsubscribe() {} }
+                }
+              };
+            },
+            async signOut() {
+              return { error: null };
+            }
+          }
+        };
+      }
+    };
+    window.fetch = async (url, opciones = {}) => {
+      if (
+        !String(url).includes(
+          "/functions/v1/enviar-ayuda-consulta"
+        )
+      ) {
+        throw new Error("fetch inesperado");
+      }
+      window.__Invocaciones_Edge.push({
+        url,
+        auth:
+          opciones?.headers?.Authorization || ""
+      });
+      if (
+        opciones?.headers?.Authorization ===
+        "Bearer token-viejo"
+      ) {
+        return {
+          ok: false,
+          status: 401,
+          async text() {
+            return JSON.stringify({
+              code: 401,
+              message: "Invalid JWT"
+            });
+          }
+        };
+      }
+      return {
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            Ok: true,
+            Id: "mail_2"
+          });
+        }
+      };
+    };
+    window.turnstile = {
+      render() {
+        return 1;
+      },
+      remove() {},
+      reset() {}
+    };
+    window.alert = () => {};
+    localStorage.setItem(
+      "Semaplan_Estado_V2",
+      JSON.stringify(estadoInicial)
+    );
+  }, estadoBase());
+  await page.goto("/index.html");
+  await page.waitForFunction(() =>
+    typeof window.Inicializar === "function"
+  );
+
+  const resultado = await page.evaluate(async () => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    window.Inicializar();
+    Usuario_Actual = {
+      id: "usr",
+      email: "tester@example.com"
+    };
+    document.getElementById("Ayuda_Consulta_Asunto").value =
+      "Consulta";
+    document.getElementById("Ayuda_Consulta_Mensaje").value =
+      "Necesito ayuda.";
+    let Dialogos = [];
+    const Dialogo_Original = Mostrar_Dialogo;
+    Mostrar_Dialogo = async (texto) => {
+      Dialogos.push(texto);
+      return true;
+    };
+    await Enviar_Ayuda_Consulta();
+    Mostrar_Dialogo = Dialogo_Original;
+    return {
+      refresh: window.__Refresh_Count,
+      invocaciones: window.__Invocaciones_Edge,
+      dialogos: Dialogos
+    };
+  });
+
+  expect(resultado.refresh).toBe(1);
+  expect(resultado.invocaciones).toHaveLength(2);
+  expect(resultado.invocaciones[0].auth).toBe(
+    "Bearer token-viejo"
+  );
+  expect(resultado.invocaciones[1].auth).toBe(
+    "Bearer token-nuevo"
+  );
+  expect(resultado.dialogos).toContain(
+    "Consulta enviada. Te vamos a responder por mail."
   );
 });

@@ -13207,6 +13207,13 @@
             "lunes de esa semana.",
           "baul.varias_semanas":
             "Varias semanas",
+          "baul.establecer_fecha_limite_multi":
+            "Establecer fecha límite",
+          "baul.borrar_fecha_limite_multi":
+            "Borrar fecha límite",
+          "baul.fecha_limite_multi_msg":
+            "Elegí la fecha límite para las " +
+            "tareas seleccionadas:",
           "baul.items": "{N} items",
           "baul.sin_etiquetas":
             "Sin etiquetas creadas todavía.",
@@ -13904,6 +13911,8 @@
             "Agregar a varias",
           "contexto.desarchivar":
             "Desarchivar",
+          "contexto.agregar_subtarea":
+            "Agregar subtarea",
           "abordaje.sub_esta_semana":
             "Subtareas de esta semana",
           "abordaje.solo_abordado":
@@ -15465,6 +15474,13 @@
             "that week is used.",
           "baul.varias_semanas":
             "Multiple weeks",
+          "baul.establecer_fecha_limite_multi":
+            "Set deadline",
+          "baul.borrar_fecha_limite_multi":
+            "Clear deadline",
+          "baul.fecha_limite_multi_msg":
+            "Pick the deadline for the " +
+            "selected tasks:",
           "baul.items": "{N} items",
           "baul.sin_etiquetas":
             "No tags created yet.",
@@ -16148,6 +16164,8 @@
             "Add to several",
           "contexto.desarchivar":
             "Unarchive",
+          "contexto.agregar_subtarea":
+            "Add subtask",
           "abordaje.sub_esta_semana":
             "This week's subtasks",
           "abordaje.solo_abordado":
@@ -17722,6 +17740,13 @@
             "segunda-feira daquela semana.",
           "baul.varias_semanas":
             "Várias semanas",
+          "baul.establecer_fecha_limite_multi":
+            "Definir data limite",
+          "baul.borrar_fecha_limite_multi":
+            "Apagar data limite",
+          "baul.fecha_limite_multi_msg":
+            "Escolha a data limite para as " +
+            "tarefas selecionadas:",
           "baul.items": "{N} itens",
           "baul.sin_etiquetas":
             "Nenhuma tag criada ainda.",
@@ -18433,6 +18458,8 @@
             "Adicionar a várias",
           "contexto.desarchivar":
             "Desarquivar",
+          "contexto.agregar_subtarea":
+            "Adicionar subtarefa",
           "abordaje.sub_esta_semana":
             "Subtarefas desta semana",
           "abordaje.solo_abordado":
@@ -25448,6 +25475,67 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             return;
           }
           Tarea.Etiquetas_Ids = Siguiente;
+          Cambios += 1;
+        });
+        if (Cambios === 0) return;
+        Baul_Multi_Seleccion.clear();
+        Render_Baul();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("toast.tareas_actualizadas"),
+          Snap
+        );
+      }
+
+      async function Pedir_Timeline_Baul_Multi() {
+        const Ids = Array.from(Baul_Multi_Seleccion);
+        if (!Ids.length) return;
+        const Primera = Baul_Tareas.find(
+          (Tarea) => Tarea.Id === Ids[0]
+        );
+        const Fecha = await Mostrar_Dialogo_Con_Fecha(
+          t("baul.fecha_limite_multi_msg"),
+          Primera?.Timeline || ""
+        );
+        if (!Fecha) return;
+        Aplicar_Timeline_Baul_Multi(Fecha);
+      }
+
+      function Aplicar_Timeline_Baul_Multi(Fecha) {
+        const Fecha_Normalizada =
+          Normalizar_Fecha_ISO_Segura(Fecha);
+        if (!Fecha_Normalizada) return;
+        const Ids = new Set(Baul_Multi_Seleccion);
+        if (Ids.size === 0) return;
+        const Snap = Capturar_Snapshot_Undo();
+        let Cambios = 0;
+        Baul_Tareas.forEach((Tarea) => {
+          if (!Ids.has(Tarea.Id)) return;
+          if ((Tarea.Timeline || null) === Fecha_Normalizada) {
+            return;
+          }
+          Tarea.Timeline = Fecha_Normalizada;
+          Cambios += 1;
+        });
+        if (Cambios === 0) return;
+        Baul_Multi_Seleccion.clear();
+        Render_Baul();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("toast.tareas_actualizadas"),
+          Snap
+        );
+      }
+
+      function Borrar_Timeline_Baul_Multi() {
+        const Ids = new Set(Baul_Multi_Seleccion);
+        if (Ids.size === 0) return;
+        const Snap = Capturar_Snapshot_Undo();
+        let Cambios = 0;
+        Baul_Tareas.forEach((Tarea) => {
+          if (!Ids.has(Tarea.Id)) return;
+          if (!Tarea.Timeline) return;
+          Tarea.Timeline = null;
           Cambios += 1;
         });
         if (Cambios === 0) return;
@@ -39124,6 +39212,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Editor();
           Guardar_Estado();
         });
+        Boton.addEventListener("contextmenu", (Ev) => {
+          Ev.preventDefault();
+          Ev.stopPropagation();
+          Mostrar_Menu_Emoji_Tarea(
+            Tarea,
+            Ev.clientX,
+            Ev.clientY
+          );
+        });
         Boton.addEventListener("dragstart", (Evento) => {
           Evento.dataTransfer.effectAllowed = "copyMove";
           Evento.dataTransfer.setData("text/plain", JSON.stringify({
@@ -39150,6 +39247,76 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Guardar_Estado();
         });
         return Boton;
+      }
+
+      function Preparar_Tarea_Para_Agregar_Subtarea(Tarea) {
+        if (!Tarea) return;
+        if (Tareas_Multi_Seleccion.size > 0) {
+          Tareas_Multi_Seleccion.clear();
+          Render_Barra_Multi_Seleccion();
+        }
+        Tarea_Seleccionada_Id = Tarea.Id;
+        Modo_Editor_Abierto = false;
+        Subtarea_En_Edicion_Id = Agregar_Subtarea_Semana(
+          Tarea,
+          "Semana"
+        );
+        if (
+          !Tarea.Subtareas_Contraidas_Semanales ||
+          typeof Tarea.Subtareas_Contraidas_Semanales !== "object"
+        ) {
+          Tarea.Subtareas_Contraidas_Semanales = {};
+        }
+        Tarea.Subtareas_Contraidas_Semanales[
+          Clave_Semana_Actual()
+        ] = false;
+        Render_Emojis();
+        Render_Resumen_Tarea();
+        Render_Editor();
+      }
+
+      function Mostrar_Menu_Emoji_Tarea(Tarea, X, Y) {
+        const Menu = document.getElementById("Dia_Accion_Menu");
+        if (!Menu || !Tarea) return;
+        Menu.innerHTML =
+          `<button class="Dia_Accion_Item"` +
+          ` type="button"` +
+          ` data-acc="agregar-subtarea">` +
+          t("contexto.agregar_subtarea") +
+          `</button>`;
+        Menu.style.left = `${X}px`;
+        Menu.style.top = `${Y}px`;
+        Menu.classList.add("Activo");
+
+        requestAnimationFrame(() => {
+          const Rect = Menu.getBoundingClientRect();
+          const VH = window.innerHeight;
+          const VW = window.innerWidth;
+          if (Rect.bottom > VH - 8) {
+            Menu.style.top =
+              `${Math.max(8, VH - Rect.height - 8)}px`;
+          }
+          if (Rect.right > VW - 8) {
+            Menu.style.left =
+              `${Math.max(8, VW - Rect.width - 8)}px`;
+          }
+        });
+
+        Menu.querySelector(`[data-acc="agregar-subtarea"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Preparar_Tarea_Para_Agregar_Subtarea(Tarea);
+          });
+
+        if (Fn_Cierre_Menu) {
+          document.removeEventListener("click", Fn_Cierre_Menu);
+          Fn_Cierre_Menu = null;
+        }
+        Fn_Cierre_Menu = (Ev) => {
+          if (!Menu.contains(Ev.target)) Cerrar_Menu_Dia();
+        };
+        document.addEventListener("click", Fn_Cierre_Menu);
       }
 
       function Abrir_Resumen_Semanal() {
@@ -42558,16 +42725,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tarea = Tarea_Seleccionada();
         if (!Tarea) return;
         // El alcance se pregunta al guardar (focusout), no aquí.
-        Subtarea_En_Edicion_Id = Agregar_Subtarea_Semana(Tarea, "Semana");
-        if (
-          !Tarea.Subtareas_Contraidas_Semanales ||
-          typeof Tarea.Subtareas_Contraidas_Semanales !== "object"
-        ) {
-          Tarea.Subtareas_Contraidas_Semanales = {};
-        }
-        Tarea.Subtareas_Contraidas_Semanales[Clave_Semana_Actual()] = false;
-        Render_Emojis();
-        Render_Resumen_Tarea();
+        Preparar_Tarea_Para_Agregar_Subtarea(Tarea);
         // No guardamos todavía: la subtarea está vacía hasta que el
         // usuario escriba algo. El Guardar_Estado se hace al confirmar.
       });
@@ -45115,6 +45273,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             t("baul.quitar_etiquetas_multi"),
             () => {
               Pedir_Etiquetas_Baul_Multi("Quitar");
+            }
+          )
+        );
+        El_Baul_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("baul.establecer_fecha_limite_multi"),
+            () => {
+              Pedir_Timeline_Baul_Multi();
+            }
+          )
+        );
+        El_Baul_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("baul.borrar_fecha_limite_multi"),
+            () => {
+              Borrar_Timeline_Baul_Multi();
             }
           )
         );
@@ -47724,41 +47898,163 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           };
         }
 
+        const Sesion_Vencida = (Sesion) => {
+          if (!Sesion?.access_token) return true;
+          const Exp = Number(Sesion.expires_at) || 0;
+          if (!Exp) return false;
+          return Exp * 1000 <= Date.now() + 60000;
+        };
+
+        const Obtener_Sesion_Valida = async (
+          Forzar_Refresh = false
+        ) => {
+          let {
+            data: { session: Sesion }
+          } = await Supa.auth.getSession();
+
+          if (Forzar_Refresh || Sesion_Vencida(Sesion)) {
+            if (
+              typeof Supa.auth.refreshSession !==
+              "function"
+            ) {
+              return {
+                Sesion: null,
+                Error: {
+                  message:
+                    "No se pudo renovar la sesión"
+                }
+              };
+            }
+            const {
+              data,
+              error
+            } = await Supa.auth.refreshSession();
+            if (error) {
+              return {
+                Sesion: null,
+                Error: error
+              };
+            }
+            Sesion = data?.session || null;
+          }
+
+          if (!Sesion?.access_token) {
+            return {
+              Sesion: null,
+              Error: {
+                message: "Sesión inválida"
+              }
+            };
+          }
+
+          return { Sesion, Error: null };
+        };
+
+        const Invocar = async (Token) => {
+          try {
+            const Metodo = Opciones.method || "POST";
+            const Headers = {
+              apikey: Supabase_Anon_Key,
+              Authorization: `Bearer ${Token}`,
+              ...(Opciones.headers || {})
+            };
+            const Tiene_Body =
+              Opciones.body !== undefined &&
+              Opciones.body !== null &&
+              Metodo !== "GET" &&
+              Metodo !== "HEAD";
+            if (
+              Tiene_Body &&
+              !Headers["Content-Type"] &&
+              !Headers["content-type"]
+            ) {
+              Headers["Content-Type"] =
+                "application/json";
+            }
+            const Resp = await fetch(
+              `${Supabase_Url}/functions/v1/${Nombre}`,
+              {
+                method: Metodo,
+                headers: Headers,
+                body: Tiene_Body
+                  ? (
+                    typeof Opciones.body === "string"
+                      ? Opciones.body
+                      : JSON.stringify(Opciones.body)
+                  )
+                  : undefined
+              }
+            );
+            const Texto = await Resp.text();
+            let Data = null;
+            try {
+              Data = Texto ? JSON.parse(Texto) : null;
+            } catch {
+              Data = Texto || null;
+            }
+            if (!Resp.ok) {
+              return {
+                data: null,
+                error: {
+                  message:
+                    "Edge Function returned a " +
+                    "non-2xx status code",
+                  status: Resp.status,
+                  response: Data
+                }
+              };
+            }
+            return {
+              data: Data,
+              error: null
+            };
+          } catch (Error) {
+            return {
+              data: null,
+              error: {
+                message:
+                  Error?.message || String(Error)
+              }
+            };
+          }
+        };
+
         let {
-          data: { session: Sesion }
-        } = await Supa.auth.getSession();
-
-        if (!Sesion?.access_token) {
-          const {
-            data,
-            error
-          } = await Supa.auth.refreshSession();
-          if (error) {
-            return { data: null, error };
-          }
-          Sesion = data?.session || null;
+          Sesion,
+          Error
+        } = await Obtener_Sesion_Valida();
+        if (Error) {
+          return { data: null, error: Error };
         }
 
-        if (!Sesion?.access_token) {
-          return {
-            data: null,
-            error: {
-              message: "Sesión inválida"
-            }
-          };
-        }
-
-        return await Supa.functions.invoke(
-          Nombre,
-          {
-            ...Opciones,
-            headers: {
-              ...(Opciones.headers || {}),
-              Authorization:
-                `Bearer ${Sesion.access_token}`
-            }
-          }
+        let Resultado = await Invocar(Sesion.access_token);
+        const Msg_Error = String(
+          Resultado?.error?.message || ""
+        ).toLowerCase();
+        const Status_Error = Number(
+          Resultado?.error?.status
+          || Resultado?.error?.response?.code
+          || 0
         );
+        const Debe_Reintentar =
+          Resultado?.error &&
+          (
+            Status_Error === 401 ||
+            Msg_Error.includes("invalid jwt")
+          );
+
+        if (!Debe_Reintentar) {
+          return Resultado;
+        }
+
+        ({
+          Sesion,
+          Error
+        } = await Obtener_Sesion_Valida(true));
+        if (Error) {
+          return { data: null, error: Error };
+        }
+        return await Invocar(Sesion.access_token);
       }
 
       // ----- Indicador visual de sincronización -----

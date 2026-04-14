@@ -250,6 +250,12 @@ test("el baul deja la multiaccion abajo del panel", async ({
   expect(resultado.botones).toContain("Cambiar color");
   expect(resultado.botones).toContain("Agregar etiquetas");
   expect(resultado.botones).toContain("Quitar etiquetas");
+  expect(resultado.botones).toContain(
+    "Establecer fecha límite"
+  );
+  expect(resultado.botones).toContain(
+    "Borrar fecha límite"
+  );
   expect(resultado.globalActiva).toBe(false);
   expect(resultado.barraDebajo).toBe(true);
 });
@@ -282,6 +288,37 @@ test("aplica color y etiquetas en multiaccion del baul", async ({
     ["Urgente", "Cliente"]
   ]);
   expect(resultado.catalogo).toContain("Urgente");
+});
+
+test("aplica y borra fecha limite en multiaccion del baul", async ({
+  page
+}) => {
+  await preparar(page, crearEstado());
+
+  const resultado = await page.evaluate(() => {
+    Baul_Multi_Seleccion = new Set(["b1", "b2"]);
+    Aplicar_Timeline_Baul_Multi("2026-04-30");
+    const Con_Fecha = Baul_Tareas.map((Tarea) => Tarea.Timeline);
+    const Seleccion_Luego_De_Aplicar = Array.from(
+      Baul_Multi_Seleccion
+    );
+    Baul_Multi_Seleccion = new Set(["b1", "b2"]);
+    Borrar_Timeline_Baul_Multi();
+    return {
+      conFecha: Con_Fecha,
+      sinFecha: Baul_Tareas.map((Tarea) => Tarea.Timeline),
+      multiTrasAplicar: Seleccion_Luego_De_Aplicar,
+      multiTrasBorrar: Array.from(Baul_Multi_Seleccion)
+    };
+  });
+
+  expect(resultado.conFecha).toEqual([
+    "2026-04-30",
+    "2026-04-30"
+  ]);
+  expect(resultado.sinFecha).toEqual([null, null]);
+  expect(resultado.multiTrasAplicar).toEqual([]);
+  expect(resultado.multiTrasBorrar).toEqual([]);
 });
 
 test("el move queda neutro y delete rojo en multiaccion del baul", async ({
