@@ -7147,6 +7147,13 @@
         margin-bottom: 16px;
       }
 
+      .Dialogo_Input_Contenedor.Modo_Color {
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        padding: 6px 0 2px;
+      }
+
       .Dialogo_Turnstile {
         margin-top: 12px;
         display: flex;
@@ -7160,6 +7167,37 @@
         font-size: 14px;
         width: 100%;
         box-sizing: border-box;
+      }
+
+      .Dialogo_Input_Contenedor.Modo_Color .Dialogo_Input {
+        width: 76px;
+        height: 76px;
+        padding: 0;
+        border: none;
+        border-radius: 999px;
+        background: transparent;
+        box-shadow:
+          0 0 0 4px rgba(143, 124, 98, 0.16),
+          0 10px 22px rgba(0, 0, 0, 0.12);
+        cursor: pointer;
+        overflow: hidden;
+      }
+
+      .Dialogo_Input_Contenedor.Modo_Color
+        .Dialogo_Input::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+
+      .Dialogo_Input_Contenedor.Modo_Color
+        .Dialogo_Input::-webkit-color-swatch {
+        border: 3px solid rgba(255, 255, 255, 0.94);
+        border-radius: 999px;
+      }
+
+      .Dialogo_Input_Contenedor.Modo_Color
+        .Dialogo_Input::-moz-color-swatch {
+        border: 3px solid rgba(255, 255, 255, 0.94);
+        border-radius: 999px;
       }
 
       .Dialogo_Select {
@@ -20297,9 +20335,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "Dialogo_Input_Sugerencias"
           );
           const Usa_Select = Opciones.Tipo === "select";
+          const Es_Color = Opciones.Tipo === "color";
 
           const Limpiar_Controles = () => {
             El_Cont.style.display = "none";
+            El_Cont.classList.remove("Modo_Color");
             El_Campo.style.display = "none";
             El_Campo.value = "";
             El_Campo.placeholder = "";
@@ -20351,6 +20391,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             El_Campo.value = Opciones.Default || "";
             El_Campo.placeholder =
               Opciones.Placeholder || "";
+            El_Cont.classList.toggle("Modo_Color", Es_Color);
             Renderizar_Botones_Sugeridos(
               El_Sugerencias,
               Opciones.Sugerencias,

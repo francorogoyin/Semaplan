@@ -310,3 +310,66 @@ test("archivero permite cambiar color en multiaccion", async ({
   expect(resultado.colores).toEqual(["#334455", "#334455"]);
   expect(resultado.primerBoton).toBe("Archivero_Multi_Color_Btn");
 });
+
+test("baul y archivero comparten picker circular de color", async ({
+  page
+}) => {
+  await preparar(page, crearEstado());
+
+  await page.evaluate(() => {
+    Baul_Multi_Seleccion = new Set(["b1"]);
+    window.__Dialogo_Color = Pedir_Color_Baul_Multi();
+  });
+
+  const Dialogo_Baul = await page.evaluate(() => {
+    const Cont = document.getElementById(
+      "Dialogo_Input_Contenedor"
+    );
+    const Campo = document.getElementById(
+      "Dialogo_Input_Campo"
+    );
+    const Estilo_Cont = window.getComputedStyle(Cont);
+    const Estilo_Campo = window.getComputedStyle(Campo);
+    return {
+      modoColor: Cont.classList.contains("Modo_Color"),
+      display: Estilo_Cont.display,
+      justifyContent: Estilo_Cont.justifyContent,
+      width: Estilo_Campo.width,
+      height: Estilo_Campo.height,
+      borderRadius: Estilo_Campo.borderRadius,
+      valor: Campo.value
+    };
+  });
+
+  expect(Dialogo_Baul.modoColor).toBe(true);
+  expect(Dialogo_Baul.display).toBe("flex");
+  expect(Dialogo_Baul.justifyContent).toBe("center");
+  expect(Dialogo_Baul.width).toBe("76px");
+  expect(Dialogo_Baul.height).toBe("76px");
+  expect(Dialogo_Baul.borderRadius).toBe("999px");
+  expect(Dialogo_Baul.valor).toBe("#f1b77e");
+
+  await page.locator(".Dialogo_Boton_Cancelar").click();
+
+  await page.evaluate(() => {
+    Notas_Archivero[0].Color_Fondo = "#445566";
+    Archivero_Notas_Seleccionadas = new Set(["n1"]);
+    window.__Dialogo_Color = Pedir_Color_Multi_Archivero();
+  });
+
+  const Dialogo_Archivero = await page.evaluate(() => {
+    const Cont = document.getElementById(
+      "Dialogo_Input_Contenedor"
+    );
+    const Campo = document.getElementById(
+      "Dialogo_Input_Campo"
+    );
+    return {
+      modoColor: Cont.classList.contains("Modo_Color"),
+      valor: Campo.value
+    };
+  });
+
+  expect(Dialogo_Archivero.modoColor).toBe(true);
+  expect(Dialogo_Archivero.valor).toBe("#445566");
+});
