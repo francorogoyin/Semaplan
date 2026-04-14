@@ -92,3 +92,39 @@ test("usa defaults localizados al arrancar en ingles", async ({ page }) => {
     "Rest"
   ]);
 });
+
+test("arranca con menú hamburguesa por default", async ({
+  page
+}) => {
+  await preparar(page, "es");
+
+  const resultado = await page.evaluate(() => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    window.Inicializar();
+    Aplicar_Estilo_Menu();
+    const Estado = JSON.parse(
+      localStorage.getItem("Semaplan_Estado_V2") || "{}"
+    );
+    return {
+      menu:
+        Estado.Config_Extra?.Menu_Estilo || null,
+      boton_hamburguesa:
+        window.getComputedStyle(
+          document.getElementById(
+            "Menu_Hamburguesa_Boton"
+          )
+        ).display,
+      boton_plan:
+        window.getComputedStyle(
+          document.getElementById("Plan_Boton")
+        ).display
+    };
+  });
+
+  expect(resultado.menu).toBe("Hamburguesa");
+  expect(resultado.boton_hamburguesa).not.toBe("none");
+  expect(resultado.boton_plan).toBe("none");
+});
