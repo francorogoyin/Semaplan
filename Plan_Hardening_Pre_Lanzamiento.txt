@@ -1,0 +1,772 @@
+Plan de hardening pre lanzamiento
+
+Objetivo
+
+Dejar una lista concreta de mejoras para bajar riesgo antes
+de abrir Semaplan a usuarios reales. La prioridad no es
+agregar features nuevas, sino reducir errores visibles,
+perdida de datos y casos donde no haya forma facil de
+diagnosticar que paso.
+
+Orden sugerido
+
+1. Smoke tests reales en produccion.
+2. Telemetria de errores.
+3. Hardening de Auth y Edge Functions.
+4. Reemplazo de alerts por UX de error consistente.
+5. Blindaje de sync, import y restore.
+6. Checklist de lanzamiento manual.
+7. Ambiente de staging.
+
+------------------------------------------------------------
+1. Smoke tests reales en produccion
+------------------------------------------------------------
+
+Problema que resuelve
+
+Hay flujos que pueden funcionar perfecto en local y romperse
+solo en produccion por config, JWT, variables de entorno,
+deploy parcial o diferencias entre frontend y backend
+hospedado. El bug reciente de ayuda fue exactamente de ese
+tipo.
+
+Que hacer
+
+Armar una suite chica pero obligatoria contra
+https://semaplan.com. No hace falta cubrir todo. Hay que
+cubrir lo que mas dano hace si falla.
+
+Flujos minimos
+
+- Login con cuenta real de test.
+- Esperar inicializacion completa.
+- Crear una tarea simple.
+- Editar nombre o color de esa tarea.
+- Agregar una subtarea.
+- Abrir Baul y probar una accion comun.
+- Abrir Archivero y guardar una nota.
+- Abrir Ayuda y mandar una consulta.
+- Verificar logout.
+
+Reglas operativas
+
+- Correr esta suite despues de cada push importante.
+- Si falla algo, no invitar usuarios hasta corregirlo.
+- Mantenerla corta: 5 a 10 minutos maximo.
+- Separar los tests destructivos de los no destructivos.
+
+Senal de que esta bien
+
+Si una deploy rompe Auth, sync o una function, te enteras en
+minutos y no por mensaje de un usuario.
+
+------------------------------------------------------------
+2. Telemetria de errores
+------------------------------------------------------------
+
+Problema que resuelve
+
+Hoy, si a un usuario le falla algo raro, muchas veces solo
+queda un alert o un console.error. Eso sirve mientras estas
+vos mirando, pero no sirve cuando el error ocurre en otra PC,
+otro navegador o a otra hora.
+
+Que hacer
+
+Crear una capa unica de logging de errores. La idea no es
+llenar la app de ruido, sino capturar contexto util.
+
+Minimo a registrar
+
+- Fecha y hora.
+- Usuario.
+- Email si existe.
+- Pantalla o modulo.
+- Accion que estaba haciendo.
+- Mensaje de error.
+- Stack si existe.
+- Semana actual.
+- Tarea o entidad afectada si aplica.
+
+Fuentes a unificar
+
+- try/catch con console.error.
+- errores de sync.
+- errores de auth.
+- errores de Edge Functions.
+- errores de import/export.
+
+Donde guardar
+
+Opciones razonables:
+
+- tabla en Supabase para errores cliente;
+- servicio externo tipo Sentry;
+- o ambas si queres algo mas serio.
+
+Regla importante
+
+No mandar secretos, passwords ni payloads sensibles enteros.
+Hay que registrar contexto, no filtrar datos privados.
+
+Senal de que esta bien
+
+Cuando un usuario diga "me fallo algo", deberias poder ver
+que paso sin reproducirlo a ciegas.
+
+------------------------------------------------------------
+3. Hardening de Auth y Edge Functions
+------------------------------------------------------------
+
+Problema que resuelve
+
+La zona mas sensible de la app es donde se cruzan frontend,
+JWT, refresh de sesion y functions remotas. Si ahi hay una
+inconsistencia, el usuario siente que la app "anda a veces".
+
+Que hacer
+
+Armar un inventario explicito de todas las Edge Functions.
+
+Para cada una definir:
+
+- si usa verify_jwt en gateway;
+- si valida el usuario adentro;
+- que respuesta da cuando falta sesion;
+- que respuesta da cuando la sesion vencio;
+- si el frontend debe reintentar o no.
+
+Functions a revisar primero
+
+- enviar-ayuda-consulta
+- estado-suscripcion
+- crear-suscripcion
+- cancelar-suscripcion
+- activar-trial
+- eliminar-cuenta
+
+Reglas sugeridas
+
+- Si una function es privada, debe validar usuario adentro.
+- Si verify_jwt se desactiva en gateway, dejar la razon
+  documentada.
+- El frontend no debe depender de magia del SDK para auth.
+- Las respuestas de error deben ser consistentes.
+
+Tests que valen oro
+
+- usuario logueado;
+- token vencido;
+- token invalido;
+- usuario sin permiso;
+- backend temporalmente caido.
+
+Senal de que esta bien
+
+Los errores de auth dejan de sentirse aleatorios y pasan a
+ser predecibles y diagnosticables.
+
+------------------------------------------------------------
+4. Reemplazo de alerts por UX consistente
+------------------------------------------------------------
+
+Problema que resuelve
+
+alert() corta el flujo, se siente fragil y no da contexto.
+Para usuarios finales transmite "app improvisada", aunque por
+detras la logica este bien.
+
+Que hacer
+
+Definir tres niveles de feedback:
+
+- Toast:
+  para confirmaciones o errores chicos.
+- Modal de error:
+  para errores importantes o bloqueantes.
+- Error inline:
+  para validaciones de formulario.
+
+Patron sugerido
+
+Cada error deberia decir:
+
+- que fallo;
+- si se guardo algo o no;
+- que puede hacer el usuario ahora.
+
+Ejemplos de CTA utiles
+
+- Reintentar
+- Recargar
+- Cerrar sesion
+- Exportar backup
+- Contactar soporte
+
+Senal de que esta bien
+
+El usuario entiende si el problema fue temporal, si perdio
+algo o si alcanza con reintentar.
+
+------------------------------------------------------------
+5. Blindaje de sync, import y restore
+------------------------------------------------------------
+
+Problema que resuelve
+
+En una app de planificacion, el dano grande no es solo el
+crash. Es la confusion de datos, el estado viejo o la perdida
+silenciosa.
+
+Que hacer
+
+Agregar mas protecciones visibles alrededor de persistencia.
+
+Mejoras concretas
+
+- Mostrar ultimo guardado exitoso con hora.
+- Boton o accion clara de reintentar sync.
+- Aviso visible cuando hay cambios pendientes.
+- Backup automatico antes de importar y reemplazar todo.
+- Confirmacion mas fuerte en restore destructivo.
+- Mensaje claro si se esta usando estado local stale.
+
+Casos a cubrir
+
+- cerrar pestana con cambios pendientes;
+- perder internet en medio de sync;
+- importar JSON roto;
+- importar JSON valido pero de otra version;
+- conflicto entre remoto y local.
+
+Senal de que esta bien
+
+Aunque algo falle, el usuario entiende el estado actual y no
+queda con miedo de haber perdido todo.
+
+------------------------------------------------------------
+6. Checklist de lanzamiento manual
+------------------------------------------------------------
+
+Problema que resuelve
+
+Aunque haya muchos tests, antes de abrir a usuarios conviene
+hacer una pasada humana guiada para ver detalles de UX,
+mensajes raros y cosas que en automatizacion no saltan.
+
+Checklist sugerido
+
+- Crear cuenta nueva.
+- Login y logout.
+- Recuperar password.
+- Crear tarea.
+- Editar tarea.
+- Borrar tarea.
+- Crear bloque en calendario.
+- Mover bloque.
+- Resize de bloque.
+- Agregar, editar y borrar subtarea.
+- Probar subtareas con otra semana.
+- Probar Baul.
+- Probar Archivero.
+- Probar Ayuda.
+- Probar import/export.
+- Probar acciones de cuenta.
+
+Importante
+
+Correrlo en:
+
+- desktop;
+- mobile o viewport chico;
+- al menos dos navegadores.
+
+Senal de que esta bien
+
+Reducis mucho la chance de invitar usuarios y descubrir
+errores obvios en los primeros 10 minutos.
+
+------------------------------------------------------------
+7. Ambiente de staging
+------------------------------------------------------------
+
+Problema que resuelve
+
+Hoy varias validaciones delicadas terminan haciendose contra
+produccion. Eso sube el riesgo de tocar algo real mientras
+todavia estas probando.
+
+Que hacer
+
+Armar una URL separada de staging con:
+
+- frontend separado;
+- Supabase separado o al menos aislado;
+- variables de entorno propias;
+- cuentas de test exclusivas.
+
+Uso recomendado
+
+- probar Edge Functions nuevas;
+- probar auth;
+- probar mails;
+- probar cambios de UI antes de push a main.
+
+Senal de que esta bien
+
+Produccion deja de ser laboratorio.
+
+------------------------------------------------------------
+Plan corto para hacer en casa
+------------------------------------------------------------
+
+Si queres atacar esto en una sola noche, yo haria:
+
+1. Crear el smoke test de produccion.
+2. Definir logger central y una tabla de errores.
+3. Inventariar todas las Edge Functions.
+4. Listar todos los alert() que queden y clasificarlos.
+5. Diseñar el checklist manual de lanzamiento.
+
+Si queres atacar el riesgo mas serio primero:
+
+- smoke tests reales;
+- telemetria;
+- auth/functions;
+
+Eso te da la mejor relacion entre esfuerzo y tranquilidad.
+
+------------------------------------------------------------
+8. Plan de hardening ejecutable
+------------------------------------------------------------
+
+Meta final
+
+Llegar a un punto donde:
+
+- un push roto se detecta rapido;
+- un error de usuario deja rastro;
+- Auth y Edge Functions no se sienten aleatorias;
+- sync y restore no generan miedo;
+- haya un checklist claro antes de invitar gente.
+
+No hace falta hacer todo junto. Conviene hacerlo por fases y
+cerrar cada una con un criterio objetivo.
+
+------------------------------------------------------------
+Fase 1. Cinturon de seguridad minimo
+------------------------------------------------------------
+
+Duracion sugerida
+
+2 a 4 horas.
+
+Objetivo
+
+Evitar que un cambio roto llegue a usuarios sin enterarte.
+
+Tareas
+
+1. Crear un spec de smoke real para produccion.
+
+Debe cubrir:
+
+- login;
+- espera de inicializacion;
+- crear una tarea;
+- agregar una subtarea;
+- abrir Baul;
+- abrir Archivero;
+- mandar Ayuda;
+- logout.
+
+Entregable
+
+Un test estable, corto y separado del resto.
+
+Criterio de cierre
+
+Corre en verde dos veces seguidas sobre produccion.
+
+2. Definir regla de deploy.
+
+Regla sugerida:
+
+"No se considera cerrada una funcionalidad hasta que corra el
+smoke de produccion si toca Auth, sync, Edge Functions o flujo
+de guardado."
+
+Entregable
+
+La regla escrita en AGENTS o en un archivo operativo corto.
+
+3. Marcar flujos de alto riesgo.
+
+Lista inicial:
+
+- login;
+- sync;
+- import/export;
+- eliminar cuenta;
+- suscripcion;
+- ayuda por mail.
+
+Entregable
+
+Una lista visible de flujos que siempre requieren chequeo.
+
+------------------------------------------------------------
+Fase 2. Telemetria y logging
+------------------------------------------------------------
+
+Duracion sugerida
+
+2 a 3 horas para una primera version util.
+
+Objetivo
+
+No depender del navegador abierto para enterarte de un error.
+
+Tareas
+
+1. Crear una funcion unica de logging.
+
+Nombre sugerido:
+
+- Log_Error_App
+
+Debe aceptar:
+
+- modulo;
+- accion;
+- mensaje;
+- error original;
+- contexto opcional.
+
+2. Decidir backend del log.
+
+Opcion rapida:
+
+- tabla en Supabase llamada Errores_App.
+
+Campos minimos:
+
+- id
+- fecha
+- usuario_id
+- email
+- modulo
+- accion
+- mensaje
+- stack
+- contexto_json
+
+3. Reemplazar primero los puntos mas criticos.
+
+Primera pasada:
+
+- errores de sync;
+- errores de auth;
+- errores de Edge Functions;
+- errores de import/export.
+
+No intentes reemplazar todo en una sola tanda. Empeza por lo
+que mas dano hace.
+
+Entregable
+
+Errores importantes guardandose con contexto.
+
+Criterio de cierre
+
+Si fuerzas un error de ayuda o de sync, lo ves registrado sin
+mirar la consola manualmente.
+
+------------------------------------------------------------
+Fase 3. Auth y Edge Functions
+------------------------------------------------------------
+
+Duracion sugerida
+
+2 a 4 horas.
+
+Objetivo
+
+Quitar fragilidad en todo lo que depende de JWT, refresh o
+functions remotas.
+
+Tareas
+
+1. Inventario completo de functions.
+
+Armar un txt o md con columnas:
+
+- function
+- privada/publica
+- verify_jwt gateway
+- validacion interna
+- errores esperados
+- reintento frontend
+
+2. Estandarizar respuestas.
+
+Formato sugerido:
+
+- Ok
+- Error
+- Codigo
+- Detalle opcional
+
+Asi el frontend no tiene que adivinar.
+
+3. Revisar cada function sensible.
+
+Para cada una confirmar:
+
+- como valida usuario;
+- que pasa si el token esta vencido;
+- que pasa si falta auth;
+- que pasa si el backend externo falla.
+
+4. Crear tests de auth degradada.
+
+Casos minimos:
+
+- token vencido;
+- token invalido;
+- usuario sin sesion;
+- backend responde 500.
+
+Entregable
+
+Mapa claro de functions y manejo consistente de errores.
+
+Criterio de cierre
+
+No hay functions "misteriosas" donde no sepas si el problema
+lo resuelve frontend, gateway o codigo interno.
+
+------------------------------------------------------------
+Fase 4. UX de error
+------------------------------------------------------------
+
+Duracion sugerida
+
+2 horas para una primera limpieza.
+
+Objetivo
+
+Que el usuario reciba mensajes utiles y no alerts genericos.
+
+Tareas
+
+1. Hacer inventario de alerts.
+
+Clasificalos en:
+
+- validacion de formulario;
+- error recuperable;
+- error bloqueante;
+- error tecnico.
+
+2. Definir reemplazo por tipo.
+
+- validacion -> inline
+- recuperable -> toast o modal chico
+- bloqueante -> modal con CTA
+- tecnico -> modal + log
+
+3. Empezar por las zonas mas visibles.
+
+- ayuda
+- auth
+- import/export
+- suscripcion
+- sync
+
+Entregable
+
+Los errores mas comunes ya no usan alert().
+
+Criterio de cierre
+
+Cuando algo falla, el usuario entiende:
+
+- si se guardo algo o no;
+- si puede reintentar;
+- si tiene que cerrar sesion;
+- si conviene exportar backup.
+
+------------------------------------------------------------
+Fase 5. Sync, import y restore
+------------------------------------------------------------
+
+Duracion sugerida
+
+3 a 5 horas.
+
+Objetivo
+
+Reducir miedo a perdida de datos y hacer visible el estado
+real de persistencia.
+
+Tareas
+
+1. Mostrar ultimo guardado exitoso.
+
+Idealmente con fecha y hora visibles en Config o cerca del
+indicador de sync.
+
+2. Agregar accion de reintentar sync.
+
+No solo detectar error. Dar salida.
+
+3. Backup automatico antes de import destructivo.
+
+Antes de reemplazar todo:
+
+- exportar estado actual;
+- guardar copia local con timestamp;
+- recien despues aplicar import.
+
+4. Detectar estado local stale.
+
+Si la app carga algo viejo o inconsistente, el usuario deberia
+ver una senal clara y no suponer que esta todo sincronizado.
+
+5. Revisar conflictos.
+
+Aunque no armes merge complejo, al menos deja definida la
+politica:
+
+- gana remoto;
+- gana local;
+- preguntar;
+- o generar backup y avisar.
+
+Entregable
+
+Persistencia mas visible y menos sorpresiva.
+
+Criterio de cierre
+
+Si cortas internet o importas mal un archivo, el usuario no
+queda perdido.
+
+------------------------------------------------------------
+Fase 6. Checklist de lanzamiento
+------------------------------------------------------------
+
+Duracion sugerida
+
+1 a 2 horas para definirlo y dejarlo listo.
+
+Objetivo
+
+Tener una pasada humana repetible antes de invitar usuarios.
+
+Tareas
+
+1. Pasar la lista actual a un checklist operativo.
+
+Formato sugerido:
+
+- accion
+- esperado
+- resultado
+- observaciones
+
+2. Separar por dispositivo.
+
+- desktop
+- mobile
+
+3. Separar por criticidad.
+
+- bloqueante
+- importante
+- cosmico o menor
+
+Entregable
+
+Un archivo que puedas marcar cada vez antes de abrir acceso.
+
+Criterio de cierre
+
+No dependes de memoria ni de improvisacion para revisar la
+app.
+
+------------------------------------------------------------
+Fase 7. Staging
+------------------------------------------------------------
+
+Duracion sugerida
+
+Variable. Puede arrancar chico.
+
+Objetivo
+
+Dejar de probar cambios delicados directamente en produccion.
+
+Version minima viable
+
+- una URL separada;
+- frontend separado;
+- cuentas de test;
+- variables de entorno separadas.
+
+Version ideal
+
+- proyecto Supabase separado;
+- mails de test;
+- datos descartables;
+- smoke tests apuntando primero a staging.
+
+Entregable
+
+Un ambiente donde puedas romper sin afectar usuarios reales.
+
+Criterio de cierre
+
+Produccion deja de ser el primer lugar donde ves si algo
+anda.
+
+------------------------------------------------------------
+Si hoy solo tenes 90 minutos
+------------------------------------------------------------
+
+Hace esto:
+
+1. crear smoke test real de produccion;
+2. crear logger central;
+3. listar Edge Functions y marcar verify_jwt;
+4. anotar alerts pendientes.
+
+Con eso ya bajas bastante riesgo.
+
+------------------------------------------------------------
+Si hoy tenes media jornada
+------------------------------------------------------------
+
+Hace esto:
+
+1. smoke test real;
+2. logger + tabla de errores;
+3. inventario de functions;
+4. reemplazo de alerts en ayuda y auth;
+5. backup previo a import.
+
+------------------------------------------------------------
+Definicion de "apta para primeros usuarios"
+------------------------------------------------------------
+
+Yo no la abriria hasta cumplir al menos esto:
+
+- smoke de produccion verde;
+- ayuda, auth y sync con trazabilidad;
+- import destructivo con backup previo;
+- sin alerts en flujos criticos;
+- checklist manual pasado en desktop y mobile.
+
+Con ese piso, la app no va a ser perfecta, pero ya deja de
+sentirse fragil.
