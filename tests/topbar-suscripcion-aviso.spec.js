@@ -110,7 +110,12 @@ async ({ page }) => {
     const El = document.getElementById(
       "Plan_Top_Indicador"
     );
+    const Top = document.querySelector(
+      ".Calendario_Top"
+    );
     const Estilo = window.getComputedStyle(El);
+    const Rect_El = El.getBoundingClientRect();
+    const Rect_Top = Top.getBoundingClientRect();
     return {
       texto: El.textContent.trim(),
       color: Estilo.color,
@@ -118,7 +123,8 @@ async ({ page }) => {
       fontWeight: Estilo.fontWeight,
       justifyContent: Estilo.justifyContent,
       background: Estilo.backgroundColor,
-      borderTopWidth: Estilo.borderTopWidth
+      borderTopWidth: Estilo.borderTopWidth,
+      arriba_de_barra: Rect_El.bottom <= Rect_Top.top
     };
   });
 
@@ -130,9 +136,9 @@ async ({ page }) => {
   expect(Number(Resumen.fontWeight)).toBeGreaterThanOrEqual(
     700
   );
-  expect(Resumen.justifyContent).toBe("flex-end");
   expect(Resumen.background).toBe("rgba(0, 0, 0, 0)");
   expect(Resumen.borderTopWidth).toBe("0px");
+  expect(Resumen.arriba_de_barra).toBeTruthy();
 });
 
 test("muestra aviso cancelada con mismo estilo",
