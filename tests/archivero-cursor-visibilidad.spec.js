@@ -123,12 +123,30 @@ async ({ page }) => {
   const Card = page.locator(".Archivero_Nota_Card").first();
   const estilos = await Card.evaluate((el) => {
     const Css = window.getComputedStyle(el);
+    const Texto = el.querySelector(".Archivero_Nota_Texto");
+    const Meta = el.querySelector(".Archivero_Nota_Meta");
     return {
       cursor: Css.cursor,
-      transition: Css.transition
+      transition: Css.transition,
+      texto_cursor: Texto
+        ? window.getComputedStyle(Texto).cursor
+        : "",
+      texto_select: Texto
+        ? window.getComputedStyle(Texto).userSelect
+        : "",
+      meta_cursor: Meta
+        ? window.getComputedStyle(Meta).cursor
+        : "",
+      meta_select: Meta
+        ? window.getComputedStyle(Meta).userSelect
+        : ""
     };
   });
 
   expect(estilos.cursor).toBe("pointer");
   expect(estilos.transition).toContain("box-shadow");
+  expect(estilos.texto_cursor).toBe("pointer");
+  expect(estilos.texto_select).toBe("none");
+  expect(estilos.meta_cursor).toBe("pointer");
+  expect(estilos.meta_select).toBe("none");
 });

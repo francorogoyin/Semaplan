@@ -1,6 +1,6 @@
 const { test, expect } = require("@playwright/test");
 
-test("permite seleccionar y copiar una nota completa del archivero", async ({
+test("copia solo el texto de la nota del archivero", async ({
   page
 }) => {
   await page.route(
@@ -144,12 +144,18 @@ test("permite seleccionar y copiar una nota completa del archivero", async ({
         : "",
       meta: Meta
         ? window.getComputedStyle(Meta).userSelect
+        : "",
+      card: document.querySelector(".Archivero_Nota_Card")
+        ? window.getComputedStyle(
+          document.querySelector(".Archivero_Nota_Card")
+        ).cursor
         : ""
     };
   });
 
-  expect(estilos.texto).toBe("text");
-  expect(estilos.meta).toBe("text");
+  expect(estilos.texto).toBe("none");
+  expect(estilos.meta).toBe("none");
+  expect(estilos.card).toBe("pointer");
 
   const seleccion = await page.evaluate(() => {
     const Card = document.querySelector(
@@ -214,9 +220,7 @@ test("permite seleccionar y copiar una nota completa del archivero", async ({
     return page.evaluate(() =>
       window.__Texto_Copiado_Archivero
     );
-  }).toBe(
-    "Nota visible\n\nhttps://semaplan.com\n\n#Inmediata #UX"
-  );
+  }).toBe("Nota visible");
 
   await expect(page.locator(".Undo_Toast_Texto").first())
     .toHaveText("Nota copiada");

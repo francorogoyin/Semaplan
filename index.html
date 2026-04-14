@@ -6569,8 +6569,8 @@
         line-height: 1.45;
         white-space: pre-wrap;
         word-break: break-word;
-        user-select: text;
-        cursor: text;
+        user-select: none;
+        cursor: pointer;
       }
 
       .Archivero_Nota_Texto a {
@@ -6579,8 +6579,8 @@
           var(--Acento)
         );
         text-decoration: underline;
-        user-select: text;
-        cursor: text;
+        user-select: none;
+        cursor: pointer;
       }
 
       .Archivero_Nota_Meta {
@@ -6593,7 +6593,8 @@
           var(--Texto_Suave)
         );
         flex-wrap: wrap;
-        user-select: text;
+        user-select: none;
+        cursor: pointer;
       }
 
       .Archivero_Nota_Origen {
@@ -6601,15 +6602,16 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        user-select: text;
-        cursor: text;
+        user-select: none;
+        cursor: pointer;
       }
 
       .Archivero_Nota_Etiquetas {
         display: flex;
         flex-wrap: wrap;
         gap: 4px;
-        user-select: text;
+        user-select: none;
+        cursor: pointer;
       }
 
       .Archivero_Nota_Etiqueta {
@@ -6625,8 +6627,8 @@
           var(--Texto_Suave)
         );
         white-space: nowrap;
-        user-select: text;
-        cursor: text;
+        user-select: none;
+        cursor: pointer;
       }
 
       .Archivero_Nota_Acciones {
@@ -25103,15 +25105,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ) {
             return;
           }
-          if (
-            Ev.target !== Card &&
-            Ev.target !== Meta &&
-            !Ev.target.classList?.contains(
-              "Archivero_Nota_Etiquetas"
-            )
-          ) {
-            return;
-          }
           Ev.preventDefault();
           Mostrar_Menu_Nota_Archivero(
             Nota,
@@ -25442,26 +25435,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Construir_Texto_Copia_Nota_Archivero(Nota) {
         if (!Nota) return "";
-        const Partes = [];
-        const Texto = (Nota.Texto || "").trim();
-        if (Texto) {
-          Partes.push(Texto);
-        }
-        const Origen = (Nota.Origen || "").trim();
-        if (Origen) {
-          Partes.push(Origen);
-        }
-        const Etiquetas = Array.isArray(Nota.Etiquetas)
-          ? Nota.Etiquetas
-            .map((Tag) => String(Tag || "").trim())
-            .filter(Boolean)
-          : [];
-        if (Etiquetas.length > 0) {
-          Partes.push(
-            Etiquetas.map((Tag) => `#${Tag}`).join(" ")
-          );
-        }
-        return Partes.join("\n\n");
+        return String(Nota.Texto || "").trim();
       }
 
       async function Copiar_Nota_Archivero(Nota) {
