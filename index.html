@@ -6957,13 +6957,28 @@
         align-items: center;
       }
 
-      .Archivero_Color_Fila .Boton_Secundario {
-        min-height: 40px;
+      .Archivero_Color_Fila .Archivero_Btn_Color_Cajon {
+        padding: 6px 12px;
+        min-height: 32px;
+        border: 1px dashed var(--Borde);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 12px;
         white-space: nowrap;
       }
 
-      .Archivero_Color_Fila .Boton_Secundario.Activo {
-        background: rgba(15, 95, 90, 0.1);
+      .Archivero_Color_Fila .Archivero_Btn_Color_Cajon:hover {
+        border-color: var(--Acento);
+        color: var(--Acento);
+      }
+
+      .Archivero_Color_Fila .Archivero_Btn_Color_Cajon.Activo {
+        background: rgba(15, 95, 90, 0.08);
+        border-style: solid;
+        border-color: rgba(15, 95, 90, 0.24);
         color: var(--Acento);
       }
 
@@ -11055,7 +11070,7 @@
                 id="Archivero_Nota_Color_Input"
                 value="#ffffff">
               <button type="button"
-                class="Boton_Secundario"
+                class="Archivero_Btn_Color_Cajon"
                 id="Archivero_Nota_Color_Cajon_Btn"
                 data-i18n="archivero.usar_color_cajon">
                 Usar color del cajón
@@ -21607,6 +21622,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Cajon_Archivero_Tiene_Color(Cajon_Id) {
+        return Boolean(
+          Normalizar_Color_Hex(
+            Obtener_Color_Cajon_Archivero(Cajon_Id)
+          )
+        );
+      }
+
       function Reordenar_Archiveros(
         Origen_Id,
         Destino_Id,
@@ -22875,19 +22898,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Archivero_Nota_Color_Cajon_Btn"
         );
         if (!Select || !Color || !Btn) return;
-        const Color_Cajon = Obtener_Color_Input_Archivero(
-          Select.value
+        const Color_Cajon = Normalizar_Color_Hex(
+          Obtener_Color_Cajon_Archivero(Select.value)
         );
         const Usa_Cajon =
           (Color.dataset.modo || "Cajon") === "Cajon";
-        Btn.classList.toggle("Activo", Usa_Cajon);
-        if (Usa_Cajon) {
+        Btn.classList.toggle(
+          "Activo",
+          Usa_Cajon && Boolean(Color_Cajon)
+        );
+        if (Usa_Cajon && Color_Cajon) {
           Color.value = Color_Cajon;
           return;
         }
         Color.value =
           Normalizar_Color_Hex(Color.dataset.personalizado) ||
-          Color_Cajon;
+          Color_Cajon ||
+          Color.value ||
+          "#ffffff";
       }
 
       function Registrar_Color_Modal_Nota_Archivero() {
@@ -22902,10 +22930,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Activar_Color_Cajon_Modal_Nota_Archivero() {
+        const Select = document.getElementById(
+          "Archivero_Nota_Cajon_Select"
+        );
         const Color = document.getElementById(
           "Archivero_Nota_Color_Input"
         );
-        if (!Color) return;
+        if (!Color || !Select) return;
+        if (!Cajon_Archivero_Tiene_Color(Select.value)) {
+          return;
+        }
         Color.dataset.modo = "Cajon";
         Color.dataset.personalizado = "";
         Sincronizar_Color_Modal_Nota_Archivero();

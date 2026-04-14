@@ -99,6 +99,12 @@ test("hereda color del cajon y permite override por nota", async ({
         Nombre: "Ideas",
         Emoji: "💡",
         Color_Fondo: "#aaffaa"
+      },
+      {
+        Id: "c3",
+        Nombre: "Sin color",
+        Emoji: "🎨",
+        Color_Fondo: ""
       }
     ],
     Notas_Archivero: [
@@ -209,6 +215,17 @@ test("hereda color del cajon y permite override por nota", async ({
       bubbles: true
     }));
   });
+  await page.selectOption("#Archivero_Nota_Cajon_Select", "c3");
+  await expect(
+    page.locator("#Archivero_Nota_Color_Cajon_Btn")
+  ).not.toHaveClass(/Activo/);
+  await expect(
+    page.locator("#Archivero_Nota_Color_Input")
+  ).toHaveValue("#123456");
+  await page.click("#Archivero_Nota_Color_Cajon_Btn");
+  await expect(
+    page.locator("#Archivero_Nota_Color_Input")
+  ).toHaveValue("#123456");
   await page.fill("#Archivero_Nota_Texto_Input", "Nueva");
   await page.click("#Archivero_Nota_Guardar");
 
@@ -216,6 +233,6 @@ test("hereda color del cajon y permite override por nota", async ({
     return Notas_Archivero.find((Nota) => Nota.Texto === "Nueva");
   });
 
-  expect(nueva.Archivero_Id).toBe("c2");
+  expect(nueva.Archivero_Id).toBe("c3");
   expect(nueva.Color_Fondo).toBe("#123456");
 });
