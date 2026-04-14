@@ -743,6 +743,8 @@
         padding-bottom: 10px;
         min-height: var(--Calendario_Top_Altura);
         background: var(--Panel);
+        position: relative;
+        z-index: 30;
       }
 
       .Semana_Navegacion {
@@ -4267,6 +4269,61 @@
         flex-wrap: wrap;
       }
 
+      .Cfg_Apps_Lista {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .Cfg_Apps_Lista .Config_Dato_Btn {
+        min-width: 140px;
+      }
+
+      .Cfg_App_Panel {
+        width: min(520px, calc(100vw - 28px));
+      }
+
+      .Cfg_App_Cuerpo {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 16px 18px 18px;
+      }
+
+      .Cfg_App_Icono {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        border: 1px solid var(--Borde);
+        background: #f7f2e8;
+        display: grid;
+        place-items: center;
+        font-size: 28px;
+      }
+
+      .Cfg_App_Texto {
+        margin: 0;
+        line-height: 1.5;
+        color: var(--Texto);
+      }
+
+      .Cfg_App_Nota {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--Texto_Suave);
+      }
+
+      .Cfg_App_Acciones {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .Cfg_App_Descargar_Btn[aria-disabled="true"] {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
       .Config_Seccion_Cuenta .Cfg_Cuenta_Separador {
         margin: 8px 0 6px;
       }
@@ -7740,6 +7797,42 @@
         color: var(--Acento);
       }
 
+      body.Modo_Touch_Asignar .Slot:not(.Slot_Muerto) {
+        box-shadow:
+          inset 0 0 0 1px rgba(19, 111, 98, 0.18);
+        background: rgba(19, 111, 98, 0.04);
+      }
+
+      @media (pointer: coarse), (max-width: 720px) {
+        body {
+          --Calendario_Top_Altura: 66px;
+        }
+
+        .Semana_Boton,
+        .Config_Boton,
+        .Config_Cerrar,
+        .Baul_Cerrar_Flotante {
+          width: 44px;
+          height: 44px;
+        }
+
+        .Semana_Hoy_Btn,
+        .Auth_Btn_Principal,
+        .Dialogo_Boton,
+        .Menu_Hamburguesa_Item {
+          min-height: 44px;
+        }
+
+        .Calendario_Top {
+          z-index: 60;
+        }
+
+        .Dia_Header {
+          position: relative;
+          z-index: 1;
+        }
+      }
+
       .Menu_Hamburguesa_Item_Icono {
         font-size: 16px;
         line-height: 1;
@@ -7778,7 +7871,7 @@
         position: absolute;
         inset: 0;
         background: rgba(31, 31, 31, 0.22);
-        z-index: 50;
+        z-index: 6000;
         border-radius: var(--Radio);
         align-items: flex-start;
         justify-content: center;
@@ -10315,6 +10408,40 @@
 
               <div class="Cfg_Cuenta_Separador"></div>
 
+              <div class="Cfg_Cuenta_Campo">
+                <p class="Config_Seccion_Titulo Config_Hint">
+                  <span data-i18n="config.apps">
+                    Apps
+                  </span>
+                  <span class="Config_Hint_Icono">ⓘ</span>
+                  <span class="Config_Hint_Texto"
+                    data-i18n="config.apps_hint">
+                    Abrí cada ficha para ver la descarga
+                    disponible.
+                  </span>
+                </p>
+                <div class="Cfg_Apps_Lista">
+                  <button type="button"
+                    id="Cfg_App_Desktop_Btn"
+                    class="Config_Dato_Btn">
+                    <span class="Config_Dato_Btn_Icono">🖥</span>
+                    <span data-i18n="config.app_desktop">
+                      Desktop
+                    </span>
+                  </button>
+                  <button type="button"
+                    id="Cfg_App_Android_Btn"
+                    class="Config_Dato_Btn">
+                    <span class="Config_Dato_Btn_Icono">📱</span>
+                    <span data-i18n="config.app_android">
+                      Android
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="Cfg_Cuenta_Separador"></div>
+
               <div class="Cfg_Cuenta_Campo
                 Cfg_Cuenta_Campo_Acciones">
                 <p class="Config_Seccion_Titulo Config_Hint">
@@ -11088,6 +11215,78 @@
                   class="Archivero_Sub_Btn Primario"
                   id="Cfg_Tipo_Slot_Guardar"
                   data-i18n="guardar">Guardar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="Patron_Modal_Overlay"
+          id="Cfg_App_Desktop_Overlay">
+          <div class="Patron_Modal_Panel Cfg_App_Panel">
+            <div class="Patron_Modal_Cabecera">
+              <span class="Patron_Modal_Titulo"
+                data-i18n="config.app_desktop_titulo">
+                App Desktop
+              </span>
+              <button class="Config_Cerrar"
+                id="Cfg_App_Desktop_Cerrar"
+                type="button">&times;</button>
+            </div>
+            <div class="Cfg_App_Cuerpo">
+              <div class="Cfg_App_Icono">🖥</div>
+              <p class="Cfg_App_Texto"
+                data-i18n="config.app_desktop_desc">
+                Versión de escritorio para Windows con
+                la misma cuenta y sincronización.
+              </p>
+              <p class="Cfg_App_Nota"
+                data-i18n="config.app_sin_link">
+                La descarga todavía no está publicada.
+              </p>
+              <div class="Cfg_App_Acciones">
+                <button type="button"
+                  id="Cfg_App_Desktop_Descargar"
+                  class="Archivero_Sub_Btn Primario
+                    Cfg_App_Descargar_Btn"
+                  data-i18n="config.descargar_app">
+                  Descargar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="Patron_Modal_Overlay"
+          id="Cfg_App_Android_Overlay">
+          <div class="Patron_Modal_Panel Cfg_App_Panel">
+            <div class="Patron_Modal_Cabecera">
+              <span class="Patron_Modal_Titulo"
+                data-i18n="config.app_android_titulo">
+                App Android
+              </span>
+              <button class="Config_Cerrar"
+                id="Cfg_App_Android_Cerrar"
+                type="button">&times;</button>
+            </div>
+            <div class="Cfg_App_Cuerpo">
+              <div class="Cfg_App_Icono">📱</div>
+              <p class="Cfg_App_Texto"
+                data-i18n="config.app_android_desc">
+                Versión móvil para revisar tu semana y
+                usar Semaplan desde el teléfono.
+              </p>
+              <p class="Cfg_App_Nota"
+                data-i18n="config.app_sin_link">
+                La descarga todavía no está publicada.
+              </p>
+              <div class="Cfg_App_Acciones">
+                <button type="button"
+                  id="Cfg_App_Android_Descargar"
+                  class="Archivero_Sub_Btn Primario
+                    Cfg_App_Descargar_Btn"
+                  data-i18n="config.descargar_app">
+                  Descargar
+                </button>
               </div>
             </div>
           </div>
@@ -13150,6 +13349,25 @@
           "config.pasar_premium":
             "Pasar a Premium",
           "config.ver_planes": "Ver planes",
+          "config.apps": "Apps",
+          "config.apps_hint":
+            "Abrí cada ficha para ver la descarga " +
+            "disponible.",
+          "config.app_desktop": "Desktop",
+          "config.app_android": "Android",
+          "config.app_desktop_titulo":
+            "App Desktop",
+          "config.app_android_titulo":
+            "App Android",
+          "config.app_desktop_desc":
+            "Versión de escritorio para Windows " +
+            "con la misma cuenta y sincronización.",
+          "config.app_android_desc":
+            "Versión móvil para revisar tu semana " +
+            "y usar Semaplan desde el teléfono.",
+          "config.app_sin_link":
+            "La descarga todavía no está publicada.",
+          "config.descargar_app": "Descargar",
           "config.acciones_cuenta":
             "Acciones de cuenta",
           "config.acciones_cuenta_hint":
@@ -15458,6 +15676,25 @@
             "all your data.",
           "config.cancelar_suscripcion":
             "Cancel subscription",
+          "config.apps": "Apps",
+          "config.apps_hint":
+            "Open each card to see the available " +
+            "download.",
+          "config.app_desktop": "Desktop",
+          "config.app_android": "Android",
+          "config.app_desktop_titulo":
+            "Desktop app",
+          "config.app_android_titulo":
+            "Android app",
+          "config.app_desktop_desc":
+            "Desktop version for Windows with the " +
+            "same account and sync.",
+          "config.app_android_desc":
+            "Mobile version to review your week and " +
+            "use Semaplan from your phone.",
+          "config.app_sin_link":
+            "The download has not been published yet.",
+          "config.descargar_app": "Download",
           "config.contrasena": "Password",
           "config.cambiar_password":
             "Change password",
@@ -17749,6 +17986,25 @@
             "definitivo e apaga todo o seu estado.",
           "config.cancelar_suscripcion":
             "Cancelar assinatura",
+          "config.apps": "Apps",
+          "config.apps_hint":
+            "Abra cada ficha para ver o download " +
+            "disponível.",
+          "config.app_desktop": "Desktop",
+          "config.app_android": "Android",
+          "config.app_desktop_titulo":
+            "App Desktop",
+          "config.app_android_titulo":
+            "App Android",
+          "config.app_desktop_desc":
+            "Versão de desktop para Windows com a " +
+            "mesma conta e sincronização.",
+          "config.app_android_desc":
+            "Versão móvel para revisar a semana e " +
+            "usar o Semaplan no telefone.",
+          "config.app_sin_link":
+            "O download ainda não foi publicado.",
+          "config.descargar_app": "Baixar",
           "config.contrasena": "Senha",
           "config.cambiar_password":
             "Alterar senha",
@@ -20236,6 +20492,9 @@
       let Tipos_Slot_Inicializados = false;
       let Patrones_Backup_Config = null;
       let Contador_Eventos = 1;
+      let Tarea_Touch_Para_Bloque_Id = null;
+      const Url_App_Desktop = "";
+      const Url_App_Android = "";
       let Tarea_Seleccionada_Id = null;
       let Modo_Editor_Abierto = false;
       let Semana_Actual = null;
@@ -20254,6 +20513,36 @@
       let Baul_Semanas_Resolver = null;
       let Baul_Semanas_Borrador = [];
       let Baul_Drag_Origen_Id = null;
+
+      function Interaccion_Touch_Activa() {
+        return Boolean(
+          (
+            typeof navigator !== "undefined" &&
+            navigator.maxTouchPoints > 0
+          ) ||
+          (
+            typeof window !== "undefined" &&
+            typeof window.matchMedia === "function" &&
+            window.matchMedia("(pointer: coarse)").matches
+          )
+        );
+      }
+
+      function Actualizar_Modo_Touch_Calendario() {
+        document.body.classList.toggle(
+          "Modo_Touch_Asignar",
+          Interaccion_Touch_Activa() &&
+            Boolean(Tarea_Touch_Para_Bloque_Id)
+        );
+      }
+
+      function Obtener_Punto_Menu_El(El) {
+        const Rect = El.getBoundingClientRect();
+        return {
+          X: Rect.left + Rect.width / 2,
+          Y: Rect.top + Math.min(Rect.height / 2, 24)
+        };
+      }
       let Cfg_Categoria_Meta_Activa_Id = null;
       let Cfg_Tipo_Slot_En_Edicion_Id = null;
       let Metas = [];
@@ -20431,6 +20720,12 @@
       );
       const El_Cfg_Tipo_Slot_Overlay = document.getElementById(
         "Cfg_Tipo_Slot_Overlay"
+      );
+      const El_Cfg_App_Desktop_Overlay = document.getElementById(
+        "Cfg_App_Desktop_Overlay"
+      );
+      const El_Cfg_App_Android_Overlay = document.getElementById(
+        "Cfg_App_Android_Overlay"
       );
       const El_Cfg_Cat_Metas_Titulo = document.getElementById(
         "Cfg_Cat_Metas_Titulo"
@@ -30929,6 +31224,57 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Cfg_Tipo_Slot_Overlay?.classList.remove("Activo");
       }
 
+      function Obtener_Url_App_Config(Tipo) {
+        if (Tipo === "Desktop") return Url_App_Desktop;
+        if (Tipo === "Android") return Url_App_Android;
+        return "";
+      }
+
+      function Sincronizar_Boton_Descarga_App(Tipo) {
+        const Btn = document.getElementById(
+          `Cfg_App_${Tipo}_Descargar`
+        );
+        if (!Btn) return;
+        const Url = Obtener_Url_App_Config(Tipo);
+        const Disponible = Boolean(Url);
+        Btn.disabled = !Disponible;
+        Btn.setAttribute(
+          "aria-disabled",
+          Disponible ? "false" : "true"
+        );
+        Btn.dataset.url = Url;
+      }
+
+      function Abrir_Modal_App_Config(Tipo) {
+        const Overlay = document.getElementById(
+          `Cfg_App_${Tipo}_Overlay`
+        );
+        if (!Overlay) return;
+        Sincronizar_Boton_Descarga_App(Tipo);
+        Overlay.classList.add("Activo");
+        const Btn = document.getElementById(
+          `Cfg_App_${Tipo}_Descargar`
+        );
+        const Cerrar = document.getElementById(
+          `Cfg_App_${Tipo}_Cerrar`
+        );
+        setTimeout(() => {
+          (Btn && !Btn.disabled ? Btn : Cerrar)?.focus();
+        }, 0);
+      }
+
+      function Cerrar_Modal_App_Config(Tipo) {
+        document.getElementById(
+          `Cfg_App_${Tipo}_Overlay`
+        )?.classList.remove("Activo");
+      }
+
+      function Descargar_App_Config(Tipo) {
+        const Url = Obtener_Url_App_Config(Tipo);
+        if (!Url) return;
+        window.open(Url, "_blank", "noopener");
+      }
+
       function Guardar_Tipo_Slot_Config_Desde_Modal() {
         const Nombre = (
           document.getElementById(
@@ -34656,6 +35002,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Cerrar_Config_Metadatos();
         Cerrar_Modal_Tipo_Slot_Config();
+        Cerrar_Modal_App_Config("Desktop");
+        Cerrar_Modal_App_Config("Android");
         El_Config_Overlay.classList.remove("Activo");
         // Restaurar el scroll del fondo bloqueado al abrir.
         document.documentElement.style.overflow = "";
@@ -36418,6 +36766,84 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Tarea_Seleccionada() {
         return Tareas.find((Tarea) => Tarea.Id === Tarea_Seleccionada_Id) || null;
+      }
+
+      function Tarea_Touch_Para_Bloque() {
+        return Tareas.find((Tarea) =>
+          Tarea.Id === Tarea_Touch_Para_Bloque_Id
+        ) || null;
+      }
+
+      function Crear_Evento_Desde_Tarea(
+        Tarea,
+        Fecha,
+        Hora,
+        Duracion = Config.Duracion_Default
+      ) {
+        if (!Tarea) return false;
+
+        if (
+          Tarea.Es_Bolsa &&
+          Calcular_Horas_Restantes(Tarea) < Duracion
+        ) {
+          alert(t("dialog.sin_horas_bolsa"));
+          return false;
+        }
+
+        const Motivo_Conflicto =
+          Obtener_Motivo_Conflicto_Evento(
+            Fecha,
+            Hora,
+            Duracion
+          );
+        if (Motivo_Conflicto) {
+          alert(Motivo_Conflicto);
+          return false;
+        }
+
+        Eventos.push({
+          Id: `Evento_${Contador_Eventos++}`,
+          Tarea_Id: Tarea.Id,
+          Fecha,
+          Inicio: Hora,
+          Duracion,
+          Hecho: false,
+          Color: Tarea.Color
+        });
+
+        Render_Emojis();
+        Render_Resumen_Tarea();
+        Render_Editor();
+        Render_Eventos();
+        Guardar_Estado();
+        return true;
+      }
+
+      function Manejar_Click_Slot_Touch(
+        Fecha,
+        Hora,
+        Slot
+      ) {
+        if (!Interaccion_Touch_Activa()) return;
+
+        const Tarea = Tarea_Touch_Para_Bloque();
+        if (Tarea) {
+          Crear_Evento_Desde_Tarea(Tarea, Fecha, Hora);
+          return;
+        }
+
+        if (
+          Slot_Es_Muerto(Fecha, Hora) ||
+          Slot_Esta_Vacio(Fecha, Hora)
+        ) {
+          const Punto = Obtener_Punto_Menu_El(Slot);
+          Mostrar_Menu_Slot(
+            Fecha,
+            Hora,
+            Punto.X,
+            Punto.Y
+          );
+        }
       }
 
       function Reordenar_Tareas(Tarea_Origen_Id, Tarea_Destino_Id) {
@@ -38282,7 +38708,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Limpiar_Seleccion() {
-        if (!Tarea_Seleccionada_Id && !Modo_Editor_Abierto && !Subtarea_En_Edicion_Id) return;
+        if (
+          !Tarea_Seleccionada_Id &&
+          !Tarea_Touch_Para_Bloque_Id &&
+          !Modo_Editor_Abierto &&
+          !Subtarea_En_Edicion_Id
+        ) return;
+        Tarea_Touch_Para_Bloque_Id = null;
         Tarea_Seleccionada_Id = null;
         Modo_Editor_Abierto = false;
         Subtarea_En_Edicion_Id = null;
@@ -39225,7 +39657,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Boton = document.createElement("button");
         Boton.type = "button";
         Boton.className = "Emoji_Item";
-        if (Tarea.Id === Tarea_Seleccionada_Id) Boton.classList.add("Activa");
+        if (
+          Tarea.Id === Tarea_Seleccionada_Id ||
+          Tarea.Id === Tarea_Touch_Para_Bloque_Id
+        ) {
+          Boton.classList.add("Activa");
+        }
         if (Tareas_Multi_Seleccion.has(Tarea.Id)) {
           Boton.classList.add("Multi_Activa");
         }
@@ -39306,6 +39743,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Modo_Editor_Abierto = false;
               }
             }
+            Tarea_Touch_Para_Bloque_Id = null;
             Render_Emojis();
             Render_Resumen_Tarea();
             Render_Editor();
@@ -39319,10 +39757,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Render_Barra_Multi_Seleccion();
           }
 
+          if (Interaccion_Touch_Activa()) {
+            if (Tarea_Touch_Para_Bloque_Id === Tarea.Id) {
+              Tarea_Touch_Para_Bloque_Id = null;
+              Tarea_Seleccionada_Id = Tarea.Id;
+            } else {
+              Tarea_Touch_Para_Bloque_Id = Tarea.Id;
+              Tarea_Seleccionada_Id = null;
+            }
+            Modo_Editor_Abierto = false;
+            Subtarea_En_Edicion_Id = null;
+            Render_Emojis();
+            Render_Resumen_Tarea();
+            Render_Editor();
+            Guardar_Estado();
+            return;
+          }
+
           if (Tarea_Seleccionada_Id === Tarea.Id) {
             Limpiar_Seleccion();
             return;
           }
+          Tarea_Touch_Para_Bloque_Id = null;
           Tarea_Seleccionada_Id = Tarea.Id;
           Modo_Editor_Abierto = false;
           Subtarea_En_Edicion_Id = null;
@@ -40423,9 +40879,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         // Si la tarea activa ya no es visible, limpiar selección.
         const Tarea_Activa = Tarea_Seleccionada();
-        if (Tarea_Activa && !Tarea_Es_Visible(Tarea_Activa)) {
+        const Tarea_Touch = Tarea_Touch_Para_Bloque();
+        if (
+          (Tarea_Activa && !Tarea_Es_Visible(Tarea_Activa)) ||
+          (Tarea_Touch && !Tarea_Es_Visible(Tarea_Touch))
+        ) {
           Limpiar_Seleccion();
+          return;
         }
+
+        Actualizar_Modo_Touch_Calendario();
       }
 
 
@@ -40936,6 +41399,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Es_Slot_Pasado(Fecha_ISO, Hora)) Slot.classList.add("Slot_Pasado");
           Slot.addEventListener("dragover", (Evento) => Evento.preventDefault());
           Slot.addEventListener("drop", Manejar_Drop);
+          Slot.addEventListener("click", () => {
+            Manejar_Click_Slot_Touch(
+              Fecha_ISO,
+              Hora,
+              Slot
+            );
+          });
           Slot.addEventListener("dblclick", () => Alternar_Slot_Muerto(Fecha_ISO, Hora));
           Slot.addEventListener("contextmenu", async (Evento) => {
             Evento.preventDefault();
@@ -41092,6 +41562,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             E.preventDefault();
             E.stopPropagation();
             Mostrar_Menu_Evento(Evento, E.clientX, E.clientY);
+          });
+
+          Bloque.addEventListener("click", (E) => {
+            if (!Interaccion_Touch_Activa()) return;
+            if (
+              E.target.closest(".Evento_Boton") ||
+              E.target.closest(".Evento_Nota_Marca") ||
+              E.target.closest(".Evento_Resize_Handle")
+            ) {
+              return;
+            }
+            E.stopPropagation();
+            const Punto = Obtener_Punto_Menu_El(Bloque);
+            Mostrar_Menu_Evento(
+              Evento,
+              Punto.X,
+              Punto.Y
+            );
           });
 
           // Hover de 2s sobre el bloque → tooltip con el
@@ -41736,36 +42224,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Payload.Tipo === "Tarea") {
           const Tarea = Tarea_Por_Id(Payload.Tarea_Id);
           if (!Tarea) return;
-
-          if (Tarea.Es_Bolsa && Calcular_Horas_Restantes(Tarea) < Duracion) {
-            alert(t("dialog.sin_horas_bolsa"));
-            return;
-          }
-          const Motivo_Conflicto = Obtener_Motivo_Conflicto_Evento(
+          Crear_Evento_Desde_Tarea(
+            Tarea,
             Fecha,
             Hora,
             Duracion
           );
-          if (Motivo_Conflicto) {
-            alert(Motivo_Conflicto);
-            return;
-          }
-
-          Eventos.push({
-            Id: `Evento_${Contador_Eventos++}`,
-            Tarea_Id: Tarea.Id,
-            Fecha,
-            Inicio: Hora,
-            Duracion,
-            Hecho: false,
-            Color: Tarea.Color
-          });
-
-          Render_Emojis();
-          Render_Resumen_Tarea();
-          Render_Editor();
-          Render_Eventos();
-          Guardar_Estado();
+          return;
         }
 
         if (Payload.Tipo === "Evento") {
@@ -41815,37 +42280,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Payload.Tipo === "Tarea") {
           const Tarea = Tarea_Por_Id(Payload.Tarea_Id);
           if (!Tarea) return;
-
-          const Duracion = Config.Duracion_Default;
-          if (Tarea.Es_Bolsa && Calcular_Horas_Restantes(Tarea) < Duracion) {
-            alert(t("dialog.sin_horas_bolsa"));
-            return;
-          }
-          const Motivo_Conflicto = Obtener_Motivo_Conflicto_Evento(
+          Crear_Evento_Desde_Tarea(
+            Tarea,
             Fecha,
-            Hora,
-            Duracion
+            Hora
           );
-          if (Motivo_Conflicto) {
-            alert(Motivo_Conflicto);
-            return;
-          }
-
-          Eventos.push({
-            Id: `Evento_${Contador_Eventos++}`,
-            Tarea_Id: Tarea.Id,
-            Fecha,
-            Inicio: Hora,
-            Duracion,
-            Hecho: false,
-            Color: Tarea.Color
-          });
-
-          Render_Emojis();
-          Render_Resumen_Tarea();
-          Render_Editor();
-          Render_Eventos();
-          Guardar_Estado();
           return;
         }
 
@@ -42024,6 +42463,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Cerrar_Modal_Tipo_Slot_Config();
           }
         });
+      document.getElementById("Cfg_App_Desktop_Overlay")
+        ?.addEventListener("click", (Ev) => {
+          if (Ev.target.id === "Cfg_App_Desktop_Overlay") {
+            Cerrar_Modal_App_Config("Desktop");
+          }
+        });
+      document.getElementById("Cfg_App_Android_Overlay")
+        ?.addEventListener("click", (Ev) => {
+          if (Ev.target.id === "Cfg_App_Android_Overlay") {
+            Cerrar_Modal_App_Config("Android");
+          }
+        });
 
       // Vista del menú: cambio de estilo en vivo desde el Config
       // (sin esperar al Guardar) y wireo del botón ☰ + toggle
@@ -42164,6 +42615,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", Cuenta_Cancelar_Suscripcion);
       document.getElementById("Cfg_Eliminar_Cuenta_Btn")
         ?.addEventListener("click", Cuenta_Eliminar_Cuenta);
+      document.getElementById("Cfg_App_Desktop_Btn")
+        ?.addEventListener("click", () => {
+          Abrir_Modal_App_Config("Desktop");
+        });
+      document.getElementById("Cfg_App_Android_Btn")
+        ?.addEventListener("click", () => {
+          Abrir_Modal_App_Config("Android");
+        });
+      document.getElementById("Cfg_App_Desktop_Cerrar")
+        ?.addEventListener("click", () => {
+          Cerrar_Modal_App_Config("Desktop");
+        });
+      document.getElementById("Cfg_App_Android_Cerrar")
+        ?.addEventListener("click", () => {
+          Cerrar_Modal_App_Config("Android");
+        });
+      document.getElementById("Cfg_App_Desktop_Descargar")
+        ?.addEventListener("click", () => {
+          Descargar_App_Config("Desktop");
+        });
+      document.getElementById("Cfg_App_Android_Descargar")
+        ?.addEventListener("click", () => {
+          Descargar_App_Config("Android");
+        });
+      Sincronizar_Boton_Descarga_App("Desktop");
+      Sincronizar_Boton_Descarga_App("Android");
       El_Ayuda_Boton.addEventListener("click", Abrir_Ayuda);
       document.getElementById("Ayuda_Faq_Btn")
         ?.addEventListener("click", Abrir_Ayuda_Faq);
@@ -47537,6 +48014,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Cfg_Tipo_Slot_Abierto = document
           .getElementById("Cfg_Tipo_Slot_Overlay")
           ?.classList.contains("Activo");
+        const Cfg_App_Desktop_Abierto = document
+          .getElementById("Cfg_App_Desktop_Overlay")
+          ?.classList.contains("Activo");
+        const Cfg_App_Android_Abierto = document
+          .getElementById("Cfg_App_Android_Overlay")
+          ?.classList.contains("Activo");
         const Resumen_Abierto = document
           .getElementById("Resumen_Sem_Overlay")
           ?.classList.contains("Activo");
@@ -47589,6 +48072,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (Cfg_Tipo_Slot_Abierto) {
             Cerrar_Modal_Tipo_Slot_Config();
+            Ev.preventDefault();
+            return;
+          }
+          if (Cfg_App_Desktop_Abierto) {
+            Cerrar_Modal_App_Config("Desktop");
+            Ev.preventDefault();
+            return;
+          }
+          if (Cfg_App_Android_Abierto) {
+            Cerrar_Modal_App_Config("Android");
             Ev.preventDefault();
             return;
           }
