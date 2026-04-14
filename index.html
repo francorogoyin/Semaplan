@@ -12942,7 +12942,7 @@
             "Archivero de notas, frases " +
             "e ideas",
           "suscripcion.feat_sync":
-            "Sync entre dispositivos",
+            "Sincronización entre dispositivos",
           "resumen_sem.titulo":
             "Resumen semanal",
           "resumen_tarea.sin_seleccion":
@@ -17194,7 +17194,7 @@
             "Arquivo de notas, frases " +
             "e ideias",
           "suscripcion.feat_sync":
-            "Sync entre dispositivos",
+            "Sincronização entre dispositivos",
           "resumen_sem.titulo":
             "Resumo semanal",
           "resumen_tarea.sin_seleccion":
@@ -18796,6 +18796,13 @@
           Render_Baul();
         }
         if (
+          document.getElementById("Archivero_Overlay")
+            ?.classList.contains("Activo") &&
+          typeof Render_Archivero === "function"
+        ) {
+          Render_Archivero();
+        }
+        if (
           typeof Metas_Abierto === "function" &&
           Metas_Abierto() &&
           typeof Render_Metas === "function"
@@ -18900,6 +18907,11 @@
           Configurar_Auth_UI();
         }
         if (
+          typeof Actualizar_UI_Plan ===
+            "function"
+        ) {
+          Actualizar_UI_Plan();
+        } else if (
           typeof Renderizar_Datos_Cuenta ===
             "function"
         ) {
@@ -20400,10 +20412,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Config.Baul_Ordenar_Por ||
           "Personalizado";
         const Opciones = [
-          { Valor: "Personalizado", Texto: "Personalizado" },
-          { Valor: "Nombre", Texto: "Nombre" },
-          { Valor: "Categoria", Texto: "Categoría" },
-          { Valor: "Etiqueta", Texto: "Etiqueta" }
+          {
+            Valor: "Personalizado",
+            Texto: t("config.personalizado")
+          },
+          {
+            Valor: "Nombre",
+            Texto: t("nombre")
+          },
+          {
+            Valor: "Categoria",
+            Texto: t("sidebar.categoria")
+          },
+          {
+            Valor: "Etiqueta",
+            Texto: t("baul.etiqueta")
+          }
         ];
         const Categoria_Id = El_Baul_Filtro_Categoria?.value || "";
         Obtener_Metadatos_Categoria(Categoria_Id).forEach((Metadato) => {
