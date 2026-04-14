@@ -49,7 +49,11 @@ function Crear_Ventana_Principal() {
   const Ventana = new BrowserWindow({
     autoHideMenuBar: true,
     height: 900,
-    icon: Path.join(app.getAppPath(), "Semaplan.ico"),
+    icon: Path.join(
+      app.getAppPath(),
+      "Desktop",
+      "Semaplan.ico"
+    ),
     minHeight: 720,
     minWidth: 1024,
     show: false,

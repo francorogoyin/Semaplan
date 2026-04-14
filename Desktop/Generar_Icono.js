@@ -207,7 +207,6 @@ function Guardar_Icono() {
   const Buffer_Ico = Crear_Ico(Buffer_Png);
   const Ruta_Salida = Path.join(
     __dirname,
-    "..",
     "Semaplan.ico"
   );
 
