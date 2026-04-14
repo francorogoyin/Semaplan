@@ -129,6 +129,57 @@ test("muestra apps en config y descarga inactiva", async ({
     .toContainText("teléfono");
 });
 
+test("deja en apps el mismo aire visual que pagos", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  const resultado = await page.evaluate(() => {
+    Suscripcion_Historial_Remoto = [
+      {
+        fecha_evento: "2026-04-12T05:40:00Z",
+        monto: 999,
+        moneda: "ARS",
+        estado: "approved"
+      }
+    ];
+    Suscripcion_Detalle_Remota = null;
+    Renderizar_Historial_Pagos_Cuenta();
+
+    const Separadores = document.querySelectorAll(
+      ".Cfg_Cuenta_Separador"
+    );
+    const Sep_Pagos = Separadores[0];
+    const Sep_Apps = Separadores[1];
+    const Pago = document.querySelector(
+      "#Cfg_Pagos_Historial .Cfg_Pagos_Tabla"
+    );
+    const Boton = document.querySelector(
+      ".Cfg_Apps_Lista .Config_Dato_Btn:last-child"
+    );
+    const Estilos_Apps = getComputedStyle(
+      document.querySelector(".Cfg_Apps_Lista")
+    );
+
+    return {
+      gapPagos: Math.round(
+        Sep_Pagos.getBoundingClientRect().top -
+        Pago.getBoundingClientRect().bottom
+      ),
+      gapApps: Math.round(
+        Sep_Apps.getBoundingClientRect().top -
+        Boton.getBoundingClientRect().bottom
+      ),
+      marginBottomApps: Estilos_Apps.marginBottom
+    };
+  });
+
+  expect(resultado.marginBottomApps).toBe("10px");
+  expect(
+    Math.abs(resultado.gapApps - resultado.gapPagos)
+  ).toBeLessThanOrEqual(2);
+});
+
 test("traduce la seccion de apps y sus modales", async ({
   page
 }) => {
