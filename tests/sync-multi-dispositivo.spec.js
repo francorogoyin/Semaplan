@@ -840,7 +840,71 @@ test(
       "todavía hay cambios sin guardar"
     );
     expect(Resumen.signOuts).toEqual([]);
-    expect(Resumen.syncEstado).toBe("Error");
+    expect(Resumen.syncEstado).toBe("Guardando");
+  }
+);
+
+test(
+  "reintenta el sync automaticamente hasta guardar",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      Sync_Reintento_Demoras_Ms = [20, 20, 20];
+
+      Tareas.push({
+        Id: 126,
+        Nombre: "Cambio con retry",
+        Emoji: "Ã°Å¸Â§Âª",
+        Color: "#f1b77e",
+        Horas: 1,
+        Dia: 0,
+        Hora: 9,
+        Duracion: 1,
+        Subtareas: [],
+        Copias_Semana: {}
+      });
+      Guardar_Estado();
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+      window.__Forzar_Error_Update = true;
+
+      const Primer_Intento = await Backend_Sync_Ejecutar();
+      const Estado_Tras_Fallo = Sync_Estado;
+      const Retry_Programado =
+        Boolean(Sync_Reintento_Timer_Id);
+
+      setTimeout(() => {
+        window.__Forzar_Error_Update = false;
+      }, 30);
+
+      await new Promise((Resolver) =>
+        setTimeout(Resolver, 120)
+      );
+
+      return {
+        primerIntento: Primer_Intento,
+        estadoTrasFallo: Estado_Tras_Fallo,
+        retryProgramado: Retry_Programado,
+        syncEstadoFinal: Sync_Estado,
+        timerActivo: Boolean(Sync_Reintento_Timer_Id),
+        sucio: Sync_Local_Sucio,
+        remoto:
+          (window.__Estado_Remoto?.estado?.Tareas || [])
+            .map((Tarea) => Tarea.Nombre)
+      };
+    });
+
+    expect(Resumen.primerIntento).toBe(false);
+    expect(Resumen.estadoTrasFallo).toBe("Guardando");
+    expect(Resumen.retryProgramado).toBe(true);
+    expect(Resumen.syncEstadoFinal).toBe("Guardado");
+    expect(Resumen.timerActivo).toBe(false);
+    expect(Resumen.sucio).toBe(false);
+    expect(Resumen.remoto).toContain("Cambio con retry");
   }
 );
 

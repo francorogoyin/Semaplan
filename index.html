@@ -48704,6 +48704,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // Indica si hay una subida activa a la nube.
       let Sync_En_Curso = false;
       let Sync_Promesa_En_Curso = null;
+      let Sync_Reintento_Timer_Id = null;
+      let Sync_Reintento_Intentos = 0;
+      let Sync_Reintento_Demoras_Ms = [
+        2000,
+        5000,
+        10000,
+        30000
+      ];
       // Estado actual del indicador de sync.
       let Sync_Estado = "Guardado";
       let Sync_Token_Actual = "";
@@ -48981,6 +48989,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           clearTimeout(Sync_Timer_Id);
           Sync_Timer_Id = null;
         }
+        if (Sync_Reintento_Timer_Id) {
+          clearTimeout(Sync_Reintento_Timer_Id);
+          Sync_Reintento_Timer_Id = null;
+        }
+        Sync_Reintento_Intentos = 0;
         Sync_En_Curso = false;
         Sync_Promesa_En_Curso = null;
         Sync_Remoto_Revisando = false;
@@ -49027,6 +49040,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Datos = null,
         Estado_Sincronizado = null
       ) {
+        if (Sync_Reintento_Timer_Id) {
+          clearTimeout(Sync_Reintento_Timer_Id);
+          Sync_Reintento_Timer_Id = null;
+        }
+        Sync_Reintento_Intentos = 0;
         Sync_Remoto_Fila_Existe = true;
         if (Datos) {
           Actualizar_Meta_Remota(Datos);
@@ -49570,10 +49588,55 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       // ----- Sincronización con Supabase -----
 
+      function Limpiar_Reintento_Sync() {
+        if (Sync_Reintento_Timer_Id) {
+          clearTimeout(Sync_Reintento_Timer_Id);
+          Sync_Reintento_Timer_Id = null;
+        }
+        Sync_Reintento_Intentos = 0;
+      }
+
+      function Obtener_Demora_Reintento_Sync() {
+        const Demoras = Array.isArray(Sync_Reintento_Demoras_Ms)
+          ? Sync_Reintento_Demoras_Ms
+          : [];
+        const Max = Math.max(0, Demoras.length - 1);
+        const Index = Math.max(
+          0,
+          Math.min(Sync_Reintento_Intentos, Max)
+        );
+        return Number(Demoras[Index]) || 2000;
+      }
+
+      function Programar_Reintento_Sync(
+        Permitir_En_Curso = false
+      ) {
+        if (!Supa || !Usuario_Actual) return false;
+        if (Sync_Conflicto_Pendiente) return false;
+        if (!Sync_Local_Sucio) return false;
+        if (Sync_Timer_Id) return false;
+        if (!Permitir_En_Curso && Sync_En_Curso) {
+          return false;
+        }
+        if (!Permitir_En_Curso && Sync_Promesa_En_Curso) {
+          return false;
+        }
+        if (Sync_Reintento_Timer_Id) return true;
+        const Demora = Obtener_Demora_Reintento_Sync();
+        Sync_Reintento_Intentos += 1;
+        Actualizar_Sync_Indicador("Guardando");
+        Sync_Reintento_Timer_Id = setTimeout(() => {
+          Sync_Reintento_Timer_Id = null;
+          Backend_Sync_Ejecutar();
+        }, Demora);
+        return true;
+      }
+
       function Backend_Sync_Programar() {
         // Debounce: se acumulan cambios y a los 2s se manda uno.
         if (Cargando_Inicial) return;
         if (!Usuario_Actual) return;
+        Limpiar_Reintento_Sync();
         if (Sync_Timer_Id) clearTimeout(Sync_Timer_Id);
         Actualizar_Sync_Indicador("Guardando");
         Sync_Timer_Id = setTimeout(
@@ -49583,6 +49646,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Hay_Sync_Pendiente() {
         return Boolean(Sync_Timer_Id) ||
+          Boolean(Sync_Reintento_Timer_Id) ||
           Boolean(Sync_En_Curso) ||
           Sync_Estado === "Guardando";
       }
@@ -49721,6 +49785,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
             return true;
           } catch (E) {
+            let Hay_Conflicto = false;
             try {
               const Marca_Anterior_Ms =
                 Sync_Remoto_Marca_Ms;
@@ -49742,6 +49807,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     Marca_Anterior_Ms + 1000 ||
                   E?.Es_Conflicto_Sync
                 ) {
+                  Hay_Conflicto = true;
                   Programar_Conflicto_Sync(
                     Marca_Remota_Ms
                   );
@@ -49749,7 +49815,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               }
             } catch (_) {}
             console.error("Error sincronizando:", E);
-            Actualizar_Sync_Indicador("Error");
+            if (
+              !Hay_Conflicto &&
+              !Sync_Conflicto_Pendiente &&
+              Sync_Local_Sucio
+            ) {
+              Programar_Reintento_Sync(true);
+            } else {
+              Actualizar_Sync_Indicador("Error");
+            }
             return false;
           } finally {
             Sync_En_Curso = false;
@@ -49768,6 +49842,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Sync_Timer_Id) {
           clearTimeout(Sync_Timer_Id);
           Sync_Timer_Id = null;
+        }
+        if (Sync_Reintento_Timer_Id) {
+          clearTimeout(Sync_Reintento_Timer_Id);
+          Sync_Reintento_Timer_Id = null;
         }
 
         const Estado_Local =
@@ -49836,7 +49914,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               "Error sincronizando al ocultar:",
               E
             );
-            Actualizar_Sync_Indicador("Error");
+            if (!Programar_Reintento_Sync(true)) {
+              Actualizar_Sync_Indicador("Error");
+            }
           })
           .finally(() => {
             Sync_En_Curso = false;
