@@ -266,6 +266,80 @@ test("renderiza emojis visibles como imagenes", async ({
   expect(resultado.selectorBtn).toBeTruthy();
 });
 
+test("usa fallback de emoji en el modal de nueva nota", async ({
+  page
+}) => {
+  const estadoInicial = {
+    Tareas: [],
+    Eventos: [],
+    Metas: [],
+    Slots_Muertos: [],
+    Plantillas_Subtareas: [],
+    Planes_Slot: {},
+    Categorias: [],
+    Etiquetas: [],
+    Baul_Tareas: [],
+    Baul_Grupos_Colapsados: {},
+    Archiveros: [
+      {
+        Id: "a1",
+        Nombre: "Semaplan",
+        Emoji: "🗃️",
+        Fecha_Creacion: 1
+      }
+    ],
+    Notas_Archivero: [],
+    Patrones: [],
+    Contador_Eventos: 1,
+    Tarea_Seleccionada_Id: null,
+    Modo_Editor_Abierto: false,
+    Inicio_Semana: "2026-04-13",
+    Duracion_Defecto: 1,
+    Config_Extra: {},
+    Tipos_Slot: [],
+    Tipos_Slot_Inicializados: false,
+    Slots_Muertos_Tipos: {},
+    Slots_Muertos_Nombres: {},
+    Abordajes_Migrados_V1: true,
+    Semanas_Con_Defaults: [],
+    Planes_Semana: {},
+    Archivero_Seleccion_Id: "a1"
+  };
+
+  await preparar(page, estadoInicial);
+
+  const resultado = await page.evaluate(async () => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    await window.Inicializar();
+    window.Archivero_Seleccion_Id = "a1";
+    window.Abrir_Archivero();
+    window.Abrir_Modal_Nota_Archivero();
+    const ids = [
+      "Archivero_Nota_Texto_Input",
+      "Archivero_Nota_Origen_Input",
+      "Archivero_Nota_Etiquetas_Input"
+    ];
+    return ids.map((id) => {
+      const el = document.getElementById(id);
+      return {
+        id,
+        clase: el?.className || "",
+        fuente: el ? window.getComputedStyle(el).fontFamily : ""
+      };
+    });
+  });
+
+  resultado.forEach((campo) => {
+    expect(campo.clase).toContain(
+      "Archivero_Nota_Input_Emoji"
+    );
+    expect(campo.fuente).toContain("Segoe UI Emoji");
+  });
+});
+
 test("renderiza emoji como imagen en bloques del calendario", async ({
   page
 }) => {
