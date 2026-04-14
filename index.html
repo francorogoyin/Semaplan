@@ -3807,6 +3807,7 @@
         height: var(--Slot_Altura);
         border-bottom: 1px solid var(--Borde);
         background: rgba(255, 255, 255, 0.72);
+        user-select: none;
       }
 
       .Slot_Muerto {
@@ -39005,7 +39006,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Slot_Muerto_Tiene_Titulo(Fecha, Hora) {
-        return Boolean(
+        return Slot_Es_Muerto(Fecha, Hora) && Boolean(
           Normalizar_Texto_Titulo_Slot(
             Obtener_Nombre_Slot(Fecha, Hora)
           )
@@ -39035,29 +39036,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Clave = Clave_Slot(Fecha, Hora);
         const Index = Slots_Muertos.indexOf(Clave);
         const Tipos = Obtener_Tipos_Slot();
-        const Tipo_Actual = Index === -1
-          ? ""
-          : (
-            Slots_Muertos_Tipos[Clave] ||
-            Tipos[0]?.Id || "Sueno"
-          );
-        const Titulo_Actual = Normalizar_Texto_Titulo_Slot(
-          Slots_Muertos_Nombres[Clave]
-        );
-        const Titulo_Default_Actual =
-          Obtener_Titulo_Tipo_Slot(Tipo_Actual);
-        const Sigue_Default_Actual =
-          Boolean(Titulo_Actual) &&
-          Titulo_Actual === Titulo_Default_Actual;
 
         if (Index === -1) {
           // Libre → primer tipo.
           Crear_Slot_Muerto(
             Fecha,
             Hora,
-            Tipos[0]?.Id || "Sueno"
+            Tipos[0]?.Id || "Sueno",
+            false
           );
         } else {
+          const Tipo_Actual =
+            Slots_Muertos_Tipos[Clave] ||
+            Tipos[0]?.Id || "Sueno";
           const Idx_Actual = Tipos.findIndex(
             (T) => T.Id === Tipo_Actual
           );
@@ -39066,24 +39057,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Idx_Actual < Tipos.length - 1
           ) {
             // Avanzar al siguiente tipo.
-            const Tipo_Nuevo = Tipos[Idx_Actual + 1].Id;
-            Slots_Muertos_Tipos[Clave] = Tipo_Nuevo;
-            if (Sigue_Default_Actual) {
-              const Titulo_Nuevo =
-                Obtener_Titulo_Tipo_Slot(Tipo_Nuevo);
-              if (Titulo_Nuevo) {
-                Slots_Muertos_Nombres[Clave] = Titulo_Nuevo;
-              } else {
-                delete Slots_Muertos_Nombres[Clave];
-              }
-            }
+            Slots_Muertos_Tipos[Clave] =
+              Tipos[Idx_Actual + 1].Id;
           } else {
             // Último tipo → Libre.
             Slots_Muertos.splice(Index, 1);
             delete Slots_Muertos_Tipos[Clave];
-            if (Sigue_Default_Actual) {
-              delete Slots_Muertos_Nombres[Clave];
-            }
           }
         }
         Render_Calendario();
@@ -41758,8 +41737,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Obtener_Color_Tipo_Slot(Tipo_M)
             );
           }
-          const Nombre_Slot =
-            Obtener_Nombre_Slot(Fecha_ISO, Hora);
+          const Nombre_Slot = Slot_Es_Muerto(Fecha_ISO, Hora)
+            ? Obtener_Nombre_Slot(Fecha_ISO, Hora)
+            : "";
           if (Nombre_Slot) {
             const Nombre_El = document.createElement("div");
             Nombre_El.className = "Slot_Muerto_Nombre";
