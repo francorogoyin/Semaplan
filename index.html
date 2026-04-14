@@ -5183,6 +5183,11 @@
         margin-bottom: 5px;
       }
 
+      .Baul_Descripcion_Input {
+        min-height: 110px;
+        resize: vertical;
+      }
+
       /* Separador sutil entre secciones (Etiquetas, Metadatos) */
       .Baul_Nuevo_Cuerpo .Baul_Detalle_Scroll > .Campo {
         margin-top: 16px;
@@ -6758,6 +6763,12 @@
       .Evento_Abordaje_Popup_Txt {
         flex: 1;
         min-width: 0;
+        word-break: break-word;
+      }
+
+      .Baul_Descripcion_Popup_Texto {
+        white-space: pre-wrap;
+        line-height: 1.45;
         word-break: break-word;
       }
 
@@ -10931,6 +10942,17 @@
                     </div>
                   </div>
                   <div class="Campo">
+                    <label for="Baul_Descripcion_Input"
+                      data-i18n="baul.descripcion">
+                      Descripción
+                    </label>
+                    <textarea id="Baul_Descripcion_Input"
+                      class="Baul_Descripcion_Input"
+                      data-i18n-ph="baul.descripcion_ph"
+                      placeholder="Detalle amplio de la tarea, contexto, criterio o próximos pasos."
+                    ></textarea>
+                  </div>
+                  <div class="Campo">
                     <label data-i18n="sidebar.etiquetas"
                       >Etiquetas</label>
                     <div class="Selector_Etiquetas"
@@ -12598,6 +12620,12 @@
           "baul.tipo": "Tipo",
           "baul.horas_aprox": "Horas aprox.",
           "baul.fecha_limite": "Fecha límite",
+          "baul.descripcion": "Descripción",
+          "baul.descripcion_ph":
+            "Detalle amplio de la tarea, contexto, " +
+            "criterio o próximos pasos.",
+          "baul.descripcion_tooltip":
+            "Descripción",
           "baul.metadatos": "Metadatos",
           "baul.guardar_baul":
             "Guardar en el baúl",
@@ -14712,6 +14740,12 @@
           "baul.horas_aprox":
             "Approx. hours",
           "baul.fecha_limite": "Deadline",
+          "baul.descripcion": "Description",
+          "baul.descripcion_ph":
+            "Expanded task detail, context, " +
+            "criteria or next steps.",
+          "baul.descripcion_tooltip":
+            "Description",
           "baul.metadatos": "Metadata",
           "baul.guardar_baul":
             "Save to vault",
@@ -16826,6 +16860,12 @@
             "Horas aprox.",
           "baul.fecha_limite":
             "Data limite",
+          "baul.descripcion": "Descrição",
+          "baul.descripcion_ph":
+            "Detalhe amplo da tarefa, contexto, " +
+            "critério ou próximos passos.",
+          "baul.descripcion_tooltip":
+            "Descrição",
           "baul.metadatos": "Metadados",
           "baul.guardar_baul":
             "Salvar no baú",
@@ -19254,6 +19294,9 @@
       const El_Baul_Timeline_Input = document.getElementById(
         "Baul_Timeline_Input"
       );
+      const El_Baul_Descripcion_Input = document.getElementById(
+        "Baul_Descripcion_Input"
+      );
       const El_Baul_Etiquetas_Input =
         document.getElementById("Baul_Etiquetas_Input");
       const El_Baul_Metadatos_Input =
@@ -20453,6 +20496,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             El_Baul_Estado_Input?.value || Tarea?.Estado
           ),
           Archivada: Boolean(Tarea?.Archivada),
+          Descripcion: Normalizar_Descripcion_Baul(
+            El_Baul_Descripcion_Input?.value
+            || Tarea?.Descripcion
+          ),
           Color_Baul:
             Baul_Color_Modo === "Personalizado" &&
             Color_Actual &&
@@ -20527,6 +20574,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (El_Baul_Timeline_Input) {
           El_Baul_Timeline_Input.value = "";
         }
+        if (El_Baul_Descripcion_Input) {
+          El_Baul_Descripcion_Input.value = "";
+        }
         Poblar_Select_Categorias_Baul(null);
         Actualizar_Input_Color_Baul_Desde_Categoria();
         Render_Selector_Etiquetas(
@@ -20581,6 +20631,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Baul_Timeline_Input.value =
             Tarea.Timeline || "";
         }
+        if (El_Baul_Descripcion_Input) {
+          El_Baul_Descripcion_Input.value =
+            Tarea.Descripcion || "";
+        }
         Render_Selector_Etiquetas(
           El_Baul_Etiquetas_Input,
           Tarea.Etiquetas_Ids,
@@ -20633,6 +20687,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             El_Baul_Estado_Input?.value || Existente?.Estado
           ),
           Archivada: Boolean(Existente?.Archivada),
+          Descripcion: Normalizar_Descripcion_Baul(
+            El_Baul_Descripcion_Input?.value
+          ),
           Horas_Aprox: Number(
             El_Baul_Horas_Aprox_Input?.value
           ) || 0,
@@ -21309,6 +21366,84 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         document.addEventListener("click", Fn_Cierre_Menu);
       }
 
+      let El_Popup_Baul_Descripcion_Activo = null;
+
+      function Cerrar_Popup_Descripcion_Baul() {
+        if (El_Popup_Baul_Descripcion_Activo) {
+          El_Popup_Baul_Descripcion_Activo.remove();
+          El_Popup_Baul_Descripcion_Activo = null;
+        }
+      }
+
+      function Mostrar_Popup_Descripcion_Baul(
+        Tarea,
+        Cerca_De
+      ) {
+        const Descripcion = Normalizar_Descripcion_Baul(
+          Tarea?.Descripcion
+        );
+        if (!Descripcion) return;
+        Cerrar_Popup_Descripcion_Baul();
+
+        const Pop = document.createElement("div");
+        Pop.className = "Evento_Abordaje_Popup";
+
+        const Tit = document.createElement("div");
+        Tit.className = "Evento_Abordaje_Popup_Titulo";
+        Tit.textContent = t("baul.descripcion_tooltip");
+        Pop.appendChild(Tit);
+
+        const Texto = document.createElement("div");
+        Texto.className = "Baul_Descripcion_Popup_Texto";
+        Texto.textContent = Descripcion;
+        Pop.appendChild(Texto);
+
+        document.body.appendChild(Pop);
+        El_Popup_Baul_Descripcion_Activo = Pop;
+
+        const Rect_Item = Cerca_De.getBoundingClientRect();
+        const Rect_Pop = Pop.getBoundingClientRect();
+        let Left = Rect_Item.right + 8;
+        let Top = Rect_Item.top;
+        if (Left + Rect_Pop.width > window.innerWidth - 8) {
+          Left = Rect_Item.left - Rect_Pop.width - 8;
+        }
+        if (Left < 8) Left = 8;
+        if (Top + Rect_Pop.height > window.innerHeight - 8) {
+          Top = Math.max(
+            8,
+            window.innerHeight - Rect_Pop.height - 8
+          );
+        }
+        Pop.style.left = `${Left}px`;
+        Pop.style.top = `${Top}px`;
+      }
+
+      function Vincular_Hover_Descripcion_Baul(El, Tarea) {
+        if (!El) return;
+        const Descripcion = Normalizar_Descripcion_Baul(
+          Tarea?.Descripcion
+        );
+        if (!Descripcion) return;
+        let Hover_Timer_Id = null;
+        const Cancelar = () => {
+          if (Hover_Timer_Id) {
+            clearTimeout(Hover_Timer_Id);
+            Hover_Timer_Id = null;
+          }
+          Cerrar_Popup_Descripcion_Baul();
+        };
+        El.addEventListener("mouseenter", () => {
+          if (Hover_Timer_Id) clearTimeout(Hover_Timer_Id);
+          Hover_Timer_Id = setTimeout(() => {
+            Mostrar_Popup_Descripcion_Baul(Tarea, El);
+          }, 2000);
+        });
+        El.addEventListener("mouseleave", Cancelar);
+        El.addEventListener("mousedown", Cancelar);
+        El.addEventListener("dragstart", Cancelar);
+      }
+
       function Crear_Card_Baul(Tarea) {
         const Esta_Seleccionada = Tarea.Id === Baul_Seleccion_Id;
         const Reordenable = Puede_Reordenar_Baul_Manual();
@@ -21332,6 +21467,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Aplicar_Color_Baul_En_Elemento(Card, Tarea);
         Aplicar_Sombra_Estado_Baul(Card, Tarea.Estado);
+        Vincular_Hover_Descripcion_Baul(Card, Tarea);
         Card.addEventListener("click", (Ev) => {
           Seleccionar_Baul_Tarea(Tarea.Id, {
             Alternar_Multi: Ev.ctrlKey || Ev.metaKey
@@ -21464,6 +21600,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Aplicar_Color_Baul_En_Elemento(Fila, Tarea);
         Aplicar_Sombra_Estado_Baul(Fila, Tarea.Estado);
+        Vincular_Hover_Descripcion_Baul(Fila, Tarea);
         Fila.addEventListener("click", (Ev) => {
           Seleccionar_Baul_Tarea(Tarea.Id, {
             Alternar_Multi: Ev.ctrlKey || Ev.metaKey
@@ -21642,6 +21779,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Render_Baul() {
         if (!El_Baul_Lista) return;
+        Cerrar_Popup_Descripcion_Baul();
         Poblar_Filtros_Baul();
         Actualizar_Vista_Baul();
         El_Baul_Lista.innerHTML = "";
@@ -21791,6 +21929,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Cerrar_Baul() {
         Cerrar_Menu_Dia();
+        Cerrar_Popup_Descripcion_Baul();
         Baul_Drag_Origen_Id = null;
         Limpiar_Estado_Drag_Baul();
         Baul_Seleccion_Id = null;
@@ -33800,6 +33939,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return "Activa";
       }
 
+      function Normalizar_Descripcion_Baul(Valor) {
+        return (Valor || "")
+          .toString()
+          .replace(/\r\n/g, "\n")
+          .trim();
+      }
+
       function Normalizar_Baul_Tarea(Tarea) {
         const Nombre = (Tarea?.Nombre || "").toString().trim();
         if (!Nombre) return null;
@@ -33822,6 +33968,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado: Obtener_Estado_Baul_Normalizado(Tarea?.Estado),
           Archivada: Boolean(Tarea?.Archivada),
           Color_Baul: Normalizar_Color_Hex(Tarea?.Color_Baul),
+          Descripcion: Normalizar_Descripcion_Baul(
+            Tarea?.Descripcion
+          ),
           Horas_Aprox:
             Number.isFinite(Horas_Aprox_Raw) &&
             Horas_Aprox_Raw > 0
@@ -40246,7 +40395,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Baul_Nombre_Input,
         El_Baul_Emoji_Input,
         El_Baul_Tipo_Input,
-        El_Baul_Estado_Input
+        El_Baul_Estado_Input,
+        El_Baul_Descripcion_Input
       ].forEach((El) => {
         El?.addEventListener("input", Render_Detalle_Baul);
         El?.addEventListener("change", Render_Detalle_Baul);
