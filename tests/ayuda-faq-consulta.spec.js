@@ -145,3 +145,72 @@ async ({ page }) => {
   expect(resultado.Mailto).toContain("Consulta");
   expect(resultado.Mailto).toContain("tester%40example.com");
 });
+
+test("modal de consulta usa campos redondeados y mensaje ancho",
+async ({ page }) => {
+  await preparar(page, {
+    Tareas: [],
+    Eventos: [],
+    Metas: [],
+    Slots_Muertos: [],
+    Plantillas_Subtareas: [],
+    Planes_Slot: {},
+    Categorias: [],
+    Etiquetas: [],
+    Baul_Tareas: [],
+    Baul_Grupos_Colapsados: {},
+    Archiveros: [],
+    Notas_Archivero: [],
+    Patrones: [],
+    Contador_Eventos: 1,
+    Tarea_Seleccionada_Id: null,
+    Modo_Editor_Abierto: false,
+    Inicio_Semana: "2026-04-13",
+    Duracion_Defecto: 1,
+    Config_Extra: {},
+    Tipos_Slot: [],
+    Tipos_Slot_Inicializados: false,
+    Slots_Muertos_Tipos: {},
+    Slots_Muertos_Nombres: {},
+    Abordajes_Migrados_V1: true,
+    Semanas_Con_Defaults: [],
+    Planes_Semana: {}
+  });
+
+  const estilos = await page.evaluate(() => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    window.Inicializar();
+    Usuario_Actual = {
+      id: "usr",
+      email: "tester@example.com"
+    };
+    Abrir_Ayuda();
+    Abrir_Ayuda_Consulta();
+    const Panel = document.querySelector(".Ayuda_Consulta_Panel");
+    const Asunto = document.getElementById("Ayuda_Consulta_Asunto");
+    const Mensaje = document.getElementById(
+      "Ayuda_Consulta_Mensaje"
+    );
+    const Estilo_Asunto = getComputedStyle(Asunto);
+    const Estilo_Mensaje = getComputedStyle(Mensaje);
+    return {
+      Radio_Asunto: Estilo_Asunto.borderRadius,
+      Radio_Mensaje: Estilo_Mensaje.borderRadius,
+      Ancho_Panel: Math.round(
+        Panel.getBoundingClientRect().width
+      ),
+      Ancho_Mensaje: Math.round(
+        Mensaje.getBoundingClientRect().width
+      )
+    };
+  });
+
+  expect(estilos.Radio_Asunto).toBe("10px");
+  expect(estilos.Radio_Mensaje).toBe("10px");
+  expect(estilos.Ancho_Mensaje).toBeGreaterThan(
+    estilos.Ancho_Panel - 70
+  );
+});
