@@ -265,3 +265,89 @@ test("renderiza emojis visibles como imagenes", async ({
   expect(resultado.selectorTab).toBeTruthy();
   expect(resultado.selectorBtn).toBeTruthy();
 });
+
+test("renderiza emoji como imagen en bloques del calendario", async ({
+  page
+}) => {
+  const estadoInicial = {
+    Tareas: [
+      {
+        Id: "t1",
+        Nombre: "Bloque con emoji",
+        Emoji: "🧪",
+        Horas_Semanales: 2,
+        Restante: 2,
+        Es_Bolsa: true,
+        Color: "#4f8fba",
+        Orden: 0,
+        Subtareas: [],
+        Subtareas_Semanales: {},
+        Subtareas_Contraidas_Semanales: {},
+        Subtareas_Excluidas_Semanales: {},
+        Etiquetas_Ids: [],
+        Familia_Id: "t1",
+        Semana_Base: "2026-04-13",
+        Semana_Inicio: null,
+        Semana_Fin: null
+      }
+    ],
+    Eventos: [
+      {
+        Id: 1,
+        Tarea_Id: "t1",
+        Fecha: "2026-04-14",
+        Inicio: 9,
+        Duracion: 1,
+        Hecho: false,
+        Anulada: false
+      }
+    ],
+    Metas: [],
+    Slots_Muertos: [],
+    Plantillas_Subtareas: [],
+    Planes_Slot: {},
+    Categorias: [],
+    Etiquetas: [],
+    Baul_Tareas: [],
+    Baul_Grupos_Colapsados: {},
+    Archiveros: [],
+    Notas_Archivero: [],
+    Patrones: [],
+    Contador_Eventos: 2,
+    Tarea_Seleccionada_Id: null,
+    Modo_Editor_Abierto: false,
+    Inicio_Semana: "2026-04-13",
+    Duracion_Defecto: 1,
+    Config_Extra: {},
+    Tipos_Slot: [],
+    Tipos_Slot_Inicializados: false,
+    Slots_Muertos_Tipos: {},
+    Slots_Muertos_Nombres: {},
+    Abordajes_Migrados_V1: true,
+    Semanas_Con_Defaults: [],
+    Planes_Semana: {}
+  };
+
+  await preparar(page, estadoInicial);
+
+  const resultado = await page.evaluate(async () => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    await window.Inicializar();
+    window.Render_Calendario();
+    window.Render_Eventos();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const Nombre = document.querySelector(".Evento_Nombre");
+    return {
+      tieneImagen: !!document.querySelector(
+        ".Evento_Emoji img.Emoji_Img"
+      ),
+      texto: Nombre?.textContent || ""
+    };
+  });
+
+  expect(resultado.tieneImagen).toBeTruthy();
+  expect(resultado.texto).toContain("Bloque con emoji");
+});

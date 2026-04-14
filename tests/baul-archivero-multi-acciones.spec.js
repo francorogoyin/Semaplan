@@ -284,6 +284,40 @@ test("aplica color y etiquetas en multiaccion del baul", async ({
   expect(resultado.catalogo).toContain("Urgente");
 });
 
+test("el move queda neutro y delete rojo en multiaccion del baul", async ({
+  page
+}) => {
+  await preparar(page, crearEstado());
+
+  const resultado = await page.evaluate(() => {
+    Abrir_Baul();
+    document.getElementById("Baul_Overlay")
+      ?.classList.add("Activo");
+    Baul_Multi_Seleccion = new Set(["b1", "b2"]);
+    Render_Baul();
+    Render_Barra_Multi_Seleccion();
+    const Botones = Array.from(
+      document.querySelectorAll(
+        "#Baul_Multi_Grupo_Acciones button"
+      )
+    );
+    const Mover = Botones.find((Btn) =>
+      (Btn.textContent || "").includes("Mover")
+    );
+    const Eliminar = Botones.find((Btn) =>
+      (Btn.textContent || "").includes("Eliminar")
+    );
+    return {
+      moverClases: Mover?.className || "",
+      eliminarClases: Eliminar?.className || ""
+    };
+  });
+
+  expect(resultado.moverClases).not.toContain("Primario");
+  expect(resultado.moverClases).not.toContain("Peligro");
+  expect(resultado.eliminarClases).toContain("Peligro");
+});
+
 test("archivero permite cambiar color en multiaccion", async ({
   page
 }) => {

@@ -6751,6 +6751,13 @@
         font-weight: 600;
       }
 
+      .Archivero_Sub_Btn.Peligro {
+        background: #f2d8d7;
+        color: #852d2d;
+        border-color: rgba(133, 45, 45, 0.18);
+        font-weight: 600;
+      }
+
       .Archivero_Sub_Btn:hover {
         opacity: 0.9;
       }
@@ -6976,14 +6983,34 @@
       }
 
       .Evento_Nombre {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
         min-width: 0;
         width: 100%;
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .Evento_Emoji {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+
+      .Evento_Emoji .Emoji_Img {
+        width: 0.95em;
+        height: 0.95em;
+      }
+
+      .Evento_Nombre_Texto {
+        min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        font-size: 12px;
-        text-align: center;
+        flex: 0 1 auto;
       }
 
       .Evento_Acciones {
@@ -40521,7 +40548,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           const Nombre_Box = document.createElement("div");
           Nombre_Box.className = "Evento_Nombre";
-          Nombre_Box.textContent = `${Emoji} ${Nombre}`;
+          const Emoji_Box = document.createElement("span");
+          Emoji_Box.className = "Evento_Emoji";
+          Aplicar_Emoji_En_Elemento(Emoji_Box, Emoji);
+          const Nombre_Texto = document.createElement("span");
+          Nombre_Texto.className = "Evento_Nombre_Texto";
+          Nombre_Texto.textContent = Nombre;
+          Nombre_Box.appendChild(Emoji_Box);
+          Nombre_Box.appendChild(Nombre_Texto);
 
           const Acciones = document.createElement("div");
           Acciones.className = "Evento_Acciones";
@@ -44926,8 +44960,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             t("dialog.mover"),
             () => {
               Mover_Tareas_Baul_Seleccionadas_A_Categoria();
-            },
-            "Primario"
+            }
           )
         );
         El_Baul_Multi_Grupo.appendChild(
@@ -44953,7 +44986,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             t("eliminar"),
             () => {
               Eliminar_Baul_Tareas_Multi();
-            }
+            },
+            "Peligro"
           )
         );
         El_Baul_Multi_Conteo.textContent = t(
