@@ -318,7 +318,15 @@ test("el doble click en un slot muerto con titulo sigue alternando", async ({
   const slot = page.locator(
     '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
   );
-  await slot.dblclick();
+  const box = await slot.boundingBox();
+  if (!box) {
+    throw new Error("No se pudo medir el slot muerto");
+  }
+  await page.mouse.click(
+    box.x + box.width / 2,
+    box.y + box.height / 2,
+    { clickCount: 2, delay: 40 }
+  );
 
   const resultado = await page.evaluate(() => {
     const clave = "2026-04-13|10";
