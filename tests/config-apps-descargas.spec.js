@@ -129,6 +129,94 @@ test("muestra apps en config y descarga inactiva", async ({
     .toContainText("teléfono");
 });
 
+test("centra el contenido de los modales de apps", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  const resultado = await page.evaluate(() => {
+    const Leer = (Tipo) => {
+      Abrir_Modal_App_Config(Tipo);
+      const Overlay = document.getElementById(
+        `Cfg_App_${Tipo}_Overlay`
+      );
+      const Panel = Overlay?.querySelector(".Cfg_App_Panel");
+      const Cabecera = Panel?.querySelector(
+        ".Patron_Modal_Cabecera"
+      );
+      const Titulo = Panel?.querySelector(
+        ".Patron_Modal_Titulo"
+      );
+      const Cuerpo = Panel?.querySelector(".Cfg_App_Cuerpo");
+      const Texto = Panel?.querySelector(".Cfg_App_Texto");
+      const Nota = Panel?.querySelector(".Cfg_App_Nota");
+      const Acciones = Panel?.querySelector(".Cfg_App_Acciones");
+      const Boton = Panel?.querySelector(
+        ".Cfg_App_Descargar_Btn"
+      );
+      const Datos = {
+        cabecera_justify: Cabecera
+          ? getComputedStyle(Cabecera).justifyContent
+          : "",
+        titulo_align: Titulo
+          ? getComputedStyle(Titulo).textAlign
+          : "",
+        cuerpo_align_items: Cuerpo
+          ? getComputedStyle(Cuerpo).alignItems
+          : "",
+        cuerpo_text_align: Cuerpo
+          ? getComputedStyle(Cuerpo).textAlign
+          : "",
+        texto_align: Texto
+          ? getComputedStyle(Texto).textAlign
+          : "",
+        nota_align: Nota
+          ? getComputedStyle(Nota).textAlign
+          : "",
+        acciones_justify: Acciones
+          ? getComputedStyle(Acciones).justifyContent
+          : "",
+        boton_left: Boton
+          ? Math.round(Boton.getBoundingClientRect().left)
+          : 0,
+        boton_right: Boton
+          ? Math.round(Boton.getBoundingClientRect().right)
+          : 0,
+        panel_left: Panel
+          ? Math.round(Panel.getBoundingClientRect().left)
+          : 0,
+        panel_right: Panel
+          ? Math.round(Panel.getBoundingClientRect().right)
+          : 0
+      };
+      Cerrar_Modal_App_Config(Tipo);
+      return Datos;
+    };
+
+    return {
+      desktop: Leer("Desktop"),
+      android: Leer("Android")
+    };
+  });
+
+  for (const datos of [resultado.desktop, resultado.android]) {
+    expect(datos.cabecera_justify).toBe("center");
+    expect(datos.titulo_align).toBe("center");
+    expect(datos.cuerpo_align_items).toBe("center");
+    expect(datos.cuerpo_text_align).toBe("center");
+    expect(datos.texto_align).toBe("center");
+    expect(datos.nota_align).toBe("center");
+    expect(datos.acciones_justify).toBe("center");
+
+    const centro_panel =
+      (datos.panel_left + datos.panel_right) / 2;
+    const centro_boton =
+      (datos.boton_left + datos.boton_right) / 2;
+    expect(Math.abs(centro_boton - centro_panel))
+      .toBeLessThanOrEqual(2);
+  }
+});
+
 test("deja en apps el mismo aire visual que pagos", async ({
   page
 }) => {
