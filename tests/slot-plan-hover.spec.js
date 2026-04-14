@@ -191,7 +191,7 @@ test("muestra el plan de un slot al pasar el mouse", async ({
     `.Slot[data-fecha="${fecha}"][data-hora="${hora}"]`
   );
 
-  await expect(slot.locator(".Slot_Plan_Marca")).toHaveText("✍️");
+  await expect(slot.locator(".Slot_Plan_Marca")).toHaveText("🗂️");
   await slot.hover();
   await page.waitForTimeout(2100);
 
