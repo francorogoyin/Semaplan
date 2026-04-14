@@ -189,6 +189,9 @@ test("permite operar con varias notas del archivero", async ({
     page.locator("#Archivero_Multi_Acciones")
   ).toBeVisible();
   await expect(
+    page.locator("#Archivero_Multi_Cancelar_Btn")
+  ).toHaveCount(0);
+  await expect(
     page.locator("#Archivero_Multi_Etiquetas_Input")
   ).toHaveCount(0);
   await expect(
@@ -208,9 +211,9 @@ test("permite operar con varias notas del archivero", async ({
   }));
   expect(data.tags).toEqual([0, 0]);
   await page.evaluate(() => {
-    window.Mostrar_Dialogo = async (mensaje) => {
-      if (mensaje === "Mover seleccionadas") return "c2";
-      return true;
+    window.Mostrar_Dialogo_Con_Texto = async (_, opciones) => {
+      if (opciones?.Tipo === "select") return "c2";
+      return "Urgente";
     };
   });
   await page.click("#Archivero_Multi_Mover_Btn");
@@ -230,6 +233,9 @@ test("permite operar con varias notas del archivero", async ({
   });
   await page.click("[data-nota-id='n2']", {
     modifiers: ["Control"]
+  });
+  await page.evaluate(() => {
+    window.Mostrar_Dialogo = async () => true;
   });
   await page.click("#Archivero_Multi_Borrar_Btn");
 

@@ -6352,6 +6352,10 @@
         display: flex;
       }
 
+      .Archivero_Etiquetas_Sugeridas {
+        margin-top: 8px;
+      }
+
       .Archivero_Nota_Mini_Btn {
         background: rgba(255, 255, 255, 0.9);
         border: 1px solid var(--Borde);
@@ -6891,6 +6895,42 @@
         font-size: 14px;
         width: 100%;
         box-sizing: border-box;
+      }
+
+      .Dialogo_Select {
+        padding: 8px 12px;
+        border: 1px solid var(--Borde);
+        border-radius: 10px;
+        font-size: 14px;
+        width: 100%;
+        box-sizing: border-box;
+        font-family: inherit;
+        background: #fff;
+        color: var(--Texto);
+      }
+
+      .Dialogo_Sugerencias {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .Dialogo_Sugerencia_Btn {
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--Texto_Suave);
+        padding: 4px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .Dialogo_Sugerencia_Btn:hover {
+        border-color: var(--Acento);
+        color: var(--Acento);
+        background: var(--Acento_Suave);
       }
 
       .Dialogo_Botones {
@@ -10348,6 +10388,12 @@
         <div class="Dialogo_Input_Contenedor" id="Dialogo_Input_Contenedor"
           style="display:none">
           <input class="Dialogo_Input" id="Dialogo_Input_Campo" type="date">
+          <select class="Dialogo_Select"
+            id="Dialogo_Select_Campo"
+            style="display:none"></select>
+          <div class="Dialogo_Sugerencias"
+            id="Dialogo_Input_Sugerencias"
+            style="display:none"></div>
         </div>
         <div class="Dialogo_Botones" id="Dialogo_Botones"></div>
       </div>
@@ -10845,12 +10891,6 @@
                     data-i18n="archivero.borrar_seleccion">
                     Borrar seleccionadas
                   </button>
-                  <button type="button"
-                    class="Archivero_Sub_Btn Compacto"
-                    id="Archivero_Multi_Cancelar_Btn"
-                    data-i18n="multi.cancelar_seleccion">
-                    Cancelar selección
-                  </button>
                 </div>
                 <span class="Archivero_Multi_Conteo"
                   id="Archivero_Multi_Conteo"></span>
@@ -10919,6 +10959,10 @@
               id="Archivero_Nota_Etiquetas_Input"
               data-i18n-ph="archivero.etiquetas_ph"
               placeholder="filosofía, memorable, libro...">
+            <div class="Dialogo_Sugerencias
+              Archivero_Etiquetas_Sugeridas"
+              id="Archivero_Nota_Etiquetas_Sugerencias"
+              style="display:none"></div>
           </div>
           <div class="Archivero_Sub_Campo">
             <label for="Archivero_Nota_Cajon_Select"
@@ -12334,10 +12378,19 @@
             "Personalizado",
           "archivero.mover_seleccion":
             "Mover seleccionadas",
+          "archivero.mover_seleccion_desc":
+            "Elegí el cajón de destino para las " +
+            "notas seleccionadas.",
           "archivero.agregar_etiquetas":
             "Agregar etiquetas",
+          "archivero.agregar_etiquetas_desc":
+            "Elegí una etiqueta sugerida o " +
+            "escribí una nueva para sumarla.",
           "archivero.quitar_etiquetas":
             "Quitar etiquetas",
+          "archivero.quitar_etiquetas_desc":
+            "Elegí una etiqueta sugerida o " +
+            "escribí una nueva para quitarla.",
           "archivero.sin_otros_cajones":
             "No hay otros cajones disponibles.",
           "archivero.borrar_seleccion":
@@ -14399,10 +14452,19 @@
             "Custom",
           "archivero.mover_seleccion":
             "Move selected",
+          "archivero.mover_seleccion_desc":
+            "Choose the target drawer for the " +
+            "selected notes.",
           "archivero.agregar_etiquetas":
             "Add tags",
+          "archivero.agregar_etiquetas_desc":
+            "Choose a suggested tag or type " +
+            "a new one to add it.",
           "archivero.quitar_etiquetas":
             "Remove tags",
+          "archivero.quitar_etiquetas_desc":
+            "Choose a suggested tag or type " +
+            "a new one to remove it.",
           "archivero.sin_otros_cajones":
             "There are no other drawers available.",
           "archivero.borrar_seleccion":
@@ -16480,10 +16542,19 @@
             "Personalizado",
           "archivero.mover_seleccion":
             "Mover selecionadas",
+          "archivero.mover_seleccion_desc":
+            "Escolha a gaveta de destino para " +
+            "as notas selecionadas.",
           "archivero.agregar_etiquetas":
             "Adicionar tags",
+          "archivero.agregar_etiquetas_desc":
+            "Escolha uma tag sugerida ou " +
+            "digite uma nova para adicionar.",
           "archivero.quitar_etiquetas":
             "Remover tags",
+          "archivero.quitar_etiquetas_desc":
+            "Escolha uma tag sugerida ou " +
+            "digite uma nova para remover.",
           "archivero.sin_otros_cajones":
             "Nao ha outros gaveteiros disponiveis.",
           "archivero.borrar_seleccion":
@@ -18850,28 +18921,98 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
+      function Renderizar_Botones_Sugeridos(
+        Contenedor,
+        Valores,
+        Al_Click
+      ) {
+        if (!Contenedor) return;
+        Contenedor.innerHTML = "";
+        const Unicos = [...new Set(
+          (Valores || [])
+            .map((Valor) => String(Valor || "").trim())
+            .filter(Boolean)
+        )];
+        if (Unicos.length === 0) {
+          Contenedor.style.display = "none";
+          return;
+        }
+        Unicos.forEach((Valor) => {
+          const Btn = document.createElement("button");
+          Btn.type = "button";
+          Btn.className = "Dialogo_Sugerencia_Btn";
+          Btn.textContent = Valor;
+          Btn.addEventListener("click", () => {
+            Al_Click?.(Valor);
+          });
+          Contenedor.appendChild(Btn);
+        });
+        Contenedor.style.display = "flex";
+      }
+
+      function Agregar_Valor_Lista_Comas(
+        Valor_Actual,
+        Valor_Nuevo
+      ) {
+        return Parsear_Etiquetas_Archivero(
+          [Valor_Actual, Valor_Nuevo]
+            .filter(Boolean)
+            .join(", ")
+        ).join(", ");
+      }
+
       function Mostrar_Dialogo_Con_Texto(
         Mensaje,
         Opciones = {}
       ) {
-        // Diálogo modal con un input de texto/password.
-        // Opciones soporta: { Tipo: "text" | "password" |
-        // "email", Placeholder, Default, Etiqueta_Confirmar,
-        // Etiqueta_Cancelar }. Devuelve el texto ingresado o
-        // null si se canceló.
         if (Dialogo_Abierto) return Promise.resolve(null);
         Dialogo_Abierto = true;
         return new Promise((Resolver) => {
+          const El_Overlay = document.getElementById(
+            "Dialogo_Overlay"
+          );
+          const El_Cont = document.getElementById(
+            "Dialogo_Input_Contenedor"
+          );
+          const El_Campo = document.getElementById(
+            "Dialogo_Input_Campo"
+          );
+          const El_Select = document.getElementById(
+            "Dialogo_Select_Campo"
+          );
+          const El_Sugerencias = document.getElementById(
+            "Dialogo_Input_Sugerencias"
+          );
+          const Usa_Select = Opciones.Tipo === "select";
+
+          const Limpiar_Controles = () => {
+            El_Cont.style.display = "none";
+            El_Campo.style.display = "none";
+            El_Campo.value = "";
+            El_Campo.placeholder = "";
+            El_Campo.type = "text";
+            El_Select.style.display = "none";
+            El_Select.innerHTML = "";
+            El_Sugerencias.innerHTML = "";
+            El_Sugerencias.style.display = "none";
+          };
+
+          const Obtener_Valor = () => {
+            return Usa_Select
+              ? El_Select.value
+              : El_Campo.value;
+          };
+
           const Cerrar_Con = (Valor) => {
-            document.getElementById("Dialogo_Overlay")
-              .classList.remove("Activo");
-            document.getElementById("Dialogo_Input_Contenedor")
-              .style.display = "none";
+            El_Overlay.classList.remove("Activo");
+            Limpiar_Controles();
             Limpiar_Turnstile_Dialogo();
             El_Campo.removeEventListener(
               "keydown", On_Enter_Input
             );
-            El_Campo.type = "text";
+            El_Select.removeEventListener(
+              "keydown", On_Enter_Input
+            );
             Dialogo_Abierto = false;
             Dialogo_Resolver_Fn = null;
             Resolver(Valor);
@@ -18880,14 +19021,43 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           document.getElementById("Dialogo_Mensaje")
             .textContent = Mensaje;
-          const El_Campo = document.getElementById(
-            "Dialogo_Input_Campo"
-          );
-          El_Campo.type = Opciones.Tipo || "text";
-          El_Campo.value = Opciones.Default || "";
-          El_Campo.placeholder = Opciones.Placeholder || "";
-          document.getElementById("Dialogo_Input_Contenedor")
-            .style.display = "block";
+
+          El_Cont.style.display = "block";
+          if (Usa_Select) {
+            El_Select.style.display = "block";
+            (Opciones.Select_Opciones || []).forEach((Item) => {
+              const Opt = document.createElement("option");
+              Opt.value = Item.Valor;
+              Opt.textContent = Item.Etiqueta;
+              El_Select.appendChild(Opt);
+            });
+            El_Select.value = Opciones.Default || "";
+          } else {
+            El_Campo.style.display = "block";
+            El_Campo.type = Opciones.Tipo || "text";
+            El_Campo.value = Opciones.Default || "";
+            El_Campo.placeholder =
+              Opciones.Placeholder || "";
+            Renderizar_Botones_Sugeridos(
+              El_Sugerencias,
+              Opciones.Sugerencias,
+              (Valor) => {
+                if (
+                  Opciones.Modo_Sugerencias ===
+                  "Lista_Comas"
+                ) {
+                  El_Campo.value =
+                    Agregar_Valor_Lista_Comas(
+                      El_Campo.value,
+                      Valor
+                    );
+                } else {
+                  El_Campo.value = Valor;
+                }
+                El_Campo.focus();
+              }
+            );
+          }
 
           const El_Botones = document.getElementById(
             "Dialogo_Botones"
@@ -18895,7 +19065,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Botones.innerHTML = "";
 
           const Confirmar = () => {
-            const Val = El_Campo.value;
+            const Val = Obtener_Valor();
             Cerrar_Con(Val == null ? null : Val);
           };
 
@@ -18926,12 +19096,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Campo.addEventListener(
             "keydown", On_Enter_Input
           );
+          El_Select.addEventListener(
+            "keydown", On_Enter_Input
+          );
 
           El_Botones.appendChild(Btn_OK);
           El_Botones.appendChild(Btn_Cancelar);
-          document.getElementById("Dialogo_Overlay")
-            .classList.add("Activo");
-          setTimeout(() => El_Campo.focus(), 0);
+          El_Overlay.classList.add("Activo");
+          setTimeout(() => {
+            (Usa_Select ? El_Select : El_Campo).focus();
+          }, 0);
         });
       }
 
@@ -21376,18 +21550,75 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      function Obtener_Etiquetas_Archivero_Sugeridas(
+        Nota_Ids = null
+      ) {
+        const Ids = Array.isArray(Nota_Ids)
+          ? new Set(Nota_Ids)
+          : null;
+        const Etiquetas = new Map();
+        Notas_Archivero.forEach((Nota) => {
+          if (Ids && !Ids.has(Nota.Id)) return;
+          if (!Array.isArray(Nota.Etiquetas)) return;
+          Nota.Etiquetas.forEach((Etiqueta) => {
+            const Limpia = String(Etiqueta || "").trim();
+            if (!Limpia) return;
+            const Clave =
+              Normalizar_Texto_Archivero(Limpia);
+            if (!Etiquetas.has(Clave)) {
+              Etiquetas.set(Clave, Limpia);
+            }
+          });
+        });
+        return [...Etiquetas.values()].sort((A, B) => {
+          return A.localeCompare(B, "es", {
+            sensitivity: "base"
+          });
+        });
+      }
+
+      function Renderizar_Sugerencias_Nota_Archivero() {
+        const Campo = document.getElementById(
+          "Archivero_Nota_Etiquetas_Input"
+        );
+        const Contenedor = document.getElementById(
+          "Archivero_Nota_Etiquetas_Sugerencias"
+        );
+        if (!Campo || !Contenedor) return;
+        Renderizar_Botones_Sugeridos(
+          Contenedor,
+          Obtener_Etiquetas_Archivero_Sugeridas(),
+          (Etiqueta) => {
+            Campo.value = Agregar_Valor_Lista_Comas(
+              Campo.value,
+              Etiqueta
+            );
+            Campo.focus();
+          }
+        );
+      }
+
       async function Pedir_Etiquetas_Multi_Archivero(Modo) {
         const Es_Agregar = Modo === "Agregar";
         const Valor = await Mostrar_Dialogo_Con_Texto(
           Es_Agregar
-            ? t("archivero.agregar_etiquetas")
-            : t("archivero.quitar_etiquetas"),
+            ? t("archivero.agregar_etiquetas_desc")
+            : t("archivero.quitar_etiquetas_desc"),
           {
             Placeholder: t("archivero.etiquetas_ph"),
             Etiqueta_Confirmar: Es_Agregar
               ? t("archivero.agregar_etiquetas")
               : t("archivero.quitar_etiquetas"),
-            Etiqueta_Cancelar: t("cancelar")
+            Etiqueta_Cancelar: t("cancelar"),
+            Sugerencias:
+              Obtener_Etiquetas_Archivero_Sugeridas(
+                Es_Agregar
+                  ? null
+                  : Array.from(
+                    Archivero_Notas_Seleccionadas
+                  )
+              ),
+            Modo_Sugerencias: "Lista_Comas"
           }
         );
         if (Valor == null) return;
@@ -21411,21 +21642,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           return "";
         }
-        return await Mostrar_Dialogo(
-          t("archivero.mover_seleccion"),
-          [
-            ...Destinos.map((Cajon) => ({
+        return await Mostrar_Dialogo_Con_Texto(
+          t("archivero.mover_seleccion_desc"),
+          {
+            Tipo: "select",
+            Default: Destinos[0]?.Id || "",
+            Select_Opciones: Destinos.map((Cajon) => ({
               Etiqueta:
                 `${Cajon.Emoji || "🗃️"} ${Cajon.Nombre}`,
-              Valor: Cajon.Id,
-              Tipo: "Secundario"
+              Valor: Cajon.Id
             })),
-            {
-              Etiqueta: t("cancelar"),
-              Valor: "",
-              Tipo: "Cancelar"
-            }
-          ]
+            Etiqueta_Confirmar: t("dialog.mover"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
         );
       }
 
@@ -22449,6 +22678,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Origen.value = "";
           if (Etiq) Etiq.value = "";
         }
+        Renderizar_Sugerencias_Nota_Archivero();
         document.getElementById(
           "Archivero_Nota_Overlay"
         )?.classList.add("Activo");
@@ -38595,10 +38825,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Archivero_Multi_Borrar_Btn")
         ?.addEventListener("click", () => {
           Borrar_Notas_Seleccionadas_Archivero();
-        });
-      document.getElementById("Archivero_Multi_Cancelar_Btn")
-        ?.addEventListener("click", () => {
-          Limpiar_Multi_Seleccion_Archivero();
         });
       // Submodal nota.
       document.getElementById("Archivero_Nota_Cerrar")
