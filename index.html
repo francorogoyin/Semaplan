@@ -10330,6 +10330,15 @@
                   <span data-i18n="config.eliminar_cuenta"
                     >Eliminar cuenta</span>
                 </button>
+                <button type="button"
+                  id="Cfg_Cerrar_Sesion_Todas"
+                  class="Config_Dato_Btn">
+                  <span class="Config_Dato_Btn_Icono">⎋</span>
+                  <span
+                    data-i18n="config.cerrar_sesion_todas">
+                    Cerrar sesión en todas
+                  </span>
+                </button>
               </div>
               </div>
             </div>
@@ -12775,6 +12784,10 @@
           "menu.cerrar_sesion": "Cerrar sesión",
           "menu.cerrar_sesion_confirm":
             "¿Cerrar sesión?",
+          "menu.cerrar_sesion_todas":
+            "Cerrar sesión en todas",
+          "menu.cerrar_sesion_todas_confirm":
+            "¿Cerrar sesión en todas las computadoras?",
           "menu.free": "Free",
           "config.titulo": "Configuración",
           "config.idioma": "Idioma",
@@ -13123,8 +13136,10 @@
             "Acciones de cuenta",
           "config.acciones_cuenta_hint":
             "Cerrar sesión sale de esta cuenta. " +
-            "Eliminar cuenta es definitivo y borra " +
-            "todo tu estado.",
+            "Cerrar sesión en todas también cierra " +
+            "las demás computadoras. Eliminar " +
+            "cuenta es definitivo y borra todo " +
+            "tu estado.",
           "config.cancelar_suscripcion":
             "Cancelar suscripción",
           "config.contrasena": "Contraseña",
@@ -13134,6 +13149,8 @@
             "Miembro desde",
           "config.cerrar_sesion":
             "Cerrar sesión",
+          "config.cerrar_sesion_todas":
+            "Cerrar sesión en todas",
           "config.eliminar_cuenta":
             "Eliminar cuenta",
           "topbar.free":
@@ -15077,6 +15094,10 @@
           "menu.cerrar_sesion": "Sign out",
           "menu.cerrar_sesion_confirm":
             "Sign out?",
+          "menu.cerrar_sesion_todas":
+            "Sign out everywhere",
+          "menu.cerrar_sesion_todas_confirm":
+            "Sign out on every computer?",
           "menu.free": "Free",
           "config.titulo": "Settings",
           "config.idioma": "Language",
@@ -15408,8 +15429,10 @@
             "Account actions",
           "config.acciones_cuenta_hint":
             "Signing out leaves this account. " +
-            "Deleting the account is permanent " +
-            "and removes all your data.",
+            "Signing out everywhere also closes " +
+            "the other computers. Deleting the " +
+            "account is permanent and removes " +
+            "all your data.",
           "config.cancelar_suscripcion":
             "Cancel subscription",
           "config.contrasena": "Password",
@@ -15418,6 +15441,8 @@
           "config.miembro_desde":
             "Member since",
           "config.cerrar_sesion": "Sign out",
+          "config.cerrar_sesion_todas":
+            "Sign out everywhere",
           "topbar.free":
             "🌱 Free plan",
           "topbar.premium":
@@ -17330,6 +17355,10 @@
           "menu.cerrar_sesion": "Sair",
           "menu.cerrar_sesion_confirm":
             "Sair?",
+          "menu.cerrar_sesion_todas":
+            "Sair em todos",
+          "menu.cerrar_sesion_todas_confirm":
+            "Sair da conta em todos os computadores?",
           "menu.free": "Free",
           "config.titulo": "Configurações",
           "config.idioma": "Idioma",
@@ -17686,9 +17715,10 @@
           "config.acciones_cuenta":
             "Ações da conta",
           "config.acciones_cuenta_hint":
-            "Sair encerra esta conta. Excluir " +
-            "a conta é definitivo e apaga todo " +
-            "o seu estado.",
+            "Sair encerra esta conta. Sair em " +
+            "todos também fecha os outros " +
+            "computadores. Excluir a conta é " +
+            "definitivo e apaga todo o seu estado.",
           "config.cancelar_suscripcion":
             "Cancelar assinatura",
           "config.contrasena": "Senha",
@@ -17697,6 +17727,8 @@
           "config.miembro_desde":
             "Membro desde",
           "config.cerrar_sesion": "Sair",
+          "config.cerrar_sesion_todas":
+            "Sair em todos",
           "topbar.free":
             "🌱 Plano Free",
           "topbar.premium":
@@ -49599,6 +49631,38 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         location.reload();
       }
 
+      async function Cerrar_Sesion_Todas() {
+        if (!Supa) return;
+        const Confirmar = await Mostrar_Dialogo(
+          t("menu.cerrar_sesion_todas_confirm"),
+          [
+            {
+              Etiqueta: t("menu.cerrar_sesion_todas"),
+              Valor: true,
+              Tipo: "Peligro"
+            },
+            {
+              Etiqueta: t("cancelar"),
+              Valor: false,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
+        if (!Confirmar) return;
+        if (Sync_Timer_Id) {
+          clearTimeout(Sync_Timer_Id);
+          await Backend_Sync_Ejecutar();
+        }
+        await Supa.auth.signOut({ scope: "global" });
+        try {
+          await Supa.auth.signOut({ scope: "local" });
+        } catch (_) {}
+        Actualizar_Token_Sync(null);
+        Marcar_Sync_Local_Sucio(false);
+        Limpiar_Conflicto_Sync();
+        location.reload();
+      }
+
       // ----- Inicio de la app después de loguear -----
 
       async function Iniciar_App_Logueada() {
@@ -49874,6 +49938,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (Btn_Cerrar) {
           Btn_Cerrar.addEventListener("click", Cerrar_Sesion);
+        }
+        const Btn_Cerrar_Todas = document.getElementById(
+          "Cfg_Cerrar_Sesion_Todas"
+        );
+        if (Btn_Cerrar_Todas) {
+          Btn_Cerrar_Todas.addEventListener(
+            "click",
+            Cerrar_Sesion_Todas
+          );
         }
         const Btn_Logout = document.getElementById("Logout_Boton");
         if (Btn_Logout) {
