@@ -167,21 +167,39 @@ test("hereda color del cajon y permite override por nota", async ({
 
   await page.click("#Archivero_Btn_Nueva_Nota");
   await expect(
-    page.locator("#Archivero_Nota_Color_Cajon_Check")
-  ).toBeChecked();
+    page.locator("#Archivero_Nota_Color_Cajon_Btn")
+  ).toHaveClass(/Activo/);
   await expect(
     page.locator("#Archivero_Nota_Color_Input")
   ).toHaveValue("#ffaaaa");
+  await expect(
+    page.locator("#Archivero_Nota_Color_Input")
+  ).toBeEnabled();
 
   await page.selectOption("#Archivero_Nota_Cajon_Select", "c2");
   await expect(
     page.locator("#Archivero_Nota_Color_Input")
   ).toHaveValue("#aaffaa");
 
-  await page.click("#Archivero_Nota_Color_Cajon_Check");
+  await page.evaluate(() => {
+    const Input = document.getElementById(
+      "Archivero_Nota_Color_Input"
+    );
+    Input.value = "#123456";
+    Input.dispatchEvent(new Event("input", {
+      bubbles: true
+    }));
+  });
+  await expect(
+    page.locator("#Archivero_Nota_Color_Cajon_Btn")
+  ).not.toHaveClass(/Activo/);
+  await page.click("#Archivero_Nota_Color_Cajon_Btn");
+  await expect(
+    page.locator("#Archivero_Nota_Color_Cajon_Btn")
+  ).toHaveClass(/Activo/);
   await expect(
     page.locator("#Archivero_Nota_Color_Input")
-  ).toBeEnabled();
+  ).toHaveValue("#aaffaa");
   await page.evaluate(() => {
     const Input = document.getElementById(
       "Archivero_Nota_Color_Input"
