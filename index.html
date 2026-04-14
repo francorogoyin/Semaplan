@@ -6569,6 +6569,8 @@
         line-height: 1.45;
         white-space: pre-wrap;
         word-break: break-word;
+        user-select: text;
+        cursor: text;
       }
 
       .Archivero_Nota_Texto a {
@@ -6577,6 +6579,8 @@
           var(--Acento)
         );
         text-decoration: underline;
+        user-select: text;
+        cursor: text;
       }
 
       .Archivero_Nota_Meta {
@@ -6589,6 +6593,7 @@
           var(--Texto_Suave)
         );
         flex-wrap: wrap;
+        user-select: text;
       }
 
       .Archivero_Nota_Origen {
@@ -6596,12 +6601,15 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        user-select: text;
+        cursor: text;
       }
 
       .Archivero_Nota_Etiquetas {
         display: flex;
         flex-wrap: wrap;
         gap: 4px;
+        user-select: text;
       }
 
       .Archivero_Nota_Etiqueta {
@@ -6617,6 +6625,8 @@
           var(--Texto_Suave)
         );
         white-space: nowrap;
+        user-select: text;
+        cursor: text;
       }
 
       .Archivero_Nota_Acciones {
@@ -15019,6 +15029,8 @@
             "Se desarchivaron {n} tareas",
           "toast.tareas_actualizadas":
             "Tareas actualizadas",
+          "toast.archivero_nota_copiada":
+            "Nota copiada",
           "toast.subtareas_eliminadas":
             "Se eliminaron {n} subtareas",
 
@@ -17293,6 +17305,8 @@
             "{n} tasks unarchived",
           "toast.tareas_actualizadas":
             "Tasks updated",
+          "toast.archivero_nota_copiada":
+            "Note copied",
           "toast.subtareas_eliminadas":
             "{n} subtasks deleted",
 
@@ -19667,6 +19681,8 @@
             "Foram desarquivadas {n} tarefas",
           "toast.tareas_actualizadas":
             "Tarefas atualizadas",
+          "toast.archivero_nota_copiada":
+            "Nota copiada",
           "toast.subtareas_eliminadas":
             "Foram excluídas {n} subtarefas",
 
@@ -25036,6 +25052,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Acciones.appendChild(Btn_Borrar);
         Card.appendChild(Acciones);
         Card.addEventListener("click", (Ev) => {
+          if (Obtener_Texto_Seleccionado()) {
+            return;
+          }
           if (
             Ev.ctrlKey ||
             Ev.metaKey ||
@@ -25047,6 +25066,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           }
         });
+        Card.addEventListener("contextmenu", async (Ev) => {
+          if (Obtener_Texto_Seleccionado()) return;
+          if (
+            Ev.target.closest(".Archivero_Nota_Mini_Btn") ||
+            Ev.target.closest("a")
+          ) {
+            return;
+          }
+          if (
+            Ev.target !== Card &&
+            Ev.target !== Meta &&
+            !Ev.target.classList?.contains(
+              "Archivero_Nota_Etiquetas"
+            )
+          ) {
+            return;
+          }
+          Ev.preventDefault();
+          await Copiar_Nota_Archivero(Nota);
+        });
         Card.addEventListener("dragstart", (Ev) => {
           Ev.dataTransfer.effectAllowed = "move";
           if (
@@ -25054,7 +25093,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ) {
             Archivero_Notas_Seleccionadas.clear();
             Archivero_Notas_Seleccionadas.add(Nota.Id);
-            Render_Archivero_Notas();
           }
           Ev.dataTransfer.setData(
             "application/x-archivero-nota",
@@ -25330,6 +25368,83 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .map((T) => T.trim())
             .filter(Boolean)
         )];
+      }
+
+      function Obtener_Texto_Seleccionado() {
+        const Sel = window.getSelection?.();
+        return (Sel?.toString?.() || "").trim();
+      }
+
+      async function Copiar_Texto_Al_Portapapeles(Texto) {
+        const Valor = String(Texto || "");
+        if (!Valor) return false;
+        if (
+          navigator.clipboard &&
+          typeof navigator.clipboard.writeText ===
+            "function"
+        ) {
+          try {
+            await navigator.clipboard.writeText(Valor);
+            return true;
+          } catch (Err) {}
+        }
+        const Area = document.createElement("textarea");
+        Area.value = Valor;
+        Area.setAttribute("readonly", "readonly");
+        Area.style.position = "fixed";
+        Area.style.opacity = "0";
+        Area.style.pointerEvents = "none";
+        document.body.appendChild(Area);
+        Area.focus();
+        Area.select();
+        let Copiado = false;
+        try {
+          Copiado = document.execCommand("copy");
+        } catch (Err) {
+          Copiado = false;
+        }
+        Area.remove();
+        return Copiado;
+      }
+
+      function Construir_Texto_Copia_Nota_Archivero(Nota) {
+        if (!Nota) return "";
+        const Partes = [];
+        const Texto = (Nota.Texto || "").trim();
+        if (Texto) {
+          Partes.push(Texto);
+        }
+        const Origen = (Nota.Origen || "").trim();
+        if (Origen) {
+          Partes.push(Origen);
+        }
+        const Etiquetas = Array.isArray(Nota.Etiquetas)
+          ? Nota.Etiquetas
+            .map((Tag) => String(Tag || "").trim())
+            .filter(Boolean)
+          : [];
+        if (Etiquetas.length > 0) {
+          Partes.push(
+            Etiquetas.map((Tag) => `#${Tag}`).join(" ")
+          );
+        }
+        return Partes.join("\n\n");
+      }
+
+      async function Copiar_Nota_Archivero(Nota) {
+        const Texto = Construir_Texto_Copia_Nota_Archivero(
+          Nota
+        );
+        if (!Texto) return false;
+        const Copiado = await Copiar_Texto_Al_Portapapeles(
+          Texto
+        );
+        if (Copiado) {
+          Mostrar_Toast_Info(
+            t("toast.archivero_nota_copiada")
+          );
+        }
+        return Copiado;
       }
 
       function Guardar_Nota_Archivero_Desde_Modal() {
