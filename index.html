@@ -3861,6 +3861,24 @@
         color: #1f5b3d;
       }
 
+      .Slot_Plan_Marca.Estado_Pendiente {
+        background: #f7d7a1;
+        border-color: #cf8a1c;
+        color: #8b4c00;
+      }
+
+      .Slot_Plan_Marca.Estado_Vencido {
+        background: #efb4b4;
+        border-color: #b74848;
+        color: #7a1717;
+      }
+
+      .Slot_Plan_Marca.Estado_Completado {
+        background: #4c9a6a;
+        border-color: #22603a;
+        color: #f3fff7;
+      }
+
       .Slot_Pasado {
         background: rgba(180, 168, 152, 0.32);
       }
@@ -38678,6 +38696,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : 0;
       }
 
+      function Items_Plan_Slot_Completados(Items) {
+        if (!Array.isArray(Items) || Items.length === 0) {
+          return false;
+        }
+        return Items.every((Item) =>
+          ["Realizado", "Completado"].includes(
+            Item?.Estado || "Planeado"
+          )
+        );
+      }
+
+      function Obtener_Estado_Marca_Plan_Slot(Fecha, Hora) {
+        const Items = Obtener_Plan_Slot(Fecha, Hora, false)
+          ?.Items || [];
+        if (Items_Plan_Slot_Completados(Items)) {
+          return "Completado";
+        }
+        return Es_Slot_Pasado(Fecha, Hora)
+          ? "Vencido"
+          : "Pendiente";
+      }
+
       function Es_Slot_Pasado(Fecha_ISO, Hora) {
         const Ahora = new Date();
         const Hoy_ISO = Formatear_Fecha_ISO(Ahora);
@@ -41665,6 +41705,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Conteo_Plan_Slot > 0) {
             const Marca_Plan = document.createElement("div");
             Marca_Plan.className = "Slot_Plan_Marca";
+            Marca_Plan.classList.add(
+              `Estado_${Obtener_Estado_Marca_Plan_Slot(
+                Fecha_ISO,
+                Hora
+              )}`
+            );
             Marca_Plan.textContent = "📋";
             Slot.appendChild(Marca_Plan);
           }
