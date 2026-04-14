@@ -18970,6 +18970,8 @@
       ];
       const Colores_Preset = ["#f1b77e", "#a6c8e5", "#c1d7ae", "#e4b3d4", "#f2a4a0", "#f2e08b", "#b8c7e0", "#c7b7ef"];
       const Clave_Local = "Semaplan_Estado_V2";
+      const Clave_Local_Usuario =
+        "Semaplan_Estado_Usuario_V1";
       const Clave_Backups = "Semaplan_Backups_V1";
       const Max_Backups_Locales = 12;
       let Backups_Locales = [];
@@ -18985,6 +18987,40 @@
           Clave_Local,
           localStorage.getItem("Time_Blocking_Estado_V2")
         );
+      }
+
+      function Obtener_Id_Usuario_Cache_Local() {
+        return localStorage.getItem(Clave_Local_Usuario) || "";
+      }
+
+      function Marcar_Usuario_Cache_Local(Id_Usuario = "") {
+        if (Id_Usuario) {
+          localStorage.setItem(
+            Clave_Local_Usuario,
+            Id_Usuario
+          );
+          return;
+        }
+        localStorage.removeItem(Clave_Local_Usuario);
+      }
+
+      function Cache_Local_Coincide_Con_Usuario_Actual() {
+        if (!Usuario_Actual?.id) return true;
+        return Obtener_Id_Usuario_Cache_Local() ===
+          Usuario_Actual.id;
+      }
+
+      function Aislar_Cache_Local_Por_Usuario() {
+        if (!Usuario_Actual?.id) return false;
+        const Id_Cache =
+          Obtener_Id_Usuario_Cache_Local();
+        if (Id_Cache === Usuario_Actual.id) {
+          return false;
+        }
+        localStorage.removeItem(Clave_Local);
+        localStorage.removeItem(Clave_Backups);
+        Marcar_Usuario_Cache_Local(Usuario_Actual.id);
+        return true;
       }
 
       let Tareas = [];
@@ -36855,6 +36891,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // 1) Persistir en localStorage como caché inmediato.
         const Estado = Construir_Estado_Completo();
         localStorage.setItem(Clave_Local, JSON.stringify(Estado));
+        if (Usuario_Actual?.id) {
+          Marcar_Usuario_Cache_Local(Usuario_Actual.id);
+        }
         if (Metas_Abierto()) {
           Render_Metas();
         }
@@ -36867,6 +36906,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Cargar_Estado() {
         const Raw = localStorage.getItem(Clave_Local);
         if (!Raw) return false;
+        if (!Cache_Local_Coincide_Con_Usuario_Actual()) {
+          return false;
+        }
         try {
           const Estado = JSON.parse(Raw);
           if (!Array.isArray(Estado.Tareas) || !Array.isArray(Estado.Eventos)) return false;
@@ -45772,6 +45814,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           localStorage.setItem(
             Clave_Local, JSON.stringify(data.estado)
           );
+          Marcar_Usuario_Cache_Local(Usuario_Actual.id);
           return true;
         } catch (E) {
           console.error("Error cargando estado:", E);
@@ -45784,6 +45827,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Backend_Migrar_Local_A_Cuenta() {
         // Sube el localStorage a Supabase si la cuenta está vacía.
         if (!Supa || !Usuario_Actual) return;
+        if (!Cache_Local_Coincide_Con_Usuario_Actual()) {
+          console.log(
+            "[Migración] Caché local de otra cuenta. " +
+            "Se omite migración."
+          );
+          return;
+        }
         const Raw = localStorage.getItem(Clave_Local);
         if (!Raw) {
           console.log("[Migración] Sin localStorage, nada que migrar.");
@@ -46862,6 +46912,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // ----- Inicio de la app después de loguear -----
 
       async function Iniciar_App_Logueada() {
+        Aislar_Cache_Local_Por_Usuario();
+
         // 1) Migrar datos del localStorage si corresponde.
         await Backend_Migrar_Local_A_Cuenta();
 
