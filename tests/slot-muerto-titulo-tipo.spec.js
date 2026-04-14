@@ -210,6 +210,136 @@ test("aplica y alterna titulo por tipo en slots muertos", async ({
   expect(resultado.Tras_Colocar).toBe("🍽️ Almuerzo");
 });
 
+test("el doble click en un slot muerto con titulo sigue alternando", async ({
+  page
+}) => {
+  const estadoInicial = {
+    Tareas: [],
+    Eventos: [],
+    Metas: [],
+    Slots_Muertos: ["2026-04-13|10"],
+    Plantillas_Subtareas: [],
+    Planes_Slot: {},
+    Categorias: [],
+    Etiquetas: [],
+    Baul_Tareas: [],
+    Baul_Grupos_Colapsados: {},
+    Archiveros: [],
+    Notas_Archivero: [],
+    Patrones: [],
+    Contador_Eventos: 1,
+    Tarea_Seleccionada_Id: null,
+    Modo_Editor_Abierto: false,
+    Inicio_Semana: "2026-04-13",
+    Duracion_Defecto: 1,
+    Config_Extra: {
+      Inicio_Hora: 0,
+      Fin_Hora: 24,
+      Scroll_Inicial: 8,
+      Duracion_Default: 1,
+      Dias_Visibles: [0],
+      Ocultar_Dias_Automatico: "Ninguno",
+      Slots_Muertos_Default: {},
+      Agrupar_Por_Categorias: false,
+      Globito_Activo: true,
+      Globito_Modo: "Horas",
+      Globito_Posicion: "Arriba",
+      Meta_Notificaciones_Activas: true,
+      Meta_Notificaciones_Hitos: [25, 50, 75, 100],
+      Color_Sueno: "#ddd4f4",
+      Color_Descanso: "#d4e9f4",
+      Color_Badge: "#9b2040",
+      Color_Completa: "#1f6b4f",
+      Color_Sin_Horas: "#c9a800",
+      Color_Fracasada: "#8c2f2f",
+      Resize_Personalizado: false,
+      Notas_Hover: false,
+      Mostrar_Archivadas: false,
+      Focus_Auto: false,
+      Menu_Estilo: "Iconos",
+      Menu_Botones_Visibles: {
+        Plan_Boton: true
+      },
+      Version_Programa: "Demo",
+      Baul_Tareas_Por_Fila: 5,
+      Baul_Sombra_Estado: true,
+      Baul_Vista_Modo: "Biblioteca",
+      Baul_Ordenar_Por: "Personalizado",
+      Baul_Agrupar_Por: "Ninguno",
+      Baul_Mostrar_Archivadas: false,
+      Plan_Actual: "Premium",
+      Contador_Semanas_Activo: false,
+      Contador_Semanas_Modo: "Ano",
+      Contador_Semanas_Fecha_Ref: "",
+      Contador_Semanas_Porcentaje: false,
+      Contador_Semanas_Fecha_Final: "",
+      Contador_Semanas_Vida_Anios: 80,
+      Inicio_Semana_Dia: 0,
+      Inicio_Semana_Hora: 8
+    },
+    Tipos_Slot: [
+      {
+        Id: "Comida",
+        Nombre: "Comida",
+        Color: "#f3d39d",
+        Titulo: "ðŸ½ï¸ Almuerzo",
+        Titulo_Por_Defecto: true
+      },
+      {
+        Id: "Siesta",
+        Nombre: "Siesta",
+        Color: "#cfd8ff",
+        Titulo: "ðŸ˜´ Siesta",
+        Titulo_Por_Defecto: true
+      }
+    ],
+    Tipos_Slot_Inicializados: true,
+    Slots_Muertos_Tipos: {
+      "2026-04-13|10": "Comida"
+    },
+    Slots_Muertos_Nombres: {
+      "2026-04-13|10": "ðŸ½ï¸ Almuerzo"
+    },
+    Abordajes_Migrados_V1: true,
+    Semanas_Con_Defaults: [],
+    Planes_Semana: {}
+  };
+
+  await preparar(page, estadoInicial);
+
+  await page.evaluate(() => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    window.Inicializar();
+  });
+
+  const slot = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+  );
+  await slot.dblclick();
+
+  const resultado = await page.evaluate(() => {
+    const clave = "2026-04-13|10";
+    const nombre = document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"] ' +
+      '.Slot_Muerto_Nombre'
+    );
+    return {
+      tipo: Slots_Muertos_Tipos[clave] || "",
+      titulo: Slots_Muertos_Nombres[clave] || "",
+      user_select: nombre
+        ? getComputedStyle(nombre).userSelect
+        : ""
+    };
+  });
+
+  expect(resultado.tipo).toBe("Siesta");
+  expect(resultado.titulo).toBe("ðŸ˜´ Siesta");
+  expect(resultado.user_select).toBe("none");
+});
+
 test("aplica el titulo default segun el alcance elegido", async ({
   page
 }) => {

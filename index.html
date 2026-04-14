@@ -3811,6 +3811,7 @@
 
       .Slot_Muerto {
         background: rgba(255, 255, 255, 0.72);
+        user-select: none;
       }
 
       .Slot_Muerto::after {
@@ -3838,6 +3839,7 @@
         color: rgba(28, 32, 38, 0.82);
         text-align: center;
         pointer-events: none;
+        user-select: none;
         overflow: hidden;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -39011,6 +39013,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Clave = Clave_Slot(Fecha, Hora);
         const Index = Slots_Muertos.indexOf(Clave);
         const Tipos = Obtener_Tipos_Slot();
+        const Tipo_Actual = Index === -1
+          ? ""
+          : (
+            Slots_Muertos_Tipos[Clave] ||
+            Tipos[0]?.Id || "Sueno"
+          );
+        const Titulo_Actual = Normalizar_Texto_Titulo_Slot(
+          Slots_Muertos_Nombres[Clave]
+        );
+        const Titulo_Default_Actual =
+          Obtener_Titulo_Tipo_Slot(Tipo_Actual);
+        const Sigue_Default_Actual =
+          Boolean(Titulo_Actual) &&
+          Titulo_Actual === Titulo_Default_Actual;
 
         if (Index === -1) {
           // Libre → primer tipo.
@@ -39020,9 +39036,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Tipos[0]?.Id || "Sueno"
           );
         } else {
-          const Tipo_Actual =
-            Slots_Muertos_Tipos[Clave] ||
-            Tipos[0]?.Id || "Sueno";
           const Idx_Actual = Tipos.findIndex(
             (T) => T.Id === Tipo_Actual
           );
@@ -39031,12 +39044,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Idx_Actual < Tipos.length - 1
           ) {
             // Avanzar al siguiente tipo.
-            Slots_Muertos_Tipos[Clave] =
-              Tipos[Idx_Actual + 1].Id;
+            const Tipo_Nuevo = Tipos[Idx_Actual + 1].Id;
+            Slots_Muertos_Tipos[Clave] = Tipo_Nuevo;
+            if (Sigue_Default_Actual) {
+              const Titulo_Nuevo =
+                Obtener_Titulo_Tipo_Slot(Tipo_Nuevo);
+              if (Titulo_Nuevo) {
+                Slots_Muertos_Nombres[Clave] = Titulo_Nuevo;
+              } else {
+                delete Slots_Muertos_Nombres[Clave];
+              }
+            }
           } else {
             // Último tipo → Libre.
             Slots_Muertos.splice(Index, 1);
             delete Slots_Muertos_Tipos[Clave];
+            if (Sigue_Default_Actual) {
+              delete Slots_Muertos_Nombres[Clave];
+            }
           }
         }
         Render_Calendario();
@@ -41772,7 +41797,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Slot
             );
           });
-          Slot.addEventListener("dblclick", () => Alternar_Slot_Muerto(Fecha_ISO, Hora));
+          Slot.addEventListener("dblclick", (Evento) => {
+            Evento.preventDefault();
+            Evento.stopPropagation();
+            Alternar_Slot_Muerto(Fecha_ISO, Hora);
+          });
           Slot.addEventListener("contextmenu", async (Evento) => {
             Evento.preventDefault();
             Evento.stopPropagation();
