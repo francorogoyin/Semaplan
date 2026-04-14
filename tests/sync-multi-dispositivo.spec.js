@@ -393,6 +393,16 @@ async function Preparar_App(page, Estado_Remoto) {
   });
 }
 
+async function Preparar_App_Desktop(page, Estado_Remoto) {
+  await page.addInitScript(() => {
+    window.Semaplan_Desktop = {
+      Activo: true
+    };
+  });
+
+  await Preparar_App(page, Estado_Remoto);
+}
+
 test(
   "fuerza keepalive si la pagina se oculta con sync pendiente",
   async ({ page }) => {
@@ -555,6 +565,54 @@ test(
     expect(
       Resumen.syncRemotoUltimaRevisionMs
     ).toBeGreaterThan(0);
+  }
+);
+
+test(
+  "desktop usa una revision remota mas frecuente " +
+  "sin forzar foco",
+  async ({ page }) => {
+    await Preparar_App_Desktop(
+      page,
+      Crear_Estado(["Solo remoto"])
+    );
+
+    await page.evaluate(({ Estado_Remoto_Nuevo }) => {
+      Sync_Remoto_Ultima_Revision_Ms =
+        Date.now() - 3000;
+      window.__Estado_Remoto = {
+        estado: Estado_Remoto_Nuevo,
+        actualizado_en: "2026-04-14T00:00:27Z",
+        version: 2
+      };
+    }, {
+      Estado_Remoto_Nuevo: Crear_Estado([
+        "Solo remoto",
+        "Cambio remoto desktop"
+      ])
+    });
+
+    const Resumen = await page.evaluate(async () => {
+      const Refresco =
+        await Backend_Revisar_Cambios_Remotos();
+      const Estado = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+
+      return {
+        refresco: Refresco,
+        nombres:
+          (Estado.Tareas || []).map(
+            (Tarea) => Tarea.Nombre
+          )
+      };
+    });
+
+    expect(Resumen.refresco).toBe(true);
+    expect(Resumen.nombres).toContain(
+      "Cambio remoto desktop"
+    );
   }
 );
 

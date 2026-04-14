@@ -49073,7 +49073,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Ahora = Date.now();
         if (
           !Forzar &&
-          Ahora - Sync_Remoto_Ultima_Revision_Ms < 15000
+          Ahora - Sync_Remoto_Ultima_Revision_Ms <
+            Obtener_Revision_Remota_Intervalo_Ms()
         ) {
           return false;
         }
@@ -49239,6 +49240,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Auth_Captcha_Activa() {
         return !Auth_QA_Sin_Captcha_Activa();
+      }
+
+      function Obtener_Revision_Remota_Intervalo_Ms() {
+        return Entorno_Desktop_Activo()
+          ? 2000
+          : 15000;
       }
 
       function Mostrar_Auth() {
@@ -50540,7 +50547,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Sync_Revision_Timer_Id) {
           Sync_Revision_Timer_Id = setInterval(() => {
             Backend_Revisar_Cambios_Remotos();
-          }, 5000);
+          }, Entorno_Desktop_Activo() ? 2000 : 5000);
         }
 
         // Listener del formulario de auth.
