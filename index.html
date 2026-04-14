@@ -6266,6 +6266,20 @@
         font-weight: 600;
       }
 
+      .Archivero_Control_Label_Fila {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .Archivero_Btn_Etiquetas {
+        width: 26px;
+        height: 26px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
       .Archivero_Notas_Lista {
         display: flex;
         flex-direction: column;
@@ -6469,6 +6483,50 @@
         font-size: 12px;
         font-weight: 600;
         color: var(--Texto_Suave);
+      }
+
+      .Archivero_Etiquetas_Gestion_Lista {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: min(300px, 40vh);
+        overflow-y: auto;
+        padding-right: 2px;
+      }
+
+      .Archivero_Etiquetas_Gestion_Vacia {
+        border: 1px dashed var(--Borde);
+        border-radius: 12px;
+        padding: 14px 12px;
+        font-size: 12px;
+        color: var(--Texto_Suave);
+        text-align: center;
+      }
+
+      .Archivero_Etiquetas_Gestion_Fila {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .Archivero_Etiquetas_Gestion_Prefijo {
+        flex: 0 0 auto;
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        border: 1px solid var(--Borde);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--Texto_Suave);
+        background: var(--Acento_Suave);
+      }
+
+      .Archivero_Etiquetas_Gestion_Input {
+        flex: 1;
+        min-width: 0;
       }
 
       .Archivero_Sub_Campo textarea,
@@ -10985,11 +11043,24 @@
                   </select>
                 </div>
                 <div class="Archivero_Control">
-                  <label class="Archivero_Control_Label"
-                    for="Archivero_Filtro_Etiqueta_Select"
-                    data-i18n="archivero.filtro_etiqueta">
-                    Filtrar por etiqueta
-                  </label>
+                  <div class="Archivero_Control_Label_Fila">
+                    <label class="Archivero_Control_Label"
+                      for="Archivero_Filtro_Etiqueta_Select"
+                      data-i18n="archivero.filtro_etiqueta">
+                      Filtrar por etiqueta
+                    </label>
+                    <button type="button"
+                      class="Archivero_Btn_Nueva_Nota_Icono
+                        Archivero_Btn_Etiquetas"
+                      id="Archivero_Btn_Gestionar_Etiquetas"
+                      title="Gestionar etiquetas"
+                      data-i18n-title=
+                        "archivero.gestionar_etiquetas_title"
+                      aria-label="Gestionar etiquetas"
+                      data-i18n-aria=
+                        "archivero.gestionar_etiquetas_title"
+                      >#</button>
+                  </div>
                   <select class="Archivero_Control_Select"
                     id="Archivero_Filtro_Etiqueta_Select">
                     <option value=""
@@ -11222,6 +11293,59 @@
             <button type="button"
               class="Archivero_Sub_Btn Primario"
               id="Archivero_Cajon_Guardar"
+              data-i18n="guardar">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="Patron_Modal_Overlay"
+      id="Archivero_Etiquetas_Overlay">
+      <div class="Patron_Modal_Panel Archivero_Sub_Panel">
+        <div class="Patron_Modal_Cabecera">
+          <span class="Patron_Modal_Titulo"
+            data-i18n="archivero.gestionar_etiquetas">
+            Gestionar etiquetas
+          </span>
+          <button class="Config_Cerrar"
+            id="Archivero_Etiquetas_Cerrar"
+            type="button">&times;</button>
+        </div>
+        <div class="Patron_Modal_Cuerpo
+          Archivero_Sub_Cuerpo">
+          <div class="Archivero_Sub_Campo">
+            <label for="Archivero_Etiqueta_Nueva_Input"
+              data-i18n="archivero.nueva_etiqueta">
+              Nueva etiqueta
+            </label>
+            <div class="Archivero_Sub_Campo_Inline">
+              <input type="text"
+                id="Archivero_Etiqueta_Nueva_Input"
+                data-i18n-ph="archivero.nueva_etiqueta_ph"
+                placeholder="Ej: Ideas">
+              <button type="button"
+                class="Archivero_Sub_Btn"
+                id="Archivero_Etiqueta_Agregar_Btn"
+                data-i18n="agregar">
+                Agregar
+              </button>
+            </div>
+          </div>
+          <div class="Archivero_Sub_Campo">
+            <label data-i18n="archivero.etiquetas">
+              Etiquetas (opcional)
+            </label>
+            <div class="Archivero_Etiquetas_Gestion_Lista"
+              id="Archivero_Etiquetas_Gestion_Lista"></div>
+          </div>
+          <div class="Archivero_Sub_Acciones">
+            <button type="button"
+              class="Archivero_Sub_Btn"
+              id="Archivero_Etiquetas_Cancelar"
+              data-i18n="cancelar">Cancelar</button>
+            <button type="button"
+              class="Archivero_Sub_Btn Primario"
+              id="Archivero_Etiquetas_Guardar"
               data-i18n="guardar">Guardar</button>
           </div>
         </div>
@@ -12569,6 +12693,10 @@
           "archivero.ordenar": "Ordenar",
           "archivero.filtro_etiqueta":
             "Filtrar por etiqueta",
+          "archivero.gestionar_etiquetas":
+            "Gestionar etiquetas",
+          "archivero.gestionar_etiquetas_title":
+            "Gestionar etiquetas",
           "archivero.filtro_tipo":
             "Filtrar por tipo",
           "archivero.orden_personalizado":
@@ -12618,8 +12746,14 @@
             "URL o de dónde sacaste esto",
           "archivero.etiquetas":
             "Etiquetas (opcional)",
+          "archivero.nueva_etiqueta":
+            "Nueva etiqueta",
+          "archivero.nueva_etiqueta_ph":
+            "Ej: Ideas",
           "archivero.etiquetas_ph":
             "filosofía, memorable, libro...",
+          "archivero.sin_etiquetas_gestion":
+            "Todavía no hay etiquetas creadas.",
           "archivero.color_fondo":
             "Color de fondo",
           "archivero.usar_color_cajon":
@@ -14666,6 +14800,10 @@
           "archivero.ordenar": "Sort",
           "archivero.filtro_etiqueta":
             "Filter by tag",
+          "archivero.gestionar_etiquetas":
+            "Manage tags",
+          "archivero.gestionar_etiquetas_title":
+            "Manage tags",
           "archivero.filtro_tipo":
             "Filter by type",
           "archivero.orden_personalizado":
@@ -14715,9 +14853,15 @@
             "from",
           "archivero.etiquetas":
             "Tags (optional)",
+          "archivero.nueva_etiqueta":
+            "New tag",
+          "archivero.nueva_etiqueta_ph":
+            "E.g.: Ideas",
           "archivero.etiquetas_ph":
             "philosophy, memorable, " +
             "book...",
+          "archivero.sin_etiquetas_gestion":
+            "There are no tags yet.",
           "archivero.color_fondo":
             "Background color",
           "archivero.usar_color_cajon":
@@ -16779,6 +16923,10 @@
           "archivero.ordenar": "Ordenar",
           "archivero.filtro_etiqueta":
             "Filtrar por tag",
+          "archivero.gestionar_etiquetas":
+            "Gerenciar tags",
+          "archivero.gestionar_etiquetas_title":
+            "Gerenciar tags",
           "archivero.filtro_tipo":
             "Filtrar por tipo",
           "archivero.orden_personalizado":
@@ -16830,9 +16978,15 @@
             "isso",
           "archivero.etiquetas":
             "Tags (opcional)",
+          "archivero.nueva_etiqueta":
+            "Nova tag",
+          "archivero.nueva_etiqueta_ph":
+            "Ex: Ideias",
           "archivero.etiquetas_ph":
             "filosofia, memorável, " +
             "livro...",
+          "archivero.sin_etiquetas_gestion":
+            "Ainda não há tags criadas.",
           "archivero.color_fondo":
             "Cor de fundo",
           "archivero.usar_color_cajon":
@@ -18804,6 +18958,8 @@
       let Archivero_Orden = "Fecha_Desc";
       let Archivero_Notas_Seleccionadas = new Set();
       let Archivero_Nota_En_Edicion_Id = null;
+      let Archivero_Etiquetas_En_Edicion = [];
+      let Archivero_Etiquetas_Originales = [];
       let Archivero_Cajon_En_Edicion_Id = null;
       let Patrones = [];
       let Patron_En_Edicion = null;
@@ -22218,6 +22374,188 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               : [];
           })
         );
+      }
+
+      function Render_Modal_Etiquetas_Archivero() {
+        const Lista = document.getElementById(
+          "Archivero_Etiquetas_Gestion_Lista"
+        );
+        if (!Lista) return;
+        Lista.innerHTML = "";
+        if (Archivero_Etiquetas_En_Edicion.length === 0) {
+          const Vacio = document.createElement("div");
+          Vacio.className =
+            "Archivero_Etiquetas_Gestion_Vacia";
+          Vacio.textContent = t(
+            "archivero.sin_etiquetas_gestion"
+          );
+          Lista.appendChild(Vacio);
+          return;
+        }
+        Archivero_Etiquetas_En_Edicion.forEach(
+          (Etiqueta, Indice) => {
+            const Fila = document.createElement("div");
+            Fila.className =
+              "Archivero_Etiquetas_Gestion_Fila";
+
+            const Prefijo = document.createElement("span");
+            Prefijo.className =
+              "Archivero_Etiquetas_Gestion_Prefijo";
+            Prefijo.textContent = "#";
+
+            const Input = document.createElement("input");
+            Input.type = "text";
+            Input.className =
+              "Archivero_Etiquetas_Gestion_Input";
+            Input.value = Etiqueta.Valor || "";
+            Input.placeholder = t(
+              "archivero.nueva_etiqueta_ph"
+            );
+            Input.addEventListener("input", (Ev) => {
+              Archivero_Etiquetas_En_Edicion[Indice].Valor =
+                Ev.target.value;
+            });
+
+            const Btn_Borrar = document.createElement(
+              "button"
+            );
+            Btn_Borrar.type = "button";
+            Btn_Borrar.className = "Archivero_Nota_Mini_Btn";
+            Btn_Borrar.textContent = "×";
+            Btn_Borrar.title = t("borrar");
+            Btn_Borrar.addEventListener("click", () => {
+              Archivero_Etiquetas_En_Edicion.splice(
+                Indice,
+                1
+              );
+              Render_Modal_Etiquetas_Archivero();
+            });
+
+            Fila.appendChild(Prefijo);
+            Fila.appendChild(Input);
+            Fila.appendChild(Btn_Borrar);
+            Lista.appendChild(Fila);
+          }
+        );
+      }
+
+      function Abrir_Modal_Etiquetas_Archivero() {
+        Archivero_Etiquetas_Originales =
+          Obtener_Catalogo_Etiquetas_Archivero();
+        Archivero_Etiquetas_En_Edicion =
+          Archivero_Etiquetas_Originales.map((Etiqueta) => ({
+            Original: Etiqueta,
+            Valor: Etiqueta
+          }));
+        Render_Modal_Etiquetas_Archivero();
+        document.getElementById(
+          "Archivero_Etiquetas_Overlay"
+        )?.classList.add("Activo");
+        const Input = document.getElementById(
+          "Archivero_Etiqueta_Nueva_Input"
+        );
+        if (Input) {
+          Input.value = "";
+          setTimeout(() => Input.focus(), 30);
+        }
+      }
+
+      function Cerrar_Modal_Etiquetas_Archivero() {
+        Archivero_Etiquetas_En_Edicion = [];
+        Archivero_Etiquetas_Originales = [];
+        document.getElementById(
+          "Archivero_Etiquetas_Overlay"
+        )?.classList.remove("Activo");
+      }
+
+      function Agregar_Etiqueta_En_Modal_Archivero() {
+        const Input = document.getElementById(
+          "Archivero_Etiqueta_Nueva_Input"
+        );
+        if (!Input) return;
+        const Valor = String(Input.value || "").trim();
+        if (!Valor) return;
+        const Clave = Normalizar_Texto_Archivero(Valor);
+        const Existe =
+          Archivero_Etiquetas_En_Edicion.some((Etiqueta) => {
+            return Normalizar_Texto_Archivero(
+              Etiqueta.Valor
+            ) === Clave;
+          });
+        if (Existe) {
+          Input.value = "";
+          return;
+        }
+        Archivero_Etiquetas_En_Edicion.push({
+          Original: "",
+          Valor
+        });
+        Input.value = "";
+        Render_Modal_Etiquetas_Archivero();
+      }
+
+      function Guardar_Etiquetas_Archivero_Desde_Modal() {
+        const Finales = Normalizar_Etiquetas_Archivero(
+          Archivero_Etiquetas_En_Edicion.map((Etiqueta) => {
+            return Etiqueta.Valor;
+          })
+        );
+        const Finales_Mapa = new Map(
+          Finales.map((Etiqueta) => [
+            Normalizar_Texto_Archivero(Etiqueta),
+            Etiqueta
+          ])
+        );
+        const Renombres = new Map();
+        Archivero_Etiquetas_En_Edicion.forEach((Etiqueta) => {
+          const Original = String(
+            Etiqueta.Original || ""
+          ).trim();
+          const Valor = String(Etiqueta.Valor || "").trim();
+          if (!Original || !Valor) return;
+          Renombres.set(
+            Normalizar_Texto_Archivero(Original),
+            Valor
+          );
+        });
+        const Originales = new Set(
+          Archivero_Etiquetas_Originales.map((Etiqueta) =>
+            Normalizar_Texto_Archivero(Etiqueta)
+          )
+        );
+        Notas_Archivero = Notas_Archivero.map((Nota) => {
+          const Etiquetas_Nota =
+            Array.isArray(Nota.Etiquetas)
+            ? Nota.Etiquetas
+            : [];
+          const Resultado = [];
+          Etiquetas_Nota.forEach((Etiqueta) => {
+            const Clave =
+              Normalizar_Texto_Archivero(Etiqueta);
+            if (Renombres.has(Clave)) {
+              Resultado.push(Renombres.get(Clave));
+              return;
+            }
+            if (Finales_Mapa.has(Clave)) {
+              Resultado.push(Finales_Mapa.get(Clave));
+              return;
+            }
+            if (Originales.has(Clave)) {
+              return;
+            }
+            Resultado.push(Etiqueta);
+          });
+          return {
+            ...Nota,
+            Etiquetas:
+              Normalizar_Etiquetas_Archivero(Resultado)
+          };
+        });
+        Etiquetas_Archivero = Finales;
+        Guardar_Estado();
+        Cerrar_Modal_Etiquetas_Archivero();
+        Renderizar_Sugerencias_Nota_Archivero();
+        Render_Archivero();
       }
 
       function Obtener_Notas_Cajon_Archivero(
@@ -39718,6 +40056,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Quitar"
         );
       });
+      document.getElementById(
+        "Archivero_Btn_Gestionar_Etiquetas"
+      )?.addEventListener("click", () => {
+        Abrir_Modal_Etiquetas_Archivero();
+      });
       document.getElementById("Archivero_Multi_Borrar_Btn")
         ?.addEventListener("click", () => {
           Borrar_Notas_Seleccionadas_Archivero();
@@ -39790,6 +40133,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Archivero_Cajon_Overlay") {
             Cerrar_Modal_Cajon_Archivero();
+          }
+        });
+      document.getElementById("Archivero_Etiquetas_Cerrar")
+        ?.addEventListener(
+          "click",
+          Cerrar_Modal_Etiquetas_Archivero
+        );
+      document.getElementById("Archivero_Etiquetas_Cancelar")
+        ?.addEventListener(
+          "click",
+          Cerrar_Modal_Etiquetas_Archivero
+        );
+      document.getElementById("Archivero_Etiquetas_Guardar")
+        ?.addEventListener(
+          "click",
+          Guardar_Etiquetas_Archivero_Desde_Modal
+        );
+      document.getElementById("Archivero_Etiqueta_Agregar_Btn")
+        ?.addEventListener(
+          "click",
+          Agregar_Etiqueta_En_Modal_Archivero
+        );
+      document.getElementById("Archivero_Etiqueta_Nueva_Input")
+        ?.addEventListener("keydown", (Ev) => {
+          if (Ev.key !== "Enter") return;
+          Ev.preventDefault();
+          Agregar_Etiqueta_En_Modal_Archivero();
+        });
+      document.getElementById("Archivero_Etiquetas_Overlay")
+        ?.addEventListener("click", (Ev) => {
+          if (
+            Ev.target.id === "Archivero_Etiquetas_Overlay"
+          ) {
+            Cerrar_Modal_Etiquetas_Archivero();
           }
         });
       document.getElementById("Baul_Cancelar_Edicion")
@@ -44755,6 +45132,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           // Se evalúan en orden de prioridad: primero los
           // submodales (que están encima visualmente),
           // después el modal raíz.
+          if (
+            document
+              .getElementById("Archivero_Etiquetas_Overlay")
+              ?.classList.contains("Activo")
+          ) {
+            Cerrar_Modal_Etiquetas_Archivero();
+            Ev.preventDefault();
+            return;
+          }
           if (
             document
               .getElementById("Archivero_Cajon_Overlay")
