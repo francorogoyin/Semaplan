@@ -22,12 +22,19 @@ async function preparar(page, estado) {
     }
   );
   await page.addInitScript((estadoInicial) => {
+    window.__Invocaciones_Edge = [];
     window.supabase = {
       createClient() {
         return {
           auth: {
             async getSession() {
-              return { data: { session: null } };
+              return {
+                data: {
+                  session: {
+                    access_token: "token-demo"
+                  }
+                }
+              };
             },
             onAuthStateChange() {
               return {
@@ -38,6 +45,18 @@ async function preparar(page, estado) {
             },
             async signOut() {
               return { error: null };
+            }
+          },
+          functions: {
+            async invoke(nombre, opciones) {
+              window.__Invocaciones_Edge.push({
+                nombre,
+                opciones
+              });
+              return {
+                data: { Ok: true, Id: "mail_1" },
+                error: null
+              };
             }
           }
         };
@@ -62,9 +81,8 @@ async function preparar(page, estado) {
   );
 }
 
-test("ayuda traduce título, muestra faq y abre modal de consulta",
-async ({ page }) => {
-  await preparar(page, {
+function estadoBase() {
+  return {
     Tareas: [],
     Eventos: [],
     Metas: [],
@@ -91,7 +109,12 @@ async ({ page }) => {
     Abordajes_Migrados_V1: true,
     Semanas_Con_Defaults: [],
     Planes_Semana: {}
-  });
+  };
+}
+
+test("ayuda traduce título, abre faq separado y envía consulta real",
+async ({ page }) => {
+  await preparar(page, estadoBase());
 
   const resultado = await page.evaluate(async () => {
     document.getElementById("Auth_Overlay")
@@ -103,10 +126,11 @@ async ({ page }) => {
       id: "usr",
       email: "tester@example.com"
     };
-    let Mailto = "";
-    window.open = (url) => {
-      Mailto = url;
-      return {};
+    let Dialogos = [];
+    const Dialogo_Original = Mostrar_Dialogo;
+    Mostrar_Dialogo = async (texto) => {
+      Dialogos.push(texto);
+      return true;
     };
     Abrir_Ayuda();
     const Es = {
@@ -115,10 +139,19 @@ async ({ page }) => {
       )?.textContent?.trim() || "",
       faq: document.getElementById("Ayuda_Faq_Btn")
         ?.textContent?.trim() || "",
-      pregunta: document.querySelector(
-        "#Ayuda_Faq_Ancla + h3 + .Ayuda_Faq_Lista strong"
+      resumen: document.querySelector(
+        "#Ayuda_Overlay .Ayuda_Faq_Nota"
       )?.textContent?.trim() || ""
     };
+    document.getElementById("Ayuda_Faq_Btn").click();
+    const Faq_Activa = document.getElementById(
+      "Ayuda_Faq_Overlay"
+    )?.classList.contains("Activo");
+    const Preguntas = Array.from(
+      document.querySelectorAll(
+        "#Ayuda_Faq_Lista_Modal strong"
+      )
+    ).map((el) => el.textContent?.trim() || "");
     document.getElementById("Ayuda_Consulta_Btn").click();
     document.getElementById("Ayuda_Consulta_Asunto").value =
       "Consulta";
@@ -133,49 +166,47 @@ async ({ page }) => {
     const Pt = document.querySelector(
       "#Ayuda_Overlay .Patron_Modal_Titulo"
     )?.textContent?.trim() || "";
-    return { Es, En, Pt, Mailto };
+    const Invocacion =
+      window.__Invocaciones_Edge[0] || null;
+    Mostrar_Dialogo = Dialogo_Original;
+    return {
+      Es,
+      En,
+      Pt,
+      Faq_Activa,
+      Preguntas,
+      Invocacion,
+      Dialogos
+    };
   });
 
   expect(resultado.Es.titulo).toBe("Ayuda");
-  expect(resultado.Es.faq).toBe("FAQ");
-  expect(resultado.Es.pregunta.length).toBeGreaterThan(5);
+  expect(resultado.Es.faq).toBe("Abrir FAQ");
+  expect(resultado.Es.resumen.length).toBeGreaterThan(20);
+  expect(resultado.Faq_Activa).toBe(true);
+  expect(resultado.Preguntas.length).toBeGreaterThan(6);
+  expect(resultado.Preguntas).toContain(
+    "¿Cómo creo un mail corporativo si ya tengo dominio?"
+  );
   expect(resultado.En).toBe("Help");
   expect(resultado.Pt).toBe("Ajuda");
-  expect(resultado.Mailto).toContain("mailto:");
-  expect(resultado.Mailto).toContain("Consulta");
-  expect(resultado.Mailto).toContain("tester%40example.com");
+  expect(resultado.Invocacion.nombre).toBe(
+    "enviar-ayuda-consulta"
+  );
+  expect(resultado.Invocacion.opciones.body.Asunto).toBe(
+    "Consulta"
+  );
+  expect(resultado.Invocacion.opciones.body.Mensaje).toBe(
+    "Necesito ayuda."
+  );
+  expect(resultado.Dialogos).toContain(
+    "Consulta enviada. Te vamos a responder por mail."
+  );
 });
 
 test("modal de consulta usa campos redondeados y mensaje ancho",
 async ({ page }) => {
-  await preparar(page, {
-    Tareas: [],
-    Eventos: [],
-    Metas: [],
-    Slots_Muertos: [],
-    Plantillas_Subtareas: [],
-    Planes_Slot: {},
-    Categorias: [],
-    Etiquetas: [],
-    Baul_Tareas: [],
-    Baul_Grupos_Colapsados: {},
-    Archiveros: [],
-    Notas_Archivero: [],
-    Patrones: [],
-    Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
-    Modo_Editor_Abierto: false,
-    Inicio_Semana: "2026-04-13",
-    Duracion_Defecto: 1,
-    Config_Extra: {},
-    Tipos_Slot: [],
-    Tipos_Slot_Inicializados: false,
-    Slots_Muertos_Tipos: {},
-    Slots_Muertos_Nombres: {},
-    Abordajes_Migrados_V1: true,
-    Semanas_Con_Defaults: [],
-    Planes_Semana: {}
-  });
+  await preparar(page, estadoBase());
 
   const estilos = await page.evaluate(() => {
     document.getElementById("Auth_Overlay")

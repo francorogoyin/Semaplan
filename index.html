@@ -8225,6 +8225,14 @@
       .Ayuda_Consulta_Panel {
         width: min(520px, calc(100vw - 28px));
       }
+      .Ayuda_Faq_Panel {
+        width: min(720px, calc(100vw - 28px));
+      }
+      .Ayuda_Faq_Nota {
+        margin: 0 0 12px;
+        color: var(--Texto_Suave);
+        line-height: 1.5;
+      }
 
       .Ayuda_Consulta_Cuerpo {
         display: flex;
@@ -10351,8 +10359,9 @@
                 <div class="Ayuda_Acciones">
                   <button type="button"
                     id="Ayuda_Faq_Btn"
-                    class="Ayuda_Accion_Btn">
-                    FAQ
+                    class="Ayuda_Accion_Btn"
+                    data-i18n="ayuda.faq_boton">
+                    Abrir FAQ
                   </button>
                   <button type="button"
                     id="Ayuda_Consulta_Btn"
@@ -10361,42 +10370,12 @@
                     Enviar consulta
                   </button>
                 </div>
-                <div id="Ayuda_Faq_Ancla"></div>
-                <h3 data-i18n="ayuda.faq_titulo">
-                  FAQ
-                </h3>
-                <div class="Ayuda_Faq_Lista">
-                  <div class="Ayuda_Faq_Item">
-                    <strong data-i18n="ayuda.faq_1_q">
-                      ¿Cómo creo un bloque?
-                    </strong>
-                    <p data-i18n="ayuda.faq_1_a">
-                      Arrastrá una tarea al calendario o
-                      hacé click en una hora libre para crear
-                      algo nuevo desde ahí.
-                    </p>
-                  </div>
-                  <div class="Ayuda_Faq_Item">
-                    <strong data-i18n="ayuda.faq_2_q">
-                      ¿Qué guarda una copia?
-                    </strong>
-                    <p data-i18n="ayuda.faq_2_a">
-                      Guarda estado completo: calendario,
-                      tareas, baúl, metas, archivero,
-                      etiquetas, patrones y configuración.
-                    </p>
-                  </div>
-                  <div class="Ayuda_Faq_Item">
-                    <strong data-i18n="ayuda.faq_3_q">
-                      ¿Cómo sé si sincronizó?
-                    </strong>
-                    <p data-i18n="ayuda.faq_3_a">
-                      Mirá el indicador de guardado arriba.
-                      Guardado significa que no queda nada
-                      pendiente con la nube.
-                    </p>
-                  </div>
-                </div>
+                <p class="Ayuda_Faq_Nota"
+                  data-i18n="ayuda.faq_resumen">
+                  Abrí el FAQ para ver respuestas más
+                  completas sobre calendario, subtareas,
+                  backups, sincronización y cuenta.
+                </p>
               </div>
               <div class="Ayuda_Bloque">
                 <div class="Ayuda_Hero">
@@ -11954,6 +11933,28 @@
                   Enviar mail
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="Patron_Modal_Overlay" id="Ayuda_Faq_Overlay">
+          <div class="Patron_Modal_Panel Ayuda_Faq_Panel">
+            <div class="Patron_Modal_Cabecera">
+              <span class="Patron_Modal_Titulo"
+                data-i18n="ayuda.faq_titulo">
+                FAQ
+              </span>
+              <button class="Config_Cerrar" id="Ayuda_Faq_Cerrar"
+                type="button">&times;</button>
+            </div>
+            <div class="Ayuda_Cuerpo">
+              <p class="Ayuda_Faq_Nota"
+                data-i18n="ayuda.faq_modal_intro">
+                Respuestas rápidas para usar Semaplan sin ir
+                probando a ciegas.
+              </p>
+              <div class="Ayuda_Faq_Lista"
+                id="Ayuda_Faq_Lista_Modal"></div>
             </div>
           </div>
         </div>
@@ -14063,6 +14064,17 @@
             "Sin resultados",
           "ayuda.titulo": "Ayuda",
           "ayuda.faq_titulo": "FAQ",
+          "ayuda.faq_boton":
+            "Abrir FAQ",
+          "ayuda.faq_resumen":
+            "Abrí el FAQ para ver respuestas " +
+            "más completas sobre calendario, " +
+            "subtareas, backups, " +
+            "sincronización y cuenta.",
+          "ayuda.faq_modal_intro":
+            "Respuestas rápidas para usar " +
+            "Semaplan sin ir probando a " +
+            "ciegas.",
           "ayuda.consulta_boton":
             "Enviar consulta",
           "ayuda.consulta_titulo":
@@ -14070,15 +14082,21 @@
           "ayuda.consulta_asunto": "Asunto",
           "ayuda.consulta_mensaje": "Mensaje",
           "ayuda.consulta_enviar":
-            "Enviar mail",
+            "Enviar mensaje",
           "ayuda.consulta_asunto_default":
             "Consulta sobre Semaplan",
           "ayuda.consulta_hint":
-            "El mail se abre con tu cliente " +
-            "de correo y sale marcado con " +
+            "La consulta se manda por " +
+            "Semaplan y queda asociada a " +
             "este usuario: {Email}.",
           "ayuda.consulta_incompleta":
             "Completá asunto y mensaje.",
+          "ayuda.consulta_ok":
+            "Consulta enviada. Te vamos a " +
+            "responder por mail.",
+          "ayuda.consulta_error":
+            "No se pudo enviar la consulta. " +
+            "Probá de nuevo en un rato.",
           "ayuda.consulta_body_usuario":
             "Usuario: {Email}",
           "ayuda.faq_1_q":
@@ -14102,6 +14120,45 @@
             "arriba. Guardado significa " +
             "que no queda nada pendiente " +
             "con la nube.",
+          "ayuda.faq_4_q":
+            "¿Cómo paso una tarea a otra " +
+            "semana?",
+          "ayuda.faq_4_a":
+            "Copiala desde el resumen de la " +
+            "tarea o mové subtareas puntuales " +
+            "cuando no quieras arrastrar todo.",
+          "ayuda.faq_5_q":
+            "¿Qué diferencia hay entre " +
+            "subtarea semanal y plantilla?",
+          "ayuda.faq_5_a":
+            "La semanal vive solo en esa " +
+            "semana. La plantilla se propaga " +
+            "a otras semanas relacionadas.",
+          "ayuda.faq_6_q":
+            "¿Qué guarda Focus cuando marco " +
+            "algo como abordado?",
+          "ayuda.faq_6_a":
+            "Guarda el trabajo hecho dentro " +
+            "de ese bloque. No reemplaza el " +
+            "plan: lo complementa.",
+          "ayuda.faq_7_q":
+            "¿Cómo recupero una semana si " +
+            "toqué algo por error?",
+          "ayuda.faq_7_a":
+            "Usá deshacer cuando aparezca el " +
+            "toast o cargá un backup desde " +
+            "Configuración si necesitás volver " +
+            "más atrás.",
+          "ayuda.faq_8_q":
+            "¿Cómo creo un mail corporativo " +
+            "si ya tengo dominio?",
+          "ayuda.faq_8_a":
+            "Tener dominio no alcanza: también " +
+            "necesitás un proveedor de correo " +
+            "como Google Workspace, Zoho, " +
+            "Microsoft 365 o Resend para envíos. " +
+            "Después configurás MX/SPF/DKIM " +
+            "en tu DNS.",
           "ayuda.como_se_mueve":
             "Cómo se mueve la semana",
           "ayuda.intro":
@@ -16257,6 +16314,16 @@
             "No results",
           "ayuda.titulo": "Help",
           "ayuda.faq_titulo": "FAQ",
+          "ayuda.faq_boton":
+            "Open FAQ",
+          "ayuda.faq_resumen":
+            "Open the FAQ for fuller " +
+            "answers about calendar, " +
+            "subtasks, backups, sync and " +
+            "account settings.",
+          "ayuda.faq_modal_intro":
+            "Quick answers so you can use " +
+            "Semaplan without guessing.",
           "ayuda.consulta_boton":
             "Send question",
           "ayuda.consulta_titulo":
@@ -16264,15 +16331,21 @@
           "ayuda.consulta_asunto": "Subject",
           "ayuda.consulta_mensaje": "Message",
           "ayuda.consulta_enviar":
-            "Send email",
+            "Send message",
           "ayuda.consulta_asunto_default":
             "Question about Semaplan",
           "ayuda.consulta_hint":
-            "This opens your email app " +
-            "with this signed-in user: " +
-            "{Email}.",
+            "This question is sent by " +
+            "Semaplan and linked to this " +
+            "signed-in user: {Email}.",
           "ayuda.consulta_incompleta":
             "Complete subject and message.",
+          "ayuda.consulta_ok":
+            "Question sent. We will reply " +
+            "by email.",
+          "ayuda.consulta_error":
+            "The question could not be sent. " +
+            "Please try again shortly.",
           "ayuda.consulta_body_usuario":
             "User: {Email}",
           "ayuda.faq_1_q":
@@ -16295,6 +16368,45 @@
             "Check the save indicator at " +
             "the top. Saved means nothing " +
             "is pending with the cloud.",
+          "ayuda.faq_4_q":
+            "How do I move a task to " +
+            "another week?",
+          "ayuda.faq_4_a":
+            "Copy it from the task summary " +
+            "or move individual subtasks " +
+            "when you do not want to move " +
+            "the whole task.",
+          "ayuda.faq_5_q":
+            "What is the difference between " +
+            "a weekly subtask and a template?",
+          "ayuda.faq_5_a":
+            "A weekly subtask lives only in " +
+            "that week. A template propagates " +
+            "across related weeks.",
+          "ayuda.faq_6_q":
+            "What does Focus save when I " +
+            "mark something as worked on?",
+          "ayuda.faq_6_a":
+            "It saves the work done inside " +
+            "that block. It does not replace " +
+            "the plan; it complements it.",
+          "ayuda.faq_7_q":
+            "How do I recover a week if I " +
+            "changed something by mistake?",
+          "ayuda.faq_7_a":
+            "Use undo when the toast appears " +
+            "or load a backup from Settings " +
+            "if you need to go further back.",
+          "ayuda.faq_8_q":
+            "How do I create a business email " +
+            "if I already have a domain?",
+          "ayuda.faq_8_a":
+            "A domain alone is not enough: " +
+            "you also need a mail provider " +
+            "such as Google Workspace, Zoho, " +
+            "Microsoft 365 or Resend for " +
+            "sending. Then configure MX/SPF/" +
+            "DKIM in DNS.",
           "ayuda.como_se_mueve":
             "How the week works",
           "ayuda.intro":
@@ -18501,6 +18613,18 @@
             "Sem resultados",
           "ayuda.titulo": "Ajuda",
           "ayuda.faq_titulo": "FAQ",
+          "ayuda.faq_boton":
+            "Abrir FAQ",
+          "ayuda.faq_resumen":
+            "Abra o FAQ para ver respostas " +
+            "mais completas sobre " +
+            "calendário, subtarefas, " +
+            "backups, sincronização e " +
+            "conta.",
+          "ayuda.faq_modal_intro":
+            "Respostas rápidas para usar " +
+            "o Semaplan sem ficar " +
+            "tentando no escuro.",
           "ayuda.consulta_boton":
             "Enviar consulta",
           "ayuda.consulta_titulo":
@@ -18508,15 +18632,22 @@
           "ayuda.consulta_asunto": "Assunto",
           "ayuda.consulta_mensaje": "Mensagem",
           "ayuda.consulta_enviar":
-            "Enviar email",
+            "Enviar mensagem",
           "ayuda.consulta_asunto_default":
             "Consulta sobre Semaplan",
           "ayuda.consulta_hint":
-            "O email abre no seu cliente " +
-            "de correio com este usuário: " +
-            "{Email}.",
+            "A consulta é enviada pelo " +
+            "Semaplan e fica associada a " +
+            "este usuário: {Email}.",
           "ayuda.consulta_incompleta":
             "Preencha assunto e mensagem.",
+          "ayuda.consulta_ok":
+            "Consulta enviada. Vamos " +
+            "responder por email.",
+          "ayuda.consulta_error":
+            "Não foi possível enviar a " +
+            "consulta. Tente novamente " +
+            "daqui a pouco.",
           "ayuda.consulta_body_usuario":
             "Usuário: {Email}",
           "ayuda.faq_1_q":
@@ -18540,6 +18671,46 @@
             "salvamento no topo. Salvo " +
             "significa que nada ficou " +
             "pendente com a nuvem.",
+          "ayuda.faq_4_q":
+            "Como levo uma tarefa para " +
+            "outra semana?",
+          "ayuda.faq_4_a":
+            "Copie pelo resumo da tarefa " +
+            "ou mova subtarefas específicas " +
+            "quando não quiser arrastar " +
+            "tudo.",
+          "ayuda.faq_5_q":
+            "Qual é a diferença entre " +
+            "subtarefa semanal e modelo?",
+          "ayuda.faq_5_a":
+            "A semanal vive só naquela " +
+            "semana. O modelo se propaga " +
+            "para outras semanas relacionadas.",
+          "ayuda.faq_6_q":
+            "O que o Focus salva quando " +
+            "marco algo como abordado?",
+          "ayuda.faq_6_a":
+            "Ele salva o trabalho feito " +
+            "dentro daquele bloco. Não " +
+            "substitui o plano; complementa.",
+          "ayuda.faq_7_q":
+            "Como recupero uma semana se " +
+            "mexi em algo por engano?",
+          "ayuda.faq_7_a":
+            "Use desfazer quando o toast " +
+            "aparecer ou carregue um backup " +
+            "em Configuração se precisar " +
+            "voltar mais.",
+          "ayuda.faq_8_q":
+            "Como crio um email corporativo " +
+            "se já tenho domínio?",
+          "ayuda.faq_8_a":
+            "Só o domínio não basta: você " +
+            "também precisa de um provedor " +
+            "de email como Google Workspace, " +
+            "Zoho, Microsoft 365 ou Resend " +
+            "para envios. Depois configure " +
+            "MX/SPF/DKIM no DNS.",
           "ayuda.como_se_mueve":
             "Como a semana funciona",
           "ayuda.intro":
@@ -19614,6 +19785,13 @@
           Render_Historial_Planes();
         }
         if (
+          document.getElementById("Ayuda_Faq_Overlay")
+            ?.classList.contains("Activo") &&
+          typeof Render_Ayuda_Faq === "function"
+        ) {
+          Render_Ayuda_Faq();
+        }
+        if (
           document.getElementById("Config_Overlay")
             ?.classList.contains("Activo")
         ) {
@@ -19785,8 +19963,6 @@
         "Semaplan_Estado_Usuario_V1";
       const Clave_Backups = "Semaplan_Backups_V1";
       const Max_Backups_Locales = 12;
-      const Mail_Ayuda_Consulta =
-        "patricioe.nogueroles@gmail.com";
       let Backups_Locales = [];
       // Migración one-time desde el nombre viejo del
       // proyecto: si el usuario tiene datos con la
@@ -20128,6 +20304,10 @@
       const El_Ayuda_Consulta_Overlay =
         document.getElementById(
           "Ayuda_Consulta_Overlay"
+        );
+      const El_Ayuda_Faq_Overlay =
+        document.getElementById(
+          "Ayuda_Faq_Overlay"
         );
       const El_Suscripcion_Overlay = document.getElementById(
         "Suscripcion_Overlay"
@@ -41723,7 +41903,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", Cuenta_Eliminar_Cuenta);
       El_Ayuda_Boton.addEventListener("click", Abrir_Ayuda);
       document.getElementById("Ayuda_Faq_Btn")
-        ?.addEventListener("click", Ir_A_Faq_Ayuda);
+        ?.addEventListener("click", Abrir_Ayuda_Faq);
       document.getElementById("Ayuda_Consulta_Btn")
         ?.addEventListener("click", Abrir_Ayuda_Consulta);
       document.getElementById("Ayuda_Cerrar")
@@ -41751,6 +41931,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         (Ev) => {
           if (Ev.target === El_Ayuda_Consulta_Overlay) {
             Cerrar_Ayuda_Consulta();
+          }
+        }
+      );
+      document.getElementById("Ayuda_Faq_Cerrar")
+        ?.addEventListener("click", Cerrar_Ayuda_Faq);
+      El_Ayuda_Faq_Overlay?.addEventListener(
+        "click",
+        (Ev) => {
+          if (Ev.target === El_Ayuda_Faq_Overlay) {
+            Cerrar_Ayuda_Faq();
           }
         }
       );
@@ -47326,23 +47516,48 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Cerrar_Ayuda() {
         El_Ayuda_Overlay?.classList.remove("Activo");
         Cerrar_Ayuda_Consulta();
+        Cerrar_Ayuda_Faq();
       }
 
-      function Ir_A_Faq_Ayuda() {
-        const El_Ancla = document.getElementById(
-          "Ayuda_Faq_Ancla"
+      function Obtener_Items_Faq_Ayuda() {
+        return [
+          { Q: "ayuda.faq_1_q", A: "ayuda.faq_1_a" },
+          { Q: "ayuda.faq_2_q", A: "ayuda.faq_2_a" },
+          { Q: "ayuda.faq_3_q", A: "ayuda.faq_3_a" },
+          { Q: "ayuda.faq_4_q", A: "ayuda.faq_4_a" },
+          { Q: "ayuda.faq_5_q", A: "ayuda.faq_5_a" },
+          { Q: "ayuda.faq_6_q", A: "ayuda.faq_6_a" },
+          { Q: "ayuda.faq_7_q", A: "ayuda.faq_7_a" },
+          { Q: "ayuda.faq_8_q", A: "ayuda.faq_8_a" },
+        ];
+      }
+
+      function Render_Ayuda_Faq() {
+        const Lista = document.getElementById(
+          "Ayuda_Faq_Lista_Modal"
         );
-        const El_Cuerpo = document.querySelector(
-          "#Ayuda_Overlay .Ayuda_Cuerpo"
-        );
-        if (!El_Ancla || !El_Cuerpo) return;
-        El_Cuerpo.scrollTo({
-          top: Math.max(
-            0,
-            El_Ancla.offsetTop - 12
-          ),
-          behavior: "smooth"
+        if (!Lista) return;
+        Lista.innerHTML = "";
+        Obtener_Items_Faq_Ayuda().forEach((Item) => {
+          const Fila = document.createElement("div");
+          Fila.className = "Ayuda_Faq_Item";
+          const Pregunta = document.createElement("strong");
+          Pregunta.textContent = t(Item.Q);
+          const Respuesta = document.createElement("p");
+          Respuesta.textContent = t(Item.A);
+          Fila.appendChild(Pregunta);
+          Fila.appendChild(Respuesta);
+          Lista.appendChild(Fila);
         });
+      }
+
+      function Abrir_Ayuda_Faq() {
+        Render_Ayuda_Faq();
+        El_Ayuda_Faq_Overlay?.classList.add("Activo");
+      }
+
+      function Cerrar_Ayuda_Faq() {
+        El_Ayuda_Faq_Overlay?.classList.remove("Activo");
       }
 
       function Abrir_Ayuda_Consulta() {
@@ -47406,27 +47621,46 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           return;
         }
-        const Cuerpo = [
-          t("ayuda.consulta_body_usuario", {
-            Email:
-              Usuario_Actual?.email || "sin login"
-          }),
-          "",
-          Mensaje
-        ].join("\n");
-        const Url =
-          "mailto:" + Mail_Ayuda_Consulta +
-          "?subject=" +
-          encodeURIComponent(Asunto) +
-          "&body=" +
-          encodeURIComponent(Cuerpo);
-        const Ventana = window.open(
-          Url,
-          "_blank"
-        );
-        if (!Ventana) {
-          window.location.href = Url;
+        const { data, error } =
+          await Invocar_Edge_Con_Sesion(
+            "enviar-ayuda-consulta",
+            {
+              method: "POST",
+              body: {
+                Asunto,
+                Mensaje,
+                Url:
+                  window.location?.href || "",
+              },
+            }
+          );
+        if (error || !data?.Ok) {
+          await Mostrar_Dialogo(
+            t("ayuda.consulta_error"),
+            [
+              {
+                Etiqueta: t("ok"),
+                Valor: true,
+                Tipo: "Primario"
+              }
+            ]
+          );
+          return;
         }
+        await Mostrar_Dialogo(
+          t("ayuda.consulta_ok"),
+          [
+            {
+              Etiqueta: t("ok"),
+              Valor: true,
+              Tipo: "Primario"
+            }
+          ]
+        );
+        El_Asunto.value = t(
+          "ayuda.consulta_asunto_default"
+        );
+        El_Mensaje.value = "";
         Cerrar_Ayuda_Consulta();
       }
 
