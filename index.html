@@ -12724,6 +12724,8 @@
           "sync.guardado": "Guardado",
           "sync.guardando": "Guardando...",
           "sync.error": "Error",
+          "sync.actualizado_otro_dispositivo":
+            "Se cargaron cambios de otro dispositivo",
           "evento.sin_tarea": "Sin tarea",
           "evento.marcar_hecho_title":
             "Marcar hecho",
@@ -15011,6 +15013,8 @@
           "sync.guardado": "Saved",
           "sync.guardando": "Saving...",
           "sync.error": "Error",
+          "sync.actualizado_otro_dispositivo":
+            "Changes from another device were loaded",
           "evento.sin_tarea": "No task",
           "evento.marcar_hecho_title":
             "Mark done",
@@ -17246,6 +17250,8 @@
           "sync.guardado": "Salvo",
           "sync.guardando": "Salvando...",
           "sync.error": "Erro",
+          "sync.actualizado_otro_dispositivo":
+            "Foram carregadas mudanças de outro dispositivo",
           "evento.sin_tarea": "Sem tarefa",
           "evento.marcar_hecho_title":
             "Marcar feito",
@@ -47864,9 +47870,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_En_Curso = false;
       // Estado actual del indicador de sync.
       let Sync_Estado = "Guardado";
+      let Sync_Token_Actual = "";
+      let Sync_Remoto_Marca_Ms = 0;
+      let Sync_Remoto_Revisando = false;
+      let Sync_Remoto_Ultima_Revision_Ms = 0;
       // Flag para evitar guardados durante la carga inicial.
       let Cargando_Inicial = true;
       let Trial_Modal_Abierto = false;
+
+      function Actualizar_Token_Sync(Sesion = null) {
+        Sync_Token_Actual =
+          Sesion?.access_token || "";
+      }
+
+      function Obtener_Marca_Remota_Ms(Marca = "") {
+        const Ms = Date.parse(Marca || "");
+        return Number.isFinite(Ms) ? Ms : 0;
+      }
+
+      function Marcar_Sync_Remoto_Actualizado(
+        Marca = ""
+      ) {
+        const Ms = Marca
+          ? Obtener_Marca_Remota_Ms(Marca)
+          : Date.now();
+        if (!Ms) return;
+        Sync_Remoto_Marca_Ms = Math.max(
+          Sync_Remoto_Marca_Ms,
+          Ms
+        );
+      }
 
       function Inicializar_Supabase() {
         // Crea el cliente de Supabase usando el SDK del CDN.
@@ -48096,7 +48129,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       async function Backend_Sync_Ejecutar() {
-        if (!Supa || !Usuario_Actual) return;
+        if (!Supa || !Usuario_Actual) return false;
+        if (Sync_Timer_Id) {
+          clearTimeout(Sync_Timer_Id);
+        }
         Sync_Timer_Id = null;
         Sync_En_Curso = true;
         try {
@@ -48108,13 +48144,73 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               estado: Estado
             });
           if (error) throw error;
+          Marcar_Sync_Remoto_Actualizado();
           Actualizar_Sync_Indicador("Guardado");
+          return true;
         } catch (E) {
           console.error("Error sincronizando:", E);
           Actualizar_Sync_Indicador("Error");
+          return false;
         } finally {
           Sync_En_Curso = false;
         }
+      }
+
+      function Backend_Sync_Forzar_Keepalive() {
+        if (!Usuario_Actual?.id) return false;
+        if (!Sync_Token_Actual) return false;
+        if (!Hay_Sync_Pendiente()) return false;
+
+        if (Sync_Timer_Id) {
+          clearTimeout(Sync_Timer_Id);
+          Sync_Timer_Id = null;
+        }
+
+        const Estado = Construir_Estado_Completo();
+        Sync_En_Curso = true;
+
+        fetch(
+          `${Supabase_Url}/rest/v1/estado_usuario` +
+            `?on_conflict=user_id`,
+          {
+            method: "POST",
+            headers: {
+              apikey: Supabase_Anon_Key,
+              Authorization:
+                `Bearer ${Sync_Token_Actual}`,
+              "Content-Type": "application/json",
+              Prefer:
+                "resolution=merge-duplicates," +
+                "return=minimal"
+            },
+            body: JSON.stringify({
+              user_id: Usuario_Actual.id,
+              estado: Estado
+            }),
+            keepalive: true
+          }
+        )
+          .then((Resp) => {
+            if (!Resp.ok) {
+              throw new Error(
+                `HTTP ${Resp.status}`
+              );
+            }
+            Marcar_Sync_Remoto_Actualizado();
+            Actualizar_Sync_Indicador("Guardado");
+          })
+          .catch((E) => {
+            console.error(
+              "Error sincronizando al ocultar:",
+              E
+            );
+            Actualizar_Sync_Indicador("Error");
+          })
+          .finally(() => {
+            Sync_En_Curso = false;
+          });
+
+        return true;
       }
 
       async function Backend_Cargar_Estado_Remoto() {
@@ -48124,7 +48220,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         try {
           const { data, error } = await Supa
             .from("estado_usuario")
-            .select("estado")
+            .select("estado, actualizado_en")
             .eq("user_id", Usuario_Actual.id)
             .maybeSingle();
           if (error) throw error;
@@ -48140,10 +48236,82 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Clave_Local, JSON.stringify(data.estado)
           );
           Marcar_Usuario_Cache_Local(Usuario_Actual.id);
+          Marcar_Sync_Remoto_Actualizado(
+            data.actualizado_en
+          );
           return true;
         } catch (E) {
           console.error("Error cargando estado:", E);
           return false;
+        }
+      }
+
+      async function Backend_Revisar_Cambios_Remotos(
+        Forzar = false
+      ) {
+        if (!Supa || !Usuario_Actual) return false;
+        if (document.hidden) return false;
+        if (Cargando_Inicial) return false;
+        if (Hay_Sync_Pendiente()) return false;
+        if (Sync_Remoto_Revisando) return false;
+
+        const Ahora = Date.now();
+        if (
+          !Forzar &&
+          Ahora - Sync_Remoto_Ultima_Revision_Ms < 15000
+        ) {
+          return false;
+        }
+
+        Sync_Remoto_Revisando = true;
+        Sync_Remoto_Ultima_Revision_Ms = Ahora;
+
+        try {
+          const { data, error } = await Supa
+            .from("estado_usuario")
+            .select("actualizado_en")
+            .eq("user_id", Usuario_Actual.id)
+            .maybeSingle();
+          if (error) throw error;
+
+          const Marca_Remota_Ms =
+            Obtener_Marca_Remota_Ms(
+              data?.actualizado_en || ""
+            );
+          if (!Marca_Remota_Ms) return false;
+          if (
+            Sync_Remoto_Marca_Ms &&
+            Marca_Remota_Ms <=
+              Sync_Remoto_Marca_Ms + 1000
+          ) {
+            return false;
+          }
+
+          const Cargo_Remoto =
+            await Backend_Cargar_Estado_Remoto();
+          if (!Cargo_Remoto) return false;
+
+          Cargando_Inicial = true;
+          Inicializar();
+          Cargando_Inicial = false;
+          Aplicar_Estilo_Menu();
+          Aplicar_Traducciones();
+          Marcar_Idioma_Activo();
+          Actualizar_Sync_Indicador("Guardado");
+          Mostrar_Toast_Info(
+            t("sync.actualizado_otro_dispositivo"),
+            "☁️",
+            3500
+          );
+          return true;
+        } catch (E) {
+          console.error(
+            "Error revisando cambios remotos:",
+            E
+          );
+          return false;
+        } finally {
+          Sync_Remoto_Revisando = false;
         }
       }
 
@@ -48661,6 +48829,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           // Login exitoso o registro sin confirmación.
           Usuario_Actual = Resultado.data.user;
+          Actualizar_Token_Sync(
+            Resultado.data.session || null
+          );
           Btn.disabled = false;
           Resetear_Captcha();
           await Iniciar_App_Logueada();
@@ -49231,6 +49402,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           await Backend_Sync_Ejecutar();
         }
         await Supa.auth.signOut();
+        Actualizar_Token_Sync(null);
         location.reload();
       }
 
@@ -49265,7 +49437,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Aplicar_Traducciones();
         Marcar_Idioma_Activo();
 
-        // 5c) Verificar estado de suscripción en
+        Actualizar_Sync_Indicador("Guardado");
+
+        // 5c) Si era usuario nuevo (sin estado remoto previo),
+        // forzar un primer guardado para crear su fila.
+        if (!Habia_Remoto) {
+          await Backend_Sync_Ejecutar();
+        }
+
+        // 5d) Verificar estado de suscripción en
         // el backend (Mercado Pago).
         await Verificar_Suscripcion_Remota();
         const Trial_Activado_Ahora =
@@ -49274,15 +49454,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           await Mostrar_Modal_Trial_Vencido();
         }
 
-        Actualizar_Sync_Indicador("Guardado");
-
-        // 6) Si era usuario nuevo (sin estado remoto previo),
-        // forzar un primer guardado para crear su fila.
-        if (!Habia_Remoto) {
-          await Backend_Sync_Ejecutar();
-        }
-
-        // 7) Focus auto: si la config está activa y hay un
+        // 6) Focus auto: si la config está activa y hay un
         // bloque corriendo en este momento, abrir el Focus
         // mode automáticamente al arrancar la app.
         if (
@@ -49448,8 +49620,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         window.addEventListener("beforeunload", (Ev) => {
           if (!Hay_Sync_Pendiente()) return;
+          Backend_Sync_Forzar_Keepalive();
           Ev.preventDefault();
           Ev.returnValue = "";
+        });
+
+        window.addEventListener("pagehide", () => {
+          Backend_Sync_Forzar_Keepalive();
+        });
+
+        document.addEventListener(
+          "visibilitychange",
+          () => {
+            if (document.hidden) {
+              Backend_Sync_Forzar_Keepalive();
+              return;
+            }
+            Backend_Revisar_Cambios_Remotos(true);
+          }
+        );
+
+        window.addEventListener("focus", () => {
+          Backend_Revisar_Cambios_Remotos();
         });
 
         // Listener del formulario de auth.
@@ -49511,6 +49703,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             await Supa.auth.signOut({
               scope: "local"
             });
+            Actualizar_Token_Sync(null);
           } catch (_) {}
           Usuario_Actual = null;
           Limpiar_Recovery_Activa();
@@ -49534,6 +49727,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Verificar si hay sesión activa.
         const { data: { session } } =
           await Supa.auth.getSession();
+        Actualizar_Token_Sync(session || null);
+
+        Supa.auth.onAuthStateChange(
+          (_, Sesion) => {
+            Actualizar_Token_Sync(Sesion || null);
+          }
+        );
+
         if (Recovery_Esta_Activa()) {
           if (session && session.user) {
             Mostrar_Recovery();
