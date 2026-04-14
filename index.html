@@ -7360,6 +7360,72 @@
         color: var(--Acento);
       }
 
+      .Dia_Accion_Item.Con_Submenu {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .Dia_Accion_Submenu_Chevron {
+        font-size: 11px;
+        color: var(--Texto_Suave);
+        flex: 0 0 auto;
+      }
+
+      .Dia_Accion_Submenu_Grupo {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .Dia_Accion_Submenu {
+        display: none;
+        flex-direction: column;
+        gap: 4px;
+        padding: 2px 0 4px 12px;
+      }
+
+      .Dia_Accion_Submenu_Grupo:hover
+        .Dia_Accion_Submenu,
+      .Dia_Accion_Submenu_Grupo:focus-within
+        .Dia_Accion_Submenu {
+        display: flex;
+      }
+
+      .Dia_Accion_Submenu_Item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        padding: 7px 12px;
+        border: none;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.03);
+        color: var(--Texto);
+        font-size: 12px;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .Dia_Accion_Submenu_Item:hover {
+        background: var(--Acento_Suave);
+        color: var(--Acento);
+      }
+
+      .Dia_Accion_Submenu_Item.Deshabilitado {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .Dia_Accion_Submenu_Estado {
+        min-width: 14px;
+        text-align: center;
+        font-weight: 700;
+        flex: 0 0 auto;
+      }
+
       .Dia_Accion_Item.Dia_Accion_Peligro {
         color: #c44;
       }
@@ -13848,6 +13914,8 @@
             "Bloquear día completo",
           "dia.desbloquear_dia":
             "Desbloquear día completo",
+          "dia.mostrar_dias":
+            "Mostrar días",
           "dia.ocultar_dia":
             "Ocultar este día",
           "dia.copiar_dia": "Copiar día",
@@ -16044,6 +16112,8 @@
             "Block full day",
           "dia.desbloquear_dia":
             "Unblock full day",
+          "dia.mostrar_dias":
+            "Show days",
           "dia.ocultar_dia":
             "Hide this day",
           "dia.copiar_dia": "Copy day",
@@ -18282,6 +18352,8 @@
             "Bloquear dia inteiro",
           "dia.desbloquear_dia":
             "Desbloquear dia inteiro",
+          "dia.mostrar_dias":
+            "Mostrar dias",
           "dia.ocultar_dia":
             "Ocultar este dia",
           "dia.copiar_dia": "Copiar dia",
@@ -25922,6 +25994,56 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Construir_Submenu_Dias_Visibles() {
+        const Dias_Base = Obtener_Dias_Visibles_Base();
+        const Dias_Largos = t("dias_completos")
+          .split(",")
+          .map((Texto) => Texto.trim());
+        return [0, 1, 2, 3, 4, 5, 6].map((Dia) => {
+          const Visible = Dias_Base.includes(Dia);
+          const Es_Ultimo =
+            Visible && Dias_Base.length <= 1;
+          const Clases =
+            "Dia_Accion_Submenu_Item" +
+            (Es_Ultimo ? " Deshabilitado" : "");
+          const Estado = Visible ? "✓" : "✕";
+          const Nombre =
+            Dias_Largos[Dia] ||
+            Dias[Dia] ||
+            `Día ${Dia + 1}`;
+          return (
+            `<button class="${Clases}" type="button"` +
+            ` data-dia-toggle="${Dia}"` +
+            (Es_Ultimo ? " disabled" : "") +
+            ">" +
+            `<span>${Escape_Html(Nombre)}</span>` +
+            `<span class="Dia_Accion_Submenu_Estado">` +
+            `${Estado}</span>` +
+            "</button>"
+          );
+        }).join("");
+      }
+
+      function Alternar_Dia_Visible_Desde_Menu(
+        Dia_Index
+      ) {
+        const Dias_Base = Obtener_Dias_Visibles_Base();
+        if (Dias_Base.includes(Dia_Index)) {
+          if (Dias_Base.length <= 1) return false;
+          Config.Dias_Visibles = Dias_Base.filter(
+            (Dia) => Dia !== Dia_Index
+          );
+        } else {
+          Config.Dias_Visibles = [
+            ...Dias_Base,
+            Dia_Index
+          ].sort((A, B) => A - B);
+        }
+        Render_Calendario();
+        Guardar_Estado();
+        return true;
+      }
+
       function Mostrar_Menu_Dia(
         Fecha_ISO, Rect, Dia_Index = null
       ) {
@@ -25931,11 +26053,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Etiqueta_Block = Todo_Muerto
           ? t("dia.desbloquear_dia")
           : t("dia.bloquear_dia");
-        const Dias_Base = Obtener_Dias_Visibles_Base();
-        const Puede_Ocultar =
-          Dia_Index !== null &&
-          Dias_Base.includes(Dia_Index) &&
-          Dias_Base.length > 1;
 
         const Patrones_Diarios = Patrones.filter(
           (P) => P.Tipo === "Diario"
@@ -25945,12 +26062,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `<button class="Dia_Accion_Item" type="button"` +
           ` data-accion="block">${Etiqueta_Block}</button>`;
 
-        if (Puede_Ocultar) {
-          Html +=
-            `<button class="Dia_Accion_Item" type="button"` +
-            ` data-accion="ocultar">` +
-            `${t("dia.ocultar_dia")}</button>`;
-        }
+        Html +=
+          `<div class="Dia_Accion_Submenu_Grupo">` +
+          `<button class="Dia_Accion_Item Con_Submenu"` +
+          ` type="button" data-accion="dias">` +
+          `<span>${t("dia.mostrar_dias")}</span>` +
+          `<span class="Dia_Accion_Submenu_Chevron">▾</span>` +
+          `</button>` +
+          `<div class="Dia_Accion_Submenu">` +
+          `${Construir_Submenu_Dias_Visibles()}` +
+          `</div>` +
+          `</div>`;
 
         Html +=
           `<button class="Dia_Accion_Item" type="button"` +
@@ -25990,20 +26112,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Bloquear_Dia_Completo(Fecha_ISO, Tipo_Id);
           });
 
-        const Btn_Ocultar = Menu.querySelector(
-          `[data-accion="ocultar"]`
-        );
-        if (Btn_Ocultar) {
-          Btn_Ocultar.addEventListener("click", (Ev) => {
-            Ev.stopPropagation();
-            Cerrar_Menu_Dia();
-            Config.Dias_Visibles = Dias_Base.filter(
-              (Dia) => Dia !== Dia_Index
-            );
-            Render_Calendario();
-            Guardar_Estado();
+        Menu.querySelectorAll("[data-dia-toggle]")
+          .forEach((Btn) => {
+            Btn.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              const Dia_Toggle = parseInt(
+                Btn.dataset.diaToggle,
+                10
+              );
+              if (Number.isNaN(Dia_Toggle)) return;
+              const Cambio =
+                Alternar_Dia_Visible_Desde_Menu(
+                  Dia_Toggle
+                );
+              if (!Cambio) return;
+              Cerrar_Menu_Dia();
+            });
           });
-        }
 
         Menu.querySelector(`[data-accion="copiar"]`)
           .addEventListener("click", (Ev) => {
