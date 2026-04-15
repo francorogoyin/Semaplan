@@ -41474,9 +41474,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Mover_Eventos_Multi_Por_Delta(
         Dias_Delta,
-        Horas_Delta
+        Horas_Delta,
+        Evento_Ids = null
       ) {
-        const Lista = Obtener_Eventos_Multi_Seleccionados_Ordenados();
+        const Lista = Obtener_Eventos_Multi_Seleccionados_Ordenados(
+          Evento_Ids
+        );
         if (!Lista.length) return false;
         const Propuesta = Construir_Propuesta_Eventos_Multi(
           Lista,
@@ -41506,7 +41509,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       async function Solicitar_Mover_Eventos_Multi() {
-        if (Eventos_Multi_Seleccion.size === 0) return;
+        const Evento_Ids = Array.from(
+          Eventos_Multi_Seleccion
+        );
+        if (Evento_Ids.length === 0) return;
         const Opcion = await Mostrar_Dialogo(
           t("cal_multi.mover_prompt"),
           [
@@ -41544,19 +41550,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Opcion) return;
         if (Opcion === "Mas_1h") {
-          Mover_Eventos_Multi_Por_Delta(0, 1);
+          Mover_Eventos_Multi_Por_Delta(
+            0,
+            1,
+            Evento_Ids
+          );
           return;
         }
         if (Opcion === "Menos_1h") {
-          Mover_Eventos_Multi_Por_Delta(0, -1);
+          Mover_Eventos_Multi_Por_Delta(
+            0,
+            -1,
+            Evento_Ids
+          );
           return;
         }
         if (Opcion === "Mas_1d") {
-          Mover_Eventos_Multi_Por_Delta(1, 0);
+          Mover_Eventos_Multi_Por_Delta(
+            1,
+            0,
+            Evento_Ids
+          );
           return;
         }
         if (Opcion === "Menos_1d") {
-          Mover_Eventos_Multi_Por_Delta(-1, 0);
+          Mover_Eventos_Multi_Por_Delta(
+            -1,
+            0,
+            Evento_Ids
+          );
           return;
         }
         const Valor = await Mostrar_Dialogo_Con_Texto(
@@ -41570,7 +41592,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Valor == null) return;
         const Horas = Number(String(Valor).replace(",", "."));
         if (!Number.isFinite(Horas) || Horas === 0) return;
-        Mover_Eventos_Multi_Por_Delta(0, Horas);
+        Mover_Eventos_Multi_Por_Delta(
+          0,
+          Horas,
+          Evento_Ids
+        );
       }
 
       function Copiar_Eventos_Multi_Seleccionados() {
@@ -41967,6 +41993,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Cantidad_Multi_Calendario() === 0) return;
           const Objetivo = Evento.target;
           if (!(Objetivo instanceof Element)) return;
+          if (Objetivo.closest("#Dialogo_Overlay")) return;
           if (Objetivo.closest(".Evento")) return;
           if (Objetivo.closest(".Slot")) return;
           if (Objetivo.closest("#Calendario_Multi_Acciones")) {

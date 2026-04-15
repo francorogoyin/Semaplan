@@ -450,6 +450,172 @@ test(
 );
 
 test(
+  "mueve varios bloques con la opcion rapida +1 h",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+    const Ids = await Crear_Escenario(page);
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_B_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+
+    await page.click(
+      '#Calendario_Multi_Grupo_Acciones button:has-text("Mover")'
+    );
+    await expect(
+      page.locator("#Dialogo_Overlay")
+    ).toHaveClass(/Activo/);
+    await page.click(
+      "#Dialogo_Botones .Dialogo_Boton_Primario"
+    );
+
+    const Resultado = await page.evaluate(() => ({
+      Eventos: Eventos
+        .filter((Evento) =>
+          ["ev_a", "ev_b"].includes(Evento.Id)
+        )
+        .map((Evento) => ({
+          Id: Evento.Id,
+          Fecha: Evento.Fecha,
+          Inicio: Evento.Inicio
+        }))
+        .sort((A, B) => A.Inicio - B.Inicio),
+      Seleccion: Array.from(Eventos_Multi_Seleccion).sort()
+    }));
+
+    expect(Resultado.Eventos).toEqual([
+      {
+        Id: "ev_a",
+        Fecha: "2026-04-13",
+        Inicio: 10
+      },
+      {
+        Id: "ev_b",
+        Fecha: "2026-04-13",
+        Inicio: 12
+      }
+    ]);
+    expect(Resultado.Seleccion).toEqual(
+      [Ids.Evento_A_Id, Ids.Evento_B_Id].sort()
+    );
+  }
+);
+
+test(
+  "mueve varios bloques con la opcion rapida +1 dia",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+    const Ids = await page.evaluate(() => {
+      Config.Dias_Visibles = [0, 1];
+      const Semana = Clave_Semana_Actual();
+      const Objetivo_A = Crear_Objetivo_Semanal_Con_Datos(
+        {
+          Nombre: "Bloque A",
+          Emoji: "A",
+          Color: "#1f6b4f",
+          Es_Bolsa: false
+        },
+        Semana
+      );
+      const Objetivo_B = Crear_Objetivo_Semanal_Con_Datos(
+        {
+          Nombre: "Bloque B",
+          Emoji: "B",
+          Color: "#9b2040",
+          Es_Bolsa: false
+        },
+        Semana
+      );
+
+      Eventos = [
+        {
+          Id: "ev_a",
+          Objetivo_Id: Objetivo_A.Id,
+          Fecha: "2026-04-13",
+          Inicio: 9,
+          Duracion: 1,
+          Hecho: false,
+          Anulada: false,
+          Color: Objetivo_A.Color
+        },
+        {
+          Id: "ev_b",
+          Objetivo_Id: Objetivo_B.Id,
+          Fecha: "2026-04-13",
+          Inicio: 11,
+          Duracion: 1,
+          Hecho: false,
+          Anulada: false,
+          Color: Objetivo_B.Color
+        }
+      ];
+
+      Render_Emojis();
+      Render_Calendario();
+      Guardar_Estado();
+      return {
+        Evento_A_Id: "ev_a",
+        Evento_B_Id: "ev_b"
+      };
+    });
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_B_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+
+    await page.click(
+      '#Calendario_Multi_Grupo_Acciones button:has-text("Mover")'
+    );
+    await expect(
+      page.locator("#Dialogo_Overlay")
+    ).toHaveClass(/Activo/);
+    await page.click(
+      '#Dialogo_Botones .Dialogo_Boton:has-text("+1 día")'
+    );
+
+    const Resultado = await page.evaluate(() => ({
+      Eventos: Eventos
+        .filter((Evento) =>
+          ["ev_a", "ev_b"].includes(Evento.Id)
+        )
+        .map((Evento) => ({
+          Id: Evento.Id,
+          Fecha: Evento.Fecha,
+          Inicio: Evento.Inicio
+        }))
+        .sort((A, B) => A.Inicio - B.Inicio),
+      Seleccion: Array.from(Eventos_Multi_Seleccion).sort()
+    }));
+
+    expect(Resultado.Eventos).toEqual([
+      {
+        Id: "ev_a",
+        Fecha: "2026-04-14",
+        Inicio: 9
+      },
+      {
+        Id: "ev_b",
+        Fecha: "2026-04-14",
+        Inicio: 11
+      }
+    ]);
+    expect(Resultado.Seleccion).toEqual(
+      [Ids.Evento_A_Id, Ids.Evento_B_Id].sort()
+    );
+  }
+);
+
+test(
   "permite borrar muchos bloques con la tecla delete",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());
