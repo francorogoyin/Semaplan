@@ -6817,6 +6817,21 @@
         border-color: #c9dfff;
       }
 
+      .Archivero_Nota_Titulo_Nota {
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.35;
+        color: var(
+          --Archivero_Nota_Texto_Color,
+          var(--Texto)
+        );
+        white-space: pre-wrap;
+        word-break: break-word;
+        padding-right: 44px;
+        user-select: none;
+        cursor: pointer;
+      }
+
       .Archivero_Nota_Texto {
         font-size: 13px;
         color: var(
@@ -6826,8 +6841,38 @@
         line-height: 1.45;
         white-space: pre-wrap;
         word-break: break-word;
+        position: relative;
         user-select: none;
         cursor: pointer;
+      }
+
+      .Archivero_Nota_Card.Colapsada .Archivero_Nota_Texto {
+        max-height: calc(1.45em * 9);
+        overflow: hidden;
+      }
+
+      .Archivero_Nota_Card.Colapsada.Tiene_Desborde
+        .Archivero_Nota_Texto {
+        padding-right: 18px;
+      }
+
+      .Archivero_Nota_Card.Colapsada.Tiene_Desborde
+        .Archivero_Nota_Texto::after {
+        content: "...";
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        padding-left: 16px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0),
+          var(--Archivero_Nota_Fondo, #fff) 48%
+        );
+      }
+
+      .Archivero_Nota_Card.Expandida .Archivero_Nota_Texto {
+        max-height: none;
+        overflow: visible;
       }
 
       .Archivero_Nota_Texto a {
@@ -12361,6 +12406,17 @@
         <div class="Patron_Modal_Cuerpo
           Archivero_Sub_Cuerpo">
           <div class="Archivero_Sub_Campo">
+            <label for="Archivero_Nota_Titulo_Input"
+              data-i18n="archivero.titulo_nota">
+              Título (opcional)
+            </label>
+            <input type="text"
+              class="Archivero_Nota_Input_Emoji"
+              id="Archivero_Nota_Titulo_Input"
+              data-i18n-ph="archivero.titulo_nota_ph"
+              placeholder="Ej: Budín de soja">
+          </div>
+          <div class="Archivero_Sub_Campo">
             <label for="Archivero_Nota_Texto_Input"
               data-i18n="archivero.texto">
               Texto
@@ -14110,6 +14166,10 @@
             "Nueva nota",
           "archivero.editar_nota":
             "Editar nota",
+          "archivero.titulo_nota":
+            "Título (opcional)",
+          "archivero.titulo_nota_ph":
+            "Ej: Budín de soja",
           "archivero.texto": "Texto",
           "archivero.texto_ph":
             "Pegá la frase, idea o link...",
@@ -16535,6 +16595,10 @@
           "archivero.nueva_nota": "New note",
           "archivero.editar_nota":
             "Edit note",
+          "archivero.titulo_nota":
+            "Title (optional)",
+          "archivero.titulo_nota_ph":
+            "Ex: Soy cake",
           "archivero.texto": "Text",
           "archivero.texto_ph":
             "Paste a phrase, idea or " +
@@ -18977,6 +19041,10 @@
             "Nova nota",
           "archivero.editar_nota":
             "Editar nota",
+          "archivero.titulo_nota":
+            "Título (opcional)",
+          "archivero.titulo_nota_ph":
+            "Ex: Bolo de soja",
           "archivero.texto": "Texto",
           "archivero.texto_ph":
             "Cole a frase, ideia ou " +
@@ -21325,8 +21393,9 @@
       // (frases, ideas, links, conceptos). Funcionalidad
       // Premium. Cada Archivero tiene Id, Nombre, Emoji,
       // Color y Fecha_Creacion. Cada Nota tiene Id,
-      // Archivero_Id, Texto, Origen (URL o descripción
-      // libre), Tipo ("Texto" | "Link") y Fecha_Creacion.
+      // Archivero_Id, Titulo, Texto, Origen (URL o
+      // descripción libre), Tipo ("Texto" | "Link") y
+      // Fecha_Creacion.
       let Archiveros = [];
       let Notas_Archivero = [];
       let Etiquetas_Archivero = [];
@@ -21337,6 +21406,7 @@
       let Archivero_Filtro_Tipo = "";
       let Archivero_Orden = "Fecha_Desc";
       let Archivero_Notas_Seleccionadas = new Set();
+      let Archivero_Notas_Expandida_Ids = new Set();
       let Archivero_Nota_En_Edicion_Id = null;
       let Archivero_Etiquetas_En_Edicion = [];
       let Archivero_Etiquetas_Originales = [];
@@ -25288,6 +25358,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ).then((Confirmar) => {
           if (!Confirmar) return;
           const Ids_Set = new Set(Ids);
+          Ids.forEach((Id) => {
+            Archivero_Notas_Expandida_Ids.delete(Id);
+          });
           Notas_Archivero = Notas_Archivero.filter((Nota) => {
             return !Ids_Set.has(Nota.Id);
           });
@@ -25596,8 +25669,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Formato === "csv") {
           const Filas = [
-            ["Texto", "Origen", "Etiquetas", "Tipo", "Fecha_Creacion"]
-              .join(",")
+            [
+              "Texto",
+              "Origen",
+              "Etiquetas",
+              "Tipo",
+              "Fecha_Creacion",
+              "Titulo"
+            ].join(",")
           ];
           Notas.forEach((Nota) => {
             Filas.push([
@@ -25613,7 +25692,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Formatear_Fecha_Exportacion_Nota(
                   Nota.Fecha_Creacion
                 )
-              )
+              ),
+              Escapar_Campo_Csv(Nota.Titulo || "")
             ].join(","));
           });
           return {
@@ -25627,6 +25707,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ""
         ];
         Notas.forEach((Nota, Indice) => {
+          if (Nota.Titulo) {
+            Lineas.push(`Título: ${Nota.Titulo}`);
+          }
           Lineas.push(`${Indice + 1}. ${Nota.Texto || ""}`);
           if (Nota.Origen) {
             Lineas.push(`Origen: ${Nota.Origen}`);
@@ -25848,7 +25931,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Filtrar_Notas_Archivero() {
         // Devuelve las notas del cajón seleccionado
         // filtradas por el texto del buscador (full-text
-        // sobre Texto, Origen y Etiquetas, case-insensitive).
+        // sobre Titulo, Texto, Origen y Etiquetas,
+        // case-insensitive).
         const Texto = Normalizar_Texto_Archivero(
           Archivero_Busqueda
         );
@@ -25880,6 +25964,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               if (!Tiene_Etiqueta) return false;
             }
             if (!Texto) return true;
+            const Hay_Titulo = Normalizar_Texto_Archivero(
+              Nota.Titulo
+            ).includes(Texto);
             const Hay_Texto = Normalizar_Texto_Archivero(
               Nota.Texto
             ).includes(Texto);
@@ -25893,7 +25980,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ).includes(Texto);
               }
             );
-            return Hay_Texto || Hay_Origen || Hay_Etiqueta;
+            return (
+              Hay_Titulo ||
+              Hay_Texto ||
+              Hay_Origen ||
+              Hay_Etiqueta
+            );
           });
         if (Archivero_Orden === "Personalizado") {
           return Filtradas;
@@ -26178,6 +26270,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Card.classList.add("Reordenable");
         Card.draggable = true;
         Card.dataset.notaId = Nota.Id;
+        Card.classList.add("Colapsada");
         if (Archivero_Notas_Seleccionadas.has(Nota.Id)) {
           Card.classList.add("Activa");
         }
@@ -26191,6 +26284,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Card,
             Color_Fondo
           );
+        }
+        if (Nota.Titulo) {
+          const Titulo_Nota = document.createElement("div");
+          Titulo_Nota.className =
+            "Archivero_Nota_Titulo_Nota";
+          Titulo_Nota.textContent = Nota.Titulo;
+          Card.appendChild(Titulo_Nota);
         }
         const Texto = document.createElement("div");
         Texto.className = "Archivero_Nota_Texto";
@@ -26273,7 +26373,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Acciones.appendChild(Btn_Borrar);
         Card.appendChild(Acciones);
         Card.addEventListener("click", (Ev) => {
+          const Target = Ev.target;
+          if (!(Target instanceof Element)) {
+            return;
+          }
           if (Obtener_Texto_Seleccionado()) {
+            return;
+          }
+          if (
+            Target.closest(".Archivero_Nota_Mini_Btn") ||
+            Target.closest("a")
+          ) {
             return;
           }
           if (
@@ -26285,7 +26395,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Nota.Id,
               Ev.ctrlKey || Ev.metaKey
             );
+            return;
           }
+          Alternar_Expansion_Nota_Archivero(
+            Card,
+            Nota.Id
+          );
         });
         Card.addEventListener("contextmenu", (Ev) => {
           if (Obtener_Texto_Seleccionado()) return;
@@ -26363,6 +26478,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Archivero_Notas();
           Guardar_Estado();
         });
+        requestAnimationFrame(() => {
+          Sincronizar_Expansion_Nota_Archivero(
+            Card,
+            Nota.Id
+          );
+        });
         return Card;
       }
 
@@ -26396,6 +26517,65 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           String(F.getMonth() + 1).padStart(2, "0") +
           "/" +
           String(F.getFullYear()).slice(2)
+        );
+      }
+
+      function Sincronizar_Expansion_Nota_Archivero(
+        Card,
+        Nota_Id
+      ) {
+        if (!(Card instanceof HTMLElement)) return;
+        const Texto = Card.querySelector(
+          ".Archivero_Nota_Texto"
+        );
+        if (!(Texto instanceof HTMLElement)) return;
+        Card.classList.remove("Expandida");
+        Card.classList.add("Colapsada");
+        const Tiene_Desborde =
+          Texto.scrollHeight > Texto.clientHeight + 2;
+        Card.classList.toggle(
+          "Tiene_Desborde",
+          Tiene_Desborde
+        );
+        if (
+          Tiene_Desborde &&
+          Archivero_Notas_Expandida_Ids.has(Nota_Id)
+        ) {
+          Card.classList.add("Expandida");
+          Card.classList.remove("Colapsada");
+        } else {
+          Archivero_Notas_Expandida_Ids.delete(Nota_Id);
+        }
+        Card.setAttribute(
+          "aria-expanded",
+          Card.classList.contains("Expandida")
+            ? "true"
+            : "false"
+        );
+      }
+
+      function Alternar_Expansion_Nota_Archivero(
+        Card,
+        Nota_Id
+      ) {
+        if (!(Card instanceof HTMLElement) || !Nota_Id) {
+          return;
+        }
+        if (!Card.classList.contains("Tiene_Desborde")) {
+          return;
+        }
+        const Expandida =
+          !Archivero_Notas_Expandida_Ids.has(Nota_Id);
+        if (Expandida) {
+          Archivero_Notas_Expandida_Ids.add(Nota_Id);
+        } else {
+          Archivero_Notas_Expandida_Ids.delete(Nota_Id);
+        }
+        Card.classList.toggle("Expandida", Expandida);
+        Card.classList.toggle("Colapsada", !Expandida);
+        Card.setAttribute(
+          "aria-expanded",
+          Expandida ? "true" : "false"
         );
       }
 
@@ -26499,6 +26679,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? t("archivero.editar_nota")
             : t("archivero.nueva_nota");
         }
+        const Titulo_Nota = document.getElementById(
+          "Archivero_Nota_Titulo_Input"
+        );
         const Texto = document.getElementById(
           "Archivero_Nota_Texto_Input"
         );
@@ -26518,6 +26701,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Archivero_Nota_Color_Cajon_Btn"
         );
         if (
+          !Titulo_Nota ||
           !Texto ||
           !Origen ||
           !Select ||
@@ -26531,6 +26715,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Select,
             Nota.Archivero_Id || ""
           );
+          Titulo_Nota.value = Nota.Titulo || "";
           Texto.value = Nota.Texto || "";
           Origen.value = Nota.Origen || "";
           if (Etiq) {
@@ -26551,6 +26736,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
         } else {
           Poblar_Select_Cajones_Archivero(Select);
+          Titulo_Nota.value = "";
           Texto.value = "";
           Origen.value = "";
           if (Etiq) Etiq.value = "";
@@ -26565,7 +26751,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         document.getElementById(
           "Archivero_Nota_Overlay"
         )?.classList.add("Activo");
-        setTimeout(() => Texto.focus(), 30);
+        setTimeout(() => Titulo_Nota.focus(), 30);
       }
 
       function Cerrar_Modal_Nota_Archivero() {
@@ -26709,6 +26895,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Guardar_Nota_Archivero_Desde_Modal() {
+        const Titulo = document.getElementById(
+          "Archivero_Nota_Titulo_Input"
+        );
         const Texto = document.getElementById(
           "Archivero_Nota_Texto_Input"
         );
@@ -26725,6 +26914,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Archivero_Nota_Color_Input"
         );
         if (
+          !Titulo ||
           !Texto ||
           !Origen ||
           !Select ||
@@ -26732,6 +26922,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) {
           return;
         }
+        const Titulo_Valor = Titulo.value.trim();
         const Texto_Valor = Texto.value.trim();
         if (!Texto_Valor) {
           Mostrar_Dialogo(t("dialog.nota_vacia"), [
@@ -26761,6 +26952,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             (N) => N.Id === Archivero_Nota_En_Edicion_Id
           );
           if (Nota) {
+            Nota.Titulo = Titulo_Valor;
             Nota.Texto = Texto_Valor;
             Nota.Origen = Origen.value.trim();
             Nota.Etiquetas = Etiquetas_Valor;
@@ -26773,6 +26965,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Notas_Archivero.push({
             Id: Generar_Id_Archivero(),
             Archivero_Id: Cajon_Id,
+            Titulo: Titulo_Valor,
             Texto: Texto_Valor,
             Origen: Origen.value.trim(),
             Etiquetas: Etiquetas_Valor,
@@ -26804,6 +26997,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ).then((Confirmar) => {
           if (!Confirmar) return;
           Archivero_Notas_Seleccionadas.delete(Nota_Id);
+          Archivero_Notas_Expandida_Ids.delete(Nota_Id);
           Notas_Archivero = Notas_Archivero.filter(
             (N) => N.Id !== Nota_Id
           );
@@ -26993,6 +27187,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Nota = {
           Id: Generar_Id_Archivero(),
           Archivero_Id: Destino_Id,
+          Titulo: "",
           Texto: Texto.trim(),
           Origen: (Origen || "").trim(),
           Etiquetas: Array.isArray(Etiquetas)
@@ -44949,6 +45144,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Estado.Notas_Archivero.map((Nota) => {
                 return {
                   ...Nota,
+                  Titulo: String(
+                    Nota?.Titulo || ""
+                  ).trim(),
                   Color_Fondo: Normalizar_Color_Hex(
                     Nota?.Color_Fondo
                   )
@@ -45207,6 +45405,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               : Nota?.Etiquetas || "";
             return {
               ...Nota,
+              Titulo: String(
+                Nota?.Titulo || ""
+              ).trim(),
               Etiquetas: Parsear_Etiquetas_Archivero(
                 Etiquetas_Nota
               ),
@@ -46941,9 +47142,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Render_Creador_Colores() {
-        Render_Colores_Compactos(El_Swatches_Nuevos, El_Color_Objetivo.value, (Color) => {
-          El_Color_Objetivo.value = Color;
-        });
+        Render_Colores_Compactos(
+          El_Swatches_Nuevos,
+          El_Color_Objetivo.value,
+          (Color) => {
+            El_Color_Objetivo.value = Color;
+            Render_Creador_Colores();
+          }
+        );
       }
 
       function Actualizar_Borrador_Editor() {

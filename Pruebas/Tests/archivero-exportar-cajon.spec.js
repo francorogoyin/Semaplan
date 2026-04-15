@@ -79,6 +79,7 @@ test("exporta un cajon en txt, csv y json", async ({ page }) => {
       {
         Id: "n1",
         Archivero_Id: "c1",
+        Titulo: "Budin base",
         Texto: "Primera nota",
         Origen: "Chat",
         Etiquetas: ["Inmediata", "Idea"],
@@ -163,15 +164,18 @@ test("exporta un cajon en txt, csv y json", async ({ page }) => {
   });
 
   expect(archivos.txt.Nombre).toMatch(/\.txt$/);
+  expect(archivos.txt.Contenido).toContain("Título: Budin base");
   expect(archivos.txt.Contenido).toContain("Primera nota");
   expect(archivos.txt.Contenido).toContain("Etiquetas: Inmediata, Idea");
 
   expect(archivos.csv.Nombre).toMatch(/\.csv$/);
   expect(archivos.csv.Contenido).toContain("Texto,Origen,Etiquetas");
+  expect(archivos.csv.Contenido).toContain("Budin base");
   expect(archivos.csv.Contenido).toContain("Primera nota");
   expect(archivos.csv.Contenido).toContain("Inmediata | Idea");
 
   expect(archivos.json.Nombre).toMatch(/\.json$/);
   expect(archivos.json.Contenido).toContain("\"Nombre\": \"Semaplan\"");
+  expect(archivos.json.Contenido).toContain("\"Titulo\": \"Budin base\"");
   expect(archivos.json.Contenido).toContain("\"Texto\": \"Primera nota\"");
 });
