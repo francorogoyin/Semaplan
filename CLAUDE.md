@@ -229,6 +229,16 @@ de Semaplan con Playwright/Codex.
    sandbox, permisos o `index.lock`, escalar de inmediato y no seguir
    probando la misma operación dentro del sandbox.
 
+### Regla de deploy pre lanzamiento
+
+- Si el cambio toca Auth, sync, Edge Functions, import/export,
+  ayuda o cualquier flujo de guardado, correr tambien el smoke de
+  produccion antes de darlo por cerrado.
+- Comando base: `npm run test:smoke:prod`
+- Flujos de alto riesgo que siempre requieren chequeo explicito:
+  login, sync, import/export, eliminar cuenta, suscripcion y ayuda
+  por mail.
+
 ## Sesiones paralelas y staging de commits
 
 Es habitual que el usuario tenga varias sesiones de Claude/Codex

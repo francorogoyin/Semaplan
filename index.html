@@ -10675,7 +10675,7 @@
               type="button"
               data-i18n-title="menu.resumen"
               title="Resumen semanal"
-              onclick="if(typeof Abrir_Resumen_Semanal==='function'){Abrir_Resumen_Semanal()}else{alert('ERROR: la función Abrir_Resumen_Semanal no existe. El JS no terminó de cargar o tiene un error.')}"
+              onclick="Abrir_Resumen_Semanal_Seguro()"
             >📊</button>
             <button class="Config_Boton Menu_Btn" id="Focus_Boton"
               data-menu-key="Focus_Boton"
@@ -14104,6 +14104,8 @@
           "auth.err_email_invalido":
             "Email inválido.",
           "auth.err_generico": "Error: {Msg}",
+          "auth.sdk_no_cargado":
+            "No se pudo cargar Supabase. Verifica tu conexion.",
           "auth.idioma": "Idioma",
           "sidebar.crear_objetivo": "Crear objetivo",
           "sidebar.nombre": "Nombre",
@@ -14184,6 +14186,8 @@
           "menu.plan": "Plan actual",
           "menu.planes": "Planes",
           "menu.resumen": "Resumen semanal",
+          "menu.resumen_no_disponible":
+            "No se pudo abrir Resumen semanal.",
           "menu.focus": "Modo foco",
           "menu.focus_title": "Focus",
           "menu.metas": "Metas",
@@ -15342,6 +15346,8 @@
             "Mover",
           "dialog.fecha_corta": "Fecha",
           "dialog.hora_corta": "Hora",
+          "baul.semanas_invalidas":
+            "Revisa las semanas cargadas. Necesitas al menos una fecha valida.",
           "dialog.copiar":
             "Copiar",
           "dialog.trasladar":
@@ -16645,6 +16651,8 @@
           "auth.err_email_invalido":
             "Invalid email.",
           "auth.err_generico": "Error: {Msg}",
+          "auth.sdk_no_cargado":
+            "Supabase could not be loaded. Check your connection.",
           "auth.idioma": "Language",
           "sidebar.crear_objetivo":
             "Create objective",
@@ -16724,6 +16732,8 @@
           "menu.plan": "Current plan",
           "menu.planes": "Plans",
           "menu.resumen": "Weekly summary",
+          "menu.resumen_no_disponible":
+            "Could not open Weekly summary.",
           "menu.focus": "Focus mode",
           "menu.focus_title": "Focus",
           "menu.metas": "Goals",
@@ -17848,6 +17858,8 @@
             "Move",
           "dialog.fecha_corta": "Date",
           "dialog.hora_corta": "Time",
+          "baul.semanas_invalidas":
+            "Review the loaded weeks. You need at least one valid date.",
           "dialog.copiar":
             "Copy",
           "dialog.trasladar":
@@ -19128,6 +19140,8 @@
             "Email inválido.",
           "auth.err_generico":
             "Erro: {Msg}",
+          "auth.sdk_no_cargado":
+            "Nao foi possivel carregar o Supabase. Verifique sua conexao.",
           "auth.idioma": "Idioma",
           "sidebar.crear_objetivo":
             "Criar objetivo",
@@ -19210,6 +19224,8 @@
           "menu.plan": "Plano atual",
           "menu.planes": "Planos",
           "menu.resumen": "Resumo semanal",
+          "menu.resumen_no_disponible":
+            "Nao foi possivel abrir Resumo semanal.",
           "menu.focus": "Modo foco",
           "menu.focus_title": "Foco",
           "menu.metas": "Metas",
@@ -20394,6 +20410,8 @@
             "Mover",
           "dialog.fecha_corta": "Data",
           "dialog.hora_corta": "Hora",
+          "baul.semanas_invalidas":
+            "Revise as semanas carregadas. Voce precisa de pelo menos uma data valida.",
           "dialog.copiar":
             "Copiar",
           "dialog.trasladar":
@@ -30366,7 +30384,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Obtener_Datos_Form_Meta() {
         const Nombre = (El_Meta_Nombre_Input?.value || "").trim();
         if (!Nombre) {
-          alert(t("metas.err_nombre"));
+          Mostrar_Toast_Error(t("metas.err_nombre"));
           El_Meta_Nombre_Input?.focus();
           return null;
         }
@@ -30375,7 +30393,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Meta_Horas_Objetivo_Input?.value
         );
         if (Horas_Objetivo <= 0) {
-          alert(t("metas.err_horas"));
+          Mostrar_Toast_Error(t("metas.err_horas"));
           El_Meta_Horas_Objetivo_Input?.focus();
           return null;
         }
@@ -30391,14 +30409,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             El_Meta_Semana_Ref_Input?.value
           );
           if (!Fecha) {
-            alert(t("metas.err_semana"));
+          Mostrar_Toast_Error(t("metas.err_semana"));
             return null;
           }
           Semana_Ref = Formatear_Fecha_ISO(Obtener_Lunes(Fecha));
         } else if (Periodo === "Mes") {
           Mes_Ref = (El_Meta_Mes_Ref_Input?.value || "").trim();
           if (!/^\d{4}-\d{2}$/.test(Mes_Ref)) {
-            alert(t("metas.err_mes"));
+          Mostrar_Toast_Error(t("metas.err_mes"));
             return null;
           }
         } else {
@@ -30409,11 +30427,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             El_Meta_Hasta_Input?.value
           );
           if (!Desde || !Hasta) {
-            alert(t("metas.err_rango"));
+          Mostrar_Toast_Error(t("metas.err_rango"));
             return null;
           }
           if (Hasta < Desde) {
-            alert(t("metas.err_rango_inv"));
+          Mostrar_Toast_Error(t("metas.err_rango_inv"));
             return null;
           }
           Fecha_Desde = Formatear_Fecha_ISO(Desde);
@@ -30428,13 +30446,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Fuente_Tipo === "Categoria") {
           Fuente_Valor = El_Meta_Categoria_Input?.value || "";
           if (!Fuente_Valor) {
-            alert(t("metas.err_categoria"));
+          Mostrar_Toast_Error(t("metas.err_categoria"));
             return null;
           }
         } else if (Fuente_Tipo === "Etiqueta") {
           Fuente_Valor = El_Meta_Etiqueta_Input?.value || "";
           if (!Fuente_Valor) {
-            alert(t("metas.err_etiqueta"));
+          Mostrar_Toast_Error(t("metas.err_etiqueta"));
             return null;
           }
         } else {
@@ -30443,7 +30461,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fuente_Valor
           );
           if (!Fuente_Clave) {
-            alert(t("metas.err_objetivo"));
+          Mostrar_Toast_Error(t("metas.err_objetivo"));
             El_Meta_Objetivo_Input?.focus();
             return null;
           }
@@ -32591,6 +32609,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Toast.classList.remove("Activo");
           setTimeout(() => El_Toast.remove(), 300);
         }, Duracion_Ms);
+      }
+
+      function Mostrar_Toast_Error(
+        Mensaje,
+        Duracion_Ms = 5000
+      ) {
+        Mostrar_Toast_Info(
+          Mensaje,
+          "âš ï¸",
+          Duracion_Ms
+        );
+      }
+
+      function Abrir_Resumen_Semanal_Seguro() {
+        if (typeof Abrir_Resumen_Semanal === "function") {
+          Abrir_Resumen_Semanal();
+          return true;
+        }
+        Log_Error_App(
+          "ui",
+          "abrir_resumen_semanal",
+          "No existe Abrir_Resumen_Semanal"
+        );
+        Mostrar_Toast_Error(
+          t("menu.resumen_no_disponible")
+        );
+        return false;
       }
 
       function Eliminar_Toast_Undo(Id) {
@@ -36204,6 +36249,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
             || "Error";
           if (error || !data?.Suscripcion) {
+            Log_Error_App(
+              "suscripcion",
+              "activar_trial",
+              "No se pudo activar el trial",
+              error,
+              { entidad_afectada: "activar-trial" }
+            );
             if (Mostrar_Mensaje) {
               await Mostrar_Dialogo(
                 t("dialog.no_activar_trial", {
@@ -36234,6 +36286,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           return true;
         } catch (E) {
+          Log_Error_App(
+            "suscripcion",
+            "activar_trial",
+            "Error inesperado activando trial",
+            E,
+            { entidad_afectada: "activar-trial" }
+          );
           if (Mostrar_Mensaje) {
             await Mostrar_Dialogo(
               t("dialog.no_activar_trial", {
@@ -38802,7 +38861,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
 
         if (Nuevo_Inicio >= Nuevo_Fin) {
-          alert(t("dialog.inicio_menor_fin"));
+          Mostrar_Toast_Error(t("dialog.inicio_menor_fin"));
           return;
         }
 
@@ -38850,7 +38909,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
 
         if (Dias_Elegidos.length === 0) {
-          alert(t("dialog.al_menos_un_dia"));
+          Mostrar_Toast_Error(t("dialog.al_menos_un_dia"));
           return;
         }
 
@@ -38969,7 +39028,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Contador_Semanas_Modo !== "Ano" &&
           !Contador_Semanas_Fecha_Ref
         ) {
-          alert(t("dialog.elegir_fecha_base"));
+          Mostrar_Toast_Error(t("dialog.elegir_fecha_base"));
           return;
         }
 
@@ -39000,7 +39059,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Contador_Semanas_Modo !== "Vida" &&
           !Contador_Semanas_Fecha_Final
         ) {
-          alert(t("dialog.elegir_fecha_final"));
+          Mostrar_Toast_Error(t("dialog.elegir_fecha_final"));
           return;
         }
 
@@ -41035,7 +41094,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Objetivo.Es_Bolsa &&
           Calcular_Horas_Restantes(Objetivo) < Duracion
         ) {
-          alert(t("dialog.sin_horas_bolsa"));
+          Mostrar_Toast_Error(t("dialog.sin_horas_bolsa"));
           return false;
         }
 
@@ -41046,7 +41105,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Duracion
           );
         if (Motivo_Conflicto) {
-          alert(Motivo_Conflicto);
+          Mostrar_Toast_Error(Motivo_Conflicto);
           return false;
         }
 
@@ -43801,7 +43860,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Hora_Destino
           );
         if (Motivo_Conflicto) {
-          alert(Motivo_Conflicto);
+          Mostrar_Toast_Error(Motivo_Conflicto);
           return false;
         }
         const Focus_Origen = Focus_Navegacion_Id;
@@ -45084,7 +45143,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Lista.map((Evento) => Evento.Id)
         );
         if (Eval.Motivo || Eval.Conflictos_Ids.length > 0) {
-          alert(
+          Mostrar_Toast_Error(
             Eval.Motivo || t("cal_multi.conflicto_ocupado")
           );
           return false;
@@ -45694,7 +45753,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Lista_Slots.length > 0 &&
           !Number.isInteger(Horas_Delta)
         ) {
-          alert(t("cal_multi.horas_enteras_slots"));
+          Mostrar_Toast_Error(
+            t("cal_multi.horas_enteras_slots")
+          );
           return false;
         }
         const Propuesta_Eventos =
@@ -45716,7 +45777,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Lista_Slots
         );
         if (Eval.Motivo || Eval.Conflictos_Ids.length > 0) {
-          alert(
+          Mostrar_Toast_Error(
             Eval.Motivo || t("cal_multi.conflicto_ocupado")
           );
           return false;
@@ -45814,7 +45875,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Propuesta
         );
         if (Eval.Motivo) {
-          alert(Eval.Motivo);
+          Mostrar_Toast_Error(Eval.Motivo);
           return false;
         }
         const Mapa_Grupo_Ids = new Map();
@@ -45891,7 +45952,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Propuesta.length) return false;
         const Eval = Evaluar_Propuesta_Eventos_Multi(Propuesta);
         if (Eval.Motivo) {
-          alert(Eval.Motivo);
+          Mostrar_Toast_Error(Eval.Motivo);
           return false;
         }
 
@@ -46003,7 +46064,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Propuesta_Slots
         );
         if (Eval.Motivo || Eval.Conflictos_Ids.length > 0) {
-          alert(
+          Mostrar_Toast_Error(
             Eval.Motivo || t("cal_multi.conflicto_ocupado")
           );
           return false;
@@ -50798,7 +50859,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Bloque.Id
           );
           if (Motivo_Conflicto) {
-            alert(Motivo_Conflicto);
+            Mostrar_Toast_Error(Motivo_Conflicto);
             return;
           }
           Bloque.Fecha = Fecha;
@@ -50893,7 +50954,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Bloque.Id
           );
           if (Motivo_Conflicto) {
-            alert(Motivo_Conflicto);
+            Mostrar_Toast_Error(Motivo_Conflicto);
             return;
           }
           Bloque.Fecha = Fecha;
@@ -51697,9 +51758,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", () => {
           const Semanas = Obtener_Semanas_Baul_Semanas();
           if (!Semanas || !Semanas.length) {
-            alert(
-              "Revisá las semanas cargadas. " +
-              "Necesitás al menos una fecha válida."
+            Mostrar_Toast_Error(
+              t("baul.semanas_invalidas")
             );
             return;
           }
@@ -58068,9 +58128,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "inicializar_supabase",
             "No cargó el SDK de Supabase"
           );
-          alert(
-            "No se pudo cargar el SDK de Supabase. " +
-            "Verificá tu conexión a internet."
+          document.getElementById("Auth_Overlay")
+            ?.classList.add("Activo");
+          Mostrar_Auth_Mensaje(
+            t("auth.sdk_no_cargado")
           );
           return false;
         }
@@ -59695,6 +59756,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               { method: "POST" }
             );
           if (error || !data?.Suscripcion) {
+            Log_Error_App(
+              "suscripcion",
+              "cancelar_suscripcion",
+              "No se pudo cancelar la suscripcion",
+              error,
+              {
+                entidad_afectada: "cancelar-suscripcion"
+              }
+            );
             await Mostrar_Dialogo(
               t(
                 "dialog.no_cancelar_suscripcion",
@@ -59740,6 +59810,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
           );
         } catch (E) {
+          Log_Error_App(
+            "suscripcion",
+            "cancelar_suscripcion",
+            "Error inesperado cancelando suscripcion",
+            E,
+            { entidad_afectada: "cancelar-suscripcion" }
+          );
           await Mostrar_Dialogo(
             t(
               "dialog.no_cancelar_suscripcion",
@@ -59834,6 +59911,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "eliminar_cuenta"
           );
           if (Err_RPC) {
+            Log_Error_App(
+              "cuenta",
+              "eliminar_cuenta",
+              "No se pudo eliminar la cuenta",
+              Err_RPC,
+              { entidad_afectada: "eliminar_cuenta" }
+            );
             await Mostrar_Dialogo(
               t("dialog.no_eliminar", {
                 Msg: Err_RPC.message
@@ -59848,6 +59932,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           await Supa.auth.signOut();
           location.reload();
         } catch (E) {
+          Log_Error_App(
+            "cuenta",
+            "eliminar_cuenta",
+            "Error inesperado eliminando cuenta",
+            E,
+            { entidad_afectada: "eliminar_cuenta" }
+          );
           await Mostrar_Dialogo(
             t("auth.error_inesperado", {
               Msg: E.message

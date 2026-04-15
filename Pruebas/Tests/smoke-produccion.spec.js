@@ -2,16 +2,22 @@ const fs = require("fs");
 const path = require("path");
 const { test, expect } = require("@playwright/test");
 
-const ARCHIVO_AUTH = path.join(
+const ARCHIVO_AUTH_DEFAULT = path.join(
   process.cwd(),
   "Pruebas",
   "Playwright",
   ".auth",
   "semaplan-patricio.json"
 );
+const ARCHIVO_AUTH =
+  process.env.SEMAPLAN_AUTH_FILE ||
+  ARCHIVO_AUTH_DEFAULT;
+const BASE_URL =
+  process.env.SEMAPLAN_BASE_URL ||
+  "https://semaplan.com";
 
 test.use({
-  baseURL: "https://semaplan.com",
+  baseURL: BASE_URL,
   storageState: fs.existsSync(ARCHIVO_AUTH)
     ? ARCHIVO_AUTH
     : { cookies: [], origins: [] }
