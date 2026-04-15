@@ -15648,10 +15648,13 @@
           "slot.eliminar_slot_confirm":
             "¿Eliminar este slot muerto y su plan " +
             "para dejar el horario en blanco?",
-          "slot.sin_items": "Sin items todavía.",
-          "slot.agregar_item": "Agregar item",
-          "slot.sin_patrones_para":
-            "No hay patrones para {tipo}.",
+        "slot.sin_items": "Sin items todavía.",
+        "slot.agregar_item": "Agregar item",
+        "slot.toast_falta_emoji": "Falta emoji",
+        "slot.toast_faltan_objetivos":
+          "Faltan objetivos",
+        "slot.sin_patrones_para":
+          "No hay patrones para {tipo}.",
           "slot.elegir_patron":
             "¿Qué patrón querés insertar?",
           "slot.insertar_modo":
@@ -18024,10 +18027,13 @@
           "slot.eliminar_slot_confirm":
             "Delete this dead slot and its plan " +
             "to leave the time empty?",
-          "slot.sin_items": "No items yet.",
-          "slot.agregar_item": "Add item",
-          "slot.sin_patrones_para":
-            "There are no patterns for {tipo}.",
+        "slot.sin_items": "No items yet.",
+        "slot.agregar_item": "Add item",
+        "slot.toast_falta_emoji": "Missing emoji",
+        "slot.toast_faltan_objetivos":
+          "Missing objectives",
+        "slot.sin_patrones_para":
+          "There are no patterns for {tipo}.",
           "slot.elegir_patron":
             "Which pattern do you want to insert?",
           "slot.insertar_modo":
@@ -20497,10 +20503,13 @@
           "slot.eliminar_slot_confirm":
             "Excluir este slot morto e seu plano " +
             "para deixar o horário em branco?",
-          "slot.sin_items": "Sem itens ainda.",
-          "slot.agregar_item": "Adicionar item",
-          "slot.sin_patrones_para":
-            "Não há padrões para {tipo}.",
+        "slot.sin_items": "Sem itens ainda.",
+        "slot.agregar_item": "Adicionar item",
+        "slot.toast_falta_emoji": "Falta emoji",
+        "slot.toast_faltan_objetivos":
+          "Faltam objetivos",
+        "slot.sin_patrones_para":
+          "Não há padrões para {tipo}.",
           "slot.elegir_patron":
             "Qual padrão você quer inserir?",
           "slot.insertar_modo":
@@ -35301,6 +35310,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      function Resolver_Borrador_Nuevo_Plan_Slot() {
+        const Input = document.getElementById(
+          "Plan_Slot_Nuevo_Input"
+        );
+        const Input_Emoji = document.getElementById(
+          "Plan_Slot_Nuevo_Emoji"
+        );
+        if (!Input || !Input_Emoji) return true;
+        const Texto = String(Input.value || "").trim();
+        if (!Texto) return true;
+        const Emoji_Raw = String(
+          Input_Emoji.value || ""
+        ).trim();
+        if (Falta_Emoji_Plan_Slot(Emoji_Raw)) {
+          Mostrar_Toast_Plan_Slot(
+            "slot.toast_falta_emoji"
+          );
+          Input_Emoji.focus();
+          return false;
+        }
+        Plan_Slot_Borrador.push({
+          Id: Crear_Id_Plan_Slot_Item(),
+          Emoji: Normalizar_Emoji(Emoji_Raw),
+          Texto,
+          Estado: "Planeado"
+        });
+        Plan_Slot_Mostrando_Nuevo = false;
+        return true;
+      }
+
       function Agregar_Item_Plan_Slot() {
         const Input = document.getElementById(
           "Plan_Slot_Nuevo_Input"
@@ -35309,19 +35348,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Plan_Slot_Nuevo_Emoji"
         );
         if (!Input || !Input_Emoji) return;
-        const Texto = (Input.value || "").trim();
-        if (!Texto) return;
+        const Texto = String(Input.value || "").trim();
+        if (!Texto) {
+          Input.focus();
+          return;
+        }
+        const Emoji_Raw = String(
+          Input_Emoji.value || ""
+        ).trim();
+        if (Falta_Emoji_Plan_Slot(Emoji_Raw)) {
+          Mostrar_Toast_Plan_Slot(
+            "slot.toast_falta_emoji"
+          );
+          Input_Emoji.focus();
+          return;
+        }
         Plan_Slot_Borrador.push({
           Id: Crear_Id_Plan_Slot_Item(),
-          Emoji: Normalizar_Emoji(
-            Input_Emoji.value || "•"
-          ) || "•",
+          Emoji: Normalizar_Emoji(Emoji_Raw),
           Texto,
           Estado: "Planeado"
         });
         Plan_Slot_Mostrando_Nuevo = false;
         Input.value = "";
-        Input_Emoji.value = "•";
+        Input_Emoji.value =
+            Emoji_Plan_Slot_Placeholder;
         Render_Modal_Plan_Slot();
       }
 
@@ -35424,7 +35475,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Input_Emoji = document.createElement("input");
           Input_Emoji.type = "text";
           Input_Emoji.maxLength = 4;
-          Input_Emoji.value = "•";
+          Input_Emoji.value =
+            Emoji_Plan_Slot_Placeholder;
           Input_Emoji.id = "Plan_Slot_Nuevo_Emoji";
           Input_Emoji.className =
             "Patron_Modal_Emoji_Input Con_Selector_Emoji";
@@ -35525,21 +35577,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Guardar_Modal_Plan_Slot() {
         if (!Plan_Slot_Clave_Activa) return;
+        if (!Resolver_Borrador_Nuevo_Plan_Slot()) return;
         const Clave = Plan_Slot_Clave_Activa;
         const Items = Normalizar_Items_Plan_Slot(
           Plan_Slot_Borrador
         );
-        if (Items.length) {
-          Planes_Slot[Clave] = { Items };
-        } else {
-          Limpiar_Plan_Slot_Por_Clave(Clave);
+        if (!Items.length) {
+          Mostrar_Toast_Plan_Slot(
+            "slot.toast_faltan_objetivos"
+          );
+          Plan_Slot_Mostrando_Nuevo = true;
+          Render_Modal_Plan_Slot();
+          document.getElementById("Plan_Slot_Nuevo_Input")
+            ?.focus();
+          return;
         }
+        Planes_Slot[Clave] = { Items };
         Cerrar_Modal_Plan_Slot();
         Render_Calendario();
         Guardar_Estado();
-        if (!Items.length) {
-          await Forzar_Sync_Inmediato_Cambio_Critico();
-        }
+        await Forzar_Sync_Inmediato_Cambio_Critico();
       }
 
       function Formatear_Id_Tipo_Slot(Aplica_A) {
@@ -40345,6 +40402,85 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return `${Fecha}|${Hora}`;
       }
 
+      const Emoji_Plan_Slot_Placeholder = "\u2022";
+
+      function Normalizar_Clave_Slot(Valor) {
+        if (typeof Valor === "string") {
+          const [Fecha_Base, Hora_Base] =
+            String(Valor || "").split("|");
+          const Fecha_Obj = Parsear_Fecha_ISO(
+            String(Fecha_Base || "").trim()
+          );
+          const Hora = Number(Hora_Base);
+          if (!Fecha_Obj || !Number.isFinite(Hora)) {
+            return "";
+          }
+          return Clave_Slot(
+            Formatear_Fecha_ISO(Fecha_Obj),
+            Hora
+          );
+        }
+        if (!Valor || typeof Valor !== "object") {
+          return "";
+        }
+        const Fecha_Obj = Parsear_Fecha_ISO(
+          String(Valor.Fecha || "").trim()
+        );
+        const Hora = Number(Valor.Hora);
+        if (!Fecha_Obj || !Number.isFinite(Hora)) {
+          return "";
+        }
+        return Clave_Slot(
+          Formatear_Fecha_ISO(Fecha_Obj),
+          Hora
+        );
+      }
+
+      function Normalizar_Slots_Muertos() {
+        const Resultado = [];
+        (Array.isArray(Slots_Muertos)
+          ? Slots_Muertos
+          : []
+        ).forEach((Item) => {
+          const Clave = Normalizar_Clave_Slot(Item);
+          if (!Clave) return;
+          Resultado.push(Clave);
+          if (
+            Item &&
+            typeof Item === "object" &&
+            !Slots_Muertos_Tipos[Clave]
+          ) {
+            const Tipo = String(
+              Item.Tipo_Id ||
+              Item.Tipo ||
+              Item.Naturaleza ||
+              ""
+            ).trim();
+            if (Tipo) {
+              Slots_Muertos_Tipos[Clave] = Tipo;
+            }
+          }
+        });
+        Slots_Muertos = Array.from(new Set(Resultado));
+      }
+
+      function Falta_Emoji_Plan_Slot(Valor = "") {
+        const Texto = String(Valor || "")
+          .trim()
+          .replaceAll(
+            "\u00e2\u20ac\u00a2",
+            Emoji_Plan_Slot_Placeholder
+          );
+        return (
+          !Texto ||
+          Texto === Emoji_Plan_Slot_Placeholder
+        );
+      }
+
+      function Mostrar_Toast_Plan_Slot(Clave) {
+        Mostrar_Toast_Info(t(Clave), "\u26a0\ufe0f");
+      }
+
       function Crear_Id_Plan_Slot_Item() {
         return `Plan_Slot_${Date.now()}_${Math.floor(
           Math.random() * 1000
@@ -40389,6 +40525,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Normalizar_Grupo_Ids_Slots_Muertos() {
+        Normalizar_Slots_Muertos();
         Object.keys(Slots_Muertos_Grupo_Ids).forEach((Clave) => {
           if (!Slots_Muertos.includes(Clave)) {
             delete Slots_Muertos_Grupo_Ids[Clave];
@@ -40446,17 +40583,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Normalizar_Planes_Slot() {
-        const Claves_Slots = new Set(
-          Array.isArray(Slots_Muertos) ? Slots_Muertos : []
-        );
+        Normalizar_Slots_Muertos();
         const Resultado = {};
         if (
           Planes_Slot &&
           typeof Planes_Slot === "object"
         ) {
           Object.entries(Planes_Slot).forEach(
-            ([Clave, Plan]) => {
-              if (!Claves_Slots.has(Clave)) return;
+            ([Clave_Base, Plan]) => {
+              const Clave =
+                Normalizar_Clave_Slot(Clave_Base);
+              if (!Clave) return;
+              const [Fecha, Hora_Base] =
+                Clave.split("|");
+              const Hora = Number(Hora_Base);
+              if (
+                !Slot_Es_Muerto(Fecha, Hora) &&
+                Slot_Tiene_Evento(Fecha, Hora)
+              ) {
+                return;
+              }
               const Items = Normalizar_Items_Plan_Slot(
                 Plan?.Items || []
               );
@@ -40865,6 +41011,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Normalizar_Metadata_Titulos_Slots_Muertos() {
+        Normalizar_Slots_Muertos();
         Normalizar_Grupo_Ids_Slots_Muertos();
         Object.keys(Slots_Muertos_Titulos_Visibles)
           .forEach((Clave) => {
@@ -57272,7 +57419,3 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
     </script>
   </body>
 </html>
-
-
-
-
