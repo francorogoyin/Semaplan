@@ -217,59 +217,67 @@ test("centra el contenido de los modales de apps", async ({
   }
 });
 
-test("deja en apps el mismo aire visual que pagos", async ({
+test("deja apps como seccion propia arriba de cuenta", async ({
   page
 }) => {
   await Preparar(page);
 
   const resultado = await page.evaluate(() => {
-    Suscripcion_Historial_Remoto = [
-      {
-        fecha_evento: "2026-04-12T05:40:00Z",
-        monto: 999,
-        moneda: "ARS",
-        estado: "approved"
-      }
-    ];
-    Suscripcion_Detalle_Remota = null;
-    Renderizar_Historial_Pagos_Cuenta();
-
-    const Separadores = document.querySelectorAll(
-      ".Cfg_Cuenta_Separador"
+    const Seccion_Apps = document.querySelector(
+      ".Config_Seccion_Apps"
     );
-    const Sep_Pagos = Separadores[0];
-    const Sep_Apps = Separadores[1];
-    const Pago = document.querySelector(
-      "#Cfg_Pagos_Historial .Cfg_Pagos_Tabla"
+    const Seccion_Cuenta = document.querySelector(
+      ".Config_Seccion_Cuenta"
     );
-    const Boton = document.querySelector(
-      ".Cfg_Apps_Lista .Config_Dato_Btn:last-child"
+    const Titulo_Apps = Seccion_Apps?.querySelector(
+      ".Config_Seccion_Titulo"
     );
-    const Estilos_Apps = getComputedStyle(
-      document.querySelector(".Cfg_Apps_Lista")
+    const Fila_Apps = Seccion_Apps?.querySelector(
+      ".Cfg_Apps_Lista"
     );
+    const Titulo_Version = Array.from(
+      document.querySelectorAll(".Config_Seccion_Titulo")
+    ).find((El) => {
+      return (El.textContent || "").includes("Versi");
+    });
+    const Fila_Version = document.querySelector(
+      "#Cfg_Version_Programa"
+    )?.closest(".Config_Fila");
+    if (
+      !Seccion_Apps ||
+      !Seccion_Cuenta ||
+      !Titulo_Apps ||
+      !Fila_Apps ||
+      !Titulo_Version ||
+      !Fila_Version
+    ) {
+      return null;
+    }
 
     return {
-      gapPagos: Math.round(
-        Sep_Pagos.getBoundingClientRect().top -
-        Pago.getBoundingClientRect().bottom
-      ),
+      apps_antes_cuenta:
+        Seccion_Apps.getBoundingClientRect().top <
+        Seccion_Cuenta.getBoundingClientRect().top,
       gapApps: Math.round(
-        Sep_Apps.getBoundingClientRect().top -
-        Boton.getBoundingClientRect().bottom
+        Fila_Apps.getBoundingClientRect().top -
+        Titulo_Apps.getBoundingClientRect().bottom
       ),
-      marginBottomApps: Estilos_Apps.marginBottom,
-      colorSeparador: getComputedStyle(Sep_Apps)
-        .backgroundColor
+      gapVersion: Math.round(
+        Fila_Version.getBoundingClientRect().top -
+        Titulo_Version.getBoundingClientRect().bottom
+      ),
+      borderApps: getComputedStyle(Seccion_Apps)
+        .borderBottomColor
     };
   });
 
-  expect(resultado.marginBottomApps).toBe("10px");
-  expect(resultado.colorSeparador).toBe(
+  expect(resultado).not.toBeNull();
+  expect(resultado.apps_antes_cuenta).toBeTruthy();
+  expect(resultado.borderApps).toBe(
     "rgba(143, 124, 98, 0.16)"
   );
   expect(
-    Math.abs(resultado.gapApps - resultado.gapPagos)
+    Math.abs(resultado.gapApps - resultado.gapVersion)
   ).toBeLessThanOrEqual(2);
 });
 
