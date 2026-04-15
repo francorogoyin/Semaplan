@@ -40224,15 +40224,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Grupo_B = Obtener_Grupo_Id_Slot_Muerto_Clave(
           Clave_Slot(Fecha_B, Hora_B)
         );
-        if (Grupo_A || Grupo_B) {
-          return Boolean(Grupo_A && Grupo_A === Grupo_B);
-        }
-        return Slot_Muerto_Tiene_Mismo_Perfil(
-          Fecha_A,
-          Hora_A,
-          Fecha_B,
-          Hora_B
-        );
+        return Boolean(Grupo_A && Grupo_A === Grupo_B);
       }
 
       function Obtener_Franja_Slot_Muerto(Fecha, Hora) {
@@ -46454,6 +46446,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Slot_Es_Muerto(Fecha_ISO, Hora) ||
               Slot_Esta_Vacio(Fecha_ISO, Hora)
             ) {
+              const Clave = Clave_Slot(Fecha_ISO, Hora);
+              if (
+                Evento.ctrlKey ||
+                Evento.metaKey
+              ) {
+                Seleccionar_Slot_Calendario(
+                  Fecha_ISO,
+                  Hora,
+                  { Alternar_Multi: true }
+                );
+              } else if (
+                Cantidad_Multi_Calendario() !== 1 ||
+                !Slots_Multi_Seleccion.has(Clave)
+              ) {
+                Seleccionar_Slot_Calendario(
+                  Fecha_ISO,
+                  Hora
+                );
+              }
               Mostrar_Menu_Slot(
                 Fecha_ISO,
                 Hora,

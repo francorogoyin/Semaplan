@@ -359,6 +359,87 @@ test("arrastra una franja contigua de slots muertos", async ({
   expect(data.titulo_13).toBe("Almuerzo largo");
 });
 
+test("slots contiguos sin grupo explicito no se arrastran juntos", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Slots_Muertos = [
+    "2026-04-13|9",
+    "2026-04-13|10",
+    "2026-04-13|11"
+  ];
+  estado.Planes_Slot = {
+    "2026-04-13|9": {
+      Items: [
+        {
+          Id: "ps_9",
+          Texto: "Idea central",
+          Emoji: "*",
+          Estado: "Planeado"
+        }
+      ]
+    },
+    "2026-04-13|10": {
+      Items: [
+        {
+          Id: "ps_10",
+          Texto: "Idea central",
+          Emoji: "*",
+          Estado: "Planeado"
+        }
+      ]
+    },
+    "2026-04-13|11": {
+      Items: [
+        {
+          Id: "ps_11",
+          Texto: "Idea central",
+          Emoji: "*",
+          Estado: "Planeado"
+        }
+      ]
+    }
+  };
+  estado.Slots_Muertos_Tipos = {
+    "2026-04-13|9": "Comida",
+    "2026-04-13|10": "Comida",
+    "2026-04-13|11": "Comida"
+  };
+  estado.Slots_Muertos_Nombres = {
+    "2026-04-13|9": "Almuerzo largo",
+    "2026-04-13|10": "Almuerzo largo",
+    "2026-04-13|11": "Almuerzo largo"
+  };
+  estado.Slots_Muertos_Titulos_Visibles = {
+    "2026-04-13|9": true,
+    "2026-04-13|10": true,
+    "2026-04-13|11": true
+  };
+  estado.Slots_Muertos_Nombres_Auto = {
+    "2026-04-13|9": false,
+    "2026-04-13|10": false,
+    "2026-04-13|11": false
+  };
+  estado.Slots_Muertos_Grupo_Ids = {};
+
+  await preparar(page, estado);
+  await arrastrarSlot(page, 10, 13);
+
+  const data = await page.evaluate(() => ({
+    nueve_sigue: Slots_Muertos.includes("2026-04-13|9"),
+    diez_sigue: Slots_Muertos.includes("2026-04-13|10"),
+    once_sigue: Slots_Muertos.includes("2026-04-13|11"),
+    trece_existe: Slots_Muertos.includes("2026-04-13|13"),
+    catorce_existe: Slots_Muertos.includes("2026-04-13|14")
+  }));
+
+  expect(data.nueve_sigue).toBeTruthy();
+  expect(data.diez_sigue).toBeFalsy();
+  expect(data.once_sigue).toBeTruthy();
+  expect(data.trece_existe).toBeTruthy();
+  expect(data.catorce_existe).toBeFalsy();
+});
+
 test("slots iguales de grupos distintos no quedan fusionados tras recargar", async ({
   page
 }) => {
@@ -674,15 +755,43 @@ test("el menu de slot vacio agrupa plan, patron y pegar bloques", async ({
 
   expect(acciones).toEqual([
     "plan-slot",
-    "borrar-plan-slot",
     "insertar-patron-slot",
-    "guardar-patron-slot",
     "pegar-bloques-slot",
     "limpiar-celda"
   ]);
   await expect(
     page.locator("#Dia_Accion_Menu .Dia_Accion_Separador")
   ).toHaveCount(3);
+});
+
+test("el click derecho sobre slot vacio tambien lo selecciona", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Slots_Muertos = [];
+  estado.Planes_Slot = {};
+  estado.Slots_Muertos_Tipos = {};
+  estado.Slots_Muertos_Nombres = {};
+  estado.Slots_Muertos_Titulos_Visibles = {};
+  estado.Slots_Muertos_Nombres_Auto = {};
+  estado.Slots_Muertos_Grupo_Ids = {};
+
+  await preparar(page, estado);
+
+  const slot = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+  );
+  await slot.click({ button: "right" });
+
+  const data = await page.evaluate(() => ({
+    seleccion: Array.from(Slots_Multi_Seleccion),
+    clase_activa: document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+    )?.classList.contains("Multi_Activa") || false
+  }));
+
+  expect(data.seleccion).toEqual(["2026-04-13|12"]);
+  expect(data.clase_activa).toBeTruthy();
 });
 
 test("el menu contextual puede limpiar un slot muerto y dejarlo blanco", async ({
