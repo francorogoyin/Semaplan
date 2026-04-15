@@ -828,6 +828,70 @@ test(
 );
 
 test(
+  "limpiar una celda con plan sincroniza antes del debounce",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado_Con_Slot("2026-04-13", 10)
+    );
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
+      { button: "right" }
+    );
+    await page.click(
+      '#Dia_Accion_Menu [data-acc="limpiar-celda"]'
+    );
+    await page.click("#Dialogo_Botones .Dialogo_Boton_Peligro");
+
+    await page.waitForFunction(
+      () =>
+        Object.keys(
+          window.__Estado_Remoto?.estado?.Planes_Slot || {}
+        ).length === 0,
+      null,
+      { timeout: 1500 }
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      await Backend_Aplicar_Estado_Remoto();
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+      const Estado_Remoto =
+        window.__Estado_Remoto?.estado || {};
+
+      return {
+        memoria_planes: Object.keys(Planes_Slot || {}),
+        local_planes: Object.keys(
+          Estado_Local.Planes_Slot || {}
+        ),
+        remoto_planes: Object.keys(
+          Estado_Remoto.Planes_Slot || {}
+        ),
+        slot_sigue_muerto: Slot_Es_Muerto(
+          "2026-04-13",
+          10
+        ),
+        ui_marca_plan: Boolean(
+          document.querySelector(
+            '.Slot[data-fecha="2026-04-13"][data-hora="10"] ' +
+            '.Slot_Plan_Marca'
+          )
+        )
+      };
+    });
+
+    expect(Resumen.memoria_planes).toEqual([]);
+    expect(Resumen.local_planes).toEqual([]);
+    expect(Resumen.remoto_planes).toEqual([]);
+    expect(Resumen.slot_sigue_muerto).toBeFalsy();
+    expect(Resumen.ui_marca_plan).toBeFalsy();
+  }
+);
+
+test(
   "recarga cambios remotos mas nuevos al volver al foco",
   async ({ page }) => {
     await Preparar_App(

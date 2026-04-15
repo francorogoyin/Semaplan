@@ -40494,9 +40494,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Limpiar_Plan_Slot_Por_Clave(Clave) {
+        const Existia = Object.prototype.hasOwnProperty.call(
+          Planes_Slot,
+          Clave
+        );
         delete Planes_Slot[Clave];
         if (Plan_Slot_Clave_Activa === Clave) {
           Plan_Slot_Clave_Activa = null;
+        }
+        if (Existia) {
+          Marcar_Sync_Critico_Inmediato_Pendiente();
         }
       }
 
@@ -43851,6 +43858,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         // 1) Persistir en localStorage como caché inmediato.
         const Estado = Construir_Estado_Completo();
+        const Forzar_Sync_Critico =
+          Consumir_Sync_Critico_Inmediato_Pendiente();
         localStorage.setItem(Clave_Local, JSON.stringify(Estado));
         if (Usuario_Actual?.id) {
           Marcar_Usuario_Cache_Local(Usuario_Actual.id);
@@ -43864,6 +43873,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // 2) Disparar sync con Supabase (con debounce).
         if (typeof Backend_Sync_Programar === "function") {
           Backend_Sync_Programar();
+        }
+        if (Forzar_Sync_Critico) {
+          Promise.resolve().then(() => {
+            Forzar_Sync_Inmediato_Cambio_Critico();
+          });
         }
       }
 
@@ -44188,6 +44202,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           } else {
             Slots_Muertos_Grupo_Ids = {};
           }
+          if (
+            Estado.Planes_Slot &&
+            typeof Estado.Planes_Slot === "object"
+          ) {
+            Planes_Slot = Estado.Planes_Slot;
+          } else {
+            Planes_Slot = {};
+          }
           Normalizar_Grupo_Ids_Slots_Muertos();
           Normalizar_Metadata_Titulos_Slots_Muertos();
           Normalizar_Planes_Slot();
@@ -44262,14 +44284,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Semana = Estado.Planes_Semana;
           } else {
             Planes_Semana = {};
-          }
-          if (
-            Estado.Planes_Slot &&
-            typeof Estado.Planes_Slot === "object"
-          ) {
-            Planes_Slot = Estado.Planes_Slot;
-          } else {
-            Planes_Slot = {};
           }
 
           return true;
@@ -54004,6 +54018,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_Estado = "Guardado";
       let Sync_Token_Actual = "";
       let Sync_Local_Sucio = false;
+      let Sync_Critico_Inmediato_Pendiente = false;
       let Sync_Remoto_Fila_Existe = false;
       let Sync_Remoto_Version_Actual = 0;
       let Sync_Remoto_Marca_Ms = 0;
@@ -54275,6 +54290,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Sync_Remoto_Revisando = false;
         Sync_Remoto_Ultima_Revision_Ms = 0;
         Marcar_Sync_Local_Sucio(false);
+        Sync_Critico_Inmediato_Pendiente = false;
         Limpiar_Conflicto_Sync();
         Resetear_Meta_Remota();
         Limpiar_Sesion_Local_Activa();
@@ -54322,14 +54338,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Sync_Reintento_Intentos = 0;
         Sync_Remoto_Fila_Existe = true;
-        if (Datos) {
-          Actualizar_Meta_Remota(Datos);
-        } else if (
+        if (
           Estado_Sincronizado &&
           typeof Estado_Sincronizado === "object"
         ) {
-          Sync_Remoto_Estado_Ultimo =
-            Estado_Sincronizado;
+          Sync_Remoto_Estado_Ultimo = Estado_Sincronizado;
+        }
+        if (Datos) {
+          Actualizar_Meta_Remota(Datos);
         } else if (Sync_Remoto_Version_Actual > 0) {
           Sync_Remoto_Version_Actual += 1;
         } else {
@@ -54544,6 +54560,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Sucio = false
       ) {
         Sync_Local_Sucio = !!Sucio;
+      }
+
+      function Marcar_Sync_Critico_Inmediato_Pendiente() {
+        if (Cargando_Inicial) return;
+        Sync_Critico_Inmediato_Pendiente = true;
+      }
+
+      function Consumir_Sync_Critico_Inmediato_Pendiente() {
+        const Valor = Sync_Critico_Inmediato_Pendiente;
+        Sync_Critico_Inmediato_Pendiente = false;
+        return Valor;
       }
 
       function Aplicar_Bloqueo_Conflicto_Sync() {
