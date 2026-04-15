@@ -15569,6 +15569,11 @@
             "{n} objetivo(s) seleccionada(s)",
           "baul.cambiar_color_multi":
             "Cambiar color",
+          "baul.definir_estado_multi":
+            "Definir estado",
+          "baul.definir_estado_multi_msg":
+            "ElegÃ­ el estado para los " +
+            "objetivos seleccionados:",
           "baul.agregar_etiquetas_multi":
             "Agregar etiquetas",
           "baul.quitar_etiquetas_multi":
@@ -17939,6 +17944,11 @@
             "{n} selected objective(s)",
           "baul.cambiar_color_multi":
             "Change color",
+          "baul.definir_estado_multi":
+            "Set state",
+          "baul.definir_estado_multi_msg":
+            "Choose the state for the " +
+            "selected objectives:",
           "baul.agregar_etiquetas_multi":
             "Add tags",
           "baul.quitar_etiquetas_multi":
@@ -20406,6 +20416,11 @@
             "{n} objetivo(s) selecionada(s)",
           "baul.cambiar_color_multi":
             "Mudar cor",
+          "baul.definir_estado_multi":
+            "Definir estado",
+          "baul.definir_estado_multi_msg":
+            "Escolha o estado para os " +
+            "objetivos selecionados:",
           "baul.agregar_etiquetas_multi":
             "Adicionar tags",
           "baul.quitar_etiquetas_multi":
@@ -26876,6 +26891,58 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Aplicar_Color_Baul_Multi(Color);
       }
 
+      async function Pedir_Estado_Baul_Multi() {
+        const Ids = Array.from(Baul_Multi_Seleccion);
+        if (!Ids.length) return;
+        const Primera = Baul_Objetivos.find(
+          (Objetivo) => Objetivo.Id === Ids[0]
+        );
+        const Estado_Actual =
+          Obtener_Estado_Baul_Normalizado(
+            Primera?.Estado
+          );
+        const Estado = await Mostrar_Dialogo(
+          t("baul.definir_estado_multi_msg"),
+          [
+            {
+              Etiqueta: t("baul.activa"),
+              Valor: "Activa",
+              Tipo: Estado_Actual === "Activa"
+                ? "Primario"
+                : "Secundario"
+            },
+            {
+              Etiqueta: t("baul.realizada"),
+              Valor: "Realizada",
+              Tipo: Estado_Actual === "Realizada"
+                ? "Primario"
+                : "Secundario"
+            },
+            {
+              Etiqueta: t("baul.postergada"),
+              Valor: "Postergada",
+              Tipo: Estado_Actual === "Postergada"
+                ? "Primario"
+                : "Secundario"
+            },
+            {
+              Etiqueta: t("baul.anulada"),
+              Valor: "Anulada",
+              Tipo: Estado_Actual === "Anulada"
+                ? "Primario"
+                : "Secundario"
+            },
+            {
+              Etiqueta: t("cancelar"),
+              Valor: null,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
+        if (!Estado) return;
+        Aplicar_Estado_Baul_Multi(Estado);
+      }
+
       function Aplicar_Color_Baul_Multi(Color) {
         const Hex = Normalizar_Color_Hex(Color);
         if (!Hex) return;
@@ -26889,6 +26956,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             return;
           }
           Objetivo.Color_Baul = Hex;
+          Cambios += 1;
+        });
+        if (Cambios === 0) return;
+        Baul_Multi_Seleccion.clear();
+        Render_Baul();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("toast.objetivos_actualizadas"),
+          Snap
+        );
+      }
+
+      function Aplicar_Estado_Baul_Multi(Estado) {
+        const Estado_Normalizado =
+          Obtener_Estado_Baul_Normalizado(Estado);
+        const Ids = new Set(Baul_Multi_Seleccion);
+        if (Ids.size === 0) return;
+        const Snap = Capturar_Snapshot_Undo();
+        let Cambios = 0;
+        Baul_Objetivos.forEach((Objetivo) => {
+          if (!Ids.has(Objetivo.Id)) return;
+          if (
+            Obtener_Estado_Baul_Normalizado(
+              Objetivo.Estado
+            ) === Estado_Normalizado
+          ) {
+            return;
+          }
+          Objetivo.Estado = Estado_Normalizado;
           Cambios += 1;
         });
         if (Cambios === 0) return;
@@ -51433,6 +51529,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             t("baul.cambiar_color_multi"),
             () => {
               Pedir_Color_Baul_Multi();
+            }
+          )
+        );
+        El_Baul_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("baul.definir_estado_multi"),
+            () => {
+              Pedir_Estado_Baul_Multi();
             }
           )
         );

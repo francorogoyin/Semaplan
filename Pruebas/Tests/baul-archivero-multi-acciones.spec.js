@@ -248,6 +248,7 @@ test("el baul deja la multiaccion abajo del panel", async ({
   expect(resultado.flexDirectionLibreria).toBe("column");
   expect(resultado.conteo).toContain("2");
   expect(resultado.botones).toContain("Cambiar color");
+  expect(resultado.botones).toContain("Definir estado");
   expect(resultado.botones).toContain("Agregar etiquetas");
   expect(resultado.botones).toContain("Quitar etiquetas");
   expect(resultado.botones).toContain(
@@ -269,12 +270,15 @@ test("aplica color y etiquetas en multiaccion del baul", async ({
     Baul_Multi_Seleccion = new Set(["b1", "b2"]);
     Aplicar_Color_Baul_Multi("#112233");
     Baul_Multi_Seleccion = new Set(["b1", "b2"]);
+    Aplicar_Estado_Baul_Multi("Postergada");
+    Baul_Multi_Seleccion = new Set(["b1", "b2"]);
     Aplicar_Etiquetas_Baul_Multi(
       "Agregar",
       "Urgente, Cliente"
     );
     return {
       colores: Baul_Objetivos.map((Objetivo) => Objetivo.Color_Baul),
+      estados: Baul_Objetivos.map((Objetivo) => Objetivo.Estado),
       etiquetas: Baul_Objetivos.map((Objetivo) =>
         Obtener_Nombres_Etiquetas(Objetivo.Etiquetas_Ids)
       ),
@@ -283,11 +287,76 @@ test("aplica color y etiquetas en multiaccion del baul", async ({
   });
 
   expect(resultado.colores).toEqual(["#112233", "#112233"]);
+  expect(resultado.estados).toEqual([
+    "Postergada",
+    "Postergada"
+  ]);
   expect(resultado.etiquetas).toEqual([
     ["Urgente", "Cliente"],
     ["Urgente", "Cliente"]
   ]);
   expect(resultado.catalogo).toContain("Urgente");
+});
+
+test("baul define estado en multiaccion desde la UI", async ({
+  page
+}) => {
+  await preparar(page, crearEstado());
+
+  await page.evaluate(() => {
+    Abrir_Baul();
+    document.getElementById("Baul_Overlay")
+      ?.classList.add("Activo");
+    document.getElementById("Dialogo_Overlay")
+      ?.classList.remove("Activo");
+    Dialogo_Abierto = false;
+    Dialogo_Resolver_Fn = null;
+    Baul_Multi_Seleccion = new Set(["b1", "b2"]);
+    Render_Baul();
+    Render_Barra_Multi_Seleccion();
+  });
+
+  await page.locator(
+    "#Baul_Multi_Grupo_Acciones button"
+  ).filter({
+    hasText: "Definir estado"
+  }).click();
+
+  const Seleccion_Con_Dialogo = await page.evaluate(() => ({
+    dialogoActivo: document
+      .getElementById("Dialogo_Overlay")
+      ?.classList.contains("Activo") || false,
+    seleccion: Array.from(Baul_Multi_Seleccion)
+  }));
+
+  expect(Seleccion_Con_Dialogo.dialogoActivo).toBe(true);
+  expect(Seleccion_Con_Dialogo.seleccion).toEqual([
+    "b1",
+    "b2"
+  ]);
+
+  await page.locator(".Dialogo_Boton").filter({
+    hasText: "Postergada"
+  }).click();
+
+  const Resultado = await page.evaluate(() => ({
+    estados: Baul_Objetivos.map(
+      (Objetivo) => Objetivo.Estado
+    ),
+    iconos: Array.from(
+      document.querySelectorAll(".Baul_Estado_Icono")
+    ).map((Nodo) => Nodo.dataset.estado || ""),
+    seleccion: Array.from(Baul_Multi_Seleccion)
+  }));
+
+  expect(Resultado.estados).toEqual([
+    "Postergada",
+    "Postergada"
+  ]);
+  expect(Resultado.iconos.every(
+    (Estado) => Estado === "Postergada"
+  )).toBe(true);
+  expect(Resultado.seleccion).toEqual([]);
 });
 
 test("baul mantiene seleccion al cambiar color desde la UI", async ({
