@@ -310,3 +310,59 @@ test("no pisa un horario ocupado al arrastrar slot muerto", async ({
   expect(data.destino_plan).toBe(0);
   expect(data.alerta).toBe("Ese horario ya está ocupado.");
 });
+
+test("arrastra slot muerto sin plan conservando tipo y titulo", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Planes_Slot = {};
+
+  await preparar(page, estado);
+
+  const slotOrigen = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+  );
+  await expect(slotOrigen).toHaveClass(/Slot_Muerto_Arrastrable/);
+  expect(
+    await slotOrigen.evaluate((nodo) => nodo.draggable)
+  ).toBeTruthy();
+
+  await arrastrarSlot(page, 10, 12);
+
+  const data = await page.evaluate(() => ({
+    origen_existe: Slots_Muertos.includes("2026-04-13|10"),
+    origen_plan: Planes_Slot["2026-04-13|10"]?.Items?.length || 0,
+    destino_existe: Slots_Muertos.includes("2026-04-13|12"),
+    destino_tipo: Slots_Muertos_Tipos["2026-04-13|12"] || "",
+    destino_titulo: Slots_Muertos_Nombres["2026-04-13|12"] || "",
+    destino_visible: Boolean(
+      Slots_Muertos_Titulos_Visibles["2026-04-13|12"]
+    ),
+    destino_auto: Boolean(
+      Slots_Muertos_Nombres_Auto["2026-04-13|12"]
+    ),
+    destino_plan: Planes_Slot["2026-04-13|12"]?.Items?.length || 0,
+    ui_titulo:
+      document.querySelector(
+        '.Slot[data-fecha="2026-04-13"][data-hora="12"] ' +
+        '.Slot_Muerto_Nombre'
+      )?.textContent || "",
+    ui_marca_plan: Boolean(
+      document.querySelector(
+        '.Slot[data-fecha="2026-04-13"][data-hora="12"] ' +
+        '.Slot_Plan_Marca'
+      )
+    )
+  }));
+
+  expect(data.origen_existe).toBeFalsy();
+  expect(data.origen_plan).toBe(0);
+  expect(data.destino_existe).toBeTruthy();
+  expect(data.destino_tipo).toBe("Comida");
+  expect(data.destino_titulo).toBe("Almuerzo largo");
+  expect(data.destino_visible).toBeTruthy();
+  expect(data.destino_auto).toBeFalsy();
+  expect(data.destino_plan).toBe(0);
+  expect(data.ui_titulo).toBe("Almuerzo largo");
+  expect(data.ui_marca_plan).toBeFalsy();
+});

@@ -39131,12 +39131,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           !Slot_Tiene_Evento(Fecha, Hora);
       }
 
+      function Slot_Muerto_Es_Arrastrable(
+        Fecha,
+        Hora
+      ) {
+        return Slot_Es_Muerto(Fecha, Hora);
+      }
+
       function Slot_Muerto_Con_Plan_Es_Arrastrable(
         Fecha,
         Hora
       ) {
-        return Slot_Es_Muerto(Fecha, Hora) &&
-          Contar_Items_Plan_Slot(Fecha, Hora) > 0;
+        return Slot_Muerto_Es_Arrastrable(Fecha, Hora);
       }
 
       function Contar_Items_Plan_Slot(Fecha, Hora) {
@@ -39526,12 +39532,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) {
           return false;
         }
-        if (
-          !Slot_Muerto_Con_Plan_Es_Arrastrable(
-            Fecha_Origen,
-            Hora_Origen
-          )
-        ) {
+        if (!Slot_Muerto_Es_Arrastrable(Fecha_Origen, Hora_Origen)) {
           return false;
         }
         const Motivo_Conflicto =
@@ -39561,12 +39562,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Hora_Origen,
           false
         );
-        if (
-          !Array.isArray(Plan_Origen?.Items) ||
-          Plan_Origen.Items.length === 0
-        ) {
-          return false;
-        }
+        const Tiene_Plan_Origen =
+          Array.isArray(Plan_Origen?.Items) &&
+          Plan_Origen.Items.length > 0;
 
         Crear_Slot_Muerto(
           Fecha_Destino,
@@ -39584,11 +39582,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           Limpiar_Nombre_Slot_Muerto(Clave_Destino);
         }
-        Planes_Slot[Clave_Destino] = {
-          Items: Plan_Origen.Items.map((Item) => ({
-            ...Item
-          }))
-        };
+        if (Tiene_Plan_Origen) {
+          Planes_Slot[Clave_Destino] = {
+            Items: Plan_Origen.Items.map((Item) => ({
+              ...Item
+            }))
+          };
+        } else {
+          delete Planes_Slot[Clave_Destino];
+        }
 
         const Index_Origen = Slots_Muertos.indexOf(
           Clave_Origen
@@ -43386,7 +43388,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Conteo_Plan_Slot =
             Contar_Items_Plan_Slot(Fecha_ISO, Hora);
           const Slot_Arrastrable =
-            Slot_Muerto_Con_Plan_Es_Arrastrable(
+            Slot_Muerto_Es_Arrastrable(
               Fecha_ISO,
               Hora
             );
