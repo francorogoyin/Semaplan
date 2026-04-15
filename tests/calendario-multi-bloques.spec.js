@@ -1300,6 +1300,72 @@ test(
 );
 
 test(
+  "permite seleccionar un slot muerto con click y pegarle plan",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+
+    await page.evaluate(() => {
+      Aplicar_Datos_Slot_Muerto(
+        "2026-04-13",
+        9,
+        {
+          Tipo_Id: "Sueno",
+          Nombre: "Dormir",
+          Visible: true,
+          Nombre_Auto: false,
+          Plan_Items: [
+            {
+              Id: "plan_origen",
+              Emoji: "🌙",
+              Texto: "Rutina",
+              Estado: "Planeado"
+            }
+          ]
+        },
+        true
+      );
+      Aplicar_Datos_Slot_Muerto(
+        "2026-04-13",
+        11,
+        {
+          Tipo_Id: "Sueno",
+          Nombre: "Dormir",
+          Visible: true,
+          Nombre_Auto: false,
+          Plan_Items: []
+        },
+        true
+      );
+      Copiar_Plan_Slot("2026-04-13", 9);
+      Render_Calendario();
+      Guardar_Estado();
+    });
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="11"]'
+    );
+
+    const Seleccion_Antes = await page.evaluate(() =>
+      Array.from(Slots_Multi_Seleccion).sort()
+    );
+    await page.keyboard.press("Control+v");
+
+    const Resultado = await page.evaluate(() => ({
+      Plan_Destino: (
+        Planes_Slot["2026-04-13|11"]?.Items || []
+      ).map((Item) => Item.Texto),
+      Alerta: window.__ultimo_alert || ""
+    }));
+
+    expect(Seleccion_Antes).toEqual([
+      "2026-04-13|11"
+    ]);
+    expect(Resultado.Plan_Destino).toEqual(["Rutina"]);
+    expect(Resultado.Alerta).toBe("");
+  }
+);
+
+test(
   "ofrece pegar en columna cuando la copia mezcla dias",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());

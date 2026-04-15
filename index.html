@@ -41243,6 +41243,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slots_Multi_Seleccion.size;
       }
 
+      function Slot_Es_Seleccion_Unica_Calendario(
+        Clave
+      ) {
+        return Cantidad_Multi_Calendario() === 1 &&
+          Slots_Multi_Seleccion.has(Clave);
+      }
+
       function Seleccionar_Evento_Calendario(
         Evento_Id,
         Opciones = {}
@@ -46142,8 +46149,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Slot.addEventListener("mouseup", (Evento) => {
               if (Evento.button !== 0) return;
               if (Interaccion_Touch_Activa()) return;
-              if (Evento.ctrlKey || Evento.metaKey ||
-                Cantidad_Multi_Calendario() > 0) {
+              const Clave = Clave_Slot(Fecha_ISO, Hora);
+              const Es_Seleccion_Unica =
+                Slot_Es_Seleccion_Unica_Calendario(Clave);
+              if (
+                Evento.ctrlKey ||
+                Evento.metaKey ||
+                (
+                  Cantidad_Multi_Calendario() > 0 &&
+                  !Es_Seleccion_Unica
+                )
+              ) {
                 Ultimo_Click_Slot_Alternable = {
                   Clave: "",
                   Timestamp: 0
@@ -46173,6 +46189,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slot.addEventListener("drop", Manejar_Drop);
           Slot.addEventListener("click", (Evento) => {
             if (!Interaccion_Touch_Activa()) {
+              const Clave = Clave_Slot(Fecha_ISO, Hora);
               if (Evento.ctrlKey || Evento.metaKey) {
                 Evento.preventDefault();
                 Evento.stopPropagation();
@@ -46183,10 +46200,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 );
                 return;
               }
+              if (Slot_Es_Muerto(Fecha_ISO, Hora)) {
+                Evento.preventDefault();
+                Evento.stopPropagation();
+                if (
+                  !Slot_Es_Seleccion_Unica_Calendario(Clave)
+                ) {
+                  Seleccionar_Slot_Calendario(
+                    Fecha_ISO,
+                    Hora
+                  );
+                }
+                return;
+              }
               if (Cantidad_Multi_Calendario() > 0) {
                 Evento.preventDefault();
                 Evento.stopPropagation();
-                const Clave = Clave_Slot(Fecha_ISO, Hora);
                 if (
                   Cantidad_Multi_Calendario() !== 1 ||
                   !Slots_Multi_Seleccion.has(Clave)
