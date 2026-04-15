@@ -35198,24 +35198,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.classList.remove("Activo");
       }
 
-      function Guardar_Modal_Plan_Slot() {
+      async function Guardar_Modal_Plan_Slot() {
         if (!Plan_Slot_Clave_Activa) return;
-        const Items = Plan_Slot_Borrador
-          .map((Item) => ({
-            Id: Item.Id || Crear_Id_Plan_Slot_Item(),
-            Emoji: (Item.Emoji || "•").trim() || "•",
-            Texto: (Item.Texto || "").trim(),
-            Estado: Item.Estado || "Planeado"
-          }))
-          .filter((Item) => Item.Texto);
+        const Clave = Plan_Slot_Clave_Activa;
+        const Items = Normalizar_Items_Plan_Slot(
+          Plan_Slot_Borrador
+        );
         if (Items.length) {
-          Planes_Slot[Plan_Slot_Clave_Activa] = { Items };
+          Planes_Slot[Clave] = { Items };
         } else {
-          delete Planes_Slot[Plan_Slot_Clave_Activa];
+          Limpiar_Plan_Slot_Por_Clave(Clave);
         }
         Cerrar_Modal_Plan_Slot();
         Render_Calendario();
         Guardar_Estado();
+        if (!Items.length) {
+          await Forzar_Sync_Inmediato_Cambio_Critico();
+        }
       }
 
       function Formatear_Id_Tipo_Slot(Aplica_A) {
@@ -35493,6 +35492,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Fecha, Hora
       ) {
         if (Contar_Items_Plan_Slot(Fecha, Hora) <= 0) return;
+        const Clave = Clave_Slot(Fecha, Hora);
         const Confirmar = await Mostrar_Dialogo(
           t("slot.borrar_plan_confirm"),
           [
@@ -35505,12 +35505,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ]
         );
         if (!Confirmar) return;
-        delete Planes_Slot[Clave_Slot(Fecha, Hora)];
-        if (Plan_Slot_Clave_Activa === Clave_Slot(Fecha, Hora)) {
+        const Modal_Activo =
+          Plan_Slot_Clave_Activa === Clave;
+        Limpiar_Plan_Slot_Por_Clave(Clave);
+        if (Modal_Activo) {
           Cerrar_Modal_Plan_Slot();
         }
         Render_Calendario();
         Guardar_Estado();
+        await Forzar_Sync_Inmediato_Cambio_Critico();
       }
 
       async function Eliminar_Slot_Muerto_Con_Confirmacion(
@@ -40016,6 +40019,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }));
       }
 
+      function Normalizar_Items_Plan_Slot(Items_Base = []) {
+        return (Array.isArray(Items_Base)
+          ? Items_Base
+          : []
+        ).map((Item) => ({
+          Id: Item?.Id || Crear_Id_Plan_Slot_Item(),
+          Emoji: String(
+            Item?.Emoji || "\u2022"
+          ).trim() || "\u2022",
+          Texto: String(Item?.Texto || "").trim(),
+          Estado: Item?.Estado || "Planeado"
+        })).filter((Item) => Item.Texto);
+      }
+
+      function Normalizar_Planes_Slot() {
+        const Claves_Slots = new Set(
+          Array.isArray(Slots_Muertos) ? Slots_Muertos : []
+        );
+        const Resultado = {};
+        if (
+          Planes_Slot &&
+          typeof Planes_Slot === "object"
+        ) {
+          Object.entries(Planes_Slot).forEach(
+            ([Clave, Plan]) => {
+              if (!Claves_Slots.has(Clave)) return;
+              const Items = Normalizar_Items_Plan_Slot(
+                Plan?.Items || []
+              );
+              if (Items.length === 0) return;
+              Resultado[Clave] = { Items };
+            }
+          );
+        }
+        Planes_Slot = Resultado;
+        if (
+          Plan_Slot_Clave_Activa &&
+          !Object.prototype.hasOwnProperty.call(
+            Planes_Slot,
+            Plan_Slot_Clave_Activa
+          )
+        ) {
+          Plan_Slot_Clave_Activa = null;
+        }
+      }
+
       function Obtener_Plan_Slot(Fecha, Hora, Crear = false) {
         const Clave = Clave_Slot(Fecha, Hora);
         if (
@@ -40968,7 +41017,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
           };
         } else {
-          delete Planes_Slot[Clave];
+          Limpiar_Plan_Slot_Por_Clave(Clave);
         }
         return Clave;
       }
@@ -43539,6 +43588,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Construir_Estado_Completo() {
         // Construye el blob de estado completo para serializar.
+        Normalizar_Planes_Slot();
         return {
           Objetivos,
           Eventos,
@@ -43673,6 +43723,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (typeof Backend_Sync_Programar === "function") {
           Backend_Sync_Programar();
         }
+      }
+
+      async function Forzar_Sync_Inmediato_Cambio_Critico() {
+        if (Cargando_Inicial) return false;
+        if (!Supa || !Usuario_Actual) return false;
+        if (Sync_Conflicto_Pendiente) return false;
+        if (!Hay_Cambios_Locales_Sin_Sync()) return false;
+        if (Sync_Timer_Id) {
+          clearTimeout(Sync_Timer_Id);
+          Sync_Timer_Id = null;
+        }
+        if (Sync_Reintento_Timer_Id) {
+          clearTimeout(Sync_Reintento_Timer_Id);
+          Sync_Reintento_Timer_Id = null;
+        }
+        return await Backend_Sync_Ejecutar();
       }
 
       function Cargar_Estado() {
@@ -43982,6 +44048,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           Normalizar_Grupo_Ids_Slots_Muertos();
           Normalizar_Metadata_Titulos_Slots_Muertos();
+          Normalizar_Planes_Slot();
           if (Array.isArray(Estado.Categorias)) {
             Categorias = Estado.Categorias;
           }
@@ -44134,6 +44201,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             })
             .filter(Boolean)
           : [];
+
+        Normalizar_Planes_Slot();
 
         Objetivos = Objetivos.map((Objetivo) => {
           const Es_Bolsa = Boolean(Objetivo.Es_Bolsa);

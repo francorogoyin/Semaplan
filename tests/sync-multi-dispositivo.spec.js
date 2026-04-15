@@ -629,6 +629,205 @@ test(
 );
 
 test(
+  "borrar un plan de slot tambien lo borra en remoto",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado_Con_Slot("2026-04-13", 10)
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      delete Planes_Slot["2026-04-13|10"];
+      Guardar_Estado();
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+      await Backend_Sync_Ejecutar();
+
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+      const Estado_Remoto =
+        window.__Estado_Remoto?.estado || {};
+
+      return {
+        local_planes: Object.keys(
+          Estado_Local.Planes_Slot || {}
+        ),
+        remoto_planes: Object.keys(
+          Estado_Remoto.Planes_Slot || {}
+        ),
+        remoto_plan:
+          Estado_Remoto.Planes_Slot?.[
+            "2026-04-13|10"
+          ]?.Items?.length || 0
+      };
+    });
+
+    expect(Resumen.local_planes).toEqual([]);
+    expect(Resumen.remoto_planes).toEqual([]);
+    expect(Resumen.remoto_plan).toBe(0);
+  }
+);
+
+test(
+  "limpia planes huerfanos de slots muertos al sincronizar",
+  async ({ page }) => {
+    const Estado = Crear_Estado(["Base remota"]);
+    Estado.Planes_Slot = {
+      "2026-04-13|10": {
+        Items: [
+          {
+            Id: "plan_slot_huerfano",
+            Texto: "Persistencia vieja",
+            Emoji: "*",
+            Estado: "Planeado"
+          }
+        ]
+      }
+    };
+    await Preparar_App(page, Estado);
+
+    const Resumen = await page.evaluate(async () => {
+      Guardar_Estado();
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+      await Backend_Sync_Ejecutar();
+      await Backend_Aplicar_Estado_Remoto();
+
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+      const Estado_Remoto =
+        window.__Estado_Remoto?.estado || {};
+
+      return {
+        memoria_planes: Object.keys(Planes_Slot || {}),
+        local_planes: Object.keys(
+          Estado_Local.Planes_Slot || {}
+        ),
+        remoto_planes: Object.keys(
+          Estado_Remoto.Planes_Slot || {}
+        ),
+        ui_marca_plan: Boolean(
+          document.querySelector(
+            '.Slot[data-fecha="2026-04-13"][data-hora="10"] ' +
+            '.Slot_Plan_Marca'
+          )
+        )
+      };
+    });
+
+    expect(Resumen.memoria_planes).toEqual([]);
+    expect(Resumen.local_planes).toEqual([]);
+    expect(Resumen.remoto_planes).toEqual([]);
+    expect(Resumen.ui_marca_plan).toBeFalsy();
+  }
+);
+
+test(
+  "borrar plan desde UI persiste al recargar remoto",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado_Con_Slot("2026-04-13", 10)
+    );
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
+      { button: "right" }
+    );
+    await page.click(
+      '#Dia_Accion_Menu [data-acc="borrar-plan-slot"]'
+    );
+    await page.click("#Dialogo_Botones .Dialogo_Boton_Primario");
+
+    const Resumen = await page.evaluate(async () => {
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+      await Backend_Sync_Ejecutar();
+      await Backend_Aplicar_Estado_Remoto();
+
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+      const Estado_Remoto =
+        window.__Estado_Remoto?.estado || {};
+
+      return {
+        local_planes: Object.keys(
+          Estado_Local.Planes_Slot || {}
+        ),
+        remoto_planes: Object.keys(
+          Estado_Remoto.Planes_Slot || {}
+        ),
+        ui_marca_plan: Boolean(
+          document.querySelector(
+            '.Slot[data-fecha="2026-04-13"][data-hora="10"] ' +
+            '.Slot_Plan_Marca'
+          )
+        )
+      };
+    });
+
+    expect(Resumen.local_planes).toEqual([]);
+    expect(Resumen.remoto_planes).toEqual([]);
+    expect(Resumen.ui_marca_plan).toBeFalsy();
+  }
+);
+
+test(
+  "vaciar plan desde el modal persiste al recargar remoto",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado_Con_Slot("2026-04-13", 10)
+    );
+
+    await page.evaluate(() => {
+      Abrir_Modal_Plan_Slot("2026-04-13", 10);
+    });
+    await page.click("#Plan_Slot_Cuerpo .Abordaje_Item_Borrar");
+    await page.click("#Plan_Slot_Guardar");
+
+    const Resumen = await page.evaluate(async () => {
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+      await Backend_Sync_Ejecutar();
+      await Backend_Aplicar_Estado_Remoto();
+
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+      const Estado_Remoto =
+        window.__Estado_Remoto?.estado || {};
+
+      return {
+        local_planes: Object.keys(
+          Estado_Local.Planes_Slot || {}
+        ),
+        remoto_planes: Object.keys(
+          Estado_Remoto.Planes_Slot || {}
+        ),
+        ui_marca_plan: Boolean(
+          document.querySelector(
+            '.Slot[data-fecha="2026-04-13"][data-hora="10"] ' +
+            '.Slot_Plan_Marca'
+          )
+        )
+      };
+    });
+
+    expect(Resumen.local_planes).toEqual([]);
+    expect(Resumen.remoto_planes).toEqual([]);
+    expect(Resumen.ui_marca_plan).toBeFalsy();
+  }
+);
+
+test(
   "recarga cambios remotos mas nuevos al volver al foco",
   async ({ page }) => {
     await Preparar_App(

@@ -736,6 +736,7 @@ test("el menu contextual puede limpiar un slot muerto y dejarlo blanco", async (
   expect(data.ui_marca_plan).toBeFalsy();
 });
 
+
 test("el menu contextual puede limpiar un slot vacio con residuos", async ({
   page
 }) => {
