@@ -1293,3 +1293,46 @@ test("resize personalizado expande y recorta una franja de slot muerto", async (
   expect(data.slot_11).toBeFalsy();
   expect(data.plan_11).toBe(0);
 });
+
+test("resize de slot muerto visible sin modo personalizado", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Config_Extra.Resize_Personalizado = false;
+
+  await preparar(page, estado);
+
+  const slotInicial = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+  );
+  const handleInicial = slotInicial.locator(
+    ".Slot_Muerto_Resize_Handle"
+  );
+  await expect(handleInicial).toBeVisible();
+
+  const cajaHandle = await handleInicial.boundingBox();
+  const cajaSlot = await slotInicial.boundingBox();
+  if (!cajaHandle || !cajaSlot) {
+    throw new Error("No se pudo medir el resize del slot");
+  }
+
+  await page.mouse.move(
+    cajaHandle.x + cajaHandle.width / 2,
+    cajaHandle.y + cajaHandle.height / 2
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    cajaHandle.x + cajaHandle.width / 2,
+    cajaHandle.y + cajaHandle.height / 2 + cajaSlot.height,
+    { steps: 6 }
+  );
+  await page.mouse.up();
+
+  const data = await page.evaluate(() => ({
+    slot_10: Slots_Muertos.includes("2026-04-13|10"),
+    slot_11: Slots_Muertos.includes("2026-04-13|11")
+  }));
+
+  expect(data.slot_10).toBeTruthy();
+  expect(data.slot_11).toBeTruthy();
+});

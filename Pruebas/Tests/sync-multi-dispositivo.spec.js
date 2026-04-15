@@ -828,6 +828,82 @@ test(
 );
 
 test(
+  "si hay sync local pendiente, no pisa con remoto",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado_Con_Slot("2026-04-13", 10)
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      const Clave = "2026-04-13|10";
+      delete Planes_Slot[Clave];
+      Guardar_Estado();
+
+      Marcar_Sync_Local_Pendiente_Usuario(
+        Usuario_Actual?.id || "",
+        true
+      );
+      Sync_Local_Sucio = false;
+      if (Sync_Timer_Id) {
+        clearTimeout(Sync_Timer_Id);
+        Sync_Timer_Id = null;
+      }
+
+      window.__Estado_Remoto = {
+        ...(window.__Estado_Remoto || {}),
+        estado: {
+          ...(window.__Estado_Remoto?.estado || {}),
+          Planes_Slot: {
+            [Clave]: {
+              Items: [
+                {
+                  Id: "plan_slot_1",
+                  Texto: "Idea central",
+                  Emoji: "*",
+                  Estado: "Planeado"
+                }
+              ]
+            }
+          }
+        },
+        actualizado_en: "2026-04-14T00:00:20Z",
+        version: 2
+      };
+
+      await Iniciar_App_Logueada();
+
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+      return {
+        memoria_planes: Object.keys(Planes_Slot || {}),
+        local_planes: Object.keys(
+          Estado_Local.Planes_Slot || {}
+        ),
+        remoto_planes: Object.keys(
+          window.__Estado_Remoto?.estado?.Planes_Slot || {}
+        ),
+        ui_marca_plan: Boolean(
+          document.querySelector(
+            '.Slot[data-fecha="2026-04-13"][data-hora="10"] ' +
+            ".Slot_Plan_Marca"
+          )
+        ),
+        sync_pendiente: Sync_Local_Pendiente_Usuario_Actual()
+      };
+    });
+
+    expect(Resumen.memoria_planes).toEqual([]);
+    expect(Resumen.local_planes).toEqual([]);
+    expect(Resumen.remoto_planes).toEqual([]);
+    expect(Resumen.ui_marca_plan).toBeFalsy();
+    expect(Resumen.sync_pendiente).toBeFalsy();
+  }
+);
+
+test(
   "limpiar una celda con plan sincroniza antes del debounce",
   async ({ page }) => {
     await Preparar_App(

@@ -21088,6 +21088,8 @@
       const Clave_Local_Usuario =
         "Semaplan_Estado_Usuario_V1";
       const Clave_Backups = "Semaplan_Backups_V1";
+      const Clave_Sync_Pendiente_Base =
+        "Semaplan_Sync_Local_Pendiente_V1";
       const Max_Backups_Locales = 12;
       let Backups_Locales = [];
       let Backups_Locales_Cargados = false;
@@ -21132,6 +21134,48 @@
           return;
         }
         localStorage.removeItem(Clave_Local_Usuario);
+      }
+
+      function Clave_Sync_Pendiente_Usuario(
+        Id_Usuario = ""
+      ) {
+        const Id = String(Id_Usuario || "").trim();
+        if (!Id) return "";
+        return `${Clave_Sync_Pendiente_Base}_${Id}`;
+      }
+
+      function Marcar_Sync_Local_Pendiente_Usuario(
+        Id_Usuario = "",
+        Pendiente = false
+      ) {
+        const Clave = Clave_Sync_Pendiente_Usuario(
+          Id_Usuario
+        );
+        if (!Clave) return;
+        if (Pendiente) {
+          localStorage.setItem(
+            Clave,
+            String(Date.now())
+          );
+          return;
+        }
+        localStorage.removeItem(Clave);
+      }
+
+      function Sync_Local_Pendiente_Usuario(
+        Id_Usuario = ""
+      ) {
+        const Clave = Clave_Sync_Pendiente_Usuario(
+          Id_Usuario
+        );
+        if (!Clave) return false;
+        return Boolean(localStorage.getItem(Clave));
+      }
+
+      function Sync_Local_Pendiente_Usuario_Actual() {
+        return Sync_Local_Pendiente_Usuario(
+          Usuario_Actual?.id || ""
+        );
       }
 
       function Cache_Local_Coincide_Con_Usuario_Actual() {
@@ -46639,8 +46683,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (
             Slot_Arrastrable &&
-            Slot_Cierra_Franja &&
-            Config.Resize_Personalizado
+            Slot_Cierra_Franja
           ) {
             const Handle_Slot = document.createElement("div");
             Handle_Slot.className =
@@ -47072,7 +47115,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Mouse_Ev,
         Slot_Origen = null
       ) {
-        if (!Config.Resize_Personalizado) return;
         Cancelar_Seleccion_Slot_Pendiente(
           Clave_Slot(Fecha, Hora)
         );
@@ -54796,6 +54838,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Sucio = false
       ) {
         Sync_Local_Sucio = !!Sucio;
+        if (Usuario_Actual?.id) {
+          Marcar_Sync_Local_Pendiente_Usuario(
+            Usuario_Actual.id,
+            Sync_Local_Sucio
+          );
+        }
       }
 
       function Marcar_Sync_Critico_Inmediato_Pendiente() {
@@ -56754,7 +56802,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         await Backend_Migrar_Local_A_Cuenta();
 
         // 2) Cargar el estado remoto a localStorage.
-        const Habia_Remoto = await Backend_Cargar_Estado_Remoto();
+        const Hay_Sync_Local_Pendiente =
+          Cache_Local_Coincide_Con_Usuario_Actual() &&
+          Sync_Local_Pendiente_Usuario_Actual();
+        let Habia_Remoto = false;
+        if (Hay_Sync_Local_Pendiente) {
+          const Fila_Remota = await Backend_Leer_Fila_Remota();
+          if (Fila_Remota.error) {
+            console.error(
+              "Error leyendo estado remoto:",
+              Fila_Remota.error
+            );
+          } else if (Fila_Remota.data) {
+            Actualizar_Meta_Remota(Fila_Remota.data);
+            Habia_Remoto = true;
+          }
+        } else {
+          Habia_Remoto = await Backend_Cargar_Estado_Remoto();
+        }
 
         // 3) Ocultar pantalla de login y mostrar la app.
         Ocultar_Auth();
@@ -56780,7 +56845,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         // 5c) Si era usuario nuevo (sin estado remoto previo),
         // forzar un primer guardado para crear su fila.
-        if (!Habia_Remoto) {
+        if (Hay_Sync_Local_Pendiente) {
+          Marcar_Sync_Local_Sucio(true);
+          Actualizar_Sync_Indicador("Guardando");
+          await Backend_Sync_Ejecutar();
+        } else if (!Habia_Remoto) {
           await Backend_Sync_Ejecutar();
         }
 
