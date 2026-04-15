@@ -104,12 +104,23 @@ test("deja espacio vertical entre acciones de cuenta y botones", async ({
     const Campo = document.querySelector(
       ".Cfg_Cuenta_Campo_Acciones"
     );
+    const Campo_Apps = document.querySelector(
+      ".Cfg_Cuenta_Campo_Apps"
+    );
     const Titulo_Acciones = Campo?.querySelector(
+      ".Config_Seccion_Titulo"
+    );
+    const Titulo_Apps = Campo_Apps?.querySelector(
       ".Config_Seccion_Titulo"
     );
     const Fila = Campo?.querySelector(
       ".Cfg_Cuenta_Acciones_Fila"
     );
+    const Fila_Apps = Campo_Apps?.querySelector(
+      ".Cfg_Apps_Lista"
+    );
+    const Sep_Acciones = Campo?.previousElementSibling;
+    const Sep_Apps = Campo_Apps?.previousElementSibling;
     const Titulo_Version = Array.from(
       document.querySelectorAll(".Config_Seccion_Titulo")
     ).find((El) => {
@@ -123,8 +134,13 @@ test("deja espacio vertical entre acciones de cuenta y botones", async ({
     );
     if (
       !Campo ||
+      !Campo_Apps ||
       !Titulo_Acciones ||
+      !Titulo_Apps ||
       !Fila ||
+      !Fila_Apps ||
+      !Sep_Acciones ||
+      !Sep_Apps ||
       !Titulo_Version ||
       !Fila_Version ||
       !Seccion_Version
@@ -134,6 +150,12 @@ test("deja espacio vertical entre acciones de cuenta y botones", async ({
     const Rect_Etiqueta =
       Titulo_Acciones.getBoundingClientRect();
     const Rect_Fila = Fila.getBoundingClientRect();
+    const Rect_Titulo_Apps =
+      Titulo_Apps.getBoundingClientRect();
+    const Rect_Fila_Apps = Fila_Apps.getBoundingClientRect();
+    const Rect_Sep_Acciones =
+      Sep_Acciones.getBoundingClientRect();
+    const Rect_Sep_Apps = Sep_Apps.getBoundingClientRect();
     const Rect_Campo = Campo.getBoundingClientRect();
     const Rect_Titulo_Version =
       Titulo_Version.getBoundingClientRect();
@@ -143,8 +165,14 @@ test("deja espacio vertical entre acciones de cuenta y botones", async ({
       Seccion_Version.getBoundingClientRect();
     return {
       gap: Rect_Fila.top - Rect_Etiqueta.bottom,
+      gap_apps:
+        Rect_Fila_Apps.top - Rect_Titulo_Apps.bottom,
       gap_version:
         Rect_Fila_Version.top - Rect_Titulo_Version.bottom,
+      gap_superior_apps:
+        Rect_Titulo_Apps.top - Rect_Sep_Apps.bottom,
+      gap_superior_acciones:
+        Rect_Etiqueta.top - Rect_Sep_Acciones.bottom,
       gap_inferior:
         Rect_Campo.bottom - Rect_Fila.bottom,
       gap_inferior_version:
@@ -153,8 +181,17 @@ test("deja espacio vertical entre acciones de cuenta y botones", async ({
   });
 
   expect(medida).not.toBeNull();
+  expect(Math.abs(medida.gap_apps - medida.gap_version))
+    .toBeLessThanOrEqual(2);
   expect(Math.abs(medida.gap - medida.gap_version))
     .toBeLessThanOrEqual(2);
+  expect(
+    Math.abs(
+      medida.gap_superior_apps -
+      medida.gap_superior_acciones
+    )
+  ).toBeLessThanOrEqual(5);
+  expect(medida.gap_superior_apps).toBeGreaterThanOrEqual(14);
   expect(
     Math.abs(
       medida.gap_inferior -
