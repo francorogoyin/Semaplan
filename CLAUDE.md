@@ -18,12 +18,40 @@ Rutas operativas principales:
 
 - `Aplicaciones/Android`
 - `Aplicaciones/Desktop`
+- `Aplicaciones/Web_Versiones`
 - `Documentacion/Planes`
 - `Documentacion/Registros`
 - `Herramientas/Scripts`
 - `Pruebas/Tests`
 - `Local/Credenciales.txt`
 - `supabase/Supabase_Schema.sql`
+
+## Versionado de releases
+
+- El documento maestro para este tema es
+  `Documentacion/Planes/Arquitectura_Versiones_Aplicacion.txt`.
+- El registro de releases publicados vive en
+  `Aplicaciones/Web_Versiones/Manifest_Versiones.json`.
+- Cada release congelado debe publicarse como
+  `Semaplan_Version_X_Y_Z.html` en la raíz.
+- `index.html` debe quedar como entrypoint de la versión más nueva.
+- `Version_Programa_Actual` es la versión del frontend.
+- `Esquema_Estado_Version` es la versión del formato de datos.
+- `Sync_Remoto_Version_Actual` es un contador técnico de sync y no
+  debe tratarse como versión de producto.
+
+### Procedimiento breve para nueva versión
+
+1. Definir el semver nuevo (`major`, `minor` o `patch`).
+2. Revisar si cambia `Esquema_Estado_Version`.
+3. Congelar el release copiando `index.html` a
+   `Semaplan_Version_X_Y_Z.html`.
+4. Agregar o actualizar la entrada correspondiente en
+   `Aplicaciones/Web_Versiones/Manifest_Versiones.json`.
+5. Verificar que el selector de Configuración muestre y abra esa
+   versión.
+6. No habilitar una versión vieja en el selector si ya no soporta el
+   esquema de datos actual.
 
 ## Reordenamiento de estructura
 
