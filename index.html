@@ -13886,6 +13886,7 @@
             "editarla o agregá una nueva " +
             "al baúl.",
           "baul.tipo": "Tipo",
+          "baul.tipo_objetivo": "Objetivo",
           "baul.horas_aprox": "Horas aprox.",
           "baul.fecha_limite": "Fecha límite",
           "baul.descripcion": "Descripción",
@@ -16297,6 +16298,7 @@
             "Pick a card to edit it or " +
             "add a new one to the vault.",
           "baul.tipo": "Type",
+          "baul.tipo_objetivo": "Objective",
           "baul.horas_aprox":
             "Approx. hours",
           "baul.fecha_limite": "Deadline",
@@ -18705,6 +18707,7 @@
             "editar ou adicione um novo " +
             "ao baú.",
           "baul.tipo": "Tipo",
+          "baul.tipo_objetivo": "Objetivo",
           "baul.horas_aprox":
             "Horas aprox.",
           "baul.fecha_limite":
@@ -38330,28 +38333,53 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
-      let Ultimo_Click_Slot_Alternable = {
+      let Seleccion_Slot_Pendiente = {
         Clave: "",
-        Timestamp: 0
+        Timer_Id: null
       };
       let Ultimo_Drag_Slot_Muerto_Timestamp = 0;
       let Slot_Muerto_Drag_Preview_Activo = null;
 
-      function Intentar_Alternar_Slot_Por_Doble_Click(
+      function Cancelar_Seleccion_Slot_Pendiente(
+        Clave = ""
+      ) {
+        if (
+          Clave &&
+          Seleccion_Slot_Pendiente.Clave &&
+          Seleccion_Slot_Pendiente.Clave !== Clave
+        ) {
+          return;
+        }
+        if (Seleccion_Slot_Pendiente.Timer_Id) {
+          clearTimeout(
+            Seleccion_Slot_Pendiente.Timer_Id
+          );
+        }
+        Seleccion_Slot_Pendiente = {
+          Clave: "",
+          Timer_Id: null
+        };
+      }
+
+      function Programar_Seleccion_Slot_Calendario(
         Fecha,
         Hora
       ) {
         const Clave = Clave_Slot(Fecha, Hora);
-        const Ahora = Date.now();
-        const Es_Doble =
-          Ultimo_Click_Slot_Alternable.Clave === Clave &&
-          Ahora - Ultimo_Click_Slot_Alternable.Timestamp <= 380;
-        Ultimo_Click_Slot_Alternable = Es_Doble
-          ? { Clave: "", Timestamp: 0 }
-          : { Clave, Timestamp: Ahora };
-        if (!Es_Doble) return false;
-        Alternar_Slot_Muerto(Fecha, Hora);
-        return true;
+        Cancelar_Seleccion_Slot_Pendiente();
+        Seleccion_Slot_Pendiente = {
+          Clave,
+          Timer_Id: setTimeout(() => {
+            const Es_Slot_Alternable =
+              Slot_Es_Muerto(Fecha, Hora) ||
+              Slot_Esta_Vacio(Fecha, Hora);
+            Cancelar_Seleccion_Slot_Pendiente(
+              Clave
+            );
+            if (!Es_Slot_Alternable) return;
+            Seleccionar_Slot_Calendario(Fecha, Hora);
+          }, 360)
+        };
       }
 
       function Persistencia_Local_Desfasada() {
@@ -41470,6 +41498,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Limpiar_Multi_Seleccion_Calendario(
         Renderizar = true
       ) {
+        Cancelar_Seleccion_Slot_Pendiente();
         const Tiene_Eventos =
           Eventos_Multi_Seleccion.size > 0;
         const Tiene_Slots =
@@ -41505,6 +41534,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Evento_Id,
         Opciones = {}
       ) {
+        Cancelar_Seleccion_Slot_Pendiente();
         if (!Evento_Por_Id(Evento_Id)) return;
         if (Boolean(Opciones.Alternar_Multi)) {
           if (Eventos_Multi_Seleccion.has(Evento_Id)) {
@@ -41528,6 +41558,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Opciones = {}
       ) {
         const Clave = Clave_Slot(Fecha, Hora);
+        Cancelar_Seleccion_Slot_Pendiente(Clave);
         if (!Slot_Esta_Visible_En_Calendario(Clave)) return;
         if (Boolean(Opciones.Alternar_Multi)) {
           if (Slots_Multi_Seleccion.has(Clave)) {
@@ -43405,6 +43436,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
 
         document.addEventListener("mousedown", (Evento) => {
+          Cancelar_Seleccion_Slot_Pendiente();
           if (Cantidad_Multi_Calendario() === 0) return;
           const Objetivo = Evento.target;
           if (!(Objetivo instanceof Element)) return;
@@ -46397,13 +46429,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Handle_Slot = document.createElement("div");
             Handle_Slot.className =
               "Slot_Muerto_Resize_Handle";
+            Handle_Slot.draggable = false;
+            Handle_Slot.addEventListener("dragstart", (Ev) => {
+              Ev.preventDefault();
+              Ev.stopPropagation();
+            });
             Handle_Slot.addEventListener("mousedown", (Ev) => {
               Ev.stopPropagation();
               Ev.preventDefault();
+              Cancelar_Seleccion_Slot_Pendiente();
               Iniciar_Resize_Slot_Muerto(
                 Fecha_ISO,
                 Hora,
-                Ev
+                Ev,
+                Slot
               );
             });
             Slot.appendChild(Handle_Slot);
@@ -46414,42 +46453,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ) {
             Slot.addEventListener("mousedown", (Evento) => {
               if (Evento.button !== 0) return;
+              Cancelar_Seleccion_Slot_Pendiente();
               if (Slot_Arrastrable) return;
               Evento.preventDefault();
-            });
-            Slot.addEventListener("mouseup", (Evento) => {
-              if (Evento.button !== 0) return;
-              if (Interaccion_Touch_Activa()) return;
-              const Clave = Clave_Slot(Fecha_ISO, Hora);
-              const Es_Seleccion_Unica =
-                Slot_Es_Seleccion_Unica_Calendario(Clave);
-              if (
-                Evento.ctrlKey ||
-                Evento.metaKey ||
-                (
-                  Cantidad_Multi_Calendario() > 0 &&
-                  !Es_Seleccion_Unica
-                )
-              ) {
-                Ultimo_Click_Slot_Alternable = {
-                  Clave: "",
-                  Timestamp: 0
-                };
-                return;
-              }
-              if (
-                Date.now() -
-                  Ultimo_Drag_Slot_Muerto_Timestamp <=
-                450
-              ) {
-                return;
-              }
-              Evento.preventDefault();
-              window.getSelection?.()?.removeAllRanges?.();
-              Intentar_Alternar_Slot_Por_Doble_Click(
-                Fecha_ISO,
-                Hora
-              );
             });
             Slot.addEventListener("selectstart", (Evento) => {
               Evento.preventDefault();
@@ -46471,32 +46477,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 );
                 return;
               }
-              if (Slot_Es_Muerto(Fecha_ISO, Hora)) {
+              if (
+                Slot_Es_Muerto(Fecha_ISO, Hora) ||
+                Slot_Esta_Vacio(Fecha_ISO, Hora)
+              ) {
                 Evento.preventDefault();
                 Evento.stopPropagation();
                 if (
                   !Slot_Es_Seleccion_Unica_Calendario(Clave)
                 ) {
-                  Seleccionar_Slot_Calendario(
+                  Programar_Seleccion_Slot_Calendario(
                     Fecha_ISO,
                     Hora
                   );
-                }
-                return;
-              }
-              if (Cantidad_Multi_Calendario() > 0) {
-                Evento.preventDefault();
-                Evento.stopPropagation();
-                if (
-                  Cantidad_Multi_Calendario() !== 1 ||
-                  !Slots_Multi_Seleccion.has(Clave)
-                ) {
-                  Seleccionar_Slot_Calendario(
-                    Fecha_ISO,
-                    Hora
-                  );
-                } else {
-                  Limpiar_Multi_Seleccion_Calendario();
                 }
                 return;
               }
@@ -46507,32 +46500,47 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Slot
             );
           });
+          Slot.addEventListener("dblclick", (Evento) => {
+            if (Interaccion_Touch_Activa()) return;
+            if (Evento.button !== 0) return;
+            if (
+              Evento.ctrlKey ||
+              Evento.metaKey ||
+              (
+                !Slot_Es_Muerto(Fecha_ISO, Hora) &&
+                !Slot_Esta_Vacio(Fecha_ISO, Hora)
+              )
+            ) {
+              return;
+            }
+            if (
+              Date.now() -
+                Ultimo_Drag_Slot_Muerto_Timestamp <=
+              450
+            ) {
+              return;
+            }
+            Cancelar_Seleccion_Slot_Pendiente(
+              Clave_Slot(Fecha_ISO, Hora)
+            );
+            if (Cantidad_Multi_Calendario() > 0) {
+              Limpiar_Multi_Seleccion_Calendario();
+            }
+            Evento.preventDefault();
+            Evento.stopPropagation();
+            window.getSelection?.()?.removeAllRanges?.();
+            Alternar_Slot_Muerto(Fecha_ISO, Hora);
+          });
           Slot.addEventListener("contextmenu", async (Evento) => {
             Evento.preventDefault();
             Evento.stopPropagation();
+            Cancelar_Seleccion_Slot_Pendiente(
+              Clave_Slot(Fecha_ISO, Hora)
+            );
             if (
               Slot_Es_Muerto(Fecha_ISO, Hora) ||
               Slot_Esta_Vacio(Fecha_ISO, Hora)
             ) {
-              const Clave = Clave_Slot(Fecha_ISO, Hora);
-              if (
-                Evento.ctrlKey ||
-                Evento.metaKey
-              ) {
-                Seleccionar_Slot_Calendario(
-                  Fecha_ISO,
-                  Hora,
-                  { Alternar_Multi: true }
-                );
-              } else if (
-                Cantidad_Multi_Calendario() !== 1 ||
-                !Slots_Multi_Seleccion.has(Clave)
-              ) {
-                Seleccionar_Slot_Calendario(
-                  Fecha_ISO,
-                  Hora
-                );
-              }
               Mostrar_Menu_Slot(
                 Fecha_ISO,
                 Hora,
@@ -46737,12 +46745,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Bloque.addEventListener("contextmenu", (E) => {
             E.preventDefault();
             E.stopPropagation();
-            if (
-              Eventos_Multi_Seleccion.size !== 1 ||
-              !Eventos_Multi_Seleccion.has(Evento.Id)
-            ) {
-              Seleccionar_Evento_Calendario(Evento.Id);
-            }
+            Cancelar_Seleccion_Slot_Pendiente();
             Mostrar_Menu_Evento(Evento, E.clientX, E.clientY);
           });
 
@@ -46826,14 +46829,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Iniciar_Resize_Slot_Muerto(
         Fecha,
         Hora,
-        Mouse_Ev
+        Mouse_Ev,
+        Slot_Origen = null
       ) {
         if (!Config.Resize_Personalizado) return;
+        Cancelar_Seleccion_Slot_Pendiente(
+          Clave_Slot(Fecha, Hora)
+        );
         const Franja = Obtener_Franja_Slot_Muerto(
           Fecha,
           Hora
         );
         if (!Franja) return;
+        const Slot_Base =
+          Slot_Origen instanceof HTMLElement
+            ? Slot_Origen
+            : document.querySelector(
+              `.Slot[data-fecha="${Fecha}"]` +
+              `[data-hora="${Hora}"]`
+            );
+        if (Slot_Base) {
+          Slot_Base.draggable = false;
+        }
         const Grupo_Id_Franja =
           Asegurar_Grupo_Id_Franja_Slot(Franja);
         const Datos_Prototipo = {
@@ -46910,6 +46927,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Soltar = () => {
           document.removeEventListener("mousemove", Mover);
           document.removeEventListener("mouseup", Soltar);
+          if (
+            Slot_Base &&
+            document.body.contains(Slot_Base)
+          ) {
+            Slot_Base.draggable = true;
+          }
           Guardar_Estado();
           if (Hubo_Cambio) {
             Mostrar_Toast_Undo(

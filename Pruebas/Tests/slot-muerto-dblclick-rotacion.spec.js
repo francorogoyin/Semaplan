@@ -177,6 +177,7 @@ test("el doble click rota tipos y slot vacio", async ({
     '[data-fecha="2026-04-13"][data-hora="10"]';
 
   await page.dblclick(Selector);
+  await page.waitForTimeout(450);
   let paso = await page.evaluate(() => ({
     Tipo: Slots_Muertos_Tipos["2026-04-13|10"] || "",
     Nombre: Obtener_Nombre_Slot("2026-04-13", 10),
@@ -189,11 +190,21 @@ test("el doble click rota tipos y slot vacio", async ({
         '[data-hora="10"] .Slot_Muerto_Nombre'
       )?.textContent || ""
   }));
+  let seleccion = await page.evaluate(() => ({
+    slots: Array.from(Slots_Multi_Seleccion).sort(),
+    eventos: Array.from(Eventos_Multi_Seleccion).sort(),
+    barra_activa: document.getElementById(
+      "Calendario_Multi_Acciones"
+    )?.classList.contains("Activa") || false
+  }));
 
   expect(paso.Tipo).toBe("Comida");
   expect(paso.Nombre).toBe("Almuerzo");
   expect(paso.Visible).toBeTruthy();
   expect(paso.Nombre_En_UI).toBe("Almuerzo");
+  expect(seleccion.slots).toEqual([]);
+  expect(seleccion.eventos).toEqual([]);
+  expect(seleccion.barra_activa).toBeFalsy();
 
   await page.evaluate(() => {
     Quitar_Titulo_Slot_Muerto("2026-04-13", 10);
@@ -201,6 +212,7 @@ test("el doble click rota tipos y slot vacio", async ({
   });
 
   await page.dblclick(Selector);
+  await page.waitForTimeout(450);
   paso = await page.evaluate(() => ({
     Tipo: Slots_Muertos_Tipos["2026-04-13|10"] || "",
     Nombre: Obtener_Nombre_Slot("2026-04-13", 10),
@@ -213,11 +225,21 @@ test("el doble click rota tipos y slot vacio", async ({
         '[data-hora="10"] .Slot_Muerto_Nombre'
       )?.textContent || ""
   }));
+  seleccion = await page.evaluate(() => ({
+    slots: Array.from(Slots_Multi_Seleccion).sort(),
+    eventos: Array.from(Eventos_Multi_Seleccion).sort(),
+    barra_activa: document.getElementById(
+      "Calendario_Multi_Acciones"
+    )?.classList.contains("Activa") || false
+  }));
 
   expect(paso.Tipo).toBe("Siesta");
   expect(paso.Nombre).toBe("Siesta");
   expect(paso.Visible).toBeFalsy();
   expect(paso.Nombre_En_UI).toBe("");
+  expect(seleccion.slots).toEqual([]);
+  expect(seleccion.eventos).toEqual([]);
+  expect(seleccion.barra_activa).toBeFalsy();
 
   await page.dblclick(Selector);
   paso = await page.evaluate(() => ({

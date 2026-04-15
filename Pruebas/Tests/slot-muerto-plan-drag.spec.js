@@ -695,6 +695,13 @@ test("el menu de slot muerto agrupa identidad, plan y patron", async ({
   ).evaluateAll((items) =>
     items.map((item) => item.getAttribute("data-acc"))
   );
+  const seleccion = await page.evaluate(() => ({
+    slots: Array.from(Slots_Multi_Seleccion).sort(),
+    eventos: Array.from(Eventos_Multi_Seleccion).sort(),
+    barra_activa: document.getElementById(
+      "Calendario_Multi_Acciones"
+    )?.classList.contains("Activa") || false
+  }));
 
   expect(acciones).toEqual([
     "editar-nombre-slot",
@@ -708,6 +715,9 @@ test("el menu de slot muerto agrupa identidad, plan y patron", async ({
     "repetir-slot",
     "limpiar-celda"
   ]);
+  expect(seleccion.slots).toEqual([]);
+  expect(seleccion.eventos).toEqual([]);
+  expect(seleccion.barra_activa).toBeFalsy();
   await expect(
     page.locator("#Dia_Accion_Menu .Dia_Accion_Separador")
   ).toHaveCount(4);
@@ -764,7 +774,7 @@ test("el menu de slot vacio agrupa plan, patron y pegar bloques", async ({
   ).toHaveCount(3);
 });
 
-test("el click derecho sobre slot vacio tambien lo selecciona", async ({
+test("el click derecho sobre slot vacio no lo selecciona", async ({
   page
 }) => {
   const estado = estadoBase();
@@ -784,14 +794,20 @@ test("el click derecho sobre slot vacio tambien lo selecciona", async ({
   await slot.click({ button: "right" });
 
   const data = await page.evaluate(() => ({
-    seleccion: Array.from(Slots_Multi_Seleccion),
+    seleccion_slots: Array.from(Slots_Multi_Seleccion),
+    seleccion_eventos: Array.from(Eventos_Multi_Seleccion),
     clase_activa: document.querySelector(
       '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
-    )?.classList.contains("Multi_Activa") || false
+    )?.classList.contains("Multi_Activa") || false,
+    barra_activa: document.getElementById(
+      "Calendario_Multi_Acciones"
+    )?.classList.contains("Activa") || false
   }));
 
-  expect(data.seleccion).toEqual(["2026-04-13|12"]);
-  expect(data.clase_activa).toBeTruthy();
+  expect(data.seleccion_slots).toEqual([]);
+  expect(data.seleccion_eventos).toEqual([]);
+  expect(data.clase_activa).toBeFalsy();
+  expect(data.barra_activa).toBeFalsy();
 });
 
 test("el menu contextual puede limpiar un slot muerto y dejarlo blanco", async ({
@@ -1004,6 +1020,13 @@ test("el menu contextual puede limpiar un bloque y la celda debajo", async ({
   ).evaluateAll((items) =>
     items.map((item) => item.getAttribute("data-acc"))
   );
+  const seleccion_menu = await page.evaluate(() => ({
+    slots: Array.from(Slots_Multi_Seleccion).sort(),
+    eventos: Array.from(Eventos_Multi_Seleccion).sort(),
+    barra_activa: document.getElementById(
+      "Calendario_Multi_Acciones"
+    )?.classList.contains("Activa") || false
+  }));
   await expect(
     page.locator('#Dia_Accion_Menu [data-acc="limpiar-celda"]')
   ).toBeVisible();
@@ -1018,6 +1041,9 @@ test("el menu contextual puede limpiar un bloque y la celda debajo", async ({
     "limpiar-objetivo",
     "limpiar-celda"
   ]);
+  expect(seleccion_menu.slots).toEqual([]);
+  expect(seleccion_menu.eventos).toEqual([]);
+  expect(seleccion_menu.barra_activa).toBeFalsy();
   await expect(
     page.locator("#Dia_Accion_Menu .Dia_Accion_Separador")
   ).toHaveCount(3);

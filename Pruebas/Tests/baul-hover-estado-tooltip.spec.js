@@ -325,3 +325,62 @@ test("el baul usa iconos por estado sin sombra de color", async ({
 
   expect(Lista).toEqual(Biblioteca);
 });
+
+test("el baul traduce per row y el tipo objetivo en ingles", async ({
+  page
+}) => {
+  await preparar(page, {
+    Objetivos: [],
+    Eventos: [],
+    Metas: [],
+    Slots_Muertos: [],
+    Plantillas_Subobjetivos: [],
+    Planes_Slot: {},
+    Categorias: [],
+    Etiquetas: [],
+    Baul_Objetivos: [],
+    Baul_Grupos_Colapsados: {},
+    Archiveros: [],
+    Notas_Archivero: [],
+    Patrones: [],
+    Contador_Eventos: 1,
+    Objetivo_Seleccionada_Id: null,
+    Modo_Editor_Abierto: false,
+    Inicio_Semana: "2026-04-13",
+    Duracion_Defecto: 1,
+    Config_Extra: {
+      Plan_Actual: "Premium",
+      Baul_Vista_Modo: "Biblioteca",
+      Baul_Ordenar_Por: "Personalizado",
+      Baul_Agrupar_Por: "Ninguno",
+      Baul_Objetivos_Por_Fila: 5
+    },
+    Tipos_Slot: [],
+    Tipos_Slot_Inicializados: false,
+    Slots_Muertos_Tipos: {},
+    Slots_Muertos_Nombres: {},
+    Abordajes_Migrados_V1: true,
+    Semanas_Con_Defaults: [],
+    Planes_Semana: {}
+  });
+
+  const resultado = await page.evaluate(() => {
+    Cambiar_Idioma("en");
+    return {
+      por_fila: document.querySelector(
+        'label[for="Baul_Objetivos_Por_Fila"]'
+      )?.textContent?.trim() || "",
+      tipos: Array.from(
+        document.querySelectorAll(
+          "#Baul_Tipo_Input option"
+        )
+      ).map((opcion) => opcion.textContent.trim())
+    };
+  });
+
+  expect(resultado.por_fila).toBe("Per row");
+  expect(resultado.tipos).toEqual([
+    "Objective",
+    "Hour pool"
+  ]);
+});

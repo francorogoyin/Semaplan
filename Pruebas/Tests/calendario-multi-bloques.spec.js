@@ -539,6 +539,7 @@ test(
     await page.click(
       '.Slot[data-fecha="2026-04-13"][data-hora="13"]'
     );
+    await page.waitForTimeout(420);
     await page.keyboard.press("Control+v");
 
     const Resultado = await page.evaluate(() => ({
@@ -1226,6 +1227,7 @@ test(
     await page.click(
       '.Slot[data-fecha="2026-04-13"][data-hora="13"]'
     );
+    await page.waitForTimeout(420);
     await page.keyboard.press("Control+v");
 
     await page.click(
@@ -1344,6 +1346,7 @@ test(
     await page.click(
       '.Slot[data-fecha="2026-04-13"][data-hora="11"]'
     );
+    await page.waitForTimeout(420);
 
     const Seleccion_Antes = await page.evaluate(() =>
       Array.from(Slots_Multi_Seleccion).sort()
