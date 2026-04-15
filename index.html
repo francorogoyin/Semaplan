@@ -14565,6 +14565,9 @@
             "Ocultar este día",
           "dia.copiar_dia": "Copiar día",
           "dia.pegar_dia": "Pegar día",
+          "dia.limpiar_dia": "Limpiar día",
+          "dia.limpiar_dia_confirm":
+            "¿Limpiar este día completo?",
           "focus.sin_bloque":
             "No hay un bloque en curso" +
             " ni próximo.",
@@ -15317,6 +15320,7 @@
           "toast.meta_recuperada": "Meta recuperada",
           "toast.meta_eliminada": "Meta eliminada",
           "toast.semana_limpiada": "Semana limpiada",
+          "toast.dia_limpiado": "Día limpiado",
           "toast.eventos_no_tildados_eliminados":
             "Eventos no tildados eliminados",
           "toast.bloques_de_objetivo_eliminados":
@@ -16928,6 +16932,9 @@
             "Hide this day",
           "dia.copiar_dia": "Copy day",
           "dia.pegar_dia": "Paste day",
+          "dia.limpiar_dia": "Clear day",
+          "dia.limpiar_dia_confirm":
+            "Clear this entire day?",
           "focus.sin_bloque":
             "There's no current or" +
             " upcoming block.",
@@ -17651,6 +17658,7 @@
           "toast.meta_recuperada": "Goal restored",
           "toast.meta_eliminada": "Goal deleted",
           "toast.semana_limpiada": "Week cleared",
+          "toast.dia_limpiado": "Day cleared",
           "toast.eventos_no_tildados_eliminados":
             "Unchecked events removed",
           "toast.bloques_de_objetivo_eliminados":
@@ -19332,6 +19340,9 @@
             "Ocultar este dia",
           "dia.copiar_dia": "Copiar dia",
           "dia.pegar_dia": "Colar dia",
+          "dia.limpiar_dia": "Limpar dia",
+          "dia.limpiar_dia_confirm":
+            "Limpar este dia inteiro?",
           "focus.sin_bloque":
             "Não há um bloco em" +
             " andamento nem próximo.",
@@ -20083,6 +20094,7 @@
           "toast.meta_recuperada": "Meta recuperada",
           "toast.meta_eliminada": "Meta excluída",
           "toast.semana_limpiada": "Semana limpa",
+          "toast.dia_limpiado": "Dia limpo",
           "toast.eventos_no_tildados_eliminados":
             "Eventos não marcados removidos",
           "toast.bloques_de_objetivo_eliminados":
@@ -27055,6 +27067,58 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
+      async function Limpiar_Dia_Completo(Fecha_ISO) {
+        const Confirmar = await Mostrar_Dialogo(
+          t("dia.limpiar_dia_confirm"),
+          [
+            {
+              Etiqueta: t("cancelar"),
+              Valor: false,
+              Tipo: "Cancelar"
+            },
+            {
+              Etiqueta: t("dia.limpiar_dia"),
+              Valor: true,
+              Tipo: "Peligro"
+            }
+          ]
+        );
+        if (!Confirmar) return;
+
+        const Snap = Capturar_Snapshot_Undo();
+        const Prefijo = `${Fecha_ISO}|`;
+
+        Eventos = Eventos.filter((Ev) => Ev.Fecha !== Fecha_ISO);
+        Eventos_Multi_Seleccion = new Set(
+          [...Eventos_Multi_Seleccion].filter((Id) =>
+            Eventos.some((Ev) => Ev.Id === Id)
+          )
+        );
+
+        Slots_Muertos
+          .filter((Clave) => Clave.startsWith(Prefijo))
+          .map((Clave) =>
+            parseFloat(Clave.slice(Prefijo.length))
+          )
+          .filter((Hora) => Number.isFinite(Hora))
+          .forEach((Hora) => {
+            Quitar_Slot_Muerto_Silencioso(Fecha_ISO, Hora);
+          });
+
+        Render_Calendario();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        if (
+          typeof Focus_Esta_Abierto === "function" &&
+          Focus_Esta_Abierto()
+        ) {
+          Render_Focus_Mode();
+        }
+        Guardar_Estado();
+        Mostrar_Toast_Undo(t("toast.dia_limpiado"), Snap);
+      }
+
       function Limpiar_Dia_Para_Patron(
         Fecha_ISO, Hora_Minima, Conservar_Hechos
       ) {
@@ -27526,6 +27590,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             `${P.Emoji} ${P.Nombre}</button>`;
         });
 
+        Html +=
+          `<button class="Dia_Accion_Item Dia_Accion_Peligro"` +
+          ` type="button" data-accion="limpiar-dia">` +
+          `${t("dia.limpiar_dia")}</button>`;
+
         Menu.innerHTML = Html;
         Menu.style.left = `${Rect.left}px`;
         Menu.style.top = `${Rect.bottom + 4}px`;
@@ -27579,6 +27648,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Pegar_Dia(Fecha_ISO);
           });
         }
+
+        Menu.querySelector(`[data-accion="limpiar-dia"]`)
+          .addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Limpiar_Dia_Completo(Fecha_ISO);
+          });
 
         Patrones_Diarios.forEach((P) => {
           const Btn = Menu.querySelector(

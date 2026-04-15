@@ -210,3 +210,94 @@ test("el menu del encabezado alterna dias visibles", async ({
   expect(resultado.diasSinViernes).toEqual([0, 1, 2]);
   expect(resultado.tieneHeaderViernes).toBe(false);
 });
+
+test("el encabezado permite limpiar un dia con confirmacion", async ({
+  page
+}) => {
+  await preparar(page, crearEstado());
+
+  const Fecha = "2026-04-13";
+
+  await page.evaluate((Fecha_Dia) => {
+    const Objetivo = Crear_Objetivo_Semanal_Con_Datos(
+      {
+        Nombre: "Limpiar prueba",
+        Emoji: "🧪",
+        Color: "#1f6b4f",
+        Es_Bolsa: false
+      },
+      Clave_Semana_Actual()
+    );
+    Eventos.push({
+      Id: "Evento_Test_Dia",
+      Objetivo_Id: Objetivo.Id,
+      Fecha: Fecha_Dia,
+      Inicio: 9,
+      Duracion: 1,
+      Hecho: false,
+      Color: Objetivo.Color
+    });
+    const Clave = Crear_Slot_Muerto(
+      Fecha_Dia,
+      10,
+      "Sueno"
+    );
+    Guardar_Nombre_Slot_Muerto(
+      Clave,
+      "Dormir",
+      true,
+      false
+    );
+    Planes_Slot[Clave] = {
+      Items: [{ Id: "Plan_Test", Texto: "Apagar todo" }]
+    };
+    Render_Calendario();
+    Render_Emojis();
+  }, Fecha);
+
+  await page.click(`.Dia_Header[data-fecha="${Fecha}"]`);
+
+  await expect(
+    page.locator("#Dia_Accion_Menu")
+  ).toHaveClass(/Activo/);
+  await expect(
+    page.locator('#Dia_Accion_Menu [data-accion="limpiar-dia"]')
+  ).toHaveText("Limpiar día");
+
+  await page.click(
+    '#Dia_Accion_Menu [data-accion="limpiar-dia"]'
+  );
+
+  await expect(
+    page.locator("#Dialogo_Overlay")
+  ).toHaveClass(/Activo/);
+  await expect(
+    page.locator("#Dialogo_Mensaje")
+  ).toContainText("Limpiar este día completo");
+
+  await page.click("#Dialogo_Botones .Dialogo_Boton_Peligro");
+
+  await expect(
+    page.locator("#Dialogo_Overlay")
+  ).not.toHaveClass(/Activo/);
+
+  const Estado = await page.evaluate((Fecha_Dia) => ({
+    Eventos_Dia: Eventos.filter(
+      (Ev) => Ev.Fecha === Fecha_Dia
+    ).length,
+    Slots_Dia: Slots_Muertos.filter((Clave) =>
+      Clave.startsWith(`${Fecha_Dia}|`)
+    ).length,
+    Nombres_Dia: Object.keys(Slots_Muertos_Nombres).filter(
+      (Clave) => Clave.startsWith(`${Fecha_Dia}|`)
+    ).length,
+    Planes_Dia: Object.keys(Planes_Slot).filter((Clave) =>
+      Clave.startsWith(`${Fecha_Dia}|`)
+    ).length
+  }), Fecha);
+
+  expect(Estado.Eventos_Dia).toBe(0);
+  expect(Estado.Slots_Dia).toBe(0);
+  expect(Estado.Nombres_Dia).toBe(0);
+  expect(Estado.Planes_Dia).toBe(0);
+});
