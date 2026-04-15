@@ -11791,6 +11791,9 @@
                   <option value=""
                     data-i18n="todos"
                     >Todos</option>
+                  <option value="Abiertas"
+                    data-i18n="baul.abiertas"
+                    >Abiertas</option>
                   <option value="Activa"
                     data-i18n="baul.activas"
                     >Activas</option>
@@ -13865,6 +13868,7 @@
             "Usar color del baúl",
           "baul.etiqueta": "Etiqueta",
           "baul.estado": "Estado",
+          "baul.abiertas": "Abiertas",
           "baul.activas": "Activas",
           "baul.realizadas": "Realizadas",
           "baul.postergadas": "Postergadas",
@@ -16283,6 +16287,7 @@
             "Use vault color",
           "baul.etiqueta": "Tag",
           "baul.estado": "Status",
+          "baul.abiertas": "Open",
           "baul.activas": "Active",
           "baul.realizadas": "Completed",
           "baul.postergadas": "Postponed",
@@ -18695,6 +18700,7 @@
             "Usar cor do bau",
           "baul.etiqueta": "Tag",
           "baul.estado": "Status",
+          "baul.abiertas": "Abertas",
           "baul.activas": "Ativas",
           "baul.realizadas": "Realizadas",
           "baul.postergadas": "Adiadas",
@@ -23598,7 +23604,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ) {
             return false;
           }
-          if (Estado && Objetivo.Estado !== Estado) return false;
+          if (Estado === "Abiertas") {
+            const Estado_Normalizado =
+              Obtener_Estado_Baul_Normalizado(
+                Objetivo.Estado
+              );
+            if (
+              Estado_Normalizado === "Realizada" ||
+              Estado_Normalizado === "Anulada"
+            ) {
+              return false;
+            }
+          } else if (Estado && Objetivo.Estado !== Estado) {
+            return false;
+          }
           if (
             Periodo &&
             !Objetivo_Cumple_Periodo_Baul(Objetivo, Periodo)

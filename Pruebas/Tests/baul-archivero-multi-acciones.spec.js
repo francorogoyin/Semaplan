@@ -261,6 +261,70 @@ test("el baul deja la multiaccion abajo del panel", async ({
   expect(resultado.barraDebajo).toBe(true);
 });
 
+test("el filtro abiertas muestra activas y postergadas", async ({
+  page
+}) => {
+  await preparar(page, crearEstado());
+
+  const resultado = await page.evaluate(() => {
+    Baul_Objetivos[1].Estado = "Postergada";
+    Baul_Objetivos.push(
+      {
+        Id: "b3",
+        Nombre: "Cerrar informe",
+        Emoji: "📘",
+        Es_Bolsa: false,
+        Categoria_Id: "cat1",
+        Etiquetas_Ids: [],
+        Metadatos: {},
+        Estado: "Realizada",
+        Archivada: false,
+        Horas_Aprox: 0,
+        Timeline: null,
+        Orden_Personalizado: 2,
+        Color_Baul: null
+      },
+      {
+        Id: "b4",
+        Nombre: "Descartar idea",
+        Emoji: "🗃️",
+        Es_Bolsa: false,
+        Categoria_Id: "cat2",
+        Etiquetas_Ids: [],
+        Metadatos: {},
+        Estado: "Anulada",
+        Archivada: false,
+        Horas_Aprox: 0,
+        Timeline: null,
+        Orden_Personalizado: 3,
+        Color_Baul: null
+      }
+    );
+    Abrir_Baul();
+    document.getElementById("Baul_Overlay")
+      ?.classList.add("Activo");
+    El_Baul_Filtro_Estado.value = "Abiertas";
+    const Nombres = Obtener_Baul_Objetivos_Filtradas()
+      .map((Objetivo) => Objetivo.Nombre);
+    const Opciones = Array.from(
+      El_Baul_Filtro_Estado.options
+    ).map((Opt) => ({
+      valor: Opt.value,
+      texto: (Opt.textContent || "").trim()
+    }));
+    return { Nombres, Opciones };
+  });
+
+  expect(resultado.Opciones).toContainEqual({
+    valor: "Abiertas",
+    texto: "Abiertas"
+  });
+  expect(resultado.Nombres).toEqual([
+    "Preparar propuesta",
+    "Llamar proveedor"
+  ]);
+});
+
 test("aplica color y etiquetas en multiaccion del baul", async ({
   page
 }) => {
