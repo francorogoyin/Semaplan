@@ -784,3 +784,157 @@ test("aplica el titulo default segun el alcance elegido", async ({
   expect(resultado.todas["2026-04-20|10"]).toBe("ðŸ Cena");
 });
 
+test(
+  "el doble click al volver a blanco borra el plan persistido",
+  async ({ page }) => {
+    const estadoInicial = {
+      Objetivos: [],
+      Eventos: [],
+      Metas: [],
+      Slots_Muertos: ["2026-04-13|10"],
+      Plantillas_Subobjetivos: [],
+      Planes_Slot: {
+        "2026-04-13|10": {
+          Items: [
+            {
+              Id: "ps_1",
+              Texto: "Plan fantasma",
+              Emoji: "*",
+              Estado: "Planeado"
+            }
+          ]
+        }
+      },
+      Categorias: [],
+      Etiquetas: [],
+      Baul_Objetivos: [],
+      Baul_Grupos_Colapsados: {},
+      Archiveros: [],
+      Notas_Archivero: [],
+      Patrones: [],
+      Contador_Eventos: 1,
+      Objetivo_Seleccionada_Id: null,
+      Modo_Editor_Abierto: false,
+      Inicio_Semana: "2026-04-13",
+      Duracion_Defecto: 1,
+      Config_Extra: {
+        Inicio_Hora: 0,
+        Fin_Hora: 24,
+        Scroll_Inicial: 8,
+        Duracion_Default: 1,
+        Dias_Visibles: [0],
+        Ocultar_Dias_Automatico: "Ninguno",
+        Slots_Muertos_Default: {},
+        Agrupar_Por_Categorias: false,
+        Globito_Activo: true,
+        Globito_Modo: "Horas",
+        Globito_Posicion: "Arriba",
+        Meta_Notificaciones_Activas: true,
+        Meta_Notificaciones_Hitos: [25, 50, 75, 100],
+        Color_Sueno: "#ddd4f4",
+        Color_Descanso: "#d4e9f4",
+        Color_Badge: "#9b2040",
+        Color_Completa: "#1f6b4f",
+        Color_Sin_Horas: "#c9a800",
+        Color_Fracasada: "#8c2f2f",
+        Resize_Personalizado: false,
+        Notas_Hover: false,
+        Mostrar_Archivadas: false,
+        Focus_Auto: false,
+        Menu_Estilo: "Iconos",
+        Menu_Botones_Visibles: {
+          Plan_Boton: true
+        },
+        Version_Programa: "Demo",
+        Baul_Objetivos_Por_Fila: 5,
+        Baul_Sombra_Estado: true,
+        Baul_Vista_Modo: "Biblioteca",
+        Baul_Ordenar_Por: "Personalizado",
+        Baul_Agrupar_Por: "Ninguno",
+        Baul_Mostrar_Archivadas: false,
+        Plan_Actual: "Premium",
+        Contador_Semanas_Activo: false,
+        Contador_Semanas_Modo: "Ano",
+        Contador_Semanas_Fecha_Ref: "",
+        Contador_Semanas_Porcentaje: false,
+        Contador_Semanas_Fecha_Final: "",
+        Contador_Semanas_Vida_Anios: 80,
+        Inicio_Semana_Dia: 0,
+        Inicio_Semana_Hora: 8
+      },
+      Tipos_Slot: [
+        {
+          Id: "Comida",
+          Nombre: "Comida",
+          Color: "#f3d39d",
+          Titulo: "Almuerzo",
+          Titulo_Por_Defecto: true
+        }
+      ],
+      Tipos_Slot_Inicializados: true,
+      Slots_Muertos_Tipos: {
+        "2026-04-13|10": "Comida"
+      },
+      Slots_Muertos_Nombres: {
+        "2026-04-13|10": "Almuerzo"
+      },
+      Slots_Muertos_Titulos_Visibles: {
+        "2026-04-13|10": true
+      },
+      Slots_Muertos_Nombres_Auto: {
+        "2026-04-13|10": false
+      },
+      Abordajes_Migrados_V1: true,
+      Semanas_Con_Defaults: [],
+      Planes_Semana: {}
+    };
+
+    await preparar(page, estadoInicial);
+
+    await page.evaluate(() => {
+      document.getElementById("Auth_Overlay")
+        ?.classList.remove("Activo");
+      document.getElementById("App_Loader")
+        ?.classList.add("Oculto");
+      window.Inicializar();
+    });
+
+    const slot = page.locator(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+    );
+    const box = await slot.boundingBox();
+    if (!box) {
+      throw new Error("No se pudo medir el slot muerto");
+    }
+    const X = box.x + box.width / 2;
+    const Y = box.y + box.height / 2;
+    await page.mouse.click(X, Y);
+    await page.waitForTimeout(80);
+    await page.mouse.click(X, Y);
+
+    const resultado = await page.evaluate(() => {
+      const clave = "2026-04-13|10";
+      const estado = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") || "{}"
+      );
+      return {
+        existe_slot: Slots_Muertos.includes(clave),
+        existe_plan: Boolean(Planes_Slot[clave]),
+        existe_plan_local: Boolean(
+          estado.Planes_Slot?.[clave]
+        ),
+        marca_plan: Boolean(
+          document.querySelector(
+            '.Slot[data-fecha="2026-04-13"][data-hora="10"] ' +
+            ".Slot_Plan_Marca"
+          )
+        )
+      };
+    });
+
+    expect(resultado.existe_slot).toBeFalsy();
+    expect(resultado.existe_plan).toBeFalsy();
+    expect(resultado.existe_plan_local).toBeFalsy();
+    expect(resultado.marca_plan).toBeFalsy();
+  }
+);

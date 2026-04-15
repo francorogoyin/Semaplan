@@ -27206,7 +27206,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Clave = Clave_Slot(Fecha_ISO, H);
           const Idx = Slots_Muertos.indexOf(Clave);
           if (Idx >= 0) Slots_Muertos.splice(Idx, 1);
-          Limpiar_Metadata_Slot_Muerto(Clave);
+          Limpiar_Contenido_Slot_Muerto_Clave(Clave);
         }
         Render_Calendario();
         Guardar_Estado();
@@ -27291,7 +27291,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Clave.slice(Prefijo.length)
           );
           if (Hora_Slot >= Hora_Minima) {
-            Limpiar_Metadata_Slot_Muerto(Clave);
+            Limpiar_Contenido_Slot_Muerto_Clave(Clave);
           }
         });
         Object.keys(Slots_Muertos_Nombres).forEach((Clave) => {
@@ -27944,7 +27944,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Object.keys(Slots_Muertos_Tipos).forEach((C) => {
             if (C.startsWith(Prefijo)) {
-              Limpiar_Metadata_Slot_Muerto(C);
+              Limpiar_Contenido_Slot_Muerto_Clave(C);
             }
           });
           Object.keys(Slots_Muertos_Nombres).forEach((C) => {
@@ -30425,7 +30425,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Idx = Cl.indexOf("|");
             if (Idx < 0) return;
             if (Set_Fechas.has(Cl.slice(0, Idx))) {
-              Limpiar_Metadata_Slot_Muerto(Cl);
+              Limpiar_Contenido_Slot_Muerto_Clave(Cl);
             }
           });
           Object.keys(Slots_Muertos_Nombres).forEach((Cl) => {
@@ -33675,7 +33675,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Es_Tipo =
             Slots_Muertos_Tipos[Clave] === Tipo_Id;
           if (Es_Tipo) {
-            Limpiar_Metadata_Slot_Muerto(Clave);
+            Limpiar_Contenido_Slot_Muerto_Clave(Clave);
           }
           return !Es_Tipo;
         });
@@ -40194,6 +40194,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Limpiar_Nombre_Slot_Muerto(Clave);
       }
 
+      function Limpiar_Plan_Slot_Por_Clave(Clave) {
+        delete Planes_Slot[Clave];
+        if (Plan_Slot_Clave_Activa === Clave) {
+          Plan_Slot_Clave_Activa = null;
+        }
+      }
+
+      function Limpiar_Contenido_Slot_Muerto_Clave(Clave) {
+        Limpiar_Metadata_Slot_Muerto(Clave);
+        Limpiar_Plan_Slot_Por_Clave(Clave);
+      }
+
       function Guardar_Nombre_Slot_Muerto(
         Clave,
         Nombre,
@@ -40855,11 +40867,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Index >= 0) {
           Slots_Muertos.splice(Index, 1);
         }
-        Limpiar_Metadata_Slot_Muerto(Clave);
-        delete Planes_Slot[Clave];
-        if (Plan_Slot_Clave_Activa === Clave) {
-          Plan_Slot_Clave_Activa = null;
-        }
+        Limpiar_Contenido_Slot_Muerto_Clave(Clave);
         if (
           Focus_Navegacion_Id ===
           Focus_Clave_Slot_Foco(Fecha, Hora)
@@ -40959,7 +40967,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           } else {
             // Último tipo → Libre.
             Slots_Muertos.splice(Index, 1);
-            Limpiar_Metadata_Slot_Muerto(Clave);
+            Limpiar_Contenido_Slot_Muerto_Clave(Clave);
           }
         }
         Render_Calendario();

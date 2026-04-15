@@ -589,6 +589,46 @@ test(
 );
 
 test(
+  "desbloquear un dia no deja planes huerfanos en remoto",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado_Con_Slot("2026-04-13", 10)
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      Desbloquear_Dia_Completo("2026-04-13");
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+      await Backend_Sync_Ejecutar();
+
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+      const Estado_Remoto =
+        window.__Estado_Remoto?.estado || {};
+
+      return {
+        local_slots: Estado_Local.Slots_Muertos || [],
+        local_planes: Object.keys(
+          Estado_Local.Planes_Slot || {}
+        ),
+        remoto_slots: Estado_Remoto.Slots_Muertos || [],
+        remoto_planes: Object.keys(
+          Estado_Remoto.Planes_Slot || {}
+        )
+      };
+    });
+
+    expect(Resumen.local_slots).toEqual([]);
+    expect(Resumen.local_planes).toEqual([]);
+    expect(Resumen.remoto_slots).toEqual([]);
+    expect(Resumen.remoto_planes).toEqual([]);
+  }
+);
+
+test(
   "recarga cambios remotos mas nuevos al volver al foco",
   async ({ page }) => {
     await Preparar_App(
