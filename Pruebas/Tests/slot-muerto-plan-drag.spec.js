@@ -1214,6 +1214,20 @@ test("resize personalizado expande y recorta una franja de slot muerto", async (
   if (!cajaHandle || !cajaSlot) {
     throw new Error("No se pudo medir el resize del slot");
   }
+  const estiloHandle = await handleInicial.evaluate((el) => {
+    const estilo = window.getComputedStyle(el);
+    return {
+      cursor: estilo.cursor,
+      ancho: parseFloat(estilo.width) || 0,
+      alto: parseFloat(estilo.height) || 0
+    };
+  });
+
+  expect(estiloHandle.cursor).toBe("ns-resize");
+  expect(estiloHandle.ancho).toBeGreaterThanOrEqual(
+    Math.max(0, cajaSlot.width - 2)
+  );
+  expect(estiloHandle.alto).toBeGreaterThanOrEqual(10);
 
   await page.mouse.move(
     cajaHandle.x + cajaHandle.width / 2,
