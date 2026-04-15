@@ -199,6 +199,9 @@ test("muestra la nota del bloque tras 2 segundos de hover", async ({
   await Preparar(page, estado);
 
   const bloque = page.locator('.Evento[data-id="E1"]');
+  await expect(
+    bloque.locator(".Evento_Nota_Marca")
+  ).not.toHaveAttribute("title", /.+/);
   await bloque.hover();
   await page.waitForTimeout(2100);
 
