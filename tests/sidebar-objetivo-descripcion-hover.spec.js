@@ -151,6 +151,9 @@ test(
     await preparar(page, estadoBase());
 
     await page.click("#Mostrar_Creador");
+    await expect(
+      page.locator("#Descripcion_Corta_Objetivo")
+    ).toHaveCSS("border-radius", "12px");
     await page.fill("#Nombre_Objetivo", "Objetivo hover");
     await page.fill(
       "#Descripcion_Corta_Objetivo",
@@ -234,6 +237,9 @@ test(
 
     await page.click('[data-objetivo-id="o1"]');
     await page.click("#Resumen_Editar");
+    await expect(
+      page.locator("#Editor_Descripcion_Corta_Input")
+    ).toHaveCSS("border-radius", "12px");
     await page.fill(
       "#Editor_Descripcion_Corta_Input",
       "Descripcion editada desde el editor"
