@@ -220,6 +220,13 @@ test(
       );
       const Sidebar = document.querySelector(".Panel_Lateral");
       const Barra = document.getElementById("Barra_Emojis");
+      const Top = document.querySelector(".Calendario_Top");
+      const Top_Acciones = document.getElementById(
+        "Calendario_Top_Acciones"
+      );
+      const Semana_Nav = document.querySelector(
+        ".Semana_Navegacion"
+      );
       const Emoji_Lefts = Array.from(
         document.querySelectorAll("#Barra_Emojis .Emoji_Item")
       ).map((Nodo) =>
@@ -233,9 +240,16 @@ test(
       );
       const App_Estilos = getComputedStyle(App);
       const Barra_Estilos = getComputedStyle(Barra);
+      const Top_Acciones_Estilos =
+        getComputedStyle(Top_Acciones);
       const Calendario_Rect = Calendario.getBoundingClientRect();
       const Sidebar_Rect = Sidebar.getBoundingClientRect();
       const Header_Rect = Header.getBoundingClientRect();
+      const Top_Rect = Top.getBoundingClientRect();
+      const Top_Acciones_Rect =
+        Top_Acciones.getBoundingClientRect();
+      const Semana_Nav_Rect =
+        Semana_Nav.getBoundingClientRect();
 
       return {
         App_Columnas: App_Estilos.gridTemplateColumns,
@@ -244,6 +258,8 @@ test(
             .split(" ")
             .filter(Boolean).length,
         Barra_Display: Barra_Estilos.display,
+        Top_Acciones_Justify:
+          Top_Acciones_Estilos.justifyContent,
         Calendario_Top: Math.round(Calendario_Rect.top),
         Calendario_Bottom: Math.round(Calendario_Rect.bottom),
         Sidebar_Top: Math.round(Sidebar_Rect.top),
@@ -252,6 +268,16 @@ test(
         Header_Width: Math.round(Header_Rect.width),
         Barra_Width: Math.round(
           Barra.getBoundingClientRect().width
+        ),
+        Top_Derecha: Math.round(Top_Rect.right),
+        Top_Acciones_Derecha: Math.round(
+          Top_Acciones_Rect.right
+        ),
+        Top_Acciones_Izquierda: Math.round(
+          Top_Acciones_Rect.left
+        ),
+        Semana_Nav_Derecha: Math.round(
+          Semana_Nav_Rect.right
         )
       };
     });
@@ -267,6 +293,13 @@ test(
     expect(Layout.Columnas_Emojis).toBeLessThanOrEqual(2);
     expect(Layout.Header_Width).toBeGreaterThanOrEqual(
       Layout.Barra_Width - 2
+    );
+    expect(Layout.Top_Acciones_Justify).toBe("flex-end");
+    expect(
+      Layout.Top_Derecha - Layout.Top_Acciones_Derecha
+    ).toBeLessThanOrEqual(24);
+    expect(Layout.Top_Acciones_Izquierda).toBeGreaterThanOrEqual(
+      Layout.Semana_Nav_Derecha - 8
     );
   }
 );
