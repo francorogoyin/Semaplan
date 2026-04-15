@@ -165,6 +165,68 @@ async function Preparar(page, estado) {
   });
 }
 
+async function Pulsar_Largo_Touch(page, selector) {
+  const Caja = await page.locator(selector).boundingBox();
+  if (!Caja) {
+    throw new Error(`No se encontro ${selector}`);
+  }
+  const X = Math.round(Caja.x + Caja.width / 2);
+  const Y = Math.round(Caja.y + Caja.height / 2);
+  const Datos = { selector, X, Y };
+
+  await page.evaluate(({ selector, X, Y }) => {
+    const El = document.querySelector(selector);
+    if (!El) throw new Error(`No existe ${selector}`);
+    const Touch_1 = new Touch({
+      identifier: 1,
+      target: El,
+      clientX: X,
+      clientY: Y,
+      pageX: X + window.scrollX,
+      pageY: Y + window.scrollY,
+      screenX: X,
+      screenY: Y,
+      radiusX: 2,
+      radiusY: 2,
+      force: 1
+    });
+    El.dispatchEvent(new TouchEvent("touchstart", {
+      touches: [Touch_1],
+      targetTouches: [Touch_1],
+      changedTouches: [Touch_1],
+      bubbles: true,
+      cancelable: true
+    }));
+  }, Datos);
+
+  await page.waitForTimeout(460);
+
+  await page.evaluate(({ selector, X, Y }) => {
+    const El = document.querySelector(selector);
+    if (!El) throw new Error(`No existe ${selector}`);
+    const Touch_1 = new Touch({
+      identifier: 1,
+      target: El,
+      clientX: X,
+      clientY: Y,
+      pageX: X + window.scrollX,
+      pageY: Y + window.scrollY,
+      screenX: X,
+      screenY: Y,
+      radiusX: 2,
+      radiusY: 2,
+      force: 1
+    });
+    El.dispatchEvent(new TouchEvent("touchend", {
+      touches: [],
+      targetTouches: [],
+      changedTouches: [Touch_1],
+      bubbles: true,
+      cancelable: true
+    }));
+  }, Datos);
+}
+
 test(
   "permite flujo touch para crear y gestionar bloques",
   async ({ page }) => {
@@ -219,5 +281,71 @@ test(
     await expect(
       page.locator("#Dia_Accion_Menu")
     ).toHaveClass(/Activo/);
+  }
+);
+
+test(
+  "permite menu touch prolongado y reordenar tareas",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado());
+
+    const Tareas_Ids = await page.evaluate(() => {
+      const Base = [
+        { Nombre: "Uno", Emoji: "1️⃣" },
+        { Nombre: "Dos", Emoji: "2️⃣" },
+        { Nombre: "Tres", Emoji: "3️⃣" }
+      ];
+      return Base.map((Item) =>
+        Crear_Tarea_Semanal_Con_Datos(
+          {
+            Nombre: Item.Nombre,
+            Emoji: Item.Emoji,
+            Color: "#1f6b4f",
+            Es_Bolsa: false
+          },
+          Clave_Semana_Actual()
+        ).Id
+      );
+    });
+
+    await page.evaluate(() => {
+      Render_Emojis();
+    });
+
+    const Selector =
+      `#Barra_Emojis button[data-tarea-id="${Tareas_Ids[1]}"]`;
+    await Pulsar_Largo_Touch(page, Selector);
+
+    await expect(
+      page.locator("#Dia_Accion_Menu")
+    ).toHaveClass(/Activo/);
+    await expect(
+      page.locator(
+        '#Dia_Accion_Menu [data-acc="mover-arriba"]'
+      )
+    ).toBeVisible();
+    await expect(
+      page.locator(
+        '#Dia_Accion_Menu [data-acc="mover-abajo"]'
+      )
+    ).toBeVisible();
+
+    const Estado_Menu = await page.evaluate(() => ({
+      Armado: Tarea_Touch_Para_Bloque_Id,
+      Seleccionado: Tarea_Seleccionada_Id
+    }));
+
+    expect(Estado_Menu.Armado).toBeNull();
+    expect(Estado_Menu.Seleccionado).toBeNull();
+
+    await page.click(
+      '#Dia_Accion_Menu [data-acc="mover-arriba"]'
+    );
+
+    const Orden = await page.evaluate(() =>
+      Tareas.slice(0, 3).map((Tarea) => Tarea.Nombre)
+    );
+
+    expect(Orden).toEqual(["Dos", "Uno", "Tres"]);
   }
 );

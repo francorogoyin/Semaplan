@@ -241,6 +241,9 @@
         padding: 0;
         position: relative;
         overflow: visible;
+        touch-action: manipulation;
+        -webkit-touch-callout: none;
+        user-select: none;
       }
 
       .Emoji_Horas_Badge {
@@ -14582,11 +14585,13 @@
             "bloquear el día completo, " +
             "copiarlo o pegarlo.",
           "ayuda.cal_crear": "Crear",
-          "ayuda.cal_drag": "Drag & drop",
+          "ayuda.cal_drag": "Arrastrar o tocar",
           "ayuda.cal_drag_desc":
-            "Si soltás una tarea sobre " +
-            "un slot libre, se crea un " +
-            "evento con la duración " +
+            "Arrastrá una tarea sobre " +
+            "un slot libre o, en " +
+            "mobile, tocala y después " +
+            "tocá el slot para crear " +
+            "el bloque con la duración " +
             "por defecto.",
           "ayuda.cal_editar": "Editar",
           "ayuda.cal_mover":
@@ -16880,11 +16885,14 @@
             " full day, copying or " +
             "pasting.",
           "ayuda.cal_crear": "Create",
-          "ayuda.cal_drag": "Drag & drop",
+          "ayuda.cal_drag": "Drag or tap",
           "ayuda.cal_drag_desc":
-            "Drop a task on an empty " +
-            "slot to create an event " +
-            "with the default duration.",
+            "Drag a task onto an " +
+            "empty slot or, on " +
+            "mobile, tap the task " +
+            "and then the slot to " +
+            "create the block with " +
+            "the default duration.",
           "ayuda.cal_editar": "Edit",
           "ayuda.cal_mover":
             "Move and resize",
@@ -19242,12 +19250,14 @@
             "cabeçalho do dia abre " +
             "ações.",
           "ayuda.cal_crear": "Criar",
-          "ayuda.cal_drag": "Drag & drop",
+          "ayuda.cal_drag": "Arrastar ou tocar",
           "ayuda.cal_drag_desc":
-            "Solte uma tarefa sobre um" +
-            " slot livre para criar um" +
-            " evento com a duração " +
-            "padrão.",
+            "Arraste uma tarefa até " +
+            "um slot livre ou, no " +
+            "mobile, toque na tarefa " +
+            "e depois no slot para " +
+            "criar o bloco com a " +
+            "duração padrão.",
           "ayuda.cal_editar": "Editar",
           "ayuda.cal_mover":
             "Mover e resize",
@@ -20655,6 +20665,94 @@
           X: Rect.left + Rect.width / 2,
           Y: Rect.top + Math.min(Rect.height / 2, 24)
         };
+      }
+
+      function Obtener_Punto_Menu_Touch(El, Touch) {
+        if (Touch) {
+          return {
+            X: Touch.clientX,
+            Y: Touch.clientY
+          };
+        }
+        return Obtener_Punto_Menu_El(El);
+      }
+
+      function Marcar_Click_Pulsacion_Larga(El) {
+        if (!El?.dataset) return;
+        El.dataset.ClickPulsacionLargaHasta = String(
+          Date.now() + 750
+        );
+      }
+
+      function Consumir_Click_Pulsacion_Larga(El) {
+        const Hasta = Number(
+          El?.dataset?.ClickPulsacionLargaHasta || 0
+        );
+        if (!Hasta) return false;
+        delete El.dataset.ClickPulsacionLargaHasta;
+        return Hasta >= Date.now();
+      }
+
+      function Instalar_Pulsacion_Larga_Touch(
+        El,
+        Al_Activar
+      ) {
+        if (!El || typeof Al_Activar !== "function") return;
+        let Timer = null;
+        let Inicio_X = 0;
+        let Inicio_Y = 0;
+        let Punto = null;
+
+        const Cancelar = () => {
+          if (!Timer) return;
+          clearTimeout(Timer);
+          Timer = null;
+        };
+
+        El.addEventListener(
+          "touchstart",
+          (Evento) => {
+            if (!Interaccion_Touch_Activa()) return;
+            if (Evento.touches.length !== 1) {
+              Cancelar();
+              return;
+            }
+            const Touch = Evento.touches[0];
+            Inicio_X = Touch.clientX;
+            Inicio_Y = Touch.clientY;
+            Punto = Obtener_Punto_Menu_Touch(El, Touch);
+            Cancelar();
+            Timer = setTimeout(() => {
+              Timer = null;
+              Marcar_Click_Pulsacion_Larga(El);
+              Al_Activar(Punto, Evento);
+            }, 420);
+          },
+          { passive: true }
+        );
+
+        El.addEventListener(
+          "touchmove",
+          (Evento) => {
+            if (!Timer || Evento.touches.length !== 1) return;
+            const Touch = Evento.touches[0];
+            const Delta_X = Math.abs(Touch.clientX - Inicio_X);
+            const Delta_Y = Math.abs(Touch.clientY - Inicio_Y);
+            if (Delta_X > 12 || Delta_Y > 12) {
+              Cancelar();
+              return;
+            }
+            Punto = Obtener_Punto_Menu_Touch(El, Touch);
+          },
+          { passive: true }
+        );
+
+        El.addEventListener("touchend", Cancelar, {
+          passive: true
+        });
+        El.addEventListener("touchcancel", Cancelar, {
+          passive: true
+        });
       }
       let Cfg_Categoria_Meta_Activa_Id = null;
       let Cfg_Tipo_Slot_En_Edicion_Id = null;
@@ -37245,6 +37343,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      function Mover_Tarea_Un_Paso(Tarea_Id, Delta) {
+        if (!Tarea_Id || !Delta) return false;
+        const Index_Origen = Tareas.findIndex(
+          (Tarea) => Tarea.Id === Tarea_Id
+        );
+        if (Index_Origen < 0) return false;
+        const Index_Destino = Index_Origen + Delta;
+        if (
+          Index_Destino < 0 ||
+          Index_Destino >= Tareas.length
+        ) {
+          return false;
+        }
+        const [Movida] = Tareas.splice(Index_Origen, 1);
+        Tareas.splice(Index_Destino, 0, Movida);
+        return true;
+      }
+
       function Clave_Semana_Actual() {
         return Formatear_Fecha_ISO(Semana_Actual);
       }
@@ -40496,8 +40612,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Boton.title = Fracasada
           ? `${Tarea.Nombre} · semana anulada${Sufijo_Tags}`
           : `${Tarea.Nombre}${Sufijo_Tags}`;
-        Boton.draggable = true;
+        Boton.draggable = !Interaccion_Touch_Activa();
+        Instalar_Pulsacion_Larga_Touch(
+          Boton,
+          (Punto, Evento) => {
+            Evento.preventDefault?.();
+            Evento.stopPropagation?.();
+            Tarea_Touch_Para_Bloque_Id = null;
+            Tarea_Seleccionada_Id = null;
+            Render_Emojis();
+            Render_Resumen_Tarea();
+            Render_Editor();
+            Mostrar_Menu_Emoji_Tarea(
+              Tarea,
+              Punto?.X ?? Obtener_Punto_Menu_El(Boton).X,
+              Punto?.Y ?? Obtener_Punto_Menu_El(Boton).Y
+            );
+          }
+        );
         Boton.addEventListener("click", (Ev) => {
+          if (Consumir_Click_Pulsacion_Larga(Boton)) {
+            Ev.preventDefault();
+            Ev.stopPropagation();
+            return;
+          }
           // Ctrl/Cmd + click: toggle multi-selección.
           if (Ev.ctrlKey || Ev.metaKey) {
             Ev.preventDefault();
@@ -40628,12 +40766,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Mostrar_Menu_Emoji_Tarea(Tarea, X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         if (!Menu || !Tarea) return;
-        Menu.innerHTML =
+        const Index_Tarea = Tareas.findIndex(
+          (Item) => Item.Id === Tarea.Id
+        );
+        const Puede_Subir = Index_Tarea > 0;
+        const Puede_Bajar =
+          Index_Tarea >= 0 &&
+          Index_Tarea < Tareas.length - 1;
+        let Html =
           `<button class="Dia_Accion_Item"` +
           ` type="button"` +
           ` data-acc="agregar-subtarea">` +
           t("contexto.agregar_subtarea") +
           `</button>`;
+        if (Puede_Subir) {
+          Html +=
+            `<button class="Dia_Accion_Item"` +
+            ` type="button"` +
+            ` data-acc="mover-arriba">` +
+            t("config.subir") +
+            `</button>`;
+        }
+        if (Puede_Bajar) {
+          Html +=
+            `<button class="Dia_Accion_Item"` +
+            ` type="button"` +
+            ` data-acc="mover-abajo">` +
+            t("config.bajar") +
+            `</button>`;
+        }
+        Menu.innerHTML = Html;
         Menu.style.left = `${X}px`;
         Menu.style.top = `${Y}px`;
         Menu.classList.add("Activo");
@@ -40657,6 +40819,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Preparar_Tarea_Para_Agregar_Subtarea(Tarea);
+          });
+        Menu.querySelector(`[data-acc="mover-arriba"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            if (!Mover_Tarea_Un_Paso(Tarea.Id, -1)) return;
+            Cerrar_Menu_Dia();
+            Render_Emojis();
+            Render_Resumen_Tarea();
+            Render_Editor();
+            Guardar_Estado();
+          });
+        Menu.querySelector(`[data-acc="mover-abajo"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            if (!Mover_Tarea_Un_Paso(Tarea.Id, 1)) return;
+            Cerrar_Menu_Dia();
+            Render_Emojis();
+            Render_Resumen_Tarea();
+            Render_Editor();
+            Guardar_Estado();
           });
 
         if (Fn_Cierre_Menu) {
