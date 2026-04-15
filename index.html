@@ -10109,6 +10109,40 @@
         flex-shrink: 0;
       }
 
+      .Sync_Acciones {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 32px;
+      }
+
+      .Sync_Detalle {
+        font-size: 11px;
+        color: var(--Texto_Suave);
+        white-space: nowrap;
+      }
+
+      .Sync_Reintentar_Btn {
+        border: 1px solid #d7cfc2;
+        background: #f6f0e6;
+        color: var(--Texto);
+        border-radius: 999px;
+        padding: 5px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        display: none;
+      }
+
+      .Sync_Reintentar_Btn.Visible {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .Sync_Reintentar_Btn:hover {
+        background: #efe5d7;
+      }
+
       .Sync_Punto {
         width: 8px;
         height: 8px;
@@ -10614,6 +10648,17 @@
               <span class="Sync_Punto"></span>
               <span id="Sync_Texto" data-i18n="sync.guardado">Guardado</span>
             </span>
+            <div class="Sync_Acciones">
+              <span class="Sync_Detalle"
+                id="Sync_Detalle"
+                data-i18n="sync.sin_guardado_reciente"
+                >Sin guardado reciente</span>
+              <button class="Sync_Reintentar_Btn"
+                id="Sync_Reintentar_Btn"
+                type="button"
+                data-i18n="sync.reintentar"
+                >Reintentar</button>
+            </div>
             <button class="Config_Boton Plan_Boton Menu_Btn"
               id="Plan_Boton"
               data-menu-key="Plan_Boton"
@@ -14098,6 +14143,17 @@
           "sync.guardado": "Guardado",
           "sync.guardando": "Guardando...",
           "sync.error": "Error",
+          "sync.reintentar": "Reintentar",
+          "sync.sin_guardado_reciente":
+            "Sin guardado reciente",
+          "sync.ultimo_guardado":
+            "Último guardado {Hora}",
+          "sync.reintentando":
+            "Reintentando sincronización...",
+          "sync.reintento_manual_ok":
+            "Sincronización reintentada",
+          "sync.reintento_manual_error":
+            "No se pudo sincronizar. Tus cambios siguen locales.",
           "sync.actualizado_otro_dispositivo":
             "Se cargaron cambios de otro dispositivo",
           "sync.conflicto_cambios":
@@ -16627,6 +16683,17 @@
           "sync.guardado": "Saved",
           "sync.guardando": "Saving...",
           "sync.error": "Error",
+          "sync.reintentar": "Retry",
+          "sync.sin_guardado_reciente":
+            "No recent save",
+          "sync.ultimo_guardado":
+            "Last saved {Hora}",
+          "sync.reintentando":
+            "Retrying sync...",
+          "sync.reintento_manual_ok":
+            "Sync retried",
+          "sync.reintento_manual_error":
+            "Could not sync. Your changes are still local.",
           "sync.actualizado_otro_dispositivo":
             "Changes from another device were loaded",
           "sync.conflicto_cambios":
@@ -19103,6 +19170,17 @@
           "sync.guardado": "Salvo",
           "sync.guardando": "Salvando...",
           "sync.error": "Erro",
+          "sync.reintentar": "Tentar de novo",
+          "sync.sin_guardado_reciente":
+            "Sem salvamento recente",
+          "sync.ultimo_guardado":
+            "Último salvamento {Hora}",
+          "sync.reintentando":
+            "Tentando sincronizar de novo...",
+          "sync.reintento_manual_ok":
+            "Sincronização reenviada",
+          "sync.reintento_manual_error":
+            "Não foi possível sincronizar. Suas mudanças seguem locais.",
           "sync.actualizado_otro_dispositivo":
             "Foram carregadas mudanças de outro dispositivo",
           "sync.conflicto_cambios":
@@ -21748,6 +21826,8 @@
           Meses_Cortos.length = 0;
           Meses_Cortos.push(...M);
         }
+        Actualizar_Sync_Detalle();
+        Actualizar_Boton_Reintento_Sync();
       }
 
       // Cambia el idioma activo y re-renderiza
@@ -34115,10 +34195,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               "Error creando suscripción:",
               error, Datos
             );
-            alert(
+            await Mostrar_Dialogo(
               "Error al procesar el pago: " +
               (error?.message ||
-                JSON.stringify(Datos))
+                JSON.stringify(Datos)),
+              [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
             );
             return;
           }
@@ -34130,9 +34211,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Url_Checkout) {
             window.location.href = Url_Checkout;
           } else {
-            alert(
+            await Mostrar_Dialogo(
               "No se obtuvo la URL de pago. " +
-              "Intentá de nuevo."
+              "Intentá de nuevo.",
+              [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
             );
           }
         } catch (Error_Checkout) {
@@ -34140,9 +34222,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "Error en checkout:",
             Error_Checkout
           );
-          alert(
+          Log_Error_App(
+            "suscripcion",
+            "crear_checkout_mp",
+            "Error en checkout de suscripción",
+            Error_Checkout
+          );
+          await Mostrar_Dialogo(
             "Error de conexión. " +
-            "Intentá de nuevo."
+            "Intentá de nuevo.",
+            [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
           );
         } finally {
           if (El_Boton) {
@@ -34319,6 +34408,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             In_Imp.value = "";
             if (F) Importar_Estado_Json(F);
           });
+        }
+        const Btn_Sync_Reintentar = document.getElementById(
+          "Sync_Reintentar_Btn"
+        );
+        if (
+          Btn_Sync_Reintentar &&
+          !Btn_Sync_Reintentar._Listener
+        ) {
+          Btn_Sync_Reintentar._Listener = true;
+          Btn_Sync_Reintentar.addEventListener(
+            "click",
+            Reintentar_Sync_Manual
+          );
         }
         const Cfg_Backup_Auto = document.getElementById(
           "Cfg_Backup_Auto_Activo"
@@ -39286,6 +39388,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ).format(Fecha);
       }
 
+      function Formatear_Fecha_Sync_Corta(Valor) {
+        if (!Valor) {
+          return t("sync.sin_guardado_reciente");
+        }
+        const Fecha = new Date(Number(Valor) || Date.now());
+        const Locale =
+          Idioma_Actual === "en"
+            ? "en-US"
+            : Idioma_Actual === "pt"
+              ? "pt-BR"
+              : "es-AR";
+        return new Intl.DateTimeFormat(
+          Locale,
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            timeZone: "America/Buenos_Aires"
+          }
+        ).format(Fecha);
+      }
+
+      function Construir_Texto_Ultimo_Guardado() {
+        if (!Sync_Ultimo_Guardado_Exitoso_Ms) {
+          return t("sync.sin_guardado_reciente");
+        }
+        return t("sync.ultimo_guardado", {
+          Hora: Formatear_Fecha_Sync_Corta(
+            Sync_Ultimo_Guardado_Exitoso_Ms
+          )
+        });
+      }
+
       function Version_Programa_Soporta_Esquema(
         Version,
         Esquema = Esquema_Estado_Version_Actual
@@ -39574,6 +39709,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         URL.revokeObjectURL(Url);
       }
 
+      function Descargar_Backup_Pre_Importacion() {
+        const Estado_Actual = Construir_Estado_Completo();
+        Crear_Backup_Local("Auto");
+        Descargar_Json_Respaldo(
+          Estado_Actual,
+          "Semaplan_Pre_Importacion"
+        );
+      }
+
       async function Aplicar_Importacion_Objeto(
         Obj,
         Opciones = {}
@@ -39595,12 +39739,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ]
           );
           if (!Confirmar) return false;
+          Descargar_Backup_Pre_Importacion();
         }
         if (
           !Array.isArray(Obj?.Objetivos) ||
           !Array.isArray(Obj?.Eventos)
         ) {
-          alert(t("dialog.archivo_invalido"));
+          await Mostrar_Dialogo(
+            t("dialog.archivo_invalido"),
+            [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
+          );
           return false;
         }
         localStorage.setItem(Clave_Local, JSON.stringify(Obj));
@@ -39614,9 +39762,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               });
             if (error) throw error;
           } catch (E) {
-            alert(
+            await Log_Error_App(
+              "importacion",
+              "subir_importacion",
+              "Falló la subida del import a la nube",
+              E
+            );
+            await Mostrar_Dialogo(
               "Error subiendo el import a la nube: " +
-              E.message
+                E.message,
+              [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
             );
             return false;
           }
@@ -39763,14 +39918,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Exportar_Estado_Json() {
         const Raw = localStorage.getItem(Clave_Local);
         if (!Raw) {
-          alert(t("dialog.sin_estado_exportar"));
+          Mostrar_Toast_Info(
+            t("dialog.sin_estado_exportar"),
+            "⚠️",
+            4500
+          );
           return;
         }
         try {
           Descargar_Json_Respaldo(JSON.parse(Raw), "Semaplan");
         } catch (Err) {
-          alert(t("dialog.error_exportar",
-            { Msg: Err.message }));
+          Log_Error_App(
+            "exportacion",
+            "exportar_json",
+            "Error exportando JSON",
+            Err
+          );
+          Mostrar_Dialogo(
+            t("dialog.error_exportar",
+              { Msg: Err.message }),
+            [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
+          );
         }
       }
 
@@ -39781,8 +39949,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Obj = JSON.parse(Texto);
           await Aplicar_Importacion_Objeto(Obj);
         } catch (Err) {
-          alert(t("dialog.error_importar",
-            { Msg: Err.message }));
+          await Log_Error_App(
+            "importacion",
+            "importar_json",
+            "Error importando JSON",
+            Err
+          );
+          await Mostrar_Dialogo(
+            t("dialog.error_importar",
+              { Msg: Err.message }),
+            [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
+          );
         }
       }
 
@@ -46687,6 +46864,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sync_Reintento_Timer_Id = null;
         }
         return await Backend_Sync_Ejecutar();
+      }
+
+      async function Reintentar_Sync_Manual() {
+        if (!Supa || !Usuario_Actual) return false;
+        Mostrar_Toast_Info(
+          t("sync.reintentando"),
+          "☁️",
+          2200
+        );
+        const Ok = await Forzar_Sync_Inmediato_Cambio_Critico();
+        if (Ok) {
+          Mostrar_Toast_Info(
+            t("sync.reintento_manual_ok"),
+            "☁️",
+            3200
+          );
+          return true;
+        }
+        Mostrar_Toast_Info(
+          t("sync.reintento_manual_error"),
+          "⚠️",
+          4200
+        );
+        return false;
       }
 
       function Cargar_Estado() {
@@ -56902,6 +57103,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           );
         if (error || !data?.Ok) {
+          Log_Error_App(
+            "ayuda",
+            "enviar_consulta",
+            "Falló el envío de consulta de ayuda",
+            error,
+            {
+              entidad_afectada: "enviar-ayuda-consulta",
+              asunto: Asunto
+            }
+          );
           await Mostrar_Dialogo(
             t("ayuda.consulta_error"),
             [
@@ -57001,6 +57212,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ];
       // Estado actual del indicador de sync.
       let Sync_Estado = "Guardado";
+      let Sync_Ultimo_Guardado_Exitoso_Ms = 0;
       let Sync_Token_Actual = "";
       let Sync_Local_Sucio = false;
       let Sync_Critico_Inmediato_Pendiente = false;
@@ -57019,9 +57231,99 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_Sesion_Inicio_Local_Ms = 0;
       let Sync_Sesion_Cerrando = false;
       let Sync_Evento_Local_Procesado = "";
+      const Clave_Log_Errores_Local =
+        "Semaplan_Log_Errores_App_V1";
       // Flag para evitar guardados durante la carga inicial.
       let Cargando_Inicial = true;
       let Trial_Modal_Abierto = false;
+
+      function Actualizar_Sync_Detalle() {
+        const El = document.getElementById("Sync_Detalle");
+        if (!El) return;
+        El.textContent = Construir_Texto_Ultimo_Guardado();
+      }
+
+      function Actualizar_Boton_Reintento_Sync() {
+        const Btn = document.getElementById(
+          "Sync_Reintentar_Btn"
+        );
+        if (!Btn) return;
+        const Visible =
+          Sync_Estado === "Error" ||
+          Sync_Local_Sucio ||
+          Boolean(Sync_Reintento_Timer_Id);
+        Btn.classList.toggle("Visible", Visible);
+      }
+
+      function Registrar_Log_Error_Local(Entrada) {
+        try {
+          const Lista = JSON.parse(
+            localStorage.getItem(Clave_Log_Errores_Local) || "[]"
+          );
+          const Nueva = Array.isArray(Lista) ? Lista : [];
+          Nueva.unshift(Entrada);
+          localStorage.setItem(
+            Clave_Log_Errores_Local,
+            JSON.stringify(Nueva.slice(0, 50))
+          );
+        } catch (_) {}
+      }
+
+      async function Log_Error_App(
+        modulo,
+        accion,
+        mensaje,
+        error_original = null,
+        contexto = {}
+      ) {
+        const Error_Normalizado =
+          error_original instanceof Error
+            ? error_original
+            : null;
+        const Entrada = {
+          fecha: new Date().toISOString(),
+          usuario_id: Usuario_Actual?.id || null,
+          email: Usuario_Actual?.email || null,
+          modulo: modulo || "app",
+          accion: accion || "sin_accion",
+          mensaje:
+            mensaje ||
+            Error_Normalizado?.message ||
+            "Error desconocido",
+          stack: Error_Normalizado?.stack || null,
+          contexto_json: {
+            semana_actual:
+              typeof Clave_Semana_Actual === "function"
+                ? Clave_Semana_Actual()
+                : null,
+            version_programa: Version_Programa_Actual,
+            esquema_estado:
+              Esquema_Estado_Version_Actual,
+            sync_estado: Sync_Estado,
+            sync_local_sucio: Sync_Local_Sucio,
+            entidad_afectada:
+              contexto?.entidad_afectada || null,
+            ...contexto
+          }
+        };
+
+        delete Entrada.contexto_json?.password;
+        delete Entrada.contexto_json?.token;
+        delete Entrada.contexto_json?.access_token;
+
+        Registrar_Log_Error_Local(Entrada);
+
+        if (!Supa || typeof Supa.from !== "function") {
+          return Entrada;
+        }
+
+        try {
+          await Supa
+            .from("Errores_App")
+            .insert(Entrada);
+        } catch (_) {}
+        return Entrada;
+      }
 
       function Actualizar_Token_Sync(Sesion = null) {
         Sync_Token_Actual =
@@ -57419,6 +57721,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Marcar_Sync_Remoto_Actualizado(
           Datos?.actualizado_en || ""
         );
+        Sync_Ultimo_Guardado_Exitoso_Ms = Date.now();
         Actualizar_Sync_Indicador("Guardado");
         Emitir_Evento_Local_Sync("sync_guardado");
       }
@@ -57616,6 +57919,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "Error registrando corte global:",
             E
           );
+          Log_Error_App(
+            "sync",
+            "registrar_corte_global",
+            "Error registrando cierre global",
+            E
+          );
           return false;
         }
       }
@@ -57754,6 +58063,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Inicializar_Supabase() {
         // Crea el cliente de Supabase usando el SDK del CDN.
         if (!window.supabase || !window.supabase.createClient) {
+          Log_Error_App(
+            "auth",
+            "inicializar_supabase",
+            "No cargó el SDK de Supabase"
+          );
           alert(
             "No se pudo cargar el SDK de Supabase. " +
             "Verificá tu conexión a internet."
@@ -57876,6 +58190,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Data = Texto || null;
             }
             if (!Resp.ok) {
+              Log_Error_App(
+                "edge",
+                Nombre,
+                "Edge Function devolvió error",
+                null,
+                {
+                  entidad_afectada: Nombre,
+                  status: Resp.status
+                }
+              );
               return {
                 data: null,
                 error: {
@@ -57892,6 +58216,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               error: null
             };
           } catch (Error) {
+            Log_Error_App(
+              "edge",
+              Nombre,
+              "Falló la invocación de Edge Function",
+              Error,
+              { entidad_afectada: Nombre }
+            );
             return {
               data: null,
               error: {
@@ -57957,6 +58288,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           Tx.textContent = t("sync.guardado");
         }
+        Actualizar_Sync_Detalle();
+        Actualizar_Boton_Reintento_Sync();
       }
 
       // ----- Sincronización con Supabase -----
@@ -58002,6 +58335,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sync_Reintento_Timer_Id = null;
           Backend_Sync_Ejecutar();
         }, Demora);
+        Actualizar_Boton_Reintento_Sync();
         return true;
       }
 
@@ -58191,6 +58525,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               }
             } catch (_) {}
             console.error("Error sincronizando:", E);
+            Log_Error_App(
+              "sync",
+              "backend_sync_ejecutar",
+              "Error sincronizando estado",
+              E
+            );
             if (
               !Hay_Conflicto &&
               !Sync_Conflicto_Pendiente &&
@@ -58293,6 +58633,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .catch((E) => {
             console.error(
               "Error sincronizando al ocultar:",
+              E
+            );
+            Log_Error_App(
+              "sync",
+              "keepalive_ocultar",
+              "Error sincronizando al ocultar la app",
               E
             );
             if (!Programar_Reintento_Sync(true)) {
