@@ -5323,6 +5323,26 @@
         text-align: center;
       }
 
+      .Baul_Estado_Icono {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        line-height: 1;
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(208, 191, 168, 0.92);
+        box-shadow: 0 2px 8px rgba(86, 70, 52, 0.08);
+        color: #6f6253;
+        pointer-events: none;
+        z-index: 2;
+      }
+
       .Baul_Card_Nombre {
         font-size: 14px;
         font-weight: 900;
@@ -5367,7 +5387,7 @@
         align-items: center;
         gap: 10px;
         width: 100%;
-        padding: 7px 12px;
+        padding: 7px 38px 7px 12px;
         border-radius: 10px;
         border: 1px solid var(--Baul-Borde-Fila, transparent);
         background: var(--Baul-Fondo-Fila, transparent);
@@ -5451,6 +5471,14 @@
         line-height: 1;
         width: 24px;
         text-align: center;
+      }
+
+      .Baul_Fila .Baul_Estado_Icono {
+        top: 8px;
+        right: 10px;
+        width: 22px;
+        height: 22px;
+        font-size: 12px;
       }
 
       .Baul_Fila_Textos {
@@ -11788,7 +11816,7 @@
               <div class="Campo">
                 <label for="Baul_Objetivos_Por_Fila"
                   data-i18n="baul.objetivos_por_fila">
-                  Objetivos por fila
+                  Por fila
                 </label>
                 <select id="Baul_Objetivos_Por_Fila">
                   <option value="4">4</option>
@@ -11860,12 +11888,6 @@
                 id="Baul_Mostrar_Archivadas">
               <span data-i18n="baul.mostrar_archivadas"
                 >Mostrar archivadas</span>
-            </label>
-            <label class="Baul_Filtros_Check">
-              <input type="checkbox"
-                id="Baul_Sombra_Estado">
-              <span data-i18n="baul.sombra_estado"
-                >Sombra de estado</span>
             </label>
           </div>
 
@@ -13837,7 +13859,7 @@
           "baul.este_ano": "Este año",
           "baul.sin_fecha": "Sin fecha",
           "baul.objetivos_por_fila":
-            "Objetivos por fila",
+            "Por fila",
           "baul.ordenar_por": "Ordenar por",
           "baul.agrupar_por": "Agrupar por",
           "baul.agrupar_categoria":
@@ -16249,7 +16271,7 @@
           "baul.este_ano": "This year",
           "baul.sin_fecha": "No date",
           "baul.objetivos_por_fila":
-            "Objectives per row",
+            "Per row",
           "baul.ordenar_por": "Sort by",
           "baul.agrupar_por": "Group by",
           "baul.agrupar_categoria":
@@ -18655,7 +18677,7 @@
           "baul.este_ano": "Este ano",
           "baul.sin_fecha": "Sem data",
           "baul.objetivos_por_fila":
-            "Objetivos por linha",
+            "Por linha",
           "baul.ordenar_por": "Ordenar por",
           "baul.agrupar_por":
             "Agrupar por",
@@ -22422,19 +22444,51 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Obtener_Emoji_Estado_Baul(Estado) {
+        switch (Obtener_Estado_Baul_Normalizado(Estado)) {
+          case "Realizada":
+            return "\u2705";
+          case "Postergada":
+            return "\u{1F4C5}";
+          case "Anulada":
+            return "\u274C";
+          default:
+            return "\u22EF";
+        }
+      }
+
+      function Obtener_Label_Estado_Baul(Estado) {
+        switch (Obtener_Estado_Baul_Normalizado(Estado)) {
+          case "Realizada":
+            return t("baul.realizada");
+          case "Postergada":
+            return t("baul.postergada");
+          case "Anulada":
+            return t("baul.anulada");
+          default:
+            return t("baul.activa");
+        }
+      }
+
+      function Crear_Icono_Estado_Baul(Estado) {
+        const Icono = document.createElement("span");
+        const Estado_Normalizado =
+          Obtener_Estado_Baul_Normalizado(Estado);
+        Icono.className = "Baul_Estado_Icono";
+        Icono.dataset.estado = Estado_Normalizado;
+        Icono.setAttribute(
+          "aria-label",
+          Obtener_Label_Estado_Baul(Estado_Normalizado)
+        );
+        Icono.textContent =
+          Obtener_Emoji_Estado_Baul(Estado_Normalizado);
+        return Icono;
+      }
+
       function Aplicar_Sombra_Estado_Baul(El, Estado) {
         if (!El) return;
-        if (!Config.Baul_Sombra_Estado) {
-          El.classList.remove("Con_Sombra_Estado");
-          El.style.removeProperty("--Baul-Tinte");
-          return;
-        }
-        const Paleta = Obtener_Paleta_Estado_Baul(Estado);
-        El.classList.add("Con_Sombra_Estado");
-        El.style.setProperty(
-          "--Baul-Tinte",
-          Paleta.Tinte
-        );
+        El.classList.remove("Con_Sombra_Estado");
+        El.style.removeProperty("--Baul-Tinte");
       }
 
       function Normalizar_Baul_Objetivos_Por_Fila(Valor) {
@@ -23941,6 +23995,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Nombre.className = "Baul_Card_Nombre";
         Nombre.textContent = Objetivo.Nombre;
 
+        const Estado_Icono = Crear_Icono_Estado_Baul(
+          Objetivo.Estado
+        );
+
         Cuerpo.appendChild(Emoji);
         Cuerpo.appendChild(Nombre);
         if (Esta_Seleccionada) {
@@ -23953,6 +24011,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
 
         Card.appendChild(Cuerpo);
+        Card.appendChild(Estado_Icono);
         return Card;
       }
 
@@ -24076,6 +24135,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Nombre.className = "Baul_Fila_Nombre";
         Nombre.textContent = Objetivo.Nombre;
 
+        const Estado_Icono = Crear_Icono_Estado_Baul(
+          Objetivo.Estado
+        );
+
         const Meta = document.createElement("div");
         Meta.className = "Baul_Fila_Meta";
         if (Esta_Seleccionada) {
@@ -24089,6 +24152,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Fila.appendChild(Emoji);
         Fila.appendChild(Textos);
+        Fila.appendChild(Estado_Icono);
         return Fila;
       }
 
