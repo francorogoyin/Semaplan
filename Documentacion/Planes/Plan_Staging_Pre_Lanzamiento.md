@@ -1,67 +1,58 @@
-# Plan de staging pre lanzamiento
+# Staging pre lanzamiento
 
 Fecha de corte: 2026-04-15
 
-## Objetivo
+## Estado actual
 
-Dejar preparado un staging real para probar Auth, sync, Edge
-Functions y smoke remoto sin usar produccion como laboratorio.
+El staging real quedo operativo.
 
-## Lo que ya quedo preparado en el repo
-
-- El smoke remoto ahora acepta `SEMAPLAN_BASE_URL` y
-  `SEMAPLAN_AUTH_FILE`.
-- Existe el comando `npm run test:smoke:prod` para produccion.
-- Existe el comando `npm run test:smoke:staging` para staging,
-  pasando la URL por parametro o variable de entorno.
-- Existe el script
-  `Herramientas/Scripts/Run_Smoke_Staging.ps1`.
+- URL activa: `https://semaplan.com/?entorno=staging`
+- Backend separado: proyecto Supabase `Timeblocking-Staging`
+- Auth aislada: cuentas de prueba creadas en ese backend
+- Edge Functions desplegadas: `activar-trial`,
+  `cancelar-suscripcion`, `crear-suscripcion`,
+  `eliminar-cuenta`, `enviar-ayuda-consulta`,
+  `estado-suscripcion` y `webhook-mp`
+- Storage local aislado por entorno para no mezclar
+  `localStorage` entre produccion y staging
 
 ## Comandos operativos
 
-Produccion:
+Guardar auth de staging:
 
 ```powershell
-npm run test:smoke:prod
+npm run auth:semaplan:staging
 ```
 
-Staging con parametro:
+Smoke de staging:
 
 ```powershell
-npm run test:smoke:staging -- -BaseUrl https://staging.semaplan.com
-```
-
-Staging con variables:
-
-```powershell
-$env:SEMAPLAN_BASE_URL="https://staging.semaplan.com"
-$env:SEMAPLAN_AUTH_FILE="Pruebas/Playwright/.auth/semaplan-patricio.json"
 npm run test:smoke:staging
 ```
 
-## Minimo viable de staging
+Smoke de staging con archivo o URL manual:
 
-1. URL separada de produccion.
-2. Proyecto Supabase separado o al menos aislado.
-3. Keys de Turnstile y callbacks propias.
-4. Cuentas de test exclusivas.
-5. Mails de prueba no productivos.
-6. Auth file propio para la cuenta de staging.
+```powershell
+npm run test:smoke:staging -- `
+  -BaseUrl https://semaplan.com/?entorno=staging `
+  -AuthFile Pruebas/Playwright/.auth/semaplan-staging.json
+```
 
-## Checklist tecnico para habilitarlo
+## Decisiones tecnicas
 
-- Duplicar frontend en una URL separada.
-- Apuntar esa URL a Supabase staging.
-- Crear cuentas de test para objetivo y para funciones.
-- Guardar una sesion Playwright especifica de staging.
-- Correr smoke staging en verde dos veces seguidas.
-- Recién despues probar features nuevas ahi antes de main.
+- No se creo un subdominio aparte en esta etapa.
+- El selector de entorno se resuelve por URL:
+  `?entorno=staging`.
+- Produccion conserva las claves legacy de
+  `localStorage`; staging usa claves sufijadas.
+- El anon key de staging queda publicado en frontend,
+  igual que en produccion. Eso es correcto para Supabase.
 
-## Bloqueos externos
+## Falta opcional
 
-Esto no se puede cerrar solo desde el repo:
+No bloquea el uso de staging, pero sigue siendo mejora:
 
-- dominio o subdominio staging;
-- proyecto Supabase staging;
-- keys reales de CAPTCHA y correo;
-- cuentas reales de prueba en ese backend.
+- mover staging a un subdominio propio;
+- separar tambien Turnstile por entorno;
+- usar mails de destino exclusivos de staging para ayuda;
+- definir una cuenta humana exclusiva para pruebas manuales.

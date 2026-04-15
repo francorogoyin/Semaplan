@@ -22129,17 +22129,63 @@
         "Dic"
       ];
       const Colores_Preset = ["#f1b77e", "#a6c8e5", "#c1d7ae", "#e4b3d4", "#f2a4a0", "#f2e08b", "#b8c7e0", "#c7b7ef"];
+      function Detectar_Entorno_App_Id() {
+        try {
+          const Params = new URLSearchParams(
+            window.location.search || ""
+          );
+          const Query = String(
+            Params.get("entorno")
+            || Params.get("Entorno")
+            || ""
+          ).trim().toLowerCase();
+          if (Query === "staging") {
+            return "staging";
+          }
+          const Override = String(
+            window.__SEMAPLAN_ENTORNO__?.Id
+            || window.__SEMAPLAN_ENTORNO__?.id
+            || ""
+          ).trim().toLowerCase();
+          if (Override === "staging") {
+            return "staging";
+          }
+          const Ruta = String(
+            window.location.pathname || ""
+          ).trim().toLowerCase();
+          if (Ruta.includes("staging")) {
+            return "staging";
+          }
+        } catch (_) {}
+        return "produccion";
+      }
+
+      function Clave_Por_Entorno(Base) {
+        return Entorno_App_Id === "produccion"
+          ? Base
+          : `${Base}_${Entorno_App_Id}`;
+      }
+
+      const Entorno_App_Id = Detectar_Entorno_App_Id();
       const Version_Programa_Actual = "1.0.0";
       const Esquema_Estado_Version_Actual = 1;
       const Archivo_Registro_Versiones_Programa =
         "Aplicaciones/Web_Versiones/" +
         "Manifest_Versiones.json";
-      const Clave_Local = "Semaplan_Estado_V2";
-      const Clave_Local_Usuario =
-        "Semaplan_Estado_Usuario_V1";
-      const Clave_Backups = "Semaplan_Backups_V1";
+      const Clave_Local =
+        Clave_Por_Entorno("Semaplan_Estado_V2");
+      const Clave_Local_Usuario = Clave_Por_Entorno(
+        "Semaplan_Estado_Usuario_V1"
+      );
+      const Clave_Backups = Clave_Por_Entorno(
+        "Semaplan_Backups_V1"
+      );
       const Clave_Sync_Pendiente_Base =
-        "Semaplan_Sync_Local_Pendiente_V1";
+        Clave_Por_Entorno(
+          "Semaplan_Sync_Local_Pendiente_V1"
+        );
+      const Clave_QA_Sin_Captcha =
+        Clave_Por_Entorno("Semaplan_QA_Sin_Captcha");
       const Max_Backups_Locales = 12;
       let Registro_Versiones_Programa =
         Crear_Registro_Versiones_Programa_Por_Defecto();
@@ -22154,6 +22200,7 @@
       // clave legacy (Time_Blocking_Estado_V2) y no
       // tiene datos con la nueva, copiar.
       if (
+        Entorno_App_Id === "produccion" &&
         !localStorage.getItem(Clave_Local) &&
         localStorage.getItem("Time_Blocking_Estado_V2")
       ) {
@@ -57210,14 +57257,47 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       //  BACKEND: Supabase + autenticación + sincronización
       // ============================================================
 
-      const Supabase_Url =
-        "https://cprdnxkkhuuhdispubds.supabase.co";
+      const Entornos_App = {
+        produccion: {
+          Id: "produccion",
+          Nombre: "Produccion",
+          Supabase_Url:
+            "https://cprdnxkkhuuhdispubds.supabase.co",
+          Supabase_Anon_Key:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" +
+            ".eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwcmRueGtraHV1aGRpc3" +
+            "B1YmRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NzgxMTQsImV4" +
+            "cCI6MjA5MTE1NDExNH0" +
+            ".lKLesAkMG4zUzaD6urbNDnmcC3vOL7VNeTGDwoTaDTI"
+        },
+        staging: {
+          Id: "staging",
+          Nombre: "Staging",
+          Supabase_Url:
+            "https://cukkxjmdspbefkqzjumh.supabase.co",
+          Supabase_Anon_Key:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" +
+            ".eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1a2t4am1kc3BiZWZrcX" +
+            "pqdW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzk5NjIsImV4" +
+            "cCI6MjA5MTg1NTk2Mn0" +
+            ".lEcIsYbxQR8Lw_-cOw1v8UXwG0zDErPmo0K8xp9jkzA"
+        }
+      };
+      const Entorno_App =
+        Entornos_App[Entorno_App_Id]
+        || Entornos_App.produccion;
+      const Supabase_Url = Entorno_App.Supabase_Url;
       const Supabase_Anon_Key =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" +
-        ".eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwcmRueGtraHV1aGRpc3" +
-        "B1YmRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NzgxMTQsImV4" +
-        "cCI6MjA5MTE1NDExNH0" +
-        ".lKLesAkMG4zUzaD6urbNDnmcC3vOL7VNeTGDwoTaDTI";
+        Entorno_App.Supabase_Anon_Key;
+
+      if (Entorno_App_Id !== "produccion") {
+        document.documentElement.dataset.entorno =
+          Entorno_App_Id;
+        if (!document.title.includes("[Staging]")) {
+          document.title =
+            `${document.title} [Staging]`;
+        }
+      }
 
       // Capturar el hash de la URL antes de que
       // el SDK de Supabase lo consuma al
@@ -57247,11 +57327,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           && !Es_Recovery_Redirect
         );
       const Clave_Recovery_Activa =
-        "Semaplan_Recovery_Activa";
+        Clave_Por_Entorno("Semaplan_Recovery_Activa");
       const Clave_Auth_Mensaje_Pendiente =
-        "Semaplan_Auth_Mensaje_Pendiente";
+        Clave_Por_Entorno(
+          "Semaplan_Auth_Mensaje_Pendiente"
+        );
       const Clave_Sync_Evento_Local =
-        "Semaplan_Sync_Evento_V1";
+        Clave_Por_Entorno("Semaplan_Sync_Evento_V1");
 
       // Cliente de Supabase (se inicializa al cargar la página).
       let Supa = null;
@@ -57292,7 +57374,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_Sesion_Cerrando = false;
       let Sync_Evento_Local_Procesado = "";
       const Clave_Log_Errores_Local =
-        "Semaplan_Log_Errores_App_V1";
+        Clave_Por_Entorno(
+          "Semaplan_Log_Errores_App_V1"
+        );
       // Flag para evitar guardados durante la carga inicial.
       let Cargando_Inicial = true;
       let Trial_Modal_Abierto = false;
@@ -58931,7 +59015,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Auth_QA_Sin_Captcha_Activa() {
         return localStorage.getItem(
-          "Semaplan_QA_Sin_Captcha"
+          Clave_QA_Sin_Captcha
         ) === "1" || Entorno_Desktop_Activo();
       }
 

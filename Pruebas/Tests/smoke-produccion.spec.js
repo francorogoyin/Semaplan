@@ -7,7 +7,7 @@ const ARCHIVO_AUTH_DEFAULT = path.join(
   "Pruebas",
   "Playwright",
   ".auth",
-  "semaplan-patricio.json"
+  "semaplan-smoke.json"
 );
 const ARCHIVO_AUTH =
   process.env.SEMAPLAN_AUTH_FILE ||
@@ -23,10 +23,10 @@ test.use({
     : { cookies: [], origins: [] }
 });
 
-test("smoke de producción", async ({ page }) => {
+test("smoke de produccion", async ({ page }) => {
   test.skip(
     !fs.existsSync(ARCHIVO_AUTH),
-    "Falta la sesión real. Corré npm run auth:semaplan."
+    "Falta la sesion real. Corre npm run auth:semaplan."
   );
 
   const Marca = `Smoke ${Date.now()}`;
@@ -36,11 +36,26 @@ test("smoke de producción", async ({ page }) => {
     timeout: 120000
   });
 
+  await page.waitForSelector("#Archivero_Boton", {
+    timeout: 120000
+  });
   await page.waitForFunction(() => {
-    return typeof window.Inicializar === "function" &&
-      window.Cargando_Inicial === false &&
-      Boolean(window.Semana_Actual);
+    const Loader = document.getElementById("App_Loader");
+    const Auth = document.getElementById("Auth_Overlay");
+    return Loader?.classList.contains("Oculto") &&
+      !Auth?.classList.contains("Activo");
   }, null, { timeout: 120000 });
+
+  await page.evaluate(() => {
+    if (
+      typeof Aplicar_Estilo_Menu === "function" &&
+      typeof Config === "object" &&
+      Config
+    ) {
+      Config.Menu_Estilo = "Iconos";
+      Aplicar_Estilo_Menu();
+    }
+  });
 
   await expect(page.locator("#Archivero_Boton")).toBeVisible();
   await expect(page.locator("#Baul_Boton")).toBeVisible();
@@ -51,7 +66,7 @@ test("smoke de producción", async ({ page }) => {
     const Objetivo = Crear_Objetivo_Semanal_Con_Datos(
       {
         Nombre,
-        Descripcion_Corta: "Smoke producción",
+        Descripcion_Corta: "Smoke produccion",
         Emoji: "🧪",
         Color: "#7aa7ff",
         Horas_Semanales: 1,
@@ -83,51 +98,80 @@ test("smoke de producción", async ({ page }) => {
   }, Marca);
 
   await page.waitForFunction(() => {
-    return window.Sync_Estado === "Guardado" &&
-      window.Hay_Sync_Pendiente() === false;
+    return Sync_Estado === "Guardado" &&
+      Hay_Sync_Pendiente() === false;
   }, null, { timeout: 120000 });
 
+  await page.evaluate(() => {
+    if (typeof Limpiar_Seleccion === "function") {
+      Limpiar_Seleccion();
+    }
+  });
+
   await page.locator("#Baul_Boton").click();
-  await expect(page.locator("#Baul_Overlay")).toHaveClass(/Activo/);
+  await expect(page.locator("#Baul_Overlay"))
+    .toHaveClass(/Activo/);
   await page.keyboard.press("Escape");
 
   await page.locator("#Archivero_Boton").click();
-  await expect(page.locator("#Archivero_Overlay")).toHaveClass(/Activo/);
+  await expect(page.locator("#Archivero_Overlay"))
+    .toHaveClass(/Activo/);
 
   await page.evaluate((Nombre) => {
-    const Cajon = (Archiveros || []).find((Item) => {
-      return String(Item?.Nombre || "").trim() === "Semaplan";
-    });
+    Inicializar_Archiveros_Default();
+    const Cajon =
+      Archiveros.find((Item) => {
+        return String(Item?.Nombre || "").trim() ===
+          "Semaplan";
+      }) ||
+      Archiveros[0] ||
+      null;
     if (!Cajon) {
-      throw new Error("No existe el cajón Semaplan");
+      throw new Error("No existe ningun cajon disponible");
     }
-    const Nota = {
-      Id: Crear_Id(),
-      Cajon_Id: Cajon.Id,
+    Registrar_Etiquetas_Archivero(["Smoke"]);
+    Notas_Archivero.unshift({
+      Id: Generar_Id_Archivero(),
+      Archivero_Id: Cajon.Id,
       Titulo: Nombre,
-      Contenido: "Nota smoke",
-      Color: null,
-      Etiquetas: ["Smoke"]
-    };
-    Notas_Archivero.unshift(Nota);
+      Texto: "Nota smoke",
+      Origen: "Smoke produccion",
+      Etiquetas: ["Smoke"],
+      Color_Fondo: "",
+      Tipo: "Texto",
+      Fecha_Creacion: Date.now()
+    });
+    Archivero_Seleccion_Id = Cajon.Id;
     Render_Archivero();
     Guardar_Estado();
   }, Marca);
 
-  await page.locator("#Ayuda_Boton").click();
-  await expect(page.locator("#Ayuda_Overlay")).toHaveClass(/Activo/);
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#Archivero_Overlay"))
+    .not.toHaveClass(/Activo/);
 
-  await page.evaluate(async (Nombre) => {
-    Usuario_Actual = Usuario_Actual || {
-      id: "smoke",
-      email: "smoke@example.com"
-    };
-    Abrir_Ayuda_Consulta();
-    document.getElementById("Ayuda_Consulta_Asunto").value = Nombre;
-    document.getElementById("Ayuda_Consulta_Mensaje").value =
-      "Consulta smoke pre lanzamiento";
-    await Enviar_Ayuda_Consulta();
-  }, Marca);
+  await page.locator("#Ayuda_Boton").click();
+  await expect(page.locator("#Ayuda_Overlay"))
+    .toHaveClass(/Activo/);
+
+  await page.locator("#Ayuda_Consulta_Btn").click();
+  await expect(page.locator("#Ayuda_Consulta_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.locator("#Ayuda_Consulta_Asunto").fill(Marca);
+  await page.locator("#Ayuda_Consulta_Mensaje").fill(
+    "Consulta smoke pre lanzamiento"
+  );
+  await page.locator("#Ayuda_Consulta_Enviar").click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.locator(
+    "#Dialogo_Botones .Dialogo_Boton_Primario"
+  ).click();
+  await expect(page.locator("#Ayuda_Consulta_Overlay"))
+    .not.toHaveClass(/Activo/);
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#Ayuda_Overlay"))
+    .not.toHaveClass(/Activo/);
 
   await page.evaluate(async (Nombre) => {
     const Objetivo = (Objetivos || []).find((Item) =>
@@ -146,7 +190,8 @@ test("smoke de producción", async ({ page }) => {
 
   await page.locator("#Config_Abrir").click();
   await page.locator("#Cfg_Cerrar_Sesion").click();
-  await page.locator("#Dialogo_Botones .Dialogo_Boton_Peligro").click();
+  await page.locator("#Dialogo_Botones .Dialogo_Boton_Peligro")
+    .click();
 
   await page.waitForFunction(() => {
     const Auth = document.getElementById("Auth_Overlay");
