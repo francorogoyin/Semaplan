@@ -1,6 +1,6 @@
 const { test, expect } = require("@playwright/test");
 
-test("muestra la versión demo en configuración", async ({
+test("muestra la version actual publicada en configuracion", async ({
   page
 }) => {
   const estadoInicial = {
@@ -62,7 +62,7 @@ test("muestra la versión demo en configuración", async ({
         Ayuda_Boton: true,
         Logout_Boton: true
       },
-      Version_Programa: "Demo",
+      Version_Programa: "0.9.0",
       Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
@@ -150,5 +150,8 @@ test("muestra la versión demo en configuración", async ({
     window.Abrir_Config();
   });
 
-  await expect(page.locator("#Cfg_Version_Programa")).toHaveValue("Demo");
+  await expect(page.locator("#Cfg_Version_Programa")).toHaveValue("1.0.0");
+  await expect(page.locator("#Cfg_Version_Abrir_Btn")).toBeDisabled();
+  await expect(page.locator("#Cfg_Version_Detalle"))
+    .toContainText("1.0.0");
 });

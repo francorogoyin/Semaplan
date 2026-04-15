@@ -1,0 +1,125 @@
+Arquitectura de versiones de aplicacion
+
+Objetivo
+
+Dejar un criterio simple y real para publicar varias
+versiones de Semaplan y permitir que el usuario cambie entre
+ellas desde Configuracion sin confundir eso con backups ni
+con snapshots de datos.
+
+Que significa "version"
+
+Una version de aplicacion es un release congelado del
+frontend, por ejemplo 1.0.0, 1.1.0 o 1.2.1.
+
+No es:
+
+- un backup;
+- un snapshot del estado del usuario;
+- el contador tecnico de sync remoto.
+
+En Semaplan ahora conviven tres conceptos distintos:
+
+- Version_Programa_Actual:
+  release del frontend que se esta ejecutando.
+- Esquema_Estado_Version:
+  version del formato de datos que la app guarda y lee.
+- Sync_Remoto_Version_Actual:
+  contador tecnico para evitar pisadas en Supabase.
+
+Si se mezclan esos tres niveles, el selector de versiones
+termina siendo falso o peligroso.
+
+Estructura propuesta
+
+- index.html
+  sigue siendo la entrada principal y alias de la version
+  mas nueva.
+- Semaplan_Version_X_Y_Z.html
+  es la copia congelada de un release puntual.
+- Aplicaciones/Web_Versiones/Manifest_Versiones.json
+  es el registro compartido de releases publicados.
+
+Por que HTMLs congelados en raiz
+
+Hoy la app depende de rutas relativas como
+Aplicaciones/Desktop/Semaplan.ico.
+Si se movieran los releases a subcarpetas, muchas referencias
+se romperian. Publicar cada release como un HTML congelado en
+raiz evita ese problema sin meter build ni reescribir paths.
+
+Campos del manifest
+
+Cada release publicado debe registrar:
+
+- Id:
+  semver real, por ejemplo 1.2.1.
+- Archivo:
+  HTML congelado que representa ese release.
+- Estado:
+  stable, beta, legacy o deprecated.
+- Fecha_Publicacion:
+  fecha de salida.
+- Esquema_Estado_Min y Esquema_Estado_Max:
+  rango de esquema de datos que ese release soporta.
+
+Regla de nombres
+
+Usar semver:
+
+- major:
+  cambio incompatible o fuerte.
+- minor:
+  mejora nueva compatible.
+- patch:
+  fix o ajuste compatible.
+
+Regla de archivos:
+
+- version 1.0.0 -> Semaplan_Version_1_0_0.html
+- version 1.2.1 -> Semaplan_Version_1_2_1.html
+
+Procedimiento para publicar una version
+
+1. Definir el nuevo numero semver.
+2. Confirmar si cambia o no el esquema de datos.
+3. Si cambia el esquema, actualizar
+   Esquema_Estado_Version_Actual y revisar compatibilidad.
+4. Congelar el release copiando index.html a
+   Semaplan_Version_X_Y_Z.html.
+5. Agregar o actualizar la entrada correspondiente en
+   Aplicaciones/Web_Versiones/Manifest_Versiones.json.
+6. Dejar index.html apuntando al release mas nuevo.
+7. Probar desde Configuracion que el selector muestra y abre
+   la nueva version.
+
+Regla critica sobre datos
+
+Que un usuario pueda abrir una version vieja no significa que
+esa version pueda leer cualquier estado nuevo.
+
+Si un release nuevo cambia el formato de datos y uno viejo ya
+no lo entiende, hay tres caminos sanos:
+
+- mantener compatibilidad;
+- bloquear la version vieja para ese esquema;
+- o dejarla solo como referencia interna, no para usuarios.
+
+Lo que no conviene es prometer compatibilidad en el selector
+si esa compatibilidad no existe de verdad.
+
+Alcance de la implementacion actual
+
+- Configuracion ya no trata "version" como valor ficticio
+  guardado en preferencias.
+- El selector ahora representa releases publicados.
+- El registro de releases vive fuera del HTML principal.
+- El estado guardado registra Version_Programa y
+  Esquema_Estado_Version como dato diagnostico.
+
+Lo que queda como disciplina futura
+
+- cada release nuevo debe congelarse como archivo propio;
+- el manifest debe mantenerse actualizado;
+- los cambios de esquema deben revisarse antes de habilitar
+  una version en el selector.
