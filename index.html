@@ -35515,6 +35515,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         let Html =
           (
+            Es_Slot_Muerto &&
             (Nombre_Guardado || Titulo_Tipo)
               ? `<button class="Dia_Accion_Item" ` +
                 `type="button" data-acc="toggle-titulo-slot">` +
@@ -35526,10 +35527,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 `</button>`
               : ""
           ) +
-          `<button class="Dia_Accion_Item" type="button" ` +
-          `data-acc="editar-nombre-slot">` +
-          t("slot.editar_nombre") +
-          `</button>` +
+          (
+            Es_Slot_Muerto
+              ? `<button class="Dia_Accion_Item" type="button" ` +
+                `data-acc="editar-nombre-slot">` +
+                t("slot.editar_nombre") +
+                `</button>`
+              : ""
+          ) +
           `<button class="Dia_Accion_Item" type="button" data-acc="plan-slot">Plan</button>` +
           (
             Puede_Pegar_Bloques
@@ -40028,12 +40033,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ? Slots_Muertos_Titulos_Visibles[Clave]
               : true;
           if (!Slots_Muertos.includes(Clave)) {
-            Guardar_Nombre_Slot_Muerto(
-              Clave,
-              Nombre,
-              Visible_Actual,
-              false
-            );
+            Limpiar_Nombre_Slot_Muerto(Clave);
             return;
           }
           const Tipo_Id =
@@ -40075,12 +40075,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Obtener_Nombre_Slot_Visible(Fecha, Hora) {
         const Clave = Clave_Slot(Fecha, Hora);
+        if (
+          !Slot_Es_Muerto(Fecha, Hora) ||
+          Slot_Tiene_Evento(Fecha, Hora)
+        ) {
+          return "";
+        }
         return Slot_Muerto_Titulo_Es_Visible_Clave(Clave)
           ? Obtener_Nombre_Slot_Por_Clave(Clave)
           : "";
       }
 
       function Slot_Muerto_Titulo_Es_Visible(Fecha, Hora) {
+        if (
+          !Slot_Es_Muerto(Fecha, Hora) ||
+          Slot_Tiene_Evento(Fecha, Hora)
+        ) {
+          return false;
+        }
         return Slot_Muerto_Titulo_Es_Visible_Clave(
           Clave_Slot(Fecha, Hora)
         );
@@ -40571,6 +40583,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Colocar_Titulo_Slot_Muerto(Fecha, Hora) {
+        if (!Slot_Es_Muerto(Fecha, Hora)) return false;
         const Clave = Clave_Slot(Fecha, Hora);
         const Nombre_Actual =
           Obtener_Nombre_Slot_Por_Clave(Clave);
@@ -40594,6 +40607,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Quitar_Titulo_Slot_Muerto(Fecha, Hora) {
+        if (!Slot_Es_Muerto(Fecha, Hora)) return false;
         const Clave = Clave_Slot(Fecha, Hora);
         const Nombre_Actual =
           Obtener_Nombre_Slot_Por_Clave(Clave);
@@ -40663,6 +40677,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       async function Editar_Nombre_Slot(Fecha, Hora) {
+        if (!Slot_Es_Muerto(Fecha, Hora)) return;
         const Clave = Clave_Slot(Fecha, Hora);
         const Nombre_Actual =
           Obtener_Nombre_Slot_Por_Clave(Clave);

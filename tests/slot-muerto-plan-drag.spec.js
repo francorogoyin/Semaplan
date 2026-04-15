@@ -604,6 +604,64 @@ test("el menu contextual puede limpiar un slot vacio con residuos", async ({
   expect(data.ui_marca_plan).toBeFalsy();
 });
 
+test("un slot vacio no muestra ni permite titulos residuales", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Slots_Muertos = [];
+  estado.Planes_Slot = {};
+  estado.Slots_Muertos_Tipos = {
+    "2026-04-13|12": "Comida"
+  };
+  estado.Slots_Muertos_Nombres = {
+    "2026-04-13|12": "Titulo residual"
+  };
+  estado.Slots_Muertos_Titulos_Visibles = {
+    "2026-04-13|12": true
+  };
+  estado.Slots_Muertos_Nombres_Auto = {
+    "2026-04-13|12": false
+  };
+
+  await preparar(page, estado);
+
+  const slot = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+  );
+  await expect(
+    slot.locator(".Slot_Muerto_Nombre")
+  ).toHaveCount(0);
+
+  await slot.click({ button: "right" });
+  await expect(
+    page.locator(
+      '#Dia_Accion_Menu [data-acc="editar-nombre-slot"]'
+    )
+  ).toHaveCount(0);
+  await expect(
+    page.locator(
+      '#Dia_Accion_Menu [data-acc="toggle-titulo-slot"]'
+    )
+  ).toHaveCount(0);
+
+  const data = await page.evaluate(() => ({
+    es_muerto: Slots_Muertos.includes("2026-04-13|12"),
+    titulo: Slots_Muertos_Nombres["2026-04-13|12"] || "",
+    visible: Boolean(
+      Slots_Muertos_Titulos_Visibles["2026-04-13|12"]
+    ),
+    titulo_visible: Obtener_Nombre_Slot_Visible(
+      "2026-04-13",
+      12
+    )
+  }));
+
+  expect(data.es_muerto).toBeFalsy();
+  expect(data.titulo).toBe("");
+  expect(data.visible).toBeFalsy();
+  expect(data.titulo_visible).toBe("");
+});
+
 test("el menu contextual puede limpiar un bloque y la celda debajo", async ({
   page
 }) => {
@@ -646,6 +704,51 @@ test("el menu contextual puede limpiar un bloque y la celda debajo", async ({
   expect(data.titulo).toBe("");
   expect(data.plan).toBe(0);
   expect(data.bloque_ui).toBeFalsy();
+});
+
+test("un bloque no renderiza titulos de slot muerto superpuesto", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Eventos = [
+    {
+      Id: "ev_superpuesto",
+      Objetivo_Id: null,
+      Fecha: "2026-04-13",
+      Inicio: 10,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f"
+    }
+  ];
+
+  await preparar(page, estado);
+
+  const data = await page.evaluate(() => ({
+    titulo_visible: Obtener_Nombre_Slot_Visible(
+      "2026-04-13",
+      10
+    ),
+    tiene_titulo: Slot_Muerto_Tiene_Titulo(
+      "2026-04-13",
+      10
+    ),
+    ui_titulo:
+      document.querySelector(
+        '.Slot[data-fecha="2026-04-13"][data-hora="10"] ' +
+        ".Slot_Muerto_Nombre"
+      )?.textContent || "",
+    texto_bloque:
+      document.querySelector(
+        '.Evento[data-id="ev_superpuesto"]'
+      )?.textContent || ""
+  }));
+
+  expect(data.titulo_visible).toBe("");
+  expect(data.tiene_titulo).toBeFalsy();
+  expect(data.ui_titulo).toBe("");
+  expect(data.texto_bloque).not.toContain("Almuerzo largo");
 });
 
 test("resize personalizado expande y recorta una franja de slot muerto", async ({
