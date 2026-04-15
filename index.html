@@ -21119,6 +21119,8 @@
       let Slots_Muertos_Titulos_Visibles = {};
       // Mapea clave de slot → si el nombre viene del tipo.
       let Slots_Muertos_Nombres_Auto = {};
+      // Mapea clave de slot → grupo persistente de franja.
+      let Slots_Muertos_Grupo_Ids = {};
       // Tipos de slot personalizables. Cada uno:
       // { Id: string, Nombre: string, Color: string }
       let Tipos_Slot = [];
@@ -30059,6 +30061,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slots_Muertos_Nombres_Auto: JSON.parse(
             JSON.stringify(Slots_Muertos_Nombres_Auto)
           ),
+          Slots_Muertos_Grupo_Ids: JSON.parse(
+            JSON.stringify(Slots_Muertos_Grupo_Ids)
+          ),
           Tipos_Slot: JSON.parse(
             JSON.stringify(Tipos_Slot)
           ),
@@ -30318,6 +30323,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           Slots_Muertos_Nombres_Auto = {};
         }
+        if (
+          Snap.Slots_Muertos_Grupo_Ids &&
+          typeof Snap.Slots_Muertos_Grupo_Ids ===
+            "object"
+        ) {
+          Slots_Muertos_Grupo_Ids =
+            Snap.Slots_Muertos_Grupo_Ids;
+        } else {
+          Slots_Muertos_Grupo_Ids = {};
+        }
         if (Array.isArray(Snap.Tipos_Slot)) {
           Tipos_Slot = Clonar_Tipos_Slot_Base(
             Snap.Tipos_Slot
@@ -30326,6 +30341,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Tipos_Slot_Inicializados = Boolean(
           Snap.Tipos_Slot_Inicializados
         );
+        Normalizar_Grupo_Ids_Slots_Muertos();
         Normalizar_Metadata_Titulos_Slots_Muertos();
         Etiquetas_Archivero =
           Normalizar_Etiquetas_Archivero(
@@ -35507,6 +35523,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Hora
         );
         if (!Franja) return;
+        Asegurar_Grupo_Id_Franja_Slot(Franja);
         const Slots_Origen = Franja.Horas.map((Hora_Item) => ({
           Hora: Hora_Item,
           Datos: Capturar_Datos_Slot_Muerto(
@@ -35528,11 +35545,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
             .find(Boolean);
           if (Motivo) return;
+          const Grupo_Id_Destino =
+            Crear_Id_Grupo_Slot_Muerto();
           Slots_Origen.forEach((Slot_Origen) => {
             Aplicar_Datos_Slot_Muerto(
               Fecha_Destino,
               Slot_Origen.Hora,
-              Slot_Origen.Datos,
+              {
+                ...Slot_Origen.Datos,
+                Grupo_Id: Grupo_Id_Destino
+              },
               true
             );
           });
@@ -39796,6 +39818,57 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         )}`;
       }
 
+      function Crear_Id_Grupo_Slot_Muerto() {
+        return `Slot_Grupo_${Date.now()}_${Math.floor(
+          Math.random() * 1000
+        )}`;
+      }
+
+      function Obtener_Grupo_Id_Slot_Muerto_Clave(Clave) {
+        return String(
+          Slots_Muertos_Grupo_Ids[Clave] || ""
+        ).trim();
+      }
+
+      function Guardar_Grupo_Id_Slot_Muerto(
+        Clave,
+        Grupo_Id = ""
+      ) {
+        const Valor = String(Grupo_Id || "").trim();
+        if (!Valor) {
+          delete Slots_Muertos_Grupo_Ids[Clave];
+          return "";
+        }
+        Slots_Muertos_Grupo_Ids[Clave] = Valor;
+        return Valor;
+      }
+
+      function Asegurar_Grupo_Id_Slot_Muerto_Clave(
+        Clave,
+        Grupo_Id = null
+      ) {
+        return Guardar_Grupo_Id_Slot_Muerto(
+          Clave,
+          Grupo_Id ||
+            Obtener_Grupo_Id_Slot_Muerto_Clave(Clave) ||
+            Crear_Id_Grupo_Slot_Muerto()
+        );
+      }
+
+      function Normalizar_Grupo_Ids_Slots_Muertos() {
+        Object.keys(Slots_Muertos_Grupo_Ids).forEach((Clave) => {
+          if (!Slots_Muertos.includes(Clave)) {
+            delete Slots_Muertos_Grupo_Ids[Clave];
+            return;
+          }
+          const Grupo_Id =
+            Obtener_Grupo_Id_Slot_Muerto_Clave(Clave);
+          if (!Grupo_Id) {
+            delete Slots_Muertos_Grupo_Ids[Clave];
+          }
+        });
+      }
+
       function Duplicar_Items_Plan_Slot(
         Items_Base = [],
         Regenerar_Ids = false
@@ -39921,13 +39994,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Perfil_A.Plan_Firma === Perfil_B.Plan_Firma;
       }
 
+      function Slot_Muerto_Es_Misma_Franja(
+        Fecha_A,
+        Hora_A,
+        Fecha_B,
+        Hora_B
+      ) {
+        if (!Slot_Es_Muerto(Fecha_B, Hora_B)) return false;
+        const Grupo_A = Obtener_Grupo_Id_Slot_Muerto_Clave(
+          Clave_Slot(Fecha_A, Hora_A)
+        );
+        const Grupo_B = Obtener_Grupo_Id_Slot_Muerto_Clave(
+          Clave_Slot(Fecha_B, Hora_B)
+        );
+        if (Grupo_A || Grupo_B) {
+          return Boolean(Grupo_A && Grupo_A === Grupo_B);
+        }
+        return Slot_Muerto_Tiene_Mismo_Perfil(
+          Fecha_A,
+          Hora_A,
+          Fecha_B,
+          Hora_B
+        );
+      }
+
       function Obtener_Franja_Slot_Muerto(Fecha, Hora) {
         if (!Slot_Es_Muerto(Fecha, Hora)) return null;
         let Inicio = Hora;
         let Fin = Hora + 1;
         while (
           Inicio > Config.Inicio_Hora &&
-          Slot_Muerto_Tiene_Mismo_Perfil(
+          Slot_Muerto_Es_Misma_Franja(
             Fecha,
             Hora,
             Fecha,
@@ -39938,7 +40035,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         while (
           Fin < Config.Fin_Hora &&
-          Slot_Muerto_Tiene_Mismo_Perfil(
+          Slot_Muerto_Es_Misma_Franja(
             Fecha,
             Hora,
             Fecha,
@@ -39967,10 +40064,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Asegurar_Grupo_Id_Franja_Slot(
+        Franja,
+        Grupo_Id = null
+      ) {
+        const Claves = Array.isArray(Franja?.Claves)
+          ? Franja.Claves
+          : [];
+        if (Claves.length === 0) return "";
+        const Grupo_Final = String(
+          Grupo_Id ||
+          Claves
+            .map((Clave) =>
+              Obtener_Grupo_Id_Slot_Muerto_Clave(Clave)
+            )
+            .find(Boolean) ||
+          Crear_Id_Grupo_Slot_Muerto()
+        ).trim();
+        Claves.forEach((Clave) => {
+          Asegurar_Grupo_Id_Slot_Muerto_Clave(
+            Clave,
+            Grupo_Final
+          );
+        });
+        return Grupo_Final;
+      }
+
       function Capturar_Datos_Slot_Muerto(Fecha, Hora) {
         const Clave = Clave_Slot(Fecha, Hora);
         const Plan = Obtener_Plan_Slot(Fecha, Hora, false);
         return {
+          Grupo_Id: Obtener_Grupo_Id_Slot_Muerto_Clave(
+            Clave
+          ),
           Tipo_Id:
             Slots_Muertos_Tipos[Clave] ||
             Obtener_Aplica_A_Slot(Fecha, Hora),
@@ -40058,6 +40184,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Limpiar_Metadata_Slot_Muerto(Clave) {
         delete Slots_Muertos_Tipos[Clave];
+        delete Slots_Muertos_Grupo_Ids[Clave];
         Limpiar_Nombre_Slot_Muerto(Clave);
       }
 
@@ -40148,6 +40275,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Normalizar_Metadata_Titulos_Slots_Muertos() {
+        Normalizar_Grupo_Ids_Slots_Muertos();
         Object.keys(Slots_Muertos_Titulos_Visibles)
           .forEach((Clave) => {
             if (!Obtener_Nombre_Slot_Por_Clave(Clave)) {
@@ -40426,6 +40554,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return false;
         }
         if (!Franja) return false;
+        const Grupo_Id_Franja =
+          Asegurar_Grupo_Id_Franja_Slot(Franja);
         const Motivo_Conflicto =
           Obtener_Motivo_Conflicto_Traslado_Franja_Slot(
             Franja,
@@ -40456,10 +40586,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Fecha_Destino,
               Hora_Final
             ),
-            Datos: Capturar_Datos_Slot_Muerto(
-              Fecha_Origen,
-              Hora_Item
-            )
+            Datos: {
+              ...Capturar_Datos_Slot_Muerto(
+                Fecha_Origen,
+                Hora_Item
+              ),
+              Grupo_Id: Grupo_Id_Franja
+            }
           };
         });
         const Mapa_Claves = new Map(
@@ -40649,7 +40782,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Fecha,
         Hora,
         Tipo_Id,
-        Aplicar_Titulo = true
+        Aplicar_Titulo = true,
+        Grupo_Id = null
       ) {
         const Clave = Clave_Slot(Fecha, Hora);
         const Ya_Existia = Slots_Muertos.includes(Clave);
@@ -40657,6 +40791,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slots_Muertos.push(Clave);
         }
         Slots_Muertos_Tipos[Clave] = Tipo_Id;
+        Asegurar_Grupo_Id_Slot_Muerto_Clave(
+          Clave,
+          Grupo_Id
+        );
         if (!Ya_Existia && Aplicar_Titulo) {
           Aplicar_Titulo_Por_Defecto_Slot(
             Clave,
@@ -40676,7 +40814,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fecha,
           Hora,
           Datos?.Tipo_Id || "Sueno",
-          false
+          false,
+          Datos?.Grupo_Id || null
         );
         if (Datos?.Nombre) {
           Guardar_Nombre_Slot_Muerto(
@@ -41829,11 +41968,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           alert(Eval.Motivo);
           return false;
         }
+        const Mapa_Grupo_Ids = new Map();
         Propuesta.forEach((Item) => {
+          const Grupo_Origen = String(
+            Item?.Datos?.Grupo_Id || ""
+          ).trim();
+          let Grupo_Id = "";
+          if (Grupo_Origen) {
+            if (!Mapa_Grupo_Ids.has(Grupo_Origen)) {
+              Mapa_Grupo_Ids.set(
+                Grupo_Origen,
+                Crear_Id_Grupo_Slot_Muerto()
+              );
+            }
+            Grupo_Id = Mapa_Grupo_Ids.get(Grupo_Origen);
+          }
           Aplicar_Datos_Slot_Muerto(
             Item.Fecha,
             Item.Hora,
-            Item.Datos,
+            {
+              ...Item.Datos,
+              Grupo_Id: Grupo_Id || null
+            },
             true
           );
         });
@@ -42692,6 +42848,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slots_Muertos_Nombres,
           Slots_Muertos_Titulos_Visibles,
           Slots_Muertos_Nombres_Auto,
+          Slots_Muertos_Grupo_Ids,
           Abordajes_Migrados_V1: true,
           Semanas_Con_Defaults: Array.from(Semanas_Con_Defaults),
           Planes_Semana
@@ -43025,6 +43182,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           } else {
             Slots_Muertos_Nombres_Auto = {};
           }
+          if (
+            Estado.Slots_Muertos_Grupo_Ids &&
+            typeof Estado.Slots_Muertos_Grupo_Ids ===
+              "object"
+          ) {
+            Slots_Muertos_Grupo_Ids =
+              Estado.Slots_Muertos_Grupo_Ids;
+          } else {
+            Slots_Muertos_Grupo_Ids = {};
+          }
+          Normalizar_Grupo_Ids_Slots_Muertos();
           Normalizar_Metadata_Titulos_Slots_Muertos();
           if (Array.isArray(Estado.Categorias)) {
             Categorias = Estado.Categorias;
@@ -45657,10 +45825,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Hora
         );
         if (!Franja) return;
-        const Datos_Prototipo = Capturar_Datos_Slot_Muerto(
-          Fecha,
-          Hora
-        );
+        const Grupo_Id_Franja =
+          Asegurar_Grupo_Id_Franja_Slot(Franja);
+        const Datos_Prototipo = {
+          ...Capturar_Datos_Slot_Muerto(
+            Fecha,
+            Hora
+          ),
+          Grupo_Id: Grupo_Id_Franja
+        };
         const Y_Inicial = Mouse_Ev.clientY;
         const Fin_Inicial = Franja.Fin;
         const Snap_Resize = Capturar_Snapshot_Undo();

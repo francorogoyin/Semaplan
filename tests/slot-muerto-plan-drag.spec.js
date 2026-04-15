@@ -170,6 +170,9 @@ function estadoBase() {
     Slots_Muertos_Nombres_Auto: {
       "2026-04-13|10": false
     },
+    Slots_Muertos_Grupo_Ids: {
+      "2026-04-13|10": "grupo_10"
+    },
     Abordajes_Migrados_V1: true,
     Semanas_Con_Defaults: [],
     Planes_Semana: {}
@@ -327,6 +330,8 @@ test("arrastra una franja contigua de slots muertos", async ({
     true;
   estado.Slots_Muertos_Nombres_Auto["2026-04-13|11"] =
     false;
+  estado.Slots_Muertos_Grupo_Ids["2026-04-13|11"] =
+    "grupo_10";
 
   await preparar(page, estado);
   await arrastrarSlot(page, 10, 12);
@@ -352,6 +357,79 @@ test("arrastra una franja contigua de slots muertos", async ({
   expect(data.plan_13).toBe("Idea central");
   expect(data.titulo_12).toBe("Almuerzo largo");
   expect(data.titulo_13).toBe("Almuerzo largo");
+});
+
+test("slots iguales de grupos distintos no quedan fusionados tras recargar", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Slots_Muertos.push("2026-04-13|11");
+  estado.Planes_Slot["2026-04-13|11"] = {
+    Items: [
+      {
+        Id: "ps_2",
+        Texto: "Idea central",
+        Emoji: "*",
+        Estado: "Planeado"
+      }
+    ]
+  };
+  estado.Slots_Muertos_Tipos["2026-04-13|11"] = "Comida";
+  estado.Slots_Muertos_Nombres["2026-04-13|11"] =
+    "Almuerzo largo";
+  estado.Slots_Muertos_Titulos_Visibles["2026-04-13|11"] =
+    true;
+  estado.Slots_Muertos_Nombres_Auto["2026-04-13|11"] =
+    false;
+  estado.Slots_Muertos_Grupo_Ids["2026-04-13|11"] =
+    "grupo_11";
+
+  await preparar(page, estado);
+  await arrastrarSlot(page, 10, 12);
+
+  let data = await page.evaluate(() => ({
+    slot_11: Slots_Muertos.includes("2026-04-13|11"),
+    slot_12: Slots_Muertos.includes("2026-04-13|12"),
+    slot_13: Slots_Muertos.includes("2026-04-13|13"),
+    grupo_11:
+      Slots_Muertos_Grupo_Ids["2026-04-13|11"] || "",
+    grupo_12:
+      Slots_Muertos_Grupo_Ids["2026-04-13|12"] || ""
+  }));
+
+  expect(data.slot_11).toBeTruthy();
+  expect(data.slot_12).toBeTruthy();
+  expect(data.slot_13).toBeFalsy();
+  expect(data.grupo_11).toBe("grupo_11");
+  expect(data.grupo_12).toBe("grupo_10");
+
+  const estadoRecargado = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
+  );
+  const pageRecargada = await page.context().newPage();
+  await preparar(pageRecargada, estadoRecargado);
+
+  await arrastrarSlot(pageRecargada, 11, 13);
+
+  data = await pageRecargada.evaluate(() => ({
+    slot_11: Slots_Muertos.includes("2026-04-13|11"),
+    slot_12: Slots_Muertos.includes("2026-04-13|12"),
+    slot_13: Slots_Muertos.includes("2026-04-13|13"),
+    slot_14: Slots_Muertos.includes("2026-04-13|14"),
+    grupo_12:
+      Slots_Muertos_Grupo_Ids["2026-04-13|12"] || "",
+    grupo_13:
+      Slots_Muertos_Grupo_Ids["2026-04-13|13"] || ""
+  }));
+
+  await pageRecargada.close();
+
+  expect(data.slot_11).toBeFalsy();
+  expect(data.slot_12).toBeTruthy();
+  expect(data.slot_13).toBeTruthy();
+  expect(data.slot_14).toBeFalsy();
+  expect(data.grupo_12).toBe("grupo_10");
+  expect(data.grupo_13).toBe("grupo_11");
 });
 
 test("no pisa un horario ocupado al arrastrar slot muerto", async ({
