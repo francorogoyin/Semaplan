@@ -13,6 +13,7 @@ const {
 const App_Id = "com.semaplan.desktop";
 const Ruta_Icono = Path.join(
   app.getAppPath(),
+  "Aplicaciones",
   "Desktop",
   "Semaplan.ico"
 );

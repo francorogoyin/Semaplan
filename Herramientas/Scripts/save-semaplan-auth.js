@@ -2,7 +2,12 @@ const fs = require("fs");
 const path = require("path");
 const { chromium } = require("@playwright/test");
 
-const AUTH_DIR = path.join(process.cwd(), "playwright", ".auth");
+const AUTH_DIR = path.join(
+  process.cwd(),
+  "Pruebas",
+  "Playwright",
+  ".auth"
+);
 const AUTH_FILE = path.join(AUTH_DIR, "semaplan-patricio.json");
 const TARGET_URL = "https://semaplan.com";
 

@@ -5,7 +5,7 @@ const COMANDO_SERVIDOR = process.platform === "win32"
   : "python3 -m http.server 4173";
 
 module.exports = defineConfig({
-  testDir: "./tests",
+  testDir: "./Pruebas/Tests",
   timeout: 30000,
   expect: {
     timeout: 5000

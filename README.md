@@ -14,8 +14,8 @@ dispositivo.
    <https://supabase.com/dashboard>.
 2. En el menÃº lateral, click en **SQL Editor**.
 3. Click en **New query**.
-4. AbrÃ­ el archivo `Supabase_Schema.sql` que estÃ¡ en esta
-   carpeta, copiÃ¡ todo su contenido y pegalo en el editor.
+4. AbrÃ­ el archivo `supabase/Supabase_Schema.sql`, copiÃ¡
+   todo su contenido y pegalo en el editor.
 5. Click en **Run** (abajo a la derecha).
 6. Si todo saliÃ³ bien, verÃ¡s "Success. No rows returned."
 
@@ -37,9 +37,14 @@ y una contraseÃ±a, y listo.
 
 ## Estructura del proyecto
 
-- `index.html` â€” la app (HTML autocontenido)
+- `index.html` â€” la app web principal
 - `Semaplan.html` â€” redirect de compatibilidad
-- `Supabase_Schema.sql` â€” esquema de la base de datos
+- `Aplicaciones/` â€” wrappers y binarios auxiliares
+- `Documentacion/` â€” planes, auditorÃ­as y registros
+- `Herramientas/` â€” scripts de soporte
+- `Pruebas/` â€” tests y estado de Playwright
+- `supabase/` â€” configuraciÃ³n, funciones y esquema
+- `Local/` â€” archivos operativos no centrales
 - `README.md` â€” este archivo
 
 ## CÃ³mo funciona la sincronizaciÃ³n

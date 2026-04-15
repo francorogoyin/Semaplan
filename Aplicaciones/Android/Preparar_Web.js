@@ -1,9 +1,13 @@
 const fs = require("fs");
 const path = require("path");
 
-const RAIZ = path.resolve(__dirname, "..");
+const RAIZ = path.resolve(__dirname, "..", "..");
 const DESTINO = path.join(__dirname, "Web");
-const DESTINO_DESKTOP = path.join(DESTINO, "Desktop");
+const DESTINO_DESKTOP = path.join(
+  DESTINO,
+  "Aplicaciones",
+  "Desktop"
+);
 
 function Asegurar_Directorio(Ruta) {
   fs.mkdirSync(Ruta, { recursive: true });
@@ -20,7 +24,7 @@ Asegurar_Directorio(DESTINO);
 Asegurar_Directorio(DESTINO_DESKTOP);
 
 Copiar("index.html");
-Copiar("Desktop/Semaplan.ico");
-Copiar("Desktop/Semaplan.png");
+Copiar("Aplicaciones/Desktop/Semaplan.ico");
+Copiar("Aplicaciones/Desktop/Semaplan.png");
 
 console.log("Web Android preparada en:", DESTINO);
