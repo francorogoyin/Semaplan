@@ -129,6 +129,24 @@ test("muestra apps en config y descarga inactiva", async ({
     .toContainText("teléfono");
 });
 
+test("muestra iconos correctos en los botones de apps", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  const iconos = await page.evaluate(() => ({
+    desktop: document.querySelector(
+      "#Cfg_App_Desktop_Btn .Config_Dato_Btn_Icono"
+    )?.textContent?.trim() || "",
+    android: document.querySelector(
+      "#Cfg_App_Android_Btn .Config_Dato_Btn_Icono"
+    )?.textContent?.trim() || ""
+  }));
+
+  expect(iconos.desktop).toBe("\u{1F5A5}\uFE0F");
+  expect(iconos.android).toBe("\u{1F4F1}");
+});
+
 test("centra el contenido de los modales de apps", async ({
   page
 }) => {
