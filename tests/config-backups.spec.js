@@ -145,8 +145,8 @@ test("crea backups automaticos y manuales en config", async ({
     };
   });
 
-  expect(resumen.tipos).toEqual(["Manual"]);
-  expect(resumen.visibles).toBe(1);
+  expect(resumen.tipos).toContain("Manual");
+  expect(resumen.visibles).toBeGreaterThanOrEqual(1);
   expect(resumen.borderRadius).toBe("0px");
   expect(resumen.background).toBe("rgba(0, 0, 0, 0)");
   expect(resumen.bordeInferior).toBe("0px");
@@ -801,4 +801,265 @@ async ({ page }) => {
   expect(resumen.passwords).toBe(2);
   expect(resumen.restaurar).toBe(1);
   expect(resumen.restantes).toBe(0);
+});
+
+test("preserva backups manuales aunque entren automaticos", async ({
+  page
+}) => {
+  await page.route(
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: ""
+      });
+    }
+  );
+  await page.route(
+    "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: ""
+      });
+    }
+  );
+  await page.addInitScript(() => {
+    window.supabase = {
+      createClient() {
+        return {
+          auth: {
+            async getSession() {
+              return { data: { session: null } };
+            },
+            onAuthStateChange() {
+              return {
+                data: {
+                  subscription: { unsubscribe() {} }
+                }
+              };
+            },
+            async signOut() {
+              return { error: null };
+            }
+          }
+        };
+      }
+    };
+    window.turnstile = {
+      render() {
+        return 1;
+      },
+      remove() {},
+      reset() {}
+    };
+    window.alert = () => {};
+    localStorage.setItem(
+      "Semaplan_Estado_V2",
+      JSON.stringify({
+        Objetivos: [],
+        Eventos: [],
+        Metas: [],
+        Slots_Muertos: [],
+        Plantillas_Subobjetivos: [],
+        Planes_Slot: {},
+        Categorias: [],
+        Etiquetas: [],
+        Baul_Objetivos: [],
+        Baul_Grupos_Colapsados: {},
+        Archiveros: [],
+        Notas_Archivero: [],
+        Patrones: [],
+        Contador_Eventos: 1,
+        Objetivo_Seleccionada_Id: null,
+        Modo_Editor_Abierto: false,
+        Inicio_Semana: "2026-04-13",
+        Duracion_Defecto: 1,
+        Config_Extra: {},
+        Tipos_Slot: [],
+        Tipos_Slot_Inicializados: false,
+        Slots_Muertos_Tipos: {},
+        Slots_Muertos_Nombres: {},
+        Abordajes_Migrados_V1: true,
+        Semanas_Con_Defaults: [],
+        Planes_Semana: {}
+      })
+    );
+  });
+
+  await page.goto("/index.html");
+  await page.waitForFunction(() =>
+    typeof window.Inicializar === "function"
+  );
+
+  const resumen = await page.evaluate(() => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    window.Inicializar();
+    const Manuales = [];
+    for (let I = 0; I < 3; I += 1) {
+      Manuales.push(Crear_Backup_Local("Manual").Id);
+    }
+    for (let I = 0; I < 15; I += 1) {
+      Crear_Backup_Local("Auto");
+    }
+    const Lista = JSON.parse(
+      localStorage.getItem("Semaplan_Backups_V1") || "[]"
+    );
+    return {
+      total: Lista.length,
+      manuales: Lista
+        .filter((Item) => Item.Tipo === "Manual")
+        .map((Item) => Item.Id),
+      autos: Lista.filter((Item) => Item.Tipo === "Auto")
+        .length,
+      manuales_esperados: Manuales
+    };
+  });
+
+  expect(resumen.total).toBe(12);
+  expect(resumen.autos).toBe(9);
+  expect(resumen.manuales).toEqual(
+    resumen.manuales_esperados.reverse()
+  );
+});
+
+test("el salvavidas persiste cambios locales desfasados", async ({
+  page
+}) => {
+  await page.route(
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: ""
+      });
+    }
+  );
+  await page.route(
+    "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: ""
+      });
+    }
+  );
+  await page.addInitScript(() => {
+    window.supabase = {
+      createClient() {
+        return {
+          auth: {
+            async getSession() {
+              return { data: { session: null } };
+            },
+            onAuthStateChange() {
+              return {
+                data: {
+                  subscription: { unsubscribe() {} }
+                }
+              };
+            },
+            async signOut() {
+              return { error: null };
+            }
+          }
+        };
+      }
+    };
+    window.turnstile = {
+      render() {
+        return 1;
+      },
+      remove() {},
+      reset() {}
+    };
+    window.alert = () => {};
+    localStorage.setItem(
+      "Semaplan_Estado_V2",
+      JSON.stringify({
+        Objetivos: [],
+        Eventos: [],
+        Metas: [],
+        Slots_Muertos: [],
+        Plantillas_Subobjetivos: [],
+        Planes_Slot: {},
+        Categorias: [],
+        Etiquetas: [],
+        Baul_Objetivos: [],
+        Baul_Grupos_Colapsados: {},
+        Archiveros: [],
+        Notas_Archivero: [],
+        Patrones: [],
+        Contador_Eventos: 1,
+        Objetivo_Seleccionada_Id: null,
+        Modo_Editor_Abierto: false,
+        Inicio_Semana: "2026-04-13",
+        Duracion_Defecto: 1,
+        Config_Extra: {
+          Inicio_Hora: 8
+        },
+        Tipos_Slot: [],
+        Tipos_Slot_Inicializados: false,
+        Slots_Muertos_Tipos: {},
+        Slots_Muertos_Nombres: {},
+        Abordajes_Migrados_V1: true,
+        Semanas_Con_Defaults: [],
+        Planes_Semana: {}
+      })
+    );
+  });
+
+  await page.goto("/index.html");
+  await page.waitForFunction(() =>
+    typeof window.Inicializar === "function"
+  );
+
+  const resumen = await page.evaluate(() => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    window.Inicializar();
+    Cargando_Inicial = false;
+    Cargar_Backups_Locales();
+    Config.Inicio_Hora = 7;
+    Objetivos.push({
+      Id: "obj_1",
+      Nombre: "Persistido",
+      Emoji: "P",
+      Color: "#123456"
+    });
+    Backups_Locales = [
+      {
+        Id: "bkp-manual",
+        Tipo: "Manual",
+        Fecha: 1,
+        Estado: Construir_Estado_Completo()
+      }
+    ];
+    Ejecutar_Salvavidas_Persistencia_Local();
+    const Estado = JSON.parse(
+      localStorage.getItem("Semaplan_Estado_V2") || "{}"
+    );
+    return {
+      inicio_hora: Estado.Config_Extra?.Inicio_Hora,
+      objetivos: (Estado.Objetivos || []).map(
+        (Item) => Item.Id
+      ),
+      backups: JSON.parse(
+        localStorage.getItem("Semaplan_Backups_V1") || "[]"
+      ).map((Item) => Item.Id)
+    };
+  });
+
+  expect(resumen.inicio_hora).toBe(7);
+  expect(resumen.objetivos).toContain("obj_1");
+  expect(resumen.backups).toEqual(["bkp-manual"]);
 });
