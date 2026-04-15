@@ -920,6 +920,40 @@
         flex: 1 1 auto;
       }
 
+      .Calendario_Multi_Acciones {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 12px 8px 4px;
+        border-top: 1px solid var(--Borde);
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.92),
+            rgba(255, 255, 255, 0.76)
+          );
+      }
+
+      .Calendario_Multi_Acciones.Activa {
+        display: flex;
+      }
+
+      .Calendario_Seleccion_Rectangulo {
+        display: none;
+        position: fixed;
+        border: 1px dashed var(--Acento);
+        background: rgba(15, 95, 90, 0.12);
+        border-radius: 12px;
+        pointer-events: none;
+        z-index: 9400;
+      }
+
+      .Calendario_Seleccion_Rectangulo.Activo {
+        display: block;
+      }
+
       .Calendario_Grid {
         display: grid;
         grid-template-columns: 62px repeat(7, minmax(0, 1fr));
@@ -6975,6 +7009,14 @@
         border-left: 0;
       }
 
+      .Evento.Multi_Activa {
+        outline: 2px solid var(--Acento);
+        outline-offset: -2px;
+        box-shadow:
+          0 0 0 3px rgba(15, 95, 90, 0.16),
+          0 2px 8px rgba(0, 0, 0, 0.12);
+      }
+
       .Evento_Resize_Handle {
         position: absolute;
         left: 0;
@@ -11385,6 +11427,13 @@
         <div class="Calendario_Viewport">
           <div class="Calendario_Grid" id="Calendario_Grid"></div>
         </div>
+        <div class="Calendario_Multi_Acciones"
+          id="Calendario_Multi_Acciones">
+          <div class="Baul_Multi_Grupo"
+            id="Calendario_Multi_Grupo_Acciones"></div>
+          <span class="Baul_Multi_Conteo"
+            id="Calendario_Multi_Conteo"></span>
+        </div>
       </section>
     </div>
 
@@ -12580,6 +12629,8 @@
 
     <!-- Menú flotante de acción sobre encabezado de día -->
     <div class="Dia_Accion_Menu" id="Dia_Accion_Menu"></div>
+    <div class="Calendario_Seleccion_Rectangulo"
+      id="Calendario_Seleccion_Rectangulo"></div>
 
     <!-- Contenedor de toasts de deshacer (apilables) -->
     <div class="Undo_Contenedor" id="Undo_Contenedor"></div>
@@ -14201,6 +14252,38 @@
             "Sin subtareas",
           "dialog.esta_semana":
             "Esta semana",
+          "cal_multi.seleccion_n":
+            "{n} bloques seleccionados",
+          "cal_multi.tildar":
+            "Tildar",
+          "cal_multi.destildar":
+            "Destildar",
+          "cal_multi.borrar_confirm":
+            "¿Borrar {n} bloques seleccionados?",
+          "cal_multi.mover_prompt":
+            "¿Cómo querés mover los bloques seleccionados?",
+          "cal_multi.op_mas_1h":
+            "+1 h",
+          "cal_multi.op_menos_1h":
+            "-1 h",
+          "cal_multi.op_mas_1d":
+            "+1 día",
+          "cal_multi.op_menos_1d":
+            "-1 día",
+          "cal_multi.op_personalizado":
+            "Mover horas...",
+          "cal_multi.horas_prompt_mover":
+            "¿Cuántas horas querés moverlos?",
+          "cal_multi.pegar_bloques":
+            "Pegar bloques",
+          "cal_multi.pegar_prompt":
+            "Hay bloques en el medio. ¿Completar o reemplazar?",
+          "cal_multi.conflicto_visible":
+            "Ese bloque se sale del horario visible.",
+          "cal_multi.conflicto_bloqueado":
+            "Ese rango toca horas bloqueadas.",
+          "cal_multi.conflicto_ocupado":
+            "Ese horario ya está ocupado.",
           "emoji.caras":
             "Caras",
           "emoji.personas":
@@ -16516,6 +16599,38 @@
             "Without subtasks",
           "dialog.esta_semana":
             "This week",
+          "cal_multi.seleccion_n":
+            "{n} selected blocks",
+          "cal_multi.tildar":
+            "Check",
+          "cal_multi.destildar":
+            "Uncheck",
+          "cal_multi.borrar_confirm":
+            "Delete {n} selected blocks?",
+          "cal_multi.mover_prompt":
+            "How do you want to move the selected blocks?",
+          "cal_multi.op_mas_1h":
+            "+1 h",
+          "cal_multi.op_menos_1h":
+            "-1 h",
+          "cal_multi.op_mas_1d":
+            "+1 day",
+          "cal_multi.op_menos_1d":
+            "-1 day",
+          "cal_multi.op_personalizado":
+            "Move hours...",
+          "cal_multi.horas_prompt_mover":
+            "How many hours do you want to move them?",
+          "cal_multi.pegar_bloques":
+            "Paste blocks",
+          "cal_multi.pegar_prompt":
+            "There are blocks in between. Complete or replace?",
+          "cal_multi.conflicto_visible":
+            "That block goes outside the visible hours.",
+          "cal_multi.conflicto_bloqueado":
+            "That range touches blocked hours.",
+          "cal_multi.conflicto_ocupado":
+            "That time is already occupied.",
           "emoji.caras":
             "Faces",
           "emoji.personas":
@@ -18873,6 +18988,38 @@
             "Sem subtarefas",
           "dialog.esta_semana":
             "Esta semana",
+          "cal_multi.seleccion_n":
+            "{n} blocos selecionados",
+          "cal_multi.tildar":
+            "Marcar",
+          "cal_multi.destildar":
+            "Desmarcar",
+          "cal_multi.borrar_confirm":
+            "Apagar {n} blocos selecionados?",
+          "cal_multi.mover_prompt":
+            "Como você quer mover os blocos selecionados?",
+          "cal_multi.op_mas_1h":
+            "+1 h",
+          "cal_multi.op_menos_1h":
+            "-1 h",
+          "cal_multi.op_mas_1d":
+            "+1 dia",
+          "cal_multi.op_menos_1d":
+            "-1 dia",
+          "cal_multi.op_personalizado":
+            "Mover horas...",
+          "cal_multi.horas_prompt_mover":
+            "Quantas horas você quer movê-los?",
+          "cal_multi.pegar_bloques":
+            "Colar blocos",
+          "cal_multi.pegar_prompt":
+            "Há blocos no meio. Completar ou substituir?",
+          "cal_multi.conflicto_visible":
+            "Esse bloco sai do horário visível.",
+          "cal_multi.conflicto_bloqueado":
+            "Esse intervalo toca horas bloqueadas.",
+          "cal_multi.conflicto_ocupado":
+            "Esse horário já está ocupado.",
           "emoji.caras":
             "Rostos",
           "emoji.personas":
@@ -20607,6 +20754,12 @@
       // Multi-selección de tareas y subtareas.
       let Tareas_Multi_Seleccion = new Set();
       let Subtareas_Multi_Seleccion = new Set();
+      let Eventos_Multi_Seleccion = new Set();
+      let Portapapeles_Eventos_Multi = null;
+      let Calendario_Multi_Listeners_Inicializados = false;
+      let Calendario_Multi_Seleccion_Activa = false;
+      let Calendario_Multi_Seleccion_Inicio = null;
+      let Calendario_Multi_Seleccion_Base = new Set();
       // Pestaña y gráfico activos del resumen semanal.
       let Resumen_Sem_Pestana = "Tarea";
       let Resumen_Sem_Grafico = "Barras";
@@ -20792,6 +20945,22 @@
       const El_Creador_Contenido = document.getElementById("Creador_Contenido");
       const El_Ocultar_Creador = document.getElementById("Ocultar_Creador");
       const El_Calendario = document.getElementById("Calendario_Grid");
+      const El_Calendario_Viewport = document.querySelector(
+        ".Calendario_Viewport"
+      );
+      const El_Calendario_Multi_Acciones = document.getElementById(
+        "Calendario_Multi_Acciones"
+      );
+      const El_Calendario_Multi_Grupo = document.getElementById(
+        "Calendario_Multi_Grupo_Acciones"
+      );
+      const El_Calendario_Multi_Conteo = document.getElementById(
+        "Calendario_Multi_Conteo"
+      );
+      const El_Calendario_Seleccion_Rectangulo =
+        document.getElementById(
+          "Calendario_Seleccion_Rectangulo"
+        );
       const El_Nombre_Tarea = document.getElementById("Nombre_Tarea");
       const El_Emoji_Tarea = document.getElementById("Emoji_Tarea");
       const El_Color_Tarea = document.getElementById("Color_Tarea");
@@ -34848,6 +35017,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Mostrar_Menu_Slot(Fecha, Hora, X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         const Tiene_Plan = Contar_Items_Plan_Slot(Fecha, Hora) > 0;
+        const Puede_Pegar_Bloques =
+          Slot_Esta_Vacio(Fecha, Hora) &&
+          Array.isArray(Portapapeles_Eventos_Multi?.Items) &&
+          Portapapeles_Eventos_Multi.Items.length > 0;
         const Clave = Clave_Slot(Fecha, Hora);
         const Tipo_Slot =
           Slots_Muertos_Tipos[Clave] ||
@@ -34879,6 +35052,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           t("slot.editar_nombre") +
           `</button>` +
           `<button class="Dia_Accion_Item" type="button" data-acc="plan-slot">Plan</button>` +
+          (
+            Puede_Pegar_Bloques
+              ? `<button class="Dia_Accion_Item" ` +
+                `type="button" ` +
+                `data-acc="pegar-bloques-slot">` +
+                t("cal_multi.pegar_bloques") +
+                `</button>`
+              : ""
+          ) +
           `<button class="Dia_Accion_Item" type="button" data-acc="insertar-patron-slot">` +
           t("slot.insertar_patron") +
           `</button>`;
@@ -34929,6 +35111,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Abrir_Modal_Plan_Slot(Fecha, Hora);
+          });
+        Menu.querySelector(`[data-acc="pegar-bloques-slot"]`)
+          ?.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Pegar_Eventos_Multi_En_Slot(Fecha, Hora);
           });
         Menu.querySelector(`[data-acc="insertar-patron-slot"]`)
           ?.addEventListener("click", async (Ev) => {
@@ -39746,9 +39934,734 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       // --- Multi-selección: barra flotante ---
 
+      function Evento_Esta_Visible_En_Calendario(Evento) {
+        if (!Evento?.Fecha) return false;
+        return Boolean(
+          El_Calendario?.querySelector(
+            `.Dia_Columna[data-fecha="${Evento.Fecha}"]`
+          )
+        );
+      }
+
+      function Normalizar_Eventos_Multi_Seleccion() {
+        const Ids_Validos = new Set(
+          Eventos
+            .filter((Evento) =>
+              Evento_Esta_Visible_En_Calendario(Evento)
+            )
+            .map((Evento) => Evento.Id)
+        );
+        let Cambio = false;
+        Eventos_Multi_Seleccion.forEach((Id) => {
+          if (Ids_Validos.has(Id)) return;
+          Eventos_Multi_Seleccion.delete(Id);
+          Cambio = true;
+        });
+        return Cambio;
+      }
+
+      function Obtener_Eventos_Multi_Seleccionados_Ordenados(
+        Ids = null
+      ) {
+        const Ids_Set = new Set(
+          Array.isArray(Ids)
+            ? Ids
+            : Array.from(Eventos_Multi_Seleccion)
+        );
+        return Eventos
+          .filter((Evento) => Ids_Set.has(Evento.Id))
+          .sort((A, B) => {
+            if (A.Fecha !== B.Fecha) {
+              return A.Fecha < B.Fecha ? -1 : 1;
+            }
+            return (Number(A.Inicio) || 0) -
+              (Number(B.Inicio) || 0);
+          });
+      }
+
+      function Aplicar_Seleccion_Eventos_En_DOM() {
+        document.querySelectorAll(".Evento").forEach((Nodo) => {
+          const Id = Nodo.dataset.id || "";
+          Nodo.classList.toggle(
+            "Multi_Activa",
+            Eventos_Multi_Seleccion.has(Id)
+          );
+        });
+      }
+
+      function Limpiar_Multi_Seleccion_Eventos(
+        Renderizar = true
+      ) {
+        if (Eventos_Multi_Seleccion.size === 0) {
+          if (Renderizar) {
+            Render_Acciones_Multi_Calendario();
+          }
+          return;
+        }
+        Eventos_Multi_Seleccion.clear();
+        if (Renderizar) {
+          Aplicar_Seleccion_Eventos_En_DOM();
+          Render_Acciones_Multi_Calendario();
+        }
+      }
+
+      function Seleccionar_Evento_Calendario(
+        Evento_Id,
+        Opciones = {}
+      ) {
+        if (!Evento_Por_Id(Evento_Id)) return;
+        if (Boolean(Opciones.Alternar_Multi)) {
+          if (Eventos_Multi_Seleccion.has(Evento_Id)) {
+            Eventos_Multi_Seleccion.delete(Evento_Id);
+          } else {
+            Eventos_Multi_Seleccion.add(Evento_Id);
+          }
+        } else {
+          Eventos_Multi_Seleccion.clear();
+          Eventos_Multi_Seleccion.add(Evento_Id);
+        }
+        Aplicar_Seleccion_Eventos_En_DOM();
+        Render_Acciones_Multi_Calendario();
+      }
+
+      function Render_Acciones_Multi_Calendario() {
+        if (
+          !El_Calendario_Multi_Acciones ||
+          !El_Calendario_Multi_Grupo ||
+          !El_Calendario_Multi_Conteo
+        ) {
+          return;
+        }
+        Normalizar_Eventos_Multi_Seleccion();
+        const Cantidad = Eventos_Multi_Seleccion.size;
+        if (Cantidad === 0) {
+          El_Calendario_Multi_Acciones.classList.remove("Activa");
+          El_Calendario_Multi_Acciones.style.display = "none";
+          El_Calendario_Multi_Grupo.innerHTML = "";
+          El_Calendario_Multi_Conteo.textContent = "";
+          return;
+        }
+
+        El_Calendario_Multi_Grupo.innerHTML = "";
+        El_Calendario_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("borrar"),
+            () => {
+              Borrar_Eventos_Multi();
+            },
+            "Peligro"
+          )
+        );
+        El_Calendario_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("dialog.mover"),
+            () => {
+              Solicitar_Mover_Eventos_Multi();
+            }
+          )
+        );
+        El_Calendario_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("dialog.copiar"),
+            () => {
+              Copiar_Eventos_Multi_Seleccionados();
+            }
+          )
+        );
+        El_Calendario_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("cal_multi.tildar"),
+            () => {
+              Marcar_Eventos_Multi(true);
+            }
+          )
+        );
+        El_Calendario_Multi_Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("cal_multi.destildar"),
+            () => {
+              Marcar_Eventos_Multi(false);
+            }
+          )
+        );
+        El_Calendario_Multi_Conteo.textContent = t(
+          "cal_multi.seleccion_n",
+          { n: Cantidad }
+        );
+        El_Calendario_Multi_Acciones.style.display = "";
+        El_Calendario_Multi_Acciones.classList.add("Activa");
+      }
+
+      function Desplazar_Fecha_ISO(
+        Fecha_ISO,
+        Dias_Delta
+      ) {
+        const Fecha = Parsear_Fecha_ISO(Fecha_ISO);
+        if (!Fecha) return Fecha_ISO;
+        return Formatear_Fecha_ISO(
+          Sumar_Dias(Fecha, Dias_Delta)
+        );
+      }
+
+      function Construir_Propuesta_Eventos_Multi(
+        Eventos_Base,
+        Dias_Delta,
+        Horas_Delta,
+        Resetear_Estado = false
+      ) {
+        return (Eventos_Base || []).map((Evento) => ({
+          Evento,
+          Fecha: Desplazar_Fecha_ISO(
+            Evento.Fecha,
+            Dias_Delta
+          ),
+          Inicio: (Number(Evento.Inicio) || 0) + Horas_Delta,
+          Duracion: Number(Evento.Duracion) || 0,
+          Tarea_Id: Evento.Tarea_Id,
+          Color: Evento.Color || null,
+          Nota: Evento.Nota || "",
+          Hecho: Resetear_Estado ? false : Boolean(Evento.Hecho),
+          Anulada: Resetear_Estado
+            ? false
+            : Boolean(Evento.Anulada),
+          Conflictos_Ids: []
+        }));
+      }
+
+      function Evaluar_Propuesta_Eventos_Multi(
+        Propuesta,
+        Evento_Ids_Omitir = []
+      ) {
+        const Ids_Omitir = new Set(Evento_Ids_Omitir);
+        const Conflictos = new Set();
+        (Propuesta || []).forEach((Item) => {
+          Item.Conflictos_Ids = [];
+        });
+        for (let I = 0; I < (Propuesta || []).length; I++) {
+          const Item = Propuesta[I];
+          const Fin = Item.Inicio + Item.Duracion;
+          if (
+            Item.Inicio < Config.Inicio_Hora ||
+            Fin > Config.Fin_Hora + 0.0001
+          ) {
+            return {
+              Motivo: t("cal_multi.conflicto_visible"),
+              Conflictos_Ids: []
+            };
+          }
+          if (
+            Evento_Cae_En_Slot_Muerto(
+              Item.Fecha,
+              Item.Inicio,
+              Item.Duracion
+            )
+          ) {
+            return {
+              Motivo: t("cal_multi.conflicto_bloqueado"),
+              Conflictos_Ids: []
+            };
+          }
+          for (let J = I + 1; J < Propuesta.length; J++) {
+            const Otro = Propuesta[J];
+            if (Item.Fecha !== Otro.Fecha) continue;
+            if (
+              Rangos_Horarios_Se_Solapan(
+                Item.Inicio,
+                Item.Duracion,
+                Otro.Inicio,
+                Otro.Duracion
+              )
+            ) {
+              return {
+                Motivo: t("cal_multi.conflicto_ocupado"),
+                Conflictos_Ids: []
+              };
+            }
+          }
+        }
+
+        Eventos.forEach((Otro) => {
+          if (Ids_Omitir.has(Otro.Id)) return;
+          Propuesta.forEach((Item) => {
+            if (Item.Fecha !== Otro.Fecha) return;
+            if (
+              !Rangos_Horarios_Se_Solapan(
+                Item.Inicio,
+                Item.Duracion,
+                Otro.Inicio,
+                Otro.Duracion
+              )
+            ) {
+              return;
+            }
+            Item.Conflictos_Ids.push(Otro.Id);
+            Conflictos.add(Otro.Id);
+          });
+        });
+
+        return {
+          Motivo: "",
+          Conflictos_Ids: Array.from(Conflictos)
+        };
+      }
+
+      function Marcar_Eventos_Multi(Hecho) {
+        const Lista = Obtener_Eventos_Multi_Seleccionados_Ordenados();
+        if (!Lista.length) return;
+        Lista.forEach((Evento) => {
+          Evento.Hecho = Boolean(Hecho);
+          if (Evento.Hecho) {
+            Evento.Anulada = false;
+          }
+        });
+        Render_Emojis();
+        Render_Resumen_Tarea();
+        Render_Editor();
+        Render_Eventos();
+        Guardar_Estado();
+      }
+
+      async function Borrar_Eventos_Multi() {
+        const Ids = Array.from(Eventos_Multi_Seleccion);
+        if (!Ids.length) return;
+        const Confirmar = await Mostrar_Dialogo(
+          t("cal_multi.borrar_confirm", { n: Ids.length }),
+          [
+            {
+              Etiqueta: t("borrar"),
+              Valor: true,
+              Tipo: "Peligro"
+            },
+            {
+              Etiqueta: t("cancelar"),
+              Valor: false,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
+        if (!Confirmar) return;
+        Eventos = Eventos.filter((Evento) =>
+          !Eventos_Multi_Seleccion.has(Evento.Id)
+        );
+        Eventos_Multi_Seleccion.clear();
+        Render_Emojis();
+        Render_Resumen_Tarea();
+        Render_Editor();
+        Render_Eventos();
+        Guardar_Estado();
+      }
+
+      function Mover_Eventos_Multi_Por_Delta(
+        Dias_Delta,
+        Horas_Delta
+      ) {
+        const Lista = Obtener_Eventos_Multi_Seleccionados_Ordenados();
+        if (!Lista.length) return false;
+        const Propuesta = Construir_Propuesta_Eventos_Multi(
+          Lista,
+          Dias_Delta,
+          Horas_Delta
+        );
+        const Eval = Evaluar_Propuesta_Eventos_Multi(
+          Propuesta,
+          Lista.map((Evento) => Evento.Id)
+        );
+        if (Eval.Motivo || Eval.Conflictos_Ids.length > 0) {
+          alert(
+            Eval.Motivo || t("cal_multi.conflicto_ocupado")
+          );
+          return false;
+        }
+        Propuesta.forEach((Item) => {
+          Item.Evento.Fecha = Item.Fecha;
+          Item.Evento.Inicio = Item.Inicio;
+        });
+        Render_Emojis();
+        Render_Resumen_Tarea();
+        Render_Editor();
+        Render_Eventos();
+        Guardar_Estado();
+        return true;
+      }
+
+      async function Solicitar_Mover_Eventos_Multi() {
+        if (Eventos_Multi_Seleccion.size === 0) return;
+        const Opcion = await Mostrar_Dialogo(
+          t("cal_multi.mover_prompt"),
+          [
+            {
+              Etiqueta: t("cal_multi.op_mas_1h"),
+              Valor: "Mas_1h",
+              Tipo: "Primario"
+            },
+            {
+              Etiqueta: t("cal_multi.op_menos_1h"),
+              Valor: "Menos_1h",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("cal_multi.op_mas_1d"),
+              Valor: "Mas_1d",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("cal_multi.op_menos_1d"),
+              Valor: "Menos_1d",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("cal_multi.op_personalizado"),
+              Valor: "Custom",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("cancelar"),
+              Valor: null,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
+        if (!Opcion) return;
+        if (Opcion === "Mas_1h") {
+          Mover_Eventos_Multi_Por_Delta(0, 1);
+          return;
+        }
+        if (Opcion === "Menos_1h") {
+          Mover_Eventos_Multi_Por_Delta(0, -1);
+          return;
+        }
+        if (Opcion === "Mas_1d") {
+          Mover_Eventos_Multi_Por_Delta(1, 0);
+          return;
+        }
+        if (Opcion === "Menos_1d") {
+          Mover_Eventos_Multi_Por_Delta(-1, 0);
+          return;
+        }
+        const Valor = await Mostrar_Dialogo_Con_Texto(
+          t("cal_multi.horas_prompt_mover"),
+          {
+            Placeholder: "2",
+            Etiqueta_Confirmar: t("dialog.mover"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (Valor == null) return;
+        const Horas = Number(String(Valor).replace(",", "."));
+        if (!Number.isFinite(Horas) || Horas === 0) return;
+        Mover_Eventos_Multi_Por_Delta(0, Horas);
+      }
+
+      function Copiar_Eventos_Multi_Seleccionados() {
+        const Lista = Obtener_Eventos_Multi_Seleccionados_Ordenados();
+        if (!Lista.length) return false;
+        const Ancla = Lista[0];
+        const Fecha_Ancla = Parsear_Fecha_ISO(Ancla.Fecha);
+        Portapapeles_Eventos_Multi = {
+          Items: Lista.map((Evento) => ({
+            Tarea_Id: Evento.Tarea_Id,
+            Delta_Dias: Dias_Entre(
+              Fecha_Ancla,
+              Parsear_Fecha_ISO(Evento.Fecha)
+            ),
+            Delta_Horas:
+              (Number(Evento.Inicio) || 0) -
+              (Number(Ancla.Inicio) || 0),
+            Duracion: Number(Evento.Duracion) || 0,
+            Color: Evento.Color || null,
+            Nota: Evento.Nota || ""
+          }))
+        };
+        Render_Acciones_Multi_Calendario();
+        return true;
+      }
+
+      function Construir_Propuesta_Pegado_Eventos_Multi(
+        Fecha,
+        Hora
+      ) {
+        const Items = Array.isArray(
+          Portapapeles_Eventos_Multi?.Items
+        )
+          ? Portapapeles_Eventos_Multi.Items
+          : [];
+        return Items.map((Item) => ({
+          Fecha: Desplazar_Fecha_ISO(
+            Fecha,
+            Number(Item.Delta_Dias) || 0
+          ),
+          Inicio: Hora + (Number(Item.Delta_Horas) || 0),
+          Duracion: Number(Item.Duracion) || 0,
+          Tarea_Id: Item.Tarea_Id,
+          Color: Item.Color || null,
+          Nota: Item.Nota || "",
+          Conflictos_Ids: []
+        }));
+      }
+
+      async function Pegar_Eventos_Multi_En_Slot(
+        Fecha,
+        Hora
+      ) {
+        if (!Slot_Esta_Vacio(Fecha, Hora)) return false;
+        const Propuesta = Construir_Propuesta_Pegado_Eventos_Multi(
+          Fecha,
+          Hora
+        );
+        if (!Propuesta.length) return false;
+        const Eval = Evaluar_Propuesta_Eventos_Multi(Propuesta);
+        if (Eval.Motivo) {
+          alert(Eval.Motivo);
+          return false;
+        }
+
+        let Modo = "Completar";
+        if (Eval.Conflictos_Ids.length > 0) {
+          Modo = await Mostrar_Dialogo(
+            t("cal_multi.pegar_prompt"),
+            [
+              {
+                Etiqueta: t("dialog.completar_falta"),
+                Valor: "Completar",
+                Tipo: "Primario"
+              },
+              {
+                Etiqueta: t("dialog.reemplazar_todo"),
+                Valor: "Reemplazar",
+                Tipo: "Peligro"
+              },
+              {
+                Etiqueta: t("cancelar"),
+                Valor: null,
+                Tipo: "Cancelar"
+              }
+            ]
+          );
+          if (!Modo) return false;
+        }
+
+        if (Modo === "Reemplazar" && Eval.Conflictos_Ids.length > 0) {
+          const Reemplazos = new Set(Eval.Conflictos_Ids);
+          Eventos = Eventos.filter(
+            (Evento) => !Reemplazos.has(Evento.Id)
+          );
+        }
+
+        const Nuevos_Ids = [];
+        Propuesta.forEach((Item) => {
+          if (
+            Modo === "Completar" &&
+            Item.Conflictos_Ids.length > 0
+          ) {
+            return;
+          }
+          const Tarea = Tarea_Por_Id(Item.Tarea_Id);
+          if (Tarea?.Es_Bolsa) {
+            const Restantes = Calcular_Horas_Restantes(Tarea);
+            if (Restantes < Item.Duracion) return;
+          }
+          const Nuevo_Id = `Evento_${Contador_Eventos++}`;
+          Eventos.push({
+            Id: Nuevo_Id,
+            Tarea_Id: Item.Tarea_Id,
+            Fecha: Item.Fecha,
+            Inicio: Item.Inicio,
+            Duracion: Item.Duracion,
+            Hecho: false,
+            Anulada: false,
+            Color: Item.Color,
+            ...(Item.Nota ? { Nota: Item.Nota } : {})
+          });
+          Nuevos_Ids.push(Nuevo_Id);
+        });
+        Eventos_Multi_Seleccion = new Set(Nuevos_Ids);
+        Render_Emojis();
+        Render_Resumen_Tarea();
+        Render_Editor();
+        Render_Eventos();
+        Guardar_Estado();
+        return Nuevos_Ids.length > 0;
+      }
+
+      function Configurar_Seleccion_Multi_Calendario() {
+        if (
+          Calendario_Multi_Listeners_Inicializados ||
+          !El_Calendario_Viewport
+        ) {
+          return;
+        }
+        Calendario_Multi_Listeners_Inicializados = true;
+
+        const Ocultar_Rectangulo = () => {
+          Calendario_Multi_Seleccion_Activa = false;
+          if (!El_Calendario_Seleccion_Rectangulo) return;
+          El_Calendario_Seleccion_Rectangulo.classList.remove(
+            "Activo"
+          );
+          El_Calendario_Seleccion_Rectangulo.style.width = "0px";
+          El_Calendario_Seleccion_Rectangulo.style.height = "0px";
+        };
+
+        const Actualizar_Rectangulo = (Rect) => {
+          if (!El_Calendario_Seleccion_Rectangulo) return;
+          El_Calendario_Seleccion_Rectangulo.style.left =
+            `${Rect.left}px`;
+          El_Calendario_Seleccion_Rectangulo.style.top =
+            `${Rect.top}px`;
+          El_Calendario_Seleccion_Rectangulo.style.width =
+            `${Rect.width}px`;
+          El_Calendario_Seleccion_Rectangulo.style.height =
+            `${Rect.height}px`;
+          El_Calendario_Seleccion_Rectangulo.classList.add(
+            "Activo"
+          );
+        };
+
+        const Aplicar_Seleccion_Rectangulo = (Rect) => {
+          const Ids = new Set();
+          document.querySelectorAll(".Evento").forEach((Nodo) => {
+            const Box = Nodo.getBoundingClientRect();
+            const Intersecta = !(
+              Box.right < Rect.left ||
+              Box.left > Rect.right ||
+              Box.bottom < Rect.top ||
+              Box.top > Rect.bottom
+            );
+            if (!Intersecta) return;
+            if (Nodo.dataset.id) {
+              Ids.add(Nodo.dataset.id);
+            }
+          });
+          Eventos_Multi_Seleccion = Calendario_Multi_Seleccion_Inicio
+            ?.Agregar
+            ? new Set([
+              ...Calendario_Multi_Seleccion_Base,
+              ...Ids
+            ])
+            : Ids;
+          Aplicar_Seleccion_Eventos_En_DOM();
+          Render_Acciones_Multi_Calendario();
+        };
+
+        const On_Mouse_Move = (Evento) => {
+          if (!Calendario_Multi_Seleccion_Inicio) return;
+          const Delta_X = Math.abs(
+            Evento.clientX -
+            Calendario_Multi_Seleccion_Inicio.X
+          );
+          const Delta_Y = Math.abs(
+            Evento.clientY -
+            Calendario_Multi_Seleccion_Inicio.Y
+          );
+          if (
+            !Calendario_Multi_Seleccion_Activa &&
+            Delta_X < 6 &&
+            Delta_Y < 6
+          ) {
+            return;
+          }
+          Calendario_Multi_Seleccion_Activa = true;
+          const Rect = {
+            left: Math.min(
+              Calendario_Multi_Seleccion_Inicio.X,
+              Evento.clientX
+            ),
+            top: Math.min(
+              Calendario_Multi_Seleccion_Inicio.Y,
+              Evento.clientY
+            ),
+            right: Math.max(
+              Calendario_Multi_Seleccion_Inicio.X,
+              Evento.clientX
+            ),
+            bottom: Math.max(
+              Calendario_Multi_Seleccion_Inicio.Y,
+              Evento.clientY
+            )
+          };
+          Rect.width = Rect.right - Rect.left;
+          Rect.height = Rect.bottom - Rect.top;
+          Actualizar_Rectangulo(Rect);
+          Aplicar_Seleccion_Rectangulo(Rect);
+          Evento.preventDefault();
+        };
+
+        const On_Mouse_Up = (Evento) => {
+          document.removeEventListener(
+            "mousemove",
+            On_Mouse_Move
+          );
+          document.removeEventListener(
+            "mouseup",
+            On_Mouse_Up
+          );
+          if (
+            !Calendario_Multi_Seleccion_Activa &&
+            Calendario_Multi_Seleccion_Inicio &&
+            !Calendario_Multi_Seleccion_Inicio.Agregar
+          ) {
+            Limpiar_Multi_Seleccion_Eventos(false);
+            Aplicar_Seleccion_Eventos_En_DOM();
+            Render_Acciones_Multi_Calendario();
+          }
+          Calendario_Multi_Seleccion_Inicio = null;
+          Calendario_Multi_Seleccion_Base = new Set();
+          Ocultar_Rectangulo();
+          Evento.preventDefault?.();
+        };
+
+        El_Calendario_Viewport.addEventListener(
+          "mousedown",
+          (Evento) => {
+            const Objetivo = Evento.target;
+            if (!(Objetivo instanceof Element)) return;
+            if (Interaccion_Touch_Activa()) return;
+            if (Evento.button !== 0) return;
+            if (Objetivo.closest(".Evento")) return;
+            if (Objetivo.closest(".Dia_Header")) return;
+            if (Objetivo.closest(".Hora_Columna")) return;
+            if (Objetivo.closest(".Slot_Muerto_Arrastrable")) {
+              return;
+            }
+            Calendario_Multi_Seleccion_Inicio = {
+              X: Evento.clientX,
+              Y: Evento.clientY,
+              Agregar: Boolean(
+                Evento.ctrlKey || Evento.metaKey
+              )
+            };
+            Calendario_Multi_Seleccion_Base = new Set(
+              Eventos_Multi_Seleccion
+            );
+            Calendario_Multi_Seleccion_Activa = false;
+            document.addEventListener(
+              "mousemove",
+              On_Mouse_Move
+            );
+            document.addEventListener(
+              "mouseup",
+              On_Mouse_Up
+            );
+          }
+        );
+
+        document.addEventListener("mousedown", (Evento) => {
+          if (Eventos_Multi_Seleccion.size === 0) return;
+          const Objetivo = Evento.target;
+          if (!(Objetivo instanceof Element)) return;
+          if (Objetivo.closest(".Evento")) return;
+          if (Objetivo.closest("#Calendario_Multi_Acciones")) {
+            return;
+          }
+          if (Objetivo.closest(".Calendario_Viewport")) return;
+          Limpiar_Multi_Seleccion_Eventos();
+        });
+      }
+
       function Limpiar_Multi_Seleccion() {
         Tareas_Multi_Seleccion.clear();
         Subtareas_Multi_Seleccion.clear();
+        Eventos_Multi_Seleccion.clear();
         Baul_Multi_Seleccion.clear();
         Render_Emojis();
         Render_Resumen_Tarea();
@@ -39756,6 +40669,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Baul();
           return;
         }
+        Render_Acciones_Multi_Calendario();
         Render_Barra_Multi_Seleccion();
       }
 
@@ -42607,27 +43521,46 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Render_Eventos() {
-        document.querySelectorAll(".Evento").forEach((Nodo) => Nodo.remove());
+        document
+          .querySelectorAll(".Evento")
+          .forEach((Nodo) => Nodo.remove());
+        Normalizar_Eventos_Multi_Seleccion();
 
         Eventos.forEach((Evento) => {
           if (!Evento.Fecha) return;
-          const Columna = El_Calendario.querySelector(`.Dia_Columna[data-fecha="${Evento.Fecha}"]`);
+          const Columna = El_Calendario.querySelector(
+            `.Dia_Columna[data-fecha="${Evento.Fecha}"]`
+          );
           if (!Columna) return;
           const Cuerpo = Columna.querySelector(".Dia_Cuerpo");
           const Tarea = Tarea_Por_Id(Evento.Tarea_Id);
           const Color = Tarea ? Tarea.Color : Evento.Color;
           const Emoji = Tarea ? Tarea.Emoji : "\u2022";
-          const Nombre = Tarea ? Tarea.Nombre : t("evento.sin_tarea");
+          const Nombre = Tarea
+            ? Tarea.Nombre
+            : t("evento.sin_tarea");
 
           const Bloque = document.createElement("div");
           Bloque.className = "Evento";
-          if (Evento.Hecho) Bloque.classList.add("Evento_Hecho");
-          if (Evento.Anulada) Bloque.classList.add("Evento_Anulado");
+          if (Evento.Hecho) {
+            Bloque.classList.add("Evento_Hecho");
+          }
+          if (Evento.Anulada) {
+            Bloque.classList.add("Evento_Anulado");
+          }
+          if (Eventos_Multi_Seleccion.has(Evento.Id)) {
+            Bloque.classList.add("Multi_Activa");
+          }
           Bloque.draggable = true;
           Bloque.dataset.id = Evento.Id;
           Bloque.dataset.duracion = Evento.Duracion.toString();
-          Bloque.style.top = `${(Evento.Inicio - Config.Inicio_Hora) * Config.Altura_Slot + 3}px`;
-          Bloque.style.height = `${Evento.Duracion * Config.Altura_Slot - 6}px`;
+          Bloque.style.top =
+            `${
+              (Evento.Inicio - Config.Inicio_Hora) *
+              Config.Altura_Slot + 3
+            }px`;
+          Bloque.style.height =
+            `${Evento.Duracion * Config.Altura_Slot - 6}px`;
           Bloque.style.background = Color;
           Bloque.style.borderLeftColor = Color;
 
@@ -42685,12 +43618,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           const Meta = document.createElement("div");
           Meta.className = "Evento_Meta";
-          Meta.textContent = Formatear_Rango(Evento.Inicio, Evento.Duracion);
+          Meta.textContent = Formatear_Rango(
+            Evento.Inicio,
+            Evento.Duracion
+          );
 
           Bloque.appendChild(Linea);
           Bloque.appendChild(Meta);
 
-          // Marca de nota si el evento tiene una.
           if (Evento.Nota && Evento.Nota.trim()) {
             const Marca = document.createElement("div");
             Marca.className = "Evento_Nota_Marca";
@@ -42702,14 +43637,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             };
             if (Config.Notas_Hover) {
               Marca.addEventListener("mouseenter", Mostrar_Nota);
-              Marca.addEventListener("mouseleave", Cerrar_Popup_Nota);
+              Marca.addEventListener(
+                "mouseleave",
+                Cerrar_Popup_Nota
+              );
             } else {
               Marca.addEventListener("click", Mostrar_Nota);
             }
             Bloque.appendChild(Marca);
           }
 
-          // Handle de resize en el borde inferior.
           const Handle = document.createElement("div");
           Handle.className = "Evento_Resize_Handle";
           Handle.addEventListener("mousedown", (E) => {
@@ -42719,12 +43656,41 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           Bloque.appendChild(Handle);
 
+          const Click_Es_Sobre_Control = (Objetivo) => {
+            if (!(Objetivo instanceof Element)) return false;
+            return Boolean(
+              Objetivo.closest(".Evento_Boton") ||
+              Objetivo.closest(".Evento_Nota_Marca") ||
+              Objetivo.closest(".Evento_Resize_Handle")
+            );
+          };
+
           Bloque.addEventListener("dragstart", (E) => {
             Activar_AutoScroll_Calendario_Drag();
-            E.dataTransfer.setData("text/plain", JSON.stringify({
-              Tipo: "Evento",
-              Evento_Id: Evento.Id
-            }));
+            const Usar_Multi =
+              Eventos_Multi_Seleccion.size > 1 &&
+              Eventos_Multi_Seleccion.has(Evento.Id);
+            const Payload = Usar_Multi
+              ? {
+                Tipo: "Eventos_Multi",
+                Evento_Ancla_Id: Evento.Id,
+                Evento_Ids: Array.from(
+                  Eventos_Multi_Seleccion
+                )
+              }
+              : {
+                Tipo: "Evento",
+                Evento_Id: Evento.Id
+              };
+            if (!Usar_Multi &&
+                Eventos_Multi_Seleccion.size > 0 &&
+                !Eventos_Multi_Seleccion.has(Evento.Id)) {
+              Seleccionar_Evento_Calendario(Evento.Id);
+            }
+            E.dataTransfer.setData(
+              "text/plain",
+              JSON.stringify(Payload)
+            );
           });
           Bloque.addEventListener("dragend", () => {
             Detener_AutoScroll_Calendario_Drag();
@@ -42733,16 +43699,38 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Bloque.addEventListener("contextmenu", (E) => {
             E.preventDefault();
             E.stopPropagation();
+            if (
+              Eventos_Multi_Seleccion.size !== 1 ||
+              !Eventos_Multi_Seleccion.has(Evento.Id)
+            ) {
+              Seleccionar_Evento_Calendario(Evento.Id);
+            }
             Mostrar_Menu_Evento(Evento, E.clientX, E.clientY);
           });
 
           Bloque.addEventListener("click", (E) => {
-            if (!Interaccion_Touch_Activa()) return;
-            if (
-              E.target.closest(".Evento_Boton") ||
-              E.target.closest(".Evento_Nota_Marca") ||
-              E.target.closest(".Evento_Resize_Handle")
-            ) {
+            if (Click_Es_Sobre_Control(E.target)) return;
+            if (!Interaccion_Touch_Activa()) {
+              if (E.ctrlKey || E.metaKey) {
+                E.preventDefault();
+                E.stopPropagation();
+                Seleccionar_Evento_Calendario(Evento.Id, {
+                  Alternar_Multi: true
+                });
+                return;
+              }
+              if (Eventos_Multi_Seleccion.size > 0) {
+                E.preventDefault();
+                E.stopPropagation();
+                if (
+                  Eventos_Multi_Seleccion.size !== 1 ||
+                  !Eventos_Multi_Seleccion.has(Evento.Id)
+                ) {
+                  Seleccionar_Evento_Calendario(Evento.Id);
+                } else {
+                  Limpiar_Multi_Seleccion_Eventos();
+                }
+              }
               return;
             }
             E.stopPropagation();
@@ -42754,12 +43742,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           });
 
-          // Hover de 2s sobre el bloque → tooltip con el
-          // abordaje del evento (si tiene). Sirve para repasar
-          // qué se trabajó en ese bloque sin abrir el Focus.
           let Hover_Timer_Id = null;
           Bloque.addEventListener("mouseenter", () => {
-            if (Hover_Timer_Id) clearTimeout(Hover_Timer_Id);
+            if (Hover_Timer_Id) {
+              clearTimeout(Hover_Timer_Id);
+            }
             Hover_Timer_Id = setTimeout(() => {
               Mostrar_Popup_Abordaje(Evento, Bloque);
             }, 2000);
@@ -42772,7 +43759,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Cerrar_Popup_Abordaje();
           });
           Bloque.addEventListener("mousedown", () => {
-            // Cancelar el tooltip si el usuario interactúa.
             if (Hover_Timer_Id) {
               clearTimeout(Hover_Timer_Id);
               Hover_Timer_Id = null;
@@ -42783,6 +43769,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cuerpo.appendChild(Bloque);
           Ajustar_Densidad_Bloque(Bloque, Nombre);
         });
+        Render_Acciones_Multi_Calendario();
       }
 
       // --- Resize de eventos por arrastre del borde inferior ---
@@ -43357,6 +44344,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
+      function Mover_Eventos_Multi_Con_Ancla(
+        Evento_Ancla_Id,
+        Evento_Ids,
+        Fecha_Destino,
+        Hora_Destino
+      ) {
+        const Lista = Obtener_Eventos_Multi_Seleccionados_Ordenados(
+          Evento_Ids
+        );
+        const Ancla = Lista.find(
+          (Evento) => Evento.Id === Evento_Ancla_Id
+        );
+        if (!Ancla) return false;
+        Eventos_Multi_Seleccion = new Set(Evento_Ids || []);
+        return Mover_Eventos_Multi_Por_Delta(
+          Dias_Entre(
+            Parsear_Fecha_ISO(Ancla.Fecha),
+            Parsear_Fecha_ISO(Fecha_Destino)
+          ),
+          Hora_Destino - (Number(Ancla.Inicio) || 0)
+        );
+      }
+
       async function Confirmar_Borrar_Tarea(Tarea) {
         if (!Tarea) return false;
         const Respuesta = await Mostrar_Dialogo(
@@ -43425,6 +44435,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return;
         }
 
+        if (Payload.Tipo === "Eventos_Multi") {
+          Mover_Eventos_Multi_Con_Ancla(
+            Payload.Evento_Ancla_Id,
+            Payload.Evento_Ids,
+            Fecha,
+            Hora
+          );
+          return;
+        }
+
         if (Payload.Tipo === "Slot_Muerto_Con_Plan") {
           Mover_Slot_Muerto_Con_Plan(
             Payload.Fecha,
@@ -43487,6 +44507,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Bloque.Inicio = Hora;
           Render_Eventos();
           Guardar_Estado();
+          return;
+        }
+
+        if (Payload.Tipo === "Eventos_Multi") {
+          Mover_Eventos_Multi_Con_Ancla(
+            Payload.Evento_Ancla_Id,
+            Payload.Evento_Ids,
+            Fecha,
+            Hora
+          );
           return;
         }
 
@@ -46291,6 +47321,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Resumen_Tarea();
         Render_Editor();
         Render_Calendario();
+        Configurar_Seleccion_Multi_Calendario();
         Configurar_Listeners_Selector_Emojis();
         Guardar_Estado();
 
