@@ -58,6 +58,31 @@ async function intentarLoginAutomatico(page) {
   return true;
 }
 
+async function limpiarEstadoLocalAntesDeGuardar(page) {
+  await page.evaluate((Clave_QA) => {
+    const Claves_Conservar = new Set([
+      "Semaplan_Idioma",
+      Clave_QA
+    ]);
+    const Claves = Object.keys(localStorage);
+    Claves.forEach((Clave) => {
+      const Normalizada = String(Clave || "").toLowerCase();
+      const Es_Auth_Supabase =
+        Clave.startsWith("sb-") ||
+        Normalizada.includes("supabase.auth.token") ||
+        Normalizada.endsWith("-auth-token");
+      if (
+        Es_Auth_Supabase ||
+        Claves_Conservar.has(Clave)
+      ) {
+        return;
+      }
+      localStorage.removeItem(Clave);
+    });
+    sessionStorage.clear();
+  }, CLAVE_QA_SIN_CAPTCHA);
+}
+
 async function main() {
   fs.mkdirSync(AUTH_DIR, { recursive: true });
 
@@ -100,6 +125,7 @@ async function main() {
 
     await intentarLoginAutomatico(page);
     await waitForLoggedIn(page);
+    await limpiarEstadoLocalAntesDeGuardar(page);
     await context.storageState({ path: AUTH_FILE });
 
     console.log("");

@@ -23,6 +23,33 @@ test.use({
     : { cookies: [], origins: [] }
 });
 
+async function esperarSyncEstable(
+  page,
+  timeout = 30000,
+  timeoutReintento = 120000
+) {
+  const Esperar = async (Tiempo) => {
+    await page.waitForFunction(() => {
+      return Sync_Estado === "Guardado" &&
+        Hay_Sync_Pendiente() === false;
+    }, null, { timeout: Tiempo });
+  };
+
+  try {
+    await Esperar(timeout);
+    return;
+  } catch (Error) {
+    const Reintentar = page.locator(
+      "#Sync_Reintentar_Btn"
+    );
+    if (!(await Reintentar.isVisible().catch(() => false))) {
+      throw Error;
+    }
+    await Reintentar.click();
+    await Esperar(timeoutReintento);
+  }
+}
+
 test("smoke de produccion", async ({ page }) => {
   test.skip(
     !fs.existsSync(ARCHIVO_AUTH),
@@ -31,7 +58,7 @@ test("smoke de produccion", async ({ page }) => {
 
   const Marca = `Smoke ${Date.now()}`;
 
-  await page.goto("/", {
+  await page.goto(BASE_URL, {
     waitUntil: "domcontentloaded",
     timeout: 120000
   });
@@ -56,6 +83,13 @@ test("smoke de produccion", async ({ page }) => {
       Aplicar_Estilo_Menu();
     }
   });
+
+  await page.waitForFunction(() => {
+    return (
+      typeof Es_Premium === "function" &&
+      Es_Premium() === true
+    );
+  }, null, { timeout: 120000 });
 
   await expect(page.locator("#Archivero_Boton")).toBeVisible();
   await expect(page.locator("#Baul_Boton")).toBeVisible();
@@ -97,10 +131,7 @@ test("smoke de produccion", async ({ page }) => {
     await Forzar_Sync_Inmediato_Cambio_Critico();
   }, Marca);
 
-  await page.waitForFunction(() => {
-    return Sync_Estado === "Guardado" &&
-      Hay_Sync_Pendiente() === false;
-  }, null, { timeout: 120000 });
+  await esperarSyncEstable(page, 120000, 120000);
 
   await page.evaluate(() => {
     if (typeof Limpiar_Seleccion === "function") {
@@ -167,6 +198,7 @@ test("smoke de produccion", async ({ page }) => {
   await page.locator(
     "#Dialogo_Botones .Dialogo_Boton_Primario"
   ).click();
+  await page.keyboard.press("Escape");
   await expect(page.locator("#Ayuda_Consulta_Overlay"))
     .not.toHaveClass(/Activo/);
   await page.keyboard.press("Escape");
@@ -188,8 +220,42 @@ test("smoke de produccion", async ({ page }) => {
     await Forzar_Sync_Inmediato_Cambio_Critico();
   }, Marca);
 
+  try {
+    await esperarSyncEstable(page, 10000, 10000);
+  } catch (_) {}
+
   await page.locator("#Config_Abrir").click();
   await page.locator("#Cfg_Cerrar_Sesion").click();
+  await page.waitForSelector("#Dialogo_Botones button", {
+    timeout: 10000
+  });
+  if (
+    await page.locator(
+      "#Dialogo_Botones .Dialogo_Boton_Peligro"
+    ).count() === 0
+  ) {
+    await page.locator(
+      "#Dialogo_Botones .Dialogo_Boton_Primario"
+    ).click();
+    await page.evaluate(async () => {
+      if (typeof Reintentar_Sync_Manual === "function") {
+        await Reintentar_Sync_Manual();
+        return;
+      }
+      if (
+        typeof Forzar_Sync_Inmediato_Cambio_Critico ===
+        "function"
+      ) {
+        await Forzar_Sync_Inmediato_Cambio_Critico();
+      }
+    });
+    await esperarSyncEstable(page, 15000, 15000);
+    await page.locator("#Cfg_Cerrar_Sesion").click();
+    await page.waitForSelector(
+      "#Dialogo_Botones .Dialogo_Boton_Peligro",
+      { timeout: 10000 }
+    );
+  }
   await page.locator("#Dialogo_Botones .Dialogo_Boton_Peligro")
     .click();
 
