@@ -3925,6 +3925,43 @@
         cursor: grabbing;
       }
 
+      .Slot_Muerto_Drag_Preview {
+        position: fixed;
+        left: -9999px;
+        top: -9999px;
+        pointer-events: none;
+        z-index: 99999;
+      }
+
+      .Slot_Muerto_Drag_Preview_Bloque {
+        min-width: 138px;
+        max-width: 164px;
+        border-radius: 10px;
+        padding: 10px 12px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+        background: var(--Slot-Muerto-Color, #bcb6ab);
+        color: rgba(28, 32, 38, 0.88);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .Slot_Muerto_Drag_Preview_Titulo {
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.15;
+        text-align: center;
+        word-break: break-word;
+      }
+
+      .Slot_Muerto_Drag_Preview_Meta {
+        font-size: 11px;
+        font-weight: 700;
+        opacity: 0.72;
+      }
+
       .Slot_Muerto_Resize_Handle {
         position: absolute;
         left: 50%;
@@ -38051,6 +38088,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Timestamp: 0
       };
       let Ultimo_Drag_Slot_Muerto_Timestamp = 0;
+      let Slot_Muerto_Drag_Preview_Activo = null;
 
       function Intentar_Alternar_Slot_Por_Doble_Click(
         Fecha,
@@ -38067,6 +38105,73 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Es_Doble) return false;
         Alternar_Slot_Muerto(Fecha, Hora);
         return true;
+      }
+
+      function Limpiar_Drag_Preview_Slot_Muerto() {
+        if (!Slot_Muerto_Drag_Preview_Activo) return;
+        Slot_Muerto_Drag_Preview_Activo.remove();
+        Slot_Muerto_Drag_Preview_Activo = null;
+      }
+
+      function Crear_Drag_Preview_Slot_Muerto(
+        Fecha,
+        Hora
+      ) {
+        const Franja = Obtener_Franja_Slot_Muerto(
+          Fecha,
+          Hora
+        );
+        if (!Franja) return null;
+        const Clave = Clave_Slot(Fecha, Hora);
+        const Tipo_Id =
+          Slots_Muertos_Tipos[Clave] ||
+          Obtener_Aplica_A_Slot(Fecha, Hora);
+        const Titulo =
+          Obtener_Nombre_Slot_Por_Clave(Clave) ||
+          Obtener_Titulo_Tipo_Slot(Tipo_Id) ||
+          "";
+        const Wrapper = document.createElement("div");
+        Wrapper.className = "Slot_Muerto_Drag_Preview";
+        const Bloque = document.createElement("div");
+        Bloque.className =
+          "Slot_Muerto_Drag_Preview_Bloque";
+        Bloque.style.setProperty(
+          "--Slot-Muerto-Color",
+          Obtener_Color_Tipo_Slot(Tipo_Id)
+        );
+        Bloque.style.height = `${Math.max(
+          28,
+          Franja.Horas.length * Config.Altura_Slot - 6
+        )}px`;
+        if (Titulo) {
+          const Titulo_El = document.createElement("div");
+          Titulo_El.className =
+            "Slot_Muerto_Drag_Preview_Titulo";
+          Titulo_El.textContent = Titulo;
+          Bloque.appendChild(Titulo_El);
+        }
+        const Meta = document.createElement("div");
+        Meta.className = "Slot_Muerto_Drag_Preview_Meta";
+        Meta.textContent = `${Franja.Horas.length} h`;
+        Bloque.appendChild(Meta);
+        Wrapper.appendChild(Bloque);
+        document.body.appendChild(Wrapper);
+        Slot_Muerto_Drag_Preview_Activo = Wrapper;
+        const Offset_X =
+          Bloque.getBoundingClientRect().width / 2;
+        const Offset_Y = Math.max(
+          10,
+          Math.min(
+            Bloque.getBoundingClientRect().height - 10,
+            (Hora - Franja.Inicio) * Config.Altura_Slot +
+              Config.Altura_Slot / 2
+          )
+        );
+        return {
+          Elemento: Wrapper,
+          Offset_X,
+          Offset_Y
+        };
       }
 
       function Reordenar_Objetivos(Objetivo_Origen_Id, Objetivo_Destino_Id) {
@@ -44772,6 +44877,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Ultimo_Drag_Slot_Muerto_Timestamp = Date.now();
               Slot.classList.add("Arrastrando");
               Activar_AutoScroll_Calendario_Drag();
+              Limpiar_Drag_Preview_Slot_Muerto();
               Evento.dataTransfer.setData(
                 "text/plain",
                 JSON.stringify({
@@ -44780,11 +44886,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   Hora
                 })
               );
+              if (
+                typeof Evento.dataTransfer.setDragImage ===
+                "function"
+              ) {
+                const Preview =
+                  Crear_Drag_Preview_Slot_Muerto(
+                    Fecha_ISO,
+                    Hora
+                  );
+                if (Preview) {
+                  Evento.dataTransfer.setDragImage(
+                    Preview.Elemento,
+                    Preview.Offset_X,
+                    Preview.Offset_Y
+                  );
+                }
+              }
             });
             Slot.addEventListener("dragend", () => {
               Ultimo_Drag_Slot_Muerto_Timestamp = Date.now();
               Slot.classList.remove("Arrastrando");
               Detener_AutoScroll_Calendario_Drag();
+              Limpiar_Drag_Preview_Slot_Muerto();
             });
           }
           if (
@@ -45878,6 +46002,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Evento.preventDefault();
         Evento.stopPropagation();
         Detener_AutoScroll_Calendario_Drag();
+        Limpiar_Drag_Preview_Slot_Muerto();
         const Payload = JSON.parse(Evento.dataTransfer.getData("text/plain"));
         const Slot = Evento.currentTarget;
         const Fecha = Slot.dataset.fecha;
@@ -45953,6 +46078,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Manejar_Drop_Cuerpo(Evento) {
         Evento.preventDefault();
         Detener_AutoScroll_Calendario_Drag();
+        Limpiar_Drag_Preview_Slot_Muerto();
         const Payload = JSON.parse(Evento.dataTransfer.getData("text/plain"));
         const Cuerpo = Evento.currentTarget;
         const Columna = Cuerpo.closest(".Dia_Columna");

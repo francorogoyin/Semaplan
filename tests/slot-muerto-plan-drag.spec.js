@@ -177,7 +177,7 @@ function estadoBase() {
 }
 
 async function arrastrarSlot(page, origenHora, destinoHora) {
-  await page.evaluate(({ Origen_Hora, Destino_Hora }) => {
+  return await page.evaluate(({ Origen_Hora, Destino_Hora }) => {
     const origen = document.querySelector(
       `.Slot[data-fecha="2026-04-13"][data-hora="${Origen_Hora}"]`
     );
@@ -189,6 +189,21 @@ async function arrastrarSlot(page, origenHora, destinoHora) {
     }
     const rect = destino.getBoundingClientRect();
     const data = new DataTransfer();
+    window.__slot_drag_preview = null;
+    data.setDragImage = (elemento, x, y) => {
+      window.__slot_drag_preview = {
+        clase: elemento?.className || "",
+        texto: elemento?.textContent?.trim() || "",
+        x,
+        y,
+        ancho:
+          elemento?.firstElementChild
+            ?.getBoundingClientRect?.().width || 0,
+        alto:
+          elemento?.firstElementChild
+            ?.getBoundingClientRect?.().height || 0
+      };
+    };
 
     origen.dispatchEvent(
       new DragEvent("dragstart", {
@@ -220,6 +235,7 @@ async function arrastrarSlot(page, origenHora, destinoHora) {
         dataTransfer: data
       })
     );
+    return window.__slot_drag_preview;
   }, {
     Origen_Hora: origenHora,
     Destino_Hora: destinoHora
@@ -239,7 +255,7 @@ test("arrastra slot muerto con plan, tipo y titulo", async ({
     await slotOrigen.evaluate((nodo) => nodo.draggable)
   ).toBeTruthy();
 
-  await arrastrarSlot(page, 10, 12);
+  const dragPreview = await arrastrarSlot(page, 10, 12);
 
   const data = await page.evaluate(() => ({
     origen_existe: Slots_Muertos.includes("2026-04-13|10"),
@@ -264,9 +280,18 @@ test("arrastra slot muerto con plan, tipo y titulo", async ({
       document.querySelector(
         '.Slot[data-fecha="2026-04-13"][data-hora="12"] ' +
         '.Slot_Plan_Marca'
-      )?.textContent || ""
+      )?.textContent || "",
+    alerta: window.__ultimo_alert || ""
   }));
 
+  expect(dragPreview?.clase || "").toContain(
+    "Slot_Muerto_Drag_Preview"
+  );
+  expect(dragPreview?.texto || "").toContain(
+    "Almuerzo largo"
+  );
+  expect(dragPreview?.ancho || 0).toBeGreaterThan(0);
+  expect(dragPreview?.alto || 0).toBeGreaterThan(0);
   expect(data.origen_existe).toBeFalsy();
   expect(data.origen_plan).toBe(0);
   expect(data.destino_existe).toBeTruthy();
@@ -277,6 +302,7 @@ test("arrastra slot muerto con plan, tipo y titulo", async ({
   expect(data.destino_plan).toBe("Idea central");
   expect(data.ui_titulo).toBe("Almuerzo largo");
   expect(data.ui_marca).not.toBe("");
+  expect(data.alerta).toBe("");
 });
 
 test("arrastra una franja contigua de slots muertos", async ({
