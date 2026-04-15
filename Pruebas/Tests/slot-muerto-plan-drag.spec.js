@@ -810,6 +810,83 @@ test("el click derecho sobre slot vacio no lo selecciona", async ({
   expect(data.barra_activa).toBeFalsy();
 });
 
+test("cerrar el menu contextual con click afuera no selecciona el slot", async ({
+  page
+}) => {
+  await preparar(page, estadoBase());
+
+  await page.click(
+    '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
+    { button: "right" }
+  );
+  await expect(
+    page.locator("#Dia_Accion_Menu")
+  ).toHaveClass(/Activo/);
+
+  await page.click(
+    '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+  );
+
+  const data = await page.evaluate(() => ({
+    menu_activo: document.getElementById("Dia_Accion_Menu")
+      ?.classList.contains("Activo") || false,
+    seleccion_slots: Array.from(Slots_Multi_Seleccion).sort(),
+    seleccion_eventos: Array.from(Eventos_Multi_Seleccion).sort(),
+    clase_activa: document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+    )?.classList.contains("Multi_Activa") || false,
+    barra_activa: document.getElementById(
+      "Calendario_Multi_Acciones"
+    )?.classList.contains("Activa") || false
+  }));
+
+  expect(data.menu_activo).toBeFalsy();
+  expect(data.seleccion_slots).toEqual([]);
+  expect(data.seleccion_eventos).toEqual([]);
+  expect(data.clase_activa).toBeFalsy();
+  expect(data.barra_activa).toBeFalsy();
+});
+
+test("cerrar el popup de plan con click afuera no selecciona el slot", async ({
+  page
+}) => {
+  await preparar(page, estadoBase());
+
+  await page.evaluate(() => {
+    const slot = document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+    );
+    Mostrar_Popup_Plan_Slot("2026-04-13", 10, slot);
+  });
+  await expect(
+    page.locator(".Evento_Abordaje_Popup")
+  ).toBeVisible();
+
+  await page.click(
+    '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+  );
+
+  const data = await page.evaluate(() => ({
+    popup_activo: Boolean(
+      document.querySelector(".Evento_Abordaje_Popup")
+    ),
+    seleccion_slots: Array.from(Slots_Multi_Seleccion).sort(),
+    seleccion_eventos: Array.from(Eventos_Multi_Seleccion).sort(),
+    clase_activa: document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+    )?.classList.contains("Multi_Activa") || false,
+    barra_activa: document.getElementById(
+      "Calendario_Multi_Acciones"
+    )?.classList.contains("Activa") || false
+  }));
+
+  expect(data.popup_activo).toBeFalsy();
+  expect(data.seleccion_slots).toEqual([]);
+  expect(data.seleccion_eventos).toEqual([]);
+  expect(data.clase_activa).toBeFalsy();
+  expect(data.barra_activa).toBeFalsy();
+});
+
 test("el menu contextual puede limpiar un slot muerto y dejarlo blanco", async ({
   page
 }) => {

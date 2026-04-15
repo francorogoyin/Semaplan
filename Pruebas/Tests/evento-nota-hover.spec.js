@@ -292,3 +292,72 @@ test("mantiene el popup de abordaje si el bloque no tiene nota", async ({
   await expect(page.locator(".Evento_Nota_Popup"))
     .toHaveCount(0);
 });
+
+test("cerrar la nota con click afuera no selecciona el slot", async ({
+  page
+}) => {
+  const estado = Crear_Estado_Base();
+  estado.Objetivos = [
+    {
+      Id: "T1",
+      Nombre: "Bloque con nota",
+      Emoji: "📝",
+      Color: "#1f6b4f",
+      Categoria_Id: null,
+      Etiquetas_Ids: [],
+      Metadatos: {},
+      Estado: "Activa",
+      Archivada: false,
+      Es_Bolsa: false,
+      Horas_Semanales: 0,
+      Semana_Base: "2026-04-13",
+      Copias_Semana: {},
+      Abordaje_Default: []
+    }
+  ];
+  estado.Eventos = [
+    {
+      Id: "EV1",
+      Objetivo_Id: "T1",
+      Fecha: "2026-04-13",
+      Inicio: 10,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: "Nota para cerrar con click afuera"
+    }
+  ];
+
+  await Preparar(page, estado);
+
+  const bloque = page.locator('.Evento[data-id="EV1"]');
+  const marca = bloque.locator(".Evento_Nota_Marca");
+  await marca.click();
+  await expect(page.locator(".Evento_Nota_Popup"))
+    .toHaveText("Nota para cerrar con click afuera");
+
+  await page.click(
+    '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+  );
+
+  const data = await page.evaluate(() => ({
+    popup_activo: Boolean(
+      document.querySelector(".Evento_Nota_Popup")
+    ),
+    seleccion_slots: Array.from(Slots_Multi_Seleccion).sort(),
+    seleccion_eventos: Array.from(Eventos_Multi_Seleccion).sort(),
+    clase_activa: document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+    )?.classList.contains("Multi_Activa") || false,
+    barra_activa: document.getElementById(
+      "Calendario_Multi_Acciones"
+    )?.classList.contains("Activa") || false
+  }));
+
+  expect(data.popup_activo).toBeFalsy();
+  expect(data.seleccion_slots).toEqual([]);
+  expect(data.seleccion_eventos).toEqual([]);
+  expect(data.clase_activa).toBeFalsy();
+  expect(data.barra_activa).toBeFalsy();
+});

@@ -38339,6 +38339,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       };
       let Ultimo_Drag_Slot_Muerto_Timestamp = 0;
       let Slot_Muerto_Drag_Preview_Activo = null;
+      let Click_Cierre_Cartel_Calendario_Pendiente = false;
 
       function Cancelar_Seleccion_Slot_Pendiente(
         Clave = ""
@@ -38380,6 +38381,67 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Seleccionar_Slot_Calendario(Fecha, Hora);
           }, 360)
         };
+      }
+
+      function Marcar_Click_Cierre_Cartel_Calendario_Pendiente() {
+        Click_Cierre_Cartel_Calendario_Pendiente = true;
+      }
+
+      function Consumir_Click_Cierre_Cartel_Calendario_Pendiente() {
+        if (!Click_Cierre_Cartel_Calendario_Pendiente) {
+          return false;
+        }
+        Click_Cierre_Cartel_Calendario_Pendiente = false;
+        return true;
+      }
+
+      function Limpiar_Click_Cierre_Cartel_Calendario_Pendiente() {
+        Click_Cierre_Cartel_Calendario_Pendiente = false;
+      }
+
+      function Cerrar_Carteles_Calendario_Por_Click_Externo(
+        Objetivo
+      ) {
+        const Nodo_Objetivo =
+          Objetivo instanceof Node ? Objetivo : null;
+        let Cerro = false;
+        const Menu = document.getElementById("Dia_Accion_Menu");
+        if (
+          Menu?.classList.contains("Activo") &&
+          (!Nodo_Objetivo || !Menu.contains(Nodo_Objetivo))
+        ) {
+          Cerrar_Menu_Dia();
+          Cerro = true;
+        }
+        const Trigger_Nota =
+          El_Popup_Nota_Trigger_Activo instanceof Element
+            ? El_Popup_Nota_Trigger_Activo
+            : null;
+        const Click_Sobre_Trigger_Nota =
+          Boolean(Nodo_Objetivo) &&
+          Boolean(Trigger_Nota) &&
+          Trigger_Nota.contains(Nodo_Objetivo);
+        if (
+          El_Popup_Nota_Activo &&
+          (!Nodo_Objetivo ||
+            !El_Popup_Nota_Activo.contains(Nodo_Objetivo)) &&
+          !Click_Sobre_Trigger_Nota
+        ) {
+          Cerrar_Popup_Nota();
+          Cerro = true;
+        }
+        if (
+          El_Popup_Abordaje_Activo &&
+          (!Nodo_Objetivo ||
+            !El_Popup_Abordaje_Activo.contains(Nodo_Objetivo))
+        ) {
+          Cerrar_Popup_Abordaje();
+          Cerro = true;
+        }
+        if (Cerro) {
+          Marcar_Click_Cierre_Cartel_Calendario_Pendiente();
+        }
+        return Cerro;
       }
 
       function Persistencia_Local_Desfasada() {
@@ -46386,7 +46448,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               }
               Cerrar_Popup_Abordaje();
             });
-            Slot.addEventListener("mousedown", () => {
+            Slot.addEventListener("mousedown", (Evento) => {
+              if (Evento.button === 0) {
+                Cerrar_Carteles_Calendario_Por_Click_Externo(
+                  Evento.target
+                );
+              }
               if (Hover_Plan_Slot_Timer_Id) {
                 clearTimeout(Hover_Plan_Slot_Timer_Id);
                 Hover_Plan_Slot_Timer_Id = null;
@@ -46467,6 +46534,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ) {
             Slot.addEventListener("mousedown", (Evento) => {
               if (Evento.button !== 0) return;
+              Cerrar_Carteles_Calendario_Por_Click_Externo(
+                Evento.target
+              );
               Cancelar_Seleccion_Slot_Pendiente();
               if (Slot_Arrastrable) return;
               Evento.preventDefault();
@@ -46480,6 +46550,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slot.addEventListener("drop", Manejar_Drop);
           Slot.addEventListener("click", (Evento) => {
             if (!Interaccion_Touch_Activa()) {
+              if (
+                Consumir_Click_Cierre_Cartel_Calendario_Pendiente()
+              ) {
+                Evento.preventDefault();
+                Evento.stopPropagation();
+                return;
+              }
               const Clave = Clave_Slot(Fecha_ISO, Hora);
               if (Evento.ctrlKey || Evento.metaKey) {
                 Evento.preventDefault();
@@ -46768,6 +46845,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Bloque.addEventListener("click", (E) => {
             if (Click_Es_Sobre_Control(E.target)) return;
             if (!Interaccion_Touch_Activa()) {
+              if (
+                Consumir_Click_Cierre_Cartel_Calendario_Pendiente()
+              ) {
+                E.preventDefault();
+                E.stopPropagation();
+                return;
+              }
               if (E.ctrlKey || E.metaKey) {
                 E.preventDefault();
                 E.stopPropagation();
@@ -46826,7 +46910,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Cerrar_Popup_Nota();
             Cerrar_Popup_Abordaje();
           });
-          Bloque.addEventListener("mousedown", () => {
+          Bloque.addEventListener("mousedown", (Evento) => {
+            if (Evento.button === 0) {
+              Cerrar_Carteles_Calendario_Por_Click_Externo(
+                Evento.target
+              );
+            }
             if (Hover_Timer_Id) {
               clearTimeout(Hover_Timer_Id);
               Hover_Timer_Id = null;
@@ -48646,6 +48735,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       document.getElementById("Limpiar_Semana_Boton")
         .addEventListener("click", Limpiar_Semana);
+
+      document.addEventListener("click", () => {
+        Limpiar_Click_Cierre_Cartel_Calendario_Pendiente();
+      });
 
       // Delegación: garantiza que el click siempre dispare aunque
       // algún error previo haya impedido atachar el listener directo.
