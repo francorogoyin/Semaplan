@@ -1,0 +1,77 @@
+{
+   "action": {
+      "default_icon": {
+         "16": "images/toolbar-icon-16.png",
+         "19": "images/toolbar-icon-19.png",
+         "32": "images/toolbar-icon-32.png",
+         "38": "images/toolbar-icon-38.png",
+         "48": "images/toolbar-icon-48.png",
+         "72": "images/toolbar-icon-72.png"
+      },
+      "default_popup": "popup.html"
+   },
+   "background": {
+      "service_worker": "extension/scripts/background.js"
+   },
+   "browser_specific_settings": {
+      "gecko": {
+         "id": "{26b4f076-089c-4c69-8497-44b7e5c9faef}"
+      }
+   },
+   "content_scripts": [ {
+      "js": [ "extension/scripts/appVars.js", "extension/scripts/syncMethods.js", "global/options/hackerNewsOptions.js", "global/globalHelpers.js", "global/storageConstants.js", "global/options/options.js", "global/options/optionsMethods.js", "website/scripts/websiteHelpers.js", "website/scripts/htmlAtrributesManager.js", "website/scripts/Specials/dailyLimit/getBlockingContent.js", "website/scripts/Specials/dailyLimit/showBlockingTimerModal.js", "website/scripts/Specials/dailyLimit/blockingSiteByTimer.js", "website/scripts/BlockExtensionObserver/blockExtensionObserver.js", "website/scripts/BlockExtensionObserver/enableExtensionObserver.js", "website/scripts/Shortcuts/shortcutsListener.js", "website/scripts/StylesManager/cssStylesManager.js" ],
+      "matches": [ "*://*.youtube.com/*", "*://*.facebook.com/*", "*://*.linkedin.com/*", "*://*.twitter.com/*", "*://twitter.com/*", "*://*.x.com/*", "*://x.com/*", "*://*.reddit.com/*", "*://*.instagram.com/*", "*://*.google.com/*", "*://news.ycombinator.com/*", "*://*.twitch.tv/*", "*://*.pinterest.com/*", "*://*.netflix.com/*", "*://*.tiktok.com/*", "*://*.bsky.app/*" ],
+      "run_at": "document_start"
+   }, {
+      "js": [ "website/scripts/DisableVideoAutoPlay/disableVideoAutoPlay.js", "website/scripts/Specials/youtube/shorts.js" ],
+      "matches": [ "*://*.youtube.com/*" ],
+      "run_at": "document_start"
+   }, {
+      "js": [ "website/scripts/Specials/instagram/suggestionPostsWithMultiCreatorsHide.js" ],
+      "matches": [ "*://*.instagram.com/*" ],
+      "run_at": "document_start"
+   }, {
+      "js": [ "website/scripts/libs/mutation-summary.js", "website/scripts/Specials/facebookSpecial.js" ],
+      "matches": [ "*://*.facebook.com/*" ],
+      "run_at": "document_start"
+   }, {
+      "js": [ "website/scripts/Specials/reddit/headerTrendingToday.js", "website/scripts/Specials/reddit/postHideButtons.js" ],
+      "matches": [ "*://*.reddit.com/*" ],
+      "run_at": "document_start"
+   }, {
+      "js": [ "website/scripts/Specials/twitch/followAndSubscribeButtonHide.js" ],
+      "matches": [ "*://*.twitch.tv/*" ],
+      "run_at": "document_start"
+   }, {
+      "js": [ "website/scripts/Specials/linkedin/hideMessagingFloatPopup.js" ],
+      "matches": [ "*://*.linkedin.com/*" ],
+      "run_at": "document_start"
+   }, {
+      "css": [ "website/css/hackerNews/hacker_news_styles.css" ],
+      "js": [ "website/scripts/Specials/hackerNewsSpecial.js" ],
+      "matches": [ "*://news.ycombinator.com/*" ],
+      "run_at": "document_start"
+   } ],
+   "default_locale": "en",
+   "description": "__MSG_extension_description__",
+   "icons": {
+      "128": "images/icon-128.png",
+      "256": "images/icon-256.png",
+      "48": "images/icon-48.png",
+      "512": "images/icon-512.png",
+      "96": "images/icon-96.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA14XI0RokMQ0O6DEbEDc/e6eXBeQe46lJpCiHqjfp/CvsMjKYG2iUyJlwnZg84OyDr8/H6RHOErRwxduEVMnoGBRHs0QcUT3hwdpEZIVmY7+pY1rOk6H+iFCdT33vBuX/5AWKuZTflW7wQOmmQPWFoIYRQMmg738Yy7GH51KK+9gfPvMWgAGhiaNvdlVq3uxGzqSN0tagzmnyuRyOkMboG3gnGL0LO0TETQLQ7H9FFU2EIBq6uwEj4eMSlpmr+N1q8vlBEd+e1RxI40uJX4Xa17oSBxrD6tayVHJIH/Q8ZVTmLLPOIcQ6V2Gkp4jHGpWxtLJE+X/Qf5bMFvzkU9KO8QIDAQAB",
+   "manifest_version": 3,
+   "name": "__MSG_extension_name__",
+   "permissions": [ "storage", "activeTab" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "7.6.1",
+   "web_accessible_resources": [ {
+      "matches": [ "*://*.youtube.com/*", "*://*.facebook.com/*", "*://*.linkedin.com/*", "*://*.twitter.com/*", "*://twitter.com/*", "*://*.x.com/*", "*://x.com/*", "*://*.reddit.com/*", "*://*.instagram.com/*", "*://*.google.com/*", "*://*.twitch.tv/*", "*://*.pinterest.com/*", "*://*.netflix.com/*", "*://*.tiktok.com/*", "*://*.bsky.app/*" ],
+      "resources": [ "global/options/social_options.json" ]
+   }, {
+      "matches": [ "\u003Call_urls>" ],
+      "resources": [ "extension/screens/privacyPolicy/privacyPolicyForTab.js", "extension/scripts/screenTranslation.js" ]
+   } ]
+}

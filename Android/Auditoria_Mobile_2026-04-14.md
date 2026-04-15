@@ -1,4 +1,4 @@
-# Auditoria mobile Semaplan
+﻿# Auditoria mobile Semaplan
 
 Fecha local: 2026-04-14
 Entorno: `https://semaplan.com`
@@ -60,8 +60,8 @@ Codigo relacionado:
 
 Hallazgo:
 
-- Se creo una tarea temporal solo en memoria.
-- Se simulo un gesto touch desde la barra de tareas hacia un slot
+- Se creo un objetivo temporal solo en memoria.
+- Se simulo un gesto touch desde la barra de objetivos hacia un slot
   del calendario.
 - Antes del gesto habia `0` bloques.
 - Despues del gesto siguio habiendo `0` bloques.
@@ -84,7 +84,7 @@ Lectura tecnica:
 
 Codigo relacionado:
 
-- Tareas: drag desde sidebar
+- Objetivos: drag desde sidebar
   [index.html](C:\Users\Patricio\Documents\Codigo\Semaplan\index.html:39337)
 - Slots: drop en calendario
   [index.html](C:\Users\Patricio\Documents\Codigo\Semaplan\index.html:40924)
@@ -165,7 +165,7 @@ como unica solucion. Es una trampa.
 Conviene definir un modelo mobile explicito:
 
 1. Crear bloque:
-   tap en tarea -> estado "lista para ubicar" ->
+   tap en objetivo -> estado "lista para ubicar" ->
    tap en slot -> crear bloque.
 2. Mover bloque:
    menu de bloque con accion "mover" o drag touch dedicado.
@@ -198,3 +198,5 @@ Recomienda primero una fase de adaptacion mobile web enfocada en:
 - acciones principales sin click derecho ni doble click;
 - targets mas grandes;
 - smoke tests mobile para no volver a romperlo.
+
+
