@@ -509,6 +509,104 @@ test("copia y pega plan entre slots muertos", async ({
   expect(data.destino_marca).toBeTruthy();
 });
 
+test("el menu de slot muerto agrupa identidad, plan y patron", async ({
+  page
+}) => {
+  await preparar(page, estadoBase());
+  await page.evaluate(() => {
+    Portapapeles_Plan_Slot = {
+      Items: [
+        {
+          Id: "ps_clip",
+          Texto: "Plan copiado",
+          Emoji: "*",
+          Estado: "Planeado"
+        }
+      ]
+    };
+  });
+
+  const slot = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+  );
+  await slot.click({ button: "right" });
+
+  const acciones = await page.locator(
+    "#Dia_Accion_Menu .Dia_Accion_Item"
+  ).evaluateAll((items) =>
+    items.map((item) => item.getAttribute("data-acc"))
+  );
+
+  expect(acciones).toEqual([
+    "editar-nombre-slot",
+    "toggle-titulo-slot",
+    "plan-slot",
+    "copiar-plan-slot",
+    "pegar-plan-slot",
+    "borrar-plan-slot",
+    "insertar-patron-slot",
+    "guardar-patron-slot",
+    "repetir-slot",
+    "limpiar-celda"
+  ]);
+  await expect(
+    page.locator("#Dia_Accion_Menu .Dia_Accion_Separador")
+  ).toHaveCount(4);
+});
+
+test("el menu de slot vacio agrupa plan, patron y pegar bloques", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Slots_Muertos = [];
+  estado.Planes_Slot = {
+    "2026-04-13|12": {
+      Items: [
+        {
+          Id: "ps_residual",
+          Texto: "Residual",
+          Emoji: "*",
+          Estado: "Planeado"
+        }
+      ]
+    }
+  };
+  delete estado.Slots_Muertos_Tipos["2026-04-13|12"];
+  delete estado.Slots_Muertos_Nombres["2026-04-13|12"];
+  delete estado.Slots_Muertos_Titulos_Visibles["2026-04-13|12"];
+  delete estado.Slots_Muertos_Nombres_Auto["2026-04-13|12"];
+
+  await preparar(page, estado);
+  await page.evaluate(() => {
+    Portapapeles_Eventos_Multi = {
+      Items: [{ Objetivo_Id: "OBJ", Delta_Dias: 0, Delta_Horas: 0 }]
+    };
+  });
+
+  const slot = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+  );
+  await slot.click({ button: "right" });
+
+  const acciones = await page.locator(
+    "#Dia_Accion_Menu .Dia_Accion_Item"
+  ).evaluateAll((items) =>
+    items.map((item) => item.getAttribute("data-acc"))
+  );
+
+  expect(acciones).toEqual([
+    "plan-slot",
+    "borrar-plan-slot",
+    "insertar-patron-slot",
+    "guardar-patron-slot",
+    "pegar-bloques-slot",
+    "limpiar-celda"
+  ]);
+  await expect(
+    page.locator("#Dia_Accion_Menu .Dia_Accion_Separador")
+  ).toHaveCount(3);
+});
+
 test("el menu contextual puede limpiar un slot muerto y dejarlo blanco", async ({
   page
 }) => {
@@ -701,7 +799,8 @@ test("el menu contextual puede limpiar un bloque y la celda debajo", async ({
       Duracion: 1,
       Hecho: false,
       Anulada: false,
-      Color: "#1f6b4f"
+      Color: "#1f6b4f",
+      Nota: "Nota del bloque"
     }
   ];
 
@@ -712,12 +811,28 @@ test("el menu contextual puede limpiar un bloque y la celda debajo", async ({
   const botones_menu = await page.locator(
     "#Dia_Accion_Menu .Dia_Accion_Item"
   ).allTextContents();
+  const acciones_menu = await page.locator(
+    "#Dia_Accion_Menu .Dia_Accion_Item"
+  ).evaluateAll((items) =>
+    items.map((item) => item.getAttribute("data-acc"))
+  );
   await expect(
     page.locator('#Dia_Accion_Menu [data-acc="limpiar-celda"]')
   ).toBeVisible();
   await expect(
     page.locator('#Dia_Accion_Menu [data-acc="eliminar"]')
   ).toHaveCount(0);
+  expect(acciones_menu).toEqual([
+    "abordaje",
+    "nota",
+    "borrar-nota",
+    "repetir",
+    "limpiar-objetivo",
+    "limpiar-celda"
+  ]);
+  await expect(
+    page.locator("#Dia_Accion_Menu .Dia_Accion_Separador")
+  ).toHaveCount(3);
   expect(botones_menu.at(-1)).toBe("Limpiar");
   await expect(
     page.locator('#Dia_Accion_Menu .Dia_Accion_Item').last()

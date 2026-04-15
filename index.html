@@ -7790,6 +7790,12 @@
         color: #a33;
       }
 
+      .Dia_Accion_Separador {
+        height: 1px;
+        margin: 4px 6px;
+        background: rgba(0, 0, 0, 0.08);
+      }
+
       /* --- Contenedor de toasts apilables de deshacer --- */
       .Undo_Contenedor {
         position: fixed;
@@ -27827,6 +27833,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       // --- Portapapeles para copiar/pegar día completo ---
+      function Html_Menu_Dia_Accion(
+        Accion,
+        Etiqueta,
+        Clase_Extra = ""
+      ) {
+        const Clase = Clase_Extra
+          ? ` ${Clase_Extra}`
+          : "";
+        return `<button class="Dia_Accion_Item${Clase}"` +
+          ` type="button" data-acc="${Accion}">` +
+          `${Etiqueta}</button>`;
+      }
+
+      function Construir_Menu_Dia_Por_Grupos(Grupos) {
+        return Grupos
+          .map((Grupo) =>
+            Array.isArray(Grupo)
+              ? Grupo.filter(Boolean).join("")
+              : ""
+          )
+          .filter(Boolean)
+          .join(
+            `<div class="Dia_Accion_Separador"` +
+            ` role="separator"></div>`
+          );
+      }
+
       let Portapapeles_Dia = null;
 
       function Copiar_Dia(Fecha_ISO) {
@@ -30453,50 +30486,56 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Evento_Data.Nota || "").trim()
         );
 
-        let Html = "";
+        const Grupo_Plan = [];
+        const Grupo_Nota = [];
         if (!Desde_Focus) {
-          Html +=
-            `<button class="Dia_Accion_Item"` +
-            ` type="button"` +
-            ` data-acc="abordaje">` +
-            t("contexto.abordaje") +
-            `</button>`;
-          Html +=
-            `<button class="Dia_Accion_Item"` +
-            ` type="button"` +
-            ` data-acc="nota">` +
-            (Tiene_Nota
-              ? t("contexto.editar_nota")
-              : t("contexto.agregar_nota")) +
-            `</button>`;
+          Grupo_Plan.push(
+            Html_Menu_Dia_Accion(
+              "abordaje",
+              t("contexto.abordaje")
+            )
+          );
+          Grupo_Nota.push(
+            Html_Menu_Dia_Accion(
+              "nota",
+              Tiene_Nota
+                ? t("contexto.editar_nota")
+                : t("contexto.agregar_nota")
+            )
+          );
           if (Tiene_Nota) {
-            Html +=
-              `<button class="Dia_Accion_Item"` +
-              ` type="button"` +
-              ` data-acc="borrar-nota">` +
-              t("contexto.borrar_nota") +
-              `</button>`;
+            Grupo_Nota.push(
+              Html_Menu_Dia_Accion(
+                "borrar-nota",
+                t("contexto.borrar_nota")
+              )
+            );
           }
         }
-        Html +=
-          `<button class="Dia_Accion_Item"` +
-          ` type="button"` +
-          ` data-acc="repetir">` +
-          t("contexto.repetir_semana") +
-          `</button>` +
-          `<button class="Dia_Accion_Item"` +
-          ` type="button"` +
-          ` data-acc="limpiar-objetivo">` +
-          t("contexto.limpiar_objetivo") +
-          `</button>` +
-          `<button class="Dia_Accion_Item` +
-          ` Dia_Accion_Peligro"` +
-          ` type="button"` +
-          ` data-acc="limpiar-celda">` +
-          t("contexto.limpiar_celda") +
-          `</button>`;
+        const Grupo_Calendario = [
+          Html_Menu_Dia_Accion(
+            "repetir",
+            t("contexto.repetir_semana")
+          ),
+          Html_Menu_Dia_Accion(
+            "limpiar-objetivo",
+            t("contexto.limpiar_objetivo")
+          )
+        ];
+        const Grupo_Peligro = [
+          Html_Menu_Dia_Accion(
+            "limpiar-celda",
+            t("contexto.limpiar_celda"),
+            "Dia_Accion_Peligro"
+          )
+        ];
 
-        Menu.innerHTML = Html;
+        Menu.innerHTML = Construir_Menu_Dia_Por_Grupos([
+          Grupo_Plan,
+          Grupo_Nota,
+          Grupo_Calendario,
+          Grupo_Peligro
+        ]);
         Menu.style.left = `${X}px`;
         Menu.style.top = `${Y}px`;
         Menu.classList.add("Activo");
@@ -35526,82 +35565,107 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Titulo_Tipo = Obtener_Titulo_Tipo_Slot(
           Tipo_Slot
         );
-        let Html =
-          (
-            Es_Slot_Muerto &&
-            (Nombre_Guardado || Titulo_Tipo)
-              ? `<button class="Dia_Accion_Item" ` +
-                `type="button" data-acc="toggle-titulo-slot">` +
+        const Grupo_Identidad = [];
+        if (Es_Slot_Muerto) {
+          Grupo_Identidad.push(
+            Html_Menu_Dia_Accion(
+              "editar-nombre-slot",
+              t("slot.editar_nombre")
+            )
+          );
+          if (Nombre_Guardado || Titulo_Tipo) {
+            Grupo_Identidad.push(
+              Html_Menu_Dia_Accion(
+                "toggle-titulo-slot",
                 t(
                   Tiene_Titulo
                     ? "slot.quitar_titulo"
                     : "slot.colocar_titulo"
-                ) +
-                `</button>`
-              : ""
-          ) +
-          (
-            Es_Slot_Muerto
-              ? `<button class="Dia_Accion_Item" type="button" ` +
-                `data-acc="editar-nombre-slot">` +
-                t("slot.editar_nombre") +
-                `</button>`
-              : ""
-          ) +
-          `<button class="Dia_Accion_Item" type="button" data-acc="plan-slot">Plan</button>` +
-          (
-            Puede_Pegar_Bloques
-              ? `<button class="Dia_Accion_Item" ` +
-                `type="button" ` +
-                `data-acc="pegar-bloques-slot">` +
-                t("cal_multi.pegar_bloques") +
-                `</button>`
-              : ""
-          ) +
-          (
-            Puede_Pegar_Plan
-              ? `<button class="Dia_Accion_Item" ` +
-                `type="button" ` +
-                `data-acc="pegar-plan-slot">` +
-                t("slot.pegar_plan") +
-                `</button>`
-              : ""
-          ) +
-          (
-            Es_Slot_Muerto
-              ? `<button class="Dia_Accion_Item" ` +
-                `type="button" data-acc="repetir-slot">` +
-                t("contexto.repetir_semana") +
-                `</button>`
-              : ""
-          ) +
-          `<button class="Dia_Accion_Item" type="button" data-acc="insertar-patron-slot">` +
-          t("slot.insertar_patron") +
-          `</button>`;
-        if (Tiene_Plan) {
-          Html +=
-            (
-              Es_Slot_Muerto
-                ? `<button class="Dia_Accion_Item" ` +
-                  `type="button" ` +
-                  `data-acc="copiar-plan-slot">` +
-                  t("slot.copiar_plan") +
-                  `</button>`
-                : ""
-            ) +
-            `<button class="Dia_Accion_Item" type="button" data-acc="guardar-patron-slot">` +
-            t("slot.guardar_como_patron") +
-            `</button>` +
-            `<button class="Dia_Accion_Item" type="button" data-acc="borrar-plan-slot">` +
-            t("slot.borrar_plan") +
-            `</button>`;
+                )
+              )
+            );
+          }
         }
-        Html +=
-          `<button class="Dia_Accion_Item Dia_Accion_Peligro"` +
-          ` type="button" data-acc="limpiar-celda">` +
-          t("contexto.limpiar_celda") +
-          `</button>`;
-        Menu.innerHTML = Html;
+
+        const Grupo_Plan = [
+          Html_Menu_Dia_Accion(
+            "plan-slot",
+            t("contexto.abordaje")
+          )
+        ];
+        if (Es_Slot_Muerto && Tiene_Plan) {
+          Grupo_Plan.push(
+            Html_Menu_Dia_Accion(
+              "copiar-plan-slot",
+              t("slot.copiar_plan")
+            )
+          );
+        }
+        if (Puede_Pegar_Plan) {
+          Grupo_Plan.push(
+            Html_Menu_Dia_Accion(
+              "pegar-plan-slot",
+              t("slot.pegar_plan")
+            )
+          );
+        }
+        if (Tiene_Plan) {
+          Grupo_Plan.push(
+            Html_Menu_Dia_Accion(
+              "borrar-plan-slot",
+              t("slot.borrar_plan")
+            )
+          );
+        }
+
+        const Grupo_Patron = [
+          Html_Menu_Dia_Accion(
+            "insertar-patron-slot",
+            t("slot.insertar_patron")
+          )
+        ];
+        if (Tiene_Plan) {
+          Grupo_Patron.push(
+            Html_Menu_Dia_Accion(
+              "guardar-patron-slot",
+              t("slot.guardar_como_patron")
+            )
+          );
+        }
+
+        const Grupo_Calendario = [];
+        if (Puede_Pegar_Bloques) {
+          Grupo_Calendario.push(
+            Html_Menu_Dia_Accion(
+              "pegar-bloques-slot",
+              t("cal_multi.pegar_bloques")
+            )
+          );
+        }
+        if (Es_Slot_Muerto) {
+          Grupo_Calendario.push(
+            Html_Menu_Dia_Accion(
+              "repetir-slot",
+              t("contexto.repetir_semana")
+            )
+          );
+        }
+
+        const Grupo_Peligro = [
+          Html_Menu_Dia_Accion(
+            "limpiar-celda",
+            t("contexto.limpiar_celda"),
+            "Dia_Accion_Peligro"
+          )
+        ];
+
+        Menu.innerHTML = Construir_Menu_Dia_Por_Grupos([
+          Grupo_Identidad,
+          Grupo_Plan,
+          Grupo_Patron,
+          Grupo_Calendario,
+          Grupo_Peligro
+        ]);
         Menu.style.left = `${X}px`;
         Menu.style.top = `${Y}px`;
         Menu.classList.add("Activo");
