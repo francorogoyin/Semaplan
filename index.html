@@ -3850,6 +3850,14 @@
         -webkit-box-orient: vertical;
       }
 
+      .Slot_Muerto_Arrastrable {
+        cursor: grab;
+      }
+
+      .Slot_Muerto_Arrastrable.Arrastrando {
+        cursor: grabbing;
+      }
+
       .Slot_Plan_Marca {
         position: absolute;
         bottom: 10px;
@@ -10766,9 +10774,10 @@
                   El baúl es una biblioteca de moldes
                   reutilizables. Cada tarea del baúl guarda
                   nombre, emoji, tipo, categoría y etiquetas.
-                  Click normal selecciona; click derecho permite
-                  agregar la tarea a la semana actual, próxima,
-                  una elegida o varias.
+                  Toque o click normal selecciona; pulsación
+                  prolongada o click derecho permite agregar la
+                  tarea a la semana actual, próxima, una elegida
+                  o varias.
                 </p>
                 <p data-i18n="ayuda.baul_p2">
                   Tiene dos vistas (Biblioteca y Lista), filtros
@@ -10799,8 +10808,9 @@
                 <p data-i18n="ayuda.abordaje_p1">
                   Cada bloque del calendario tiene un Plan:
                   el registro de qué subtareas se trabajaron en
-                  ese horario puntual. Abrilo con click derecho
-                  sobre el bloque → "Plan".
+                  ese horario puntual. En mobile se abre con un
+                  toque sobre el bloque; en desktop, con click
+                  derecho → "Plan".
                 </p>
                 <div class="Ayuda_Grid">
                   <div class="Ayuda_Mini_Card">
@@ -14632,12 +14642,13 @@
             " Cada tarea del baúl " +
             "guarda nombre, emoji, " +
             "tipo, categoría y " +
-            "etiquetas. Click normal " +
-            "selecciona; click derecho" +
-            " permite agregar la tarea" +
-            " a la semana actual, " +
-            "próxima, una elegida o " +
-            "varias.",
+            "etiquetas. Toque o click " +
+            "normal selecciona; " +
+            "pulsación prolongada o " +
+            "click derecho permite " +
+            "agregar la tarea a la " +
+            "semana actual, próxima, " +
+            "una elegida o varias.",
           "ayuda.baul_p2":
             "Tiene dos vistas " +
             "(Biblioteca y Lista), " +
@@ -14676,10 +14687,11 @@
             "Plan: el registro " +
             "de qué subtareas se " +
             "trabajaron en ese " +
-            "horario puntual. Abrilo" +
-            " con click derecho " +
-            "sobre el bloque → " +
-            "\"Plan\".",
+            "horario puntual. En " +
+            "mobile se abre con un " +
+            "toque sobre el bloque; " +
+            "en desktop, con click " +
+            "derecho → \"Plan\".",
           "ayuda.abordaje_planear":
             "Planear",
           "ayuda.abordaje_estrella":
@@ -16925,13 +16937,13 @@
             "templates. Each vault " +
             "task stores name, " +
             "emoji, type, category " +
-            "and tags. Regular " +
-            "click selects; " +
-            "right-click lets you " +
-            "add the task to the " +
-            "current week, next " +
-            "week, a chosen one " +
-            "or several.",
+            "and tags. Tap or " +
+            "click selects it; long " +
+            "press or right click " +
+            "lets you add the task " +
+            "to the current week, " +
+            "next week, a chosen " +
+            "one or several.",
           "ayuda.baul_p2":
             "Two views (Library and " +
             "List), filters by " +
@@ -16966,9 +16978,11 @@
             "record of which " +
             "subtasks were worked " +
             "on during that time " +
-            "slot. Open it by " +
-            "right-clicking the " +
-            "block → \"Plan\".",
+            "slot. On mobile, open " +
+            "it by tapping the " +
+            "block; on desktop, use " +
+            "right click → " +
+            "\"Plan\".",
           "ayuda.abordaje_planear":
             "Plan",
           "ayuda.abordaje_estrella":
@@ -19293,13 +19307,14 @@
             "tarefa do baú guarda " +
             "nome, emoji, tipo, " +
             "categoria e tags. " +
-            "Clique normal " +
-            "seleciona; clique " +
-            "direito permite " +
-            "adicionar a tarefa à " +
-            "semana atual, próxima" +
-            ", uma escolhida ou " +
-            "várias.",
+            "Toque ou clique " +
+            "normal seleciona; " +
+            "toque prolongado ou " +
+            "clique direito " +
+            "permite adicionar a " +
+            "tarefa à semana atual, " +
+            "próxima, uma escolhida " +
+            "ou várias.",
           "ayuda.baul_p2":
             "Duas visualizações " +
             "(Biblioteca e Lista), " +
@@ -19337,9 +19352,10 @@
             "Plano: o registro" +
             " de quais subtarefas " +
             "foram trabalhadas " +
-            "naquele horário. Abra" +
-            " com clique direito " +
-            "sobre o bloco → " +
+            "naquele horário. No " +
+            "mobile, abra tocando " +
+            "no bloco; no desktop, " +
+            "use clique direito → " +
             "\"Plano\".",
           "ayuda.abordaje_planear":
             "Planejar",
@@ -37313,6 +37329,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Clave: "",
         Timestamp: 0
       };
+      let Ultimo_Drag_Slot_Muerto_Timestamp = 0;
 
       function Intentar_Alternar_Slot_Por_Doble_Click(
         Fecha,
@@ -38926,6 +38943,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           !Slot_Tiene_Evento(Fecha, Hora);
       }
 
+      function Slot_Muerto_Con_Plan_Es_Arrastrable(
+        Fecha,
+        Hora
+      ) {
+        return Slot_Es_Muerto(Fecha, Hora) &&
+          Contar_Items_Plan_Slot(Fecha, Hora) > 0;
+      }
+
       function Contar_Items_Plan_Slot(Fecha, Hora) {
         const Plan = Obtener_Plan_Slot(Fecha, Hora, false);
         return Array.isArray(Plan?.Items)
@@ -39269,6 +39294,140 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           break;
         }
         return Math.max(0, Max_Dur);
+      }
+
+      function Obtener_Motivo_Conflicto_Traslado_Slot(
+        Fecha,
+        Hora,
+        Clave_Origen = ""
+      ) {
+        const Clave_Destino = Clave_Slot(Fecha, Hora);
+        if (!Clave_Destino || Clave_Destino === Clave_Origen) {
+          return "";
+        }
+        if (Slot_Tiene_Evento(Fecha, Hora)) {
+          return "Ese horario ya está ocupado.";
+        }
+        if (Slot_Es_Muerto(Fecha, Hora)) {
+          return "Ese horario ya está ocupado.";
+        }
+        if (Contar_Items_Plan_Slot(Fecha, Hora) > 0) {
+          return "Ese horario ya está ocupado.";
+        }
+        return "";
+      }
+
+      function Mover_Slot_Muerto_Con_Plan(
+        Fecha_Origen,
+        Hora_Origen,
+        Fecha_Destino,
+        Hora_Destino
+      ) {
+        const Clave_Origen = Clave_Slot(
+          Fecha_Origen,
+          Hora_Origen
+        );
+        const Clave_Destino = Clave_Slot(
+          Fecha_Destino,
+          Hora_Destino
+        );
+        if (
+          !Clave_Origen ||
+          !Clave_Destino ||
+          Clave_Origen === Clave_Destino
+        ) {
+          return false;
+        }
+        if (
+          !Slot_Muerto_Con_Plan_Es_Arrastrable(
+            Fecha_Origen,
+            Hora_Origen
+          )
+        ) {
+          return false;
+        }
+        const Motivo_Conflicto =
+          Obtener_Motivo_Conflicto_Traslado_Slot(
+            Fecha_Destino,
+            Hora_Destino,
+            Clave_Origen
+          );
+        if (Motivo_Conflicto) {
+          alert(Motivo_Conflicto);
+          return false;
+        }
+
+        const Tipo_Origen =
+          Slots_Muertos_Tipos[Clave_Origen] ||
+          Obtener_Aplica_A_Slot(Fecha_Origen, Hora_Origen);
+        const Nombre_Origen =
+          Obtener_Nombre_Slot_Por_Clave(Clave_Origen);
+        const Titulo_Visible_Origen =
+          Slot_Muerto_Titulo_Es_Visible_Clave(
+            Clave_Origen
+          );
+        const Nombre_Auto_Origen =
+          Slot_Muerto_Nombre_Es_Auto_Clave(Clave_Origen);
+        const Plan_Origen = Obtener_Plan_Slot(
+          Fecha_Origen,
+          Hora_Origen,
+          false
+        );
+        if (
+          !Array.isArray(Plan_Origen?.Items) ||
+          Plan_Origen.Items.length === 0
+        ) {
+          return false;
+        }
+
+        Crear_Slot_Muerto(
+          Fecha_Destino,
+          Hora_Destino,
+          Tipo_Origen,
+          false
+        );
+        if (Nombre_Origen) {
+          Guardar_Nombre_Slot_Muerto(
+            Clave_Destino,
+            Nombre_Origen,
+            Titulo_Visible_Origen,
+            Nombre_Auto_Origen
+          );
+        } else {
+          Limpiar_Nombre_Slot_Muerto(Clave_Destino);
+        }
+        Planes_Slot[Clave_Destino] = {
+          Items: Plan_Origen.Items.map((Item) => ({
+            ...Item
+          }))
+        };
+
+        const Index_Origen = Slots_Muertos.indexOf(
+          Clave_Origen
+        );
+        if (Index_Origen >= 0) {
+          Slots_Muertos.splice(Index_Origen, 1);
+        }
+        Limpiar_Metadata_Slot_Muerto(Clave_Origen);
+        delete Planes_Slot[Clave_Origen];
+        if (Plan_Slot_Clave_Activa === Clave_Origen) {
+          Plan_Slot_Clave_Activa = Clave_Destino;
+        }
+        if (
+          Focus_Navegacion_Id ===
+          Focus_Clave_Slot_Foco(
+            Fecha_Origen,
+            Hora_Origen
+          )
+        ) {
+          Focus_Navegacion_Id = Focus_Clave_Slot_Foco(
+            Fecha_Destino,
+            Hora_Destino
+          );
+        }
+        Render_Calendario();
+        Guardar_Estado();
+        return true;
       }
 
       function Obtener_Tipos_Slot() {
@@ -42312,6 +42471,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           const Conteo_Plan_Slot =
             Contar_Items_Plan_Slot(Fecha_ISO, Hora);
+          const Slot_Arrastrable =
+            Slot_Muerto_Con_Plan_Es_Arrastrable(
+              Fecha_ISO,
+              Hora
+            );
           if (Conteo_Plan_Slot > 0) {
             const Marca_Plan = document.createElement("div");
             Marca_Plan.className = "Slot_Plan_Marca";
@@ -42353,17 +42517,47 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Cerrar_Popup_Abordaje();
             });
           }
+          if (Slot_Arrastrable) {
+            Slot.classList.add("Slot_Muerto_Arrastrable");
+            Slot.draggable = true;
+            Slot.addEventListener("dragstart", (Evento) => {
+              Ultimo_Drag_Slot_Muerto_Timestamp = Date.now();
+              Slot.classList.add("Arrastrando");
+              Activar_AutoScroll_Calendario_Drag();
+              Evento.dataTransfer.setData(
+                "text/plain",
+                JSON.stringify({
+                  Tipo: "Slot_Muerto_Con_Plan",
+                  Fecha: Fecha_ISO,
+                  Hora
+                })
+              );
+            });
+            Slot.addEventListener("dragend", () => {
+              Ultimo_Drag_Slot_Muerto_Timestamp = Date.now();
+              Slot.classList.remove("Arrastrando");
+              Detener_AutoScroll_Calendario_Drag();
+            });
+          }
           if (
             Slot_Es_Muerto(Fecha_ISO, Hora) ||
             Slot_Esta_Vacio(Fecha_ISO, Hora)
           ) {
             Slot.addEventListener("mousedown", (Evento) => {
               if (Evento.button !== 0) return;
+              if (Slot_Arrastrable) return;
               Evento.preventDefault();
             });
             Slot.addEventListener("mouseup", (Evento) => {
               if (Evento.button !== 0) return;
               if (Interaccion_Touch_Activa()) return;
+              if (
+                Date.now() -
+                  Ultimo_Drag_Slot_Muerto_Timestamp <=
+                450
+              ) {
+                return;
+              }
               Evento.preventDefault();
               window.getSelection?.()?.removeAllRanges?.();
               Intentar_Alternar_Slot_Por_Doble_Click(
@@ -43228,6 +43422,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Bloque.Inicio = Hora;
           Render_Eventos();
           Guardar_Estado();
+          return;
+        }
+
+        if (Payload.Tipo === "Slot_Muerto_Con_Plan") {
+          Mover_Slot_Muerto_Con_Plan(
+            Payload.Fecha,
+            Payload.Hora,
+            Fecha,
+            Hora_Base
+          );
         }
       }
 
@@ -43283,6 +43487,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Bloque.Inicio = Hora;
           Render_Eventos();
           Guardar_Estado();
+          return;
+        }
+
+        if (Payload.Tipo === "Slot_Muerto_Con_Plan") {
+          Mover_Slot_Muerto_Con_Plan(
+            Payload.Fecha,
+            Payload.Hora,
+            Fecha,
+            Math.floor(Hora_Exacta)
+          );
         }
       }
 

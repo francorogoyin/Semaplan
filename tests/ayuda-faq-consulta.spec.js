@@ -123,6 +123,47 @@ function estadoBase() {
   };
 }
 
+test("ayuda explica gestos touch en baul y plan",
+async ({ page }) => {
+  await preparar(page, estadoBase());
+
+  const textos = await page.evaluate(() => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    window.Inicializar();
+    Abrir_Ayuda();
+
+    const Leer = () => ({
+      Baul: document.querySelector(
+        '[data-i18n="ayuda.baul_p1"]'
+      )?.textContent?.trim() || "",
+      Plan: document.querySelector(
+        '[data-i18n="ayuda.abordaje_p1"]'
+      )?.textContent?.trim() || ""
+    });
+
+    const Es = Leer();
+    Cambiar_Idioma("en");
+    const En = Leer();
+    return { Es, En };
+  });
+
+  expect(textos.Es.Baul).toContain(
+    "pulsación prolongada"
+  );
+  expect(textos.Es.Plan).toContain(
+    "toque sobre el bloque"
+  );
+  expect(textos.En.Baul).toContain(
+    "long press"
+  );
+  expect(textos.En.Plan).toContain(
+    "tapping the block"
+  );
+});
+
 test("ayuda traduce título, abre faq separado y envía consulta real",
 async ({ page }) => {
   await preparar(page, estadoBase());
