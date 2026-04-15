@@ -1369,6 +1369,68 @@ test(
 );
 
 test(
+  "permite volver a seleccionar slots vacios tras limpiar la seleccion",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+
+    const Slot_13 =
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]';
+    const Slot_14 =
+      '.Slot[data-fecha="2026-04-13"][data-hora="14"]';
+    const Slot_15 =
+      '.Slot[data-fecha="2026-04-13"][data-hora="15"]';
+
+    await page.click(Slot_13);
+    await page.waitForTimeout(420);
+
+    let Resultado = await page.evaluate(() => ({
+      slots: Array.from(Slots_Multi_Seleccion).sort(),
+      barra_activa: document.getElementById(
+        "Calendario_Multi_Acciones"
+      )?.classList.contains("Activa") || false
+    }));
+
+    expect(Resultado.slots).toEqual(["2026-04-13|13"]);
+    expect(Resultado.barra_activa).toBeTruthy();
+
+    await page.click(Slot_13);
+    Resultado = await page.evaluate(() => ({
+      slots: Array.from(Slots_Multi_Seleccion).sort(),
+      barra_activa: document.getElementById(
+        "Calendario_Multi_Acciones"
+      )?.classList.contains("Activa") || false
+    }));
+
+    expect(Resultado.slots).toEqual([]);
+    expect(Resultado.barra_activa).toBeFalsy();
+
+    await page.click(Slot_14);
+    await page.waitForTimeout(420);
+    Resultado = await page.evaluate(() => ({
+      slots: Array.from(Slots_Multi_Seleccion).sort()
+    }));
+    expect(Resultado.slots).toEqual(["2026-04-13|14"]);
+
+    await page.keyboard.press("Escape");
+    Resultado = await page.evaluate(() => ({
+      slots: Array.from(Slots_Multi_Seleccion).sort(),
+      barra_activa: document.getElementById(
+        "Calendario_Multi_Acciones"
+      )?.classList.contains("Activa") || false
+    }));
+    expect(Resultado.slots).toEqual([]);
+    expect(Resultado.barra_activa).toBeFalsy();
+
+    await page.click(Slot_15);
+    await page.waitForTimeout(420);
+    Resultado = await page.evaluate(() => ({
+      slots: Array.from(Slots_Multi_Seleccion).sort()
+    }));
+    expect(Resultado.slots).toEqual(["2026-04-13|15"]);
+  }
+);
+
+test(
   "ofrece pegar en columna cuando la copia mezcla dias",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());
