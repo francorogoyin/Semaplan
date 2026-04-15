@@ -337,7 +337,7 @@ test(
 );
 
 test(
-  "permite seleccionar slots vacios y reduce la barra a limpiar",
+  "permite combinar con slots vacios y mantiene mover y copiar",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());
     const Ids = await Crear_Escenario(page);
@@ -361,7 +361,11 @@ test(
     const Botones = await page.locator(
       "#Calendario_Multi_Grupo_Acciones button"
     ).allTextContents();
-    expect(Botones).toEqual(["Limpiar"]);
+    expect(Botones).toEqual([
+      "Mover",
+      "Copiar",
+      "Limpiar"
+    ]);
 
     const Seleccion = await page.evaluate(() => ({
       eventos: Array.from(Eventos_Multi_Seleccion).sort(),
@@ -392,6 +396,174 @@ test(
     expect(Resultado.seleccion_eventos).toEqual([]);
     expect(Resultado.seleccion_slots).toEqual([]);
     expect(Resultado.barra_activa).toBeFalsy();
+  }
+);
+
+test(
+  "muestra mover y copiar al seleccionar varios slots muertos",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+
+    await page.evaluate(() => {
+      const Datos = {
+        Tipo_Id: "Sueno",
+        Nombre: "Dormir",
+        Visible: true,
+        Nombre_Auto: false,
+        Plan_Items: [
+          {
+            Id: "plan_slot_1",
+            Emoji: "ðŸŒ™",
+            Texto: "Rutina",
+            Estado: "Planeado"
+          }
+        ]
+      };
+      Aplicar_Datos_Slot_Muerto("2026-04-13", 9, Datos, true);
+      Aplicar_Datos_Slot_Muerto("2026-04-13", 10, Datos, true);
+      Render_Calendario();
+      Guardar_Estado();
+    });
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="9"]',
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
+      { modifiers: ["Control"] }
+    );
+
+    const Botones = await page.locator(
+      "#Calendario_Multi_Grupo_Acciones button"
+    ).allTextContents();
+    expect(Botones).toEqual([
+      "Mover",
+      "Copiar",
+      "Limpiar"
+    ]);
+
+    await page.click(
+      '#Calendario_Multi_Grupo_Acciones button:has-text("Mover")'
+    );
+    await page.click(
+      "#Dialogo_Botones .Dialogo_Boton_Primario"
+    );
+
+    const Resultado = await page.evaluate(() => ({
+      slots: [
+        "2026-04-13|10",
+        "2026-04-13|11"
+      ].map((Clave) => ({
+        Clave,
+        Existe: Slots_Muertos.includes(Clave),
+        Nombre: Slots_Muertos_Nombres[Clave] || "",
+        Plan: (Planes_Slot[Clave]?.Items || []).length
+      })),
+      seleccion: Array.from(Slots_Multi_Seleccion).sort()
+    }));
+
+    expect(Resultado.slots).toEqual([
+      {
+        Clave: "2026-04-13|10",
+        Existe: true,
+        Nombre: "Dormir",
+        Plan: 1
+      },
+      {
+        Clave: "2026-04-13|11",
+        Existe: true,
+        Nombre: "Dormir",
+        Plan: 1
+      }
+    ]);
+    expect(Resultado.seleccion).toEqual([
+      "2026-04-13|10",
+      "2026-04-13|11"
+    ]);
+  }
+);
+
+test(
+  "copia una seleccion mixta de bloque y slot muerto",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+    const Ids = await Crear_Escenario(page);
+
+    await page.evaluate(() => {
+      const Datos = {
+        Tipo_Id: "Sueno",
+        Nombre: "Dormir",
+        Visible: true,
+        Nombre_Auto: false,
+        Plan_Items: [
+          {
+            Id: "plan_slot_1",
+            Emoji: "ðŸŒ™",
+            Texto: "Rutina",
+            Estado: "Planeado"
+          }
+        ]
+      };
+      Aplicar_Datos_Slot_Muerto("2026-04-13", 10, Datos, true);
+      Render_Calendario();
+      Guardar_Estado();
+    });
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="12"]',
+      { modifiers: ["Control"] }
+    );
+
+    const Botones = await page.locator(
+      "#Calendario_Multi_Grupo_Acciones button"
+    ).allTextContents();
+    expect(Botones).toEqual([
+      "Mover",
+      "Copiar",
+      "Limpiar"
+    ]);
+
+    await page.click(
+      '#Calendario_Multi_Grupo_Acciones button:has-text("Copiar")'
+    );
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]'
+    );
+    await page.keyboard.press("Control+v");
+
+    const Resultado = await page.evaluate(() => ({
+      modo: Portapapeles_Calendario_Modo,
+      evento_copiado: Eventos.some((Evento) =>
+        Evento.Fecha === "2026-04-13" &&
+        Evento.Inicio === 13
+      ),
+      slot_copiado: Slots_Muertos.includes("2026-04-13|14"),
+      slot_vacio_ignorado:
+        !Slots_Muertos.includes("2026-04-13|15"),
+      seleccion_eventos: Array.from(
+        Eventos_Multi_Seleccion
+      ).sort(),
+      seleccion_slots: Array.from(
+        Slots_Multi_Seleccion
+      ).sort()
+    }));
+
+    expect(Resultado.modo).toBe("Calendario_Mixto");
+    expect(Resultado.evento_copiado).toBeTruthy();
+    expect(Resultado.slot_copiado).toBeTruthy();
+    expect(Resultado.slot_vacio_ignorado).toBeTruthy();
+    expect(Resultado.seleccion_eventos).toEqual([]);
+    expect(Resultado.seleccion_slots).toEqual([]);
   }
 );
 

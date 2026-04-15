@@ -14489,6 +14489,10 @@
             "Mover horas...",
           "cal_multi.horas_prompt_mover":
             "¿Cuántas horas querés moverlos?",
+          "cal_multi.horas_enteras_slots":
+            "Si la selecciÃ³n incluye slots muertos, " +
+            "el movimiento personalizado debe ser " +
+            "en horas enteras.",
           "cal_multi.pegar_bloques":
             "Pegar bloques",
           "cal_multi.pegar_prompt":
@@ -15402,6 +15406,8 @@
             "Se limpiaron {n} elementos del calendario",
           "toast.bloques_multi_copiados":
             "Se copiaron {n} bloques",
+          "toast.cal_multi_items_copiados":
+            "Se copiaron {n} elementos",
           "toast.slots_multi_copiados":
             "Se copiaron {n} slots muertos",
           "toast.eventos_no_tildados_eliminados":
@@ -16881,6 +16887,9 @@
             "Move hours...",
           "cal_multi.horas_prompt_mover":
             "How many hours do you want to move them?",
+          "cal_multi.horas_enteras_slots":
+            "If the selection includes dead slots, " +
+            "custom move must use whole hours.",
           "cal_multi.pegar_bloques":
             "Paste blocks",
           "cal_multi.pegar_prompt":
@@ -17765,6 +17774,8 @@
             "Cleared {n} calendar items",
           "toast.bloques_multi_copiados":
             "{n} blocks copied",
+          "toast.cal_multi_items_copiados":
+            "{n} items copied",
           "toast.slots_multi_copiados":
             "{n} dead slots copied",
           "toast.eventos_no_tildados_eliminados":
@@ -19314,6 +19325,10 @@
             "Mover horas...",
           "cal_multi.horas_prompt_mover":
             "Quantas horas você quer movê-los?",
+          "cal_multi.horas_enteras_slots":
+            "Se a seleÃ§Ã£o inclui slots mortos, " +
+            "o movimento personalizado deve usar " +
+            "horas inteiras.",
           "cal_multi.pegar_bloques":
             "Colar blocos",
           "cal_multi.pegar_prompt":
@@ -20226,6 +20241,8 @@
             "Limparam-se {n} itens do calendario",
           "toast.bloques_multi_copiados":
             "{n} blocos copiados",
+          "toast.cal_multi_items_copiados":
+            "{n} itens copiados",
           "toast.slots_multi_copiados":
             "Foram copiados {n} slots mortos",
           "toast.eventos_no_tildados_eliminados":
@@ -35733,7 +35750,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.addEventListener("click", async (Ev) => {
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
-            await Pegar_Eventos_Multi_En_Slot(Fecha, Hora);
+            await Pegar_Seleccion_Calendario_En_Slot(
+              Fecha,
+              Hora
+            );
           });
         Menu.querySelector(`[data-acc="pegar-plan-slot"]`)
           ?.addEventListener("click", async (Ev) => {
@@ -41130,6 +41150,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
+      function Obtener_Slots_Muertos_Multi_Seleccionados(
+        Claves = null
+      ) {
+        return Obtener_Slots_Multi_Seleccionados_Ordenados(
+          Claves
+        ).filter((Clave) => {
+          const [Fecha, Hora] = String(Clave).split("|");
+          return Slot_Es_Muerto(Fecha, Number(Hora));
+        });
+      }
+
       function Aplicar_Seleccion_Eventos_En_DOM() {
         document.querySelectorAll(".Evento").forEach((Nodo) => {
           const Id = Nodo.dataset.id || "";
@@ -41270,6 +41301,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Eventos_Multi_Seleccion.size;
         const Cantidad_Slots =
           Slots_Multi_Seleccion.size;
+        const Cantidad_Slots_Muertos =
+          Obtener_Slots_Muertos_Multi_Seleccionados().length;
+        const Tiene_Items_Movibles =
+          Cantidad_Eventos > 0 ||
+          Cantidad_Slots_Muertos > 0;
         const Cantidad = Cantidad_Multi_Calendario();
         if (Cantidad === 0) {
           El_Calendario_Multi_Acciones.classList.remove("Activa");
@@ -41281,6 +41317,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         El_Calendario_Multi_Grupo.innerHTML = "";
         if (Cantidad_Slots > 0) {
+          if (Tiene_Items_Movibles) {
+            El_Calendario_Multi_Grupo.appendChild(
+              Crear_Boton_Multi_Inline(
+                t("dialog.mover"),
+                () => {
+                  Solicitar_Mover_Seleccion_Calendario_Multi();
+                }
+              )
+            );
+            El_Calendario_Multi_Grupo.appendChild(
+              Crear_Boton_Multi_Inline(
+                t("dialog.copiar"),
+                () => {
+                  Ejecutar_Copiar_Seleccion_Calendario();
+                }
+              )
+            );
+          }
           El_Calendario_Multi_Grupo.appendChild(
             Crear_Boton_Multi_Inline(
               t("dialog.limpiar"),
@@ -41311,7 +41365,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Crear_Boton_Multi_Inline(
             t("dialog.mover"),
             () => {
-              Solicitar_Mover_Eventos_Multi();
+              Solicitar_Mover_Seleccion_Calendario_Multi();
             }
           )
         );
@@ -41319,7 +41373,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Crear_Boton_Multi_Inline(
             t("dialog.copiar"),
             () => {
-              Copiar_Eventos_Multi_Seleccionados();
+              Ejecutar_Copiar_Seleccion_Calendario();
             }
           )
         );
@@ -41356,6 +41410,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Formatear_Fecha_ISO(
           Sumar_Dias(Fecha, Dias_Delta)
         );
+      }
+
+      function Comparar_Anclas_Calendario(A, B) {
+        if (!A && !B) return 0;
+        if (!A) return 1;
+        if (!B) return -1;
+        if (A.Fecha !== B.Fecha) {
+          return A.Fecha < B.Fecha ? -1 : 1;
+        }
+        return (Number(A.Hora) || 0) -
+          (Number(B.Hora) || 0);
+      }
+
+      function Obtener_Ancla_Multi_Calendario(
+        Eventos_Lista = null,
+        Slots_Claves = null
+      ) {
+        const Lista_Eventos = Array.isArray(Eventos_Lista)
+          ? Eventos_Lista
+          : Obtener_Eventos_Multi_Seleccionados_Ordenados();
+        const Lista_Slots = Array.isArray(Slots_Claves)
+          ? Slots_Claves
+          : Obtener_Slots_Muertos_Multi_Seleccionados();
+        const Ancla_Evento = Lista_Eventos.length > 0
+          ? {
+            Fecha: Lista_Eventos[0].Fecha,
+            Hora: Number(Lista_Eventos[0].Inicio) || 0
+          }
+          : null;
+        const Ancla_Slot = Lista_Slots.length > 0
+          ? (() => {
+            const [Fecha, Hora] = String(
+              Lista_Slots[0]
+            ).split("|");
+            return {
+              Fecha,
+              Hora: Number(Hora) || 0
+            };
+          })()
+          : null;
+        return Comparar_Anclas_Calendario(
+          Ancla_Evento,
+          Ancla_Slot
+        ) <= 0
+          ? (Ancla_Evento || Ancla_Slot)
+          : (Ancla_Slot || Ancla_Evento);
       }
 
       function Construir_Propuesta_Eventos_Multi(
@@ -41792,12 +41892,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Copiar_Eventos_Multi_Seleccionados(
-        Mostrar_Toast = true
+        Mostrar_Toast = true,
+        Evento_Ids = null,
+        Ancla = null
       ) {
-        const Lista = Obtener_Eventos_Multi_Seleccionados_Ordenados();
+        const Lista = Obtener_Eventos_Multi_Seleccionados_Ordenados(
+          Evento_Ids
+        );
         if (!Lista.length) return false;
-        const Ancla = Lista[0];
-        const Fecha_Ancla = Parsear_Fecha_ISO(Ancla.Fecha);
+        const Ancla_Final = Ancla || {
+          Fecha: Lista[0].Fecha,
+          Hora: Number(Lista[0].Inicio) || 0
+        };
+        const Fecha_Ancla = Parsear_Fecha_ISO(
+          Ancla_Final.Fecha
+        );
         Portapapeles_Eventos_Multi = {
           Items: Lista.map((Evento) => ({
             Objetivo_Id: Evento.Objetivo_Id,
@@ -41807,7 +41916,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ),
             Delta_Horas:
               (Number(Evento.Inicio) || 0) -
-              (Number(Ancla.Inicio) || 0),
+              (Number(Ancla_Final.Hora) || 0),
             Duracion: Number(Evento.Duracion) || 0,
             Color: Evento.Color || null,
             Nota: Evento.Nota || ""
@@ -41840,18 +41949,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Copiar_Slots_Multi_Seleccionados(
-        Mostrar_Toast = true
+        Mostrar_Toast = true,
+        Claves = null,
+        Ancla = null
       ) {
-        const Claves = Obtener_Slots_Multi_Seleccionados_Ordenados();
-        if (!Slots_Multi_Seleccion_Son_Todos_Muertos(Claves)) {
+        const Lista_Claves =
+          Obtener_Slots_Muertos_Multi_Seleccionados(Claves);
+        if (!Lista_Claves.length) {
           return false;
         }
-        const [Fecha_Ancla, Hora_Ancla_Texto] =
-          String(Claves[0]).split("|");
-        const Hora_Ancla = Number(Hora_Ancla_Texto);
-        const Base_Ancla = Parsear_Fecha_ISO(Fecha_Ancla);
+        if (!Slots_Multi_Seleccion_Son_Todos_Muertos(Lista_Claves)) {
+          return false;
+        }
+        const [Fecha_Ancla_Defecto, Hora_Ancla_Texto] =
+          String(Lista_Claves[0]).split("|");
+        const Ancla_Final = Ancla || {
+          Fecha: Fecha_Ancla_Defecto,
+          Hora: Number(Hora_Ancla_Texto) || 0
+        };
+        const Base_Ancla = Parsear_Fecha_ISO(
+          Ancla_Final.Fecha
+        );
         Portapapeles_Slots_Multi = {
-          Items: Claves.map((Clave) => {
+          Items: Lista_Claves.map((Clave) => {
             const [Fecha, Hora_Texto] = String(Clave).split("|");
             const Hora = Number(Hora_Texto);
             return {
@@ -41859,7 +41979,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Base_Ancla,
                 Parsear_Fecha_ISO(Fecha)
               ),
-              Delta_Horas: Hora - Hora_Ancla,
+              Delta_Horas:
+                Hora - (Number(Ancla_Final.Hora) || 0),
               Datos: Capturar_Datos_Slot_Muerto(Fecha, Hora)
             };
           })
@@ -41868,9 +41989,65 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Mostrar_Toast) {
           Mostrar_Toast_Info(
             t("toast.slots_multi_copiados", {
-              n: Claves.length
+              n: Lista_Claves.length
             }),
             "📋",
+            5000
+          );
+        }
+        Render_Acciones_Multi_Calendario();
+        return true;
+      }
+
+      function Copiar_Seleccion_Calendario_Mixta(
+        Mostrar_Toast = true
+      ) {
+        const Evento_Ids = Array.from(
+          Eventos_Multi_Seleccion
+        );
+        const Claves_Slots =
+          Obtener_Slots_Muertos_Multi_Seleccionados();
+        if (
+          Evento_Ids.length === 0 &&
+          Claves_Slots.length === 0
+        ) {
+          return false;
+        }
+        if (Evento_Ids.length === 0) {
+          return Copiar_Slots_Multi_Seleccionados(
+            Mostrar_Toast,
+            Claves_Slots
+          );
+        }
+        if (Claves_Slots.length === 0) {
+          return Copiar_Eventos_Multi_Seleccionados(
+            Mostrar_Toast,
+            Evento_Ids
+          );
+        }
+        const Ancla = Obtener_Ancla_Multi_Calendario(
+          Obtener_Eventos_Multi_Seleccionados_Ordenados(
+            Evento_Ids
+          ),
+          Claves_Slots
+        );
+        Copiar_Eventos_Multi_Seleccionados(
+          false,
+          Evento_Ids,
+          Ancla
+        );
+        Copiar_Slots_Multi_Seleccionados(
+          false,
+          Claves_Slots,
+          Ancla
+        );
+        Portapapeles_Calendario_Modo = "Calendario_Mixto";
+        if (Mostrar_Toast) {
+          Mostrar_Toast_Info(
+            t("toast.cal_multi_items_copiados", {
+              n: Evento_Ids.length + Claves_Slots.length
+            }),
+            "ðŸ“‹",
             5000
           );
         }
@@ -41966,6 +42143,402 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Motivo) return { Motivo };
         }
         return { Motivo: "" };
+      }
+
+      function Construir_Propuesta_Slots_Multi_Por_Delta(
+        Claves,
+        Dias_Delta,
+        Horas_Delta
+      ) {
+        const Mapa_Grupo_Ids = new Map();
+        return (Claves || []).map((Clave) => {
+          const [Fecha, Hora_Texto] = String(Clave).split("|");
+          const Hora = Number(Hora_Texto);
+          const Datos = Capturar_Datos_Slot_Muerto(
+            Fecha,
+            Hora
+          );
+          const Grupo_Origen = String(
+            Datos?.Grupo_Id || Clave
+          ).trim();
+          if (!Mapa_Grupo_Ids.has(Grupo_Origen)) {
+            Mapa_Grupo_Ids.set(
+              Grupo_Origen,
+              Crear_Id_Grupo_Slot_Muerto()
+            );
+          }
+          return {
+            Clave_Origen: Clave,
+            Fecha_Origen: Fecha,
+            Hora_Origen: Hora,
+            Fecha: Desplazar_Fecha_ISO(
+              Fecha,
+              Dias_Delta
+            ),
+            Hora: Hora + Horas_Delta,
+            Datos: {
+              ...Datos,
+              Grupo_Id: Mapa_Grupo_Ids.get(Grupo_Origen)
+            }
+          };
+        });
+      }
+
+      function Evaluar_Propuesta_Calendario_Mixta(
+        Propuesta_Eventos = [],
+        Propuesta_Slots = [],
+        Evento_Ids_Omitir = [],
+        Slot_Claves_Omitir = []
+      ) {
+        const Evento_Ids_Set = new Set(Evento_Ids_Omitir || []);
+        const Slot_Claves_Set = new Set(Slot_Claves_Omitir || []);
+        const Claves_Slots_Propuestas = new Set();
+        const Conflictos = new Set();
+
+        for (const Item of Propuesta_Slots || []) {
+          const Clave = Clave_Slot(Item.Fecha, Item.Hora);
+          if (
+            Item.Hora < Config.Inicio_Hora ||
+            Item.Hora >= Config.Fin_Hora
+          ) {
+            return {
+              Motivo: t("cal_multi.conflicto_visible"),
+              Conflictos_Ids: []
+            };
+          }
+          if (!Clave || Claves_Slots_Propuestas.has(Clave)) {
+            return {
+              Motivo: t("cal_multi.conflicto_ocupado"),
+              Conflictos_Ids: []
+            };
+          }
+          Claves_Slots_Propuestas.add(Clave);
+          const Evento_Conflicto =
+            Obtener_Evento_Conflicto(
+              Item.Fecha,
+              Item.Hora,
+              1
+            );
+          if (
+            Evento_Conflicto &&
+            !Evento_Ids_Set.has(Evento_Conflicto.Id)
+          ) {
+            Conflictos.add(Evento_Conflicto.Id);
+          }
+          if (
+            Slot_Es_Muerto(Item.Fecha, Item.Hora) &&
+            !Slot_Claves_Set.has(Clave)
+          ) {
+            return {
+              Motivo: t("cal_multi.conflicto_ocupado"),
+              Conflictos_Ids: []
+            };
+          }
+          if (
+            Contar_Items_Plan_Slot(Item.Fecha, Item.Hora) > 0 &&
+            !Slot_Claves_Set.has(Clave)
+          ) {
+            return {
+              Motivo: t("cal_multi.conflicto_ocupado"),
+              Conflictos_Ids: []
+            };
+          }
+        }
+
+        (Propuesta_Eventos || []).forEach((Item) => {
+          Item.Conflictos_Ids = [];
+        });
+        for (let I = 0; I < (Propuesta_Eventos || []).length; I++) {
+          const Item = Propuesta_Eventos[I];
+          const Fin = Item.Inicio + Item.Duracion;
+          if (
+            Item.Inicio < Config.Inicio_Hora ||
+            Fin > Config.Fin_Hora + 0.0001
+          ) {
+            return {
+              Motivo: t("cal_multi.conflicto_visible"),
+              Conflictos_Ids: []
+            };
+          }
+          for (
+            let Hora = Math.floor(Item.Inicio);
+            Hora < Math.ceil(Fin - 0.0001);
+            Hora++
+          ) {
+            const Clave = Clave_Slot(Item.Fecha, Hora);
+            if (
+              Claves_Slots_Propuestas.has(Clave)
+            ) {
+              return {
+                Motivo: t("cal_multi.conflicto_bloqueado"),
+                Conflictos_Ids: []
+              };
+            }
+            if (
+              Slot_Es_Muerto(Item.Fecha, Hora) &&
+              !Slot_Claves_Set.has(Clave)
+            ) {
+              return {
+                Motivo: t("cal_multi.conflicto_bloqueado"),
+                Conflictos_Ids: []
+              };
+            }
+          }
+          for (let J = I + 1; J < Propuesta_Eventos.length; J++) {
+            const Otro = Propuesta_Eventos[J];
+            if (Item.Fecha !== Otro.Fecha) continue;
+            if (
+              Rangos_Horarios_Se_Solapan(
+                Item.Inicio,
+                Item.Duracion,
+                Otro.Inicio,
+                Otro.Duracion
+              )
+            ) {
+              return {
+                Motivo: t("cal_multi.conflicto_ocupado"),
+                Conflictos_Ids: []
+              };
+            }
+          }
+        }
+
+        Eventos.forEach((Otro) => {
+          if (Evento_Ids_Set.has(Otro.Id)) return;
+          Propuesta_Eventos.forEach((Item) => {
+            if (Item.Fecha !== Otro.Fecha) return;
+            if (
+              !Rangos_Horarios_Se_Solapan(
+                Item.Inicio,
+                Item.Duracion,
+                Otro.Inicio,
+                Otro.Duracion
+              )
+            ) {
+              return;
+            }
+            Item.Conflictos_Ids.push(Otro.Id);
+            Conflictos.add(Otro.Id);
+          });
+        });
+
+        return {
+          Motivo: "",
+          Conflictos_Ids: Array.from(Conflictos)
+        };
+      }
+
+      function Aplicar_Propuesta_Slots_Multi(
+        Propuesta_Slots = []
+      ) {
+        const Mapa_Claves = new Map();
+        const Seleccion_Nueva = new Set();
+        const Plan_Clave_Activa_Origen =
+          Plan_Slot_Clave_Activa;
+        Propuesta_Slots.forEach((Item) => {
+          Mapa_Claves.set(
+            Item.Clave_Origen,
+            Clave_Slot(Item.Fecha, Item.Hora)
+          );
+        });
+        Propuesta_Slots.forEach((Item) => {
+          Quitar_Slot_Muerto_Silencioso(
+            Item.Fecha_Origen,
+            Item.Hora_Origen
+          );
+        });
+        Propuesta_Slots.forEach((Item) => {
+          const Clave_Nueva = Aplicar_Datos_Slot_Muerto(
+            Item.Fecha,
+            Item.Hora,
+            Item.Datos,
+            false
+          );
+          if (Clave_Nueva) {
+            Seleccion_Nueva.add(Clave_Nueva);
+          }
+        });
+        if (
+          Plan_Clave_Activa_Origen &&
+          Mapa_Claves.has(Plan_Clave_Activa_Origen)
+        ) {
+          Plan_Slot_Clave_Activa = Mapa_Claves.get(
+            Plan_Clave_Activa_Origen
+          );
+        }
+        return Seleccion_Nueva;
+      }
+
+      function Mover_Seleccion_Calendario_Multi_Por_Delta(
+        Dias_Delta,
+        Horas_Delta,
+        Evento_Ids = null,
+        Slot_Claves = null
+      ) {
+        const Lista_Eventos =
+          Obtener_Eventos_Multi_Seleccionados_Ordenados(
+            Evento_Ids
+          );
+        const Lista_Slots =
+          Obtener_Slots_Muertos_Multi_Seleccionados(
+            Slot_Claves
+          );
+        if (
+          Lista_Eventos.length === 0 &&
+          Lista_Slots.length === 0
+        ) {
+          return false;
+        }
+        if (
+          Lista_Slots.length > 0 &&
+          !Number.isInteger(Horas_Delta)
+        ) {
+          alert(t("cal_multi.horas_enteras_slots"));
+          return false;
+        }
+        const Propuesta_Eventos =
+          Construir_Propuesta_Eventos_Multi(
+            Lista_Eventos,
+            Dias_Delta,
+            Horas_Delta
+          );
+        const Propuesta_Slots =
+          Construir_Propuesta_Slots_Multi_Por_Delta(
+            Lista_Slots,
+            Dias_Delta,
+            Horas_Delta
+          );
+        const Eval = Evaluar_Propuesta_Calendario_Mixta(
+          Propuesta_Eventos,
+          Propuesta_Slots,
+          Lista_Eventos.map((Evento) => Evento.Id),
+          Lista_Slots
+        );
+        if (Eval.Motivo || Eval.Conflictos_Ids.length > 0) {
+          alert(
+            Eval.Motivo || t("cal_multi.conflicto_ocupado")
+          );
+          return false;
+        }
+        Propuesta_Eventos.forEach((Item) => {
+          Item.Evento.Fecha = Item.Fecha;
+          Item.Evento.Inicio = Item.Inicio;
+        });
+        Eventos_Multi_Seleccion = new Set(
+          Lista_Eventos.map((Evento) => Evento.Id)
+        );
+        Slots_Multi_Seleccion =
+          Aplicar_Propuesta_Slots_Multi(Propuesta_Slots);
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Calendario();
+        Render_Acciones_Multi_Calendario();
+        Guardar_Estado();
+        return true;
+      }
+
+      async function Solicitar_Mover_Seleccion_Calendario_Multi() {
+        const Evento_Ids = Array.from(
+          Eventos_Multi_Seleccion
+        );
+        const Slot_Claves =
+          Obtener_Slots_Muertos_Multi_Seleccionados();
+        if (
+          Evento_Ids.length === 0 &&
+          Slot_Claves.length === 0
+        ) {
+          return;
+        }
+        const Opcion = await Mostrar_Dialogo(
+          t("cal_multi.mover_prompt"),
+          [
+            {
+              Etiqueta: t("cal_multi.op_mas_1h"),
+              Valor: "Mas_1h",
+              Tipo: "Primario"
+            },
+            {
+              Etiqueta: t("cal_multi.op_menos_1h"),
+              Valor: "Menos_1h",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("cal_multi.op_mas_1d"),
+              Valor: "Mas_1d",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("cal_multi.op_menos_1d"),
+              Valor: "Menos_1d",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("cal_multi.op_personalizado"),
+              Valor: "Custom",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("cancelar"),
+              Valor: null,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
+        if (!Opcion) return;
+        if (Opcion === "Mas_1h") {
+          Mover_Seleccion_Calendario_Multi_Por_Delta(
+            0,
+            1,
+            Evento_Ids,
+            Slot_Claves
+          );
+          return;
+        }
+        if (Opcion === "Menos_1h") {
+          Mover_Seleccion_Calendario_Multi_Por_Delta(
+            0,
+            -1,
+            Evento_Ids,
+            Slot_Claves
+          );
+          return;
+        }
+        if (Opcion === "Mas_1d") {
+          Mover_Seleccion_Calendario_Multi_Por_Delta(
+            1,
+            0,
+            Evento_Ids,
+            Slot_Claves
+          );
+          return;
+        }
+        if (Opcion === "Menos_1d") {
+          Mover_Seleccion_Calendario_Multi_Por_Delta(
+            -1,
+            0,
+            Evento_Ids,
+            Slot_Claves
+          );
+          return;
+        }
+        const Valor = await Mostrar_Dialogo_Con_Texto(
+          t("cal_multi.horas_prompt_mover"),
+          {
+            Placeholder: "2",
+            Etiqueta_Confirmar: t("dialog.mover"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (Valor == null) return;
+        const Horas = Number(String(Valor).replace(",", "."));
+        if (!Number.isFinite(Horas) || Horas === 0) return;
+        Mover_Seleccion_Calendario_Multi_Por_Delta(
+          0,
+          Horas,
+          Evento_Ids,
+          Slot_Claves
+        );
       }
 
       function Pegar_Slots_Multi_En_Slot(Fecha, Hora) {
@@ -42141,6 +42714,107 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Nuevos_Ids.length > 0;
       }
 
+      function Pegar_Seleccion_Calendario_Mixta_En_Slot(
+        Fecha,
+        Hora
+      ) {
+        if (!Slot_Esta_Vacio(Fecha, Hora)) return false;
+        const Propuesta_Eventos =
+          Construir_Propuesta_Pegado_Eventos_Multi(
+            Fecha,
+            Hora,
+            "Forma"
+          );
+        const Propuesta_Slots =
+          Construir_Propuesta_Pegado_Slots_Multi(
+            Fecha,
+            Hora
+          );
+        if (
+          Propuesta_Eventos.length === 0 &&
+          Propuesta_Slots.length === 0
+        ) {
+          return false;
+        }
+        const Eval = Evaluar_Propuesta_Calendario_Mixta(
+          Propuesta_Eventos,
+          Propuesta_Slots
+        );
+        if (Eval.Motivo || Eval.Conflictos_Ids.length > 0) {
+          alert(
+            Eval.Motivo || t("cal_multi.conflicto_ocupado")
+          );
+          return false;
+        }
+        let Avisar_Sin_Horas_Bolsa = false;
+        const Nuevos_Ids = [];
+        Propuesta_Eventos.forEach((Item) => {
+          const Objetivo = Objetivo_Por_Id(Item.Objetivo_Id);
+          if (Objetivo?.Es_Bolsa) {
+            const Restantes = Calcular_Horas_Restantes(Objetivo);
+            if (Restantes < Item.Duracion) {
+              Avisar_Sin_Horas_Bolsa = true;
+              return;
+            }
+          }
+          const Nuevo_Id = `Evento_${Contador_Eventos++}`;
+          Eventos.push({
+            Id: Nuevo_Id,
+            Objetivo_Id: Item.Objetivo_Id,
+            Fecha: Item.Fecha,
+            Inicio: Item.Inicio,
+            Duracion: Item.Duracion,
+            Hecho: false,
+            Anulada: false,
+            Color: Item.Color,
+            ...(Item.Nota ? { Nota: Item.Nota } : {})
+          });
+          Nuevos_Ids.push(Nuevo_Id);
+        });
+        const Mapa_Grupo_Ids = new Map();
+        Propuesta_Slots.forEach((Item) => {
+          const Grupo_Origen = String(
+            Item?.Datos?.Grupo_Id || ""
+          ).trim();
+          let Grupo_Id = "";
+          if (Grupo_Origen) {
+            if (!Mapa_Grupo_Ids.has(Grupo_Origen)) {
+              Mapa_Grupo_Ids.set(
+                Grupo_Origen,
+                Crear_Id_Grupo_Slot_Muerto()
+              );
+            }
+            Grupo_Id = Mapa_Grupo_Ids.get(Grupo_Origen);
+          }
+          Aplicar_Datos_Slot_Muerto(
+            Item.Fecha,
+            Item.Hora,
+            {
+              ...Item.Datos,
+              Grupo_Id: Grupo_Id || null
+            },
+            true
+          );
+        });
+        Eventos_Multi_Seleccion.clear();
+        Slots_Multi_Seleccion.clear();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Calendario();
+        Render_Acciones_Multi_Calendario();
+        Guardar_Estado();
+        if (Avisar_Sin_Horas_Bolsa) {
+          Mostrar_Toast_Info(
+            t("dialog.sin_horas_bolsa"),
+            "âš ï¸",
+            5000
+          );
+        }
+        return Nuevos_Ids.length > 0 ||
+          Propuesta_Slots.length > 0;
+      }
+
       function Obtener_Slot_Ancla_Pegado_Calendario() {
         const Slots = Obtener_Slots_Multi_Seleccionados_Ordenados();
         if (Slots.length !== 1) return null;
@@ -42151,20 +42825,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
-      function Ejecutar_Copiar_Seleccion_Calendario() {
-        if (
-          Eventos_Multi_Seleccion.size > 0 &&
-          Slots_Multi_Seleccion.size === 0
-        ) {
-          return Copiar_Eventos_Multi_Seleccionados();
+      function Pegar_Seleccion_Calendario_En_Slot(
+        Fecha,
+        Hora
+      ) {
+        if (Portapapeles_Calendario_Modo === "Eventos_Multi") {
+          if (!Slot_Esta_Vacio(Fecha, Hora)) {
+            return false;
+          }
+          Pegar_Eventos_Multi_En_Slot(Fecha, Hora);
+          return true;
         }
-        if (
-          Slots_Multi_Seleccion.size > 0 &&
-          Eventos_Multi_Seleccion.size === 0
-        ) {
-          return Copiar_Slots_Multi_Seleccionados();
+        if (Portapapeles_Calendario_Modo === "Slots_Multi") {
+          if (!Slot_Esta_Vacio(Fecha, Hora)) {
+            return false;
+          }
+          return Pegar_Slots_Multi_En_Slot(Fecha, Hora);
+        }
+        if (Portapapeles_Calendario_Modo === "Calendario_Mixto") {
+          if (!Slot_Esta_Vacio(Fecha, Hora)) {
+            return false;
+          }
+          return Pegar_Seleccion_Calendario_Mixta_En_Slot(
+            Fecha,
+            Hora
+          );
+        }
+        if (Portapapeles_Calendario_Modo === "Plan_Slot") {
+          if (!Slot_Es_Muerto(Fecha, Hora)) {
+            return false;
+          }
+          Pegar_Plan_En_Slot(Fecha, Hora);
+          return true;
         }
         return false;
+      }
+
+      function Ejecutar_Copiar_Seleccion_Calendario() {
+        return Copiar_Seleccion_Calendario_Mixta();
       }
 
       function Cortar_Eventos_Multi_Seleccionados() {
@@ -42245,33 +42943,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Ejecutar_Pegar_Seleccion_Calendario() {
         const Destino = Obtener_Slot_Ancla_Pegado_Calendario();
         if (!Destino) return false;
-        if (Portapapeles_Calendario_Modo === "Eventos_Multi") {
-          if (!Slot_Esta_Vacio(Destino.Fecha, Destino.Hora)) {
-            return false;
-          }
-          Pegar_Eventos_Multi_En_Slot(
-            Destino.Fecha,
-            Destino.Hora
-          );
-          return true;
-        }
-        if (Portapapeles_Calendario_Modo === "Slots_Multi") {
-          if (!Slot_Esta_Vacio(Destino.Fecha, Destino.Hora)) {
-            return false;
-          }
-          return Pegar_Slots_Multi_En_Slot(
-            Destino.Fecha,
-            Destino.Hora
-          );
-        }
-        if (Portapapeles_Calendario_Modo === "Plan_Slot") {
-          if (!Slot_Es_Muerto(Destino.Fecha, Destino.Hora)) {
-            return false;
-          }
-          Pegar_Plan_En_Slot(Destino.Fecha, Destino.Hora);
-          return true;
-        }
-        return false;
+        return Pegar_Seleccion_Calendario_En_Slot(
+          Destino.Fecha,
+          Destino.Hora
+        );
       }
 
       function Configurar_Seleccion_Multi_Calendario() {
