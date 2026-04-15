@@ -279,6 +279,55 @@ test("arrastra slot muerto con plan, tipo y titulo", async ({
   expect(data.ui_marca).toBe("🗂️");
 });
 
+test("arrastra una franja contigua de slots muertos", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Slots_Muertos.push("2026-04-13|11");
+  estado.Planes_Slot["2026-04-13|11"] = {
+    Items: [
+      {
+        Id: "ps_2",
+        Texto: "Idea central",
+        Emoji: "*",
+        Estado: "Planeado"
+      }
+    ]
+  };
+  estado.Slots_Muertos_Tipos["2026-04-13|11"] = "Comida";
+  estado.Slots_Muertos_Nombres["2026-04-13|11"] =
+    "Almuerzo largo";
+  estado.Slots_Muertos_Titulos_Visibles["2026-04-13|11"] =
+    true;
+  estado.Slots_Muertos_Nombres_Auto["2026-04-13|11"] =
+    false;
+
+  await preparar(page, estado);
+  await arrastrarSlot(page, 10, 12);
+
+  const data = await page.evaluate(() => ({
+    origen_10: Slots_Muertos.includes("2026-04-13|10"),
+    origen_11: Slots_Muertos.includes("2026-04-13|11"),
+    destino_12: Slots_Muertos.includes("2026-04-13|12"),
+    destino_13: Slots_Muertos.includes("2026-04-13|13"),
+    plan_12:
+      Planes_Slot["2026-04-13|12"]?.Items?.[0]?.Texto || "",
+    plan_13:
+      Planes_Slot["2026-04-13|13"]?.Items?.[0]?.Texto || "",
+    titulo_12: Slots_Muertos_Nombres["2026-04-13|12"] || "",
+    titulo_13: Slots_Muertos_Nombres["2026-04-13|13"] || ""
+  }));
+
+  expect(data.origen_10).toBeFalsy();
+  expect(data.origen_11).toBeFalsy();
+  expect(data.destino_12).toBeTruthy();
+  expect(data.destino_13).toBeTruthy();
+  expect(data.plan_12).toBe("Idea central");
+  expect(data.plan_13).toBe("Idea central");
+  expect(data.titulo_12).toBe("Almuerzo largo");
+  expect(data.titulo_13).toBe("Almuerzo largo");
+});
+
 test("no pisa un horario ocupado al arrastrar slot muerto", async ({
   page
 }) => {
@@ -483,4 +532,91 @@ test("el menu contextual puede eliminar un slot muerto y dejarlo blanco", async 
   expect(data.ui_muerto).toBeFalsy();
   expect(data.ui_titulo).toBe("");
   expect(data.ui_marca_plan).toBeFalsy();
+});
+
+test("resize personalizado expande y recorta una franja de slot muerto", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Config_Extra.Resize_Personalizado = true;
+
+  await preparar(page, estado);
+
+  const slotInicial = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+  );
+  const handleInicial = slotInicial.locator(
+    ".Slot_Muerto_Resize_Handle"
+  );
+  await expect(handleInicial).toBeVisible();
+
+  const cajaHandle = await handleInicial.boundingBox();
+  const cajaSlot = await slotInicial.boundingBox();
+  if (!cajaHandle || !cajaSlot) {
+    throw new Error("No se pudo medir el resize del slot");
+  }
+
+  await page.mouse.move(
+    cajaHandle.x + cajaHandle.width / 2,
+    cajaHandle.y + cajaHandle.height / 2
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    cajaHandle.x + cajaHandle.width / 2,
+    cajaHandle.y + cajaHandle.height / 2 + cajaSlot.height,
+    { steps: 6 }
+  );
+  await page.mouse.up();
+
+  let data = await page.evaluate(() => ({
+    slot_10: Slots_Muertos.includes("2026-04-13|10"),
+    slot_11: Slots_Muertos.includes("2026-04-13|11"),
+    tipo_11: Slots_Muertos_Tipos["2026-04-13|11"] || "",
+    titulo_11: Slots_Muertos_Nombres["2026-04-13|11"] || "",
+    plan_11:
+      Planes_Slot["2026-04-13|11"]?.Items?.[0]?.Texto || ""
+  }));
+
+  expect(data.slot_10).toBeTruthy();
+  expect(data.slot_11).toBeTruthy();
+  expect(data.tipo_11).toBe("Comida");
+  expect(data.titulo_11).toBe("Almuerzo largo");
+  expect(data.plan_11).toBe("Idea central");
+
+  const slotFinal = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="11"]'
+  );
+  const handleFinal = slotFinal.locator(
+    ".Slot_Muerto_Resize_Handle"
+  );
+  await expect(handleFinal).toBeVisible();
+
+  const cajaHandleFinal = await handleFinal.boundingBox();
+  const cajaSlotFinal = await slotFinal.boundingBox();
+  if (!cajaHandleFinal || !cajaSlotFinal) {
+    throw new Error("No se pudo medir el resize final");
+  }
+
+  await page.mouse.move(
+    cajaHandleFinal.x + cajaHandleFinal.width / 2,
+    cajaHandleFinal.y + cajaHandleFinal.height / 2
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    cajaHandleFinal.x + cajaHandleFinal.width / 2,
+    cajaHandleFinal.y + cajaHandleFinal.height / 2
+      - cajaSlotFinal.height,
+    { steps: 6 }
+  );
+  await page.mouse.up();
+
+  data = await page.evaluate(() => ({
+    slot_10: Slots_Muertos.includes("2026-04-13|10"),
+    slot_11: Slots_Muertos.includes("2026-04-13|11"),
+    plan_11: Planes_Slot["2026-04-13|11"]?.Items?.length || 0
+  }));
+
+  expect(data.slot_10).toBeTruthy();
+  expect(data.slot_11).toBeFalsy();
+  expect(data.plan_11).toBe(0);
 });
