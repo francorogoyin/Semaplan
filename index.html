@@ -7585,6 +7585,24 @@
         margin-bottom: 16px;
       }
 
+      .Dialogo_Inputs_Dobles {
+        display: grid;
+        gap: 10px;
+      }
+
+      .Dialogo_Input_Grupo {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .Dialogo_Input_Etiqueta {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--Texto_Suave);
+        text-align: left;
+      }
+
       .Dialogo_Input_Contenedor.Modo_Color {
         display: flex !important;
         justify-content: center;
@@ -14541,6 +14559,8 @@
             "Ver planes",
           "dialog.mover":
             "Mover",
+          "dialog.fecha_corta": "Fecha",
+          "dialog.hora_corta": "Hora",
           "dialog.copiar":
             "Copiar",
           "dialog.trasladar":
@@ -14623,6 +14643,10 @@
             "Elegí la fecha destino.",
           "cal_multi.hora_destino_prompt":
             "Elegí la hora destino.",
+          "cal_multi.destino_prompt":
+            "ElegÃ­ fecha y hora destino.",
+          "cal_multi.mover_a":
+            "Mover a...",
           "cal_multi.pegar_bloques":
             "Pegar bloques",
           "cal_multi.pegar_prompt":
@@ -15655,6 +15679,8 @@
         "slot.sin_items": "Sin items todavía.",
         "slot.agregar_item": "Agregar item",
         "slot.toast_falta_emoji": "Falta emoji",
+        "slot.toast_objetivo_pendiente":
+          "Ingresá el objetivo pendiente",
         "slot.toast_faltan_objetivos":
           "Faltan objetivos",
         "slot.sin_patrones_para":
@@ -16953,6 +16979,8 @@
             "View plans",
           "dialog.mover":
             "Move",
+          "dialog.fecha_corta": "Date",
+          "dialog.hora_corta": "Time",
           "dialog.copiar":
             "Copy",
           "dialog.trasladar":
@@ -17034,6 +17062,10 @@
             "Choose the destination date.",
           "cal_multi.hora_destino_prompt":
             "Choose the destination time.",
+          "cal_multi.destino_prompt":
+            "Choose destination date and time.",
+          "cal_multi.mover_a":
+            "Move to...",
           "cal_multi.pegar_bloques":
             "Paste blocks",
           "cal_multi.pegar_prompt":
@@ -18038,6 +18070,8 @@
         "slot.sin_items": "No items yet.",
         "slot.agregar_item": "Add item",
         "slot.toast_falta_emoji": "Missing emoji",
+        "slot.toast_objetivo_pendiente":
+          "Add the pending objective first",
         "slot.toast_faltan_objetivos":
           "Missing objectives",
         "slot.sin_patrones_para":
@@ -19405,6 +19439,8 @@
             "Ver planos",
           "dialog.mover":
             "Mover",
+          "dialog.fecha_corta": "Data",
+          "dialog.hora_corta": "Hora",
           "dialog.copiar":
             "Copiar",
           "dialog.trasladar":
@@ -19487,6 +19523,10 @@
             "Escolha a data de destino.",
           "cal_multi.hora_destino_prompt":
             "Escolha a hora de destino.",
+          "cal_multi.destino_prompt":
+            "Escolha data e hora de destino.",
+          "cal_multi.mover_a":
+            "Mover para...",
           "cal_multi.pegar_bloques":
             "Colar blocos",
           "cal_multi.pegar_prompt":
@@ -20518,6 +20558,8 @@
         "slot.sin_items": "Sem itens ainda.",
         "slot.agregar_item": "Adicionar item",
         "slot.toast_falta_emoji": "Falta emoji",
+        "slot.toast_objetivo_pendiente":
+          "Insira primeiro o objetivo pendente",
         "slot.toast_faltan_objetivos":
           "Faltam objetivos",
         "slot.sin_patrones_para":
@@ -22350,6 +22392,160 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Botones.appendChild(Btn_Cancelar);
           document.getElementById("Dialogo_Overlay").classList.add("Activo");
           setTimeout(() => El_Campo.focus(), 0);
+        });
+      }
+
+      function Mostrar_Dialogo_Con_Fecha_Y_Hora(
+        Mensaje,
+        Fecha_Default = "",
+        Hora_Default = ""
+      ) {
+        if (Dialogo_Abierto) return Promise.resolve(null);
+        Dialogo_Abierto = true;
+        return new Promise((Resolver) => {
+          const El_Overlay = document.getElementById(
+            "Dialogo_Overlay"
+          );
+          const El_Cont = document.getElementById(
+            "Dialogo_Input_Contenedor"
+          );
+          const El_Campo = document.getElementById(
+            "Dialogo_Input_Campo"
+          );
+          const El_Select = document.getElementById(
+            "Dialogo_Select_Campo"
+          );
+          const El_Sugerencias = document.getElementById(
+            "Dialogo_Input_Sugerencias"
+          );
+          const Grupo = document.createElement("div");
+          Grupo.className = "Dialogo_Inputs_Dobles";
+
+          const Crear_Grupo_Input = (
+            Etiqueta,
+            Tipo,
+            Valor,
+            Id
+          ) => {
+            const Wrap = document.createElement("label");
+            Wrap.className = "Dialogo_Input_Grupo";
+            const Texto = document.createElement("span");
+            Texto.className = "Dialogo_Input_Etiqueta";
+            Texto.textContent = Etiqueta;
+            const Input = document.createElement("input");
+            Input.className = "Dialogo_Input";
+            Input.type = Tipo;
+            Input.value = Valor || "";
+            Input.id = Id;
+            Wrap.appendChild(Texto);
+            Wrap.appendChild(Input);
+            Grupo.appendChild(Wrap);
+            return Input;
+          };
+
+          const Campo_Fecha = Crear_Grupo_Input(
+            t("dialog.fecha_corta"),
+            "date",
+            Fecha_Default,
+            "Dialogo_Fecha_Campo"
+          );
+          const Campo_Hora = Crear_Grupo_Input(
+            t("dialog.hora_corta"),
+            "time",
+            Hora_Default,
+            "Dialogo_Hora_Campo"
+          );
+
+          const Limpiar_Controles = () => {
+            Campo_Fecha.removeEventListener(
+              "keydown",
+              On_Enter_Input
+            );
+            Campo_Hora.removeEventListener(
+              "keydown",
+              On_Enter_Input
+            );
+            Grupo.remove();
+            El_Cont.style.display = "none";
+            El_Campo.style.display = "none";
+            El_Campo.value = "";
+            El_Campo.placeholder = "";
+            El_Campo.type = "text";
+            El_Select.style.display = "none";
+            El_Select.innerHTML = "";
+            El_Sugerencias.innerHTML = "";
+            El_Sugerencias.style.display = "none";
+            El_Cont.classList.remove("Modo_Color");
+          };
+
+          const Cerrar_Con = (Valor) => {
+            El_Overlay.classList.remove("Activo");
+            Limpiar_Controles();
+            Dialogo_Abierto = false;
+            Dialogo_Resolver_Fn = null;
+            Resolver(Valor);
+          };
+          Dialogo_Resolver_Fn = () => Cerrar_Con(null);
+
+          document.getElementById("Dialogo_Mensaje")
+            .textContent = Mensaje;
+
+          El_Cont.style.display = "block";
+          El_Campo.style.display = "none";
+          El_Select.style.display = "none";
+          El_Sugerencias.style.display = "none";
+          El_Cont.appendChild(Grupo);
+
+          const El_Botones = document.getElementById(
+            "Dialogo_Botones"
+          );
+          El_Botones.innerHTML = "";
+
+          const Confirmar = () => {
+            Cerrar_Con({
+              Fecha: Campo_Fecha.value || null,
+              Hora: Campo_Hora.value || null
+            });
+          };
+
+          const Btn_OK = document.createElement("button");
+          Btn_OK.textContent = t("dialog.mover");
+          Btn_OK.className =
+            "Dialogo_Boton Dialogo_Boton_Primario";
+          Btn_OK.addEventListener(
+            "click",
+            Confirmar,
+            { once: true }
+          );
+
+          const Btn_Cancelar = document.createElement("button");
+          Btn_Cancelar.textContent = t("cancelar");
+          Btn_Cancelar.className =
+            "Dialogo_Boton Dialogo_Boton_Cancelar";
+          Btn_Cancelar.addEventListener(
+            "click",
+            () => Cerrar_Con(null),
+            { once: true }
+          );
+
+          const On_Enter_Input = (Ev) => {
+            if (Ev.key !== "Enter") return;
+            Ev.preventDefault();
+            Confirmar();
+          };
+          Campo_Fecha.addEventListener(
+            "keydown",
+            On_Enter_Input
+          );
+          Campo_Hora.addEventListener(
+            "keydown",
+            On_Enter_Input
+          );
+
+          El_Botones.appendChild(Btn_OK);
+          El_Botones.appendChild(Btn_Cancelar);
+          El_Overlay.classList.add("Activo");
+          setTimeout(() => Campo_Fecha.focus(), 0);
         });
       }
 
@@ -35324,34 +35520,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
-      function Resolver_Borrador_Nuevo_Plan_Slot() {
+      function Leer_Borrador_Nuevo_Plan_Slot() {
         const Input = document.getElementById(
           "Plan_Slot_Nuevo_Input"
         );
         const Input_Emoji = document.getElementById(
           "Plan_Slot_Nuevo_Emoji"
         );
-        if (!Input || !Input_Emoji) return true;
-        const Texto = String(Input.value || "").trim();
-        if (!Texto) return true;
-        const Emoji_Raw = String(
-          Input_Emoji.value || ""
+        const Texto = String(
+          Input?.value || ""
         ).trim();
-        if (Falta_Emoji_Plan_Slot(Emoji_Raw)) {
-          Mostrar_Toast_Plan_Slot(
-            "slot.toast_falta_emoji"
-          );
-          Input_Emoji.focus();
-          return false;
-        }
-        Plan_Slot_Borrador.push({
-          Id: Crear_Id_Plan_Slot_Item(),
-          Emoji: Normalizar_Emoji(Emoji_Raw),
+        const Emoji_Raw = String(
+          Input_Emoji?.value || ""
+        ).trim();
+        const Hay_Emoji =
+          Boolean(Emoji_Raw) &&
+          Emoji_Raw !== Emoji_Plan_Slot_Placeholder;
+        return {
           Texto,
-          Estado: "Planeado"
-        });
-        Plan_Slot_Mostrando_Nuevo = false;
-        return true;
+          Emoji_Raw,
+          Hay_Contenido: Boolean(Texto || Hay_Emoji)
+        };
+      }
+
+      function Hay_Borrador_Nuevo_Plan_Slot_Pendiente() {
+        if (!Plan_Slot_Mostrando_Nuevo) return false;
+        return Leer_Borrador_Nuevo_Plan_Slot().Hay_Contenido;
       }
 
       function Agregar_Item_Plan_Slot() {
@@ -35374,7 +35568,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Mostrar_Toast_Plan_Slot(
             "slot.toast_falta_emoji"
           );
-          Input_Emoji.focus();
           return;
         }
         Plan_Slot_Borrador.push({
@@ -35595,7 +35788,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Guardar_Modal_Plan_Slot() {
         if (!Plan_Slot_Clave_Activa) return;
-        if (!Resolver_Borrador_Nuevo_Plan_Slot()) return;
+        if (Hay_Borrador_Nuevo_Plan_Slot_Pendiente()) {
+          Mostrar_Toast_Plan_Slot(
+            "slot.toast_objetivo_pendiente"
+          );
+          document.getElementById("Plan_Slot_Nuevo_Input")
+            ?.focus();
+          return;
+        }
         const Clave = Plan_Slot_Clave_Activa;
         const Items = Normalizar_Items_Plan_Slot(
           Plan_Slot_Borrador
@@ -35944,6 +36144,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Render_Calendario();
         Guardar_Estado();
+        await Forzar_Sync_Inmediato_Cambio_Critico();
       }
 
       function Repetir_Slot_Muerto_Semana(Fecha, Hora) {
@@ -42051,7 +42252,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Tiene_Items_Movibles) {
             El_Calendario_Multi_Grupo.appendChild(
               Crear_Boton_Multi_Inline(
-                t("dialog.mover"),
+                t("cal_multi.mover_a"),
                 () => {
                   Solicitar_Mover_Seleccion_Calendario_Multi();
                 }
@@ -42094,7 +42295,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         El_Calendario_Multi_Grupo.appendChild(
           Crear_Boton_Multi_Inline(
-            t("dialog.mover"),
+            t("cal_multi.mover_a"),
             () => {
               Solicitar_Mover_Seleccion_Calendario_Multi();
             }
@@ -42219,33 +42420,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Incluye_Slots_Muertos = false
       ) {
         if (!Ancla?.Fecha) return null;
-        const Fecha_Destino = await Mostrar_Dialogo_Con_Fecha(
-          t("cal_multi.fecha_destino_prompt"),
-          Ancla.Fecha
-        );
-        if (!Fecha_Destino) return null;
-        const Mensaje_Hora = Incluye_Slots_Muertos
-          ? `${t("cal_multi.hora_destino_prompt")} ${
+        const Mensaje = Incluye_Slots_Muertos
+          ? `${t("cal_multi.destino_prompt")} ${
             t("cal_multi.horas_enteras_slots")
           }`
-          : t("cal_multi.hora_destino_prompt");
-        const Hora_Texto = await Mostrar_Dialogo_Con_Texto(
-          Mensaje_Hora,
-          {
-            Tipo: "time",
-            Default: Focus_Formatear_HoraHM(
-              Number(Ancla.Hora) || 0
-            ),
-            Etiqueta_Confirmar: t("dialog.mover"),
-            Etiqueta_Cancelar: t("cancelar")
-          }
+          : t("cal_multi.destino_prompt");
+        const Destino = await Mostrar_Dialogo_Con_Fecha_Y_Hora(
+          Mensaje,
+          Ancla.Fecha,
+          Focus_Formatear_HoraHM(
+            Number(Ancla.Hora) || 0
+          )
         );
-        if (Hora_Texto == null) return null;
+        if (!Destino?.Fecha || !Destino?.Hora) return null;
         const Hora_Destino =
-          Parsear_Hora_Input_Calendario(Hora_Texto);
+          Parsear_Hora_Input_Calendario(Destino.Hora);
         if (!Number.isFinite(Hora_Destino)) return null;
         return {
-          Fecha: Fecha_Destino,
+          Fecha: Destino.Fecha,
           Hora: Hora_Destino
         };
       }
@@ -42497,6 +42689,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Editor();
         Render_Calendario();
         Guardar_Estado();
+        await Forzar_Sync_Inmediato_Cambio_Critico();
         Mostrar_Toast_Undo(
           t("toast.celda_limpiada"),
           Snap
@@ -42547,6 +42740,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Editor();
         Render_Calendario();
         Guardar_Estado();
+        await Forzar_Sync_Inmediato_Cambio_Critico();
         Mostrar_Toast_Undo(
           t("toast.cal_multi_limpiado", {
             n: Total

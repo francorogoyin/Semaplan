@@ -243,22 +243,19 @@ async function Mover_Seleccion_Multi_A(
   hora
 ) {
   await page.click(
-    '#Calendario_Multi_Grupo_Acciones button:has-text("Mover")'
+    '#Calendario_Multi_Grupo_Acciones button:has-text("Mover a")'
   );
   await expect(
     page.locator("#Dialogo_Overlay")
   ).toHaveClass(/Activo/);
   await expect(
-    page.locator("#Dialogo_Input_Campo")
+    page.locator("#Dialogo_Fecha_Campo")
   ).toHaveAttribute("type", "date");
-  await page.fill("#Dialogo_Input_Campo", fecha);
-  await page.click(
-    "#Dialogo_Botones .Dialogo_Boton_Primario"
-  );
   await expect(
-    page.locator("#Dialogo_Input_Campo")
+    page.locator("#Dialogo_Hora_Campo")
   ).toHaveAttribute("type", "time");
-  await page.fill("#Dialogo_Input_Campo", hora);
+  await page.fill("#Dialogo_Fecha_Campo", fecha);
+  await page.fill("#Dialogo_Hora_Campo", hora);
   await page.click(
     "#Dialogo_Botones .Dialogo_Boton_Primario"
   );
@@ -347,7 +344,7 @@ test(
     expect(Botones).toEqual(
       expect.arrayContaining([
         "Borrar",
-        "Mover",
+        "Mover a...",
         "Copiar",
         "Tildar",
         "Destildar"
@@ -389,7 +386,7 @@ test(
       "#Calendario_Multi_Grupo_Acciones button"
     ).allTextContents();
     expect(Botones).toEqual([
-      "Mover",
+      "Mover a...",
       "Copiar",
       "Limpiar"
     ]);
@@ -513,7 +510,7 @@ test(
       "#Calendario_Multi_Grupo_Acciones button"
     ).allTextContents();
     expect(Botones).toEqual([
-      "Mover",
+      "Mover a...",
       "Copiar",
       "Limpiar"
     ]);
@@ -601,7 +598,7 @@ test(
       "#Calendario_Multi_Grupo_Acciones button"
     ).allTextContents();
     expect(Botones).toEqual([
-      "Mover",
+      "Mover a...",
       "Copiar",
       "Limpiar"
     ]);

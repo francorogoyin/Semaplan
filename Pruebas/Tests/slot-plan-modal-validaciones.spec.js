@@ -185,11 +185,15 @@ test("avisa cuando falta emoji al agregar un objetivo", async ({
 
   const datos = await page.evaluate(() => ({
     items: Plan_Slot_Borrador.length,
+    selector_activo: document.getElementById(
+      "Selector_Emojis_Popover"
+    )?.classList.contains("Activo") || false,
     modal_activo: document.getElementById("Plan_Slot_Overlay")
       ?.classList.contains("Activo") || false
   }));
 
   expect(datos.items).toBe(0);
+  expect(datos.selector_activo).toBeFalsy();
   expect(datos.modal_activo).toBeTruthy();
 });
 
@@ -206,6 +210,39 @@ test("avisa cuando se intenta guardar un plan vacio", async ({
   ).toHaveText("Faltan objetivos");
   await expect(page.locator("#Plan_Slot_Overlay"))
     .toHaveClass(/Activo/);
+});
+
+test("no deja guardar un plan con un objetivo todavia en borrador", async ({
+  page
+}) => {
+  await Preparar(page, Estado_Base());
+  await Abrir_Modal_Plan(page, "2026-04-13", 9);
+
+  await page.click("#Plan_Slot_Cuerpo .Config_Boton");
+  await page.fill("#Plan_Slot_Nuevo_Input", "Pensar idea");
+  await page.fill("#Plan_Slot_Nuevo_Emoji", "🧠");
+  await page.click("#Plan_Slot_Guardar");
+
+  await expect(
+    page.locator(".Undo_Toast_Texto").first()
+  ).toHaveText("Ingresá el objetivo pendiente");
+  await expect(page.locator("#Plan_Slot_Overlay"))
+    .toHaveClass(/Activo/);
+
+  const datos = await page.evaluate(() => ({
+    items: Plan_Slot_Borrador.length,
+    sigue_nuevo: Boolean(
+      document.getElementById("Plan_Slot_Nuevo_Input")
+    ),
+    guardado: Boolean(
+      JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
+        ?.Planes_Slot?.["2026-04-13|9"]
+    )
+  }));
+
+  expect(datos.items).toBe(0);
+  expect(datos.sigue_nuevo).toBeTruthy();
+  expect(datos.guardado).toBeFalsy();
 });
 
 test("inserta un patron desde el modal de un slot vacio", async ({
@@ -321,6 +358,7 @@ test("guarda y persiste un plan en slot vacio", async ({
     );
   });
   await page.fill("#Plan_Slot_Nuevo_Input", "Pensar idea");
+  await page.click("#Plan_Slot_Cuerpo .Abordaje_Nuevo_Btn");
   await page.click("#Plan_Slot_Guardar");
 
   await expect(page.locator("#Plan_Slot_Overlay"))
@@ -386,6 +424,13 @@ test("borra planes de slots vacios y muertos sin que reaparezcan", async ({
   estado.Slots_Muertos_Nombres_Auto["2026-04-13|10"] = false;
 
   await Preparar(page, estado);
+  await page.evaluate(() => {
+    window.__sync_calls = 0;
+    Forzar_Sync_Inmediato_Cambio_Critico = async () => {
+      window.__sync_calls += 1;
+      return true;
+    };
+  });
 
   await page.click(
     '.Slot[data-fecha="2026-04-13"][data-hora="12"]',
@@ -412,6 +457,11 @@ test("borra planes de slots vacios y muertos sin que reaparezcan", async ({
   expect(
     estadoGuardado.Planes_Slot["2026-04-13|12"]
   ).toBeUndefined();
+
+  const sync_calls = await page.evaluate(() =>
+    window.__sync_calls || 0
+  );
+  expect(sync_calls).toBeGreaterThanOrEqual(2);
 
   const pageRecargada = await page.context().newPage();
   await Preparar(pageRecargada, estadoGuardado);
