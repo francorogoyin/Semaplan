@@ -172,26 +172,30 @@ test(
     const boton = page.locator(
       `[data-objetivo-id="${objetivoId}"]`
     );
+    await expect(boton).not.toHaveAttribute(
+      "title",
+      /.+/
+    );
     await boton.hover();
     await page.waitForTimeout(2100);
 
     await expect(page.locator(".Evento_Abordaje_Popup_Titulo"))
-      .toContainText("Descripción");
+      .toContainText("Objetivo hover");
     await expect(page.locator(".Baul_Descripcion_Popup_Texto"))
       .toHaveText("Contexto corto del objetivo");
 
     const data = await page.evaluate(() => {
-      const Estado = JSON.parse(
+      const estado = JSON.parse(
         localStorage.getItem("Semaplan_Estado_V2")
       );
       return {
         descripcion:
-          Objetivos.find((Objetivo) =>
-            Objetivo.Nombre === "Objetivo hover"
+          Objetivos.find((objetivo) =>
+            objetivo.Nombre === "Objetivo hover"
           )?.Descripcion_Corta || "",
         local:
-          Estado.Objetivos.find((Objetivo) =>
-            Objetivo.Nombre === "Objetivo hover"
+          estado.Objetivos.find((objetivo) =>
+            objetivo.Nombre === "Objetivo hover"
           )?.Descripcion_Corta || ""
       };
     });
@@ -219,7 +223,7 @@ test(
         Subobjetivos_Excluidos_Semanales: {},
         Nombre: "Objetivo editable",
         Descripcion_Corta: "",
-        Emoji: "🎯",
+        Emoji: "\uD83C\uDFAF",
         Color: "#1f6b4f",
         Horas_Semanales: 0,
         Restante: 0,
@@ -248,15 +252,21 @@ test(
     await page.click("#Resumen_Contraer");
 
     const boton = page.locator('[data-objetivo-id="o1"]');
+    await expect(boton).not.toHaveAttribute(
+      "title",
+      /.+/
+    );
     await boton.hover();
     await page.waitForTimeout(2100);
 
+    await expect(page.locator(".Evento_Abordaje_Popup_Titulo"))
+      .toContainText("Objetivo editable");
     await expect(page.locator(".Baul_Descripcion_Popup_Texto"))
       .toHaveText("Descripcion editada desde el editor");
 
     const data = await page.evaluate(() => ({
       descripcion:
-        Objetivos.find((Objetivo) => Objetivo.Id === "o1")
+        Objetivos.find((objetivo) => objetivo.Id === "o1")
           ?.Descripcion_Corta || ""
     }));
 
