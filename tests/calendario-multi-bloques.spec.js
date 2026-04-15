@@ -564,6 +564,36 @@ test(
 );
 
 test(
+  "muestra toast de cinco segundos al copiar bloques",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+    const Ids = await Crear_Escenario(page);
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_B_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '#Calendario_Multi_Grupo_Acciones button:has-text("Copiar")'
+    );
+
+    await expect(
+      page.locator("#Undo_Contenedor .Undo_Toast").first()
+    ).toHaveClass(/Activo/);
+    await expect(
+      page.locator("#Undo_Contenedor .Undo_Toast_Texto").first()
+    ).toContainText("2 bloques");
+    await expect(
+      page.locator("#Undo_Contenedor .Undo_Toast_Segundos").first()
+    ).toHaveText("5");
+  }
+);
+
+test(
   "ofrece pegar en columna cuando la copia mezcla dias",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());
