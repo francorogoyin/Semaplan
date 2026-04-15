@@ -14,6 +14,38 @@ y Turnstile para CAPTCHA en el login).
 La aplicaciÃ³n corre en `index.html`. Es un proyecto sin build y con
 lÃ³gica inline, asÃ­ que los cambios principales suelen concentrarse ahÃ­.
 
+Rutas operativas principales:
+
+- `Aplicaciones/Android`
+- `Aplicaciones/Desktop`
+- `Documentacion/Planes`
+- `Documentacion/Registros`
+- `Herramientas/Scripts`
+- `Pruebas/Tests`
+- `Local/Credenciales.txt`
+- `supabase/Supabase_Schema.sql`
+
+## Reordenamiento de estructura
+
+- Usar Pascal_Snake_Case, palabras completas y espaÃ±ol
+  para carpetas y archivos siempre que el ecosistema no
+  imponga otro nombre.
+- Preservar nombres exigidos por herramientas o terceros,
+  por ejemplo `package.json`, `package-lock.json`,
+  `.gitignore`, `node_modules`, `playwright.config.js`,
+  `supabase`, `CNAME`, `README.md`, `AGENTS.md` y
+  `CLAUDE.md`.
+- Mantener en raÃ­z los entrypoints y configs pÃºblicas
+  salvo razÃ³n fuerte para moverlos: `index.html`,
+  `Semaplan.html`, `CNAME`, `package.json`,
+  `package-lock.json`, `playwright.config.js`,
+  `.gitignore`, `README.md`, `AGENTS.md` y `CLAUDE.md`.
+- Agrupar por dominios claros: `Aplicaciones`,
+  `Documentacion`, `Herramientas`, `Pruebas` y `Local`.
+- Antes de mover, revisar referencias en scripts,
+  documentaciÃ³n, pruebas, empaquetado, hosting y assets.
+- Al mover, actualizar referencias dentro del mismo turno.
+
 ## Convenciones de cÃ³digo
 
 Seguir el estilo global del proyecto:
@@ -48,7 +80,7 @@ siempre ambos archivos aunque solo nombre uno de los dos.
 
 Toda fecha u hora escrita por el agente debe usar hora local de
 Argentina (`America/Buenos_Aires`). Esto incluye
-`Registro_Avance.txt`.
+`Documentacion/Registros/Registro_Avance.txt`.
 
 ## Flujo de trabajo por sesiÃ³n
 
@@ -60,7 +92,8 @@ corresponde segÃºn el pedido del usuario.
 1. Elegir la cuenta segÃºn el pedido:
    `patricioe.nogueroles@gmail.com` para prÃ³ximas objetivos;
    `tomashodel@gmail.com` para test de funciones.
-2. Leer la contraseÃ±a correspondiente en `Credenciales.txt`.
+2. Leer la contraseÃ±a correspondiente en
+   `Local/Credenciales.txt`.
 3. Entrar a `Semaplan.com` con Playwright.
 4. Primero intentar con una sesiÃ³n existente de Playwright o Chrome.
 5. Si no alcanza y hace falta bypass local de UI, setear
@@ -132,8 +165,10 @@ realizadas.
    que tengan la etiqueta `Inmediata`.
 10. Si un objetivo de ese cajÃ³n fue realizada por el agente, borrar la
    nota del Archivero y dejar registro con fecha y hora en
-   `Registro_Avance.txt`, basÃ¡ndose en la plantilla de ese archivo. Ese
-   registro se agrega siempre al comienzo, una vez terminada el objetivo.
+   `Documentacion/Registros/Registro_Avance.txt`,
+   basÃ¡ndose en la plantilla de ese archivo. Ese registro
+   se agrega siempre al comienzo, una vez terminada el
+   objetivo.
 11. Verificar que los registros estÃ©n ordenados por fecha y hora,
    colocÃ¡ndose los nuevos primero. Si no estÃ¡n ordenados, ordenarlos.
 
