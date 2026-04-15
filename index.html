@@ -30486,19 +30486,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `</button>` +
           `<button class="Dia_Accion_Item"` +
           ` type="button"` +
-          ` data-acc="limpiar-celda">` +
-          t("contexto.limpiar_celda") +
-          `</button>` +
-          `<button class="Dia_Accion_Item"` +
-          ` type="button"` +
           ` data-acc="limpiar-objetivo">` +
           t("contexto.limpiar_objetivo") +
           `</button>` +
           `<button class="Dia_Accion_Item` +
           ` Dia_Accion_Peligro"` +
           ` type="button"` +
-          ` data-acc="eliminar">` +
-          t("contexto.eliminar_bloque") +
+          ` data-acc="limpiar-celda">` +
+          t("contexto.limpiar_celda") +
           `</button>`;
 
         Menu.innerHTML = Html;
@@ -30571,38 +30566,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Limpiar_Eventos_Objetivo_Semana(Evento_Data);
-          });
-        Menu.querySelector(`[data-acc="eliminar"]`)
-          .addEventListener("click", async (Ev) => {
-            Ev.stopPropagation();
-            Cerrar_Menu_Dia();
-            const Objetivo = Objetivo_Por_Id(Evento_Data.Objetivo_Id);
-            const Nombre = Objetivo?.Nombre || t("evento.este_bloque");
-            const Confirmado = await Mostrar_Dialogo(
-              t("evento.dialog_eliminar_bloque", { nombre: Nombre }),
-              [
-                {
-                  Etiqueta: t("cancelar"),
-                  Valor: false,
-                  Tipo: "Cancelar"
-                },
-                {
-                  Etiqueta: t("eliminar"),
-                  Valor: true,
-                  Tipo: "Peligro"
-                }
-              ]
-            );
-            if (!Confirmado) return;
-            const Snap = Capturar_Snapshot_Undo();
-            Borrar_Evento(Evento_Data.Id);
-            Mostrar_Toast_Undo(t("toast.bloque_eliminado"), Snap);
-            if (
-              typeof Focus_Esta_Abierto === "function" &&
-              Focus_Esta_Abierto()
-            ) {
-              Render_Focus_Mode();
-            }
           });
 
         if (Fn_Cierre_Menu) {

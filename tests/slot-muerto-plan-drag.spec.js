@@ -709,9 +709,19 @@ test("el menu contextual puede limpiar un bloque y la celda debajo", async ({
 
   const bloque = page.locator('.Evento[data-id="ev_limpiar"]');
   await bloque.click({ button: "right" });
+  const botones_menu = await page.locator(
+    "#Dia_Accion_Menu .Dia_Accion_Item"
+  ).allTextContents();
   await expect(
     page.locator('#Dia_Accion_Menu [data-acc="limpiar-celda"]')
   ).toBeVisible();
+  await expect(
+    page.locator('#Dia_Accion_Menu [data-acc="eliminar"]')
+  ).toHaveCount(0);
+  expect(botones_menu.at(-1)).toBe("Limpiar");
+  await expect(
+    page.locator('#Dia_Accion_Menu .Dia_Accion_Item').last()
+  ).toHaveClass(/Dia_Accion_Peligro/);
   await page.click('#Dia_Accion_Menu [data-acc="limpiar-celda"]');
   await page.click("#Dialogo_Botones .Dialogo_Boton_Peligro");
 
