@@ -391,6 +391,82 @@ test(
 );
 
 test(
+  "permite borrar muchos bloques con la tecla delete",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+
+    const Ids = await page.evaluate(() => {
+      const Semana = Clave_Semana_Actual();
+      const Colores = [
+        "#1f6b4f",
+        "#9b2040",
+        "#0f5f5a",
+        "#8c6a46"
+      ];
+      const Objetivos_Creados = ["A", "B", "C", "D"]
+        .map((Nombre, Indice) =>
+          Crear_Objetivo_Semanal_Con_Datos(
+            {
+              Nombre: `Bloque ${Nombre}`,
+              Emoji: Nombre,
+              Color: Colores[Indice],
+              Es_Bolsa: false
+            },
+            Semana
+          )
+        );
+
+      Eventos = Objetivos_Creados.map((Objetivo, Indice) => ({
+        Id: `ev_${Indice}`,
+        Objetivo_Id: Objetivo.Id,
+        Fecha: "2026-04-13",
+        Inicio: 9 + Indice,
+        Duracion: 1,
+        Hecho: false,
+        Anulada: false,
+        Color: Objetivo.Color
+      }));
+
+      Contador_Eventos = 50;
+      Render_Emojis();
+      Render_Calendario();
+      Guardar_Estado();
+      return Eventos.map((Evento) => Evento.Id);
+    });
+
+    for (const Evento_Id of Ids) {
+      await page.click(
+        `.Evento[data-id="${Evento_Id}"]`,
+        { modifiers: ["Control"] }
+      );
+    }
+
+    await page.keyboard.press("Delete");
+
+    await expect(
+      page.locator("#Dialogo_Overlay")
+    ).toHaveClass(/Activo/);
+    await expect(
+      page.locator("#Dialogo_Mensaje")
+    ).toContainText("4");
+
+    await page.click("#Dialogo_Botones .Dialogo_Boton_Peligro");
+
+    const Resultado = await page.evaluate(() => ({
+      Cantidad_Eventos: Eventos.length,
+      Seleccion: Array.from(Eventos_Multi_Seleccion),
+      Barra_Activa: document.getElementById(
+        "Calendario_Multi_Acciones"
+      )?.classList.contains("Activa")
+    }));
+
+    expect(Resultado.Cantidad_Eventos).toBe(0);
+    expect(Resultado.Seleccion).toEqual([]);
+    expect(Resultado.Barra_Activa).toBeFalsy();
+  }
+);
+
+test(
   "copia bloques y pega en slot vacio con opcion de reemplazo",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());
@@ -483,6 +559,151 @@ test(
       12,
       14
     ]);
-    expect(Resultado.Seleccion).toHaveLength(2);
+    expect(Resultado.Seleccion).toHaveLength(0);
+  }
+);
+
+test(
+  "ofrece pegar en columna cuando la copia mezcla dias",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+
+    const Ids = await page.evaluate(() => {
+      Config.Dias_Visibles = [0, 1];
+      const Semana = Clave_Semana_Actual();
+      const Objetivo_A = Crear_Objetivo_Semanal_Con_Datos(
+        {
+          Nombre: "Bloque A",
+          Emoji: "A",
+          Color: "#1f6b4f",
+          Es_Bolsa: false
+        },
+        Semana
+      );
+      const Objetivo_B = Crear_Objetivo_Semanal_Con_Datos(
+        {
+          Nombre: "Bloque B",
+          Emoji: "B",
+          Color: "#9b2040",
+          Es_Bolsa: false
+        },
+        Semana
+      );
+
+      Eventos = [
+        {
+          Id: "ev_dia_a",
+          Objetivo_Id: Objetivo_A.Id,
+          Fecha: "2026-04-13",
+          Inicio: 9,
+          Duracion: 1,
+          Hecho: false,
+          Anulada: false,
+          Color: Objetivo_A.Color
+        },
+        {
+          Id: "ev_dia_b",
+          Objetivo_Id: Objetivo_B.Id,
+          Fecha: "2026-04-14",
+          Inicio: 10,
+          Duracion: 1,
+          Hecho: false,
+          Anulada: false,
+          Color: Objetivo_B.Color
+        }
+      ];
+
+      Contador_Eventos = 80;
+      Render_Emojis();
+      Render_Calendario();
+      Guardar_Estado();
+
+      return {
+        Evento_A_Id: "ev_dia_a",
+        Evento_B_Id: "ev_dia_b"
+      };
+    });
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_B_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '#Calendario_Multi_Grupo_Acciones button:has-text("Copiar")'
+    );
+
+    await page.evaluate(() => {
+      const Original = Mostrar_Dialogo;
+      window.__dialogos_multi = [];
+      Mostrar_Dialogo = async (Texto, Botones = []) => {
+        window.__dialogos_multi.push({
+          Texto,
+          Valores: Botones.map((Boton) => Boton.Valor)
+        });
+        return "Columna";
+      };
+      window.__restaurar_dialogo_multi = () => {
+        Mostrar_Dialogo = Original;
+      };
+    });
+
+    await page.evaluate(() => {
+      const Slot = document.querySelector(
+        '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+      );
+      if (!Slot) throw new Error("No se encontro el slot");
+      const Rect = Slot.getBoundingClientRect();
+      Mostrar_Menu_Slot(
+        "2026-04-13",
+        12,
+        Rect.left + 8,
+        Rect.top + 8
+      );
+    });
+
+    await page.click(
+      '#Dia_Accion_Menu [data-acc="pegar-bloques-slot"]'
+    );
+    await page.evaluate(() => {
+      window.__restaurar_dialogo_multi?.();
+    });
+
+    const Resultado = await page.evaluate(() => ({
+      Dialogos: window.__dialogos_multi || [],
+      Eventos: Eventos
+        .map((Evento) => ({
+          Id: Evento.Id,
+          Fecha: Evento.Fecha,
+          Inicio: Evento.Inicio
+        }))
+        .sort((A, B) => {
+          if (A.Fecha !== B.Fecha) {
+            return A.Fecha.localeCompare(B.Fecha);
+          }
+          return A.Inicio - B.Inicio;
+        }),
+      Seleccion: Array.from(Eventos_Multi_Seleccion)
+    }));
+
+    expect(Resultado.Dialogos).toHaveLength(1);
+    expect(Resultado.Dialogos[0].Texto).toContain(
+      "varios días"
+    );
+    expect(Resultado.Dialogos[0].Valores).toEqual([
+      "Forma",
+      "Columna",
+      null
+    ]);
+    expect(Resultado.Eventos).toEqual([
+      { Id: "ev_dia_a", Fecha: "2026-04-13", Inicio: 9 },
+      { Id: "Evento_80", Fecha: "2026-04-13", Inicio: 12 },
+      { Id: "Evento_81", Fecha: "2026-04-13", Inicio: 13 },
+      { Id: "ev_dia_b", Fecha: "2026-04-14", Inicio: 10 }
+    ]);
+    expect(Resultado.Seleccion).toEqual([]);
   }
 );
