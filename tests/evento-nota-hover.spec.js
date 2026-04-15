@@ -199,8 +199,9 @@ test("muestra la nota del bloque tras 2 segundos de hover", async ({
   await Preparar(page, estado);
 
   const bloque = page.locator('.Evento[data-id="E1"]');
+  const marca = bloque.locator(".Evento_Nota_Marca");
   await expect(
-    bloque.locator(".Evento_Nota_Marca")
+    marca
   ).not.toHaveAttribute("title", /.+/);
   await bloque.hover();
   await page.waitForTimeout(2100);
@@ -211,6 +212,27 @@ test("muestra la nota del bloque tras 2 segundos de hover", async ({
   );
   await expect(page.locator(".Evento_Abordaje_Popup"))
     .toHaveCount(0);
+  const cajaMarca = await marca.boundingBox();
+  const cajaPopup = await popupNota.boundingBox();
+  expect(cajaMarca).not.toBeNull();
+  expect(cajaPopup).not.toBeNull();
+  expect(
+    Math.abs(cajaPopup.x - cajaMarca.x)
+  ).toBeLessThan(3);
+  expect(
+    Math.abs(
+      cajaPopup.y - (cajaMarca.y + cajaMarca.height + 4)
+    )
+  ).toBeLessThan(3);
+
+  await marca.click();
+  await expect(page.locator(".Evento_Nota_Popup"))
+    .toHaveCount(0);
+
+  await marca.click();
+  await expect(popupNota).toHaveText(
+    "Nota visible por hover"
+  );
 
   await page.mouse.move(4, 4);
   await expect(page.locator(".Evento_Nota_Popup"))

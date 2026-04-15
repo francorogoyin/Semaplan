@@ -7139,7 +7139,7 @@
       }
 
       .Evento_Nota_Popup {
-        position: absolute;
+        position: fixed;
         background: #ffe066;
         border: 1px solid #c9a800;
         border-radius: 8px;
@@ -45418,24 +45418,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Bloque.appendChild(Linea);
           Bloque.appendChild(Meta);
 
+          let Marca_Nota = null;
           if (Evento.Nota && Evento.Nota.trim()) {
-            const Marca = document.createElement("div");
-            Marca.className = "Evento_Nota_Marca";
-            Marca.textContent = "📝";
+            Marca_Nota = document.createElement("div");
+            Marca_Nota.className = "Evento_Nota_Marca";
+            Marca_Nota.textContent = "📝";
+            Marca_Nota.addEventListener("mousedown", (Ev) => {
+              Ev.stopPropagation();
+            });
             const Mostrar_Nota = (Ev) => {
               Ev.stopPropagation();
-              Mostrar_Popup_Nota(Evento, Marca);
+              Mostrar_Popup_Nota(Evento, Marca_Nota);
             };
             if (Config.Notas_Hover) {
-              Marca.addEventListener("mouseenter", Mostrar_Nota);
-              Marca.addEventListener(
+              Marca_Nota.addEventListener(
+                "mouseenter",
+                Mostrar_Nota
+              );
+              Marca_Nota.addEventListener(
                 "mouseleave",
                 Cerrar_Popup_Nota
               );
-            } else {
-              Marca.addEventListener("click", Mostrar_Nota);
             }
-            Bloque.appendChild(Marca);
+            Marca_Nota.addEventListener("click", Mostrar_Nota);
+            Bloque.appendChild(Marca_Nota);
           }
 
           const Handle = document.createElement("div");
@@ -45543,7 +45549,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 typeof Evento.Nota === "string"
                 && Evento.Nota.trim()
               ) {
-                Mostrar_Popup_Nota(Evento, Bloque);
+                Mostrar_Popup_Nota(
+                  Evento,
+                  Marca_Nota || Bloque
+                );
                 return;
               }
               Mostrar_Popup_Abordaje(Evento, Bloque);
@@ -45992,6 +46001,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Posicionar_Popup_Nota(Pop, Cerca_De) {
+        document.body.appendChild(Pop);
+        const Rect_Ancla = Cerca_De.getBoundingClientRect();
+        const Rect_Pop = Pop.getBoundingClientRect();
+        let Left = Rect_Ancla.left;
+        let Top = Rect_Ancla.bottom + 4;
+
+        if (
+          Left + Rect_Pop.width > window.innerWidth - 8
+        ) {
+          Left = Rect_Ancla.right - Rect_Pop.width;
+        }
+        if (Left < 8) Left = 8;
+
+        if (
+          Top + Rect_Pop.height > window.innerHeight - 8
+        ) {
+          Top = Rect_Ancla.top - Rect_Pop.height - 4;
+        }
+        if (Top < 8) Top = 8;
+
+        Pop.style.left = `${Left}px`;
+        Pop.style.top = `${Top}px`;
+      }
+
       function Mostrar_Popup_Plan_Slot(
         Fecha,
         Hora,
@@ -46019,15 +46053,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Pop = document.createElement("div");
         Pop.className = "Evento_Nota_Popup";
         Pop.textContent = Evento.Nota || "";
-        const Rect = Cerca_De.getBoundingClientRect();
-        Pop.style.left = `${Rect.left}px`;
-        Pop.style.top = `${Rect.bottom + 4}px`;
         // Click sobre el popup también lo cierra.
         Pop.addEventListener("click", (Ev) => {
           Ev.stopPropagation();
           Cerrar_Popup_Nota();
         });
-        document.body.appendChild(Pop);
+        Posicionar_Popup_Nota(Pop, Cerca_De);
         El_Popup_Nota_Activo = Pop;
         El_Popup_Nota_Trigger_Activo = Cerca_De;
 
