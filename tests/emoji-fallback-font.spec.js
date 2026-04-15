@@ -78,29 +78,29 @@ test("renderiza emojis visibles como imagenes", async ({
   page
 }) => {
   const estadoInicial = {
-    Tareas: [
+    Objetivos: [
       {
         Id: "t1",
-        Nombre: "Tarea emoji",
+        Nombre: "Objetivo emoji",
         Emoji: "🧪",
         Horas_Semanales: 3,
         Restante: 3,
         Es_Bolsa: true,
         Color: "#4f8fba",
         Orden: 0,
-        Subtareas: [],
-        Subtareas_Semanales: {
+        Subobjetivos: [],
+        Subobjetivos_Semanales: {
           "2026-04-13": [
             {
               Id: "s1",
               Emoji: "✨",
-              Texto: "Subtarea",
+              Texto: "Subobjetivo",
               Hecha: false
             }
           ]
         },
-        Subtareas_Contraidas_Semanales: {},
-        Subtareas_Excluidas_Semanales: {},
+        Subobjetivos_Contraidas_Semanales: {},
+        Subobjetivos_Excluidos_Semanales: {},
         Etiquetas_Ids: [],
         Familia_Id: "t1",
         Semana_Base: "2026-04-13",
@@ -111,14 +111,14 @@ test("renderiza emojis visibles como imagenes", async ({
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [
+    Baul_Objetivos: [
       {
         Id: "b1",
-        Nombre: "Tarea del baúl",
+        Nombre: "Objetivo del baúl",
         Emoji: "📦",
         Es_Bolsa: false,
         Categoria_Id: null,
@@ -161,7 +161,7 @@ test("renderiza emojis visibles como imagenes", async ({
       }
     ],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: "t1",
+    Objetivo_Seleccionada_Id: "t1",
     Modo_Editor_Abierto: true,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -183,10 +183,10 @@ test("renderiza emojis visibles como imagenes", async ({
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     await window.Inicializar();
-    window.Tarea_Seleccionada_Id = "t1";
+    window.Objetivo_Seleccionada_Id = "t1";
     window.Render_Emojis();
     window.Modo_Editor_Abierto = false;
-    window.Render_Resumen_Tarea();
+    window.Render_Resumen_Objetivo();
     window.Aplicar_Emoji_En_Elemento(
       document.getElementById("Resumen_Emoji"),
       "🧪"
@@ -209,7 +209,7 @@ test("renderiza emojis visibles como imagenes", async ({
     );
     const Card_Baul = window.Crear_Card_Baul({
       Id: "b1",
-      Nombre: "Tarea del baúl",
+      Nombre: "Objetivo del baúl",
       Emoji: "📦",
       Estado: "Activa",
       Archivada: false,
@@ -270,15 +270,15 @@ test("usa fallback de emoji en el modal de nueva nota", async ({
   page
 }) => {
   const estadoInicial = {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [
       {
@@ -291,7 +291,7 @@ test("usa fallback de emoji en el modal de nueva nota", async ({
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -344,7 +344,7 @@ test("renderiza emoji como imagen en bloques del calendario", async ({
   page
 }) => {
   const estadoInicial = {
-    Tareas: [
+    Objetivos: [
       {
         Id: "t1",
         Nombre: "Bloque con emoji",
@@ -354,10 +354,10 @@ test("renderiza emoji como imagen en bloques del calendario", async ({
         Es_Bolsa: true,
         Color: "#4f8fba",
         Orden: 0,
-        Subtareas: [],
-        Subtareas_Semanales: {},
-        Subtareas_Contraidas_Semanales: {},
-        Subtareas_Excluidas_Semanales: {},
+        Subobjetivos: [],
+        Subobjetivos_Semanales: {},
+        Subobjetivos_Contraidas_Semanales: {},
+        Subobjetivos_Excluidos_Semanales: {},
         Etiquetas_Ids: [],
         Familia_Id: "t1",
         Semana_Base: "2026-04-13",
@@ -368,7 +368,7 @@ test("renderiza emoji como imagen en bloques del calendario", async ({
     Eventos: [
       {
         Id: 1,
-        Tarea_Id: "t1",
+        Objetivo_Id: "t1",
         Fecha: "2026-04-14",
         Inicio: 9,
         Duracion: 1,
@@ -378,17 +378,17 @@ test("renderiza emoji como imagen en bloques del calendario", async ({
     ],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [],
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 2,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,

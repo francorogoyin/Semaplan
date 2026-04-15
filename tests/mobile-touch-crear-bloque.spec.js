@@ -8,21 +8,21 @@ test.use({
 
 function Crear_Estado() {
   return {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [],
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -67,7 +67,7 @@ function Crear_Estado() {
         Logout_Boton: true
       },
       Version_Programa: "Demo",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
@@ -232,8 +232,8 @@ test(
   async ({ page }) => {
     await Preparar(page, Crear_Estado());
 
-    const Tarea_Id = await page.evaluate(() => {
-      const Tarea = Crear_Tarea_Semanal_Con_Datos(
+    const Objetivo_Id = await page.evaluate(() => {
+      const Objetivo = Crear_Objetivo_Semanal_Con_Datos(
         {
           Nombre: "QA tap temp",
           Emoji: "🧪",
@@ -243,29 +243,29 @@ test(
         Clave_Semana_Actual()
       );
       Render_Emojis();
-      return Tarea.Id;
+      return Objetivo.Id;
     });
 
     await page.click(
-      `#Barra_Emojis button[data-tarea-id="${Tarea_Id}"]`
+      `#Barra_Emojis button[data-objetivo-id="${Objetivo_Id}"]`
     );
 
     const Estado_Touch = await page.evaluate(() => {
       return {
         Overlay: document.getElementById(
-          "Tarea_Modal_Overlay"
+          "Objetivo_Modal_Overlay"
         )?.classList.contains("Activo"),
         Modo_Touch: document.body.classList.contains(
           "Modo_Touch_Asignar"
         ),
-        Armado: Tarea_Touch_Para_Bloque_Id,
-        Seleccionado: Tarea_Seleccionada_Id
+        Armado: Objetivo_Touch_Para_Bloque_Id,
+        Seleccionado: Objetivo_Seleccionada_Id
       };
     });
 
     expect(Estado_Touch.Overlay).toBeFalsy();
     expect(Estado_Touch.Modo_Touch).toBeTruthy();
-    expect(Estado_Touch.Armado).toBe(Tarea_Id);
+    expect(Estado_Touch.Armado).toBe(Objetivo_Id);
     expect(Estado_Touch.Seleccionado).toBeNull();
 
     await page.click(
@@ -285,18 +285,18 @@ test(
 );
 
 test(
-  "permite menu touch prolongado y reordenar tareas",
+  "permite menu touch prolongado y reordenar objetivos",
   async ({ page }) => {
     await Preparar(page, Crear_Estado());
 
-    const Tareas_Ids = await page.evaluate(() => {
+    const Objetivos_Ids = await page.evaluate(() => {
       const Base = [
         { Nombre: "Uno", Emoji: "1️⃣" },
         { Nombre: "Dos", Emoji: "2️⃣" },
         { Nombre: "Tres", Emoji: "3️⃣" }
       ];
       return Base.map((Item) =>
-        Crear_Tarea_Semanal_Con_Datos(
+        Crear_Objetivo_Semanal_Con_Datos(
           {
             Nombre: Item.Nombre,
             Emoji: Item.Emoji,
@@ -313,7 +313,7 @@ test(
     });
 
     const Selector =
-      `#Barra_Emojis button[data-tarea-id="${Tareas_Ids[1]}"]`;
+      `#Barra_Emojis button[data-objetivo-id="${Objetivos_Ids[1]}"]`;
     await Pulsar_Largo_Touch(page, Selector);
 
     await expect(
@@ -331,8 +331,8 @@ test(
     ).toBeVisible();
 
     const Estado_Menu = await page.evaluate(() => ({
-      Armado: Tarea_Touch_Para_Bloque_Id,
-      Seleccionado: Tarea_Seleccionada_Id
+      Armado: Objetivo_Touch_Para_Bloque_Id,
+      Seleccionado: Objetivo_Seleccionada_Id
     }));
 
     expect(Estado_Menu.Armado).toBeNull();
@@ -343,7 +343,7 @@ test(
     );
 
     const Orden = await page.evaluate(() =>
-      Tareas.slice(0, 3).map((Tarea) => Tarea.Nombre)
+      Objetivos.slice(0, 3).map((Objetivo) => Objetivo.Nombre)
     );
 
     expect(Orden).toEqual(["Dos", "Uno", "Tres"]);

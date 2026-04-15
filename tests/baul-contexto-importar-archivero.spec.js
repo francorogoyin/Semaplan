@@ -64,17 +64,17 @@ test("ofrece importar al archivero desde el menu del baul", async ({
   page
 }) => {
   const estadoInicial = {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [
       { Id: "et1", Nombre: "Trabajo" }
     ],
-    Baul_Tareas: [
+    Baul_Objetivos: [
       {
         Id: "b1",
         Nombre: "Preparar propuesta",
@@ -97,7 +97,7 @@ test("ofrece importar al archivero desde el menu del baul", async ({
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Archivero_Seleccion_Id: "c1",
     Inicio_Semana: "2026-04-13",
@@ -132,7 +132,7 @@ test("ofrece importar al archivero desde el menu del baul", async ({
         Archivero_Boton: true
       },
       Version_Programa: "Demo",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
@@ -166,7 +166,7 @@ test("ofrece importar al archivero desde el menu del baul", async ({
       ?.classList.add("Oculto");
     window.Inicializar();
     Mostrar_Dialogo = async () => "c1";
-    Mostrar_Menu_Baul(Baul_Tareas[0], 24, 24);
+    Mostrar_Menu_Baul(Baul_Objetivos[0], 24, 24);
     const Texto_Menu = document.getElementById("Dia_Accion_Menu")
       ?.textContent || "";
     document.querySelector('[data-acc="archivero"]')

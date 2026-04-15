@@ -4,15 +4,15 @@ test("incluye patrones de slot vacío en slots muertos", async ({
   page
 }) => {
   const estadoInicial = {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: ["2026-04-13|10"],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [],
     Notas_Archivero: [],
@@ -35,7 +35,7 @@ test("incluye patrones de slot vacío en slots muertos", async ({
       }
     ],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -68,7 +68,7 @@ test("incluye patrones de slot vacío en slots muertos", async ({
         Plan_Boton: true
       },
       Version_Programa: "Demo",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",

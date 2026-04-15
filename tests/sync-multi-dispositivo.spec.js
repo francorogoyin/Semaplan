@@ -1,6 +1,6 @@
 const { test, expect } = require("@playwright/test");
 
-function Crear_Tarea(Id, Nombre) {
+function Crear_Objetivo(Id, Nombre) {
   return {
     Id,
     Nombre,
@@ -10,30 +10,30 @@ function Crear_Tarea(Id, Nombre) {
     Dia: 0,
     Hora: 9,
     Duracion: 1,
-    Subtareas: [],
+    Subobjetivos: [],
     Copias_Semana: {}
   };
 }
 
 function Crear_Estado(Nombres) {
   return {
-    Tareas: Nombres.map((Nombre, Indice) =>
-      Crear_Tarea(Indice + 1, Nombre)
+    Objetivos: Nombres.map((Nombre, Indice) =>
+      Crear_Objetivo(Indice + 1, Nombre)
     ),
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [],
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: Nombres.length + 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -412,7 +412,7 @@ test(
     );
 
     const Resumen = await page.evaluate(async () => {
-      Tareas.push({
+      Objetivos.push({
         Id: 99,
         Nombre: "Cambio ocultando",
         Emoji: "🧪",
@@ -421,7 +421,7 @@ test(
         Dia: 0,
         Hora: 9,
         Duracion: 1,
-        Subtareas: [],
+        Subobjetivos: [],
         Copias_Semana: {}
       });
       Guardar_Estado();
@@ -446,8 +446,8 @@ test(
         inicioKeepalive: Inicio_Keepalive,
         keepalive: Llamada?.keepalive || false,
         nombres:
-          Payload?.estado?.Tareas?.map(
-            (Tarea) => Tarea.Nombre
+          Payload?.estado?.Objetivos?.map(
+            (Objetivo) => Objetivo.Nombre
           ) || [],
         syncEstado: Sync_Estado
       };
@@ -498,8 +498,8 @@ test(
       return {
         refresco: Refresco,
         nombres:
-          (Estado.Tareas || []).map(
-            (Tarea) => Tarea.Nombre
+          (Estado.Objetivos || []).map(
+            (Objetivo) => Objetivo.Nombre
           ),
         toast: Toast?.textContent?.trim() || ""
       };
@@ -551,8 +551,8 @@ test(
 
       return {
         nombres:
-          (Estado.Tareas || []).map(
-            (Tarea) => Tarea.Nombre
+          (Estado.Objetivos || []).map(
+            (Objetivo) => Objetivo.Nombre
           ),
         syncRemotoUltimaRevisionMs:
           Sync_Remoto_Ultima_Revision_Ms
@@ -603,8 +603,8 @@ test(
       return {
         refresco: Refresco,
         nombres:
-          (Estado.Tareas || []).map(
-            (Tarea) => Tarea.Nombre
+          (Estado.Objetivos || []).map(
+            (Objetivo) => Objetivo.Nombre
           )
       };
     });
@@ -626,7 +626,7 @@ test(
     );
 
     await page.evaluate(({ Estado_Remoto_Nuevo }) => {
-      Tareas.push({
+      Objetivos.push({
         Id: 99,
         Nombre: "Cambio local",
         Emoji: "🧪",
@@ -635,7 +635,7 @@ test(
         Dia: 0,
         Hora: 9,
         Duracion: 1,
-        Subtareas: [],
+        Subobjetivos: [],
         Copias_Semana: {}
       });
       Guardar_Estado();
@@ -678,8 +678,8 @@ test(
       );
       return {
         nombres:
-          (Estado.Tareas || []).map(
-            (Tarea) => Tarea.Nombre
+          (Estado.Objetivos || []).map(
+            (Objetivo) => Objetivo.Nombre
           ),
         bloqueada: document
           .querySelector(".App_Contenedor")
@@ -709,7 +709,7 @@ test(
     );
 
     await page.evaluate(({ Estado_Remoto_Nuevo }) => {
-      Tareas.push({
+      Objetivos.push({
         Id: 77,
         Nombre: "Cambio local final",
         Emoji: "🧪",
@@ -718,7 +718,7 @@ test(
         Dia: 0,
         Hora: 9,
         Duracion: 1,
-        Subtareas: [],
+        Subobjetivos: [],
         Copias_Semana: {}
       });
       Guardar_Estado();
@@ -758,12 +758,12 @@ test(
       );
       return {
         local:
-          (Estado_Local.Tareas || []).map(
-            (Tarea) => Tarea.Nombre
+          (Estado_Local.Objetivos || []).map(
+            (Objetivo) => Objetivo.Nombre
           ),
         remoto:
-          (window.__Estado_Remoto?.estado?.Tareas || [])
-            .map((Tarea) => Tarea.Nombre),
+          (window.__Estado_Remoto?.estado?.Objetivos || [])
+            .map((Objetivo) => Objetivo.Nombre),
         bloqueada: document
           .querySelector(".App_Contenedor")
           ?.classList.contains("Sync_Bloqueada"),
@@ -806,7 +806,7 @@ test(
         return Botones[0]?.Valor ?? true;
       };
 
-      Tareas.push({
+      Objetivos.push({
         Id: 123,
         Nombre: "Cambio sin guardar",
         Emoji: "ðŸ§ª",
@@ -815,7 +815,7 @@ test(
         Dia: 0,
         Hora: 9,
         Duracion: 1,
-        Subtareas: [],
+        Subobjetivos: [],
         Copias_Semana: {}
       });
       Guardar_Estado();
@@ -855,7 +855,7 @@ test(
     const Resumen = await page.evaluate(async () => {
       Sync_Reintento_Demoras_Ms = [20, 20, 20];
 
-      Tareas.push({
+      Objetivos.push({
         Id: 126,
         Nombre: "Cambio con retry",
         Emoji: "Ã°Å¸Â§Âª",
@@ -864,7 +864,7 @@ test(
         Dia: 0,
         Hora: 9,
         Duracion: 1,
-        Subtareas: [],
+        Subobjetivos: [],
         Copias_Semana: {}
       });
       Guardar_Estado();
@@ -893,8 +893,8 @@ test(
         timerActivo: Boolean(Sync_Reintento_Timer_Id),
         sucio: Sync_Local_Sucio,
         remoto:
-          (window.__Estado_Remoto?.estado?.Tareas || [])
-            .map((Tarea) => Tarea.Nombre)
+          (window.__Estado_Remoto?.estado?.Objetivos || [])
+            .map((Objetivo) => Objetivo.Nombre)
       };
     });
 
@@ -920,7 +920,7 @@ test(
     const Resumen = await page.evaluate(async ({
       Estado_Remoto_Nuevo
     }) => {
-      Tareas.push({
+      Objetivos.push({
         Id: 124,
         Nombre: "Cambio local versionado",
         Emoji: "ðŸ§ª",
@@ -929,7 +929,7 @@ test(
         Dia: 0,
         Hora: 9,
         Duracion: 1,
-        Subtareas: [],
+        Subobjetivos: [],
         Copias_Semana: {}
       });
       Guardar_Estado();
@@ -953,11 +953,11 @@ test(
         ok: Ok,
         conflicto: Sync_Conflicto_Pendiente,
         remoto:
-          (window.__Estado_Remoto?.estado?.Tareas || [])
-            .map((Tarea) => Tarea.Nombre),
+          (window.__Estado_Remoto?.estado?.Objetivos || [])
+            .map((Objetivo) => Objetivo.Nombre),
         local:
-          (Estado_Local.Tareas || []).map(
-            (Tarea) => Tarea.Nombre
+          (Estado_Local.Objetivos || []).map(
+            (Objetivo) => Objetivo.Nombre
           )
       };
     }, {
@@ -988,7 +988,7 @@ test(
     const Estado_Remoto = Crear_Estado([
       "Base remota"
     ]);
-    Estado_Remoto.Baul_Tareas = [
+    Estado_Remoto.Baul_Objetivos = [
       {
         Id: "b1",
         Nombre: "Molde remoto",
@@ -998,7 +998,7 @@ test(
         Orden: 1,
         Categoria: "",
         Archivada: false,
-        Subtareas: [],
+        Subobjetivos: [],
         Etiquetas_Ids: [],
         Timeline: null
       }
@@ -1034,7 +1034,7 @@ test(
       Construir_Estado_Completo = () => {
         const Estado = Construir_Original();
         const {
-          Baul_Tareas,
+          Baul_Objetivos,
           Baul_Grupos_Colapsados,
           Archiveros,
           Notas_Archivero,
@@ -1044,7 +1044,7 @@ test(
         return Estado_Viejo;
       };
 
-      Tareas.push({
+      Objetivos.push({
         Id: 125,
         Nombre: "Cambio desde cliente viejo",
         Emoji: "🧪",
@@ -1053,7 +1053,7 @@ test(
         Dia: 0,
         Hora: 9,
         Duracion: 1,
-        Subtareas: [],
+        Subobjetivos: [],
         Copias_Semana: {}
       });
 
@@ -1068,8 +1068,8 @@ test(
       return {
         ok: Ok,
         remotoBaul:
-          (window.__Estado_Remoto?.estado?.Baul_Tareas
-            || []).map((Tarea) => Tarea.Nombre),
+          (window.__Estado_Remoto?.estado?.Baul_Objetivos
+            || []).map((Objetivo) => Objetivo.Nombre),
         remotoCajones:
           (window.__Estado_Remoto?.estado?.Archiveros
             || []).map((Cajon) => Cajon.Nombre),
@@ -1078,9 +1078,9 @@ test(
             window.__Estado_Remoto?.estado
               ?.Notas_Archivero || []
           ).map((Nota) => Nota.Texto),
-        remotoTareas:
-          (window.__Estado_Remoto?.estado?.Tareas
-            || []).map((Tarea) => Tarea.Nombre)
+        remotoObjetivos:
+          (window.__Estado_Remoto?.estado?.Objetivos
+            || []).map((Objetivo) => Objetivo.Nombre)
       };
     });
 
@@ -1094,7 +1094,7 @@ test(
     expect(Resumen.remotoNotas).toContain(
       "Nota remota"
     );
-    expect(Resumen.remotoTareas).toContain(
+    expect(Resumen.remotoObjetivos).toContain(
       "Cambio desde cliente viejo"
     );
   }

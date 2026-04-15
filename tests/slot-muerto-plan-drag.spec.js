@@ -74,11 +74,11 @@ async function preparar(page, estadoInicial) {
 
 function estadoBase() {
   return {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: ["2026-04-13|10"],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {
       "2026-04-13|10": {
         Items: [
@@ -93,13 +93,13 @@ function estadoBase() {
     },
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [],
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -132,7 +132,7 @@ function estadoBase() {
         Plan_Boton: true
       },
       Version_Programa: "Demo",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
@@ -286,7 +286,7 @@ test("no pisa un horario ocupado al arrastrar slot muerto", async ({
   estado.Eventos = [
     {
       Id: "e_1",
-      Tarea_Id: null,
+      Objetivo_Id: null,
       Fecha: "2026-04-13",
       Inicio: 12,
       Duracion: 1,

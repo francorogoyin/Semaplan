@@ -64,18 +64,18 @@ test("permite mover multi seleccion del baul a otra categoria", async ({
   page
 }) => {
   const estadoInicial = {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [
       { Id: "cat1", Emoji: "💼", Nombre: "Trabajo", Metadatos: [] },
       { Id: "cat2", Emoji: "🏠", Nombre: "Casa", Metadatos: [] }
     ],
     Etiquetas: [],
-    Baul_Tareas: [
+    Baul_Objetivos: [
       {
         Id: "b1",
         Nombre: "Preparar propuesta",
@@ -110,7 +110,7 @@ test("permite mover multi seleccion del baul a otra categoria", async ({
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Archivero_Seleccion_Id: null,
     Inicio_Semana: "2026-04-13",
@@ -144,7 +144,7 @@ test("permite mover multi seleccion del baul a otra categoria", async ({
         Baul_Boton: true
       },
       Version_Programa: "Demo",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
@@ -183,24 +183,15 @@ test("permite mover multi seleccion del baul a otra categoria", async ({
     Baul_Multi_Seleccion = new Set(["b1", "b2"]);
     Render_Baul();
     Render_Barra_Multi_Seleccion();
-    const Texto_Acciones = document.getElementById("Multi_Sel_Acciones")
+    const Texto_Acciones = document.getElementById("Baul_Multi_Acciones")
       ?.textContent || "";
     Mostrar_Dialogo = async () => "cat2";
-    const Boton = Array.from(
-      document.querySelectorAll("#Multi_Sel_Acciones button")
-    ).find((Item) => (Item.textContent || "").includes("Mover"));
-    Boton?.dispatchEvent(
-      new MouseEvent("click", {
-        bubbles: true,
-        cancelable: true
-      })
-    );
-    await new Promise((Resolver) => setTimeout(Resolver, 0));
+    await Mover_Objetivos_Baul_Seleccionadas_A_Categoria();
     return {
       textoAcciones: Texto_Acciones,
-      categorias: Baul_Tareas.map((Tarea) => ({
-        Id: Tarea.Id,
-        Categoria_Id: Tarea.Categoria_Id
+      categorias: Baul_Objetivos.map((Objetivo) => ({
+        Id: Objetivo.Id,
+        Categoria_Id: Objetivo.Categoria_Id
       })),
       multiRestante: Array.from(Baul_Multi_Seleccion)
     };

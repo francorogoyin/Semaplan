@@ -28,34 +28,34 @@ test(
 
     await page.addInitScript(() => {
       const Estado_Patricio = {
-        Tareas: [
+        Objetivos: [
           {
             Id: 1,
-            Nombre: "Tarea de Patricio",
+            Nombre: "Objetivo de Patricio",
             Emoji: "🧪",
             Color: "#f1b77e",
             Horas: 1,
             Dia: 0,
             Hora: 9,
             Duracion: 1,
-            Subtareas: [],
+            Subobjetivos: [],
             Copias_Semana: {}
           }
         ],
         Eventos: [],
         Metas: [],
         Slots_Muertos: [],
-        Plantillas_Subtareas: [],
+        Plantillas_Subobjetivos: [],
         Planes_Slot: {},
         Categorias: [],
         Etiquetas: [],
-        Baul_Tareas: [],
+        Baul_Objetivos: [],
         Baul_Grupos_Colapsados: {},
         Archiveros: [],
         Notas_Archivero: [],
         Patrones: [],
         Contador_Eventos: 2,
-        Tarea_Seleccionada_Id: null,
+        Objetivo_Seleccionada_Id: null,
         Modo_Editor_Abierto: false,
         Inicio_Semana: "2026-04-13",
         Duracion_Defecto: 1,
@@ -224,14 +224,14 @@ test(
         Usuario_Cache: localStorage.getItem(
           "Semaplan_Estado_Usuario_V1"
         ),
-        Nombres_Tareas:
-          (Estado.Tareas || []).map((T) => T.Nombre),
+        Nombres_Objetivos:
+          (Estado.Objetivos || []).map((T) => T.Nombre),
         Upserts:
           window.__Upserts_Estado_Usuario.map(
             (Item) => ({
               user_id: Item.user_id,
               nombres:
-                (Item.estado?.Tareas || [])
+                (Item.estado?.Objetivos || [])
                   .map((T) => T.Nombre)
             })
           )
@@ -239,13 +239,13 @@ test(
     });
 
     expect(Resumen.Usuario_Cache).toBe("tomas-id");
-    expect(Resumen.Nombres_Tareas).not.toContain(
-      "Tarea de Patricio"
+    expect(Resumen.Nombres_Objetivos).not.toContain(
+      "Objetivo de Patricio"
     );
     expect(Resumen.Upserts).toHaveLength(1);
     expect(Resumen.Upserts[0].user_id).toBe("tomas-id");
     expect(Resumen.Upserts[0].nombres).not.toContain(
-      "Tarea de Patricio"
+      "Objetivo de Patricio"
     );
   }
 );

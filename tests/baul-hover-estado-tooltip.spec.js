@@ -84,18 +84,18 @@ test("no muestra el estado como tooltip nativo en el baul", async ({
   page
 }) => {
   await preparar(page, {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [
+    Baul_Objetivos: [
       {
         Id: "b1",
-        Nombre: "Tarea con detalle",
+        Nombre: "Objetivo con detalle",
         Emoji: "📝",
         Categoria_Id: null,
         Etiquetas_Ids: [],
@@ -114,7 +114,7 @@ test("no muestra el estado como tooltip nativo en el baul", async ({
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -123,7 +123,7 @@ test("no muestra el estado como tooltip nativo en el baul", async ({
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
       Baul_Agrupar_Por: "Ninguno",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true
     },
     Tipos_Slot: [],

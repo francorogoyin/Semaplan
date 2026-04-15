@@ -15,21 +15,32 @@ function addDaysIso(isoDate, days) {
   return copy.toISOString().slice(0, 10);
 }
 
-test("muestra toast al copiar una tarea", async ({
+test("copia un objetivo a otra semana conservando categoria y subobjetivos", async ({
   page
 }) => {
   const monday = mondayIsoFor(new Date());
   const nextMonday = addDaysIso(monday, 7);
 
   const initialState = {
-    Tareas: [
+    Objetivos: [
       {
         Id: "T1",
         Familia_Id: "F1",
         Fracasos_Semanales: {},
-        Subtareas_Semanales: {},
-        Subtareas_Contraidas_Semanales: {},
-        Subtareas_Excluidas_Semanales: {},
+        Subobjetivos_Semanales: {
+          [monday]: [
+            {
+              Id: "S1",
+              Plantilla_Id: null,
+              Origen_Plantilla_Id: null,
+              Emoji: "✅",
+              Texto: "Primera subobjetivo",
+              Hecha: false
+            }
+          ]
+        },
+        Subobjetivos_Contraidas_Semanales: {},
+        Subobjetivos_Excluidos_Semanales: {},
         Nombre: "Proyecto copia",
         Emoji: "🎯",
         Color: "#f1b77e",
@@ -40,24 +51,37 @@ test("muestra toast al copiar una tarea", async ({
         Semana_Base: monday,
         Semana_Inicio: null,
         Semana_Fin: null,
-        Categoria_Id: null,
-        Etiquetas_Ids: []
+        Categoria_Id: "CAT1",
+        Etiquetas_Ids: ["TAG1"]
       }
     ],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
-    Categorias: [],
-    Etiquetas: [],
-    Baul_Tareas: [],
+    Categorias: [
+      {
+        Id: "CAT1",
+        Emoji: "💼",
+        Nombre: "Trabajo",
+        Metadatos: []
+      }
+    ],
+    Etiquetas: [
+      {
+        Id: "TAG1",
+        Nombre: "ClienteA",
+        Color: "#8fbcd4"
+      }
+    ],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [],
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: monday,
     Duracion_Defecto: 1,
@@ -101,7 +125,7 @@ test("muestra toast al copiar una tarea", async ({
         Ayuda_Boton: true,
         Logout_Boton: true
       },
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
@@ -126,26 +150,21 @@ test("muestra toast al copiar una tarea", async ({
     Planes_Semana: {}
   };
 
-  await page.route(
-    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
-    async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/javascript",
-        body: ""
-      });
-    }
-  );
-  await page.route(
-    "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
-    async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/javascript",
-        body: ""
-      });
-    }
-  );
+  await page.route("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/javascript",
+      body: ""
+    });
+  });
+  await page.route("https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/javascript",
+      body: ""
+    });
+  });
+
   await page.addInitScript((estado) => {
     window.supabase = {
       createClient() {
@@ -155,11 +174,7 @@ test("muestra toast al copiar una tarea", async ({
               return { data: { session: null } };
             },
             onAuthStateChange() {
-              return {
-                data: {
-                  subscription: { unsubscribe() {} }
-                }
-              };
+              return { data: { subscription: { unsubscribe() {} } } };
             },
             async signOut() {
               return { error: null };
@@ -181,6 +196,7 @@ test("muestra toast al copiar una tarea", async ({
 
   await page.goto("/index.html");
   await page.waitForFunction(() => typeof window.Inicializar === "function");
+
   await page.evaluate(() => {
     document.getElementById("Auth_Overlay")?.classList.remove("Activo");
     document.getElementById("App_Loader")?.classList.add("Oculto");
@@ -188,13 +204,40 @@ test("muestra toast al copiar una tarea", async ({
   });
 
   await page.locator('.Emoji_Item[title^="Proyecto copia"]').click();
+  await expect(page.locator("#Resumen_Nombre")).toHaveText("Proyecto copia");
+
   await page.locator("#Resumen_Copiar").click();
-  await page.getByRole("button", { name: "Sin subtareas" }).click();
+  await page.getByRole("button", { name: "Con subobjetivos" }).click();
   await page.getByRole("button", { name: "Semana específica" }).click();
   await page.locator("#Dialogo_Input_Campo").fill(nextMonday);
   await page.getByRole("button", { name: "Confirmar" }).click();
 
-  const toast = page.locator("#Undo_Contenedor .Undo_Toast").first();
-  await expect(toast).toContainText("Tarea copiada");
-  await expect(toast).toContainText("5");
+  const Objetivo_Persistido = await page.evaluate((targetWeek) => {
+    const raw = localStorage.getItem("Semaplan_Estado_V2");
+    const state = raw ? JSON.parse(raw) : null;
+    return state?.Objetivos?.find(
+      (Objetivo) => {
+        return Objetivo.Id !== "T1" &&
+          Objetivo.Semana_Base === targetWeek;
+      }
+    ) || null;
+  }, nextMonday);
+
+  expect(Objetivo_Persistido).toBeTruthy();
+  expect(Objetivo_Persistido.Categoria_Id).toBe("CAT1");
+  expect(Objetivo_Persistido.Etiquetas_Ids).toEqual(["TAG1"]);
+  expect(
+    Objetivo_Persistido.Subobjetivos_Semanales[nextMonday]
+  ).toHaveLength(1);
+  expect(
+    Objetivo_Persistido.Subobjetivos_Semanales[nextMonday][0].Texto
+  ).toBe("Primera subobjetivo");
+
+  await page.evaluate(() => {
+    document.getElementById("Semana_Siguiente")?.click();
+  });
+  await page.locator('.Emoji_Item[title^="Proyecto copia"]').click();
+  await expect(page.locator("#Resumen_Subtitulo")).toContainText("💼 Trabajo");
+  await expect(page.locator("#Resumen_Subtitulo")).toContainText("#ClienteA");
+  await expect(page.locator("#Subobjetivos_Contador")).toHaveText("1");
 });

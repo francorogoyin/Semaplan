@@ -1,45 +1,43 @@
 const { test, expect } = require("@playwright/test");
 
-test("al borrar tarea con copia en otra semana pide alcance", async ({
+function mondayIsoFor(date) {
+  const copy = new Date(date);
+  copy.setHours(0, 0, 0, 0);
+  const day = copy.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  copy.setDate(copy.getDate() + diff);
+  return copy.toISOString().slice(0, 10);
+}
+
+function addDaysIso(isoDate, days) {
+  const copy = new Date(`${isoDate}T00:00:00`);
+  copy.setDate(copy.getDate() + days);
+  return copy.toISOString().slice(0, 10);
+}
+
+test("muestra toast al copiar un objetivo", async ({
   page
 }) => {
-  const estadoInicial = {
-    Tareas: [
+  const monday = mondayIsoFor(new Date());
+  const nextMonday = addDaysIso(monday, 7);
+
+  const initialState = {
+    Objetivos: [
       {
         Id: "T1",
         Familia_Id: "F1",
         Fracasos_Semanales: {},
-        Subtareas_Semanales: {},
-        Subtareas_Contraidas_Semanales: {},
-        Subtareas_Excluidas_Semanales: {},
-        Nombre: "Proyecto",
+        Subobjetivos_Semanales: {},
+        Subobjetivos_Contraidas_Semanales: {},
+        Subobjetivos_Excluidos_Semanales: {},
+        Nombre: "Proyecto copia",
         Emoji: "🎯",
         Color: "#f1b77e",
         Horas_Semanales: 4,
         Restante: 4,
         Es_Bolsa: true,
         Es_Fija: false,
-        Semana_Base: "2026-04-06",
-        Semana_Inicio: null,
-        Semana_Fin: null,
-        Categoria_Id: null,
-        Etiquetas_Ids: []
-      },
-      {
-        Id: "T2",
-        Familia_Id: "F1",
-        Fracasos_Semanales: {},
-        Subtareas_Semanales: {},
-        Subtareas_Contraidas_Semanales: {},
-        Subtareas_Excluidas_Semanales: {},
-        Nombre: "Proyecto",
-        Emoji: "🎯",
-        Color: "#f1b77e",
-        Horas_Semanales: 4,
-        Restante: 4,
-        Es_Bolsa: true,
-        Es_Fija: false,
-        Semana_Base: "2026-04-13",
+        Semana_Base: monday,
         Semana_Inicio: null,
         Semana_Fin: null,
         Categoria_Id: null,
@@ -49,19 +47,19 @@ test("al borrar tarea con copia en otra semana pide alcance", async ({
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [],
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
-    Inicio_Semana: "2026-04-13",
+    Inicio_Semana: monday,
     Duracion_Defecto: 1,
     Config_Extra: {
       Inicio_Hora: 0,
@@ -103,7 +101,7 @@ test("al borrar tarea con copia en otra semana pide alcance", async ({
         Ayuda_Boton: true,
         Logout_Boton: true
       },
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
@@ -179,7 +177,7 @@ test("al borrar tarea con copia en otra semana pide alcance", async ({
     };
     window.alert = () => {};
     localStorage.setItem("Semaplan_Estado_V2", JSON.stringify(estado));
-  }, estadoInicial);
+  }, initialState);
 
   await page.goto("/index.html");
   await page.waitForFunction(() => typeof window.Inicializar === "function");
@@ -189,20 +187,14 @@ test("al borrar tarea con copia en otra semana pide alcance", async ({
     window.Inicializar();
   });
 
-  const mensaje = await page.evaluate(async () => {
-    let primerMensaje = null;
-    const original = Mostrar_Dialogo;
-    Mostrar_Dialogo = async (texto) => {
-      if (!primerMensaje) primerMensaje = texto;
-      return null;
-    };
-    try {
-      await Borrar_Tarea("T2");
-    } finally {
-      Mostrar_Dialogo = original;
-    }
-    return primerMensaje;
-  });
+  await page.locator('.Emoji_Item[title^="Proyecto copia"]').click();
+  await page.locator("#Resumen_Copiar").click();
+  await page.getByRole("button", { name: "Sin subobjetivos" }).click();
+  await page.getByRole("button", { name: "Semana específica" }).click();
+  await page.locator("#Dialogo_Input_Campo").fill(nextMonday);
+  await page.getByRole("button", { name: "Confirmar" }).click();
 
-  expect(mensaje).toContain("Esta tarea aparece en otras semanas");
+  const toast = page.locator("#Undo_Contenedor .Undo_Toast").first();
+  await expect(toast).toContainText("Objetivo copiado");
+  await expect(toast).toContainText("5");
 });

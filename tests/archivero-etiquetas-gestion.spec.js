@@ -79,15 +79,15 @@ test("gestiona etiquetas desde boton discreto", async ({
   page
 }) => {
   const Estado_Inicial = {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [
       { Id: "c1", Nombre: "Semaplan", Emoji: "🗃️" }
@@ -114,7 +114,7 @@ test("gestiona etiquetas desde boton discreto", async ({
     ],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Archivero_Seleccion_Id: "c1",
     Inicio_Semana: "2026-04-13",
@@ -141,8 +141,14 @@ test("gestiona etiquetas desde boton discreto", async ({
   );
   await expect(
     page.locator(
-      "#Archivero_Btn_Nueva_Nota + " +
+      ".Archivero_Acciones " +
       "#Archivero_Btn_Gestionar_Etiquetas"
+    )
+  ).toHaveCount(1);
+  await expect(
+    page.locator(
+      ".Archivero_Acciones " +
+      "#Archivero_Btn_Nueva_Nota"
     )
   ).toHaveCount(1);
 
@@ -160,7 +166,12 @@ test("gestiona etiquetas desde boton discreto", async ({
   await page.locator(
     "#Archivero_Etiquetas_Gestion_Lista " +
     ".Archivero_Etiquetas_Gestion_Input"
-  ).nth(0).fill("Ideas");
+  ).nth(0).evaluate((Input) => {
+    Input.value = "Ideas";
+    Input.dispatchEvent(
+      new Event("input", { bubbles: true })
+    );
+  });
 
   await page.locator(
     "#Archivero_Etiquetas_Gestion_Lista " +

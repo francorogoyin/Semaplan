@@ -82,18 +82,18 @@ test("guarda descripcion y la muestra en hover del baul", async ({
   page
 }) => {
   await preparar(page, {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [
+    Baul_Objetivos: [
       {
         Id: "b1",
-        Nombre: "Tarea con detalle",
+        Nombre: "Objetivo con detalle",
         Emoji: "📝",
         Categoria_Id: null,
         Etiquetas_Ids: [],
@@ -112,7 +112,7 @@ test("guarda descripcion y la muestra en hover del baul", async ({
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -121,7 +121,7 @@ test("guarda descripcion y la muestra en hover del baul", async ({
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
       Baul_Agrupar_Por: "Ninguno",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true
     },
     Tipos_Slot: [],
@@ -142,9 +142,9 @@ test("guarda descripcion y la muestra en hover del baul", async ({
     .toHaveText("Línea 1\nLínea 2");
 
   await page.evaluate(() => {
-    Abrir_Nueva_Tarea_Baul();
+    Abrir_Nueva_Objetivo_Baul();
   });
-  await page.fill("#Baul_Nombre_Input", "Tarea nueva");
+  await page.fill("#Baul_Nombre_Input", "Objetivo nueva");
   await page.fill(
     "#Baul_Descripcion_Input",
     "Contexto largo de prueba"
@@ -153,13 +153,13 @@ test("guarda descripcion y la muestra en hover del baul", async ({
 
   const Estado = await page.evaluate(() => {
     return {
-      Guardada: Baul_Tareas.find((Tarea) =>
-        Tarea.Nombre === "Tarea nueva"
+      Guardada: Baul_Objetivos.find((Objetivo) =>
+        Objetivo.Nombre === "Objetivo nueva"
       )?.Descripcion || "",
       Local: JSON.parse(
         localStorage.getItem("Semaplan_Estado_V2")
-      ).Baul_Tareas.find((Tarea) =>
-        Tarea.Nombre === "Tarea nueva"
+      ).Baul_Objetivos.find((Objetivo) =>
+        Objetivo.Nombre === "Objetivo nueva"
       )?.Descripcion || ""
     };
   });

@@ -54,15 +54,15 @@ async function preparar(page) {
     localStorage.setItem(
       "Semaplan_Estado_V2",
       JSON.stringify({
-        Tareas: [],
+        Objetivos: [],
         Eventos: [],
         Metas: [],
         Slots_Muertos: [],
-        Plantillas_Subtareas: [],
+        Plantillas_Subobjetivos: [],
         Planes_Slot: {},
         Categorias: [],
         Etiquetas: [],
-        Baul_Tareas: [],
+        Baul_Objetivos: [],
         Baul_Grupos_Colapsados: {},
         Archiveros: [
           {
@@ -86,7 +86,7 @@ async function preparar(page) {
         ],
         Patrones: [],
         Contador_Eventos: 1,
-        Tarea_Seleccionada_Id: null,
+        Objetivo_Seleccionada_Id: null,
         Modo_Editor_Abierto: false,
         Inicio_Semana: "2026-04-13",
         Duracion_Defecto: 1,

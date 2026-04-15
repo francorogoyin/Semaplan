@@ -69,13 +69,13 @@ test("usa defaults localizados al arrancar en ingles", async ({ page }) => {
     window.Inicializar();
     Inicializar_Archiveros_Default();
     return {
-      tareas: Tareas.map((Tarea) => Tarea.Nombre),
+      objetivos: Objetivos.map((Objetivo) => Objetivo.Nombre),
       cajones: Archiveros.map((Cajon) => Cajon.Nombre),
       tipos: Obtener_Tipos_Slot().map((Tipo) => Tipo.Nombre)
     };
   });
 
-  expect(resultado.tareas).toEqual([
+  expect(resultado.objetivos).toEqual([
     "Focus project",
     "Workout",
     "Calls"

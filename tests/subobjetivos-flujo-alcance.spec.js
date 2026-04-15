@@ -82,16 +82,16 @@ function crearEstadoBase() {
     monday,
     nextMonday,
     estado: {
-      Tareas: [
+      Objetivos: [
         {
           Id: "T1",
           Familia_Id: "F1",
           Fracasos_Semanales: {},
-          Subtareas_Semanales: {
+          Subobjetivos_Semanales: {
             [monday]: []
           },
-          Subtareas_Contraidas_Semanales: {},
-          Subtareas_Excluidas_Semanales: {},
+          Subobjetivos_Contraidas_Semanales: {},
+          Subobjetivos_Excluidos_Semanales: {},
           Nombre: "Proyecto repetido",
           Emoji: "🎯",
           Color: "#f1b77e",
@@ -109,11 +109,11 @@ function crearEstadoBase() {
           Id: "T2",
           Familia_Id: "F1",
           Fracasos_Semanales: {},
-          Subtareas_Semanales: {
+          Subobjetivos_Semanales: {
             [nextMonday]: []
           },
-          Subtareas_Contraidas_Semanales: {},
-          Subtareas_Excluidas_Semanales: {},
+          Subobjetivos_Contraidas_Semanales: {},
+          Subobjetivos_Excluidos_Semanales: {},
           Nombre: "Proyecto repetido",
           Emoji: "🎯",
           Color: "#f1b77e",
@@ -131,17 +131,17 @@ function crearEstadoBase() {
       Eventos: [],
       Metas: [],
       Slots_Muertos: [],
-      Plantillas_Subtareas: [],
+      Plantillas_Subobjetivos: [],
       Planes_Slot: {},
       Categorias: [],
       Etiquetas: [],
-      Baul_Tareas: [],
+      Baul_Objetivos: [],
       Baul_Grupos_Colapsados: {},
       Archiveros: [],
       Notas_Archivero: [],
       Patrones: [],
       Contador_Eventos: 1,
-      Tarea_Seleccionada_Id: null,
+      Objetivo_Seleccionada_Id: null,
       Modo_Editor_Abierto: false,
       Inicio_Semana: monday,
       Duracion_Defecto: 1,
@@ -173,7 +173,7 @@ function crearEstadoBase() {
         Menu_Botones_Visibles: {
           Focus_Boton: true
         },
-        Baul_Tareas_Por_Fila: 5,
+        Baul_Objetivos_Por_Fila: 5,
         Baul_Sombra_Estado: true,
         Baul_Vista_Modo: "Biblioteca",
         Baul_Ordenar_Por: "Personalizado",
@@ -200,23 +200,23 @@ function crearEstadoBase() {
   };
 }
 
-test("al crear subtarea con enter pide alcance y la replica", async ({
+test("al crear subobjetivo con enter pide alcance y la replica", async ({
   page
 }) => {
   const { estado, monday, nextMonday } = crearEstadoBase();
   await preparar(page, estado);
 
   const resultado = await page.evaluate(async () => {
-    Tarea_Seleccionada_Id = "T1";
-    Render_Resumen_Tarea();
-    const Tarea = Tarea_Por_Id("T1");
-    const Nueva_Id = Agregar_Subtarea_Semana(Tarea, "Semana");
-    Subtarea_En_Edicion_Id = Nueva_Id;
-    Render_Resumen_Tarea();
+    Objetivo_Seleccionada_Id = "T1";
+    Render_Resumen_Objetivo();
+    const Objetivo = Objetivo_Por_Id("T1");
+    const Nueva_Id = Agregar_Subobjetivo_Semana(Objetivo, "Semana");
+    Subobjetivo_En_Edicion_Id = Nueva_Id;
+    Render_Resumen_Objetivo();
     const Item = document.querySelector(
-      `.Subtarea_Item[data-subtarea-id="${Nueva_Id}"]`
+      `.Subobjetivo_Item[data-subobjetivo-id="${Nueva_Id}"]`
     );
-    const Input = Item?.querySelector(".Subtarea_Texto_Input");
+    const Input = Item?.querySelector(".Subobjetivo_Texto_Input");
     if (!Input) return null;
     Input.value = "Nueva compartida";
     let Mensaje = "";
@@ -238,38 +238,38 @@ test("al crear subtarea con enter pide alcance y la replica", async ({
     }
     return {
       Mensaje,
-      Plantillas: Plantillas_Subtareas.length,
-      Actual: Obtener_Subtareas_Semana(
-        Tarea_Por_Id("T1"), true, "2026-04-13"
+      Plantillas: Plantillas_Subobjetivos.length,
+      Actual: Obtener_Subobjetivos_Semana(
+        Objetivo_Por_Id("T1"), true, "2026-04-13"
       ).map((Sub) => Sub.Texto),
-      Siguiente: Obtener_Subtareas_Semana(
-        Tarea_Por_Id("T2"), true, "2026-04-20"
+      Siguiente: Obtener_Subobjetivos_Semana(
+        Objetivo_Por_Id("T2"), true, "2026-04-20"
       ).map((Sub) => Sub.Texto)
     };
   });
 
-  expect(resultado.Mensaje).toContain("subtarea");
+  expect(resultado.Mensaje).toContain("subobjetivo");
   expect(resultado.Plantillas).toBe(1);
   expect(resultado.Actual).toContain("Nueva compartida");
   expect(resultado.Siguiente).toContain("Nueva compartida");
 });
 
-test("al borrar una subtarea compartida pide alcance", async ({
+test("al borrar una subobjetivo compartida pide alcance", async ({
   page
 }) => {
   const { estado, monday, nextMonday } = crearEstadoBase();
-  estado.Plantillas_Subtareas = [
+  estado.Plantillas_Subobjetivos = [
     {
       Id: "PS1",
       Serie_Id: "PS1",
-      Clave_Tarea: "proyecto repetido||🎯",
+      Clave_Objetivo: "proyecto repetido||🎯",
       Emoji: "•",
       Texto: "Compartida",
       Desde_Semana: null,
       Hasta_Semana: null
     }
   ];
-  estado.Tareas[0].Subtareas_Semanales[monday] = [
+  estado.Objetivos[0].Subobjetivos_Semanales[monday] = [
     {
       Id: "S1",
       Plantilla_Id: "PS1",
@@ -278,7 +278,7 @@ test("al borrar una subtarea compartida pide alcance", async ({
       Hecha: false
     }
   ];
-  estado.Tareas[1].Subtareas_Semanales[nextMonday] = [
+  estado.Objetivos[1].Subobjetivos_Semanales[nextMonday] = [
     {
       Id: "S2",
       Plantilla_Id: "PS1",
@@ -290,11 +290,11 @@ test("al borrar una subtarea compartida pide alcance", async ({
   await preparar(page, estado);
 
   const mensaje = await page.evaluate(async () => {
-    Tarea_Seleccionada_Id = "T1";
-    Render_Resumen_Tarea();
-    const Tarea = Tarea_Por_Id("T1");
-    const Sub = Obtener_Subtareas_Semana(
-      Tarea, true, "2026-04-13"
+    Objetivo_Seleccionada_Id = "T1";
+    Render_Resumen_Objetivo();
+    const Objetivo = Objetivo_Por_Id("T1");
+    const Sub = Obtener_Subobjetivos_Semana(
+      Objetivo, true, "2026-04-13"
     )[0];
     let Mensaje = "";
     const Original = Mostrar_Dialogo;
@@ -303,7 +303,7 @@ test("al borrar una subtarea compartida pide alcance", async ({
       return null;
     };
     try {
-      await Resolver_Alcance_Edicion_Subtarea(Tarea, Sub);
+      await Resolver_Alcance_Edicion_Subobjetivo(Objetivo, Sub);
     } finally {
       Mostrar_Dialogo = Original;
     }
@@ -313,22 +313,22 @@ test("al borrar una subtarea compartida pide alcance", async ({
   expect(mensaje).toContain("¿Dónde aplicar el cambio?");
 });
 
-test("si solo hay copias pasadas no pide alcance al crear subtarea", async ({
+test("si solo hay copias pasadas no pide alcance al crear subobjetivo", async ({
   page
 }) => {
   const monday = "2026-04-13";
   const prevMonday = addDaysIso(monday, -7);
   const estado = crearEstadoBase().estado;
-  estado.Tareas = [
+  estado.Objetivos = [
     {
       Id: "T0",
       Familia_Id: "F1",
       Fracasos_Semanales: {},
-      Subtareas_Semanales: {
+      Subobjetivos_Semanales: {
         [prevMonday]: []
       },
-      Subtareas_Contraidas_Semanales: {},
-      Subtareas_Excluidas_Semanales: {},
+      Subobjetivos_Contraidas_Semanales: {},
+      Subobjetivos_Excluidos_Semanales: {},
       Nombre: "Proyecto repetido",
       Emoji: "🎯",
       Color: "#f1b77e",
@@ -346,11 +346,11 @@ test("si solo hay copias pasadas no pide alcance al crear subtarea", async ({
       Id: "T1",
       Familia_Id: "F1",
       Fracasos_Semanales: {},
-      Subtareas_Semanales: {
+      Subobjetivos_Semanales: {
         [monday]: []
       },
-      Subtareas_Contraidas_Semanales: {},
-      Subtareas_Excluidas_Semanales: {},
+      Subobjetivos_Contraidas_Semanales: {},
+      Subobjetivos_Excluidos_Semanales: {},
       Nombre: "Proyecto repetido",
       Emoji: "🎯",
       Color: "#f1b77e",
@@ -369,16 +369,16 @@ test("si solo hay copias pasadas no pide alcance al crear subtarea", async ({
   await preparar(page, estado);
 
   const resultado = await page.evaluate(async (Semana_Actual) => {
-    Tarea_Seleccionada_Id = "T1";
-    Render_Resumen_Tarea();
-    const Tarea = Tarea_Por_Id("T1");
-    const Nueva_Id = Agregar_Subtarea_Semana(Tarea, "Semana");
-    Subtarea_En_Edicion_Id = Nueva_Id;
-    Render_Resumen_Tarea();
+    Objetivo_Seleccionada_Id = "T1";
+    Render_Resumen_Objetivo();
+    const Objetivo = Objetivo_Por_Id("T1");
+    const Nueva_Id = Agregar_Subobjetivo_Semana(Objetivo, "Semana");
+    Subobjetivo_En_Edicion_Id = Nueva_Id;
+    Render_Resumen_Objetivo();
     const Item = document.querySelector(
-      `.Subtarea_Item[data-subtarea-id="${Nueva_Id}"]`
+      `.Subobjetivo_Item[data-subobjetivo-id="${Nueva_Id}"]`
     );
-    const Input = Item?.querySelector(".Subtarea_Texto_Input");
+    const Input = Item?.querySelector(".Subobjetivo_Texto_Input");
     if (!Input) return null;
     Input.value = "Solo actual";
     let Mensaje = "";
@@ -400,9 +400,9 @@ test("si solo hay copias pasadas no pide alcance al crear subtarea", async ({
     }
     return {
       Mensaje,
-      Plantillas: Plantillas_Subtareas.length,
-      Actual: Obtener_Subtareas_Semana(
-        Tarea_Por_Id("T1"), true, Semana_Actual
+      Plantillas: Plantillas_Subobjetivos.length,
+      Actual: Obtener_Subobjetivos_Semana(
+        Objetivo_Por_Id("T1"), true, Semana_Actual
       ).map((Sub) => Sub.Texto)
     };
   }, monday);
@@ -412,17 +412,17 @@ test("si solo hay copias pasadas no pide alcance al crear subtarea", async ({
   expect(resultado.Actual).toContain("Solo actual");
 });
 
-test("el focus respeta alcance al editar y borrar subtareas", async ({
+test("el focus respeta alcance al editar y borrar subobjetivos", async ({
   page
 }) => {
   const { estado, monday, nextMonday } = crearEstadoBase();
   await preparar(page, estado);
 
   const resultado = await page.evaluate(async () => {
-    const Tarea = Tarea_Por_Id("T1");
+    const Objetivo = Objetivo_Por_Id("T1");
     const Evento = {
       Id: "E1",
-      Tarea_Id: "T1",
+      Objetivo_Id: "T1",
       Fecha: "2026-04-13",
       Hora: 10,
       Duracion: 1
@@ -434,30 +434,30 @@ test("el focus respeta alcance al editar y borrar subtareas", async ({
       return "Todas";
     };
     try {
-      Focus_Agregar_Subtarea(Tarea, Evento);
+      Focus_Agregar_Subobjetivo(Objetivo, Evento);
       const Sub_Id = Focus_Sub_Editando_Id;
-      await Focus_Confirmar_Edicion_Subtarea(
-        Tarea,
+      await Focus_Confirmar_Edicion_Subobjetivo(
+        Objetivo,
         Evento,
         Sub_Id,
         "📝",
         "Desde focus"
       );
-      const Actual_1 = Obtener_Subtareas_Semana(
-        Tarea_Por_Id("T1"), true, "2026-04-13"
+      const Actual_1 = Obtener_Subobjetivos_Semana(
+        Objetivo_Por_Id("T1"), true, "2026-04-13"
       ).length;
-      const Siguiente_1 = Obtener_Subtareas_Semana(
-        Tarea_Por_Id("T2"), true, "2026-04-20"
+      const Siguiente_1 = Obtener_Subobjetivos_Semana(
+        Objetivo_Por_Id("T2"), true, "2026-04-20"
       ).length;
-      const Sub_Actual = Obtener_Subtareas_Semana(
-        Tarea_Por_Id("T1"), true, "2026-04-13"
+      const Sub_Actual = Obtener_Subobjetivos_Semana(
+        Objetivo_Por_Id("T1"), true, "2026-04-13"
       )[0];
-      await Focus_Borrar_Subtarea(Tarea, Sub_Actual.Id);
-      const Actual_2 = Obtener_Subtareas_Semana(
-        Tarea_Por_Id("T1"), true, "2026-04-13"
+      await Focus_Borrar_Subobjetivo(Objetivo, Sub_Actual.Id);
+      const Actual_2 = Obtener_Subobjetivos_Semana(
+        Objetivo_Por_Id("T1"), true, "2026-04-13"
       ).length;
-      const Siguiente_2 = Obtener_Subtareas_Semana(
-        Tarea_Por_Id("T2"), true, "2026-04-20"
+      const Siguiente_2 = Obtener_Subobjetivos_Semana(
+        Objetivo_Por_Id("T2"), true, "2026-04-20"
       ).length;
       return {
         Mensajes,

@@ -75,21 +75,21 @@ async function Preparar(page, Estado_Inicial) {
 
 function Crear_Estado_Base() {
   return {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [],
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 10,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -122,7 +122,7 @@ function Crear_Estado_Base() {
         Plan_Boton: true
       },
       Version_Programa: "Demo",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
@@ -153,7 +153,7 @@ function Crear_Estado_Base() {
 async function Crear_Escenario(page, Con_Conflicto = false) {
   return page.evaluate(({ Con_Conflicto_Local }) => {
     const Semana = Clave_Semana_Actual();
-    const Tarea_A = Crear_Tarea_Semanal_Con_Datos(
+    const Objetivo_A = Crear_Objetivo_Semanal_Con_Datos(
       {
         Nombre: "Bloque A",
         Emoji: "A",
@@ -162,7 +162,7 @@ async function Crear_Escenario(page, Con_Conflicto = false) {
       },
       Semana
     );
-    const Tarea_B = Crear_Tarea_Semanal_Con_Datos(
+    const Objetivo_B = Crear_Objetivo_Semanal_Con_Datos(
       {
         Nombre: "Bloque B",
         Emoji: "B",
@@ -171,7 +171,7 @@ async function Crear_Escenario(page, Con_Conflicto = false) {
       },
       Semana
     );
-    const Tarea_C = Crear_Tarea_Semanal_Con_Datos(
+    const Objetivo_C = Crear_Objetivo_Semanal_Con_Datos(
       {
         Nombre: "Bloque C",
         Emoji: "C",
@@ -184,36 +184,36 @@ async function Crear_Escenario(page, Con_Conflicto = false) {
     Eventos = [
       {
         Id: "ev_a",
-        Tarea_Id: Tarea_A.Id,
+        Objetivo_Id: Objetivo_A.Id,
         Fecha: "2026-04-13",
         Inicio: 9,
         Duracion: 1,
         Hecho: false,
         Anulada: false,
-        Color: Tarea_A.Color
+        Color: Objetivo_A.Color
       },
       {
         Id: "ev_b",
-        Tarea_Id: Tarea_B.Id,
+        Objetivo_Id: Objetivo_B.Id,
         Fecha: "2026-04-13",
         Inicio: 11,
         Duracion: 1,
         Hecho: false,
         Anulada: false,
-        Color: Tarea_B.Color
+        Color: Objetivo_B.Color
       }
     ];
 
     if (Con_Conflicto_Local) {
       Eventos.push({
         Id: "ev_conf",
-        Tarea_Id: Tarea_C.Id,
+        Objetivo_Id: Objetivo_C.Id,
         Fecha: "2026-04-13",
         Inicio: 14,
         Duracion: 1,
         Hecho: false,
         Anulada: false,
-        Color: Tarea_C.Color
+        Color: Objetivo_C.Color
       });
     }
 
@@ -228,9 +228,9 @@ async function Crear_Escenario(page, Con_Conflicto = false) {
       Evento_Conflicto_Id: Con_Conflicto_Local
         ? "ev_conf"
         : "",
-      Tarea_A_Id: Tarea_A.Id,
-      Tarea_B_Id: Tarea_B.Id,
-      Tarea_C_Id: Tarea_C.Id
+      Objetivo_A_Id: Objetivo_A.Id,
+      Objetivo_B_Id: Objetivo_B.Id,
+      Objetivo_C_Id: Objetivo_C.Id
     };
   }, {
     Con_Conflicto_Local: Con_Conflicto
@@ -449,22 +449,22 @@ test(
       window.__restaurar_dialogo_multi?.();
     });
 
-    const Resultado = await page.evaluate(({ Tarea_C_Id_Local }) => ({
+    const Resultado = await page.evaluate(({ Objetivo_C_Id_Local }) => ({
       Dialogos: window.__dialogos_multi || [],
       Eventos: Eventos
         .filter((Evento) => Evento.Fecha === "2026-04-13")
         .map((Evento) => ({
           Id: Evento.Id,
           Inicio: Evento.Inicio,
-          Tarea_Id: Evento.Tarea_Id
+          Objetivo_Id: Evento.Objetivo_Id
         }))
         .sort((A, B) => A.Inicio - B.Inicio),
       Seleccion: Array.from(Eventos_Multi_Seleccion).sort(),
       Sigue_Conflicto: Eventos.some(
-        (Evento) => Evento.Tarea_Id === Tarea_C_Id_Local
+        (Evento) => Evento.Objetivo_Id === Objetivo_C_Id_Local
       )
     }), {
-      Tarea_C_Id_Local: Ids.Tarea_C_Id
+      Objetivo_C_Id_Local: Ids.Objetivo_C_Id
     });
 
     expect(Resultado.Dialogos).toHaveLength(1);

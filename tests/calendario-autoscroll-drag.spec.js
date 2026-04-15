@@ -4,7 +4,7 @@ test("autoscrollea el calendario durante drag", async ({
   page
 }) => {
   const estadoInicial = {
-    Tareas: [
+    Objetivos: [
       {
         Id: "t1",
         Familia_Id: "t1",
@@ -14,15 +14,15 @@ test("autoscrollea el calendario durante drag", async ({
         Es_Bolsa: false,
         Horas_Semanales: 0,
         Fracasos_Semanales: {},
-        Subtareas_Semanales: {},
-        Subtareas_Contraidas_Semanales: {},
-        Subtareas_Excluidas_Semanales: {}
+        Subobjetivos_Semanales: {},
+        Subobjetivos_Contraidas_Semanales: {},
+        Subobjetivos_Excluidos_Semanales: {}
       }
     ],
     Eventos: [
       {
         Id: "e1",
-        Tarea_Id: "t1",
+        Objetivo_Id: "t1",
         Fecha: "2026-04-13",
         Inicio: 12,
         Duracion: 1,
@@ -32,17 +32,17 @@ test("autoscrollea el calendario durante drag", async ({
     ],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [],
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 2,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -75,7 +75,7 @@ test("autoscrollea el calendario durante drag", async ({
         Plan_Boton: true
       },
       Version_Programa: "Demo",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",

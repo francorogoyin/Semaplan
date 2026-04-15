@@ -71,11 +71,11 @@ async function preparar(page, estadoInicial) {
 
 function crearEstado() {
   return {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [
       { Id: "cat1", Emoji: "💼", Nombre: "Trabajo", Metadatos: [] },
@@ -84,7 +84,7 @@ function crearEstado() {
     Etiquetas: [
       { Id: "et1", Nombre: "Cliente" }
     ],
-    Baul_Tareas: [
+    Baul_Objetivos: [
       {
         Id: "b1",
         Nombre: "Preparar propuesta",
@@ -142,7 +142,7 @@ function crearEstado() {
     ],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Archivero_Seleccion_Id: "c1",
     Inicio_Semana: "2026-04-13",
@@ -177,7 +177,7 @@ function crearEstado() {
         Archivero_Boton: true
       },
       Version_Programa: "Demo",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
@@ -274,9 +274,9 @@ test("aplica color y etiquetas en multiaccion del baul", async ({
       "Urgente, Cliente"
     );
     return {
-      colores: Baul_Tareas.map((Tarea) => Tarea.Color_Baul),
-      etiquetas: Baul_Tareas.map((Tarea) =>
-        Obtener_Nombres_Etiquetas(Tarea.Etiquetas_Ids)
+      colores: Baul_Objetivos.map((Objetivo) => Objetivo.Color_Baul),
+      etiquetas: Baul_Objetivos.map((Objetivo) =>
+        Obtener_Nombres_Etiquetas(Objetivo.Etiquetas_Ids)
       ),
       catalogo: Etiquetas.map((Etiqueta) => Etiqueta.Nombre)
     };
@@ -298,7 +298,7 @@ test("aplica y borra fecha limite en multiaccion del baul", async ({
   const resultado = await page.evaluate(() => {
     Baul_Multi_Seleccion = new Set(["b1", "b2"]);
     Aplicar_Timeline_Baul_Multi("2026-04-30");
-    const Con_Fecha = Baul_Tareas.map((Tarea) => Tarea.Timeline);
+    const Con_Fecha = Baul_Objetivos.map((Objetivo) => Objetivo.Timeline);
     const Toast_Aplicar = document.querySelector(
       "#Undo_Contenedor .Undo_Toast_Texto"
     )?.textContent?.trim() || "";
@@ -312,7 +312,7 @@ test("aplica y borra fecha limite en multiaccion del baul", async ({
     )?.textContent?.trim() || "";
     return {
       conFecha: Con_Fecha,
-      sinFecha: Baul_Tareas.map((Tarea) => Tarea.Timeline),
+      sinFecha: Baul_Objetivos.map((Objetivo) => Objetivo.Timeline),
       toastAplicar: Toast_Aplicar,
       toastBorrar: Toast_Borrar,
       multiTrasAplicar: Seleccion_Luego_De_Aplicar,
@@ -326,10 +326,10 @@ test("aplica y borra fecha limite en multiaccion del baul", async ({
   ]);
   expect(resultado.sinFecha).toEqual([null, null]);
   expect(resultado.toastAplicar).toBe(
-    "Tareas actualizadas"
+    "Objetivos actualizados"
   );
   expect(resultado.toastBorrar).toBe(
-    "Tareas actualizadas"
+    "Objetivos actualizados"
   );
   expect(resultado.multiTrasAplicar).toEqual([]);
   expect(resultado.multiTrasBorrar).toEqual([]);

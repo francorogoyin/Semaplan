@@ -57,12 +57,41 @@ async function preparar(page, estadoInicial) {
     );
   }, estadoInicial);
   await page.goto("/index.html");
-  await page.waitForFunction(() => typeof window.Inicializar === "function");
+  await page.waitForFunction(
+    () => typeof window.Inicializar === "function"
+  );
+  await page.evaluate(() => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    window.Inicializar();
+  });
 }
 
-test("exporta un cajon en txt, csv y json", async ({ page }) => {
-  const estadoInicial = {
-    Objetivos: [],
+function crearEstado() {
+  return {
+    Objetivos: [
+      {
+        Id: "t1",
+        Nombre: "Preparar entrega",
+        Emoji: "📌",
+        Color: "#4f7ad9",
+        Horas_Semanales: 3,
+        Restante: 3,
+        Es_Bolsa: true,
+        Es_Fija: false,
+        Semana_Base: "2026-04-13",
+        Semana_Inicio: null,
+        Semana_Fin: null,
+        Categoria_Id: null,
+        Etiquetas_Ids: [],
+        Fracasos_Semanales: {},
+        Subobjetivos_Semanales: {},
+        Subobjetivos_Contraidas_Semanales: {},
+        Subobjetivos_Excluidos_Semanales: {}
+      }
+    ],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
@@ -72,25 +101,12 @@ test("exporta un cajon en txt, csv y json", async ({ page }) => {
     Etiquetas: [],
     Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
-    Archiveros: [
-      { Id: "c1", Nombre: "Semaplan", Emoji: "🗃️" }
-    ],
-    Notas_Archivero: [
-      {
-        Id: "n1",
-        Archivero_Id: "c1",
-        Texto: "Primera nota",
-        Origen: "Chat",
-        Etiquetas: ["Inmediata", "Idea"],
-        Tipo: "Texto",
-        Fecha_Creacion: 1776112000000
-      }
-    ],
+    Archiveros: [],
+    Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
     Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
-    Archivero_Seleccion_Id: "c1",
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
     Config_Extra: {
@@ -119,6 +135,7 @@ test("exporta un cajon en txt, csv y json", async ({ page }) => {
       Focus_Auto: false,
       Menu_Estilo: "Iconos",
       Menu_Botones_Visibles: {
+        Baul_Boton: true,
         Archivero_Boton: true
       },
       Version_Programa: "Demo",
@@ -146,32 +163,51 @@ test("exporta un cajon en txt, csv y json", async ({ page }) => {
     Semanas_Con_Defaults: [],
     Planes_Semana: {}
   };
+}
 
-  await preparar(page, estadoInicial);
+test("el emoji del sidebar abre agregar subobjetivo por click derecho",
+async ({ page }) => {
+  await preparar(page, crearEstado());
 
-  const archivos = await page.evaluate(() => {
-    document.getElementById("Auth_Overlay")
-      ?.classList.remove("Activo");
-    document.getElementById("App_Loader")
-      ?.classList.add("Oculto");
-    window.Inicializar();
+  await page.click('[data-objetivo-id="t1"]');
+  await page.dispatchEvent(
+    '[data-objetivo-id="t1"]',
+    "contextmenu",
+    { clientX: 48, clientY: 48 }
+  );
+
+  await expect(page.locator("#Dia_Accion_Menu")).toContainText(
+    "Agregar subobjetivo"
+  );
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="agregar-subobjetivo"]'
+  );
+
+  const resultado = await page.evaluate(() => {
+    const Objetivo = Objetivo_Por_Id("t1");
+    const Lista = Obtener_Subobjetivos_Semana(Objetivo);
+    const Input = document.querySelector(
+      '.Subobjetivo_Item[data-editando="1"] ' +
+      '.Subobjetivo_Texto_Input'
+    );
     return {
-      txt: Construir_Archivo_Exportacion_Cajon_Archivero("txt", "c1"),
-      csv: Construir_Archivo_Exportacion_Cajon_Archivero("csv", "c1"),
-      json: Construir_Archivo_Exportacion_Cajon_Archivero("json", "c1")
+      seleccionada: Objetivo_Seleccionada_Id,
+      subobjetivos: Lista.length,
+      editando: Subobjetivo_En_Edicion_Id,
+      contraidas:
+        Objetivo.Subobjetivos_Contraidas_Semanales?.[
+          Clave_Semana_Actual()
+        ] || false,
+      inputActivo:
+        document.activeElement === Input,
+      texto: Input?.value || ""
     };
   });
 
-  expect(archivos.txt.Nombre).toMatch(/\.txt$/);
-  expect(archivos.txt.Contenido).toContain("Primera nota");
-  expect(archivos.txt.Contenido).toContain("Etiquetas: Inmediata, Idea");
-
-  expect(archivos.csv.Nombre).toMatch(/\.csv$/);
-  expect(archivos.csv.Contenido).toContain("Texto,Origen,Etiquetas");
-  expect(archivos.csv.Contenido).toContain("Primera nota");
-  expect(archivos.csv.Contenido).toContain("Inmediata | Idea");
-
-  expect(archivos.json.Nombre).toMatch(/\.json$/);
-  expect(archivos.json.Contenido).toContain("\"Nombre\": \"Semaplan\"");
-  expect(archivos.json.Contenido).toContain("\"Texto\": \"Primera nota\"");
+  expect(resultado.seleccionada).toBe("t1");
+  expect(resultado.subobjetivos).toBe(1);
+  expect(resultado.editando).toBeTruthy();
+  expect(resultado.contraidas).toBe(false);
+  expect(resultado.inputActivo).toBe(true);
+  expect(resultado.texto).toBe("");
 });

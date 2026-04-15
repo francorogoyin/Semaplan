@@ -73,15 +73,15 @@ test("el modal de slot reconoce patrones del tipo del slot", async ({
   page
 }) => {
   const estadoInicial = {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: ["2026-04-13|10"],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [],
     Notas_Archivero: [],
@@ -111,7 +111,7 @@ test("el modal de slot reconoce patrones del tipo del slot", async ({
       }
     ],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -145,7 +145,7 @@ test("el modal de slot reconoce patrones del tipo del slot", async ({
         Resumen_Sem_Boton: true
       },
       Plan_Actual: "Premium",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
@@ -210,14 +210,14 @@ test("el resumen semanal agrega filtros y orden utiles", async ({
   page
 }) => {
   const estadoInicial = {
-    Tareas: [
+    Objetivos: [
       {
         Id: "T1",
         Familia_Id: "F1",
         Fracasos_Semanales: {},
-        Subtareas_Semanales: {},
-        Subtareas_Contraidas_Semanales: {},
-        Subtareas_Excluidas_Semanales: {},
+        Subobjetivos_Semanales: {},
+        Subobjetivos_Contraidas_Semanales: {},
+        Subobjetivos_Excluidos_Semanales: {},
         Nombre: "Proyecto A",
         Emoji: "🎯",
         Color: "#f1b77e",
@@ -235,9 +235,9 @@ test("el resumen semanal agrega filtros y orden utiles", async ({
         Id: "T2",
         Familia_Id: "F2",
         Fracasos_Semanales: {},
-        Subtareas_Semanales: {},
-        Subtareas_Contraidas_Semanales: {},
-        Subtareas_Excluidas_Semanales: {},
+        Subobjetivos_Semanales: {},
+        Subobjetivos_Contraidas_Semanales: {},
+        Subobjetivos_Excluidos_Semanales: {},
         Nombre: "Proyecto B",
         Emoji: "🧪",
         Color: "#8fbcd4",
@@ -255,7 +255,7 @@ test("el resumen semanal agrega filtros y orden utiles", async ({
     Eventos: [
       {
         Id: "E1",
-        Tarea_Id: "T1",
+        Objetivo_Id: "T1",
         Fecha: "2026-04-13",
         Hora: 10,
         Duracion: 1,
@@ -263,7 +263,7 @@ test("el resumen semanal agrega filtros y orden utiles", async ({
       },
       {
         Id: "E2",
-        Tarea_Id: "T2",
+        Objetivo_Id: "T2",
         Fecha: "2026-04-14",
         Hora: 12,
         Duracion: 2,
@@ -272,20 +272,20 @@ test("el resumen semanal agrega filtros y orden utiles", async ({
     ],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [
       { Id: "cat1", Emoji: "💼", Nombre: "Trabajo", Metadatos: [] },
       { Id: "cat2", Emoji: "🏠", Nombre: "Casa", Metadatos: [] }
     ],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [],
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -318,7 +318,7 @@ test("el resumen semanal agrega filtros y orden utiles", async ({
         Resumen_Sem_Boton: true
       },
       Plan_Actual: "Premium",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
@@ -351,7 +351,7 @@ test("el resumen semanal agrega filtros y orden utiles", async ({
     Resumen_Sem_Orden = "Nombre";
     Render_Resumen_Semanal();
     const Filtradas = Array.from(
-      document.querySelectorAll(".Resumen_Sem_Tarea_Nombre")
+      document.querySelectorAll(".Resumen_Sem_Objetivo_Nombre")
     ).map((El) => El.textContent.trim());
     const Labels = Array.from(
       document.querySelectorAll(".Resumen_Sem_Filtro_Campo label")
@@ -361,7 +361,7 @@ test("el resumen semanal agrega filtros y orden utiles", async ({
     Resumen_Sem_Orden = "Cumplimiento";
     Render_Resumen_Semanal();
     const Ordenadas = Array.from(
-      document.querySelectorAll(".Resumen_Sem_Tarea_Nombre")
+      document.querySelectorAll(".Resumen_Sem_Objetivo_Nombre")
     ).map((El) => El.textContent.trim());
     return {
       Filtradas,

@@ -77,15 +77,15 @@ test("sugiere etiquetas en multiaccion y en nota", async ({
   page
 }) => {
   const estadoInicial = {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [
       { Id: "c1", Nombre: "Semaplan", Emoji: "🗃️" }
@@ -112,7 +112,7 @@ test("sugiere etiquetas en multiaccion y en nota", async ({
     ],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Archivero_Seleccion_Id: "c1",
     Inicio_Semana: "2026-04-13",

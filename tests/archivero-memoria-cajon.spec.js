@@ -4,15 +4,15 @@ test("recuerda el cajón abierto del archivero al recargar", async ({
   page
 }) => {
   const estadoInicial = {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [
       { Id: "C1", Nombre: "Uno", Emoji: "1️⃣" },
@@ -21,7 +21,7 @@ test("recuerda el cajón abierto del archivero al recargar", async ({
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Archivero_Seleccion_Id: "C2",
     Inicio_Semana: "2026-04-13",
@@ -66,7 +66,7 @@ test("recuerda el cajón abierto del archivero al recargar", async ({
         Ayuda_Boton: true,
         Logout_Boton: true
       },
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",

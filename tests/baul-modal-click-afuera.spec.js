@@ -77,15 +77,15 @@ test("no cierra el editor del baul al hacer click afuera", async ({
   page
 }) => {
   await preparar(page, {
-    Tareas: [],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [
+    Baul_Objetivos: [
       {
         Id: "b1",
         Nombre: "Editar sin cierre",
@@ -107,7 +107,7 @@ test("no cierra el editor del baul al hacer click afuera", async ({
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -116,7 +116,7 @@ test("no cierra el editor del baul al hacer click afuera", async ({
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
       Baul_Agrupar_Por: "Ninguno",
-      Baul_Tareas_Por_Fila: 5
+      Baul_Objetivos_Por_Fila: 5
     },
     Tipos_Slot: [],
     Tipos_Slot_Inicializados: false,

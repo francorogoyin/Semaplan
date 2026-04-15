@@ -12,7 +12,8 @@ async function preparar(page, estadoInicial) {
     }
   );
   await page.route(
-    "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
+    "https://challenges.cloudflare.com/turnstile/" +
+    "v0/api.js?render=explicit",
     async (route) => {
       await route.fulfill({
         status: 200,
@@ -69,43 +70,23 @@ async function preparar(page, estadoInicial) {
   });
 }
 
-function crearEstado() {
+function estadoBase() {
   return {
-    Tareas: [
-      {
-        Id: "t1",
-        Nombre: "Preparar entrega",
-        Emoji: "📌",
-        Color: "#4f7ad9",
-        Horas_Semanales: 3,
-        Restante: 3,
-        Es_Bolsa: true,
-        Es_Fija: false,
-        Semana_Base: "2026-04-13",
-        Semana_Inicio: null,
-        Semana_Fin: null,
-        Categoria_Id: null,
-        Etiquetas_Ids: [],
-        Fracasos_Semanales: {},
-        Subtareas_Semanales: {},
-        Subtareas_Contraidas_Semanales: {},
-        Subtareas_Excluidas_Semanales: {}
-      }
-    ],
+    Objetivos: [],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
-    Plantillas_Subtareas: [],
+    Plantillas_Subobjetivos: [],
     Planes_Slot: {},
     Categorias: [],
     Etiquetas: [],
-    Baul_Tareas: [],
+    Baul_Objetivos: [],
     Baul_Grupos_Colapsados: {},
     Archiveros: [],
     Notas_Archivero: [],
     Patrones: [],
     Contador_Eventos: 1,
-    Tarea_Seleccionada_Id: null,
+    Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
@@ -135,11 +116,10 @@ function crearEstado() {
       Focus_Auto: false,
       Menu_Estilo: "Iconos",
       Menu_Botones_Visibles: {
-        Baul_Boton: true,
-        Archivero_Boton: true
+        Plan_Boton: true
       },
       Version_Programa: "Demo",
-      Baul_Tareas_Por_Fila: 5,
+      Baul_Objetivos_Por_Fila: 5,
       Baul_Sombra_Estado: true,
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
@@ -165,49 +145,117 @@ function crearEstado() {
   };
 }
 
-test("el emoji del sidebar abre agregar subtarea por click derecho",
-async ({ page }) => {
-  await preparar(page, crearEstado());
+test(
+  "crea descripcion corta del objetivo semanal y la muestra en hover",
+  async ({ page }) => {
+    await preparar(page, estadoBase());
 
-  await page.click('[data-tarea-id="t1"]');
-  await page.dispatchEvent(
-    '[data-tarea-id="t1"]',
-    "contextmenu",
-    { clientX: 48, clientY: 48 }
-  );
-
-  await expect(page.locator("#Dia_Accion_Menu")).toContainText(
-    "Agregar subtarea"
-  );
-  await page.click(
-    '#Dia_Accion_Menu [data-acc="agregar-subtarea"]'
-  );
-
-  const resultado = await page.evaluate(() => {
-    const Tarea = Tarea_Por_Id("t1");
-    const Lista = Obtener_Subtareas_Semana(Tarea);
-    const Input = document.querySelector(
-      '.Subtarea_Item[data-editando="1"] ' +
-      '.Subtarea_Texto_Input'
+    await page.click("#Mostrar_Creador");
+    await page.fill("#Nombre_Objetivo", "Objetivo hover");
+    await page.fill(
+      "#Descripcion_Corta_Objetivo",
+      "Contexto corto del objetivo"
     );
-    return {
-      seleccionada: Tarea_Seleccionada_Id,
-      subtareas: Lista.length,
-      editando: Subtarea_En_Edicion_Id,
-      contraidas:
-        Tarea.Subtareas_Contraidas_Semanales?.[
-          Clave_Semana_Actual()
-        ] || false,
-      inputActivo:
-        document.activeElement === Input,
-      texto: Input?.value || ""
-    };
-  });
+    await page.click("#Crear_Objetivo");
 
-  expect(resultado.seleccionada).toBe("t1");
-  expect(resultado.subtareas).toBe(1);
-  expect(resultado.editando).toBeTruthy();
-  expect(resultado.contraidas).toBe(false);
-  expect(resultado.inputActivo).toBe(true);
-  expect(resultado.texto).toBe("");
-});
+    const objetivoId = await page.evaluate(() => {
+      return Objetivos.find(
+        (Objetivo) => Objetivo.Nombre === "Objetivo hover"
+      )?.Id || "";
+    });
+
+    expect(objetivoId).not.toBe("");
+
+    const boton = page.locator(
+      `[data-objetivo-id="${objetivoId}"]`
+    );
+    await boton.hover();
+    await page.waitForTimeout(2100);
+
+    await expect(page.locator(".Evento_Abordaje_Popup_Titulo"))
+      .toContainText("Descripción");
+    await expect(page.locator(".Baul_Descripcion_Popup_Texto"))
+      .toHaveText("Contexto corto del objetivo");
+
+    const data = await page.evaluate(() => {
+      const Estado = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2")
+      );
+      return {
+        descripcion:
+          Objetivos.find((Objetivo) =>
+            Objetivo.Nombre === "Objetivo hover"
+          )?.Descripcion_Corta || "",
+        local:
+          Estado.Objetivos.find((Objetivo) =>
+            Objetivo.Nombre === "Objetivo hover"
+          )?.Descripcion_Corta || ""
+      };
+    });
+
+    expect(data.descripcion).toBe("Contexto corto del objetivo");
+    expect(data.local).toBe("Contexto corto del objetivo");
+
+    await page.mouse.move(4, 4);
+    await expect(page.locator(".Baul_Descripcion_Popup_Texto"))
+      .toHaveCount(0);
+  }
+);
+
+test(
+  "edita descripcion corta del objetivo semanal desde el editor",
+  async ({ page }) => {
+    const estado = estadoBase();
+    estado.Objetivos = [
+      {
+        Id: "o1",
+        Familia_Id: "o1",
+        Fracasos_Semanales: {},
+        Subobjetivos_Semanales: {},
+        Subobjetivos_Contraidas_Semanales: {},
+        Subobjetivos_Excluidos_Semanales: {},
+        Nombre: "Objetivo editable",
+        Descripcion_Corta: "",
+        Emoji: "🎯",
+        Color: "#1f6b4f",
+        Horas_Semanales: 0,
+        Restante: 0,
+        Es_Bolsa: false,
+        Es_Fija: false,
+        Semana_Base: "2026-04-13",
+        Semana_Inicio: null,
+        Semana_Fin: null,
+        Categoria_Id: null,
+        Etiquetas_Ids: []
+      }
+    ];
+
+    await preparar(page, estado);
+
+    await page.click('[data-objetivo-id="o1"]');
+    await page.click("#Resumen_Editar");
+    await page.fill(
+      "#Editor_Descripcion_Corta_Input",
+      "Descripcion editada desde el editor"
+    );
+    await page.click("#Editor_Guardar");
+    await page.click("#Resumen_Contraer");
+
+    const boton = page.locator('[data-objetivo-id="o1"]');
+    await boton.hover();
+    await page.waitForTimeout(2100);
+
+    await expect(page.locator(".Baul_Descripcion_Popup_Texto"))
+      .toHaveText("Descripcion editada desde el editor");
+
+    const data = await page.evaluate(() => ({
+      descripcion:
+        Objetivos.find((Objetivo) => Objetivo.Id === "o1")
+          ?.Descripcion_Corta || ""
+    }));
+
+    expect(data.descripcion).toBe(
+      "Descripcion editada desde el editor"
+    );
+  }
+);

@@ -1,8 +1,51 @@
 const { test, expect } = require("@playwright/test");
 
-function Crear_Estado_Base() {
-  return {
-    Objetivos: [],
+test("al borrar objetivo con copia en otra semana pide alcance", async ({
+  page
+}) => {
+  const estadoInicial = {
+    Objetivos: [
+      {
+        Id: "T1",
+        Familia_Id: "F1",
+        Fracasos_Semanales: {},
+        Subobjetivos_Semanales: {},
+        Subobjetivos_Contraidas_Semanales: {},
+        Subobjetivos_Excluidos_Semanales: {},
+        Nombre: "Proyecto",
+        Emoji: "🎯",
+        Color: "#f1b77e",
+        Horas_Semanales: 4,
+        Restante: 4,
+        Es_Bolsa: true,
+        Es_Fija: false,
+        Semana_Base: "2026-04-06",
+        Semana_Inicio: null,
+        Semana_Fin: null,
+        Categoria_Id: null,
+        Etiquetas_Ids: []
+      },
+      {
+        Id: "T2",
+        Familia_Id: "F1",
+        Fracasos_Semanales: {},
+        Subobjetivos_Semanales: {},
+        Subobjetivos_Contraidas_Semanales: {},
+        Subobjetivos_Excluidos_Semanales: {},
+        Nombre: "Proyecto",
+        Emoji: "🎯",
+        Color: "#f1b77e",
+        Horas_Semanales: 4,
+        Restante: 4,
+        Es_Bolsa: true,
+        Es_Fija: false,
+        Semana_Base: "2026-04-13",
+        Semana_Inicio: null,
+        Semana_Fin: null,
+        Categoria_Id: null,
+        Etiquetas_Ids: []
+      }
+    ],
     Eventos: [],
     Metas: [],
     Slots_Muertos: [],
@@ -15,10 +58,10 @@ function Crear_Estado_Base() {
     Archiveros: [],
     Notas_Archivero: [],
     Patrones: [],
-    Contador_Eventos: 2,
+    Contador_Eventos: 1,
     Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
-    Inicio_Semana: "2026-04-13",
+    Inicio_Semana: "2026-04-06",
     Duracion_Defecto: 1,
     Config_Extra: {
       Inicio_Hora: 0,
@@ -44,7 +87,7 @@ function Crear_Estado_Base() {
       Notas_Hover: false,
       Mostrar_Archivadas: false,
       Focus_Auto: false,
-      Menu_Estilo: "Hamburguesa",
+      Menu_Estilo: "Iconos",
       Menu_Botones_Visibles: {
         Plan_Boton: true,
         Resumen_Sem_Boton: true,
@@ -84,9 +127,7 @@ function Crear_Estado_Base() {
     Semanas_Con_Defaults: [],
     Planes_Semana: {}
   };
-}
 
-async function Preparar(page, estadoInicial) {
   await page.route(
     "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
     async (route) => {
@@ -97,10 +138,8 @@ async function Preparar(page, estadoInicial) {
       });
     }
   );
-
   await page.route(
-    "https://challenges.cloudflare.com/turnstile/" +
-    "v0/api.js?render=explicit",
+    "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
     async (route) => {
       await route.fulfill({
         status: 200,
@@ -109,7 +148,6 @@ async function Preparar(page, estadoInicial) {
       });
     }
   );
-
   await page.addInitScript((estado) => {
     window.supabase = {
       createClient() {
@@ -132,7 +170,6 @@ async function Preparar(page, estadoInicial) {
         };
       }
     };
-
     window.turnstile = {
       render() {
         return 1;
@@ -140,130 +177,35 @@ async function Preparar(page, estadoInicial) {
       remove() {},
       reset() {}
     };
-
     window.alert = () => {};
-
-    localStorage.setItem(
-      "Semaplan_Estado_V2",
-      JSON.stringify(estado)
-    );
+    localStorage.setItem("Semaplan_Estado_V2", JSON.stringify(estado));
   }, estadoInicial);
 
   await page.goto("/index.html");
-  await page.waitForFunction(
-    () => typeof window.Inicializar === "function"
-  );
-
+  await page.waitForFunction(() => typeof window.Inicializar === "function");
   await page.evaluate(() => {
-    document.getElementById("Auth_Overlay")
-      ?.classList.remove("Activo");
-    document.getElementById("App_Loader")
-      ?.classList.add("Oculto");
+    document.getElementById("Auth_Overlay")?.classList.remove("Activo");
+    document.getElementById("App_Loader")?.classList.add("Oculto");
     window.Inicializar();
+    Semana_Actual = Obtener_Lunes(
+      Parsear_Fecha_ISO("2026-04-06")
+    );
   });
-}
 
-test("muestra la nota del bloque tras 2 segundos de hover", async ({
-  page
-}) => {
-  const estado = Crear_Estado_Base();
-  estado.Objetivos = [
-    {
-      Id: "T1",
-      Nombre: "Bloque con nota",
-      Emoji: "📝",
-      Color: "#1f6b4f",
-      Categoria_Id: null,
-      Etiquetas_Ids: [],
-      Metadatos: {},
-      Estado: "Activa",
-      Archivada: false,
-      Horas_Aprox: 0,
-      Timeline: null,
-      Orden_Personalizado: 1
+  const mensaje = await page.evaluate(async () => {
+    let primerMensaje = null;
+    const original = Mostrar_Dialogo;
+    Mostrar_Dialogo = async (texto) => {
+      if (!primerMensaje) primerMensaje = texto;
+      return null;
+    };
+    try {
+      await Borrar_Objetivo("T1");
+    } finally {
+      Mostrar_Dialogo = original;
     }
-  ];
-  estado.Eventos = [
-    {
-      Id: "E1",
-      Objetivo_Id: "T1",
-      Fecha: "2026-04-13",
-      Inicio: 9,
-      Duracion: 1,
-      Hecho: false,
-      Color: "#1f6b4f",
-      Nota: "Nota visible por hover"
-    }
-  ];
+    return primerMensaje;
+  });
 
-  await Preparar(page, estado);
-
-  const bloque = page.locator('.Evento[data-id="E1"]');
-  await bloque.hover();
-  await page.waitForTimeout(2100);
-
-  const popupNota = page.locator(".Evento_Nota_Popup");
-  await expect(popupNota).toHaveText(
-    "Nota visible por hover"
-  );
-  await expect(page.locator(".Evento_Abordaje_Popup"))
-    .toHaveCount(0);
-
-  await page.mouse.move(4, 4);
-  await expect(page.locator(".Evento_Nota_Popup"))
-    .toHaveCount(0);
-});
-
-test("mantiene el popup de abordaje si el bloque no tiene nota", async ({
-  page
-}) => {
-  const estado = Crear_Estado_Base();
-  estado.Objetivos = [
-    {
-      Id: "T2",
-      Nombre: "Bloque sin nota",
-      Emoji: "📚",
-      Color: "#2b5a9b",
-      Categoria_Id: null,
-      Etiquetas_Ids: [],
-      Metadatos: {},
-      Estado: "Activa",
-      Archivada: false,
-      Horas_Aprox: 0,
-      Timeline: null,
-      Orden_Personalizado: 1
-    }
-  ];
-  estado.Eventos = [
-    {
-      Id: "E2",
-      Objetivo_Id: "T2",
-      Fecha: "2026-04-13",
-      Inicio: 11,
-      Duracion: 1,
-      Hecho: false,
-      Color: "#2b5a9b",
-      Abordaje: [
-        {
-          Id: "A1",
-          Emoji: "•",
-          Texto: "Paso de abordaje",
-          Estado: "Planeado"
-        }
-      ]
-    }
-  ];
-
-  await Preparar(page, estado);
-
-  const bloque = page.locator('.Evento[data-id="E2"]');
-  await bloque.hover();
-  await page.waitForTimeout(2100);
-
-  const popupAbordaje = page.locator(".Evento_Abordaje_Popup");
-  await expect(popupAbordaje).toContainText(
-    "Paso de abordaje"
-  );
-  await expect(page.locator(".Evento_Nota_Popup"))
-    .toHaveCount(0);
+  expect(mensaje).toContain("Este objetivo aparece en otras semanas");
 });
