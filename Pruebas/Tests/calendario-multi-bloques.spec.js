@@ -316,6 +316,93 @@ async function Arrastrar_Evento_A_Slot(
   });
 }
 
+async function Arrastrar_Slot_A_Slot(
+  page,
+  Hora_Origen,
+  Hora_Destino
+) {
+  await page.evaluate(({ Hora_Origen_Local, Hora_Destino_Local }) => {
+    const Origen = document.querySelector(
+      '.Slot[data-fecha="2026-04-13"]' +
+      `[data-hora="${Hora_Origen_Local}"]`
+    );
+    const Destino = document.querySelector(
+      '.Slot[data-fecha="2026-04-13"]' +
+      `[data-hora="${Hora_Destino_Local}"]`
+    );
+    if (!Origen || !Destino) {
+      throw new Error("No se encontraron los slots");
+    }
+    const Data = new DataTransfer();
+    const Rect = Destino.getBoundingClientRect();
+    Data.setDragImage = () => {};
+
+    Origen.dispatchEvent(
+      new DragEvent("dragstart", {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer: Data
+      })
+    );
+    Destino.dispatchEvent(
+      new DragEvent("dragover", {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer: Data,
+        clientY: Rect.top + Rect.height / 2
+      })
+    );
+    Destino.dispatchEvent(
+      new DragEvent("drop", {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer: Data,
+        clientY: Rect.top + Rect.height / 2
+      })
+    );
+    Origen.dispatchEvent(
+      new DragEvent("dragend", {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer: Data
+      })
+    );
+  }, {
+    Hora_Origen_Local: Hora_Origen,
+    Hora_Destino_Local: Hora_Destino
+  });
+}
+
+async function Crear_Slots_Muertos_Con_Plan(page, Horas) {
+  await page.evaluate(({ Horas_Local }) => {
+    Horas_Local.forEach((Hora, Indice) => {
+      Aplicar_Datos_Slot_Muerto(
+        "2026-04-13",
+        Hora,
+        {
+          Tipo_Id: "Sueno",
+          Nombre: "Dormir",
+          Visible: true,
+          Nombre_Auto: false,
+          Plan_Items: [
+            {
+              Id: `plan_slot_${Hora}_${Indice}`,
+              Emoji: "D",
+              Texto: "Rutina",
+              Estado: "Planeado"
+            }
+          ]
+        },
+        true
+      );
+    });
+    Render_Calendario();
+    Guardar_Estado();
+  }, {
+    Horas_Local: Horas
+  });
+}
+
 test(
   "muestra acciones del calendario al seleccionar con ctrl",
   async ({ page }) => {
@@ -639,6 +726,114 @@ test(
     expect(Resultado.slot_vacio_ignorado).toBeTruthy();
     expect(Resultado.seleccion_eventos).toEqual([]);
     expect(Resultado.seleccion_slots).toEqual([]);
+  }
+);
+
+test(
+  "arrastra seleccion mixta desde un bloque y mueve todo",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+    const Ids = await Crear_Escenario(page);
+    await Crear_Slots_Muertos_Con_Plan(page, [13]);
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_B_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]',
+      { modifiers: ["Control"] }
+    );
+
+    await Arrastrar_Evento_A_Slot(page, Ids.Evento_A_Id, 10);
+
+    const Resultado = await page.evaluate(() => ({
+      eventos: Eventos
+        .filter((Evento) =>
+          ["ev_a", "ev_b"].includes(Evento.Id)
+        )
+        .map((Evento) => ({
+          id: Evento.Id,
+          fecha: Evento.Fecha,
+          inicio: Evento.Inicio
+        }))
+        .sort((A, B) => A.inicio - B.inicio),
+      slots_muertos: Array.from(Slots_Muertos).sort(),
+      seleccion_eventos: Array.from(
+        Eventos_Multi_Seleccion
+      ).sort(),
+      seleccion_slots: Array.from(
+        Slots_Multi_Seleccion
+      ).sort()
+    }));
+
+    expect(Resultado.eventos).toEqual([
+      { id: "ev_a", fecha: "2026-04-13", inicio: 10 },
+      { id: "ev_b", fecha: "2026-04-13", inicio: 12 }
+    ]);
+    expect(Resultado.slots_muertos).toEqual(["2026-04-13|14"]);
+    expect(Resultado.seleccion_eventos).toEqual(
+      [Ids.Evento_A_Id, Ids.Evento_B_Id].sort()
+    );
+    expect(Resultado.seleccion_slots).toEqual(["2026-04-13|14"]);
+  }
+);
+
+test(
+  "arrastra seleccion mixta desde un slot muerto y mueve todo",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+    const Ids = await Crear_Escenario(page);
+    await Crear_Slots_Muertos_Con_Plan(page, [13]);
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_B_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]',
+      { modifiers: ["Control"] }
+    );
+
+    await Arrastrar_Slot_A_Slot(page, 13, 14);
+
+    const Resultado = await page.evaluate(() => ({
+      eventos: Eventos
+        .filter((Evento) =>
+          ["ev_a", "ev_b"].includes(Evento.Id)
+        )
+        .map((Evento) => ({
+          id: Evento.Id,
+          fecha: Evento.Fecha,
+          inicio: Evento.Inicio
+        }))
+        .sort((A, B) => A.inicio - B.inicio),
+      slots_muertos: Array.from(Slots_Muertos).sort(),
+      seleccion_eventos: Array.from(
+        Eventos_Multi_Seleccion
+      ).sort(),
+      seleccion_slots: Array.from(
+        Slots_Multi_Seleccion
+      ).sort()
+    }));
+
+    expect(Resultado.eventos).toEqual([
+      { id: "ev_a", fecha: "2026-04-13", inicio: 10 },
+      { id: "ev_b", fecha: "2026-04-13", inicio: 12 }
+    ]);
+    expect(Resultado.slots_muertos).toEqual(["2026-04-13|14"]);
+    expect(Resultado.seleccion_eventos).toEqual(
+      [Ids.Evento_A_Id, Ids.Evento_B_Id].sort()
+    );
+    expect(Resultado.seleccion_slots).toEqual(["2026-04-13|14"]);
   }
 );
 

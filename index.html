@@ -42083,6 +42083,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
+      function Construir_Payload_Drag_Calendario_Mixto(
+        Ancla = {}
+      ) {
+        const Evento_Ids = Array.from(Eventos_Multi_Seleccion);
+        const Slot_Claves =
+          Obtener_Slots_Muertos_Multi_Seleccionados();
+        if (!Evento_Ids.length || !Slot_Claves.length) {
+          return null;
+        }
+        if (
+          Ancla.Tipo === "Evento" &&
+          !Eventos_Multi_Seleccion.has(Ancla.Evento_Id)
+        ) {
+          return null;
+        }
+        if (
+          Ancla.Tipo === "Slot" &&
+          !Slots_Multi_Seleccion.has(Ancla.Slot_Clave)
+        ) {
+          return null;
+        }
+        return {
+          Tipo: "Calendario_Mixto",
+          Ancla_Tipo: Ancla.Tipo === "Slot"
+            ? "Slot"
+            : "Evento",
+          Evento_Ancla_Id: Ancla.Evento_Id || null,
+          Slot_Ancla_Clave: Ancla.Slot_Clave || null,
+          Evento_Ids,
+          Slot_Claves
+        };
+      }
+
       function Aplicar_Seleccion_Eventos_En_DOM() {
         document.querySelectorAll(".Evento").forEach((Nodo) => {
           const Id = Nodo.dataset.id || "";
@@ -47067,6 +47100,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               const Usar_Multi =
                 Claves_Multi.length > 1 &&
                 Slots_Multi_Seleccion.has(Clave_Arrastre);
+              const Payload_Mixto =
+                Construir_Payload_Drag_Calendario_Mixto({
+                  Tipo: "Slot",
+                  Slot_Clave: Clave_Arrastre
+                });
               if (
                 !Usar_Multi &&
                 Cantidad_Multi_Calendario() > 0 &&
@@ -47080,7 +47118,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Evento.dataTransfer.setData(
                 "text/plain",
                 JSON.stringify(
-                  Usar_Multi
+                  Payload_Mixto
+                    ? Payload_Mixto
+                    : Usar_Multi
                     ? {
                       Tipo: "Slots_Multi",
                       Slot_Ancla_Clave: Clave_Arrastre,
@@ -47419,10 +47459,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           Bloque.addEventListener("dragstart", (E) => {
             Activar_AutoScroll_Calendario_Drag();
+            const Payload_Mixto =
+              Construir_Payload_Drag_Calendario_Mixto({
+                Tipo: "Evento",
+                Evento_Id: Evento.Id
+              });
             const Usar_Multi =
               Eventos_Multi_Seleccion.size > 1 &&
               Eventos_Multi_Seleccion.has(Evento.Id);
-            const Payload = Usar_Multi
+            const Payload = Payload_Mixto
+              ? Payload_Mixto
+              : Usar_Multi
               ? {
                 Tipo: "Eventos_Multi",
                 Evento_Ancla_Id: Evento.Id,
@@ -48307,6 +48354,63 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Mover_Calendario_Mixto_Con_Ancla(
+        Payload,
+        Fecha_Destino,
+        Hora_Destino
+      ) {
+        const Evento_Ids = Array.isArray(Payload?.Evento_Ids)
+          ? Payload.Evento_Ids
+          : [];
+        const Slot_Claves = Array.isArray(Payload?.Slot_Claves)
+          ? Payload.Slot_Claves
+          : [];
+        if (!Evento_Ids.length || !Slot_Claves.length) {
+          return false;
+        }
+        if (Payload.Ancla_Tipo === "Slot") {
+          const [Fecha_Ancla, Hora_Ancla_Texto] = String(
+            Payload.Slot_Ancla_Clave || ""
+          ).split("|");
+          const Hora_Ancla = Number(Hora_Ancla_Texto);
+          if (
+            !Slot_Claves.includes(Payload.Slot_Ancla_Clave) ||
+            !Fecha_Ancla ||
+            !Number.isFinite(Hora_Ancla)
+          ) {
+            return false;
+          }
+          return Mover_Seleccion_Calendario_Multi_Por_Delta(
+            Dias_Entre(
+              Parsear_Fecha_ISO(Fecha_Ancla),
+              Parsear_Fecha_ISO(Fecha_Destino)
+            ),
+            Hora_Destino - Hora_Ancla,
+            Evento_Ids,
+            Slot_Claves
+          );
+        }
+        const Lista_Eventos =
+          Obtener_Eventos_Multi_Seleccionados_Ordenados(
+            Evento_Ids
+          );
+        const Evento_Ancla = Lista_Eventos.find(
+          (Evento) => Evento.Id === Payload.Evento_Ancla_Id
+        );
+        if (!Evento_Ancla) {
+          return false;
+        }
+        return Mover_Seleccion_Calendario_Multi_Por_Delta(
+          Dias_Entre(
+            Parsear_Fecha_ISO(Evento_Ancla.Fecha),
+            Parsear_Fecha_ISO(Fecha_Destino)
+          ),
+          Hora_Destino - (Number(Evento_Ancla.Inicio) || 0),
+          Evento_Ids,
+          Slot_Claves
+        );
+      }
+
       async function Confirmar_Borrar_Objetivo(Objetivo) {
         if (!Objetivo) return false;
         const Respuesta = await Mostrar_Dialogo(
@@ -48382,6 +48486,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Payload.Evento_Ids,
             Fecha,
             Hora
+          );
+          return;
+        }
+
+        if (Payload.Tipo === "Calendario_Mixto") {
+          Mover_Calendario_Mixto_Con_Ancla(
+            Payload,
+            Fecha,
+            Hora_Base
           );
           return;
         }
@@ -48468,6 +48581,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Payload.Evento_Ids,
             Fecha,
             Hora
+          );
+          return;
+        }
+
+        if (Payload.Tipo === "Calendario_Mixto") {
+          Mover_Calendario_Mixto_Con_Ancla(
+            Payload,
+            Fecha,
+            Math.floor(Hora_Exacta)
           );
           return;
         }
