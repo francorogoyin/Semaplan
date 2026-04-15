@@ -290,6 +290,72 @@ test("aplica color y etiquetas en multiaccion del baul", async ({
   expect(resultado.catalogo).toContain("Urgente");
 });
 
+test("baul mantiene seleccion al cambiar color desde la UI", async ({
+  page
+}) => {
+  await preparar(page, crearEstado());
+
+  await page.evaluate(() => {
+    Abrir_Baul();
+    document.getElementById("Baul_Overlay")
+      ?.classList.add("Activo");
+    document.getElementById("Dialogo_Overlay")
+      ?.classList.remove("Activo");
+    Dialogo_Abierto = false;
+    Dialogo_Resolver_Fn = null;
+    Baul_Multi_Seleccion = new Set(["b1", "b2"]);
+    Render_Baul();
+    Render_Barra_Multi_Seleccion();
+  });
+
+  await page.locator(
+    "#Baul_Multi_Grupo_Acciones button"
+  ).filter({
+    hasText: "Cambiar color"
+  }).click();
+
+  const Seleccion_Con_Dialogo = await page.evaluate(() => ({
+    dialogoActivo: document
+      .getElementById("Dialogo_Overlay")
+      ?.classList.contains("Activo") || false,
+    seleccion: Array.from(Baul_Multi_Seleccion)
+  }));
+
+  expect(Seleccion_Con_Dialogo.dialogoActivo).toBe(true);
+  expect(Seleccion_Con_Dialogo.seleccion).toEqual([
+    "b1",
+    "b2"
+  ]);
+
+  await page.evaluate(() => {
+    const Campo = document.getElementById(
+      "Dialogo_Input_Campo"
+    );
+    Campo.value = "#112233";
+    Campo.dispatchEvent(new Event("input", {
+      bubbles: true
+    }));
+    Campo.dispatchEvent(new Event("change", {
+      bubbles: true
+    }));
+  });
+
+  await page.locator(".Dialogo_Boton_Primario").click();
+
+  const Resultado = await page.evaluate(() => ({
+    colores: Baul_Objetivos.map(
+      (Objetivo) => Objetivo.Color_Baul
+    ),
+    seleccion: Array.from(Baul_Multi_Seleccion)
+  }));
+
+  expect(Resultado.colores).toEqual([
+    "#112233",
+    "#112233"
+  ]);
+  expect(Resultado.seleccion).toEqual([]);
+});
+
 test("aplica y borra fecha limite en multiaccion del baul", async ({
   page
 }) => {
