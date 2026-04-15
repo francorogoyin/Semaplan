@@ -43815,6 +43815,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               clearTimeout(Hover_Timer_Id);
             }
             Hover_Timer_Id = setTimeout(() => {
+              if (
+                typeof Evento.Nota === "string"
+                && Evento.Nota.trim()
+              ) {
+                Mostrar_Popup_Nota(Evento, Bloque);
+                return;
+              }
               Mostrar_Popup_Abordaje(Evento, Bloque);
             }, 2000);
           });
@@ -43823,6 +43830,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               clearTimeout(Hover_Timer_Id);
               Hover_Timer_Id = null;
             }
+            Cerrar_Popup_Nota();
             Cerrar_Popup_Abordaje();
           });
           Bloque.addEventListener("mousedown", () => {
@@ -43830,6 +43838,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               clearTimeout(Hover_Timer_Id);
               Hover_Timer_Id = null;
             }
+            Cerrar_Popup_Nota();
             Cerrar_Popup_Abordaje();
           });
 
@@ -44185,6 +44194,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cerrar_Popup_Nota();
           return;
         }
+        Cerrar_Popup_Abordaje();
         Cerrar_Popup_Nota();
         const Pop = document.createElement("div");
         Pop.className = "Evento_Nota_Popup";
