@@ -15395,6 +15395,8 @@
             "Se limpiaron {n} elementos del calendario",
           "toast.bloques_multi_copiados":
             "Se copiaron {n} bloques",
+          "toast.slots_multi_copiados":
+            "Se copiaron {n} slots muertos",
           "toast.eventos_no_tildados_eliminados":
             "Eventos no tildados eliminados",
           "toast.bloques_de_objetivo_eliminados":
@@ -17756,6 +17758,8 @@
             "Cleared {n} calendar items",
           "toast.bloques_multi_copiados":
             "{n} blocks copied",
+          "toast.slots_multi_copiados":
+            "{n} dead slots copied",
           "toast.eventos_no_tildados_eliminados":
             "Unchecked events removed",
           "toast.bloques_de_objetivo_eliminados":
@@ -20215,6 +20219,8 @@
             "Limparam-se {n} itens do calendario",
           "toast.bloques_multi_copiados":
             "{n} blocos copiados",
+          "toast.slots_multi_copiados":
+            "Foram copiados {n} slots mortos",
           "toast.eventos_no_tildados_eliminados":
             "Eventos não marcados removidos",
           "toast.bloques_de_objetivo_eliminados":
@@ -21081,7 +21087,9 @@
       let Eventos_Multi_Seleccion = new Set();
       let Slots_Multi_Seleccion = new Set();
       let Portapapeles_Eventos_Multi = null;
+      let Portapapeles_Slots_Multi = null;
       let Portapapeles_Plan_Slot = null;
+      let Portapapeles_Calendario_Modo = null;
       let Calendario_Multi_Listeners_Inicializados = false;
       let Calendario_Multi_Seleccion_Activa = false;
       let Calendario_Multi_Seleccion_Inicio = null;
@@ -35379,6 +35387,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Hora,
           Items
         };
+        Portapapeles_Calendario_Modo = "Plan_Slot";
         Mostrar_Toast_Info(t("toast.slot_plan_copiado"));
         return true;
       }
@@ -35427,7 +35436,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ...Clonar_Items_Plan_Slot(Items_Copiados)
           ]
         };
+        Eventos_Multi_Seleccion.clear();
+        Slots_Multi_Seleccion.clear();
         Render_Calendario();
+        Render_Acciones_Multi_Calendario();
         Guardar_Estado();
         Mostrar_Toast_Info(t("toast.slot_plan_pegado"));
         return true;
@@ -41599,7 +41611,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
-      function Copiar_Eventos_Multi_Seleccionados() {
+      function Copiar_Eventos_Multi_Seleccionados(
+        Mostrar_Toast = true
+      ) {
         const Lista = Obtener_Eventos_Multi_Seleccionados_Ordenados();
         if (!Lista.length) return false;
         const Ancla = Lista[0];
@@ -41619,13 +41633,67 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Nota: Evento.Nota || ""
           }))
         };
-        Mostrar_Toast_Info(
-          t("toast.bloques_multi_copiados", {
-            n: Lista.length
-          }),
-          "📋",
-          5000
+        Portapapeles_Calendario_Modo = "Eventos_Multi";
+        if (Mostrar_Toast) {
+          Mostrar_Toast_Info(
+            t("toast.bloques_multi_copiados", {
+              n: Lista.length
+            }),
+            "📋",
+            5000
+          );
+        }
+        Render_Acciones_Multi_Calendario();
+        return true;
+      }
+
+      function Slots_Multi_Seleccion_Son_Todos_Muertos(
+        Claves = null
+      ) {
+        const Lista = Obtener_Slots_Multi_Seleccionados_Ordenados(
+          Claves
         );
+        return Lista.length > 0 && Lista.every((Clave) => {
+          const [Fecha, Hora] = String(Clave).split("|");
+          return Slot_Es_Muerto(Fecha, Number(Hora));
+        });
+      }
+
+      function Copiar_Slots_Multi_Seleccionados(
+        Mostrar_Toast = true
+      ) {
+        const Claves = Obtener_Slots_Multi_Seleccionados_Ordenados();
+        if (!Slots_Multi_Seleccion_Son_Todos_Muertos(Claves)) {
+          return false;
+        }
+        const [Fecha_Ancla, Hora_Ancla_Texto] =
+          String(Claves[0]).split("|");
+        const Hora_Ancla = Number(Hora_Ancla_Texto);
+        const Base_Ancla = Parsear_Fecha_ISO(Fecha_Ancla);
+        Portapapeles_Slots_Multi = {
+          Items: Claves.map((Clave) => {
+            const [Fecha, Hora_Texto] = String(Clave).split("|");
+            const Hora = Number(Hora_Texto);
+            return {
+              Delta_Dias: Dias_Entre(
+                Base_Ancla,
+                Parsear_Fecha_ISO(Fecha)
+              ),
+              Delta_Horas: Hora - Hora_Ancla,
+              Datos: Capturar_Datos_Slot_Muerto(Fecha, Hora)
+            };
+          })
+        };
+        Portapapeles_Calendario_Modo = "Slots_Multi";
+        if (Mostrar_Toast) {
+          Mostrar_Toast_Info(
+            t("toast.slots_multi_copiados", {
+              n: Claves.length
+            }),
+            "📋",
+            5000
+          );
+        }
         Render_Acciones_Multi_Calendario();
         return true;
       }
@@ -41680,6 +41748,77 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Nota: Item.Nota || "",
           Conflictos_Ids: []
         }));
+      }
+
+      function Construir_Propuesta_Pegado_Slots_Multi(
+        Fecha,
+        Hora
+      ) {
+        const Items = Array.isArray(
+          Portapapeles_Slots_Multi?.Items
+        )
+          ? Portapapeles_Slots_Multi.Items
+          : [];
+        return Items.map((Item) => ({
+          Fecha: Desplazar_Fecha_ISO(
+            Fecha,
+            Number(Item.Delta_Dias) || 0
+          ),
+          Hora: Hora + (Number(Item.Delta_Horas) || 0),
+          Datos: Item.Datos || null
+        }));
+      }
+
+      function Evaluar_Propuesta_Pegado_Slots_Multi(Propuesta) {
+        const Claves = new Set();
+        for (const Item of Propuesta || []) {
+          const Clave = Clave_Slot(Item.Fecha, Item.Hora);
+          if (!Clave || Claves.has(Clave)) {
+            return {
+              Motivo: t("cal_multi.conflicto_ocupado")
+            };
+          }
+          Claves.add(Clave);
+          const Motivo = Obtener_Motivo_Conflicto_Traslado_Slot(
+            Item.Fecha,
+            Item.Hora
+          );
+          if (Motivo) return { Motivo };
+        }
+        return { Motivo: "" };
+      }
+
+      function Pegar_Slots_Multi_En_Slot(Fecha, Hora) {
+        if (!Slot_Esta_Vacio(Fecha, Hora)) return false;
+        const Propuesta = Construir_Propuesta_Pegado_Slots_Multi(
+          Fecha,
+          Hora
+        );
+        if (!Propuesta.length) return false;
+        const Eval = Evaluar_Propuesta_Pegado_Slots_Multi(
+          Propuesta
+        );
+        if (Eval.Motivo) {
+          alert(Eval.Motivo);
+          return false;
+        }
+        Propuesta.forEach((Item) => {
+          Aplicar_Datos_Slot_Muerto(
+            Item.Fecha,
+            Item.Hora,
+            Item.Datos,
+            true
+          );
+        });
+        Eventos_Multi_Seleccion.clear();
+        Slots_Multi_Seleccion.clear();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Calendario();
+        Render_Acciones_Multi_Calendario();
+        Guardar_Estado();
+        return true;
       }
 
       async function Pegar_Eventos_Multi_En_Slot(
@@ -41787,10 +41926,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Nuevos_Ids.push(Nuevo_Id);
         });
         Eventos_Multi_Seleccion.clear();
+        Slots_Multi_Seleccion.clear();
         Render_Emojis();
         Render_Resumen_Objetivo();
         Render_Editor();
         Render_Eventos();
+        Aplicar_Seleccion_Slots_En_DOM();
         Render_Acciones_Multi_Calendario();
         Guardar_Estado();
         if (Avisar_Sin_Horas_Bolsa) {
@@ -41801,6 +41942,139 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         }
         return Nuevos_Ids.length > 0;
+      }
+
+      function Obtener_Slot_Ancla_Pegado_Calendario() {
+        const Slots = Obtener_Slots_Multi_Seleccionados_Ordenados();
+        if (Slots.length !== 1) return null;
+        const [Fecha, Hora] = String(Slots[0]).split("|");
+        return {
+          Fecha,
+          Hora: Number(Hora)
+        };
+      }
+
+      function Ejecutar_Copiar_Seleccion_Calendario() {
+        if (
+          Eventos_Multi_Seleccion.size > 0 &&
+          Slots_Multi_Seleccion.size === 0
+        ) {
+          return Copiar_Eventos_Multi_Seleccionados();
+        }
+        if (
+          Slots_Multi_Seleccion.size > 0 &&
+          Eventos_Multi_Seleccion.size === 0
+        ) {
+          return Copiar_Slots_Multi_Seleccionados();
+        }
+        return false;
+      }
+
+      function Cortar_Eventos_Multi_Seleccionados() {
+        const Ids = Array.from(Eventos_Multi_Seleccion);
+        if (!Ids.length) return false;
+        if (!Copiar_Eventos_Multi_Seleccionados(false)) {
+          return false;
+        }
+        const Ids_Set = new Set(Ids);
+        const Snap = Capturar_Snapshot_Undo();
+        Eventos = Eventos.filter((Evento) =>
+          !Ids_Set.has(Evento.Id)
+        );
+        Limpiar_Multi_Seleccion_Calendario(false);
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Eventos();
+        Render_Acciones_Multi_Calendario();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("toast.bloques_multi_eliminados", {
+            n: Ids.length
+          }),
+          Snap
+        );
+        return true;
+      }
+
+      function Cortar_Slots_Multi_Seleccionados() {
+        const Claves = Obtener_Slots_Multi_Seleccionados_Ordenados();
+        if (!Slots_Multi_Seleccion_Son_Todos_Muertos(Claves)) {
+          return false;
+        }
+        if (!Copiar_Slots_Multi_Seleccionados(false)) {
+          return false;
+        }
+        const Snap = Capturar_Snapshot_Undo();
+        Claves.forEach((Clave) => {
+          const [Fecha, Hora] = String(Clave).split("|");
+          Quitar_Slot_Muerto_Silencioso(
+            Fecha,
+            Number(Hora)
+          );
+        });
+        Limpiar_Multi_Seleccion_Calendario(false);
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Calendario();
+        Render_Acciones_Multi_Calendario();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("toast.cal_multi_limpiado", {
+            n: Claves.length
+          }),
+          Snap
+        );
+        return true;
+      }
+
+      function Ejecutar_Cortar_Seleccion_Calendario() {
+        if (
+          Eventos_Multi_Seleccion.size > 0 &&
+          Slots_Multi_Seleccion.size === 0
+        ) {
+          return Cortar_Eventos_Multi_Seleccionados();
+        }
+        if (
+          Slots_Multi_Seleccion.size > 0 &&
+          Eventos_Multi_Seleccion.size === 0
+        ) {
+          return Cortar_Slots_Multi_Seleccionados();
+        }
+        return false;
+      }
+
+      function Ejecutar_Pegar_Seleccion_Calendario() {
+        const Destino = Obtener_Slot_Ancla_Pegado_Calendario();
+        if (!Destino) return false;
+        if (Portapapeles_Calendario_Modo === "Eventos_Multi") {
+          if (!Slot_Esta_Vacio(Destino.Fecha, Destino.Hora)) {
+            return false;
+          }
+          Pegar_Eventos_Multi_En_Slot(
+            Destino.Fecha,
+            Destino.Hora
+          );
+          return true;
+        }
+        if (Portapapeles_Calendario_Modo === "Slots_Multi") {
+          if (!Slot_Esta_Vacio(Destino.Fecha, Destino.Hora)) {
+            return false;
+          }
+          return Pegar_Slots_Multi_En_Slot(
+            Destino.Fecha,
+            Destino.Hora
+          );
+        }
+        if (Portapapeles_Calendario_Modo === "Plan_Slot") {
+          if (!Slot_Es_Muerto(Destino.Fecha, Destino.Hora)) {
+            return false;
+          }
+          Pegar_Plan_En_Slot(Destino.Fecha, Destino.Hora);
+          return true;
+        }
+        return false;
       }
 
       function Configurar_Seleccion_Multi_Calendario() {
@@ -52118,6 +52392,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sidebar_Compacta_Abierta ||
           Focus_Abierto
         ) return;
+
+        if (
+          (Ev.ctrlKey || Ev.metaKey) &&
+          !Ev.shiftKey &&
+          !Ev.altKey &&
+          (Ev.key === "c" || Ev.key === "C")
+        ) {
+          if (Ejecutar_Copiar_Seleccion_Calendario()) {
+            Ev.preventDefault();
+            return;
+          }
+        }
+
+        if (
+          (Ev.ctrlKey || Ev.metaKey) &&
+          !Ev.shiftKey &&
+          !Ev.altKey &&
+          (Ev.key === "x" || Ev.key === "X")
+        ) {
+          if (Ejecutar_Cortar_Seleccion_Calendario()) {
+            Ev.preventDefault();
+            return;
+          }
+        }
+
+        if (
+          (Ev.ctrlKey || Ev.metaKey) &&
+          !Ev.shiftKey &&
+          !Ev.altKey &&
+          (Ev.key === "v" || Ev.key === "V")
+        ) {
+          if (Ejecutar_Pegar_Seleccion_Calendario()) {
+            Ev.preventDefault();
+            return;
+          }
+        }
 
         if (
           (Ev.key === "Delete" || Ev.key === "Backspace") &&

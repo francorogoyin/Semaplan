@@ -916,6 +916,218 @@ test(
 );
 
 test(
+  "usa Ctrl+C y Ctrl+V para bloques seleccionados",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+    const Ids = await Crear_Escenario(page);
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_B_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.keyboard.press("Control+c");
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]',
+      { modifiers: ["Control"] }
+    );
+    await page.keyboard.press("Control+v");
+
+    const Resultado = await page.evaluate(() => ({
+      Eventos: Eventos
+        .filter((Evento) => Evento.Fecha === "2026-04-13")
+        .map((Evento) => ({
+          Inicio: Evento.Inicio,
+          Duracion: Evento.Duracion
+        }))
+        .sort((A, B) => A.Inicio - B.Inicio),
+      Seleccion_Eventos: Array.from(
+        Eventos_Multi_Seleccion
+      ).sort(),
+      Seleccion_Slots: Array.from(
+        Slots_Multi_Seleccion
+      ).sort(),
+      Barra_Activa: document.getElementById(
+        "Calendario_Multi_Acciones"
+      )?.classList.contains("Activa")
+    }));
+
+    expect(Resultado.Eventos).toEqual([
+      { Inicio: 9, Duracion: 1 },
+      { Inicio: 11, Duracion: 1 },
+      { Inicio: 13, Duracion: 1 },
+      { Inicio: 15, Duracion: 1 }
+    ]);
+    expect(Resultado.Seleccion_Eventos).toEqual([]);
+    expect(Resultado.Seleccion_Slots).toEqual([]);
+    expect(Resultado.Barra_Activa).toBeFalsy();
+  }
+);
+
+test(
+  "usa Ctrl+X y Ctrl+V para cortar y pegar bloques",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+    const Ids = await Crear_Escenario(page);
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_B_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.keyboard.press("Control+x");
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]',
+      { modifiers: ["Control"] }
+    );
+    await page.keyboard.press("Control+v");
+
+    const Resultado = await page.evaluate(() => ({
+      Eventos: Eventos
+        .filter((Evento) => Evento.Fecha === "2026-04-13")
+        .map((Evento) => ({
+          Inicio: Evento.Inicio,
+          Duracion: Evento.Duracion
+        }))
+        .sort((A, B) => A.Inicio - B.Inicio),
+      Seleccion_Eventos: Array.from(
+        Eventos_Multi_Seleccion
+      ).sort(),
+      Seleccion_Slots: Array.from(
+        Slots_Multi_Seleccion
+      ).sort()
+    }));
+
+    expect(Resultado.Eventos).toEqual([
+      { Inicio: 13, Duracion: 1 },
+      { Inicio: 15, Duracion: 1 }
+    ]);
+    expect(Resultado.Seleccion_Eventos).toEqual([]);
+    expect(Resultado.Seleccion_Slots).toEqual([]);
+  }
+);
+
+test(
+  "usa Ctrl+C, Ctrl+X y Ctrl+V con slots muertos",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+
+    await page.evaluate(() => {
+      const Datos = {
+        Tipo_Id: "Sueno",
+        Nombre: "Dormir",
+        Visible: true,
+        Nombre_Auto: false,
+        Plan_Items: [
+          {
+            Id: "plan_slot_1",
+            Emoji: "🌙",
+            Texto: "Rutina",
+            Estado: "Planeado"
+          }
+        ]
+      };
+      Aplicar_Datos_Slot_Muerto("2026-04-13", 9, Datos, true);
+      Aplicar_Datos_Slot_Muerto("2026-04-13", 10, Datos, true);
+      Render_Calendario();
+      Guardar_Estado();
+    });
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="9"]',
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
+      { modifiers: ["Control"] }
+    );
+    await page.keyboard.press("Control+c");
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]'
+    );
+    await page.keyboard.press("Control+v");
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]',
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="14"]',
+      { modifiers: ["Control"] }
+    );
+    await page.keyboard.press("Control+x");
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="15"]',
+      { modifiers: ["Control"] }
+    );
+    await page.keyboard.press("Control+v");
+
+    const Resultado = await page.evaluate(() => {
+      const Claves = [
+        "2026-04-13|9",
+        "2026-04-13|10",
+        "2026-04-13|15",
+        "2026-04-13|16"
+      ];
+      return {
+        Slots: Claves.map((Clave) => ({
+          Clave,
+          Existe: Slots_Muertos.includes(Clave),
+          Nombre: Slots_Muertos_Nombres[Clave] || "",
+          Plan: (Planes_Slot[Clave]?.Items || []).length
+        })),
+        Claves_Limpiadas: [
+          Slots_Muertos.includes("2026-04-13|13"),
+          Slots_Muertos.includes("2026-04-13|14")
+        ],
+        Seleccion_Slots: Array.from(
+          Slots_Multi_Seleccion
+        ).sort()
+      };
+    });
+
+    expect(Resultado.Slots).toEqual([
+      {
+        Clave: "2026-04-13|9",
+        Existe: true,
+        Nombre: "Dormir",
+        Plan: 1
+      },
+      {
+        Clave: "2026-04-13|10",
+        Existe: true,
+        Nombre: "Dormir",
+        Plan: 1
+      },
+      {
+        Clave: "2026-04-13|15",
+        Existe: true,
+        Nombre: "Dormir",
+        Plan: 1
+      },
+      {
+        Clave: "2026-04-13|16",
+        Existe: true,
+        Nombre: "Dormir",
+        Plan: 1
+      }
+    ]);
+    expect(Resultado.Claves_Limpiadas).toEqual([false, false]);
+    expect(Resultado.Seleccion_Slots).toEqual([]);
+  }
+);
+
+test(
   "ofrece pegar en columna cuando la copia mezcla dias",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());
