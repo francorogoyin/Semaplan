@@ -235,8 +235,8 @@ test("el doble click rota tipos y slot vacio", async ({
 
   expect(paso.Tipo).toBe("Deep_Work");
   expect(paso.Nombre).toBe("Deep work");
-  expect(paso.Visible).toBeFalsy();
-  expect(paso.Nombre_En_UI).toBe("");
+  expect(paso.Visible).toBeTruthy();
+  expect(paso.Nombre_En_UI).toBe("Deep work");
 
   await page.dblclick(Selector);
   paso = await page.evaluate(() => ({
@@ -250,6 +250,6 @@ test("el doble click rota tipos y slot vacio", async ({
 
   expect(paso.Es_Muerto).toBeFalsy();
   expect(paso.Tipo).toBe("");
-  expect(paso.Nombre).toBe("Deep work");
+  expect(paso.Nombre).toBe("");
   expect(paso.Visible).toBeFalsy();
 });

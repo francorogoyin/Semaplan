@@ -495,7 +495,7 @@ test("el doble click en un slot vacio lo convierte en slot muerto", async ({
   expect(resultado.titulo).toBe("Almuerzo");
 });
 
-test("el bloque conserva su titulo al volver a slot muerto", async ({
+test("al rotar toma el titulo propio del tipo", async ({
   page
 }) => {
   const estadoInicial = {
@@ -658,16 +658,16 @@ test("el bloque conserva su titulo al volver a slot muerto", async ({
   });
 
   expect(trasCambiarTipo.tipo).toBe("Siesta");
-  expect(trasCambiarTipo.titulo).toBe("Bloque fijo");
-  expect(trasCambiarTipo.visible).toBe("Bloque fijo");
+  expect(trasCambiarTipo.titulo).toBe("Siesta");
+  expect(trasCambiarTipo.visible).toBe("Siesta");
 
   expect(trasLiberar.existe).toBe(false);
-  expect(trasLiberar.titulo).toBe("Bloque fijo");
+  expect(trasLiberar.titulo).toBe("");
   expect(trasLiberar.visible).toBe("");
 
   expect(trasRecuperar.tipo).toBe("Comida");
-  expect(trasRecuperar.titulo).toBe("Bloque fijo");
-  expect(trasRecuperar.visible).toBe("Bloque fijo");
+  expect(trasRecuperar.titulo).toBe("Almuerzo");
+  expect(trasRecuperar.visible).toBe("Almuerzo");
 });
 
 test("aplica el titulo default segun el alcance elegido", async ({

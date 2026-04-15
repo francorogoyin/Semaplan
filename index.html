@@ -39368,26 +39368,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Index === -1) {
           // Libre → primer tipo.
-          const Tipo_Inicial =
-            Tipos[0]?.Id || "Sueno";
-          const Clave_Nueva = Crear_Slot_Muerto(
+          Crear_Slot_Muerto(
             Fecha,
             Hora,
-            Tipo_Inicial,
-            false
-          );
-          const Nombre_Guardado =
-            Obtener_Nombre_Slot_Por_Clave(Clave_Nueva);
-          const Nombre_Auto =
-            Slot_Muerto_Nombre_Es_Auto_Clave(Clave_Nueva);
-          const Visible_Inicial =
-            Nombre_Guardado && !Nombre_Auto
-              ? true
-              : null;
-          Sincronizar_Titulo_Slot_Muerto_Clave(
-            Clave_Nueva,
-            Tipo_Inicial,
-            Visible_Inicial
+            Tipos[0]?.Id || "Sueno",
+            true
           );
         } else {
           const Tipo_Actual =
@@ -39396,16 +39381,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Idx_Actual = Tipos.findIndex(
             (T) => T.Id === Tipo_Actual
           );
-          const Titulo_Visible_Actual =
-            Slot_Muerto_Titulo_Es_Visible_Clave(Clave);
           if (Idx_Actual === -1) {
             const Tipo_Inicial =
               Tipos[0]?.Id || "Sueno";
             Slots_Muertos_Tipos[Clave] = Tipo_Inicial;
-            Sincronizar_Titulo_Slot_Muerto_Clave(
+            Aplicar_Titulo_Por_Defecto_Slot(
               Clave,
-              Tipo_Inicial,
-              Titulo_Visible_Actual
+              Tipo_Inicial
             );
           } else if (Idx_Actual < Tipos.length - 1) {
             // Avanzar al siguiente tipo.
@@ -39414,29 +39396,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Tipos[0]?.Id || "Sueno";
             Slots_Muertos_Tipos[Clave] =
               Tipo_Siguiente;
-            Sincronizar_Titulo_Slot_Muerto_Clave(
+            Aplicar_Titulo_Por_Defecto_Slot(
               Clave,
-              Tipo_Siguiente,
-              Titulo_Visible_Actual
+              Tipo_Siguiente
             );
           } else {
             // Último tipo → Libre.
-            const Nombre_Actual =
-              Obtener_Nombre_Slot_Por_Clave(Clave);
-            const Nombre_Auto =
-              Slot_Muerto_Nombre_Es_Auto_Clave(Clave);
             Slots_Muertos.splice(Index, 1);
-            delete Slots_Muertos_Tipos[Clave];
-            if (Nombre_Actual) {
-              Guardar_Nombre_Slot_Muerto(
-                Clave,
-                Nombre_Actual,
-                false,
-                Nombre_Auto
-              );
-            } else {
-              Limpiar_Nombre_Slot_Muerto(Clave);
-            }
+            Limpiar_Metadata_Slot_Muerto(Clave);
           }
         }
         Render_Calendario();
