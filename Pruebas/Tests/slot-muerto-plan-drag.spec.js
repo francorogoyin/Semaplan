@@ -765,7 +765,9 @@ test("el menu de slot vacio agrupa plan, patron y pegar bloques", async ({
 
   expect(acciones).toEqual([
     "plan-slot",
+    "borrar-plan-slot",
     "insertar-patron-slot",
+    "guardar-patron-slot",
     "pegar-bloques-slot",
     "limpiar-celda"
   ]);
@@ -885,6 +887,141 @@ test("cerrar el popup de plan con click afuera no selecciona el slot", async ({
   expect(data.seleccion_eventos).toEqual([]);
   expect(data.clase_activa).toBeFalsy();
   expect(data.barra_activa).toBeFalsy();
+});
+
+test("el click normal sobre otro slot solo deselecciona la seleccion actual", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Slots_Muertos.push("2026-04-13|12");
+  estado.Slots_Muertos_Tipos["2026-04-13|12"] = "Comida";
+  estado.Slots_Muertos_Nombres["2026-04-13|12"] =
+    "Merienda";
+  estado.Slots_Muertos_Titulos_Visibles["2026-04-13|12"] = true;
+  estado.Slots_Muertos_Nombres_Auto["2026-04-13|12"] = false;
+  estado.Slots_Muertos_Grupo_Ids["2026-04-13|12"] =
+    "grupo_12";
+
+  await preparar(page, estado);
+
+  await page.click(
+    '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+  );
+  await page.waitForTimeout(420);
+
+  let data = await page.evaluate(() => ({
+    seleccion: Array.from(Slots_Multi_Seleccion).sort(),
+    slot_10: document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+    )?.classList.contains("Multi_Activa") || false
+  }));
+
+  expect(data.seleccion).toEqual(["2026-04-13|10"]);
+  expect(data.slot_10).toBeTruthy();
+
+  await page.click(
+    '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+  );
+
+  data = await page.evaluate(() => ({
+    seleccion: Array.from(Slots_Multi_Seleccion).sort(),
+    slot_10: document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+    )?.classList.contains("Multi_Activa") || false,
+    slot_12: document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+    )?.classList.contains("Multi_Activa") || false,
+    barra_activa: document.getElementById(
+      "Calendario_Multi_Acciones"
+    )?.classList.contains("Activa") || false
+  }));
+
+  expect(data.seleccion).toEqual([]);
+  expect(data.slot_10).toBeFalsy();
+  expect(data.slot_12).toBeFalsy();
+  expect(data.barra_activa).toBeFalsy();
+});
+
+test("arrastra varios slots muertos seleccionados y mantiene la seleccion nueva", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Slots_Muertos.push("2026-04-13|12");
+  estado.Planes_Slot["2026-04-13|12"] = {
+    Items: [
+      {
+        Id: "ps_12",
+        Texto: "Descansar",
+        Emoji: "*",
+        Estado: "Planeado"
+      }
+    ]
+  };
+  estado.Slots_Muertos_Tipos["2026-04-13|12"] = "Comida";
+  estado.Slots_Muertos_Nombres["2026-04-13|12"] =
+    "Merienda";
+  estado.Slots_Muertos_Titulos_Visibles["2026-04-13|12"] = true;
+  estado.Slots_Muertos_Nombres_Auto["2026-04-13|12"] = false;
+  estado.Slots_Muertos_Grupo_Ids["2026-04-13|12"] =
+    "grupo_12";
+
+  await preparar(page, estado);
+
+  await page.click(
+    '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
+    { modifiers: ["Control"] }
+  );
+  await page.click(
+    '.Slot[data-fecha="2026-04-13"][data-hora="12"]',
+    { modifiers: ["Control"] }
+  );
+
+  let data = await page.evaluate(() => ({
+    seleccion: Array.from(Slots_Multi_Seleccion).sort()
+  }));
+
+  expect(data.seleccion).toEqual([
+    "2026-04-13|10",
+    "2026-04-13|12"
+  ]);
+
+  await arrastrarSlot(page, 10, 13);
+
+  data = await page.evaluate(() => ({
+    slots_muertos: Array.from(Slots_Muertos).sort(),
+    seleccion: Array.from(Slots_Multi_Seleccion).sort(),
+    plan_13:
+      Planes_Slot["2026-04-13|13"]?.Items?.[0]?.Texto || "",
+    plan_15:
+      Planes_Slot["2026-04-13|15"]?.Items?.[0]?.Texto || "",
+    slot_13_activo: document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]'
+    )?.classList.contains("Multi_Activa") || false,
+    slot_15_activo: document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="15"]'
+    )?.classList.contains("Multi_Activa") || false,
+    slot_10_activo: document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+    )?.classList.contains("Multi_Activa") || false,
+    slot_12_activo: document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+    )?.classList.contains("Multi_Activa") || false
+  }));
+
+  expect(data.slots_muertos).toEqual([
+    "2026-04-13|13",
+    "2026-04-13|15"
+  ]);
+  expect(data.seleccion).toEqual([
+    "2026-04-13|13",
+    "2026-04-13|15"
+  ]);
+  expect(data.plan_13).toBe("Idea central");
+  expect(data.plan_15).toBe("Descansar");
+  expect(data.slot_13_activo).toBeTruthy();
+  expect(data.slot_15_activo).toBeTruthy();
+  expect(data.slot_10_activo).toBeFalsy();
+  expect(data.slot_12_activo).toBeFalsy();
 });
 
 test("el menu contextual puede limpiar un slot muerto y dejarlo blanco", async ({

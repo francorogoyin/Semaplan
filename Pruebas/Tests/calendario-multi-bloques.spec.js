@@ -237,6 +237,33 @@ async function Crear_Escenario(page, Con_Conflicto = false) {
   });
 }
 
+async function Mover_Seleccion_Multi_A(
+  page,
+  fecha,
+  hora
+) {
+  await page.click(
+    '#Calendario_Multi_Grupo_Acciones button:has-text("Mover")'
+  );
+  await expect(
+    page.locator("#Dialogo_Overlay")
+  ).toHaveClass(/Activo/);
+  await expect(
+    page.locator("#Dialogo_Input_Campo")
+  ).toHaveAttribute("type", "date");
+  await page.fill("#Dialogo_Input_Campo", fecha);
+  await page.click(
+    "#Dialogo_Botones .Dialogo_Boton_Primario"
+  );
+  await expect(
+    page.locator("#Dialogo_Input_Campo")
+  ).toHaveAttribute("type", "time");
+  await page.fill("#Dialogo_Input_Campo", hora);
+  await page.click(
+    "#Dialogo_Botones .Dialogo_Boton_Primario"
+  );
+}
+
 async function Arrastrar_Evento_A_Slot(
   page,
   Evento_Id,
@@ -400,6 +427,54 @@ test(
 );
 
 test(
+  "el click normal sobre otro elemento del calendario solo limpia la seleccion actual",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+    const Ids = await Crear_Escenario(page);
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]'
+    );
+
+    let Resultado = await page.evaluate(() => ({
+      eventos: Array.from(Eventos_Multi_Seleccion).sort(),
+      slots: Array.from(Slots_Multi_Seleccion).sort(),
+      slot_13: document.querySelector(
+        '.Slot[data-fecha="2026-04-13"][data-hora="13"]'
+      )?.classList.contains("Multi_Activa") || false
+    }));
+
+    expect(Resultado.eventos).toEqual([]);
+    expect(Resultado.slots).toEqual([]);
+    expect(Resultado.slot_13).toBeFalsy();
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]'
+    );
+    await page.waitForTimeout(420);
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`
+    );
+
+    Resultado = await page.evaluate(() => ({
+      eventos: Array.from(Eventos_Multi_Seleccion).sort(),
+      slots: Array.from(Slots_Multi_Seleccion).sort(),
+      evento_activo: document.querySelector(
+        `.Evento[data-id="${"ev_a"}"]`
+      )?.classList.contains("Multi_Activa") || false
+    }));
+
+    expect(Resultado.eventos).toEqual([]);
+    expect(Resultado.slots).toEqual([]);
+    expect(Resultado.evento_activo).toBeFalsy();
+  }
+);
+
+test(
   "muestra mover y copiar al seleccionar varios slots muertos",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());
@@ -443,11 +518,10 @@ test(
       "Limpiar"
     ]);
 
-    await page.click(
-      '#Calendario_Multi_Grupo_Acciones button:has-text("Mover")'
-    );
-    await page.click(
-      "#Dialogo_Botones .Dialogo_Boton_Primario"
+    await Mover_Seleccion_Multi_A(
+      page,
+      "2026-04-13",
+      "10:00"
     );
 
     const Resultado = await page.evaluate(() => ({
@@ -539,6 +613,9 @@ test(
     await page.click(
       '.Slot[data-fecha="2026-04-13"][data-hora="13"]'
     );
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]'
+    );
     await page.waitForTimeout(420);
     await page.keyboard.press("Control+v");
 
@@ -623,7 +700,7 @@ test(
 );
 
 test(
-  "mueve varios bloques con la opcion rapida +1 h",
+  "mueve varios bloques a una hora exacta",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());
     const Ids = await Crear_Escenario(page);
@@ -637,14 +714,10 @@ test(
       { modifiers: ["Control"] }
     );
 
-    await page.click(
-      '#Calendario_Multi_Grupo_Acciones button:has-text("Mover")'
-    );
-    await expect(
-      page.locator("#Dialogo_Overlay")
-    ).toHaveClass(/Activo/);
-    await page.click(
-      "#Dialogo_Botones .Dialogo_Boton_Primario"
+    await Mover_Seleccion_Multi_A(
+      page,
+      "2026-04-13",
+      "10:00"
     );
 
     const Resultado = await page.evaluate(() => ({
@@ -680,7 +753,7 @@ test(
 );
 
 test(
-  "mueve varios bloques con la opcion rapida +1 dia",
+  "mueve varios bloques a otra fecha exacta",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());
     const Ids = await page.evaluate(() => {
@@ -746,14 +819,10 @@ test(
       { modifiers: ["Control"] }
     );
 
-    await page.click(
-      '#Calendario_Multi_Grupo_Acciones button:has-text("Mover")'
-    );
-    await expect(
-      page.locator("#Dialogo_Overlay")
-    ).toHaveClass(/Activo/);
-    await page.click(
-      '#Dialogo_Botones .Dialogo_Boton:has-text("+1 día")'
+    await Mover_Seleccion_Multi_A(
+      page,
+      "2026-04-14",
+      "09:00"
     );
 
     const Resultado = await page.evaluate(() => ({
@@ -1224,6 +1293,9 @@ test(
     );
     await page.keyboard.press("Control+c");
 
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]'
+    );
     await page.click(
       '.Slot[data-fecha="2026-04-13"][data-hora="13"]'
     );

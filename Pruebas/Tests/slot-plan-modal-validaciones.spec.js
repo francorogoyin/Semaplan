@@ -208,6 +208,99 @@ test("avisa cuando se intenta guardar un plan vacio", async ({
     .toHaveClass(/Activo/);
 });
 
+test("inserta un patron desde el modal de un slot vacio", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Patrones = [
+    {
+      Id: "pat_vacio",
+      Tipo: "Slot",
+      Nombre: "Base vacia",
+      Emoji: "*",
+      Aplica_A: "Slot_Vacio",
+      Items: [
+        {
+          Id: "pat_vacio_1",
+          Emoji: "*",
+          Texto: "Pensar ruta",
+          Estado: "Planeado"
+        }
+      ]
+    }
+  ];
+
+  await Preparar(page, estado);
+  await Abrir_Modal_Plan(page, "2026-04-13", 9);
+
+  await page.click(
+    '#Plan_Slot_Cuerpo button:has-text("Insertar patrón")'
+  );
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.click(
+    '#Dialogo_Botones .Dialogo_Boton:has-text("Base vacia")'
+  );
+
+  const datos = await page.evaluate(() => ({
+    textos: Plan_Slot_Borrador.map((item) => item.Texto),
+    overlay_modal: document.getElementById("Plan_Slot_Overlay")
+      ?.classList.contains("Activo") || false
+  }));
+
+  expect(datos.textos).toEqual(["Pensar ruta"]);
+  expect(datos.overlay_modal).toBeTruthy();
+});
+
+test("inserta un patron especifico desde el modal de un slot muerto", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Slots_Muertos = ["2026-04-13|10"];
+  estado.Slots_Muertos_Tipos["2026-04-13|10"] = "Comida";
+  estado.Slots_Muertos_Nombres["2026-04-13|10"] = "Almuerzo";
+  estado.Slots_Muertos_Titulos_Visibles["2026-04-13|10"] = true;
+  estado.Slots_Muertos_Nombres_Auto["2026-04-13|10"] = false;
+  estado.Patrones = [
+    {
+      Id: "pat_comida",
+      Tipo: "Slot",
+      Nombre: "Base comida",
+      Emoji: "*",
+      Aplica_A: "Comida",
+      Items: [
+        {
+          Id: "pat_comida_1",
+          Emoji: "*",
+          Texto: "Almorzar",
+          Estado: "Planeado"
+        }
+      ]
+    }
+  ];
+
+  await Preparar(page, estado);
+  await Abrir_Modal_Plan(page, "2026-04-13", 10);
+
+  await page.click(
+    '#Plan_Slot_Cuerpo button:has-text("Insertar patrón")'
+  );
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.click(
+    '#Dialogo_Botones .Dialogo_Boton:has-text("Base comida")'
+  );
+
+  const datos = await page.evaluate(() => ({
+    textos: Plan_Slot_Borrador.map((item) => item.Texto),
+    tipo_slot:
+      Slots_Muertos_Tipos["2026-04-13|10"] || ""
+  }));
+
+  expect(datos.textos).toEqual(["Almorzar"]);
+  expect(datos.tipo_slot).toBe("Comida");
+});
+
 test("guarda y persiste un plan en slot vacio", async ({
   page
 }) => {

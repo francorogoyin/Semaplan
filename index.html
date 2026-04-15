@@ -14619,6 +14619,10 @@
             "Si la selección incluye slots muertos, " +
             "el movimiento personalizado debe ser " +
             "en horas enteras.",
+          "cal_multi.fecha_destino_prompt":
+            "Elegí la fecha destino.",
+          "cal_multi.hora_destino_prompt":
+            "Elegí la hora destino.",
           "cal_multi.pegar_bloques":
             "Pegar bloques",
           "cal_multi.pegar_prompt":
@@ -17026,6 +17030,10 @@
           "cal_multi.horas_enteras_slots":
             "If the selection includes dead slots, " +
             "custom move must use whole hours.",
+          "cal_multi.fecha_destino_prompt":
+            "Choose the destination date.",
+          "cal_multi.hora_destino_prompt":
+            "Choose the destination time.",
           "cal_multi.pegar_bloques":
             "Paste blocks",
           "cal_multi.pegar_prompt":
@@ -19475,6 +19483,10 @@
             "Se a seleção inclui slots mortos, " +
             "o movimento personalizado deve usar " +
             "horas inteiras.",
+          "cal_multi.fecha_destino_prompt":
+            "Escolha a data de destino.",
+          "cal_multi.hora_destino_prompt":
+            "Escolha a hora de destino.",
           "cal_multi.pegar_bloques":
             "Colar blocos",
           "cal_multi.pegar_prompt":
@@ -21296,6 +21308,8 @@
       let Plan_Slot_Clave_Activa = null;
       let Plan_Slot_Borrador = [];
       let Plan_Slot_Mostrando_Nuevo = false;
+      let Modal_Plan_Slot_Fecha = "";
+      let Modal_Plan_Slot_Hora = null;
       // Filtro del modal Abordaje. Cuando está activo, solo se
       // muestra un subset de subs según el estado del bloque:
       // - Bloques pasados → solo las que tienen trabajo (Marcado).
@@ -35552,6 +35566,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Abrir_Modal_Plan_Slot(Fecha, Hora) {
         Plan_Slot_Clave_Activa = Clave_Slot(Fecha, Hora);
+        Modal_Plan_Slot_Fecha = Fecha;
+        Modal_Plan_Slot_Hora = Hora;
         const Plan = Obtener_Plan_Slot(Fecha, Hora, false);
         Plan_Slot_Borrador = JSON.parse(
           JSON.stringify(Plan?.Items || [])
@@ -35569,6 +35585,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Cerrar_Modal_Plan_Slot() {
         Plan_Slot_Clave_Activa = null;
+        Modal_Plan_Slot_Fecha = "";
+        Modal_Plan_Slot_Hora = null;
         Plan_Slot_Borrador = [];
         Plan_Slot_Mostrando_Nuevo = false;
         document.getElementById("Plan_Slot_Overlay")
@@ -41372,6 +41390,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Movimiento.Hora_Destino
           );
         });
+        Eventos_Multi_Seleccion.clear();
+        Slots_Multi_Seleccion = new Set(
+          Array.from(Mapa_Claves.values())
+        );
         Render_Calendario();
         Guardar_Estado();
         return true;
@@ -42165,6 +42187,67 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) <= 0
           ? (Ancla_Evento || Ancla_Slot)
           : (Ancla_Slot || Ancla_Evento);
+      }
+
+      function Parsear_Hora_Input_Calendario(
+        Valor = ""
+      ) {
+        const Texto = String(Valor || "").trim();
+        if (!Texto || !Texto.includes(":")) {
+          return null;
+        }
+        const [Horas_Txt, Min_Txt] = Texto
+          .split(":")
+          .slice(0, 2);
+        const Horas = Number(Horas_Txt);
+        const Minutos = Number(Min_Txt);
+        if (
+          !Number.isFinite(Horas) ||
+          !Number.isFinite(Minutos) ||
+          Horas < 0 ||
+          Horas > 23 ||
+          Minutos < 0 ||
+          Minutos > 59
+        ) {
+          return null;
+        }
+        return Horas + (Minutos / 60);
+      }
+
+      async function Solicitar_Destino_Mover_Calendario_Multi(
+        Ancla,
+        Incluye_Slots_Muertos = false
+      ) {
+        if (!Ancla?.Fecha) return null;
+        const Fecha_Destino = await Mostrar_Dialogo_Con_Fecha(
+          t("cal_multi.fecha_destino_prompt"),
+          Ancla.Fecha
+        );
+        if (!Fecha_Destino) return null;
+        const Mensaje_Hora = Incluye_Slots_Muertos
+          ? `${t("cal_multi.hora_destino_prompt")} ${
+            t("cal_multi.horas_enteras_slots")
+          }`
+          : t("cal_multi.hora_destino_prompt");
+        const Hora_Texto = await Mostrar_Dialogo_Con_Texto(
+          Mensaje_Hora,
+          {
+            Tipo: "time",
+            Default: Focus_Formatear_HoraHM(
+              Number(Ancla.Hora) || 0
+            ),
+            Etiqueta_Confirmar: t("dialog.mover"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (Hora_Texto == null) return null;
+        const Hora_Destino =
+          Parsear_Hora_Input_Calendario(Hora_Texto);
+        if (!Number.isFinite(Hora_Destino)) return null;
+        return {
+          Fecha: Fecha_Destino,
+          Hora: Hora_Destino
+        };
       }
 
       function Construir_Propuesta_Eventos_Multi(
@@ -43147,6 +43230,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      function Mover_Seleccion_Calendario_Multi_A_Destino(
+        Fecha_Destino,
+        Hora_Destino,
+        Evento_Ids = null,
+        Slot_Claves = null
+      ) {
+        const Lista_Eventos =
+          Obtener_Eventos_Multi_Seleccionados_Ordenados(
+            Evento_Ids
+          );
+        const Lista_Slots =
+          Obtener_Slots_Muertos_Multi_Seleccionados(
+            Slot_Claves
+          );
+        const Ancla = Obtener_Ancla_Multi_Calendario(
+          Lista_Eventos,
+          Lista_Slots
+        );
+        if (!Ancla) return false;
+        return Mover_Seleccion_Calendario_Multi_Por_Delta(
+          Dias_Entre(
+            Parsear_Fecha_ISO(Ancla.Fecha),
+            Parsear_Fecha_ISO(Fecha_Destino)
+          ),
+          Hora_Destino - (Number(Ancla.Hora) || 0),
+          Evento_Ids,
+          Slot_Claves
+        );
+      }
+
       async function Solicitar_Mover_Seleccion_Calendario_Multi() {
         const Evento_Ids = Array.from(
           Eventos_Multi_Seleccion
@@ -43159,92 +43272,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) {
           return;
         }
-        const Opcion = await Mostrar_Dialogo(
-          t("cal_multi.mover_prompt"),
-          [
-            {
-              Etiqueta: t("cal_multi.op_mas_1h"),
-              Valor: "Mas_1h",
-              Tipo: "Primario"
-            },
-            {
-              Etiqueta: t("cal_multi.op_menos_1h"),
-              Valor: "Menos_1h",
-              Tipo: "Secundario"
-            },
-            {
-              Etiqueta: t("cal_multi.op_mas_1d"),
-              Valor: "Mas_1d",
-              Tipo: "Secundario"
-            },
-            {
-              Etiqueta: t("cal_multi.op_menos_1d"),
-              Valor: "Menos_1d",
-              Tipo: "Secundario"
-            },
-            {
-              Etiqueta: t("cal_multi.op_personalizado"),
-              Valor: "Custom",
-              Tipo: "Secundario"
-            },
-            {
-              Etiqueta: t("cancelar"),
-              Valor: null,
-              Tipo: "Cancelar"
-            }
-          ]
+        const Ancla = Obtener_Ancla_Multi_Calendario(
+          Obtener_Eventos_Multi_Seleccionados_Ordenados(
+            Evento_Ids
+          ),
+          Obtener_Slots_Muertos_Multi_Seleccionados(
+            Slot_Claves
+          )
         );
-        if (!Opcion) return;
-        if (Opcion === "Mas_1h") {
-          Mover_Seleccion_Calendario_Multi_Por_Delta(
-            0,
-            1,
-            Evento_Ids,
-            Slot_Claves
+        const Destino =
+          await Solicitar_Destino_Mover_Calendario_Multi(
+            Ancla,
+            Slot_Claves.length > 0
           );
-          return;
-        }
-        if (Opcion === "Menos_1h") {
-          Mover_Seleccion_Calendario_Multi_Por_Delta(
-            0,
-            -1,
-            Evento_Ids,
-            Slot_Claves
-          );
-          return;
-        }
-        if (Opcion === "Mas_1d") {
-          Mover_Seleccion_Calendario_Multi_Por_Delta(
-            1,
-            0,
-            Evento_Ids,
-            Slot_Claves
-          );
-          return;
-        }
-        if (Opcion === "Menos_1d") {
-          Mover_Seleccion_Calendario_Multi_Por_Delta(
-            -1,
-            0,
-            Evento_Ids,
-            Slot_Claves
-          );
-          return;
-        }
-        const Valor = await Mostrar_Dialogo_Con_Texto(
-          t("cal_multi.horas_prompt_mover"),
-          {
-            Placeholder: "2",
-            Etiqueta_Confirmar: t("dialog.mover"),
-            Etiqueta_Cancelar: t("cancelar")
-          }
-        );
-        if (Valor == null) return;
-        const Horas = Number(String(Valor).replace(",", "."));
-        if (!Number.isFinite(Horas) || Horas === 0) return;
-        Mover_Seleccion_Calendario_Multi_Por_Delta(
-          0,
-          Horas,
+        if (!Destino) return;
+        Mover_Seleccion_Calendario_Multi_A_Destino(
+          Destino.Fecha,
+          Destino.Hora,
           Evento_Ids,
           Slot_Claves
         );
@@ -46820,13 +46864,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Slot.classList.add("Arrastrando");
               Activar_AutoScroll_Calendario_Drag();
               Limpiar_Drag_Preview_Slot_Muerto();
+              const Clave_Arrastre = Clave_Slot(
+                Fecha_ISO,
+                Hora
+              );
+              const Claves_Multi =
+                Obtener_Slots_Muertos_Multi_Seleccionados();
+              const Usar_Multi =
+                Claves_Multi.length > 1 &&
+                Slots_Multi_Seleccion.has(Clave_Arrastre);
+              if (
+                !Usar_Multi &&
+                Cantidad_Multi_Calendario() > 0 &&
+                !Slots_Multi_Seleccion.has(Clave_Arrastre)
+              ) {
+                Seleccionar_Slot_Calendario(
+                  Fecha_ISO,
+                  Hora
+                );
+              }
               Evento.dataTransfer.setData(
                 "text/plain",
-                JSON.stringify({
-                  Tipo: "Slot_Muerto_Con_Plan",
-                  Fecha: Fecha_ISO,
-                  Hora
-                })
+                JSON.stringify(
+                  Usar_Multi
+                    ? {
+                      Tipo: "Slots_Multi",
+                      Slot_Ancla_Clave: Clave_Arrastre,
+                      Slot_Claves: Claves_Multi
+                    }
+                    : {
+                      Tipo: "Slot_Muerto_Con_Plan",
+                      Fecha: Fecha_ISO,
+                      Hora
+                    }
+                )
               );
               if (
                 typeof Evento.dataTransfer.setDragImage ===
@@ -46924,9 +46995,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ) {
                 Evento.preventDefault();
                 Evento.stopPropagation();
-                if (
-                  Slot_Es_Seleccion_Unica_Calendario(Clave)
-                ) {
+                if (Cantidad_Multi_Calendario() > 0) {
                   Limpiar_Multi_Seleccion_Calendario();
                   return;
                 }
@@ -47210,17 +47279,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 });
                 return;
               }
-              if (Eventos_Multi_Seleccion.size > 0) {
+              if (Cantidad_Multi_Calendario() > 0) {
                 E.preventDefault();
                 E.stopPropagation();
-                if (
-                  Eventos_Multi_Seleccion.size !== 1 ||
-                  !Eventos_Multi_Seleccion.has(Evento.Id)
-                ) {
-                  Seleccionar_Evento_Calendario(Evento.Id);
-                } else {
-                  Limpiar_Multi_Seleccion_Eventos();
-                }
+                Limpiar_Multi_Seleccion_Calendario();
               }
               return;
             }
@@ -48018,6 +48080,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Mover_Slots_Multi_Con_Ancla(
+        Slot_Ancla_Clave,
+        Slot_Claves,
+        Fecha_Destino,
+        Hora_Destino
+      ) {
+        const Lista =
+          Obtener_Slots_Muertos_Multi_Seleccionados(
+            Slot_Claves
+          );
+        const [Fecha_Ancla, Hora_Ancla_Texto] = String(
+          Slot_Ancla_Clave || ""
+        ).split("|");
+        const Hora_Ancla = Number(Hora_Ancla_Texto);
+        if (
+          !Lista.includes(Slot_Ancla_Clave) ||
+          !Fecha_Ancla ||
+          !Number.isFinite(Hora_Ancla)
+        ) {
+          return false;
+        }
+        Slots_Multi_Seleccion = new Set(Lista);
+        return Mover_Seleccion_Calendario_Multi_Por_Delta(
+          Dias_Entre(
+            Parsear_Fecha_ISO(Fecha_Ancla),
+            Parsear_Fecha_ISO(Fecha_Destino)
+          ),
+          Hora_Destino - Hora_Ancla,
+          [],
+          Lista
+        );
+      }
+
       async function Confirmar_Borrar_Objetivo(Objetivo) {
         if (!Objetivo) return false;
         const Respuesta = await Mostrar_Dialogo(
@@ -48097,6 +48192,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return;
         }
 
+        if (Payload.Tipo === "Slots_Multi") {
+          Mover_Slots_Multi_Con_Ancla(
+            Payload.Slot_Ancla_Clave,
+            Payload.Slot_Claves,
+            Fecha,
+            Hora_Base
+          );
+          return;
+        }
+
         if (Payload.Tipo === "Slot_Muerto_Con_Plan") {
           Mover_Slot_Muerto_Con_Plan(
             Payload.Fecha,
@@ -48169,6 +48274,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Payload.Evento_Ids,
             Fecha,
             Hora
+          );
+          return;
+        }
+
+        if (Payload.Tipo === "Slots_Multi") {
+          Mover_Slots_Multi_Con_Ancla(
+            Payload.Slot_Ancla_Clave,
+            Payload.Slot_Claves,
+            Fecha,
+            Math.floor(Hora_Exacta)
           );
           return;
         }
