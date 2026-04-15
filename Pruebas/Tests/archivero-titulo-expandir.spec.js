@@ -157,6 +157,9 @@ test("guarda titulo y alterna expansion en notas largas", async ({
         titulo: document.querySelector(
           ".Archivero_Nota_Titulo_Nota"
         )?.textContent || "",
+        indicador: document.querySelector(
+          ".Archivero_Nota_Indicador"
+        )?.textContent || "",
         guardado: Notas_Archivero[0]?.Titulo || "",
         colapsada: Card?.classList.contains("Colapsada") || false,
         expandida: Card?.getAttribute("aria-expanded") || "",
@@ -169,6 +172,7 @@ test("guarda titulo y alterna expansion en notas largas", async ({
     });
   }).toEqual({
     titulo: "Budin de soja",
+    indicador: "Ver más...",
     guardado: "Budin de soja",
     colapsada: true,
     expandida: "false",
@@ -186,9 +190,15 @@ test("guarda titulo y alterna expansion en notas largas", async ({
       const Texto = Card?.querySelector(
         ".Archivero_Nota_Texto"
       );
+      const Indicador = Card?.querySelector(
+        ".Archivero_Nota_Indicador"
+      );
       return {
         colapsada: Card?.classList.contains("Colapsada") || false,
         expandida: Card?.getAttribute("aria-expanded") || "",
+        indicador_visible: Indicador
+          ? window.getComputedStyle(Indicador).display !== "none"
+          : false,
         truncada: Texto
           ? Texto.scrollHeight > Texto.clientHeight + 2
           : false
@@ -197,6 +207,7 @@ test("guarda titulo y alterna expansion en notas largas", async ({
   }).toEqual({
     colapsada: false,
     expandida: "true",
+    indicador_visible: false,
     truncada: false
   });
 
@@ -210,9 +221,15 @@ test("guarda titulo y alterna expansion en notas largas", async ({
       const Texto = Card?.querySelector(
         ".Archivero_Nota_Texto"
       );
+      const Indicador = Card?.querySelector(
+        ".Archivero_Nota_Indicador"
+      );
       return {
         colapsada: Card?.classList.contains("Colapsada") || false,
         expandida: Card?.getAttribute("aria-expanded") || "",
+        indicador_visible: Indicador
+          ? window.getComputedStyle(Indicador).display !== "none"
+          : false,
         truncada: Texto
           ? Texto.scrollHeight > Texto.clientHeight + 2
           : false
@@ -221,6 +238,7 @@ test("guarda titulo y alterna expansion en notas largas", async ({
   }).toEqual({
     colapsada: true,
     expandida: "false",
+    indicador_visible: true,
     truncada: true
   });
 });

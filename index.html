@@ -6852,27 +6852,51 @@
       }
 
       .Archivero_Nota_Card.Colapsada.Tiene_Desborde
-        .Archivero_Nota_Texto {
-        padding-right: 18px;
-      }
-
-      .Archivero_Nota_Card.Colapsada.Tiene_Desborde
         .Archivero_Nota_Texto::after {
-        content: "...";
+        content: "";
         position: absolute;
+        left: 0;
         right: 0;
         bottom: 0;
-        padding-left: 16px;
+        height: 34px;
         background: linear-gradient(
-          90deg,
+          180deg,
           rgba(255, 255, 255, 0),
-          var(--Archivero_Nota_Fondo, #fff) 48%
+          var(--Archivero_Nota_Fondo, #fff) 88%
         );
+        pointer-events: none;
       }
 
       .Archivero_Nota_Card.Expandida .Archivero_Nota_Texto {
         max-height: none;
         overflow: visible;
+      }
+
+      .Archivero_Nota_Indicador {
+        display: none;
+        align-self: flex-end;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: var(
+          --Archivero_Nota_Texto_Color,
+          var(--Texto_Suave)
+        );
+        background: rgba(255, 255, 255, 0.86);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 999px;
+        padding: 3px 9px;
+        margin-top: -2px;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+        user-select: none;
+        cursor: pointer;
+      }
+
+      .Archivero_Nota_Card.Colapsada.Tiene_Desborde
+        .Archivero_Nota_Indicador {
+        display: inline-flex;
       }
 
       .Archivero_Nota_Texto a {
@@ -14170,6 +14194,8 @@
             "Título (opcional)",
           "archivero.titulo_nota_ph":
             "Ej: Budín de soja",
+          "archivero.ver_mas_nota":
+            "Ver más...",
           "archivero.texto": "Texto",
           "archivero.texto_ph":
             "Pegá la frase, idea o link...",
@@ -16599,6 +16625,8 @@
             "Title (optional)",
           "archivero.titulo_nota_ph":
             "Ex: Soy cake",
+          "archivero.ver_mas_nota":
+            "Read more...",
           "archivero.texto": "Text",
           "archivero.texto_ph":
             "Paste a phrase, idea or " +
@@ -19045,6 +19073,8 @@
             "Título (opcional)",
           "archivero.titulo_nota_ph":
             "Ex: Bolo de soja",
+          "archivero.ver_mas_nota":
+            "Ver mais...",
           "archivero.texto": "Texto",
           "archivero.texto_ph":
             "Cole a frase, ideia ou " +
@@ -26308,6 +26338,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto.textContent = Nota.Texto;
         }
         Card.appendChild(Texto);
+        const Indicador = document.createElement("div");
+        Indicador.className = "Archivero_Nota_Indicador";
+        Indicador.textContent = t("archivero.ver_mas_nota");
+        Card.appendChild(Indicador);
         const Meta = document.createElement("div");
         Meta.className = "Archivero_Nota_Meta";
         const Fecha = document.createElement("span");
