@@ -91,6 +91,27 @@ function Crear_Estado_Con_Slot(Fecha, Hora) {
   return Estado;
 }
 
+function Crear_Estado_Con_Plan_En_Slot_Vacio(
+  Fecha,
+  Hora
+) {
+  const Estado = Crear_Estado(["Base remota"]);
+  const Clave = `${Fecha}|${Hora}`;
+  Estado.Planes_Slot = {
+    [Clave]: {
+      Items: [
+        {
+          Id: "plan_slot_vacio_1",
+          Texto: "Idea vacia",
+          Emoji: "*",
+          Estado: "Planeado"
+        }
+      ]
+    }
+  };
+  return Estado;
+}
+
 async function Preparar_App(page, Estado_Remoto) {
   await page.route(
     "https://cdn.jsdelivr.net/npm/@supabase/" +
@@ -149,6 +170,50 @@ async function Preparar_App(page, Estado_Remoto) {
       window.__Forzar_Error_Update = false;
       window.__Forzar_Error_Insert = false;
 
+      const Es_Objeto_Json = (Valor) => {
+        return Boolean(
+          Valor &&
+          typeof Valor === "object" &&
+          !Array.isArray(Valor)
+        );
+      };
+
+      const Merge_Profundo_Preservando_Faltantes = (
+        Base,
+        Incoming
+      ) => {
+        if (Incoming === undefined) {
+          return Base;
+        }
+        if (Base === undefined) {
+          return Incoming;
+        }
+        if (
+          !Es_Objeto_Json(Base) ||
+          !Es_Objeto_Json(Incoming)
+        ) {
+          return Incoming;
+        }
+        const Resultado = { ...Base };
+        Object.entries(Incoming).forEach(([Clave, Valor]) => {
+          if (
+            Object.prototype.hasOwnProperty.call(
+              Resultado,
+              Clave
+            )
+          ) {
+            Resultado[Clave] =
+              Merge_Profundo_Preservando_Faltantes(
+                Resultado[Clave],
+                Valor
+              );
+            return;
+          }
+          Resultado[Clave] = Valor;
+        });
+        return Resultado;
+      };
+
       const Fetch_Original =
         window.fetch.bind(window);
       window.fetch = async (Url, Opciones = {}) => {
@@ -190,8 +255,14 @@ async function Preparar_App(page, Estado_Remoto) {
               }
             };
           }
+          const Estado_Actual =
+            window.__Estado_Remoto?.estado || null;
           window.__Estado_Remoto = {
-            estado: Payload.estado,
+            estado:
+              Merge_Profundo_Preservando_Faltantes(
+                Estado_Actual,
+                Payload.estado
+              ),
             actualizado_en:
               "2026-04-14T00:00:10Z",
             version:
@@ -306,7 +377,11 @@ async function Preparar_App(page, Estado_Remoto) {
                       };
                     }
                     window.__Estado_Remoto = {
-                      estado: this._payload.estado,
+                      estado:
+                        Merge_Profundo_Preservando_Faltantes(
+                          Actual.estado || null,
+                          this._payload.estado
+                        ),
                       actualizado_en:
                         "2026-04-14T00:00:05Z",
                       version:
@@ -389,8 +464,14 @@ async function Preparar_App(page, Estado_Remoto) {
                     };
                   }
                   if (Tabla === "estado_usuario") {
+                    const Estado_Actual =
+                      window.__Estado_Remoto?.estado || null;
                     window.__Estado_Remoto = {
-                      estado: Payload.estado,
+                      estado:
+                        Merge_Profundo_Preservando_Faltantes(
+                          Estado_Actual,
+                          Payload.estado
+                        ),
                       actualizado_en:
                         "2026-04-14T00:00:05Z",
                       version:
@@ -550,8 +631,9 @@ test(
         localStorage.getItem("Semaplan_Estado_V2") ||
         "{}"
       );
-      const Estado_Remoto =
-        window.__Estado_Remoto?.estado || {};
+      const Estado_Remoto = Limpiar_Tombstones_Json(
+        window.__Estado_Remoto?.estado || {}
+      );
 
       return {
         local_slots: Estado_Local.Slots_Muertos || [],
@@ -606,8 +688,9 @@ test(
         localStorage.getItem("Semaplan_Estado_V2") ||
         "{}"
       );
-      const Estado_Remoto =
-        window.__Estado_Remoto?.estado || {};
+      const Estado_Remoto = Limpiar_Tombstones_Json(
+        window.__Estado_Remoto?.estado || {}
+      );
 
       return {
         local_slots: Estado_Local.Slots_Muertos || [],
@@ -647,8 +730,9 @@ test(
         localStorage.getItem("Semaplan_Estado_V2") ||
         "{}"
       );
-      const Estado_Remoto =
-        window.__Estado_Remoto?.estado || {};
+      const Estado_Remoto = Limpiar_Tombstones_Json(
+        window.__Estado_Remoto?.estado || {}
+      );
 
       return {
         local_planes: Object.keys(
@@ -671,9 +755,21 @@ test(
 );
 
 test(
-  "limpia planes huerfanos de slots muertos al sincronizar",
+  "limpia planes huerfanos de slots ocupados al sincronizar",
   async ({ page }) => {
     const Estado = Crear_Estado(["Base remota"]);
+    Estado.Eventos = [
+      {
+        Id: "ev_ocupa",
+        Objetivo_Id: 1,
+        Fecha: "2026-04-13",
+        Inicio: 10,
+        Duracion: 1,
+        Hecho: false,
+        Anulada: false,
+        Color: "#f1b77e"
+      }
+    ];
     Estado.Planes_Slot = {
       "2026-04-13|10": {
         Items: [
@@ -699,8 +795,9 @@ test(
         localStorage.getItem("Semaplan_Estado_V2") ||
         "{}"
       );
-      const Estado_Remoto =
-        window.__Estado_Remoto?.estado || {};
+      const Estado_Remoto = Limpiar_Tombstones_Json(
+        window.__Estado_Remoto?.estado || {}
+      );
 
       return {
         memoria_planes: Object.keys(Planes_Slot || {}),
@@ -753,8 +850,9 @@ test(
         localStorage.getItem("Semaplan_Estado_V2") ||
         "{}"
       );
-      const Estado_Remoto =
-        window.__Estado_Remoto?.estado || {};
+      const Estado_Remoto = Limpiar_Tombstones_Json(
+        window.__Estado_Remoto?.estado || {}
+      );
 
       return {
         local_planes: Object.keys(
@@ -767,6 +865,62 @@ test(
           document.querySelector(
             '.Slot[data-fecha="2026-04-13"][data-hora="10"] ' +
             '.Slot_Plan_Marca'
+          )
+        )
+      };
+    });
+
+    expect(Resumen.local_planes).toEqual([]);
+    expect(Resumen.remoto_planes).toEqual([]);
+    expect(Resumen.ui_marca_plan).toBeFalsy();
+  }
+);
+
+test(
+  "borrar plan de slot vacio desde UI persiste al recargar remoto",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado_Con_Plan_En_Slot_Vacio(
+        "2026-04-13",
+        10
+      )
+    );
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
+      { button: "right" }
+    );
+    await page.click(
+      '#Dia_Accion_Menu [data-acc="borrar-plan-slot"]'
+    );
+    await page.click("#Dialogo_Botones .Dialogo_Boton_Primario");
+
+    const Resumen = await page.evaluate(async () => {
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+      await Backend_Sync_Ejecutar();
+      await Backend_Aplicar_Estado_Remoto();
+
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+      const Estado_Remoto = Limpiar_Tombstones_Json(
+        window.__Estado_Remoto?.estado || {}
+      );
+
+      return {
+        local_planes: Object.keys(
+          Estado_Local.Planes_Slot || {}
+        ),
+        remoto_planes: Object.keys(
+          Estado_Remoto.Planes_Slot || {}
+        ),
+        ui_marca_plan: Boolean(
+          document.querySelector(
+            '.Slot[data-fecha="2026-04-13"][data-hora="10"] ' +
+            ".Slot_Plan_Marca"
           )
         )
       };
@@ -802,8 +956,9 @@ test(
         localStorage.getItem("Semaplan_Estado_V2") ||
         "{}"
       );
-      const Estado_Remoto =
-        window.__Estado_Remoto?.estado || {};
+      const Estado_Remoto = Limpiar_Tombstones_Json(
+        window.__Estado_Remoto?.estado || {}
+      );
 
       return {
         local_planes: Object.keys(
@@ -883,7 +1038,9 @@ test(
           Estado_Local.Planes_Slot || {}
         ),
         remoto_planes: Object.keys(
-          window.__Estado_Remoto?.estado?.Planes_Slot || {}
+          Limpiar_Tombstones_Json(
+            window.__Estado_Remoto?.estado?.Planes_Slot || {}
+          )
         ),
         ui_marca_plan: Boolean(
           document.querySelector(
@@ -923,7 +1080,9 @@ test(
     await page.waitForFunction(
       () =>
         Object.keys(
-          window.__Estado_Remoto?.estado?.Planes_Slot || {}
+          Limpiar_Tombstones_Json(
+            window.__Estado_Remoto?.estado?.Planes_Slot || {}
+          )
         ).length === 0,
       null,
       { timeout: 1500 }
@@ -935,8 +1094,9 @@ test(
         localStorage.getItem("Semaplan_Estado_V2") ||
         "{}"
       );
-      const Estado_Remoto =
-        window.__Estado_Remoto?.estado || {};
+      const Estado_Remoto = Limpiar_Tombstones_Json(
+        window.__Estado_Remoto?.estado || {}
+      );
 
       return {
         memoria_planes: Object.keys(Planes_Slot || {}),

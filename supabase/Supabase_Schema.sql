@@ -57,8 +57,9 @@ CREATE POLICY "Estado propio: borrar"
   FOR DELETE
   USING (auth.uid() = user_id);
 
--- Trigger: actualizar `actualizado_en` automáticamente en
--- cada UPDATE.
+-- Compatibilidad de raíz: preservar solo claves de primer nivel
+-- que el cliente todavía no conoce. No mergear profundo porque
+-- eso revive borrados anidados del blob de estado.
 -- ============================================================
 CREATE OR REPLACE FUNCTION
   public.jsonb_deep_merge_preserving_missing(
@@ -69,7 +70,6 @@ RETURNS jsonb AS $$
 DECLARE
   result jsonb;
   key text;
-  value jsonb;
 BEGIN
   IF incoming IS NULL THEN
     RETURN base;
@@ -84,30 +84,20 @@ BEGIN
     RETURN incoming;
   END IF;
 
-  result := base;
+  result := incoming;
 
-  FOR key, value IN
-    SELECT *
-    FROM jsonb_each(incoming)
+  FOR key IN
+    SELECT jsonb_object_keys(base)
   LOOP
     IF result ? key THEN
-      result := jsonb_set(
-        result,
-        ARRAY[key],
-        public.jsonb_deep_merge_preserving_missing(
-          result -> key,
-          value
-        ),
-        true
-      );
-    ELSE
-      result := jsonb_set(
-        result,
-        ARRAY[key],
-        value,
-        true
-      );
+      CONTINUE;
     END IF;
+    result := jsonb_set(
+      result,
+      ARRAY[key],
+      base -> key,
+      true
+    );
   END LOOP;
 
   RETURN result;

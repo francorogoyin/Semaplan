@@ -35801,6 +35801,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Plan_Slot_Borrador
         );
         if (!Items.length) {
+          const Plan_Existente =
+            Obtener_Plan_Slot(
+              Modal_Plan_Slot_Fecha,
+              Modal_Plan_Slot_Hora,
+              false
+            );
+          const Tenia_Items =
+            Array.isArray(Plan_Existente?.Items) &&
+            Plan_Existente.Items.length > 0;
+          if (Tenia_Items) {
+            delete Planes_Slot[Clave];
+            Cerrar_Modal_Plan_Slot();
+            Render_Calendario();
+            Guardar_Estado();
+            await Forzar_Sync_Inmediato_Cambio_Critico();
+            return;
+          }
           Mostrar_Toast_Plan_Slot(
             "slot.toast_faltan_objetivos"
           );
@@ -54977,7 +54994,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           typeof Datos.estado === "object"
         ) {
           Sync_Remoto_Estado_Ultimo =
-            Datos.estado;
+            Limpiar_Tombstones_Json(Datos.estado);
         }
         const Corte = Obtener_Corte_Sesion_Global(
           Datos.estado
@@ -55074,6 +55091,74 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Resultado;
       }
 
+      function Materializar_Borrados_Anidados_Json(
+        Base,
+        Nuevo,
+        Profundidad = 0
+      ) {
+        if (!Es_Objeto_Json(Base)) {
+          return Nuevo;
+        }
+        if (!Es_Objeto_Json(Nuevo)) {
+          return Nuevo;
+        }
+
+        const Resultado = {
+          ...Nuevo
+        };
+
+        Object.keys(Base).forEach((Clave) => {
+          const Existe_En_Nuevo =
+            Object.prototype.hasOwnProperty.call(
+              Nuevo,
+              Clave
+            );
+          if (!Existe_En_Nuevo) {
+            if (Profundidad > 0) {
+              Resultado[Clave] = null;
+            }
+            return;
+          }
+
+          if (
+            Es_Objeto_Json(Base[Clave]) &&
+            Es_Objeto_Json(Nuevo[Clave])
+          ) {
+            Resultado[Clave] =
+              Materializar_Borrados_Anidados_Json(
+                Base[Clave],
+                Nuevo[Clave],
+                Profundidad + 1
+              );
+          }
+        });
+
+        return Resultado;
+      }
+
+      function Limpiar_Tombstones_Json(Valor) {
+        if (Array.isArray(Valor)) {
+          return Valor.map((Item) =>
+            Limpiar_Tombstones_Json(Item)
+          );
+        }
+        if (!Es_Objeto_Json(Valor)) {
+          return Valor;
+        }
+
+        const Resultado = {};
+        Object.entries(Valor).forEach(
+          ([Clave, Item]) => {
+            if (Item === null || Item === undefined) {
+              return;
+            }
+            Resultado[Clave] =
+              Limpiar_Tombstones_Json(Item);
+          }
+        );
+        return Resultado;
+      }
+
       async function Preparar_Estado_Para_Sync(
         Estado_Local
       ) {
@@ -55081,7 +55166,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           !Sync_Remoto_Fila_Existe ||
           !Usuario_Actual
         ) {
-          return Estado_Local;
+          return {
+            Estado_Base: Estado_Local,
+            Estado_Sync: Estado_Local
+          };
         }
 
         if (!Sync_Remoto_Estado_Ultimo) {
@@ -55095,10 +55183,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         }
 
-        return Fusionar_Estado_Raiz_Faltante(
+        const Estado_Base = Fusionar_Estado_Raiz_Faltante(
           Sync_Remoto_Estado_Ultimo,
           Estado_Local
         );
+        return {
+          Estado_Base,
+          Estado_Sync:
+            Materializar_Borrados_Anidados_Json(
+              Sync_Remoto_Estado_Ultimo,
+              Estado_Base
+            )
+        };
       }
 
       function Guardar_Mensaje_Auth_Pendiente(
@@ -55862,7 +55958,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           try {
             const Estado_Local =
               Construir_Estado_Completo();
-            const Estado =
+            const {
+              Estado_Base,
+              Estado_Sync
+            } =
               await Preparar_Estado_Para_Sync(
                 Estado_Local
               );
@@ -55896,9 +55995,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ) {
               const Resultado =
                 Normalizar_Fila_Resultado(
-                  await Tabla
+                await Tabla
                     .update({
-                      estado: Estado,
+                      estado: Estado_Sync,
                       version:
                         Sync_Remoto_Version_Actual + 1
                     })
@@ -55918,7 +56017,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               }
               Backend_Registrar_Sync_Exitoso(
                 Resultado.data,
-                Estado
+                Estado_Base
               );
               Sincronizado = true;
             } else if (
@@ -55930,7 +56029,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 await Tabla
                   .insert({
                     user_id: Usuario_Actual.id,
-                    estado: Estado
+                    estado: Estado_Sync
                   })
                   .select("version, actualizado_en")
                   .maybeSingle()
@@ -55953,7 +56052,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               if (Resultado.data) {
                 Backend_Registrar_Sync_Exitoso(
                   Resultado.data,
-                  Estado
+                  Estado_Base
                 );
                 Sincronizado = true;
               }
@@ -55964,12 +56063,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 .from("estado_usuario")
                 .upsert({
                   user_id: Usuario_Actual.id,
-                  estado: Estado
+                  estado: Estado_Sync
                 });
               if (error) throw error;
               Backend_Registrar_Sync_Exitoso(
                 null,
-                Estado
+                Estado_Base
               );
             }
 
@@ -56040,10 +56139,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Estado_Local =
           Construir_Estado_Completo();
-        const Estado =
+        const Estado_Base =
           Fusionar_Estado_Raiz_Faltante(
             Sync_Remoto_Estado_Ultimo,
             Estado_Local
+          );
+        const Estado =
+          Materializar_Borrados_Anidados_Json(
+            Sync_Remoto_Estado_Ultimo,
+            Estado_Base
           );
         Sync_En_Curso = true;
 
@@ -56096,7 +56200,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
             Backend_Registrar_Sync_Exitoso(
               null,
-              Estado
+              Estado_Base
             );
           })
           .catch((E) => {
@@ -56131,15 +56235,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             return false;
           }
           if (!data || !data.estado) return false;
+          const Estado_Remoto =
+            Limpiar_Tombstones_Json(data.estado);
           if (
-            !Array.isArray(data.estado.Objetivos) &&
-            !Array.isArray(data.estado.Tareas)
+            !Array.isArray(Estado_Remoto.Objetivos) &&
+            !Array.isArray(Estado_Remoto.Tareas)
           ) {
             return false;
           }
           // Sobrescribir localStorage con el estado remoto.
           localStorage.setItem(
-            Clave_Local, JSON.stringify(data.estado)
+            Clave_Local, JSON.stringify(Estado_Remoto)
           );
           Marcar_Usuario_Cache_Local(Usuario_Actual.id);
           Marcar_Sync_Local_Sucio(false);
