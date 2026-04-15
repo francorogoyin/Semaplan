@@ -819,6 +819,103 @@ test(
 );
 
 test(
+  "avisa con toast si al pegar no quedan horas en la bolsa",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+
+    const Ids = await page.evaluate(() => {
+      const Semana = Clave_Semana_Actual();
+      const Objetivo_Bolsa = Crear_Objetivo_Semanal_Con_Datos(
+        {
+          Nombre: "Bolsa",
+          Emoji: "B",
+          Color: "#1f6b4f",
+          Es_Bolsa: true,
+          Horas_Semanales: 1
+        },
+        Semana
+      );
+
+      Eventos = [
+        {
+          Id: "ev_bolsa",
+          Objetivo_Id: Objetivo_Bolsa.Id,
+          Fecha: "2026-04-13",
+          Inicio: 9,
+          Duracion: 1,
+          Hecho: false,
+          Anulada: false,
+          Color: Objetivo_Bolsa.Color
+        }
+      ];
+
+      Contador_Eventos = 40;
+      Render_Emojis();
+      Render_Calendario();
+      Guardar_Estado();
+
+      return {
+        Evento_Id: "ev_bolsa"
+      };
+    });
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '#Calendario_Multi_Grupo_Acciones button:has-text("Copiar")'
+    );
+
+    await page.evaluate(() => {
+      const Slot = document.querySelector(
+        '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+      );
+      if (!Slot) throw new Error("No se encontro el slot");
+      const Rect = Slot.getBoundingClientRect();
+      Mostrar_Menu_Slot(
+        "2026-04-13",
+        12,
+        Rect.left + 8,
+        Rect.top + 8
+      );
+    });
+
+    await expect(
+      page.locator(
+        '#Dia_Accion_Menu [data-acc="pegar-bloques-slot"]'
+      )
+    ).toBeVisible();
+    await page.click(
+      '#Dia_Accion_Menu [data-acc="pegar-bloques-slot"]'
+    );
+
+    await expect(
+      page.locator("#Undo_Contenedor .Undo_Toast").first()
+    ).toHaveClass(/Activo/);
+    await expect(
+      page.locator("#Undo_Contenedor .Undo_Toast_Texto").first()
+    ).toContainText("No hay horas suficientes");
+    await expect(
+      page.locator("#Undo_Contenedor .Undo_Toast_Segundos").first()
+    ).toHaveText("5");
+
+    const Resultado = await page.evaluate(() => ({
+      Eventos: Eventos.map((Evento) => ({
+        Id: Evento.Id,
+        Inicio: Evento.Inicio
+      })),
+      Seleccion: Array.from(Eventos_Multi_Seleccion)
+    }));
+
+    expect(Resultado.Eventos).toEqual([
+      { Id: "ev_bolsa", Inicio: 9 }
+    ]);
+    expect(Resultado.Seleccion).toEqual([]);
+  }
+);
+
+test(
   "ofrece pegar en columna cuando la copia mezcla dias",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());

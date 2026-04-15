@@ -41687,6 +41687,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Hora
       ) {
         if (!Slot_Esta_Vacio(Fecha, Hora)) return false;
+        let Avisar_Sin_Horas_Bolsa = false;
         let Distribucion = "Forma";
         if (Portapapeles_Eventos_Multi_Span_Multiples_Dias()) {
           Distribucion = await Mostrar_Dialogo(
@@ -41766,7 +41767,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Objetivo = Objetivo_Por_Id(Item.Objetivo_Id);
           if (Objetivo?.Es_Bolsa) {
             const Restantes = Calcular_Horas_Restantes(Objetivo);
-            if (Restantes < Item.Duracion) return;
+            if (Restantes < Item.Duracion) {
+              Avisar_Sin_Horas_Bolsa = true;
+              return;
+            }
           }
           const Nuevo_Id = `Evento_${Contador_Eventos++}`;
           Eventos.push({
@@ -41789,6 +41793,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Eventos();
         Render_Acciones_Multi_Calendario();
         Guardar_Estado();
+        if (Avisar_Sin_Horas_Bolsa) {
+          Mostrar_Toast_Info(
+            t("dialog.sin_horas_bolsa"),
+            "⚠️",
+            5000
+          );
+        }
         return Nuevos_Ids.length > 0;
       }
 
