@@ -367,6 +367,73 @@ test("arrastra slot muerto sin plan conservando tipo y titulo", async ({
   expect(data.ui_marca_plan).toBeFalsy();
 });
 
+test("copia y pega plan entre slots muertos", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Slots_Muertos.push("2026-04-13|12");
+  estado.Slots_Muertos_Tipos["2026-04-13|12"] = "Comida";
+  estado.Slots_Muertos_Nombres["2026-04-13|12"] = "Cena";
+  estado.Slots_Muertos_Titulos_Visibles["2026-04-13|12"] =
+    true;
+  estado.Slots_Muertos_Nombres_Auto["2026-04-13|12"] =
+    false;
+
+  await preparar(page, estado);
+
+  const slotOrigen = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+  );
+  await slotOrigen.click({ button: "right" });
+  await expect(
+    page.locator(
+      '#Dia_Accion_Menu [data-acc="copiar-plan-slot"]'
+    )
+  ).toBeVisible();
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="copiar-plan-slot"]'
+  );
+
+  const slotDestino = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+  );
+  await slotDestino.click({ button: "right" });
+  await expect(
+    page.locator(
+      '#Dia_Accion_Menu [data-acc="pegar-plan-slot"]'
+    )
+  ).toBeVisible();
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="pegar-plan-slot"]'
+  );
+
+  const data = await page.evaluate(() => ({
+    origen_texto:
+      Planes_Slot["2026-04-13|10"]?.Items?.[0]?.Texto || "",
+    origen_id:
+      Planes_Slot["2026-04-13|10"]?.Items?.[0]?.Id || "",
+    destino_texto:
+      Planes_Slot["2026-04-13|12"]?.Items?.[0]?.Texto || "",
+    destino_id:
+      Planes_Slot["2026-04-13|12"]?.Items?.[0]?.Id || "",
+    destino_total:
+      Planes_Slot["2026-04-13|12"]?.Items?.length || 0,
+    destino_marca: Boolean(
+      document.querySelector(
+        '.Slot[data-fecha="2026-04-13"][data-hora="12"] ' +
+        '.Slot_Plan_Marca'
+      )
+    )
+  }));
+
+  expect(data.origen_texto).toBe("Idea central");
+  expect(data.destino_texto).toBe("Idea central");
+  expect(data.destino_total).toBe(1);
+  expect(data.destino_id).not.toBe("");
+  expect(data.destino_id).not.toBe(data.origen_id);
+  expect(data.destino_marca).toBeTruthy();
+});
+
 test("el menu contextual puede eliminar un slot muerto y dejarlo blanco", async ({
   page
 }) => {
