@@ -220,6 +220,57 @@ test(
 );
 
 test(
+  "objetivo sin descripcion muestra popup solo con titulo",
+  async ({ page }) => {
+    const estado = estadoBase();
+    estado.Objetivos = [
+      {
+        Id: "o_sin_desc",
+        Familia_Id: "o_sin_desc",
+        Fracasos_Semanales: {},
+        Subobjetivos_Semanales: {},
+        Subobjetivos_Contraidas_Semanales: {},
+        Subobjetivos_Excluidos_Semanales: {},
+        Nombre: "Objetivo sin descripcion",
+        Descripcion_Corta: "",
+        Emoji: "\uD83D\uDCAA",
+        Color: "#1f6b4f",
+        Horas_Semanales: 0,
+        Restante: 0,
+        Es_Bolsa: false,
+        Es_Fija: false,
+        Semana_Base: "2026-04-13",
+        Semana_Inicio: null,
+        Semana_Fin: null,
+        Categoria_Id: null,
+        Etiquetas_Ids: []
+      }
+    ];
+
+    await preparar(page, estado);
+
+    const boton = page.locator(
+      '[data-objetivo-id="o_sin_desc"]'
+    );
+    await expect(boton).not.toHaveAttribute(
+      "title",
+      /.+/
+    );
+    await boton.hover();
+    await page.waitForTimeout(2100);
+
+    await expect(
+      page.locator(".Evento_Abordaje_Popup")
+    ).toHaveCount(1);
+    await expect(page.locator(".Evento_Abordaje_Popup_Titulo"))
+      .toContainText("Objetivo sin descripcion");
+    await expect(
+      page.locator(".Baul_Descripcion_Popup_Texto")
+    ).toHaveCount(0);
+  }
+);
+
+test(
   "edita descripcion corta del objetivo semanal desde el editor",
   async ({ page }) => {
     const estado = estadoBase();

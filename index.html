@@ -23667,12 +23667,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Mostrar_Popup_Descripcion(
         Texto_Base,
         Cerca_De,
-        Titulo_Texto = t("baul.descripcion_tooltip")
+        Titulo_Texto = t("baul.descripcion_tooltip"),
+        Permitir_Solo_Titulo = false
       ) {
         const Descripcion = Normalizar_Descripcion_Baul(
           Texto_Base
         );
-        if (!Descripcion) return;
+        if (!Descripcion && !Permitir_Solo_Titulo) return;
         Cerrar_Popup_Descripcion();
 
         const Pop = document.createElement("div");
@@ -23683,10 +23684,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Tit.textContent = Titulo_Texto;
         Pop.appendChild(Tit);
 
-        const Texto = document.createElement("div");
-        Texto.className = "Baul_Descripcion_Popup_Texto";
-        Texto.textContent = Descripcion;
-        Pop.appendChild(Texto);
+        if (Descripcion) {
+          const Texto = document.createElement("div");
+          Texto.className = "Baul_Descripcion_Popup_Texto";
+          Texto.textContent = Descripcion;
+          Pop.appendChild(Texto);
+        }
 
         document.body.appendChild(Pop);
         El_Popup_Descripcion_Activo = Pop;
@@ -23712,13 +23715,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Vincular_Hover_Descripcion(
         El,
         Texto_Base,
-        Titulo_Texto = t("baul.descripcion_tooltip")
+        Titulo_Texto = t("baul.descripcion_tooltip"),
+        Permitir_Solo_Titulo = false
       ) {
         if (!El) return;
         const Descripcion = Normalizar_Descripcion_Baul(
           Texto_Base
         );
-        if (!Descripcion) return;
+        if (!Descripcion && !Permitir_Solo_Titulo) return;
         let Hover_Timer_Id = null;
         const Cancelar = () => {
           if (Hover_Timer_Id) {
@@ -23733,7 +23737,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Mostrar_Popup_Descripcion(
               Texto_Base,
               El,
-              Titulo_Texto
+              Titulo_Texto,
+              Permitir_Solo_Titulo
             );
           }, 2000);
         });
@@ -43619,7 +43624,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Vincular_Hover_Descripcion(
           Boton,
           Objetivo?.Descripcion_Corta,
-          Objetivo?.Nombre || t("baul.descripcion_tooltip")
+          Objetivo?.Nombre || t("baul.descripcion_tooltip"),
+          true
         );
         Boton.draggable = !Interaccion_Touch_Activa();
         Instalar_Pulsacion_Larga_Touch(
