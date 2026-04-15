@@ -20595,6 +20595,10 @@
       // Mapea clave de slot → nombre editable del slot
       // (tanto muerto como vacío).
       let Slots_Muertos_Nombres = {};
+      // Mapea clave de slot → visibilidad del título.
+      let Slots_Muertos_Titulos_Visibles = {};
+      // Mapea clave de slot → si el nombre viene del tipo.
+      let Slots_Muertos_Nombres_Auto = {};
       // Tipos de slot personalizables. Cada uno:
       // { Id: string, Nombre: string, Color: string }
       let Tipos_Slot = [];
@@ -26539,8 +26543,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Clave = Clave_Slot(Fecha_ISO, H);
           const Idx = Slots_Muertos.indexOf(Clave);
           if (Idx >= 0) Slots_Muertos.splice(Idx, 1);
-          delete Slots_Muertos_Tipos[Clave];
-          delete Slots_Muertos_Nombres[Clave];
+          Limpiar_Metadata_Slot_Muerto(Clave);
         }
         Render_Calendario();
         Guardar_Estado();
@@ -26573,7 +26576,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Clave.slice(Prefijo.length)
           );
           if (Hora_Slot >= Hora_Minima) {
-            delete Slots_Muertos_Tipos[Clave];
+            Limpiar_Metadata_Slot_Muerto(Clave);
           }
         });
         Object.keys(Slots_Muertos_Nombres).forEach((Clave) => {
@@ -26582,7 +26585,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Clave.slice(Prefijo.length)
           );
           if (Hora_Slot >= Hora_Minima) {
-            delete Slots_Muertos_Nombres[Clave];
+            Limpiar_Nombre_Slot_Muerto(Clave);
           }
         });
       }
@@ -27130,7 +27133,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .map((C) => ({
             Hora: parseFloat(C.slice(Prefijo.length)),
             Tipo: Slots_Muertos_Tipos[C] || "Sueno",
-            Nombre: Slots_Muertos_Nombres[C] || ""
+            Nombre: Obtener_Nombre_Slot_Por_Clave(C),
+            Titulo_Visible:
+              Slot_Muerto_Titulo_Es_Visible_Clave(C),
+            Nombre_Auto:
+              Slot_Muerto_Nombre_Es_Auto_Clave(C)
           }));
         const Nombres_Slots = Object.keys(
           Slots_Muertos_Nombres
@@ -27138,7 +27145,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .filter((C) => C.startsWith(Prefijo))
           .map((C) => ({
             Hora: parseFloat(C.slice(Prefijo.length)),
-            Nombre: Slots_Muertos_Nombres[C] || ""
+            Nombre: Obtener_Nombre_Slot_Por_Clave(C),
+            Titulo_Visible:
+              Slot_Muerto_Titulo_Es_Visible_Clave(C),
+            Nombre_Auto:
+              Slot_Muerto_Nombre_Es_Auto_Clave(C)
           }));
         Portapapeles_Dia = {
           Eventos: Eventos_Dia,
@@ -27179,12 +27190,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Object.keys(Slots_Muertos_Tipos).forEach((C) => {
             if (C.startsWith(Prefijo)) {
-              delete Slots_Muertos_Tipos[C];
+              Limpiar_Metadata_Slot_Muerto(C);
             }
           });
           Object.keys(Slots_Muertos_Nombres).forEach((C) => {
             if (C.startsWith(Prefijo)) {
-              delete Slots_Muertos_Nombres[C];
+              Limpiar_Nombre_Slot_Muerto(C);
             }
           });
         }
@@ -27197,18 +27208,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           Slots_Muertos_Tipos[Clave] = S.Tipo;
           if (S.Nombre) {
-            Slots_Muertos_Nombres[Clave] = S.Nombre;
+            Guardar_Nombre_Slot_Muerto(
+              Clave,
+              S.Nombre,
+              S.Titulo_Visible !== false,
+              Boolean(S.Nombre_Auto)
+            );
           } else {
-            delete Slots_Muertos_Nombres[Clave];
+            Sincronizar_Titulo_Slot_Muerto_Clave(
+              Clave,
+              S.Tipo,
+              false
+            );
           }
         });
 
         (Portapapeles_Dia.Nombres_Slots || []).forEach((S) => {
           const Clave = Clave_Slot(Fecha_ISO, S.Hora);
           if (S.Nombre) {
-            Slots_Muertos_Nombres[Clave] = S.Nombre;
+            Guardar_Nombre_Slot_Muerto(
+              Clave,
+              S.Nombre,
+              S.Titulo_Visible !== false,
+              Boolean(S.Nombre_Auto)
+            );
           } else {
-            delete Slots_Muertos_Nombres[Clave];
+            Limpiar_Nombre_Slot_Muerto(Clave);
           }
         });
 
@@ -29282,6 +29307,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slots_Muertos_Nombres: JSON.parse(
             JSON.stringify(Slots_Muertos_Nombres)
           ),
+          Slots_Muertos_Titulos_Visibles: JSON.parse(
+            JSON.stringify(Slots_Muertos_Titulos_Visibles)
+          ),
+          Slots_Muertos_Nombres_Auto: JSON.parse(
+            JSON.stringify(Slots_Muertos_Nombres_Auto)
+          ),
           Tipos_Slot: JSON.parse(
             JSON.stringify(Tipos_Slot)
           ),
@@ -29521,6 +29552,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           Slots_Muertos_Nombres = {};
         }
+        if (
+          Snap.Slots_Muertos_Titulos_Visibles &&
+          typeof Snap.Slots_Muertos_Titulos_Visibles ===
+            "object"
+        ) {
+          Slots_Muertos_Titulos_Visibles =
+            Snap.Slots_Muertos_Titulos_Visibles;
+        } else {
+          Slots_Muertos_Titulos_Visibles = {};
+        }
+        if (
+          Snap.Slots_Muertos_Nombres_Auto &&
+          typeof Snap.Slots_Muertos_Nombres_Auto ===
+            "object"
+        ) {
+          Slots_Muertos_Nombres_Auto =
+            Snap.Slots_Muertos_Nombres_Auto;
+        } else {
+          Slots_Muertos_Nombres_Auto = {};
+        }
         if (Array.isArray(Snap.Tipos_Slot)) {
           Tipos_Slot = Clonar_Tipos_Slot_Base(
             Snap.Tipos_Slot
@@ -29529,6 +29580,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Tipos_Slot_Inicializados = Boolean(
           Snap.Tipos_Slot_Inicializados
         );
+        Normalizar_Metadata_Titulos_Slots_Muertos();
         Etiquetas_Archivero =
           Normalizar_Etiquetas_Archivero(
             Snap.Etiquetas_Archivero
@@ -29605,14 +29657,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Idx = Cl.indexOf("|");
             if (Idx < 0) return;
             if (Set_Fechas.has(Cl.slice(0, Idx))) {
-              delete Slots_Muertos_Tipos[Cl];
+              Limpiar_Metadata_Slot_Muerto(Cl);
             }
           });
           Object.keys(Slots_Muertos_Nombres).forEach((Cl) => {
             const Idx = Cl.indexOf("|");
             if (Idx < 0) return;
             if (Set_Fechas.has(Cl.slice(0, Idx))) {
-              delete Slots_Muertos_Nombres[Cl];
+              Limpiar_Nombre_Slot_Muerto(Cl);
             }
           });
           // Reaplicar slots por defecto de Config.
@@ -31607,6 +31659,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           }
         }
+        Normalizar_Metadata_Titulos_Slots_Muertos();
         Render_Config_Tipos_Slot();
         Render_Calendario();
         Guardar_Estado();
@@ -32869,8 +32922,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Es_Tipo =
             Slots_Muertos_Tipos[Clave] === Tipo_Id;
           if (Es_Tipo) {
-            delete Slots_Muertos_Tipos[Clave];
-            delete Slots_Muertos_Nombres[Clave];
+            Limpiar_Metadata_Slot_Muerto(Clave);
           }
           return !Es_Tipo;
         });
@@ -32953,8 +33005,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               if (Tipo_Reemplazo) {
                 Slots_Muertos_Tipos[Clave] =
                   Tipo_Reemplazo;
+                Sincronizar_Titulo_Slot_Muerto_Clave(
+                  Clave,
+                  Tipo_Reemplazo,
+                  Slots_Muertos_Titulos_Visibles[Clave]
+                );
               } else {
-                delete Slots_Muertos_Tipos[Clave];
+                Limpiar_Metadata_Slot_Muerto(Clave);
               }
             }
           });
@@ -34625,7 +34682,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slots_Muertos_Tipos[Clave_Origen] ||
           Obtener_Aplica_A_Slot(Fecha, Hora);
         const Nombre_Origen =
-          Slots_Muertos_Nombres[Clave_Origen] || "";
+          Obtener_Nombre_Slot_Por_Clave(Clave_Origen);
+        const Titulo_Visible_Origen =
+          Slot_Muerto_Titulo_Es_Visible_Clave(
+            Clave_Origen
+          );
+        const Nombre_Auto_Origen =
+          Slot_Muerto_Nombre_Es_Auto_Clave(Clave_Origen);
         const Plan_Origen = Obtener_Plan_Slot(
           Fecha, Hora, false
         );
@@ -34645,10 +34708,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Tipo_Origen;
           }
           if (Nombre_Origen) {
-            Slots_Muertos_Nombres[Clave_Destino] =
-              Nombre_Origen;
+            Guardar_Nombre_Slot_Muerto(
+              Clave_Destino,
+              Nombre_Origen,
+              Titulo_Visible_Origen,
+              Nombre_Auto_Origen
+            );
           } else {
-            delete Slots_Muertos_Nombres[Clave_Destino];
+            Limpiar_Nombre_Slot_Muerto(Clave_Destino);
           }
           if (Array.isArray(Plan_Origen?.Items) &&
               Plan_Origen.Items.length > 0) {
@@ -34675,12 +34742,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fecha,
           Hora
         );
+        const Nombre_Guardado =
+          Obtener_Nombre_Slot_Por_Clave(Clave);
         const Titulo_Tipo = Obtener_Titulo_Tipo_Slot(
           Tipo_Slot
         );
         let Html =
           (
-            (Tiene_Titulo || Titulo_Tipo)
+            (Nombre_Guardado || Titulo_Tipo)
               ? `<button class="Dia_Accion_Item" ` +
                 `type="button" data-acc="toggle-titulo-slot">` +
                 t(
@@ -36042,9 +36111,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Tipo_D
               );
               if (Nombre_D) {
-                Slots_Muertos_Nombres[Clave] = Nombre_D;
+                Guardar_Nombre_Slot_Muerto(
+                  Clave,
+                  Nombre_D,
+                  true,
+                  false
+                );
               } else {
-                delete Slots_Muertos_Nombres[Clave];
+                Sincronizar_Titulo_Slot_Muerto_Clave(
+                  Clave,
+                  Tipo_D
+                );
               }
             }
           });
@@ -38775,9 +38852,216 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Slots_Muertos.includes(Clave_Slot(Fecha, Hora));
       }
 
+      function Obtener_Nombre_Slot_Por_Clave(Clave) {
+        return Normalizar_Texto_Titulo_Slot(
+          Slots_Muertos_Nombres[Clave]
+        );
+      }
+
+      function Slot_Muerto_Titulo_Es_Visible_Clave(Clave) {
+        return Boolean(
+          Obtener_Nombre_Slot_Por_Clave(Clave) &&
+          Slots_Muertos_Titulos_Visibles[Clave]
+        );
+      }
+
+      function Slot_Muerto_Nombre_Es_Auto_Clave(Clave) {
+        return Boolean(
+          Obtener_Nombre_Slot_Por_Clave(Clave) &&
+          Slots_Muertos_Nombres_Auto[Clave]
+        );
+      }
+
+      function Limpiar_Nombre_Slot_Muerto(Clave) {
+        delete Slots_Muertos_Nombres[Clave];
+        delete Slots_Muertos_Titulos_Visibles[Clave];
+        delete Slots_Muertos_Nombres_Auto[Clave];
+      }
+
+      function Limpiar_Metadata_Slot_Muerto(Clave) {
+        delete Slots_Muertos_Tipos[Clave];
+        Limpiar_Nombre_Slot_Muerto(Clave);
+      }
+
+      function Guardar_Nombre_Slot_Muerto(
+        Clave,
+        Nombre,
+        Visible = true,
+        Es_Auto = false
+      ) {
+        const Valor = Normalizar_Texto_Titulo_Slot(Nombre);
+        if (!Valor) {
+          Limpiar_Nombre_Slot_Muerto(Clave);
+          return "";
+        }
+        Slots_Muertos_Nombres[Clave] = Valor;
+        Slots_Muertos_Titulos_Visibles[Clave] =
+          Boolean(Visible);
+        Slots_Muertos_Nombres_Auto[Clave] =
+          Boolean(Es_Auto);
+        return Valor;
+      }
+
+      function Sincronizar_Titulo_Slot_Muerto_Clave(
+        Clave,
+        Tipo_Id,
+        Visible = null
+      ) {
+        const Titulo = Obtener_Titulo_Tipo_Slot(Tipo_Id);
+        const Tipo = Obtener_Tipo_Slot_Por_Id(Tipo_Id);
+        const Nombre_Actual =
+          Obtener_Nombre_Slot_Por_Clave(Clave);
+        const Tiene_Nombre = Boolean(Nombre_Actual);
+        const Es_Auto =
+          Slot_Muerto_Nombre_Es_Auto_Clave(Clave);
+
+        if (!Titulo) {
+          if (Es_Auto || !Tiene_Nombre) {
+            Limpiar_Nombre_Slot_Muerto(Clave);
+          } else if (Visible !== null) {
+            Guardar_Nombre_Slot_Muerto(
+              Clave,
+              Nombre_Actual,
+              Visible,
+              false
+            );
+          }
+          return false;
+        }
+
+        if (Es_Auto || !Tiene_Nombre) {
+          const Visible_Final = Visible === null
+            ? Boolean(Tipo?.Titulo_Por_Defecto)
+            : Boolean(Visible);
+          Guardar_Nombre_Slot_Muerto(
+            Clave,
+            Titulo,
+            Visible_Final,
+            true
+          );
+          return true;
+        }
+
+        if (Visible !== null) {
+          Guardar_Nombre_Slot_Muerto(
+            Clave,
+            Nombre_Actual,
+            Visible,
+            false
+          );
+        }
+        return false;
+      }
+
+      function Sincronizar_Slots_Muertos_De_Tipo(Tipo_Id) {
+        Slots_Muertos.forEach((Clave) => {
+          if (Slots_Muertos_Tipos[Clave] !== Tipo_Id) return;
+          const Visible_Actual =
+            typeof Slots_Muertos_Titulos_Visibles[Clave] ===
+              "boolean"
+              ? Slots_Muertos_Titulos_Visibles[Clave]
+              : null;
+          Sincronizar_Titulo_Slot_Muerto_Clave(
+            Clave,
+            Tipo_Id,
+            Visible_Actual
+          );
+        });
+      }
+
+      function Normalizar_Metadata_Titulos_Slots_Muertos() {
+        Object.keys(Slots_Muertos_Titulos_Visibles)
+          .forEach((Clave) => {
+            if (!Obtener_Nombre_Slot_Por_Clave(Clave)) {
+              delete Slots_Muertos_Titulos_Visibles[Clave];
+            }
+          });
+        Object.keys(Slots_Muertos_Nombres_Auto).forEach(
+          (Clave) => {
+            if (
+              !Obtener_Nombre_Slot_Por_Clave(Clave) ||
+              !Slots_Muertos.includes(Clave)
+            ) {
+              delete Slots_Muertos_Nombres_Auto[Clave];
+            }
+          }
+        );
+
+        Object.keys(Slots_Muertos_Nombres).forEach((Clave) => {
+          const Nombre =
+            Obtener_Nombre_Slot_Por_Clave(Clave);
+          if (!Nombre) {
+            Limpiar_Nombre_Slot_Muerto(Clave);
+            return;
+          }
+          const Visible_Actual =
+            typeof Slots_Muertos_Titulos_Visibles[Clave] ===
+              "boolean"
+              ? Slots_Muertos_Titulos_Visibles[Clave]
+              : true;
+          if (!Slots_Muertos.includes(Clave)) {
+            Guardar_Nombre_Slot_Muerto(
+              Clave,
+              Nombre,
+              Visible_Actual,
+              false
+            );
+            return;
+          }
+          const Tipo_Id =
+            Slots_Muertos_Tipos[Clave] || "Slot_Vacio";
+          const Titulo = Obtener_Titulo_Tipo_Slot(Tipo_Id);
+          const Auto_Actual =
+            typeof Slots_Muertos_Nombres_Auto[Clave] ===
+              "boolean"
+              ? Slots_Muertos_Nombres_Auto[Clave]
+              : Boolean(Titulo && Nombre === Titulo);
+          Guardar_Nombre_Slot_Muerto(
+            Clave,
+            Nombre,
+            Visible_Actual,
+            Auto_Actual
+          );
+        });
+
+        Slots_Muertos.forEach((Clave) => {
+          if (Obtener_Nombre_Slot_Por_Clave(Clave)) return;
+          const Tipo_Id =
+            Slots_Muertos_Tipos[Clave] || "Slot_Vacio";
+          const Titulo = Obtener_Titulo_Tipo_Slot(Tipo_Id);
+          if (Titulo) {
+            Guardar_Nombre_Slot_Muerto(
+              Clave,
+              Titulo,
+              false,
+              true
+            );
+          }
+        });
+      }
+
       function Obtener_Nombre_Slot(Fecha, Hora) {
         const Clave = Clave_Slot(Fecha, Hora);
-        return Slots_Muertos_Nombres[Clave] || "";
+        return Obtener_Nombre_Slot_Por_Clave(Clave);
+      }
+
+      function Obtener_Nombre_Slot_Visible(Fecha, Hora) {
+        const Clave = Clave_Slot(Fecha, Hora);
+        return Slot_Muerto_Titulo_Es_Visible_Clave(Clave)
+          ? Obtener_Nombre_Slot_Por_Clave(Clave)
+          : "";
+      }
+
+      function Slot_Muerto_Titulo_Es_Visible(Fecha, Hora) {
+        return Slot_Muerto_Titulo_Es_Visible_Clave(
+          Clave_Slot(Fecha, Hora)
+        );
+      }
+
+      function Slot_Muerto_Nombre_Es_Auto(Fecha, Hora) {
+        return Slot_Muerto_Nombre_Es_Auto_Clave(
+          Clave_Slot(Fecha, Hora)
+        );
       }
 
       function Rangos_Horarios_Se_Solapan(
@@ -38922,10 +39206,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         const Tipo = Obtener_Tipo_Slot_Por_Id(Tipo_Id);
         const Titulo = Obtener_Titulo_Tipo_Slot(Tipo_Id);
-        if (!Tipo?.Titulo_Por_Defecto || !Titulo) {
+        if (!Titulo) {
+          Limpiar_Nombre_Slot_Muerto(Clave);
           return false;
         }
-        Slots_Muertos_Nombres[Clave] = Titulo;
+        Guardar_Nombre_Slot_Muerto(
+          Clave,
+          Titulo,
+          Boolean(Tipo?.Titulo_Por_Defecto),
+          true
+        );
         return true;
       }
 
@@ -38977,8 +39267,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Slot_En_Alcance_Titulo_Default(Clave, Alcance)) {
             return;
           }
-          if (Slots_Muertos_Nombres[Clave] === Texto) return;
-          Slots_Muertos_Nombres[Clave] = Texto;
+          const Visible_Actual =
+            typeof Slots_Muertos_Titulos_Visibles[Clave] ===
+              "boolean"
+              ? Slots_Muertos_Titulos_Visibles[Clave]
+              : Boolean(
+                  Obtener_Nombre_Slot_Por_Clave(Clave)
+                );
+          const Nombre_Actual =
+            Obtener_Nombre_Slot_Por_Clave(Clave);
+          if (
+            Nombre_Actual === Texto &&
+            Slot_Muerto_Nombre_Es_Auto_Clave(Clave)
+          ) {
+            return;
+          }
+          Guardar_Nombre_Slot_Muerto(
+            Clave,
+            Texto,
+            Visible_Actual,
+            true
+          );
           Cambios += 1;
         });
         return Cambios;
@@ -39006,28 +39315,48 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Slot_Muerto_Tiene_Titulo(Fecha, Hora) {
-        return Slot_Es_Muerto(Fecha, Hora) && Boolean(
-          Normalizar_Texto_Titulo_Slot(
-            Obtener_Nombre_Slot(Fecha, Hora)
-          )
-        );
+        return Slot_Muerto_Titulo_Es_Visible(Fecha, Hora);
       }
 
       function Colocar_Titulo_Slot_Muerto(Fecha, Hora) {
         const Clave = Clave_Slot(Fecha, Hora);
+        const Nombre_Actual =
+          Obtener_Nombre_Slot_Por_Clave(Clave);
+        if (Nombre_Actual) {
+          Guardar_Nombre_Slot_Muerto(
+            Clave,
+            Nombre_Actual,
+            true,
+            Slot_Muerto_Nombre_Es_Auto(Fecha, Hora)
+          );
+          return true;
+        }
         const Tipo_Id =
           Slots_Muertos_Tipos[Clave] ||
           Obtener_Aplica_A_Slot(Fecha, Hora);
-        const Titulo = Obtener_Titulo_Tipo_Slot(Tipo_Id);
-        if (!Titulo) return false;
-        Slots_Muertos_Nombres[Clave] = Titulo;
-        return true;
+        return Sincronizar_Titulo_Slot_Muerto_Clave(
+          Clave,
+          Tipo_Id,
+          true
+        );
       }
 
       function Quitar_Titulo_Slot_Muerto(Fecha, Hora) {
         const Clave = Clave_Slot(Fecha, Hora);
-        if (!Slots_Muertos_Nombres[Clave]) return false;
-        delete Slots_Muertos_Nombres[Clave];
+        const Nombre_Actual =
+          Obtener_Nombre_Slot_Por_Clave(Clave);
+        if (
+          !Nombre_Actual ||
+          !Slot_Muerto_Titulo_Es_Visible(Fecha, Hora)
+        ) {
+          return false;
+        }
+        Guardar_Nombre_Slot_Muerto(
+          Clave,
+          Nombre_Actual,
+          false,
+          Slot_Muerto_Nombre_Es_Auto(Fecha, Hora)
+        );
         return true;
       }
 
@@ -39039,11 +39368,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Index === -1) {
           // Libre → primer tipo.
-          Crear_Slot_Muerto(
+          const Tipo_Inicial =
+            Tipos[0]?.Id || "Sueno";
+          const Clave_Nueva = Crear_Slot_Muerto(
             Fecha,
             Hora,
-            Tipos[0]?.Id || "Sueno",
+            Tipo_Inicial,
             false
+          );
+          const Nombre_Guardado =
+            Obtener_Nombre_Slot_Por_Clave(Clave_Nueva);
+          const Nombre_Auto =
+            Slot_Muerto_Nombre_Es_Auto_Clave(Clave_Nueva);
+          const Visible_Inicial =
+            Nombre_Guardado && !Nombre_Auto
+              ? true
+              : null;
+          Sincronizar_Titulo_Slot_Muerto_Clave(
+            Clave_Nueva,
+            Tipo_Inicial,
+            Visible_Inicial
           );
         } else {
           const Tipo_Actual =
@@ -39052,17 +39396,47 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Idx_Actual = Tipos.findIndex(
             (T) => T.Id === Tipo_Actual
           );
-          if (
-            Idx_Actual >= 0 &&
-            Idx_Actual < Tipos.length - 1
-          ) {
+          const Titulo_Visible_Actual =
+            Slot_Muerto_Titulo_Es_Visible_Clave(Clave);
+          if (Idx_Actual === -1) {
+            const Tipo_Inicial =
+              Tipos[0]?.Id || "Sueno";
+            Slots_Muertos_Tipos[Clave] = Tipo_Inicial;
+            Sincronizar_Titulo_Slot_Muerto_Clave(
+              Clave,
+              Tipo_Inicial,
+              Titulo_Visible_Actual
+            );
+          } else if (Idx_Actual < Tipos.length - 1) {
             // Avanzar al siguiente tipo.
+            const Tipo_Siguiente =
+              Tipos[Idx_Actual + 1]?.Id ||
+              Tipos[0]?.Id || "Sueno";
             Slots_Muertos_Tipos[Clave] =
-              Tipos[Idx_Actual + 1].Id;
+              Tipo_Siguiente;
+            Sincronizar_Titulo_Slot_Muerto_Clave(
+              Clave,
+              Tipo_Siguiente,
+              Titulo_Visible_Actual
+            );
           } else {
             // Último tipo → Libre.
+            const Nombre_Actual =
+              Obtener_Nombre_Slot_Por_Clave(Clave);
+            const Nombre_Auto =
+              Slot_Muerto_Nombre_Es_Auto_Clave(Clave);
             Slots_Muertos.splice(Index, 1);
             delete Slots_Muertos_Tipos[Clave];
+            if (Nombre_Actual) {
+              Guardar_Nombre_Slot_Muerto(
+                Clave,
+                Nombre_Actual,
+                false,
+                Nombre_Auto
+              );
+            } else {
+              Limpiar_Nombre_Slot_Muerto(Clave);
+            }
           }
         }
         Render_Calendario();
@@ -39072,7 +39446,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Editar_Nombre_Slot(Fecha, Hora) {
         const Clave = Clave_Slot(Fecha, Hora);
         const Nombre_Actual =
-          Slots_Muertos_Nombres[Clave] || "";
+          Obtener_Nombre_Slot_Por_Clave(Clave);
         const Valor = await Mostrar_Dialogo_Con_Texto(
           t("slot.nombre_prompt"),
           {
@@ -39083,9 +39457,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Valor === null) return;
         const Nombre = Valor.trim();
         if (Nombre) {
-          Slots_Muertos_Nombres[Clave] = Nombre;
+          Guardar_Nombre_Slot_Muerto(
+            Clave,
+            Nombre,
+            true,
+            false
+          );
         } else {
-          delete Slots_Muertos_Nombres[Clave];
+          const Tipo_Id =
+            Slots_Muertos_Tipos[Clave] ||
+            Obtener_Aplica_A_Slot(Fecha, Hora);
+          const Restauro =
+            Sincronizar_Titulo_Slot_Muerto_Clave(
+              Clave,
+              Tipo_Id,
+              false
+            );
+          if (!Restauro) {
+            Limpiar_Nombre_Slot_Muerto(Clave);
+          }
         }
         Render_Calendario();
         Guardar_Estado();
@@ -39449,6 +39839,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Tipos_Slot_Inicializados,
           Slots_Muertos_Tipos,
           Slots_Muertos_Nombres,
+          Slots_Muertos_Titulos_Visibles,
+          Slots_Muertos_Nombres_Auto,
           Abordajes_Migrados_V1: true,
           Semanas_Con_Defaults: Array.from(Semanas_Con_Defaults),
           Planes_Semana
@@ -39737,6 +40129,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           } else {
             Slots_Muertos_Nombres = {};
           }
+          if (
+            Estado.Slots_Muertos_Titulos_Visibles &&
+            typeof Estado.Slots_Muertos_Titulos_Visibles ===
+              "object"
+          ) {
+            Slots_Muertos_Titulos_Visibles =
+              Estado.Slots_Muertos_Titulos_Visibles;
+          } else {
+            Slots_Muertos_Titulos_Visibles = {};
+          }
+          if (
+            Estado.Slots_Muertos_Nombres_Auto &&
+            typeof Estado.Slots_Muertos_Nombres_Auto ===
+              "object"
+          ) {
+            Slots_Muertos_Nombres_Auto =
+              Estado.Slots_Muertos_Nombres_Auto;
+          } else {
+            Slots_Muertos_Nombres_Auto = {};
+          }
+          Normalizar_Metadata_Titulos_Slots_Muertos();
           if (Array.isArray(Estado.Categorias)) {
             Categorias = Estado.Categorias;
           }
@@ -41737,9 +42150,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Obtener_Color_Tipo_Slot(Tipo_M)
             );
           }
-          const Nombre_Slot = Slot_Es_Muerto(Fecha_ISO, Hora)
-            ? Obtener_Nombre_Slot(Fecha_ISO, Hora)
-            : "";
+          const Nombre_Slot =
+            Obtener_Nombre_Slot_Visible(
+              Fecha_ISO,
+              Hora
+            );
           if (Nombre_Slot) {
             const Nombre_El = document.createElement("div");
             Nombre_El.className = "Slot_Muerto_Nombre";

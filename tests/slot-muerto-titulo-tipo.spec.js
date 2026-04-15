@@ -62,7 +62,7 @@ async function preparar(page, estadoInicial) {
   );
 }
 
-test("aplica y alterna titulo por tipo en slots muertos", async ({
+test("mantiene el titulo aunque se oculte", async ({
   page
 }) => {
   const estadoInicial = {
@@ -134,20 +134,22 @@ test("aplica y alterna titulo por tipo en slots muertos", async ({
         Id: "Comida",
         Nombre: "Comida",
         Color: "#f3d39d",
-        Titulo: "ðŸ½ï¸ Almuerzo",
+        Titulo: "Almuerzo",
         Titulo_Por_Defecto: true
       },
       {
         Id: "Siesta",
         Nombre: "Siesta",
         Color: "#cfd8ff",
-        Titulo: "ðŸ˜´ Siesta",
+        Titulo: "Siesta",
         Titulo_Por_Defecto: false
       }
     ],
     Tipos_Slot_Inicializados: true,
     Slots_Muertos_Tipos: {},
     Slots_Muertos_Nombres: {},
+    Slots_Muertos_Titulos_Visibles: {},
+    Slots_Muertos_Nombres_Auto: {},
     Abordajes_Migrados_V1: true,
     Semanas_Con_Defaults: [],
     Planes_Semana: {}
@@ -155,7 +157,7 @@ test("aplica y alterna titulo por tipo en slots muertos", async ({
 
   await preparar(page, estadoInicial);
 
-  const resultado = await page.evaluate(async () => {
+  const resultado = await page.evaluate(() => {
     document.getElementById("Auth_Overlay")
       ?.classList.remove("Activo");
     document.getElementById("App_Loader")
@@ -166,11 +168,19 @@ test("aplica y alterna titulo por tipo en slots muertos", async ({
     const Clave_10 = "2026-04-13|10";
     const Titulo_Inicial =
       Slots_Muertos_Nombres[Clave_10] || "";
+    const Titulo_Inicial_Visible = Boolean(
+      Slots_Muertos_Titulos_Visibles[Clave_10]
+    );
 
     Crear_Slot_Muerto("2026-04-13", 11, "Siesta");
     const Clave_11 = "2026-04-13|11";
-    const Titulo_Sin_Default =
+    const Titulo_Oculto =
       Slots_Muertos_Nombres[Clave_11] || "";
+    const Titulo_Oculto_Visible = Boolean(
+      Slots_Muertos_Titulos_Visibles[Clave_11]
+    );
+    const Titulo_Oculto_En_UI =
+      Obtener_Nombre_Slot_Visible("2026-04-13", 11);
 
     Mostrar_Menu_Slot("2026-04-13", 10, 10, 10);
     const Etiqueta_Quitar = document
@@ -181,6 +191,9 @@ test("aplica y alterna titulo por tipo en slots muertos", async ({
       ?.click();
     const Tras_Quitar =
       Slots_Muertos_Nombres[Clave_10] || "";
+    const Tras_Quitar_Visible = Boolean(
+      Slots_Muertos_Titulos_Visibles[Clave_10]
+    );
 
     Mostrar_Menu_Slot("2026-04-13", 10, 10, 10);
     const Etiqueta_Colocar = document
@@ -191,23 +204,36 @@ test("aplica y alterna titulo por tipo en slots muertos", async ({
       ?.click();
     const Tras_Colocar =
       Slots_Muertos_Nombres[Clave_10] || "";
+    const Tras_Colocar_Visible = Boolean(
+      Slots_Muertos_Titulos_Visibles[Clave_10]
+    );
 
     return {
       Titulo_Inicial,
-      Titulo_Sin_Default,
+      Titulo_Inicial_Visible,
+      Titulo_Oculto,
+      Titulo_Oculto_Visible,
+      Titulo_Oculto_En_UI,
       Etiqueta_Quitar,
       Etiqueta_Colocar,
       Tras_Quitar,
-      Tras_Colocar
+      Tras_Quitar_Visible,
+      Tras_Colocar,
+      Tras_Colocar_Visible
     };
   });
 
-  expect(resultado.Titulo_Inicial).toBe("");
-  expect(resultado.Titulo_Sin_Default).toBe("");
-  expect(resultado.Etiqueta_Quitar).toContain("Colocar");
-  expect(resultado.Tras_Quitar).toContain("Almuerzo");
-  expect(resultado.Etiqueta_Colocar).toContain("Quitar");
-  expect(resultado.Tras_Colocar).toBe("");
+  expect(resultado.Titulo_Inicial).toBe("Almuerzo");
+  expect(resultado.Titulo_Inicial_Visible).toBeTruthy();
+  expect(resultado.Titulo_Oculto).toBe("Siesta");
+  expect(resultado.Titulo_Oculto_Visible).toBeFalsy();
+  expect(resultado.Titulo_Oculto_En_UI).toBe("");
+  expect(resultado.Etiqueta_Quitar).toBe("Quitar título");
+  expect(resultado.Tras_Quitar).toBe("Almuerzo");
+  expect(resultado.Tras_Quitar_Visible).toBeFalsy();
+  expect(resultado.Etiqueta_Colocar).toBe("Colocar título");
+  expect(resultado.Tras_Colocar).toBe("Almuerzo");
+  expect(resultado.Tras_Colocar_Visible).toBeTruthy();
 });
 
 test("el doble click en un slot muerto con titulo sigue alternando", async ({
@@ -282,14 +308,14 @@ test("el doble click en un slot muerto con titulo sigue alternando", async ({
         Id: "Comida",
         Nombre: "Comida",
         Color: "#f3d39d",
-        Titulo: "Ã°Å¸ÂÂ½Ã¯Â¸Â Almuerzo",
+        Titulo: "Almuerzo",
         Titulo_Por_Defecto: true
       },
       {
         Id: "Siesta",
         Nombre: "Siesta",
         Color: "#cfd8ff",
-        Titulo: "Ã°Å¸ËœÂ´ Siesta",
+        Titulo: "Siesta",
         Titulo_Por_Defecto: true
       }
     ],
@@ -298,7 +324,7 @@ test("el doble click en un slot muerto con titulo sigue alternando", async ({
       "2026-04-13|10": "Comida"
     },
     Slots_Muertos_Nombres: {
-      "2026-04-13|10": "Ã°Å¸ÂÂ½Ã¯Â¸Â Almuerzo"
+      "2026-04-13|10": "Almuerzo"
     },
     Abordajes_Migrados_V1: true,
     Semanas_Con_Defaults: [],
@@ -344,7 +370,7 @@ test("el doble click en un slot muerto con titulo sigue alternando", async ({
   });
 
   expect(resultado.tipo).toBe("Siesta");
-  expect(resultado.titulo).toContain("Almuerzo");
+  expect(resultado.titulo).toContain("Siesta");
   expect(["", "none"]).toContain(resultado.user_select);
 });
 
@@ -420,7 +446,7 @@ test("el doble click en un slot vacio lo convierte en slot muerto", async ({
         Id: "Comida",
         Nombre: "Comida",
         Color: "#f3d39d",
-        Titulo: "ÃƒÂ°Ã…Â¸Ã‚ÂÃ‚Â½ÃƒÂ¯Ã‚Â¸Ã‚Â Almuerzo",
+        Titulo: "Almuerzo",
         Titulo_Por_Defecto: true
       }
     ],
@@ -466,7 +492,7 @@ test("el doble click en un slot vacio lo convierte en slot muerto", async ({
 
   expect(resultado.existe).toBe(true);
   expect(resultado.tipo).toBe("Comida");
-  expect(resultado.titulo).toBe("");
+  expect(resultado.titulo).toBe("Almuerzo");
 });
 
 test("el bloque conserva su titulo al volver a slot muerto", async ({
