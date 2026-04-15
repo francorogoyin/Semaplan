@@ -227,6 +227,13 @@ async function Pulsar_Largo_Touch(page, selector) {
   }, Datos);
 }
 
+async function Abrir_Objetivos_Compactos(page) {
+  await page.click("#Sidebar_Compacta_Boton");
+  await expect(
+    page.locator("#Sidebar_Compacta_Overlay")
+  ).toHaveClass(/Activo/);
+}
+
 test(
   "permite flujo touch para crear y gestionar bloques",
   async ({ page }) => {
@@ -246,12 +253,16 @@ test(
       return Objetivo.Id;
     });
 
+    await Abrir_Objetivos_Compactos(page);
     await page.click(
       `#Barra_Emojis button[data-objetivo-id="${Objetivo_Id}"]`
     );
 
     const Estado_Touch = await page.evaluate(() => {
       return {
+        Sidebar_Compacta: document.getElementById(
+          "Sidebar_Compacta_Overlay"
+        )?.classList.contains("Activo"),
         Overlay: document.getElementById(
           "Objetivo_Modal_Overlay"
         )?.classList.contains("Activo"),
@@ -264,6 +275,7 @@ test(
     });
 
     expect(Estado_Touch.Overlay).toBeFalsy();
+    expect(Estado_Touch.Sidebar_Compacta).toBeFalsy();
     expect(Estado_Touch.Modo_Touch).toBeTruthy();
     expect(Estado_Touch.Armado).toBe(Objetivo_Id);
     expect(Estado_Touch.Seleccionado).toBeNull();
@@ -312,6 +324,7 @@ test(
       Render_Emojis();
     });
 
+    await Abrir_Objetivos_Compactos(page);
     const Selector =
       `#Barra_Emojis button[data-objetivo-id="${Objetivos_Ids[1]}"]`;
     await Pulsar_Largo_Touch(page, Selector);

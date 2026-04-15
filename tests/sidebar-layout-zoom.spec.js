@@ -151,7 +151,7 @@ function Crear_Estado_Base() {
 }
 
 test(
-  "reordena calendario y compacta sidebar al comprimirse",
+  "reemplaza el sidebar comprimido por un modal de objetivos",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());
 
@@ -219,37 +219,25 @@ test(
         ".Calendario_Contenedor"
       );
       const Sidebar = document.querySelector(".Panel_Lateral");
-      const Barra = document.getElementById("Barra_Emojis");
+      const Boton = document.getElementById(
+        "Sidebar_Compacta_Boton"
+      );
+      const Overlay = document.getElementById(
+        "Sidebar_Compacta_Overlay"
+      );
       const Top = document.querySelector(".Calendario_Top");
       const Top_Acciones = document.getElementById(
         "Calendario_Top_Acciones"
       );
-      const Semana_Nav = document.querySelector(
-        ".Semana_Navegacion"
-      );
-      const Emoji_Lefts = Array.from(
-        document.querySelectorAll("#Barra_Emojis .Emoji_Item")
-      ).map((Nodo) =>
-        Math.round(Nodo.getBoundingClientRect().left)
-      );
-      const Columnas_Emojis = Array.from(
-        new Set(Emoji_Lefts)
-      ).length;
-      const Header = document.querySelector(
-        "#Barra_Emojis .Cat_Header"
-      );
       const App_Estilos = getComputedStyle(App);
-      const Barra_Estilos = getComputedStyle(Barra);
+      const Sidebar_Estilos = getComputedStyle(Sidebar);
+      const Boton_Estilos = getComputedStyle(Boton);
       const Top_Acciones_Estilos =
         getComputedStyle(Top_Acciones);
       const Calendario_Rect = Calendario.getBoundingClientRect();
-      const Sidebar_Rect = Sidebar.getBoundingClientRect();
-      const Header_Rect = Header.getBoundingClientRect();
       const Top_Rect = Top.getBoundingClientRect();
       const Top_Acciones_Rect =
         Top_Acciones.getBoundingClientRect();
-      const Semana_Nav_Rect =
-        Semana_Nav.getBoundingClientRect();
 
       return {
         App_Columnas: App_Estilos.gridTemplateColumns,
@@ -257,49 +245,89 @@ test(
           App_Estilos.gridTemplateColumns
             .split(" ")
             .filter(Boolean).length,
-        Barra_Display: Barra_Estilos.display,
+        Sidebar_Display: Sidebar_Estilos.display,
+        Boton_Display: Boton_Estilos.display,
+        Boton_Fondo: Boton_Estilos.backgroundColor,
         Top_Acciones_Justify:
           Top_Acciones_Estilos.justifyContent,
         Calendario_Top: Math.round(Calendario_Rect.top),
-        Calendario_Bottom: Math.round(Calendario_Rect.bottom),
-        Sidebar_Top: Math.round(Sidebar_Rect.top),
-        Sidebar_Bottom: Math.round(Sidebar_Rect.bottom),
-        Columnas_Emojis,
-        Header_Width: Math.round(Header_Rect.width),
-        Barra_Width: Math.round(
-          Barra.getBoundingClientRect().width
-        ),
+        Overlay_Activa: Overlay.classList.contains("Activo"),
         Top_Derecha: Math.round(Top_Rect.right),
         Top_Acciones_Derecha: Math.round(
           Top_Acciones_Rect.right
-        ),
-        Top_Acciones_Izquierda: Math.round(
-          Top_Acciones_Rect.left
-        ),
-        Semana_Nav_Derecha: Math.round(
-          Semana_Nav_Rect.right
         )
       };
     });
 
     expect(Layout.App_Columnas_Cantidad).toBe(1);
-    expect(Layout.Calendario_Top).toBeLessThan(
-      Layout.Sidebar_Top
-    );
-    expect(Layout.Calendario_Bottom).toBeLessThanOrEqual(
-      Layout.Sidebar_Top
-    );
-    expect(Layout.Barra_Display).toBe("grid");
-    expect(Layout.Columnas_Emojis).toBeLessThanOrEqual(2);
-    expect(Layout.Header_Width).toBeGreaterThanOrEqual(
-      Layout.Barra_Width - 2
-    );
+    expect(Layout.Sidebar_Display).toBe("none");
+    expect(Layout.Boton_Display).toBe("grid");
+    expect(Layout.Boton_Fondo).toBe("rgb(47, 120, 255)");
+    expect(Layout.Overlay_Activa).toBeFalsy();
     expect(Layout.Top_Acciones_Justify).toBe("flex-end");
     expect(
       Layout.Top_Derecha - Layout.Top_Acciones_Derecha
     ).toBeLessThanOrEqual(24);
-    expect(Layout.Top_Acciones_Izquierda).toBeGreaterThanOrEqual(
-      Layout.Semana_Nav_Derecha - 8
-    );
+
+    await page.click("#Sidebar_Compacta_Boton");
+
+    const Modal = await page.evaluate(() => {
+      const Sidebar = document.querySelector(".Panel_Lateral");
+      const Overlay = document.getElementById(
+        "Sidebar_Compacta_Overlay"
+      );
+      const Barra = document.getElementById("Barra_Emojis");
+      const Header = document.querySelector(
+        "#Barra_Emojis .Cat_Header"
+      );
+      const Sidebar_Rect = Sidebar.getBoundingClientRect();
+      return {
+        Body_Activa: document.body.classList.contains(
+          "Sidebar_Compacta_Activa"
+        ),
+        Overlay_Activa: Overlay.classList.contains("Activo"),
+        Sidebar_Display: getComputedStyle(Sidebar).display,
+        Sidebar_Position: getComputedStyle(Sidebar).position,
+        Sidebar_Ancho: Math.round(Sidebar_Rect.width),
+        Sidebar_Alto: Math.round(Sidebar_Rect.height),
+        Centro_X: Math.round(
+          Sidebar_Rect.left + Sidebar_Rect.width / 2
+        ),
+        Centro_Y: Math.round(
+          Sidebar_Rect.top + Sidebar_Rect.height / 2
+        ),
+        Viewport_X: Math.round(window.innerWidth / 2),
+        Viewport_Y: Math.round(window.innerHeight / 2),
+        Barra_Display: getComputedStyle(Barra).display,
+        Emoji_Cantidad: document.querySelectorAll(
+          "#Barra_Emojis .Emoji_Item"
+        ).length,
+        Header_Texto: Header?.textContent?.trim() || "",
+        Crear_Display: getComputedStyle(
+          document.getElementById("Mostrar_Creador")
+        ).display
+      };
+    });
+
+    expect(Modal.Body_Activa).toBeTruthy();
+    expect(Modal.Overlay_Activa).toBeTruthy();
+    expect(Modal.Sidebar_Display).toBe("block");
+    expect(Modal.Sidebar_Position).toBe("fixed");
+    expect(Math.abs(Modal.Centro_X - Modal.Viewport_X))
+      .toBeLessThanOrEqual(24);
+    expect(Math.abs(Modal.Centro_Y - Modal.Viewport_Y))
+      .toBeLessThanOrEqual(24);
+    expect(Modal.Sidebar_Ancho).toBeGreaterThanOrEqual(300);
+    expect(Modal.Sidebar_Alto).toBeGreaterThanOrEqual(300);
+    expect(Modal.Barra_Display).toBe("flex");
+    expect(Modal.Emoji_Cantidad).toBeGreaterThanOrEqual(5);
+    expect(Modal.Header_Texto).toContain("Proyectos");
+    expect(Modal.Crear_Display).not.toBe("none");
+
+    await page.mouse.click(8, 8);
+
+    await expect(
+      page.locator("#Sidebar_Compacta_Overlay")
+    ).not.toHaveClass(/Activo/);
   }
 );
