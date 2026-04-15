@@ -31302,7 +31302,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Hijos = Planner_Subplanes_De(Plan.Id)
           .sort((A, B) => (A.Inicio || "").localeCompare(B.Inicio || ""));
         const Tipo_Hijo = Planner_Sugerir_Hijo_Tipo(Plan.Tipo);
-        const Tx_Bread = Planner_Chain_Breadcrumb(Plan);
 
         Cont.appendChild(
           Crear_Hero_Planes(
@@ -31312,25 +31311,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           )
         );
 
-        const Bread = document.createElement("div");
-        Bread.className = "Planner_Breadcrumb";
-        Bread.textContent = Tx_Bread || R.Etiqueta;
-        Cont.appendChild(Bread);
-
         const Grid = document.createElement("div");
         Grid.className = "Planner_Grid";
 
         const Card_Edit = document.createElement("div");
         Card_Edit.className = "Planner_Card";
-        const T_In = document.createElement("input");
-        T_In.className = "Planner_Titulo_Input";
-        T_In.value = Plan.Titulo || "";
-        T_In.placeholder = R.Titulo || "";
-        T_In.addEventListener("change", () => {
-          Planner_Actualizar_Plan(Plan, { Titulo: T_In.value || "" });
-        });
-        Card_Edit.appendChild(T_In);
-
         const Nota = document.createElement("textarea");
         Nota.className = "Plan_Nota_Input";
         Nota.value = Plan.Nota || "";
