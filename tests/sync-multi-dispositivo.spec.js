@@ -50,6 +50,47 @@ function Crear_Estado(Nombres) {
   };
 }
 
+function Crear_Estado_Con_Slot(Fecha, Hora) {
+  const Estado = Crear_Estado(["Base remota"]);
+  const Clave = `${Fecha}|${Hora}`;
+  Estado.Slots_Muertos = [Clave];
+  Estado.Slots_Muertos_Tipos = {
+    [Clave]: "Comida"
+  };
+  Estado.Slots_Muertos_Nombres = {
+    [Clave]: "Almuerzo"
+  };
+  Estado.Slots_Muertos_Titulos_Visibles = {
+    [Clave]: true
+  };
+  Estado.Slots_Muertos_Nombres_Auto = {
+    [Clave]: false
+  };
+  Estado.Planes_Slot = {
+    [Clave]: {
+      Items: [
+        {
+          Id: "plan_slot_1",
+          Texto: "Idea central",
+          Emoji: "*",
+          Estado: "Planeado"
+        }
+      ]
+    }
+  };
+  Estado.Tipos_Slot = [
+    {
+      Id: "Comida",
+      Nombre: "Comida",
+      Color: "#f3d39d",
+      Titulo: "Almuerzo",
+      Titulo_Por_Defecto: true
+    }
+  ];
+  Estado.Tipos_Slot_Inicializados = true;
+  return Estado;
+}
+
 async function Preparar_App(page, Estado_Remoto) {
   await page.route(
     "https://cdn.jsdelivr.net/npm/@supabase/" +
@@ -460,6 +501,90 @@ test(
       "Cambio ocultando"
     );
     expect(Resumen.syncEstado).toBe("Guardado");
+  }
+);
+
+test(
+  "el sync no reintroduce slots muertos borrados " +
+  "al moverlos de hora",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado_Con_Slot("2026-04-13", 10)
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      const Clave_Origen = "2026-04-13|10";
+      const Clave_Destino = "2026-04-13|12";
+
+      Slots_Muertos = [Clave_Destino];
+      Slots_Muertos_Tipos = {
+        [Clave_Destino]:
+          Slots_Muertos_Tipos[Clave_Origen]
+      };
+      Slots_Muertos_Nombres = {
+        [Clave_Destino]:
+          Slots_Muertos_Nombres[Clave_Origen]
+      };
+      Slots_Muertos_Titulos_Visibles = {
+        [Clave_Destino]:
+          Slots_Muertos_Titulos_Visibles[Clave_Origen]
+      };
+      Slots_Muertos_Nombres_Auto = {
+        [Clave_Destino]:
+          Slots_Muertos_Nombres_Auto[Clave_Origen]
+      };
+      Planes_Slot = {
+        [Clave_Destino]:
+          JSON.parse(
+            JSON.stringify(Planes_Slot[Clave_Origen])
+          )
+      };
+
+      Guardar_Estado();
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+      await Backend_Sync_Ejecutar();
+
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+      const Estado_Remoto =
+        window.__Estado_Remoto?.estado || {};
+
+      return {
+        local_slots: Estado_Local.Slots_Muertos || [],
+        remoto_slots: Estado_Remoto.Slots_Muertos || [],
+        remoto_tipo_origen:
+          Estado_Remoto.Slots_Muertos_Tipos?.[
+            Clave_Origen
+          ] || "",
+        remoto_tipo_destino:
+          Estado_Remoto.Slots_Muertos_Tipos?.[
+            Clave_Destino
+          ] || "",
+        remoto_plan_origen:
+          Estado_Remoto.Planes_Slot?.[
+            Clave_Origen
+          ]?.Items?.length || 0,
+        remoto_plan_destino:
+          Estado_Remoto.Planes_Slot?.[
+            Clave_Destino
+          ]?.Items?.length || 0
+      };
+    });
+
+    expect(Resumen.local_slots).toEqual([
+      "2026-04-13|12"
+    ]);
+    expect(Resumen.remoto_slots).toEqual([
+      "2026-04-13|12"
+    ]);
+    expect(Resumen.remoto_tipo_origen).toBe("");
+    expect(Resumen.remoto_tipo_destino).toBe("Comida");
+    expect(Resumen.remoto_plan_origen).toBe(0);
+    expect(Resumen.remoto_plan_destino).toBe(1);
   }
 );
 
