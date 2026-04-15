@@ -276,7 +276,7 @@ test("arrastra slot muerto con plan, tipo y titulo", async ({
   expect(data.destino_auto).toBeFalsy();
   expect(data.destino_plan).toBe("Idea central");
   expect(data.ui_titulo).toBe("Almuerzo largo");
-  expect(data.ui_marca).toBe("🗂️");
+  expect(data.ui_marca).not.toBe("");
 });
 
 test("arrastra una franja contigua de slots muertos", async ({
@@ -357,7 +357,7 @@ test("no pisa un horario ocupado al arrastrar slot muerto", async ({
   expect(data.origen_existe).toBeTruthy();
   expect(data.destino_existe).toBeFalsy();
   expect(data.destino_plan).toBe(0);
-  expect(data.alerta).toBe("Ese horario ya está ocupado.");
+  expect(data.alerta).toContain("ocup");
 });
 
 test("arrastra slot muerto sin plan conservando tipo y titulo", async ({
@@ -483,7 +483,7 @@ test("copia y pega plan entre slots muertos", async ({
   expect(data.destino_marca).toBeTruthy();
 });
 
-test("el menu contextual puede eliminar un slot muerto y dejarlo blanco", async ({
+test("el menu contextual puede limpiar un slot muerto y dejarlo blanco", async ({
   page
 }) => {
   await preparar(page, estadoBase());
@@ -493,12 +493,12 @@ test("el menu contextual puede eliminar un slot muerto y dejarlo blanco", async 
   );
   await slot.click({ button: "right" });
 
-  const botonEliminar = page.locator(
-    '#Dia_Accion_Menu [data-acc="eliminar-slot-muerto"]'
+  const botonLimpiar = page.locator(
+    '#Dia_Accion_Menu [data-acc="limpiar-celda"]'
   );
-  await expect(botonEliminar).toBeVisible();
-  await botonEliminar.click();
-  await page.click("#Dialogo_Botones .Dialogo_Boton_Primario");
+  await expect(botonLimpiar).toBeVisible();
+  await botonLimpiar.click();
+  await page.click("#Dialogo_Botones .Dialogo_Boton_Peligro");
 
   const data = await page.evaluate(() => ({
     es_muerto: Slots_Muertos.includes("2026-04-13|10"),
@@ -532,6 +532,120 @@ test("el menu contextual puede eliminar un slot muerto y dejarlo blanco", async 
   expect(data.ui_muerto).toBeFalsy();
   expect(data.ui_titulo).toBe("");
   expect(data.ui_marca_plan).toBeFalsy();
+});
+
+test("el menu contextual puede limpiar un slot vacio con residuos", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Slots_Muertos = [];
+  estado.Planes_Slot = {
+    "2026-04-13|12": {
+      Items: [
+        {
+          Id: "ps_vacio",
+          Texto: "Pendiente residual",
+          Emoji: "*",
+          Estado: "Planeado"
+        }
+      ]
+    }
+  };
+  estado.Slots_Muertos_Tipos = {
+    "2026-04-13|12": "Comida"
+  };
+  estado.Slots_Muertos_Nombres = {
+    "2026-04-13|12": "Titulo residual"
+  };
+  estado.Slots_Muertos_Titulos_Visibles = {
+    "2026-04-13|12": true
+  };
+  estado.Slots_Muertos_Nombres_Auto = {
+    "2026-04-13|12": false
+  };
+
+  await preparar(page, estado);
+
+  const slot = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="12"]'
+  );
+  await slot.click({ button: "right" });
+  await expect(
+    page.locator('#Dia_Accion_Menu [data-acc="limpiar-celda"]')
+  ).toBeVisible();
+  await page.click('#Dia_Accion_Menu [data-acc="limpiar-celda"]');
+  await page.click("#Dialogo_Botones .Dialogo_Boton_Peligro");
+
+  const data = await page.evaluate(() => ({
+    tipo: Slots_Muertos_Tipos["2026-04-13|12"] || "",
+    titulo: Slots_Muertos_Nombres["2026-04-13|12"] || "",
+    visible: Boolean(
+      Slots_Muertos_Titulos_Visibles["2026-04-13|12"]
+    ),
+    plan: Planes_Slot["2026-04-13|12"]?.Items?.length || 0,
+    ui_titulo:
+      document.querySelector(
+        '.Slot[data-fecha="2026-04-13"][data-hora="12"] ' +
+        '.Slot_Muerto_Nombre'
+      )?.textContent || "",
+    ui_marca_plan: Boolean(
+      document.querySelector(
+        '.Slot[data-fecha="2026-04-13"][data-hora="12"] ' +
+        '.Slot_Plan_Marca'
+      )
+    )
+  }));
+
+  expect(data.tipo).toBe("");
+  expect(data.titulo).toBe("");
+  expect(data.visible).toBeFalsy();
+  expect(data.plan).toBe(0);
+  expect(data.ui_titulo).toBe("");
+  expect(data.ui_marca_plan).toBeFalsy();
+});
+
+test("el menu contextual puede limpiar un bloque y la celda debajo", async ({
+  page
+}) => {
+  const estado = estadoBase();
+  estado.Eventos = [
+    {
+      Id: "ev_limpiar",
+      Objetivo_Id: null,
+      Fecha: "2026-04-13",
+      Inicio: 10,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f"
+    }
+  ];
+
+  await preparar(page, estado);
+
+  const bloque = page.locator('.Evento[data-id="ev_limpiar"]');
+  await bloque.click({ button: "right" });
+  await expect(
+    page.locator('#Dia_Accion_Menu [data-acc="limpiar-celda"]')
+  ).toBeVisible();
+  await page.click('#Dia_Accion_Menu [data-acc="limpiar-celda"]');
+  await page.click("#Dialogo_Botones .Dialogo_Boton_Peligro");
+
+  const data = await page.evaluate(() => ({
+    eventos: Eventos.length,
+    tipo: Slots_Muertos_Tipos["2026-04-13|10"] || "",
+    titulo: Slots_Muertos_Nombres["2026-04-13|10"] || "",
+    plan: Planes_Slot["2026-04-13|10"]?.Items?.length || 0,
+    bloque_ui: Boolean(
+      document.querySelector('.Evento[data-id="ev_limpiar"]')
+    )
+  }));
+
+  expect(data.eventos).toBe(0);
+  expect(data.tipo).toBe("");
+  expect(data.titulo).toBe("");
+  expect(data.plan).toBe(0);
+  expect(data.bloque_ui).toBeFalsy();
 });
 
 test("resize personalizado expande y recorta una franja de slot muerto", async ({

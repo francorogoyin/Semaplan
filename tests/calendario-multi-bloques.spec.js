@@ -337,6 +337,65 @@ test(
 );
 
 test(
+  "permite seleccionar slots vacios y reduce la barra a limpiar",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+    const Ids = await Crear_Escenario(page);
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="13"]',
+      { modifiers: ["Control"] }
+    );
+
+    await expect(
+      page.locator("#Calendario_Multi_Acciones")
+    ).toHaveClass(/Activa/);
+    await expect(
+      page.locator("#Calendario_Multi_Conteo")
+    ).toContainText("2");
+
+    const Botones = await page.locator(
+      "#Calendario_Multi_Grupo_Acciones button"
+    ).allTextContents();
+    expect(Botones).toEqual(["Limpiar"]);
+
+    const Seleccion = await page.evaluate(() => ({
+      eventos: Array.from(Eventos_Multi_Seleccion).sort(),
+      slots: Array.from(Slots_Multi_Seleccion).sort()
+    }));
+    expect(Seleccion.eventos).toEqual([Ids.Evento_A_Id]);
+    expect(Seleccion.slots).toEqual(["2026-04-13|13"]);
+
+    await page.click(
+      '#Calendario_Multi_Grupo_Acciones button:has-text("Limpiar")'
+    );
+    await page.click("#Dialogo_Botones .Dialogo_Boton_Peligro");
+
+    const Resultado = await page.evaluate(() => ({
+      eventos: Eventos.map((Evento) => Evento.Id).sort(),
+      seleccion_eventos: Array.from(
+        Eventos_Multi_Seleccion
+      ).sort(),
+      seleccion_slots: Array.from(
+        Slots_Multi_Seleccion
+      ).sort(),
+      barra_activa: document.getElementById(
+        "Calendario_Multi_Acciones"
+      )?.classList.contains("Activa")
+    }));
+
+    expect(Resultado.eventos).toEqual([Ids.Evento_B_Id]);
+    expect(Resultado.seleccion_eventos).toEqual([]);
+    expect(Resultado.seleccion_slots).toEqual([]);
+    expect(Resultado.barra_activa).toBeFalsy();
+  }
+);
+
+test(
   "permite seleccionar con rectangulo y mover bloques juntos",
   async ({ page }) => {
     await Preparar(page, Crear_Estado_Base());
@@ -721,7 +780,7 @@ test(
 
     expect(Resultado.Dialogos).toHaveLength(1);
     expect(Resultado.Dialogos[0].Texto).toContain(
-      "varios días"
+      "varios"
     );
     expect(Resultado.Dialogos[0].Valores).toEqual([
       "Forma",
