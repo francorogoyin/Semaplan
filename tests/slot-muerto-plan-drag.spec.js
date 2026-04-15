@@ -366,3 +366,54 @@ test("arrastra slot muerto sin plan conservando tipo y titulo", async ({
   expect(data.ui_titulo).toBe("Almuerzo largo");
   expect(data.ui_marca_plan).toBeFalsy();
 });
+
+test("el menu contextual puede eliminar un slot muerto y dejarlo blanco", async ({
+  page
+}) => {
+  await preparar(page, estadoBase());
+
+  const slot = page.locator(
+    '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+  );
+  await slot.click({ button: "right" });
+
+  const botonEliminar = page.locator(
+    '#Dia_Accion_Menu [data-acc="eliminar-slot-muerto"]'
+  );
+  await expect(botonEliminar).toBeVisible();
+  await botonEliminar.click();
+  await page.click("#Dialogo_Botones .Dialogo_Boton_Primario");
+
+  const data = await page.evaluate(() => ({
+    es_muerto: Slots_Muertos.includes("2026-04-13|10"),
+    tipo: Slots_Muertos_Tipos["2026-04-13|10"] || "",
+    titulo: Slots_Muertos_Nombres["2026-04-13|10"] || "",
+    visible: Boolean(
+      Slots_Muertos_Titulos_Visibles["2026-04-13|10"]
+    ),
+    plan: Planes_Slot["2026-04-13|10"]?.Items?.length || 0,
+    ui_muerto: document.querySelector(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]'
+    )?.classList.contains("Slot_Muerto") || false,
+    ui_titulo:
+      document.querySelector(
+        '.Slot[data-fecha="2026-04-13"][data-hora="10"] ' +
+        '.Slot_Muerto_Nombre'
+      )?.textContent || "",
+    ui_marca_plan: Boolean(
+      document.querySelector(
+        '.Slot[data-fecha="2026-04-13"][data-hora="10"] ' +
+        '.Slot_Plan_Marca'
+      )
+    )
+  }));
+
+  expect(data.es_muerto).toBeFalsy();
+  expect(data.tipo).toBe("");
+  expect(data.titulo).toBe("");
+  expect(data.visible).toBeFalsy();
+  expect(data.plan).toBe(0);
+  expect(data.ui_muerto).toBeFalsy();
+  expect(data.ui_titulo).toBe("");
+  expect(data.ui_marca_plan).toBeFalsy();
+});

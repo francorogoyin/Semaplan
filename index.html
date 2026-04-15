@@ -15328,6 +15328,10 @@
           "slot.borrar_plan": "Borrar plan",
           "slot.borrar_plan_confirm":
             "¿Borrar el plan de este slot?",
+          "slot.eliminar_slot": "Eliminar slot",
+          "slot.eliminar_slot_confirm":
+            "¿Eliminar este slot muerto y su plan " +
+            "para dejar el horario en blanco?",
           "slot.sin_items": "Sin items todavía.",
           "slot.agregar_item": "Agregar item",
           "slot.sin_patrones_para":
@@ -17647,6 +17651,10 @@
           "slot.borrar_plan": "Delete plan",
           "slot.borrar_plan_confirm":
             "Delete this slot plan?",
+          "slot.eliminar_slot": "Delete slot",
+          "slot.eliminar_slot_confirm":
+            "Delete this dead slot and its plan " +
+            "to leave the time empty?",
           "slot.sin_items": "No items yet.",
           "slot.agregar_item": "Add item",
           "slot.sin_patrones_para":
@@ -20063,6 +20071,10 @@
           "slot.borrar_plan": "Apagar plano",
           "slot.borrar_plan_confirm":
             "Apagar o plano deste slot?",
+          "slot.eliminar_slot": "Excluir slot",
+          "slot.eliminar_slot_confirm":
+            "Excluir este slot morto e seu plano " +
+            "para deixar o horário em branco?",
           "slot.sin_items": "Sem itens ainda.",
           "slot.agregar_item": "Adicionar item",
           "slot.sin_patrones_para":
@@ -35024,6 +35036,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
+      async function Eliminar_Slot_Muerto_Con_Confirmacion(
+        Fecha, Hora
+      ) {
+        const Clave = Clave_Slot(Fecha, Hora);
+        const Index = Slots_Muertos.indexOf(Clave);
+        if (Index === -1) return;
+        if (Contar_Items_Plan_Slot(Fecha, Hora) > 0) {
+          const Confirmar = await Mostrar_Dialogo(
+            t("slot.eliminar_slot_confirm"),
+            [
+              { Label: t("cancelar"), Valor: false },
+              {
+                Label: t("dialog.confirmar_btn"),
+                Valor: true,
+                Primario: true
+              }
+            ]
+          );
+          if (!Confirmar) return;
+        }
+        Slots_Muertos.splice(Index, 1);
+        delete Slots_Muertos_Tipos[Clave];
+        delete Planes_Slot[Clave];
+        Limpiar_Metadata_Slot_Muerto(Clave);
+        if (Plan_Slot_Clave_Activa === Clave) {
+          Cerrar_Modal_Plan_Slot();
+        }
+        Render_Calendario();
+        Guardar_Estado();
+      }
+
       function Repetir_Slot_Muerto_Semana(Fecha, Hora) {
         const Clave_Origen = Clave_Slot(Fecha, Hora);
         const Tipo_Origen =
@@ -35086,6 +35129,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slot_Esta_Vacio(Fecha, Hora) &&
           Array.isArray(Portapapeles_Eventos_Multi?.Items) &&
           Portapapeles_Eventos_Multi.Items.length > 0;
+        const Es_Slot_Muerto = Slot_Es_Muerto(Fecha, Hora);
         const Clave = Clave_Slot(Fecha, Hora);
         const Tipo_Slot =
           Slots_Muertos_Tipos[Clave] ||
@@ -35139,6 +35183,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             `</button>` +
             `<button class="Dia_Accion_Item" type="button" data-acc="borrar-plan-slot">` +
             t("slot.borrar_plan") +
+            `</button>`;
+        }
+        if (Es_Slot_Muerto) {
+          Html +=
+            `<button class="Dia_Accion_Item" type="button" data-acc="eliminar-slot-muerto">` +
+            t("slot.eliminar_slot") +
             `</button>`;
         }
         Menu.innerHTML = Html;
@@ -35207,6 +35257,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Cerrar_Menu_Dia();
             await Borrar_Plan_Slot_Con_Confirmacion(
               Fecha, Hora
+            );
+          });
+        Menu.querySelector(`[data-acc="eliminar-slot-muerto"]`)
+          ?.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Eliminar_Slot_Muerto_Con_Confirmacion(
+              Fecha,
+              Hora
             );
           });
         if (Fn_Cierre_Menu) {
