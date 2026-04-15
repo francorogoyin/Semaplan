@@ -151,6 +151,16 @@ test(
     await preparar(page, estadoBase());
 
     await page.click("#Mostrar_Creador");
+    const fuenteCreador = await page.evaluate(() => {
+      const cuerpo = window.getComputedStyle(
+        document.body
+      ).fontFamily;
+      const campo = window.getComputedStyle(
+        document.getElementById("Descripcion_Corta_Objetivo")
+      ).fontFamily;
+      return { cuerpo, campo };
+    });
+    expect(fuenteCreador.campo).toBe(fuenteCreador.cuerpo);
     await expect(
       page.locator("#Descripcion_Corta_Objetivo")
     ).toHaveCSS("border-radius", "12px");
@@ -241,6 +251,18 @@ test(
 
     await page.click('[data-objetivo-id="o1"]');
     await page.click("#Resumen_Editar");
+    const fuenteEditor = await page.evaluate(() => {
+      const cuerpo = window.getComputedStyle(
+        document.body
+      ).fontFamily;
+      const campo = window.getComputedStyle(
+        document.getElementById(
+          "Editor_Descripcion_Corta_Input"
+        )
+      ).fontFamily;
+      return { cuerpo, campo };
+    });
+    expect(fuenteEditor.campo).toBe(fuenteEditor.cuerpo);
     await expect(
       page.locator("#Editor_Descripcion_Corta_Input")
     ).toHaveCSS("border-radius", "12px");
