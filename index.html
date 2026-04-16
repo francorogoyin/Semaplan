@@ -10116,12 +10116,6 @@
         min-height: 32px;
       }
 
-      .Sync_Detalle {
-        font-size: 11px;
-        color: var(--Texto_Suave);
-        white-space: nowrap;
-      }
-
       .Sync_Reintentar_Btn {
         border: 1px solid #d7cfc2;
         background: #f6f0e6;
@@ -10649,10 +10643,6 @@
               <span id="Sync_Texto" data-i18n="sync.guardado">Guardado</span>
             </span>
             <div class="Sync_Acciones">
-              <span class="Sync_Detalle"
-                id="Sync_Detalle"
-                data-i18n="sync.sin_guardado_reciente"
-                >Sin guardado reciente</span>
               <button class="Sync_Reintentar_Btn"
                 id="Sync_Reintentar_Btn"
                 type="button"
@@ -14146,10 +14136,6 @@
           "sync.guardando": "Guardando...",
           "sync.error": "Error",
           "sync.reintentar": "Reintentar",
-          "sync.sin_guardado_reciente":
-            "Sin guardado reciente",
-          "sync.ultimo_guardado":
-            "Último guardado {Hora}",
           "sync.reintentando":
             "Reintentando sincronización...",
           "sync.reintento_manual_ok":
@@ -16692,10 +16678,6 @@
           "sync.guardando": "Saving...",
           "sync.error": "Error",
           "sync.reintentar": "Retry",
-          "sync.sin_guardado_reciente":
-            "No recent save",
-          "sync.ultimo_guardado":
-            "Last saved {Hora}",
           "sync.reintentando":
             "Retrying sync...",
           "sync.reintento_manual_ok":
@@ -19185,10 +19167,6 @@
           "sync.guardando": "Salvando...",
           "sync.error": "Erro",
           "sync.reintentar": "Tentar de novo",
-          "sync.sin_guardado_reciente":
-            "Sem salvamento recente",
-          "sync.ultimo_guardado":
-            "Último salvamento {Hora}",
           "sync.reintentando":
             "Tentando sincronizar de novo...",
           "sync.reintento_manual_ok":
@@ -21844,7 +21822,6 @@
           Meses_Cortos.length = 0;
           Meses_Cortos.push(...M);
         }
-        Actualizar_Sync_Detalle();
         Actualizar_Boton_Reintento_Sync();
       }
 
@@ -39495,39 +39472,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             timeZone: "America/Buenos_Aires"
           }
         ).format(Fecha);
-      }
-
-      function Formatear_Fecha_Sync_Corta(Valor) {
-        if (!Valor) {
-          return t("sync.sin_guardado_reciente");
-        }
-        const Fecha = new Date(Number(Valor) || Date.now());
-        const Locale =
-          Idioma_Actual === "en"
-            ? "en-US"
-            : Idioma_Actual === "pt"
-              ? "pt-BR"
-              : "es-AR";
-        return new Intl.DateTimeFormat(
-          Locale,
-          {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            timeZone: "America/Buenos_Aires"
-          }
-        ).format(Fecha);
-      }
-
-      function Construir_Texto_Ultimo_Guardado() {
-        if (!Sync_Ultimo_Guardado_Exitoso_Ms) {
-          return t("sync.sin_guardado_reciente");
-        }
-        return t("sync.ultimo_guardado", {
-          Hora: Formatear_Fecha_Sync_Corta(
-            Sync_Ultimo_Guardado_Exitoso_Ms
-          )
-        });
       }
 
       function Version_Programa_Soporta_Esquema(
@@ -57357,7 +57301,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ];
       // Estado actual del indicador de sync.
       let Sync_Estado = "Guardado";
-      let Sync_Ultimo_Guardado_Exitoso_Ms = 0;
       let Sync_Token_Actual = "";
       let Sync_Local_Sucio = false;
       let Sync_Critico_Inmediato_Pendiente = false;
@@ -57383,12 +57326,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // Flag para evitar guardados durante la carga inicial.
       let Cargando_Inicial = true;
       let Trial_Modal_Abierto = false;
-
-      function Actualizar_Sync_Detalle() {
-        const El = document.getElementById("Sync_Detalle");
-        if (!El) return;
-        El.textContent = Construir_Texto_Ultimo_Guardado();
-      }
 
       function Actualizar_Boton_Reintento_Sync() {
         const Btn = document.getElementById(
@@ -57868,7 +57805,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Marcar_Sync_Remoto_Actualizado(
           Datos?.actualizado_en || ""
         );
-        Sync_Ultimo_Guardado_Exitoso_Ms = Date.now();
         Actualizar_Sync_Indicador("Guardado");
         Emitir_Evento_Local_Sync("sync_guardado");
       }
@@ -58440,7 +58376,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           Tx.textContent = t("sync.guardado");
         }
-        Actualizar_Sync_Detalle();
         Actualizar_Boton_Reintento_Sync();
       }
 
