@@ -40786,11 +40786,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         const Emoji_Raw = Datos.Emoji_Raw;
         if (Falta_Emoji_Plan_Slot(Emoji_Raw)) {
+          Cerrar_Selector_Emojis();
           Mostrar_Toast_Plan_Slot(
             "slot.toast_falta_emoji"
           );
           return false;
         }
+        Cerrar_Selector_Emojis();
         Plan_Slot_Borrador.push({
           Id: Crear_Id_Plan_Slot_Item(),
           Emoji: Normalizar_Emoji(Emoji_Raw),
@@ -40913,7 +40915,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Emoji_Plan_Slot_Placeholder;
           Input_Emoji.id = "Plan_Slot_Nuevo_Emoji";
           Input_Emoji.className =
-            "Patron_Modal_Emoji_Input Con_Selector_Emoji";
+            "Patron_Modal_Emoji_Input Con_Selector_Emoji " +
+            "Permite_Tipeo_Emoji";
           Input_Emoji.style.width = "52px";
           Input_Emoji.addEventListener("input", () => {
             Plan_Slot_Nuevo_Emoji_Borrador =
@@ -40993,6 +40996,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Abrir_Modal_Plan_Slot(Fecha, Hora) {
+        Cerrar_Selector_Emojis();
         Plan_Slot_Clave_Activa = Clave_Slot(Fecha, Hora);
         Modal_Plan_Slot_Fecha = Fecha;
         Modal_Plan_Slot_Hora = Hora;
@@ -41013,6 +41017,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Cerrar_Modal_Plan_Slot() {
+        Cerrar_Selector_Emojis();
         Plan_Slot_Clave_Activa = null;
         Modal_Plan_Slot_Fecha = "";
         Modal_Plan_Slot_Hora = null;
@@ -57274,12 +57279,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) {
           return;
         }
-        // El input de emoji no debe aceptar texto escrito
-        // directamente: el valor solo se setea a través del
-        // popover (Aplicar_Emoji_Selector). Marcamos readOnly
-        // acá y no en el HTML porque los inputs pueden crearse
-        // dinámicamente y no controlamos todos.
-        Input_El.readOnly = true;
+        // El selector complementa el tipeo manual y el pegado
+        // de emojis. Mantener editable el input evita bloquear
+        // modales que validan el emoji antes de guardar.
+        Input_El.readOnly = false;
+        const Permite_Tipeo_Manual =
+          Input_El.classList.contains("Permite_Tipeo_Emoji");
         Construir_Selector_Emojis();
         Selector_Emojis_Input_Activo = Input_El;
         const Buscador = document.getElementById(
@@ -57297,7 +57302,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           // usuario pueda empezar a tipear de una sin tener
           // que clickearlo. El RAF garantiza que el popover
           // ya está posicionado y visible.
-          if (Buscador) Buscador.focus();
+          if (Buscador && !Permite_Tipeo_Manual) {
+            Buscador.focus();
+          }
         });
       }
 

@@ -240,6 +240,63 @@ test("avisa y mantiene abierto al guardar un plan vacio", async ({
   expect(guardado).toBeNull();
 });
 
+test("slots vacios y muertos agregan despues del aviso", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Slots_Muertos = ["2026-04-13|10"];
+  estado.Slots_Muertos_Tipos["2026-04-13|10"] = "Comida";
+  estado.Slots_Muertos_Nombres["2026-04-13|10"] = "Almuerzo";
+  await Preparar(page, estado);
+
+  for (const caso of [
+    {
+      hora: 9,
+      clave: "2026-04-13|9",
+      texto: "Pensar ruta"
+    },
+    {
+      hora: 10,
+      clave: "2026-04-13|10",
+      texto: "Pedir almuerzo"
+    }
+  ]) {
+    await Abrir_Modal_Plan(page, "2026-04-13", caso.hora);
+
+    await page.click("#Plan_Slot_Guardar");
+    await expect(
+      page.locator(".Undo_Toast_Texto").first()
+    ).toHaveText("Faltan objetivos");
+
+    await page.fill("#Plan_Slot_Nuevo_Input", caso.texto);
+    await page.fill("#Plan_Slot_Nuevo_Emoji", "*");
+    await page.click("#Plan_Slot_Cuerpo .Abordaje_Nuevo_Btn");
+
+    const borrador = await page.evaluate(() => ({
+      cantidad: Plan_Slot_Borrador.length,
+      texto: Plan_Slot_Borrador[0]?.Texto || "",
+      mostrando_nuevo: Plan_Slot_Mostrando_Nuevo
+    }));
+    expect(borrador).toEqual({
+      cantidad: 1,
+      texto: caso.texto,
+      mostrando_nuevo: false
+    });
+
+    await page.click("#Plan_Slot_Guardar");
+    await expect(page.locator("#Plan_Slot_Overlay"))
+      .not.toHaveClass(/Activo/);
+
+    const guardado = await page.evaluate((clave) =>
+      JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
+        ?.Planes_Slot?.[clave]?.Items?.[0] || null,
+      caso.clave
+    );
+    expect(guardado?.Texto).toBe(caso.texto);
+    expect(guardado?.Emoji).toBe("*");
+  }
+});
+
 test("no guarda objetivos sin texto en slots vacios y muertos", async ({
   page
 }) => {
