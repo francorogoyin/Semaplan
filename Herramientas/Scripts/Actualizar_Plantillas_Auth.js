@@ -12,12 +12,17 @@ const Logo_Url =
   "https://semaplan.com/Aplicaciones/Desktop/Semaplan.png";
 
 const Campos = [
+  "mailer_subjects_recovery",
   "mailer_templates_confirmation_content",
   "mailer_templates_email_change_content",
   "mailer_templates_invite_content",
   "mailer_templates_magic_link_content",
   "mailer_templates_recovery_content"
 ];
+
+const Campos_Con_Logo = Campos.filter((Campo) => {
+  return Campo.endsWith("_content");
+});
 
 function Leer_Token() {
   const Ruta = path.join(
@@ -77,11 +82,13 @@ function Plantilla({
     '      border-radius:16px;padding:40px;',
     '      border:1px solid #d9cfc0;">',
     Header_Marca(),
-    '      <tr><td style="color:#1f1f1f;',
-    '        font-size:16px;line-height:1.6;',
-    '        padding-bottom:8px;">',
-    `        ${Titulo}`,
-    "      </td></tr>",
+    ...(Titulo ? [
+      '      <tr><td style="color:#1f1f1f;',
+      '        font-size:16px;line-height:1.6;',
+      '        padding-bottom:8px;">',
+      `        ${Titulo}`,
+      "      </td></tr>"
+    ] : []),
     '      <tr><td style="color:#6a6257;',
     '        font-size:14px;line-height:1.6;',
     '        padding-bottom:24px;">',
@@ -113,6 +120,7 @@ function Plantilla({
 
 function Construir_Plantillas() {
   return {
+    mailer_subjects_recovery: "Nuevo acceso a Semaplan",
     mailer_templates_confirmation_content: Plantilla({
       Titulo: "Confirmá tu cuenta",
       Texto: [
@@ -162,15 +170,13 @@ function Construir_Plantillas() {
       ]
     }),
     mailer_templates_recovery_content: Plantilla({
-      Titulo: "Restablecer contraseña",
+      Titulo: "",
       Texto: [
-        "Hacé clic en el botón para crear",
-        "una nueva contraseña."
+        "Hacé click en el botón."
       ],
       Boton: "Nueva contraseña",
       Pie: [
-        "Si no pediste restablecer tu",
-        "contraseña, ignorá este mensaje."
+        "Si no lo pediste, ignoralo."
       ]
     })
   };
@@ -235,7 +241,7 @@ async function Actualizar_Entorno(Nombre, Ref, Token, Aplicar) {
   });
 
   const Verificada = await Fetch_Config(Ref, Token);
-  const Faltantes = Campos.filter((Campo) => {
+  const Faltantes = Campos_Con_Logo.filter((Campo) => {
     const Valor = String(Verificada[Campo] || "");
     return !Valor.includes("<img") || !Valor.includes(Logo_Url);
   });
