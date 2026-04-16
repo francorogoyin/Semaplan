@@ -1,0 +1,86 @@
+name: Smoke remoto
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: "30 9 * * *"
+
+jobs:
+  smoke-remoto:
+    runs-on: windows-latest
+    env:
+      PROD_AUTH_B64: ${{ secrets.SEMAPLAN_PROD_AUTH_STATE_B64 }}
+      STAGING_AUTH_B64: ${{ secrets.SEMAPLAN_STAGING_AUTH_STATE_B64 }}
+      SUPABASE_TOKEN: ${{ secrets.SEMAPLAN_SUPABASE_ACCESS_TOKEN }}
+      PROD_SERVICE_KEY: ${{ secrets.SEMAPLAN_PROD_SERVICE_ROLE_KEY }}
+      STAGING_SERVICE_KEY: ${{ secrets.SEMAPLAN_STAGING_SERVICE_ROLE_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Dependencias
+        run: npm ci
+
+      - name: Chromium
+        run: npx playwright install chromium
+
+      - name: Preparar sesiones
+        id: auth
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force `
+            -Path "Pruebas/Playwright/.auth" | Out-Null
+          if ($env:PROD_AUTH_B64) {
+            [IO.File]::WriteAllBytes(
+              "Pruebas/Playwright/.auth/semaplan-smoke.json",
+              [Convert]::FromBase64String($env:PROD_AUTH_B64)
+            )
+            "prod=true" >> $env:GITHUB_OUTPUT
+          } else {
+            "prod=false" >> $env:GITHUB_OUTPUT
+          }
+          if ($env:STAGING_AUTH_B64) {
+            [IO.File]::WriteAllBytes(
+              "Pruebas/Playwright/.auth/semaplan-staging.json",
+              [Convert]::FromBase64String($env:STAGING_AUTH_B64)
+            )
+            "staging=true" >> $env:GITHUB_OUTPUT
+          } else {
+            "staging=false" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Smoke produccion
+        if: steps.auth.outputs.prod == 'true'
+        run: npm run test:smoke:prod
+
+      - name: Smoke staging
+        if: steps.auth.outputs.staging == 'true'
+        run: npm run test:smoke:staging
+
+      - name: Reporte errores produccion
+        if: env.SUPABASE_TOKEN != '' || env.PROD_SERVICE_KEY != ''
+        env:
+          SEMAPLAN_SUPABASE_ACCESS_TOKEN: ${{ env.SUPABASE_TOKEN }}
+          SEMAPLAN_SUPABASE_SERVICE_ROLE_KEY: ${{ env.PROD_SERVICE_KEY }}
+          SEMAPLAN_SUPABASE_PROJECT_REF: cprdnxkkhuuhdispubds
+        run: npm run errores:reporte -- --horas 24 --fallar-si 5
+
+      - name: Reporte errores staging
+        if: env.SUPABASE_TOKEN != '' || env.STAGING_SERVICE_KEY != ''
+        env:
+          SEMAPLAN_SUPABASE_ACCESS_TOKEN: ${{ env.SUPABASE_TOKEN }}
+          SEMAPLAN_SUPABASE_SERVICE_ROLE_KEY: ${{ env.STAGING_SERVICE_KEY }}
+          SEMAPLAN_SUPABASE_PROJECT_REF: cukkxjmdspbefkqzjumh
+        run: >
+          npm run errores:reporte -- --entorno staging
+          --horas 24 --fallar-si 5

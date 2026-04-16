@@ -51,6 +51,38 @@ El reporte puede autenticarse de dos formas.
 En local, si existe `Local/Credenciales.txt`, el script puede usar el
 token operativo guardado ahi. Ese archivo no se versiona.
 
+## GitHub Actions.
+
+Existe el workflow `.github/workflows/smoke-remoto.yml`.
+
+Corre en cada push a `main`, manualmente y todos los dias a las
+06:30 de Argentina.
+
+Secrets esperados para smokes.
+
+- `SEMAPLAN_PROD_AUTH_STATE_B64`.
+- `SEMAPLAN_STAGING_AUTH_STATE_B64`.
+
+Secrets esperados para reporte.
+
+- `SEMAPLAN_SUPABASE_ACCESS_TOKEN`.
+- `SEMAPLAN_PROD_SERVICE_ROLE_KEY`.
+- `SEMAPLAN_STAGING_SERVICE_ROLE_KEY`.
+
+Si no hay auth secrets, los smokes se saltean sin fallar el workflow.
+Si no hay secrets de Supabase, el reporte se saltea sin fallar el
+workflow.
+
+Para generar un auth state en base64.
+
+```powershell
+[Convert]::ToBase64String(
+  [IO.File]::ReadAllBytes(
+    "Pruebas/Playwright/.auth/semaplan-smoke.json"
+  )
+)
+```
+
 ## Umbrales recomendados.
 
 - Cualquier error de `auth` en 24 horas debe revisarse.
