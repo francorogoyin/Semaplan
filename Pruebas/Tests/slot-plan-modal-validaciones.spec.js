@@ -240,6 +240,101 @@ test("avisa y mantiene abierto al guardar un plan vacio", async ({
   expect(guardado).toBeNull();
 });
 
+test("no guarda objetivos sin texto en slots vacios y muertos", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Slots_Muertos = ["2026-04-13|10"];
+  estado.Slots_Muertos_Tipos["2026-04-13|10"] = "Comida";
+  estado.Slots_Muertos_Nombres["2026-04-13|10"] = "Almuerzo";
+  await Preparar(page, estado);
+
+  for (const caso of [
+    { fecha: "2026-04-13", hora: 9 },
+    { fecha: "2026-04-13", hora: 10 }
+  ]) {
+    await Abrir_Modal_Plan(page, caso.fecha, caso.hora);
+    await page.click("#Plan_Slot_Cuerpo .Config_Boton");
+    await page.locator("#Plan_Slot_Nuevo_Emoji")
+      .evaluate((input) => {
+        input.value = "⭐";
+        input.dispatchEvent(
+          new Event("input", { bubbles: true })
+        );
+      });
+    await page.click("#Plan_Slot_Guardar");
+
+    await expect(
+      page.locator(".Undo_Toast_Texto").first()
+    ).toHaveText("Faltan objetivos");
+
+    const guardado = await page.evaluate(({ fecha, hora }) =>
+      JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
+        ?.Planes_Slot?.[`${fecha}|${hora}`] || null,
+      caso
+    );
+    expect(guardado).toBeNull();
+
+    await page.evaluate(() => Cerrar_Modal_Plan_Slot());
+  }
+});
+
+test("mantiene validaciones tras borrar items del plan de slot muerto",
+async ({ page }) => {
+  const estado = Estado_Base();
+  estado.Slots_Muertos = ["2026-04-13|10"];
+  estado.Slots_Muertos_Tipos["2026-04-13|10"] = "Comida";
+  estado.Slots_Muertos_Nombres["2026-04-13|10"] = "Almuerzo";
+  estado.Planes_Slot = {
+    "2026-04-13|10": {
+      Items: [
+        {
+          Id: "plan_muerto",
+          Texto: "Plan muerto",
+          Emoji: "🍽️",
+          Estado: "Planeado"
+        }
+      ]
+    }
+  };
+
+  await Preparar(page, estado);
+  await Abrir_Modal_Plan(page, "2026-04-13", 10);
+
+  await page.click("#Plan_Slot_Cuerpo .Config_Boton");
+  await page.fill("#Plan_Slot_Nuevo_Input", "Sin emoji");
+  await page.fill("#Plan_Slot_Nuevo_Emoji", "");
+  await page.click("#Plan_Slot_Cuerpo .Abordaje_Nuevo_Btn");
+
+  await expect(
+    page.locator(".Undo_Toast_Texto").first()
+  ).toHaveText("Falta emoji");
+
+  await page.click(".Abordaje_Item_Borrar");
+  await expect(page.locator("#Plan_Slot_Nuevo_Input"))
+    .toHaveValue("Sin emoji");
+
+  await page.click("#Plan_Slot_Guardar");
+  await expect(
+    page.locator(".Undo_Toast_Texto").first()
+  ).toHaveText("Falta emoji");
+
+  await page.fill("#Plan_Slot_Nuevo_Input", "");
+  await page.click("#Plan_Slot_Guardar");
+  await expect(
+    page.locator(".Undo_Toast_Texto").first()
+  ).toHaveText("Faltan objetivos");
+
+  const datos = await page.evaluate(() => ({
+    borrador: Plan_Slot_Borrador.length,
+    guardado: JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
+      ?.Planes_Slot?.["2026-04-13|10"]?.Items || []
+  }));
+  expect(datos.borrador).toBe(0);
+  expect(datos.guardado).toHaveLength(1);
+  expect(datos.guardado[0].Texto).toBe("Plan muerto");
+});
+
 test("guarda un objetivo valido que todavia esta en borrador", async ({
   page
 }) => {
@@ -268,13 +363,15 @@ test("guarda un objetivo valido que todavia esta en borrador", async ({
   expect(datos.guardado?.Estado).toBe("Planeado");
 });
 
-test("menu de slot prioriza copiar y abre tipos por click", async ({
+test("menu de slot ordena plan y abre tipos por click", async ({
   page
 }) => {
   const estado = Estado_Base();
   estado.Slots_Muertos = ["2026-04-13|10"];
   estado.Slots_Muertos_Tipos["2026-04-13|10"] = "Comida";
   estado.Slots_Muertos_Nombres["2026-04-13|10"] = "Almuerzo";
+  estado.Slots_Muertos_Titulos_Visibles["2026-04-13|10"] = true;
+  estado.Slots_Muertos_Nombres_Auto["2026-04-13|10"] = false;
   estado.Planes_Slot = {
     "2026-04-13|10": {
       Items: [
@@ -289,6 +386,7 @@ test("menu de slot prioriza copiar y abre tipos por click", async ({
   };
 
   await Preparar(page, estado);
+  await page.evaluate(() => Cambiar_Idioma("en"));
 
   await page.click(
     '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
@@ -298,8 +396,12 @@ test("menu de slot prioriza copiar y abre tipos por click", async ({
   const orden = await page.locator(
     "#Dia_Accion_Menu .Dia_Accion_Item"
   ).allTextContents();
-  expect(orden.indexOf("Copiar plan"))
-    .toBeLessThan(orden.indexOf("Editar plan"));
+  expect(orden).toContain("Delete title");
+  expect(orden).not.toContain("Remove title");
+  expect(orden.indexOf("Edit plan"))
+    .toBeLessThan(orden.indexOf("Copy plan"));
+  expect(orden.indexOf("Copy plan"))
+    .toBeLessThan(orden.indexOf("Delete plan"));
 
   const submenu = page.locator(
     "#Dia_Accion_Menu .Dia_Accion_Submenu"

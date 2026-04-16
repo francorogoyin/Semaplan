@@ -708,8 +708,8 @@ test("el menu de slot muerto agrupa identidad, plan y patron", async ({
   expect(acciones).toEqual([
     "editar-nombre-slot",
     "quitar-titulo-slot",
-    "copiar-plan-slot",
     "plan-slot",
+    "copiar-plan-slot",
     "borrar-plan-slot",
     "pegar-plan-slot",
     "insertar-patron-slot",

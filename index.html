@@ -17863,7 +17863,7 @@
           "planes.progreso_total": "Total",
           "planes.fijado": "Fixed",
           "planes.warning": "Warning",
-          "planes.eliminado": "Locally removed",
+          "planes.eliminado": "Locally deleted",
           "planes.leido": "Read",
           "planes.manual": "Manual",
           "planes.hibrido": "Hybrid",
@@ -17878,7 +17878,7 @@
           "planes.importar_padres": "Import from parents",
           "planes.importar_subs": "Import subobjectives",
           "planes.romper_vinculo": "Break link",
-          "planes.eliminar_local": "Remove locally",
+          "planes.eliminar_local": "Delete locally",
           "planes.recuperar": "Recover",
           "planes.estado_activo": "Active",
           "planes.estado_cumplido": "Done",
@@ -18314,7 +18314,7 @@
             "Signing out leaves this account. " +
             "Signing out everywhere also closes " +
             "the other computers. Deleting the " +
-            "account is permanent and removes " +
+            "account is permanent and deletes " +
             "all your data.",
           "config.cancelar_suscripcion":
             "Cancel subscription",
@@ -18535,10 +18535,10 @@
             "Choose a suggested tag or type " +
             "a new one to add it.",
           "archivero.quitar_etiquetas":
-            "Remove tags",
+            "Delete tags",
           "archivero.quitar_etiquetas_desc":
             "Choose a suggested tag or type " +
-            "a new one to remove it.",
+            "a new one to delete it.",
           "archivero.cambiar_color_multi":
             "Change color",
           "archivero.sin_otros_cajones":
@@ -19229,7 +19229,7 @@
           "abordaje.abordado_title":
             "Worked on",
           "abordaje.plan_quitar_title":
-            "Remove from plan",
+            "Delete from plan",
           "abordaje.plan_poner_title":
             "Plan this subobjective for this block",
           "abordaje.plan_pasado_title":
@@ -20004,7 +20004,7 @@
           "toast.slots_multi_copiados":
             "{n} dead slots copied",
           "toast.eventos_no_tildados_eliminados":
-            "Unchecked events removed",
+            "Unchecked events deleted",
           "toast.bloques_de_objetivo_eliminados":
             "Blocks of \"{nombre}\" deleted",
           "toast.bloque_eliminado": "Block deleted",
@@ -20074,7 +20074,7 @@
           "baul.agregar_etiquetas_multi":
             "Add tags",
           "baul.quitar_etiquetas_multi":
-            "Remove tags",
+            "Delete tags",
           "baul.etiquetas_multi_desc":
             "Choose existing tags or type new ones " +
             "separated by commas.",
@@ -20105,7 +20105,7 @@
           "slot.colocar_titulo":
             "Add title",
           "slot.quitar_titulo":
-            "Remove title",
+            "Delete title",
           "slot.item_ph": "Quick objective",
           "slot.estado_planeado": "Planned",
           "slot.estado_abordado": "Started",
@@ -23660,6 +23660,8 @@
       let Plan_Slot_Clave_Activa = null;
       let Plan_Slot_Borrador = [];
       let Plan_Slot_Mostrando_Nuevo = false;
+      let Plan_Slot_Nuevo_Texto_Borrador = "";
+      let Plan_Slot_Nuevo_Emoji_Borrador = "";
       // Planner por períodos: selección y navegación.
       let Planner_Tipo = "Trimestre";
       let Planner_Fecha_Base = null;
@@ -40720,20 +40722,46 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Input_Emoji = document.getElementById(
           "Plan_Slot_Nuevo_Emoji"
         );
-        const Texto = String(
-          Input?.value || ""
-        ).trim();
         const Emoji_Raw = String(
-          Input_Emoji?.value || ""
+          Input_Emoji
+            ? Input_Emoji.value
+            : Plan_Slot_Nuevo_Emoji_Borrador ||
+              Emoji_Plan_Slot_Placeholder
+        ).trim();
+        const Texto_Base = String(
+          Input ? Input.value : Plan_Slot_Nuevo_Texto_Borrador || ""
         ).trim();
         const Hay_Emoji =
           Boolean(Emoji_Raw) &&
           Emoji_Raw !== Emoji_Plan_Slot_Placeholder;
         return {
-          Texto,
+          Texto: Texto_Base,
           Emoji_Raw,
-          Hay_Contenido: Boolean(Texto || Hay_Emoji)
+          Hay_Contenido: Boolean(Texto_Base || Hay_Emoji)
         };
+      }
+
+      function Sincronizar_Nuevo_Plan_Slot_Desde_DOM() {
+        const Input = document.getElementById(
+          "Plan_Slot_Nuevo_Input"
+        );
+        const Input_Emoji = document.getElementById(
+          "Plan_Slot_Nuevo_Emoji"
+        );
+        if (Input) {
+          Plan_Slot_Nuevo_Texto_Borrador =
+            String(Input.value || "");
+        }
+        if (Input_Emoji) {
+          Plan_Slot_Nuevo_Emoji_Borrador =
+            String(Input_Emoji.value || "");
+        }
+      }
+
+      function Resetear_Nuevo_Plan_Slot() {
+        Plan_Slot_Nuevo_Texto_Borrador = "";
+        Plan_Slot_Nuevo_Emoji_Borrador =
+          Emoji_Plan_Slot_Placeholder;
       }
 
       function Hay_Borrador_Nuevo_Plan_Slot_Pendiente() {
@@ -40748,20 +40776,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Input_Emoji = document.getElementById(
           "Plan_Slot_Nuevo_Emoji"
         );
-        if (!Input || !Input_Emoji) return;
-        const Texto = String(Input.value || "").trim();
+        if (!Input || !Input_Emoji) return false;
+        Sincronizar_Nuevo_Plan_Slot_Desde_DOM();
+        const Datos = Leer_Borrador_Nuevo_Plan_Slot();
+        const Texto = Datos.Texto;
         if (!Texto) {
           Input.focus();
-          return;
+          return false;
         }
-        const Emoji_Raw = String(
-          Input_Emoji.value || ""
-        ).trim();
+        const Emoji_Raw = Datos.Emoji_Raw;
         if (Falta_Emoji_Plan_Slot(Emoji_Raw)) {
           Mostrar_Toast_Plan_Slot(
             "slot.toast_falta_emoji"
           );
-          return;
+          return false;
         }
         Plan_Slot_Borrador.push({
           Id: Crear_Id_Plan_Slot_Item(),
@@ -40770,16 +40798,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado: "Planeado"
         });
         Plan_Slot_Mostrando_Nuevo = false;
-        Input.value = "";
-        Input_Emoji.value =
-            Emoji_Plan_Slot_Placeholder;
+        Resetear_Nuevo_Plan_Slot();
         Render_Modal_Plan_Slot();
+        return true;
       }
 
       function Render_Modal_Plan_Slot() {
         const Cuerpo =
           document.getElementById("Plan_Slot_Cuerpo");
         if (!Cuerpo || !Plan_Slot_Clave_Activa) return;
+        if (Plan_Slot_Mostrando_Nuevo) {
+          Sincronizar_Nuevo_Plan_Slot_Desde_DOM();
+        }
+        Plan_Slot_Borrador = Normalizar_Items_Plan_Slot(
+          Plan_Slot_Borrador
+        );
         Cuerpo.innerHTML = "";
         if (Plan_Slot_Borrador.length === 0) {
           const Vacio = document.createElement("div");
@@ -40876,17 +40909,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Input_Emoji.type = "text";
           Input_Emoji.maxLength = 4;
           Input_Emoji.value =
+            Plan_Slot_Nuevo_Emoji_Borrador ||
             Emoji_Plan_Slot_Placeholder;
           Input_Emoji.id = "Plan_Slot_Nuevo_Emoji";
           Input_Emoji.className =
             "Patron_Modal_Emoji_Input Con_Selector_Emoji";
           Input_Emoji.style.width = "52px";
+          Input_Emoji.addEventListener("input", () => {
+            Plan_Slot_Nuevo_Emoji_Borrador =
+              Input_Emoji.value;
+          });
 
           const Input = document.createElement("input");
           Input.type = "text";
           Input.className = "Abordaje_Nuevo_Input";
           Input.placeholder = t("slot.item_ph");
           Input.id = "Plan_Slot_Nuevo_Input";
+          Input.value = Plan_Slot_Nuevo_Texto_Borrador;
+          Input.addEventListener("input", () => {
+            Plan_Slot_Nuevo_Texto_Borrador = Input.value;
+          });
           Input.addEventListener("keydown", (Ev) => {
             if (Ev.key === "Enter") {
               Ev.preventDefault();
@@ -40955,10 +40997,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Modal_Plan_Slot_Fecha = Fecha;
         Modal_Plan_Slot_Hora = Hora;
         const Plan = Obtener_Plan_Slot(Fecha, Hora, false);
-        Plan_Slot_Borrador = JSON.parse(
-          JSON.stringify(Plan?.Items || [])
+        Plan_Slot_Borrador = Normalizar_Items_Plan_Slot(
+          JSON.parse(JSON.stringify(Plan?.Items || []))
         );
         Plan_Slot_Mostrando_Nuevo = false;
+        Resetear_Nuevo_Plan_Slot();
         const Titulo = document.getElementById("Plan_Slot_Titulo");
         if (Titulo) {
           Titulo.textContent =
@@ -40975,6 +41018,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Modal_Plan_Slot_Hora = null;
         Plan_Slot_Borrador = [];
         Plan_Slot_Mostrando_Nuevo = false;
+        Resetear_Nuevo_Plan_Slot();
         document.getElementById("Plan_Slot_Overlay")
           ?.classList.remove("Activo");
       }
@@ -40982,23 +41026,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Guardar_Modal_Plan_Slot() {
         if (!Plan_Slot_Clave_Activa) return;
         if (Hay_Borrador_Nuevo_Plan_Slot_Pendiente()) {
-          Agregar_Item_Plan_Slot();
-          if (Hay_Borrador_Nuevo_Plan_Slot_Pendiente()) {
+          const Datos = Leer_Borrador_Nuevo_Plan_Slot();
+          if (!Datos.Texto) {
+            Mostrar_Toast_Plan_Slot(
+              "slot.toast_faltan_objetivos"
+            );
             document.getElementById("Plan_Slot_Nuevo_Input")
               ?.focus();
             return;
           }
+          if (!Agregar_Item_Plan_Slot()) return;
         }
         const Clave = Plan_Slot_Clave_Activa;
         const Items = Normalizar_Items_Plan_Slot(
           Plan_Slot_Borrador
         );
+        Plan_Slot_Borrador = Items;
         if (!Items.length) {
           Mostrar_Toast_Plan_Slot(
             "slot.toast_faltan_objetivos"
           );
           if (!Plan_Slot_Mostrando_Nuevo) {
             Plan_Slot_Mostrando_Nuevo = true;
+            Resetear_Nuevo_Plan_Slot();
             Render_Modal_Plan_Slot();
           }
           setTimeout(() => {
@@ -41470,14 +41520,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
 
         const Grupo_Plan = [];
-        if (Es_Slot_Muerto && Tiene_Plan) {
-          Grupo_Plan.push(
-            Html_Menu_Dia_Accion(
-              "copiar-plan-slot",
-              t("slot.copiar_plan")
-            )
-          );
-        }
         Grupo_Plan.push(
           Html_Menu_Dia_Accion(
             "plan-slot",
@@ -41486,6 +41528,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               : t("slot.insertar_plan")
           )
         );
+        if (Es_Slot_Muerto && Tiene_Plan) {
+          Grupo_Plan.push(
+            Html_Menu_Dia_Accion(
+              "copiar-plan-slot",
+              t("slot.copiar_plan")
+            )
+          );
+        }
         if (Tiene_Plan) {
           Grupo_Plan.push(
             Html_Menu_Dia_Accion(
