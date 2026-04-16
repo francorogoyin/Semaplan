@@ -197,7 +197,7 @@ test("avisa cuando falta emoji al agregar un objetivo", async ({
   expect(datos.modal_activo).toBeTruthy();
 });
 
-test("avisa cuando se intenta guardar un plan vacio", async ({
+test("cierra sin aviso al guardar un plan vacio", async ({
   page
 }) => {
   await Preparar(page, Estado_Base());
@@ -207,12 +207,12 @@ test("avisa cuando se intenta guardar un plan vacio", async ({
 
   await expect(
     page.locator(".Undo_Toast_Texto").first()
-  ).toHaveText("Faltan objetivos");
+  ).toHaveCount(0);
   await expect(page.locator("#Plan_Slot_Overlay"))
-    .toHaveClass(/Activo/);
+    .not.toHaveClass(/Activo/);
 });
 
-test("no deja guardar un plan con un objetivo todavia en borrador", async ({
+test("guarda un objetivo valido que todavia esta en borrador", async ({
   page
 }) => {
   await Preparar(page, Estado_Base());
@@ -220,29 +220,24 @@ test("no deja guardar un plan con un objetivo todavia en borrador", async ({
 
   await page.click("#Plan_Slot_Cuerpo .Config_Boton");
   await page.fill("#Plan_Slot_Nuevo_Input", "Pensar idea");
-  await page.fill("#Plan_Slot_Nuevo_Emoji", "🧠");
+  await page.locator("#Plan_Slot_Nuevo_Emoji").evaluate((input) => {
+    input.value = "💡";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
   await page.click("#Plan_Slot_Guardar");
 
-  await expect(
-    page.locator(".Undo_Toast_Texto").first()
-  ).toHaveText("Ingresá el objetivo pendiente");
   await expect(page.locator("#Plan_Slot_Overlay"))
-    .toHaveClass(/Activo/);
+    .not.toHaveClass(/Activo/);
 
   const datos = await page.evaluate(() => ({
-    items: Plan_Slot_Borrador.length,
-    sigue_nuevo: Boolean(
-      document.getElementById("Plan_Slot_Nuevo_Input")
-    ),
-    guardado: Boolean(
+    guardado:
       JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
-        ?.Planes_Slot?.["2026-04-13|9"]
-    )
+        ?.Planes_Slot?.["2026-04-13|9"]?.Items?.[0] || null
   }));
 
-  expect(datos.items).toBe(0);
-  expect(datos.sigue_nuevo).toBeTruthy();
-  expect(datos.guardado).toBeFalsy();
+  expect(datos.guardado?.Texto).toBe("Pensar idea");
+  expect(datos.guardado?.Emoji).toBe("💡");
+  expect(datos.guardado?.Estado).toBe("Planeado");
 });
 
 test("inserta un patron desde el modal de un slot vacio", async ({

@@ -542,7 +542,9 @@ test("no pisa un horario ocupado al arrastrar slot muerto", async ({
   expect(data.origen_existe).toBeTruthy();
   expect(data.destino_existe).toBeFalsy();
   expect(data.destino_plan).toBe(0);
-  expect(data.alerta).toContain("ocup");
+  await expect(
+    page.locator(".Undo_Toast_Texto").first()
+  ).toContainText("ocup");
 });
 
 test("arrastra slot muerto sin plan conservando tipo y titulo", async ({
@@ -705,13 +707,14 @@ test("el menu de slot muerto agrupa identidad, plan y patron", async ({
 
   expect(acciones).toEqual([
     "editar-nombre-slot",
-    "toggle-titulo-slot",
+    "quitar-titulo-slot",
     "plan-slot",
+    "borrar-plan-slot",
     "copiar-plan-slot",
     "pegar-plan-slot",
-    "borrar-plan-slot",
     "insertar-patron-slot",
     "guardar-patron-slot",
+    "cambiar-tipo-slot",
     "repetir-slot",
     "limpiar-celda"
   ]);
@@ -768,6 +771,7 @@ test("el menu de slot vacio agrupa plan, patron y pegar bloques", async ({
     "borrar-plan-slot",
     "insertar-patron-slot",
     "guardar-patron-slot",
+    "cambiar-tipo-slot",
     "pegar-bloques-slot",
     "limpiar-celda"
   ]);
