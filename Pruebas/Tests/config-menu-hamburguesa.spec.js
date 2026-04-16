@@ -242,3 +242,50 @@ async ({ page }) => {
   await Links.first().click();
   expect(page.url()).toBe(Url_Antes);
 });
+
+test("more apps muestra enlaces sin titulo duplicado",
+async ({ page }) => {
+  await Preparar(page, Crear_Estado("Hamburguesa"));
+
+  const resultado = await page.evaluate(() => {
+    Cerrar_Config();
+    Abrir_Otras_Apps();
+    const Overlay = document.getElementById(
+      "Otras_Apps_Overlay"
+    );
+    const Panel = Overlay?.querySelector(".Otras_Apps_Panel");
+    const Links = Array.from(
+      Panel?.querySelectorAll(".Otras_Apps_Item") || []
+    ).map((Link) => ({
+      nombre: Link.querySelector(".Otras_Apps_Nombre")
+        ?.textContent?.trim() || "",
+      href: Link.getAttribute("href") || "",
+      target: Link.getAttribute("target") || "",
+      rel: Link.getAttribute("rel") || ""
+    }));
+    return {
+      activo: Overlay?.classList.contains("Activo") || false,
+      titulo: Boolean(
+        Panel?.querySelector(".Patron_Modal_Titulo")
+      ),
+      links: Links
+    };
+  });
+
+  expect(resultado.activo).toBeTruthy();
+  expect(resultado.titulo).toBeFalsy();
+  expect(resultado.links).toEqual([
+    {
+      nombre: "Highlighter",
+      href: "https://example.com/highlighter",
+      target: "_blank",
+      rel: "noopener noreferrer"
+    },
+    {
+      nombre: "Mascoter",
+      href: "https://example.com/mascoter",
+      target: "_blank",
+      rel: "noopener noreferrer"
+    }
+  ]);
+});

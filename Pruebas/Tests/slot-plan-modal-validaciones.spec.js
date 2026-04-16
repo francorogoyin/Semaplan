@@ -197,7 +197,27 @@ test("avisa cuando falta emoji al agregar un objetivo", async ({
   expect(datos.modal_activo).toBeTruthy();
 });
 
-test("cierra sin aviso al guardar un plan vacio", async ({
+test("normaliza iconos mojibake en carteles", async ({
+  page
+}) => {
+  await Preparar(page, Estado_Base());
+
+  await page.evaluate(() => {
+    Mostrar_Toast_Info("Info", "\u00f0\u0178\u201c\u2039");
+  });
+  await expect(
+    page.locator(".Undo_Toast_Icono").first()
+  ).toHaveText("📋");
+
+  await page.evaluate(() => {
+    Mostrar_Toast_Error("Error");
+  });
+  await expect(
+    page.locator(".Undo_Toast_Icono").first()
+  ).toHaveText("⚠️");
+});
+
+test("avisa y mantiene abierto al guardar un plan vacio", async ({
   page
 }) => {
   await Preparar(page, Estado_Base());
@@ -207,9 +227,17 @@ test("cierra sin aviso al guardar un plan vacio", async ({
 
   await expect(
     page.locator(".Undo_Toast_Texto").first()
-  ).toHaveCount(0);
+  ).toHaveText("Faltan objetivos");
   await expect(page.locator("#Plan_Slot_Overlay"))
-    .not.toHaveClass(/Activo/);
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Plan_Slot_Nuevo_Input"))
+    .toBeFocused();
+
+  const guardado = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
+      ?.Planes_Slot?.["2026-04-13|9"] || null
+  );
+  expect(guardado).toBeNull();
 });
 
 test("guarda un objetivo valido que todavia esta en borrador", async ({
@@ -238,6 +266,138 @@ test("guarda un objetivo valido que todavia esta en borrador", async ({
   expect(datos.guardado?.Texto).toBe("Pensar idea");
   expect(datos.guardado?.Emoji).toBe("💡");
   expect(datos.guardado?.Estado).toBe("Planeado");
+});
+
+test("menu de slot prioriza copiar y abre tipos por click", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Slots_Muertos = ["2026-04-13|10"];
+  estado.Slots_Muertos_Tipos["2026-04-13|10"] = "Comida";
+  estado.Slots_Muertos_Nombres["2026-04-13|10"] = "Almuerzo";
+  estado.Planes_Slot = {
+    "2026-04-13|10": {
+      Items: [
+        {
+          Id: "plan_1",
+          Texto: "Preparar comida",
+          Emoji: "*",
+          Estado: "Planeado"
+        }
+      ]
+    }
+  };
+
+  await Preparar(page, estado);
+
+  await page.click(
+    '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
+    { button: "right" }
+  );
+
+  const orden = await page.locator(
+    "#Dia_Accion_Menu .Dia_Accion_Item"
+  ).allTextContents();
+  expect(orden.indexOf("Copiar plan"))
+    .toBeLessThan(orden.indexOf("Editar plan"));
+
+  const submenu = page.locator(
+    "#Dia_Accion_Menu .Dia_Accion_Submenu"
+  );
+  await expect(submenu).toBeHidden();
+
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="cambiar-tipo-slot"]'
+  );
+  await expect(submenu).toBeVisible();
+
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="cambiar-tipo-slot"]'
+  );
+  await expect(submenu).toBeHidden();
+});
+
+test("nuevo patron de slot usa desplegable con todos los tipos", async ({
+  page
+}) => {
+  await Preparar(page, Estado_Base());
+
+  await page.evaluate(() => {
+    Abrir_Modal_Patron(null);
+  });
+  await page.locator(".Patron_Modal_Tipo_Sel").first()
+    .selectOption("Slot");
+
+  await expect(page.locator(".Patron_Slot_Aplica_Btn"))
+    .toContainText("Todos los tipos");
+  await expect(page.locator("select[multiple]"))
+    .toHaveCount(0);
+
+  await page.click(".Patron_Slot_Aplica_Btn");
+  const estados = await page.locator(
+    ".Patron_Slot_Aplica_Item .Dia_Accion_Submenu_Estado"
+  ).allTextContents();
+  expect(estados).toEqual(["✓", "✓"]);
+});
+
+test("menu de bloque distingue insertar y editar plan", async ({
+  page
+}) => {
+  await Preparar(page, Estado_Base());
+
+  const etiquetas = await page.evaluate(() => {
+    const base = {
+      Id: "Evento_Test",
+      Fecha: "2026-04-13",
+      Inicio: 9,
+      Duracion: 1,
+      Nota: ""
+    };
+    Mostrar_Menu_Evento({
+      ...base,
+      Abordaje: [{ Texto: "Ya tocado", Estado: "Abordado" }]
+    }, 10, 10);
+    const sinPlan = document.querySelector(
+      '#Dia_Accion_Menu [data-acc="abordaje"]'
+    )?.textContent?.trim() || "";
+    Cerrar_Menu_Dia();
+
+    Mostrar_Menu_Evento({
+      ...base,
+      Abordaje: [{ Texto: "Planeado", Planeada: true }]
+    }, 10, 10);
+    const conPlan = document.querySelector(
+      '#Dia_Accion_Menu [data-acc="abordaje"]'
+    )?.textContent?.trim() || "";
+    Cerrar_Menu_Dia();
+
+    return { sinPlan, conPlan };
+  });
+
+  expect(etiquetas.sinPlan).toBe("Insertar plan");
+  expect(etiquetas.conPlan).toBe("Editar plan");
+});
+
+test("atajo de nueva nota cierra el menu contextual abierto", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Config_Extra.Plan_Actual = "Upgrade";
+  await Preparar(page, estado);
+
+  await page.click(
+    '.Slot[data-fecha="2026-04-13"][data-hora="9"]',
+    { button: "right" }
+  );
+  await expect(page.locator("#Dia_Accion_Menu"))
+    .toHaveClass(/Activo/);
+
+  await page.keyboard.press("A");
+
+  await expect(page.locator("#Dia_Accion_Menu"))
+    .not.toHaveClass(/Activo/);
+  await expect(page.locator("#Archivero_Nota_Overlay"))
+    .toHaveClass(/Activo/);
 });
 
 test("inserta un patron desde el modal de un slot vacio", async ({

@@ -272,6 +272,10 @@ test("repite una franja contigua de slots muertos en la semana", async ({
       "2026-04-13|10": false,
       "2026-04-13|11": false
     },
+    Slots_Muertos_Grupo_Ids: {
+      "2026-04-13|10": "Grupo_Test",
+      "2026-04-13|11": "Grupo_Test"
+    },
     Abordajes_Migrados_V1: true,
     Semanas_Con_Defaults: [],
     Planes_Semana: {}

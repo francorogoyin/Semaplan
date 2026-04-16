@@ -162,6 +162,12 @@ test("el menu del encabezado alterna dias visibles", async ({
     );
     const Menu = document.getElementById("Dia_Accion_Menu");
     const Texto_Menu = Menu.textContent || "";
+    Menu.querySelector('[data-accion="dias"]')?.click();
+    const Submenu_Abierto = Boolean(
+      Menu.querySelector(
+        ".Dia_Accion_Submenu_Grupo.Abierto"
+      )
+    );
     const Btn_Martes = Menu.querySelector(
       '[data-dia-toggle="1"]'
     );
@@ -181,6 +187,9 @@ test("el menu del encabezado alterna dias visibles", async ({
       Header_Martes.getBoundingClientRect(),
       1
     );
+    document
+      .querySelector('#Dia_Accion_Menu [data-accion="dias"]')
+      ?.click();
     const Btn_Viernes = document.querySelector(
       '#Dia_Accion_Menu [data-dia-toggle="4"]'
     );
@@ -189,6 +198,7 @@ test("el menu del encabezado alterna dias visibles", async ({
 
     return {
       textoMenu: Texto_Menu,
+      submenuAbierto: Submenu_Abierto,
       textoMartes: Texto_Martes,
       diasConMartes: Estado_Con_Martes,
       tieneHeaderMartes: Tiene_Header_Martes,
@@ -201,6 +211,7 @@ test("el menu del encabezado alterna dias visibles", async ({
   });
 
   expect(resultado.textoMenu).toContain("Mostrar días");
+  expect(resultado.submenuAbierto).toBeTruthy();
   expect(resultado.textoMartes).toContain("Martes");
   expect(resultado.textoMartes).toContain("✕");
   expect(resultado.diasConMartes).toEqual([0, 1, 2, 4]);
@@ -256,6 +267,13 @@ test("el encabezado permite limpiar un dia con confirmacion", async ({
   }, Fecha);
 
   await page.click(`.Dia_Header[data-fecha="${Fecha}"]`);
+  await expect(
+    page.locator("#Dia_Accion_Menu")
+  ).not.toHaveClass(/Activo/);
+
+  await page.click(`.Dia_Header[data-fecha="${Fecha}"]`, {
+    button: "right"
+  });
 
   await expect(
     page.locator("#Dia_Accion_Menu")
