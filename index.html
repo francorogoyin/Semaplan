@@ -8167,6 +8167,79 @@
         margin-top: 8px;
       }
 
+      .Archivero_Etiquetas_Chips {
+        min-height: 38px;
+        padding: 5px 6px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 5px;
+        cursor: text;
+      }
+
+      .Archivero_Etiquetas_Chips:focus-within {
+        border-color: var(--Acento);
+      }
+
+      .Archivero_Etiqueta_Chip_Edit {
+        max-width: 100%;
+        min-height: 24px;
+        padding: 3px 8px;
+        border: 1px solid rgba(26, 90, 128, 0.22);
+        border-radius: 999px;
+        background: var(--Acento_Suave);
+        color: var(--Acento);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        line-height: 1.2;
+      }
+
+      .Archivero_Etiqueta_Chip_Texto {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .Archivero_Etiqueta_Chip_Borrar {
+        width: 16px;
+        height: 16px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(26, 90, 128, 0.12);
+        color: var(--Acento);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+        line-height: 1;
+        padding: 0;
+      }
+
+      .Archivero_Etiqueta_Chip_Borrar:hover {
+        background: rgba(26, 90, 128, 0.22);
+      }
+
+      .Archivero_Etiquetas_Composer {
+        flex: 1 1 130px;
+        min-width: 110px;
+        border: 0 !important;
+        padding: 5px 4px !important;
+        background: transparent !important;
+        font-size: 13px;
+        color: var(--Texto);
+      }
+
+      .Archivero_Etiquetas_Composer:focus {
+        outline: none;
+        border-color: transparent !important;
+      }
+
       .Archivero_Nota_Mini_Btn {
         background: var(
           --Archivero_Nota_Accion_Fondo,
@@ -8878,7 +8951,7 @@
         position: fixed;
         inset: 0;
         background: rgba(31, 31, 31, 0.42);
-        z-index: 9999;
+        z-index: 12000;
         align-items: center;
         justify-content: center;
         padding: 20px;
@@ -14031,15 +14104,21 @@
               placeholder="URL o de dónde sacaste esto">
           </div>
           <div class="Archivero_Sub_Campo">
-            <label for="Archivero_Nota_Etiquetas_Input"
+            <label for="Archivero_Nota_Etiquetas_Composer"
               data-i18n="archivero.etiquetas">
               Etiquetas (opcional)
             </label>
-            <input type="text"
-              class="Archivero_Nota_Input_Emoji"
-              id="Archivero_Nota_Etiquetas_Input"
-              data-i18n-ph="archivero.etiquetas_ph"
-              placeholder="filosofía, memorable, libro...">
+            <input type="hidden"
+              id="Archivero_Nota_Etiquetas_Input">
+            <div class="Archivero_Etiquetas_Chips"
+              id="Archivero_Nota_Etiquetas_Chips">
+              <input type="text"
+                class="Archivero_Nota_Input_Emoji
+                  Archivero_Etiquetas_Composer"
+                id="Archivero_Nota_Etiquetas_Composer"
+                data-i18n-ph="archivero.etiquetas_ph"
+                placeholder="filosofia, memorable, libro...">
+            </div>
             <div class="Dialogo_Sugerencias
               Archivero_Etiquetas_Sugeridas"
               id="Archivero_Nota_Etiquetas_Sugerencias"
@@ -16064,6 +16143,10 @@
             "Nueva etiqueta",
           "archivero.nueva_etiqueta_ph":
             "Ej: Ideas",
+          "archivero.crear_etiqueta":
+            "Crear etiqueta",
+          "archivero.crear_etiqueta_confirm":
+            "Crear la etiqueta \"{Etiqueta}\"?",
           "archivero.etiquetas_ph":
             "filosofía, memorable, libro...",
           "archivero.sin_etiquetas_gestion":
@@ -18719,6 +18802,10 @@
             "New tag",
           "archivero.nueva_etiqueta_ph":
             "E.g.: Ideas",
+          "archivero.crear_etiqueta":
+            "Create tag",
+          "archivero.crear_etiqueta_confirm":
+            "Create the tag \"{Etiqueta}\"?",
           "archivero.etiquetas_ph":
             "philosophy, memorable, " +
             "book...",
@@ -21390,6 +21477,10 @@
             "Nova tag",
           "archivero.nueva_etiqueta_ph":
             "Ex: Ideias",
+          "archivero.crear_etiqueta":
+            "Criar tag",
+          "archivero.crear_etiqueta_confirm":
+            "Criar a tag \"{Etiqueta}\"?",
           "archivero.etiquetas_ph":
             "filosofia, memorável, " +
             "livro...",
@@ -23828,6 +23919,7 @@
       let Archivero_Notas_Seleccionadas = new Set();
       let Archivero_Notas_Expandida_Ids = new Set();
       let Archivero_Nota_En_Edicion_Id = null;
+      let Archivero_Nota_Etiquetas_Borrador = [];
       let Archivero_Etiquetas_En_Edicion = [];
       let Archivero_Etiquetas_Originales = [];
       let Archivero_Cajon_En_Edicion_Id = null;
@@ -27580,23 +27672,213 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Obtener_Catalogo_Etiquetas_Archivero(Ids);
       }
 
-      function Renderizar_Sugerencias_Nota_Archivero() {
+      function Sincronizar_Etiquetas_Modal_Nota_Archivero() {
         const Campo = document.getElementById(
           "Archivero_Nota_Etiquetas_Input"
+        );
+        if (!Campo) return;
+        Campo.value = Archivero_Nota_Etiquetas_Borrador
+          .join(", ");
+      }
+
+      function Etiqueta_Esta_En_Modal_Nota_Archivero(
+        Etiqueta
+      ) {
+        const Clave = Normalizar_Texto_Archivero(Etiqueta);
+        if (!Clave) return false;
+        return Archivero_Nota_Etiquetas_Borrador.some(
+          (Actual) =>
+            Normalizar_Texto_Archivero(Actual) === Clave
+        );
+      }
+
+      function Etiqueta_Existe_En_Catalogo_Archivero(
+        Etiqueta
+      ) {
+        const Clave = Normalizar_Texto_Archivero(Etiqueta);
+        if (!Clave) return false;
+        return Obtener_Etiquetas_Archivero_Sugeridas()
+          .some((Actual) =>
+            Normalizar_Texto_Archivero(Actual) === Clave
+          );
+      }
+
+      function Setear_Etiquetas_Modal_Nota_Archivero(
+        Etiquetas = []
+      ) {
+        Archivero_Nota_Etiquetas_Borrador =
+          Normalizar_Etiquetas_Archivero(Etiquetas);
+        Renderizar_Etiquetas_Modal_Nota_Archivero();
+      }
+
+      function Renderizar_Etiquetas_Modal_Nota_Archivero() {
+        const Contenedor = document.getElementById(
+          "Archivero_Nota_Etiquetas_Chips"
+        );
+        const Input = document.getElementById(
+          "Archivero_Nota_Etiquetas_Composer"
+        );
+        if (!Contenedor || !Input) return;
+        Contenedor
+          .querySelectorAll(".Archivero_Etiqueta_Chip_Edit")
+          .forEach((Chip) => Chip.remove());
+        Archivero_Nota_Etiquetas_Borrador.forEach(
+          (Etiqueta) => {
+            const Chip = document.createElement("span");
+            Chip.className = "Archivero_Etiqueta_Chip_Edit";
+
+            const Texto = document.createElement("span");
+            Texto.className =
+              "Archivero_Etiqueta_Chip_Texto";
+            Texto.textContent = Etiqueta;
+
+            const Borrar = document.createElement("button");
+            Borrar.type = "button";
+            Borrar.className =
+              "Archivero_Etiqueta_Chip_Borrar";
+            Borrar.textContent = "x";
+            Borrar.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              Quitar_Etiqueta_Modal_Nota_Archivero(
+                Etiqueta
+              );
+            });
+
+            Chip.appendChild(Texto);
+            Chip.appendChild(Borrar);
+            Contenedor.insertBefore(Chip, Input);
+          }
+        );
+        Sincronizar_Etiquetas_Modal_Nota_Archivero();
+        Renderizar_Sugerencias_Nota_Archivero();
+      }
+
+      function Quitar_Etiqueta_Modal_Nota_Archivero(
+        Etiqueta
+      ) {
+        const Clave = Normalizar_Texto_Archivero(Etiqueta);
+        Archivero_Nota_Etiquetas_Borrador =
+          Archivero_Nota_Etiquetas_Borrador.filter(
+            (Actual) =>
+              Normalizar_Texto_Archivero(Actual) !== Clave
+          );
+        Renderizar_Etiquetas_Modal_Nota_Archivero();
+      }
+
+      async function Confirmar_Etiqueta_Nueva_Archivero(
+        Etiqueta
+      ) {
+        return await Mostrar_Dialogo(
+          t("archivero.crear_etiqueta_confirm", {
+            Etiqueta
+          }),
+          [
+            {
+              Etiqueta: t("cancelar"),
+              Valor: false,
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("archivero.crear_etiqueta"),
+              Valor: true,
+              Tipo: "Primario"
+            }
+          ]
+        );
+      }
+
+      async function Agregar_Etiqueta_Modal_Nota_Archivero(
+        Etiqueta,
+        Opciones = {}
+      ) {
+        const Valor = String(Etiqueta || "").trim();
+        if (!Valor) return false;
+        if (Etiqueta_Esta_En_Modal_Nota_Archivero(Valor)) {
+          return false;
+        }
+        const Confirmar_Nueva =
+          Opciones.Confirmar_Nueva !== false;
+        if (
+          Confirmar_Nueva &&
+          !Etiqueta_Existe_En_Catalogo_Archivero(Valor)
+        ) {
+          const Confirmar =
+            await Confirmar_Etiqueta_Nueva_Archivero(Valor);
+          if (!Confirmar) return false;
+        }
+        Archivero_Nota_Etiquetas_Borrador.push(Valor);
+        Archivero_Nota_Etiquetas_Borrador =
+          Normalizar_Etiquetas_Archivero(
+            Archivero_Nota_Etiquetas_Borrador
+          );
+        Renderizar_Etiquetas_Modal_Nota_Archivero();
+        return true;
+      }
+
+      async function Confirmar_Input_Etiqueta_Nota_Archivero() {
+        const Input = document.getElementById(
+          "Archivero_Nota_Etiquetas_Composer"
+        );
+        if (!Input) return true;
+        const Etiquetas = Parsear_Etiquetas_Archivero(
+          Input.value
+        );
+        if (Etiquetas.length === 0) return true;
+        for (const Etiqueta of Etiquetas) {
+          const Ok = await Agregar_Etiqueta_Modal_Nota_Archivero(
+            Etiqueta
+          );
+          if (!Ok &&
+              !Etiqueta_Esta_En_Modal_Nota_Archivero(Etiqueta)) {
+            return false;
+          }
+        }
+        Input.value = "";
+        Renderizar_Sugerencias_Nota_Archivero();
+        return true;
+      }
+
+      function Obtener_Etiquetas_Modal_Nota_Archivero() {
+        return Normalizar_Etiquetas_Archivero(
+          Archivero_Nota_Etiquetas_Borrador
+        );
+      }
+
+      function Renderizar_Sugerencias_Nota_Archivero() {
+        const Input = document.getElementById(
+          "Archivero_Nota_Etiquetas_Composer"
         );
         const Contenedor = document.getElementById(
           "Archivero_Nota_Etiquetas_Sugerencias"
         );
-        if (!Campo || !Contenedor) return;
+        if (!Input || !Contenedor) return;
+        const Etiquetas_Activas = new Set(
+          Archivero_Nota_Etiquetas_Borrador.map(
+            (Etiqueta) => Normalizar_Texto_Archivero(Etiqueta)
+          )
+        );
+        const Filtro =
+          Normalizar_Texto_Archivero(Input.value);
+        const Sugeridas =
+          Obtener_Etiquetas_Archivero_Sugeridas()
+            .filter((Etiqueta) => {
+              const Clave =
+                Normalizar_Texto_Archivero(Etiqueta);
+              if (Etiquetas_Activas.has(Clave)) {
+                return false;
+              }
+              return !Filtro || Clave.includes(Filtro);
+            });
         Renderizar_Botones_Sugeridos(
           Contenedor,
-          Obtener_Etiquetas_Archivero_Sugeridas(),
+          Sugeridas,
           (Etiqueta) => {
-            Campo.value = Agregar_Valor_Lista_Comas(
-              Campo.value,
-              Etiqueta
+            Input.value = "";
+            Agregar_Etiqueta_Modal_Nota_Archivero(
+              Etiqueta,
+              { Confirmar_Nueva: false }
             );
-            Campo.focus();
+            Input.focus();
           }
         );
       }
@@ -29126,6 +29408,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Etiq = document.getElementById(
           "Archivero_Nota_Etiquetas_Input"
         );
+        const Etiq_Composer = document.getElementById(
+          "Archivero_Nota_Etiquetas_Composer"
+        );
         const Select = document.getElementById(
           "Archivero_Nota_Cajon_Select"
         );
@@ -29153,11 +29438,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Titulo_Nota.value = Nota.Titulo || "";
           Texto.value = Nota.Texto || "";
           Origen.value = Nota.Origen || "";
-          if (Etiq) {
-            Etiq.value = Array.isArray(Nota.Etiquetas)
-              ? Nota.Etiquetas.join(", ")
-              : "";
-          }
+          if (Etiq_Composer) Etiq_Composer.value = "";
+          Setear_Etiquetas_Modal_Nota_Archivero(
+            Array.isArray(Nota.Etiquetas)
+              ? Nota.Etiquetas
+              : []
+          );
           Color.dataset.modo =
             Normalizar_Color_Hex(Nota.Color_Fondo)
               ? "Personalizado"
@@ -29175,13 +29461,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto.value = "";
           Origen.value = "";
           if (Etiq) Etiq.value = "";
+          if (Etiq_Composer) Etiq_Composer.value = "";
+          Setear_Etiquetas_Modal_Nota_Archivero([]);
           Color.dataset.modo = "Cajon";
           Color.dataset.personalizado = "";
           Color.value = Obtener_Color_Input_Archivero(
             Select.value
           );
         }
-        Renderizar_Sugerencias_Nota_Archivero();
         Sincronizar_Color_Modal_Nota_Archivero();
         document.getElementById(
           "Archivero_Nota_Overlay"
@@ -29195,6 +29482,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Cerrar_Modal_Nota_Archivero() {
         Archivero_Nota_En_Edicion_Id = null;
+        Archivero_Nota_Etiquetas_Borrador = [];
         document.getElementById(
           "Archivero_Nota_Overlay"
         )?.classList.remove("Activo");
@@ -29333,7 +29621,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         document.addEventListener("click", Fn_Cierre_Menu);
       }
 
-      function Guardar_Nota_Archivero_Desde_Modal() {
+      async function Guardar_Nota_Archivero_Desde_Modal() {
         const Titulo = document.getElementById(
           "Archivero_Nota_Titulo_Input"
         );
@@ -29379,8 +29667,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ]);
           return;
         }
+        const Etiquetas_Pendientes_Ok =
+          await Confirmar_Input_Etiqueta_Nota_Archivero();
+        if (!Etiquetas_Pendientes_Ok) return;
         const Etiquetas_Valor =
-          Parsear_Etiquetas_Archivero(Etiq?.value);
+          Obtener_Etiquetas_Modal_Nota_Archivero();
         Registrar_Etiquetas_Archivero(Etiquetas_Valor);
         const Color_Valor =
           (Color.dataset.modo || "Cajon") === "Cajon"
@@ -55965,6 +56256,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Archivero_Nota_Nuevo_Cajon")
         ?.addEventListener("click", () => {
           Abrir_Modal_Cajon_Archivero(null);
+        });
+      document.getElementById("Archivero_Nota_Etiquetas_Chips")
+        ?.addEventListener("click", () => {
+          document.getElementById(
+            "Archivero_Nota_Etiquetas_Composer"
+          )?.focus();
+        });
+      document.getElementById("Archivero_Nota_Etiquetas_Composer")
+        ?.addEventListener("input", () => {
+          Renderizar_Sugerencias_Nota_Archivero();
+        });
+      document.getElementById("Archivero_Nota_Etiquetas_Composer")
+        ?.addEventListener("keydown", async (Ev) => {
+          if (Ev.key === "Enter") {
+            Ev.preventDefault();
+            Ev.stopPropagation();
+            await Confirmar_Input_Etiqueta_Nota_Archivero();
+            return;
+          }
+          if (
+            Ev.key === "Backspace" &&
+            !Ev.currentTarget.value &&
+            Archivero_Nota_Etiquetas_Borrador.length > 0
+          ) {
+            Ev.preventDefault();
+            const Ultima =
+              Archivero_Nota_Etiquetas_Borrador[
+                Archivero_Nota_Etiquetas_Borrador.length - 1
+              ];
+            Quitar_Etiqueta_Modal_Nota_Archivero(Ultima);
+          }
         });
         // Ctrl+Enter dentro del textarea (o cualquier
       // input del submodal de nota) guarda directo. Es
