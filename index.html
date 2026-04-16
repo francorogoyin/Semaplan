@@ -7922,7 +7922,7 @@
         cursor: pointer;
         font-family: inherit;
         font-size: 18px;
-        font-weight: 400;
+        font-weight: 700;
         line-height: 1;
         display: inline-flex;
         align-items: center;
@@ -7940,7 +7940,7 @@
         min-width: 0;
         padding: 2px 4px;
         font-size: 14px;
-        font-weight: 400;
+        font-weight: 700;
       }
 
       .Archivero_Control_Label_Fila {
@@ -7953,7 +7953,7 @@
       .Archivero_Btn_Etiquetas {
         min-width: 24px;
         font-size: 18px;
-        font-weight: 400;
+        font-weight: 700;
       }
 
       .Archivero_Notas_Lista {
@@ -8142,6 +8142,120 @@
         white-space: nowrap;
         user-select: none;
         cursor: pointer;
+      }
+
+      .Archivero_Nota_Adjuntos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        user-select: none;
+      }
+
+      .Archivero_Nota_Adjunto_Btn {
+        max-width: 100%;
+        border: 1px solid rgba(26, 90, 128, 0.18);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        color: var(
+          --Archivero_Nota_Tag_Color,
+          var(--Texto)
+        );
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 8px;
+        font-family: inherit;
+        font-size: 11px;
+        line-height: 1.2;
+        cursor: pointer;
+      }
+
+      .Archivero_Nota_Adjunto_Btn:hover {
+        border-color: var(--Acento);
+        color: var(--Acento);
+      }
+
+      .Archivero_Adjuntos_Box {
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px;
+      }
+
+      .Archivero_Adjuntos_Box:focus-within {
+        border-color: var(--Acento);
+      }
+
+      .Archivero_Adjuntos_Lista {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .Archivero_Adjuntos_Vacio {
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .Archivero_Adjunto_Item {
+        border: 1px solid rgba(26, 90, 128, 0.16);
+        border-radius: 8px;
+        background: #f7fbfc;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto auto;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 8px;
+      }
+
+      .Archivero_Adjunto_Nombre {
+        min-width: 0;
+        color: var(--Texto);
+        font-size: 13px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .Archivero_Adjunto_Tamano {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+
+      .Archivero_Adjunto_Borrar {
+        width: 24px;
+        height: 24px;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(26, 90, 128, 0.1);
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        font-size: 13px;
+        line-height: 1;
+        padding: 0;
+      }
+
+      .Archivero_Adjunto_Borrar:hover {
+        background: rgba(140, 47, 47, 0.14);
+        color: #8c2f2f;
+      }
+
+      .Archivero_Adjuntos_Acciones {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .Archivero_Adjuntos_Ayuda {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        line-height: 1.35;
       }
 
       .Archivero_Nota_Acciones {
@@ -14125,6 +14239,33 @@
               style="display:none"></div>
           </div>
           <div class="Archivero_Sub_Campo">
+            <label for="Archivero_Nota_Adjuntos_Input"
+              data-i18n="archivero.adjuntos">
+              Adjuntos (opcional)
+            </label>
+            <div class="Archivero_Adjuntos_Box">
+              <div class="Archivero_Adjuntos_Lista"
+                id="Archivero_Nota_Adjuntos_Lista"></div>
+              <div class="Archivero_Adjuntos_Acciones">
+                <button type="button"
+                  class="Archivero_Sub_Btn Compacto"
+                  id="Archivero_Nota_Adjuntos_Btn"
+                  data-i18n="archivero.adjuntar_archivo">
+                  Adjuntar archivo
+                </button>
+                <span class="Archivero_Adjuntos_Ayuda"
+                  id="Archivero_Nota_Adjuntos_Ayuda"
+                  data-i18n="archivero.adjuntos_ayuda">
+                  Máximo 1 MB por nota. Solo descarga,
+                  sin vista previa.
+                </span>
+              </div>
+              <input type="file"
+                id="Archivero_Nota_Adjuntos_Input"
+                multiple hidden>
+            </div>
+          </div>
+          <div class="Archivero_Sub_Campo">
             <label for="Archivero_Nota_Cajon_Select"
               data-i18n="archivero.cajon">
               Cajón
@@ -16147,8 +16288,34 @@
             "Crear etiqueta",
           "archivero.crear_etiqueta_confirm":
             "Crear la etiqueta \"{Etiqueta}\"?",
+          "archivero.borrar_etiqueta_confirm":
+            "Borrar la etiqueta \"{Etiqueta}\" de " +
+            "todas las notas?",
+          "archivero.borrar_etiqueta_confirmar":
+            "Borrar etiqueta",
           "archivero.etiquetas_ph":
             "filosofía, memorable, libro...",
+          "archivero.adjuntos":
+            "Adjuntos (opcional)",
+          "archivero.adjuntar_archivo":
+            "Adjuntar archivo",
+          "archivero.adjuntos_ayuda":
+            "Máximo 1 MB por nota. Solo descarga, " +
+            "sin vista previa.",
+          "archivero.sin_adjuntos":
+            "Todavía no hay adjuntos.",
+          "archivero.descargar_adjunto":
+            "Descargar",
+          "archivero.borrar_adjunto":
+            "Borrar adjunto",
+          "archivero.adjunto_limite":
+            "El archivo \"{Nombre}\" supera " +
+            "el límite de 1 MB.",
+          "archivero.adjuntos_limite_total":
+            "Los adjuntos de una nota no pueden " +
+            "superar 1 MB en total.",
+          "archivero.adjunto_error":
+            "No pude adjuntar \"{Nombre}\".",
           "archivero.sin_etiquetas_gestion":
             "Todavía no hay etiquetas creadas.",
           "archivero.color_fondo":
@@ -18806,9 +18973,35 @@
             "Create tag",
           "archivero.crear_etiqueta_confirm":
             "Create the tag \"{Etiqueta}\"?",
+          "archivero.borrar_etiqueta_confirm":
+            "Delete the tag \"{Etiqueta}\" from " +
+            "all notes?",
+          "archivero.borrar_etiqueta_confirmar":
+            "Delete tag",
           "archivero.etiquetas_ph":
             "philosophy, memorable, " +
             "book...",
+          "archivero.adjuntos":
+            "Attachments (optional)",
+          "archivero.adjuntar_archivo":
+            "Attach file",
+          "archivero.adjuntos_ayuda":
+            "Max 1 MB per note. Download only, " +
+            "no preview.",
+          "archivero.sin_adjuntos":
+            "No attachments yet.",
+          "archivero.descargar_adjunto":
+            "Download",
+          "archivero.borrar_adjunto":
+            "Delete attachment",
+          "archivero.adjunto_limite":
+            "The file \"{Nombre}\" is larger " +
+            "than 1 MB.",
+          "archivero.adjuntos_limite_total":
+            "A note's attachments cannot exceed " +
+            "1 MB in total.",
+          "archivero.adjunto_error":
+            "Could not attach \"{Nombre}\".",
           "archivero.sin_etiquetas_gestion":
             "There are no tags yet.",
           "archivero.color_fondo":
@@ -21481,9 +21674,35 @@
             "Criar tag",
           "archivero.crear_etiqueta_confirm":
             "Criar a tag \"{Etiqueta}\"?",
+          "archivero.borrar_etiqueta_confirm":
+            "Excluir a tag \"{Etiqueta}\" de " +
+            "todas as notas?",
+          "archivero.borrar_etiqueta_confirmar":
+            "Excluir tag",
           "archivero.etiquetas_ph":
             "filosofia, memorável, " +
             "livro...",
+          "archivero.adjuntos":
+            "Anexos (opcional)",
+          "archivero.adjuntar_archivo":
+            "Anexar arquivo",
+          "archivero.adjuntos_ayuda":
+            "Máximo 1 MB por nota. Somente download, " +
+            "sem prévia.",
+          "archivero.sin_adjuntos":
+            "Ainda não há anexos.",
+          "archivero.descargar_adjunto":
+            "Baixar",
+          "archivero.borrar_adjunto":
+            "Excluir anexo",
+          "archivero.adjunto_limite":
+            "O arquivo \"{Nombre}\" supera " +
+            "1 MB.",
+          "archivero.adjuntos_limite_total":
+            "Os anexos de uma nota não podem " +
+            "superar 1 MB no total.",
+          "archivero.adjunto_error":
+            "Não foi possível anexar \"{Nombre}\".",
           "archivero.sin_etiquetas_gestion":
             "Ainda não há tags criadas.",
           "archivero.color_fondo":
@@ -23920,6 +24139,8 @@
       let Archivero_Notas_Expandida_Ids = new Set();
       let Archivero_Nota_En_Edicion_Id = null;
       let Archivero_Nota_Etiquetas_Borrador = [];
+      let Archivero_Nota_Adjuntos_Borrador = [];
+      const Archivero_Adjuntos_Max_Bytes = 1024 * 1024;
       let Archivero_Etiquetas_En_Edicion = [];
       let Archivero_Etiquetas_Originales = [];
       let Archivero_Cajon_En_Edicion_Id = null;
@@ -27357,6 +27578,147 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Es_URL_Archivero(Texto) ? "Link" : "Texto";
       }
 
+      function Normalizar_Nombre_Adjunto_Archivero(Nombre) {
+        const Valor = String(Nombre || "").trim();
+        return Valor || "archivo";
+      }
+
+      function Formatear_Tamano_Archivo_Archivero(Bytes) {
+        const Valor = Math.max(0, Number(Bytes) || 0);
+        if (Valor >= 1024 * 1024) {
+          return `${(Valor / 1024 / 1024).toFixed(1)} MB`;
+        }
+        if (Valor >= 1024) {
+          return `${Math.ceil(Valor / 1024)} KB`;
+        }
+        return `${Valor} B`;
+      }
+
+      function Calcular_Tamano_Adjuntos_Archivero(Adjuntos) {
+        return (Array.isArray(Adjuntos) ? Adjuntos : [])
+          .reduce((Total, Adjunto) => {
+            return Total + (Number(Adjunto?.Tamano) || 0);
+          }, 0);
+      }
+
+      function Normalizar_Adjunto_Archivero(Adjunto) {
+        if (!Adjunto || typeof Adjunto !== "object") {
+          return null;
+        }
+        const Datos_Base64 = String(
+          Adjunto.Datos_Base64 ||
+          Adjunto.Base64 ||
+          ""
+        ).trim();
+        if (!Datos_Base64) return null;
+        const Tamano =
+          Math.max(0, Number(Adjunto.Tamano) || 0) ||
+          Math.floor((Datos_Base64.length * 3) / 4);
+        if (Tamano > Archivero_Adjuntos_Max_Bytes) {
+          return null;
+        }
+        return {
+          Id: Adjunto.Id || Generar_Id_Archivero(),
+          Nombre: Normalizar_Nombre_Adjunto_Archivero(
+            Adjunto.Nombre
+          ),
+          Mime: String(
+            Adjunto.Mime ||
+            Adjunto.Tipo ||
+            "application/octet-stream"
+          ),
+          Tamano,
+          Datos_Base64,
+          Fecha_Creacion:
+            Number(Adjunto.Fecha_Creacion) || Date.now()
+        };
+      }
+
+      function Normalizar_Adjuntos_Archivero(Adjuntos) {
+        const Lista = Array.isArray(Adjuntos) ? Adjuntos : [];
+        const Normalizados = [];
+        let Total = 0;
+        Lista.forEach((Adjunto) => {
+          const Normalizado =
+            Normalizar_Adjunto_Archivero(Adjunto);
+          if (!Normalizado) return;
+          if (
+            Total + Normalizado.Tamano >
+            Archivero_Adjuntos_Max_Bytes
+          ) {
+            return;
+          }
+          Normalizados.push(Normalizado);
+          Total += Normalizado.Tamano;
+        });
+        return Normalizados;
+      }
+
+      function Leer_Archivo_Como_Base64_Archivero(Archivo) {
+        return new Promise((Resolver, Rechazar) => {
+          const Lector = new FileReader();
+          Lector.onload = () => {
+            const Resultado = String(Lector.result || "");
+            const Partes = Resultado.split(",");
+            Resolver(
+              Partes.length > 1
+                ? Partes.pop()
+                : Resultado
+            );
+          };
+          Lector.onerror = () => Rechazar(Lector.error);
+          Lector.readAsDataURL(Archivo);
+        });
+      }
+
+      async function Mostrar_Error_Adjunto_Archivero(
+        Clave,
+        Datos = {}
+      ) {
+        await Mostrar_Dialogo(
+          t(Clave, Datos),
+          [
+            {
+              Etiqueta: t("ok"),
+              Valor: true,
+              Tipo: "Primario"
+            }
+          ]
+        );
+      }
+
+      function Crear_Blob_Adjunto_Archivero(Adjunto) {
+        const Datos = String(Adjunto?.Datos_Base64 || "");
+        const Binario = atob(Datos);
+        const Bytes = new Uint8Array(Binario.length);
+        for (let I = 0; I < Binario.length; I++) {
+          Bytes[I] = Binario.charCodeAt(I);
+        }
+        return new Blob(
+          [Bytes],
+          {
+            type: Adjunto?.Mime || "application/octet-stream"
+          }
+        );
+      }
+
+      function Descargar_Adjunto_Archivero(Adjunto) {
+        const Normalizado = Normalizar_Adjunto_Archivero(
+          Adjunto
+        );
+        if (!Normalizado) return;
+        const Blob_Archivo =
+          Crear_Blob_Adjunto_Archivero(Normalizado);
+        const Url = URL.createObjectURL(Blob_Archivo);
+        const Enlace = document.createElement("a");
+        Enlace.href = Url;
+        Enlace.download = Normalizado.Nombre;
+        document.body.appendChild(Enlace);
+        Enlace.click();
+        document.body.removeChild(Enlace);
+        URL.revokeObjectURL(Url);
+      }
+
       function Inicializar_Archiveros_Default() {
         // Si el usuario todavía no tiene cajones, crea
         // los cinco cajones por defecto para que el
@@ -27672,6 +28034,98 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Obtener_Catalogo_Etiquetas_Archivero(Ids);
       }
 
+      function Quitar_Etiqueta_De_Notas_Archivero(Etiqueta) {
+        const Clave = Normalizar_Texto_Archivero(Etiqueta);
+        if (!Clave) return 0;
+        let Cambios = 0;
+        Notas_Archivero = Notas_Archivero.map((Nota) => {
+          const Etiquetas_Nota = Array.isArray(Nota.Etiquetas)
+            ? Nota.Etiquetas
+            : [];
+          const Filtradas = Etiquetas_Nota.filter(
+            (Actual) =>
+              Normalizar_Texto_Archivero(Actual) !== Clave
+          );
+          if (Filtradas.length === Etiquetas_Nota.length) {
+            return Nota;
+          }
+          Cambios += 1;
+          return {
+            ...Nota,
+            Etiquetas:
+              Normalizar_Etiquetas_Archivero(Filtradas)
+          };
+        });
+        return Cambios;
+      }
+
+      async function Confirmar_Borrado_Etiqueta_Archivero(
+        Etiqueta
+      ) {
+        return await Mostrar_Dialogo(
+          t("archivero.borrar_etiqueta_confirm", {
+            Etiqueta
+          }),
+          [
+            {
+              Etiqueta: t("cancelar"),
+              Valor: false,
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta:
+                t("archivero.borrar_etiqueta_confirmar"),
+              Valor: true,
+              Tipo: "Primario"
+            }
+          ]
+        );
+      }
+
+      async function Borrar_Etiqueta_Modal_Archivero(
+        Indice
+      ) {
+        const Item = Archivero_Etiquetas_En_Edicion[Indice];
+        if (!Item) return;
+        const Original = String(Item.Original || "").trim();
+        const Valor = String(Item.Valor || "").trim();
+        const Etiqueta = Original || Valor;
+        if (Original) {
+          const Confirmar =
+            await Confirmar_Borrado_Etiqueta_Archivero(
+              Etiqueta
+            );
+          if (!Confirmar) return;
+          const Clave =
+            Normalizar_Texto_Archivero(Original);
+          Etiquetas_Archivero = Normalizar_Etiquetas_Archivero(
+            Etiquetas_Archivero.filter((Actual) => {
+              return Normalizar_Texto_Archivero(Actual) !==
+                Clave;
+            })
+          );
+          Archivero_Etiquetas_Originales =
+            Archivero_Etiquetas_Originales.filter((Actual) => {
+              return Normalizar_Texto_Archivero(Actual) !==
+                Clave;
+            });
+          Archivero_Etiquetas_En_Edicion =
+            Archivero_Etiquetas_En_Edicion.filter((Actual) => {
+              return Normalizar_Texto_Archivero(
+                Actual.Original || Actual.Valor
+              ) !== Clave;
+            });
+          Quitar_Etiqueta_De_Notas_Archivero(Original);
+          Guardar_Estado();
+          Renderizar_Sugerencias_Nota_Archivero();
+          Render_Archivero();
+          Render_Modal_Etiquetas_Archivero();
+          return;
+        }
+        Archivero_Etiquetas_En_Edicion.splice(Indice, 1);
+        Render_Modal_Etiquetas_Archivero();
+      }
+
       function Sincronizar_Etiquetas_Modal_Nota_Archivero() {
         const Campo = document.getElementById(
           "Archivero_Nota_Etiquetas_Input"
@@ -27842,6 +28296,159 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Normalizar_Etiquetas_Archivero(
           Archivero_Nota_Etiquetas_Borrador
         );
+      }
+
+      function Obtener_Adjuntos_Modal_Nota_Archivero() {
+        return Normalizar_Adjuntos_Archivero(
+          Archivero_Nota_Adjuntos_Borrador
+        );
+      }
+
+      function Setear_Adjuntos_Modal_Nota_Archivero(
+        Adjuntos = []
+      ) {
+        Archivero_Nota_Adjuntos_Borrador =
+          Normalizar_Adjuntos_Archivero(Adjuntos);
+        Renderizar_Adjuntos_Modal_Nota_Archivero();
+      }
+
+      function Quitar_Adjunto_Modal_Nota_Archivero(
+        Adjunto_Id
+      ) {
+        Archivero_Nota_Adjuntos_Borrador =
+          Archivero_Nota_Adjuntos_Borrador.filter(
+            (Adjunto) => Adjunto.Id !== Adjunto_Id
+          );
+        Renderizar_Adjuntos_Modal_Nota_Archivero();
+      }
+
+      function Renderizar_Adjuntos_Modal_Nota_Archivero() {
+        const Lista = document.getElementById(
+          "Archivero_Nota_Adjuntos_Lista"
+        );
+        if (!Lista) return;
+        Lista.innerHTML = "";
+        if (Archivero_Nota_Adjuntos_Borrador.length === 0) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Archivero_Adjuntos_Vacio";
+          Vacio.textContent = t("archivero.sin_adjuntos");
+          Lista.appendChild(Vacio);
+          return;
+        }
+        Archivero_Nota_Adjuntos_Borrador.forEach(
+          (Adjunto) => {
+            const Item = document.createElement("div");
+            Item.className = "Archivero_Adjunto_Item";
+
+            const Nombre = document.createElement("span");
+            Nombre.className = "Archivero_Adjunto_Nombre";
+            Nombre.textContent = Adjunto.Nombre;
+            Nombre.title = Adjunto.Nombre;
+
+            const Tamano = document.createElement("span");
+            Tamano.className = "Archivero_Adjunto_Tamano";
+            Tamano.textContent =
+              Formatear_Tamano_Archivo_Archivero(
+                Adjunto.Tamano
+              );
+
+            const Descargar = document.createElement("button");
+            Descargar.type = "button";
+            Descargar.className =
+              "Archivero_Nota_Adjunto_Btn";
+            Descargar.textContent =
+              t("archivero.descargar_adjunto");
+            Descargar.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              Descargar_Adjunto_Archivero(Adjunto);
+            });
+
+            const Borrar = document.createElement("button");
+            Borrar.type = "button";
+            Borrar.className = "Archivero_Adjunto_Borrar";
+            Borrar.textContent = "x";
+            Borrar.title = t("archivero.borrar_adjunto");
+            Borrar.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              Quitar_Adjunto_Modal_Nota_Archivero(
+                Adjunto.Id
+              );
+            });
+
+            Item.appendChild(Nombre);
+            Item.appendChild(Tamano);
+            Item.appendChild(Descargar);
+            Item.appendChild(Borrar);
+            Lista.appendChild(Item);
+          }
+        );
+      }
+
+      async function Agregar_Archivo_Adjunto_Modal_Archivero(
+        Archivo
+      ) {
+        if (!Archivo) return false;
+        if (Archivo.size > Archivero_Adjuntos_Max_Bytes) {
+          await Mostrar_Error_Adjunto_Archivero(
+            "archivero.adjunto_limite",
+            { Nombre: Archivo.name || "archivo" }
+          );
+          return false;
+        }
+        const Total =
+          Calcular_Tamano_Adjuntos_Archivero(
+            Archivero_Nota_Adjuntos_Borrador
+          );
+        if (
+          Total + Archivo.size >
+          Archivero_Adjuntos_Max_Bytes
+        ) {
+          await Mostrar_Error_Adjunto_Archivero(
+            "archivero.adjuntos_limite_total"
+          );
+          return false;
+        }
+        try {
+          const Datos_Base64 =
+            await Leer_Archivo_Como_Base64_Archivero(
+              Archivo
+            );
+          Archivero_Nota_Adjuntos_Borrador.push({
+            Id: Generar_Id_Archivero(),
+            Nombre: Normalizar_Nombre_Adjunto_Archivero(
+              Archivo.name
+            ),
+            Mime: Archivo.type || "application/octet-stream",
+            Tamano: Archivo.size,
+            Datos_Base64,
+            Fecha_Creacion: Date.now()
+          });
+          Archivero_Nota_Adjuntos_Borrador =
+            Normalizar_Adjuntos_Archivero(
+              Archivero_Nota_Adjuntos_Borrador
+            );
+          Renderizar_Adjuntos_Modal_Nota_Archivero();
+          return true;
+        } catch (Err) {
+          await Mostrar_Error_Adjunto_Archivero(
+            "archivero.adjunto_error",
+            { Nombre: Archivo.name || "archivo" }
+          );
+          return false;
+        }
+      }
+
+      async function Agregar_Adjuntos_Modal_Nota_Archivero(
+        Archivos
+      ) {
+        const Lista = Array.from(Archivos || []);
+        for (const Archivo of Lista) {
+          const Ok =
+            await Agregar_Archivo_Adjunto_Modal_Archivero(
+              Archivo
+            );
+          if (!Ok) break;
+        }
       }
 
       function Renderizar_Sugerencias_Nota_Archivero() {
@@ -28179,12 +28786,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Btn_Borrar.className = "Archivero_Nota_Mini_Btn";
             Btn_Borrar.textContent = "×";
             Btn_Borrar.title = t("borrar");
-            Btn_Borrar.addEventListener("click", () => {
-              Archivero_Etiquetas_En_Edicion.splice(
-                Indice,
-                1
+            Btn_Borrar.addEventListener("click", async () => {
+              await Borrar_Etiqueta_Modal_Archivero(
+                Indice
               );
-              Render_Modal_Etiquetas_Archivero();
             });
 
             Fila.appendChild(Prefijo);
@@ -28382,12 +28987,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               "Texto",
               "Origen",
               "Etiquetas",
+              "Adjuntos",
               "Tipo",
               "Fecha_Creacion",
               "Titulo"
             ].join(",")
           ];
           Notas.forEach((Nota) => {
+            const Adjuntos = Normalizar_Adjuntos_Archivero(
+              Nota.Adjuntos
+            );
             Filas.push([
               Escapar_Campo_Csv(Nota.Texto || ""),
               Escapar_Campo_Csv(Nota.Origen || ""),
@@ -28395,6 +29004,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Array.isArray(Nota.Etiquetas)
                   ? Nota.Etiquetas.join(" | ")
                   : ""
+              ),
+              Escapar_Campo_Csv(
+                Adjuntos.map((Adjunto) => Adjunto.Nombre)
+                  .join(" | ")
               ),
               Escapar_Campo_Csv(Nota.Tipo || "Texto"),
               Escapar_Campo_Csv(
@@ -28425,6 +29038,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (Array.isArray(Nota.Etiquetas) && Nota.Etiquetas.length) {
             Lineas.push(`Etiquetas: ${Nota.Etiquetas.join(", ")}`);
+          }
+          const Adjuntos = Normalizar_Adjuntos_Archivero(
+            Nota.Adjuntos
+          );
+          if (Adjuntos.length) {
+            Lineas.push(
+              `Adjuntos: ${Adjuntos
+                .map((Adjunto) => Adjunto.Nombre)
+                .join(", ")}`
+            );
           }
           Lineas.push(
             `Tipo: ${Nota.Tipo || "Texto"}`
@@ -28689,11 +29312,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ).includes(Texto);
               }
             );
+            const Hay_Adjunto = Normalizar_Adjuntos_Archivero(
+              Nota.Adjuntos
+            ).some((Adjunto) => {
+              return Normalizar_Texto_Archivero(
+                Adjunto.Nombre
+              ).includes(Texto);
+            });
             return (
               Hay_Titulo ||
               Hay_Texto ||
               Hay_Origen ||
-              Hay_Etiqueta
+              Hay_Etiqueta ||
+              Hay_Adjunto
             );
           });
         if (Archivero_Orden === "Personalizado") {
@@ -29056,6 +29687,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           Card.appendChild(Tags);
         }
+        const Adjuntos = Normalizar_Adjuntos_Archivero(
+          Nota.Adjuntos
+        );
+        if (Adjuntos.length > 0) {
+          const Adjuntos_Cont = document.createElement("div");
+          Adjuntos_Cont.className = "Archivero_Nota_Adjuntos";
+          Adjuntos.forEach((Adjunto) => {
+            const Boton = document.createElement("button");
+            Boton.type = "button";
+            Boton.className = "Archivero_Nota_Adjunto_Btn";
+            Boton.title =
+              `${t("archivero.descargar_adjunto")}: ` +
+              Adjunto.Nombre;
+            Boton.textContent =
+              `${Adjunto.Nombre} · ` +
+              Formatear_Tamano_Archivo_Archivero(
+                Adjunto.Tamano
+              );
+            Boton.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              Descargar_Adjunto_Archivero(Adjunto);
+            });
+            Adjuntos_Cont.appendChild(Boton);
+          });
+          Card.appendChild(Adjuntos_Cont);
+        }
         const Acciones = document.createElement("div");
         Acciones.className = "Archivero_Nota_Acciones";
         const Btn_Editar = document.createElement(
@@ -29411,6 +30068,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Etiq_Composer = document.getElementById(
           "Archivero_Nota_Etiquetas_Composer"
         );
+        const Adjuntos_Input = document.getElementById(
+          "Archivero_Nota_Adjuntos_Input"
+        );
         const Select = document.getElementById(
           "Archivero_Nota_Cajon_Select"
         );
@@ -29439,10 +30099,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto.value = Nota.Texto || "";
           Origen.value = Nota.Origen || "";
           if (Etiq_Composer) Etiq_Composer.value = "";
+          if (Adjuntos_Input) Adjuntos_Input.value = "";
           Setear_Etiquetas_Modal_Nota_Archivero(
             Array.isArray(Nota.Etiquetas)
               ? Nota.Etiquetas
               : []
+          );
+          Setear_Adjuntos_Modal_Nota_Archivero(
+            Nota.Adjuntos
           );
           Color.dataset.modo =
             Normalizar_Color_Hex(Nota.Color_Fondo)
@@ -29462,7 +30126,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Origen.value = "";
           if (Etiq) Etiq.value = "";
           if (Etiq_Composer) Etiq_Composer.value = "";
+          if (Adjuntos_Input) Adjuntos_Input.value = "";
           Setear_Etiquetas_Modal_Nota_Archivero([]);
+          Setear_Adjuntos_Modal_Nota_Archivero([]);
           Color.dataset.modo = "Cajon";
           Color.dataset.personalizado = "";
           Color.value = Obtener_Color_Input_Archivero(
@@ -29483,6 +30149,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Cerrar_Modal_Nota_Archivero() {
         Archivero_Nota_En_Edicion_Id = null;
         Archivero_Nota_Etiquetas_Borrador = [];
+        Archivero_Nota_Adjuntos_Borrador = [];
         document.getElementById(
           "Archivero_Nota_Overlay"
         )?.classList.remove("Activo");
@@ -29672,6 +30339,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Etiquetas_Pendientes_Ok) return;
         const Etiquetas_Valor =
           Obtener_Etiquetas_Modal_Nota_Archivero();
+        const Adjuntos_Valor =
+          Obtener_Adjuntos_Modal_Nota_Archivero();
         Registrar_Etiquetas_Archivero(Etiquetas_Valor);
         const Color_Valor =
           (Color.dataset.modo || "Cajon") === "Cajon"
@@ -29686,6 +30355,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Nota.Texto = Texto_Valor;
             Nota.Origen = Origen.value.trim();
             Nota.Etiquetas = Etiquetas_Valor;
+            Nota.Adjuntos = Adjuntos_Valor;
             Nota.Archivero_Id = Cajon_Id;
             Nota.Color_Fondo = Color_Valor;
             Nota.Tipo =
@@ -29699,6 +30369,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Texto: Texto_Valor,
             Origen: Origen.value.trim(),
             Etiquetas: Etiquetas_Valor,
+            Adjuntos: Adjuntos_Valor,
             Color_Fondo: Color_Valor,
             Tipo:
               Inferir_Tipo_Nota_Archivero(Texto_Valor),
@@ -29922,6 +30593,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Origen: (Origen || "").trim(),
           Etiquetas: Array.isArray(Etiquetas)
             ? Etiquetas.filter(Boolean) : [],
+          Adjuntos: [],
           Color_Fondo: "",
           Tipo: Inferir_Tipo_Nota_Archivero(Texto),
           Fecha_Creacion: Date.now()
@@ -52052,6 +52724,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   Titulo: String(
                     Nota?.Titulo || ""
                   ).trim(),
+                  Adjuntos: Normalizar_Adjuntos_Archivero(
+                    Nota?.Adjuntos
+                  ),
                   Color_Fondo: Normalizar_Color_Hex(
                     Nota?.Color_Fondo
                   )
@@ -52329,6 +53004,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ).trim(),
               Etiquetas: Parsear_Etiquetas_Archivero(
                 Etiquetas_Nota
+              ),
+              Adjuntos: Normalizar_Adjuntos_Archivero(
+                Nota?.Adjuntos
               ),
               Color_Fondo: Normalizar_Color_Hex(
                 Nota?.Color_Fondo
@@ -56256,6 +56934,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Archivero_Nota_Nuevo_Cajon")
         ?.addEventListener("click", () => {
           Abrir_Modal_Cajon_Archivero(null);
+        });
+      document.getElementById("Archivero_Nota_Adjuntos_Btn")
+        ?.addEventListener("click", () => {
+          document.getElementById(
+            "Archivero_Nota_Adjuntos_Input"
+          )?.click();
+        });
+      document.getElementById("Archivero_Nota_Adjuntos_Input")
+        ?.addEventListener("change", async (Ev) => {
+          await Agregar_Adjuntos_Modal_Nota_Archivero(
+            Ev.target.files
+          );
+          Ev.target.value = "";
         });
       document.getElementById("Archivero_Nota_Etiquetas_Chips")
         ?.addEventListener("click", () => {

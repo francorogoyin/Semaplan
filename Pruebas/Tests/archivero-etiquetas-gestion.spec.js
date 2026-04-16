@@ -177,6 +177,18 @@ test("gestiona etiquetas desde boton discreto", async ({
     "#Archivero_Etiquetas_Gestion_Lista " +
     ".Archivero_Nota_Mini_Btn"
   ).nth(1).click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Dialogo_Mensaje"))
+    .toContainText('Borrar la etiqueta "Urgente"');
+  await page.locator(
+    "#Dialogo_Botones .Dialogo_Boton_Primario"
+  ).click();
+  const Nota_2_Tras_Borrar = await page.evaluate(() => {
+    return Notas_Archivero.find((Nota) => Nota.Id === "n2")
+      ?.Etiquetas || [];
+  });
+  expect(Nota_2_Tras_Borrar).toEqual([]);
 
   await page.fill(
     "#Archivero_Etiqueta_Nueva_Input",
