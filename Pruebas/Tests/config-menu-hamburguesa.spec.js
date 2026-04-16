@@ -254,6 +254,13 @@ async ({ page }) => {
       "Otras_Apps_Overlay"
     );
     const Panel = Overlay?.querySelector(".Otras_Apps_Panel");
+    const Cabecera = Panel?.querySelector(
+      ".Patron_Modal_Cabecera"
+    );
+    const Cuerpo = Panel?.querySelector(".Otras_Apps_Cuerpo");
+    const Intro = Panel?.querySelector(".Otras_Apps_Intro");
+    const Intro_Rect = Intro?.getBoundingClientRect();
+    const Cuerpo_Rect = Cuerpo?.getBoundingClientRect();
     const Links = Array.from(
       Panel?.querySelectorAll(".Otras_Apps_Item") || []
     ).map((Link) => ({
@@ -268,12 +275,22 @@ async ({ page }) => {
       titulo: Boolean(
         Panel?.querySelector(".Patron_Modal_Titulo")
       ),
+      intro_en_cabecera: Boolean(Cabecera?.contains(Intro)),
+      intro_en_cuerpo: Boolean(Cuerpo?.contains(Intro)),
+      intro_sobre_cuerpo: Boolean(
+        Intro_Rect &&
+        Cuerpo_Rect &&
+        Intro_Rect.bottom <= Cuerpo_Rect.top
+      ),
       links: Links
     };
   });
 
   expect(resultado.activo).toBeTruthy();
   expect(resultado.titulo).toBeFalsy();
+  expect(resultado.intro_en_cabecera).toBeTruthy();
+  expect(resultado.intro_en_cuerpo).toBeFalsy();
+  expect(resultado.intro_sobre_cuerpo).toBeTruthy();
   expect(resultado.links).toEqual([
     {
       nombre: "Highlighter",
