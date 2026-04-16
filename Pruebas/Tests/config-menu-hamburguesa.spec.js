@@ -220,6 +220,8 @@ async ({ page }) => {
 
   const Links = page.locator("#Ayuda_Redes .Ayuda_Red_Link");
   await expect(Links).toHaveCount(4);
+  await expect(page.locator("#Ayuda_Redes .Ayuda_Red_Icono"))
+    .toHaveCount(4);
 
   const Geometria = await page.evaluate(() => {
     const Link = document.querySelector(
