@@ -122,20 +122,29 @@ test("guarda adjuntos y permite descargarlos", async ({ page }) => {
     "Nota con adjunto"
   );
   await page.locator("#Archivero_Nota_Adjuntos_Input")
-    .setInputFiles({
-      name: "resumen.txt",
-      mimeType: "text/plain",
-      buffer: Buffer.from("Contenido")
-    });
+    .setInputFiles([
+      {
+        name: "resumen.txt",
+        mimeType: "text/plain",
+        buffer: Buffer.from("Contenido")
+      },
+      {
+        name: "datos.csv",
+        mimeType: "text/csv",
+        buffer: Buffer.from("a,b")
+      }
+    ]);
 
   await expect(
     page.locator(".Archivero_Adjunto_Item")
-  ).toContainText(["resumen.txt"]);
+  ).toContainText(["resumen.txt", "datos.csv"]);
   await page.click("#Archivero_Nota_Guardar");
 
-  const adjunto = await page.evaluate(() => {
-    return Notas_Archivero[0]?.Adjuntos?.[0] || null;
+  const adjuntos = await page.evaluate(() => {
+    return Notas_Archivero[0]?.Adjuntos || [];
   });
+  expect(adjuntos).toHaveLength(2);
+  const adjunto = adjuntos[0];
   expect(adjunto.Nombre).toBe("resumen.txt");
   expect(adjunto.Tamano).toBe(9);
   expect(adjunto.Datos_Base64)
@@ -144,9 +153,18 @@ test("guarda adjuntos y permite descargarlos", async ({ page }) => {
   const boton = page.locator(
     ".Archivero_Nota_Card .Archivero_Nota_Adjunto_Btn"
   );
-  await expect(boton).toContainText("resumen.txt");
-  const descarga = page.waitForEvent("download");
+  await expect(boton).toContainText("2");
+  await expect(boton).not.toContainText("resumen.txt");
   await boton.click();
+  await expect(page.locator("#Dia_Accion_Menu"))
+    .toHaveClass(/Activo/);
+  await expect(
+    page.locator("#Dia_Accion_Menu .Archivero_Adjunto_Menu_Item")
+  ).toContainText(["resumen.txt", "datos.csv"]);
+  const descarga = page.waitForEvent("download");
+  await page.locator(
+    "#Dia_Accion_Menu .Archivero_Adjunto_Menu_Item"
+  ).nth(0).click();
   const archivo = await descarga;
   expect(archivo.suggestedFilename()).toBe("resumen.txt");
 });

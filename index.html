@@ -8152,7 +8152,6 @@
       }
 
       .Archivero_Nota_Adjunto_Btn {
-        max-width: 100%;
         border: 1px solid rgba(26, 90, 128, 0.18);
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.72);
@@ -8170,9 +8169,33 @@
         cursor: pointer;
       }
 
+      .Archivero_Nota_Adjunto_Btn.Resumen {
+        min-width: 42px;
+        justify-content: center;
+        font-weight: 700;
+      }
+
       .Archivero_Nota_Adjunto_Btn:hover {
         border-color: var(--Acento);
         color: var(--Acento);
+      }
+
+      .Archivero_Adjunto_Menu_Item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .Archivero_Adjunto_Menu_Nombre {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .Archivero_Adjunto_Menu_Tamano {
+        color: var(--Texto_Suave);
+        font-size: 11px;
       }
 
       .Archivero_Adjuntos_Box {
@@ -27719,6 +27742,74 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         URL.revokeObjectURL(Url);
       }
 
+      function Mostrar_Menu_Adjuntos_Archivero(
+        Adjuntos,
+        X,
+        Y
+      ) {
+        const Menu = document.getElementById("Dia_Accion_Menu");
+        const Lista = Normalizar_Adjuntos_Archivero(Adjuntos);
+        if (!Menu || Lista.length === 0) return;
+        Cerrar_Menu_Dia();
+        Menu.innerHTML = "";
+        Lista.forEach((Adjunto) => {
+          const Boton = document.createElement("button");
+          Boton.type = "button";
+          Boton.className =
+            "Dia_Accion_Item Archivero_Adjunto_Menu_Item";
+          Boton.title = Adjunto.Nombre;
+
+          const Nombre = document.createElement("span");
+          Nombre.className =
+            "Archivero_Adjunto_Menu_Nombre";
+          Nombre.textContent = Adjunto.Nombre;
+
+          const Tamano = document.createElement("span");
+          Tamano.className =
+            "Archivero_Adjunto_Menu_Tamano";
+          Tamano.textContent =
+            Formatear_Tamano_Archivo_Archivero(
+              Adjunto.Tamano
+            );
+
+          Boton.appendChild(Nombre);
+          Boton.appendChild(Tamano);
+          Boton.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Descargar_Adjunto_Archivero(Adjunto);
+          });
+          Menu.appendChild(Boton);
+        });
+        Menu.style.left = `${X}px`;
+        Menu.style.top = `${Y}px`;
+        Menu.classList.add("Activo");
+
+        requestAnimationFrame(() => {
+          const Rect = Menu.getBoundingClientRect();
+          const VH = window.innerHeight;
+          const VW = window.innerWidth;
+          if (Rect.bottom > VH - 8) {
+            Menu.style.top =
+              `${Math.max(8, VH - Rect.height - 8)}px`;
+          }
+          if (Rect.right > VW - 8) {
+            Menu.style.left =
+              `${Math.max(8, VW - Rect.width - 8)}px`;
+          }
+        });
+
+        if (Fn_Cierre_Menu) {
+          document.removeEventListener("click", Fn_Cierre_Menu);
+        }
+        Fn_Cierre_Menu = (Ev) => {
+          if (!Menu.contains(Ev.target)) {
+            Cerrar_Menu_Dia();
+          }
+        };
+        document.addEventListener("click", Fn_Cierre_Menu);
+      }
+
       function Inicializar_Archiveros_Default() {
         // Si el usuario todavía no tiene cajones, crea
         // los cinco cajones por defecto para que el
@@ -29693,24 +29784,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Adjuntos.length > 0) {
           const Adjuntos_Cont = document.createElement("div");
           Adjuntos_Cont.className = "Archivero_Nota_Adjuntos";
-          Adjuntos.forEach((Adjunto) => {
-            const Boton = document.createElement("button");
-            Boton.type = "button";
-            Boton.className = "Archivero_Nota_Adjunto_Btn";
-            Boton.title =
-              `${t("archivero.descargar_adjunto")}: ` +
-              Adjunto.Nombre;
-            Boton.textContent =
-              `${Adjunto.Nombre} · ` +
-              Formatear_Tamano_Archivo_Archivero(
-                Adjunto.Tamano
-              );
-            Boton.addEventListener("click", (Ev) => {
-              Ev.stopPropagation();
-              Descargar_Adjunto_Archivero(Adjunto);
-            });
-            Adjuntos_Cont.appendChild(Boton);
+          const Boton = document.createElement("button");
+          Boton.type = "button";
+          Boton.className =
+            "Archivero_Nota_Adjunto_Btn Resumen";
+          Boton.title = t("archivero.adjuntos");
+          Boton.textContent =
+            `\uD83D\uDCCE ${Adjuntos.length}`;
+          Boton.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Mostrar_Menu_Adjuntos_Archivero(
+              Adjuntos,
+              Ev.clientX,
+              Ev.clientY
+            );
           });
+          Adjuntos_Cont.appendChild(Boton);
           Card.appendChild(Adjuntos_Cont);
         }
         const Acciones = document.createElement("div");
@@ -29752,6 +29841,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (
             Target.closest(".Archivero_Nota_Mini_Btn") ||
+            Target.closest(".Archivero_Nota_Adjunto_Btn") ||
             Target.closest("a")
           ) {
             return;
@@ -29776,6 +29866,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Obtener_Texto_Seleccionado()) return;
           if (
             Ev.target.closest(".Archivero_Nota_Mini_Btn") ||
+            Ev.target.closest(".Archivero_Nota_Adjunto_Btn") ||
             Ev.target.closest("a")
           ) {
             return;
