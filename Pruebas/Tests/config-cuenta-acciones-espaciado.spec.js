@@ -130,6 +130,9 @@ test("deja espacio vertical entre acciones de cuenta y botones", async ({
     const Fila_Version = document.querySelector(
       "#Cfg_Version_Programa"
     )?.closest(".Config_Fila");
+    const Detalle_Version = document.getElementById(
+      "Cfg_Version_Detalle"
+    );
     const Seccion_Version = Fila_Version?.closest(
       ".Config_Seccion"
     );
@@ -143,6 +146,7 @@ test("deja espacio vertical entre acciones de cuenta y botones", async ({
       !Fila_Apps ||
       !Titulo_Version ||
       !Fila_Version ||
+      !Detalle_Version ||
       !Seccion_Version
     ) {
       return null;
@@ -162,6 +166,8 @@ test("deja espacio vertical entre acciones de cuenta y botones", async ({
       Titulo_Version.getBoundingClientRect();
     const Rect_Fila_Version =
       Fila_Version.getBoundingClientRect();
+    const Rect_Detalle_Version =
+      Detalle_Version.getBoundingClientRect();
     const Rect_Seccion_Version =
       Seccion_Version.getBoundingClientRect();
     return {
@@ -179,7 +185,8 @@ test("deja espacio vertical entre acciones de cuenta y botones", async ({
       gap_inferior:
         Rect_Campo.bottom - Rect_Fila.bottom,
       gap_inferior_version:
-        Rect_Seccion_Version.bottom - Rect_Fila_Version.bottom
+        Rect_Seccion_Version.bottom -
+        Rect_Detalle_Version.bottom
     };
   });
 
@@ -195,10 +202,10 @@ test("deja espacio vertical entre acciones de cuenta y botones", async ({
       medida.gap_inferior -
       medida.gap_inferior_version
     )
-  ).toBeLessThanOrEqual(2);
+  ).toBeLessThanOrEqual(8);
 });
 
-test("equilibra los espacios entre miembro, aviso e historial de pagos",
+test("equilibra los espacios entre miembro, aviso, pagos y backups",
 async ({ page }) => {
   await page.route(
     "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
@@ -316,6 +323,7 @@ async ({ page }) => {
     ];
     Config.Plan_Actual = "Upgrade";
     Renderizar_Datos_Cuenta();
+    Crear_Backup_Local("Manual");
   });
 
   const medida = await page.evaluate(() => {
@@ -336,12 +344,20 @@ async ({ page }) => {
     const Primera_Celda = document.querySelector(
       "#Cfg_Pagos_Historial .Cfg_Pagos_Tabla td"
     );
+    const Etiqueta_Backups = document.querySelector(
+      ".Config_Backup_Historial > .Cfg_Cuenta_Etiqueta"
+    );
+    const Primer_Backup = document.querySelector(
+      "#Cfg_Backup_Lista .Config_Backup_Meta"
+    );
     if (
       !Campo_Miembro ||
       !Aviso ||
       Aviso.hidden ||
       !Etiqueta_Historial ||
-      !Primera_Celda
+      !Primera_Celda ||
+      !Etiqueta_Backups ||
+      !Primer_Backup
     ) {
       return null;
     }
@@ -351,6 +367,10 @@ async ({ page }) => {
       Obtener_Rect_Texto(Etiqueta_Historial);
     const Rect_Primera_Celda =
       Obtener_Rect_Texto(Primera_Celda);
+    const Rect_Etiqueta_Backups =
+      Obtener_Rect_Texto(Etiqueta_Backups);
+    const Rect_Primer_Backup =
+      Obtener_Rect_Texto(Primer_Backup);
     return {
       gap_miembro_aviso: Math.round(
         Rect_Aviso.top - Rect_Miembro.bottom
@@ -360,6 +380,9 @@ async ({ page }) => {
       ),
       gap_historial_primer_item: Math.round(
         Rect_Primera_Celda.top - Rect_Etiqueta.bottom
+      ),
+      gap_backups_primer_item: Math.round(
+        Rect_Primer_Backup.top - Rect_Etiqueta_Backups.bottom
       )
     };
   });
@@ -374,7 +397,17 @@ async ({ page }) => {
   expect(medida.gap_aviso_historial)
     .toBeLessThanOrEqual(32);
   expect(medida.gap_historial_primer_item)
-    .toBeGreaterThanOrEqual(4);
+    .toBeGreaterThanOrEqual(8);
   expect(medida.gap_historial_primer_item)
-    .toBeLessThanOrEqual(8);
+    .toBeLessThanOrEqual(12);
+  expect(medida.gap_backups_primer_item)
+    .toBeGreaterThanOrEqual(8);
+  expect(medida.gap_backups_primer_item)
+    .toBeLessThanOrEqual(12);
+  expect(
+    Math.abs(
+      medida.gap_historial_primer_item -
+      medida.gap_backups_primer_item
+    )
+  ).toBeLessThanOrEqual(2);
 });

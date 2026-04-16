@@ -140,6 +140,15 @@ test("crea backups automaticos y manuales en config", async ({
       : null;
     const Rect_Lista = document.getElementById("Cfg_Backup_Lista")
       ?.getBoundingClientRect();
+    const Obtener_Rect_Texto = (Elemento) => {
+      if (!Elemento) return null;
+      const Rango = document.createRange();
+      Rango.selectNodeContents(Elemento);
+      return Rango.getBoundingClientRect();
+    };
+    const Rect_Meta = Obtener_Rect_Texto(
+      Primer_Item?.querySelector(".Config_Backup_Meta")
+    );
     return {
       tipos: Lista.map((Item) => Item.Tipo),
       tituloHistorial: Titulo_Historial?.textContent?.trim()
@@ -158,6 +167,9 @@ test("crea backups automaticos y manuales en config", async ({
       separacionTituloLista: Rect_Titulo && Rect_Lista
         ? Rect_Lista.top - Rect_Titulo.bottom
         : null,
+      separacionTituloTexto: Rect_Titulo && Rect_Meta
+        ? Rect_Meta.top - Rect_Titulo.bottom
+        : null,
       fontWeightTipo: Estilo_Tipo?.fontWeight || "",
       radioBoton: Estilo_Boton?.borderRadius || "",
       fondoBoton: Estilo_Boton?.backgroundColor || ""
@@ -174,7 +186,10 @@ test("crea backups automaticos y manuales en config", async ({
   expect(resumen.orden_2).toBe("Config_Backup_Tipo");
   expect(Number(resumen.fontWeightTitulo)).toBeGreaterThanOrEqual(700);
   expect(resumen.flexTitulo).toBe("auto");
-  expect(resumen.separacionTituloLista).toBeLessThanOrEqual(8);
+  expect(resumen.separacionTituloLista).toBeGreaterThanOrEqual(9);
+  expect(resumen.separacionTituloLista).toBeLessThanOrEqual(11);
+  expect(resumen.separacionTituloTexto).toBeGreaterThanOrEqual(8);
+  expect(resumen.separacionTituloTexto).toBeLessThanOrEqual(12);
   expect(Number(resumen.fontWeightTipo)).toBeLessThan(500);
   expect(resumen.radioBoton).toBe("999px");
   expect(resumen.fondoBoton).not.toBe("rgba(0, 0, 0, 0)");
