@@ -154,4 +154,33 @@ test("muestra la version actual publicada en configuracion", async ({
   await expect(page.locator("#Cfg_Version_Abrir_Btn")).toBeDisabled();
   await expect(page.locator("#Cfg_Version_Detalle"))
     .toContainText("1.0.0");
+  await expect(page.locator("#Cfg_Version_Detalle"))
+    .toContainText("Publicada el");
+  await expect(page.locator("#Cfg_Version_Detalle"))
+    .not.toContainText("Estado:");
+  await expect(page.locator("#Cfg_Version_Detalle"))
+    .not.toContainText("Esquema de datos");
+
+  const Layout = await page.evaluate(() => {
+    const Select = document.getElementById(
+      "Cfg_Version_Programa"
+    );
+    const Boton = document.getElementById(
+      "Cfg_Version_Abrir_Btn"
+    );
+    const Rect_Select = Select?.getBoundingClientRect();
+    const Rect_Boton = Boton?.getBoundingClientRect();
+    if (!Rect_Select || !Rect_Boton) return null;
+    return {
+      botonDerecha: Rect_Boton.left > Rect_Select.right,
+      centroY:
+        Math.abs(
+          (Rect_Boton.top + Rect_Boton.height / 2) -
+          (Rect_Select.top + Rect_Select.height / 2)
+        )
+    };
+  });
+
+  expect(Layout?.botonDerecha).toBe(true);
+  expect(Layout?.centroY).toBeLessThanOrEqual(2);
 });
