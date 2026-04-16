@@ -32925,15 +32925,136 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Item.Estado !== "Planeado";
       }
 
-      function Obtener_Items_Plan_Evento(Evento_Data) {
+      function Obtener_Items_Abordaje_Evento(Evento_Data) {
         return (Array.isArray(Evento_Data?.Abordaje)
           ? Evento_Data.Abordaje
+          : []);
+      }
+
+      function Obtener_Items_Plan_Explicito_Evento(
+        Evento_Data
+      ) {
+        return Obtener_Items_Abordaje_Evento(Evento_Data)
+          .filter(Item_Es_Plan_Evento);
+      }
+
+      function Obtener_Claves_Plan_Slot_Evento(Evento_Data) {
+        const Fecha = String(Evento_Data?.Fecha || "").trim();
+        const Inicio = Number(Evento_Data?.Inicio);
+        const Duracion = Math.max(
+          Number(Evento_Data?.Duracion) || 1,
+          1
+        );
+        if (!Fecha || !Number.isFinite(Inicio)) return [];
+        const Desde = Math.floor(Inicio);
+        const Hasta = Math.ceil(Inicio + Duracion - 0.0001);
+        const Claves = [];
+        for (let Hora = Desde; Hora < Hasta; Hora++) {
+          const Clave = Clave_Slot(Fecha, Hora);
+          if (
+            Clave &&
+            Planes_Slot &&
+            Object.prototype.hasOwnProperty.call(
+              Planes_Slot,
+              Clave
+            )
+          ) {
+            Claves.push(Clave);
+          }
+        }
+        return Claves;
+      }
+
+      function Mapear_Estado_Plan_Slot_A_Abordaje(Estado) {
+        if (Estado === "Realizado") return "Completado";
+        if (Estado === "Abordado") return "Abordado";
+        return "";
+      }
+
+      function Clonar_Item_Plan_Slot_A_Abordaje(Item) {
+        const Texto = String(Item?.Texto || "").trim();
+        if (!Texto) return null;
+        const Estado = Mapear_Estado_Plan_Slot_A_Abordaje(
+          Item?.Estado
+        );
+        const Resultado = {
+          Id: Crear_Id_Abordaje(),
+          Plantilla_Id: null,
+          Texto,
+          Emoji: Item?.Emoji || "\u2022",
+          Suelta: true,
+          Planeada: true
+        };
+        if (Estado) {
+          Resultado.Estado = Estado;
+        }
+        return Resultado;
+      }
+
+      function Obtener_Items_Plan_Slot_Evento(Evento_Data) {
+        return Obtener_Claves_Plan_Slot_Evento(Evento_Data)
+          .flatMap((Clave) =>
+            Array.isArray(Planes_Slot?.[Clave]?.Items)
+              ? Planes_Slot[Clave].Items
+              : []
+          )
+          .map(Clonar_Item_Plan_Slot_A_Abordaje)
+          .filter(Boolean);
+      }
+
+      function Transferir_Items_Plan_Slot_A_Evento(
+        Evento_Data,
+        Items_Base
+      ) {
+        if (!Evento_Data) return false;
+        const Nuevos = (Array.isArray(Items_Base)
+          ? Items_Base
           : []
-        ).filter(Item_Es_Plan_Evento);
+        ).map(Clonar_Item_Plan_Slot_A_Abordaje)
+          .filter(Boolean);
+        if (!Nuevos.length) return false;
+        const Base = Obtener_Items_Abordaje_Evento(Evento_Data)
+          .map((Item) => ({ ...Item }));
+        Evento_Data.Abordaje = Fusionar_Plan_En_Abordaje(
+          Base,
+          Nuevos
+        );
+        return true;
+      }
+
+      function Obtener_Items_Plan_Evento(Evento_Data) {
+        const Explicitos =
+          Obtener_Items_Plan_Explicito_Evento(Evento_Data);
+        if (Explicitos.length > 0) {
+          return Explicitos;
+        }
+        return Obtener_Items_Plan_Slot_Evento(Evento_Data);
       }
 
       function Evento_Tiene_Plan_Abordaje(Evento_Data) {
         return Obtener_Items_Plan_Evento(Evento_Data).length > 0;
+      }
+
+      function Obtener_Abordaje_Con_Plan_Slot(Evento_Data) {
+        const Base = Obtener_Items_Abordaje_Evento(Evento_Data);
+        if (
+          Obtener_Items_Plan_Explicito_Evento(Evento_Data)
+            .length > 0
+        ) {
+          return Base;
+        }
+        const Items_Slot =
+          Obtener_Items_Plan_Slot_Evento(Evento_Data);
+        return Items_Slot.length > 0
+          ? [...Base, ...Items_Slot]
+          : Base;
+      }
+
+      function Limpiar_Planes_Slot_Evento(Evento_Data) {
+        Obtener_Claves_Plan_Slot_Evento(Evento_Data)
+          .forEach((Clave) => {
+            Limpiar_Plan_Slot_Por_Clave(Clave);
+          });
       }
 
       function Obtener_Portapapeles_Plan_Para_Evento() {
@@ -33114,9 +33235,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Pegar_Plan_En_Evento(Evento_Data) {
         const Clip = Obtener_Portapapeles_Plan_Para_Evento();
         if (!Clip || !Evento_Data) return false;
-        const Actuales = Array.isArray(Evento_Data.Abordaje)
-          ? Evento_Data.Abordaje
-          : [];
+        const Actuales =
+          Obtener_Abordaje_Con_Plan_Slot(Evento_Data);
         let Modo = "Reemplazar";
         if (Evento_Tiene_Plan_Abordaje(Evento_Data)) {
           Modo = await Mostrar_Dialogo(
@@ -33158,6 +33278,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Base,
           Nuevos
         );
+        Limpiar_Planes_Slot_Evento(Evento_Data);
         Eventos_Multi_Seleccion.clear();
         Slots_Multi_Seleccion.clear();
         Refrescar_Cambio_Plan_Evento(Evento_Data);
@@ -33183,13 +33304,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Confirmar) return;
         const Final = Quitar_Plan_De_Items_Abordaje(
-          Evento_Data.Abordaje
+          Obtener_Abordaje_Con_Plan_Slot(Evento_Data)
         );
         if (Final.length > 0) {
           Evento_Data.Abordaje = Final;
         } else {
           delete Evento_Data.Abordaje;
         }
+        Limpiar_Planes_Slot_Evento(Evento_Data);
         Refrescar_Cambio_Plan_Evento(Evento_Data);
         await Forzar_Sync_Inmediato_Cambio_Critico();
       }
@@ -36851,9 +36973,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Abordaje_Evento_Id = Evento_Id;
 
         // Borrador inicial: copia profunda del abordaje existente.
-        const Existente = Array.isArray(Evento.Abordaje)
-          ? JSON.parse(JSON.stringify(Evento.Abordaje))
-          : [];
+        // Si el horario conservaba un plan de slot debajo del
+        // bloque, se lo trata como plan propio del evento.
+        const Existente = JSON.parse(JSON.stringify(
+          Obtener_Abordaje_Con_Plan_Slot(Evento)
+        ));
 
         // Pre-poblar con subobjetivos de la semana actual de la
         // objetivo. Se marca como Marcado=true SOLO si hay trabajo
@@ -37642,6 +37766,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           delete Evento.Abordaje;
         }
+        Limpiar_Planes_Slot_Evento(Evento);
 
         // Sincronizar Hecha en los subobjetivos reales según el
         // estado guardado en el modal. Reglas:
@@ -43557,6 +43682,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 !Slot_Es_Muerto(Fecha, Hora) &&
                 Slot_Tiene_Evento(Fecha, Hora)
               ) {
+                const Evento_Slot = Obtener_Evento_Conflicto(
+                  Fecha,
+                  Hora,
+                  1
+                );
+                if (
+                  Evento_Slot &&
+                  Obtener_Items_Plan_Explicito_Evento(
+                    Evento_Slot
+                  ).length === 0
+                ) {
+                  Transferir_Items_Plan_Slot_A_Evento(
+                    Evento_Slot,
+                    Plan?.Items || []
+                  );
+                }
                 return;
               }
               const Items = Normalizar_Items_Plan_Slot(

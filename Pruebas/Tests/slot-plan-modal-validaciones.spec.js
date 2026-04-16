@@ -768,6 +768,101 @@ test("menu de bloque copia pega y borra plan", async ({ page }) => {
   expect(borrado.tiene_plan).toBeFalsy();
 });
 
+test("menu de bloque reconoce plan heredado del slot", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Objetivos = [
+    {
+      Id: "obj_plan_slot",
+      Nombre: "Verduras",
+      Emoji: "*",
+      Color: "#ef9a9a",
+      Horas_Semanales: 1,
+      Es_Bolsa: false,
+      Subobjetivos_Semanales: {
+        "2026-04-13": []
+      },
+      Subobjetivos_Contraidas_Semanales: {},
+      Subobjetivos_Excluidos_Semanales: {}
+    }
+  ];
+  estado.Eventos = [
+    {
+      Id: "ev_plan_slot",
+      Objetivo_Id: "obj_plan_slot",
+      Fecha: "2026-04-13",
+      Inicio: 9,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#ef9a9a",
+      Nota: ""
+    }
+  ];
+  estado.Planes_Slot = {
+    "2026-04-13|9": {
+      Items: [
+        {
+          Id: "plan_slot_heredado",
+          Emoji: "*",
+          Texto: "Plan heredado",
+          Estado: "Planeado"
+        }
+      ]
+    }
+  };
+
+  await Preparar(page, estado);
+
+  const bloque = page.locator('.Evento[data-id="ev_plan_slot"]');
+  await expect(bloque).toBeVisible();
+  await bloque.click({ button: "right" });
+
+  await expect(
+    page.locator('#Dia_Accion_Menu [data-acc="abordaje"]')
+  ).toHaveText("Editar plan");
+  await expect(
+    page.locator(
+      '#Dia_Accion_Menu [data-acc="copiar-plan-evento"]'
+    )
+  ).toBeVisible();
+  await expect(
+    page.locator(
+      '#Dia_Accion_Menu [data-acc="borrar-plan-evento"]'
+    )
+  ).toBeVisible();
+
+  await page.click('#Dia_Accion_Menu [data-acc="abordaje"]');
+  await expect(page.locator("#Abordaje_Modal_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.getByText("Plan heredado")).toBeVisible();
+  await page.click("#Abordaje_Modal_Guardar_Btn");
+
+  const guardado = await page.evaluate(() => {
+    const Estado = JSON.parse(
+      localStorage.getItem("Semaplan_Estado_V2")
+    );
+    const Evento = Estado.Eventos.find((Ev) =>
+      Ev.Id === "ev_plan_slot"
+    );
+    const Item = Evento?.Abordaje?.find((Ab) =>
+      Ab.Texto === "Plan heredado"
+    );
+    return {
+      planeada: Boolean(Item?.Planeada),
+      suelta: Boolean(Item?.Suelta),
+      estado: Item?.Estado || "",
+      plan_slot: Estado.Planes_Slot?.["2026-04-13|9"] || null
+    };
+  });
+
+  expect(guardado.planeada).toBeTruthy();
+  expect(guardado.suelta).toBeTruthy();
+  expect(guardado.estado).toBe("");
+  expect(guardado.plan_slot).toBeNull();
+});
+
 test("modal de bloque normaliza plan legacy", async ({ page }) => {
   const estado = Estado_Base();
   estado.Objetivos = [
