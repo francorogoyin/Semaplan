@@ -17529,7 +17529,7 @@
         "slot.agregar_item": "Agregar item",
         "slot.toast_falta_emoji": "Falta emoji",
         "slot.toast_objetivo_pendiente":
-          "Ingresá el objetivo pendiente",
+          "Agregá el objetivo con + antes de guardar",
         "slot.toast_faltan_objetivos":
           "Faltan objetivos",
         "slot.sin_patrones_para":
@@ -20126,7 +20126,7 @@
         "slot.agregar_item": "Add item",
         "slot.toast_falta_emoji": "Missing emoji",
         "slot.toast_objetivo_pendiente":
-          "Add the pending objective first",
+          "Add the objective with + before saving",
         "slot.toast_faltan_objetivos":
           "Missing objectives",
         "slot.sin_patrones_para":
@@ -22821,7 +22821,7 @@
         "slot.agregar_item": "Adicionar item",
         "slot.toast_falta_emoji": "Falta emoji",
         "slot.toast_objetivo_pendiente":
-          "Insira primeiro o objetivo pendente",
+          "Adicione o objetivo com + antes de salvar",
         "slot.toast_faltan_objetivos":
           "Faltam objetivos",
         "slot.sin_patrones_para":
@@ -41040,7 +41040,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ?.focus();
             return;
           }
-          if (!Agregar_Item_Plan_Slot()) return;
+          if (Falta_Emoji_Plan_Slot(Datos.Emoji_Raw)) {
+            Cerrar_Selector_Emojis();
+            Mostrar_Toast_Plan_Slot(
+              "slot.toast_falta_emoji"
+            );
+            document.getElementById("Plan_Slot_Nuevo_Emoji")
+              ?.focus();
+            return;
+          }
+          Cerrar_Selector_Emojis();
+          Mostrar_Toast_Plan_Slot(
+            "slot.toast_objetivo_pendiente"
+          );
+          document.getElementById("Plan_Slot_Nuevo_Input")
+            ?.focus();
+          return;
         }
         const Clave = Plan_Slot_Clave_Activa;
         const Items = Normalizar_Items_Plan_Slot(

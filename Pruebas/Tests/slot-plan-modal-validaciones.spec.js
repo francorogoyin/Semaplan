@@ -197,7 +197,7 @@ test("avisa cuando falta emoji al agregar un objetivo", async ({
   expect(datos.modal_activo).toBeTruthy();
 });
 
-test("guarda despues del aviso de emoji y un snapshot", async ({
+test("exige agregar despues del aviso de emoji y snapshot", async ({
   page
 }) => {
   await Preparar(page, Estado_Base());
@@ -220,6 +220,23 @@ test("guarda despues del aviso de emoji y un snapshot", async ({
   expect(claveActiva).toBe("2026-04-13|9");
 
   await page.fill("#Plan_Slot_Nuevo_Emoji", "*");
+  await page.click("#Plan_Slot_Guardar");
+
+  await expect(
+    page.locator(".Undo_Toast_Texto").first()
+  ).toHaveText("Agregá el objetivo con + antes de guardar");
+  await expect(page.locator("#Plan_Slot_Overlay"))
+    .toHaveClass(/Activo/);
+
+  const sinGuardar = await page.evaluate(() => ({
+    borrador: Plan_Slot_Borrador.length,
+    guardado: JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
+      ?.Planes_Slot?.["2026-04-13|9"] || null
+  }));
+  expect(sinGuardar.borrador).toBe(0);
+  expect(sinGuardar.guardado).toBeNull();
+
+  await page.click("#Plan_Slot_Cuerpo .Abordaje_Nuevo_Btn");
   await page.click("#Plan_Slot_Guardar");
 
   await expect(page.locator("#Plan_Slot_Overlay"))
@@ -428,32 +445,70 @@ async ({ page }) => {
   expect(datos.guardado[0].Texto).toBe("Plan muerto");
 });
 
-test("guarda un objetivo valido que todavia esta en borrador", async ({
+test("no guarda un objetivo valido todavia en borrador", async ({
   page
 }) => {
-  await Preparar(page, Estado_Base());
-  await Abrir_Modal_Plan(page, "2026-04-13", 9);
+  const estado = Estado_Base();
+  estado.Slots_Muertos = ["2026-04-13|10"];
+  estado.Slots_Muertos_Tipos["2026-04-13|10"] = "Comida";
+  estado.Slots_Muertos_Nombres["2026-04-13|10"] = "Almuerzo";
+  await Preparar(page, estado);
 
-  await page.click("#Plan_Slot_Cuerpo .Config_Boton");
-  await page.fill("#Plan_Slot_Nuevo_Input", "Pensar idea");
-  await page.locator("#Plan_Slot_Nuevo_Emoji").evaluate((input) => {
-    input.value = "💡";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-  });
-  await page.click("#Plan_Slot_Guardar");
+  for (const caso of [
+    {
+      hora: 9,
+      clave: "2026-04-13|9",
+      texto: "Pensar idea"
+    },
+    {
+      hora: 10,
+      clave: "2026-04-13|10",
+      texto: "Comprar almuerzo"
+    }
+  ]) {
+    await Abrir_Modal_Plan(page, "2026-04-13", caso.hora);
 
-  await expect(page.locator("#Plan_Slot_Overlay"))
-    .not.toHaveClass(/Activo/);
+    await page.click("#Plan_Slot_Cuerpo .Config_Boton");
+    await page.fill("#Plan_Slot_Nuevo_Input", caso.texto);
+    await page.locator("#Plan_Slot_Nuevo_Emoji")
+      .evaluate((input) => {
+        input.value = "*";
+        input.dispatchEvent(
+          new Event("input", { bubbles: true })
+        );
+      });
+    await page.click("#Plan_Slot_Guardar");
 
-  const datos = await page.evaluate(() => ({
-    guardado:
-      JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
-        ?.Planes_Slot?.["2026-04-13|9"]?.Items?.[0] || null
-  }));
+    await expect(
+      page.locator(".Undo_Toast_Texto").first()
+    ).toHaveText("Agregá el objetivo con + antes de guardar");
+    await expect(page.locator("#Plan_Slot_Overlay"))
+      .toHaveClass(/Activo/);
 
-  expect(datos.guardado?.Texto).toBe("Pensar idea");
-  expect(datos.guardado?.Emoji).toBe("💡");
-  expect(datos.guardado?.Estado).toBe("Planeado");
+    const sinGuardar = await page.evaluate((clave) => ({
+      borrador: Plan_Slot_Borrador.length,
+      guardado: JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
+        ?.Planes_Slot?.[clave] || null
+    }), caso.clave);
+    expect(sinGuardar.borrador).toBe(0);
+    expect(sinGuardar.guardado).toBeNull();
+
+    await page.click("#Plan_Slot_Cuerpo .Abordaje_Nuevo_Btn");
+    await page.click("#Plan_Slot_Guardar");
+
+    await expect(page.locator("#Plan_Slot_Overlay"))
+      .not.toHaveClass(/Activo/);
+
+    const datos = await page.evaluate((clave) => ({
+      guardado:
+        JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
+          ?.Planes_Slot?.[clave]?.Items?.[0] || null
+    }), caso.clave);
+
+    expect(datos.guardado?.Texto).toBe(caso.texto);
+    expect(datos.guardado?.Emoji).toBe("*");
+    expect(datos.guardado?.Estado).toBe("Planeado");
+  }
 });
 
 test("menu de slot ordena plan y abre tipos por click", async ({
