@@ -134,6 +134,31 @@ test("no cierra el editor del baul al hacer click afuera", async ({
   await expect(page.locator("#Baul_Nuevo_Overlay"))
     .toHaveClass(/Activo/);
 
+  const layout = await page.evaluate(() => {
+    const Acciones = document.querySelector(
+      ".Baul_Form_Acciones"
+    );
+    const Guardar = document.getElementById("Baul_Guardar");
+    const Cancelar = document.getElementById(
+      "Baul_Cancelar_Edicion"
+    );
+    if (!Acciones || !Guardar) return null;
+    const Rect_Acciones = Acciones.getBoundingClientRect();
+    const Rect_Guardar = Guardar.getBoundingClientRect();
+    return {
+      cancelar_visible: Boolean(Cancelar),
+      boton_mas_chico:
+        Rect_Guardar.width < Rect_Acciones.width,
+      alineado_derecha:
+        Math.abs(Rect_Acciones.right - Rect_Guardar.right)
+    };
+  });
+
+  expect(layout).not.toBeNull();
+  expect(layout.cancelar_visible).toBe(false);
+  expect(layout.boton_mas_chico).toBe(true);
+  expect(layout.alineado_derecha).toBeLessThanOrEqual(1);
+
   await page.fill(
     "#Baul_Nombre_Input",
     "Editar sin cierre modificado"
