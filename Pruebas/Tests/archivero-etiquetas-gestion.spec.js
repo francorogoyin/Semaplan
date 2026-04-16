@@ -180,7 +180,7 @@ test("gestiona etiquetas desde boton discreto", async ({
   await expect(page.locator("#Dialogo_Overlay"))
     .toHaveClass(/Activo/);
   await expect(page.locator("#Dialogo_Mensaje"))
-    .toContainText('Borrar la etiqueta "Urgente"');
+    .toContainText('¿Borrar la etiqueta "Urgente"');
   await page.locator(
     "#Dialogo_Botones .Dialogo_Boton_Primario"
   ).click();

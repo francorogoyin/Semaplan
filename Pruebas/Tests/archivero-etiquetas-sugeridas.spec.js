@@ -233,7 +233,7 @@ test("convierte etiquetas en chips y confirma nuevas", async ({
   await expect(page.locator("#Dialogo_Overlay"))
     .toHaveClass(/Activo/);
   await expect(page.locator("#Dialogo_Mensaje"))
-    .toContainText('Crear la etiqueta "Nueva"?');
+    .toContainText('¿Crear la etiqueta "Nueva"?');
   await page.locator(
     "#Dialogo_Botones .Dialogo_Boton_Secundario"
   ).click();
