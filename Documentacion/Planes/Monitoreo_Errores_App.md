@@ -60,8 +60,15 @@ Corre en cada push a `main`, manualmente y todos los dias a las
 
 Secrets esperados para smokes.
 
+- `SEMAPLAN_SMOKE_EMAIL`.
+- `SEMAPLAN_SMOKE_PASSWORD`.
 - `SEMAPLAN_PROD_AUTH_STATE_B64`.
 - `SEMAPLAN_STAGING_AUTH_STATE_B64`.
+
+La opcion recomendada es usar email y contrasena de la cuenta de
+testeo. El workflow genera una sesion fresca en cada corrida y evita
+depender de refresh tokens viejos. Los secrets `AUTH_STATE_B64`
+quedan como fallback.
 
 Secrets esperados para reporte.
 
@@ -69,9 +76,9 @@ Secrets esperados para reporte.
 - `SEMAPLAN_PROD_SERVICE_ROLE_KEY`.
 - `SEMAPLAN_STAGING_SERVICE_ROLE_KEY`.
 
-Si no hay auth secrets, los smokes se saltean sin fallar el workflow.
-Si no hay secrets de Supabase, el reporte se saltea sin fallar el
-workflow.
+Si no hay credenciales ni auth secrets, los smokes se saltean sin
+fallar el workflow. Si no hay secrets de Supabase, el reporte se
+saltea sin fallar el workflow.
 
 Para generar un auth state en base64.
 

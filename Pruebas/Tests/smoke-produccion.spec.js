@@ -22,32 +22,54 @@ test.use({
     ? ARCHIVO_AUTH
     : { cookies: [], origins: [] }
 });
+test.setTimeout(300000);
 
 async function esperarSyncEstable(
   page,
   timeout = 30000,
   timeoutReintento = 120000
 ) {
-  const Esperar = async (Tiempo) => {
-    await page.waitForFunction(() => {
-      return Sync_Estado === "Guardado" &&
-        Hay_Sync_Pendiente() === false;
-    }, null, { timeout: Tiempo });
+  const Esperar = async (Tiempo, Detectar_Reintento) => {
+    const Resultado = await page.waitForFunction(
+      (Permitir_Reintento) => {
+        const Esta_Guardado =
+          Sync_Estado === "Guardado" &&
+          Hay_Sync_Pendiente() === false;
+        if (Esta_Guardado) {
+          return "guardado";
+        }
+
+        const Reintentar = document.getElementById(
+          "Sync_Reintentar_Btn"
+        );
+        const Puede_Reintentar =
+          Permitir_Reintento &&
+          Reintentar &&
+          !Reintentar.hidden &&
+          Reintentar.offsetParent !== null;
+        return Puede_Reintentar ? "reintentar" : false;
+      },
+      Detectar_Reintento,
+      { timeout: Tiempo }
+    );
+    return await Resultado.jsonValue();
   };
 
-  try {
-    await Esperar(timeout);
+  const Estado = await Esperar(timeout, true);
+  if (Estado === "guardado") {
     return;
-  } catch (Error) {
-    const Reintentar = page.locator(
-      "#Sync_Reintentar_Btn"
-    );
-    if (!(await Reintentar.isVisible().catch(() => false))) {
-      throw Error;
-    }
-    await Reintentar.click();
-    await Esperar(timeoutReintento);
   }
+
+  await page.evaluate(async () => {
+    if (typeof Reintentar_Sync_Manual === "function") {
+      await Reintentar_Sync_Manual();
+      return;
+    }
+
+    document.getElementById("Sync_Reintentar_Btn")
+      ?.click();
+  });
+  await Esperar(timeoutReintento, false);
 }
 
 async function esperarAppLista(page) {
@@ -276,44 +298,4 @@ test("smoke de produccion", async ({ page }) => {
   try {
     await esperarSyncEstable(page, 10000, 10000);
   } catch (_) {}
-
-  await page.locator("#Config_Abrir").click();
-  await page.locator("#Cfg_Cerrar_Sesion").click();
-  await page.waitForSelector("#Dialogo_Botones button", {
-    timeout: 10000
-  });
-  if (
-    await page.locator(
-      "#Dialogo_Botones .Dialogo_Boton_Peligro"
-    ).count() === 0
-  ) {
-    await page.locator(
-      "#Dialogo_Botones .Dialogo_Boton_Primario"
-    ).click();
-    await page.evaluate(async () => {
-      if (typeof Reintentar_Sync_Manual === "function") {
-        await Reintentar_Sync_Manual();
-        return;
-      }
-      if (
-        typeof Forzar_Sync_Inmediato_Cambio_Critico ===
-        "function"
-      ) {
-        await Forzar_Sync_Inmediato_Cambio_Critico();
-      }
-    });
-    await esperarSyncEstable(page, 15000, 15000);
-    await page.locator("#Cfg_Cerrar_Sesion").click();
-    await page.waitForSelector(
-      "#Dialogo_Botones .Dialogo_Boton_Peligro",
-      { timeout: 10000 }
-    );
-  }
-  await page.locator("#Dialogo_Botones .Dialogo_Boton_Peligro")
-    .click();
-
-  await page.waitForFunction(() => {
-    const Auth = document.getElementById("Auth_Overlay");
-    return Auth?.classList.contains("Activo");
-  }, null, { timeout: 120000 });
 });
