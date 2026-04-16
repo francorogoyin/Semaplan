@@ -195,7 +195,7 @@ test("ofrece importar al archivero desde el menu del baul", async ({
   });
 
   expect(resultado.textoMenu)
-    .toContain("Importar al Archivero");
+    .toContain("Importar al archivero");
   expect(resultado.itemsMenu.slice(2, 4)).toEqual([
     {
       Accion: "varias",
