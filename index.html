@@ -8121,6 +8121,7 @@
 
       .Archivero_Nota_Etiquetas {
         display: flex;
+        align-items: center;
         flex-wrap: wrap;
         gap: 4px;
         user-select: none;
@@ -8146,7 +8147,8 @@
 
       .Archivero_Nota_Adjuntos {
         display: flex;
-        flex-wrap: wrap;
+        align-items: center;
+        flex-wrap: nowrap;
         gap: 5px;
         user-select: none;
       }
@@ -29762,22 +29764,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Origen.title = Nota.Origen;
           Meta.appendChild(Origen);
         }
-        Card.appendChild(Meta);
-        // Badges de etiquetas (si la nota tiene).
-        if (
-          Array.isArray(Nota.Etiquetas) &&
-          Nota.Etiquetas.length > 0
-        ) {
-          const Tags = document.createElement("div");
-          Tags.className = "Archivero_Nota_Etiquetas";
-          Nota.Etiquetas.forEach((Tag) => {
-            const Badge = document.createElement("span");
-            Badge.className = "Archivero_Nota_Etiqueta";
-            Badge.textContent = Tag;
-            Tags.appendChild(Badge);
-          });
-          Card.appendChild(Tags);
-        }
         const Adjuntos = Normalizar_Adjuntos_Archivero(
           Nota.Adjuntos
         );
@@ -29800,8 +29786,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           });
           Adjuntos_Cont.appendChild(Boton);
-          Card.appendChild(Adjuntos_Cont);
+          Meta.appendChild(Adjuntos_Cont);
         }
+        // Badges de etiquetas (si la nota tiene).
+        if (
+          Array.isArray(Nota.Etiquetas) &&
+          Nota.Etiquetas.length > 0
+        ) {
+          const Tags = document.createElement("div");
+          Tags.className = "Archivero_Nota_Etiquetas";
+          Nota.Etiquetas.forEach((Tag) => {
+            const Badge = document.createElement("span");
+            Badge.className = "Archivero_Nota_Etiqueta";
+            Badge.textContent = Tag;
+            Tags.appendChild(Badge);
+          });
+          Meta.appendChild(Tags);
+        }
+        Card.appendChild(Meta);
         const Acciones = document.createElement("div");
         Acciones.className = "Archivero_Nota_Acciones";
         const Btn_Editar = document.createElement(

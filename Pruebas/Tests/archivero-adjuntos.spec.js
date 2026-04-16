@@ -150,11 +150,35 @@ test("guarda adjuntos y permite descargarlos", async ({ page }) => {
   expect(adjunto.Datos_Base64)
     .toBe(Buffer.from("Contenido").toString("base64"));
 
-  const boton = page.locator(
-    ".Archivero_Nota_Card .Archivero_Nota_Adjunto_Btn"
+  await page.evaluate(() => {
+    Notas_Archivero[0].Etiquetas = ["Pospuesta"];
+    Render_Archivero();
+  });
+  const pie = page.locator(
+    ".Archivero_Nota_Card .Archivero_Nota_Meta"
   );
+  const boton = pie.locator(".Archivero_Nota_Adjunto_Btn");
   await expect(boton).toContainText("2");
   await expect(boton).not.toContainText("resumen.txt");
+  await expect(
+    pie.locator(".Archivero_Nota_Etiqueta")
+  ).toContainText("Pospuesta");
+  const ordenPie = await pie.evaluate((Meta) => {
+    return Array.from(Meta.children).map((Nodo) => {
+      if (Nodo.classList.contains("Archivero_Nota_Adjuntos")) {
+        return "adjuntos";
+      }
+      if (Nodo.classList.contains("Archivero_Nota_Etiquetas")) {
+        return "etiquetas";
+      }
+      return "meta";
+    });
+  });
+  expect(ordenPie).toEqual([
+    "meta",
+    "adjuntos",
+    "etiquetas"
+  ]);
   await boton.click();
   await expect(page.locator("#Dia_Accion_Menu"))
     .toHaveClass(/Activo/);
