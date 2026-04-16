@@ -192,3 +192,51 @@ test("permite tildar y destildar todo", async ({ page }) => {
   expect(posicion).not.toBeNull();
   expect(posicion.acciones_debajo).toBeTruthy();
 });
+
+test("hamburguesa abre redes sociales en ayuda",
+async ({ page }) => {
+  await Preparar(page, Crear_Estado("Hamburguesa"));
+
+  await page.evaluate(() => {
+    Cerrar_Config();
+    Config.Menu_Estilo = "Hamburguesa";
+    Aplicar_Estilo_Menu();
+    Mostrar_Menu_Hamburguesa();
+  });
+
+  const Popup = page.locator("#Menu_Hamburguesa_Popup");
+  await expect(Popup).toBeVisible();
+
+  const Redes = Popup.locator(
+    ".Menu_Hamburguesa_Item_Redes"
+  );
+  await expect(Redes).toContainText("Redes sociales");
+  await Redes.click();
+
+  await expect(page.locator("#Ayuda_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Ayuda_Redes"))
+    .toContainText("Redes sociales");
+
+  const Links = page.locator("#Ayuda_Redes .Ayuda_Red_Link");
+  await expect(Links).toHaveCount(4);
+
+  const Geometria = await page.evaluate(() => {
+    const Link = document.querySelector(
+      "#Ayuda_Redes .Ayuda_Red_Link"
+    );
+    const Rect = Link.getBoundingClientRect();
+    return {
+      ancho: Math.round(Rect.width),
+      alto: Math.round(Rect.height),
+      radio: window.getComputedStyle(Link).borderRadius
+    };
+  });
+  expect(Geometria.ancho).toBe(32);
+  expect(Geometria.alto).toBe(32);
+  expect(Geometria.radio).toBe("999px");
+
+  const Url_Antes = page.url();
+  await Links.first().click();
+  expect(page.url()).toBe(Url_Antes);
+});
