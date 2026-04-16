@@ -50,19 +50,7 @@ async function esperarSyncEstable(
   }
 }
 
-test("smoke de produccion", async ({ page }) => {
-  test.skip(
-    !fs.existsSync(ARCHIVO_AUTH),
-    "Falta la sesion real. Corre npm run auth:semaplan."
-  );
-
-  const Marca = `Smoke ${Date.now()}`;
-
-  await page.goto(BASE_URL, {
-    waitUntil: "domcontentloaded",
-    timeout: 120000
-  });
-
+async function esperarAppLista(page) {
   await page.waitForSelector("#Archivero_Boton", {
     timeout: 120000
   });
@@ -90,6 +78,66 @@ test("smoke de produccion", async ({ page }) => {
       Es_Premium() === true
     );
   }, null, { timeout: 120000 });
+}
+
+async function recargarSinEstadoLocal(page) {
+  await page.evaluate(() => {
+    [
+      "Semaplan_Estado_V2",
+      "Semaplan_Estado_V2_staging",
+      "Time_Blocking_Estado_V2",
+      "Time_Blocking_Estado_V2_staging"
+    ].forEach((Clave) => {
+      localStorage.removeItem(Clave);
+    });
+  });
+
+  await page.reload({
+    waitUntil: "domcontentloaded",
+    timeout: 120000
+  });
+  await esperarAppLista(page);
+}
+
+async function validarPersistenciaRemota(page, Marca) {
+  await page.waitForFunction((Nombre) => {
+    const Objetivo = (Objetivos || []).find((Item) => {
+      return String(Item?.Nombre || "") ===
+        `${Nombre} editado`;
+    });
+    if (!Objetivo) {
+      return false;
+    }
+
+    const Subs = Obtener_Subobjetivos_Semana(
+      Objetivo,
+      true
+    );
+    const Tiene_Sub = Subs.some((Sub) => {
+      return String(Sub?.Texto || "") === "Subobjetivo smoke";
+    });
+    const Tiene_Nota = (Notas_Archivero || []).some((Nota) => {
+      return String(Nota?.Titulo || "") === Nombre &&
+        String(Nota?.Texto || "") === "Nota smoke";
+    });
+    return Tiene_Sub && Tiene_Nota;
+  }, Marca, { timeout: 120000 });
+}
+
+test("smoke de produccion", async ({ page }) => {
+  test.skip(
+    !fs.existsSync(ARCHIVO_AUTH),
+    "Falta la sesion real. Corre npm run auth:semaplan."
+  );
+
+  const Marca = `Smoke ${Date.now()}`;
+
+  await page.goto(BASE_URL, {
+    waitUntil: "domcontentloaded",
+    timeout: 120000
+  });
+
+  await esperarAppLista(page);
 
   await expect(page.locator("#Archivero_Boton")).toBeVisible();
   await expect(page.locator("#Baul_Boton")).toBeVisible();
@@ -148,7 +196,7 @@ test("smoke de produccion", async ({ page }) => {
   await expect(page.locator("#Archivero_Overlay"))
     .toHaveClass(/Activo/);
 
-  await page.evaluate((Nombre) => {
+  await page.evaluate(async (Nombre) => {
     Inicializar_Archiveros_Default();
     const Cajon =
       Archiveros.find((Item) => {
@@ -175,7 +223,12 @@ test("smoke de produccion", async ({ page }) => {
     Archivero_Seleccion_Id = Cajon.Id;
     Render_Archivero();
     Guardar_Estado();
+    await Forzar_Sync_Inmediato_Cambio_Critico();
   }, Marca);
+
+  await esperarSyncEstable(page, 120000, 120000);
+  await recargarSinEstadoLocal(page);
+  await validarPersistenciaRemota(page, Marca);
 
   await page.keyboard.press("Escape");
   await expect(page.locator("#Archivero_Overlay"))
