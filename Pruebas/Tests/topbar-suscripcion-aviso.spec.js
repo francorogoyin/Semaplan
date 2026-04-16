@@ -281,19 +281,48 @@ async ({ page }) => {
     .toHaveAttribute("src", /Mercado_Pago\.svg$/);
   await expect(Mercado.locator(".Pago_Premium_Logo_Img"))
     .toHaveAttribute("alt", "Mercado Pago");
-  await expect(Mercado).toContainText("ARS 7.499");
-  await expect(Mercado).toContainText("Pago nacional");
+  await expect(Mercado.locator(".Pago_Premium_Numero"))
+    .toHaveText("7.499");
+  await expect(Mercado.locator(".Pago_Premium_Moneda"))
+    .toHaveText("ARS");
+  await expect(Mercado).not.toContainText("Pago nacional");
   await expect(Mercado).not.toContainText("Mercado Pago");
   await expect(Stripe.locator(".Pago_Premium_Logo_Img"))
     .toHaveAttribute("src", /Stripe\.svg$/);
   await expect(Stripe.locator(".Pago_Premium_Logo_Img"))
     .toHaveAttribute("alt", "Stripe");
-  await expect(Stripe).toContainText("USD 5");
-  await expect(Stripe).toContainText("Pago internacional");
+  await expect(Stripe.locator(".Pago_Premium_Numero"))
+    .toHaveText("5");
+  await expect(Stripe.locator(".Pago_Premium_Moneda"))
+    .toHaveText("USD");
+  await expect(Stripe).not.toContainText("Pago internacional");
   await expect(Stripe).not.toContainText("stripe");
   await expect(Stripe).toHaveAttribute("href", "#");
   await expect(Mercado).toHaveCSS("text-align", "center");
   await expect(Mercado).toHaveCSS("align-items", "center");
+  const Precio = await Mercado.locator(
+    ".Pago_Premium_Monto"
+  ).evaluate((Nodo) => {
+    const Numero = Nodo.querySelector(
+      ".Pago_Premium_Numero"
+    );
+    const Moneda = Nodo.querySelector(
+      ".Pago_Premium_Moneda"
+    );
+    const Rect_Numero = Numero.getBoundingClientRect();
+    const Rect_Moneda = Moneda.getBoundingClientRect();
+    const Estilo_Numero = window.getComputedStyle(Numero);
+    const Estilo_Moneda = window.getComputedStyle(Moneda);
+    return {
+      monedaALaDerecha:
+        Rect_Moneda.left > Rect_Numero.right,
+      fontNumero: Estilo_Numero.fontSize,
+      fontMoneda: Estilo_Moneda.fontSize
+    };
+  });
+  expect(Precio.monedaALaDerecha).toBe(true);
+  expect(Precio.fontNumero).toBe("32px");
+  expect(Precio.fontMoneda).toBe("11px");
 
   await Stripe.click();
   await expect(Modal).toHaveClass(/Activo/);
