@@ -634,6 +634,123 @@ test("menu de bloque distingue insertar y editar plan", async ({
   expect(etiquetas.conPlan).toBe("Editar plan");
 });
 
+test("menu de bloque copia pega y borra plan", async ({ page }) => {
+  const estado = Estado_Base();
+  estado.Eventos = [
+    {
+      Id: "ev_plan_origen",
+      Objetivo_Id: null,
+      Fecha: "2026-04-13",
+      Inicio: 9,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: "",
+      Abordaje: [
+        {
+          Id: "ab_origen",
+          Texto: "Plan bloque",
+          Emoji: "*",
+          Suelta: true,
+          Planeada: true
+        }
+      ]
+    },
+    {
+      Id: "ev_plan_destino",
+      Objetivo_Id: null,
+      Fecha: "2026-04-13",
+      Inicio: 11,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: ""
+    }
+  ];
+  await Preparar(page, estado);
+  await page.evaluate(() => {
+    Forzar_Sync_Inmediato_Cambio_Critico = async () => true;
+  });
+
+  const origen = page.locator('.Evento[data-id="ev_plan_origen"]');
+  await expect(origen).toBeVisible();
+  await origen.click({ button: "right" });
+
+  const accionesOrigen = await page.locator(
+    "#Dia_Accion_Menu .Dia_Accion_Item"
+  ).evaluateAll((items) =>
+    items.map((item) => item.getAttribute("data-acc"))
+  );
+  expect(accionesOrigen).toContain("copiar-plan-evento");
+  expect(accionesOrigen).toContain("borrar-plan-evento");
+
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="copiar-plan-evento"]'
+  );
+  await expect(
+    page.locator(".Undo_Toast_Texto").first()
+  ).toHaveText("Plan del bloque copiado");
+
+  const destino = page.locator(
+    '.Evento[data-id="ev_plan_destino"]'
+  );
+  await destino.click({ button: "right" });
+  await expect(
+    page.locator(
+      '#Dia_Accion_Menu [data-acc="pegar-plan-evento"]'
+    )
+  ).toBeVisible();
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="pegar-plan-evento"]'
+  );
+
+  const pegado = await page.evaluate(() => {
+    const Evento = Eventos.find((Ev) =>
+      Ev.Id === "ev_plan_destino"
+    );
+    const Item = Evento?.Abordaje?.[0] || null;
+    return {
+      texto: Item?.Texto || "",
+      id: Item?.Id || "",
+      planeada: Boolean(Item?.Planeada),
+      total: Evento?.Abordaje?.length || 0
+    };
+  });
+
+  expect(pegado.texto).toBe("Plan bloque");
+  expect(pegado.id).not.toBe("ab_origen");
+  expect(pegado.planeada).toBeTruthy();
+  expect(pegado.total).toBe(1);
+
+  await destino.click({ button: "right" });
+  await expect(
+    page.locator(
+      '#Dia_Accion_Menu [data-acc="borrar-plan-evento"]'
+    )
+  ).toBeVisible();
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="borrar-plan-evento"]'
+  );
+  await page.getByRole("button", { name: "Confirmar" }).click();
+
+  const borrado = await page.evaluate(() => {
+    const Evento = Eventos.find((Ev) =>
+      Ev.Id === "ev_plan_destino"
+    );
+    return {
+      total: Evento?.Abordaje?.length || 0,
+      tiene_plan: Boolean(Evento?.Abordaje?.some((Item) =>
+        Item.Planeada
+      ))
+    };
+  });
+
+  expect(borrado.total).toBe(0);
+  expect(borrado.tiene_plan).toBeFalsy();
+});
+
 test("atajo de nueva nota cierra el menu contextual abierto", async ({
   page
 }) => {

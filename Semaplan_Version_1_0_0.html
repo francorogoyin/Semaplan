@@ -16380,6 +16380,10 @@
             "Plan del slot copiado",
           "toast.slot_plan_pegado":
             "Plan del slot pegado",
+          "toast.evento_plan_copiado":
+            "Plan del bloque copiado",
+          "toast.evento_plan_pegado":
+            "Plan del bloque pegado",
           "toast.tamano_bloque_modificado":
             "Tamaño del bloque modificado",
           "toast.sin_nombre": "sin nombre",
@@ -16476,6 +16480,10 @@
           "slot.borrar_plan": "Borrar plan",
           "slot.borrar_plan_confirm":
             "¿Borrar el plan de este slot?",
+          "abordaje.borrar_plan_confirm":
+            "¿Borrar el plan de este bloque?",
+          "abordaje.insertar_modo":
+            "¿Cómo pegar el plan en este bloque?",
           "slot.copiar_plan": "Copiar plan",
           "slot.pegar_plan": "Pegar plan",
           "slot.eliminar_slot": "Eliminar slot",
@@ -18849,6 +18857,10 @@
             "Slot plan copied",
           "toast.slot_plan_pegado":
             "Slot plan pasted",
+          "toast.evento_plan_copiado":
+            "Block plan copied",
+          "toast.evento_plan_pegado":
+            "Block plan pasted",
           "toast.tamano_bloque_modificado":
             "Block size changed",
           "toast.sin_nombre": "untitled",
@@ -18946,6 +18958,10 @@
           "slot.borrar_plan": "Delete plan",
           "slot.borrar_plan_confirm":
             "Delete this slot plan?",
+          "abordaje.borrar_plan_confirm":
+            "Delete this block plan?",
+          "abordaje.insertar_modo":
+            "How do you want to paste the plan into this block?",
           "slot.copiar_plan": "Copy plan",
           "slot.pegar_plan": "Paste plan",
           "slot.eliminar_slot": "Delete slot",
@@ -21417,6 +21433,10 @@
             "Plano do slot copiado",
           "toast.slot_plan_pegado":
             "Plano do slot colado",
+          "toast.evento_plan_copiado":
+            "Plano do bloco copiado",
+          "toast.evento_plan_pegado":
+            "Plano do bloco colado",
           "toast.tamano_bloque_modificado":
             "Tamanho do bloco modificado",
           "toast.sin_nombre": "sem nome",
@@ -21513,6 +21533,10 @@
           "slot.borrar_plan": "Apagar plano",
           "slot.borrar_plan_confirm":
             "Apagar o plano deste slot?",
+          "abordaje.borrar_plan_confirm":
+            "Apagar o plano deste bloco?",
+          "abordaje.insertar_modo":
+            "Como colar o plano neste bloco?",
           "slot.copiar_plan": "Copiar plano",
           "slot.pegar_plan": "Colar plano",
           "slot.eliminar_slot": "Excluir slot",
@@ -22339,6 +22363,7 @@
       let Portapapeles_Eventos_Multi = null;
       let Portapapeles_Slots_Multi = null;
       let Portapapeles_Plan_Slot = null;
+      let Portapapeles_Plan_Evento = null;
       let Portapapeles_Calendario_Modo = null;
       let Calendario_Multi_Listeners_Inicializados = false;
       let Calendario_Multi_Seleccion_Activa = false;
@@ -32858,6 +32883,275 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
+      function Obtener_Items_Plan_Evento(Evento_Data) {
+        return (Array.isArray(Evento_Data?.Abordaje)
+          ? Evento_Data.Abordaje
+          : []
+        ).filter((Item) => Boolean(Item?.Planeada));
+      }
+
+      function Evento_Tiene_Plan_Abordaje(Evento_Data) {
+        return Obtener_Items_Plan_Evento(Evento_Data).length > 0;
+      }
+
+      function Obtener_Portapapeles_Plan_Para_Evento() {
+        const Tiene_Evento = Array.isArray(
+          Portapapeles_Plan_Evento?.Items
+        ) && Portapapeles_Plan_Evento.Items.length > 0;
+        const Tiene_Slot = Array.isArray(
+          Portapapeles_Plan_Slot?.Items
+        ) && Portapapeles_Plan_Slot.Items.length > 0;
+
+        if (
+          Portapapeles_Calendario_Modo === "Plan_Slot" &&
+          Tiene_Slot
+        ) {
+          return {
+            Tipo: "Slot",
+            Objetivo_Id: null,
+            Items: Portapapeles_Plan_Slot.Items
+          };
+        }
+        if (
+          Portapapeles_Calendario_Modo === "Plan_Evento" &&
+          Tiene_Evento
+        ) {
+          return {
+            Tipo: "Evento",
+            Objetivo_Id: Portapapeles_Plan_Evento.Objetivo_Id,
+            Items: Portapapeles_Plan_Evento.Items
+          };
+        }
+        if (Tiene_Evento) {
+          return {
+            Tipo: "Evento",
+            Objetivo_Id: Portapapeles_Plan_Evento.Objetivo_Id,
+            Items: Portapapeles_Plan_Evento.Items
+          };
+        }
+        if (Tiene_Slot) {
+          return {
+            Tipo: "Slot",
+            Objetivo_Id: null,
+            Items: Portapapeles_Plan_Slot.Items
+          };
+        }
+        return null;
+      }
+
+      function Clonar_Items_Plan_Evento(
+        Items_Base = [], Opciones = {}
+      ) {
+        const Requiere_Planeada =
+          Opciones.Requiere_Planeada !== false;
+        const Mantener_Referencia = Boolean(
+          Opciones.Mantener_Referencia
+        );
+
+        return (Array.isArray(Items_Base)
+          ? Items_Base
+          : []
+        ).map((Item) => {
+          if (Requiere_Planeada && !Item?.Planeada) {
+            return null;
+          }
+          const Texto = String(Item?.Texto || "").trim();
+          if (!Texto) return null;
+          const Suelta =
+            Boolean(Item?.Suelta) || !Mantener_Referencia;
+          return {
+            Id: Crear_Id_Abordaje(),
+            Plantilla_Id: Suelta
+              ? null
+              : Item?.Plantilla_Id || null,
+            Texto,
+            Emoji: Item?.Emoji || "\u2022",
+            Suelta,
+            Planeada: true
+          };
+        }).filter(Boolean);
+      }
+
+      function Mismo_Item_Plan_Evento(Item_A, Item_B) {
+        if (Item_A?.Suelta || Item_B?.Suelta) return false;
+        if (Item_A?.Plantilla_Id && Item_B?.Plantilla_Id) {
+          return Item_A.Plantilla_Id === Item_B.Plantilla_Id;
+        }
+        if (Item_A?.Plantilla_Id || Item_B?.Plantilla_Id) {
+          return false;
+        }
+        return String(Item_A?.Texto || "").trim() ===
+          String(Item_B?.Texto || "").trim();
+      }
+
+      function Fusionar_Plan_En_Abordaje(Base = [], Nuevos = []) {
+        const Resultado = (Array.isArray(Base)
+          ? Base
+          : []
+        ).map((Item) => ({ ...Item }));
+        Nuevos.forEach((Nuevo) => {
+          const Existente = Resultado.find((Item) =>
+            Mismo_Item_Plan_Evento(Item, Nuevo)
+          );
+          if (Existente) {
+            Existente.Planeada = true;
+            return;
+          }
+          Resultado.push(Nuevo);
+        });
+        return Resultado;
+      }
+
+      function Quitar_Plan_De_Items_Abordaje(Items_Base = []) {
+        const Resultado = [];
+        (Array.isArray(Items_Base)
+          ? Items_Base
+          : []
+        ).forEach((Item) => {
+          if (!Item?.Planeada) {
+            Resultado.push({ ...Item });
+            return;
+          }
+          if (Item?.Estado) {
+            const Copia = { ...Item };
+            delete Copia.Planeada;
+            Resultado.push(Copia);
+          }
+        });
+        return Resultado;
+      }
+
+      function Refrescar_Cambio_Plan_Evento(Evento_Data) {
+        if (!Evento_Data) return;
+        if (
+          Focus_Orden_Snapshot &&
+          Focus_Orden_Snapshot.Evento_Id === Evento_Data.Id
+        ) {
+          Focus_Orden_Snapshot = null;
+        }
+        if (Focus_Sub_Filtro_Evento_Id === Evento_Data.Id) {
+          Focus_Sub_Filtro_Evento_Id = null;
+        }
+        Render_Calendario();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        if (
+          typeof Focus_Esta_Abierto === "function" &&
+          Focus_Esta_Abierto()
+        ) {
+          Render_Focus_Mode();
+        }
+        Guardar_Estado();
+      }
+
+      function Copiar_Plan_Evento(Evento_Data) {
+        const Items = Obtener_Items_Plan_Evento(Evento_Data)
+          .map((Item) => ({ ...Item }));
+        if (!Items.length) return false;
+        Portapapeles_Plan_Evento = {
+          Evento_Id: Evento_Data.Id,
+          Objetivo_Id: Evento_Data.Objetivo_Id || null,
+          Items
+        };
+        Portapapeles_Plan_Slot = {
+          Fecha: Evento_Data.Fecha,
+          Hora: Evento_Data.Inicio,
+          Items: Items.map((Item) => ({
+            Id: Item.Id || Crear_Id_Plan_Slot_Item(),
+            Emoji: Item.Emoji || "\u2022",
+            Texto: Item.Texto || "",
+            Estado: "Planeado"
+          }))
+        };
+        Portapapeles_Calendario_Modo = "Plan_Evento";
+        Mostrar_Toast_Info(t("toast.evento_plan_copiado"));
+        return true;
+      }
+
+      async function Pegar_Plan_En_Evento(Evento_Data) {
+        const Clip = Obtener_Portapapeles_Plan_Para_Evento();
+        if (!Clip || !Evento_Data) return false;
+        const Actuales = Array.isArray(Evento_Data.Abordaje)
+          ? Evento_Data.Abordaje
+          : [];
+        let Modo = "Reemplazar";
+        if (Evento_Tiene_Plan_Abordaje(Evento_Data)) {
+          Modo = await Mostrar_Dialogo(
+            t("abordaje.insertar_modo"),
+            [
+              {
+                Etiqueta: t("dialog.reemplazar_todo"),
+                Valor: "Reemplazar",
+                Tipo: "Primario"
+              },
+              {
+                Etiqueta: t("agregar"),
+                Valor: "Agregar",
+                Tipo: "Secundario"
+              },
+              {
+                Etiqueta: t("cancelar"),
+                Valor: null,
+                Tipo: "Cancelar"
+              }
+            ]
+          );
+          if (!Modo) return false;
+        }
+
+        const Mantener_Referencia =
+          Clip.Tipo === "Evento" &&
+          Clip.Objetivo_Id &&
+          Clip.Objetivo_Id === Evento_Data.Objetivo_Id;
+        const Nuevos = Clonar_Items_Plan_Evento(Clip.Items, {
+          Mantener_Referencia,
+          Requiere_Planeada: Clip.Tipo === "Evento"
+        });
+        if (!Nuevos.length) return false;
+        const Base = Modo === "Agregar"
+          ? Actuales.map((Item) => ({ ...Item }))
+          : Quitar_Plan_De_Items_Abordaje(Actuales);
+        Evento_Data.Abordaje = Fusionar_Plan_En_Abordaje(
+          Base,
+          Nuevos
+        );
+        Eventos_Multi_Seleccion.clear();
+        Slots_Multi_Seleccion.clear();
+        Refrescar_Cambio_Plan_Evento(Evento_Data);
+        Render_Acciones_Multi_Calendario();
+        Mostrar_Toast_Info(t("toast.evento_plan_pegado"));
+        return true;
+      }
+
+      async function Borrar_Plan_Evento_Con_Confirmacion(
+        Evento_Data
+      ) {
+        if (!Evento_Tiene_Plan_Abordaje(Evento_Data)) return;
+        const Confirmar = await Mostrar_Dialogo(
+          t("abordaje.borrar_plan_confirm"),
+          [
+            { Label: t("cancelar"), Valor: false },
+            {
+              Label: t("dialog.confirmar_btn"),
+              Valor: true,
+              Primario: true
+            }
+          ]
+        );
+        if (!Confirmar) return;
+        const Final = Quitar_Plan_De_Items_Abordaje(
+          Evento_Data.Abordaje
+        );
+        if (Final.length > 0) {
+          Evento_Data.Abordaje = Final;
+        } else {
+          delete Evento_Data.Abordaje;
+        }
+        Refrescar_Cambio_Plan_Evento(Evento_Data);
+        await Forzar_Sync_Inmediato_Cambio_Critico();
+      }
+
       function Mostrar_Menu_Evento(
         Evento_Data, X, Y, Desde_Focus = false
       ) {
@@ -32871,6 +33165,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tiene_Nota = Boolean(
           (Evento_Data.Nota || "").trim()
         );
+        const Tiene_Plan =
+          Evento_Tiene_Plan_Abordaje(Evento_Data);
+        const Puede_Pegar_Plan = Boolean(
+          Obtener_Portapapeles_Plan_Para_Evento()
+        );
 
         const Grupo_Plan = [];
         const Grupo_Nota = [];
@@ -32878,9 +33177,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Grupo_Plan.push(
             Html_Menu_Dia_Accion(
               "abordaje",
-              t("contexto.abordaje")
+              Tiene_Plan
+                ? t("slot.editar_plan")
+                : t("slot.insertar_plan")
             )
           );
+          if (Tiene_Plan) {
+            Grupo_Plan.push(
+              Html_Menu_Dia_Accion(
+                "copiar-plan-evento",
+                t("slot.copiar_plan")
+              )
+            );
+            Grupo_Plan.push(
+              Html_Menu_Dia_Accion(
+                "borrar-plan-evento",
+                t("slot.borrar_plan")
+              )
+            );
+          }
+          if (Puede_Pegar_Plan) {
+            Grupo_Plan.push(
+              Html_Menu_Dia_Accion(
+                "pegar-plan-evento",
+                t("slot.pegar_plan")
+              )
+            );
+          }
           Grupo_Nota.push(
             Html_Menu_Dia_Accion(
               "nota",
@@ -32949,6 +33272,38 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Abrir_Modal_Abordaje(Evento_Data.Id);
+          });
+        }
+        const Btn_Copiar_Plan = Menu.querySelector(
+          `[data-acc="copiar-plan-evento"]`
+        );
+        if (Btn_Copiar_Plan) {
+          Btn_Copiar_Plan.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Copiar_Plan_Evento(Evento_Data);
+          });
+        }
+        const Btn_Borrar_Plan = Menu.querySelector(
+          `[data-acc="borrar-plan-evento"]`
+        );
+        if (Btn_Borrar_Plan) {
+          Btn_Borrar_Plan.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Borrar_Plan_Evento_Con_Confirmacion(
+              Evento_Data
+            );
+          });
+        }
+        const Btn_Pegar_Plan = Menu.querySelector(
+          `[data-acc="pegar-plan-evento"]`
+        );
+        if (Btn_Pegar_Plan) {
+          Btn_Pegar_Plan.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Pegar_Plan_En_Evento(Evento_Data);
           });
         }
         const Btn_Nota = Menu.querySelector(`[data-acc="nota"]`);
