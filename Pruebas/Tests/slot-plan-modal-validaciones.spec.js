@@ -197,6 +197,42 @@ test("avisa cuando falta emoji al agregar un objetivo", async ({
   expect(datos.modal_activo).toBeTruthy();
 });
 
+test("guarda despues del aviso de emoji y un snapshot", async ({
+  page
+}) => {
+  await Preparar(page, Estado_Base());
+  await Abrir_Modal_Plan(page, "2026-04-13", 9);
+
+  await page.click("#Plan_Slot_Cuerpo .Config_Boton");
+  await page.fill("#Plan_Slot_Nuevo_Input", "Pensar ruta");
+  await page.fill("#Plan_Slot_Nuevo_Emoji", "");
+  await page.click("#Plan_Slot_Guardar");
+
+  await expect(
+    page.locator(".Undo_Toast_Texto").first()
+  ).toHaveText("Falta emoji");
+
+  await page.evaluate(() => Construir_Estado_Completo());
+
+  const claveActiva = await page.evaluate(() =>
+    Plan_Slot_Clave_Activa
+  );
+  expect(claveActiva).toBe("2026-04-13|9");
+
+  await page.fill("#Plan_Slot_Nuevo_Emoji", "*");
+  await page.click("#Plan_Slot_Guardar");
+
+  await expect(page.locator("#Plan_Slot_Overlay"))
+    .not.toHaveClass(/Activo/);
+
+  const guardado = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
+      ?.Planes_Slot?.["2026-04-13|9"]?.Items?.[0] || null
+  );
+  expect(guardado?.Texto).toBe("Pensar ruta");
+  expect(guardado?.Emoji).toBe("*");
+});
+
 test("normaliza iconos mojibake en carteles", async ({
   page
 }) => {
