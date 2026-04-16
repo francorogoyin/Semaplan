@@ -16731,8 +16731,18 @@
             "Convertir en subobjetivo",
           "abordaje.borrar_item_title":
             "Borrar ítem",
+          "abordaje.agregar_item_ph":
+            "Agregar subtarea o ítem suelto...",
           "abordaje.agregar_item_suelto_ph":
             "Agregar ítem suelto...",
+          "abordaje.elegir_tipo_nuevo":
+            "¿Querés que se agregue como subtarea o ítem suelto?",
+          "abordaje.nuevo_como_subtarea":
+            "Subtarea",
+          "abordaje.nuevo_como_suelto":
+            "Ítem suelto",
+          "abordaje.toast_falta_texto":
+            "Falta texto",
           "dia.tipo_slot_bloqueo":
             "¿Qué tipo de slot bloqueado?",
           "dia.bloquear_dia":
@@ -19368,8 +19378,18 @@
             "Convert to subobjective",
           "abordaje.borrar_item_title":
             "Delete item",
+          "abordaje.agregar_item_ph":
+            "Add subtask or loose item...",
           "abordaje.agregar_item_suelto_ph":
             "Add loose item...",
+          "abordaje.elegir_tipo_nuevo":
+            "Do you want to add it as a subtask or loose item?",
+          "abordaje.nuevo_como_subtarea":
+            "Subtask",
+          "abordaje.nuevo_como_suelto":
+            "Loose item",
+          "abordaje.toast_falta_texto":
+            "Missing text",
           "dia.tipo_slot_bloqueo":
             "What blocked slot type?",
           "dia.bloquear_dia":
@@ -22048,8 +22068,18 @@
             "Converter em subobjetivo",
           "abordaje.borrar_item_title":
             "Excluir item",
+          "abordaje.agregar_item_ph":
+            "Adicionar subtarefa ou item avulso...",
           "abordaje.agregar_item_suelto_ph":
             "Adicionar item avulso...",
+          "abordaje.elegir_tipo_nuevo":
+            "Você quer adicionar como subtarefa ou item avulso?",
+          "abordaje.nuevo_como_subtarea":
+            "Subtarefa",
+          "abordaje.nuevo_como_suelto":
+            "Item avulso",
+          "abordaje.toast_falta_texto":
+            "Falta texto",
           "dia.tipo_slot_bloqueo":
             "Que tipo de slot bloqueado?",
           "dia.bloquear_dia":
@@ -23807,6 +23837,8 @@
       let Patron_Modal_Dia_Activo = "0";
       let Abordaje_Evento_Id = null;
       let Abordaje_Borrador = [];
+      let Abordaje_Nuevo_Texto_Borrador = "";
+      let Abordaje_Nuevo_Emoji_Borrador = "\u2022";
       let Plan_Slot_Clave_Activa = null;
       let Plan_Slot_Borrador = [];
       let Plan_Slot_Mostrando_Nuevo = false;
@@ -40423,6 +40455,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Cerrar_Modal_Abordaje() {
         Abordaje_Evento_Id = null;
         Abordaje_Borrador = [];
+        Resetear_Nuevo_Abordaje();
         document.getElementById("Abordaje_Modal_Overlay")
           .classList.remove("Activo");
       }
@@ -40431,6 +40464,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Cuerpo =
           document.getElementById("Abordaje_Modal_Cuerpo");
         if (!Cuerpo) return;
+        Sincronizar_Nuevo_Abordaje_Desde_DOM();
         Cuerpo.innerHTML = "";
 
         const Evento_Actual = Evento_Por_Id(Abordaje_Evento_Id);
@@ -40611,16 +40645,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Abordaje_Filtro_Activo) {
           const Cont = document.createElement("div");
           Cont.className = "Abordaje_Nuevo_Cont";
+          const Input_Emoji = document.createElement("input");
+          Input_Emoji.type = "text";
+          Input_Emoji.maxLength = 4;
+          Input_Emoji.value =
+            Abordaje_Nuevo_Emoji_Borrador ||
+            Emoji_Plan_Slot_Placeholder;
+          Input_Emoji.id = "Abordaje_Nuevo_Emoji";
+          Input_Emoji.className =
+            "Patron_Modal_Emoji_Input Con_Selector_Emoji " +
+            "Permite_Tipeo_Emoji";
+          Input_Emoji.style.width = "52px";
+          Input_Emoji.addEventListener("input", () => {
+            Abordaje_Nuevo_Emoji_Borrador =
+              Input_Emoji.value;
+          });
           const Input = document.createElement("input");
           Input.type = "text";
           Input.className = "Abordaje_Nuevo_Input";
           Input.placeholder =
-            t("abordaje.agregar_item_suelto_ph");
+            t("abordaje.agregar_item_ph");
           Input.id = "Abordaje_Nuevo_Input";
-          Input.addEventListener("keydown", (Ev) => {
+          Input.value = Abordaje_Nuevo_Texto_Borrador;
+          Input.addEventListener("input", () => {
+            Abordaje_Nuevo_Texto_Borrador = Input.value;
+          });
+          Input.addEventListener("keydown", async (Ev) => {
             if (Ev.key === "Enter") {
               Ev.preventDefault();
-              Agregar_Item_Suelto_Abordaje();
+              await Agregar_Item_Abordaje_Desde_Input();
             }
           });
           const Btn = document.createElement("button");
@@ -40628,8 +40681,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Btn.className = "Abordaje_Nuevo_Btn";
           Btn.textContent = "+";
           Btn.addEventListener(
-            "click", Agregar_Item_Suelto_Abordaje
+            "click", Agregar_Item_Abordaje_Desde_Input
           );
+          Cont.appendChild(Input_Emoji);
           Cont.appendChild(Input);
           Cont.appendChild(Btn);
           Cuerpo.appendChild(Cont);
@@ -40654,26 +40708,160 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
-      function Agregar_Item_Suelto_Abordaje() {
+      function Leer_Borrador_Nuevo_Abordaje() {
         const Input = document.getElementById(
           "Abordaje_Nuevo_Input"
         );
-        if (!Input) return;
-        const Texto = (Input.value || "").trim();
-        if (!Texto) return;
+        const Input_Emoji = document.getElementById(
+          "Abordaje_Nuevo_Emoji"
+        );
+        const Texto = String(
+          Input ? Input.value : Abordaje_Nuevo_Texto_Borrador
+        ).trim();
+        const Emoji_Raw = String(
+          Input_Emoji
+            ? Input_Emoji.value
+            : Abordaje_Nuevo_Emoji_Borrador ||
+              Emoji_Plan_Slot_Placeholder
+        ).trim();
+        return { Texto, Emoji_Raw };
+      }
+
+      function Sincronizar_Nuevo_Abordaje_Desde_DOM() {
+        const Input = document.getElementById(
+          "Abordaje_Nuevo_Input"
+        );
+        const Input_Emoji = document.getElementById(
+          "Abordaje_Nuevo_Emoji"
+        );
+        if (Input) {
+          Abordaje_Nuevo_Texto_Borrador =
+            String(Input.value || "");
+        }
+        if (Input_Emoji) {
+          Abordaje_Nuevo_Emoji_Borrador =
+            String(Input_Emoji.value || "");
+        }
+      }
+
+      function Resetear_Nuevo_Abordaje() {
+        Abordaje_Nuevo_Texto_Borrador = "";
+        Abordaje_Nuevo_Emoji_Borrador =
+          Emoji_Plan_Slot_Placeholder;
+      }
+
+      function Agregar_Subtarea_Desde_Abordaje(Texto, Emoji) {
+        const Evento = Evento_Por_Id(Abordaje_Evento_Id);
+        if (!Evento) return false;
+        const Objetivo = Objetivo_Por_Id(Evento.Objetivo_Id);
+        if (!Objetivo) return false;
+        const Clave = Obtener_Clave_Semana_Evento(Evento);
+        const Subs = Obtener_Subobjetivos_Semana(
+          Objetivo,
+          true,
+          Clave
+        );
+        const Sub_Id = Crear_Id_Subobjetivo();
+        Subs.push({
+          Id: Sub_Id,
+          Plantilla_Id: null,
+          Emoji,
+          Texto,
+          Hecha: false
+        });
+        Abordaje_Borrador.push({
+          Id: Crear_Id_Abordaje(),
+          Plantilla_Id: null,
+          Sub_Id_Local: Sub_Id,
+          Texto,
+          Emoji,
+          Marcado: false,
+          Estado: "Abordado",
+          Planeada: true,
+          Hecha_Global: false,
+          Bloqueada_Por_Hecha_Externa: false,
+          Suelta: false
+        });
+        return true;
+      }
+
+      function Agregar_Item_Suelto_Desde_Abordaje(Texto, Emoji) {
         Abordaje_Borrador.push({
           Id: Crear_Id_Abordaje(),
           Plantilla_Id: null,
           Sub_Id_Local: null,
           Texto,
-          Emoji: "•",
-          Marcado: true,
+          Emoji,
+          Marcado: false,
           Estado: "Abordado",
+          Planeada: true,
           Suelta: true
         });
-        Input.value = "";
+        return true;
+      }
+
+      async function Agregar_Item_Abordaje_Desde_Input() {
+        const Datos = Leer_Borrador_Nuevo_Abordaje();
+        const Input = document.getElementById(
+          "Abordaje_Nuevo_Input"
+        );
+        const Input_Emoji = document.getElementById(
+          "Abordaje_Nuevo_Emoji"
+        );
+        if (!Datos.Texto) {
+          Mostrar_Toast_Plan_Slot(
+            "abordaje.toast_falta_texto"
+          );
+          Input?.focus();
+          return false;
+        }
+        if (Falta_Emoji_Plan_Slot(Datos.Emoji_Raw)) {
+          Cerrar_Selector_Emojis();
+          Mostrar_Toast_Plan_Slot("slot.toast_falta_emoji");
+          Input_Emoji?.focus();
+          return false;
+        }
+        const Tipo = await Mostrar_Dialogo(
+          t("abordaje.elegir_tipo_nuevo"),
+          [
+            {
+              Etiqueta: t("abordaje.nuevo_como_subtarea"),
+              Valor: "Subtarea",
+              Tipo: "Primario"
+            },
+            {
+              Etiqueta: t("abordaje.nuevo_como_suelto"),
+              Valor: "Suelto",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("cancelar"),
+              Valor: null,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
+        if (!Tipo) return false;
+        const Emoji = Normalizar_Emoji(Datos.Emoji_Raw);
+        const Agregado = Tipo === "Subtarea"
+          ? Agregar_Subtarea_Desde_Abordaje(Datos.Texto, Emoji)
+          : Agregar_Item_Suelto_Desde_Abordaje(
+            Datos.Texto,
+            Emoji
+          );
+        if (!Agregado) return false;
+        Resetear_Nuevo_Abordaje();
+        if (Input) Input.value = "";
+        if (Input_Emoji) {
+          Input_Emoji.value = Emoji_Plan_Slot_Placeholder;
+        }
         Render_Modal_Abordaje();
         document.getElementById("Abordaje_Nuevo_Input")?.focus();
+        return true;
+      }
+
+      function Agregar_Item_Suelto_Abordaje() {
+        return Agregar_Item_Abordaje_Desde_Input();
       }
 
       function Crear_Fila_Abordaje(

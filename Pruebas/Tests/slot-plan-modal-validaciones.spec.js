@@ -853,6 +853,152 @@ test("modal de bloque normaliza plan legacy", async ({ page }) => {
   expect(guardado.planeada).toBeTruthy();
 });
 
+test("modal de bloque valida texto y emoji nuevo", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Inicio_Semana = "2026-04-20";
+  estado.Objetivos = [
+    {
+      Id: "obj_nuevo_plan",
+      Nombre: "Semaplan",
+      Emoji: "*",
+      Color: "#1f6b4f",
+      Horas_Semanales: 1,
+      Es_Bolsa: false,
+      Subobjetivos_Semanales: {
+        "2026-04-20": []
+      },
+      Subobjetivos_Contraidas_Semanales: {},
+      Subobjetivos_Excluidos_Semanales: {}
+    }
+  ];
+  estado.Eventos = [
+    {
+      Id: "ev_nuevo_plan",
+      Objetivo_Id: "obj_nuevo_plan",
+      Fecha: "2026-04-20",
+      Inicio: 9,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: ""
+    }
+  ];
+
+  await Preparar(page, estado);
+  await page.evaluate(() => {
+    Abrir_Modal_Abordaje("ev_nuevo_plan");
+  });
+
+  await page.click(".Abordaje_Nuevo_Btn");
+  await expect(
+    page.locator(".Undo_Toast_Texto", { hasText: "Falta texto" })
+  ).toBeVisible();
+
+  await page.fill("#Abordaje_Nuevo_Input", "Pensar enfoque");
+  await page.click(".Abordaje_Nuevo_Btn");
+  await expect(
+    page.locator(".Undo_Toast_Texto", { hasText: "Falta emoji" })
+  ).toBeVisible();
+});
+
+test("modal de bloque agrega subtarea o item suelto", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Inicio_Semana = "2026-04-20";
+  estado.Objetivos = [
+    {
+      Id: "obj_plan_add",
+      Nombre: "Semaplan",
+      Emoji: "*",
+      Color: "#1f6b4f",
+      Horas_Semanales: 1,
+      Es_Bolsa: false,
+      Subobjetivos_Semanales: {
+        "2026-04-20": []
+      },
+      Subobjetivos_Contraidas_Semanales: {},
+      Subobjetivos_Excluidos_Semanales: {}
+    }
+  ];
+  estado.Eventos = [
+    {
+      Id: "ev_plan_add",
+      Objetivo_Id: "obj_plan_add",
+      Fecha: "2026-04-20",
+      Inicio: 9,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: ""
+    }
+  ];
+
+  await Preparar(page, estado);
+  await page.evaluate(() => {
+    Abrir_Modal_Abordaje("ev_plan_add");
+  });
+  await expect(page.locator("#Abordaje_Modal_Overlay"))
+    .toHaveClass(/Activo/);
+
+  await page.fill("#Abordaje_Nuevo_Emoji", "*");
+  await page.fill("#Abordaje_Nuevo_Input", "Nueva subtarea");
+  await page.click(".Abordaje_Nuevo_Btn");
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.getByRole("button", { name: "Subtarea" }).click();
+
+  await page.fill("#Abordaje_Nuevo_Emoji", "*");
+  await page.fill("#Abordaje_Nuevo_Input", "Idea suelta");
+  await page.click(".Abordaje_Nuevo_Btn");
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.getByRole("button", { name: "Ítem suelto" })
+    .click();
+
+  await page.click("#Abordaje_Modal_Guardar_Btn");
+
+  const guardado = await page.evaluate(() => {
+    const Estado = JSON.parse(
+      localStorage.getItem("Semaplan_Estado_V2")
+    );
+    const Objetivo = Estado.Objetivos.find((Obj) =>
+      Obj.Id === "obj_plan_add"
+    );
+    const Evento = Estado.Eventos.find((Ev) =>
+      Ev.Id === "ev_plan_add"
+    );
+    return {
+      subs: Objetivo?.Subobjetivos_Semanales?.[
+        "2026-04-20"
+      ] || [],
+      abordaje: Evento?.Abordaje || []
+    };
+  });
+
+  const Sub = guardado.subs.find((Item) =>
+    Item.Texto === "Nueva subtarea"
+  );
+  const Plan_Sub = guardado.abordaje.find((Item) =>
+    Item.Texto === "Nueva subtarea"
+  );
+  const Plan_Suelto = guardado.abordaje.find((Item) =>
+    Item.Texto === "Idea suelta"
+  );
+
+  expect(Sub?.Emoji).toBe("*");
+  expect(Plan_Sub?.Planeada).toBeTruthy();
+  expect(Plan_Sub?.Suelta).toBeFalsy();
+  expect(Plan_Sub?.Estado || "").toBe("");
+  expect(Plan_Suelto?.Planeada).toBeTruthy();
+  expect(Plan_Suelto?.Suelta).toBeTruthy();
+  expect(Plan_Suelto?.Estado || "").toBe("");
+});
+
 test("atajo de nueva nota cierra el menu contextual abierto", async ({
   page
 }) => {
