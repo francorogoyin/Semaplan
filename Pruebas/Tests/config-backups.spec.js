@@ -129,8 +129,21 @@ test("crea backups automaticos y manuales en config", async ({
     const Estilo_Boton = Boton
       ? window.getComputedStyle(Boton)
       : null;
+    const Titulo_Historial = document.querySelector(
+      ".Config_Backup_Historial > .Cfg_Cuenta_Etiqueta"
+    );
+    const Estilo_Titulo = Titulo_Historial
+      ? window.getComputedStyle(Titulo_Historial)
+      : null;
+    const Rect_Titulo = Titulo_Historial
+      ? Titulo_Historial.getBoundingClientRect()
+      : null;
+    const Rect_Lista = document.getElementById("Cfg_Backup_Lista")
+      ?.getBoundingClientRect();
     return {
       tipos: Lista.map((Item) => Item.Tipo),
+      tituloHistorial: Titulo_Historial?.textContent?.trim()
+        || "",
       visibles: document.querySelectorAll(
         "#Cfg_Backup_Lista .Config_Backup_Item"
       ).length,
@@ -139,6 +152,12 @@ test("crea backups automaticos y manuales en config", async ({
       bordeInferior: Estilo?.borderBottomWidth || "",
       orden_1: Primer_Item?.children?.[0]?.className || "",
       orden_2: Primer_Item?.children?.[1]?.className || "",
+      fontWeightTitulo: Estilo_Titulo?.fontWeight || "",
+      flexTitulo: Estilo_Titulo?.flexBasis || "",
+      anchoTitulo: Estilo_Titulo?.width || "",
+      separacionTituloLista: Rect_Titulo && Rect_Lista
+        ? Rect_Lista.top - Rect_Titulo.bottom
+        : null,
       fontWeightTipo: Estilo_Tipo?.fontWeight || "",
       radioBoton: Estilo_Boton?.borderRadius || "",
       fondoBoton: Estilo_Boton?.backgroundColor || ""
@@ -146,12 +165,16 @@ test("crea backups automaticos y manuales en config", async ({
   });
 
   expect(resumen.tipos).toContain("Manual");
+  expect(resumen.tituloHistorial).toBe("Historial de backups");
   expect(resumen.visibles).toBeGreaterThanOrEqual(1);
   expect(resumen.borderRadius).toBe("0px");
   expect(resumen.background).toBe("rgba(0, 0, 0, 0)");
   expect(resumen.bordeInferior).toBe("0px");
   expect(resumen.orden_1).toBe("Config_Backup_Meta");
   expect(resumen.orden_2).toBe("Config_Backup_Tipo");
+  expect(Number(resumen.fontWeightTitulo)).toBeGreaterThanOrEqual(700);
+  expect(resumen.flexTitulo).toBe("auto");
+  expect(resumen.separacionTituloLista).toBeLessThanOrEqual(8);
   expect(Number(resumen.fontWeightTipo)).toBeLessThan(500);
   expect(resumen.radioBoton).toBe("999px");
   expect(resumen.fondoBoton).not.toBe("rgba(0, 0, 0, 0)");

@@ -119,6 +119,9 @@ test("re-renderiza backups y menu del config al cambiar idioma", async ({
     Abrir_Config();
 
     const Leer = () => ({
+      backupTitulo: document.querySelector(
+        ".Config_Backup_Historial > .Cfg_Cuenta_Etiqueta"
+      )?.textContent?.trim() || "",
       backup: document.getElementById("Cfg_Backup_Lista")
         ?.textContent?.trim() || "",
       menu: Array.from(
@@ -140,18 +143,21 @@ test("re-renderiza backups y menu del config al cambiar idioma", async ({
   expect(resultado.es.backup).toContain(
     "Todavía no hay copias guardadas."
   );
+  expect(resultado.es.backupTitulo).toBe("Historial de backups");
   expect(resultado.es.menu).toContain("Plan actual");
   expect(resultado.es.menu).toContain("Modo foco");
 
   expect(resultado.en.backup).toContain(
     "There are no backups yet."
   );
+  expect(resultado.en.backupTitulo).toBe("Backup history");
   expect(resultado.en.menu).toContain("Current plan");
   expect(resultado.en.menu).toContain("Focus mode");
 
   expect(resultado.pt.backup).toContain(
     "Ainda nao ha copias salvas."
   );
+  expect(resultado.pt.backupTitulo).toBe("Histórico de backups");
   expect(resultado.pt.menu).toContain("Plano atual");
   expect(resultado.pt.menu).toContain("Modo foco");
 });
