@@ -166,3 +166,18 @@ async ({ page }) => {
   );
   expect(Resumen.color).toBe("rgb(182, 69, 69)");
 });
+
+test("muestra precio premium actualizado",
+async ({ page }) => {
+  await Preparar(page);
+
+  const Precio = await page.evaluate(() => {
+    Abrir_Suscripcion();
+    return document.querySelector(
+      "#Suscripcion_Card_Upgrade " +
+      ".Suscripcion_Precio_Num"
+    )?.textContent?.trim();
+  });
+
+  expect(Precio).toBe("$7.499");
+});

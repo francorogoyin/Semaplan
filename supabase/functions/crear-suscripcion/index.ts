@@ -4,6 +4,8 @@ const Mp_Plan_Id =
   Deno.env.get("MP_PREAPPROVAL_PLAN_ID") ||
   "27f7a8694a4b4343ba024178d135b32c";
 
+const Monto_Suscripcion_Ars = 7499;
+
 const Mp_Init_Point =
   "https://www.mercadopago.com.ar" +
   "/subscriptions/checkout" +
@@ -81,6 +83,19 @@ function Suscripcion_Sigue_Vigente(Suscripcion: any) {
     return false;
   }
   return Date.now() < Limite.getTime();
+}
+
+function Obtener_Monto_Registro(
+  Suscripcion: any,
+  Estado: string
+) {
+  if (
+    Estado === "authorized"
+    && Suscripcion?.monto
+  ) {
+    return Suscripcion.monto;
+  }
+  return Monto_Suscripcion_Ars;
 }
 
 Deno.serve(async (Req) => {
@@ -207,7 +222,10 @@ Deno.serve(async (Req) => {
         || Suscripcion_Existente?.payer_email
         || null,
       monto:
-        Suscripcion_Existente?.monto || 999,
+        Obtener_Monto_Registro(
+          Suscripcion_Existente,
+          Estado_Registro
+        ),
       moneda:
         Suscripcion_Existente?.moneda || "ARS",
       detalle:
