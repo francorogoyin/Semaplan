@@ -609,13 +609,42 @@ test("menu de bloque distingue insertar y editar plan", async ({
       Duracion: 1,
       Nota: ""
     };
-    Mostrar_Menu_Evento({
-      ...base,
-      Abordaje: [{ Texto: "Ya tocado", Estado: "Abordado" }]
-    }, 10, 10);
+    Portapapeles_Plan_Evento = {
+      Objetivo_Id: null,
+      Items: [{ Texto: "Copiable", Planeada: true }]
+    };
+    Portapapeles_Calendario_Modo = "Plan_Evento";
+
+    Mostrar_Menu_Evento(base, 10, 10);
     const sinPlan = document.querySelector(
       '#Dia_Accion_Menu [data-acc="abordaje"]'
     )?.textContent?.trim() || "";
+    const accionesSinPlan = Array.from(document.querySelectorAll(
+      "#Dia_Accion_Menu .Dia_Accion_Item"
+    )).map((item) => item.getAttribute("data-acc"));
+    Cerrar_Menu_Dia();
+
+    const Evento_Contenido = {
+      ...base,
+      Abordaje: [{ Texto: "Ya tocado", Estado: "Abordado" }]
+    };
+    Mostrar_Menu_Evento(Evento_Contenido, 10, 10);
+    const conContenido = document.querySelector(
+      '#Dia_Accion_Menu [data-acc="abordaje"]'
+    )?.textContent?.trim() || "";
+    const accionesContenido = Array.from(
+      document.querySelectorAll(
+        "#Dia_Accion_Menu .Dia_Accion_Item"
+      )
+    ).map((item) => item.getAttribute("data-acc"));
+    const copiaContenidoOk = Copiar_Plan_Evento(
+      Evento_Contenido
+    );
+    const copiaContenido = {
+      texto: Portapapeles_Plan_Evento?.Items?.[0]?.Texto || "",
+      planeada:
+        Boolean(Portapapeles_Plan_Evento?.Items?.[0]?.Planeada)
+    };
     Cerrar_Menu_Dia();
 
     Mostrar_Menu_Evento({
@@ -639,10 +668,32 @@ test("menu de bloque distingue insertar y editar plan", async ({
     )).map((item) => item.getAttribute("data-acc"));
     Cerrar_Menu_Dia();
 
-    return { sinPlan, conPlan, conPlanLegado, accionesLegado };
+    return {
+      sinPlan,
+      accionesSinPlan,
+      conContenido,
+      accionesContenido,
+      copiaContenidoOk,
+      copiaContenido,
+      conPlan,
+      conPlanLegado,
+      accionesLegado
+    };
   });
 
   expect(etiquetas.sinPlan).toBe("Insertar plan");
+  expect(etiquetas.accionesSinPlan)
+    .toContain("pegar-plan-evento");
+  expect(etiquetas.conContenido).toBe("Editar plan");
+  expect(etiquetas.accionesContenido)
+    .toContain("copiar-plan-evento");
+  expect(etiquetas.accionesContenido)
+    .toContain("borrar-plan-evento");
+  expect(etiquetas.accionesContenido)
+    .not.toContain("pegar-plan-evento");
+  expect(etiquetas.copiaContenidoOk).toBeTruthy();
+  expect(etiquetas.copiaContenido.texto).toBe("Ya tocado");
+  expect(etiquetas.copiaContenido.planeada).toBeTruthy();
   expect(etiquetas.conPlan).toBe("Editar plan");
   expect(etiquetas.conPlanLegado).toBe("Editar plan");
   expect(etiquetas.accionesLegado)

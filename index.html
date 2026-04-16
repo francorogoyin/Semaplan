@@ -36334,6 +36334,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Obtener_Items_Plan_Evento(Evento_Data).length > 0;
       }
 
+      function Item_Tiene_Texto_Plan_Evento(Item) {
+        return Boolean(String(Item?.Texto || "").trim());
+      }
+
+      function Obtener_Items_Contenido_Plan_Evento(Evento_Data) {
+        return Obtener_Abordaje_Con_Plan_Slot(Evento_Data)
+          .filter(Item_Tiene_Texto_Plan_Evento);
+      }
+
+      function Evento_Tiene_Contenido_Plan(Evento_Data) {
+        return Obtener_Items_Contenido_Plan_Evento(Evento_Data)
+          .length > 0;
+      }
+
+      function Obtener_Items_Copiables_Plan_Evento(Evento_Data) {
+        const Items_Planeados =
+          Obtener_Items_Plan_Evento(Evento_Data);
+        return Items_Planeados.length > 0
+          ? Items_Planeados
+          : Obtener_Items_Contenido_Plan_Evento(Evento_Data);
+      }
+
       function Obtener_Abordaje_Con_Plan_Slot(Evento_Data) {
         const Base = Obtener_Items_Abordaje_Evento(Evento_Data);
         if (
@@ -36508,8 +36530,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Copiar_Plan_Evento(Evento_Data) {
-        const Items = Obtener_Items_Plan_Evento(Evento_Data)
-          .map((Item) => ({ ...Item }));
+        const Items = Obtener_Items_Copiables_Plan_Evento(
+          Evento_Data
+        ).map((Item) => ({
+          ...Item,
+          Planeada: true
+        }));
         if (!Items.length) return false;
         Portapapeles_Plan_Evento = {
           Evento_Id: Evento_Data.Id,
@@ -36589,7 +36615,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Borrar_Plan_Evento_Con_Confirmacion(
         Evento_Data
       ) {
-        if (!Evento_Tiene_Plan_Abordaje(Evento_Data)) return;
+        if (!Evento_Tiene_Contenido_Plan(Evento_Data)) return;
         const Confirmar = await Mostrar_Dialogo(
           t("abordaje.borrar_plan_confirm"),
           [
@@ -36602,9 +36628,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ]
         );
         if (!Confirmar) return;
-        const Final = Quitar_Plan_De_Items_Abordaje(
-          Obtener_Abordaje_Con_Plan_Slot(Evento_Data)
-        );
+        const Tiene_Items_Planeados =
+          Evento_Tiene_Plan_Abordaje(Evento_Data);
+        const Final = Tiene_Items_Planeados
+          ? Quitar_Plan_De_Items_Abordaje(
+            Obtener_Abordaje_Con_Plan_Slot(Evento_Data)
+          )
+          : [];
         if (Final.length > 0) {
           Evento_Data.Abordaje = Final;
         } else {
@@ -36629,7 +36659,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Evento_Data.Nota || "").trim()
         );
         const Tiene_Plan =
-          Evento_Tiene_Plan_Abordaje(Evento_Data);
+          Evento_Tiene_Contenido_Plan(Evento_Data);
         const Puede_Pegar_Plan = Boolean(
           Obtener_Portapapeles_Plan_Para_Evento()
         );
@@ -36659,7 +36689,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               )
             );
           }
-          if (Puede_Pegar_Plan) {
+          if (!Tiene_Plan && Puede_Pegar_Plan) {
             Grupo_Plan.push(
               Html_Menu_Dia_Accion(
                 "pegar-plan-evento",
@@ -42349,7 +42379,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               : t("slot.insertar_plan")
           )
         );
-        if (Es_Slot_Muerto && Tiene_Plan) {
+        if (Tiene_Plan) {
           Grupo_Plan.push(
             Html_Menu_Dia_Accion(
               "copiar-plan-slot",
@@ -42365,7 +42395,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
           );
         }
-        if (Puede_Pegar_Plan) {
+        if (!Tiene_Plan && Puede_Pegar_Plan) {
           Grupo_Plan.push(
             Html_Menu_Dia_Accion(
               "pegar-plan-slot",
