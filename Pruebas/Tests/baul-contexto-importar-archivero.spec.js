@@ -167,8 +167,14 @@ test("ofrece importar al archivero desde el menu del baul", async ({
     window.Inicializar();
     Mostrar_Dialogo = async () => "c1";
     Mostrar_Menu_Baul(Baul_Objetivos[0], 24, 24);
-    const Texto_Menu = document.getElementById("Dia_Accion_Menu")
-      ?.textContent || "";
+    const Menu = document.getElementById("Dia_Accion_Menu");
+    const Texto_Menu = Menu?.textContent || "";
+    const Items_Menu = Array.from(
+      Menu?.querySelectorAll(".Dia_Accion_Item") || []
+    ).map((Item) => ({
+      Accion: Item.getAttribute("data-acc"),
+      Texto: Item.textContent.trim()
+    }));
     document.querySelector('[data-acc="archivero"]')
       ?.dispatchEvent(
         new MouseEvent("click", {
@@ -179,6 +185,7 @@ test("ofrece importar al archivero desde el menu del baul", async ({
     await new Promise((Resolver) => setTimeout(Resolver, 0));
     return {
       textoMenu: Texto_Menu,
+      itemsMenu: Items_Menu,
       notas: Notas_Archivero.map((Nota) => ({
         Texto: Nota.Texto,
         Origen: Nota.Origen,
@@ -189,6 +196,16 @@ test("ofrece importar al archivero desde el menu del baul", async ({
 
   expect(resultado.textoMenu)
     .toContain("Importar al Archivero");
+  expect(resultado.itemsMenu.slice(2, 4)).toEqual([
+    {
+      Accion: "varias",
+      Texto: "Agregar a varias semanas"
+    },
+    {
+      Accion: "manual",
+      Texto: "Agregar a semana específica"
+    }
+  ]);
   expect(resultado.notas).toHaveLength(1);
   expect(resultado.notas[0].Texto).toBe("📄 Preparar propuesta");
   expect(resultado.notas[0].Origen).toBe("Baúl");
