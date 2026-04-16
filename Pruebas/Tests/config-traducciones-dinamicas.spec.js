@@ -318,7 +318,7 @@ async ({ page }) => {
     "prueba"
   );
   expect(resultado.es.internacional).toBe(
-    "Pagos internacionales: 5 USD"
+    "Pago internacional: 5 USD"
   );
   expect(resultado.es.sync).toContain(
     "dispositivos"
@@ -331,7 +331,7 @@ async ({ page }) => {
     "Your trial is active"
   );
   expect(resultado.en.internacional).toBe(
-    "International payments: USD 5"
+    "International payment: USD 5"
   );
   expect(resultado.en.sync).toBe(
     "Cross-device sync"
@@ -344,7 +344,7 @@ async ({ page }) => {
     "teste"
   );
   expect(resultado.pt.internacional).toBe(
-    "Pagamentos internacionais: USD 5"
+    "Pagamento internacional: USD 5"
   );
   expect(resultado.pt.sync).toContain(
     "dispositivos"

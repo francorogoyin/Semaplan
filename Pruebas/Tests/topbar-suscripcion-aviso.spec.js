@@ -176,6 +176,9 @@ async ({ page }) => {
     const Card = document.getElementById(
       "Suscripcion_Card_Upgrade"
     );
+    const Card_Free = document.getElementById(
+      "Suscripcion_Card_Free"
+    );
     const Moneda = Card?.querySelector(
       ".Suscripcion_Precio_Moneda"
     );
@@ -198,6 +201,12 @@ async ({ page }) => {
       )?.textContent?.trim(),
       moneda: Moneda?.textContent?.trim(),
       nota: Nota?.textContent?.trim(),
+      freeBadge: Card_Free?.querySelector(
+        ".Suscripcion_Badge"
+      )?.textContent?.trim(),
+      titulosGrandes: document.querySelectorAll(
+        ".Suscripcion_Nombre"
+      ).length,
       monedaALaDerecha: Rect_Precio && Rect_Moneda
         ? Rect_Moneda.left > Rect_Precio.right
         : false,
@@ -209,11 +218,44 @@ async ({ page }) => {
   expect(Precio.precio).toBe("$7.499");
   expect(Precio.moneda).toBe("ARS");
   expect(Precio.nota).toBe(
-    "Pagos internacionales: 5 USD"
+    "Pago internacional: 5 USD"
   );
+  expect(Precio.freeBadge).toBe("Free");
+  expect(Precio.titulosGrandes).toBe(0);
   expect(Precio.monedaALaDerecha).toBe(true);
   expect(Precio.fontMoneda).toBe("11px");
   expect(Precio.fontNota).toBe("11px");
+});
+
+test("muestra prueba activa como nota chica",
+async ({ page }) => {
+  await Preparar(page);
+
+  const Estado = await page.evaluate(() => {
+    Suscripcion_Detalle_Remota = {
+      estado: "trial",
+      trial_hasta: "2026-04-20T00:00:00Z"
+    };
+    Abrir_Suscripcion();
+    Actualizar_UI_Plan();
+    const El = document.getElementById(
+      "Suscripcion_Estado_Upgrade"
+    );
+    const Estilo = window.getComputedStyle(El);
+    return {
+      texto: El.textContent.trim(),
+      claseNota: El.classList.contains("Estilo_Nota"),
+      background: Estilo.backgroundColor,
+      fontSize: Estilo.fontSize,
+      fontWeight: Estilo.fontWeight
+    };
+  });
+
+  expect(Estado.texto).toBe("Tu prueba está activa");
+  expect(Estado.claseNota).toBe(true);
+  expect(Estado.background).toBe("rgba(0, 0, 0, 0)");
+  expect(Estado.fontSize).toBe("11px");
+  expect(Number(Estado.fontWeight)).toBeLessThan(700);
 });
 
 test("abre modal de pago premium con MP y Stripe",
@@ -228,15 +270,30 @@ async ({ page }) => {
   const Modal = page.locator("#Pago_Premium_Overlay");
   const Mercado = page.locator("#Pago_Premium_Mercado_Link");
   const Stripe = page.locator("#Pago_Premium_Stripe_Link");
+  const Titulo_Logo = Modal.locator(".Pago_Premium_App_Logo");
 
   await expect(Modal).toHaveClass(/Activo/);
-  await expect(Mercado).toContainText("Mercado Pago");
+  await expect(Modal.locator(".Pago_Premium_Texto"))
+    .toHaveCount(0);
+  await expect(Titulo_Logo)
+    .toHaveAttribute("src", /Semaplan\.png$/);
+  await expect(Mercado.locator(".Pago_Premium_Logo_Img"))
+    .toHaveAttribute("src", /Mercado_Pago\.svg$/);
+  await expect(Mercado.locator(".Pago_Premium_Logo_Img"))
+    .toHaveAttribute("alt", "Mercado Pago");
   await expect(Mercado).toContainText("ARS 7.499");
   await expect(Mercado).toContainText("Pago nacional");
-  await expect(Stripe).toContainText("stripe");
+  await expect(Mercado).not.toContainText("Mercado Pago");
+  await expect(Stripe.locator(".Pago_Premium_Logo_Img"))
+    .toHaveAttribute("src", /Stripe\.svg$/);
+  await expect(Stripe.locator(".Pago_Premium_Logo_Img"))
+    .toHaveAttribute("alt", "Stripe");
   await expect(Stripe).toContainText("USD 5");
   await expect(Stripe).toContainText("Pago internacional");
+  await expect(Stripe).not.toContainText("stripe");
   await expect(Stripe).toHaveAttribute("href", "#");
+  await expect(Mercado).toHaveCSS("text-align", "center");
+  await expect(Mercado).toHaveCSS("align-items", "center");
 
   await Stripe.click();
   await expect(Modal).toHaveClass(/Activo/);

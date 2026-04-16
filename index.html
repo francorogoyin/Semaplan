@@ -10766,13 +10766,6 @@
         color: var(--Acento);
       }
 
-      .Suscripcion_Nombre {
-        font-size: 20px;
-        font-weight: 800;
-        color: var(--Texto);
-        letter-spacing: -0.02em;
-      }
-
       .Suscripcion_Precio {
         display: flex;
         flex-direction: column;
@@ -10860,6 +10853,16 @@
         text-align: center;
       }
 
+      .Suscripcion_Estado_Actual.Estilo_Nota {
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 1.35;
+      }
+
       .Suscripcion_Nota_Internacional {
         width: 100%;
         margin-top: -2px;
@@ -10875,17 +10878,10 @@
       }
 
       .Pago_Premium_Cuerpo {
-        padding: 18px 22px 22px;
+        padding: 20px 22px 24px;
         display: flex;
         flex-direction: column;
-        gap: 16px;
-      }
-
-      .Pago_Premium_Texto {
-        margin: 0;
-        color: var(--Texto_Suave);
-        font-size: 13px;
-        line-height: 1.45;
+        gap: 0;
       }
 
       .Pago_Premium_Grid {
@@ -10897,6 +10893,7 @@
       .Pago_Premium_Opcion {
         display: flex;
         flex-direction: column;
+        align-items: center;
         gap: 12px;
         min-height: 172px;
         padding: 18px;
@@ -10905,6 +10902,7 @@
         background: rgba(255, 255, 255, 0.68);
         color: var(--Texto);
         text-decoration: none;
+        text-align: center;
         transition:
           border-color 160ms ease,
           box-shadow 160ms ease,
@@ -10930,27 +10928,34 @@
         text-transform: uppercase;
       }
 
+      .Pago_Premium_Titulo {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .Pago_Premium_App_Logo {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        flex: 0 0 auto;
+      }
+
       .Pago_Premium_Logo {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 48px;
+        width: 100%;
+        min-height: 64px;
         border-radius: 12px;
-        font-size: 18px;
-        font-weight: 900;
-        letter-spacing: 0;
+        overflow: hidden;
       }
 
-      .Pago_Premium_Logo.Mercado {
-        background: #e7f8ff;
-        color: #0477a8;
-      }
-
-      .Pago_Premium_Logo.Stripe {
-        background: #f0ecff;
-        color: #635bff;
-        font-size: 22px;
-        letter-spacing: 0;
+      .Pago_Premium_Logo_Img {
+        display: block;
+        width: min(214px, 100%);
+        height: 64px;
+        object-fit: contain;
       }
 
       .Pago_Premium_Monto {
@@ -13416,11 +13421,8 @@
                   id="Suscripcion_Card_Free">
                   <div class="Suscripcion_Card_Head">
                     <span class="Suscripcion_Badge"
-                      data-i18n="suscripcion.base"
-                      >Base</span>
-                    <div class="Suscripcion_Nombre"
                       data-i18n="suscripcion.free"
-                      >Free</div>
+                      >Free</span>
                     <div class="Suscripcion_Precio">
                       <span class="Suscripcion_Precio_Num">$0</span>
                     </div>
@@ -13459,9 +13461,6 @@
                     <span class="Suscripcion_Badge"
                       data-i18n="suscripcion.premium"
                       >Premium</span>
-                    <div class="Suscripcion_Nombre"
-                      data-i18n="suscripcion.premium"
-                      >Premium</div>
                     <div class="Suscripcion_Precio">
                       <div class="Suscripcion_Precio_Monto">
                         <span class="Suscripcion_Precio_Num">$7.499</span>
@@ -13505,7 +13504,7 @@
                     hidden>Este es tu plan</div>
                   <div class="Suscripcion_Nota_Internacional"
                     data-i18n="suscripcion.pagos_internacionales">
-                    Pagos internacionales: 5 USD
+                    Pago internacional: 5 USD
                   </div>
                 </div>
               </div>
@@ -13517,9 +13516,14 @@
           id="Pago_Premium_Overlay">
           <div class="Patron_Modal_Panel Pago_Premium_Panel">
             <div class="Patron_Modal_Cabecera">
-              <span class="Patron_Modal_Titulo"
-                data-i18n="pago_premium.titulo">
-                Elegí cómo pagar Premium
+              <span class="Patron_Modal_Titulo
+                Pago_Premium_Titulo">
+                <img class="Pago_Premium_App_Logo"
+                  src="Aplicaciones/Desktop/Semaplan.png"
+                  alt="">
+                <span data-i18n="pago_premium.titulo">
+                  Elegí cómo pagar Premium
+                </span>
               </span>
               <button class="Config_Cerrar"
                 id="Pago_Premium_Cerrar"
@@ -13527,10 +13531,6 @@
                 type="button">&times;</button>
             </div>
             <div class="Pago_Premium_Cuerpo">
-              <p class="Pago_Premium_Texto"
-                data-i18n="pago_premium.subtitulo">
-                Seleccioná el canal según tu país.
-              </p>
               <div class="Pago_Premium_Grid">
                 <a class="Pago_Premium_Opcion"
                   id="Pago_Premium_Mercado_Link"
@@ -13540,8 +13540,10 @@
                     data-i18n="pago_premium.nacional">
                     Argentina
                   </span>
-                  <span class="Pago_Premium_Logo Mercado">
-                    Mercado Pago
+                  <span class="Pago_Premium_Logo">
+                    <img class="Pago_Premium_Logo_Img"
+                      src="Aplicaciones/Desktop/Mercado_Pago.svg"
+                      alt="Mercado Pago">
                   </span>
                   <strong class="Pago_Premium_Monto">
                     ARS 7.499
@@ -13559,8 +13561,10 @@
                     data-i18n="pago_premium.internacional">
                     Internacional
                   </span>
-                  <span class="Pago_Premium_Logo Stripe">
-                    stripe
+                  <span class="Pago_Premium_Logo">
+                    <img class="Pago_Premium_Logo_Img"
+                      src="Aplicaciones/Desktop/Stripe.svg"
+                      alt="Stripe">
                   </span>
                   <strong class="Pago_Premium_Monto">
                     USD 5
@@ -16584,7 +16588,7 @@
           "suscripcion.mensuales":
             "Mensuales",
           "suscripcion.pagos_internacionales":
-            "Pagos internacionales: 5 USD",
+            "Pago internacional: 5 USD",
           "suscripcion.usar_free":
             "Usar Free",
           "suscripcion.activar_trial":
@@ -16620,8 +16624,6 @@
             "Elegí cómo pagar Premium",
           "pago_premium.cerrar":
             "Cerrar pago Premium",
-          "pago_premium.subtitulo":
-            "Seleccioná el canal según tu país.",
           "pago_premium.nacional":
             "Argentina",
           "pago_premium.nacional_desc":
@@ -19283,7 +19285,7 @@
           "suscripcion.premium": "Premium",
           "suscripcion.mensuales": "Monthly",
           "suscripcion.pagos_internacionales":
-            "International payments: USD 5",
+            "International payment: USD 5",
           "suscripcion.usar_free":
             "Use Free",
           "suscripcion.activar_trial":
@@ -19319,8 +19321,6 @@
             "Choose how to pay for Premium",
           "pago_premium.cerrar":
             "Close Premium payment",
-          "pago_premium.subtitulo":
-            "Select the channel for your country.",
           "pago_premium.nacional":
             "Argentina",
           "pago_premium.nacional_desc":
@@ -22011,7 +22011,7 @@
           "suscripcion.mensuales":
             "Mensais",
           "suscripcion.pagos_internacionales":
-            "Pagamentos internacionais: USD 5",
+            "Pagamento internacional: USD 5",
           "suscripcion.usar_free":
             "Usar Free",
           "suscripcion.activar_trial":
@@ -22048,8 +22048,6 @@
             "Escolha como pagar o Premium",
           "pago_premium.cerrar":
             "Fechar pagamento Premium",
-          "pago_premium.subtitulo":
-            "Selecione o canal conforme o seu país.",
           "pago_premium.nacional":
             "Argentina",
           "pago_premium.nacional_desc":
@@ -39085,6 +39083,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Upgrade_Estado.hidden = true;
           El_Upgrade_Estado.textContent =
             t("suscripcion.plan_actual");
+          El_Upgrade_Estado.classList.remove("Estilo_Nota");
         }
         if (El_Upgrade_Btn) {
           El_Upgrade_Btn.style.display = "";
@@ -39108,6 +39107,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             El_Upgrade_Estado.hidden = false;
             El_Upgrade_Estado.textContent =
               t("suscripcion.trial_activo");
+            El_Upgrade_Estado.classList.add("Estilo_Nota");
           }
         } else {
           if (El_Free_Estado) {
