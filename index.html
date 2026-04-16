@@ -34145,7 +34145,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const { data, error } =
             await Invocar_Edge_Con_Sesion(
               "estado-suscripcion",
-              { method: "GET" }
+              {
+                method: "GET",
+                Registrar_Error: false
+              }
             );
           if (!error && data) {
             Suscripcion_Remota =
@@ -58335,16 +58338,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Data = Texto || null;
             }
             if (!Resp.ok) {
-              Log_Error_App(
-                "edge",
-                Nombre,
-                "Edge Function devolvió error",
-                null,
-                {
-                  entidad_afectada: Nombre,
-                  status: Resp.status
-                }
-              );
+              if (Opciones.Registrar_Error !== false) {
+                Log_Error_App(
+                  "edge",
+                  Nombre,
+                  "Edge Function devolvió error",
+                  null,
+                  {
+                    entidad_afectada: Nombre,
+                    status: Resp.status
+                  }
+                );
+              }
               return {
                 data: null,
                 error: {
@@ -58361,13 +58366,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               error: null
             };
           } catch (Error) {
-            Log_Error_App(
-              "edge",
-              Nombre,
-              "Falló la invocación de Edge Function",
-              Error,
-              { entidad_afectada: Nombre }
-            );
+            if (Opciones.Registrar_Error !== false) {
+              Log_Error_App(
+                "edge",
+                Nombre,
+                "Falló la invocación de Edge Function",
+                Error,
+                { entidad_afectada: Nombre }
+              );
+            }
             return {
               data: null,
               error: {
