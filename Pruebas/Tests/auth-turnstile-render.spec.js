@@ -1,6 +1,6 @@
 const { test, expect } = require("@playwright/test");
 
-async function Preparar_Login(page) {
+async function Preparar_Rutas_Externas(page) {
   await page.route(
     "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
     async (route) => {
@@ -22,6 +22,10 @@ async function Preparar_Login(page) {
       });
     }
   );
+}
+
+async function Preparar_Login(page, Ruta = "/index.html") {
+  await Preparar_Rutas_Externas(page);
 
   await page.addInitScript(() => {
     window.supabase = {
@@ -48,19 +52,10 @@ async function Preparar_Login(page) {
     window.alert = () => {};
   });
 
-  await page.goto("/index.html");
+  await page.goto(Ruta);
 }
 
-test("renderiza turnstile si la api llega tarde", async ({
-  page
-}) => {
-  await Preparar_Login(page);
-  await expect(page.locator("#Auth_Overlay"))
-    .toHaveClass(/Activo/);
-  await expect(
-    page.locator("#Auth_Turnstile .Turnstile_Test_Render")
-  ).toHaveCount(0);
-
+async function Instalar_Turnstile_Test(page) {
   await page.evaluate(() => {
     window.__Turnstile_Renders = 0;
     window.__Turnstile_Language = "";
@@ -79,6 +74,49 @@ test("renderiza turnstile si la api llega tarde", async ({
       reset() {}
     };
   });
+}
+
+test("canonicaliza index.html en produccion", async ({
+  page
+}) => {
+  await Preparar_Rutas_Externas(page);
+  await page.route(
+    "https://semaplan.com/index.html",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "text/html",
+        path: "index.html"
+      });
+    }
+  );
+  await page.route(
+    "https://semaplan.com/",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "text/html",
+        body: "<!doctype html><title>Semaplan</title>"
+      });
+    }
+  );
+
+  await page.goto("https://semaplan.com/index.html");
+
+  await expect(page).toHaveURL("https://semaplan.com/");
+});
+
+test("renderiza turnstile si la api llega tarde", async ({
+  page
+}) => {
+  await Preparar_Login(page);
+  await expect(page.locator("#Auth_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(
+    page.locator("#Auth_Turnstile .Turnstile_Test_Render")
+  ).toHaveCount(0);
+
+  await Instalar_Turnstile_Test(page);
 
   await expect(
     page.locator("#Auth_Turnstile .Turnstile_Test_Render")
@@ -140,4 +178,19 @@ test("usa el logo nuevo en login y recovery", async ({
   expect(
     Info.every((Item) => parseFloat(Item.ancho_css) >= 50)
   ).toBeTruthy();
+});
+
+test("Semana.html carga login con turnstile", async ({
+  page
+}) => {
+  await Preparar_Login(page, "/Semana.html");
+  await expect(page).toHaveURL(/\/index\.html$/);
+  await expect(page.locator("#Auth_Overlay"))
+    .toHaveClass(/Activo/);
+
+  await Instalar_Turnstile_Test(page);
+
+  await expect(
+    page.locator("#Auth_Turnstile .Turnstile_Test_Render")
+  ).toHaveText("ok");
 });
