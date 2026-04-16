@@ -76,7 +76,7 @@ async function Instalar_Turnstile_Test(page) {
   });
 }
 
-test("canonicaliza index.html en produccion", async ({
+test("canonicaliza entradas html en produccion", async ({
   page
 }) => {
   await Preparar_Rutas_Externas(page);
@@ -87,6 +87,16 @@ test("canonicaliza index.html en produccion", async ({
         status: 200,
         contentType: "text/html",
         path: "index.html"
+      });
+    }
+  );
+  await page.route(
+    "https://semaplan.com/Semaplan.html",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "text/html",
+        path: "Semaplan.html"
       });
     }
   );
@@ -102,6 +112,10 @@ test("canonicaliza index.html en produccion", async ({
   );
 
   await page.goto("https://semaplan.com/index.html");
+
+  await expect(page).toHaveURL("https://semaplan.com/");
+
+  await page.goto("https://semaplan.com/Semaplan.html");
 
   await expect(page).toHaveURL("https://semaplan.com/");
 });
@@ -180,10 +194,10 @@ test("usa el logo nuevo en login y recovery", async ({
   ).toBeTruthy();
 });
 
-test("Semana.html carga login con turnstile", async ({
+test("Semaplan.html carga login con turnstile", async ({
   page
 }) => {
-  await Preparar_Login(page, "/Semana.html");
+  await Preparar_Login(page, "/Semaplan.html");
   await expect(page).toHaveURL(/\/index\.html$/);
   await expect(page.locator("#Auth_Overlay"))
     .toHaveClass(/Activo/);
