@@ -209,7 +209,7 @@ async ({ page }) => {
   expect(Precio.precio).toBe("$7.499");
   expect(Precio.moneda).toBe("ARS");
   expect(Precio.nota).toBe(
-    "Para pagos internacionales se cobrará 5 USD"
+    "Pagos internacionales: 5 USD"
   );
   expect(Precio.monedaALaDerecha).toBe(true);
   expect(Precio.fontMoneda).toBe("11px");
