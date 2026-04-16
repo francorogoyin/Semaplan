@@ -400,6 +400,68 @@ test("atajo de nueva nota cierra el menu contextual abierto", async ({
     .toHaveClass(/Activo/);
 });
 
+test("atajo de nueva nota queda sobre config y dialogo", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Config_Extra.Plan_Actual = "Upgrade";
+  await Preparar(page, estado);
+
+  await page.evaluate(() => {
+    Abrir_Config();
+    window.__Dialogo_Test_Nota = Mostrar_Dialogo(
+      "Dialogo abierto",
+      [{
+        Etiqueta: "Cerrar",
+        Valor: true,
+        Tipo: "Primario"
+      }]
+    );
+  });
+  await expect(page.locator("#Config_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+
+  await page.keyboard.press("A");
+
+  await expect(page.locator("#Archivero_Nota_Overlay"))
+    .toHaveClass(/Activo/);
+  const capas = await page.evaluate(() => {
+    const Z = (Id) => Number.parseInt(
+      getComputedStyle(document.getElementById(Id)).zIndex,
+      10
+    ) || 0;
+    return {
+      nota: Z("Archivero_Nota_Overlay"),
+      config: Z("Config_Overlay"),
+      dialogo: Z("Dialogo_Overlay")
+    };
+  });
+
+  expect(capas.nota).toBeGreaterThan(capas.config);
+  expect(capas.nota).toBeGreaterThan(capas.dialogo);
+});
+
+test("atajo de nueva nota no interrumpe campos de texto", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Config_Extra.Plan_Actual = "Upgrade";
+  await Preparar(page, estado);
+
+  await page.evaluate(() => {
+    const Input = document.createElement("input");
+    Input.id = "Input_Test_Atajo_Nota";
+    document.body.appendChild(Input);
+    Input.focus();
+  });
+  await page.keyboard.press("A");
+
+  await expect(page.locator("#Archivero_Nota_Overlay"))
+    .not.toHaveClass(/Activo/);
+});
+
 test("inserta un patron desde el modal de un slot vacio", async ({
   page
 }) => {

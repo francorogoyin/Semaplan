@@ -2296,6 +2296,10 @@
         display: flex;
       }
 
+      #Archivero_Nota_Overlay {
+        z-index: 10400;
+      }
+
       /* --- Paleta de comandos (Ctrl+K) --- */
       .Paleta_Overlay {
         display: none;
@@ -60263,6 +60267,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (Escribiendo) return;
 
+        if (
+          !Ev.ctrlKey &&
+          !Ev.metaKey &&
+          !Ev.altKey &&
+          (Ev.key === "a" || Ev.key === "A")
+        ) {
+          // Captura rapida de nota al Archivero. Corre antes
+          // del bloqueo por modales para que sea un atajo global.
+          Cerrar_Menu_Dia();
+          if (typeof Abrir_Modal_Nota_Archivero ===
+            "function") {
+            if (Validar_Acceso_Premium("Archivero")) {
+              Inicializar_Archiveros_Default();
+              Abrir_Modal_Nota_Archivero(null);
+            }
+            Ev.preventDefault();
+          }
+          return;
+        }
+
         // Si hay diálogo o modal abierto, solo manejar Esc.
         const Dialogo_Abierto_DOM = document
           .querySelector(".Dialogo_Overlay.Activo");
@@ -60564,21 +60588,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else if (Ev.key === "b" || Ev.key === "B") {
           if (typeof Abrir_Baul === "function") {
             Abrir_Baul();
-            Ev.preventDefault();
-          }
-        } else if (Ev.key === "a" || Ev.key === "A") {
-          // Captura rápida de nota al Archivero. Abre el
-          // submodal de "Nueva nota" sin pasar por el
-          // modal grande del Archivero, para que el flujo
-          // sea: A → escribir → Ctrl+Enter → guardado.
-          // Pasa por el guard Premium.
-          Cerrar_Menu_Dia();
-          if (typeof Abrir_Modal_Nota_Archivero ===
-            "function") {
-            if (Validar_Acceso_Premium("Archivero")) {
-              Inicializar_Archiveros_Default();
-              Abrir_Modal_Nota_Archivero(null);
-            }
             Ev.preventDefault();
           }
         } else if (Ev.key === "m" || Ev.key === "M") {
