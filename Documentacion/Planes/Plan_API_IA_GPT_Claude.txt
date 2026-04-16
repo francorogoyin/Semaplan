@@ -1,0 +1,701 @@
+Plan operativo para API de IA de Semaplan.
+
+Fecha de redaccion: 2026-04-16.
+
+Objetivo.
+
+Construir una API de solo lectura para que GPT y Claude puedan
+consultar datos de Semaplan con autorizacion explicita del usuario.
+
+La API debe permitir leer agenda, horarios, Archivero, Baul, metas y
+resumen basico sin exponer el estado crudo completo ni credenciales
+internas.
+
+Este documento esta escrito para que Codex pueda tomarlo como unica
+entrada operativa y empezar a implementar directamente.
+
+Decision tecnica recomendada.
+
+Crear un Semaplan AI Gateway como capa unica de lectura.
+
+El gateway debe vivir como Edge Function de Supabase, con nombre
+`semaplan-ai`.
+
+GPT debe consumir ese gateway mediante GPT Actions y un esquema
+OpenAPI.
+
+Claude debe consumir el mismo gateway mediante un servidor MCP remoto,
+o mediante herramientas de Claude API mientras se construye el MCP.
+
+No crear dos backends separados para GPT y Claude.
+
+Arquitectura objetivo.
+
+La arquitectura debe quedar asi.
+
+Semaplan en Supabase guarda el estado del usuario en
+`public.estado_usuario.estado`.
+
+La Edge Function `semaplan-ai` lee ese estado, lo normaliza y devuelve
+JSON minimo para IA.
+
+Un archivo OpenAPI describe esa API para GPT Actions.
+
+Un adaptador MCP expone herramientas equivalentes para Claude.
+
+El flujo logico es este.
+
+Semaplan y Supabase.
+
+Semaplan AI Gateway.
+
+OpenAPI para GPT Actions.
+
+MCP server para Claude.
+
+Alcance de la version 1.
+
+La version 1 debe ser solo lectura.
+
+Debe permitir consultar agenda por rango de fechas.
+
+Debe permitir buscar notas del Archivero por texto.
+
+Debe permitir listar notas de un cajon del Archivero.
+
+Debe permitir listar objetivos del Baul.
+
+Debe permitir consultar metas visibles.
+
+Debe permitir devolver un resumen compacto de contexto.
+
+No debe permitir crear, editar, mover ni borrar datos.
+
+No debe permitir disparar sync.
+
+No debe devolver el blob completo de `estado_usuario.estado`.
+
+No debe devolver credenciales, tokens, email de terceros ni datos de
+debug internos.
+
+Fuente de datos.
+
+La fuente remota de verdad es `public.estado_usuario`.
+
+La columna `estado` contiene el blob JSON completo del usuario.
+
+Las claves principales que se deben contemplar son estas.
+
+`Objetivos`.
+
+`Eventos`.
+
+`Metas`.
+
+`Slots_Muertos`.
+
+`Baul_Objetivos`.
+
+`Archiveros`.
+
+`Notas_Archivero`.
+
+`Etiquetas_Archivero`.
+
+`Patrones`.
+
+`Config_Extra`.
+
+`Inicio_Semana`.
+
+Si durante la implementacion el codigo real usa nombres adicionales,
+Codex debe agregarlos al normalizador sin cambiar el contrato publico.
+
+Autenticacion recomendada.
+
+La integracion inicial debe usar tokens de lectura de IA por usuario.
+
+No usar la service role key en el frontend.
+
+No poner tokens de Supabase dentro de un Custom GPT.
+
+No depender de localStorage ni de la app Desktop para esta API.
+
+Crear una tabla nueva para tokens de IA.
+
+Nombre recomendado: `public.tokens_ia_usuario`.
+
+Columnas recomendadas.
+
+`id UUID PRIMARY KEY DEFAULT gen_random_uuid()`.
+
+`usuario_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE`.
+
+`nombre TEXT NOT NULL DEFAULT 'Integracion IA'`.
+
+`token_hash TEXT NOT NULL UNIQUE`.
+
+`scopes TEXT[] NOT NULL DEFAULT ARRAY['read']`.
+
+`ultimo_uso_en TIMESTAMPTZ`.
+
+`creado_en TIMESTAMPTZ NOT NULL DEFAULT NOW()`.
+
+`revocado_en TIMESTAMPTZ`.
+
+El token real se debe mostrar una sola vez al usuario.
+
+La base debe guardar solo hash SHA-256 del token.
+
+El token enviado por GPT o Claude debe viajar en el header
+`X-Semaplan-AI-Token`.
+
+La Edge Function debe hashear el token entrante y buscarlo en
+`tokens_ia_usuario`.
+
+La Edge Function debe rechazar tokens inexistentes o revocados.
+
+La Edge Function debe leer solo el estado del `usuario_id` asociado al
+token validado.
+
+La Edge Function puede usar `SUPABASE_SERVICE_ROLE_KEY` solo del lado
+servidor para validar token y leer estado.
+
+Si el usuario esta logueado en la app web, tambien se puede aceptar
+`Authorization: Bearer <jwt>` como modo interno de prueba.
+
+Para GPT Actions conviene usar `X-Semaplan-AI-Token`.
+
+Para Claude MCP conviene usar el mismo token como bearer interno del
+servidor MCP.
+
+Endpoints de version 1.
+
+Implementar todos los endpoints bajo una sola Edge Function.
+
+Base publica.
+
+`https://<project>.supabase.co/functions/v1/semaplan-ai`.
+
+Endpoint de salud.
+
+`GET /salud`.
+
+Devuelve estado simple de la API.
+
+Respuesta esperada.
+
+`{"Ok":true,"Servicio":"Semaplan AI Gateway","Version":"1.0.0"}`.
+
+Endpoint de contexto compacto.
+
+`GET /contexto?desde=YYYY-MM-DD&hasta=YYYY-MM-DD`.
+
+Devuelve una vista resumida de agenda, proximos eventos, cantidad de
+notas, cantidad de objetivos del Baul y metas.
+
+Este endpoint es el recomendado para preguntas generales.
+
+Endpoint de agenda.
+
+`GET /agenda?desde=YYYY-MM-DD&hasta=YYYY-MM-DD`.
+
+Devuelve eventos calendarizados y slots muertos dentro del rango.
+
+El rango maximo permitido debe ser 45 dias.
+
+Respuesta esperada.
+
+`Eventos` debe ser un array de bloques normalizados.
+
+Cada bloque debe incluir, si existe en el estado, `Id`, `Fecha`,
+`Inicio`, `Fin`, `Titulo`, `Tipo`, `Objetivo_Id`, `Objetivo_Nombre`,
+`Categoria`, `Nota`, `Estado` y `Origen`.
+
+No devolver propiedades internas que no aporten a la pregunta.
+
+Endpoint de Archivero por cajon.
+
+`GET /archivero?cajon_id=<id>&limite=50`.
+
+Devuelve notas de un cajon.
+
+Si no viene `cajon_id`, usar el cajon seleccionado o el primer cajon.
+
+El limite maximo debe ser 100.
+
+Cada nota debe incluir `Id`, `Titulo`, `Texto`, `Etiquetas`,
+`Origen`, `Fecha_Creacion`, `Fecha_Actualizacion` y `Cajon`.
+
+Endpoint de busqueda de Archivero.
+
+`GET /archivero/buscar?q=<texto>&limite=20`.
+
+Debe buscar en titulo, texto, etiquetas y origen.
+
+La busqueda debe normalizar mayusculas, acentos y espacios.
+
+No usar busqueda exacta sensible a acentos.
+
+El limite maximo debe ser 50.
+
+Endpoint de Baul.
+
+`GET /baul?categoria=<texto>&estado=<texto>&limite=100`.
+
+Devuelve objetivos del Baul.
+
+Debe incluir nombre, descripcion, categoria, etiquetas, fecha y
+metadatos visibles si existen.
+
+No debe devolver datos de UI innecesarios.
+
+Endpoint de metas.
+
+`GET /metas?limite=50`.
+
+Devuelve metas con progreso, ritmo e historial resumido si existe.
+
+Debe omitir campos internos que no sean utiles para responder.
+
+Endpoint de OpenAPI.
+
+`GET /openapi.json`.
+
+Devuelve el esquema OpenAPI minimo para GPT Actions.
+
+Este endpoint es opcional si se mantiene el esquema como archivo dentro
+del repo.
+
+Archivos a crear.
+
+Crear `supabase/functions/semaplan-ai/index.ts`.
+
+Crear `supabase/migrations/YYYYMMDD_tokens_ia_usuario.sql`.
+
+Crear `Documentacion/Planes/OpenAPI_Semaplan_AI.yaml`.
+
+Crear `Documentacion/Planes/Instrucciones_GPT_Semaplan_AI.txt`.
+
+Crear `Documentacion/Planes/Instrucciones_Claude_MCP_Semaplan_AI.txt`.
+
+Si se implementa MCP en el mismo turno, crear
+`Herramientas/Scripts/semaplan-ai-mcp-server.js` o una carpeta
+equivalente bajo `Herramientas/Scripts`.
+
+Funciones internas recomendadas en la Edge Function.
+
+`Responder_Json`.
+
+Devuelve JSON con headers CORS.
+
+`Responder_Error`.
+
+Devuelve errores uniformes con `Error` y `Detalle`.
+
+`Validar_Request`.
+
+Lee JWT o `X-Semaplan-AI-Token` y devuelve `Usuario_Id`.
+
+`Leer_Estado_Usuario`.
+
+Consulta `estado_usuario` por `Usuario_Id`.
+
+`Normalizar_Texto_Busqueda`.
+
+Pasa a minusculas, elimina acentos, compacta espacios y trimmea.
+
+`Parsear_Fecha`.
+
+Valida `YYYY-MM-DD`.
+
+`Limitar_Rango_Fechas`.
+
+Rechaza rangos mayores a 45 dias para agenda y contexto.
+
+`Normalizar_Agenda`.
+
+Convierte `Eventos`, `Objetivos` y `Slots_Muertos` en bloques legibles.
+
+`Normalizar_Archivero`.
+
+Une `Archiveros`, `Notas_Archivero` y `Etiquetas_Archivero`.
+
+`Normalizar_Baul`.
+
+Devuelve objetivos del Baul con campos humanos.
+
+`Normalizar_Metas`.
+
+Devuelve metas con progreso legible.
+
+`Filtrar_Campos_Seguros`.
+
+Remueve campos internos, credenciales, snapshots pesados y datos de
+debug.
+
+Formato de errores.
+
+Todos los errores deben devolver JSON.
+
+Ejemplo.
+
+`{"Ok":false,"Error":"No autorizado","Detalle":"Token invalido."}`.
+
+Codigos HTTP esperados.
+
+`200` para exito.
+
+`400` para parametros invalidos.
+
+`401` para falta de token o JWT invalido.
+
+`403` para token revocado o scope insuficiente.
+
+`404` para ruta inexistente.
+
+`429` para rate limit.
+
+`500` para error inesperado.
+
+CORS.
+
+Responder siempre `OPTIONS`.
+
+Permitir `Authorization`, `apikey`, `content-type` y
+`X-Semaplan-AI-Token`.
+
+Usar `Access-Control-Allow-Origin: *` solo si no hay cookies.
+
+No usar cookies para esta integracion.
+
+Rate limit.
+
+Agregar limitacion basica por token.
+
+Minimo recomendado para version 1.
+
+60 requests por minuto por token.
+
+500 requests por dia por token.
+
+Si no se implementa tabla de rate limit en el primer commit, dejar el
+codigo preparado y documentar la deuda tecnica en el mismo archivo de
+la Edge Function.
+
+No cerrar la tarea final sin rate limit si la API queda publica.
+
+Normalizacion de agenda.
+
+Codex debe inspeccionar como `index.html` renderiza eventos para
+mapear fechas y horarios reales.
+
+El contrato publico no debe exponer el modelo interno completo.
+
+Los horarios deben salir en zona horaria `America/Buenos_Aires`.
+
+Si un evento no tiene fecha valida, omitirlo.
+
+Si un evento tiene objetivo asociado, incluir el nombre del objetivo.
+
+Si un evento tiene nota, incluirla solo si es texto breve.
+
+Si una nota supera 1000 caracteres, truncar y agregar
+`Texto_Truncado:true`.
+
+Normalizacion de Archivero.
+
+Las notas deben ordenarse por fecha mas nueva primero por defecto.
+
+La busqueda debe comparar texto normalizado.
+
+La respuesta debe incluir el cajon de cada nota.
+
+Si una nota no tiene titulo, devolver `Titulo:null`.
+
+Si una nota no tiene etiquetas, devolver `Etiquetas:[]`.
+
+No devolver color de fondo salvo que se agregue una razon concreta.
+
+Normalizacion de Baul.
+
+El Baul debe devolver objetivos accionables y archivados visibles.
+
+Si hay categorias, devolver nombre de categoria.
+
+Si hay descripcion, devolverla.
+
+Si hay fecha o semana especifica, devolverla.
+
+Si hay subobjetivos, devolver solo cantidad y lista corta.
+
+No devolver estructuras duplicadas pesadas.
+
+Normalizacion de metas.
+
+Devolver nombre, progreso, unidad, estado y ultimo movimiento si existe.
+
+No intentar inferir progreso si el dato no esta claro.
+
+Si la estructura real de metas es ambigua, devolver el dato bruto
+minimo bajo `Detalle` y agregar test antes de publicar.
+
+Integracion con GPT.
+
+Crear un Custom GPT llamado `Semaplan`.
+
+Configurar GPT Actions con el OpenAPI de
+`Documentacion/Planes/OpenAPI_Semaplan_AI.yaml`.
+
+Usar autenticacion por API key en header `X-Semaplan-AI-Token`.
+
+Instrucciones base del GPT.
+
+Responder sobre datos de Semaplan solo cuando el usuario lo pida.
+
+No inventar horarios, notas ni objetivos.
+
+Si el endpoint devuelve vacio, decir que no hay datos en ese rango.
+
+Pedir rango de fechas si la pregunta temporal es ambigua.
+
+No exponer identificadores internos salvo que el usuario los pida para
+debug.
+
+No modificar datos porque la version 1 es solo lectura.
+
+Integracion con Claude.
+
+La opcion recomendada es MCP remoto.
+
+El servidor MCP debe exponer estas herramientas.
+
+`semaplan_contexto`.
+
+`semaplan_agenda`.
+
+`semaplan_buscar_archivero`.
+
+`semaplan_listar_archivero`.
+
+`semaplan_listar_baul`.
+
+`semaplan_listar_metas`.
+
+Cada herramienta MCP debe llamar al Semaplan AI Gateway.
+
+El MCP no debe leer Supabase directamente.
+
+El MCP debe aceptar un token de usuario y reenviarlo como
+`X-Semaplan-AI-Token`.
+
+Si el MCP remoto se deja para una fase posterior, documentar en
+`Instrucciones_Claude_MCP_Semaplan_AI.txt` como usar las mismas
+operaciones mediante tool use de Claude API.
+
+Orden de implementacion.
+
+Paso 1.
+
+Crear migracion de `tokens_ia_usuario`.
+
+Paso 2.
+
+Crear Edge Function `semaplan-ai` con `/salud` y validacion de token.
+
+Paso 3.
+
+Agregar lectura segura de `estado_usuario`.
+
+Paso 4.
+
+Implementar `/contexto` y `/agenda`.
+
+Paso 5.
+
+Implementar `/archivero` y `/archivero/buscar`.
+
+Paso 6.
+
+Implementar `/baul`.
+
+Paso 7.
+
+Implementar `/metas`.
+
+Paso 8.
+
+Crear OpenAPI para GPT Actions.
+
+Paso 9.
+
+Crear instrucciones del GPT.
+
+Paso 10.
+
+Crear adaptador MCP o dejarlo preparado con herramientas y contratos.
+
+Paso 11.
+
+Agregar UI minima en Configuracion para crear y revocar token de IA.
+
+Paso 12.
+
+Probar con Playwright y smoke de produccion.
+
+UI minima recomendada.
+
+Agregar en Configuracion una seccion `Integraciones IA`.
+
+Mostrar texto breve.
+
+`Permite que GPT o Claude lean tus datos de Semaplan con un token de
+solo lectura.`
+
+Botones.
+
+`Crear token de lectura`.
+
+`Copiar token`.
+
+`Revocar token`.
+
+El token completo debe mostrarse solo una vez.
+
+Despues de cerrar el modal, no debe poder verse de nuevo.
+
+Guardar solo hash en Supabase.
+
+Pruebas obligatorias.
+
+Agregar pruebas de Edge Function cuando el entorno lo permita.
+
+Agregar Playwright para crear token y revocarlo desde Configuracion.
+
+Agregar test de que el token completo no queda guardado en localStorage.
+
+Agregar test de que un token revocado devuelve `403`.
+
+Agregar test de que `/agenda` rechaza rangos mayores a 45 dias.
+
+Agregar test de que `/archivero/buscar` no depende de acentos.
+
+Agregar test de que GPT OpenAPI contiene todos los endpoints de version
+1.
+
+Agregar smoke de produccion porque toca Auth, Edge Functions y datos
+personales.
+
+Comandos de validacion esperados.
+
+`npm run test`.
+
+`npm run test:smoke:prod`.
+
+`supabase functions deploy semaplan-ai`.
+
+Si el deploy requiere credenciales no disponibles, Codex debe dejar el
+cambio listo y explicar exactamente que comando falta ejecutar.
+
+Criterios de seguridad.
+
+No usar endpoints sin autenticacion.
+
+No loguear contenido de notas, objetivos ni agenda.
+
+No devolver el blob completo de estado.
+
+No permitir escritura en version 1.
+
+No incluir service role key en frontend.
+
+No guardar tokens reales en base ni localStorage.
+
+No aceptar rangos temporales abiertos o ilimitados.
+
+No aceptar queries de busqueda mayores a 200 caracteres.
+
+No responder con stack traces al cliente.
+
+No mezclar datos entre usuarios.
+
+Decision sobre escritura futura.
+
+La escritura queda fuera de version 1.
+
+Para version 2 se puede evaluar crear acciones como crear nota, crear
+objetivo o mover bloque.
+
+La escritura solo puede implementarse con confirmacion explicita del
+usuario, scopes separados, auditoria y undo.
+
+Scopes futuros recomendados.
+
+`read`.
+
+`write_notes`.
+
+`write_baul`.
+
+`write_agenda`.
+
+`admin_tokens`.
+
+La version 1 solo debe usar `read`.
+
+Archivos que no se deben tocar salvo necesidad.
+
+No mover `index.html`.
+
+No mover `Semaplan_Version_1_0_0.html`.
+
+No tocar `Local/Credenciales.txt`.
+
+No tocar `Local/Finanzas.xlsx`.
+
+No usar `git add -A`.
+
+No usar `git add .`.
+
+Como cerrar la tarea.
+
+La tarea se considera cerrada cuando existe una API read-only segura,
+el usuario puede crear y revocar un token, GPT puede consultar mediante
+OpenAPI y Claude tiene un camino MCP o tool use documentado.
+
+El cierre debe incluir commit y push en `main`.
+
+El cierre debe indicar que pruebas pasaron.
+
+El cierre debe indicar si el deploy de Supabase fue ejecutado o quedo
+pendiente por credenciales.
+
+Referencias oficiales para implementar.
+
+OpenAI GPT Actions.
+
+`https://platform.openai.com/docs/actions/getting-started/getting-started`.
+
+OpenAI function calling y herramientas.
+
+`https://platform.openai.com/docs/guides/function-calling`.
+
+Anthropic MCP connector.
+
+`https://docs.anthropic.com/en/docs/agents-and-tools/mcp-connector`.
+
+Anthropic tool use.
+
+`https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview`.
+
+Nota final.
+
+La integracion es viable y conviene hacerla incremental.
+
+Primero lectura segura.
+
+Despues GPT Actions.
+
+Despues MCP para Claude.
+
+Recien despues escritura con confirmacion, scopes y auditoria.
