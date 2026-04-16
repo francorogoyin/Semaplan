@@ -62661,6 +62661,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // "Login", "Registro" o "Olvide".
       let Auth_Modo = "Login";
       let Auth_Turnstile_Widget_Id = null;
+      let Auth_Turnstile_Reintento_Id = null;
+      let Auth_Turnstile_Reintentos = 0;
+      const Auth_Turnstile_Max_Reintentos = 40;
 
       function Entorno_Desktop_Activo() {
         return Boolean(
@@ -62690,6 +62693,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .classList.add("Oculto");
         document.getElementById("Auth_Overlay")
           .classList.add("Activo");
+        requestAnimationFrame(() => {
+          Renderizar_Turnstile_Auth();
+        });
         Mostrar_Mensaje_Auth_Pendiente();
         const Recovery_Visible =
           document.getElementById("Auth_Recovery_Panel")
@@ -62698,6 +62704,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? "Auth_Recovery_Pass"
           : "Auth_Email";
         document.getElementById(Campo_Foco)?.focus();
+      }
+
+      function Auth_Overlay_Esta_Activo() {
+        return document.getElementById("Auth_Overlay")
+          ?.classList.contains("Activo") || false;
+      }
+
+      function Limpiar_Reintento_Turnstile_Auth() {
+        if (Auth_Turnstile_Reintento_Id !== null) {
+          clearTimeout(Auth_Turnstile_Reintento_Id);
+        }
+        Auth_Turnstile_Reintento_Id = null;
+        Auth_Turnstile_Reintentos = 0;
+      }
+
+      function Programar_Reintento_Turnstile_Auth() {
+        if (
+          Auth_Turnstile_Reintento_Id !== null ||
+          Auth_Turnstile_Reintentos >=
+            Auth_Turnstile_Max_Reintentos
+        ) {
+          return;
+        }
+        Auth_Turnstile_Reintentos += 1;
+        Auth_Turnstile_Reintento_Id = setTimeout(() => {
+          Auth_Turnstile_Reintento_Id = null;
+          Renderizar_Turnstile_Auth();
+        }, 250);
       }
 
       function Renderizar_Turnstile_Auth() {
@@ -62720,21 +62754,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Cont.style.display = Auth_Captcha_Activa()
           ? ""
           : "none";
-        if (!Auth_Captcha_Activa() || !window.turnstile) return;
-        if (typeof window.turnstile.render !== "function") {
+        if (!Auth_Captcha_Activa()) {
+          Limpiar_Reintento_Turnstile_Auth();
           return;
         }
-        Auth_Turnstile_Widget_Id = window.turnstile.render(
-          Cont,
-          {
-            sitekey: "0x4AAAAAAC8T05jdmepDyUTR",
-            theme: "light",
-            language: Idioma_Actual
-          }
-        );
+        if (!Auth_Overlay_Esta_Activo()) return;
+        if (
+          !window.turnstile ||
+          typeof window.turnstile.render !== "function"
+        ) {
+          Programar_Reintento_Turnstile_Auth();
+          return;
+        }
+        try {
+          Auth_Turnstile_Widget_Id = window.turnstile.render(
+            Cont,
+            {
+              sitekey: "0x4AAAAAAC8T05jdmepDyUTR",
+              theme: "light",
+              language: Idioma_Actual
+            }
+          );
+          Limpiar_Reintento_Turnstile_Auth();
+        } catch (_) {
+          Auth_Turnstile_Widget_Id = null;
+          Programar_Reintento_Turnstile_Auth();
+        }
       }
 
       function Ocultar_Auth() {
+        Limpiar_Reintento_Turnstile_Auth();
         document.getElementById("Auth_Overlay")
           .classList.remove("Activo");
       }
@@ -63007,6 +63056,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "[name='cf-turnstile-response']"
           )?.value;
         if (Auth_Captcha_Activa() && !Captcha_Token) {
+          const Captcha_Cont = document.getElementById(
+            "Auth_Turnstile"
+          );
+          if (!Captcha_Cont?.querySelector("iframe")) {
+            Renderizar_Turnstile_Auth();
+          }
           Mostrar_Auth_Mensaje(
             t("auth.captcha")
           );
