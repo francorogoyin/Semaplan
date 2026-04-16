@@ -32883,11 +32883,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
+      function Item_Es_Plan_Evento(Item) {
+        return Boolean(Item?.Planeada) ||
+          Item?.Estado === "Planeado";
+      }
+
+      function Item_Tiene_Trabajo_Abordaje(Item) {
+        return Boolean(Item?.Estado) &&
+          Item.Estado !== "Planeado";
+      }
+
       function Obtener_Items_Plan_Evento(Evento_Data) {
         return (Array.isArray(Evento_Data?.Abordaje)
           ? Evento_Data.Abordaje
           : []
-        ).filter((Item) => Boolean(Item?.Planeada));
+        ).filter(Item_Es_Plan_Evento);
       }
 
       function Evento_Tiene_Plan_Abordaje(Evento_Data) {
@@ -32952,7 +32962,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? Items_Base
           : []
         ).map((Item) => {
-          if (Requiere_Planeada && !Item?.Planeada) {
+          if (Requiere_Planeada && !Item_Es_Plan_Evento(Item)) {
             return null;
           }
           const Texto = String(Item?.Texto || "").trim();
@@ -33008,11 +33018,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? Items_Base
           : []
         ).forEach((Item) => {
-          if (!Item?.Planeada) {
+          if (!Item_Es_Plan_Evento(Item)) {
             Resultado.push({ ...Item });
             return;
           }
-          if (Item?.Estado) {
+          if (Item_Tiene_Trabajo_Abordaje(Item)) {
             const Copia = { ...Item };
             delete Copia.Planeada;
             Resultado.push(Copia);
@@ -36836,7 +36846,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           // El estado inicial respeta lo guardado en el
           // abordaje previo del evento.
-          const Estado_Inicial = Prev?.Estado || "Abordado";
+          const Prev_Tiene_Trabajo =
+            Item_Tiene_Trabajo_Abordaje(Prev);
+          const Prev_Es_Plan = Item_Es_Plan_Evento(Prev);
+          const Estado_Inicial = Prev_Tiene_Trabajo
+            ? Prev.Estado
+            : "Abordado";
           // Esta sub está "bloqueada por hecha externa" si
           // ya está hecha global PERO no se cerró en este
           // bloque puntual (no hay Prev acá). Es el caso de
@@ -36853,9 +36868,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Sub_Id_Local: Sub.Id,
             Texto: (Sub.Texto || "").trim() || "Sin texto",
             Emoji: Sub.Emoji || "•",
-            Marcado: Boolean(Prev),
+            Marcado: Prev_Tiene_Trabajo,
             Estado: Estado_Inicial,
-            Planeada: Boolean(Prev?.Planeada),
+            Planeada: Prev_Es_Plan,
             // Snapshot del Sub.Hecha original al abrir el
             // modal. Lo usamos para evitar el downgrade de
             // Sub.Hecha cuando el usuario marca Abordado en
@@ -36869,15 +36884,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Agregar los ítems sueltos del abordaje previo.
         Existente.forEach((I) => {
           if (!I.Suelta) return;
+          const I_Tiene_Trabajo =
+            Item_Tiene_Trabajo_Abordaje(I);
           Items.push({
             Id: I.Id || Crear_Id_Abordaje(),
             Plantilla_Id: null,
             Sub_Id_Local: null,
             Texto: I.Texto || "",
             Emoji: I.Emoji || "•",
-            Marcado: true,
-            Estado: I.Estado || "Abordado",
-            Planeada: Boolean(I.Planeada),
+            Marcado: I_Tiene_Trabajo,
+            Estado: I_Tiene_Trabajo ? I.Estado : "Abordado",
+            Planeada: Item_Es_Plan_Evento(I),
             Suelta: true
           });
         });
@@ -55629,7 +55646,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Texto_Sub = (Sub.Texto || "").trim();
         return Evento.Abordaje.some((I) => {
           if (I.Suelta) return false;
-          if (!I.Planeada) return false;
+          if (!Item_Es_Plan_Evento(I)) return false;
           if (Plant_Id && I.Plantilla_Id === Plant_Id) return true;
           if (
             !Plant_Id &&

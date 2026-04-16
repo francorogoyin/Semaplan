@@ -627,11 +627,28 @@ test("menu de bloque distingue insertar y editar plan", async ({
     )?.textContent?.trim() || "";
     Cerrar_Menu_Dia();
 
-    return { sinPlan, conPlan };
+    Mostrar_Menu_Evento({
+      ...base,
+      Abordaje: [{ Texto: "Planeado legado", Estado: "Planeado" }]
+    }, 10, 10);
+    const conPlanLegado = document.querySelector(
+      '#Dia_Accion_Menu [data-acc="abordaje"]'
+    )?.textContent?.trim() || "";
+    const accionesLegado = Array.from(document.querySelectorAll(
+      "#Dia_Accion_Menu .Dia_Accion_Item"
+    )).map((item) => item.getAttribute("data-acc"));
+    Cerrar_Menu_Dia();
+
+    return { sinPlan, conPlan, conPlanLegado, accionesLegado };
   });
 
   expect(etiquetas.sinPlan).toBe("Insertar plan");
   expect(etiquetas.conPlan).toBe("Editar plan");
+  expect(etiquetas.conPlanLegado).toBe("Editar plan");
+  expect(etiquetas.accionesLegado)
+    .toContain("copiar-plan-evento");
+  expect(etiquetas.accionesLegado)
+    .toContain("borrar-plan-evento");
 });
 
 test("menu de bloque copia pega y borra plan", async ({ page }) => {
@@ -653,7 +670,7 @@ test("menu de bloque copia pega y borra plan", async ({ page }) => {
           Texto: "Plan bloque",
           Emoji: "*",
           Suelta: true,
-          Planeada: true
+          Estado: "Planeado"
         }
       ]
     },
@@ -749,6 +766,91 @@ test("menu de bloque copia pega y borra plan", async ({ page }) => {
 
   expect(borrado.total).toBe(0);
   expect(borrado.tiene_plan).toBeFalsy();
+});
+
+test("modal de bloque normaliza plan legacy", async ({ page }) => {
+  const estado = Estado_Base();
+  estado.Objetivos = [
+    {
+      Id: "obj_legacy",
+      Nombre: "Semaplan",
+      Emoji: "*",
+      Color: "#1f6b4f",
+      Horas_Semanales: 1,
+      Es_Bolsa: false,
+      Subobjetivos_Semanales: {
+        "2026-04-13": [
+          {
+            Id: "sub_legacy",
+            Texto: "Planeado legado",
+            Emoji: "*"
+          }
+        ]
+      },
+      Subobjetivos_Contraidas_Semanales: {},
+      Subobjetivos_Excluidos_Semanales: {}
+    }
+  ];
+  estado.Eventos = [
+    {
+      Id: "ev_legacy",
+      Objetivo_Id: "obj_legacy",
+      Fecha: "2026-04-13",
+      Inicio: 9,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: "",
+      Abordaje: [
+        {
+          Id: "ab_legacy",
+          Plantilla_Id: null,
+          Texto: "Planeado legado",
+          Emoji: "*",
+          Estado: "Planeado",
+          Suelta: false
+        }
+      ]
+    }
+  ];
+
+  await Preparar(page, estado);
+
+  await page.locator('.Evento[data-id="ev_legacy"]')
+    .click({ button: "right" });
+  await page.click('#Dia_Accion_Menu [data-acc="abordaje"]');
+  await expect(page.locator("#Abordaje_Modal_Overlay"))
+    .toHaveClass(/Activo/);
+
+  const borrador = await page.evaluate(() => {
+    const Item = Abordaje_Borrador.find((I) =>
+      I.Texto === "Planeado legado"
+    );
+    return {
+      marcado: Boolean(Item?.Marcado),
+      planeada: Boolean(Item?.Planeada),
+      estado: Item?.Estado || ""
+    };
+  });
+
+  expect(borrador.marcado).toBeFalsy();
+  expect(borrador.planeada).toBeTruthy();
+  expect(borrador.estado).toBe("Abordado");
+
+  await page.click("#Abordaje_Modal_Guardar_Btn");
+
+  const guardado = await page.evaluate(() => {
+    const Evento = Eventos.find((Ev) => Ev.Id === "ev_legacy");
+    const Item = Evento?.Abordaje?.[0] || null;
+    return {
+      estado: Item?.Estado || "",
+      planeada: Boolean(Item?.Planeada)
+    };
+  });
+
+  expect(guardado.estado).toBe("");
+  expect(guardado.planeada).toBeTruthy();
 });
 
 test("atajo de nueva nota cierra el menu contextual abierto", async ({
