@@ -47604,35 +47604,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Mostrar_Menu_Emoji_Objetivo(Objetivo, X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         if (!Menu || !Objetivo) return;
-        const Index_Objetivo = Objetivos.findIndex(
-          (Item) => Item.Id === Objetivo.Id
-        );
-        const Puede_Subir = Index_Objetivo > 0;
-        const Puede_Bajar =
-          Index_Objetivo >= 0 &&
-          Index_Objetivo < Objetivos.length - 1;
-        let Html =
+        const Html =
           `<button class="Dia_Accion_Item"` +
           ` type="button"` +
           ` data-acc="agregar-subobjetivo">` +
           t("contexto.agregar_subobjetivo") +
           `</button>`;
-        if (Puede_Subir) {
-          Html +=
-            `<button class="Dia_Accion_Item"` +
-            ` type="button"` +
-            ` data-acc="mover-arriba">` +
-            t("config.subir") +
-            `</button>`;
-        }
-        if (Puede_Bajar) {
-          Html +=
-            `<button class="Dia_Accion_Item"` +
-            ` type="button"` +
-            ` data-acc="mover-abajo">` +
-            t("config.bajar") +
-            `</button>`;
-        }
         Menu.innerHTML = Html;
         Menu.style.left = `${X}px`;
         Menu.style.top = `${Y}px`;
@@ -47658,27 +47635,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Cerrar_Menu_Dia();
             Preparar_Objetivo_Para_Agregar_Subobjetivo(Objetivo);
           });
-        Menu.querySelector(`[data-acc="mover-arriba"]`)
-          ?.addEventListener("click", (Ev) => {
-            Ev.stopPropagation();
-            if (!Mover_Objetivo_Un_Paso(Objetivo.Id, -1)) return;
-            Cerrar_Menu_Dia();
-            Render_Emojis();
-            Render_Resumen_Objetivo();
-            Render_Editor();
-            Guardar_Estado();
-          });
-        Menu.querySelector(`[data-acc="mover-abajo"]`)
-          ?.addEventListener("click", (Ev) => {
-            Ev.stopPropagation();
-            if (!Mover_Objetivo_Un_Paso(Objetivo.Id, 1)) return;
-            Cerrar_Menu_Dia();
-            Render_Emojis();
-            Render_Resumen_Objetivo();
-            Render_Editor();
-            Guardar_Estado();
-          });
-
         if (Fn_Cierre_Menu) {
           document.removeEventListener("click", Fn_Cierre_Menu);
           Fn_Cierre_Menu = null;

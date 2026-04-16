@@ -179,6 +179,12 @@ async ({ page }) => {
   await expect(page.locator("#Dia_Accion_Menu")).toContainText(
     "Agregar subobjetivo"
   );
+  await expect(page.locator("#Dia_Accion_Menu")).not.toContainText(
+    "Subir"
+  );
+  await expect(page.locator("#Dia_Accion_Menu")).not.toContainText(
+    "Bajar"
+  );
   await page.click(
     '#Dia_Accion_Menu [data-acc="agregar-subobjetivo"]'
   );
