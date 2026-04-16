@@ -250,7 +250,7 @@ test("el baul deja la multiaccion abajo del panel", async ({
   expect(resultado.botones).toContain("Cambiar color");
   expect(resultado.botones).toContain("Definir estado");
   expect(resultado.botones).toContain("Agregar etiquetas");
-  expect(resultado.botones).toContain("Quitar etiquetas");
+  expect(resultado.botones).toContain("Borrar etiquetas");
   expect(resultado.botones).toContain(
     "Establecer fecha límite"
   );

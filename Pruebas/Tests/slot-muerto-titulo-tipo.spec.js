@@ -184,10 +184,10 @@ test("mantiene el titulo aunque se oculte", async ({
 
     Mostrar_Menu_Slot("2026-04-13", 10, 10, 10);
     const Etiqueta_Quitar = document
-      .querySelector('[data-acc="toggle-titulo-slot"]')
+      .querySelector('[data-acc="quitar-titulo-slot"]')
       ?.textContent?.trim() || "";
     document
-      .querySelector('[data-acc="toggle-titulo-slot"]')
+      .querySelector('[data-acc="quitar-titulo-slot"]')
       ?.click();
     const Tras_Quitar =
       Slots_Muertos_Nombres[Clave_10] || "";
@@ -197,10 +197,10 @@ test("mantiene el titulo aunque se oculte", async ({
 
     Mostrar_Menu_Slot("2026-04-13", 10, 10, 10);
     const Etiqueta_Colocar = document
-      .querySelector('[data-acc="toggle-titulo-slot"]')
+      .querySelector('[data-acc="agregar-titulo-slot"]')
       ?.textContent?.trim() || "";
     document
-      .querySelector('[data-acc="toggle-titulo-slot"]')
+      .querySelector('[data-acc="agregar-titulo-slot"]')
       ?.click();
     const Tras_Colocar =
       Slots_Muertos_Nombres[Clave_10] || "";
@@ -228,7 +228,7 @@ test("mantiene el titulo aunque se oculte", async ({
   expect(resultado.Titulo_Oculto).toBe("Siesta");
   expect(resultado.Titulo_Oculto_Visible).toBeFalsy();
   expect(resultado.Titulo_Oculto_En_UI).toBe("");
-  expect(resultado.Etiqueta_Quitar).toBe("Quitar título");
+  expect(resultado.Etiqueta_Quitar).toBe("Borrar título");
   expect(resultado.Tras_Quitar).toBe("Almuerzo");
   expect(resultado.Tras_Quitar_Visible).toBeFalsy();
   expect(resultado.Etiqueta_Colocar).toBe("Colocar título");
