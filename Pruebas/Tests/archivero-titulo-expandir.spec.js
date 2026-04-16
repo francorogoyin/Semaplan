@@ -242,3 +242,28 @@ test("guarda titulo y alterna expansion en notas largas", async ({
     truncada: true
   });
 });
+
+test("atajo A enfoca el contenido de nueva nota", async ({
+  page
+}) => {
+  await preparar(page, estadoBase());
+  await page.evaluate(() => {
+    Config.Plan_Actual = "Upgrade";
+    Suscripcion_Remota = true;
+    document.activeElement?.blur();
+  });
+
+  await page.keyboard.press("A");
+
+  await expect(page.locator("#Archivero_Nota_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Archivero_Nota_Texto_Input"))
+    .toBeFocused();
+
+  await page.keyboard.type("Texto inmediato");
+
+  await expect(page.locator("#Archivero_Nota_Texto_Input"))
+    .toHaveValue("Texto inmediato");
+  await expect(page.locator("#Archivero_Nota_Titulo_Input"))
+    .toHaveValue("");
+});

@@ -29000,7 +29000,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Sincronizar_Color_Modal_Nota_Archivero();
       }
 
-      function Abrir_Modal_Nota_Archivero(Nota_Id) {
+      function Abrir_Modal_Nota_Archivero(
+        Nota_Id,
+        Opciones = {}
+      ) {
         // Si Nota_Id está, edita esa nota. Si no, crea
         // una nueva en el cajón actualmente seleccionado.
         Cerrar_Menu_Dia();
@@ -29091,7 +29094,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         document.getElementById(
           "Archivero_Nota_Overlay"
         )?.classList.add("Activo");
-        setTimeout(() => Titulo_Nota.focus(), 30);
+        const Foco_Inicial =
+          !Es_Edicion && Opciones.Foco_Texto
+            ? Texto
+            : Titulo_Nota;
+        setTimeout(() => Foco_Inicial.focus(), 30);
       }
 
       function Cerrar_Modal_Nota_Archivero() {
@@ -60402,7 +60409,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "function") {
             if (Validar_Acceso_Premium("Archivero")) {
               Inicializar_Archiveros_Default();
-              Abrir_Modal_Nota_Archivero(null);
+              Abrir_Modal_Nota_Archivero(null, {
+                Foco_Texto: true
+              });
             }
             Ev.preventDefault();
           }
