@@ -266,6 +266,10 @@ async ({ page }) => {
       estado: document.getElementById(
         "Suscripcion_Estado_Upgrade"
       )?.textContent?.trim() || "",
+      internacional: document.querySelector(
+        "#Suscripcion_Card_Upgrade " +
+        ".Suscripcion_Nota_Internacional"
+      )?.textContent?.trim() || "",
       sync: Array.from(
         document.querySelectorAll(
           "#Suscripcion_Card_Upgrade .Suscripcion_Feature"
@@ -313,6 +317,9 @@ async ({ page }) => {
   expect(resultado.es.estado).toContain(
     "prueba"
   );
+  expect(resultado.es.internacional).toBe(
+    "Para pagos internacionales se cobrará 5 USD"
+  );
   expect(resultado.es.sync).toContain(
     "dispositivos"
   );
@@ -323,6 +330,9 @@ async ({ page }) => {
   expect(resultado.en.estado).toBe(
     "Your trial is active"
   );
+  expect(resultado.en.internacional).toBe(
+    "International payments will be charged USD 5"
+  );
   expect(resultado.en.sync).toBe(
     "Cross-device sync"
   );
@@ -332,6 +342,9 @@ async ({ page }) => {
   );
   expect(resultado.pt.estado).toContain(
     "teste"
+  );
+  expect(resultado.pt.internacional).toBe(
+    "Para pagamentos internacionais, será cobrado USD 5"
   );
   expect(resultado.pt.sync).toContain(
     "dispositivos"

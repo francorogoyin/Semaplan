@@ -173,11 +173,45 @@ async ({ page }) => {
 
   const Precio = await page.evaluate(() => {
     Abrir_Suscripcion();
-    return document.querySelector(
-      "#Suscripcion_Card_Upgrade " +
+    const Card = document.getElementById(
+      "Suscripcion_Card_Upgrade"
+    );
+    const Moneda = Card?.querySelector(
+      ".Suscripcion_Precio_Moneda"
+    );
+    const Nota = Card?.querySelector(
+      ".Suscripcion_Nota_Internacional"
+    );
+    const Rect_Precio = Card?.querySelector(
       ".Suscripcion_Precio_Num"
-    )?.textContent?.trim();
+    )?.getBoundingClientRect();
+    const Rect_Moneda = Moneda?.getBoundingClientRect();
+    const Estilo_Moneda = Moneda
+      ? window.getComputedStyle(Moneda)
+      : null;
+    const Estilo_Nota = Nota
+      ? window.getComputedStyle(Nota)
+      : null;
+    return {
+      precio: Card?.querySelector(
+        ".Suscripcion_Precio_Num"
+      )?.textContent?.trim(),
+      moneda: Moneda?.textContent?.trim(),
+      nota: Nota?.textContent?.trim(),
+      monedaALaDerecha: Rect_Precio && Rect_Moneda
+        ? Rect_Moneda.left > Rect_Precio.right
+        : false,
+      fontMoneda: Estilo_Moneda?.fontSize || "",
+      fontNota: Estilo_Nota?.fontSize || ""
+    };
   });
 
-  expect(Precio).toBe("$7.499");
+  expect(Precio.precio).toBe("$7.499");
+  expect(Precio.moneda).toBe("ARS");
+  expect(Precio.nota).toBe(
+    "Para pagos internacionales se cobrará 5 USD"
+  );
+  expect(Precio.monedaALaDerecha).toBe(true);
+  expect(Precio.fontMoneda).toBe("11px");
+  expect(Precio.fontNota).toBe("11px");
 });
