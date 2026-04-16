@@ -313,6 +313,105 @@ test("al borrar una subobjetivo compartida pide alcance", async ({
   expect(mensaje).toContain("¿Dónde aplicar el cambio?");
 });
 
+test("los botones de subtareas borran y trasladan", async ({
+  page
+}) => {
+  const { estado, monday } = crearEstadoBase();
+  estado.Objetivos[0].Subobjetivos_Contraidas_Semanales[monday] =
+    false;
+  estado.Objetivos[0].Subobjetivos_Semanales[monday] = [
+    {
+      Id: "S_check",
+      Emoji: "*",
+      Texto: "Tildar",
+      Hecha: false
+    },
+    {
+      Id: "S_borrar",
+      Emoji: "*",
+      Texto: "Borrar",
+      Hecha: false
+    },
+    {
+      Id: "S_trasladar",
+      Emoji: "*",
+      Texto: "Trasladar",
+      Hecha: false
+    }
+  ];
+  await preparar(page, estado);
+
+  await page.evaluate(() => {
+    Objetivo_Seleccionada_Id = "T1";
+    Render_Resumen_Objetivo();
+    Mostrar_Dialogo = async (Texto) => {
+      const Texto_Dialogo = String(Texto || "");
+      if (Texto_Dialogo.includes("transferir")) {
+        return "siguiente";
+      }
+      if (Texto_Dialogo.includes("Mover o copiar")) {
+        return "Mover";
+      }
+      return "Semana";
+    };
+  });
+
+  await page.click(
+    '.Subobjetivo_Item[data-subobjetivo-id="S_check"] ' +
+    ".Subobjetivo_Check"
+  );
+  await page.waitForFunction(() => {
+    const Objetivo = Objetivo_Por_Id("T1");
+    return Obtener_Subobjetivos_Semana(
+      Objetivo, true, "2026-04-13"
+    ).find((Sub) => Sub.Id === "S_check")?.Hecha === true;
+  });
+
+  await page.click(
+    '.Subobjetivo_Item[data-subobjetivo-id="S_borrar"] ' +
+    ".Subobjetivo_Borrar"
+  );
+  await page.waitForFunction(() => {
+    const Objetivo = Objetivo_Por_Id("T1");
+    return !Obtener_Subobjetivos_Semana(
+      Objetivo, true, "2026-04-13"
+    ).some((Sub) => Sub.Id === "S_borrar");
+  });
+
+  await page.click(
+    '.Subobjetivo_Item[data-subobjetivo-id="S_trasladar"] ' +
+    ".Subobjetivo_Transferir"
+  );
+  await page.waitForFunction(() => {
+    const Origen = Objetivo_Por_Id("T1");
+    const Destino = Objetivo_Por_Id("T2");
+    const En_Origen = Obtener_Subobjetivos_Semana(
+      Origen, true, "2026-04-13"
+    ).some((Sub) => Sub.Id === "S_trasladar");
+    const En_Destino = Obtener_Subobjetivos_Semana(
+      Destino, true, "2026-04-20"
+    ).some((Sub) => Sub.Texto === "Trasladar");
+    return !En_Origen && En_Destino;
+  });
+
+  const resultado = await page.evaluate(() => ({
+    origen: Obtener_Subobjetivos_Semana(
+      Objetivo_Por_Id("T1"), true, "2026-04-13"
+    ).map((Sub) => ({
+      texto: Sub.Texto,
+      hecha: Boolean(Sub.Hecha)
+    })),
+    destino: Obtener_Subobjetivos_Semana(
+      Objetivo_Por_Id("T2"), true, "2026-04-20"
+    ).map((Sub) => Sub.Texto)
+  }));
+
+  expect(resultado.origen).toEqual([
+    { texto: "Tildar", hecha: true }
+  ]);
+  expect(resultado.destino).toContain("Trasladar");
+});
+
 test("si solo hay copias pasadas no pide alcance al crear subobjetivo", async ({
   page
 }) => {

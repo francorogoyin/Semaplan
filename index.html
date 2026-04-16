@@ -56125,10 +56125,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Subobjetivo = Subobjetivos.find((Entrada) => Entrada.Id === Item.dataset.subobjetivoId);
         if (!Subobjetivo) return;
 
-        if (Objetivo.dataset.rol === "check") {
-          Subobjetivo.Hecha = Boolean(Objetivo.checked);
+        if (Elemento.dataset.rol === "check") {
+          Subobjetivo.Hecha = Boolean(Elemento.checked);
         }
-        if (Objetivo.dataset.rol !== "check") return;
+        if (Elemento.dataset.rol !== "check") return;
 
         Render_Emojis();
         Render_Resumen_Objetivo();
@@ -56143,10 +56143,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Item = Elemento.closest(".Subobjetivo_Item");
         const Objetivo = Objetivo_Seleccionada();
         if (!Objetivo || !Item) return;
+        const Rol = Elemento.dataset.rol;
         // Ctrl/Cmd + click → toggle multi-selección de subobjetivos.
         if (Evento.ctrlKey || Evento.metaKey) {
           // Solo si no clickeó sobre un botón con acción.
-          const Rol = Elemento.dataset.rol;
           if (
             Rol === "borrar" || Rol === "transferir" ||
             Rol === "editar" || Rol === "check"
@@ -56164,7 +56164,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Barra_Multi_Seleccion();
           return;
         }
-        if (Objetivo.dataset.rol === "borrar") {
+        if (Rol === "borrar") {
           const Subobjetivos = Obtener_Subobjetivos_Semana(Objetivo, true);
           const Subobjetivo = Subobjetivos.find(
             (Entrada) => Entrada.Id === Item.dataset.subobjetivoId
@@ -56191,7 +56191,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           return;
         }
-        if (Objetivo.dataset.rol === "transferir") {
+        if (Rol === "transferir") {
           const Subobjetivos = Obtener_Subobjetivos_Semana(Objetivo, true);
           const Subobjetivo = Subobjetivos.find(
             (Entrada) => Entrada.Id === Item.dataset.subobjetivoId
@@ -56225,7 +56225,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Guardar_Estado();
           return;
         }
-        if (Objetivo.dataset.rol === "editar") {
+        if (Rol === "editar") {
           Subobjetivo_En_Edicion_Id = Item.dataset.subobjetivoId;
           Render_Resumen_Objetivo();
         }
