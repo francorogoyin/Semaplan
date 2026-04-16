@@ -334,10 +334,16 @@ test("nuevo patron de slot usa desplegable con todos los tipos", async ({
     .toHaveCount(0);
 
   await page.click(".Patron_Slot_Aplica_Btn");
+  await expect(page.locator(".Patron_Slot_Aplica_Menu"))
+    .toBeVisible();
   const estados = await page.locator(
     ".Patron_Slot_Aplica_Item .Dia_Accion_Submenu_Estado"
   ).allTextContents();
   expect(estados).toEqual(["✓", "✓"]);
+
+  await page.click(".Patron_Modal_Nombre_Input");
+  await expect(page.locator(".Patron_Slot_Aplica_Menu"))
+    .toBeHidden();
 });
 
 test("menu de bloque distingue insertar y editar plan", async ({

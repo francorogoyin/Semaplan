@@ -39151,6 +39151,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Patron_En_Edicion.Aplica_A_Lista;
       }
 
+      function Cerrar_Menus_Aplicas_Patron_Slot(Excepto = null) {
+        document.querySelectorAll(".Patron_Slot_Aplica.Abierto")
+          .forEach((Menu) => {
+            if (Menu !== Excepto) {
+              Menu.classList.remove("Abierto");
+            }
+          });
+      }
+
       function Render_Selector_Aplicas_Patron_Slot(Meta) {
         const Opciones = Obtener_Opciones_Aplica_Patron_Slot();
         let Lista = Asegurar_Aplicas_Patron_Slot(false);
@@ -39226,7 +39235,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Btn.addEventListener("click", (Ev) => {
           Ev.stopPropagation();
-          Cont.classList.toggle("Abierto");
+          const Estaba_Abierto =
+            Cont.classList.contains("Abierto");
+          Cerrar_Menus_Aplicas_Patron_Slot(Cont);
+          Cont.classList.toggle("Abierto", !Estaba_Abierto);
         });
         Cont.appendChild(Btn);
         Cont.appendChild(Menu);
@@ -55418,6 +55430,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
           ) Cerrar_Modal_Patron();
         });
+      document.addEventListener("click", (Ev) => {
+        const Objetivo = Ev.target;
+        if (!(Objetivo instanceof Element)) return;
+        Cerrar_Menus_Aplicas_Patron_Slot(
+          Objetivo.closest(".Patron_Slot_Aplica")
+        );
+      });
 
       document.getElementById("Abordaje_Modal_Cerrar")
         .addEventListener("click", Cerrar_Modal_Abordaje);
