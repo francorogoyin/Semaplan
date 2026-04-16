@@ -215,3 +215,29 @@ async ({ page }) => {
   expect(Precio.fontMoneda).toBe("11px");
   expect(Precio.fontNota).toBe("11px");
 });
+
+test("abre modal de pago premium con MP y Stripe",
+async ({ page }) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Abrir_Suscripcion();
+  });
+  await page.click("#Suscripcion_Elegir_Upgrade");
+
+  const Modal = page.locator("#Pago_Premium_Overlay");
+  const Mercado = page.locator("#Pago_Premium_Mercado_Link");
+  const Stripe = page.locator("#Pago_Premium_Stripe_Link");
+
+  await expect(Modal).toHaveClass(/Activo/);
+  await expect(Mercado).toContainText("Mercado Pago");
+  await expect(Mercado).toContainText("ARS 7.499");
+  await expect(Mercado).toContainText("Pago nacional");
+  await expect(Stripe).toContainText("stripe");
+  await expect(Stripe).toContainText("USD 5");
+  await expect(Stripe).toContainText("Pago internacional");
+  await expect(Stripe).toHaveAttribute("href", "#");
+
+  await Stripe.click();
+  await expect(Modal).toHaveClass(/Activo/);
+});

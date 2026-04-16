@@ -10870,8 +10870,107 @@
         text-align: center;
       }
 
+      .Pago_Premium_Panel {
+        width: min(560px, calc(100vw - 28px));
+      }
+
+      .Pago_Premium_Cuerpo {
+        padding: 18px 22px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .Pago_Premium_Texto {
+        margin: 0;
+        color: var(--Texto_Suave);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .Pago_Premium_Grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .Pago_Premium_Opcion {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 172px;
+        padding: 18px;
+        border: 1px solid var(--Borde);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.68);
+        color: var(--Texto);
+        text-decoration: none;
+        transition:
+          border-color 160ms ease,
+          box-shadow 160ms ease,
+          transform 160ms ease;
+      }
+
+      .Pago_Premium_Opcion:hover {
+        border-color: rgba(15, 95, 90, 0.36);
+        box-shadow: 0 16px 34px rgba(15, 95, 90, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .Pago_Premium_Opcion.Procesando {
+        pointer-events: none;
+        opacity: 0.72;
+      }
+
+      .Pago_Premium_Zona {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .Pago_Premium_Logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .Pago_Premium_Logo.Mercado {
+        background: #e7f8ff;
+        color: #0477a8;
+      }
+
+      .Pago_Premium_Logo.Stripe {
+        background: #f0ecff;
+        color: #635bff;
+        font-size: 22px;
+        letter-spacing: 0;
+      }
+
+      .Pago_Premium_Monto {
+        font-size: 24px;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .Pago_Premium_Detalle {
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        font-weight: 650;
+      }
+
       @media (max-width: 620px) {
         .Suscripcion_Grid {
+          grid-template-columns: 1fr;
+        }
+
+        .Pago_Premium_Grid {
           grid-template-columns: 1fr;
         }
       }
@@ -13409,6 +13508,68 @@
                     Pagos internacionales: 5 USD
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="Patron_Modal_Overlay"
+          id="Pago_Premium_Overlay">
+          <div class="Patron_Modal_Panel Pago_Premium_Panel">
+            <div class="Patron_Modal_Cabecera">
+              <span class="Patron_Modal_Titulo"
+                data-i18n="pago_premium.titulo">
+                Elegí cómo pagar Premium
+              </span>
+              <button class="Config_Cerrar"
+                id="Pago_Premium_Cerrar"
+                data-i18n-aria="pago_premium.cerrar"
+                type="button">&times;</button>
+            </div>
+            <div class="Pago_Premium_Cuerpo">
+              <p class="Pago_Premium_Texto"
+                data-i18n="pago_premium.subtitulo">
+                Seleccioná el canal según tu país.
+              </p>
+              <div class="Pago_Premium_Grid">
+                <a class="Pago_Premium_Opcion"
+                  id="Pago_Premium_Mercado_Link"
+                  href="#"
+                  data-i18n-aria="pago_premium.mercado_aria">
+                  <span class="Pago_Premium_Zona"
+                    data-i18n="pago_premium.nacional">
+                    Argentina
+                  </span>
+                  <span class="Pago_Premium_Logo Mercado">
+                    Mercado Pago
+                  </span>
+                  <strong class="Pago_Premium_Monto">
+                    ARS 7.499
+                  </strong>
+                  <span class="Pago_Premium_Detalle"
+                    data-i18n="pago_premium.nacional_desc">
+                    Pago nacional
+                  </span>
+                </a>
+                <a class="Pago_Premium_Opcion"
+                  id="Pago_Premium_Stripe_Link"
+                  href="#"
+                  data-i18n-aria="pago_premium.stripe_aria">
+                  <span class="Pago_Premium_Zona"
+                    data-i18n="pago_premium.internacional">
+                    Internacional
+                  </span>
+                  <span class="Pago_Premium_Logo Stripe">
+                    stripe
+                  </span>
+                  <strong class="Pago_Premium_Monto">
+                    USD 5
+                  </strong>
+                  <span class="Pago_Premium_Detalle"
+                    data-i18n="pago_premium.internacional_desc">
+                    Pago internacional
+                  </span>
+                </a>
               </div>
             </div>
           </div>
@@ -16455,6 +16616,24 @@
             "e ideas",
           "suscripcion.feat_sync":
             "Sincronización entre dispositivos",
+          "pago_premium.titulo":
+            "Elegí cómo pagar Premium",
+          "pago_premium.cerrar":
+            "Cerrar pago Premium",
+          "pago_premium.subtitulo":
+            "Seleccioná el canal según tu país.",
+          "pago_premium.nacional":
+            "Argentina",
+          "pago_premium.nacional_desc":
+            "Pago nacional",
+          "pago_premium.internacional":
+            "Internacional",
+          "pago_premium.internacional_desc":
+            "Pago internacional",
+          "pago_premium.mercado_aria":
+            "Pagar Premium con Mercado Pago",
+          "pago_premium.stripe_aria":
+            "Pagar Premium con Stripe",
           "resumen_sem.titulo":
             "Resumen semanal",
           "resumen_objetivo.sin_seleccion":
@@ -19136,6 +19315,24 @@
             "quotes and ideas",
           "suscripcion.feat_sync":
             "Cross-device sync",
+          "pago_premium.titulo":
+            "Choose how to pay for Premium",
+          "pago_premium.cerrar":
+            "Close Premium payment",
+          "pago_premium.subtitulo":
+            "Select the channel for your country.",
+          "pago_premium.nacional":
+            "Argentina",
+          "pago_premium.nacional_desc":
+            "National payment",
+          "pago_premium.internacional":
+            "International",
+          "pago_premium.internacional_desc":
+            "International payment",
+          "pago_premium.mercado_aria":
+            "Pay for Premium with Mercado Pago",
+          "pago_premium.stripe_aria":
+            "Pay for Premium with Stripe",
           "resumen_sem.titulo":
             "Weekly summary",
           "resumen_objetivo.sin_seleccion":
@@ -21847,6 +22044,24 @@
             "e ideias",
           "suscripcion.feat_sync":
             "Sincronização entre dispositivos",
+          "pago_premium.titulo":
+            "Escolha como pagar o Premium",
+          "pago_premium.cerrar":
+            "Fechar pagamento Premium",
+          "pago_premium.subtitulo":
+            "Selecione o canal conforme o seu país.",
+          "pago_premium.nacional":
+            "Argentina",
+          "pago_premium.nacional_desc":
+            "Pagamento nacional",
+          "pago_premium.internacional":
+            "Internacional",
+          "pago_premium.internacional_desc":
+            "Pagamento internacional",
+          "pago_premium.mercado_aria":
+            "Pagar Premium com Mercado Pago",
+          "pago_premium.stripe_aria":
+            "Pagar Premium com Stripe",
           "resumen_sem.titulo":
             "Resumo semanal",
           "resumen_objetivo.sin_seleccion":
@@ -24582,6 +24797,9 @@
         );
       const El_Suscripcion_Overlay = document.getElementById(
         "Suscripcion_Overlay"
+      );
+      const El_Pago_Premium_Overlay = document.getElementById(
+        "Pago_Premium_Overlay"
       );
       const El_Cfg_Cat_Metas_Overlay = document.getElementById(
         "Cfg_Cat_Metas_Overlay"
@@ -38936,7 +39154,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Cerrar_Suscripcion() {
+        Cerrar_Pago_Premium();
         El_Suscripcion_Overlay
+          ?.classList.remove("Activo");
+      }
+
+      function Abrir_Pago_Premium() {
+        El_Pago_Premium_Overlay?.classList.add("Activo");
+      }
+
+      function Cerrar_Pago_Premium() {
+        El_Pago_Premium_Overlay
           ?.classList.remove("Activo");
       }
 
@@ -39073,9 +39301,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const El_Boton = document.getElementById(
           "Suscripcion_Elegir_Upgrade"
         );
+        const El_Link = document.getElementById(
+          "Pago_Premium_Mercado_Link"
+        );
         if (El_Boton) {
           El_Boton.disabled = true;
           El_Boton.textContent = t("procesando");
+        }
+        if (El_Link) {
+          El_Link.classList.add("Procesando");
+          El_Link.setAttribute("aria-disabled", "true");
         }
 
         try {
@@ -39138,7 +39373,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (El_Boton) {
             El_Boton.disabled = false;
             El_Boton.textContent =
-              "Elegir Premium";
+              t("suscripcion.elegir_premium");
+          }
+          if (El_Link) {
+            El_Link.classList.remove("Procesando");
+            El_Link.removeAttribute("aria-disabled");
           }
         }
       }
@@ -56888,11 +57127,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById(
         "Suscripcion_Elegir_Upgrade"
       )?.addEventListener("click", () => {
-          Iniciar_Checkout_Mp();
-        });
+        Abrir_Pago_Premium();
+      });
       El_Suscripcion_Overlay?.addEventListener("click", (Ev) => {
         if (Ev.target === El_Suscripcion_Overlay) {
           Cerrar_Suscripcion();
+        }
+      });
+      document.getElementById("Pago_Premium_Cerrar")
+        ?.addEventListener("click", Cerrar_Pago_Premium);
+      document.getElementById("Pago_Premium_Mercado_Link")
+        ?.addEventListener("click", (Ev) => {
+          Ev.preventDefault();
+          Iniciar_Checkout_Mp();
+        });
+      document.getElementById("Pago_Premium_Stripe_Link")
+        ?.addEventListener("click", (Ev) => {
+          Ev.preventDefault();
+        });
+      El_Pago_Premium_Overlay?.addEventListener("click", (Ev) => {
+        if (Ev.target === El_Pago_Premium_Overlay) {
+          Cerrar_Pago_Premium();
         }
       });
       El_Baul_Boton?.addEventListener("click", Abrir_Baul);
