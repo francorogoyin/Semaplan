@@ -319,6 +319,11 @@ async ({ page }) => {
   });
 
   const medida = await page.evaluate(() => {
+    const Obtener_Rect_Texto = (Elemento) => {
+      const Rango = document.createRange();
+      Rango.selectNodeContents(Elemento);
+      return Rango.getBoundingClientRect();
+    };
     const Campo_Miembro = document.getElementById(
       "Cfg_Miembro_Desde"
     )?.closest(".Cfg_Cuenta_Campo");
@@ -343,9 +348,9 @@ async ({ page }) => {
     const Rect_Miembro = Campo_Miembro.getBoundingClientRect();
     const Rect_Aviso = Aviso.getBoundingClientRect();
     const Rect_Etiqueta =
-      Etiqueta_Historial.getBoundingClientRect();
+      Obtener_Rect_Texto(Etiqueta_Historial);
     const Rect_Primera_Celda =
-      Primera_Celda.getBoundingClientRect();
+      Obtener_Rect_Texto(Primera_Celda);
     return {
       gap_miembro_aviso: Math.round(
         Rect_Aviso.top - Rect_Miembro.bottom
@@ -361,13 +366,15 @@ async ({ page }) => {
 
   expect(medida).not.toBeNull();
   expect(medida.gap_miembro_aviso)
-    .toBeGreaterThanOrEqual(16);
+    .toBeGreaterThanOrEqual(28);
   expect(medida.gap_miembro_aviso)
-    .toBeLessThanOrEqual(20);
+    .toBeLessThanOrEqual(32);
   expect(medida.gap_aviso_historial)
-    .toBeGreaterThanOrEqual(16);
+    .toBeGreaterThanOrEqual(28);
   expect(medida.gap_aviso_historial)
-    .toBeLessThanOrEqual(20);
+    .toBeLessThanOrEqual(32);
   expect(medida.gap_historial_primer_item)
-    .toBeLessThanOrEqual(4);
+    .toBeGreaterThanOrEqual(4);
+  expect(medida.gap_historial_primer_item)
+    .toBeLessThanOrEqual(8);
 });
