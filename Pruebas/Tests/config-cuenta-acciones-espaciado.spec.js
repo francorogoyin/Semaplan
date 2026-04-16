@@ -360,18 +360,14 @@ async ({ page }) => {
   });
 
   expect(medida).not.toBeNull();
-  expect(
-    Math.abs(
-      medida.gap_miembro_aviso -
-      medida.gap_aviso_historial
-    )
-  ).toBeLessThanOrEqual(2);
-  expect(
-    Math.abs(
-      medida.gap_miembro_aviso -
-      medida.gap_historial_primer_item
-    )
-  ).toBeLessThanOrEqual(2);
+  expect(medida.gap_miembro_aviso)
+    .toBeGreaterThanOrEqual(16);
+  expect(medida.gap_miembro_aviso)
+    .toBeLessThanOrEqual(20);
+  expect(medida.gap_aviso_historial)
+    .toBeGreaterThanOrEqual(16);
+  expect(medida.gap_aviso_historial)
+    .toBeLessThanOrEqual(20);
   expect(medida.gap_historial_primer_item)
-    .toBeLessThanOrEqual(8);
+    .toBeLessThanOrEqual(4);
 });
