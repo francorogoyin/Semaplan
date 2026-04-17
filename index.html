@@ -54929,7 +54929,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           // Click normal: si hay multi-selección, limpiarla.
           if (Objetivos_Multi_Seleccion.size > 0) {
             Objetivos_Multi_Seleccion.clear();
+            Render_Emojis();
+            Render_Resumen_Objetivo();
+            Render_Editor();
             Render_Barra_Multi_Seleccion();
+            return;
           }
 
           if (Interaccion_Touch_Activa()) {
@@ -59140,6 +59144,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       document.addEventListener("click", () => {
         Limpiar_Click_Cierre_Cartel_Calendario_Pendiente();
+      });
+
+      document.addEventListener("mousedown", (Ev) => {
+        if (Objetivos_Multi_Seleccion.size === 0) return;
+        const Objetivo = Ev.target;
+        if (!(Objetivo instanceof Element)) return;
+        if (Objetivo.closest(".Emoji_Item")) return;
+        if (Objetivo.closest("#Multi_Sel_Barra")) return;
+        Objetivos_Multi_Seleccion.clear();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Barra_Multi_Seleccion();
       });
 
       // Delegación: garantiza que el click siempre dispare aunque
