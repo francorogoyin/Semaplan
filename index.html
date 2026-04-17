@@ -6043,6 +6043,16 @@
         text-align: center;
       }
 
+      .Config_Cat_Input_Emoji_Oculto {
+        color: transparent;
+        font-size: 0;
+        caret-color: transparent;
+      }
+
+      .Config_Cat_Input_Emoji_Oculto::selection {
+        background: transparent;
+      }
+
       .Config_Cat_Input_Nombre {
         flex: 1;
       }
@@ -12360,7 +12370,10 @@
               <div id="Cfg_Categorias_Lista"></div>
               <div class="Config_Cat_Nueva">
                 <input type="text"
-                  class="Config_Cat_Input Config_Cat_Input_Emoji Con_Selector_Emoji"
+                  class="Config_Cat_Input
+                    Config_Cat_Input_Emoji
+                    Config_Cat_Input_Emoji_Oculto
+                    Con_Selector_Emoji"
                   id="Cfg_Cat_Emoji"
                   placeholder="😀"
                   maxlength="4">
@@ -40784,7 +40797,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Inp_Emoji = document.createElement("input");
           Inp_Emoji.type = "text";
           Inp_Emoji.value = Cat.Emoji;
-          Inp_Emoji.className = "Config_Cat_Input Config_Cat_Input_Emoji Con_Selector_Emoji";
+          Inp_Emoji.className =
+            "Config_Cat_Input Config_Cat_Input_Emoji " +
+            "Config_Cat_Input_Emoji_Oculto " +
+            "Con_Selector_Emoji";
           const Vista_Emoji = document.createElement("span");
           Vista_Emoji.className = "Config_Cat_Emoji_Vista";
           Aplicar_Emoji_En_Elemento(
@@ -43328,7 +43344,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Estado === "Planeado" ? " Activo" : "");
         Btn_P.textContent = "★";
         Btn_P.title = Estado === "Planeado"
-          ? t("abordaje.plan_quitar_title")
+          ? t("slot.estado_planeado")
           : t("abordaje.plan_poner_title");
         Btn_P.addEventListener("click", () => {
           Item.Estado = "Planeado";
