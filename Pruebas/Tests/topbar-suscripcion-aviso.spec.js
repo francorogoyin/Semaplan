@@ -325,8 +325,22 @@ async ({ page }) => {
     const Stripe_Fondo = document.querySelector(
       "#Pago_Premium_Stripe_Link .Pago_Premium_Logo"
     );
+    const Mercado_Precio = document.querySelector(
+      "#Pago_Premium_Mercado_Link .Pago_Premium_Precio"
+    );
+    const Stripe_Precio = document.querySelector(
+      "#Pago_Premium_Stripe_Link .Pago_Premium_Precio"
+    );
     const Rect_Mercado = Mercado_Img.getBoundingClientRect();
     const Rect_Stripe = Stripe_Img.getBoundingClientRect();
+    const Rect_Fondo_Mercado =
+      Mercado_Fondo.getBoundingClientRect();
+    const Rect_Fondo_Stripe =
+      Stripe_Fondo.getBoundingClientRect();
+    const Rect_Precio_Mercado =
+      Mercado_Precio.getBoundingClientRect();
+    const Rect_Precio_Stripe =
+      Stripe_Precio.getBoundingClientRect();
     const Estilo_Opcion = window.getComputedStyle(
       document.getElementById("Pago_Premium_Mercado_Link")
     );
@@ -341,6 +355,13 @@ async ({ page }) => {
         window.getComputedStyle(Stripe_Fondo).backgroundColor,
       mercadoLogoAncho: Rect_Mercado.width,
       stripeLogoAncho: Rect_Stripe.width,
+      mercadoFondoAlto: Rect_Fondo_Mercado.height,
+      stripeFondoAlto: Rect_Fondo_Stripe.height,
+      preciosAlineados:
+        Math.abs(
+          Rect_Precio_Mercado.top -
+          Rect_Precio_Stripe.top
+        ),
       cardMinHeight: Estilo_Opcion.minHeight,
       cardGap: Estilo_Opcion.gap
     };
@@ -351,6 +372,8 @@ async ({ page }) => {
   expect(Logos.stripeFondo).toBe("rgb(242, 239, 255)");
   expect(Logos.stripeLogoAncho)
     .toBeLessThan(Logos.mercadoLogoAncho);
+  expect(Logos.mercadoFondoAlto).toBe(Logos.stripeFondoAlto);
+  expect(Logos.preciosAlineados).toBeLessThan(1);
   expect(Logos.cardMinHeight).toBe("218px");
   expect(Logos.cardGap).toBe("18px");
   const Precio = await Mercado.locator(
