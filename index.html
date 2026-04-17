@@ -364,6 +364,13 @@
         border-right: 1px solid rgba(255,255,255,0.18);
       }
 
+      .Multi_Sel_Acciones {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        max-width: min(76vw, 980px);
+      }
+
       .Multi_Sel_Btn {
         background: rgba(255, 255, 255, 0.12);
         color: #fff;
@@ -6017,6 +6024,31 @@
         align-items: center;
       }
 
+      .Config_Cat_Emoji_Fijado {
+        position: relative;
+        width: 44px;
+        height: 32px;
+        flex: 0 0 auto;
+      }
+
+      .Config_Cat_Emoji_Btn {
+        width: 100%;
+        height: 100%;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      }
+
+      .Config_Cat_Emoji_Btn:focus-visible {
+        outline: 2px solid var(--Acento);
+        outline-offset: 1px;
+      }
+
       .Config_Cat_Input {
         border: 1px solid var(--Borde);
         border-radius: 8px;
@@ -6030,6 +6062,25 @@
         width: 44px;
         text-align: center;
         font-size: 18px;
+      }
+
+      .Config_Cat_Input_Emoji_Oculto {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        border: none;
+        margin: 0;
+        padding: 0;
+        color: transparent;
+        font-size: 0;
+        caret-color: transparent;
+        background: transparent;
+      }
+
+      .Config_Cat_Input_Emoji_Oculto::selection {
+        background: transparent;
       }
 
       .Config_Cat_Input_Nombre {
@@ -12348,13 +12399,21 @@
               </div>
               <div id="Cfg_Categorias_Lista"></div>
               <div class="Config_Cat_Nueva">
-                <input type="text"
-                  class="Config_Cat_Input
-                    Config_Cat_Input_Emoji
-                    Con_Selector_Emoji"
-                  id="Cfg_Cat_Emoji"
-                  placeholder="•"
-                  maxlength="4">
+                <div class="Config_Cat_Emoji_Fijado">
+                  <button type="button"
+                    class="Config_Cat_Emoji_Btn"
+                    id="Cfg_Cat_Emoji_Btn"
+                    data-i18n-title="config.cat_emoji_title"
+                    title="Emoji de categoría"></button>
+                  <input type="text"
+                    class="Config_Cat_Input
+                      Config_Cat_Input_Emoji
+                      Config_Cat_Input_Emoji_Oculto
+                      Con_Selector_Emoji"
+                    id="Cfg_Cat_Emoji"
+                    placeholder="•"
+                    maxlength="4">
+                </div>
                 <input type="color"
                   class="Config_Cat_Input"
                   id="Cfg_Cat_Color">
@@ -15384,8 +15443,8 @@
     <!-- Barra flotante de multi-selección -->
     <div class="Multi_Sel_Barra" id="Multi_Sel_Barra">
       <span class="Multi_Sel_Conteo" id="Multi_Sel_Conteo"></span>
-      <div id="Multi_Sel_Acciones"
-        style="display:flex;gap:6px"></div>
+      <div class="Multi_Sel_Acciones"
+        id="Multi_Sel_Acciones"></div>
       <button
         class="Multi_Sel_Btn Multi_Sel_Btn_Cerrar"
         id="Multi_Sel_Cerrar"
@@ -18417,7 +18476,31 @@
           "multi.dialog_borrar_subobjetivos":
             "¿Borrar {n} subobjetivo(s)?",
           "multi.cancelar_seleccion": "Cancelar selección",
-
+          "multi.cambiar_categoria": "Cambiar categor\u00EDa",
+          "multi.cambiar_categoria_prompt":
+            "Eleg\u00ED la categor\u00EDa para las objetivos seleccionadas.",
+          "multi.cambiar_color": "Cambiar color",
+          "multi.cambiar_color_prompt":
+            "Eleg\u00ED el color para las objetivos seleccionadas.",
+          "multi.enviar_baul": "Enviar al ba\u00FAl",
+          "multi.dialog_enviar_baul":
+            "\u00BfEnviar {n} objetivo(s) al ba\u00FAl? ({nombres})",
+          "multi.cambiar_alcance": "Cambiar alcance",
+          "multi.cambiar_alcance_prompt":
+            "Eleg\u00ED el alcance para las objetivos seleccionadas.",
+          "multi.duplicar": "Duplicar",
+          "multi.copiar": "Copiar",
+          "multi.pegar": "Pegar",
+          "multi.portapapeles_objetivos":
+            "Portapapeles: {n} objetivos",
+          "multi.toast_objetivos_copiadas":
+            "{n} objetivo(s) copiadas al portapapeles",
+          "multi.toast_objetivos_pegadas":
+            "{n} objetivo(s) pegadas",
+          "multi.toast_objetivos_duplicadas":
+            "{n} objetivo(s) duplicadas",
+          "multi.toast_objetivos_enviadas_baul":
+            "{n} objetivo(s) enviadas al ba\u00FAl",
           "metadatos.sin_metadatos":
             "La categoría actual no tiene metadatos.",
 
@@ -21104,6 +21187,31 @@
           "multi.dialog_borrar_subobjetivos":
             "Delete {n} subobjectives?",
           "multi.cancelar_seleccion": "Cancel selection",
+          "multi.cambiar_categoria": "Change category",
+          "multi.cambiar_categoria_prompt":
+            "Pick a category for the selected objectives.",
+          "multi.cambiar_color": "Change color",
+          "multi.cambiar_color_prompt":
+            "Pick a color for the selected objectives.",
+          "multi.enviar_baul": "Send to vault",
+          "multi.dialog_enviar_baul":
+            "Send {n} objective(s) to the vault? ({nombres})",
+          "multi.cambiar_alcance": "Change scope",
+          "multi.cambiar_alcance_prompt":
+            "Pick the scope for the selected objectives.",
+          "multi.duplicar": "Duplicate",
+          "multi.copiar": "Copy",
+          "multi.pegar": "Paste",
+          "multi.portapapeles_objetivos":
+            "Clipboard: {n} objectives",
+          "multi.toast_objetivos_copiadas":
+            "{n} objective(s) copied to clipboard",
+          "multi.toast_objetivos_pegadas":
+            "{n} objective(s) pasted",
+          "multi.toast_objetivos_duplicadas":
+            "{n} objective(s) duplicated",
+          "multi.toast_objetivos_enviadas_baul":
+            "{n} objective(s) sent to vault",
 
           "metadatos.sin_metadatos":
             "This category has no metadata.",
@@ -23888,7 +23996,31 @@
           "multi.dialog_borrar_subobjetivos":
             "Excluir {n} subobjetivos?",
           "multi.cancelar_seleccion": "Cancelar seleção",
-
+          "multi.cambiar_categoria": "Mudar categoria",
+          "multi.cambiar_categoria_prompt":
+            "Escolha a categoria para as objetivos selecionadas.",
+          "multi.cambiar_color": "Mudar cor",
+          "multi.cambiar_color_prompt":
+            "Escolha a cor para as objetivos selecionadas.",
+          "multi.enviar_baul": "Enviar ao ba\u00FA",
+          "multi.dialog_enviar_baul":
+            "Enviar {n} objetivo(s) ao ba\u00FA? ({nombres})",
+          "multi.cambiar_alcance": "Mudar alcance",
+          "multi.cambiar_alcance_prompt":
+            "Escolha o alcance para as objetivos selecionadas.",
+          "multi.duplicar": "Duplicar",
+          "multi.copiar": "Copiar",
+          "multi.pegar": "Colar",
+          "multi.portapapeles_objetivos":
+            "\u00C1rea de transfer\u00EAncia: {n} objetivos",
+          "multi.toast_objetivos_copiadas":
+            "{n} objetivo(s) copiadas para a \u00E1rea de transfer\u00EAncia",
+          "multi.toast_objetivos_pegadas":
+            "{n} objetivo(s) coladas",
+          "multi.toast_objetivos_duplicadas":
+            "{n} objetivo(s) duplicadas",
+          "multi.toast_objetivos_enviadas_baul":
+            "{n} objetivo(s) enviadas ao ba\u00FA",
           "metadatos.sin_metadatos":
             "A categoria atual não tem metadados.",
 
@@ -24730,6 +24862,7 @@
       let Slots_Multi_Seleccion = new Set();
       let Portapapeles_Eventos_Multi = null;
       let Portapapeles_Slots_Multi = null;
+      let Portapapeles_Objetivos_Multi = null;
       let Portapapeles_Plan_Slot = null;
       let Portapapeles_Plan_Evento = null;
       let Portapapeles_Calendario_Modo = null;
@@ -26042,6 +26175,69 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
         Objetivos.push(Objetivo);
         return Objetivo;
+      }
+
+      function Enviar_Objetivo_Al_Baul(Objetivo, Opciones = {}) {
+        const Configuracion = {
+          Render: true,
+          Guardar: true,
+          ...Opciones
+        };
+        const Objetivo_Base = typeof Objetivo === "string"
+          ? Objetivo_Por_Id(Objetivo)
+          : Objetivo;
+        if (!Objetivo_Base) return false;
+        const Datos_Baul = Normalizar_Baul_Objetivo({
+          Nombre: Objetivo_Base.Nombre || "",
+          Emoji: Objetivo_Base.Emoji || "\u2022",
+          Es_Bolsa: Boolean(Objetivo_Base.Es_Bolsa),
+          Categoria_Id: Objetivo_Base.Categoria_Id || null,
+          Etiquetas_Ids: Normalizar_Etiquetas_Ids(
+            Objetivo_Base.Etiquetas_Ids
+          ),
+          Metadatos: {},
+          Estado: "Activa",
+          Archivada: false,
+          Color_Baul:
+            Normalizar_Color_Hex(Objetivo_Base.Color) || null,
+          Descripcion:
+            Objetivo_Base.Descripcion_Corta ||
+            Objetivo_Base.Descripcion ||
+            "",
+          Horas_Aprox: Number(Objetivo_Base.Horas_Semanales) || 0,
+          Timeline: null,
+          Orden_Personalizado: Preparar_Orden_Nueva_Objetivo_Baul()
+        });
+        if (!Datos_Baul) return false;
+        Baul_Objetivos.push(Datos_Baul);
+        const Objetivo_Id = Objetivo_Base.Id;
+        Objetivos = Objetivos.filter((Item) => Item.Id !== Objetivo_Id);
+        Eventos = Eventos.filter(
+          (Evento) => Evento.Objetivo_Id !== Objetivo_Id
+        );
+        Objetivos_Multi_Seleccion.delete(Objetivo_Id);
+        if (Objetivo_Seleccionada_Id === Objetivo_Id) {
+          Objetivo_Seleccionada_Id = null;
+          Modo_Editor_Abierto = false;
+          Datos_Editor_Borrador = null;
+        }
+        if (Objetivo_Touch_Para_Bloque_Id === Objetivo_Id) {
+          Objetivo_Touch_Para_Bloque_Id = null;
+        }
+        if (Configuracion.Render) {
+          Render_Calendario();
+          Render_Emojis();
+          Render_Resumen_Objetivo();
+          Render_Editor();
+          Render_Barra_Multi_Seleccion();
+          if (Baul_Abierto()) {
+            Render_Baul();
+          }
+        }
+        if (Configuracion.Guardar) {
+          Guardar_Estado();
+        }
+        return true;
       }
 
       function Mostrar_Mensaje_Baul(Texto) {
@@ -40775,16 +40971,38 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Fila = document.createElement("div");
           Fila.className = "Config_Cat_Fila";
 
+          const Emoji_Fijado = document.createElement("div");
+          Emoji_Fijado.className = "Config_Cat_Emoji_Fijado";
+
+          const Btn_Emoji = document.createElement("button");
+          Btn_Emoji.type = "button";
+          Btn_Emoji.className = "Config_Cat_Emoji_Btn";
+          Btn_Emoji.title = t("config.cat_emoji_title");
+          Aplicar_Emoji_En_Elemento(
+            Btn_Emoji,
+            Cat.Emoji || "•"
+          );
+
           const Inp_Emoji = document.createElement("input");
           Inp_Emoji.type = "text";
           Inp_Emoji.value = Cat.Emoji || "•";
           Inp_Emoji.className =
             "Config_Cat_Input Config_Cat_Input_Emoji " +
+            "Config_Cat_Input_Emoji_Oculto " +
             "Con_Selector_Emoji";
           Inp_Emoji.title = t("config.cat_emoji_title");
           Inp_Emoji.addEventListener("input", () => {
             Cat.Emoji = Inp_Emoji.value.trim() || "•";
+            Aplicar_Emoji_En_Elemento(
+              Btn_Emoji,
+              Cat.Emoji
+            );
           });
+          Btn_Emoji.addEventListener("click", () => {
+            Inp_Emoji.focus();
+          });
+          Emoji_Fijado.appendChild(Btn_Emoji);
+          Emoji_Fijado.appendChild(Inp_Emoji);
 
           const Inp_Nombre = document.createElement("input");
           Inp_Nombre.type = "text";
@@ -40855,7 +41073,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Render_Config_Categorias();
           });
 
-          Fila.appendChild(Inp_Emoji);
+          Fila.appendChild(Emoji_Fijado);
           Fila.appendChild(Inp_Nombre);
           Fila.appendChild(Inp_Color);
           Fila.appendChild(Btn_Meta);
@@ -40867,10 +41085,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
 
         const Btn_Agregar = document.getElementById("Cfg_Cat_Agregar");
+        const Btn_Emoji_Nueva = document.getElementById(
+          "Cfg_Cat_Emoji_Btn"
+        );
+        const Input_Emoji = document.getElementById("Cfg_Cat_Emoji");
+        const Input_Color = document.getElementById("Cfg_Cat_Color");
+        const Input_Nombre = document.getElementById("Cfg_Cat_Nombre");
+        if (Btn_Emoji_Nueva && Input_Emoji) {
+          Aplicar_Emoji_En_Elemento(
+            Btn_Emoji_Nueva,
+            Input_Emoji.value.trim() || "\u2022"
+          );
+          Btn_Emoji_Nueva.onclick = () => {
+            Input_Emoji.focus();
+          };
+          Input_Emoji.oninput = () => {
+            Aplicar_Emoji_En_Elemento(
+              Btn_Emoji_Nueva,
+              Input_Emoji.value.trim() || "\u2022"
+            );
+          };
+        }
         const Nueva_Fn = () => {
           const Emoji_Val = (
-            document.getElementById("Cfg_Cat_Emoji")?.value || "•"
-          ).trim() || "•";
+            document.getElementById("Cfg_Cat_Emoji")?.value || "\u2022"
+          ).trim() || "\u2022";
           const Color_Val =
             Normalizar_Color_Hex(
               document.getElementById("Cfg_Cat_Color")?.value
@@ -40886,10 +41125,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Color_Baul: Color_Val,
             Metadatos: []
           });
-          document.getElementById("Cfg_Cat_Emoji").value = "";
-          document.getElementById("Cfg_Cat_Color").value =
-            Obtener_Color_Preset_Categoria(Categorias.length);
-          document.getElementById("Cfg_Cat_Nombre").value = "";
+          if (Input_Emoji) {
+            Input_Emoji.value = "";
+            Input_Emoji.dispatchEvent(
+              new Event("input", { bubbles: true })
+            );
+          }
+          if (Input_Color) {
+            Input_Color.value =
+              Obtener_Color_Preset_Categoria(Categorias.length);
+          }
+          if (Input_Nombre) {
+            Input_Nombre.value = "";
+          }
           Render_Config_Categorias();
         };
         if (Btn_Agregar) {
@@ -40897,9 +41145,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Btn_Agregar.parentNode.replaceChild(Clon, Btn_Agregar);
           Clon.addEventListener("click", Nueva_Fn);
         }
-        const Input_Emoji = document.getElementById("Cfg_Cat_Emoji");
-        const Input_Color = document.getElementById("Cfg_Cat_Color");
-        const Input_Nombre = document.getElementById("Cfg_Cat_Nombre");
         if (Input_Color && !Input_Color.value) {
           Input_Color.value =
             Obtener_Color_Preset_Categoria(Categorias.length);
@@ -52935,11 +53180,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return;
         }
 
-        const Cant_T = Objetivos_Multi_Seleccion.size;
+        const Ids_Objetivos = Obtener_Ids_Objetivos_Multi_Validas();
+        if (Ids_Objetivos.length !== Objetivos_Multi_Seleccion.size) {
+          Objetivos_Multi_Seleccion = new Set(Ids_Objetivos);
+        }
+        const Cant_T = Ids_Objetivos.length;
         const Cant_S = Subobjetivos_Multi_Seleccion.size;
         const Total = Cant_T + Cant_S;
+        const Tiene_Portapapeles =
+          Tiene_Portapapeles_Objetivos_Multi();
 
         if (Total === 0) {
+          if (Tiene_Portapapeles && !Baul_Abierto()) {
+            Barra.classList.add("Activa");
+            Acc.innerHTML = "";
+            Conteo.textContent = t(
+              "multi.portapapeles_objetivos",
+              { n: Portapapeles_Objetivos_Multi.Items.length }
+            );
+            Acc.appendChild(
+              Crear_Btn_Multi(t("multi.pegar"), false, () => {
+                Pegar_Objetivos_Multi_En_Semana_Actual();
+              })
+            );
+            return;
+          }
           Barra.classList.remove("Activa");
           return;
         }
@@ -52954,20 +53219,57 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ? t("multi.objetivo_plur")
               : t("multi.objetivo_sing"));
           Acc.appendChild(
-            Crear_Btn_Multi(`🗑 ${t("borrar")}`, true, () => {
+            Crear_Btn_Multi(t("borrar"), true, () => {
               Borrar_Objetivos_Multi();
             })
           );
           Acc.appendChild(
-            Crear_Btn_Multi(`📦 ${t("archivar")}`, false, () => {
+            Crear_Btn_Multi(t("multi.cambiar_categoria"), false, () => {
+              Solicitar_Categoria_Objetivos_Multi();
+            })
+          );
+          Acc.appendChild(
+            Crear_Btn_Multi(t("multi.cambiar_color"), false, () => {
+              Pedir_Color_Objetivos_Multi();
+            })
+          );
+          Acc.appendChild(
+            Crear_Btn_Multi(t("archivar"), false, () => {
               Archivar_Objetivos_Multi(true);
             })
           );
           Acc.appendChild(
-            Crear_Btn_Multi(`📤 ${t("desarchivar")}`, false, () => {
+            Crear_Btn_Multi(t("desarchivar"), false, () => {
               Archivar_Objetivos_Multi(false);
             })
           );
+          Acc.appendChild(
+            Crear_Btn_Multi(t("multi.enviar_baul"), false, () => {
+              Enviar_Objetivos_Multi_Al_Baul();
+            })
+          );
+          Acc.appendChild(
+            Crear_Btn_Multi(t("multi.cambiar_alcance"), false, () => {
+              Cambiar_Alcance_Objetivos_Multi();
+            })
+          );
+          Acc.appendChild(
+            Crear_Btn_Multi(t("multi.duplicar"), false, () => {
+              Duplicar_Objetivos_Multi();
+            })
+          );
+          Acc.appendChild(
+            Crear_Btn_Multi(t("multi.copiar"), false, () => {
+              Copiar_Objetivos_Multi_Al_Portapapeles();
+            })
+          );
+          if (Tiene_Portapapeles) {
+            Acc.appendChild(
+              Crear_Btn_Multi(t("multi.pegar"), false, () => {
+                Pegar_Objetivos_Multi_En_Semana_Actual();
+              })
+            );
+          }
         } else if (Cant_S > 0 && Cant_T === 0) {
           Conteo.textContent =
             `${Cant_S} ` +
@@ -52975,17 +53277,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ? t("multi.subobjetivo_plur")
               : t("multi.subobjetivo_sing"));
           Acc.appendChild(
-            Crear_Btn_Multi(`🗑 ${t("borrar")}`, true, () => {
+            Crear_Btn_Multi(t("borrar"), true, () => {
               Borrar_Subobjetivos_Multi();
             })
           );
           Acc.appendChild(
-            Crear_Btn_Multi(`✓ ${t("multi.marcar_hechas")}`, false, () => {
+            Crear_Btn_Multi(t("multi.marcar_hechas"), false, () => {
               Marcar_Subobjetivos_Multi(true);
             })
           );
           Acc.appendChild(
-            Crear_Btn_Multi(`□ ${t("multi.desmarcar")}`, false, () => {
+            Crear_Btn_Multi(t("multi.desmarcar"), false, () => {
               Marcar_Subobjetivos_Multi(false);
             })
           );
@@ -53008,8 +53310,423 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return B;
       }
 
+      function Obtener_Ids_Objetivos_Multi_Validas() {
+        return Array.from(Objetivos_Multi_Seleccion).filter((Id) =>
+          Boolean(Objetivo_Por_Id(Id))
+        );
+      }
+
+      function Tiene_Portapapeles_Objetivos_Multi() {
+        return Array.isArray(
+          Portapapeles_Objetivos_Multi?.Items
+        ) && Portapapeles_Objetivos_Multi.Items.length > 0;
+      }
+
+      function Construir_Plantilla_Objetivo_Multi(
+        Objetivo,
+        Semana_Clave = Clave_Semana_Actual()
+      ) {
+        if (!Objetivo) return null;
+        const Datos = Obtener_Datos_Objetivo(Objetivo);
+        const Subobjetivos = Obtener_Subobjetivos_Semana(
+          Objetivo,
+          true,
+          Semana_Clave
+        ).map((Subobjetivo) => ({
+          Emoji: Normalizar_Emoji(
+            Subobjetivo?.Emoji || "\u2022"
+          ),
+          Texto: (Subobjetivo?.Texto || "").toString(),
+          Hecha: Boolean(Subobjetivo?.Hecha)
+        }));
+        return { Datos, Subobjetivos };
+      }
+
+      function Crear_Objetivo_Desde_Plantilla_Multi(
+        Plantilla,
+        Semana_Clave = Clave_Semana_Actual()
+      ) {
+        if (!Plantilla?.Datos) return null;
+        const Objetivo = Crear_Objetivo_Semanal_Con_Datos(
+          Plantilla.Datos,
+          Semana_Clave
+        );
+        const Subobjetivos = Array.isArray(Plantilla.Subobjetivos)
+          ? Plantilla.Subobjetivos
+          : [];
+        if (Subobjetivos.length > 0) {
+          Objetivo.Subobjetivos_Semanales[Semana_Clave] =
+            Subobjetivos.map((Subobjetivo) => ({
+              Id: Crear_Id_Subobjetivo(),
+              Plantilla_Id: null,
+              Origen_Plantilla_Id: null,
+              Emoji: Normalizar_Emoji(
+                Subobjetivo?.Emoji || "\u2022"
+              ),
+              Texto: (Subobjetivo?.Texto || "").toString(),
+              Hecha: Boolean(Subobjetivo?.Hecha)
+            }));
+          Objetivo.Subobjetivos_Contraidas_Semanales[Semana_Clave] =
+            false;
+        }
+        return Objetivo;
+      }
+
+      function Copiar_Objetivos_Multi_Al_Portapapeles() {
+        const Ids = Obtener_Ids_Objetivos_Multi_Validas();
+        if (Ids.length === 0) return false;
+        const Semana_Clave = Clave_Semana_Actual();
+        const Items = Ids
+          .map((Id) => {
+            const Objetivo = Objetivo_Por_Id(Id);
+            return Construir_Plantilla_Objetivo_Multi(
+              Objetivo,
+              Semana_Clave
+            );
+          })
+          .filter(Boolean);
+        if (Items.length === 0) return false;
+        Portapapeles_Objetivos_Multi = {
+          Semana_Origen: Semana_Clave,
+          Items
+        };
+        Mostrar_Toast_Info(
+          t("multi.toast_objetivos_copiadas", {
+            n: Items.length
+          }),
+          "\uD83D\uDCCB",
+          5000
+        );
+        Render_Barra_Multi_Seleccion();
+        return true;
+      }
+
+      function Pegar_Objetivos_Multi_En_Semana_Actual() {
+        if (!Tiene_Portapapeles_Objetivos_Multi()) return false;
+        const Snap = Capturar_Snapshot_Undo();
+        const Semana_Clave = Clave_Semana_Actual();
+        const Nuevas = Portapapeles_Objetivos_Multi.Items
+          .map((Plantilla) =>
+            Crear_Objetivo_Desde_Plantilla_Multi(
+              Plantilla,
+              Semana_Clave
+            )
+          )
+          .filter(Boolean);
+        if (Nuevas.length === 0) return false;
+        Objetivo_Seleccionada_Id = null;
+        Modo_Editor_Abierto = false;
+        Datos_Editor_Borrador = null;
+        Subobjetivos_Multi_Seleccion.clear();
+        Objetivos_Multi_Seleccion = new Set(
+          Nuevas.map((Objetivo) => Objetivo.Id)
+        );
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Barra_Multi_Seleccion();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("multi.toast_objetivos_pegadas", {
+            n: Nuevas.length
+          }),
+          Snap
+        );
+        return true;
+      }
+
+      function Duplicar_Objetivos_Multi() {
+        const Ids = Obtener_Ids_Objetivos_Multi_Validas();
+        if (Ids.length === 0) return;
+        const Semana_Clave = Clave_Semana_Actual();
+        const Plantillas = Ids
+          .map((Id) => {
+            const Objetivo = Objetivo_Por_Id(Id);
+            return Construir_Plantilla_Objetivo_Multi(
+              Objetivo,
+              Semana_Clave
+            );
+          })
+          .filter(Boolean);
+        if (Plantillas.length === 0) return;
+        const Snap = Capturar_Snapshot_Undo();
+        const Nuevas = Plantillas
+          .map((Plantilla) =>
+            Crear_Objetivo_Desde_Plantilla_Multi(
+              Plantilla,
+              Semana_Clave
+            )
+          )
+          .filter(Boolean);
+        if (Nuevas.length === 0) return;
+        Objetivo_Seleccionada_Id = null;
+        Modo_Editor_Abierto = false;
+        Datos_Editor_Borrador = null;
+        Subobjetivos_Multi_Seleccion.clear();
+        Objetivos_Multi_Seleccion = new Set(
+          Nuevas.map((Objetivo) => Objetivo.Id)
+        );
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Barra_Multi_Seleccion();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("multi.toast_objetivos_duplicadas", {
+            n: Nuevas.length
+          }),
+          Snap
+        );
+      }
+
+      async function Solicitar_Categoria_Objetivos_Multi() {
+        const Ids = Obtener_Ids_Objetivos_Multi_Validas();
+        if (!Ids.length) return;
+        const Primera = Objetivo_Por_Id(Ids[0]);
+        const Opciones = [
+          {
+            Etiqueta: t("plan.sin_categoria"),
+            Valor: "__sin_categoria__"
+          },
+          ...Categorias.map((Categoria) => ({
+            Etiqueta:
+              `${Categoria.Emoji || "\uD83C\uDFF7\uFE0F"} ` +
+              `${Categoria.Nombre}`,
+            Valor: Categoria.Id
+          }))
+        ];
+        const Categoria = await Mostrar_Dialogo_Con_Texto(
+          t("multi.cambiar_categoria_prompt"),
+          {
+            Tipo: "select",
+            Default:
+              Primera?.Categoria_Id || "__sin_categoria__",
+            Select_Opciones: Opciones,
+            Etiqueta_Confirmar: t("guardar"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (Categoria == null) return;
+        const Categoria_Id = Categoria === "__sin_categoria__"
+          ? null
+          : Categoria;
+        Aplicar_Categoria_Objetivos_Multi(Categoria_Id);
+      }
+
+      function Aplicar_Categoria_Objetivos_Multi(Categoria_Id) {
+        const Ids = new Set(Obtener_Ids_Objetivos_Multi_Validas());
+        if (!Ids.size) return;
+        const Snap = Capturar_Snapshot_Undo();
+        let Cambios = 0;
+        Objetivos.forEach((Objetivo) => {
+          if (!Ids.has(Objetivo.Id)) return;
+          if ((Objetivo.Categoria_Id || null) === Categoria_Id) {
+            return;
+          }
+          Objetivo.Categoria_Id = Categoria_Id;
+          Cambios += 1;
+        });
+        if (Cambios === 0) return;
+        Objetivos_Multi_Seleccion.clear();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Barra_Multi_Seleccion();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("toast.objetivos_actualizadas"),
+          Snap
+        );
+      }
+
+      async function Pedir_Color_Objetivos_Multi() {
+        const Ids = Obtener_Ids_Objetivos_Multi_Validas();
+        if (!Ids.length) return;
+        const Primera = Objetivo_Por_Id(Ids[0]);
+        const Color = await Mostrar_Dialogo_Con_Texto(
+          t("multi.cambiar_color_prompt"),
+          {
+            Tipo: "color",
+            Default:
+              Normalizar_Color_Hex(Primera?.Color) ||
+              Obtener_Color_Default(),
+            Etiqueta_Confirmar: t("guardar"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (!Color) return;
+        Aplicar_Color_Objetivos_Multi(Color);
+      }
+
+      function Aplicar_Color_Objetivos_Multi(Color) {
+        const Hex = Normalizar_Color_Hex(Color);
+        if (!Hex) return;
+        const Ids = new Set(Obtener_Ids_Objetivos_Multi_Validas());
+        if (!Ids.size) return;
+        const Snap = Capturar_Snapshot_Undo();
+        let Cambios = 0;
+        Objetivos.forEach((Objetivo) => {
+          if (!Ids.has(Objetivo.Id)) return;
+          if (Normalizar_Color_Hex(Objetivo.Color) === Hex) {
+            return;
+          }
+          Objetivo.Color = Hex;
+          Cambios += 1;
+        });
+        if (Cambios === 0) return;
+        Objetivos_Multi_Seleccion.clear();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Barra_Multi_Seleccion();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("toast.objetivos_actualizadas"),
+          Snap
+        );
+      }
+
+      async function Cambiar_Alcance_Objetivos_Multi() {
+        const Ids = Obtener_Ids_Objetivos_Multi_Validas();
+        if (!Ids.length) return;
+        const Primera = Objetivo_Por_Id(Ids[0]);
+        const Alcance = await Mostrar_Dialogo_Con_Texto(
+          t("multi.cambiar_alcance_prompt"),
+          {
+            Tipo: "select",
+            Default: Primera?.Es_Fija ? "Fija" : "Semana",
+            Select_Opciones: [
+              {
+                Etiqueta: t("sidebar.solo_semana"),
+                Valor: "Semana"
+              },
+              {
+                Etiqueta: t("sidebar.objetivo_fija"),
+                Valor: "Fija"
+              }
+            ],
+            Etiqueta_Confirmar: t("guardar"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (!Alcance) return;
+        const Snap = Capturar_Snapshot_Undo();
+        let Cambios = 0;
+        const Seleccion_Nueva = new Set();
+        Ids.forEach((Id) => {
+          const Objetivo = Objetivo_Por_Id(Id);
+          if (!Objetivo) return;
+          const Datos = Obtener_Datos_Objetivo(Objetivo);
+          if (Alcance === "Fija") {
+            if (Boolean(Objetivo.Es_Fija)) {
+              Seleccion_Nueva.add(Objetivo.Id);
+              return;
+            }
+            Datos.Es_Fija = true;
+            Aplicar_Datos_A_Objetivo(Objetivo, Datos);
+            Objetivo.Es_Fija = true;
+            Objetivo.Familia_Id =
+              Obtener_Familia_Objetivo(Objetivo);
+            Objetivo.Semana_Base = null;
+            Objetivo.Semana_Inicio =
+              Objetivo.Semana_Inicio || Clave_Semana_Actual();
+            Objetivo.Semana_Fin = null;
+            Seleccion_Nueva.add(Objetivo.Id);
+            Cambios += 1;
+            return;
+          }
+          if (!Boolean(Objetivo.Es_Fija)) {
+            Seleccion_Nueva.add(Objetivo.Id);
+            return;
+          }
+          Datos.Es_Fija = false;
+          const Resultado = Aplicar_Cambios_Esta_Semana(
+            Objetivo,
+            Datos
+          );
+          Seleccion_Nueva.add(Resultado?.Id || Objetivo.Id);
+          Cambios += 1;
+        });
+        if (Cambios === 0) return;
+        Objetivo_Seleccionada_Id = null;
+        Modo_Editor_Abierto = false;
+        Datos_Editor_Borrador = null;
+        Objetivos_Multi_Seleccion = Seleccion_Nueva;
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Barra_Multi_Seleccion();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("toast.objetivos_actualizadas"),
+          Snap
+        );
+      }
+
+      async function Enviar_Objetivos_Multi_Al_Baul() {
+        const Ids = Obtener_Ids_Objetivos_Multi_Validas();
+        if (!Ids.length) return;
+        const Nombres = Ids
+          .map((Id) => Objetivo_Por_Id(Id)?.Nombre || "?")
+          .join(", ");
+        const Confirmar = await Mostrar_Dialogo(
+          t("multi.dialog_enviar_baul", {
+            n: Ids.length,
+            nombres: Nombres
+          }),
+          [
+            {
+              Etiqueta: t("multi.enviar_baul"),
+              Valor: true,
+              Tipo: "Primario"
+            },
+            {
+              Etiqueta: t("cancelar"),
+              Valor: false,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
+        if (!Confirmar) return;
+        const Snap = Capturar_Snapshot_Undo();
+        let Enviadas = 0;
+        Ids.forEach((Id) => {
+          const Objetivo = Objetivo_Por_Id(Id);
+          if (!Objetivo) return;
+          if (
+            Enviar_Objetivo_Al_Baul(Objetivo, {
+              Render: false,
+              Guardar: false
+            })
+          ) {
+            Enviadas += 1;
+          }
+        });
+        if (Enviadas === 0) return;
+        Objetivos_Multi_Seleccion.clear();
+        Objetivo_Seleccionada_Id = null;
+        Modo_Editor_Abierto = false;
+        Datos_Editor_Borrador = null;
+        Render_Calendario();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Barra_Multi_Seleccion();
+        if (Baul_Abierto()) {
+          Render_Baul();
+        }
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("multi.toast_objetivos_enviadas_baul", {
+            n: Enviadas
+          }),
+          Snap
+        );
+      }
+
       async function Borrar_Objetivos_Multi() {
-        const Ids = Array.from(Objetivos_Multi_Seleccion);
+        const Ids = Obtener_Ids_Objetivos_Multi_Validas();
+        if (!Ids.length) return;
         const Nombres = Ids
           .map((Id) => Objetivo_Por_Id(Id)?.Nombre || "?")
           .join(", ");
@@ -53052,12 +53769,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Archivar_Objetivos_Multi(Archivar) {
+        const Ids = Obtener_Ids_Objetivos_Multi_Validas();
+        if (!Ids.length) return;
         const Snap = Capturar_Snapshot_Undo();
-        Objetivos_Multi_Seleccion.forEach((Id) => {
+        Ids.forEach((Id) => {
           const T = Objetivo_Por_Id(Id);
           if (T) T.Archivada = Boolean(Archivar);
         });
-        const Cant = Objetivos_Multi_Seleccion.size;
+        const Cant = Ids.length;
         Objetivos_Multi_Seleccion.clear();
         Mostrar_Toast_Undo(
           Archivar
