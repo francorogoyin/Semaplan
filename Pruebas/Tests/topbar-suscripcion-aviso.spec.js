@@ -300,6 +300,34 @@ async ({ page }) => {
   await expect(Stripe).toHaveAttribute("href", "#");
   await expect(Mercado).toHaveCSS("text-align", "center");
   await expect(Mercado).toHaveCSS("align-items", "center");
+  const Logos = await page.evaluate(() => {
+    const Mercado_Img = document.querySelector(
+      "#Pago_Premium_Mercado_Link .Pago_Premium_Logo_Img"
+    );
+    const Stripe_Img = document.querySelector(
+      "#Pago_Premium_Stripe_Link .Pago_Premium_Logo_Img"
+    );
+    const Mercado_Fondo = document.querySelector(
+      "#Pago_Premium_Mercado_Link .Pago_Premium_Logo"
+    );
+    const Stripe_Fondo = document.querySelector(
+      "#Pago_Premium_Stripe_Link .Pago_Premium_Logo"
+    );
+    return {
+      mercadoCargado:
+        Mercado_Img.complete && Mercado_Img.naturalWidth > 0,
+      stripeCargado:
+        Stripe_Img.complete && Stripe_Img.naturalWidth > 0,
+      mercadoFondo:
+        window.getComputedStyle(Mercado_Fondo).backgroundColor,
+      stripeFondo:
+        window.getComputedStyle(Stripe_Fondo).backgroundColor
+    };
+  });
+  expect(Logos.mercadoCargado).toBe(true);
+  expect(Logos.stripeCargado).toBe(true);
+  expect(Logos.mercadoFondo).toBe("rgb(232, 248, 255)");
+  expect(Logos.stripeFondo).toBe("rgb(242, 239, 255)");
   const Precio = await Mercado.locator(
     ".Pago_Premium_Monto"
   ).evaluate((Nodo) => {
