@@ -16637,6 +16637,17 @@
             "Pagar Premium con Mercado Pago",
           "pago_premium.stripe_aria":
             "Pagar Premium con Stripe",
+          "pago_premium.error_checkout":
+            "No se pudo abrir Mercado Pago. " +
+            "Intentá de nuevo en unos minutos.",
+          "pago_premium.error_sesion":
+            "Iniciá sesión para pagar Premium.",
+          "pago_premium.error_sin_url":
+            "No se obtuvo el enlace de Mercado Pago. " +
+            "Intentá de nuevo.",
+          "pago_premium.error_conexion":
+            "No se pudo conectar con Mercado Pago. " +
+            "Revisá tu conexión e intentá de nuevo.",
           "resumen_sem.titulo":
             "Resumen semanal",
           "resumen_objetivo.sin_seleccion":
@@ -19330,6 +19341,17 @@
             "Pay for Premium with Mercado Pago",
           "pago_premium.stripe_aria":
             "Pay for Premium with Stripe",
+          "pago_premium.error_checkout":
+            "Mercado Pago could not be opened. " +
+            "Try again in a few minutes.",
+          "pago_premium.error_sesion":
+            "Sign in to pay for Premium.",
+          "pago_premium.error_sin_url":
+            "The Mercado Pago link was not received. " +
+            "Try again.",
+          "pago_premium.error_conexion":
+            "Could not connect to Mercado Pago. " +
+            "Check your connection and try again.",
           "resumen_sem.titulo":
             "Weekly summary",
           "resumen_objetivo.sin_seleccion":
@@ -22053,6 +22075,17 @@
             "Pagar Premium com Mercado Pago",
           "pago_premium.stripe_aria":
             "Pagar Premium com Stripe",
+          "pago_premium.error_checkout":
+            "Não foi possível abrir o Mercado Pago. " +
+            "Tente novamente em alguns minutos.",
+          "pago_premium.error_sesion":
+            "Entre na sua conta para pagar o Premium.",
+          "pago_premium.error_sin_url":
+            "O link do Mercado Pago não foi recebido. " +
+            "Tente novamente.",
+          "pago_premium.error_conexion":
+            "Não foi possível conectar com o Mercado Pago. " +
+            "Verifique sua conexão e tente novamente.",
           "resumen_sem.titulo":
             "Resumo semanal",
           "resumen_objetivo.sin_seleccion":
@@ -39161,6 +39194,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.classList.remove("Activo");
       }
 
+      function Mensaje_Error_Checkout_Mp(Error) {
+        const Texto = String(
+          Error?.message || ""
+        ).toLowerCase();
+        const Status = Number(Error?.status || 0);
+        if (
+          Status === 401 ||
+          Status === 403 ||
+          Texto.includes("sesión inválida") ||
+          Texto.includes("sesion invalida") ||
+          Texto.includes("invalid session")
+        ) {
+          return t("pago_premium.error_sesion");
+        }
+        return t("pago_premium.error_checkout");
+      }
+
       async function Verificar_Suscripcion_Remota(
       ) {
         // Consulta el estado de suscripción del
@@ -39325,9 +39375,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               error, Datos
             );
             await Mostrar_Dialogo(
-              "Error al procesar el pago: " +
-              (error?.message ||
-                JSON.stringify(Datos)),
+              Mensaje_Error_Checkout_Mp(error),
               [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
             );
             return;
@@ -39341,8 +39389,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             window.location.href = Url_Checkout;
           } else {
             await Mostrar_Dialogo(
-              "No se obtuvo la URL de pago. " +
-              "Intentá de nuevo.",
+              t("pago_premium.error_sin_url"),
               [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
             );
           }
@@ -39358,8 +39405,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Error_Checkout
           );
           await Mostrar_Dialogo(
-            "Error de conexión. " +
-            "Intentá de nuevo.",
+            t("pago_premium.error_conexion"),
             [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
           );
         } finally {

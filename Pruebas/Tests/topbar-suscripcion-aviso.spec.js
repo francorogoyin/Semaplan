@@ -327,3 +327,30 @@ async ({ page }) => {
   await Stripe.click();
   await expect(Modal).toHaveClass(/Activo/);
 });
+
+test("no muestra error tecnico si falla Mercado Pago",
+async ({ page }) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Abrir_Suscripcion();
+    Invocar_Edge_Con_Sesion = async () => ({
+      data: null,
+      error: {
+        message:
+          "Edge Function returned a non-2xx status code",
+        status: 500,
+        response: { error: "backend" }
+      }
+    });
+  });
+  await page.click("#Suscripcion_Elegir_Upgrade");
+  await page.click("#Pago_Premium_Mercado_Link");
+
+  const Mensaje = page.locator("#Dialogo_Mensaje");
+  await expect(Mensaje).toContainText(
+    "No se pudo abrir Mercado Pago"
+  );
+  await expect(Mensaje).not.toContainText("Edge Function");
+  await expect(Mensaje).not.toContainText("non-2xx");
+});
