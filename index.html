@@ -339,18 +339,18 @@
       /* --- Barra flotante de multi-selección --- */
       .Multi_Sel_Barra {
         display: none;
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #1f1f1f;
-        color: #fff;
-        border-radius: 12px;
-        padding: 10px 14px;
         align-items: center;
-        gap: 10px;
-        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-        z-index: 9500;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: nowrap;
+        padding: 12px 8px 4px;
+        border-top: 1px solid var(--Borde);
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.92),
+            rgba(255, 255, 255, 0.76)
+          );
       }
 
       .Multi_Sel_Barra.Activa {
@@ -358,46 +358,33 @@
       }
 
       .Multi_Sel_Conteo {
-        font-size: 13px;
-        font-weight: 700;
-        padding-right: 8px;
-        border-right: 1px solid rgba(255,255,255,0.18);
+        order: 2;
+        flex: 0 0 auto;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--Texto);
+        white-space: nowrap;
       }
 
       .Multi_Sel_Acciones {
+        order: 1;
         display: flex;
+        align-items: center;
         gap: 6px;
-        flex-wrap: wrap;
-        max-width: min(76vw, 980px);
+        flex-wrap: nowrap;
+        flex: 0 1 auto;
+        min-width: 0;
+        overflow-x: auto;
       }
 
-      .Multi_Sel_Btn {
-        background: rgba(255, 255, 255, 0.12);
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 6px 12px;
+      .Multi_Sel_Acciones .Archivero_Sub_Btn {
+        min-height: 30px;
+        padding: 4px 10px;
         font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-      }
-
-      .Multi_Sel_Btn:hover {
-        background: rgba(255, 255, 255, 0.22);
-      }
-
-      .Multi_Sel_Btn_Peligro {
-        background: #b8403d;
-      }
-
-      .Multi_Sel_Btn_Peligro:hover {
-        background: #d4524f;
       }
 
       .Multi_Sel_Btn_Cerrar {
-        background: none;
-        font-size: 16px;
-        padding: 4px 8px;
+        display: none;
       }
 
       .Subobjetivo_Item.Multi_Activa {
@@ -25078,6 +25065,18 @@
       const El_Calendario_Multi_Conteo = document.getElementById(
         "Calendario_Multi_Conteo"
       );
+      const El_Multi_Sel_Barra = document.getElementById(
+        "Multi_Sel_Barra"
+      );
+      if (
+        El_Multi_Sel_Barra &&
+        El_Calendario_Multi_Acciones?.parentElement
+      ) {
+        El_Calendario_Multi_Acciones.insertAdjacentElement(
+          "afterend",
+          El_Multi_Sel_Barra
+        );
+      }
       const El_Calendario_Seleccion_Rectangulo =
         document.getElementById(
           "Calendario_Seleccion_Rectangulo"
@@ -53191,20 +53190,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Tiene_Portapapeles_Objetivos_Multi();
 
         if (Total === 0) {
-          if (Tiene_Portapapeles && !Baul_Abierto()) {
-            Barra.classList.add("Activa");
-            Acc.innerHTML = "";
-            Conteo.textContent = t(
-              "multi.portapapeles_objetivos",
-              { n: Portapapeles_Objetivos_Multi.Items.length }
-            );
-            Acc.appendChild(
-              Crear_Btn_Multi(t("multi.pegar"), false, () => {
-                Pegar_Objetivos_Multi_En_Semana_Actual();
-              })
-            );
-            return;
-          }
+          Acc.innerHTML = "";
+          Conteo.textContent = "";
           Barra.classList.remove("Activa");
           return;
         }
@@ -53301,13 +53288,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Crear_Btn_Multi(Texto, Peligro, Fn) {
-        const B = document.createElement("button");
-        B.type = "button";
-        B.className = "Multi_Sel_Btn" +
-          (Peligro ? " Multi_Sel_Btn_Peligro" : "");
-        B.textContent = Texto;
-        B.addEventListener("click", Fn);
-        return B;
+        return Crear_Boton_Multi_Inline(
+          Texto,
+          Fn,
+          Peligro ? "Peligro" : ""
+        );
       }
 
       function Obtener_Ids_Objetivos_Multi_Validas() {
@@ -54995,39 +54980,71 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Editor();
       }
 
-      function Mostrar_Menu_Emoji_Objetivo(Objetivo, X, Y) {
+      function Mostrar_Menu_Sidebar_Pegar(X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
-        if (!Menu || !Objetivo) return;
-        const Html =
-          `<button class="Dia_Accion_Item"` +
-          ` type="button"` +
-          ` data-acc="agregar-subobjetivo">` +
-          t("contexto.agregar_subobjetivo") +
-          `</button>`;
-        Menu.innerHTML = Html;
+        if (!Menu) return false;
+        if (!Tiene_Portapapeles_Objetivos_Multi()) return false;
+        Menu.innerHTML = Construir_Menu_Dia_Por_Grupos([[
+          Html_Menu_Dia_Accion(
+            "pegar-objetivos",
+            t("multi.pegar")
+          )
+        ]]);
         Menu.style.left = `${X}px`;
         Menu.style.top = `${Y}px`;
         Menu.classList.add("Activo");
+        Reposicionar_Menu_Dia_En_Pantalla(Menu);
+        Menu.querySelector(`[data-acc="pegar-objetivos"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Pegar_Objetivos_Multi_En_Semana_Actual();
+          });
+        if (Fn_Cierre_Menu) {
+          document.removeEventListener("click", Fn_Cierre_Menu);
+          Fn_Cierre_Menu = null;
+        }
+        Fn_Cierre_Menu = (Ev) => {
+          if (!Menu.contains(Ev.target)) Cerrar_Menu_Dia();
+        };
+        document.addEventListener("click", Fn_Cierre_Menu);
+        return true;
+      }
 
-        requestAnimationFrame(() => {
-          const Rect = Menu.getBoundingClientRect();
-          const VH = window.innerHeight;
-          const VW = window.innerWidth;
-          if (Rect.bottom > VH - 8) {
-            Menu.style.top =
-              `${Math.max(8, VH - Rect.height - 8)}px`;
-          }
-          if (Rect.right > VW - 8) {
-            Menu.style.left =
-              `${Math.max(8, VW - Rect.width - 8)}px`;
-          }
-        });
+      function Mostrar_Menu_Emoji_Objetivo(Objetivo, X, Y) {
+        const Menu = document.getElementById("Dia_Accion_Menu");
+        if (!Menu || !Objetivo) return;
+        const Grupo = [
+          Html_Menu_Dia_Accion(
+            "agregar-subobjetivo",
+            t("contexto.agregar_subobjetivo")
+          )
+        ];
+        if (Tiene_Portapapeles_Objetivos_Multi()) {
+          Grupo.push(
+            Html_Menu_Dia_Accion(
+              "pegar-objetivos",
+              t("multi.pegar")
+            )
+          );
+        }
+        Menu.innerHTML = Construir_Menu_Dia_Por_Grupos([Grupo]);
+        Menu.style.left = `${X}px`;
+        Menu.style.top = `${Y}px`;
+        Menu.classList.add("Activo");
+        Reposicionar_Menu_Dia_En_Pantalla(Menu);
 
         Menu.querySelector(`[data-acc="agregar-subobjetivo"]`)
           ?.addEventListener("click", (Ev) => {
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Preparar_Objetivo_Para_Agregar_Subobjetivo(Objetivo);
+          });
+        Menu.querySelector(`[data-acc="pegar-objetivos"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Pegar_Objetivos_Multi_En_Semana_Actual();
           });
         if (Fn_Cierre_Menu) {
           document.removeEventListener("click", Fn_Cierre_Menu);
@@ -59107,9 +59124,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Limpiar_Seleccion();
           }
         });
-
-      document.getElementById("Multi_Sel_Cerrar")
-        .addEventListener("click", Limpiar_Multi_Seleccion);
+      El_Lista_Emojis?.addEventListener("contextmenu", (Ev) => {
+        if (Ev.target.closest(".Emoji_Item")) return;
+        if (!Tiene_Portapapeles_Objetivos_Multi()) return;
+        Ev.preventDefault();
+        Ev.stopPropagation();
+        Mostrar_Menu_Sidebar_Pegar(Ev.clientX, Ev.clientY);
+      });
 
       El_Semana_Anterior.addEventListener("click", () => {
         Objetivo_Seleccionada_Id = null;
