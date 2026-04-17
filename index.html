@@ -74,6 +74,8 @@
       }
 
       .Con_Selector_Emoji,
+      .Con_Fallback_Emoji,
+      .Con_Fallback_Emoji option,
       .Emoji_Item,
       .Emoji_Horas_Badge,
       .Abordaje_Item_Emoji,
@@ -9399,6 +9401,13 @@
         display: flex;
       }
 
+      .Dia_Accion_Submenu_Titulo {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--Texto_Suave);
+        padding: 4px 12px 2px;
+      }
+
       .Dia_Accion_Submenu_Item {
         display: flex;
         align-items: center;
@@ -13699,6 +13708,7 @@
                 </label>
                 <input type="text"
                   id="Cfg_Tipo_Slot_Modal_Nombre"
+                  class="Con_Fallback_Emoji"
                   data-i18n-ph="config.nombre_tipo_ph"
                   placeholder="Nombre del tipo...">
               </div>
@@ -13719,6 +13729,7 @@
                 </label>
                 <input type="text"
                   id="Cfg_Tipo_Slot_Modal_Titulo_Input"
+                  class="Con_Fallback_Emoji"
                   data-i18n-ph="config.titulo_slot_ph"
                   placeholder="Título opcional del slot">
               </div>
@@ -14569,6 +14580,8 @@
             </label>
             <div class="Archivero_Sub_Campo_Inline">
               <select
+                class="Archivero_Nota_Input_Emoji
+                  Con_Fallback_Emoji"
                 id="Archivero_Nota_Cajon_Select"></select>
               <button type="button"
                 class="Archivero_Sub_Btn"
@@ -17327,6 +17340,14 @@
             "Desbloquear día completo",
           "dia.mostrar_dias":
             "Mostrar días",
+          "dia.atajos":
+            "Atajos",
+          "dia.atajo_solo_hoy":
+            "Ocultar todos menos hoy",
+          "dia.atajo_ocultar_anteriores":
+            "Ocultar días anteriores",
+          "dia.atajo_ocultar_posteriores":
+            "Ocultar días posteriores",
           "dia.ocultar_dia":
             "Ocultar este día",
           "dia.copiar_dia": "Copiar día",
@@ -20034,6 +20055,14 @@
             "Unblock full day",
           "dia.mostrar_dias":
             "Show days",
+          "dia.atajos":
+            "Shortcuts",
+          "dia.atajo_solo_hoy":
+            "Hide all but today",
+          "dia.atajo_ocultar_anteriores":
+            "Hide previous days",
+          "dia.atajo_ocultar_posteriores":
+            "Hide next days",
           "dia.ocultar_dia":
             "Hide this day",
           "dia.copiar_dia": "Copy day",
@@ -22783,6 +22812,14 @@
             "Desbloquear dia inteiro",
           "dia.mostrar_dias":
             "Mostrar dias",
+          "dia.atajos":
+            "Atalhos",
+          "dia.atajo_solo_hoy":
+            "Ocultar todos menos hoje",
+          "dia.atajo_ocultar_anteriores":
+            "Ocultar dias anteriores",
+          "dia.atajo_ocultar_posteriores":
+            "Ocultar dias posteriores",
           "dia.ocultar_dia":
             "Ocultar este dia",
           "dia.copiar_dia": "Copiar dia",
@@ -32257,7 +32294,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Dias_Largos = t("dias_completos")
           .split(",")
           .map((Texto) => Texto.trim());
-        return [0, 1, 2, 3, 4, 5, 6].map((Dia) => {
+        const Html_Atajos =
+          `<div class="Dia_Accion_Submenu_Titulo">` +
+          `${t("dia.atajos")}</div>` +
+          `<button class="Dia_Accion_Submenu_Item" type="button"` +
+          ` data-dia-atajo="solo-hoy">` +
+          `<span>${t("dia.atajo_solo_hoy")}</span>` +
+          `<span class="Dia_Accion_Submenu_Estado"></span>` +
+          `</button>` +
+          `<button class="Dia_Accion_Submenu_Item" type="button"` +
+          ` data-dia-atajo="ocultar-anteriores">` +
+          `<span>${t("dia.atajo_ocultar_anteriores")}</span>` +
+          `<span class="Dia_Accion_Submenu_Estado"></span>` +
+          `</button>` +
+          `<button class="Dia_Accion_Submenu_Item" type="button"` +
+          ` data-dia-atajo="ocultar-posteriores">` +
+          `<span>${t("dia.atajo_ocultar_posteriores")}</span>` +
+          `<span class="Dia_Accion_Submenu_Estado"></span>` +
+          `</button>` +
+          `<div class="Dia_Accion_Separador"` +
+          ` role="separator"></div>`;
+        const Html_Dias = [0, 1, 2, 3, 4, 5, 6].map((Dia) => {
           const Visible = Dias_Base.includes(Dia);
           const Es_Ultimo =
             Visible && Dias_Base.length <= 1;
@@ -32280,6 +32337,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "</button>"
           );
         }).join("");
+        return Html_Atajos + Html_Dias;
       }
 
       function Alternar_Dia_Visible_Desde_Menu(
@@ -32300,6 +32358,118 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Calendario();
         Guardar_Estado();
         return true;
+      }
+
+      function Resolver_Dia_Referencia_Atajo(
+        Dia_Referencia
+      ) {
+        if (Semana_Visible_Es_Actual()) {
+          return Obtener_Dia_Hoy_Index();
+        }
+        const N = Number(Dia_Referencia);
+        if (Number.isFinite(N) && N >= 0 && N <= 6) {
+          return N;
+        }
+        return 0;
+      }
+
+      function Construir_Rango_Dias_Atajo(
+        Desde,
+        Hasta
+      ) {
+        const D = Math.min(6, Math.max(0, Number(Desde) || 0));
+        const H = Math.min(6, Math.max(0, Number(Hasta) || 0));
+        const Inicio = Math.min(D, H);
+        const Fin = Math.max(D, H);
+        const Lista = [];
+        for (let I = Inicio; I <= Fin; I++) Lista.push(I);
+        return Lista;
+      }
+
+      function Aplicar_Atajo_Dias_Visibles(
+        Atajo,
+        Dia_Referencia
+      ) {
+        const Ref = Resolver_Dia_Referencia_Atajo(
+          Dia_Referencia
+        );
+        let Nuevo = null;
+        if (Atajo === "solo-hoy") {
+          Nuevo = [Ref];
+        } else if (Atajo === "ocultar-anteriores") {
+          Nuevo = Construir_Rango_Dias_Atajo(Ref, 6);
+        } else if (Atajo === "ocultar-posteriores") {
+          Nuevo = Construir_Rango_Dias_Atajo(0, Ref);
+        }
+        if (!Array.isArray(Nuevo) || !Nuevo.length) {
+          return false;
+        }
+        Config.Dias_Visibles = Nuevo;
+        Render_Calendario();
+        Guardar_Estado();
+        return true;
+      }
+
+      function Refrescar_Submenu_Dias_Visibles(Menu) {
+        const Btn = Menu?.querySelector(
+          `[data-accion="dias"]`
+        );
+        const Grupo = Btn?.closest(
+          ".Dia_Accion_Submenu_Grupo"
+        );
+        const Sub = Grupo?.querySelector(
+          ".Dia_Accion_Submenu"
+        );
+        if (!Sub) return false;
+        Sub.innerHTML = Construir_Submenu_Dias_Visibles();
+        return true;
+      }
+
+      function Instalar_Submenu_Dias_Visibles(Menu) {
+        if (!Menu) return;
+        const Dia_Ref = Menu.dataset.diaRef || "";
+
+        Menu.querySelectorAll("[data-dia-atajo]")
+          .forEach((Btn) => {
+            if (Btn._Listener_Dia_Atajo) return;
+            Btn._Listener_Dia_Atajo = true;
+            Btn.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              const Atajo = Btn.dataset.diaAtajo || "";
+              const Ok = Aplicar_Atajo_Dias_Visibles(
+                Atajo,
+                Dia_Ref
+              );
+              if (!Ok) return;
+              if (Refrescar_Submenu_Dias_Visibles(Menu)) {
+                Instalar_Submenu_Dias_Visibles(Menu);
+              }
+              Reposicionar_Menu_Dia_En_Pantalla(Menu);
+            });
+          });
+
+        Menu.querySelectorAll("[data-dia-toggle]")
+          .forEach((Btn) => {
+            if (Btn._Listener_Dia_Toggle) return;
+            Btn._Listener_Dia_Toggle = true;
+            Btn.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              const Dia_Toggle = parseInt(
+                Btn.dataset.diaToggle,
+                10
+              );
+              if (Number.isNaN(Dia_Toggle)) return;
+              const Cambio =
+                Alternar_Dia_Visible_Desde_Menu(
+                  Dia_Toggle
+                );
+              if (!Cambio) return;
+              if (Refrescar_Submenu_Dias_Visibles(Menu)) {
+                Instalar_Submenu_Dias_Visibles(Menu);
+              }
+              Reposicionar_Menu_Dia_En_Pantalla(Menu);
+            });
+          });
       }
 
       function Mostrar_Menu_Dia(
@@ -32361,6 +32531,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Menu.style.left = `${Rect.left}px`;
         Menu.style.top = `${Rect.bottom + 4}px`;
         Menu.classList.add("Activo");
+        Menu.dataset.diaRef =
+          Dia_Index === null ? "" : String(Dia_Index);
         Reposicionar_Menu_Dia_En_Pantalla(Menu);
 
         Menu.querySelector(`[data-accion="block"]`)
@@ -32385,23 +32557,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           });
 
-        Menu.querySelectorAll("[data-dia-toggle]")
-          .forEach((Btn) => {
-            Btn.addEventListener("click", (Ev) => {
-              Ev.stopPropagation();
-              const Dia_Toggle = parseInt(
-                Btn.dataset.diaToggle,
-                10
-              );
-              if (Number.isNaN(Dia_Toggle)) return;
-              const Cambio =
-                Alternar_Dia_Visible_Desde_Menu(
-                  Dia_Toggle
-                );
-              if (!Cambio) return;
-              Cerrar_Menu_Dia();
-            });
-          });
+        Instalar_Submenu_Dias_Visibles(Menu);
 
         Menu.querySelector(`[data-accion="copiar"]`)
           .addEventListener("click", (Ev) => {
@@ -39865,7 +40021,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Muestra.style.background = Tipo.Color;
 
           const Nombre_Sp = document.createElement("span");
-          Nombre_Sp.className = "Config_Tipo_Slot_Nombre";
+          Nombre_Sp.className =
+            "Config_Tipo_Slot_Nombre Con_Fallback_Emoji";
           Nombre_Sp.textContent = Tipo.Nombre;
           const Titulo = Normalizar_Texto_Titulo_Slot(
             Tipo.Titulo
@@ -44203,7 +44360,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               });
 
               const Tipo_S = document.createElement("select");
-              Tipo_S.className = "Config_Select";
+              Tipo_S.className =
+                "Config_Select Con_Fallback_Emoji";
               Tipo_S.style.cssText = "flex:1;min-width:0";
               Obtener_Tipos_Slot().forEach((T) => {
                 const Opt = document.createElement("option");
