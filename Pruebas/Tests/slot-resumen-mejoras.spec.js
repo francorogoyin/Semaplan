@@ -356,6 +356,12 @@ test("el resumen semanal agrega filtros y orden utiles", async ({
     const Labels = Array.from(
       document.querySelectorAll(".Resumen_Sem_Filtro_Campo label")
     ).map((El) => El.textContent.trim());
+    const Campo_Orden = document.querySelector(
+      ".Resumen_Sem_Filtro_Orden"
+    );
+    const Espacio_Orden = window.getComputedStyle(
+      Campo_Orden
+    ).marginLeft;
     Resumen_Sem_Filtro_Categoria = "";
     Resumen_Sem_Solo_Pendientes = false;
     Resumen_Sem_Orden = "Cumplimiento";
@@ -366,12 +372,14 @@ test("el resumen semanal agrega filtros y orden utiles", async ({
     return {
       Filtradas,
       Labels,
+      Espacio_Orden,
       PrimeraOrdenada: Ordenadas[0]
     };
   });
 
   expect(resultado.Labels).toContain("Categoría");
   expect(resultado.Labels).toContain("Ordenar");
+  expect(resultado.Espacio_Orden).toBe("18px");
   expect(resultado.Filtradas).toEqual(["Proyecto A"]);
   expect(resultado.PrimeraOrdenada).toBe("Proyecto A");
 });
