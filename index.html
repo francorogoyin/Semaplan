@@ -5235,6 +5235,18 @@
         border-bottom: 1px solid var(--Borde);
       }
 
+      .Config_Cat_Emoji_Vista {
+        width: 28px;
+        height: 28px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+
       .Config_Cat_Bloque {
         border-bottom: 1px solid var(--Borde);
         padding: 4px 0 10px;
@@ -8636,6 +8648,120 @@
 
       .Archivero_Sub_Campo_Inline select {
         flex: 1;
+      }
+
+      .Archivero_Cajon_Select_Nativo {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .Archivero_Cajon_Select_Custom {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .Archivero_Cajon_Select_Btn {
+        width: 100%;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        min-height: 34px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        cursor: pointer;
+        color: var(--Texto);
+        font-family: inherit;
+        font-size: 13px;
+      }
+
+      .Archivero_Cajon_Select_Btn:focus-visible {
+        outline: none;
+        border-color: var(--Acento);
+      }
+
+      .Archivero_Cajon_Select_Btn_Emoji {
+        width: 1.2em;
+        height: 1.2em;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+
+      .Archivero_Cajon_Select_Btn_Texto {
+        flex: 1;
+        min-width: 0;
+        text-align: left;
+      }
+
+      .Archivero_Cajon_Select_Btn_Chevron {
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        line-height: 1;
+      }
+
+      .Archivero_Cajon_Select_Menu {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid var(--Borde);
+        border-radius: 10px;
+        box-shadow: var(--Sombra);
+        padding: 4px;
+        display: none;
+        flex-direction: column;
+        gap: 2px;
+        max-height: 220px;
+        overflow-y: auto;
+        z-index: 50;
+      }
+
+      .Archivero_Cajon_Select_Custom.Abierto
+        .Archivero_Cajon_Select_Menu {
+        display: flex;
+      }
+
+      .Archivero_Cajon_Select_Item {
+        width: 100%;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 8px;
+        color: var(--Texto);
+        font-family: inherit;
+        font-size: 13px;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .Archivero_Cajon_Select_Item:hover,
+      .Archivero_Cajon_Select_Item.Activo {
+        background: var(--Acento_Suave);
+      }
+
+      .Archivero_Cajon_Select_Item_Emoji {
+        width: 1.2em;
+        height: 1.2em;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+
+      .Archivero_Cajon_Select_Item_Texto {
+        flex: 1;
+        min-width: 0;
       }
 
       .Archivero_Sub_Acciones {
@@ -12238,6 +12364,8 @@
                   id="Cfg_Cat_Emoji"
                   placeholder="😀"
                   maxlength="4">
+                <span class="Config_Cat_Emoji_Vista"
+                  id="Cfg_Cat_Emoji_Vista"></span>
                 <input type="color"
                   class="Config_Cat_Input"
                   id="Cfg_Cat_Color">
@@ -24563,6 +24691,7 @@
       let Archivero_Notas_Seleccionadas = new Set();
       let Archivero_Notas_Expandida_Ids = new Set();
       let Archivero_Nota_En_Edicion_Id = null;
+      let Archivero_Cajon_Select_UI = null;
       let Archivero_Nota_Etiquetas_Borrador = [];
       let Archivero_Nota_Adjuntos_Borrador = [];
       const Archivero_Adjuntos_Max_Bytes = 1024 * 1024;
@@ -30447,6 +30576,162 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       // --- Submodal: nota ---
 
+      function Obtener_Datos_Opcion_Cajon(Opt) {
+        const Emoji = (Opt?.dataset?.emoji || "").trim();
+        const Nombre = (Opt?.dataset?.nombre || "").trim();
+        const Texto = (Opt?.textContent || "").trim();
+        return {
+          Emoji,
+          Nombre: Nombre || Texto
+        };
+      }
+
+      function Cerrar_Select_Cajon_Emoji() {
+        const UI = Archivero_Cajon_Select_UI;
+        if (!UI) return;
+        UI.Wrapper.classList.remove("Abierto");
+        UI.Boton.setAttribute("aria-expanded", "false");
+      }
+
+      function Refrescar_Select_Cajon_Emoji() {
+        const UI = Archivero_Cajon_Select_UI;
+        if (!UI) return;
+        const Select = UI.Select;
+        const Opciones = Array.from(Select.options || []);
+        if (!Opciones.length) {
+          UI.Boton.disabled = true;
+          UI.Boton_Texto.textContent = t("archivero.sin_cajones");
+          UI.Boton_Emoji.innerHTML = "";
+          UI.Menu.innerHTML = "";
+          return;
+        }
+        UI.Boton.disabled = false;
+        let Opcion_Activa = Select.options[Select.selectedIndex];
+        if (!Opcion_Activa) {
+          Opcion_Activa = Opciones[0];
+          Select.value = Opcion_Activa.value;
+        }
+        const Datos_Activa =
+          Obtener_Datos_Opcion_Cajon(Opcion_Activa);
+        if (Datos_Activa.Emoji) {
+          Aplicar_Emoji_En_Elemento(
+            UI.Boton_Emoji,
+            Datos_Activa.Emoji
+          );
+        } else {
+          UI.Boton_Emoji.innerHTML = "";
+        }
+        UI.Boton_Texto.textContent = Datos_Activa.Nombre;
+        UI.Menu.innerHTML = "";
+        Opciones.forEach((Opt) => {
+          const Item = document.createElement("button");
+          Item.type = "button";
+          Item.className = "Archivero_Cajon_Select_Item";
+          if (Opt.value === Select.value) {
+            Item.classList.add("Activo");
+          }
+          const Emoji_El = document.createElement("span");
+          Emoji_El.className = "Archivero_Cajon_Select_Item_Emoji";
+          const Datos = Obtener_Datos_Opcion_Cajon(Opt);
+          if (Datos.Emoji) {
+            Aplicar_Emoji_En_Elemento(Emoji_El, Datos.Emoji);
+          }
+          const Texto_El = document.createElement("span");
+          Texto_El.className = "Archivero_Cajon_Select_Item_Texto";
+          Texto_El.textContent = Datos.Nombre;
+          Item.appendChild(Emoji_El);
+          Item.appendChild(Texto_El);
+          Item.addEventListener("click", () => {
+            const Cambio = Select.value !== Opt.value;
+            Select.value = Opt.value;
+            if (Cambio) {
+              Select.dispatchEvent(
+                new Event("change", { bubbles: true })
+              );
+            } else {
+              Refrescar_Select_Cajon_Emoji();
+            }
+            Cerrar_Select_Cajon_Emoji();
+          });
+          UI.Menu.appendChild(Item);
+        });
+      }
+
+      function Asegurar_Select_Cajon_Emoji() {
+        const Select = document.getElementById(
+          "Archivero_Nota_Cajon_Select"
+        );
+        if (!Select) return;
+        if (Archivero_Cajon_Select_UI?.Select === Select) {
+          Refrescar_Select_Cajon_Emoji();
+          return;
+        }
+        const Wrapper = document.createElement("div");
+        Wrapper.className = "Archivero_Cajon_Select_Custom";
+        const Boton = document.createElement("button");
+        Boton.type = "button";
+        Boton.className = "Archivero_Cajon_Select_Btn";
+        Boton.setAttribute("aria-haspopup", "listbox");
+        Boton.setAttribute("aria-expanded", "false");
+        const Boton_Emoji = document.createElement("span");
+        Boton_Emoji.className = "Archivero_Cajon_Select_Btn_Emoji";
+        const Boton_Texto = document.createElement("span");
+        Boton_Texto.className = "Archivero_Cajon_Select_Btn_Texto";
+        const Chevron = document.createElement("span");
+        Chevron.className = "Archivero_Cajon_Select_Btn_Chevron";
+        Chevron.textContent = "▾";
+        Boton.appendChild(Boton_Emoji);
+        Boton.appendChild(Boton_Texto);
+        Boton.appendChild(Chevron);
+        const Menu = document.createElement("div");
+        Menu.className = "Archivero_Cajon_Select_Menu";
+        Wrapper.appendChild(Boton);
+        Wrapper.appendChild(Menu);
+        Select.classList.add("Archivero_Cajon_Select_Nativo");
+        Select.insertAdjacentElement("afterend", Wrapper);
+        Archivero_Cajon_Select_UI = {
+          Select,
+          Wrapper,
+          Boton,
+          Boton_Emoji,
+          Boton_Texto,
+          Menu
+        };
+        Boton.addEventListener("click", (Ev) => {
+          Ev.preventDefault();
+          Ev.stopPropagation();
+          const Abierto =
+            !Wrapper.classList.contains("Abierto");
+          Cerrar_Select_Cajon_Emoji();
+          Wrapper.classList.toggle("Abierto", Abierto);
+          Boton.setAttribute(
+            "aria-expanded",
+            Abierto ? "true" : "false"
+          );
+          if (Abierto) {
+            Refrescar_Select_Cajon_Emoji();
+          }
+        });
+        Select.addEventListener("change", () => {
+          Refrescar_Select_Cajon_Emoji();
+        });
+        if (!Asegurar_Select_Cajon_Emoji._Doc_Listeners) {
+          Asegurar_Select_Cajon_Emoji._Doc_Listeners = true;
+          document.addEventListener("click", (Ev) => {
+            const UI = Archivero_Cajon_Select_UI;
+            if (!UI) return;
+            if (UI.Wrapper.contains(Ev.target)) return;
+            Cerrar_Select_Cajon_Emoji();
+          });
+          document.addEventListener("keydown", (Ev) => {
+            if (Ev.key === "Escape") {
+              Cerrar_Select_Cajon_Emoji();
+            }
+          });
+        }
+        Refrescar_Select_Cajon_Emoji();
+      }
+
       function Poblar_Select_Cajones_Archivero(
         Select,
         Cajon_Id_Seleccionado = ""
@@ -30462,10 +30747,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Archiveros.forEach((Cajon) => {
           const Op = document.createElement("option");
           Op.value = Cajon.Id;
-          Op.textContent = Cajon.Nombre;
+          Op.dataset.emoji = Cajon.Emoji || "🗃️";
+          Op.dataset.nombre = Cajon.Nombre || "";
+          Op.textContent =
+            `${Op.dataset.emoji} ${Op.dataset.nombre}`.trim();
           Select.appendChild(Op);
         });
         Select.value = Valor_Deseado;
+        Refrescar_Select_Cajon_Emoji();
       }
 
       function Sincronizar_Color_Modal_Nota_Archivero() {
@@ -30585,6 +30874,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) {
           return;
         }
+        Asegurar_Select_Cajon_Emoji();
         if (Nota) {
           Poblar_Select_Cajones_Archivero(
             Select,
@@ -30645,6 +30935,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Archivero_Nota_En_Edicion_Id = null;
         Archivero_Nota_Etiquetas_Borrador = [];
         Archivero_Nota_Adjuntos_Borrador = [];
+        Cerrar_Select_Cajon_Emoji();
         document.getElementById(
           "Archivero_Nota_Overlay"
         )?.classList.remove("Activo");
@@ -40494,9 +40785,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Inp_Emoji.type = "text";
           Inp_Emoji.value = Cat.Emoji;
           Inp_Emoji.className = "Config_Cat_Input Config_Cat_Input_Emoji Con_Selector_Emoji";
+          const Vista_Emoji = document.createElement("span");
+          Vista_Emoji.className = "Config_Cat_Emoji_Vista";
+          Aplicar_Emoji_En_Elemento(
+            Vista_Emoji,
+            Cat.Emoji || "🏷️"
+          );
           Inp_Emoji.title = t("config.cat_emoji_title");
           Inp_Emoji.addEventListener("input", () => {
             Cat.Emoji = Inp_Emoji.value.trim() || "🏷️";
+            Aplicar_Emoji_En_Elemento(
+              Vista_Emoji,
+              Cat.Emoji
+            );
           });
 
           const Inp_Nombre = document.createElement("input");
@@ -40569,6 +40870,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
 
           Fila.appendChild(Inp_Emoji);
+          Fila.appendChild(Vista_Emoji);
           Fila.appendChild(Inp_Nombre);
           Fila.appendChild(Inp_Color);
           Fila.appendChild(Btn_Meta);
@@ -40613,10 +40915,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Input_Emoji = document.getElementById("Cfg_Cat_Emoji");
         const Input_Color = document.getElementById("Cfg_Cat_Color");
         const Input_Nombre = document.getElementById("Cfg_Cat_Nombre");
+        const Vista_Nueva = document.getElementById(
+          "Cfg_Cat_Emoji_Vista"
+        );
+        const Refrescar_Vista_Nueva = () => {
+          if (!Vista_Nueva) return;
+          Aplicar_Emoji_En_Elemento(
+            Vista_Nueva,
+            (Input_Emoji?.value || "").trim() || "🏷️"
+          );
+        };
+        if (Input_Emoji) {
+          Input_Emoji.oninput = Refrescar_Vista_Nueva;
+        }
         if (Input_Color && !Input_Color.value) {
           Input_Color.value =
             Obtener_Color_Preset_Categoria(Categorias.length);
         }
+        Refrescar_Vista_Nueva();
         [Input_Emoji, Input_Color, Input_Nombre].forEach((Input) => {
           if (!Input) return;
           Input.onkeydown = (Ev) => {
