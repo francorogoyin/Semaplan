@@ -243,7 +243,7 @@ async ({ page }) => {
   expect(page.url()).toBe(Url_Antes);
 });
 
-test("more apps muestra enlaces sin titulo duplicado",
+test("more apps muestra enlaces muertos sin titulo duplicado",
 async ({ page }) => {
   await Preparar(page, Crear_Estado("Hamburguesa"));
 
@@ -266,7 +266,10 @@ async ({ page }) => {
     ).map((Link) => ({
       nombre: Link.querySelector(".Otras_Apps_Nombre")
         ?.textContent?.trim() || "",
+      descripcion: Link.querySelector(".Otras_Apps_Desc")
+        ?.textContent?.trim() || "",
       href: Link.getAttribute("href") || "",
+      onclick: Link.getAttribute("onclick") || "",
       target: Link.getAttribute("target") || "",
       rel: Link.getAttribute("rel") || ""
     }));
@@ -294,15 +297,47 @@ async ({ page }) => {
   expect(resultado.links).toEqual([
     {
       nombre: "Highlighter",
-      href: "https://example.com/highlighter",
-      target: "_blank",
-      rel: "noopener noreferrer"
+      descripcion:
+        "Próximamente: app para extraer y organizar " +
+        "recortes de libros.",
+      href: "#",
+      onclick: "event.preventDefault()",
+      target: "",
+      rel: ""
     },
     {
       nombre: "Mascoter",
-      href: "https://example.com/mascoter",
-      target: "_blank",
-      rel: "noopener noreferrer"
+      descripcion:
+        "Próximamente: software de administración para " +
+        "pet shops.",
+      href: "#",
+      onclick: "event.preventDefault()",
+      target: "",
+      rel: ""
+    },
+    {
+      nombre: "Potredata",
+      descripcion:
+        "Próximamente: buscador minucioso de " +
+        "estadísticas de fútbol.",
+      href: "#",
+      onclick: "event.preventDefault()",
+      target: "",
+      rel: ""
+    },
+    {
+      nombre: "BotAFIP",
+      descripcion:
+        "Próximamente: bot para facturar " +
+        "automáticamente en AFIP.",
+      href: "#",
+      onclick: "event.preventDefault()",
+      target: "",
+      rel: ""
     }
   ]);
+
+  const Url_Antes = page.url();
+  await page.locator(".Otras_Apps_Item").first().click();
+  expect(page.url()).toBe(Url_Antes);
 });
