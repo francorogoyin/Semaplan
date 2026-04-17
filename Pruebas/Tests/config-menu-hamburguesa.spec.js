@@ -298,8 +298,8 @@ async ({ page }) => {
     {
       nombre: "Highlighter",
       descripcion:
-        "Próximamente: app para extraer y organizar " +
-        "recortes de libros.",
+        "App para extraer y organizar recortes " +
+        "de libros. Próximamente.",
       href: "#",
       onclick: "event.preventDefault()",
       target: "",
@@ -308,8 +308,8 @@ async ({ page }) => {
     {
       nombre: "Mascoter",
       descripcion:
-        "Próximamente: software de administración para " +
-        "pet shops.",
+        "Software de administración para pet shops. " +
+        "Próximamente.",
       href: "#",
       onclick: "event.preventDefault()",
       target: "",
@@ -318,8 +318,8 @@ async ({ page }) => {
     {
       nombre: "Potredata",
       descripcion:
-        "Próximamente: buscador minucioso de " +
-        "estadísticas de fútbol.",
+        "Buscador minucioso de estadísticas de fútbol. " +
+        "Próximamente.",
       href: "#",
       onclick: "event.preventDefault()",
       target: "",
@@ -328,8 +328,8 @@ async ({ page }) => {
     {
       nombre: "BotAFIP",
       descripcion:
-        "Próximamente: bot para facturar " +
-        "automáticamente en AFIP.",
+        "Bot para facturar automáticamente en AFIP. " +
+        "Próximamente.",
       href: "#",
       onclick: "event.preventDefault()",
       target: "",
