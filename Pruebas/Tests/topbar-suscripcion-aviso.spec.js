@@ -325,6 +325,11 @@ async ({ page }) => {
     const Stripe_Fondo = document.querySelector(
       "#Pago_Premium_Stripe_Link .Pago_Premium_Logo"
     );
+    const Rect_Mercado = Mercado_Img.getBoundingClientRect();
+    const Rect_Stripe = Stripe_Img.getBoundingClientRect();
+    const Estilo_Opcion = window.getComputedStyle(
+      document.getElementById("Pago_Premium_Mercado_Link")
+    );
     return {
       mercadoCargado:
         Mercado_Img.complete && Mercado_Img.naturalWidth > 0,
@@ -333,13 +338,21 @@ async ({ page }) => {
       mercadoFondo:
         window.getComputedStyle(Mercado_Fondo).backgroundColor,
       stripeFondo:
-        window.getComputedStyle(Stripe_Fondo).backgroundColor
+        window.getComputedStyle(Stripe_Fondo).backgroundColor,
+      mercadoLogoAncho: Rect_Mercado.width,
+      stripeLogoAncho: Rect_Stripe.width,
+      cardMinHeight: Estilo_Opcion.minHeight,
+      cardGap: Estilo_Opcion.gap
     };
   });
   expect(Logos.mercadoCargado).toBe(true);
   expect(Logos.stripeCargado).toBe(true);
   expect(Logos.mercadoFondo).toBe("rgb(232, 248, 255)");
   expect(Logos.stripeFondo).toBe("rgb(242, 239, 255)");
+  expect(Logos.stripeLogoAncho)
+    .toBeLessThan(Logos.mercadoLogoAncho);
+  expect(Logos.cardMinHeight).toBe("218px");
+  expect(Logos.cardGap).toBe("18px");
   const Precio = await Mercado.locator(
     ".Pago_Premium_Monto"
   ).evaluate((Nodo) => {
@@ -372,8 +385,8 @@ async ({ page }) => {
     return {
       signoALaIzquierda:
         Rect_Signo.right <= Rect_Numero.left,
-      decimalesArriba:
-        Rect_Decimales.bottom < Rect_Numero.bottom,
+      decimalesAbajo:
+        Rect_Decimales.top > Rect_Numero.top + 14,
       monedaALaDerecha:
         Rect_Moneda.left > Rect_Decimales.right,
       fontSigno: Estilo_Signo.fontSize,
@@ -384,11 +397,11 @@ async ({ page }) => {
     };
   });
   expect(Precio.signoALaIzquierda).toBe(true);
-  expect(Precio.decimalesArriba).toBe(true);
+  expect(Precio.decimalesAbajo).toBe(true);
   expect(Precio.monedaALaDerecha).toBe(true);
   expect(Precio.fontSigno).toBe("38px");
   expect(Precio.fontNumero).toBe("38px");
-  expect(Precio.fontDecimales).toBe("16px");
+  expect(Precio.fontDecimales).toBe("11px");
   expect(Precio.fontMoneda).toBe("11px");
   expect(Precio.fontPeriodo).toBe("11px");
 
