@@ -218,7 +218,7 @@ async ({ page }) => {
   expect(Precio.precio).toBe("$7.499");
   expect(Precio.moneda).toBe("ARS");
   expect(Precio.nota).toBe(
-    "Pago internacional: 5 USD"
+    "Pago internacional: 4,99 USD"
   );
   expect(Precio.freeBadge).toBe("Free");
   expect(Precio.titulosGrandes).toBe(0);
@@ -281,20 +281,32 @@ async ({ page }) => {
     .toHaveAttribute("src", /Mercado_Pago\.svg$/);
   await expect(Mercado.locator(".Pago_Premium_Logo_Img"))
     .toHaveAttribute("alt", "Mercado Pago");
+  await expect(Mercado.locator(".Pago_Premium_Signo"))
+    .toHaveText("$");
   await expect(Mercado.locator(".Pago_Premium_Numero"))
     .toHaveText("7.499");
+  await expect(Mercado.locator(".Pago_Premium_Decimales"))
+    .toHaveText(",99");
   await expect(Mercado.locator(".Pago_Premium_Moneda"))
     .toHaveText("ARS");
+  await expect(Mercado.locator(".Pago_Premium_Periodo"))
+    .toHaveText("Mensuales");
   await expect(Mercado).not.toContainText("Pago nacional");
   await expect(Mercado).not.toContainText("Mercado Pago");
   await expect(Stripe.locator(".Pago_Premium_Logo_Img"))
     .toHaveAttribute("src", /Stripe\.svg$/);
   await expect(Stripe.locator(".Pago_Premium_Logo_Img"))
     .toHaveAttribute("alt", "Stripe");
+  await expect(Stripe.locator(".Pago_Premium_Signo"))
+    .toHaveText("$");
   await expect(Stripe.locator(".Pago_Premium_Numero"))
-    .toHaveText("5");
+    .toHaveText("4");
+  await expect(Stripe.locator(".Pago_Premium_Decimales"))
+    .toHaveText(",99");
   await expect(Stripe.locator(".Pago_Premium_Moneda"))
     .toHaveText("USD");
+  await expect(Stripe.locator(".Pago_Premium_Periodo"))
+    .toHaveText("Mensuales");
   await expect(Stripe).not.toContainText("Pago internacional");
   await expect(Stripe).not.toContainText("stripe");
   await expect(Stripe).toHaveAttribute("href", "#");
@@ -331,26 +343,54 @@ async ({ page }) => {
   const Precio = await Mercado.locator(
     ".Pago_Premium_Monto"
   ).evaluate((Nodo) => {
+    const Signo = Nodo.querySelector(
+      ".Pago_Premium_Signo"
+    );
     const Numero = Nodo.querySelector(
       ".Pago_Premium_Numero"
+    );
+    const Decimales = Nodo.querySelector(
+      ".Pago_Premium_Decimales"
     );
     const Moneda = Nodo.querySelector(
       ".Pago_Premium_Moneda"
     );
+    const Periodo = Nodo.closest(
+      ".Pago_Premium_Precio"
+    ).querySelector(".Pago_Premium_Periodo");
+    const Rect_Signo = Signo.getBoundingClientRect();
     const Rect_Numero = Numero.getBoundingClientRect();
+    const Rect_Decimales = Decimales.getBoundingClientRect();
     const Rect_Moneda = Moneda.getBoundingClientRect();
+    const Estilo_Signo = window.getComputedStyle(Signo);
     const Estilo_Numero = window.getComputedStyle(Numero);
+    const Estilo_Decimales = window.getComputedStyle(
+      Decimales
+    );
     const Estilo_Moneda = window.getComputedStyle(Moneda);
+    const Estilo_Periodo = window.getComputedStyle(Periodo);
     return {
+      signoALaIzquierda:
+        Rect_Signo.right <= Rect_Numero.left,
+      decimalesArriba:
+        Rect_Decimales.bottom < Rect_Numero.bottom,
       monedaALaDerecha:
-        Rect_Moneda.left > Rect_Numero.right,
+        Rect_Moneda.left > Rect_Decimales.right,
+      fontSigno: Estilo_Signo.fontSize,
       fontNumero: Estilo_Numero.fontSize,
-      fontMoneda: Estilo_Moneda.fontSize
+      fontDecimales: Estilo_Decimales.fontSize,
+      fontMoneda: Estilo_Moneda.fontSize,
+      fontPeriodo: Estilo_Periodo.fontSize
     };
   });
+  expect(Precio.signoALaIzquierda).toBe(true);
+  expect(Precio.decimalesArriba).toBe(true);
   expect(Precio.monedaALaDerecha).toBe(true);
-  expect(Precio.fontNumero).toBe("32px");
+  expect(Precio.fontSigno).toBe("38px");
+  expect(Precio.fontNumero).toBe("38px");
+  expect(Precio.fontDecimales).toBe("16px");
   expect(Precio.fontMoneda).toBe("11px");
+  expect(Precio.fontPeriodo).toBe("11px");
 
   await Stripe.click();
   await expect(Modal).toHaveClass(/Activo/);
