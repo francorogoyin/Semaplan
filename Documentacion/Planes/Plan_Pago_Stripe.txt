@@ -1,0 +1,265 @@
+Semaplan - Configurar Pago Stripe (desde cero)
+
+Contexto (estado actual en la pagina)
+
+- En index.html existe la opcion visual de Stripe:
+  - Link: Pago_Premium_Stripe_Link (href "#").
+  - Click: solo Ev.preventDefault().
+- El flujo real hoy es Mercado Pago:
+  - Boton MP llama a Iniciar_Checkout_Mp().
+  - Edge Functions: crear-suscripcion, estado-suscripcion,
+    cancelar-suscripcion, webhook-mp.
+- No hay integracion de Stripe implementada.
+
+Objetivo
+
+Dejar Stripe funcionando para pagos internacionales de Premium
+(USD mensual), con desbloqueo automatico de Premium en Semaplan
+via webhook.
+
+Definiciones recomendadas
+
+- Precio: USD 6.99 / mensual (internacional).
+- Estrategia: Stripe Checkout (suscripcion) + Webhook.
+- Identidad: usuario de Supabase (Usuario.id) como referencia
+  primaria en Stripe (client_reference_id y metadata.usuario_id).
+
+Parte 1: Crear cuenta de Stripe (manual)
+
+1) Crear cuenta
+   - Ir a stripe.com y crear cuenta.
+   - Completar email, password, verificacion.
+
+2) Activar modo test
+   - Trabajar primero en "Test mode".
+
+3) Completar datos minimos
+   - Completar el onboarding requerido por Stripe.
+   - No pasar a live hasta que test este OK.
+
+Parte 2: Crear producto y precio (manual)
+
+1) Crear producto
+   - Dashboard -> Product catalog -> Add product.
+   - Nombre sugerido:
+     "Semaplan Premium Internacional".
+
+2) Crear precio recurrente
+   - Pricing model: Standard pricing.
+   - Price: 6.99
+   - Currency: USD
+   - Recurring: Monthly
+   - Guardar el identificador:
+     STRIPE_PRICE_PREMIUM_USD = price_...
+
+Nota
+Si ya existe un precio, usar el mismo price_... para evitar
+fragmentar suscripciones.
+
+Parte 3: Webhook y eventos (manual)
+
+Objetivo del webhook
+
+- Recibir eventos de Stripe para:
+  - Marcar Premium activo.
+  - Registrar historial.
+  - Marcar Premium inactivo al cancelar o fallar.
+
+Eventos minimos recomendados
+
+- checkout.session.completed
+- customer.subscription.updated
+- customer.subscription.deleted
+- invoice.paid
+- invoice.payment_failed
+
+Parte 4: Secrets en Supabase (manual)
+
+Se necesita guardar secrets para Edge Functions.
+
+Crear / setear estos secrets:
+
+- STRIPE_SECRET_KEY
+  - Test: sk_test_...
+  - Live: sk_live_...
+- STRIPE_WEBHOOK_SECRET
+  - Test: whsec_...
+  - Live: whsec_...
+- STRIPE_PRICE_PREMIUM_USD
+  - price_... (del precio mensual USD)
+- SEMAPLAN_URL
+  - Produccion: https://semaplan.com
+  - Staging (si existe): URL de staging
+
+Si usas Supabase CLI:
+
+  npx supabase secrets set STRIPE_SECRET_KEY=...
+  npx supabase secrets set STRIPE_WEBHOOK_SECRET=...
+  npx supabase secrets set STRIPE_PRICE_PREMIUM_USD=...
+  npx supabase secrets set SEMAPLAN_URL=https://semaplan.com
+
+Parte 5: URLs de retorno (manual)
+
+Checkout Session requiere URLs de retorno.
+
+- success_url: SEMAPLAN_URL + "/?pago=stripe_ok"
+- cancel_url:  SEMAPLAN_URL + "/?pago=stripe_cancel"
+
+Nota
+Semaplan hoy usa window.location.origin + pathname como back
+en Mercado Pago. En Stripe lo ideal es usar SEMAPLAN_URL para
+no depender del path.
+
+Parte 6: Customer Portal (opcional, manual)
+
+Para que el usuario pueda:
+- Ver facturas
+- Actualizar tarjeta
+- Cancelar suscripcion
+
+Habilitar:
+- Dashboard -> Settings -> Billing -> Customer portal.
+
+Parte 7: Modelo de datos (Semaplan)
+
+Hoy la tabla public.suscripciones esta centrada en Mercado Pago:
+- mp_preapproval_id
+- mp_plan_id
+
+Recomendacion para Stripe
+
+Agregar campos a suscripciones para permitir ambos proveedores:
+
+- proveedor TEXT (mp | stripe)
+- stripe_customer_id TEXT
+- stripe_subscription_id TEXT
+- stripe_checkout_session_id TEXT
+- stripe_price_id TEXT
+
+Y mantener:
+- estado TEXT
+- payer_email TEXT
+- monto NUMERIC
+- moneda TEXT
+- detalle JSONB
+
+Decision de estados
+
+Semaplan hoy considera "authorized" como activo.
+Opciones:
+
+A) Mapear Stripe active/trialing -> "authorized"
+   - Menos cambios en frontend.
+B) Aceptar estados Stripe (active, trialing, etc)
+   - Requiere ampliar Suscripcion_Sigue_Vigente() en
+     index.html y edge functions.
+
+Recomendacion: A (arranque rapido).
+
+Parte 8: Tareas de codigo (para Codex)
+
+Despues de que termines lo manual, Codex debe:
+
+1) Implementar Edge Function crear-suscripcion-stripe
+   - Validar sesion Supabase (Authorization header).
+   - Crear o reusar Customer en Stripe.
+   - Crear Checkout Session (mode subscription) con:
+     - price = STRIPE_PRICE_PREMIUM_USD
+     - quantity = 1
+     - client_reference_id = Usuario.id
+     - metadata.usuario_id = Usuario.id
+     - metadata.payer_email = Usuario.email (si existe)
+     - success_url / cancel_url (ver arriba)
+   - Guardar un registro "pending" en suscripciones con:
+     - proveedor = "stripe"
+     - stripe_checkout_session_id
+     - stripe_price_id
+     - payer_email
+     - moneda = "USD"
+     - monto = 6.99
+   - Responder { Url: session.url }.
+
+2) Implementar Edge Function webhook-stripe
+   - Validar firma Stripe-Signature con raw body y
+     STRIPE_WEBHOOK_SECRET.
+   - Para checkout.session.completed:
+     - Leer client_reference_id o metadata.usuario_id.
+     - Guardar stripe_customer_id y stripe_subscription_id.
+     - Actualizar suscripciones:
+       estado = "authorized"
+       detalle = payload
+   - Para invoice.payment_failed:
+     - Marcar estado = "paused" o "cancelled" segun criterio.
+   - Para customer.subscription.deleted:
+     - Marcar estado = "cancelled".
+   - Insertar en suscripciones_historial (si aplica) igual que MP.
+
+3) Conectar UI de Stripe en index.html
+   - Agregar Iniciar_Checkout_Stripe() similar a MP:
+     - deshabilitar boton/link, setear "Procesando".
+     - Invocar Edge Function crear-suscripcion-stripe.
+     - Redirigir a Datos.Url.
+     - Mostrar dialogos de error traducidos si falla.
+   - En el listener de Pago_Premium_Stripe_Link:
+     llamar a Iniciar_Checkout_Stripe().
+
+4) Ajustar cancelacion de suscripcion
+   - Hoy Cuenta_Cancelar_Suscripcion exige mp_preapproval_id.
+   - Para Stripe hay dos vias:
+     A) Customer Portal (recomendado):
+        - Edge Function portal-stripe que devuelve URL portal.
+        - Boton "Cancelar" redirige a portal si proveedor=stripe.
+     B) Cancelar directo por API (menos amigable):
+        - Edge Function cancelar-suscripcion-stripe.
+
+5) Actualizar lectura de estado
+   - estado-suscripcion ya devuelve Suscripcion e Historial.
+   - Para arrancar, si mapeas a "authorized", no hace falta
+     tocar Suscripcion_Sigue_Vigente().
+
+6) Pruebas (Codex)
+   - Agregar test E2E Playwright que:
+     - Abre modal de Premium.
+     - Verifica que el link de Stripe no sea # o que
+       al click dispare la llamada a la edge function.
+   - No intentar completar checkout real en Playwright.
+
+Parte 9: Checklist de validacion manual
+
+En Test mode:
+
+1) Click en "Internacional (Stripe)".
+   - Debe redirigir a Stripe Checkout.
+
+2) Completar checkout con tarjeta de prueba.
+   - Verificar que vuelve a Semaplan (success_url).
+
+3) Verificar desbloqueo Premium
+   - Recargar Semaplan.
+   - Verificar que Archivero/funciones Premium estan habilitadas.
+
+4) Verificar cancelacion
+   - Via portal o via API.
+   - Confirmar que Semaplan vuelve a plan Free tras el evento.
+
+Parte 10: Instrucciones para Codex (operativas)
+
+Cuando yo (usuario) termine lo manual, le voy a pasar a Codex:
+
+- STRIPE_PRICE_PREMIUM_USD (price_...)
+- Confirmacion de que ya setee:
+  STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SEMAPLAN_URL
+- Si habilite Customer Portal (si/no)
+
+Codex debe:
+
+- No asumir que Stripe existe: validar en el repo que el link
+  de Stripe hoy esta muerto (href "#").
+- Implementar la integracion sin librerias externas en el
+  frontend (index.html).
+- Mantener estilos de Semaplan:
+  - Pascal_Snake_Case en variables, funciones, clases CSS.
+  - Textos en espanol y traducidos a todos los idiomas.
+  - Lineas <= 70 caracteres.
+- Mantener Mercado Pago funcionando sin cambios de comportamiento.
+

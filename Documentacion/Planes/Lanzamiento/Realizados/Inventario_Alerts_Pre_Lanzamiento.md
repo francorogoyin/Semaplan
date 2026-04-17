@@ -1,5 +1,8 @@
 # Inventario de alerts pre lanzamiento
 
+Estado: Realizado.
+Fecha: 2026-04-17 10:55 (America/Buenos_Aires).
+
 Fecha de corte: 2026-04-15
 
 ## Estado actual
