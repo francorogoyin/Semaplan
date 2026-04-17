@@ -167,6 +167,7 @@ test("muestra la nota del bloque tras 2 segundos de hover", async ({
   page
 }) => {
   const estado = Crear_Estado_Base();
+  estado.Config_Extra.Notas_Hover = true;
   estado.Objetivos = [
     {
       Id: "T1",
@@ -225,7 +226,7 @@ test("muestra la nota del bloque tras 2 segundos de hover", async ({
     )
   ).toBeLessThan(3);
 
-  await marca.click();
+  await page.mouse.move(4, 4);
   await expect(page.locator(".Evento_Nota_Popup"))
     .toHaveCount(0);
 
@@ -233,10 +234,65 @@ test("muestra la nota del bloque tras 2 segundos de hover", async ({
   await expect(popupNota).toHaveText(
     "Nota visible por hover"
   );
+});
 
-  await page.mouse.move(4, 4);
+test("con notas hover desactivado, no abre nota por hover", async ({
+  page
+}) => {
+  const estado = Crear_Estado_Base();
+  estado.Config_Extra.Notas_Hover = false;
+  estado.Objetivos = [
+    {
+      Id: "T3",
+      Nombre: "Bloque con nota y abordaje",
+      Emoji: "📝",
+      Color: "#1f6b4f",
+      Categoria_Id: null,
+      Etiquetas_Ids: [],
+      Metadatos: {},
+      Estado: "Activa",
+      Archivada: false,
+      Horas_Aprox: 0,
+      Timeline: null,
+      Orden_Personalizado: 1
+    }
+  ];
+  estado.Eventos = [
+    {
+      Id: "E3",
+      Objetivo_Id: "T3",
+      Fecha: "2026-04-13",
+      Inicio: 10,
+      Duracion: 1,
+      Hecho: false,
+      Color: "#1f6b4f",
+      Nota: "No debe abrirse por hover",
+      Abordaje: [
+        {
+          Id: "A3",
+          Emoji: "•",
+          Texto: "Paso de abordaje",
+          Estado: "Planeado"
+        }
+      ]
+    }
+  ];
+
+  await Preparar(page, estado);
+
+  const bloque = page.locator('.Evento[data-id="E3"]');
+  const marca = bloque.locator(".Evento_Nota_Marca");
+  await bloque.hover();
+  await page.waitForTimeout(2100);
+
   await expect(page.locator(".Evento_Nota_Popup"))
     .toHaveCount(0);
+  await expect(page.locator(".Evento_Abordaje_Popup"))
+    .toContainText("Paso de abordaje");
+
+  await marca.click();
+  await expect(page.locator(".Evento_Nota_Popup"))
+    .toHaveText("No debe abrirse por hover");
 });
 
 test("mantiene el popup de abordaje si el bloque no tiene nota", async ({

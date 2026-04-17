@@ -5235,18 +5235,6 @@
         border-bottom: 1px solid var(--Borde);
       }
 
-      .Config_Cat_Emoji_Vista {
-        width: 28px;
-        height: 28px;
-        border: 1px solid var(--Borde);
-        border-radius: 8px;
-        background: #fff;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 auto;
-      }
-
       .Config_Cat_Bloque {
         border-bottom: 1px solid var(--Borde);
         padding: 4px 0 10px;
@@ -6041,16 +6029,7 @@
       .Config_Cat_Input_Emoji {
         width: 44px;
         text-align: center;
-      }
-
-      .Config_Cat_Input_Emoji_Oculto {
-        color: transparent;
-        font-size: 0;
-        caret-color: transparent;
-      }
-
-      .Config_Cat_Input_Emoji_Oculto::selection {
-        background: transparent;
+        font-size: 18px;
       }
 
       .Config_Cat_Input_Nombre {
@@ -12372,13 +12351,10 @@
                 <input type="text"
                   class="Config_Cat_Input
                     Config_Cat_Input_Emoji
-                    Config_Cat_Input_Emoji_Oculto
                     Con_Selector_Emoji"
                   id="Cfg_Cat_Emoji"
-                  placeholder="😀"
+                  placeholder="•"
                   maxlength="4">
-                <span class="Config_Cat_Emoji_Vista"
-                  id="Cfg_Cat_Emoji_Vista"></span>
                 <input type="color"
                   class="Config_Cat_Input"
                   id="Cfg_Cat_Color">
@@ -40801,24 +40777,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           const Inp_Emoji = document.createElement("input");
           Inp_Emoji.type = "text";
-          Inp_Emoji.value = Cat.Emoji;
+          Inp_Emoji.value = Cat.Emoji || "•";
           Inp_Emoji.className =
             "Config_Cat_Input Config_Cat_Input_Emoji " +
-            "Config_Cat_Input_Emoji_Oculto " +
             "Con_Selector_Emoji";
-          const Vista_Emoji = document.createElement("span");
-          Vista_Emoji.className = "Config_Cat_Emoji_Vista";
-          Aplicar_Emoji_En_Elemento(
-            Vista_Emoji,
-            Cat.Emoji || "🏷️"
-          );
           Inp_Emoji.title = t("config.cat_emoji_title");
           Inp_Emoji.addEventListener("input", () => {
-            Cat.Emoji = Inp_Emoji.value.trim() || "🏷️";
-            Aplicar_Emoji_En_Elemento(
-              Vista_Emoji,
-              Cat.Emoji
-            );
+            Cat.Emoji = Inp_Emoji.value.trim() || "•";
           });
 
           const Inp_Nombre = document.createElement("input");
@@ -40891,7 +40856,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
 
           Fila.appendChild(Inp_Emoji);
-          Fila.appendChild(Vista_Emoji);
           Fila.appendChild(Inp_Nombre);
           Fila.appendChild(Inp_Color);
           Fila.appendChild(Btn_Meta);
@@ -40905,8 +40869,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Btn_Agregar = document.getElementById("Cfg_Cat_Agregar");
         const Nueva_Fn = () => {
           const Emoji_Val = (
-            document.getElementById("Cfg_Cat_Emoji")?.value || "🏷️"
-          ).trim() || "🏷️";
+            document.getElementById("Cfg_Cat_Emoji")?.value || "•"
+          ).trim() || "•";
           const Color_Val =
             Normalizar_Color_Hex(
               document.getElementById("Cfg_Cat_Color")?.value
@@ -40936,24 +40900,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Input_Emoji = document.getElementById("Cfg_Cat_Emoji");
         const Input_Color = document.getElementById("Cfg_Cat_Color");
         const Input_Nombre = document.getElementById("Cfg_Cat_Nombre");
-        const Vista_Nueva = document.getElementById(
-          "Cfg_Cat_Emoji_Vista"
-        );
-        const Refrescar_Vista_Nueva = () => {
-          if (!Vista_Nueva) return;
-          Aplicar_Emoji_En_Elemento(
-            Vista_Nueva,
-            (Input_Emoji?.value || "").trim() || "🏷️"
-          );
-        };
-        if (Input_Emoji) {
-          Input_Emoji.oninput = Refrescar_Vista_Nueva;
-        }
         if (Input_Color && !Input_Color.value) {
           Input_Color.value =
             Obtener_Color_Preset_Categoria(Categorias.length);
         }
-        Refrescar_Vista_Nueva();
         [Input_Emoji, Input_Color, Input_Nombre].forEach((Input) => {
           if (!Input) return;
           Input.onkeydown = (Ev) => {
@@ -56371,6 +56321,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
             Hover_Timer_Id = setTimeout(() => {
               if (
+                Config.Notas_Hover &&
                 typeof Evento.Nota === "string"
                 && Evento.Nota.trim()
               ) {
