@@ -218,7 +218,7 @@ async ({ page }) => {
   expect(Precio.precio).toBe("$7.499");
   expect(Precio.moneda).toBe("ARS");
   expect(Precio.nota).toBe(
-    "Pago internacional: 4,99 USD"
+    "Pago internacional: 6,99 USD"
   );
   expect(Precio.freeBadge).toBe("Free");
   expect(Precio.titulosGrandes).toBe(0);
@@ -300,7 +300,7 @@ async ({ page }) => {
   await expect(Stripe.locator(".Pago_Premium_Signo"))
     .toHaveText("$");
   await expect(Stripe.locator(".Pago_Premium_Numero"))
-    .toHaveText("4");
+    .toHaveText("6");
   await expect(Stripe.locator(".Pago_Premium_Decimales"))
     .toHaveText(",99");
   await expect(Stripe.locator(".Pago_Premium_Moneda"))
@@ -434,4 +434,34 @@ async ({ page }) => {
   );
   await expect(Mensaje).not.toContainText("Edge Function");
   await expect(Mensaje).not.toContainText("non-2xx");
+});
+
+test("no pide login si Mercado Pago rechaza con sesion local",
+async ({ page }) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Usuario_Actual = {
+      id: "usuario-test",
+      email: "test@semaplan.com"
+    };
+    Abrir_Suscripcion();
+    Invocar_Edge_Con_Sesion = async () => ({
+      data: null,
+      error: {
+        message:
+          "Edge Function returned a non-2xx status code",
+        status: 403,
+        response: { error: "forbidden" }
+      }
+    });
+  });
+  await page.click("#Suscripcion_Elegir_Upgrade");
+  await page.click("#Pago_Premium_Mercado_Link");
+
+  const Mensaje = page.locator("#Dialogo_Mensaje");
+  await expect(Mensaje).toContainText(
+    "No se pudo abrir Mercado Pago"
+  );
+  await expect(Mensaje).not.toContainText("Iniciá sesión");
 });

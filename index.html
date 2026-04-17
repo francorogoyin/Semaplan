@@ -13563,7 +13563,7 @@
                     hidden>Este es tu plan</div>
                   <div class="Suscripcion_Nota_Internacional"
                     data-i18n="suscripcion.pagos_internacionales">
-                    Pago internacional: 4,99 USD
+                    Pago internacional: 6,99 USD
                   </div>
                 </div>
               </div>
@@ -13632,7 +13632,7 @@
                   <strong class="Pago_Premium_Precio">
                     <span class="Pago_Premium_Monto">
                       <span class="Pago_Premium_Signo">$</span>
-                      <span class="Pago_Premium_Numero">4</span>
+                      <span class="Pago_Premium_Numero">6</span>
                       <span class="Pago_Premium_Decimales">,99</span>
                       <span class="Pago_Premium_Moneda">USD</span>
                     </span>
@@ -16655,7 +16655,7 @@
           "suscripcion.mensuales":
             "Mensuales",
           "suscripcion.pagos_internacionales":
-            "Pago internacional: 4,99 USD",
+            "Pago internacional: 6,99 USD",
           "suscripcion.usar_free":
             "Usar Free",
           "suscripcion.activar_trial":
@@ -19359,7 +19359,7 @@
           "suscripcion.premium": "Premium",
           "suscripcion.mensuales": "Monthly",
           "suscripcion.pagos_internacionales":
-            "International payment: USD 4.99",
+            "International payment: USD 6.99",
           "suscripcion.usar_free":
             "Use Free",
           "suscripcion.activar_trial":
@@ -22092,7 +22092,7 @@
           "suscripcion.mensuales":
             "Mensais",
           "suscripcion.pagos_internacionales":
-            "Pagamento internacional: USD 4,99",
+            "Pagamento internacional: USD 6,99",
           "suscripcion.usar_free":
             "Usar Free",
           "suscripcion.activar_trial":
@@ -39260,13 +39260,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Texto = String(
           Error?.message || ""
         ).toLowerCase();
+        const Codigo = String(
+          Error?.codigo || Error?.code || ""
+        ).toLowerCase();
         const Status = Number(Error?.status || 0);
+        const Es_Error_Sesion_Local =
+          Codigo === "sesion_local_invalida" ||
+          Codigo === "sesion_invalida";
+        if (Es_Error_Sesion_Local) {
+          return t("pago_premium.error_sesion");
+        }
         if (
-          Status === 401 ||
-          Status === 403 ||
-          Texto.includes("sesión inválida") ||
-          Texto.includes("sesion invalida") ||
-          Texto.includes("invalid session")
+          !Usuario_Actual &&
+          (
+            Status === 401 ||
+            Status === 403 ||
+            Texto.includes("sesión inválida") ||
+            Texto.includes("sesion invalida") ||
+            Texto.includes("invalid session")
+          )
         ) {
           return t("pago_premium.error_sesion");
         }
@@ -64150,7 +64162,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Sesion: null,
                 Error: {
                   message:
-                    "No se pudo renovar la sesión"
+                    "No se pudo renovar la sesión",
+                  codigo: "sesion_local_invalida"
                 }
               };
             }
@@ -64161,7 +64174,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (error) {
               return {
                 Sesion: null,
-                Error: error
+                Error: {
+                  ...error,
+                  codigo: "sesion_local_invalida"
+                }
               };
             }
             Sesion = data?.session || null;
@@ -64171,7 +64187,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             return {
               Sesion: null,
               Error: {
-                message: "Sesión inválida"
+                message: "Sesión inválida",
+                codigo: "sesion_local_invalida"
               }
             };
           }
