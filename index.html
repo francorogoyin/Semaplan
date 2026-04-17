@@ -12402,10 +12402,15 @@
                   data-i18n="config.etiquetas_hint"
                   >Marcas transversales para clasificar objetivos más allá de la categoría (proyectos, prioridad, energía, etc).</span>
               </p>
-              <div id="Cfg_Etiquetas_Lista"></div>
+              <div class="Archivero_Etiquetas_Gestion_Lista"
+                id="Cfg_Etiquetas_Lista"></div>
               <div class="Config_Cat_Nueva">
+                <span class="Archivero_Etiquetas_Gestion_Prefijo">
+                  #
+                </span>
                 <input type="text"
-                  class="Config_Cat_Input Config_Cat_Input_Nombre"
+                  class="Config_Cat_Input Config_Cat_Input_Nombre
+                    Archivero_Etiquetas_Gestion_Input"
                   id="Cfg_Etiqueta_Nombre"
                   data-i18n-ph="config.nueva_etiq_ph"
                   placeholder="Nueva etiqueta">
@@ -40963,76 +40968,91 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const El_Lista = document.getElementById("Cfg_Etiquetas_Lista");
         if (!El_Lista) return;
         El_Lista.innerHTML = "";
+        const Refrescar_Selectors = () => {
+          Render_Selector_Etiquetas(El_Etiquetas_Objetivo);
+          Render_Selector_Etiquetas(
+            El_Editor_Etiquetas_Input,
+            Obtener_Etiquetas_Seleccionadas(
+              El_Editor_Etiquetas_Input
+            ),
+            Actualizar_Borrador_Editor
+          );
+          Render_Selector_Etiquetas(
+            El_Baul_Etiquetas_Input,
+            Obtener_Etiquetas_Seleccionadas(
+              El_Baul_Etiquetas_Input
+            )
+          );
+          Poblar_Select_Etiquetas_Filtro(
+            El_Baul_Filtro_Etiqueta,
+            El_Baul_Filtro_Etiqueta?.value || ""
+          );
+        };
+        const Normalizar_Lista = () => {
+          const Resultado = [];
+          const Vistos = new Set();
+          Etiquetas.forEach((Etiqueta) => {
+            const Nombre = String(
+              Etiqueta?.Nombre || ""
+            ).trim();
+            const Clave =
+              Normalizar_Texto_Meta_Objetivo(Nombre);
+            if (!Clave || Vistos.has(Clave)) return;
+            Vistos.add(Clave);
+            Resultado.push({
+              Id: Etiqueta?.Id || Crear_Id_Etiqueta(),
+              Nombre
+            });
+          });
+          Etiquetas = Resultado;
+        };
+        Normalizar_Lista();
         Etiquetas.forEach((Etiqueta, Idx) => {
           const Fila = document.createElement("div");
-          Fila.className = "Config_Cat_Fila";
+          Fila.className = "Archivero_Etiquetas_Gestion_Fila";
+
+          const Prefijo = document.createElement("span");
+          Prefijo.className =
+            "Archivero_Etiquetas_Gestion_Prefijo";
+          Prefijo.textContent = "#";
 
           const Inp_Nombre = document.createElement("input");
           Inp_Nombre.type = "text";
           Inp_Nombre.value = Etiqueta.Nombre;
           Inp_Nombre.className =
-            "Config_Cat_Input Config_Cat_Input_Nombre";
+            "Config_Cat_Input Config_Cat_Input_Nombre " +
+            "Archivero_Etiquetas_Gestion_Input";
           Inp_Nombre.title = t("config.tag_nombre_title");
           Inp_Nombre.addEventListener("input", () => {
             Etiqueta.Nombre = Inp_Nombre.value.trim();
+            Refrescar_Selectors();
+          });
+          Inp_Nombre.addEventListener("blur", () => {
+            Etiqueta.Nombre = (Inp_Nombre.value || "").trim();
+            Normalizar_Lista();
+            Render_Config_Etiquetas();
+            Refrescar_Selectors();
+          });
+          Inp_Nombre.addEventListener("keydown", (Ev) => {
+            if (Ev.key !== "Enter") return;
+            Ev.preventDefault();
+            Inp_Nombre.blur();
           });
 
+          Fila.appendChild(Prefijo);
           Fila.appendChild(Inp_Nombre);
-
-          const Btn_Subir = document.createElement("button");
-          Btn_Subir.type = "button";
-          Btn_Subir.className = "Config_Cat_Btn";
-          Btn_Subir.textContent = "↑";
-          Btn_Subir.title = t("config.subir");
-          Btn_Subir.disabled = Idx === 0;
-          Btn_Subir.addEventListener("click", () => {
-            Etiquetas.splice(Idx, 1);
-            Etiquetas.splice(Idx - 1, 0, Etiqueta);
-            Render_Config_Etiquetas();
-          });
-
-          const Btn_Bajar = document.createElement("button");
-          Btn_Bajar.type = "button";
-          Btn_Bajar.className = "Config_Cat_Btn";
-          Btn_Bajar.textContent = "↓";
-          Btn_Bajar.title = t("config.bajar");
-          Btn_Bajar.disabled = Idx === Etiquetas.length - 1;
-          Btn_Bajar.addEventListener("click", () => {
-            Etiquetas.splice(Idx, 1);
-            Etiquetas.splice(Idx + 1, 0, Etiqueta);
-            Render_Config_Etiquetas();
-          });
 
           const Btn_Borrar = document.createElement("button");
           Btn_Borrar.type = "button";
-          Btn_Borrar.className = "Config_Cat_Btn";
+          Btn_Borrar.className = "Archivero_Nota_Mini_Btn";
           Btn_Borrar.textContent = "×";
           Btn_Borrar.title = t("config.borrar_etiqueta");
           Btn_Borrar.addEventListener("click", () => {
             Etiquetas.splice(Idx, 1);
             Render_Config_Etiquetas();
-            Render_Selector_Etiquetas(El_Etiquetas_Objetivo);
-            Render_Selector_Etiquetas(
-              El_Editor_Etiquetas_Input,
-              Obtener_Etiquetas_Seleccionadas(
-                El_Editor_Etiquetas_Input
-              ),
-              Actualizar_Borrador_Editor
-            );
-            Render_Selector_Etiquetas(
-              El_Baul_Etiquetas_Input,
-              Obtener_Etiquetas_Seleccionadas(
-                El_Baul_Etiquetas_Input
-              )
-            );
-            Poblar_Select_Etiquetas_Filtro(
-              El_Baul_Filtro_Etiqueta,
-              El_Baul_Filtro_Etiqueta?.value || ""
-            );
+            Refrescar_Selectors();
           });
 
-          Fila.appendChild(Btn_Subir);
-          Fila.appendChild(Btn_Bajar);
           Fila.appendChild(Btn_Borrar);
           El_Lista.appendChild(Fila);
         });
@@ -41040,22 +41060,45 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Btn_Agregar = document.getElementById(
           "Cfg_Etiqueta_Agregar"
         );
+        const Input_Nueva = document.getElementById(
+          "Cfg_Etiqueta_Nombre"
+        );
         const Nueva_Fn = () => {
           const Nombre = (
-            document.getElementById("Cfg_Etiqueta_Nombre")?.value || ""
+            Input_Nueva?.value || ""
           ).trim();
           if (!Nombre) return;
+          const Clave =
+            Normalizar_Texto_Meta_Objetivo(Nombre);
+          const Existe = Etiquetas.some((Etiqueta) => {
+            return Normalizar_Texto_Meta_Objetivo(
+              Etiqueta.Nombre
+            ) === Clave;
+          });
+          if (Existe) {
+            if (Input_Nueva) Input_Nueva.value = "";
+            return;
+          }
           Etiquetas.push({
             Id: Crear_Id_Etiqueta(),
             Nombre
           });
-          document.getElementById("Cfg_Etiqueta_Nombre").value = "";
+          if (Input_Nueva) Input_Nueva.value = "";
+          Normalizar_Lista();
           Render_Config_Etiquetas();
+          Refrescar_Selectors();
         };
         if (Btn_Agregar) {
           const Clon = Btn_Agregar.cloneNode(true);
           Btn_Agregar.parentNode.replaceChild(Clon, Btn_Agregar);
           Clon.addEventListener("click", Nueva_Fn);
+        }
+        if (Input_Nueva) {
+          Input_Nueva.onkeydown = (Ev) => {
+            if (Ev.key !== "Enter") return;
+            Ev.preventDefault();
+            Nueva_Fn();
+          };
         }
       }
 
