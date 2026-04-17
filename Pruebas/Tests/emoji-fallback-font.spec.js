@@ -226,6 +226,25 @@ test("renderiza emojis visibles como imagenes", async ({
     window.Render_Config_Patrones();
     window.Construir_Selector_Emojis();
     await new Promise((resolve) => setTimeout(resolve, 50));
+
+    const Abordaje = document.createElement("span");
+    Abordaje.className = "Abordaje_Item_Emoji";
+    Abordaje.textContent = "🧪";
+    document.body.appendChild(Abordaje);
+    const Abordaje_Font =
+      getComputedStyle(Abordaje).fontFamily || "";
+    Abordaje.remove();
+
+    const Select = document.createElement("select");
+    Select.className = "Config_Select";
+    const Opt = document.createElement("option");
+    Opt.value = "1";
+    Opt.textContent = "🧪 Tipo";
+    Select.appendChild(Opt);
+    document.body.appendChild(Select);
+    const Select_Font =
+      getComputedStyle(Select).fontFamily || "";
+    Select.remove();
     return {
       sidebar:
         !!document.querySelector(".Emoji_Item img.Emoji_Img"),
@@ -251,7 +270,9 @@ test("renderiza emojis visibles como imagenes", async ({
       selectorBtn:
         !!document.querySelector(
           ".Selector_Emojis_Btn img.Emoji_Img"
-        )
+        ),
+      abordajeFont: Abordaje_Font,
+      configSelectFont: Select_Font
     };
   });
 
@@ -264,6 +285,8 @@ test("renderiza emojis visibles como imagenes", async ({
   expect(resultado.patron).toBeTruthy();
   expect(resultado.selectorTab).toBeTruthy();
   expect(resultado.selectorBtn).toBeTruthy();
+  expect(resultado.abordajeFont).toContain("Segoe UI Emoji");
+  expect(resultado.configSelectFont).toContain("Segoe UI Emoji");
 });
 
 test("usa fallback de emoji en el modal de nueva nota", async ({
@@ -314,13 +337,16 @@ test("usa fallback de emoji en el modal de nueva nota", async ({
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     await window.Inicializar();
+    Config.Plan_Actual = "Upgrade";
+    Suscripcion_Remota = true;
     window.Archivero_Seleccion_Id = "a1";
     window.Abrir_Archivero();
     window.Abrir_Modal_Nota_Archivero();
     const ids = [
+      "Archivero_Nota_Titulo_Input",
       "Archivero_Nota_Texto_Input",
       "Archivero_Nota_Origen_Input",
-      "Archivero_Nota_Etiquetas_Input"
+      "Archivero_Nota_Etiquetas_Composer"
     ];
     return ids.map((id) => {
       const el = document.getElementById(id);
