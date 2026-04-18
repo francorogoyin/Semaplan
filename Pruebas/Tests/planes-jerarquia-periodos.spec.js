@@ -202,15 +202,54 @@ async ({ page }) => {
   await expect(page.locator("#Plan_Overlay")).toHaveClass(/Activo/);
   await expect(page.locator("#Planes_Filtro_Tipo")).toBeVisible();
 
-  await page.fill(
-    ".Planes_Formulario input[name='Nombre']",
-    "Leer"
-  );
-  await page.fill(
-    ".Planes_Formulario input[name='Target']",
-    "12"
-  );
-  await page.click(".Planes_Formulario button[type='submit']");
+  const Layout_Desktop = await page.evaluate(() => {
+    const Panel = document.querySelector(".Planes_Archivero_Panel");
+    const Sidebar = document.querySelector(".Planes_Sidebar");
+    const Items = Array.from(
+      document.querySelectorAll(".Planes_Periodo_Item")
+    );
+    const Controles = Array.from(
+      document.querySelectorAll(
+        "#Planes_Filtro_Tipo, #Planes_Filtro_Estado, " +
+        "#Planes_Filtro_Etiqueta, #Planes_Busqueda, " +
+        "#Planes_Vista_Toggle"
+      )
+    );
+    const Tops = Controles.map((El) =>
+      Math.round(El.getBoundingClientRect().top)
+    );
+    return {
+      panelAncho: Math.round(Panel.getBoundingClientRect().width),
+      sidebarAncho: Math.round(Sidebar.getBoundingClientRect().width),
+      primerPeriodo: Items[0]?.innerText || "",
+      primerTooltip: Items[0]?.getAttribute("title") || "",
+      controlesUnaLinea: Math.max(...Tops) - Math.min(...Tops) <= 4
+    };
+  });
+
+  expect(Layout_Desktop.panelAncho).toBeGreaterThan(1200);
+  expect(Layout_Desktop.sidebarAncho).toBeGreaterThan(330);
+  expect(Layout_Desktop.primerPeriodo).not.toContain("2026-01-01");
+  expect(Layout_Desktop.primerTooltip).toContain("al");
+  expect(Layout_Desktop.controlesUnaLinea).toBe(true);
+
+  await page.evaluate(() => Cambiar_Idioma("en"));
+  await expect(page.locator(".Planes_Periodo_Item").first())
+    .toContainText("Year 2026");
+  await page.evaluate(() => Cambiar_Idioma("es"));
+  await expect(page.locator(".Planes_Periodo_Item").first())
+    .toContainText("Año 2026");
+
+  await page.click("#Planes_Btn_Nuevo_Header");
+  await expect(page.locator("#Planes_Objetivo_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Objetivo_Unidad"))
+    .not.toContainText("Páginas");
+  await expect(page.locator("#Planes_Objetivo_Unidad"))
+    .toContainText("Personalizado");
+  await page.fill("#Planes_Objetivo_Nombre", "Leer");
+  await page.fill("#Planes_Objetivo_Target", "12");
+  await page.click("#Planes_Objetivo_Guardar");
 
   const Modelo_Inicial = await page.evaluate(() => {
     const Objetivos_Plan = Object.values(Planes_Periodo.Objetivos);
@@ -234,6 +273,21 @@ async ({ page }) => {
   expect(Modelo_Inicial.hijos).toBeGreaterThan(0);
   expect(Modelo_Inicial.leido).toBeGreaterThanOrEqual(2);
   expect(Modelo_Inicial.targetHijo).toBeGreaterThan(0);
+
+  await page.click(".Planes_Objetivo_Menu_Btn");
+  await expect(page.locator(".Planes_Objetivo_Menu_Popup"))
+    .toContainText("Agregar subobjetivo");
+  await page.click('[data-plan-accion="admin_subs"]');
+  await expect(page.locator("#Planes_Subobjetivos_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.click("#Planes_Subobjetivos_Cerrar");
+
+  await page.locator('[data-plan-vista="Lista"]').click();
+  const Texto_Lista = await page.locator(".Planes_Objetivo_Card")
+    .first()
+    .innerText();
+  expect(Texto_Lista).toContain("Leer");
+  expect(Texto_Lista).not.toContain("12");
 
   const Subestado = await page.evaluate(({ padreId, hijoId }) => {
     Planes_Agregar_Subobjetivo(padreId, "Capitulo 1");
@@ -301,7 +355,7 @@ async ({ page }) => {
     const Rect_Panel = Panel.getBoundingClientRect();
     const Rect_Sidebar = Sidebar.getBoundingClientRect();
     return {
-      direccion: getComputedStyle(Layout_El).flexDirection,
+      columnas: getComputedStyle(Layout_El).gridTemplateColumns,
       panelAncho: Math.round(Rect_Panel.width),
       sidebarAncho: Math.round(Rect_Sidebar.width),
       overflow: document.documentElement.scrollWidth -
@@ -309,7 +363,7 @@ async ({ page }) => {
     };
   });
 
-  expect(Layout.direccion).toBe("column");
+  expect(Layout.columnas.split(" ").length).toBe(1);
   expect(Layout.sidebarAncho).toBeLessThanOrEqual(Layout.panelAncho);
   expect(Layout.overflow).toBeLessThanOrEqual(8);
 });
