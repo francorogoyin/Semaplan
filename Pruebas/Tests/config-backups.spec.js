@@ -191,10 +191,10 @@ test("crea backups automaticos y manuales en config", async ({
   expect(resumen.orden_2).toBe("Config_Backup_Tipo");
   expect(Number(resumen.fontWeightTitulo)).toBeGreaterThanOrEqual(700);
   expect(resumen.flexTitulo).toBe("auto");
-  expect(resumen.separacionTituloLista).toBeGreaterThanOrEqual(9);
-  expect(resumen.separacionTituloLista).toBeLessThanOrEqual(11);
-  expect(resumen.separacionTituloTexto).toBeGreaterThanOrEqual(8);
-  expect(resumen.separacionTituloTexto).toBeLessThanOrEqual(12);
+  expect(resumen.separacionTituloLista).toBeGreaterThanOrEqual(0);
+  expect(resumen.separacionTituloLista).toBeLessThanOrEqual(4);
+  expect(resumen.separacionTituloTexto).toBeGreaterThanOrEqual(0);
+  expect(resumen.separacionTituloTexto).toBeLessThanOrEqual(4);
   expect(Number(resumen.fontWeightTipo)).toBeLessThan(500);
   expect(resumen.radioBoton).toBe("999px");
   expect(resumen.fondoBoton).not.toBe("rgba(0, 0, 0, 0)");
@@ -695,6 +695,138 @@ async ({ page }) => {
 
   expect(despues.texto).toContain("Backup realizado");
   expect(despues.total).toBeGreaterThan(0);
+});
+
+test("el scheduler de backups automaticos dispara al quedar vencido",
+async ({ page }) => {
+  await page.route(
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: ""
+      });
+    }
+  );
+  await page.route(
+    "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: ""
+      });
+    }
+  );
+  await page.addInitScript(() => {
+    window.supabase = {
+      createClient() {
+        return {
+          auth: {
+            async getSession() {
+              return { data: { session: null } };
+            },
+            onAuthStateChange() {
+              return {
+                data: {
+                  subscription: { unsubscribe() {} }
+                }
+              };
+            },
+            async signOut() {
+              return { error: null };
+            }
+          }
+        };
+      }
+    };
+    window.turnstile = {
+      render() {
+        return 1;
+      },
+      remove() {},
+      reset() {}
+    };
+    window.alert = () => {};
+    localStorage.setItem(
+      "Semaplan_Estado_V2",
+      JSON.stringify({
+        Objetivos: [],
+        Eventos: [],
+        Metas: [],
+        Slots_Muertos: [],
+        Plantillas_Subobjetivos: [],
+        Planes_Slot: {},
+        Categorias: [],
+        Etiquetas: [],
+        Baul_Objetivos: [],
+        Baul_Grupos_Colapsados: {},
+        Archiveros: [],
+        Notas_Archivero: [],
+        Patrones: [],
+        Contador_Eventos: 1,
+        Objetivo_Seleccionada_Id: null,
+        Modo_Editor_Abierto: false,
+        Inicio_Semana: "2026-04-13",
+        Duracion_Defecto: 1,
+        Config_Extra: {
+          Backup_Auto_Activo: false,
+          Backup_Auto_Horas: 24,
+          Backup_Auto_Inicio: "09:00",
+          Backup_Auto_Ultimo: 0
+        },
+        Tipos_Slot: [],
+        Tipos_Slot_Inicializados: false,
+        Slots_Muertos_Tipos: {},
+        Slots_Muertos_Nombres: {},
+        Abordajes_Migrados_V1: true,
+        Semanas_Con_Defaults: [],
+        Planes_Semana: {}
+      })
+    );
+  });
+
+  await page.goto("/index.html");
+  await page.waitForFunction(() =>
+    typeof window.Inicializar === "function"
+  );
+
+  const resultado = await page.evaluate(() => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    window.Inicializar();
+    const Ahora = new Date();
+    Ahora.setMinutes(Ahora.getMinutes() - 1);
+    Config.Backup_Auto_Activo = true;
+    Config.Backup_Auto_Horas = 24;
+    Config.Backup_Auto_Inicio =
+      `${String(Ahora.getHours()).padStart(2, "0")}:` +
+      `${String(Ahora.getMinutes()).padStart(2, "0")}`;
+    Config.Backup_Auto_Ultimo = 0;
+    const Antes = JSON.parse(
+      localStorage.getItem("Semaplan_Backups_V1") || "[]"
+    ).length;
+    const Hizo = Revisar_Backup_Automatico_Programado();
+    const Despues = JSON.parse(
+      localStorage.getItem("Semaplan_Backups_V1") || "[]"
+    );
+    return {
+      hizo: Hizo,
+      cantidadAntes: Antes,
+      cantidadDespues: Despues.length,
+      tipo: Despues[0]?.Tipo || "",
+      ultimo: Config.Backup_Auto_Ultimo
+    };
+  });
+
+  expect(resultado.hizo).toBe(true);
+  expect(resultado.cantidadDespues)
+    .toBeGreaterThan(resultado.cantidadAntes);
+  expect(resultado.tipo).toBe("Auto");
+  expect(resultado.ultimo).toBeGreaterThan(0);
 });
 
 test("pide confirmación y password en restore y delete",

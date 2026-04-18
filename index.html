@@ -6749,7 +6749,7 @@
       .Config_Backup_Historial > .Cfg_Cuenta_Etiqueta {
         flex: 0 0 auto;
         width: auto;
-        margin-bottom: 10px;
+        margin-bottom: 0;
       }
 
       .Config_Backup_Historial .Config_Backup_Lista {
@@ -6762,11 +6762,19 @@
         padding-top: 0;
       }
 
+      .Config_Backup_Historial .Config_Dato_Nota {
+        margin-top: 3px;
+      }
+
       .Config_Backup_Auto_Detalle {
         display: none;
         flex-direction: column;
-        gap: 10px;
+        gap: 3px;
         padding: 2px 0 0 22px;
+      }
+
+      .Config_Backup_Auto_Detalle .Config_Fila {
+        margin-bottom: 0;
       }
 
       .Config_Backup_Auto_Detalle.Activo {
@@ -26217,6 +26225,8 @@
         Inicio_Semana_Dia: 0,
         Inicio_Semana_Hora: 8
       };
+      let Backup_Auto_Timer_Id = null;
+      const Backup_Auto_Timer_Max_Ms = 2147480000;
 
       const Dias = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
       const Meses_Cortos = [
@@ -50096,6 +50106,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Config.Backup_Auto_Activo) {
           El_Proximo.textContent = "";
+          Cancelar_Timer_Backup_Automatico();
           return;
         }
         const Proximo =
@@ -50106,6 +50117,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "config.backup_proximo",
           { Fecha: Formatear_Fecha_Backup(Proximo) }
         );
+      }
+
+      function Cancelar_Timer_Backup_Automatico() {
+        if (!Backup_Auto_Timer_Id) return;
+        clearTimeout(Backup_Auto_Timer_Id);
+        Backup_Auto_Timer_Id = null;
+      }
+
+      function Proximo_Backup_Automatico_Programado() {
+        return Calcular_Proximo_Backup_Automatico(
+          (Number(Config.Backup_Auto_Ultimo) || 0) + 1
+        );
+      }
+
+      function Programar_Backup_Automatico() {
+        Cancelar_Timer_Backup_Automatico();
+        if (!Config.Backup_Auto_Activo) return;
+        const Proximo = Proximo_Backup_Automatico_Programado();
+        const Demora = Math.max(0, Proximo - Date.now());
+        Backup_Auto_Timer_Id = setTimeout(() => {
+          Backup_Auto_Timer_Id = null;
+          Revisar_Backup_Automatico_Programado();
+        }, Math.min(Demora, Backup_Auto_Timer_Max_Ms));
+      }
+
+      function Revisar_Backup_Automatico_Programado() {
+        if (!Config.Backup_Auto_Activo) {
+          Cancelar_Timer_Backup_Automatico();
+          return false;
+        }
+        const Hizo_Backup = Intentar_Backup_Automatico();
+        if (Hizo_Backup) {
+          Guardar_Estado({ Omitir_Backup_Auto: true });
+          return true;
+        }
+        Actualizar_Config_Backup_Auto_UI();
+        Programar_Backup_Automatico();
+        return false;
       }
 
       function Obtener_Archivo_Version_Programa(
@@ -58393,6 +58442,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Forzar_Sync_Inmediato_Cambio_Critico();
           });
         }
+        Programar_Backup_Automatico();
       }
 
       async function Forzar_Sync_Inmediato_Cambio_Critico() {
@@ -72212,11 +72262,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Backend_Sync_Forzar_Keepalive();
               return;
             }
+            Revisar_Backup_Automatico_Programado();
             Backend_Revisar_Cambios_Remotos(true);
           }
         );
 
         window.addEventListener("focus", () => {
+          Revisar_Backup_Automatico_Programado();
           Backend_Revisar_Cambios_Remotos(true);
         });
 
