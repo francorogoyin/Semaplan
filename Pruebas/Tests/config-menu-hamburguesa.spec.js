@@ -165,6 +165,27 @@ test("oculta opciones en hamburguesa", async ({ page }) => {
 
 test("permite tildar y destildar todo", async ({ page }) => {
   await Preparar(page, Crear_Estado("Iconos"));
+  const Menu_Migrado = await page.evaluate(() => ({
+    viejo: Config.Menu_Botones_Visibles.Metas_Boton,
+    nuevo: Config.Menu_Botones_Visibles.Planes_Boton
+  }));
+  expect(Menu_Migrado.viejo).toBeUndefined();
+  expect(Menu_Migrado.nuevo).toBe(true);
+
+  await expect(page.locator("#Cfg_Meta_Notificaciones_Hitos"))
+    .toHaveJSProperty("tagName", "SELECT");
+  await page.selectOption("#Cfg_Meta_Notificaciones_Hitos", "5");
+  await page.click("#Config_Guardar_Btn");
+  const Hitos_Meta = await page.evaluate(() => ({
+    cadaCuanto: Config.Meta_Notificaciones_Cada_Cuanto,
+    primeros: Config.Meta_Notificaciones_Hitos.slice(0, 3),
+    ultimo: Config.Meta_Notificaciones_Hitos.at(-1)
+  }));
+  expect(Hitos_Meta.cadaCuanto).toBe(5);
+  expect(Hitos_Meta.primeros).toEqual([5, 10, 15]);
+  expect(Hitos_Meta.ultimo).toBe(100);
+  await page.evaluate(() => Abrir_Config());
+
   const Checks = page.locator(
     "#Cfg_Menu_Botones_Lista input[type='checkbox']"
   );

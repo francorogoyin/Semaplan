@@ -318,10 +318,23 @@ async ({ page }) => {
   await page.click("#Planes_Btn_Nuevo_Header");
   await expect(page.locator("#Planes_Objetivo_Overlay"))
     .toHaveClass(/Activo/);
+  await page.locator("#Planes_Objetivo_Overlay").click({
+    position: { x: 8, y: 8 }
+  });
+  await expect(page.locator("#Planes_Objetivo_Overlay"))
+    .toHaveClass(/Activo/);
   const Fuente_Vinculo = await page.locator(
     "#Planes_Objetivo_Vinculo"
   ).evaluate((El) => getComputedStyle(El).fontFamily);
   expect(Fuente_Vinculo).toContain("Segoe UI Emoji");
+  await page.locator(".Planes_Vinculo_Boton").click();
+  await expect(page.locator(".Planes_Vinculo_Menu")).toBeVisible();
+  const Orden_Vinculo = await page.locator(
+    ".Planes_Vinculo_Grupo_Titulo"
+  ).allTextContents();
+  expect(Orden_Vinculo.indexOf("Categorías"))
+    .toBeLessThan(Orden_Vinculo.indexOf("Objetivos"));
+  await page.locator(".Planes_Vinculo_Boton").click();
   await expect(page.locator(".Planes_Meta_Campo"))
     .toContainText("Meta");
   await expect(page.locator("#Planes_Objetivo_Overlay"))
@@ -583,12 +596,51 @@ async ({ page }) => {
   expect(Vinculos.Antes.join(" ")).not.toContain("Capitulo local");
   expect(Vinculos.Despues.join(" ")).toContain("Capitulo local");
 
+  await page.evaluate((padreId) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Padre = Modelo.Objetivos[padreId];
+    Abrir_Modal_Planes_Objetivo(Padre.Periodo_Id, Padre.Id);
+  }, Modelo_Inicial.padreId);
+  await page.locator(".Planes_Vinculo_Boton").click();
+  await page.locator(
+    '.Planes_Vinculo_Item[data-valor="ToggleSub|Obj_Leer"]'
+  ).click();
+  await expect(page.locator(".Planes_Vinculo_Menu")).toBeVisible();
+  await expect(page.locator(
+    '.Planes_Vinculo_Item[data-valor^="Subobjetivo|Obj_Leer|"]'
+  )).toContainText("Capitulo local");
+  await page.locator(
+    '.Planes_Vinculo_Item[data-valor="ToggleSub|Obj_Leer"]'
+  ).click();
+  await expect(page.locator(
+    '.Planes_Vinculo_Item[data-valor^="Subobjetivo|Obj_Leer|"]'
+  )).toHaveCount(0);
+  await page.click("#Planes_Objetivo_Cancelar");
+
   await page.locator('[data-plan-vista="Lista"]').click();
   const Texto_Lista = await page.locator(".Planes_Objetivo_Card")
     .first()
     .innerText();
   expect(Texto_Lista).toContain("Leer");
   expect(Texto_Lista).not.toContain("12");
+
+  await page.locator('[data-plan-vista="Biblioteca"]').click();
+  await expect(page.locator(".Planes_Objetivos"))
+    .toHaveClass(/Biblioteca/);
+  await page.evaluate(() => {
+    Asegurar_Modelo_Planes().UI.Objetivos_Expandidos = {};
+    Render_Planes_Contenido();
+  });
+  const Card_Biblioteca = page.locator(
+    ".Planes_Objetivo_Card.Vista_Biblioteca"
+  ).first();
+  await expect(Card_Biblioteca.locator(".Planes_Objetivo_Estado"))
+    .toBeVisible();
+  await Card_Biblioteca.click();
+  await expect(Card_Biblioteca).toHaveClass(/Expandida/);
+  await expect(
+    Card_Biblioteca.locator(".Planes_Objetivo_Detalle")
+  ).toContainText("Estado");
 
   const Subestado = await page.evaluate(({ padreId, hijoId }) => {
     Planes_Agregar_Subobjetivo(padreId, "Capitulo 1");
