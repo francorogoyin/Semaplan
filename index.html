@@ -3539,7 +3539,7 @@
         color: var(--Texto);
         cursor: pointer;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr);
         gap: 6px;
         align-items: center;
         padding: 7px 8px;
@@ -3549,8 +3549,15 @@
 
       .Planes_Periodo_Principal {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 4px;
+        min-width: 0;
+      }
+
+      .Planes_Periodo_Texto {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
         min-width: 0;
       }
 
@@ -3600,7 +3607,8 @@
         color: var(--Texto_Suave);
         font-size: 11px;
         font-weight: 700;
-        min-width: 22px;
+        flex: 0 0 auto;
+        min-width: 18px;
         padding: 2px 6px;
         text-align: center;
       }
@@ -3712,6 +3720,21 @@
         align-items: flex-start;
         justify-content: space-between;
         gap: 16px;
+      }
+
+      .Planes_Resumen_Editar_Btn {
+        border: none;
+        background: transparent;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        font: inherit;
+        font-size: 17px;
+        line-height: 1;
+        padding: 2px;
+      }
+
+      .Planes_Resumen_Editar_Btn:hover {
+        color: var(--Acento);
       }
 
       .Planes_Resumen_Titulo {
@@ -3863,6 +3886,11 @@
         line-height: 1;
       }
 
+      .Planes_Objetivo_Estado {
+        font-size: 14px;
+        line-height: 1;
+      }
+
       .Planes_Objetivo_Nombre {
         font-size: 15px;
         font-weight: 700;
@@ -3881,6 +3909,11 @@
         color: var(--Texto_Suave);
         font-size: 12px;
         line-height: 1.35;
+      }
+
+      .Planes_Objetivo_Porcentaje {
+        color: var(--Texto);
+        font-weight: 700;
       }
 
       .Planes_Badge {
@@ -3907,6 +3940,29 @@
 
       .Planes_Objetivo_Acciones {
         position: relative;
+      }
+
+      .Planes_Context_Menu {
+        position: fixed;
+        z-index: 10030;
+        display: flex;
+        flex-direction: column;
+        min-width: 230px;
+        max-width: min(300px, calc(100vw - 16px));
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: var(--Panel);
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+        padding: 5px;
+      }
+
+      .Planes_Context_Menu .Planes_Btn {
+        width: 100%;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        text-align: left;
+        padding: 7px 9px;
       }
 
       .Planes_Objetivo_Menu_Btn {
@@ -4066,7 +4122,7 @@
       .Planes_Objetivo_Form label {
         color: var(--Texto_Suave);
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 400;
       }
 
       .Planes_Objetivo_Form input,
@@ -15621,8 +15677,8 @@
             </label>
             <div class="Campo_Ancho Planes_Form_Subobjetivos"
               id="Planes_Form_Subobjetivos">
-              <span data-i18n="planes.agregar_subobjetivo">
-                Agregar subobjetivo
+              <span data-i18n="planes.subobjetivos">
+                Subobjetivos
               </span>
               <span class="Planes_Form_Subobjetivos_Acciones">
                 <button class="Planes_Header_Btn"
@@ -15630,12 +15686,6 @@
                   data-i18n-title="planes.agregar_subobjetivo"
                   title="Agregar subobjetivo"
                   type="button">+</button>
-                <button class="Planes_Btn"
-                  id="Planes_Form_Subobjetivos_Admin"
-                  data-i18n="planes.administrar_subobjetivos"
-                  type="button">
-                  Administrar subobjetivos
-                </button>
               </span>
             </div>
           </form>
@@ -16411,7 +16461,7 @@
           "planes.editar_resumen": "Editar resumen",
           "planes.nuevo_titulo": "Nuevo objetivo",
           "planes.editar_objetivo": "Editar objetivo",
-          "planes.nuevo_target": "Target",
+          "planes.nuevo_target": "Métrica",
           "planes.nuevo_unidad": "Unidad",
           "planes.nuevo": "Agregar",
           "planes.descripcion": "Descripción",
@@ -16422,7 +16472,7 @@
             "Lecturas, ejercicios, capítulos...",
           "planes.sin_objetivos":
             "No hay objetivos visibles en este período.",
-          "planes.target": "Target",
+          "planes.target": "Métrica",
           "planes.auto": "Automático",
           "planes.actual": "Actual",
           "planes.progreso_manual": "Manual",
@@ -16442,15 +16492,30 @@
           "planes.subobjetivos": "Subobjetivos",
           "planes.personalizado": "Personalizado",
           "planes.paginas": "Páginas",
-          "planes.editar": "Editar",
+          "planes.editar": "Editar objetivo",
+          "planes.editar_metrica": "Editar métrica",
+          "planes.editar_avance_manual": "Editar avance manual",
+          "planes.editar_tipo_progreso":
+            "Editar cálculo de progreso",
+          "planes.editar_estado": "Editar estado",
           "planes.fijar": "Fijar objetivo",
           "planes.desfijar": "Borrar fijación",
-          "planes.redis_on": "Redistribución ON",
-          "planes.redis_off": "Redistribución OFF",
-          "planes.importar_padres": "Importar de padres",
+          "planes.fijar_metrica": "Fijar métrica",
+          "planes.desfijar_metrica":
+            "Quitar fijación de métrica",
+          "planes.redis_on":
+            "Desactivar redistribución automática",
+          "planes.redis_off":
+            "Activar redistribución automática",
+          "planes.modo_manual": "Solo carga manual",
+          "planes.modo_leido": "Solo calendario",
+          "planes.modo_hibrido": "Manual + calendario",
+          "planes.importar_padres":
+            "Importar desde período padre",
           "planes.importar_subs": "Importar subobjetivos",
-          "planes.romper_vinculo": "Romper vínculo",
-          "planes.agregar_etiqueta": "Agregar etiqueta",
+          "planes.romper_vinculo":
+            "Quitar vínculo con calendario",
+          "planes.agregar_etiqueta": "Editar etiquetas",
           "planes.agregar_subobjetivo": "Agregar subobjetivo",
           "planes.administrar_subobjetivos":
             "Administrar subobjetivos",
@@ -19223,7 +19288,7 @@
           "planes.editar_resumen": "Edit summary",
           "planes.nuevo_titulo": "New objective",
           "planes.editar_objetivo": "Edit objective",
-          "planes.nuevo_target": "Target",
+          "planes.nuevo_target": "Metric",
           "planes.nuevo_unidad": "Unit",
           "planes.nuevo": "Add",
           "planes.descripcion": "Description",
@@ -19234,7 +19299,7 @@
             "Readings, exercises, chapters...",
           "planes.sin_objetivos":
             "No visible objectives in this period.",
-          "planes.target": "Target",
+          "planes.target": "Metric",
           "planes.auto": "Automatic",
           "planes.actual": "Current",
           "planes.progreso_manual": "Manual",
@@ -19254,15 +19319,28 @@
           "planes.subobjetivos": "Subobjectives",
           "planes.personalizado": "Custom",
           "planes.paginas": "Pages",
-          "planes.editar": "Edit",
+          "planes.editar": "Edit objective",
+          "planes.editar_metrica": "Edit metric",
+          "planes.editar_avance_manual": "Edit manual progress",
+          "planes.editar_tipo_progreso":
+            "Edit progress calculation",
+          "planes.editar_estado": "Edit status",
           "planes.fijar": "Fix target",
           "planes.desfijar": "Delete pinning",
-          "planes.redis_on": "Redistribution ON",
-          "planes.redis_off": "Redistribution OFF",
-          "planes.importar_padres": "Import from parents",
+          "planes.fijar_metrica": "Fix metric",
+          "planes.desfijar_metrica": "Remove metric pin",
+          "planes.redis_on":
+            "Disable automatic redistribution",
+          "planes.redis_off":
+            "Enable automatic redistribution",
+          "planes.modo_manual": "Manual entry only",
+          "planes.modo_leido": "Calendar only",
+          "planes.modo_hibrido": "Manual + calendar",
+          "planes.importar_padres":
+            "Import from parent period",
           "planes.importar_subs": "Import subobjectives",
-          "planes.romper_vinculo": "Break link",
-          "planes.agregar_etiqueta": "Add tag",
+          "planes.romper_vinculo": "Remove calendar link",
+          "planes.agregar_etiqueta": "Edit tags",
           "planes.agregar_subobjetivo": "Add subobjective",
           "planes.administrar_subobjetivos":
             "Manage subobjectives",
@@ -21986,7 +22064,7 @@
           "planes.editar_resumen": "Editar resumo",
           "planes.nuevo_titulo": "Novo objetivo",
           "planes.editar_objetivo": "Editar objetivo",
-          "planes.nuevo_target": "Target",
+          "planes.nuevo_target": "Métrica",
           "planes.nuevo_unidad": "Unidade",
           "planes.nuevo": "Adicionar",
           "planes.descripcion": "Descrição",
@@ -21997,7 +22075,7 @@
             "Leituras, exercícios, capítulos...",
           "planes.sin_objetivos":
             "Não há objetivos visíveis neste período.",
-          "planes.target": "Target",
+          "planes.target": "Métrica",
           "planes.auto": "Automático",
           "planes.actual": "Atual",
           "planes.progreso_manual": "Manual",
@@ -22017,15 +22095,30 @@
           "planes.subobjetivos": "Subobjetivos",
           "planes.personalizado": "Personalizado",
           "planes.paginas": "Páginas",
-          "planes.editar": "Editar",
+          "planes.editar": "Editar objetivo",
+          "planes.editar_metrica": "Editar métrica",
+          "planes.editar_avance_manual": "Editar avanço manual",
+          "planes.editar_tipo_progreso":
+            "Editar cálculo do progresso",
+          "planes.editar_estado": "Editar status",
           "planes.fijar": "Fixar objetivo",
           "planes.desfijar": "Excluir fixação",
-          "planes.redis_on": "Redistribuição ON",
-          "planes.redis_off": "Redistribuição OFF",
-          "planes.importar_padres": "Importar dos pais",
+          "planes.fijar_metrica": "Fixar métrica",
+          "planes.desfijar_metrica":
+            "Remover fixação da métrica",
+          "planes.redis_on":
+            "Desativar redistribuição automática",
+          "planes.redis_off":
+            "Ativar redistribuição automática",
+          "planes.modo_manual": "Somente carga manual",
+          "planes.modo_leido": "Somente calendário",
+          "planes.modo_hibrido": "Manual + calendário",
+          "planes.importar_padres":
+            "Importar do período pai",
           "planes.importar_subs": "Importar subobjetivos",
-          "planes.romper_vinculo": "Romper vínculo",
-          "planes.agregar_etiqueta": "Adicionar etiqueta",
+          "planes.romper_vinculo":
+            "Remover vínculo com o calendário",
+          "planes.agregar_etiqueta": "Editar etiquetas",
           "planes.agregar_subobjetivo": "Adicionar subobjetivo",
           "planes.administrar_subobjetivos":
             "Administrar subobjetivos",
@@ -25296,6 +25389,7 @@
       let Planes_Vencidos_Seleccionados = new Set();
       let Planes_Objetivo_En_Edicion_Id = null;
       let Planes_Subobjetivos_Objetivo_Id = null;
+      let Planes_Vinculo_Subobjetivos_Expandidos = new Set();
       // Modal único de Plan: pestaña activa.
       // "Periodos" | "Semana" | "Cerrar" | "Historial"
       let Plan_Modal_Modo = "Periodos";
@@ -36541,6 +36635,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           UI: {
             Periodo_Activo_Id: null,
             Expandidos: {},
+            Expandidos_Inicializados: false,
             Filtro_Tipo: "Todos",
             Filtro_Estado: "Todos",
             Filtro_Etiqueta: "Todas",
@@ -36588,11 +36683,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ...Modelo.UI,
           ...(Raw.UI && typeof Raw.UI === "object" ? Raw.UI : {})
         };
-        Modelo.UI.Expandidos =
+        const Expandidos_Existentes =
           Modelo.UI.Expandidos &&
           typeof Modelo.UI.Expandidos === "object"
             ? Modelo.UI.Expandidos
             : {};
+        Modelo.UI.Expandidos = Raw.UI?.Expandidos_Inicializados
+          ? Expandidos_Existentes
+          : {};
+        Modelo.UI.Expandidos_Inicializados = true;
         if (!["Tarjetas", "Lista"].includes(Modelo.UI.Vista)) {
           Modelo.UI.Vista = "Tarjetas";
         }
@@ -36942,11 +37041,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ? Semana_Actual_Id
               : Anio_Id;
         }
-        let Activo = Modelo.Periodos[Modelo.UI.Periodo_Activo_Id];
-        while (Activo) {
-          Modelo.UI.Expandidos[Activo.Id] = true;
-          Activo = Modelo.Periodos[Activo.Parent_Id];
-        }
         return Modelo;
       }
 
@@ -37278,7 +37372,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Formatear_Meta_Objetivo(Objetivo) {
         return `${Planes_Formatear_Numero(
           Objetivo.Target_Total
-        )} ${Planes_Unidad_Label(Objetivo)}`.trim();
+        )} ${Planes_Unidad_Label(Objetivo)
+          .toLocaleLowerCase(Obtener_Locale_Actual())}`.trim();
+      }
+
+      function Planes_Porcentaje_Meta(Progreso, Target) {
+        const Total = Number(Target) || 0;
+        if (Total <= 0) return 0;
+        const Actual = Number(Progreso) || 0;
+        return Math.max(0, Math.round((Actual / Total) * 100));
+      }
+
+      function Planes_Formatear_Porcentaje_Meta(Progreso, Target) {
+        return `${Planes_Porcentaje_Meta(Progreso, Target)}%`;
+      }
+
+      function Planes_Emoji_Estado(Estado) {
+        if (Estado === "Cumplido") return "✅";
+        if (Estado === "Vencido") return "⏰";
+        if (Estado === "Cancelado") return "✖️";
+        if (Estado === "Archivado") return "📦";
+        if (Estado === "Warning") return "⚠️";
+        return "🟢";
       }
 
       function Planes_Formatear_Fecha_Larga(Valor) {
@@ -37556,7 +37671,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Hijos = Planes_Hijos_Periodo(Periodo.Id)
           .filter((Hijo) => Planes_Periodo_O_Descendiente_Pasa(Hijo));
-        const Expandido = Modelo.UI.Expandidos[Periodo.Id] !== false;
+        const Expandido = Modelo.UI.Expandidos[Periodo.Id] === true;
         const Activo = Modelo.UI.Periodo_Activo_Id === Periodo.Id;
         const Item = document.createElement("button");
         Item.type = "button";
@@ -37569,14 +37684,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             <span class="Planes_Periodo_Expandir">
               ${Hijos.length ? (Expandido ? "-" : "+") : ""}
             </span>
-            <span>
+            <span class="Planes_Periodo_Texto">
               <span class="Planes_Periodo_Nombre">
                 ${Escape_Html(Planes_Titulo_Periodo_Mostrable(Periodo))}
               </span>
+              <span class="Planes_Periodo_Conteo">
+                ${Planes_Objetivos_De_Periodo(Periodo.Id).length}
+              </span>
             </span>
-          </span>
-          <span class="Planes_Periodo_Conteo">
-            ${Planes_Objetivos_De_Periodo(Periodo.Id).length}
           </span>
         `;
         Item.addEventListener("click", (Ev) => {
@@ -37670,6 +37785,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Progreso = Objetivos_Periodo.reduce((Total, Objetivo) => {
           return Total + (Number(Objetivo.Progreso_Total) || 0);
         }, 0);
+        const Porcentaje =
+          Planes_Formatear_Porcentaje_Meta(Progreso, Target);
         const Warnings = Objetivos_Periodo.reduce((Total, Objetivo) => {
           return Total + (Objetivo.Warnings || []).length;
         }, 0);
@@ -37682,10 +37799,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ${Escape_Html(Planes_Titulo_Periodo_Mostrable(Periodo))}
               </h2>
               <div class="Planes_Resumen_Rango">
-                ${Escape_Html(Planes_Label_Tipo(Periodo.Tipo))} ·
                 ${Escape_Html(Planes_Rango_Periodo_Tooltip(Periodo))}
               </div>
             </div>
+            <button class="Planes_Resumen_Editar_Btn" type="button"
+              data-plan-resumen-editar
+              title="${Escape_Html(t("planes.editar_resumen"))}"
+              aria-label="${Escape_Html(t("planes.editar_resumen"))}">
+              ✎
+            </button>
           </div>
           <div class="Planes_Metricas">
             <div class="Planes_Metrica">
@@ -37707,8 +37829,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ${t("planes.progreso")}
               </span>
               <strong class="Planes_Metrica_Valor">
-                ${Planes_Formatear_Numero(Progreso)} /
-                ${Planes_Formatear_Numero(Target)}
+                ${Porcentaje}
               </strong>
             </div>
             <div class="Planes_Metrica">
@@ -37726,15 +37847,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           t("planes.resumen_vacio");
         Cont.appendChild(Texto);
 
-        const Acciones = document.createElement("div");
-        Acciones.className = "Planes_Resumen_Acciones";
-        const Editar = document.createElement("button");
-        Editar.type = "button";
-        Editar.className = "Planes_Btn";
-        Editar.textContent = t("planes.editar_resumen");
+        const Editar = Cont.querySelector("[data-plan-resumen-editar]");
         Editar.addEventListener("click", () => {
           Texto.remove();
-          Acciones.remove();
+          Editar.remove();
           const Editor = document.createElement("textarea");
           Editor.className = "Planes_Resumen_Editor";
           Editor.placeholder = t("planes.resumen_ph");
@@ -37762,8 +37878,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cont.appendChild(Acciones_Edit);
           Editor.focus();
         });
-        Acciones.appendChild(Editar);
-        Cont.appendChild(Acciones);
         return Cont;
       }
 
@@ -37896,14 +38010,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Grupo_Sub = document.createElement("optgroup");
         Grupo_Sub.label = t("planes.vinculo_subobjetivos");
         Objetivos.forEach((Objetivo) => {
-          Obtener_Subobjetivos_Semana(Objetivo, false)
-            .forEach((Sub) => {
+          const Subs = Obtener_Subobjetivos_Semana(Objetivo, false);
+          if (!Subs.length) return;
+          const Expandido =
+            Planes_Vinculo_Subobjetivos_Expandidos.has(Objetivo.Id);
+          Planes_Agregar_Opt_Vinculo(
+            Grupo_Sub,
+            `ToggleSub|${Objetivo.Id}`,
+            `${Expandido ? "-" : "+"} ` +
+              `${Objetivo.Emoji || ""} ${Objetivo.Nombre || ""}`.trim()
+          );
+          if (Expandido) {
+            Subs.forEach((Sub) => {
               Planes_Agregar_Opt_Vinculo(
                 Grupo_Sub,
                 `Subobjetivo|${Objetivo.Id}|${Sub.Id}`,
-                `${Objetivo.Emoji || ""} ${Sub.Texto || ""}`.trim()
+                `    ${Sub.Emoji || "•"} ${Sub.Texto || ""}`.trimEnd()
               );
             });
+          }
         });
         Select.appendChild(Grupo_Sub);
 
@@ -37911,6 +38036,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Select.value !== (Valor_Actual || "Auto")) {
           Select.value = "Auto";
         }
+        Select.dataset.valorReal = Select.value;
+      }
+
+      function Planes_Configurar_Select_Vinculo(
+        Select,
+        Valor_Actual
+      ) {
+        if (!Select) return;
+        Planes_Poblar_Select_Vinculo(Select, Valor_Actual);
+        Select.onchange = () => {
+          const Valor = Select.value || "Auto";
+          if (Valor.startsWith("ToggleSub|")) {
+            const Objetivo_Id = Valor.split("|")[1] || "";
+            if (Planes_Vinculo_Subobjetivos_Expandidos
+              .has(Objetivo_Id)) {
+              Planes_Vinculo_Subobjetivos_Expandidos
+                .delete(Objetivo_Id);
+            } else {
+              Planes_Vinculo_Subobjetivos_Expandidos.add(Objetivo_Id);
+            }
+            Planes_Poblar_Select_Vinculo(
+              Select,
+              Select.dataset.valorReal || "Auto"
+            );
+            return;
+          }
+          Select.dataset.valorReal = Valor;
+        };
       }
 
       function Planes_Poblar_Select_Unidades(Select, Valor_Actual) {
@@ -38066,7 +38219,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Etiquetas_Input) {
           Etiquetas_Input.value = (Objetivo?.Tags || []).join(", ");
         }
-        Planes_Poblar_Select_Vinculo(
+        Planes_Vinculo_Subobjetivos_Expandidos = new Set();
+        if (Objetivo?.Vinculo_Tipo === "Subobjetivo" &&
+            Objetivo.Vinculo_Objetivo_Id) {
+          Planes_Vinculo_Subobjetivos_Expandidos.add(
+            Objetivo.Vinculo_Objetivo_Id
+          );
+        }
+        Planes_Configurar_Select_Vinculo(
           Vinculo,
           Planes_Valor_Vinculo(Objetivo)
         );
@@ -38132,7 +38292,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ),
           ...Planes_Datos_Vinculo_Desde_Form(
             document.getElementById("Planes_Objetivo_Vinculo")
-              ?.value || "Auto"
+              ?.dataset.valorReal ||
+            document.getElementById("Planes_Objetivo_Vinculo")
+              ?.value ||
+            "Auto"
           )
         };
         const Existente = Planes_Objetivo_En_Edicion_Id
@@ -38166,11 +38329,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Modelo.UI.Vista === "Lista" ? " Vista_Lista" : "");
         Card.dataset.planObjetivoId = Objetivo.Id;
         const Es_Lista = Modelo.UI.Vista === "Lista";
+        const Estado_Label =
+          t(`planes.estado_${Objetivo.Estado.toLowerCase()}`);
+        const Porcentaje = Planes_Formatear_Porcentaje_Meta(
+          Objetivo.Progreso_Total,
+          Objetivo.Target_Total
+        );
         Card.innerHTML = `
           <div class="Planes_Objetivo_Header">
             <div class="Planes_Objetivo_Titulo">
               <span class="Planes_Objetivo_Emoji">
                 ${Escape_Html(Objetivo.Emoji)}
+              </span>
+              <span class="Planes_Objetivo_Estado"
+                title="${Escape_Html(Estado_Label)}"
+                aria-label="${Escape_Html(Estado_Label)}">
+                ${Planes_Emoji_Estado(Objetivo.Estado)}
               </span>
               <span class="Planes_Objetivo_Nombre">
                 ${Escape_Html(Objetivo.Nombre)}
@@ -38178,61 +38352,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             </div>
             ${Es_Lista ? "" : `
               <div class="Planes_Objetivo_Cantidad">
-                ${Escape_Html(Planes_Formatear_Meta_Objetivo(Objetivo))}
+                <strong class="Planes_Objetivo_Porcentaje">
+                  ${Escape_Html(Porcentaje)}
+                </strong>
+                (${Escape_Html(Planes_Formatear_Meta_Objetivo(Objetivo))})
               </div>
               ${Render_Planes_Badges(Objetivo)}
             `}
           </div>
-          ${Render_Planes_Objetivo_Acciones(Objetivo)}
         `;
         Vincular_Hover_Descripcion(
           Card,
           Objetivo.Descripcion || "",
           t("planes.descripcion")
         );
+        Card.addEventListener("contextmenu", (Ev) => {
+          Ev.preventDefault();
+          Planes_Abrir_Menu_Contextual_Objetivo(
+            Objetivo.Id,
+            Ev.clientX,
+            Ev.clientY
+          );
+        });
         Card.addEventListener("click", async (Ev) => {
-          const Menu = Ev.target.closest("[data-plan-menu]");
-          if (Menu) {
-            Ev.stopPropagation();
-            const Cont = Menu.closest(".Planes_Objetivo_Acciones");
-            const Activo = Cont?.classList.contains("Activo");
-            Planes_Cerrar_Menus_Objetivo();
-            Cont?.classList.toggle("Activo", !Activo);
-            return;
-          }
           const Accion = Ev.target.closest("[data-plan-accion]");
           if (!Accion) return;
           Planes_Cerrar_Menus_Objetivo();
-          const Tipo = Accion.dataset.planAccion;
-          if (Tipo === "editar") {
-            Abrir_Modal_Planes_Objetivo(
-              Objetivo.Periodo_Id,
-              Objetivo.Id
-            );
-          }
-          if (Tipo === "agregar_sub") {
-            Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, true);
-          }
-          if (Tipo === "admin_subs") {
-            Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, false);
-          }
-          if (Tipo === "target") Planes_Editar_Target(Objetivo.Id);
-          if (Tipo === "manual") Planes_Editar_Manual(Objetivo.Id);
-          if (Tipo === "modo") Planes_Cambiar_Modo(Objetivo.Id);
-          if (Tipo === "estado") Planes_Cambiar_Estado(Objetivo.Id);
-          if (Tipo === "fijar") Planes_Toggle_Fijado(Objetivo.Id);
-          if (Tipo === "redis") {
-            Planes_Toggle_Redistribucion(Objetivo.Id);
-          }
-          if (Tipo === "importar") Planes_Importar_De_Padres(Objetivo.Id);
-          if (Tipo === "importar_subs") {
-            Planes_Importar_Subs(Objetivo.Id);
-          }
-          if (Tipo === "vinculo") Planes_Romper_Vinculo(Objetivo.Id);
-          if (Tipo === "tags") Planes_Editar_Etiquetas(Objetivo.Id);
-          if (Tipo === "eliminar") {
-            await Planes_Solicitar_Eliminar(Objetivo.Id);
-          }
+          await Planes_Ejecutar_Accion_Objetivo(
+            Objetivo.Id,
+            Accion.dataset.planAccion
+          );
         });
         return Card;
       }
@@ -38300,38 +38449,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? t("planes.recuperar")
           : t("planes.eliminar_local");
         return `
-          <div class="Planes_Objetivo_Acciones">
-            <button class="Planes_Objetivo_Menu_Btn" type="button"
-              data-plan-menu
-              title="${Escape_Html(t("planes.menu_opciones"))}">
-              ...
-            </button>
-            <div class="Planes_Objetivo_Menu_Popup">
             <button class="Planes_Btn" type="button"
-              data-plan-accion="editar">${t("planes.editar")}</button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="agregar_sub">
-              ${t("planes.agregar_subobjetivo")}
+              data-plan-accion="editar">
+              ${t("planes.editar")}
             </button>
             <button class="Planes_Btn" type="button"
               data-plan-accion="admin_subs">
               ${t("planes.administrar_subobjetivos")}
             </button>
             <button class="Planes_Btn" type="button"
-              data-plan-accion="target">${t("planes.target")}</button>
+              data-plan-accion="target">
+              ${t("planes.editar_metrica")}
+            </button>
             <button class="Planes_Btn" type="button"
-              data-plan-accion="manual">${t("planes.manual")}</button>
+              data-plan-accion="manual">
+              ${t("planes.editar_avance_manual")}
+            </button>
             <button class="Planes_Btn" type="button"
               data-plan-accion="modo">
-              ${t(`planes.${Objetivo.Modo_Progreso.toLowerCase()}`)}
+              ${t("planes.editar_tipo_progreso")}
             </button>
             <button class="Planes_Btn" type="button"
               data-plan-accion="estado">
-              ${t(`planes.estado_${Objetivo.Estado.toLowerCase()}`)}
+              ${t("planes.editar_estado")}
             </button>
             <button class="Planes_Btn" type="button"
               data-plan-accion="fijar">
-              ${Objetivo.Fijado ? t("planes.desfijar") : t("planes.fijar")}
+              ${Objetivo.Fijado
+                ? t("planes.desfijar_metrica")
+                : t("planes.fijar_metrica")}
             </button>
             <button class="Planes_Btn" type="button"
               data-plan-accion="redis">${Redis_Label}</button>
@@ -38349,9 +38495,84 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             </button>
             <button class="Planes_Btn Peligro" type="button"
               data-plan-accion="eliminar">${Eliminar_Label}</button>
-            </div>
-          </div>
         `;
+      }
+
+      async function Planes_Ejecutar_Accion_Objetivo(
+        Objetivo_Id,
+        Tipo
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        if (!Objetivo) return;
+        if (Tipo === "editar") {
+          Abrir_Modal_Planes_Objetivo(
+            Objetivo.Periodo_Id,
+            Objetivo.Id
+          );
+        }
+        if (Tipo === "agregar_sub") {
+          Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, true);
+        }
+        if (Tipo === "admin_subs") {
+          Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, false);
+        }
+        if (Tipo === "target") Planes_Editar_Target(Objetivo.Id);
+        if (Tipo === "manual") Planes_Editar_Manual(Objetivo.Id);
+        if (Tipo === "modo") Planes_Cambiar_Modo(Objetivo.Id);
+        if (Tipo === "estado") Planes_Cambiar_Estado(Objetivo.Id);
+        if (Tipo === "fijar") Planes_Toggle_Fijado(Objetivo.Id);
+        if (Tipo === "redis") Planes_Toggle_Redistribucion(Objetivo.Id);
+        if (Tipo === "importar") Planes_Importar_De_Padres(Objetivo.Id);
+        if (Tipo === "importar_subs") {
+          Planes_Importar_Subs(Objetivo.Id);
+        }
+        if (Tipo === "vinculo") Planes_Romper_Vinculo(Objetivo.Id);
+        if (Tipo === "tags") Planes_Editar_Etiquetas(Objetivo.Id);
+        if (Tipo === "eliminar") {
+          await Planes_Solicitar_Eliminar(Objetivo.Id);
+        }
+      }
+
+      function Planes_Abrir_Menu_Contextual_Objetivo(
+        Objetivo_Id,
+        X,
+        Y
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        if (!Objetivo) return;
+        Planes_Cerrar_Menus_Objetivo();
+        const Menu = document.createElement("div");
+        Menu.className = "Planes_Context_Menu";
+        Menu.style.left = "0";
+        Menu.style.top = "0";
+        Menu.style.visibility = "hidden";
+        Menu.innerHTML = Render_Planes_Objetivo_Acciones(Objetivo);
+        Menu.addEventListener("contextmenu", (Ev) => {
+          Ev.preventDefault();
+        });
+        Menu.addEventListener("click", async (Ev) => {
+          const Accion = Ev.target.closest("[data-plan-accion]");
+          if (!Accion) return;
+          const Tipo = Accion.dataset.planAccion;
+          Planes_Cerrar_Menus_Objetivo();
+          await Planes_Ejecutar_Accion_Objetivo(Objetivo_Id, Tipo);
+        });
+        document.body.appendChild(Menu);
+        const Rect = Menu.getBoundingClientRect();
+        const Margen = 8;
+        const Izquierda = Math.min(
+          Math.max(Margen, X),
+          window.innerWidth - Rect.width - Margen
+        );
+        const Arriba = Math.min(
+          Math.max(Margen, Y),
+          window.innerHeight - Rect.height - Margen
+        );
+        Menu.style.left = `${Math.max(Margen, Izquierda)}px`;
+        Menu.style.top = `${Math.max(Margen, Arriba)}px`;
+        Menu.style.visibility = "";
       }
 
       function Planes_Cerrar_Menus_Objetivo() {
@@ -38360,6 +38581,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ).forEach((Menu) => {
           Menu.classList.remove("Activo");
         });
+        document.querySelectorAll(".Planes_Context_Menu")
+          .forEach((Menu) => Menu.remove());
       }
 
       function Planes_Recalcular_Desde(Objetivo) {
@@ -38372,29 +38595,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
-      async function Planes_Editar_Target(Objetivo_Id) {
+      function Planes_Editar_Target(Objetivo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
         if (!Objetivo) return;
-        const Valor = await Mostrar_Dialogo_Con_Texto(
-          t("planes.nuevo_target"),
-          {
-            Tipo: "number",
-            Default: String(Objetivo.Target_Total || 0)
-          }
+        Abrir_Modal_Planes_Objetivo(
+          Objetivo.Periodo_Id,
+          Objetivo.Id
         );
-        if (Valor === null) return;
-        const Numero = Number(Valor);
-        if (!Number.isFinite(Numero)) return;
-        Objetivo.Target_Total = Math.max(0, Numero);
-        Objetivo.Target_Actual = Objetivo.Target_Total;
-        if (!Objetivo.Parent_Objetivo_Id) {
-          Objetivo.Target_Automatico = Objetivo.Target_Total;
-        }
-        Objetivo.Target_Fijado = Objetivo.Target_Total;
-        Objetivo.Target_Fijado_Por_Usuario = true;
-        Objetivo.Fijado = true;
-        Planes_Recalcular_Desde(Objetivo);
+        setTimeout(() => {
+          document.getElementById("Planes_Objetivo_Target")?.focus();
+        }, 0);
       }
 
       async function Planes_Editar_Manual(Objetivo_Id) {
@@ -38420,14 +38631,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
         if (!Objetivo) return;
         const Valor = await Mostrar_Dialogo_Con_Texto(
-          t("planes.progreso"),
+          t("planes.editar_tipo_progreso"),
           {
             Tipo: "select",
             Default: Objetivo.Modo_Progreso,
             Select_Opciones: [
-              { Valor: "Manual", Etiqueta: t("planes.manual") },
-              { Valor: "Leido", Etiqueta: t("planes.leido") },
-              { Valor: "Hibrido", Etiqueta: t("planes.hibrido") }
+              { Valor: "Manual", Etiqueta: t("planes.modo_manual") },
+              { Valor: "Leido", Etiqueta: t("planes.modo_leido") },
+              { Valor: "Hibrido", Etiqueta: t("planes.modo_hibrido") }
             ]
           }
         );

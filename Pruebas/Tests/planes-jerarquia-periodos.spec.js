@@ -274,13 +274,58 @@ async ({ page }) => {
   expect(Modelo_Inicial.leido).toBeGreaterThanOrEqual(2);
   expect(Modelo_Inicial.targetHijo).toBeGreaterThan(0);
 
-  await page.click(".Planes_Objetivo_Menu_Btn");
-  await expect(page.locator(".Planes_Objetivo_Menu_Popup"))
-    .toContainText("Agregar subobjetivo");
+  const Texto_Tarjeta = await page.locator(".Planes_Objetivo_Card")
+    .first()
+    .innerText();
+  expect(Texto_Tarjeta).toContain("%");
+  expect(Texto_Tarjeta).toContain("horas");
+  expect(Texto_Tarjeta).not.toContain("Horas");
+
+  await expect(page.locator(".Planes_Objetivo_Menu_Btn")).toHaveCount(0);
+  await page.locator(".Planes_Objetivo_Card")
+    .first()
+    .click({ button: "right" });
+  await expect(page.locator(".Planes_Context_Menu"))
+    .toContainText("Administrar subobjetivos");
+  await expect(page.locator(".Planes_Context_Menu"))
+    .not.toContainText("Agregar subobjetivo");
   await page.click('[data-plan-accion="admin_subs"]');
   await expect(page.locator("#Planes_Subobjetivos_Overlay"))
     .toHaveClass(/Activo/);
   await page.click("#Planes_Subobjetivos_Cerrar");
+
+  const Vinculos = await page.evaluate((padreId) => {
+    const Objetivo_Semanal = Objetivos.find((Objetivo) =>
+      Objetivo.Id === "Obj_Leer"
+    );
+    const Sub_Id = Agregar_Subobjetivo_Semana(
+      Objetivo_Semanal,
+      "Semana"
+    );
+    const Sub = Obtener_Subobjetivos_Semana(
+      Objetivo_Semanal,
+      true
+    ).find((Item) => Item.Id === Sub_Id);
+    Sub.Texto = "Capitulo local";
+    const Modelo = Asegurar_Modelo_Planes();
+    const Padre = Modelo.Objetivos[padreId];
+    Abrir_Modal_Planes_Objetivo(Padre.Periodo_Id, Padre.Id);
+    const Select = document.getElementById("Planes_Objetivo_Vinculo");
+    const Antes = Array.from(Select.options)
+      .map((Opt) => Opt.textContent);
+    Select.value = `ToggleSub|${Objetivo_Semanal.Id}`;
+    Select.dispatchEvent(new Event("change", { bubbles: true }));
+    const Despues = Array.from(Select.options)
+      .map((Opt) => Opt.textContent);
+    Cerrar_Modal_Planes_Objetivo();
+    return { Antes, Despues };
+  }, Modelo_Inicial.padreId);
+
+  expect(Vinculos.Antes.some((Texto) =>
+    Texto.includes("+") && Texto.includes("Leer")
+  )).toBe(true);
+  expect(Vinculos.Antes.join(" ")).not.toContain("Capitulo local");
+  expect(Vinculos.Despues.join(" ")).toContain("Capitulo local");
 
   await page.locator('[data-plan-vista="Lista"]').click();
   const Texto_Lista = await page.locator(".Planes_Objetivo_Card")
