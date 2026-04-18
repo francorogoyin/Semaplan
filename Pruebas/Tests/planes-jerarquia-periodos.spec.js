@@ -322,6 +322,22 @@ async ({ page }) => {
     "#Planes_Objetivo_Vinculo"
   ).evaluate((El) => getComputedStyle(El).fontFamily);
   expect(Fuente_Vinculo).toContain("Segoe UI Emoji");
+  await expect(page.locator(".Planes_Meta_Campo"))
+    .toContainText("Meta");
+  await expect(page.locator("#Planes_Objetivo_Overlay"))
+    .not.toContainText("Métrica");
+  const Layout_Meta_Unidad = await page.evaluate(() => {
+    const Meta = document.querySelector(".Planes_Meta_Campo")
+      .getBoundingClientRect();
+    const Unidad = document.querySelector(".Planes_Unidad_Campo")
+      .getBoundingClientRect();
+    return {
+      mismaLinea: Math.abs(Meta.top - Unidad.top) <= 2,
+      metaIzquierda: Meta.left < Unidad.left
+    };
+  });
+  expect(Layout_Meta_Unidad.mismaLinea).toBe(true);
+  expect(Layout_Meta_Unidad.metaIzquierda).toBe(true);
   await expect(page.locator("#Planes_Objetivo_Unidad"))
     .not.toContainText("Páginas");
   await expect(page.locator("#Planes_Objetivo_Unidad"))
