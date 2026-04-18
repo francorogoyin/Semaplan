@@ -473,7 +473,45 @@ async ({ page }) => {
   ).toContainText("Falta");
   await expect(
     Card_Objetivo.locator(".Planes_Objetivo_Detalle")
+  ).toContainText("Detectado");
+  await expect(
+    Card_Objetivo.locator(".Planes_Objetivo_Detalle_Etiquetas")
   ).toContainText("#Lectura");
+  const Layout_Detalle = await Card_Objetivo.evaluate((Card) => {
+    const Detalle = Card.querySelector(".Planes_Objetivo_Detalle");
+    const Items = Array.from(
+      Detalle.querySelectorAll(".Planes_Dato, .Planes_Detalle_Accion")
+    );
+    const Tops = Items.map((Item) =>
+      Math.round(Item.getBoundingClientRect().top)
+    );
+    const Etiquetas = Card.querySelector(
+      ".Planes_Objetivo_Detalle_Etiquetas"
+    ).getBoundingClientRect();
+    const Detalle_Rect = Detalle.getBoundingClientRect();
+    return {
+      todosMismaLinea: Math.max(...Tops) - Math.min(...Tops) <= 2,
+      etiquetasDebajo: Etiquetas.top > Detalle_Rect.bottom,
+      chipsEnFila: Array.from(
+        Card.querySelectorAll(
+          ".Planes_Detalle_Etiquetas_Chips .Etiqueta_Badge"
+        )
+      ).every((Chip, _, Lista) =>
+        Math.abs(
+          Chip.getBoundingClientRect().top -
+          Lista[0].getBoundingClientRect().top
+        ) <= 2
+      )
+    };
+  });
+  expect(Layout_Detalle.todosMismaLinea).toBe(true);
+  expect(Layout_Detalle.etiquetasDebajo).toBe(true);
+  expect(Layout_Detalle.chipsEnFila).toBe(true);
+  await Card_Objetivo.locator('[data-plan-accion="admin_subs"]')
+    .click();
+  await expect(page.locator("#Planes_Subobjetivos_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.click("#Planes_Subobjetivos_Cerrar");
 
   const Eliminado_Visible = await page.evaluate(() => {
     const Periodo = Planes_Periodo_Activo();
@@ -499,7 +537,9 @@ async ({ page }) => {
     .toContainText("Administrar subobjetivos");
   await expect(page.locator(".Planes_Context_Menu"))
     .not.toContainText("Agregar subobjetivo");
-  await page.click('[data-plan-accion="admin_subs"]');
+  await page.click(
+    '.Planes_Context_Menu [data-plan-accion="admin_subs"]'
+  );
   await expect(page.locator("#Planes_Subobjetivos_Overlay"))
     .toHaveClass(/Activo/);
   await page.click("#Planes_Subobjetivos_Cerrar");

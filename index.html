@@ -4081,16 +4081,21 @@
       }
 
       .Planes_Objetivo_Detalle {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px 12px;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
         margin-top: 10px;
         padding-top: 8px;
         border-top: 1px solid rgba(0, 0, 0, 0.06);
+        overflow-x: auto;
+        scrollbar-width: thin;
       }
 
       .Planes_Objetivo_Detalle_Etiquetas {
-        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 8px;
       }
 
       .Planes_Dato {
@@ -4098,6 +4103,7 @@
         border-radius: 0;
         padding: 0;
         min-width: 0;
+        flex: 0 0 auto;
       }
 
       .Planes_Dato span {
@@ -4110,6 +4116,28 @@
         display: block;
         margin-top: 2px;
         font-size: 14px;
+      }
+
+      .Planes_Dato_Ayuda {
+        cursor: help;
+      }
+
+      .Planes_Detalle_Etiquetas_Label {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+      }
+
+      .Planes_Detalle_Etiquetas_Chips {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 5px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+
+      .Planes_Detalle_Accion {
+        align-self: flex-start;
+        white-space: nowrap;
       }
 
       .Planes_Subobjetivos {
@@ -16626,10 +16654,18 @@
           "planes.target": "Meta",
           "planes.realizado": "Realizado",
           "planes.falta": "Falta",
+          "planes.estado_ayuda":
+            "Estado operativo del objetivo en este período.",
+          "planes.detectado_ayuda":
+            "Avance detectado automáticamente desde calendario, " +
+            "subobjetivos o vínculos.",
+          "planes.manual_ayuda":
+            "Avance cargado manualmente desde Planes.",
+          "planes.sin_etiquetas": "Sin etiquetas",
           "planes.auto": "Automático",
           "planes.actual": "Actual",
           "planes.progreso_manual": "Manual",
-          "planes.progreso_leido": "Leído",
+          "planes.progreso_leido": "Detectado",
           "planes.progreso_total": "Total",
           "planes.fijado": "Fijado",
           "planes.warning": "Alerta",
@@ -16643,6 +16679,7 @@
           "planes.sesiones": "Sesiones",
           "planes.veces": "Veces",
           "planes.subobjetivos": "Subobjetivos",
+          "planes.ver_subobjetivos": "Ver subobjetivos",
           "planes.personalizado": "Personalizado",
           "planes.paginas": "Páginas",
           "planes.editar": "Editar objetivo",
@@ -19456,10 +19493,18 @@
           "planes.target": "Goal",
           "planes.realizado": "Done",
           "planes.falta": "Left",
+          "planes.estado_ayuda":
+            "Operational status of this objective in this period.",
+          "planes.detectado_ayuda":
+            "Progress detected automatically from calendar, " +
+            "subobjectives, or links.",
+          "planes.manual_ayuda":
+            "Progress entered manually from Plans.",
+          "planes.sin_etiquetas": "No tags",
           "planes.auto": "Automatic",
           "planes.actual": "Current",
           "planes.progreso_manual": "Manual",
-          "planes.progreso_leido": "Read",
+          "planes.progreso_leido": "Detected",
           "planes.progreso_total": "Total",
           "planes.fijado": "Fixed",
           "planes.warning": "Warning",
@@ -19473,6 +19518,7 @@
           "planes.sesiones": "Sessions",
           "planes.veces": "Times",
           "planes.subobjetivos": "Subobjectives",
+          "planes.ver_subobjetivos": "View subobjectives",
           "planes.personalizado": "Custom",
           "planes.paginas": "Pages",
           "planes.editar": "Edit objective",
@@ -22235,10 +22281,18 @@
           "planes.target": "Meta",
           "planes.realizado": "Realizado",
           "planes.falta": "Falta",
+          "planes.estado_ayuda":
+            "Estado operacional do objetivo neste período.",
+          "planes.detectado_ayuda":
+            "Avanço detectado automaticamente pelo calendário, " +
+            "subobjetivos ou vínculos.",
+          "planes.manual_ayuda":
+            "Avanço carregado manualmente em Planos.",
+          "planes.sin_etiquetas": "Sem etiquetas",
           "planes.auto": "Automático",
           "planes.actual": "Atual",
           "planes.progreso_manual": "Manual",
-          "planes.progreso_leido": "Lido",
+          "planes.progreso_leido": "Detectado",
           "planes.progreso_total": "Total",
           "planes.fijado": "Fixado",
           "planes.warning": "Alerta",
@@ -22252,6 +22306,7 @@
           "planes.sesiones": "Sessões",
           "planes.veces": "Vezes",
           "planes.subobjetivos": "Subobjetivos",
+          "planes.ver_subobjetivos": "Ver subobjetivos",
           "planes.personalizado": "Personalizado",
           "planes.paginas": "Páginas",
           "planes.editar": "Editar objetivo",
@@ -38683,12 +38738,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Estado_Label =
           t(`planes.estado_${Objetivo.Estado.toLowerCase()}`);
         const Etiquetas = Planes_Etiquetas_Nombres(Objetivo);
-        const Etiquetas_Texto = Etiquetas.length
-          ? Etiquetas.map((Tag) => `#${Tag}`).join(", ")
-          : "-";
+        const Etiquetas_Html = Etiquetas.length
+          ? Etiquetas.map((Tag) => `
+            <span class="Etiqueta_Badge">#${Escape_Html(Tag)}</span>
+          `).join("")
+          : `<span class="Etiqueta_Badge">${t("planes.sin_etiquetas")}</span>`;
         return `
-          <div class="Planes_Objetivo_Detalle">
-            <div class="Planes_Dato">
+          <div class="Planes_Objetivo_Detalle" aria-label="${
+            Escape_Html(t("planner.detalles"))
+          }">
+            <div class="Planes_Dato Planes_Dato_Ayuda"
+              title="${Escape_Html(t("planes.estado_ayuda"))}">
               <span>${t("planes.estado")}</span>
               <strong>${Escape_Html(Estado_Label)}</strong>
             </div>
@@ -38710,13 +38770,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Objetivo.Target_Pendiente
               )} ${Planes_Unidad_Label(Objetivo)}</strong>
             </div>
-            <div class="Planes_Dato">
+            <div class="Planes_Dato Planes_Dato_Ayuda"
+              title="${Escape_Html(t("planes.detectado_ayuda"))}">
               <span>${t("planes.progreso_leido")}</span>
               <strong>${Planes_Formatear_Numero(
                 Objetivo.Progreso_Leido
               )}</strong>
             </div>
-            <div class="Planes_Dato">
+            <div class="Planes_Dato Planes_Dato_Ayuda"
+              title="${Escape_Html(t("planes.manual_ayuda"))}">
               <span>${t("planes.progreso_manual")}</span>
               <strong>${Planes_Formatear_Numero(
                 Objetivo.Progreso_Manual
@@ -38728,9 +38790,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Objetivo.Progreso_Total
               )}</strong>
             </div>
-            <div class="Planes_Dato Planes_Objetivo_Detalle_Etiquetas">
-              <span>${t("sidebar.etiquetas")}</span>
-              <strong>${Escape_Html(Etiquetas_Texto)}</strong>
+            <button class="Planes_Btn Planes_Detalle_Accion"
+              type="button"
+              data-plan-accion="admin_subs">
+              ${t("planes.ver_subobjetivos")}
+            </button>
+          </div>
+          <div class="Planes_Objetivo_Detalle_Etiquetas">
+            <span class="Planes_Detalle_Etiquetas_Label">
+              ${t("sidebar.etiquetas")}:
+            </span>
+            <div class="Planes_Detalle_Etiquetas_Chips">
+              ${Etiquetas_Html}
             </div>
           </div>
         `;
