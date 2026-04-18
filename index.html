@@ -38044,9 +38044,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Guardar.className = "Planes_Btn";
           Guardar.textContent = t("guardar");
           Guardar.addEventListener("click", () => {
-            Periodo.Resumen = Editor.value;
-            Periodo.Actualizado_En = new Date().toISOString();
-            Guardar_Estado();
+            Planes_Guardar_Resumen_Periodo(
+              Periodo.Id,
+              Editor.value
+            );
             Render_Planes_Contenido();
           });
           const Cancelar = document.createElement("button");
@@ -38061,6 +38062,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Editor.focus();
         });
         return Cont;
+      }
+
+      function Planes_Guardar_Resumen_Periodo(Periodo_Id, Valor) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Periodo = Modelo.Periodos[Periodo_Id];
+        if (!Periodo) return false;
+        Periodo.Resumen = (Valor || "").toString();
+        Periodo.Actualizado_En = new Date().toISOString();
+        Guardar_Estado();
+        return true;
       }
 
       function Render_Planes_Formulario(Periodo) {

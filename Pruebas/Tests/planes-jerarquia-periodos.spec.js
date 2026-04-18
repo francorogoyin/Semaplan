@@ -249,6 +249,36 @@ async ({ page }) => {
   expect(Layout_Desktop.margenRango).toBe("12px");
   expect(Layout_Desktop.fuenteMetrica).toBe("14px");
 
+  await page.locator("[data-plan-resumen-editar]").click();
+  await page.locator(".Planes_Resumen_Editor")
+    .fill("Resumen persistente del periodo");
+  await page.locator(".Planes_Resumen_Acciones .Planes_Btn")
+    .filter({ hasText: "Guardar" })
+    .click();
+  await expect(page.locator(".Planes_Resumen_Texto"))
+    .toContainText("Resumen persistente del periodo");
+
+  const Resumen_Guardado = await page.evaluate(() => {
+    const Estado = JSON.parse(
+      localStorage.getItem("Semaplan_Estado_V2")
+    );
+    const Periodo_Id = Planes_Periodo.UI.Periodo_Activo_Id;
+    Planes_Periodo = {};
+    Cargar_Estado();
+    Render_Plan();
+    return {
+      storage:
+        Estado.Planes_Periodo.Periodos[Periodo_Id].Resumen,
+      render:
+        document.querySelector(".Planes_Resumen_Texto")
+          ?.textContent || ""
+    };
+  });
+  expect(Resumen_Guardado.storage)
+    .toBe("Resumen persistente del periodo");
+  expect(Resumen_Guardado.render)
+    .toContain("Resumen persistente del periodo");
+
   await page.evaluate(() => Cambiar_Idioma("en"));
   await expect(page.locator(".Planes_Periodo_Item").first())
     .toContainText("Year 2026");
