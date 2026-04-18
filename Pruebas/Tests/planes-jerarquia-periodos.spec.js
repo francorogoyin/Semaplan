@@ -489,8 +489,13 @@ async ({ page }) => {
       ".Planes_Objetivo_Detalle_Etiquetas"
     ).getBoundingClientRect();
     const Detalle_Rect = Detalle.getBoundingClientRect();
+    const Primer_Item = Items[0].getBoundingClientRect();
+    const Ultimo_Item = Items[Items.length - 1].getBoundingClientRect();
     return {
       todosMismaLinea: Math.max(...Tops) - Math.min(...Tops) <= 2,
+      usaAnchoDisponible:
+        Ultimo_Item.right - Primer_Item.left >
+        Detalle_Rect.width * 0.82,
       etiquetasDebajo: Etiquetas.top > Detalle_Rect.bottom,
       chipsEnFila: Array.from(
         Card.querySelectorAll(
@@ -505,6 +510,7 @@ async ({ page }) => {
     };
   });
   expect(Layout_Detalle.todosMismaLinea).toBe(true);
+  expect(Layout_Detalle.usaAnchoDisponible).toBe(true);
   expect(Layout_Detalle.etiquetasDebajo).toBe(true);
   expect(Layout_Detalle.chipsEnFila).toBe(true);
   await Card_Objetivo.locator('[data-plan-accion="admin_subs"]')
