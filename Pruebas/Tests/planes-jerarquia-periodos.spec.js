@@ -274,12 +274,72 @@ async ({ page }) => {
   expect(Modelo_Inicial.leido).toBeGreaterThanOrEqual(2);
   expect(Modelo_Inicial.targetHijo).toBeGreaterThan(0);
 
+  const Sidebar_Expandido = await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    Object.values(Modelo.Periodos).forEach((Periodo) => {
+      Modelo.UI.Expandidos[Periodo.Id] = true;
+    });
+    Render_Planes_Sidebar();
+    const Lista = document.querySelector("#Planes_Periodos_Lista");
+    const Btn_Custom = document.querySelector("#Planes_Btn_Custom");
+    const Sidebar = document.querySelector(".Planes_Sidebar");
+    return {
+      overflowHorizontal:
+        Math.round(Lista.scrollWidth - Lista.clientWidth),
+      botonAbajo:
+        Btn_Custom.getBoundingClientRect().top >
+        Sidebar.getBoundingClientRect().top +
+          Sidebar.getBoundingClientRect().height * 0.75
+    };
+  });
+
+  expect(Sidebar_Expandido.overflowHorizontal).toBeLessThanOrEqual(1);
+  expect(Sidebar_Expandido.botonAbajo).toBe(true);
+
   const Texto_Tarjeta = await page.locator(".Planes_Objetivo_Card")
     .first()
     .innerText();
   expect(Texto_Tarjeta).toContain("%");
   expect(Texto_Tarjeta).toContain("horas");
   expect(Texto_Tarjeta).not.toContain("Horas");
+
+  const Layout_Tarjeta = await page.locator(".Planes_Objetivo_Card")
+    .first()
+    .evaluate((Card) => {
+      const Nombre = Card.querySelector(".Planes_Objetivo_Nombre")
+        .getBoundingClientRect();
+      const Metrica = Card.querySelector(".Planes_Objetivo_Cantidad")
+        .getBoundingClientRect();
+      const Indicadores = Card
+        .querySelector(".Planes_Objetivo_Indicadores")
+        .getBoundingClientRect();
+      const Rect = Card.getBoundingClientRect();
+      return {
+        metricaSangrada: Math.abs(Metrica.left - Nombre.left) <= 4,
+        indicadoresAlBorde: Rect.right - Indicadores.right <= 4,
+        indicadoresDerecha: Indicadores.left > Nombre.right
+      };
+    });
+
+  expect(Layout_Tarjeta.metricaSangrada).toBe(true);
+  expect(Layout_Tarjeta.indicadoresAlBorde).toBe(true);
+  expect(Layout_Tarjeta.indicadoresDerecha).toBe(true);
+
+  const Eliminado_Visible = await page.evaluate(() => {
+    const Periodo = Planes_Periodo_Activo();
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Periodo.Id, {
+      Nombre: "Eliminar test",
+      Emoji: "\u2705",
+      Target_Total: 1,
+      Unidad: "Horas"
+    });
+    Objetivo.Eliminado_Local = true;
+    Render_Planes_Contenido();
+    return document.getElementById("Plan_Cuerpo")
+      ?.innerText.includes("Eliminar test");
+  });
+
+  expect(Eliminado_Visible).toBe(false);
 
   await expect(page.locator(".Planes_Objetivo_Menu_Btn")).toHaveCount(0);
   await page.locator(".Planes_Objetivo_Card")
