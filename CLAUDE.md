@@ -112,6 +112,17 @@ Argentina (`America/Buenos_Aires`). Esto incluye
 
 ## Flujo de trabajo por sesión
 
+### Verificacion inicial de remoto
+
+Antes de iniciar cualquier cambio, hacer una verificacion rapida
+contra remoto: revisar `git status`, actualizar referencias de
+`origin` y comprobar si la rama activa esta detras de su upstream.
+Si hay commits remotos pendientes, hacer `pull --rebase` antes de
+editar. Si existen cambios locales no commiteados o riesgo de
+conflicto, frenar y ordenar el estado de git antes de avanzar. Esta
+comprobacion busca evitar trabajar sobre una base vieja y pisar
+cambios hechos desde otra computadora o sesion.
+
 Al arrancar cada sesión, distinguir cuál de estos dos procedimientos
 corresponde según el pedido del usuario.
 
