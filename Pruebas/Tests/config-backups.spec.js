@@ -106,6 +106,11 @@ test("crea backups automaticos y manuales en config", async ({
   });
 
   await page.click("#Cfg_Backup_Manual_Btn");
+  await expect(page.locator("#Undo_Contenedor .Undo_Toast").first())
+    .toContainText("Backup realizado");
+  await expect(
+    page.locator("#Undo_Contenedor .Undo_Toast_Segundos").first()
+  ).toHaveText(/[45]/);
 
   const resumen = await page.evaluate(() => {
     const Lista = JSON.parse(
@@ -688,7 +693,7 @@ async ({ page }) => {
     };
   });
 
-  expect(despues.texto).toContain("Copia manual");
+  expect(despues.texto).toContain("Backup realizado");
   expect(despues.total).toBeGreaterThan(0);
 });
 

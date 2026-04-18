@@ -435,6 +435,7 @@ async ({ page }) => {
   expect(Texto_Tarjeta).toContain("horas");
   expect(Texto_Tarjeta).not.toContain("#Lectura");
   expect(Texto_Tarjeta).not.toContain("Horas");
+  expect(Texto_Tarjeta).not.toContain("Mixto");
 
   const Layout_Tarjeta = await page.locator(".Planes_Objetivo_Card")
     .first()
@@ -478,6 +479,12 @@ async ({ page }) => {
   await expect(
     Card_Objetivo.locator(".Planes_Objetivo_Detalle")
   ).toContainText("Estado");
+  await expect(
+    Card_Objetivo.locator(".Planes_Objetivo_Detalle")
+  ).toContainText("Avance");
+  await expect(
+    Card_Objetivo.locator(".Planes_Objetivo_Detalle")
+  ).toContainText("Mixto");
   await expect(
     Card_Objetivo.locator(".Planes_Objetivo_Detalle")
   ).toContainText("Realizado");
@@ -535,6 +542,47 @@ async ({ page }) => {
   expect(Layout_Detalle.etiquetasDebajo).toBe(true);
   expect(Layout_Detalle.chipsEnFila).toBe(true);
   expect(Layout_Detalle.etiquetaSinOvalo).toBe(true);
+
+  await Card_Objetivo.locator(
+    '[data-plan-accion="registrar_avance"]'
+  ).click();
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Avance_Item"))
+    .toContainText("Leer");
+  await expect(page.locator("#Planes_Avance_Unidad"))
+    .toContainText("horas");
+  await page.fill("#Planes_Avance_Cantidad", "2");
+  await page.click("#Planes_Avance_Guardar");
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .not.toHaveClass(/Activo/);
+  const Avance_Registrado = await page.evaluate((padreId) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Padre = Modelo.Objetivos[padreId];
+    return {
+      manual: Padre.Progreso_Manual,
+      registros: Object.values(Modelo.Avances || {})
+        .filter((Avance) => Avance.Objetivo_Id === padreId).length
+    };
+  }, Modelo_Inicial.padreId);
+  expect(Avance_Registrado.manual).toBeGreaterThanOrEqual(2);
+  expect(Avance_Registrado.registros).toBeGreaterThanOrEqual(1);
+
+  await Card_Objetivo.locator('[data-plan-accion="registro"]')
+    .click();
+  await expect(page.locator("#Planes_Registro_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("Manual");
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("2 horas");
+  await page.click("#Planes_Registro_Cerrar");
+
+  await page.keyboard.press("m");
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.click("#Planes_Avance_Cancelar");
+
   await Card_Objetivo.locator('[data-plan-accion="admin_subs"]')
     .click();
   await expect(page.locator("#Planes_Subobjetivos_Overlay"))
@@ -666,9 +714,9 @@ async ({ page }) => {
   await expect(Card_Biblioteca.locator(".Planes_Objetivo_Estado"))
     .toBeVisible();
   await expect(Card_Biblioteca.locator(".Planes_Fuente_Badge"))
-    .toBeVisible();
-  await expect(Card_Biblioteca.locator(".Planes_Fuente_Badge"))
-    .toHaveAttribute("title", /Manual:.*Calendario/);
+    .toHaveCount(0);
+  await expect(Card_Biblioteca)
+    .not.toContainText("Mixto");
   await Card_Biblioteca.click({ modifiers: ["Control"] });
   await expect(page.locator(".Planes_Multi_Acciones"))
     .toContainText("1 objetivo");
@@ -680,6 +728,9 @@ async ({ page }) => {
   await expect(
     Card_Biblioteca.locator(".Planes_Objetivo_Detalle")
   ).toContainText("Estado");
+  await expect(
+    Card_Biblioteca.locator(".Planes_Objetivo_Detalle")
+  ).toContainText("Avance");
 
   const Vacio_Biblioteca = await page.evaluate(() => {
     const Modelo = Asegurar_Modelo_Planes();
@@ -717,6 +768,31 @@ async ({ page }) => {
     .toContain("No hay objetivos visibles");
   expect(Vacio_Biblioteca.anchoVacio)
     .toBeGreaterThan(Vacio_Biblioteca.anchoLista * 0.9);
+
+  const Progreso_Submetrica = await page.evaluate((padreId) => {
+    Planes_Agregar_Subobjetivo(padreId, "Capitulo metricado");
+    const Modelo = Asegurar_Modelo_Planes();
+    const Padre = Modelo.Objetivos[padreId];
+    Padre.Target_Total = Padre.Target_Total || 12;
+    const Sub = Object.values(Modelo.Subobjetivos)
+      .find((Item) =>
+        Item.Objetivo_Id === padreId &&
+        Item.Texto === "Capitulo metricado"
+      );
+    Sub.Target_Total = 10;
+    Sub.Unidad = "Veces";
+    Sub.Progreso_Manual = 5;
+    Planes_Actualizar_Progreso(Padre);
+    return {
+      progresoSub: Padre.Progreso_Subobjetivos,
+      progresoTotal: Padre.Progreso_Total,
+      metaSub: Planes_Formatear_Meta_Subobjetivo(Sub)
+    };
+  }, Modelo_Inicial.padreId);
+
+  expect(Progreso_Submetrica.progresoSub).toBeGreaterThan(0);
+  expect(Progreso_Submetrica.progresoTotal).toBeGreaterThan(0);
+  expect(Progreso_Submetrica.metaSub).toContain("5/10");
 
   const Subestado = await page.evaluate(({ padreId, hijoId }) => {
     Planes_Agregar_Subobjetivo(padreId, "Capitulo 1");
@@ -763,7 +839,7 @@ async ({ page }) => {
   await page.locator("#Dialogo_Botones button")
     .filter({ hasText: "incluidos padres" })
     .click();
-  await expect(page.locator(".Undo_Toast_Boton"))
+  await expect(page.locator(".Undo_Toast_Boton").first())
     .toContainText("Deshacer");
   const Eliminacion_Jerarquica = await page.evaluate((Ids) => {
     const Modelo = Asegurar_Modelo_Planes();

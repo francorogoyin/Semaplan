@@ -4002,6 +4002,12 @@
         box-shadow: 0 2px 8px rgba(86, 70, 52, 0.08);
       }
 
+      .Planes_Objetivo_Card.Vista_Biblioteca .Planes_Avance_Btn {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+      }
+
       .Planes_Fuente_Badge {
         display: inline-flex;
         align-items: center;
@@ -4057,6 +4063,12 @@
         grid-column: 1 / -1;
         width: 100%;
         margin-left: 0;
+      }
+
+      .Planes_Objetivo_Card.Vista_Biblioteca
+        .Planes_Registro_Btn {
+        grid-column: 1 / -1;
+        width: 100%;
       }
 
       .Planes_Objetivo_Header {
@@ -4321,6 +4333,129 @@
         padding: 0;
       }
 
+      .Planes_Registro_Btn,
+      .Planes_Avance_Btn {
+        align-self: flex-start;
+        flex: 0 0 auto;
+        white-space: nowrap;
+      }
+
+      .Planes_Avance_Btn {
+        min-height: 30px;
+        padding: 4px 10px;
+      }
+
+      .Planes_Avance_Modal,
+      .Planes_Registro_Modal {
+        max-width: 720px;
+      }
+
+      .Planes_Avance_Form {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+        gap: 12px;
+      }
+
+      .Planes_Avance_Form .Campo_Ancho {
+        grid-column: 1 / -1;
+      }
+
+      .Planes_Avance_Cantidad_Fila {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .Planes_Avance_Unidad_Fija {
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .Planes_Subobjetivo_Info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+      }
+
+      .Planes_Subobjetivo_Meta {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .Planes_Subobjetivo_Config {
+        display: grid;
+        grid-template-columns: minmax(74px, 0.7fr) minmax(110px, 1fr)
+          minmax(118px, 1fr) minmax(118px, 1fr);
+        gap: 6px;
+        grid-column: 1 / -1;
+      }
+
+      .Planes_Subobjetivo_Config label {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        color: var(--Texto_Suave);
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      .Planes_Subobjetivo_Config label[hidden] {
+        display: none;
+      }
+
+      .Planes_Subobjetivo_Config input,
+      .Planes_Subobjetivo_Config select {
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--Texto);
+        font: inherit;
+        font-size: 12px;
+        min-width: 0;
+        padding: 6px 7px;
+      }
+
+      .Planes_Registro_Tabla_Wrap {
+        max-height: 420px;
+        overflow: auto;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+      }
+
+      .Planes_Registro_Tabla {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+
+      .Planes_Registro_Tabla th,
+      .Planes_Registro_Tabla td {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 9px 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .Planes_Registro_Tabla th {
+        background: rgba(250, 247, 240, 0.98);
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 800;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+
+      .Planes_Registro_Tabla td:last-child,
+      .Planes_Registro_Tabla th:last-child {
+        text-align: right;
+      }
+
       .Planes_Detalle_Accion {
         align-self: flex-start;
         flex: 0 0 auto;
@@ -4428,7 +4563,7 @@
 
       .Planes_Subobjetivo {
         display: grid;
-        grid-template-columns: auto 1fr auto;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
         gap: 8px;
         align-items: center;
         font-size: 13px;
@@ -16140,9 +16275,9 @@
           <button class="Modal_Ayuda_Btn"
             id="Planes_Subobjetivos_Ayuda"
             type="button">?</button>
-          <span class="Patron_Modal_Titulo"
-            id="Planes_Subobjetivos_Titulo"
-            data-i18n="planes.subobjetivos">
+            <span class="Patron_Modal_Titulo"
+              id="Planes_Subobjetivos_Titulo"
+              data-i18n="planes.subobjetivos">
             Subobjetivos
           </span>
           <button class="Config_Cerrar"
@@ -16167,6 +16302,93 @@
               Importar subobjetivos
             </button>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="Patron_Modal_Overlay"
+      id="Planes_Avance_Overlay">
+      <div class="Patron_Modal_Panel Planes_Avance_Modal">
+        <div class="Patron_Modal_Cabecera">
+          <span class="Patron_Modal_Titulo"
+            data-i18n="planes.registrar_avance">
+            Registrar avance
+          </span>
+          <button class="Config_Cerrar"
+            id="Planes_Avance_Cerrar"
+            type="button">&times;</button>
+        </div>
+        <div class="Patron_Modal_Cuerpo">
+          <p class="Config_Nota"
+            data-i18n="planes.registrar_avance_desc">
+            Carga un avance puntual para una meta o subobjetivo.
+          </p>
+          <form class="Planes_Avance_Form"
+            id="Planes_Avance_Form">
+            <label class="Campo Campo_Ancho">
+              <span data-i18n="planes.avance_item">
+                Objetivo o subobjetivo
+              </span>
+              <select id="Planes_Avance_Item"
+                class="Con_Fallback_Emoji"></select>
+            </label>
+            <label class="Campo">
+              <span data-i18n="planes.avance_cantidad">
+                Cantidad de avance
+              </span>
+              <span class="Planes_Avance_Cantidad_Fila">
+                <input id="Planes_Avance_Cantidad"
+                  type="number"
+                  min="0"
+                  step="0.25">
+                <span class="Planes_Avance_Unidad_Fija"
+                  id="Planes_Avance_Unidad"></span>
+              </span>
+            </label>
+            <label class="Campo">
+              <span data-i18n="planes.avance_fecha">
+                Fecha
+              </span>
+              <input id="Planes_Avance_Fecha"
+                type="date">
+            </label>
+            <label class="Campo">
+              <span data-i18n="planes.avance_hora">
+                Hora
+              </span>
+              <input id="Planes_Avance_Hora"
+                type="time">
+            </label>
+          </form>
+        </div>
+        <div class="Patron_Modal_Acciones">
+          <button class="Config_Boton_Cancelar"
+            id="Planes_Avance_Cancelar"
+            data-i18n="cancelar"
+            type="button">Cancelar</button>
+          <button class="Config_Boton_Guardar"
+            id="Planes_Avance_Guardar"
+            data-i18n="guardar"
+            type="button">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="Patron_Modal_Overlay"
+      id="Planes_Registro_Overlay">
+      <div class="Patron_Modal_Panel Planes_Registro_Modal">
+        <div class="Patron_Modal_Cabecera">
+          <span class="Patron_Modal_Titulo"
+            id="Planes_Registro_Titulo"
+            data-i18n="planes.registro">
+            Registro
+          </span>
+          <button class="Config_Cerrar"
+            id="Planes_Registro_Cerrar"
+            type="button">&times;</button>
+        </div>
+        <div class="Patron_Modal_Cuerpo">
+          <div id="Planes_Registro_Cuerpo"></div>
         </div>
       </div>
     </div>
@@ -16978,10 +17200,49 @@
           "planes.fuente_subobjetivos": "Subobjetivos",
           "planes.fuente_mixta": "Mixto",
           "planes.fuente_help":
-            "Manual: toma solo el avance cargado a mano. " +
-            "Calendario: lee bloques hechos del calendario. " +
-            "Subobjetivos: lee subobjetivos vinculados. " +
-            "Mixto: suma avance detectado y manual.",
+            "Avance indica de dónde sale el progreso de la meta. " +
+            "Manual: carga directa. Calendario: bloques hechos. " +
+            "Subobjetivos: métricas de subobjetivos. Mixto: suma " +
+            "avance detectado y manual.",
+          "planes.registrar_avance": "Registrar avance",
+          "planes.registrar_avance_title":
+            "Registrar avance (M)",
+          "planes.registrar_avance_desc":
+            "Carga un avance puntual para una meta o subobjetivo. " +
+            "La fecha y hora quedan registradas para el historial.",
+          "planes.avance": "Avance",
+          "planes.avance_item": "Objetivo o subobjetivo",
+          "planes.avance_cantidad": "Cantidad de avance",
+          "planes.avance_fecha": "Fecha",
+          "planes.avance_hora": "Hora",
+          "planes.avance_registrado": "Avance registrado.",
+          "planes.avance_sin_items":
+            "No hay metas disponibles para registrar avance.",
+          "planes.avance_err_item":
+            "Elegí una meta o subobjetivo.",
+          "planes.avance_err_cantidad":
+            "Ingresá una cantidad mayor a cero.",
+          "planes.avance_err_sub_metrica":
+            "Definí una métrica para el subobjetivo antes de avanzar.",
+          "planes.registro": "Registro",
+          "planes.registro_titulo": "Registro · {nombre}",
+          "planes.registro_vacio":
+            "Todavía no hay avances registrados.",
+          "planes.registro_fecha": "Fecha",
+          "planes.registro_fuente": "Fuente",
+          "planes.registro_item": "Item",
+          "planes.registro_cantidad": "Cantidad",
+          "planes.registro_manual": "Manual",
+          "planes.registro_calendario": "Calendario",
+          "planes.registro_subobjetivo": "Subobjetivo",
+          "planes.registro_manual_previo": "Manual previo",
+          "planes.sub_metrica": "Métrica",
+          "planes.sub_unidad_custom":
+            "Unidad propia",
+          "planes.sub_inicio": "Inicio",
+          "planes.sub_fin": "Fin",
+          "planes.sub_avance": "Avance",
+          "planes.sin_metrica": "Sin métrica",
           "planes.sin_etiquetas": "Sin etiquetas",
           "planes.auto": "Automático",
           "planes.actual": "Actual",
@@ -17457,6 +17718,8 @@
             "Restaurar",
           "config.backup_exportar": "Exportar",
           "config.backup_borrar": "Borrar",
+          "config.backup_realizado":
+            "Backup realizado",
           "config.backup_aviso_manual":
             "Copia manual guardada.",
           "config.backup_aviso_auto":
@@ -19875,10 +20138,48 @@
           "planes.fuente_subobjetivos": "Subobjectives",
           "planes.fuente_mixta": "Mixed",
           "planes.fuente_help":
-            "Manual: uses only progress entered by hand. " +
-            "Calendar: reads completed calendar blocks. " +
-            "Subobjectives: reads linked subobjectives. " +
-            "Mixed: adds detected and manual progress.",
+            "Progress shows where goal progress comes from. " +
+            "Manual: direct entry. Calendar: completed blocks. " +
+            "Subobjectives: subobjective metrics. Mixed: adds " +
+            "detected and manual progress.",
+          "planes.registrar_avance": "Log progress",
+          "planes.registrar_avance_title": "Log progress (M)",
+          "planes.registrar_avance_desc":
+            "Records a specific progress entry for a goal or " +
+            "subobjective. Date and time are saved in the history.",
+          "planes.avance": "Progress",
+          "planes.avance_item": "Goal or subobjective",
+          "planes.avance_cantidad": "Progress amount",
+          "planes.avance_fecha": "Date",
+          "planes.avance_hora": "Time",
+          "planes.avance_registrado": "Progress logged.",
+          "planes.avance_sin_items":
+            "There are no goals available for progress logging.",
+          "planes.avance_err_item":
+            "Choose a goal or subobjective.",
+          "planes.avance_err_cantidad":
+            "Enter an amount greater than zero.",
+          "planes.avance_err_sub_metrica":
+            "Define a metric for the subobjective before logging progress.",
+          "planes.registro": "History",
+          "planes.registro_titulo": "History · {nombre}",
+          "planes.registro_vacio":
+            "There are no logged progress entries yet.",
+          "planes.registro_fecha": "Date",
+          "planes.registro_fuente": "Source",
+          "planes.registro_item": "Item",
+          "planes.registro_cantidad": "Amount",
+          "planes.registro_manual": "Manual",
+          "planes.registro_calendario": "Calendar",
+          "planes.registro_subobjetivo": "Subobjective",
+          "planes.registro_manual_previo": "Previous manual",
+          "planes.sub_metrica": "Metric",
+          "planes.sub_unidad_custom":
+            "Custom unit",
+          "planes.sub_inicio": "Start",
+          "planes.sub_fin": "End",
+          "planes.sub_avance": "Progress",
+          "planes.sin_metrica": "No metric",
           "planes.sin_etiquetas": "No tags",
           "planes.auto": "Automatic",
           "planes.actual": "Current",
@@ -20334,6 +20635,8 @@
             "Restore",
           "config.backup_exportar": "Export",
           "config.backup_borrar": "Delete",
+          "config.backup_realizado":
+            "Backup completed",
           "config.backup_aviso_manual":
             "Manual backup saved.",
           "config.backup_aviso_auto":
@@ -22721,10 +23024,49 @@
           "planes.fuente_subobjetivos": "Subobjetivos",
           "planes.fuente_mixta": "Misto",
           "planes.fuente_help":
-            "Manual: usa só o avanço carregado à mão. " +
-            "Calendário: lê blocos concluídos do calendário. " +
-            "Subobjetivos: lê subobjetivos vinculados. " +
-            "Misto: soma avanço detectado e manual.",
+            "Avanço indica de onde sai o progresso da meta. " +
+            "Manual: carga direta. Calendário: blocos concluídos. " +
+            "Subobjetivos: métricas de subobjetivos. Misto: soma " +
+            "avanço detectado e manual.",
+          "planes.registrar_avance": "Registrar avanço",
+          "planes.registrar_avance_title":
+            "Registrar avanço (M)",
+          "planes.registrar_avance_desc":
+            "Registra um avanço pontual para uma meta ou subobjetivo. " +
+            "A data e a hora ficam salvas no histórico.",
+          "planes.avance": "Avanço",
+          "planes.avance_item": "Meta ou subobjetivo",
+          "planes.avance_cantidad": "Quantidade de avanço",
+          "planes.avance_fecha": "Data",
+          "planes.avance_hora": "Hora",
+          "planes.avance_registrado": "Avanço registrado.",
+          "planes.avance_sin_items":
+            "Não há metas disponíveis para registrar avanço.",
+          "planes.avance_err_item":
+            "Escolha uma meta ou subobjetivo.",
+          "planes.avance_err_cantidad":
+            "Informe uma quantidade maior que zero.",
+          "planes.avance_err_sub_metrica":
+            "Defina uma métrica para o subobjetivo antes de avançar.",
+          "planes.registro": "Histórico",
+          "planes.registro_titulo": "Histórico · {nombre}",
+          "planes.registro_vacio":
+            "Ainda não há avanços registrados.",
+          "planes.registro_fecha": "Data",
+          "planes.registro_fuente": "Fonte",
+          "planes.registro_item": "Item",
+          "planes.registro_cantidad": "Quantidade",
+          "planes.registro_manual": "Manual",
+          "planes.registro_calendario": "Calendário",
+          "planes.registro_subobjetivo": "Subobjetivo",
+          "planes.registro_manual_previo": "Manual anterior",
+          "planes.sub_metrica": "Métrica",
+          "planes.sub_unidad_custom":
+            "Unidade própria",
+          "planes.sub_inicio": "Início",
+          "planes.sub_fin": "Fim",
+          "planes.sub_avance": "Avanço",
+          "planes.sin_metrica": "Sem métrica",
           "planes.sin_etiquetas": "Sem etiquetas",
           "planes.auto": "Automático",
           "planes.actual": "Atual",
@@ -23209,6 +23551,8 @@
             "Restaurar",
           "config.backup_exportar": "Exportar",
           "config.backup_borrar": "Apagar",
+          "config.backup_realizado":
+            "Backup realizado",
           "config.backup_aviso_manual":
             "Copia manual salva.",
           "config.backup_aviso_auto":
@@ -37430,6 +37774,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Periodos: {},
           Objetivos: {},
           Subobjetivos: {},
+          Avances: {},
           UI: {
             Periodo_Activo_Id: null,
             Expandidos: {},
@@ -37478,6 +37823,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           });
 
+        Object.values(Raw.Avances || {})
+          .forEach((Avance, Indice) => {
+            const Normalizado =
+              Normalizar_Avance_Plan(Avance, Indice);
+            if (Normalizado) {
+              Modelo.Avances[Normalizado.Id] = Normalizado;
+            }
+          });
+
         Modelo.UI = {
           ...Modelo.UI,
           ...(Raw.UI && typeof Raw.UI === "object" ? Raw.UI : {})
@@ -37510,6 +37864,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Periodo.Periodos &&
           Planes_Periodo.Objetivos &&
           Planes_Periodo.Subobjetivos &&
+          Planes_Periodo.Avances &&
           Planes_Periodo.UI
         ) {
           return Planes_Periodo;
@@ -37615,6 +37970,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Modo_Progreso: Modo,
           Progreso_Manual: Number(Objetivo.Progreso_Manual) || 0,
           Progreso_Leido: Number(Objetivo.Progreso_Leido) || 0,
+          Progreso_Subobjetivos:
+            Number(Objetivo.Progreso_Subobjetivos) || 0,
           Progreso_Total: Number(Objetivo.Progreso_Total) || 0,
           Target_Pendiente: Number(Objetivo.Target_Pendiente) || 0,
           Fijado: Boolean(Objetivo.Fijado),
@@ -37658,12 +38015,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Normalizar_Subobjetivo_Plan(Subobjetivo, Indice = 0) {
         if (!Subobjetivo || typeof Subobjetivo !== "object") return null;
+        const Unidad_Raw = (Subobjetivo.Unidad || "").toString();
+        const Unidad = Planes_Unidades.includes(Unidad_Raw)
+          ? Unidad_Raw
+          : "Personalizado";
+        const Target = Number(Subobjetivo.Target_Total);
+        const Progreso = Number(Subobjetivo.Progreso_Manual);
         return {
           Id: Subobjetivo.Id || Crear_Id_Subobjetivo_Plan(),
           Objetivo_Id: Subobjetivo.Objetivo_Id || null,
           Parent_Subobjetivo_Id:
             Subobjetivo.Parent_Subobjetivo_Id || null,
           Texto: (Subobjetivo.Texto || "").toString().trim(),
+          Target_Total: Number.isFinite(Target) ? Target : 0,
+          Unidad,
+          Unidad_Custom: (
+            Subobjetivo.Unidad_Custom ||
+            Subobjetivo.Unidad_Personalizada ||
+            ""
+          ).toString().trim(),
+          Progreso_Manual:
+            Number.isFinite(Progreso) ? Progreso : 0,
+          Fecha_Inicio:
+            (Subobjetivo.Fecha_Inicio || "").toString(),
+          Fecha_Fin:
+            (Subobjetivo.Fecha_Fin || "").toString(),
           Estado: Subobjetivo.Estado ||
             (Subobjetivo.Hecha ? "Cumplido" : "Activo"),
           Hecha: Boolean(Subobjetivo.Hecha),
@@ -37683,6 +38059,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Crear_Id_Subobjetivo_Plan() {
         return `Plan_Sub_${Date.now()}_${Math.floor(
+          Math.random() * 1000
+        )}`;
+      }
+
+      function Crear_Id_Avance_Plan() {
+        return `Plan_Av_${Date.now()}_${Math.floor(
           Math.random() * 1000
         )}`;
       }
@@ -37998,19 +38380,49 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }, 0);
       }
 
+      function Planes_Subobjetivos_Metricos(Objetivo_Id) {
+        return Planes_Subobjetivos_De_Objetivo(Objetivo_Id)
+          .filter((Sub) =>
+            !Sub.Eliminado_Local &&
+            (Number(Sub.Target_Total) || 0) > 0
+          );
+      }
+
+      function Planes_Calcular_Progreso_Subobjetivos(Objetivo_Plan) {
+        const Target_Objetivo = Number(Objetivo_Plan.Target_Total) || 0;
+        if (Target_Objetivo <= 0) return 0;
+        const Subs = Planes_Subobjetivos_Metricos(Objetivo_Plan.Id);
+        if (!Subs.length) return 0;
+        const Peso = Target_Objetivo / Subs.length;
+        return Subs.reduce((Total, Sub) => {
+          const Target_Sub = Number(Sub.Target_Total) || 0;
+          if (Target_Sub <= 0) return Total;
+          const Progreso_Sub = Math.max(
+            0,
+            Number(Sub.Progreso_Manual) || 0
+          );
+          const Ratio = Math.min(1, Progreso_Sub / Target_Sub);
+          return Total + (Peso * Ratio);
+        }, 0);
+      }
+
       function Planes_Actualizar_Progreso(Objetivo_Plan) {
         const Modelo = Asegurar_Modelo_Planes();
         const Periodo = Modelo.Periodos[Objetivo_Plan.Periodo_Id];
-        const Leido = Planes_Calcular_Leido(Objetivo_Plan, Periodo);
+        const Leido_Calendario =
+          Planes_Calcular_Leido(Objetivo_Plan, Periodo);
+        const Progreso_Subobjetivos =
+          Planes_Calcular_Progreso_Subobjetivos(Objetivo_Plan);
+        const Leido = Leido_Calendario + Progreso_Subobjetivos;
+        Objetivo_Plan.Progreso_Subobjetivos = Progreso_Subobjetivos;
         Objetivo_Plan.Progreso_Leido = Leido;
+        const Manual = Number(Objetivo_Plan.Progreso_Manual) || 0;
         if (Objetivo_Plan.Modo_Progreso === "Manual") {
-          Objetivo_Plan.Progreso_Total =
-            Number(Objetivo_Plan.Progreso_Manual) || 0;
+          Objetivo_Plan.Progreso_Total = Manual + Progreso_Subobjetivos;
         } else if (Objetivo_Plan.Modo_Progreso === "Leido") {
           Objetivo_Plan.Progreso_Total = Leido;
         } else {
-          Objetivo_Plan.Progreso_Total =
-            Leido + (Number(Objetivo_Plan.Progreso_Manual) || 0);
+          Objetivo_Plan.Progreso_Total = Leido + Manual;
         }
         Objetivo_Plan.Target_Actual =
           Number(Objetivo_Plan.Target_Total) || 0;
@@ -38187,11 +38599,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Planes_Unidad_Label_Subobjetivo(Sub) {
+        if (!Sub) return "";
+        if (Sub.Unidad === "Personalizado") {
+          return (
+            Sub.Unidad_Custom ||
+            t("planes.personalizado")
+          ).toLocaleLowerCase(Obtener_Locale_Actual());
+        }
+        return t(`planes.${Sub.Unidad.toLowerCase()}`)
+          .toLocaleLowerCase(Obtener_Locale_Actual());
+      }
+
       function Planes_Formatear_Meta_Objetivo(Objetivo) {
         return `${Planes_Formatear_Numero(
           Objetivo.Target_Total
         )} ${Planes_Unidad_Label(Objetivo)
           .toLocaleLowerCase(Obtener_Locale_Actual())}`.trim();
+      }
+
+      function Planes_Formatear_Meta_Subobjetivo(Sub) {
+        const Target = Number(Sub.Target_Total) || 0;
+        if (Target <= 0) return t("planes.sin_metrica");
+        return `${Planes_Formatear_Numero(
+          Number(Sub.Progreso_Manual) || 0
+        )}/${Planes_Formatear_Numero(Target)} ` +
+          Planes_Unidad_Label_Subobjetivo(Sub);
       }
 
       function Planes_Porcentaje_Meta(Progreso, Target) {
@@ -39143,6 +39576,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Normalizar_Avance_Plan(Avance, Indice = 0) {
+        if (!Avance || typeof Avance !== "object") return null;
+        const Fecha = (Avance.Fecha || "").toString();
+        const Hora = (Avance.Hora || "").toString();
+        const Cantidad = Number(Avance.Cantidad);
+        const Fuente = [
+          "Manual",
+          "Calendario",
+          "Subobjetivo",
+          "Importado"
+        ].includes(Avance.Fuente)
+          ? Avance.Fuente
+          : "Manual";
+        return {
+          Id: Avance.Id || Crear_Id_Avance_Plan(),
+          Objetivo_Id: (Avance.Objetivo_Id || "").toString(),
+          Subobjetivo_Id:
+            (Avance.Subobjetivo_Id || "").toString(),
+          Fuente,
+          Cantidad: Number.isFinite(Cantidad) ? Cantidad : 0,
+          Unidad: (Avance.Unidad || "").toString(),
+          Fecha,
+          Hora,
+          Fecha_Hora:
+            (Avance.Fecha_Hora || `${Fecha}T${Hora || "00:00"}`)
+              .toString(),
+          Nota: (Avance.Nota || "").toString(),
+          Orden: Number.isFinite(Number(Avance.Orden))
+            ? Number(Avance.Orden)
+            : Indice,
+          Creado_En: Avance.Creado_En || new Date().toISOString()
+        };
+      }
+
       function Planes_Poblar_Select_Unidades(Select, Valor_Actual) {
         if (!Select) return;
         Select.innerHTML = "";
@@ -39444,6 +39911,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Objetivo.Progreso_Total,
           Objetivo.Target_Total
         );
+        const Boton_Avance = `
+          <button class="Planes_Btn Planes_Avance_Btn"
+            type="button"
+            title="${Escape_Html(
+              t("planes.registrar_avance_title")
+            )}"
+            aria-label="${Escape_Html(t("planes.registrar_avance"))}"
+            data-plan-accion="registrar_avance">
+            + ${t("planes.avance")}
+          </button>
+        `;
         Card.innerHTML = Es_Biblioteca ? `
           <div class="Planes_Objetivo_Header">
             <div class="Planes_Objetivo_Principal_Izq">
@@ -39454,13 +39932,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ${Escape_Html(Objetivo.Nombre)}
               </span>
             </div>
+            ${Boton_Avance}
             <span class="Planes_Objetivo_Estado"
               title="${Escape_Html(Estado_Label)}"
               aria-label="${Escape_Html(Estado_Label)}">
               ${Planes_Emoji_Estado(Objetivo.Estado)}
             </span>
           </div>
-          ${Render_Planes_Fuente_Badge(Objetivo)}
           ${Expandido ? Render_Planes_Detalle_Objetivo(Objetivo) : ""}
         ` : `
           <div class="Planes_Objetivo_Header">
@@ -39474,6 +39952,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 </span>
               </div>
               <div class="Planes_Objetivo_Indicadores">
+                ${Es_Lista ? "" : Boton_Avance}
                 <strong class="Planes_Objetivo_Porcentaje">
                   ${Escape_Html(Porcentaje)}
                 </strong>
@@ -39488,7 +39967,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               <div class="Planes_Objetivo_Cantidad">
                 ${Escape_Html(Planes_Formatear_Meta_Objetivo(Objetivo))}
               </div>
-              ${Render_Planes_Fuente_Badge(Objetivo)}
             `}
           </div>
           ${Expandido ? Render_Planes_Detalle_Objetivo(Objetivo) : ""}
@@ -39818,6 +40296,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Render_Planes_Detalle_Objetivo(Objetivo) {
         const Estado_Label =
           t(`planes.estado_${Objetivo.Estado.toLowerCase()}`);
+        const Fuente = Planes_Fuente_Progreso(Objetivo);
         const Etiquetas = Planes_Etiquetas_Nombres(Objetivo);
         const Etiquetas_Html = Etiquetas.length
           ? `
@@ -39840,6 +40319,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               title="${Escape_Html(t("planes.estado_ayuda"))}">
               <span>${t("planes.estado")}</span>
               <strong>${Escape_Html(Estado_Label)}</strong>
+            </div>
+            <div class="Planes_Dato Planes_Dato_Ayuda"
+              title="${Escape_Html(t("planes.fuente_help"))}">
+              <span>${t("planes.avance")}</span>
+              <strong>${Escape_Html(Fuente.Label)}</strong>
             </div>
             <div class="Planes_Dato">
               <span>${t("planes.target")}</span>
@@ -39885,6 +40369,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               type="button"
               data-plan-accion="admin_subs">
               ${t("planes.ver_subobjetivos")}
+            </button>
+            <button class="Planes_Btn Planes_Registro_Btn"
+              type="button"
+              data-plan-accion="registro">
+              ${t("planes.registro")}
             </button>
           </div>
           ${Etiquetas_Html}
@@ -39958,6 +40447,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Tipo === "admin_subs") {
           Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, false);
+        }
+        if (Tipo === "registrar_avance") {
+          Abrir_Modal_Planes_Avance(`Objetivo|${Objetivo.Id}`);
+        }
+        if (Tipo === "registro") {
+          Abrir_Modal_Planes_Registro(Objetivo.Id);
         }
         if (Tipo === "target") Planes_Editar_Target(Objetivo.Id);
         if (Tipo === "manual") await Planes_Editar_Manual(Objetivo.Id);
@@ -40049,6 +40544,452 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Snapshot_Undo
           );
         }
+      }
+
+      function Planes_Fecha_Hora_Actual() {
+        const Ahora = new Date();
+        return {
+          Fecha: Formatear_Fecha_ISO(Ahora),
+          Hora: `${String(Ahora.getHours()).padStart(2, "0")}:` +
+            `${String(Ahora.getMinutes()).padStart(2, "0")}`
+        };
+      }
+
+      function Planes_Valor_Item_Avance(Item) {
+        if (!Item) return "";
+        return `${Item.Tipo}|${Item.Id}`;
+      }
+
+      function Planes_Items_Avance_Disponibles() {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Periodos = Modelo.Periodos || {};
+        const Objetivos_Ordenados = Object.values(Modelo.Objetivos)
+          .filter((Objetivo) => !Objetivo.Eliminado_Local)
+          .sort((A, B) => {
+            const PA = Periodos[A.Periodo_Id];
+            const PB = Periodos[B.Periodo_Id];
+            const Fecha_A = PA?.Inicio || "";
+            const Fecha_B = PB?.Inicio || "";
+            if (Fecha_A !== Fecha_B) {
+              return Fecha_A.localeCompare(Fecha_B);
+            }
+            return Number(A.Orden) - Number(B.Orden);
+          });
+        const Items = [];
+        Objetivos_Ordenados.forEach((Objetivo) => {
+          Items.push({
+            Tipo: "Objetivo",
+            Id: Objetivo.Id,
+            Objetivo
+          });
+          Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
+            .filter((Sub) => !Sub.Eliminado_Local)
+            .forEach((Sub) => {
+              Items.push({
+                Tipo: "Subobjetivo",
+                Id: Sub.Id,
+                Objetivo,
+                Sub
+              });
+            });
+        });
+        return Items;
+      }
+
+      function Planes_Item_Avance_Por_Valor(Valor) {
+        const [Tipo, Id] = (Valor || "").toString().split("|");
+        const Modelo = Asegurar_Modelo_Planes();
+        if (Tipo === "Objetivo" && Modelo.Objetivos[Id]) {
+          return {
+            Tipo,
+            Id,
+            Objetivo: Modelo.Objetivos[Id]
+          };
+        }
+        if (Tipo === "Subobjetivo" && Modelo.Subobjetivos[Id]) {
+          const Sub = Modelo.Subobjetivos[Id];
+          const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
+          if (!Objetivo) return null;
+          return { Tipo, Id, Objetivo, Sub };
+        }
+        return null;
+      }
+
+      function Planes_Unidad_Item_Avance(Item) {
+        if (!Item) return "";
+        if (Item.Tipo === "Subobjetivo") {
+          return Planes_Unidad_Label_Subobjetivo(Item.Sub);
+        }
+        return Planes_Unidad_Label(Item.Objetivo)
+          .toLocaleLowerCase(Obtener_Locale_Actual());
+      }
+
+      function Planes_Label_Item_Avance(Item) {
+        if (!Item) return "";
+        const Obj = Item.Objetivo;
+        if (Item.Tipo === "Subobjetivo") {
+          return (
+            `${Obj.Emoji || ""} ${Obj.Nombre || ""} · ` +
+            `${Item.Sub.Texto || ""}`
+          ).trim();
+        }
+        return `${Obj.Emoji || ""} ${Obj.Nombre || ""}`.trim();
+      }
+
+      function Planes_Poblar_Select_Avance(Valor_Default = "") {
+        const Select = document.getElementById("Planes_Avance_Item");
+        if (!Select) return false;
+        const Items = Planes_Items_Avance_Disponibles();
+        Select.innerHTML = "";
+        Items.forEach((Item) => {
+          const Opt = document.createElement("option");
+          Opt.value = Planes_Valor_Item_Avance(Item);
+          Opt.textContent = Planes_Label_Item_Avance(Item);
+          Select.appendChild(Opt);
+        });
+        if (!Items.length) return false;
+        const Valores = new Set(Items.map(Planes_Valor_Item_Avance));
+        Select.value = Valores.has(Valor_Default)
+          ? Valor_Default
+          : Planes_Valor_Item_Avance(Items[0]);
+        Actualizar_Unidad_Modal_Planes_Avance();
+        return true;
+      }
+
+      function Actualizar_Unidad_Modal_Planes_Avance() {
+        const Select = document.getElementById("Planes_Avance_Item");
+        const Unidad = document.getElementById("Planes_Avance_Unidad");
+        if (!Select || !Unidad) return;
+        const Item = Planes_Item_Avance_Por_Valor(Select.value);
+        Unidad.textContent = Planes_Unidad_Item_Avance(Item);
+      }
+
+      function Abrir_Modal_Planes_Avance(Valor_Default = "") {
+        const Ok = Planes_Poblar_Select_Avance(Valor_Default);
+        if (!Ok) {
+          Mostrar_Toast_Info(t("planes.avance_sin_items"));
+          return;
+        }
+        const Actual = Planes_Fecha_Hora_Actual();
+        const Cantidad = document.getElementById(
+          "Planes_Avance_Cantidad"
+        );
+        const Fecha = document.getElementById("Planes_Avance_Fecha");
+        const Hora = document.getElementById("Planes_Avance_Hora");
+        if (Cantidad) Cantidad.value = "1";
+        if (Fecha) Fecha.value = Actual.Fecha;
+        if (Hora) Hora.value = Actual.Hora;
+        document.getElementById("Planes_Avance_Overlay")
+          ?.classList.add("Activo");
+        setTimeout(() => {
+          Cantidad?.focus();
+          Cantidad?.select?.();
+        }, 0);
+      }
+
+      function Cerrar_Modal_Planes_Avance() {
+        document.getElementById("Planes_Avance_Overlay")
+          ?.classList.remove("Activo");
+      }
+
+      function Guardar_Modal_Planes_Avance() {
+        const Select = document.getElementById("Planes_Avance_Item");
+        const Input = document.getElementById(
+          "Planes_Avance_Cantidad"
+        );
+        const Fecha_Input = document.getElementById(
+          "Planes_Avance_Fecha"
+        );
+        const Hora_Input = document.getElementById(
+          "Planes_Avance_Hora"
+        );
+        const Item = Planes_Item_Avance_Por_Valor(Select?.value || "");
+        if (!Item) {
+          Mostrar_Toast_Error(t("planes.avance_err_item"));
+          return;
+        }
+        const Cantidad = Number(
+          (Input?.value || "").toString().replace(",", ".")
+        );
+        if (!Number.isFinite(Cantidad) || Cantidad <= 0) {
+          Mostrar_Toast_Error(t("planes.avance_err_cantidad"));
+          return;
+        }
+        if (
+          Item.Tipo === "Subobjetivo" &&
+          (Number(Item.Sub.Target_Total) || 0) <= 0
+        ) {
+          Mostrar_Toast_Error(t("planes.avance_err_sub_metrica"));
+          return;
+        }
+        const Actual = Planes_Fecha_Hora_Actual();
+        const Fecha = Fecha_Input?.value || Actual.Fecha;
+        const Hora = Hora_Input?.value || Actual.Hora;
+        const Modelo = Asegurar_Modelo_Planes();
+        const Snap = Capturar_Snapshot_Undo();
+        const Id = Crear_Id_Avance_Plan();
+        Modelo.Avances[Id] = Normalizar_Avance_Plan({
+          Id,
+          Objetivo_Id: Item.Objetivo.Id,
+          Subobjetivo_Id:
+            Item.Tipo === "Subobjetivo" ? Item.Sub.Id : "",
+          Fuente:
+            Item.Tipo === "Subobjetivo" ? "Subobjetivo" : "Manual",
+          Cantidad,
+          Unidad: Planes_Unidad_Item_Avance(Item),
+          Fecha,
+          Hora,
+          Fecha_Hora: `${Fecha}T${Hora || "00:00"}`
+        });
+        if (Item.Tipo === "Subobjetivo") {
+          Item.Sub.Progreso_Manual =
+            (Number(Item.Sub.Progreso_Manual) || 0) + Cantidad;
+          const Target = Number(Item.Sub.Target_Total) || 0;
+          Item.Sub.Hecha = Target > 0 &&
+            Item.Sub.Progreso_Manual >= Target;
+          Item.Sub.Estado = Item.Sub.Hecha ? "Cumplido" : "Activo";
+        } else {
+          Item.Objetivo.Progreso_Manual =
+            (Number(Item.Objetivo.Progreso_Manual) || 0) + Cantidad;
+        }
+        Cerrar_Modal_Planes_Avance();
+        if (
+          document.getElementById("Planes_Subobjetivos_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Modal_Planes_Subobjetivos();
+        }
+        Planes_Recalcular_Desde(
+          Item.Objetivo,
+          Snap,
+          t("planes.avance_registrado")
+        );
+      }
+
+      function Planes_Actualizar_Subobjetivo_Datos(Sub_Id, Datos) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Sub = Modelo.Subobjetivos[Sub_Id];
+        if (!Sub) return;
+        const Snap = Capturar_Snapshot_Undo();
+        if (Datos.Target_Total !== undefined) {
+          const Target = Number(
+            String(Datos.Target_Total || "").replace(",", ".")
+          );
+          Sub.Target_Total =
+            Number.isFinite(Target) && Target > 0 ? Target : 0;
+        }
+        if (Datos.Unidad !== undefined) {
+          Sub.Unidad = Planes_Unidades.includes(Datos.Unidad)
+            ? Datos.Unidad
+            : "Personalizado";
+        }
+        if (Datos.Unidad_Custom !== undefined) {
+          Sub.Unidad_Custom = Datos.Unidad_Custom.toString().trim();
+        }
+        if (Datos.Fecha_Inicio !== undefined) {
+          Sub.Fecha_Inicio = Datos.Fecha_Inicio.toString();
+        }
+        if (Datos.Fecha_Fin !== undefined) {
+          Sub.Fecha_Fin = Datos.Fecha_Fin.toString();
+        }
+        const Target = Number(Sub.Target_Total) || 0;
+        if (Target > 0) {
+          Sub.Hecha = (Number(Sub.Progreso_Manual) || 0) >= Target;
+          Sub.Estado = Sub.Hecha ? "Cumplido" : "Activo";
+        }
+        const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
+        if (Objetivo) {
+          Planes_Recalcular_Desde(
+            Objetivo,
+            Snap,
+            t("toast.subobjetivo_actualizada")
+          );
+        } else {
+          Render_Plan();
+          Guardar_Estado();
+        }
+        Render_Modal_Planes_Subobjetivos();
+      }
+
+      function Planes_Formatear_Hora_Numero(Valor) {
+        const Total = Math.round((Number(Valor) || 0) * 60);
+        const Horas = Math.floor(Total / 60);
+        const Minutos = Math.abs(Total % 60);
+        return `${String(Horas).padStart(2, "0")}:` +
+          `${String(Minutos).padStart(2, "0")}`;
+      }
+
+      function Planes_Formatear_Fecha_Hora_Registro(
+        Fecha_Hora,
+        Fecha = "",
+        Hora = ""
+      ) {
+        const Valor = Fecha_Hora || (
+          Fecha ? `${Fecha}T${Hora || "00:00"}` : ""
+        );
+        if (!Valor) return "-";
+        const Fecha_Obj = new Date(Valor);
+        if (Number.isNaN(Fecha_Obj.getTime())) {
+          return `${Fecha || "-"} ${Hora || ""}`.trim();
+        }
+        return Fecha_Obj.toLocaleString(
+          Obtener_Locale_Actual(),
+          {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+          }
+        );
+      }
+
+      function Planes_Registros_De_Objetivo(Objetivo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Registros = [];
+        Object.values(Modelo.Avances || {})
+          .filter((Avance) => Avance.Objetivo_Id === Objetivo.Id)
+          .forEach((Avance) => {
+            const Sub = Avance.Subobjetivo_Id
+              ? Modelo.Subobjetivos[Avance.Subobjetivo_Id]
+              : null;
+            const Fuente = Avance.Fuente === "Subobjetivo"
+              ? t("planes.registro_subobjetivo")
+              : Avance.Fuente === "Calendario"
+                ? t("planes.registro_calendario")
+                : t("planes.registro_manual");
+            Registros.push({
+              Fecha_Hora: Avance.Fecha_Hora || "",
+              Fecha: Planes_Formatear_Fecha_Hora_Registro(
+                Avance.Fecha_Hora,
+                Avance.Fecha,
+                Avance.Hora
+              ),
+              Fuente,
+              Item: Sub?.Texto || Objetivo.Nombre,
+              Cantidad: `${Planes_Formatear_Numero(
+                Avance.Cantidad
+              )} ${Avance.Unidad || Planes_Unidad_Label(Objetivo)}`
+            });
+          });
+
+        const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
+        if (Periodo && Objetivo.Modo_Progreso !== "Manual") {
+          const Coincidencias =
+            Planes_Coincidencias_Sidebar(Objetivo);
+          const Ids = Coincidencias.map((Item) => Item.Id);
+          Planes_Eventos_En_Periodo(Periodo, Ids)
+            .forEach((Evento) => {
+              const Aporte = Planes_Aporte_Evento_A_Objetivo(
+                Objetivo,
+                Periodo,
+                Evento
+              );
+              if (Aporte <= 0) return;
+              const Obj_Sidebar = Coincidencias.find(
+                (Item) => Item.Id === Evento.Objetivo_Id
+              );
+              const Hora = Planes_Formatear_Hora_Numero(Evento.Inicio);
+              Registros.push({
+                Fecha_Hora: `${Evento.Fecha}T${Hora}`,
+                Fecha: Planes_Formatear_Fecha_Hora_Registro(
+                  `${Evento.Fecha}T${Hora}`,
+                  Evento.Fecha,
+                  Hora
+                ),
+                Fuente: t("planes.registro_calendario"),
+                Item: Obj_Sidebar?.Nombre || Objetivo.Nombre,
+                Cantidad: `${Planes_Formatear_Numero(Aporte)} ` +
+                  Planes_Unidad_Label(Objetivo)
+              });
+            });
+        }
+
+        const Manual_Total = Number(Objetivo.Progreso_Manual) || 0;
+        const Manual_Registrado = Object.values(Modelo.Avances || {})
+          .filter((Avance) =>
+            Avance.Objetivo_Id === Objetivo.Id &&
+            Avance.Fuente === "Manual" &&
+            !Avance.Subobjetivo_Id
+          )
+          .reduce((Total, Avance) => {
+            return Total + (Number(Avance.Cantidad) || 0);
+          }, 0);
+        const Manual_Previo = Manual_Total - Manual_Registrado;
+        if (Manual_Previo > 0.0001) {
+          Registros.push({
+            Fecha_Hora: Objetivo.Actualizado_En || "",
+            Fecha: Planes_Formatear_Fecha_Hora_Registro(
+              Objetivo.Actualizado_En || ""
+            ),
+            Fuente: t("planes.registro_manual_previo"),
+            Item: Objetivo.Nombre,
+            Cantidad: `${Planes_Formatear_Numero(Manual_Previo)} ` +
+              Planes_Unidad_Label(Objetivo)
+          });
+        }
+
+        return Registros.sort((A, B) => {
+          return (B.Fecha_Hora || "").localeCompare(A.Fecha_Hora || "");
+        });
+      }
+
+      function Render_Modal_Planes_Registro(Objetivo) {
+        const Cuerpo = document.getElementById("Planes_Registro_Cuerpo");
+        const Titulo = document.getElementById("Planes_Registro_Titulo");
+        if (!Cuerpo || !Objetivo) return;
+        if (Titulo) {
+          Titulo.textContent = t("planes.registro_titulo", {
+            nombre: Objetivo.Nombre
+          });
+        }
+        const Registros = Planes_Registros_De_Objetivo(Objetivo);
+        if (!Registros.length) {
+          Cuerpo.innerHTML = `
+            <div class="Planes_Vacio">
+              ${t("planes.registro_vacio")}
+            </div>
+          `;
+          return;
+        }
+        Cuerpo.innerHTML = `
+          <div class="Planes_Registro_Tabla_Wrap">
+            <table class="Planes_Registro_Tabla">
+              <thead>
+                <tr>
+                  <th>${t("planes.registro_fecha")}</th>
+                  <th>${t("planes.registro_fuente")}</th>
+                  <th>${t("planes.registro_item")}</th>
+                  <th>${t("planes.registro_cantidad")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${Registros.map((Registro) => `
+                  <tr>
+                    <td>${Escape_Html(Registro.Fecha)}</td>
+                    <td>${Escape_Html(Registro.Fuente)}</td>
+                    <td>${Escape_Html(Registro.Item)}</td>
+                    <td>${Escape_Html(Registro.Cantidad)}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      function Abrir_Modal_Planes_Registro(Objetivo_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        if (!Objetivo) return;
+        Render_Modal_Planes_Registro(Objetivo);
+        document.getElementById("Planes_Registro_Overlay")
+          ?.classList.add("Activo");
+      }
+
+      function Cerrar_Modal_Planes_Registro() {
+        document.getElementById("Planes_Registro_Overlay")
+          ?.classList.remove("Activo");
       }
 
       function Planes_Editar_Target(Objetivo_Id) {
@@ -40371,15 +41312,66 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Item = document.createElement("div");
           Item.className = "Planes_Subobjetivo" +
             (Sub.Importado ? " Importado" : "");
+          const Unidad_Opciones = Planes_Unidades.map((Unidad) => `
+            <option value="${Escape_Html(Unidad)}"
+              ${Sub.Unidad === Unidad ? "selected" : ""}>
+              ${t(`planes.${Unidad.toLowerCase()}`)}
+            </option>
+          `).join("");
           Item.innerHTML = `
             <input type="checkbox"
               data-plan-sub-check="${Escape_Html(Sub.Id)}"
               ${Sub.Hecha ? "checked" : ""}>
-            <span>${Escape_Html(Sub.Texto)}</span>
+            <span class="Planes_Subobjetivo_Info">
+              <span>${Escape_Html(Sub.Texto)}</span>
+              <span class="Planes_Subobjetivo_Meta">
+                ${Escape_Html(Planes_Formatear_Meta_Subobjetivo(Sub))}
+              </span>
+            </span>
+            <button class="Planes_Btn" type="button"
+              data-plan-sub-avance="${Escape_Html(Sub.Id)}">
+              ${t("planes.sub_avance")}
+            </button>
             <button class="Planes_Btn Peligro" type="button"
               data-plan-sub-eliminar="${Escape_Html(Sub.Id)}">
               ${t("planes.eliminar_local")}
             </button>
+            <div class="Planes_Subobjetivo_Config">
+              <label>
+                <span>${t("planes.sub_metrica")}</span>
+                <input type="number" min="0" step="0.25"
+                  data-plan-sub-target="${Escape_Html(Sub.Id)}"
+                  value="${Escape_Html(
+                    Number(Sub.Target_Total) > 0
+                      ? Planes_Formatear_Numero(Sub.Target_Total)
+                      : ""
+                  )}">
+              </label>
+              <label>
+                <span>${t("planes.nuevo_unidad")}</span>
+                <select data-plan-sub-unidad="${Escape_Html(Sub.Id)}">
+                  ${Unidad_Opciones}
+                </select>
+              </label>
+              <label ${Sub.Unidad === "Personalizado" ? "" : "hidden"}>
+                <span>${t("planes.sub_unidad_custom")}</span>
+                <input type="text"
+                  data-plan-sub-unidad-custom="${Escape_Html(Sub.Id)}"
+                  value="${Escape_Html(Sub.Unidad_Custom || "")}">
+              </label>
+              <label>
+                <span>${t("planes.sub_inicio")}</span>
+                <input type="date"
+                  data-plan-sub-inicio="${Escape_Html(Sub.Id)}"
+                  value="${Escape_Html(Sub.Fecha_Inicio || "")}">
+              </label>
+              <label>
+                <span>${t("planes.sub_fin")}</span>
+                <input type="date"
+                  data-plan-sub-fin="${Escape_Html(Sub.Id)}"
+                  value="${Escape_Html(Sub.Fecha_Fin || "")}">
+              </label>
+            </div>
           `;
           Lista.appendChild(Item);
         });
@@ -40400,6 +41392,59 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Btn.dataset.planSubEliminar
               );
               Render_Modal_Planes_Subobjetivos();
+            });
+          });
+        Lista.querySelectorAll("[data-plan-sub-avance]")
+          .forEach((Btn) => {
+            Btn.addEventListener("click", () => {
+              Abrir_Modal_Planes_Avance(
+                `Subobjetivo|${Btn.dataset.planSubAvance}`
+              );
+            });
+          });
+        Lista.querySelectorAll("[data-plan-sub-target]")
+          .forEach((Input) => {
+            Input.addEventListener("change", () => {
+              Planes_Actualizar_Subobjetivo_Datos(
+                Input.dataset.planSubTarget,
+                { Target_Total: Input.value }
+              );
+            });
+          });
+        Lista.querySelectorAll("[data-plan-sub-unidad]")
+          .forEach((Select) => {
+            Select.addEventListener("change", () => {
+              Planes_Actualizar_Subobjetivo_Datos(
+                Select.dataset.planSubUnidad,
+                { Unidad: Select.value }
+              );
+            });
+          });
+        Lista.querySelectorAll("[data-plan-sub-unidad-custom]")
+          .forEach((Input) => {
+            Input.addEventListener("change", () => {
+              Planes_Actualizar_Subobjetivo_Datos(
+                Input.dataset.planSubUnidadCustom,
+                { Unidad_Custom: Input.value }
+              );
+            });
+          });
+        Lista.querySelectorAll("[data-plan-sub-inicio]")
+          .forEach((Input) => {
+            Input.addEventListener("change", () => {
+              Planes_Actualizar_Subobjetivo_Datos(
+                Input.dataset.planSubInicio,
+                { Fecha_Inicio: Input.value }
+              );
+            });
+          });
+        Lista.querySelectorAll("[data-plan-sub-fin]")
+          .forEach((Input) => {
+            Input.addEventListener("change", () => {
+              Planes_Actualizar_Subobjetivo_Datos(
+                Input.dataset.planSubFin,
+                { Fecha_Fin: Input.value }
+              );
             });
           });
         const Importar = document.getElementById(
@@ -40468,14 +41513,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Sub = Modelo.Subobjetivos[Sub_Id];
         if (!Sub) return;
         Sub.Hecha = Boolean(Hecha);
+        const Target = Number(Sub.Target_Total) || 0;
+        if (Target > 0) {
+          Sub.Progreso_Manual = Hecha ? Target : 0;
+          Sub.Estado = Hecha ? "Cumplido" : "Activo";
+        }
         if (Sub.Parent_Subobjetivo_Id) {
           const Padre = Modelo.Subobjetivos[Sub.Parent_Subobjetivo_Id];
           if (Padre) Padre.Hecha = Boolean(Hecha);
         }
         const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
-        if (Objetivo) Planes_Actualizar_Progreso(Objetivo);
-        Render_Plan();
-        Guardar_Estado();
+        if (Objetivo) {
+          Planes_Recalcular_Desde(Objetivo);
+        } else {
+          Render_Plan();
+          Guardar_Estado();
+        }
       }
 
       function Planes_Eliminar_Subobjetivo(Sub_Id) {
@@ -40515,6 +41568,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Parent_Subobjetivo_Id: Sub_Padre.Id,
             Texto: Sub_Padre.Texto,
             Hecha: Sub_Padre.Hecha,
+            Target_Total: Sub_Padre.Target_Total,
+            Unidad: Sub_Padre.Unidad,
+            Unidad_Custom: Sub_Padre.Unidad_Custom,
+            Progreso_Manual: Sub_Padre.Progreso_Manual,
+            Fecha_Inicio: Sub_Padre.Fecha_Inicio,
+            Fecha_Fin: Sub_Padre.Fecha_Fin,
             Importado: true,
             Orden: Planes_Subobjetivos_De_Objetivo(Objetivo.Id).length
           });
@@ -49562,11 +50621,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Backups_Locales();
         Render_Config_Backups();
         Mostrar_Toast_Info(
-          t(
-            Tipo === "Auto"
-              ? "config.backup_aviso_auto"
-              : "config.backup_aviso_manual"
-          ),
+          t("config.backup_realizado"),
           "💾",
           5000
         );
@@ -61778,6 +62833,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Modal_Planes_Subobjetivos();
           Input.focus();
         });
+      document.getElementById("Planes_Avance_Cerrar")
+        ?.addEventListener("click", Cerrar_Modal_Planes_Avance);
+      document.getElementById("Planes_Avance_Cancelar")
+        ?.addEventListener("click", Cerrar_Modal_Planes_Avance);
+      document.getElementById("Planes_Avance_Guardar")
+        ?.addEventListener("click", Guardar_Modal_Planes_Avance);
+      document.getElementById("Planes_Avance_Form")
+        ?.addEventListener("submit", (Ev) => {
+          Ev.preventDefault();
+          Guardar_Modal_Planes_Avance();
+        });
+      document.getElementById("Planes_Avance_Item")
+        ?.addEventListener(
+          "change",
+          Actualizar_Unidad_Modal_Planes_Avance
+        );
+      document.getElementById("Planes_Registro_Cerrar")
+        ?.addEventListener("click", Cerrar_Modal_Planes_Registro);
       document.getElementById("Planes_Vencidos_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Planes_Vencidos_Overlay") {
@@ -67383,6 +68456,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return;
         }
 
+        if (
+          !Ev.ctrlKey &&
+          !Ev.metaKey &&
+          !Ev.altKey &&
+          (Ev.key === "m" || Ev.key === "M")
+        ) {
+          const Modal_Activo_M = document.querySelector(
+            ".Dialogo_Overlay.Activo, " +
+            "#Planes_Avance_Overlay.Activo, " +
+            "#Planes_Registro_Overlay.Activo, " +
+            "#Planes_Objetivo_Overlay.Activo, " +
+            "#Planes_Subobjetivos_Overlay.Activo, " +
+            "#Meta_Editor_Overlay.Activo, " +
+            "#Archivero_Nota_Overlay.Activo, " +
+            "#Patron_Modal_Overlay.Activo"
+          );
+          if (Modal_Activo_M) return;
+          if (typeof Abrir_Modal_Planes_Avance === "function") {
+            Cerrar_Menu_Dia();
+            Abrir_Modal_Planes_Avance();
+            Ev.preventDefault();
+          }
+          return;
+        }
+
         // Si hay diálogo o modal abierto, solo manejar Esc.
         const Dialogo_Abierto_DOM = document
           .querySelector(".Dialogo_Overlay.Activo");
@@ -67421,6 +68519,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.classList.contains("Activo");
         const Planes_Activo = document
           .getElementById("Plan_Overlay")
+          ?.classList.contains("Activo");
+        const Planes_Objetivo_Activo = document
+          .getElementById("Planes_Objetivo_Overlay")
+          ?.classList.contains("Activo");
+        const Planes_Subobjetivos_Activo = document
+          .getElementById("Planes_Subobjetivos_Overlay")
+          ?.classList.contains("Activo");
+        const Planes_Avance_Activo = document
+          .getElementById("Planes_Avance_Overlay")
+          ?.classList.contains("Activo");
+        const Planes_Registro_Activo = document
+          .getElementById("Planes_Registro_Overlay")
           ?.classList.contains("Activo");
         const Baul_Abierto = document
           .getElementById("Baul_Overlay")
@@ -67511,6 +68621,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.preventDefault();
             return;
           }
+          if (Planes_Registro_Activo) {
+            Cerrar_Modal_Planes_Registro();
+            Ev.preventDefault();
+            return;
+          }
+          if (Planes_Avance_Activo) {
+            Cerrar_Modal_Planes_Avance();
+            Ev.preventDefault();
+            return;
+          }
+          if (Planes_Subobjetivos_Activo) {
+            Cerrar_Modal_Planes_Subobjetivos();
+            Ev.preventDefault();
+            return;
+          }
+          if (Planes_Objetivo_Activo) {
+            Cerrar_Modal_Planes_Objetivo();
+            Ev.preventDefault();
+            return;
+          }
           if (Planes_Activo) {
             Cerrar_Plan();
             Ev.preventDefault();
@@ -67598,6 +68728,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Ayuda_Abierta ||
           Metas_Activo ||
           Meta_Editor_Activo ||
+          Planes_Registro_Activo ||
+          Planes_Avance_Activo ||
+          Planes_Subobjetivos_Activo ||
+          Planes_Objetivo_Activo ||
           Planes_Activo ||
           Baul_Nuevo_Abierto ||
           Baul_Abierto ||
