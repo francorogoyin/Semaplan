@@ -86,6 +86,12 @@ Seguir el estilo global del proyecto:
   traducido en todos los idiomas disponibles en la app en ese momento,
   dentro del mismo turno.
 - No dejar textos hardcodeados en una sola lengua para "después".
+- Si un elemento de UI muestra emojis (inputs, selects, options,
+  badges, botones o texto generado), aplicar `Con_Fallback_Emoji` o
+  sumar su selector al bloque CSS de fallback emoji.
+- Ese fallback debe incluir `"Segoe UI Emoji"`, `"Apple Color Emoji"`,
+  `"Noto Color Emoji"` y `"Segoe UI Symbol"` para evitar cuadrados en
+  Windows y otras computadoras.
 
 ## Comunicación
 

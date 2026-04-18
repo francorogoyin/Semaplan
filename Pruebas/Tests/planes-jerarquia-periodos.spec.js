@@ -223,7 +223,19 @@ async ({ page }) => {
       sidebarAncho: Math.round(Sidebar.getBoundingClientRect().width),
       primerPeriodo: Items[0]?.innerText || "",
       primerTooltip: Items[0]?.getAttribute("title") || "",
-      controlesUnaLinea: Math.max(...Tops) - Math.min(...Tops) <= 4
+      controlesUnaLinea: Math.max(...Tops) - Math.min(...Tops) <= 4,
+      gapCuerpo: getComputedStyle(
+        document.querySelector(".Planes_Principal")
+      ).gap,
+      paddingResumen: getComputedStyle(
+        document.querySelector(".Planes_Resumen")
+      ).paddingBottom,
+      margenRango: getComputedStyle(
+        document.querySelector(".Planes_Resumen_Rango")
+      ).marginTop,
+      fuenteMetrica: getComputedStyle(
+        document.querySelector(".Planes_Metrica_Valor")
+      ).fontSize
     };
   });
 
@@ -232,6 +244,10 @@ async ({ page }) => {
   expect(Layout_Desktop.primerPeriodo).not.toContain("2026-01-01");
   expect(Layout_Desktop.primerTooltip).toContain("al");
   expect(Layout_Desktop.controlesUnaLinea).toBe(true);
+  expect(Layout_Desktop.gapCuerpo).toBe("24px");
+  expect(Layout_Desktop.paddingResumen).toBe("36px");
+  expect(Layout_Desktop.margenRango).toBe("12px");
+  expect(Layout_Desktop.fuenteMetrica).toBe("14px");
 
   await page.evaluate(() => Cambiar_Idioma("en"));
   await expect(page.locator(".Planes_Periodo_Item").first())
@@ -243,6 +259,20 @@ async ({ page }) => {
   await page.click("#Planes_Btn_Etiquetas_Header");
   await expect(page.locator("#Planes_Etiquetas_Overlay"))
     .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Etiqueta_Nombre"))
+    .toHaveAttribute("placeholder", "Ej: Ideas");
+  const Layout_Etiquetas = await page.evaluate(() => {
+    const Panel = document.querySelector(
+      "#Planes_Etiquetas_Overlay .Patron_Modal_Panel"
+    );
+    const Input = document.getElementById("Planes_Etiqueta_Nombre");
+    return {
+      usaSubPanel: Panel.classList.contains("Archivero_Sub_Panel"),
+      radioInput: getComputedStyle(Input).borderRadius
+    };
+  });
+  expect(Layout_Etiquetas.usaSubPanel).toBe(true);
+  expect(Layout_Etiquetas.radioInput).toBe("8px");
   await page.fill("#Planes_Etiqueta_Nombre", "Lectura");
   await page.click("#Planes_Etiqueta_Agregar");
   await expect(
@@ -258,6 +288,10 @@ async ({ page }) => {
   await page.click("#Planes_Btn_Nuevo_Header");
   await expect(page.locator("#Planes_Objetivo_Overlay"))
     .toHaveClass(/Activo/);
+  const Fuente_Vinculo = await page.locator(
+    "#Planes_Objetivo_Vinculo"
+  ).evaluate((El) => getComputedStyle(El).fontFamily);
+  expect(Fuente_Vinculo).toContain("Segoe UI Emoji");
   await expect(page.locator("#Planes_Objetivo_Unidad"))
     .not.toContainText("Páginas");
   await expect(page.locator("#Planes_Objetivo_Unidad"))
