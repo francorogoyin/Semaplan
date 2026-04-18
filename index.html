@@ -3740,6 +3740,12 @@
         align-items: start;
       }
 
+      .Planes_Objetivos.Biblioteca .Planes_Vacio {
+        box-sizing: border-box;
+        grid-column: 1 / -1;
+        width: 100%;
+      }
+
       .Planes_Principal {
         display: flex;
         flex-direction: column;
@@ -3947,6 +3953,11 @@
         box-shadow: 0 0 0 2px rgba(15, 95, 90, 0.1);
       }
 
+      .Planes_Objetivo_Card.Vista_Biblioteca.Multi_Activa {
+        border-color: var(--Acento);
+        box-shadow: 0 0 0 2px rgba(15, 95, 90, 0.1);
+      }
+
       .Planes_Objetivo_Card.Vista_Biblioteca .Planes_Objetivo_Header {
         min-height: 96px;
         align-items: center;
@@ -3989,6 +4000,40 @@
         background: rgba(255, 255, 255, 0.94);
         border: 1px solid rgba(208, 191, 168, 0.92);
         box-shadow: 0 2px 8px rgba(86, 70, 52, 0.08);
+      }
+
+      .Planes_Fuente_Badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        width: fit-content;
+        border: 1px solid rgba(208, 191, 168, 0.92);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.84);
+        color: var(--Texto_Suave);
+        cursor: help;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.1;
+        padding: 4px 8px;
+      }
+
+      .Planes_Fuente_Badge:hover {
+        border-color: var(--Acento);
+        color: var(--Acento);
+        background: var(--Acento_Suave);
+      }
+
+      .Planes_Objetivo_Fuente {
+        margin-left: 30px;
+        margin-top: 5px;
+      }
+
+      .Planes_Objetivo_Card.Vista_Biblioteca
+        .Planes_Objetivo_Fuente {
+        align-self: center;
+        margin: 8px 0 0;
       }
 
       .Planes_Objetivo_Card.Vista_Biblioteca
@@ -4265,6 +4310,15 @@
         gap: 5px;
         overflow-x: auto;
         padding-bottom: 2px;
+      }
+
+      .Planes_Detalle_Etiquetas_Chips .Etiqueta_Badge {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--Texto_Suave);
+        font-weight: 700;
+        padding: 0;
       }
 
       .Planes_Detalle_Accion {
@@ -9941,6 +9995,11 @@
         top: 16px;
       }
 
+      .Modal_Ayuda_Btn[hidden],
+      .Dialogo_Ayuda_Btn[hidden] {
+        display: none !important;
+      }
+
       .Dialogo_Mensaje {
         font-size: 15px;
         font-weight: 600;
@@ -12987,8 +13046,13 @@
                   <option value="5">5%</option>
                   <option value="10">10%</option>
                   <option value="25">25%</option>
+                  <option value="50">50%</option>
+                  <option value="100"
+                    data-i18n="config.solo_100">Solo al 100%</option>
                 </select>
               </div>
+              <p class="Config_Nota"
+                id="Cfg_Meta_Notificaciones_Preview"></p>
             </div>
 
             <div class="Config_Seccion">
@@ -16909,6 +16973,15 @@
           "planes.manual_label": "Avance manual",
           "planes.manual_help":
             "Carga un avance que no viene del calendario. Se suma al avance detectado si el cálculo está en modo híbrido.",
+          "planes.fuente_manual": "Manual",
+          "planes.fuente_calendario": "Calendario",
+          "planes.fuente_subobjetivos": "Subobjetivos",
+          "planes.fuente_mixta": "Mixto",
+          "planes.fuente_help":
+            "Manual: toma solo el avance cargado a mano. " +
+            "Calendario: lee bloques hechos del calendario. " +
+            "Subobjetivos: lee subobjetivos vinculados. " +
+            "Mixto: suma avance detectado y manual.",
           "planes.sin_etiquetas": "Sin etiquetas",
           "planes.auto": "Automático",
           "planes.actual": "Actual",
@@ -17020,6 +17093,13 @@
           "planes.vinculo_etiquetas": "Etiquetas",
           "planes.vinculo_subobjetivos": "Subobjetivos",
           "planes.menu_opciones": "Opciones",
+          "planes.seleccion_n":
+            "{n} objetivo(s) seleccionado(s)",
+          "planes.multi_estado": "Estado",
+          "planes.multi_fijar": "Fijar",
+          "planes.multi_desfijar": "Quitar fijación",
+          "planes.multi_eliminar_confirm":
+            "¿Eliminar {n} objetivos seleccionados?",
           "planes.eliminar_confirm":
             "¿Eliminar \"{nombre}\"?",
           "planes.eliminar_solo": "Solo en este período",
@@ -17167,6 +17247,10 @@
             "Cada cuánto",
           "config.porcentajes_ph":
             "Cada 5%",
+          "config.solo_100":
+            "Solo al 100%",
+          "config.hitos_preview":
+            "Se festeja en: {valores}",
           "config.dias_visibles":
             "Días visibles",
           "config.dias_hint":
@@ -19786,6 +19870,15 @@
           "planes.manual_label": "Manual progress",
           "planes.manual_help":
             "Adds progress that does not come from the calendar. It is added to detected progress when calculation is hybrid.",
+          "planes.fuente_manual": "Manual",
+          "planes.fuente_calendario": "Calendar",
+          "planes.fuente_subobjetivos": "Subobjectives",
+          "planes.fuente_mixta": "Mixed",
+          "planes.fuente_help":
+            "Manual: uses only progress entered by hand. " +
+            "Calendar: reads completed calendar blocks. " +
+            "Subobjectives: reads linked subobjectives. " +
+            "Mixed: adds detected and manual progress.",
           "planes.sin_etiquetas": "No tags",
           "planes.auto": "Automatic",
           "planes.actual": "Current",
@@ -19895,6 +19988,13 @@
           "planes.vinculo_etiquetas": "Tags",
           "planes.vinculo_subobjetivos": "Subobjectives",
           "planes.menu_opciones": "Options",
+          "planes.seleccion_n":
+            "{n} selected objective(s)",
+          "planes.multi_estado": "State",
+          "planes.multi_fijar": "Fix",
+          "planes.multi_desfijar": "Remove pin",
+          "planes.multi_eliminar_confirm":
+            "Delete {n} selected objectives?",
           "planes.eliminar_confirm":
             "Delete \"{nombre}\"?",
           "planes.eliminar_solo": "Only in this period",
@@ -20038,6 +20138,10 @@
             "Every",
           "config.porcentajes_ph":
             "Every 5%",
+          "config.solo_100":
+            "Only at 100%",
+          "config.hitos_preview":
+            "Celebrates at: {valores}",
           "config.dias_visibles":
             "Visible days",
           "config.dias_hint":
@@ -22612,6 +22716,15 @@
           "planes.manual_label": "Avanço manual",
           "planes.manual_help":
             "Carrega um avanço que não vem do calendário. Soma ao avanço detectado quando o cálculo está em modo híbrido.",
+          "planes.fuente_manual": "Manual",
+          "planes.fuente_calendario": "Calendário",
+          "planes.fuente_subobjetivos": "Subobjetivos",
+          "planes.fuente_mixta": "Misto",
+          "planes.fuente_help":
+            "Manual: usa só o avanço carregado à mão. " +
+            "Calendário: lê blocos concluídos do calendário. " +
+            "Subobjetivos: lê subobjetivos vinculados. " +
+            "Misto: soma avanço detectado e manual.",
           "planes.sin_etiquetas": "Sem etiquetas",
           "planes.auto": "Automático",
           "planes.actual": "Atual",
@@ -22723,6 +22836,13 @@
           "planes.vinculo_etiquetas": "Etiquetas",
           "planes.vinculo_subobjetivos": "Subobjetivos",
           "planes.menu_opciones": "Opções",
+          "planes.seleccion_n":
+            "{n} objetivo(s) selecionado(s)",
+          "planes.multi_estado": "Estado",
+          "planes.multi_fijar": "Fixar",
+          "planes.multi_desfijar": "Remover fixação",
+          "planes.multi_eliminar_confirm":
+            "Eliminar {n} objetivos selecionados?",
           "planes.eliminar_confirm":
             "Eliminar \"{nombre}\"?",
           "planes.eliminar_solo": "Só neste período",
@@ -22873,6 +22993,10 @@
             "A cada",
           "config.porcentajes_ph":
             "A cada 5%",
+          "config.solo_100":
+            "Somente em 100%",
+          "config.hitos_preview":
+            "Comemora em: {valores}",
           "config.dias_visibles":
             "Dias visíveis",
           "config.dias_hint":
@@ -25644,6 +25768,12 @@
             Render_Config_Tipos_Slot();
           }
           if (
+            typeof Actualizar_Config_Notificaciones_Meta ===
+              "function"
+          ) {
+            Actualizar_Config_Notificaciones_Meta();
+          }
+          if (
             document.getElementById(
               "Cfg_Tipo_Slot_Overlay"
             )?.classList.contains("Activo") &&
@@ -25962,6 +26092,7 @@
       let Planes_Subobjetivos_Objetivo_Id = null;
       let Planes_Vinculo_Subobjetivos_Expandidos = new Set();
       let Planes_Vinculo_Click_Global = false;
+      let Planes_Multi_Seleccion = new Set();
       let Planes_Etiquetas_Originales = null;
       // Modal único de Plan: pestaña activa.
       // "Periodos" | "Semana" | "Cerrar" | "Historial"
@@ -38420,7 +38551,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ${Escape_Html(Planes_Titulo_Periodo_Mostrable(Periodo))}
               </span>
               <span class="Planes_Periodo_Conteo">
-                ${Planes_Objetivos_De_Periodo(Periodo.Id).length}
+                ${Planes_Objetivos_De_Periodo(Periodo.Id)
+                  .filter((Objetivo) => !Objetivo.Eliminado_Local)
+                  .length}
               </span>
             </span>
           </span>
@@ -38462,6 +38595,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Lista.className = "Planes_Objetivos" +
           (Modelo.UI.Vista === "Biblioteca" ? " Biblioteca" : "");
         const Objetivos_Filtrados = Planes_Filtrar_Objetivos(Periodo);
+        if (Modelo.UI.Vista !== "Biblioteca") {
+          Planes_Multi_Seleccion.clear();
+        }
+        const Ids_Visibles = new Set(
+          Objetivos_Filtrados.map((Objetivo) => Objetivo.Id)
+        );
+        Planes_Multi_Seleccion.forEach((Id) => {
+          if (!Ids_Visibles.has(Id)) {
+            Planes_Multi_Seleccion.delete(Id);
+          }
+        });
         if (!Objetivos_Filtrados.length) {
           const Vacio = document.createElement("div");
           Vacio.className = "Planes_Vacio";
@@ -38473,6 +38617,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
         }
         Cuerpo.appendChild(Lista);
+        const Acciones_Multi = Render_Acciones_Multi_Planes();
+        if (Acciones_Multi) {
+          Cuerpo.appendChild(Acciones_Multi);
+        }
       }
 
       function Planes_Filtrar_Objetivos(Periodo) {
@@ -39235,6 +39383,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? Modelo.Objetivos[Planes_Objetivo_En_Edicion_Id]
           : null;
         if (Existente) {
+          const Snap = Capturar_Snapshot_Undo();
           Object.assign(Existente, Datos, {
             Target_Actual: Datos.Target_Total,
             Actualizado_En: new Date().toISOString()
@@ -39245,7 +39394,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Existente.Fijado) {
             Existente.Target_Fijado = Datos.Target_Total;
           }
-          Planes_Recalcular_Desde(Existente);
+          Planes_Recalcular_Desde(
+            Existente,
+            Snap,
+            t("toast.objetivos_actualizadas")
+          );
         } else {
           Planes_Crear_Objetivo(Periodo_Id, Datos);
         }
@@ -39278,6 +39431,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ((Objetivo.Warnings || []).length ? " Warning" : "") +
           (Es_Lista ? " Vista_Lista" : "") +
           (Es_Biblioteca ? " Vista_Biblioteca" : "") +
+          (
+            Es_Biblioteca &&
+            Planes_Multi_Seleccion.has(Objetivo.Id)
+              ? " Multi_Activa" : ""
+          ) +
           (Expandido ? " Expandida" : "");
         Card.dataset.planObjetivoId = Objetivo.Id;
         const Estado_Label =
@@ -39302,6 +39460,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ${Planes_Emoji_Estado(Objetivo.Estado)}
             </span>
           </div>
+          ${Render_Planes_Fuente_Badge(Objetivo)}
           ${Expandido ? Render_Planes_Detalle_Objetivo(Objetivo) : ""}
         ` : `
           <div class="Planes_Objetivo_Header">
@@ -39329,7 +39488,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               <div class="Planes_Objetivo_Cantidad">
                 ${Escape_Html(Planes_Formatear_Meta_Objetivo(Objetivo))}
               </div>
-              ${Render_Planes_Badges(Objetivo)}
+              ${Render_Planes_Fuente_Badge(Objetivo)}
             `}
           </div>
           ${Expandido ? Render_Planes_Detalle_Objetivo(Objetivo) : ""}
@@ -39360,6 +39519,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Ev.target.closest("button, input, select, textarea, a")) {
             return;
           }
+          if (Es_Biblioteca && (Ev.ctrlKey || Ev.metaKey)) {
+            if (Planes_Multi_Seleccion.has(Objetivo.Id)) {
+              Planes_Multi_Seleccion.delete(Objetivo.Id);
+            } else {
+              Planes_Multi_Seleccion.add(Objetivo.Id);
+            }
+            Render_Planes_Contenido();
+            return;
+          }
+          if (Es_Biblioteca && Planes_Multi_Seleccion.size > 0) {
+            Planes_Multi_Seleccion.clear();
+          }
           Planes_Toggle_Expansion_Objetivo(Objetivo.Id);
         });
         return Card;
@@ -39378,15 +39549,289 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }</div>`;
       }
 
+      function Planes_Fuente_Progreso(Objetivo) {
+        if (Objetivo.Modo_Progreso === "Manual") {
+          return {
+            Icono: "\u270d",
+            Label: t("planes.fuente_manual")
+          };
+        }
+        if (Objetivo.Modo_Progreso === "Hibrido") {
+          return {
+            Icono: "+",
+            Label: t("planes.fuente_mixta")
+          };
+        }
+        if (Objetivo.Vinculo_Tipo === "Subobjetivo") {
+          return {
+            Icono: "\u2611",
+            Label: t("planes.fuente_subobjetivos")
+          };
+        }
+        return {
+          Icono: "\u25a3",
+          Label: t("planes.fuente_calendario")
+        };
+      }
+
+      function Render_Planes_Fuente_Badge(Objetivo) {
+        const Fuente = Planes_Fuente_Progreso(Objetivo);
+        return `
+          <div class="Planes_Objetivo_Fuente">
+            <span class="Planes_Fuente_Badge"
+              title="${Escape_Html(t("planes.fuente_help"))}">
+              <span>${Escape_Html(Fuente.Icono)}</span>
+              <span>${Escape_Html(Fuente.Label)}</span>
+            </span>
+          </div>
+        `;
+      }
+
+      function Planes_Objetivos_Multi_Seleccionados() {
+        const Modelo = Asegurar_Modelo_Planes();
+        return Array.from(Planes_Multi_Seleccion)
+          .map((Id) => Modelo.Objetivos[Id])
+          .filter((Objetivo) => Objetivo && !Objetivo.Eliminado_Local);
+      }
+
+      function Render_Acciones_Multi_Planes() {
+        const Objetivos = Planes_Objetivos_Multi_Seleccionados();
+        if (!Objetivos.length) return null;
+        const Todos_Fijados = Objetivos.every(
+          (Objetivo) => Boolean(Objetivo.Fijado)
+        );
+        const Barra = document.createElement("div");
+        Barra.className = "Baul_Multi_Acciones Planes_Multi_Acciones";
+        const Grupo = document.createElement("div");
+        Grupo.className = "Baul_Multi_Grupo";
+        Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("planes.multi_estado"),
+            () => { void Pedir_Estado_Planes_Multi(); }
+          )
+        );
+        Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("baul.agregar_etiquetas_multi"),
+            () => { void Pedir_Etiquetas_Planes_Multi("Agregar"); }
+          )
+        );
+        Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("baul.quitar_etiquetas_multi"),
+            () => { void Pedir_Etiquetas_Planes_Multi("Quitar"); }
+          )
+        );
+        Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            Todos_Fijados
+              ? t("planes.multi_desfijar")
+              : t("planes.multi_fijar"),
+            () => { void Alternar_Fijacion_Planes_Multi(); }
+          )
+        );
+        Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("eliminar"),
+            () => { void Eliminar_Planes_Multi(); },
+            "Peligro"
+          )
+        );
+        Grupo.appendChild(
+          Crear_Boton_Multi_Inline(
+            t("cancelar"),
+            () => {
+              Planes_Multi_Seleccion.clear();
+              Render_Planes_Contenido();
+            }
+          )
+        );
+        const Conteo = document.createElement("span");
+        Conteo.className = "Baul_Multi_Conteo";
+        Conteo.textContent = t(
+          "planes.seleccion_n",
+          { n: Objetivos.length }
+        );
+        Barra.appendChild(Grupo);
+        Barra.appendChild(Conteo);
+        return Barra;
+      }
+
+      function Aplicar_Cambios_Planes_Multi(Aplicar) {
+        const Objetivos = Planes_Objetivos_Multi_Seleccionados();
+        if (!Objetivos.length) return;
+        const Snap = Capturar_Snapshot_Undo();
+        const Raices = new Set();
+        let Cambios = 0;
+        Objetivos.forEach((Objetivo) => {
+          if (!Aplicar(Objetivo)) return;
+          Objetivo.Actualizado_En = new Date().toISOString();
+          Raices.add(Objetivo.Parent_Objetivo_Id || Objetivo.Id);
+          Cambios += 1;
+        });
+        if (!Cambios) return;
+        Raices.forEach((Id) => Planes_Redistribuir_Objetivo(Id));
+        Planes_Multi_Seleccion.clear();
+        Render_Plan();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          t("toast.objetivos_actualizadas"),
+          Snap
+        );
+      }
+
+      async function Pedir_Estado_Planes_Multi() {
+        const Primer_Objetivo =
+          Planes_Objetivos_Multi_Seleccionados()[0] || null;
+        const Actual = Primer_Objetivo?.Estado;
+        const Opciones = Planes_Estados.map((Estado) => ({
+          Etiqueta: t(`planes.estado_${Estado.toLowerCase()}`),
+          Valor: Estado,
+          Tipo: Estado === Actual ? "Primario" : "Secundario"
+        }));
+        Opciones.push({
+          Etiqueta: t("cancelar"),
+          Valor: null,
+          Tipo: "Cancelar"
+        });
+        const Estado = await Mostrar_Dialogo(
+          t("planes.estado_label"),
+          Opciones
+        );
+        if (!Estado) return;
+        Aplicar_Cambios_Planes_Multi((Objetivo) => {
+          if (Objetivo.Estado === Estado) return false;
+          Objetivo.Estado = Estado;
+          return true;
+        });
+      }
+
+      async function Pedir_Etiquetas_Planes_Multi(Modo) {
+        const Nombres = await Mostrar_Dialogo_Con_Texto(
+          t("planes.etiquetas_prompt"),
+          {
+            Placeholder: t("sidebar.etiquetas"),
+            Etiqueta_Confirmar:
+              Modo === "Agregar"
+                ? t("baul.agregar_etiquetas_multi")
+                : t("baul.quitar_etiquetas_multi"),
+            Etiqueta_Cancelar: t("cancelar"),
+            Sugerencias: Etiquetas.map(
+              (Etiqueta) => Etiqueta.Nombre
+            ),
+            Modo_Sugerencias: "Lista_Comas"
+          }
+        );
+        if (Nombres == null) return;
+        Aplicar_Etiquetas_Planes_Multi(Modo, Nombres);
+      }
+
+      function Aplicar_Etiquetas_Planes_Multi(Modo, Texto) {
+        const Nombres = Parsear_Nombres_Etiquetas(Texto);
+        if (!Nombres.length) return;
+        const Etiquetas_Objs =
+          Modo === "Agregar"
+            ? Nombres.map(Obtener_O_Crear_Etiqueta_Por_Nombre)
+            : Etiquetas.filter((Etiqueta) =>
+                Nombres.some(
+                  (Nombre) =>
+                    Etiqueta.Nombre.toLowerCase() ===
+                    Nombre.toLowerCase()
+                )
+              );
+        const Etiquetas_Ids = Etiquetas_Objs
+          .filter(Boolean)
+          .map((Etiqueta) => Etiqueta.Id);
+        if (!Etiquetas_Ids.length) return;
+        const Set_Etiquetas = new Set(Etiquetas_Ids);
+        Aplicar_Cambios_Planes_Multi((Objetivo) => {
+          const Actuales = Planes_Etiquetas_Ids(Objetivo);
+          const Siguiente =
+            Modo === "Agregar"
+              ? Array.from(new Set([...Actuales, ...Etiquetas_Ids]))
+              : Actuales.filter((Id) => !Set_Etiquetas.has(Id));
+          if (
+            JSON.stringify(Actuales) ===
+            JSON.stringify(Siguiente)
+          ) {
+            return false;
+          }
+          Objetivo.Etiquetas_Ids = Siguiente;
+          return true;
+        });
+      }
+
+      async function Alternar_Fijacion_Planes_Multi() {
+        const Objetivos = Planes_Objetivos_Multi_Seleccionados();
+        if (!Objetivos.length) return;
+        const Todos_Fijados = Objetivos.every(
+          (Objetivo) => Boolean(Objetivo.Fijado)
+        );
+        const Va_A_Fijar = !Todos_Fijados;
+        const Confirmar = await Mostrar_Dialogo(
+          Va_A_Fijar
+            ? t("planes.fijar_confirm")
+            : t("planes.desfijar_confirm"),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            { Etiqueta: t("confirmar"), Valor: true, Tipo: "Primario" }
+          ],
+          {
+            Ayuda: Va_A_Fijar
+              ? t("planes.fijar_help")
+              : t("planes.desfijar_help")
+          }
+        );
+        if (!Confirmar) return;
+        Aplicar_Cambios_Planes_Multi((Objetivo) => {
+          if (Boolean(Objetivo.Fijado) === Va_A_Fijar) {
+            return false;
+          }
+          Objetivo.Fijado = Va_A_Fijar;
+          Objetivo.Target_Fijado = Va_A_Fijar
+            ? Objetivo.Target_Total
+            : 0;
+          Objetivo.Target_Fijado_Por_Usuario = Va_A_Fijar;
+          return true;
+        });
+      }
+
+      async function Eliminar_Planes_Multi() {
+        const Cantidad = Planes_Objetivos_Multi_Seleccionados()
+          .length;
+        if (!Cantidad) return;
+        const Confirmar = await Mostrar_Dialogo(
+          t("planes.multi_eliminar_confirm", { n: Cantidad }),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            { Etiqueta: t("eliminar"), Valor: true, Tipo: "Peligro" }
+          ]
+        );
+        if (!Confirmar) return;
+        Aplicar_Cambios_Planes_Multi((Objetivo) => {
+          if (Objetivo.Eliminado_Local) return false;
+          Objetivo.Eliminado_Local = true;
+          return true;
+        });
+      }
+
       function Render_Planes_Detalle_Objetivo(Objetivo) {
         const Estado_Label =
           t(`planes.estado_${Objetivo.Estado.toLowerCase()}`);
         const Etiquetas = Planes_Etiquetas_Nombres(Objetivo);
         const Etiquetas_Html = Etiquetas.length
-          ? Etiquetas.map((Tag) => `
-            <span class="Etiqueta_Badge">#${Escape_Html(Tag)}</span>
-          `).join("")
-          : `<span class="Etiqueta_Badge">${t("planes.sin_etiquetas")}</span>`;
+          ? `
+            <div class="Planes_Objetivo_Detalle_Etiquetas">
+              <div class="Planes_Detalle_Etiquetas_Chips">
+                ${Etiquetas.map((Tag) => `
+                  <span class="Etiqueta_Badge">
+                    #${Escape_Html(Tag)}
+                  </span>
+                `).join("")}
+              </div>
+            </div>
+          `
+          : "";
         return `
           <div class="Planes_Objetivo_Detalle" aria-label="${
             Escape_Html(t("planner.detalles"))
@@ -39442,14 +39887,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ${t("planes.ver_subobjetivos")}
             </button>
           </div>
-          <div class="Planes_Objetivo_Detalle_Etiquetas">
-            <span class="Planes_Detalle_Etiquetas_Label">
-              ${t("planes.etiqueta_label")}:
-            </span>
-            <div class="Planes_Detalle_Etiquetas_Chips">
-              ${Etiquetas_Html}
-            </div>
-          </div>
+          ${Etiquetas_Html}
         `;
       }
 
@@ -39593,7 +40031,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .forEach((Menu) => Menu.remove());
       }
 
-      function Planes_Recalcular_Desde(Objetivo) {
+      function Planes_Recalcular_Desde(
+        Objetivo,
+        Snapshot_Undo = null,
+        Mensaje_Undo = ""
+      ) {
         if (!Objetivo) return;
         Objetivo.Actualizado_En = new Date().toISOString();
         Planes_Redistribuir_Objetivo(
@@ -39601,6 +40043,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Render_Plan();
         Guardar_Estado();
+        if (Snapshot_Undo) {
+          Mostrar_Toast_Undo(
+            Mensaje_Undo || t("toast.objetivos_actualizadas"),
+            Snapshot_Undo
+          );
+        }
       }
 
       function Planes_Editar_Target(Objetivo_Id) {
@@ -39632,8 +40080,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Valor === null) return;
         const Numero = Number(Valor);
         if (!Number.isFinite(Numero)) return;
+        const Snap = Capturar_Snapshot_Undo();
         Objetivo.Progreso_Manual = Numero;
-        Planes_Recalcular_Desde(Objetivo);
+        Planes_Recalcular_Desde(Objetivo, Snap);
       }
 
       async function Planes_Cambiar_Modo(Objetivo_Id) {
@@ -39655,8 +40104,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         );
         if (!Valor) return;
+        const Snap = Capturar_Snapshot_Undo();
         Objetivo.Modo_Progreso = Valor;
-        Planes_Recalcular_Desde(Objetivo);
+        Planes_Recalcular_Desde(Objetivo, Snap);
       }
 
       async function Planes_Cambiar_Estado(Objetivo_Id) {
@@ -39677,8 +40127,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         );
         if (!Valor) return;
+        const Snap = Capturar_Snapshot_Undo();
         Objetivo.Estado = Valor;
-        Planes_Recalcular_Desde(Objetivo);
+        Planes_Recalcular_Desde(Objetivo, Snap);
       }
 
       async function Planes_Toggle_Fijado(Objetivo_Id) {
@@ -39701,12 +40152,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         );
         if (!Confirmar) return;
+        const Snap = Capturar_Snapshot_Undo();
         Objetivo.Fijado = !Objetivo.Fijado;
         Objetivo.Target_Fijado = Objetivo.Fijado
           ? Objetivo.Target_Total
           : 0;
         Objetivo.Target_Fijado_Por_Usuario = Objetivo.Fijado;
-        Planes_Recalcular_Desde(Objetivo);
+        Planes_Recalcular_Desde(Objetivo, Snap);
       }
 
       async function Planes_Toggle_Redistribucion(Objetivo_Id) {
@@ -39729,17 +40181,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         );
         if (!Confirmar) return;
+        const Snap = Capturar_Snapshot_Undo();
         Objetivo.Auto_Redistribucion =
           Objetivo.Auto_Redistribucion === false;
-        Planes_Recalcular_Desde(Objetivo);
+        Planes_Recalcular_Desde(Objetivo, Snap);
       }
 
       function Planes_Toggle_Eliminado(Objetivo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
         if (!Objetivo) return;
+        const Snap = Capturar_Snapshot_Undo();
         Objetivo.Eliminado_Local = !Objetivo.Eliminado_Local;
-        Planes_Recalcular_Desde(Objetivo);
+        Planes_Recalcular_Desde(Objetivo, Snap);
       }
 
       function Planes_Objetivos_Hijos(Objetivo_Id) {
@@ -39756,13 +40210,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Objetivos_Relacionados_Todos(Objetivo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
-        const Set_Ids = new Set([Objetivo_Id]);
-        let Actual = Modelo.Objetivos[Objetivo_Id];
-        while (Actual?.Parent_Objetivo_Id) {
-          Set_Ids.add(Actual.Parent_Objetivo_Id);
-          Actual = Modelo.Objetivos[Actual.Parent_Objetivo_Id];
+        let Raiz = Modelo.Objetivos[Objetivo_Id];
+        while (Raiz?.Parent_Objetivo_Id) {
+          Raiz = Modelo.Objetivos[Raiz.Parent_Objetivo_Id];
         }
-        Planes_Objetivos_Hijos(Objetivo_Id)
+        if (!Raiz) return [];
+        const Set_Ids = new Set([Raiz.Id]);
+        Planes_Objetivos_Hijos(Raiz.Id)
           .forEach((Hijo) => Set_Ids.add(Hijo.Id));
         Set_Ids.delete(Objetivo_Id);
         return Array.from(Set_Ids)
@@ -39775,8 +40229,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
         if (!Objetivo) return;
         if (Objetivo.Eliminado_Local) {
+          const Snap = Capturar_Snapshot_Undo();
           Objetivo.Eliminado_Local = false;
-          Planes_Recalcular_Desde(Objetivo);
+          Planes_Recalcular_Desde(Objetivo, Snap);
           return;
         }
         const Respuesta = await Mostrar_Dialogo(
@@ -39807,6 +40262,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ]
         );
         if (!Respuesta) return;
+        const Snap = Capturar_Snapshot_Undo();
         Objetivo.Eliminado_Local = true;
         if (Respuesta === "Hijos" || Respuesta === "Todos") {
           const Afectados = Respuesta === "Todos"
@@ -39818,7 +40274,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Hijo.Actualizado_En = new Date().toISOString();
             });
         }
-        Planes_Recalcular_Desde(Objetivo);
+        Planes_Recalcular_Desde(Objetivo, Snap);
       }
 
       async function Planes_Editar_Etiquetas(Objetivo_Id) {
@@ -39848,13 +40304,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           { Ayuda: t("planes.romper_vinculo_help") }
         );
         if (!Confirmar) return;
+        const Snap = Capturar_Snapshot_Undo();
         Objetivo.Vinculo_Sidebar_Activo = false;
         Objetivo.Vinculo_Tipo = "Ninguno";
         Objetivo.Vinculo_Id = "";
         Objetivo.Vinculo_Objetivo_Id = "";
         Objetivo.Vinculo_Subobjetivo_Id = "";
         Objetivo.Vinculo_Texto = "";
-        Planes_Recalcular_Desde(Objetivo);
+        Planes_Recalcular_Desde(Objetivo, Snap);
       }
 
       function Abrir_Modal_Planes_Subobjetivos(
@@ -40100,6 +40557,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           { Ayuda: t("planes.importar_padres_help") }
         );
         if (!Confirmar) return;
+        const Snap = Capturar_Snapshot_Undo();
         Padres.forEach((Objetivo_Padre) => {
           const Existente =
             Planes_Objetivo_Hijo_De(Objetivo_Padre.Id, Periodo.Id);
@@ -40119,9 +40577,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Padres.forEach((Objetivo_Padre) => {
           Planes_Redistribuir_Objetivo(Objetivo_Padre.Id);
         });
-        Mostrar_Toast_Info(t("planes.toast_importado"));
         Render_Plan();
         Guardar_Estado();
+        Mostrar_Toast_Undo(t("planes.toast_importado"), Snap);
       }
 
       function Planes_Objetivos_Vencidos() {
@@ -40527,6 +40985,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Plantillas_Subobjetivos: JSON.parse(
             JSON.stringify(Plantillas_Subobjetivos)
           ),
+          Planes_Periodo: JSON.parse(
+            JSON.stringify(Planes_Periodo)
+          ),
           Slots_Muertos: JSON.parse(
             JSON.stringify(Slots_Muertos)
           ),
@@ -40560,6 +41021,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ),
           Baul_Multi_Seleccion: Array.from(
             Baul_Multi_Seleccion
+          ),
+          Planes_Multi_Seleccion: Array.from(
+            Planes_Multi_Seleccion || []
           )
         };
       }
@@ -40792,6 +41256,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Array.isArray(Snap.Baul_Objetivos)) {
           Baul_Objetivos = Snap.Baul_Objetivos;
         }
+        if (Snap.Planes_Periodo &&
+            typeof Snap.Planes_Periodo === "object") {
+          Planes_Periodo = Normalizar_Modelo_Planes(
+            Snap.Planes_Periodo
+          );
+        }
         Plantillas_Subobjetivos = Snap.Plantillas_Subobjetivos;
         Objetivo_Seleccionada_Id = Snap.Objetivo_Seleccionada_Id;
         Meta_Seleccion_Id = Snap.Meta_Seleccion_Id || null;
@@ -40805,6 +41275,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Baul_Multi_Seleccion = new Set(
           Array.isArray(Snap.Baul_Multi_Seleccion)
             ? Snap.Baul_Multi_Seleccion
+            : []
+        );
+        Planes_Multi_Seleccion = new Set(
+          Array.isArray(Snap.Planes_Multi_Seleccion)
+            ? Snap.Planes_Multi_Seleccion
             : []
         );
         Baul_Editor_Abierto = false;
@@ -40881,6 +41356,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Metas_Abierto()) {
           Render_Metas();
+        }
+        if (
+          document.getElementById("Plan_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Plan();
         }
         // Si el Focus mode está abierto, refrescarlo también para
         // que el panel refleje el estado restaurado.
@@ -49360,7 +49841,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Normalizar_Cada_Cuanto_Notificacion_Meta(Valor) {
         const Numero = Math.round(Number(Valor) || 0);
-        return [1, 2, 5, 10, 25].includes(Numero)
+        return [1, 2, 5, 10, 25, 50, 100].includes(Numero)
           ? Numero
           : 25;
       }
@@ -49389,6 +49870,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .join(", ");
       }
 
+      function Formatear_Preview_Hitos_Meta(Hitos) {
+        const Normalizados = Normalizar_Hitos_Notificacion_Meta(Hitos);
+        const Formatear = (Valor) => `${Valor}%`;
+        if (Normalizados.length <= 10) {
+          return Normalizados.map(Formatear).join(", ");
+        }
+        const Inicio = Normalizados.slice(0, 3)
+          .map(Formatear)
+          .join(", ");
+        const Fin = Formatear(Normalizados[Normalizados.length - 1]);
+        return `${Inicio} ... ${Fin}`;
+      }
+
+      function Actualizar_Preview_Notificaciones_Meta(Activas, Input) {
+        const Preview = document.getElementById(
+          "Cfg_Meta_Notificaciones_Preview"
+        );
+        if (!Preview) return;
+        const Esta_Activa = Activas ?? Boolean(
+          document.getElementById(
+            "Cfg_Meta_Notificaciones_Activas"
+          )?.checked
+        );
+        if (!Esta_Activa) {
+          Preview.textContent = "";
+          return;
+        }
+        const Select = Input || document.getElementById(
+          "Cfg_Meta_Notificaciones_Hitos"
+        );
+        const Hitos = Generar_Hitos_Notificacion_Meta(
+          Select?.value || 25
+        );
+        Preview.textContent = t("config.hitos_preview", {
+          valores: Formatear_Preview_Hitos_Meta(Hitos)
+        });
+      }
+
       function Actualizar_Config_Notificaciones_Meta() {
         const Activas = Boolean(
           document.getElementById(
@@ -49402,6 +49921,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Input.disabled = !Activas;
           Input.style.opacity = Activas ? "1" : "0.55";
         }
+        Actualizar_Preview_Notificaciones_Meta(Activas, Input);
       }
 
       function Formatear_Valor_Mes_Meta(Fecha) {
@@ -61886,6 +62406,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       });
       document.getElementById(
         "Cfg_Meta_Notificaciones_Activas"
+      )?.addEventListener(
+        "change",
+        Actualizar_Config_Notificaciones_Meta
+      );
+      document.getElementById(
+        "Cfg_Meta_Notificaciones_Hitos"
       )?.addEventListener(
         "change",
         Actualizar_Config_Notificaciones_Meta

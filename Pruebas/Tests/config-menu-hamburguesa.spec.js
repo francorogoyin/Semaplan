@@ -174,15 +174,22 @@ test("permite tildar y destildar todo", async ({ page }) => {
 
   await expect(page.locator("#Cfg_Meta_Notificaciones_Hitos"))
     .toHaveJSProperty("tagName", "SELECT");
-  await page.selectOption("#Cfg_Meta_Notificaciones_Hitos", "5");
+  const Opciones_Hitos = await page.locator(
+    "#Cfg_Meta_Notificaciones_Hitos option"
+  ).allTextContents();
+  expect(Opciones_Hitos).toContain("50%");
+  expect(Opciones_Hitos).toContain("Solo al 100%");
+  await page.selectOption("#Cfg_Meta_Notificaciones_Hitos", "100");
+  await expect(page.locator("#Cfg_Meta_Notificaciones_Preview"))
+    .toContainText("100%");
   await page.click("#Config_Guardar_Btn");
   const Hitos_Meta = await page.evaluate(() => ({
     cadaCuanto: Config.Meta_Notificaciones_Cada_Cuanto,
-    primeros: Config.Meta_Notificaciones_Hitos.slice(0, 3),
+    hitos: Config.Meta_Notificaciones_Hitos,
     ultimo: Config.Meta_Notificaciones_Hitos.at(-1)
   }));
-  expect(Hitos_Meta.cadaCuanto).toBe(5);
-  expect(Hitos_Meta.primeros).toEqual([5, 10, 15]);
+  expect(Hitos_Meta.cadaCuanto).toBe(100);
+  expect(Hitos_Meta.hitos).toEqual([100]);
   expect(Hitos_Meta.ultimo).toBe(100);
   await page.evaluate(() => Abrir_Config());
 

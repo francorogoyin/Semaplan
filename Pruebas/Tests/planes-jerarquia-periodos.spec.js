@@ -433,7 +433,7 @@ async ({ page }) => {
     .innerText();
   expect(Texto_Tarjeta).toContain("%");
   expect(Texto_Tarjeta).toContain("horas");
-  expect(Texto_Tarjeta).toContain("#Lectura");
+  expect(Texto_Tarjeta).not.toContain("#Lectura");
   expect(Texto_Tarjeta).not.toContain("Horas");
 
   const Layout_Tarjeta = await page.locator(".Planes_Objetivo_Card")
@@ -490,6 +490,8 @@ async ({ page }) => {
   await expect(
     Card_Objetivo.locator(".Planes_Objetivo_Detalle_Etiquetas")
   ).toContainText("#Lectura");
+  await expect(Card_Objetivo)
+    .not.toContainText("Etiqueta:");
   const Layout_Detalle = await Card_Objetivo.evaluate((Card) => {
     const Detalle = Card.querySelector(".Planes_Objetivo_Detalle");
     const Items = Array.from(
@@ -519,13 +521,20 @@ async ({ page }) => {
           Chip.getBoundingClientRect().top -
           Lista[0].getBoundingClientRect().top
         ) <= 2
-      )
+      ),
+      etiquetaSinOvalo:
+        getComputedStyle(
+          Card.querySelector(
+            ".Planes_Detalle_Etiquetas_Chips .Etiqueta_Badge"
+          )
+        ).backgroundColor === "rgba(0, 0, 0, 0)"
     };
   });
   expect(Layout_Detalle.todosMismaLinea).toBe(true);
   expect(Layout_Detalle.usaAnchoDisponible).toBe(true);
   expect(Layout_Detalle.etiquetasDebajo).toBe(true);
   expect(Layout_Detalle.chipsEnFila).toBe(true);
+  expect(Layout_Detalle.etiquetaSinOvalo).toBe(true);
   await Card_Objetivo.locator('[data-plan-accion="admin_subs"]')
     .click();
   await expect(page.locator("#Planes_Subobjetivos_Overlay"))
@@ -547,6 +556,26 @@ async ({ page }) => {
   });
 
   expect(Eliminado_Visible).toBe(false);
+
+  const Sin_Etiquetas_Id = await page.evaluate(() => {
+    const Periodo = Planes_Periodo_Activo();
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Periodo.Id, {
+      Nombre: "Objetivo limpio",
+      Emoji: "\u2705",
+      Target_Total: 1,
+      Unidad: "Horas"
+    });
+    Render_Planes_Contenido();
+    return Objetivo.Id;
+  });
+  const Card_Sin_Etiquetas = page.locator(
+    `[data-plan-objetivo-id="${Sin_Etiquetas_Id}"]`
+  );
+  await Card_Sin_Etiquetas.click();
+  await expect(Card_Sin_Etiquetas)
+    .not.toContainText("Sin etiquetas");
+  await expect(Card_Sin_Etiquetas)
+    .not.toContainText("Etiqueta:");
 
   await expect(page.locator(".Planes_Objetivo_Menu_Btn")).toHaveCount(0);
   await page.locator(".Planes_Objetivo_Card")
@@ -636,11 +665,58 @@ async ({ page }) => {
   ).first();
   await expect(Card_Biblioteca.locator(".Planes_Objetivo_Estado"))
     .toBeVisible();
+  await expect(Card_Biblioteca.locator(".Planes_Fuente_Badge"))
+    .toBeVisible();
+  await expect(Card_Biblioteca.locator(".Planes_Fuente_Badge"))
+    .toHaveAttribute("title", /Manual:.*Calendario/);
+  await Card_Biblioteca.click({ modifiers: ["Control"] });
+  await expect(page.locator(".Planes_Multi_Acciones"))
+    .toContainText("1 objetivo");
+  await page.locator(".Planes_Multi_Acciones")
+    .getByText("Cancelar")
+    .click();
   await Card_Biblioteca.click();
   await expect(Card_Biblioteca).toHaveClass(/Expandida/);
   await expect(
     Card_Biblioteca.locator(".Planes_Objetivo_Detalle")
   ).toContainText("Estado");
+
+  const Vacio_Biblioteca = await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Periodo_Anterior = Modelo.UI.Periodo_Activo_Id;
+    const Vacio = Planes_Crear_Periodo(
+      Modelo,
+      "Custom",
+      "2027-01-01",
+      "2027-01-31",
+      null,
+      1000
+    );
+    Modelo.UI.Periodo_Activo_Id = Vacio.Id;
+    Modelo.UI.Vista = "Biblioteca";
+    Render_Plan();
+    const Lista = document.querySelector(
+      ".Planes_Objetivos.Biblioteca"
+    );
+    const Vacio_El = Lista?.querySelector(".Planes_Vacio");
+    const Datos = {
+      texto: Vacio_El?.textContent || "",
+      anchoLista: Math.round(
+        Lista?.getBoundingClientRect().width || 0
+      ),
+      anchoVacio: Math.round(
+        Vacio_El?.getBoundingClientRect().width || 0
+      )
+    };
+    delete Modelo.Periodos[Vacio.Id];
+    Modelo.UI.Periodo_Activo_Id = Periodo_Anterior;
+    Render_Plan();
+    return Datos;
+  });
+  expect(Vacio_Biblioteca.texto)
+    .toContain("No hay objetivos visibles");
+  expect(Vacio_Biblioteca.anchoVacio)
+    .toBeGreaterThan(Vacio_Biblioteca.anchoLista * 0.9);
 
   const Subestado = await page.evaluate(({ padreId, hijoId }) => {
     Planes_Agregar_Subobjetivo(padreId, "Capitulo 1");
@@ -663,6 +739,66 @@ async ({ page }) => {
 
   expect(Subestado.hijoImportado).toBe(true);
   expect(Subestado.padreHecha).toBe(true);
+
+  await page.evaluate(({ hijoId }) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Hijo = Modelo.Objetivos[hijoId];
+    Modelo.UI.Periodo_Activo_Id = Hijo.Periodo_Id;
+    Modelo.UI.Vista = "Tarjetas";
+    Render_Plan();
+  }, { hijoId: Modelo_Inicial.hijoId });
+  const Conteo_Antes_Eliminar = await page.locator(
+    ".Planes_Periodo_Item.Activo .Planes_Periodo_Conteo"
+  ).innerText();
+  expect(Number(Conteo_Antes_Eliminar.trim()))
+    .toBeGreaterThan(0);
+  await page.locator(".Planes_Objetivo_Card")
+    .first()
+    .click({ button: "right" });
+  await page.click(
+    '.Planes_Context_Menu [data-plan-accion="eliminar"]'
+  );
+  await expect(page.locator("#Dialogo_Ayuda_Btn"))
+    .toBeHidden();
+  await page.locator("#Dialogo_Botones button")
+    .filter({ hasText: "incluidos padres" })
+    .click();
+  await expect(page.locator(".Undo_Toast_Boton"))
+    .toContainText("Deshacer");
+  const Eliminacion_Jerarquica = await page.evaluate((Ids) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    return {
+      padre: Modelo.Objetivos[Ids.padreId].Eliminado_Local,
+      hijo: Modelo.Objetivos[Ids.hijoId].Eliminado_Local,
+      conteo: document.querySelector(
+        ".Planes_Periodo_Item.Activo .Planes_Periodo_Conteo"
+      )?.textContent.trim() || ""
+    };
+  }, {
+    padreId: Modelo_Inicial.padreId,
+    hijoId: Modelo_Inicial.hijoId
+  });
+  expect(Eliminacion_Jerarquica.padre).toBe(true);
+  expect(Eliminacion_Jerarquica.hijo).toBe(true);
+  expect(Eliminacion_Jerarquica.conteo).toBe("0");
+  await page.locator(".Undo_Toast_Boton").first().click();
+  const Restaurado_Jerarquico = await page.evaluate((Ids) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    return {
+      padre: Modelo.Objetivos[Ids.padreId].Eliminado_Local,
+      hijo: Modelo.Objetivos[Ids.hijoId].Eliminado_Local,
+      conteo: document.querySelector(
+        ".Planes_Periodo_Item.Activo .Planes_Periodo_Conteo"
+      )?.textContent.trim() || ""
+    };
+  }, {
+    padreId: Modelo_Inicial.padreId,
+    hijoId: Modelo_Inicial.hijoId
+  });
+  expect(Restaurado_Jerarquico.padre).not.toBe(true);
+  expect(Restaurado_Jerarquico.hijo).not.toBe(true);
+  expect(Number(Restaurado_Jerarquico.conteo))
+    .toBeGreaterThan(0);
 
   await page.evaluate(() => {
     const Modelo = Asegurar_Modelo_Planes();
