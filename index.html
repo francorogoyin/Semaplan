@@ -3709,7 +3709,7 @@
         flex-direction: column;
         gap: 8px;
         overflow-y: auto;
-        padding: 14px 14px 8px;
+        padding: 20px 14px 8px;
         min-height: 0;
       }
 
@@ -3728,10 +3728,10 @@
       .Planes_Resumen_Editar_Btn {
         border: none;
         background: transparent;
-        color: var(--Texto_Suave);
+        color: #9a9a9a;
         cursor: pointer;
         font: inherit;
-        font-size: 16px;
+        font-size: 12px;
         line-height: 1;
         padding: 0 0 0 8px;
         flex: 0 0 auto;
@@ -3813,8 +3813,9 @@
       .Planes_Metrica {
         display: flex;
         flex-direction: column;
-        align-items: flex-end;
+        align-items: center;
         gap: 1px;
+        text-align: center;
       }
 
       .Planes_Metrica_Label {
@@ -3828,7 +3829,7 @@
         display: block;
         margin-top: 0;
         color: var(--Texto);
-        font-size: 19px;
+        font-size: 17px;
         line-height: 1;
         font-weight: 700;
       }
@@ -4156,6 +4157,21 @@
         grid-column: 1 / -1;
       }
 
+      .Planes_Unidad_Campo {
+        grid-column: 1 / -1;
+      }
+
+      .Planes_Unidad_Fila {
+        display: grid;
+        grid-template-columns: minmax(130px, 180px) minmax(0, 1fr);
+        gap: 8px;
+        align-items: center;
+      }
+
+      .Planes_Unidad_Fila input[hidden] {
+        display: none;
+      }
+
       .Planes_Objetivo_Form label {
         color: var(--Texto_Suave);
         font-size: 11px;
@@ -4269,6 +4285,10 @@
         }
 
         .Planes_Objetivo_Form {
+          grid-template-columns: 1fr;
+        }
+
+        .Planes_Unidad_Fila {
           grid-template-columns: 1fr;
         }
 
@@ -15595,6 +15615,11 @@
               data-i18n-title="planes.importar_padres"
               title="Importar de padres"
               type="button">↓</button>
+            <button class="Planes_Header_Btn"
+              id="Planes_Btn_Etiquetas_Header"
+              data-i18n-title="archivero.gestionar_etiquetas_title"
+              title="Gestionar etiquetas"
+              type="button">#</button>
             <button class="Config_Cerrar"
               id="Plan_Cerrar"
               type="button">&times;</button>
@@ -15690,20 +15715,17 @@
                 min="0"
                 step="0.25">
             </label>
-            <label class="Campo">
+            <label class="Campo Planes_Unidad_Campo">
               <span data-i18n="planes.nuevo_unidad">
                 Unidad
               </span>
-              <select id="Planes_Objetivo_Unidad"></select>
-            </label>
-            <label class="Campo Campo_Ancho"
-              id="Planes_Objetivo_Unidad_Custom_Campo">
-              <span data-i18n="planes.unidad_custom">
-                Unidad personalizada
+              <span class="Planes_Unidad_Fila">
+                <select id="Planes_Objetivo_Unidad"></select>
+                <input id="Planes_Objetivo_Unidad_Custom"
+                  data-i18n-ph="planes.unidad_custom_ph"
+                  hidden
+                  placeholder="Lecturas, ejercicios...">
               </span>
-              <input id="Planes_Objetivo_Unidad_Custom"
-                data-i18n-ph="planes.unidad_custom_ph"
-                placeholder="Lecturas, ejercicios...">
             </label>
             <label class="Campo Campo_Ancho">
               <span data-i18n="planes.descripcion">
@@ -15717,9 +15739,8 @@
               <span data-i18n="sidebar.etiquetas">
                 Etiquetas
               </span>
-              <input id="Planes_Objetivo_Etiquetas"
-                data-i18n-ph="planes.etiquetas_prompt"
-                placeholder="Etiquetas separadas por coma">
+              <div class="Selector_Etiquetas"
+                id="Planes_Objetivo_Etiquetas"></div>
             </label>
             <label class="Campo Campo_Ancho">
               <span data-i18n="planes.vinculo">
@@ -15822,6 +15843,44 @@
             id="Planes_Vencidos_Mover"
             data-i18n="planes.mover_actual"
             type="button">Mover al actual</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="Patron_Modal_Overlay" id="Planes_Etiquetas_Overlay">
+      <div class="Patron_Modal_Panel">
+        <div class="Patron_Modal_Cabecera">
+          <span class="Patron_Modal_Titulo"
+            data-i18n="archivero.gestionar_etiquetas">
+            Gestionar etiquetas
+          </span>
+          <button class="Config_Cerrar"
+            id="Planes_Etiquetas_Cerrar"
+            type="button">&times;</button>
+        </div>
+        <div class="Patron_Modal_Cuerpo">
+          <div class="Archivero_Etiquetas_Gestion_Lista"
+            id="Planes_Etiquetas_Lista"></div>
+          <div class="Archivero_Etiquetas_Gestion_Fila">
+            <span class="Archivero_Etiquetas_Gestion_Prefijo">#</span>
+            <input class="Archivero_Etiquetas_Gestion_Input"
+              id="Planes_Etiqueta_Nombre"
+              data-i18n-ph="config.tag_nombre_ph"
+              placeholder="Nueva etiqueta">
+            <button class="Archivero_Nota_Mini_Btn"
+              id="Planes_Etiqueta_Agregar"
+              type="button">+</button>
+          </div>
+        </div>
+        <div class="Patron_Modal_Acciones">
+          <button class="Config_Boton_Cancelar"
+            id="Planes_Etiquetas_Cancelar"
+            data-i18n="cancelar"
+            type="button">Cancelar</button>
+          <button class="Config_Boton_Guardar"
+            id="Planes_Etiquetas_Guardar"
+            data-i18n="guardar"
+            type="button">Guardar</button>
         </div>
       </div>
     </div>
@@ -25442,6 +25501,7 @@
       let Planes_Objetivo_En_Edicion_Id = null;
       let Planes_Subobjetivos_Objetivo_Id = null;
       let Planes_Vinculo_Subobjetivos_Expandidos = new Set();
+      let Planes_Etiquetas_Originales = null;
       // Modal único de Plan: pestaña activa.
       // "Periodos" | "Semana" | "Cerrar" | "Historial"
       let Plan_Modal_Modo = "Periodos";
@@ -36881,6 +36941,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             (Objetivo.Vinculo_Subobjetivo_Id || "").toString(),
           Vinculo_Texto:
             (Objetivo.Vinculo_Texto || "").toString(),
+          Etiquetas_Ids: Normalizar_Etiquetas_Ids(
+            Objetivo.Etiquetas_Ids
+          ).length
+            ? Normalizar_Etiquetas_Ids(Objetivo.Etiquetas_Ids)
+            : Planes_Etiquetas_Ids_Desde_Nombres(Objetivo.Tags),
           Tags: Array.isArray(Objetivo.Tags)
             ? [...Objetivo.Tags]
             : [],
@@ -37332,6 +37397,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Regla_Lectura: Objetivo.Regla_Lectura,
           Modo_Progreso: Objetivo.Modo_Progreso,
           Progreso_Manual: 0,
+          Etiquetas_Ids: [...(Objetivo.Etiquetas_Ids || [])],
           Tags: [...(Objetivo.Tags || [])],
           Vinculo_Sidebar_Activo: Objetivo.Vinculo_Sidebar_Activo,
           Vinculo_Tipo: Objetivo.Vinculo_Tipo,
@@ -37539,13 +37605,45 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Periodo.Titulo || "";
       }
 
+      function Planes_Etiquetas_Ids_Desde_Nombres(Nombres) {
+        const Claves = new Set(
+          (Array.isArray(Nombres) ? Nombres : [])
+            .map((Nombre) => Normalizar_Texto_Meta_Objetivo(Nombre))
+            .filter(Boolean)
+        );
+        if (!Claves.size) return [];
+        return Etiquetas
+          .filter((Etiqueta) =>
+            Claves.has(Normalizar_Texto_Meta_Objetivo(Etiqueta.Nombre))
+          )
+          .map((Etiqueta) => Etiqueta.Id);
+      }
+
+      function Planes_Etiquetas_Nombres(Objetivo) {
+        const Nombres = Obtener_Nombres_Etiquetas(
+          Objetivo?.Etiquetas_Ids
+        );
+        if (Nombres.length) return Nombres;
+        return Array.isArray(Objetivo?.Tags) ? Objetivo.Tags : [];
+      }
+
+      function Planes_Etiquetas_Ids(Objetivo) {
+        const Ids = Normalizar_Etiquetas_Ids(
+          Objetivo?.Etiquetas_Ids
+        );
+        if (Ids.length) return Ids;
+        return Planes_Etiquetas_Ids_Desde_Nombres(Objetivo?.Tags);
+      }
+
       function Planes_Etiquetas_Disponibles() {
         const Modelo = Asegurar_Modelo_Planes();
-        return Array.from(new Set(
-          Object.values(Modelo.Objetivos).flatMap(
-            (Objetivo) => Objetivo.Tags || []
-          )
-        )).sort((A, B) => A.localeCompare(B));
+        const Usadas = new Set(
+          Object.values(Modelo.Objetivos)
+            .flatMap((Objetivo) => Planes_Etiquetas_Ids(Objetivo))
+        );
+        return Etiquetas
+          .filter((Etiqueta) => Usadas.has(Etiqueta.Id))
+          .sort((A, B) => A.Nombre.localeCompare(B.Nombre));
       }
 
       function Render_Plan() {
@@ -37613,11 +37711,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sel_Etiqueta.appendChild(Todas);
           Planes_Etiquetas_Disponibles().forEach((Etiqueta) => {
             const Opt = document.createElement("option");
-            Opt.value = Etiqueta;
-            Opt.textContent = Etiqueta;
+            Opt.value = Etiqueta.Id;
+            Opt.textContent = Etiqueta.Nombre;
             Sel_Etiqueta.appendChild(Opt);
           });
-          Sel_Etiqueta.value = Modelo.UI.Filtro_Etiqueta || "Todas";
+          const Valor = Modelo.UI.Filtro_Etiqueta || "Todas";
+          Sel_Etiqueta.value = Valor;
+          if (Sel_Etiqueta.value !== Valor) {
+            Modelo.UI.Filtro_Etiqueta = "Todas";
+            Sel_Etiqueta.value = "Todas";
+          }
           Sel_Etiqueta.onchange = () => {
             Modelo.UI.Filtro_Etiqueta = Sel_Etiqueta.value;
             Render_Planes_Contenido();
@@ -37687,6 +37790,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Planes_Importar_De_Padres_Periodo(Activo.Id);
             }
           };
+        }
+        const Btn_Etiquetas = document.getElementById(
+          "Planes_Btn_Etiquetas_Header"
+        );
+        if (Btn_Etiquetas) {
+          Btn_Etiquetas.onclick = Abrir_Modal_Planes_Etiquetas;
         }
         const Btn_Vencidos =
           document.getElementById("Planes_Btn_Vencidos");
@@ -37809,7 +37918,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
             if (
               Etiqueta !== "Todas" &&
-              !(Objetivo.Tags || []).includes(Etiqueta)
+              !Planes_Etiquetas_Ids(Objetivo).includes(Etiqueta)
             ) {
               return false;
             }
@@ -37819,7 +37928,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Objetivo.Emoji,
               Objetivo.Descripcion,
               Objetivo.Unidad_Custom,
-              ...(Objetivo.Tags || [])
+              ...Planes_Etiquetas_Nombres(Objetivo)
             ].join(" "));
             return Texto.includes(Busqueda);
           });
@@ -38138,11 +38247,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Select = document.getElementById(
           "Planes_Objetivo_Unidad"
         );
-        const Campo = document.getElementById(
-          "Planes_Objetivo_Unidad_Custom_Campo"
+        const Input = document.getElementById(
+          "Planes_Objetivo_Unidad_Custom"
         );
-        if (!Select || !Campo) return;
-        Campo.hidden = Select.value !== "Personalizado";
+        if (!Select || !Input) return;
+        Input.hidden = Select.value !== "Personalizado";
       }
 
       function Planes_Datos_Vinculo_Desde_Form(Valor) {
@@ -38272,9 +38381,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Descripcion) {
           Descripcion.value = Objetivo?.Descripcion || "";
         }
-        if (Etiquetas_Input) {
-          Etiquetas_Input.value = (Objetivo?.Tags || []).join(", ");
-        }
+        Render_Selector_Etiquetas(
+          Etiquetas_Input,
+          Planes_Etiquetas_Ids(Objetivo)
+        );
         Planes_Vinculo_Subobjetivos_Expandidos = new Set();
         if (Objetivo?.Vinculo_Tipo === "Subobjetivo" &&
             Objetivo.Vinculo_Objetivo_Id) {
@@ -38327,6 +38437,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Mostrar_Toast_Error(t("planes.err_unidad_custom"));
           return;
         }
+        const Etiquetas_Seleccionadas = Obtener_Etiquetas_Seleccionadas(
+          document.getElementById("Planes_Objetivo_Etiquetas")
+        );
         const Datos = {
           Emoji: Normalizar_Emoji(
             document.getElementById("Planes_Objetivo_Emoji")
@@ -38342,10 +38455,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Descripcion: document.getElementById(
             "Planes_Objetivo_Descripcion"
           )?.value || "",
-          Tags: Parsear_Etiquetas_Archivero(
-            document.getElementById("Planes_Objetivo_Etiquetas")
-              ?.value || ""
-          ),
+          Etiquetas_Ids: Etiquetas_Seleccionadas,
+          Tags: Obtener_Nombres_Etiquetas(Etiquetas_Seleccionadas),
           ...Planes_Datos_Vinculo_Desde_Form(
             document.getElementById("Planes_Objetivo_Vinculo")
               ?.dataset.valorReal ||
@@ -38448,8 +38559,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Render_Planes_Badges(Objetivo) {
         const Partes = [];
-        (Objetivo.Tags || []).forEach((Tag) => {
-          Partes.push(`<span class="Planes_Badge">${
+        Planes_Etiquetas_Nombres(Objetivo).forEach((Tag) => {
+          Partes.push(`<span class="Etiqueta_Badge">#${
             Escape_Html(Tag)
           }</span>`);
         });
@@ -38816,16 +38927,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
         if (!Objetivo) return;
-        const Valor = await Mostrar_Dialogo_Con_Texto(
-          t("sidebar.etiquetas"),
-          {
-            Default: (Objetivo.Tags || []).join(", "),
-            Placeholder: t("sidebar.etiquetas")
-          }
+        Abrir_Modal_Planes_Objetivo(
+          Objetivo.Periodo_Id,
+          Objetivo.Id
         );
-        if (Valor === null) return;
-        Objetivo.Tags = Parsear_Etiquetas_Archivero(Valor);
-        Planes_Recalcular_Desde(Objetivo);
+        setTimeout(() => {
+          document.getElementById("Planes_Objetivo_Etiquetas")
+            ?.scrollIntoView({ block: "center" });
+        }, 0);
       }
 
       function Planes_Romper_Vinculo(Objetivo_Id) {
@@ -39212,6 +39321,150 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Cerrar_Modal_Planes_Vencidos();
         Render_Plan();
         Guardar_Estado();
+      }
+
+      function Planes_Normalizar_Etiquetas_Globales() {
+        const Resultado = [];
+        const Vistos = new Set();
+        Etiquetas.forEach((Etiqueta) => {
+          const Normalizada = Normalizar_Etiqueta(Etiqueta);
+          if (!Normalizada) return;
+          const Clave = Normalizar_Texto_Meta_Objetivo(
+            Normalizada.Nombre
+          );
+          if (!Clave || Vistos.has(Clave)) return;
+          Vistos.add(Clave);
+          Resultado.push(Normalizada);
+        });
+        Etiquetas = Resultado;
+      }
+
+      function Planes_Refrescar_Etiquetas() {
+        const Selector = document.getElementById(
+          "Planes_Objetivo_Etiquetas"
+        );
+        if (Selector) {
+          Render_Selector_Etiquetas(
+            Selector,
+            Obtener_Etiquetas_Seleccionadas(Selector)
+          );
+        }
+        Render_Planes_Controles();
+        Render_Planes_Contenido();
+      }
+
+      function Render_Modal_Planes_Etiquetas() {
+        Planes_Normalizar_Etiquetas_Globales();
+        const Lista = document.getElementById("Planes_Etiquetas_Lista");
+        if (!Lista) return;
+        Lista.innerHTML = "";
+        if (!Etiquetas.length) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Archivero_Etiquetas_Gestion_Vacia";
+          Vacio.textContent = t("baul.sin_etiquetas");
+          Lista.appendChild(Vacio);
+        }
+        Etiquetas.forEach((Etiqueta, Indice) => {
+          const Fila = document.createElement("div");
+          Fila.className = "Archivero_Etiquetas_Gestion_Fila";
+
+          const Prefijo = document.createElement("span");
+          Prefijo.className = "Archivero_Etiquetas_Gestion_Prefijo";
+          Prefijo.textContent = "#";
+
+          const Input = document.createElement("input");
+          Input.type = "text";
+          Input.className = "Archivero_Etiquetas_Gestion_Input";
+          Input.value = Etiqueta.Nombre;
+          Input.addEventListener("input", () => {
+            Etiqueta.Nombre = Input.value.trim();
+            Planes_Refrescar_Etiquetas();
+          });
+          Input.addEventListener("blur", () => {
+            Etiqueta.Nombre = Input.value.trim();
+            Planes_Normalizar_Etiquetas_Globales();
+            Render_Modal_Planes_Etiquetas();
+            Planes_Refrescar_Etiquetas();
+          });
+          Input.addEventListener("keydown", (Ev) => {
+            if (Ev.key !== "Enter") return;
+            Ev.preventDefault();
+            Input.blur();
+          });
+
+          const Borrar = document.createElement("button");
+          Borrar.type = "button";
+          Borrar.className = "Archivero_Nota_Mini_Btn";
+          Borrar.textContent = "×";
+          Borrar.title = t("config.borrar_etiqueta");
+          Borrar.addEventListener("click", () => {
+            Etiquetas.splice(Indice, 1);
+            Planes_Normalizar_Etiquetas_Globales();
+            Render_Modal_Planes_Etiquetas();
+            Planes_Refrescar_Etiquetas();
+          });
+
+          Fila.appendChild(Prefijo);
+          Fila.appendChild(Input);
+          Fila.appendChild(Borrar);
+          Lista.appendChild(Fila);
+        });
+
+        const Input_Nueva = document.getElementById(
+          "Planes_Etiqueta_Nombre"
+        );
+        const Btn_Agregar = document.getElementById(
+          "Planes_Etiqueta_Agregar"
+        );
+        const Agregar = () => {
+          const Nombre = (Input_Nueva?.value || "").trim();
+          if (!Nombre) return;
+          const Clave = Normalizar_Texto_Meta_Objetivo(Nombre);
+          const Existe = Etiquetas.some((Etiqueta) =>
+            Normalizar_Texto_Meta_Objetivo(Etiqueta.Nombre) === Clave
+          );
+          if (!Existe) {
+            Etiquetas.push({ Id: Crear_Id_Etiqueta(), Nombre });
+          }
+          if (Input_Nueva) Input_Nueva.value = "";
+          Planes_Normalizar_Etiquetas_Globales();
+          Render_Modal_Planes_Etiquetas();
+          Planes_Refrescar_Etiquetas();
+          setTimeout(() => Input_Nueva?.focus(), 0);
+        };
+        if (Btn_Agregar) Btn_Agregar.onclick = Agregar;
+        if (Input_Nueva) {
+          Input_Nueva.onkeydown = (Ev) => {
+            if (Ev.key !== "Enter") return;
+            Ev.preventDefault();
+            Agregar();
+          };
+        }
+      }
+
+      function Abrir_Modal_Planes_Etiquetas() {
+        Planes_Etiquetas_Originales = Etiquetas.map((Etiqueta) => ({
+          ...Etiqueta
+        }));
+        Render_Modal_Planes_Etiquetas();
+        document.getElementById("Planes_Etiquetas_Overlay")
+          ?.classList.add("Activo");
+        setTimeout(() => {
+          document.getElementById("Planes_Etiqueta_Nombre")?.focus();
+        }, 0);
+      }
+
+      function Cerrar_Modal_Planes_Etiquetas(Guardar = false) {
+        if (!Guardar && Planes_Etiquetas_Originales) {
+          Etiquetas = Planes_Etiquetas_Originales.map((Etiqueta) => ({
+            ...Etiqueta
+          }));
+        }
+        Planes_Etiquetas_Originales = null;
+        document.getElementById("Planes_Etiquetas_Overlay")
+          ?.classList.remove("Activo");
+        Planes_Refrescar_Etiquetas();
+        if (Guardar) Guardar_Estado();
       }
 
       async function Crear_Periodo_Custom_Planes() {
@@ -60007,6 +60260,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Planes_Vencidos_Overlay") {
             Cerrar_Modal_Planes_Vencidos();
+          }
+        });
+      document.getElementById("Planes_Etiquetas_Cerrar")
+        ?.addEventListener(
+          "click",
+          () => Cerrar_Modal_Planes_Etiquetas(false)
+        );
+      document.getElementById("Planes_Etiquetas_Cancelar")
+        ?.addEventListener(
+          "click",
+          () => Cerrar_Modal_Planes_Etiquetas(false)
+        );
+      document.getElementById("Planes_Etiquetas_Guardar")
+        ?.addEventListener(
+          "click",
+          () => Cerrar_Modal_Planes_Etiquetas(true)
+        );
+      document.getElementById("Planes_Etiquetas_Overlay")
+        ?.addEventListener("click", (Ev) => {
+          if (Ev.target.id === "Planes_Etiquetas_Overlay") {
+            Cerrar_Modal_Planes_Etiquetas(false);
           }
         });
       El_Metas_Nueva_Btn?.addEventListener("click", () => {

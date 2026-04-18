@@ -240,6 +240,21 @@ async ({ page }) => {
   await expect(page.locator(".Planes_Periodo_Item").first())
     .toContainText("Año 2026");
 
+  await page.click("#Planes_Btn_Etiquetas_Header");
+  await expect(page.locator("#Planes_Etiquetas_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.fill("#Planes_Etiqueta_Nombre", "Lectura");
+  await page.click("#Planes_Etiqueta_Agregar");
+  await expect(
+    page.locator(
+      "#Planes_Etiquetas_Lista " +
+      ".Archivero_Etiquetas_Gestion_Input"
+    )
+  ).toHaveValue("Lectura");
+  await page.click("#Planes_Etiquetas_Guardar");
+  await expect(page.locator("#Planes_Etiquetas_Overlay"))
+    .not.toHaveClass(/Activo/);
+
   await page.click("#Planes_Btn_Nuevo_Header");
   await expect(page.locator("#Planes_Objetivo_Overlay"))
     .toHaveClass(/Activo/);
@@ -247,6 +262,26 @@ async ({ page }) => {
     .not.toContainText("Páginas");
   await expect(page.locator("#Planes_Objetivo_Unidad"))
     .toContainText("Personalizado");
+  await expect(page.locator("#Planes_Objetivo_Overlay"))
+    .not.toContainText("Unidad personalizada");
+  await expect(page.locator("#Planes_Objetivo_Unidad_Custom"))
+    .toBeHidden();
+  await page.selectOption("#Planes_Objetivo_Unidad", "Personalizado");
+  await expect(page.locator("#Planes_Objetivo_Unidad_Custom"))
+    .toBeVisible();
+  const Unidad_Custom_Inline = await page.evaluate(() => {
+    const Unidad = document.getElementById("Planes_Objetivo_Unidad")
+      .getBoundingClientRect();
+    const Custom = document.getElementById(
+      "Planes_Objetivo_Unidad_Custom"
+    ).getBoundingClientRect();
+    return Math.abs(Unidad.top - Custom.top) <= 2;
+  });
+  expect(Unidad_Custom_Inline).toBe(true);
+  await page.selectOption("#Planes_Objetivo_Unidad", "Horas");
+  await page.locator("#Planes_Objetivo_Etiquetas .Etiqueta_Chip")
+    .filter({ hasText: "Lectura" })
+    .click();
   await page.fill("#Planes_Objetivo_Nombre", "Leer");
   await page.fill("#Planes_Objetivo_Target", "12");
   await page.click("#Planes_Objetivo_Guardar");
@@ -301,6 +336,7 @@ async ({ page }) => {
     .innerText();
   expect(Texto_Tarjeta).toContain("%");
   expect(Texto_Tarjeta).toContain("horas");
+  expect(Texto_Tarjeta).toContain("#Lectura");
   expect(Texto_Tarjeta).not.toContain("Horas");
 
   const Layout_Tarjeta = await page.locator(".Planes_Objetivo_Card")
