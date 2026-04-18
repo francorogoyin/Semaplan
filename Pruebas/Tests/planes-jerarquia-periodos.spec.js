@@ -364,6 +364,10 @@ async ({ page }) => {
     .click();
   await page.fill("#Planes_Objetivo_Nombre", "Leer");
   await page.fill("#Planes_Objetivo_Target", "12");
+  await page.fill(
+    "#Planes_Objetivo_Descripcion",
+    "Descripcion hover planes"
+  );
   await page.click("#Planes_Objetivo_Guardar");
 
   const Modelo_Inicial = await page.evaluate(() => {
@@ -440,6 +444,36 @@ async ({ page }) => {
   expect(Layout_Tarjeta.metricaSangrada).toBe(true);
   expect(Layout_Tarjeta.indicadoresAlBorde).toBe(true);
   expect(Layout_Tarjeta.indicadoresDerecha).toBe(true);
+
+  const Card_Objetivo = page.locator(".Planes_Objetivo_Card").first();
+  const Caja_Card = await Card_Objetivo.boundingBox();
+  const Mouse_X = Caja_Card.x + 24;
+  const Mouse_Y = Caja_Card.y + 12;
+  await page.mouse.move(Mouse_X, Mouse_Y);
+  await page.waitForTimeout(2200);
+  await expect(page.locator(".Evento_Abordaje_Popup"))
+    .toContainText("Descripcion hover planes");
+  const Popup_Pos = await page.locator(".Evento_Abordaje_Popup")
+    .evaluate((Pop) => Pop.getBoundingClientRect().left);
+  expect(Popup_Pos).toBeGreaterThan(Mouse_X);
+  await page.mouse.move(5, 5);
+  await expect(page.locator(".Evento_Abordaje_Popup"))
+    .toHaveCount(0);
+
+  await Card_Objetivo.click();
+  await expect(Card_Objetivo).toHaveClass(/Expandida/);
+  await expect(
+    Card_Objetivo.locator(".Planes_Objetivo_Detalle")
+  ).toContainText("Estado");
+  await expect(
+    Card_Objetivo.locator(".Planes_Objetivo_Detalle")
+  ).toContainText("Realizado");
+  await expect(
+    Card_Objetivo.locator(".Planes_Objetivo_Detalle")
+  ).toContainText("Falta");
+  await expect(
+    Card_Objetivo.locator(".Planes_Objetivo_Detalle")
+  ).toContainText("#Lectura");
 
   const Eliminado_Visible = await page.evaluate(() => {
     const Periodo = Planes_Periodo_Activo();

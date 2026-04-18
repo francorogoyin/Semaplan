@@ -3869,6 +3869,10 @@
         position: relative;
       }
 
+      .Planes_Objetivo_Card.Expandida {
+        padding-bottom: 12px;
+      }
+
       .Planes_Objetivo_Card.Eliminado {
         opacity: 0.55;
         background: #f7f7f7;
@@ -4083,6 +4087,10 @@
         margin-top: 10px;
         padding-top: 8px;
         border-top: 1px solid rgba(0, 0, 0, 0.06);
+      }
+
+      .Planes_Objetivo_Detalle_Etiquetas {
+        grid-column: 1 / -1;
       }
 
       .Planes_Dato {
@@ -16614,7 +16622,10 @@
             "Lecturas, ejercicios, capítulos...",
           "planes.sin_objetivos":
             "No hay objetivos visibles en este período.",
+          "planes.estado": "Estado",
           "planes.target": "Meta",
+          "planes.realizado": "Realizado",
+          "planes.falta": "Falta",
           "planes.auto": "Automático",
           "planes.actual": "Actual",
           "planes.progreso_manual": "Manual",
@@ -19441,7 +19452,10 @@
             "Readings, exercises, chapters...",
           "planes.sin_objetivos":
             "No visible objectives in this period.",
+          "planes.estado": "Status",
           "planes.target": "Goal",
+          "planes.realizado": "Done",
+          "planes.falta": "Left",
           "planes.auto": "Automatic",
           "planes.actual": "Current",
           "planes.progreso_manual": "Manual",
@@ -22217,7 +22231,10 @@
             "Leituras, exercícios, capítulos...",
           "planes.sin_objetivos":
             "Não há objetivos visíveis neste período.",
+          "planes.estado": "Estado",
           "planes.target": "Meta",
+          "planes.realizado": "Realizado",
+          "planes.falta": "Falta",
           "planes.auto": "Automático",
           "planes.actual": "Atual",
           "planes.progreso_manual": "Manual",
@@ -28481,12 +28498,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         document.body.appendChild(Pop);
         El_Popup_Descripcion_Activo = Pop;
 
-        const Rect_Item = Cerca_De.getBoundingClientRect();
         const Rect_Pop = Pop.getBoundingClientRect();
-        let Left = Rect_Item.right + 8;
-        let Top = Rect_Item.top;
+        const Punto = Cerca_De && typeof Cerca_De === "object" &&
+          Number.isFinite(Cerca_De.X) &&
+          Number.isFinite(Cerca_De.Y)
+          ? Cerca_De
+          : null;
+        const Rect_Item = Punto
+          ? null
+          : Cerca_De.getBoundingClientRect();
+        let Left = Punto ? Punto.X + 12 : Rect_Item.right + 8;
+        let Top = Punto ? Punto.Y + 8 : Rect_Item.top;
         if (Left + Rect_Pop.width > window.innerWidth - 8) {
-          Left = Rect_Item.left - Rect_Pop.width - 8;
+          Left = Punto
+            ? window.innerWidth - Rect_Pop.width - 8
+            : Rect_Item.left - Rect_Pop.width - 8;
         }
         if (Left < 8) Left = 8;
         if (Top + Rect_Pop.height > window.innerHeight - 8) {
@@ -28511,6 +28537,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Descripcion && !Permitir_Solo_Titulo) return;
         let Hover_Timer_Id = null;
+        let Ultimo_Mouse = null;
         const Cancelar = () => {
           if (Hover_Timer_Id) {
             clearTimeout(Hover_Timer_Id);
@@ -28518,12 +28545,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           Cerrar_Popup_Descripcion();
         };
-        El.addEventListener("mouseenter", () => {
+        El.addEventListener("mousemove", (Ev) => {
+          Ultimo_Mouse = {
+            X: Ev.clientX,
+            Y: Ev.clientY
+          };
+        });
+        El.addEventListener("mouseenter", (Ev) => {
+          Ultimo_Mouse = {
+            X: Ev.clientX,
+            Y: Ev.clientY
+          };
           if (Hover_Timer_Id) clearTimeout(Hover_Timer_Id);
           Hover_Timer_Id = setTimeout(() => {
             Mostrar_Popup_Descripcion(
               Texto_Base,
-              El,
+              Ultimo_Mouse || El,
               Titulo_Texto,
               Permitir_Solo_Titulo
             );
@@ -36778,6 +36815,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           UI: {
             Periodo_Activo_Id: null,
             Expandidos: {},
+            Objetivos_Expandidos: {},
             Expandidos_Inicializados: false,
             Filtro_Tipo: "Todos",
             Filtro_Estado: "Todos",
@@ -36834,6 +36872,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Modelo.UI.Expandidos = Raw.UI?.Expandidos_Inicializados
           ? Expandidos_Existentes
           : {};
+        if (
+          !Modelo.UI.Objetivos_Expandidos ||
+          typeof Modelo.UI.Objetivos_Expandidos !== "object"
+        ) {
+          Modelo.UI.Objetivos_Expandidos = {};
+        }
         Modelo.UI.Expandidos_Inicializados = true;
         if (!["Tarjetas", "Lista"].includes(Modelo.UI.Vista)) {
           Modelo.UI.Vista = "Tarjetas";
@@ -38528,16 +38572,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Cerrar_Modal_Planes_Objetivo();
       }
 
+      function Planes_Toggle_Expansion_Objetivo(Objetivo_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        if (!Modelo.Objetivos[Objetivo_Id]) return;
+        if (!Modelo.UI.Objetivos_Expandidos ||
+            typeof Modelo.UI.Objetivos_Expandidos !== "object") {
+          Modelo.UI.Objetivos_Expandidos = {};
+        }
+        Modelo.UI.Objetivos_Expandidos[Objetivo_Id] =
+          Modelo.UI.Objetivos_Expandidos[Objetivo_Id] !== true;
+        Render_Planes_Contenido();
+      }
+
       function Render_Planes_Objetivo(Objetivo) {
         const Modelo = Asegurar_Modelo_Planes();
         Planes_Actualizar_Progreso(Objetivo);
+        const Es_Lista = Modelo.UI.Vista === "Lista";
+        const Expandido =
+          !Es_Lista &&
+          Modelo.UI.Objetivos_Expandidos?.[Objetivo.Id] === true;
         const Card = document.createElement("article");
         Card.className = "Planes_Objetivo_Card" +
           (Objetivo.Eliminado_Local ? " Eliminado" : "") +
           ((Objetivo.Warnings || []).length ? " Warning" : "") +
-          (Modelo.UI.Vista === "Lista" ? " Vista_Lista" : "");
+          (Es_Lista ? " Vista_Lista" : "") +
+          (Expandido ? " Expandida" : "");
         Card.dataset.planObjetivoId = Objetivo.Id;
-        const Es_Lista = Modelo.UI.Vista === "Lista";
         const Estado_Label =
           t(`planes.estado_${Objetivo.Estado.toLowerCase()}`);
         const Porcentaje = Planes_Formatear_Porcentaje_Meta(
@@ -38573,6 +38633,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ${Render_Planes_Badges(Objetivo)}
             `}
           </div>
+          ${Expandido ? Render_Planes_Detalle_Objetivo(Objetivo) : ""}
         `;
         Vincular_Hover_Descripcion(
           Card,
@@ -38589,12 +38650,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
         Card.addEventListener("click", async (Ev) => {
           const Accion = Ev.target.closest("[data-plan-accion]");
-          if (!Accion) return;
-          Planes_Cerrar_Menus_Objetivo();
-          await Planes_Ejecutar_Accion_Objetivo(
-            Objetivo.Id,
-            Accion.dataset.planAccion
-          );
+          if (Accion) {
+            Planes_Cerrar_Menus_Objetivo();
+            await Planes_Ejecutar_Accion_Objetivo(
+              Objetivo.Id,
+              Accion.dataset.planAccion
+            );
+            return;
+          }
+          if (Ev.target.closest("button, input, select, textarea, a")) {
+            return;
+          }
+          Planes_Toggle_Expansion_Objetivo(Objetivo.Id);
         });
         return Card;
       }
@@ -38613,8 +38680,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Render_Planes_Detalle_Objetivo(Objetivo) {
+        const Estado_Label =
+          t(`planes.estado_${Objetivo.Estado.toLowerCase()}`);
+        const Etiquetas = Planes_Etiquetas_Nombres(Objetivo);
+        const Etiquetas_Texto = Etiquetas.length
+          ? Etiquetas.map((Tag) => `#${Tag}`).join(", ")
+          : "-";
         return `
           <div class="Planes_Objetivo_Detalle">
+            <div class="Planes_Dato">
+              <span>${t("planes.estado")}</span>
+              <strong>${Escape_Html(Estado_Label)}</strong>
+            </div>
             <div class="Planes_Dato">
               <span>${t("planes.target")}</span>
               <strong>${Planes_Formatear_Numero(
@@ -38622,16 +38699,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               )} ${Planes_Unidad_Label(Objetivo)}</strong>
             </div>
             <div class="Planes_Dato">
-              <span>${t("planes.auto")}</span>
+              <span>${t("planes.realizado")}</span>
               <strong>${Planes_Formatear_Numero(
-                Objetivo.Target_Automatico
-              )}</strong>
+                Objetivo.Progreso_Total
+              )} ${Planes_Unidad_Label(Objetivo)}</strong>
             </div>
             <div class="Planes_Dato">
-              <span>${t("planes.fijado")}</span>
+              <span>${t("planes.falta")}</span>
               <strong>${Planes_Formatear_Numero(
-                Objetivo.Target_Fijado
-              )}</strong>
+                Objetivo.Target_Pendiente
+              )} ${Planes_Unidad_Label(Objetivo)}</strong>
             </div>
             <div class="Planes_Dato">
               <span>${t("planes.progreso_leido")}</span>
@@ -38650,6 +38727,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               <strong>${Planes_Formatear_Numero(
                 Objetivo.Progreso_Total
               )}</strong>
+            </div>
+            <div class="Planes_Dato Planes_Objetivo_Detalle_Etiquetas">
+              <span>${t("sidebar.etiquetas")}</span>
+              <strong>${Escape_Html(Etiquetas_Texto)}</strong>
             </div>
           </div>
         `;
