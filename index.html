@@ -16686,7 +16686,9 @@
                 placeholder="Subobjetivo">
             </label>
             <label class="Campo Planes_Subobjetivo_Meta_Campo">
-              <span data-i18n="planes.sub_metrica">Metrica</span>
+              <span data-i18n="planes.sub_aporte">
+                Aporte a la meta
+              </span>
               <input id="Planes_Subobjetivo_Target"
                 type="number"
                 min="0"
@@ -17664,6 +17666,7 @@
           "planes.registro_calendario": "Calendario",
           "planes.registro_subobjetivo": "Subobjetivo",
           "planes.registro_manual_previo": "Manual previo",
+          "planes.sub_aporte": "Aporte a la meta",
           "planes.sub_metrica": "Métrica",
           "planes.sub_unidad_custom":
             "Unidad propia",
@@ -20604,6 +20607,7 @@
           "planes.registro_calendario": "Calendar",
           "planes.registro_subobjetivo": "Subobjective",
           "planes.registro_manual_previo": "Previous manual",
+          "planes.sub_aporte": "Goal contribution",
           "planes.sub_metrica": "Metric",
           "planes.sub_unidad_custom":
             "Custom unit",
@@ -23494,6 +23498,7 @@
           "planes.registro_calendario": "Calendário",
           "planes.registro_subobjetivo": "Subobjetivo",
           "planes.registro_manual_previo": "Manual anterior",
+          "planes.sub_aporte": "Aporte para a meta",
           "planes.sub_metrica": "Métrica",
           "planes.sub_unidad_custom":
             "Unidade própria",
@@ -38874,10 +38879,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Subobjetivos_Metricos(Objetivo_Id) {
         return Planes_Subobjetivos_De_Objetivo(Objetivo_Id)
-          .filter((Sub) =>
-            !Sub.Eliminado_Local &&
-            (Number(Sub.Target_Total) || 0) > 0
-          );
+          .filter((Sub) => !Sub.Eliminado_Local);
       }
 
       function Planes_Calcular_Progreso_Subobjetivos(Objetivo_Plan) {
@@ -38885,16 +38887,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Target_Objetivo <= 0) return 0;
         const Subs = Planes_Subobjetivos_Metricos(Objetivo_Plan.Id);
         if (!Subs.length) return 0;
-        const Peso = Target_Objetivo / Subs.length;
         return Subs.reduce((Total, Sub) => {
           const Target_Sub = Number(Sub.Target_Total) || 0;
           if (Target_Sub <= 0) return Total;
-          const Progreso_Sub = Math.max(
-            0,
-            Number(Sub.Progreso_Manual) || 0
+          const Progreso_Sub = Sub.Hecha
+            ? Target_Sub
+            : Number(Sub.Progreso_Manual) || 0;
+          return Total + Math.min(
+            Target_Sub,
+            Math.max(0, Progreso_Sub)
           );
-          const Ratio = Math.min(1, Progreso_Sub / Target_Sub);
-          return Total + (Peso * Ratio);
         }, 0);
       }
 
@@ -39112,11 +39114,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Formatear_Meta_Subobjetivo(Sub) {
         const Target = Number(Sub.Target_Total) || 0;
-        if (Target <= 0) return t("planes.sin_metrica");
+        const Unidad = Planes_Unidad_Label_Subobjetivo(Sub);
+        if (Target <= 0) {
+          return `${Planes_Formatear_Numero(0)} ${Unidad}`.trim();
+        }
         return `${Planes_Formatear_Numero(
           Number(Sub.Progreso_Manual) || 0
         )}/${Planes_Formatear_Numero(Target)} ` +
-          Planes_Unidad_Label_Subobjetivo(Sub);
+          Unidad;
       }
 
       function Planes_Porcentaje_Meta(Progreso, Target) {
@@ -41291,6 +41296,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Target > 0) {
           Sub.Hecha = (Number(Sub.Progreso_Manual) || 0) >= Target;
           Sub.Estado = Sub.Hecha ? "Cumplido" : "Activo";
+        } else {
+          Sub.Progreso_Manual = 0;
+          Sub.Estado = Sub.Hecha ? "Cumplido" : "Activo";
         }
         const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
         if (Objetivo) {
@@ -41354,7 +41362,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (Texto) Texto.value = Sub.Texto || "";
         if (Emoji) Emoji.value = Sub.Emoji || "\u2022";
-        if (Target) Target.value = Sub.Target_Total || "";
+        if (Target) {
+          Target.value = Number.isFinite(Number(Sub.Target_Total))
+            ? String(Number(Sub.Target_Total))
+            : "1";
+        }
         Planes_Poblar_Select_Unidades(Unidad, Sub.Unidad);
         if (Unidad_Custom) {
           Unidad_Custom.value = Sub.Unidad_Custom || "";
@@ -41440,6 +41452,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ) {
             Sub.Progreso_Manual = 0;
           }
+        } else {
+          Sub.Progreso_Manual = 0;
         }
         Sub.Estado = Sub.Hecha ? "Cumplido" : "Activo";
         Cerrar_Modal_Planes_Subobjetivo();
@@ -42300,9 +42314,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Sub_Padre_Id = ""
       ) {
         const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
         const Padre = Modelo.Subobjetivos[Sub_Padre_Id];
         const Subobjetivo_Padre_Id =
           Padre && Padre.Objetivo_Id === Objetivo_Id ? Padre.Id : "";
+        const Tiene_Metrica =
+          (Number(Objetivo?.Target_Total) || 0) > 0;
         const Orden = Planes_Subobjetivos_De_Objetivo(Objetivo_Id)
           .filter((Sub) =>
             (Sub.Subobjetivo_Padre_Id || "") ===
@@ -42316,6 +42333,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Subobjetivo_Padre_Id,
           Emoji,
           Texto,
+          Target_Total: Tiene_Metrica ? 1 : 0,
+          Unidad: Objetivo?.Unidad || "Personalizado",
+          Unidad_Custom: Objetivo?.Unidad_Custom || "",
           Orden
         }, Orden);
         Render_Plan();
@@ -42331,8 +42351,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Target = Number(Sub.Target_Total) || 0;
         if (Target > 0) {
           Sub.Progreso_Manual = Hecha ? Target : 0;
-          Sub.Estado = Hecha ? "Cumplido" : "Activo";
+        } else {
+          Sub.Progreso_Manual = 0;
         }
+        Sub.Estado = Hecha ? "Cumplido" : "Activo";
         if (Sub.Parent_Subobjetivo_Id) {
           const Padre = Modelo.Subobjetivos[Sub.Parent_Subobjetivo_Id];
           if (Padre) Padre.Hecha = Boolean(Hecha);
@@ -63574,19 +63596,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Cfg_Tipo_Slot_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Cfg_Tipo_Slot_Overlay") {
-            Cerrar_Modal_Tipo_Slot_Config();
+            Ev.preventDefault();
           }
         });
       document.getElementById("Cfg_App_Desktop_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Cfg_App_Desktop_Overlay") {
-            Cerrar_Modal_App_Config("Desktop");
+            Ev.preventDefault();
           }
         });
       document.getElementById("Cfg_App_Android_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Cfg_App_Android_Overlay") {
-            Cerrar_Modal_App_Config("Android");
+            Ev.preventDefault();
           }
         });
 
@@ -63624,7 +63646,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
 
       El_Config_Overlay.addEventListener("click", (Ev) => {
-        if (Ev.target === El_Config_Overlay) Cerrar_Config();
+        if (Ev.target === El_Config_Overlay) Ev.preventDefault();
       });
       El_Plan_Boton?.addEventListener("click", Abrir_Suscripcion);
       El_Planes_Boton?.addEventListener("click", Abrir_Plan);
@@ -63632,7 +63654,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", Cerrar_Metas);
       El_Metas_Overlay?.addEventListener("click", (Ev) => {
         if (Ev.target === El_Metas_Overlay) {
-          Cerrar_Metas();
+          Ev.preventDefault();
         }
       });
 
@@ -63641,7 +63663,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", Cerrar_Plan);
       document.getElementById("Plan_Overlay")
         ?.addEventListener("click", (Ev) => {
-          if (Ev.target.id === "Plan_Overlay") Cerrar_Plan();
+          if (Ev.target.id === "Plan_Overlay") Ev.preventDefault();
           if (!Ev.target.closest(".Planes_Objetivo_Acciones")) {
             Planes_Cerrar_Menus_Objetivo();
           }
@@ -63690,7 +63712,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Planes_Subobjetivos_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Planes_Subobjetivos_Overlay") {
-            Cerrar_Modal_Planes_Subobjetivos();
+            Ev.preventDefault();
           }
         });
       document.getElementById("Planes_Subobjetivo_Cerrar")
@@ -63707,7 +63729,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Planes_Subobjetivo_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Planes_Subobjetivo_Overlay") {
-            Cerrar_Modal_Planes_Subobjetivo();
+            Ev.preventDefault();
           }
         });
       document.getElementById("Planes_Subobjetivo_Unidad")
@@ -63760,7 +63782,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Planes_Vencidos_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Planes_Vencidos_Overlay") {
-            Cerrar_Modal_Planes_Vencidos();
+            Ev.preventDefault();
           }
         });
       document.getElementById("Planes_Etiquetas_Cerrar")
@@ -63781,7 +63803,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Planes_Etiquetas_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Planes_Etiquetas_Overlay") {
-            Cerrar_Modal_Planes_Etiquetas(false);
+            Ev.preventDefault();
           }
         });
       El_Metas_Nueva_Btn?.addEventListener("click", () => {
@@ -63795,7 +63817,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       );
       El_Meta_Editor_Overlay?.addEventListener("click", (Ev) => {
         if (Ev.target === El_Meta_Editor_Overlay) {
-          Cerrar_Editor_Meta();
+          Ev.preventDefault();
         }
       });
       [
@@ -63833,7 +63855,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", Cerrar_Config_Metadatos);
       El_Cfg_Cat_Metas_Overlay?.addEventListener("click", (Ev) => {
         if (Ev.target === El_Cfg_Cat_Metas_Overlay) {
-          Cerrar_Config_Metadatos();
+          Ev.preventDefault();
         }
       });
 
@@ -63881,7 +63903,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Ayuda_Cerrar")
         .addEventListener("click", Cerrar_Ayuda);
       El_Ayuda_Overlay.addEventListener("click", (Ev) => {
-        if (Ev.target === El_Ayuda_Overlay) Cerrar_Ayuda();
+        if (Ev.target === El_Ayuda_Overlay) Ev.preventDefault();
       });
       document.getElementById("Ayuda_Consulta_Cerrar")
         ?.addEventListener(
@@ -63902,7 +63924,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         "click",
         (Ev) => {
           if (Ev.target === El_Ayuda_Consulta_Overlay) {
-            Cerrar_Ayuda_Consulta();
+            Ev.preventDefault();
           }
         }
       );
@@ -63912,7 +63934,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         "click",
         (Ev) => {
           if (Ev.target === El_Ayuda_Faq_Overlay) {
-            Cerrar_Ayuda_Faq();
+            Ev.preventDefault();
           }
         }
       );
@@ -63934,7 +63956,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       });
       El_Suscripcion_Overlay?.addEventListener("click", (Ev) => {
         if (Ev.target === El_Suscripcion_Overlay) {
-          Cerrar_Suscripcion();
+          Ev.preventDefault();
         }
       });
       document.getElementById("Pago_Premium_Cerrar")
@@ -63950,7 +63972,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       El_Pago_Premium_Overlay?.addEventListener("click", (Ev) => {
         if (Ev.target === El_Pago_Premium_Overlay) {
-          Cerrar_Pago_Premium();
+          Ev.preventDefault();
         }
       });
       El_Baul_Boton?.addEventListener("click", Abrir_Baul);
@@ -63964,7 +63986,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Archivero_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Archivero_Overlay") {
-            Cerrar_Archivero();
+            Ev.preventDefault();
           }
         });
       document.getElementById("Otras_Apps_Cerrar")
@@ -63972,7 +63994,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Otras_Apps_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Otras_Apps_Overlay") {
-            Cerrar_Otras_Apps();
+            Ev.preventDefault();
           }
         });
       document.getElementById("Archivero_Overlay")
@@ -64164,7 +64186,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Archivero_Cajon_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Archivero_Cajon_Overlay") {
-            Cerrar_Modal_Cajon_Archivero();
+            Ev.preventDefault();
           }
         });
       document.getElementById("Archivero_Etiquetas_Cerrar")
@@ -64198,7 +64220,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (
             Ev.target.id === "Archivero_Etiquetas_Overlay"
           ) {
-            Cerrar_Modal_Etiquetas_Archivero();
+            Ev.preventDefault();
           }
         });
       document.getElementById("Baul_Guardar")
@@ -64257,7 +64279,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Baul_Nuevo_Cerrar")
         ?.addEventListener("click", Cerrar_Editor_Baul);
       El_Baul_Overlay?.addEventListener("click", (Ev) => {
-        if (Ev.target === El_Baul_Overlay) Cerrar_Baul();
+        if (Ev.target === El_Baul_Overlay) Ev.preventDefault();
       });
       El_Baul_Libreria?.addEventListener("click", (Ev) => {
         if (Baul_Editor_Abierto) return;
@@ -64370,7 +64392,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       El_Baul_Semanas_Overlay?.addEventListener("click", (Ev) => {
         if (Ev.target === El_Baul_Semanas_Overlay) {
-          Cerrar_Baul_Semanas(null);
+          Ev.preventDefault();
         }
       });
       [
@@ -64454,7 +64476,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             document.getElementById(
               "Patron_Modal_Overlay"
             )
-          ) Cerrar_Modal_Patron();
+          ) Ev.preventDefault();
         });
       document.addEventListener("click", (Ev) => {
         const Objetivo = Ev.target;
@@ -64475,7 +64497,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (
             Ev.target ===
             document.getElementById("Abordaje_Modal_Overlay")
-          ) Cerrar_Modal_Abordaje();
+          ) Ev.preventDefault();
         });
       document.getElementById("Plan_Slot_Cerrar")
         .addEventListener("click", Cerrar_Modal_Plan_Slot);
@@ -64488,7 +64510,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (
             Ev.target ===
             document.getElementById("Plan_Slot_Overlay")
-          ) Cerrar_Modal_Plan_Slot();
+          ) Ev.preventDefault();
         });
 
       document.getElementById("Resumen_Contraer")
@@ -64535,18 +64557,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           T.id === "Resumen_Sem_Overlay" &&
           T.classList.contains("Activo")
         ) {
-          Cerrar_Resumen_Semanal();
+          Ev.preventDefault();
         }
       });
 
-      // Cerrar modal de objetivo al hacer click fuera del panel.
+      // El backdrop del modal no cierra ni limpia la seleccion.
       document.getElementById("Objetivo_Modal_Overlay")
         .addEventListener("click", (Ev) => {
           if (
             Ev.target ===
             document.getElementById("Objetivo_Modal_Overlay")
           ) {
-            Limpiar_Seleccion();
+            Ev.preventDefault();
           }
         });
       El_Lista_Emojis?.addEventListener("contextmenu", (Ev) => {
@@ -68772,7 +68794,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Focus_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Focus_Overlay") {
-            Cerrar_Focus_Mode();
+            Ev.preventDefault();
           }
         });
 
@@ -69282,7 +69304,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       El_Paleta_Overlay?.addEventListener("click", (Ev) => {
         if (Ev.target === El_Paleta_Overlay) {
-          Cerrar_Paleta();
+          Ev.preventDefault();
         }
       });
 

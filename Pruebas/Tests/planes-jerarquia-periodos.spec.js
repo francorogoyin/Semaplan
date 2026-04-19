@@ -965,6 +965,64 @@ async ({ page }) => {
   expect(Progreso_Submetrica.progresoTotal).toBeGreaterThan(0);
   expect(Progreso_Submetrica.metaSub).toContain("5/10");
 
+  const Progreso_Unidades = await page.evaluate(() => {
+    const Periodo = Planes_Periodo_Activo();
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(
+      Periodo.Id,
+      {
+        Nombre: "Leer 50 libros",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 50,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Sub_A = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Libro A"
+    );
+    const Sub_B = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Libro B"
+    );
+    Planes_Toggle_Subobjetivo(Sub_A, true);
+    Planes_Toggle_Subobjetivo(Sub_B, true);
+    Planes_Actualizar_Progreso(Objetivo);
+    const Modelo = Asegurar_Modelo_Planes();
+    const Resultado = {
+      aporteA: Modelo.Subobjetivos[Sub_A].Target_Total,
+      aporteB: Modelo.Subobjetivos[Sub_B].Target_Total,
+      progresoSub: Objetivo.Progreso_Subobjetivos,
+      progresoTotal: Objetivo.Progreso_Total,
+      pendiente: Objetivo.Target_Pendiente,
+      estado: Objetivo.Estado
+    };
+    const Ids_A_Limpiar = new Set(
+      Object.values(Modelo.Objetivos)
+        .filter((Item) => Item.Nombre === "Leer 50 libros")
+        .map((Item) => Item.Id)
+    );
+    Object.values(Modelo.Subobjetivos)
+      .filter((Sub) => Ids_A_Limpiar.has(Sub.Objetivo_Id))
+      .forEach((Sub) => {
+        delete Modelo.Subobjetivos[Sub.Id];
+      });
+    Ids_A_Limpiar.forEach((Id) => {
+      delete Modelo.Objetivos[Id];
+    });
+    Render_Planes_Contenido();
+    return Resultado;
+  });
+
+  expect(Progreso_Unidades).toEqual({
+    aporteA: 1,
+    aporteB: 1,
+    progresoSub: 2,
+    progresoTotal: 2,
+    pendiente: 48,
+    estado: "Activo"
+  });
+
   const Subestado = await page.evaluate(({ padreId, hijoId }) => {
     Planes_Agregar_Subobjetivo(padreId, "Capitulo 1");
     Planes_Importar_Subs(hijoId);
