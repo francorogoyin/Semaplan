@@ -4979,6 +4979,24 @@
         position: relative;
       }
 
+      .Planes_Subobjetivo.Reordenable {
+        cursor: grab;
+      }
+
+      .Planes_Subobjetivo.Reordenable:active {
+        cursor: grabbing;
+      }
+
+      .Planes_Subobjetivo.Drop_Antes {
+        border-top-color: var(--Acento);
+        box-shadow: inset 0 2px 0 var(--Acento);
+      }
+
+      .Planes_Subobjetivo.Drop_Despues {
+        border-bottom-color: var(--Acento);
+        box-shadow: inset 0 -2px 0 var(--Acento);
+      }
+
       .Planes_Subobjetivo.Importado {
         color: var(--Texto_Suave);
       }
@@ -5047,6 +5065,24 @@
         color: var(--Texto_Suave);
         font-size: 11px;
         line-height: 1.3;
+      }
+
+      .Planes_Subobjetivo_Meta_Datos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .Planes_Subobjetivo_Metadato {
+        display: inline-flex;
+        max-width: 100%;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.78);
+        color: var(--Texto_Suave);
+        font-size: 10px;
+        line-height: 1.2;
+        padding: 2px 6px;
       }
 
       .Planes_Subobjetivo_Estado {
@@ -5211,6 +5247,35 @@
         margin-bottom: 12px;
       }
 
+      .Planes_Subobjetivos_Filtros {
+        display: grid;
+        grid-template-columns: minmax(110px, 150px) minmax(0, 1fr)
+          minmax(130px, 170px);
+        gap: 8px;
+        margin: 0 0 12px;
+      }
+
+      .Planes_Subobjetivos_Filtro {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 4px;
+        color: var(--Texto_Suave);
+        font-size: 11px;
+      }
+
+      .Planes_Subobjetivos_Filtro input,
+      .Planes_Subobjetivos_Filtro select {
+        min-width: 0;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--Texto);
+        font: inherit;
+        font-size: 12px;
+        padding: 7px 9px;
+      }
+
       .Planes_Subobjetivos_Modal_Lista {
         display: flex;
         flex-direction: column;
@@ -5253,6 +5318,47 @@
 
       .Planes_Subobjetivo_Unidad_Campo {
         grid-column: 3 / -1;
+      }
+
+      .Planes_Subobjetivo_Metadatos_Campo {
+        grid-column: 1 / -1;
+      }
+
+      .Planes_Subobjetivo_Metadatos_Lista {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .Planes_Subobjetivo_Metadato_Fila {
+        display: grid;
+        grid-template-columns: minmax(110px, 0.45fr) minmax(0, 1fr)
+          auto;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .Planes_Subobjetivo_Metadato_Borrar {
+        min-width: 34px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        font: inherit;
+        padding: 7px 9px;
+      }
+
+      .Planes_Subobjetivo_Metadatos_Vacio {
+        border: 1px dashed var(--Borde);
+        border-radius: 8px;
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        padding: 8px 10px;
+      }
+
+      .Planes_Subobjetivo_Metadato_Agregar {
+        width: fit-content;
       }
 
       .Planes_Vacio {
@@ -5326,6 +5432,11 @@
         }
 
         .Planes_Unidad_Fila {
+          grid-template-columns: 1fr;
+        }
+
+        .Planes_Subobjetivos_Filtros,
+        .Planes_Subobjetivo_Metadato_Fila {
           grid-template-columns: 1fr;
         }
 
@@ -17038,6 +17149,56 @@
         <div class="Patron_Modal_Cuerpo">
           <div class="Planes_Vista_Toggle Planes_Subobjetivos_Vistas"
             id="Planes_Subobjetivos_Vista_Toggle"></div>
+          <div class="Planes_Subobjetivos_Filtros">
+            <label class="Planes_Subobjetivos_Filtro">
+              <span data-i18n="planes.filtro_estado">
+                Estado
+              </span>
+              <select id="Planes_Subobjetivos_Filtro_Estado">
+                <option value="Todos" data-i18n="todos">
+                  Todos
+                </option>
+                <option value="Abiertos"
+                  data-i18n="planes.filtro_abiertos">
+                  Abiertos
+                </option>
+                <option value="Cumplidos"
+                  data-i18n="planes.filtro_cumplidos">
+                  Cumplidos
+                </option>
+              </select>
+            </label>
+            <label class="Planes_Subobjetivos_Filtro">
+              <span data-i18n="planes.filtro_metadato">
+                Metadato
+              </span>
+              <input id="Planes_Subobjetivos_Filtro_Metadato"
+                data-i18n-ph="planes.filtro_metadato_ph"
+                placeholder="autor, año, autor:Borges">
+            </label>
+            <label class="Planes_Subobjetivos_Filtro">
+              <span data-i18n="planes.filtro_periodo">
+                Período
+              </span>
+              <select id="Planes_Subobjetivos_Filtro_Periodo">
+                <option value="Todos" data-i18n="todos">
+                  Todos
+                </option>
+                <option value="Periodo"
+                  data-i18n="planes.filtro_periodo_actual">
+                  Período actual
+                </option>
+                <option value="Sin_Fecha"
+                  data-i18n="planes.filtro_sin_fecha">
+                  Sin fecha
+                </option>
+                <option value="Vencidos"
+                  data-i18n="planes.filtro_vencidos">
+                  Vencidos
+                </option>
+              </select>
+            </label>
+          </div>
           <form class="Planes_Sub_Form"
             id="Planes_Subobjetivos_Form"
             hidden>
@@ -17134,10 +17295,27 @@
                 type="date">
             </label>
             <label class="Campo">
-              <span data-i18n="planes.sub_fin">Fin</span>
+              <span data-i18n="planes.sub_fin">
+                Fecha estimada de finalización
+              </span>
               <input id="Planes_Subobjetivo_Fecha_Fin"
                 type="date">
             </label>
+            <div class="Campo Campo_Ancho
+              Planes_Subobjetivo_Metadatos_Campo">
+              <span data-i18n="planes.sub_metadatos">
+                Metadatos
+              </span>
+              <div class="Planes_Subobjetivo_Metadatos_Lista"
+                id="Planes_Subobjetivo_Metadatos_Lista"></div>
+              <button type="button"
+                class="Archivero_Sub_Btn Compacto
+                  Planes_Subobjetivo_Metadato_Agregar"
+                id="Planes_Subobjetivo_Metadato_Agregar"
+                data-i18n="planes.sub_metadato_agregar">
+                Agregar metadato
+              </button>
+            </div>
             <label class="Campo Planes_Subobjetivo_Hecha_Campo">
               <span data-i18n="planes.estado_cumplido">
                 Cumplido
@@ -18139,7 +18317,31 @@
           "planes.sub_unidad_custom":
             "Unidad propia",
           "planes.sub_inicio": "Inicio",
-          "planes.sub_fin": "Fin",
+          "planes.sub_fin":
+            "Fecha estimada de finalización",
+          "planes.sub_metadatos": "Metadatos",
+          "planes.sub_metadato_agregar":
+            "Agregar metadato",
+          "planes.sub_metadato_clave_ph":
+            "Autor, año, editorial...",
+          "planes.sub_metadato_valor_ph": "Valor",
+          "planes.sub_sin_metadatos":
+            "Sin metadatos personalizados.",
+          "planes.filtro_estado": "Estado",
+          "planes.filtro_abiertos": "Abiertos",
+          "planes.filtro_cumplidos": "Cumplidos",
+          "planes.filtro_metadato": "Metadato",
+          "planes.filtro_metadato_ph":
+            "autor, año, autor:Borges",
+          "planes.filtro_periodo": "Período",
+          "planes.filtro_periodo_actual":
+            "Período actual",
+          "planes.filtro_sin_fecha": "Sin fecha",
+          "planes.filtro_vencidos": "Vencidos",
+          "planes.sin_subobjetivos_filtro":
+            "No hay subobjetivos que coincidan con esos filtros.",
+          "planes.reorden_mismo_nivel":
+            "Solo se pueden reordenar subobjetivos del mismo nivel.",
           "planes.sub_avance": "Avance",
           "planes.sin_metrica": "Sin métrica",
           "planes.sin_etiquetas": "Sin etiquetas",
@@ -20589,6 +20791,8 @@
             "Subobjetivo \"{texto}\" eliminada",
           "toast.subobjetivo_actualizada":
             "Subobjetivo actualizado",
+          "toast.subobjetivo_reordenada":
+            "Subobjetivo reordenado",
           "toast.subobjetivos_trasladadas":
             "Se trasladaron {n} subobjetivos",
           "toast.objetivo_copiada": "Objetivo copiado",
@@ -21162,7 +21366,31 @@
           "planes.sub_unidad_custom":
             "Custom unit",
           "planes.sub_inicio": "Start",
-          "planes.sub_fin": "End",
+          "planes.sub_fin":
+            "Estimated completion date",
+          "planes.sub_metadatos": "Metadata",
+          "planes.sub_metadato_agregar":
+            "Add metadata",
+          "planes.sub_metadato_clave_ph":
+            "Author, year, publisher...",
+          "planes.sub_metadato_valor_ph": "Value",
+          "planes.sub_sin_metadatos":
+            "No custom metadata.",
+          "planes.filtro_estado": "Status",
+          "planes.filtro_abiertos": "Open",
+          "planes.filtro_cumplidos": "Completed",
+          "planes.filtro_metadato": "Metadata",
+          "planes.filtro_metadato_ph":
+            "author, year, author:Borges",
+          "planes.filtro_periodo": "Period",
+          "planes.filtro_periodo_actual":
+            "Current period",
+          "planes.filtro_sin_fecha": "No date",
+          "planes.filtro_vencidos": "Overdue",
+          "planes.sin_subobjetivos_filtro":
+            "No subobjectives match those filters.",
+          "planes.reorden_mismo_nivel":
+            "Only subobjectives at the same level can be reordered.",
           "planes.sub_avance": "Progress",
           "planes.sin_metrica": "No metric",
           "planes.sin_etiquetas": "No tags",
@@ -23547,6 +23775,8 @@
             "Subobjective \"{texto}\" deleted",
           "toast.subobjetivo_actualizada":
             "Subobjective updated",
+          "toast.subobjetivo_reordenada":
+            "Subobjective reordered",
           "toast.subobjetivos_trasladadas":
             "{n} subobjectives moved",
           "toast.objetivo_copiada": "Objective copied",
@@ -24135,7 +24365,31 @@
           "planes.sub_unidad_custom":
             "Unidade própria",
           "planes.sub_inicio": "Início",
-          "planes.sub_fin": "Fim",
+          "planes.sub_fin":
+            "Data estimada de conclusÃ£o",
+          "planes.sub_metadatos": "Metadados",
+          "planes.sub_metadato_agregar":
+            "Adicionar metadado",
+          "planes.sub_metadato_clave_ph":
+            "Autor, ano, editora...",
+          "planes.sub_metadato_valor_ph": "Valor",
+          "planes.sub_sin_metadatos":
+            "Sem metadados personalizados.",
+          "planes.filtro_estado": "Estado",
+          "planes.filtro_abiertos": "Abertos",
+          "planes.filtro_cumplidos": "ConcluÃ­dos",
+          "planes.filtro_metadato": "Metadado",
+          "planes.filtro_metadato_ph":
+            "autor, ano, autor:Borges",
+          "planes.filtro_periodo": "PerÃ­odo",
+          "planes.filtro_periodo_actual":
+            "PerÃ­odo atual",
+          "planes.filtro_sin_fecha": "Sem data",
+          "planes.filtro_vencidos": "Vencidos",
+          "planes.sin_subobjetivos_filtro":
+            "Nenhum subobjetivo coincide com esses filtros.",
+          "planes.reorden_mismo_nivel":
+            "So e possivel reordenar subobjetivos do mesmo nivel.",
           "planes.sub_avance": "Avanço",
           "planes.sin_metrica": "Sem métrica",
           "planes.sin_etiquetas": "Sem etiquetas",
@@ -26610,6 +26864,8 @@
             "Subobjetivo \"{texto}\" removida",
           "toast.subobjetivo_actualizada":
             "Subobjetivo atualizado",
+          "toast.subobjetivo_reordenada":
+            "Subobjetivo reordenado",
           "toast.subobjetivos_trasladadas":
             "Foram movidos {n} subobjetivos",
           "toast.objetivo_copiada": "Objetivo copiado",
@@ -27552,6 +27808,10 @@
       let Planes_Subobjetivos_Form_Abierto = false;
       let Planes_Subobjetivos_Sub_Padre_Id = null;
       let Planes_Subobjetivo_En_Edicion_Id = null;
+      let Planes_Subobjetivo_Metadatos_Borrador = [];
+      let Planes_Subobjetivos_Filtro_Estado = "Todos";
+      let Planes_Subobjetivos_Filtro_Metadato = "";
+      let Planes_Subobjetivos_Filtro_Periodo = "Todos";
       let Planes_Vinculo_Subobjetivos_Expandidos = new Set();
       let Planes_Vinculo_Click_Global = false;
       let Planes_Multi_Seleccion = new Set();
@@ -39235,6 +39495,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Normalizar_Metadatos_Subobjetivo_Plan(Metadatos) {
+        const Resultado = {};
+        const Agregar = (Clave_Raw, Valor_Raw) => {
+          const Clave = String(Clave_Raw || "").trim();
+          const Valor = String(Valor_Raw || "").trim();
+          if (!Clave || !Valor) return;
+          Resultado[Clave] = Valor;
+        };
+        if (Array.isArray(Metadatos)) {
+          Metadatos.forEach((Item) => {
+            if (!Item || typeof Item !== "object") return;
+            Agregar(
+              Item.Clave ?? Item.Key ?? Item.Nombre,
+              Item.Valor ?? Item.Value ?? Item.Texto
+            );
+          });
+          return Resultado;
+        }
+        if (Metadatos && typeof Metadatos === "object") {
+          Object.entries(Metadatos).forEach(([Clave, Valor]) => {
+            Agregar(Clave, Valor);
+          });
+        }
+        return Resultado;
+      }
+
       function Normalizar_Subobjetivo_Plan(Subobjetivo, Indice = 0) {
         if (!Subobjetivo || typeof Subobjetivo !== "object") return null;
         const Unidad_Raw = (Subobjetivo.Unidad || "").toString();
@@ -39284,6 +39570,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             (Subobjetivo.Fecha_Inicio || "").toString(),
           Fecha_Fin:
             (Subobjetivo.Fecha_Fin || "").toString(),
+          Metadatos: Normalizar_Metadatos_Subobjetivo_Plan(
+            Subobjetivo.Metadatos
+          ),
           Estado: Subobjetivo.Estado ||
             (Subobjetivo.Hecha ? "Cumplido" : "Activo"),
           Hecha: Boolean(Subobjetivo.Hecha),
@@ -42986,6 +43275,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Datos.Fecha_Fin !== undefined) {
           Sub.Fecha_Fin = Datos.Fecha_Fin.toString();
         }
+        if (Datos.Metadatos !== undefined) {
+          Sub.Metadatos = Normalizar_Metadatos_Subobjetivo_Plan(
+            Datos.Metadatos
+          );
+        }
         Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
         const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
         if (Objetivo) {
@@ -43010,6 +43304,97 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Select || !Input) return;
         Input.hidden = Select.value !== "Personalizado";
+      }
+
+      function Planes_Metadatos_Borrador_A_Objeto() {
+        return Normalizar_Metadatos_Subobjetivo_Plan(
+          Planes_Subobjetivo_Metadatos_Borrador.map((Item) => ({
+            Clave: Item.Clave,
+            Valor: Item.Valor
+          }))
+        );
+      }
+
+      function Render_Metadatos_Modal_Subobjetivo() {
+        const Lista = document.getElementById(
+          "Planes_Subobjetivo_Metadatos_Lista"
+        );
+        if (!Lista) return;
+        Lista.innerHTML = "";
+        if (Planes_Subobjetivo_Metadatos_Borrador.length === 0) {
+          const Vacio = document.createElement("div");
+          Vacio.className =
+            "Planes_Subobjetivo_Metadatos_Vacio";
+          Vacio.textContent = t("planes.sub_sin_metadatos");
+          Lista.appendChild(Vacio);
+          return;
+        }
+        Planes_Subobjetivo_Metadatos_Borrador.forEach(
+          (Item, Indice) => {
+            const Fila = document.createElement("div");
+            Fila.className =
+              "Planes_Subobjetivo_Metadato_Fila";
+
+            const Clave = document.createElement("input");
+            Clave.type = "text";
+            Clave.value = Item.Clave || "";
+            Clave.placeholder = t(
+              "planes.sub_metadato_clave_ph"
+            );
+            Clave.addEventListener("input", (Ev) => {
+              Planes_Subobjetivo_Metadatos_Borrador[
+                Indice
+              ].Clave = Ev.target.value;
+            });
+
+            const Valor = document.createElement("input");
+            Valor.type = "text";
+            Valor.value = Item.Valor || "";
+            Valor.placeholder = t(
+              "planes.sub_metadato_valor_ph"
+            );
+            Valor.addEventListener("input", (Ev) => {
+              Planes_Subobjetivo_Metadatos_Borrador[
+                Indice
+              ].Valor = Ev.target.value;
+            });
+
+            const Borrar = document.createElement("button");
+            Borrar.type = "button";
+            Borrar.className =
+              "Planes_Subobjetivo_Metadato_Borrar";
+            Borrar.textContent = "x";
+            Borrar.title = t("borrar");
+            Borrar.addEventListener("click", () => {
+              Planes_Subobjetivo_Metadatos_Borrador.splice(
+                Indice,
+                1
+              );
+              Render_Metadatos_Modal_Subobjetivo();
+            });
+
+            Fila.appendChild(Clave);
+            Fila.appendChild(Valor);
+            Fila.appendChild(Borrar);
+            Lista.appendChild(Fila);
+          }
+        );
+      }
+
+      function Agregar_Metadato_Modal_Subobjetivo() {
+        Planes_Subobjetivo_Metadatos_Borrador.push({
+          Clave: "",
+          Valor: ""
+        });
+        Render_Metadatos_Modal_Subobjetivo();
+        setTimeout(() => {
+          document
+            .querySelector(
+              "#Planes_Subobjetivo_Metadatos_Lista " +
+              ".Planes_Subobjetivo_Metadato_Fila:last-child input"
+            )
+            ?.focus();
+        }, 0);
       }
 
       function Abrir_Modal_Planes_Subobjetivo(Sub_Id) {
@@ -43086,6 +43471,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Inicio) Inicio.value = Sub.Fecha_Inicio || "";
         if (Fin) Fin.value = Sub.Fecha_Fin || "";
         if (Hecha) Hecha.checked = Boolean(Sub.Hecha);
+        Planes_Subobjetivo_Metadatos_Borrador =
+          Planes_Subobjetivo_Metadatos_Array(Sub).map((Item) => ({
+            Clave: Item.Clave,
+            Valor: Item.Valor
+          }));
+        Render_Metadatos_Modal_Subobjetivo();
         Actualizar_Campo_Unidad_Custom_Subobjetivo();
         document.getElementById("Planes_Subobjetivo_Overlay")
           ?.classList.add("Activo");
@@ -43094,6 +43485,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Cerrar_Modal_Planes_Subobjetivo() {
         Planes_Subobjetivo_En_Edicion_Id = null;
+        Planes_Subobjetivo_Metadatos_Borrador = [];
         document.getElementById("Planes_Subobjetivo_Overlay")
           ?.classList.remove("Activo");
       }
@@ -43171,6 +43563,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           document.getElementById("Planes_Subobjetivo_Fecha_Fin")
             ?.value || ""
         ).toString();
+        Sub.Metadatos = Planes_Metadatos_Borrador_A_Objeto();
         Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
         if (
           Hecha &&
@@ -43867,6 +44260,149 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Sub.Hecha ? "Cumplido" : "Activo";
       }
 
+      function Planes_Subobjetivo_Metadatos_Array(Sub) {
+        const Metadatos = Normalizar_Metadatos_Subobjetivo_Plan(
+          Sub?.Metadatos
+        );
+        return Object.entries(Metadatos).map(([Clave, Valor]) => ({
+          Clave,
+          Valor
+        }));
+      }
+
+      function Planes_Render_Metadatos_Subobjetivo(Sub) {
+        const Items = Planes_Subobjetivo_Metadatos_Array(Sub);
+        if (!Items.length) return "";
+        const Html = Items.slice(0, 4).map((Item) => {
+          return `<span class="Planes_Subobjetivo_Metadato">` +
+            `${Escape_Html(Item.Clave)}: ` +
+            `${Escape_Html(Item.Valor)}</span>`;
+        }).join("");
+        return `<span class="Planes_Subobjetivo_Meta_Datos">` +
+          Html +
+          `</span>`;
+      }
+
+      function Planes_Metadatos_Coinciden(Sub, Filtro) {
+        const Texto_Filtro = Normalizar_Texto_Archivero(Filtro);
+        if (!Texto_Filtro) return true;
+        const Separador = String(Filtro || "").includes(":")
+          ? ":"
+          : (String(Filtro || "").includes("=") ? "=" : "");
+        const Items = Planes_Subobjetivo_Metadatos_Array(Sub);
+        if (Separador) {
+          const Partes = String(Filtro || "").split(Separador);
+          const Clave_Filtro = Normalizar_Texto_Archivero(
+            Partes.shift()
+          );
+          const Valor_Filtro = Normalizar_Texto_Archivero(
+            Partes.join(Separador)
+          );
+          return Items.some((Item) => {
+            const Clave =
+              Normalizar_Texto_Archivero(Item.Clave);
+            const Valor =
+              Normalizar_Texto_Archivero(Item.Valor);
+            return Clave.includes(Clave_Filtro) &&
+              (!Valor_Filtro || Valor.includes(Valor_Filtro));
+          });
+        }
+        return Items.some((Item) => {
+          return Normalizar_Texto_Archivero(
+            `${Item.Clave} ${Item.Valor}`
+          ).includes(Texto_Filtro);
+        });
+      }
+
+      function Planes_Subobjetivo_Interseca_Periodo(Sub, Periodo) {
+        if (!Periodo?.Inicio && !Periodo?.Fin) return false;
+        const Inicio_Periodo = Periodo.Inicio || Periodo.Fin || "";
+        const Fin_Periodo = Periodo.Fin || Periodo.Inicio || "";
+        const Inicio_Sub = Sub.Fecha_Inicio || Sub.Fecha_Fin || "";
+        const Fin_Sub = Sub.Fecha_Fin || Sub.Fecha_Inicio || "";
+        if (!Inicio_Sub && !Fin_Sub) return false;
+        return (!Fin_Periodo || Inicio_Sub <= Fin_Periodo) &&
+          (!Inicio_Periodo || Fin_Sub >= Inicio_Periodo);
+      }
+
+      function Planes_Subobjetivo_Pasa_Filtros(Sub, Objetivo) {
+        if (!Sub || Sub.Eliminado_Local) return false;
+        if (
+          Planes_Subobjetivos_Filtro_Estado === "Abiertos" &&
+          Sub.Hecha
+        ) {
+          return false;
+        }
+        if (
+          Planes_Subobjetivos_Filtro_Estado === "Cumplidos" &&
+          !Sub.Hecha
+        ) {
+          return false;
+        }
+        if (
+          !Planes_Metadatos_Coinciden(
+            Sub,
+            Planes_Subobjetivos_Filtro_Metadato
+          )
+        ) {
+          return false;
+        }
+        const Filtro_Periodo = Planes_Subobjetivos_Filtro_Periodo;
+        if (Filtro_Periodo === "Sin_Fecha") {
+          return !Sub.Fecha_Inicio && !Sub.Fecha_Fin;
+        }
+        if (Filtro_Periodo === "Vencidos") {
+          const Hoy = Formatear_Fecha_ISO(new Date());
+          return Boolean(Sub.Fecha_Fin) &&
+            Sub.Fecha_Fin < Hoy &&
+            !Sub.Hecha;
+        }
+        if (Filtro_Periodo === "Periodo") {
+          const Modelo = Asegurar_Modelo_Planes();
+          const Periodo = Modelo.Periodos[Objetivo?.Periodo_Id];
+          return Planes_Subobjetivo_Interseca_Periodo(Sub, Periodo);
+        }
+        return true;
+      }
+
+      function Planes_Subobjetivos_Tiene_Filtros() {
+        return Planes_Subobjetivos_Filtro_Estado !== "Todos" ||
+          Planes_Subobjetivos_Filtro_Periodo !== "Todos" ||
+          Boolean(
+            String(Planes_Subobjetivos_Filtro_Metadato || "").trim()
+          );
+      }
+
+      function Planes_Subobjetivo_Rama_Visible(Sub, Objetivo) {
+        if (!Planes_Subobjetivos_Tiene_Filtros()) return true;
+        if (Planes_Subobjetivo_Pasa_Filtros(Sub, Objetivo)) {
+          return true;
+        }
+        return Planes_Subobjetivos_Hijos(Sub.Id).some((Hijo) => {
+          return !Hijo.Eliminado_Local &&
+            Planes_Subobjetivo_Rama_Visible(Hijo, Objetivo);
+        });
+      }
+
+      function Planes_Sincronizar_Filtros_Subobjetivos() {
+        const Estado = document.getElementById(
+          "Planes_Subobjetivos_Filtro_Estado"
+        );
+        const Metadato = document.getElementById(
+          "Planes_Subobjetivos_Filtro_Metadato"
+        );
+        const Periodo = document.getElementById(
+          "Planes_Subobjetivos_Filtro_Periodo"
+        );
+        if (Estado) Estado.value = Planes_Subobjetivos_Filtro_Estado;
+        if (Metadato) {
+          Metadato.value = Planes_Subobjetivos_Filtro_Metadato;
+        }
+        if (Periodo) {
+          Periodo.value = Planes_Subobjetivos_Filtro_Periodo;
+        }
+      }
+
       function Render_Planes_Subobjetivo_Item(
         Objetivo,
         Sub,
@@ -43879,7 +44415,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           t(`planes.estado_${Estado.toLowerCase()}`);
         Item.className = "Planes_Subobjetivo" +
           (Sub.Importado ? " Importado" : "") +
-          ` Vista_${Vista}`;
+          ` Vista_${Vista}` +
+          " Reordenable";
+        Item.draggable = true;
         Item.dataset.planSubobjetivoId = Sub.Id;
         Item.dataset.nivel = String(Nivel);
         Item.style.setProperty(
@@ -43902,6 +44440,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             <span class="Planes_Subobjetivo_Meta">
               ${Escape_Html(Planes_Formatear_Meta_Subobjetivo(Sub))}
             </span>
+            ${Planes_Render_Metadatos_Subobjetivo(Sub)}
             ${Sub.Importado ? `
               <span class="Planes_Subobjetivo_Importado">
                 ${t("planes.importado")}
@@ -43914,6 +44453,46 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ${Planes_Emoji_Estado(Estado)}
           </span>
         `;
+        Item.addEventListener("dragstart", (Ev) => {
+          Ev.dataTransfer.effectAllowed = "move";
+          Ev.dataTransfer.setData(
+            "application/x-planes-subobjetivo",
+            Sub.Id
+          );
+        });
+        Item.addEventListener("dragover", (Ev) => {
+          Ev.preventDefault();
+          Ev.dataTransfer.dropEffect = "move";
+          const Rect = Item.getBoundingClientRect();
+          const Insertar_Despues =
+            Ev.clientY >= Rect.top + Rect.height / 2;
+          Item.classList.toggle("Drop_Antes", !Insertar_Despues);
+          Item.classList.toggle("Drop_Despues", Insertar_Despues);
+        });
+        Item.addEventListener("dragleave", () => {
+          Item.classList.remove("Drop_Antes");
+          Item.classList.remove("Drop_Despues");
+        });
+        Item.addEventListener("drop", (Ev) => {
+          Ev.preventDefault();
+          Item.classList.remove("Drop_Antes");
+          Item.classList.remove("Drop_Despues");
+          const Origen_Id = Ev.dataTransfer.getData(
+            "application/x-planes-subobjetivo"
+          );
+          const Rect = Item.getBoundingClientRect();
+          const Insertar_Despues =
+            Ev.clientY >= Rect.top + Rect.height / 2;
+          if (!Planes_Reordenar_Subobjetivo(
+            Objetivo.Id,
+            Origen_Id,
+            Sub.Id,
+            Insertar_Despues
+          )) {
+            return;
+          }
+          Render_Modal_Planes_Subobjetivos();
+        });
         Item.addEventListener("contextmenu", (Ev) => {
           Ev.preventDefault();
           Planes_Abrir_Menu_Contextual_Subobjetivo(
@@ -43952,6 +44531,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Planes_Subobjetivos_Hijos(Sub.Id)
           .filter((Hijo) => !Hijo.Eliminado_Local)
+          .filter((Hijo) =>
+            Planes_Subobjetivo_Rama_Visible(Hijo, Objetivo)
+          )
           .forEach((Hijo) => {
             Render_Planes_Subobjetivo_Rama(
               Objetivo,
@@ -43962,6 +44544,72 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Visitados
             );
           });
+      }
+
+      function Planes_Reordenar_Subobjetivo(
+        Objetivo_Id,
+        Origen_Id,
+        Destino_Id,
+        Insertar_Despues = false
+      ) {
+        if (!Origen_Id || !Destino_Id || Origen_Id === Destino_Id) {
+          return false;
+        }
+        const Modelo = Asegurar_Modelo_Planes();
+        const Origen = Modelo.Subobjetivos[Origen_Id];
+        const Destino = Modelo.Subobjetivos[Destino_Id];
+        if (!Origen || !Destino) return false;
+        if (
+          Origen.Objetivo_Id !== Objetivo_Id ||
+          Destino.Objetivo_Id !== Objetivo_Id
+        ) {
+          return false;
+        }
+        const Padre_Origen =
+          (Origen.Subobjetivo_Padre_Id || "").toString();
+        const Padre_Destino =
+          (Destino.Subobjetivo_Padre_Id || "").toString();
+        if (Padre_Origen !== Padre_Destino) {
+          Mostrar_Toast_Error(t("planes.reorden_mismo_nivel"));
+          return false;
+        }
+        const Hermanos = Planes_Subobjetivos_De_Objetivo(
+          Objetivo_Id
+        ).filter((Sub) => {
+          return !Sub.Eliminado_Local &&
+            (Sub.Subobjetivo_Padre_Id || "").toString() ===
+              Padre_Origen;
+        });
+        const Sin_Origen = Hermanos.filter(
+          (Sub) => Sub.Id !== Origen_Id
+        );
+        const Index_Destino = Sin_Origen.findIndex(
+          (Sub) => Sub.Id === Destino_Id
+        );
+        if (Index_Destino < 0) return false;
+        const Index_Insertar = Index_Destino +
+          (Insertar_Despues ? 1 : 0);
+        Sin_Origen.splice(Index_Insertar, 0, Origen);
+        const Antes = Hermanos.map((Sub) => Sub.Id).join("|");
+        const Despues = Sin_Origen.map((Sub) => Sub.Id).join("|");
+        if (Antes === Despues) return false;
+        const Snap = Capturar_Snapshot_Undo();
+        Sin_Origen.forEach((Sub, Indice) => {
+          Sub.Orden = Indice;
+          Sub.Actualizado_En = new Date().toISOString();
+        });
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        if (Objetivo) {
+          Planes_Recalcular_Desde(
+            Objetivo,
+            Snap,
+            t("toast.subobjetivo_reordenada")
+          );
+        } else {
+          Render_Plan();
+          Guardar_Estado();
+        }
+        return true;
       }
 
       function Planes_Abrir_Form_Subobjetivo_Nuevo(
@@ -44009,6 +44657,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Resumen_Aportes_Subobjetivos(Objetivo);
         }
         Render_Planes_Subobjetivos_Vistas();
+        Planes_Sincronizar_Filtros_Subobjetivos();
         const Form = document.getElementById(
           "Planes_Subobjetivos_Form"
         );
@@ -44027,18 +44676,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         const Subs = Planes_Subobjetivos_Raices_De_Objetivo(
           Objetivo.Id
+        ).filter((Sub) =>
+          Planes_Subobjetivo_Rama_Visible(Sub, Objetivo)
         );
         const Vista = Planes_Subobjetivos_Vista_Actual();
         Lista.className = "Planes_Subobjetivos_Modal_Lista" +
           (Vista === "Biblioteca" ? " Biblioteca" : "");
         Lista.innerHTML = "";
+        const Total_Subs = Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
+          .filter((Sub) => !Sub.Eliminado_Local);
         if (
-          !Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
-            .some((Sub) => !Sub.Eliminado_Local)
+          Total_Subs.length === 0
         ) {
           const Vacio = document.createElement("div");
           Vacio.className = "Planes_Vacio";
           Vacio.textContent = t("planes.sin_subobjetivos");
+          Lista.appendChild(Vacio);
+        }
+        if (Total_Subs.length > 0 && Subs.length === 0) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Planes_Vacio";
+          Vacio.textContent = t("planes.sin_subobjetivos_filtro");
           Lista.appendChild(Vacio);
         }
         Subs.forEach((Sub) => {
@@ -44298,6 +44956,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Progreso_Manual: Sub_Padre.Progreso_Manual,
             Fecha_Inicio: Sub_Padre.Fecha_Inicio,
             Fecha_Fin: Sub_Padre.Fecha_Fin,
+            Metadatos: Sub_Padre.Metadatos,
             Importado: true,
             Orden: Planes_Subobjetivos_De_Objetivo(Objetivo.Id).length
           });
@@ -65838,6 +66497,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", Cerrar_Modal_Planes_Subobjetivos);
       document.getElementById("Planes_Subobjetivos_Agregar")
         ?.addEventListener("click", Planes_Abrir_Form_Subobjetivo_Nuevo);
+      document.getElementById("Planes_Subobjetivos_Filtro_Estado")
+        ?.addEventListener("change", (Ev) => {
+          Planes_Subobjetivos_Filtro_Estado =
+            Ev.target.value || "Todos";
+          Render_Modal_Planes_Subobjetivos();
+        });
+      document.getElementById("Planes_Subobjetivos_Filtro_Metadato")
+        ?.addEventListener("input", (Ev) => {
+          Planes_Subobjetivos_Filtro_Metadato =
+            Ev.target.value || "";
+          Render_Modal_Planes_Subobjetivos();
+        });
+      document.getElementById("Planes_Subobjetivos_Filtro_Periodo")
+        ?.addEventListener("change", (Ev) => {
+          Planes_Subobjetivos_Filtro_Periodo =
+            Ev.target.value || "Todos";
+          Render_Modal_Planes_Subobjetivos();
+        });
       document.getElementById("Planes_Subobjetivos_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Planes_Subobjetivos_Overlay") {
@@ -65850,6 +66527,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", Cerrar_Modal_Planes_Subobjetivo);
       document.getElementById("Planes_Subobjetivo_Guardar")
         ?.addEventListener("click", Guardar_Modal_Planes_Subobjetivo);
+      document.getElementById("Planes_Subobjetivo_Metadato_Agregar")
+        ?.addEventListener("click", Agregar_Metadato_Modal_Subobjetivo);
       document.getElementById("Planes_Subobjetivo_Form")
         ?.addEventListener("submit", (Ev) => {
           Ev.preventDefault();
