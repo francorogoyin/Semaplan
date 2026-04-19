@@ -3506,10 +3506,36 @@
         overflow-x: hidden;
       }
 
+      .Planes_Cabecera {
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+      }
+
+      .Planes_Cabecera .Patron_Modal_Titulo {
+        flex: 0 0 auto;
+        line-height: 32px;
+      }
+
       .Planes_Header_Acciones {
         display: flex;
         align-items: center;
-        gap: 8px;
+        flex: 0 0 auto;
+        gap: 6px;
+      }
+
+      .Planes_Header_Principal {
+        height: 32px;
+        white-space: nowrap;
+        padding: 0 10px;
+      }
+
+      .Planes_Cabecera .Planes_Controles {
+        flex: 1 1 auto;
+        min-width: 0;
+        border-bottom: none;
+        padding: 0;
+        gap: 6px;
       }
 
       .Planes_Subobjetivos_Titulo_Bloque {
@@ -3761,8 +3787,28 @@
         background: #fff;
       }
 
+      .Planes_Anio_Select {
+        flex: 0 0 88px;
+      }
+
+      .Planes_Subperiodo_Toggle {
+        display: inline-flex;
+        flex: 1 1 auto;
+        gap: 4px;
+        min-width: 180px;
+        overflow-x: auto;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        padding: 3px;
+        background: #fff;
+      }
+
+      .Planes_Subperiodo_Toggle .Planes_Vista_Btn {
+        white-space: nowrap;
+      }
+
       .Planes_Control {
-        flex: 0 0 150px;
+        flex: 0 0 126px;
         min-width: 0;
       }
 
@@ -3779,8 +3825,8 @@
       }
 
       .Planes_Control_Busqueda {
-        flex: 0 1 240px;
-        max-width: 260px;
+        flex: 0 1 190px;
+        max-width: 210px;
       }
 
       .Planes_Vista_Toggle {
@@ -4226,6 +4272,28 @@
         grid-template-columns: auto minmax(0, 1fr);
         gap: 8px;
         padding: 10px;
+      }
+
+      .Planes_Importar_Item {
+        cursor: default;
+      }
+
+      .Planes_Importar_Objetivos {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        grid-column: 2;
+        margin-top: 8px;
+      }
+
+      .Planes_Importar_Objetivo {
+        align-items: center;
+        color: var(--Texto);
+        cursor: pointer;
+        display: inline-flex;
+        font-size: 12px;
+        gap: 7px;
+        line-height: 1.25;
       }
 
       .Planes_Importar_Item strong,
@@ -5753,6 +5821,41 @@
       }
 
       @media (max-width: 860px) {
+        .Planes_Cabecera {
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+
+        .Planes_Cabecera .Patron_Modal_Titulo {
+          flex: 1 0 100%;
+          order: 1;
+        }
+
+        .Planes_Header_Acciones {
+          flex: 1 0 100%;
+          flex-wrap: nowrap;
+          justify-content: flex-end;
+          margin-left: auto;
+          max-width: none;
+          min-width: 0;
+          order: 2;
+        }
+
+        .Planes_Header_Principal {
+          flex: 1 1 0;
+          min-width: 0;
+          overflow: hidden;
+          padding: 0 6px;
+          text-overflow: ellipsis;
+          width: 0;
+        }
+
+        .Planes_Cabecera .Planes_Controles {
+          flex: 1 0 100%;
+          flex-wrap: nowrap;
+          order: 3;
+        }
+
         .Archivero_Layout.Planes_Layout,
         .Planes_Layout {
           grid-template-columns: 1fr;
@@ -16620,21 +16723,46 @@
     <div class="Patron_Modal_Overlay" id="Plan_Overlay">
       <div class="Patron_Modal_Panel Plan_Panel
         Planes_Archivero_Panel">
-        <div class="Patron_Modal_Cabecera">
+        <div class="Patron_Modal_Cabecera Planes_Cabecera">
           <span class="Patron_Modal_Titulo"
             data-i18n="planes_modal.titulo"
             >Metas</span>
+          <div class="Planes_Controles">
+            <div class="Planes_Capa_Toggle"
+              id="Planes_Capa_Toggle"></div>
+            <label class="Planes_Control Planes_Anio_Select">
+              <select id="Planes_Anio_Select"></select>
+            </label>
+            <div class="Planes_Subperiodo_Toggle"
+              id="Planes_Subperiodo_Toggle"></div>
+            <label class="Planes_Control">
+              <select id="Planes_Filtro_Estado"></select>
+            </label>
+            <label class="Planes_Control">
+              <select id="Planes_Filtro_Etiqueta"></select>
+            </label>
+            <label class="Planes_Control Planes_Control_Busqueda">
+              <input id="Planes_Busqueda" type="search"
+                data-i18n-ph="planes.buscar_ph"
+                placeholder="Buscar objetivos">
+            </label>
+            <div class="Planes_Vista_Toggle"
+              id="Planes_Vista_Toggle"></div>
+          </div>
           <div class="Planes_Header_Acciones">
+            <button class="Planes_Btn Planes_Header_Principal"
+              id="Planes_Btn_Nuevo_Solapa"
+              data-i18n="planes.nuevo_titulo"
+              type="button">Nuevo objetivo</button>
+            <button class="Planes_Btn Planes_Header_Principal"
+              id="Planes_Btn_Importar_Solapa"
+              data-i18n="planes.importar_padres"
+              type="button">Importar desde padres</button>
             <button class="Planes_Header_Btn"
-              id="Planes_Btn_Nuevo_Header"
-              data-i18n-title="planes.nuevo_titulo"
-              title="Nuevo objetivo"
-              type="button">+</button>
-            <button class="Planes_Header_Btn"
-              id="Planes_Btn_Importar_Header"
-              data-i18n-title="planes.importar_padres"
-              title="Importar de padres"
-              type="button">↓</button>
+              id="Planes_Config_Header"
+              data-i18n-title="planes.config_visible"
+              title="Configurar años visibles"
+              type="button">&#9881;</button>
             <button class="Planes_Header_Btn"
               id="Planes_Btn_Etiquetas_Header"
               data-i18n-title="archivero.gestionar_etiquetas_title"
@@ -16672,23 +16800,6 @@
               id="Planes_Periodos_Lista"></div>
           </aside>
           <section class="Archivero_Contenido Planes_Contenido">
-            <div class="Planes_Controles">
-              <div class="Planes_Capa_Toggle"
-                id="Planes_Capa_Toggle"></div>
-              <label class="Planes_Control">
-                <select id="Planes_Filtro_Estado"></select>
-              </label>
-              <label class="Planes_Control">
-                <select id="Planes_Filtro_Etiqueta"></select>
-              </label>
-              <label class="Planes_Control Planes_Control_Busqueda">
-                <input id="Planes_Busqueda" type="search"
-                  data-i18n-ph="planes.buscar_ph"
-                  placeholder="Buscar objetivos">
-              </label>
-              <div class="Planes_Vista_Toggle"
-                id="Planes_Vista_Toggle"></div>
-            </div>
             <div class="Planes_Principal" id="Plan_Cuerpo">
               <div class="Plan_Seccion" id="Plan_Seccion_Periodos"></div>
               <div class="Plan_Seccion" id="Plan_Seccion_Semana"></div>
@@ -17911,6 +18022,11 @@
             "Jerarquía temporal de año a semana.",
           "planes.sidebar_expandir": "Expandir períodos",
           "planes.sidebar_colapsar": "Contraer períodos",
+          "planes.config_visible": "Configurar años visibles",
+          "planes.config_visible_desc":
+            "Escribí el rango de años visibles. Ejemplo: 2026-2030.",
+          "planes.config_visible_error":
+            "El rango de años no es válido.",
           "planes.custom_nuevo": "Nuevo período custom",
           "planes.buscar_ph": "Buscar objetivos",
           "planes.vencidos": "Seleccionar vencidos",
@@ -18115,6 +18231,8 @@
           "planes.importar_periodos_confirmar": "Importar",
           "planes.importar_periodo_padres":
             "{n} objetivo(s) desde padres",
+          "planes.importar_modo_proporcional": "Proporcional",
+          "planes.importar_modo_completo": "Completo",
           "planes.importar_subs": "Importar subobjetivos",
           "planes.romper_vinculo":
             "Quitar vínculo con calendario",
@@ -20922,6 +21040,11 @@
             "Time hierarchy from year to week.",
           "planes.sidebar_expandir": "Expand periods",
           "planes.sidebar_colapsar": "Collapse periods",
+          "planes.config_visible": "Configure visible years",
+          "planes.config_visible_desc":
+            "Enter the visible year range. Example: 2026-2030.",
+          "planes.config_visible_error":
+            "The year range is not valid.",
           "planes.custom_nuevo": "New custom period",
           "planes.buscar_ph": "Search objectives",
           "planes.vencidos": "Select overdue",
@@ -21123,6 +21246,8 @@
           "planes.importar_periodos_confirmar": "Import",
           "planes.importar_periodo_padres":
             "{n} objective(s) from parents",
+          "planes.importar_modo_proporcional": "Proportional",
+          "planes.importar_modo_completo": "Full",
           "planes.importar_subs": "Import subobjectives",
           "planes.romper_vinculo": "Remove calendar link",
           "planes.romper_vinculo_confirm":
@@ -23881,6 +24006,11 @@
             "Hierarquia temporal do ano à semana.",
           "planes.sidebar_expandir": "Expandir períodos",
           "planes.sidebar_colapsar": "Recolher períodos",
+          "planes.config_visible": "Configurar anos visíveis",
+          "planes.config_visible_desc":
+            "Escreva o intervalo de anos visíveis. Exemplo: 2026-2030.",
+          "planes.config_visible_error":
+            "O intervalo de anos não é válido.",
           "planes.custom_nuevo": "Novo período custom",
           "planes.buscar_ph": "Buscar objetivos",
           "planes.vencidos": "Selecionar atrasados",
@@ -24079,6 +24209,8 @@
           "planes.importar_periodos_confirmar": "Importar",
           "planes.importar_periodo_padres":
             "{n} objetivo(s) dos pais",
+          "planes.importar_modo_proporcional": "Proporcional",
+          "planes.importar_modo_completo": "Completo",
           "planes.importar_padres":
             "Importar do período pai",
           "planes.importar_padres_confirm":
@@ -38761,6 +38893,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Vista: "Tarjetas",
             Subobjetivos_Vista: "Tarjetas",
             Sidebar_Expandido: false,
+            Anio_Desde: new Date().getFullYear(),
+            Anio_Hasta: new Date().getFullYear(),
+            Anio_Activo: new Date().getFullYear(),
+            Subperiodo_Activo: 1,
             Busqueda: ""
           }
         };
@@ -38839,6 +38975,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Modelo.UI.Sidebar_Expandido =
           Modelo.UI.Sidebar_Expandido === true;
+        const Anio_Actual = new Date().getFullYear();
+        const Anio_Desde = Number(Modelo.UI.Anio_Desde);
+        const Anio_Hasta = Number(Modelo.UI.Anio_Hasta);
+        Modelo.UI.Anio_Desde = Number.isFinite(Anio_Desde)
+          ? Anio_Desde
+          : Anio_Actual;
+        Modelo.UI.Anio_Hasta = Number.isFinite(Anio_Hasta)
+          ? Anio_Hasta
+          : Modelo.UI.Anio_Desde;
+        if (Modelo.UI.Anio_Hasta < Modelo.UI.Anio_Desde) {
+          Modelo.UI.Anio_Hasta = Modelo.UI.Anio_Desde;
+        }
+        const Anio_Activo = Number(Modelo.UI.Anio_Activo);
+        Modelo.UI.Anio_Activo = Number.isFinite(Anio_Activo)
+          ? Math.min(
+            Math.max(Anio_Activo, Modelo.UI.Anio_Desde),
+            Modelo.UI.Anio_Hasta
+          )
+          : Modelo.UI.Anio_Desde;
+        const Subperiodo = Number(Modelo.UI.Subperiodo_Activo);
+        Modelo.UI.Subperiodo_Activo =
+          Number.isFinite(Subperiodo) && Subperiodo > 0
+            ? Math.floor(Subperiodo)
+            : 1;
         if (!Planes_Tipos.includes(Modelo.UI.Filtro_Tipo)) {
           Modelo.UI.Filtro_Tipo = "Semana";
         }
@@ -39306,6 +39466,101 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return [Planes_ISO(Base), Planes_ISO(Base)];
       }
 
+      function Planes_Cantidad_Subperiodos(Tipo, Anio) {
+        if (Tipo === "Semestre") return 2;
+        if (Tipo === "Trimestre") return 4;
+        if (Tipo === "Mes") return 12;
+        if (Tipo === "Semana") {
+          const Primero = Obtener_Lunes(new Date(Anio, 0, 1));
+          let Cursor = Primero;
+          let Total = 0;
+          while (Cursor.getFullYear() <= Anio ||
+              Planes_ISO(Cursor) <= `${Anio}-12-31`) {
+            if (Planes_ISO(Cursor) > `${Anio}-12-31`) break;
+            Total += 1;
+            Cursor = Sumar_Dias(Cursor, 7);
+          }
+          return Math.max(52, Total);
+        }
+        return 1;
+      }
+
+      function Planes_Label_Subperiodo(Tipo, Indice) {
+        if (Tipo === "Semestre") return `S${Indice}`;
+        if (Tipo === "Trimestre") return `T${Indice}`;
+        if (Tipo === "Mes") {
+          const Fecha = new Date(2026, Indice - 1, 1);
+          return Fecha.toLocaleDateString(
+            Idioma_Actual === "en" ? "en-US" : "es-AR",
+            { month: "short" }
+          );
+        }
+        if (Tipo === "Semana") return `S${Indice}`;
+        return "";
+      }
+
+      function Planes_Rango_Por_Tipo_Anio_Subperiodo(
+        Tipo,
+        Anio,
+        Subperiodo = 1
+      ) {
+        const Indice = Math.max(1, Number(Subperiodo) || 1);
+        if (Tipo === "Anio") {
+          return [`${Anio}-01-01`, `${Anio}-12-31`];
+        }
+        if (Tipo === "Semestre") {
+          const Ini_Mes = Indice === 1 ? 0 : 6;
+          return [
+            Planes_ISO(new Date(Anio, Ini_Mes, 1)),
+            Planes_ISO(Ultimo_Dia_Mes(Anio, Ini_Mes + 5))
+          ];
+        }
+        if (Tipo === "Trimestre") {
+          const Ini_Mes = (Math.min(Indice, 4) - 1) * 3;
+          return [
+            Planes_ISO(new Date(Anio, Ini_Mes, 1)),
+            Planes_ISO(Ultimo_Dia_Mes(Anio, Ini_Mes + 2))
+          ];
+        }
+        if (Tipo === "Mes") {
+          const Mes = Math.min(Indice, 12) - 1;
+          return [
+            Planes_ISO(new Date(Anio, Mes, 1)),
+            Planes_ISO(Ultimo_Dia_Mes(Anio, Mes))
+          ];
+        }
+        if (Tipo === "Semana") {
+          const Inicio_Anio = new Date(Anio, 0, 1);
+          let Lunes = Obtener_Lunes(Inicio_Anio);
+          if (Lunes < Inicio_Anio) Lunes = Sumar_Dias(Lunes, 7);
+          const Inicio = Sumar_Dias(Lunes, (Indice - 1) * 7);
+          return [
+            Planes_ISO(Inicio),
+            Planes_ISO(Sumar_Dias(Inicio, 6))
+          ];
+        }
+        return Planes_Rango_Actual_Por_Tipo(Tipo);
+      }
+
+      function Planes_Crear_Periodo_Seleccionado(Tipo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        if (Tipo === "Custom") return Planes_Crear_Periodo_Actual(Tipo);
+        const Anio = Modelo.UI.Anio_Activo;
+        const Sub = Tipo === "Anio" ? 1 : Modelo.UI.Subperiodo_Activo;
+        const [Inicio, Fin] =
+          Planes_Rango_Por_Tipo_Anio_Subperiodo(Tipo, Anio, Sub);
+        const Id = Plan_Periodo_Id(Tipo, Inicio, Fin);
+        if (Modelo.Periodos[Id]) return Modelo.Periodos[Id];
+        return Planes_Crear_Periodo(
+          Modelo,
+          Tipo,
+          Inicio,
+          Fin,
+          null,
+          Number(Inicio.replaceAll("-", ""))
+        );
+      }
+
       function Planes_Crear_Periodo_Actual(Tipo) {
         const Modelo = Asegurar_Modelo_Planes();
         const [Inicio, Fin] = Planes_Rango_Actual_Por_Tipo(Tipo);
@@ -39347,6 +39602,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         return Object.values(Modelo.Periodos)
           .filter((Periodo) => Periodo.Tipo === Tipo)
+          .filter((Periodo) => {
+            if (Tipo === "Custom") return true;
+            const Anio = Number((Periodo.Inicio || "").slice(0, 4));
+            if (!Number.isFinite(Anio)) return false;
+            return Anio >= Modelo.UI.Anio_Desde &&
+              Anio <= Modelo.UI.Anio_Hasta;
+          })
           .filter((Periodo) =>
             Planes_Periodo_Tiene_Objetivos(Periodo.Id) ||
             Modelo.UI.Periodo_Activo_Id === Periodo.Id
@@ -39969,7 +40231,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             `${t("planes.periodo_custom")} (${Anio})`;
         }
         if (Periodo.Tipo === "Anio") {
-          return `${t("planner.tipo_anio")} ${Anio}`;
+          return String(Anio);
         }
         if (Periodo.Tipo === "Semestre") {
           return `${t("planner.tipo_semestre")} ` +
@@ -40036,10 +40298,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Object.values(Modelo.Objetivos)
           .forEach((Objetivo) => Planes_Actualizar_Progreso(Objetivo));
         if (!Modelo.Periodos[Modelo.UI.Periodo_Activo_Id]) {
-          const Periodos = Planes_Periodos_Visibles_Capa(
+          const Periodo = Planes_Crear_Periodo_Seleccionado(
             Modelo.UI.Filtro_Tipo || "Semana"
           );
-          Modelo.UI.Periodo_Activo_Id = Periodos[0]?.Id || null;
+          Modelo.UI.Periodo_Activo_Id = Periodo?.Id || null;
         }
         Render_Planes_Controles();
         Render_Planes_Sidebar();
@@ -40052,12 +40314,54 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Planes_Titulo_Tipo(Tipo);
       }
 
+      async function Planes_Configurar_Anios() {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Valor = await Mostrar_Dialogo_Con_Texto(
+          t("planes.config_visible_desc"),
+          {
+            Default: `${Modelo.UI.Anio_Desde}-${Modelo.UI.Anio_Hasta}`,
+            Placeholder: "2026-2030",
+            Etiqueta_Confirmar: t("guardar"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (Valor == null) return;
+        const Partes = String(Valor)
+          .split(/[^0-9]+/)
+          .map((Item) => Number(Item))
+          .filter((Item) => Number.isFinite(Item));
+        const Desde = Partes[0];
+        const Hasta = Partes[1] || Desde;
+        if (!Desde || !Hasta || Hasta < Desde) {
+          Mostrar_Toast_Error(t("planes.config_visible_error"));
+          return;
+        }
+        Modelo.UI.Anio_Desde = Desde;
+        Modelo.UI.Anio_Hasta = Hasta;
+        Modelo.UI.Anio_Activo = Math.min(
+          Math.max(Modelo.UI.Anio_Activo, Desde),
+          Hasta
+        );
+        const Periodo = Planes_Crear_Periodo_Seleccionado(
+          Modelo.UI.Filtro_Tipo || "Semana"
+        );
+        Modelo.UI.Periodo_Activo_Id = Periodo?.Id || null;
+        Render_Planes_Controles();
+        Render_Planes_Sidebar();
+        Render_Planes_Contenido();
+        Guardar_Estado();
+      }
+
       function Render_Planes_Controles() {
         const Modelo = Asegurar_Modelo_Planes();
         const Sel_Estado =
           document.getElementById("Planes_Filtro_Estado");
         const Sel_Etiqueta =
           document.getElementById("Planes_Filtro_Etiqueta");
+        const Sel_Anio = document.getElementById("Planes_Anio_Select");
+        const Sub_Toggle = document.getElementById(
+          "Planes_Subperiodo_Toggle"
+        );
         const Busqueda = document.getElementById("Planes_Busqueda");
         const Toggle = document.getElementById("Planes_Vista_Toggle");
         const Layout = document.querySelector(".Planes_Layout");
@@ -40071,8 +40375,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Planes_Tipos.includes(Tipo)) return;
           const Actual = Asegurar_Modelo_Planes();
           Actual.UI.Filtro_Tipo = Tipo;
-          const Periodos = Planes_Periodos_Visibles_Capa(Tipo);
-          Actual.UI.Periodo_Activo_Id = Periodos[0]?.Id || null;
+          const Max = Planes_Cantidad_Subperiodos(
+            Tipo,
+            Actual.UI.Anio_Activo
+          );
+          Actual.UI.Subperiodo_Activo = Math.min(
+            Actual.UI.Subperiodo_Activo || 1,
+            Max
+          );
+          const Periodo = Planes_Crear_Periodo_Seleccionado(Tipo);
+          Actual.UI.Periodo_Activo_Id = Periodo?.Id || null;
           Render_Planes_Controles();
           Render_Planes_Sidebar();
           Render_Planes_Contenido();
@@ -40107,6 +40419,69 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Btn.onclick = () => Cambiar_Capa(Tipo);
             Capa_Toggle.appendChild(Btn);
           });
+        }
+
+        if (Sel_Anio) {
+          Sel_Anio.innerHTML = "";
+          for (
+            let Anio = Modelo.UI.Anio_Desde;
+            Anio <= Modelo.UI.Anio_Hasta;
+            Anio++
+          ) {
+            const Opt = document.createElement("option");
+            Opt.value = String(Anio);
+            Opt.textContent = String(Anio);
+            Sel_Anio.appendChild(Opt);
+          }
+          Sel_Anio.value = String(Modelo.UI.Anio_Activo);
+          Sel_Anio.onchange = () => {
+            const Actual = Asegurar_Modelo_Planes();
+            Actual.UI.Anio_Activo = Number(Sel_Anio.value);
+            const Max = Planes_Cantidad_Subperiodos(
+              Actual.UI.Filtro_Tipo || "Semana",
+              Actual.UI.Anio_Activo
+            );
+            Actual.UI.Subperiodo_Activo = Math.min(
+              Actual.UI.Subperiodo_Activo || 1,
+              Max
+            );
+            const Periodo = Planes_Crear_Periodo_Seleccionado(
+              Actual.UI.Filtro_Tipo || "Semana"
+            );
+            Actual.UI.Periodo_Activo_Id = Periodo?.Id || null;
+            Render_Planes_Controles();
+            Render_Planes_Sidebar();
+            Render_Planes_Contenido();
+          };
+        }
+
+        if (Sub_Toggle) {
+          Sub_Toggle.innerHTML = "";
+          const Tipo = Modelo.UI.Filtro_Tipo || "Semana";
+          Sub_Toggle.hidden = Tipo === "Anio" || Tipo === "Custom";
+          if (!Sub_Toggle.hidden) {
+            const Cant = Planes_Cantidad_Subperiodos(
+              Tipo,
+              Modelo.UI.Anio_Activo
+            );
+            for (let I = 1; I <= Cant; I++) {
+              const Btn = document.createElement("button");
+              Btn.type = "button";
+              Btn.className = "Planes_Vista_Btn" +
+                (Modelo.UI.Subperiodo_Activo === I ? " Activo" : "");
+              Btn.textContent = Planes_Label_Subperiodo(Tipo, I);
+              Btn.onclick = () => {
+                const Actual = Asegurar_Modelo_Planes();
+                Actual.UI.Subperiodo_Activo = I;
+                const Periodo = Planes_Crear_Periodo_Seleccionado(Tipo);
+                Actual.UI.Periodo_Activo_Id = Periodo?.Id || null;
+                Render_Planes_Controles();
+                Render_Planes_Sidebar();
+                Render_Planes_Contenido();
+              };
+              Sub_Toggle.appendChild(Btn);
+            }
+          }
         }
 
         if (Sel_Estado) {
@@ -40190,31 +40565,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Btn_Custom = document.getElementById("Planes_Btn_Custom");
         if (Btn_Custom) Btn_Custom.onclick = Crear_Periodo_Custom_Planes;
         const Btn_Nuevo = document.getElementById(
-          "Planes_Btn_Nuevo_Header"
+          "Planes_Btn_Nuevo_Solapa"
         );
         if (Btn_Nuevo) {
+          Btn_Nuevo.textContent = t("planes.nuevo_titulo");
           Btn_Nuevo.onclick = () => {
+            const Actual = Asegurar_Modelo_Planes();
+            const Tipo = Actual.UI.Filtro_Tipo || "Semana";
             const Periodo = Planes_Periodo_Activo() ||
-              Planes_Crear_Periodo_Actual(
-                Modelo.UI.Filtro_Tipo || "Semana"
-              );
-            if (Periodo) Abrir_Modal_Planes_Objetivo(Periodo.Id);
+              Planes_Crear_Periodo_Seleccionado(Tipo);
+            if (Periodo) {
+              Actual.UI.Periodo_Activo_Id = Periodo.Id;
+              Abrir_Modal_Planes_Objetivo(Periodo.Id);
+            }
           };
         }
         const Btn_Importar = document.getElementById(
-          "Planes_Btn_Importar_Header"
+          "Planes_Btn_Importar_Solapa"
         );
         if (Btn_Importar) {
+          const Tipo = Modelo.UI.Filtro_Tipo || "Semana";
+          Btn_Importar.textContent = t("planes.importar_padres");
           Btn_Importar.disabled =
-            !Planes_Hay_Padres_Importables_Para_Capa(
-              Modelo.UI.Filtro_Tipo || "Semana"
-            );
+            !Planes_Hay_Padres_Importables_Para_Capa(Tipo);
           Btn_Importar.onclick = async () => {
-            await Planes_Importar_De_Padres_Capa(
-              Modelo.UI.Filtro_Tipo || "Semana"
-            );
+            await Planes_Importar_De_Padres_Capa(Tipo);
           };
         }
+        const Btn_Config = document.getElementById("Planes_Config_Header");
+        if (Btn_Config) Btn_Config.onclick = Planes_Configurar_Anios;
         const Btn_Etiquetas = document.getElementById(
           "Planes_Btn_Etiquetas_Header"
         );
@@ -40469,6 +40848,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .forEach((Padre) => {
             Planes_Crear_Periodos_Distribucion(Padre, Tipo)
               .forEach((Periodo) => {
+                if (Tipo !== "Custom") {
+                  const Anio = Number((Periodo.Inicio || "").slice(0, 4));
+                  if (
+                    !Number.isFinite(Anio) ||
+                    Anio < Modelo.UI.Anio_Desde ||
+                    Anio > Modelo.UI.Anio_Hasta
+                  ) {
+                    return;
+                  }
+                }
                 if (!Planes_Periodo_Tiene_Padres_Importables(Periodo)) {
                   return;
                 }
@@ -40529,42 +40918,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Periodo = Planes_Periodo_Activo();
         const Modelo = Asegurar_Modelo_Planes();
         if (!Cuerpo) return;
+        Cuerpo.innerHTML = "";
         if (!Periodo) {
-          Cuerpo.innerHTML = "";
           const Vacio = document.createElement("section");
           Vacio.className = "Planes_Vacio";
           Vacio.innerHTML = `
             <div>${Escape_Html(t("planes.capa_vacia"))}</div>
-            <div class="Planes_Resumen_Acciones">
-              <button class="Planes_Btn" type="button"
-                data-plan-crear-capa>
-                ${Escape_Html(t("planes.nuevo_titulo"))}
-              </button>
-              <button class="Planes_Btn" type="button"
-                data-plan-importar-capa>
-                ${Escape_Html(t("planes.importar_padres"))}
-              </button>
-            </div>
           `;
-          Vacio.querySelector("[data-plan-crear-capa]")
-            ?.addEventListener("click", () => {
-              const Nuevo = Planes_Crear_Periodo_Actual(
-                Modelo.UI.Filtro_Tipo || "Semana"
-              );
-              Modelo.UI.Periodo_Activo_Id = Nuevo.Id;
-              Render_Planes_Sidebar();
-              Abrir_Modal_Planes_Objetivo(Nuevo.Id);
-            });
-          Vacio.querySelector("[data-plan-importar-capa]")
-            ?.addEventListener("click", async () => {
-              await Planes_Importar_De_Padres_Capa(
-                Modelo.UI.Filtro_Tipo || "Semana"
-              );
-            });
           Cuerpo.appendChild(Vacio);
           return;
         }
-        Cuerpo.innerHTML = "";
         Cuerpo.appendChild(Render_Planes_Resumen(Periodo));
 
         const Lista = document.createElement("div");
@@ -43758,11 +44121,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Config = await Planes_Mostrar_Dialogo_Importar_Padres(
           Candidatos
         );
-        if (!Config || !Config.Periodo_Ids.length) return;
+        if (!Config || !Config.Items.length) return;
         const Snap = Capturar_Snapshot_Undo();
         Planes_Importar_Objetivos_Padres_A_Periodos(
-          Config.Periodo_Ids,
-          { Fijar: Config.Fijar }
+          Config.Items,
+          { Fijar: Config.Fijar, Modo: Config.Modo }
         );
         Render_Plan();
         Guardar_Estado();
@@ -43801,6 +44164,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                       ${Escape_Html(t("planes.importar_periodos_fijar"))}
                     </span>
                   </label>
+                  <label class="Planes_Importar_Opcion">
+                    <input type="radio" name="Planes_Importar_Modo"
+                      value="Proporcional" checked>
+                    <span>
+                      ${Escape_Html(t("planes.importar_modo_proporcional"))}
+                    </span>
+                  </label>
+                  <label class="Planes_Importar_Opcion">
+                    <input type="radio" name="Planes_Importar_Modo"
+                      value="Completo">
+                    <span>
+                      ${Escape_Html(t("planes.importar_modo_completo"))}
+                    </span>
+                  </label>
                 </div>
                 <div class="Planes_Importar_Lista"></div>
               </div>
@@ -43817,8 +44194,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             </div>
           `;
           const Lista = Overlay.querySelector(".Planes_Importar_Lista");
+          const Modelo = Asegurar_Modelo_Planes();
           Candidatos.forEach((Item) => {
-            const Padres = Item.Padre_Ids.length;
+            const Objetivos = Item.Padre_Ids.flatMap((Padre_Id) => {
+              return Planes_Objetivos_De_Periodo(Padre_Id)
+                .filter((Objetivo) => !Objetivo.Eliminado_Local)
+                .map((Objetivo) => ({ Objetivo, Padre_Id }));
+            });
             const Label = document.createElement("label");
             Label.className = "Planes_Importar_Item";
             Label.innerHTML = `
@@ -43833,9 +44215,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 </strong>
                 <span>
                   ${Escape_Html(t("planes.importar_periodo_padres", {
-                    n: Padres
+                    n: Objetivos.length
                   }))}
                 </span>
+              </span>
+              <span class="Planes_Importar_Objetivos">
+                ${Objetivos.map(({ Objetivo }) => `
+                  <label class="Planes_Importar_Objetivo">
+                    <input type="checkbox"
+                      data-plan-importar-objetivo="${Escape_Html(Objetivo.Id)}"
+                      data-plan-importar-objetivo-periodo="${Escape_Html(Item.Periodo.Id)}"
+                      ${Item.Seleccionado ? "checked" : ""}>
+                    <span>
+                      ${Escape_Html(Objetivo.Emoji)}
+                      ${Escape_Html(Objetivo.Nombre)}
+                    </span>
+                  </label>
+                `).join("")}
               </span>
             `;
             Lista.appendChild(Label);
@@ -43853,51 +44249,81 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           Overlay.querySelector("[data-plan-importar-todos]")
             ?.addEventListener("click", () => {
-              Overlay.querySelectorAll("[data-plan-importar-periodo]")
+              Overlay.querySelectorAll(
+                "[data-plan-importar-periodo]," +
+                "[data-plan-importar-objetivo]"
+              )
                 .forEach((Input) => { Input.checked = true; });
             });
           Overlay.querySelector("[data-plan-importar-ninguno]")
             ?.addEventListener("click", () => {
-              Overlay.querySelectorAll("[data-plan-importar-periodo]")
+              Overlay.querySelectorAll(
+                "[data-plan-importar-periodo]," +
+                "[data-plan-importar-objetivo]"
+              )
                 .forEach((Input) => { Input.checked = false; });
+            });
+          Overlay.querySelectorAll("[data-plan-importar-periodo]")
+            .forEach((Input) => {
+              Input.addEventListener("change", () => {
+                Overlay.querySelectorAll(
+                  `[data-plan-importar-objetivo-periodo="${Input.dataset.planImportarPeriodo}"]`
+                ).forEach((Obj_Input) => {
+                  Obj_Input.checked = Input.checked;
+                });
+              });
             });
           Overlay.querySelector("[data-plan-importar-confirmar]")
             ?.addEventListener("click", () => {
-              const Periodo_Ids = Array.from(
-                Overlay.querySelectorAll("[data-plan-importar-periodo]")
-              )
-                .filter((Input) => Input.checked)
-                .map((Input) => Input.dataset.planImportarPeriodo);
+              const Mapa = new Map();
+              Array.from(
+                Overlay.querySelectorAll("[data-plan-importar-objetivo]")
+              ).filter((Input) => Input.checked)
+                .forEach((Input) => {
+                  const Periodo_Id =
+                    Input.dataset.planImportarObjetivoPeriodo;
+                  const Lista = Mapa.get(Periodo_Id) || [];
+                  Lista.push(Input.dataset.planImportarObjetivo);
+                  Mapa.set(Periodo_Id, Lista);
+                });
+              const Items = Array.from(Mapa.entries())
+                .map(([Periodo_Id, Objetivo_Ids]) => ({
+                  Periodo_Id,
+                  Objetivo_Ids
+                }));
               const Fijar = Overlay
                 .querySelector("[data-plan-importar-fijar]")?.checked;
-              Cerrar({ Periodo_Ids, Fijar });
+              const Modo = Overlay
+                .querySelector("input[name='Planes_Importar_Modo']:checked")
+                ?.value || "Proporcional";
+              Cerrar({ Items, Fijar, Modo });
             });
           document.body.appendChild(Overlay);
         });
       }
 
       function Planes_Importar_Objetivos_Padres_A_Periodos(
-        Periodo_Ids,
+        Items,
         Opciones = {}
       ) {
         const Modelo = Asegurar_Modelo_Planes();
-        const Periodos = Periodo_Ids
-          .map((Id) => Modelo.Periodos[Id])
-          .filter(Boolean);
         const Mapa_Padre_Periodos = new Map();
-        Periodos.forEach((Periodo) => {
-          Object.values(Modelo.Periodos)
-            .filter((Padre) => Planes_Periodo_Es_Padre_De(Padre, Periodo))
-            .forEach((Padre) => {
-              Planes_Objetivos_De_Periodo(Padre.Id)
-                .filter((Objetivo) => !Objetivo.Eliminado_Local)
-                .forEach((Objetivo_Padre) => {
-                  const Lista =
-                    Mapa_Padre_Periodos.get(Objetivo_Padre.Id) || [];
-                  Lista.push(Periodo);
-                  Mapa_Padre_Periodos.set(Objetivo_Padre.Id, Lista);
-                });
-            });
+        Items.forEach((Item) => {
+          const Periodo = Modelo.Periodos[Item.Periodo_Id];
+          if (!Periodo) return;
+          (Item.Objetivo_Ids || []).forEach((Objetivo_Id) => {
+            const Objetivo_Padre = Modelo.Objetivos[Objetivo_Id];
+            if (!Objetivo_Padre || Objetivo_Padre.Eliminado_Local) return;
+            const Periodo_Padre = Modelo.Periodos[
+              Objetivo_Padre.Periodo_Id
+            ];
+            if (!Planes_Periodo_Es_Padre_De(Periodo_Padre, Periodo)) {
+              return;
+            }
+            const Lista = Mapa_Padre_Periodos.get(Objetivo_Id) || [];
+            Lista.push(Periodo);
+            Mapa_Padre_Periodos.set(Objetivo_Id, Lista);
+          });
         });
         Mapa_Padre_Periodos.forEach((Periodos_Destino, Padre_Id) => {
           const Objetivo_Padre = Modelo.Objetivos[Padre_Id];
@@ -43905,10 +44331,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Objetivo_Padre?.Periodo_Id
           ];
           if (!Objetivo_Padre || !Periodo_Padre) return;
-          const Cuota = Periodos_Destino.length
-            ? (Number(Objetivo_Padre.Target_Total) || 0) /
+          const Cuota = Opciones.Modo === "Completo"
+            ? (Number(Objetivo_Padre.Target_Total) || 0)
+            : (
               Periodos_Destino.length
-            : 0;
+                ? (Number(Objetivo_Padre.Target_Total) || 0) /
+                  Periodos_Destino.length
+                : 0
+            );
           Periodos_Destino.forEach((Periodo) => {
             let Hijo =
               Planes_Objetivo_Hijo_De(Objetivo_Padre.Id, Periodo.Id);
