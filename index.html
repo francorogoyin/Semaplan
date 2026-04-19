@@ -41936,17 +41936,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Objetivo;
       }
 
+      function Planes_Periodos_Equivalentes(Periodo_A, Periodo_B) {
+        if (!Periodo_A || !Periodo_B) return false;
+        if (Periodo_A.Id && Periodo_A.Id === Periodo_B.Id) {
+          return true;
+        }
+        return (
+          Periodo_A.Tipo === Periodo_B.Tipo &&
+          Periodo_A.Inicio === Periodo_B.Inicio &&
+          Periodo_A.Fin === Periodo_B.Fin
+        );
+      }
+
       function Planes_Objetivo_Hijo_De(Padre_Id, Periodo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         const Padre = (Padre_Id || "").toString();
         if (!Padre) return null;
-        return Object.values(Modelo.Objetivos).find((Objetivo) =>
-          (
+        const Periodo_Buscado = Modelo.Periodos[Periodo_Id];
+        return Object.values(Modelo.Objetivos).find((Objetivo) => {
+          const Es_Hijo =
             (Objetivo.Parent_Objetivo_Id || "").toString() === Padre ||
-            (Objetivo.Objetivo_Padre_Id || "").toString() === Padre
-          ) &&
-          Objetivo.Periodo_Id === Periodo_Id
-        ) || null;
+            (Objetivo.Objetivo_Padre_Id || "").toString() === Padre;
+          if (!Es_Hijo) return false;
+          if (Objetivo.Periodo_Id === Periodo_Id) return true;
+          return Planes_Periodos_Equivalentes(
+            Modelo.Periodos[Objetivo.Periodo_Id],
+            Periodo_Buscado
+          );
+        }) || null;
       }
 
       function Planes_Clonar_Datos_Objetivo(Objetivo, Extra = {}) {
