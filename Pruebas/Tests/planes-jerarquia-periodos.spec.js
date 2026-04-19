@@ -2108,6 +2108,125 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Importar pendiente descuenta hijos indirectos",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 2;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Semestre = Planes_Crear_Periodo(
+      Modelo,
+      "Semestre",
+      "2026-01-01",
+      "2026-06-30",
+      Anio.Id,
+      1
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Libros indirectos",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 50,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Padre_Semestre = Planes_Crear_Objetivo_Silencioso(
+      Semestre.Id,
+      Planes_Clonar_Datos_Objetivo(Padre, {
+        Parent_Objetivo_Id: Padre.Id,
+        Objetivo_Padre_Id: Padre.Id,
+        Origen_Objetivo: "Importado",
+        Target_Total: 25,
+        Target_Automatico: 25,
+        Target_Actual: 25
+      })
+    );
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Hijo_Q1 = Planes_Crear_Objetivo_Silencioso(
+      Trimestres[0].Id,
+      Planes_Clonar_Datos_Objetivo(Padre_Semestre, {
+        Parent_Objetivo_Id: Padre_Semestre.Id,
+        Objetivo_Padre_Id: Padre_Semestre.Id,
+        Origen_Objetivo: "Importado",
+        Target_Total: 12.5,
+        Target_Automatico: 12.5,
+        Target_Actual: 12.5,
+        Progreso_Manual: 6
+      })
+    );
+    const Hijo_Q2 = Planes_Crear_Objetivo_Silencioso(
+      Trimestres[1].Id,
+      Planes_Clonar_Datos_Objetivo(Padre, {
+        Parent_Objetivo_Id: Padre.Id,
+        Objetivo_Padre_Id: Padre.Id,
+        Origen_Objetivo: "Importado",
+        Target_Total: 50 / 3,
+        Target_Automatico: 50 / 3,
+        Target_Actual: 50 / 3,
+        Progreso_Manual: 5
+      })
+    );
+    Planes_Actualizar_Progreso(Hijo_Q1);
+    Planes_Actualizar_Progreso(Hijo_Q2);
+
+    const Destinos = Trimestres.slice(1);
+    const Info = Planes_Info_Pendiente_Importacion(
+      Padre,
+      Anio,
+      Destinos
+    );
+    const Resumen = Planes_Importar_Objetivos_Padres_A_Periodos(
+      Destinos.map((Periodo) => ({
+        Periodo_Id: Periodo.Id,
+        Objetivo_Ids: [Padre.Id]
+      })),
+      { Modo: "Pendiente" }
+    );
+    const Hijos = Trimestres.map((Periodo) => {
+      const Hijo = Planes_Objetivo_Hijo_De(Padre.Id, Periodo.Id);
+      return {
+        Inicio: Periodo.Inicio,
+        Target_Info: Info.Targets.get(Periodo.Id),
+        Target: Hijo?.Target_Total || null,
+        Progreso: Hijo?.Progreso_Total || null
+      };
+    });
+
+    return { Resumen, Hijos };
+  });
+
+  expect(Resultado.Resumen.Creados).toBe(2);
+  expect(Resultado.Resumen.Actualizados).toBe(1);
+  [1, 2, 3].forEach((Indice) => {
+    expect(Resultado.Hijos[Indice].Target_Info)
+      .toBeCloseTo(44 / 3, 5);
+    expect(Resultado.Hijos[Indice].Target)
+      .toBeCloseTo(44 / 3, 5);
+  });
+  expect(Resultado.Hijos[1].Progreso).toBe(5);
+  expect(errores).toEqual([]);
+});
+
 test("Planes muestra todos los años de la capa",
 async ({ page }) => {
   await Preparar(page);

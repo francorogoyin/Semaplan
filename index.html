@@ -48284,6 +48284,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Number(Hijo.Progreso_Total) || 0;
       }
 
+      function Planes_Objetivo_Relacionado_Importacion(
+        Objetivo_Padre,
+        Objetivo
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Padre_Id = (Objetivo_Padre?.Id || "").toString();
+        if (!Padre_Id || !Objetivo) return false;
+        let Actual = Objetivo;
+        const Visitados = new Set();
+        while (Actual && !Visitados.has(Actual.Id)) {
+          Visitados.add(Actual.Id);
+          const Parent_Id = (
+            Actual.Parent_Objetivo_Id ||
+            Actual.Objetivo_Padre_Id ||
+            ""
+          ).toString();
+          if (!Parent_Id) return false;
+          if (Parent_Id === Padre_Id) return true;
+          Actual = Modelo.Objetivos[Parent_Id];
+        }
+        return false;
+      }
+
       function Planes_Objetivo_Equivalente_Importacion(
         Objetivo_Padre,
         Objetivo
@@ -48297,7 +48320,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Objetivo.Objetivo_Padre_Id ||
           ""
         ).toString();
-        if (Parent_Id && Parent_Id !== Padre_Id) return false;
+        if (
+          Parent_Id &&
+          Parent_Id !== Padre_Id &&
+          !Planes_Objetivo_Relacionado_Importacion(
+            Objetivo_Padre,
+            Objetivo
+          )
+        ) {
+          return false;
+        }
         if (
           Planes_Clave_Objetivo_Importable(Objetivo) !==
           Planes_Clave_Objetivo_Importable(Objetivo_Padre)
