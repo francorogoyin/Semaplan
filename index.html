@@ -3747,7 +3747,7 @@
 
       .Planes_Resumen {
         border-bottom: 1px solid var(--Borde);
-        padding-bottom: 36px;
+        padding-bottom: 42px;
       }
 
       .Planes_Coleccion {
@@ -3974,23 +3974,27 @@
       }
 
       .Planes_Resumen_Texto_Fila {
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-        margin-top: 14px;
+        display: block;
+        margin-top: 18px;
         border-top: 1px solid rgba(0, 0, 0, 0.09);
-        padding-top: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        padding-top: 16px;
       }
 
       .Planes_Resumen_Texto_Fila .Planes_Resumen_Texto {
-        flex: 1;
         min-width: 0;
         margin-top: 0;
       }
 
-      .Planes_Resumen_Texto.Vacio {
-        color: var(--Texto_Suave);
-        font-style: italic;
+      .Planes_Resumen_Texto_Fila:hover .Planes_Resumen_Texto {
+        color: var(--Acento);
+      }
+
+      .Planes_Resumen_Texto_Fila:focus-visible,
+      .Planes_Vacio_Accion:focus-visible {
+        outline: 2px solid rgba(31, 107, 79, 0.34);
+        outline-offset: 3px;
       }
 
       .Planes_Resumen_Acciones {
@@ -4799,6 +4803,11 @@
         line-height: 1.45;
       }
 
+      .Planes_Vacio.Planes_Resumen_Vacio {
+        margin-top: 28px;
+        min-height: 74px;
+      }
+
       .Planes_Dato_Valor_Activo {
         color: #4caf50 !important;
       }
@@ -5523,6 +5532,31 @@
         color: var(--Texto_Suave);
         padding: 18px;
         text-align: center;
+      }
+
+      .Planes_Vacio_Accion {
+        width: 100%;
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font: inherit;
+        transition:
+          background 140ms ease,
+          border-color 140ms ease,
+          color 140ms ease;
+      }
+
+      .Planes_Vacio_Accion:hover {
+        background: rgba(31, 107, 79, 0.045);
+        border-color: rgba(31, 107, 79, 0.36);
+        color: var(--Acento);
+      }
+
+      .Planes_Objetivos > .Planes_Vacio {
+        margin-top: 28px;
+        min-height: 74px;
       }
 
       .Planes_Vencidos_Lista {
@@ -18320,6 +18354,8 @@
             "Resumen propio de este período.",
           "planes.resumen_vacio":
             "Sin resumen del período.",
+          "planes.descripcion_vacia":
+            "No hay descripci\u00f3n en este per\u00edodo.",
           "planes.editar_resumen": "Editar resumen",
           "planes.nuevo_titulo": "Nuevo objetivo",
           "planes.editar_objetivo": "Editar objetivo",
@@ -21396,6 +21432,8 @@
             "Own summary for this period.",
           "planes.resumen_vacio":
             "No period summary.",
+          "planes.descripcion_vacia":
+            "No description in this period.",
           "planes.editar_resumen": "Edit summary",
           "planes.nuevo_titulo": "New objective",
           "planes.editar_objetivo": "Edit objective",
@@ -24419,6 +24457,8 @@
             "Resumo próprio deste período.",
           "planes.resumen_vacio":
             "Sem resumo do período.",
+          "planes.descripcion_vacia":
+            "Sem descri\u00e7\u00e3o neste per\u00edodo.",
           "planes.editar_resumen": "Editar resumo",
           "planes.nuevo_titulo": "Novo objetivo",
           "planes.editar_objetivo": "Editar objetivo",
@@ -41683,9 +41723,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         });
         if (!Objetivos_Filtrados.length) {
-          const Vacio = document.createElement("div");
-          Vacio.className = "Planes_Vacio";
+          const Vacio = document.createElement("button");
+          Vacio.type = "button";
+          Vacio.className = "Planes_Vacio Planes_Vacio_Accion";
           Vacio.textContent = t("planes.sin_objetivos");
+          Vacio.addEventListener("click", () => {
+            Modelo.UI.Periodo_Activo_Id = Periodo.Id;
+            Abrir_Modal_Planes_Objetivo(Periodo.Id);
+          });
           Lista.appendChild(Vacio);
         } else {
           Objetivos_Filtrados.forEach((Objetivo) => {
@@ -41832,25 +41877,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Abrir_Modal_Planes_Objetivo(Periodo.Id);
           });
         }
-        const Texto_Fila = document.createElement("div");
-        Texto_Fila.className = "Planes_Resumen_Texto_Fila";
-        const Texto = document.createElement("div");
-        Texto.className = "Planes_Resumen_Texto" +
-          (Periodo.Resumen ? "" : " Vacio");
-        Texto.textContent = Periodo.Resumen ||
-          t("planes.resumen_vacio");
-        const Editar = document.createElement("button");
-        Editar.type = "button";
-        Editar.className = "Planes_Resumen_Editar_Btn";
-        Editar.dataset.planResumenEditar = "1";
-        Editar.title = t("planes.editar_resumen");
-        Editar.setAttribute("aria-label", t("planes.editar_resumen"));
-        Editar.textContent = "✎";
-        Texto_Fila.appendChild(Texto);
-        Texto_Fila.appendChild(Editar);
+        const Hay_Resumen = Boolean((Periodo.Resumen || "").trim());
+        const Texto_Fila = Hay_Resumen
+          ? document.createElement("div")
+          : document.createElement("button");
+        Texto_Fila.className = Hay_Resumen
+          ? "Planes_Resumen_Texto_Fila"
+          : "Planes_Vacio Planes_Vacio_Accion Planes_Resumen_Vacio";
+        if (!Hay_Resumen) {
+          Texto_Fila.type = "button";
+        }
+        Texto_Fila.title = t("planes.editar_resumen");
+        Texto_Fila.setAttribute(
+          "aria-label",
+          t("planes.editar_resumen")
+        );
+        if (Hay_Resumen) {
+          Texto_Fila.setAttribute("role", "button");
+          Texto_Fila.tabIndex = 0;
+        }
+        if (Hay_Resumen) {
+          const Texto = document.createElement("div");
+          Texto.className = "Planes_Resumen_Texto";
+          Texto.textContent = Periodo.Resumen;
+          Texto_Fila.appendChild(Texto);
+        } else {
+          Texto_Fila.textContent = t("planes.descripcion_vacia");
+        }
         Cont.appendChild(Texto_Fila);
 
-        Editar.addEventListener("click", () => {
+        const Abrir_Editor = () => {
+          if (!Texto_Fila.isConnected) return;
           Texto_Fila.remove();
           const Editor = document.createElement("textarea");
           Editor.className = "Planes_Resumen_Editor";
@@ -41879,6 +41936,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cont.appendChild(Editor);
           Cont.appendChild(Acciones_Edit);
           Editor.focus();
+        };
+        Texto_Fila.addEventListener("click", Abrir_Editor);
+        Texto_Fila.addEventListener("keydown", (Ev) => {
+          if (Ev.key !== "Enter" && Ev.key !== " ") return;
+          Ev.preventDefault();
+          Abrir_Editor();
         });
         return Cont;
       }
@@ -41887,7 +41950,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Periodo = Modelo.Periodos[Periodo_Id];
         if (!Periodo) return false;
-        Periodo.Resumen = (Valor || "").toString();
+        const Siguiente = (Valor || "").toString();
+        if ((Periodo.Resumen || "").toString() === Siguiente) {
+          return false;
+        }
+        Periodo.Resumen = Siguiente;
         Periodo.Actualizado_En = new Date().toISOString();
         Guardar_Estado();
         return true;
