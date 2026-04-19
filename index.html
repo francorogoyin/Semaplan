@@ -3741,7 +3741,7 @@
         flex-direction: column;
         gap: 24px;
         overflow: visible;
-        padding: 20px 14px 8px;
+        padding: 22px 26px 22px;
         min-height: 0;
       }
 
@@ -4081,9 +4081,9 @@
       }
 
       .Planes_Objetivo_Card.Expandida {
-        border: 1px solid #e8e8e8;
+        border: 1px solid rgba(122, 98, 64, 0.16);
         border-radius: 8px;
-        background: #fff;
+        background: transparent;
         padding: 20px;
         line-height: 1.6;
       }
@@ -4125,6 +4125,7 @@
 
       .Planes_Objetivo_Card.Vista_Biblioteca.Expandida {
         min-height: 224px;
+        background: transparent;
         box-shadow: 0 0 0 2px rgba(15, 95, 90, 0.1);
       }
 
@@ -4139,7 +4140,7 @@
       }
 
       .Planes_Objetivo_Card.Expandida.Warning {
-        background: #fff;
+        background: transparent;
         border-color: rgba(180, 120, 0, 0.45);
       }
 
@@ -4284,9 +4285,9 @@
         display: inline-flex;
         align-items: center;
         gap: 5px;
+        justify-content: center;
         width: fit-content;
-        margin-left: 30px;
-        margin-top: 5px;
+        margin: 0 auto;
         border-radius: 999px;
         background: rgba(0, 0, 0, 0.04);
         color: var(--Texto_Suave);
@@ -4549,7 +4550,7 @@
         width: 28px;
         height: 28px;
         border-radius: 999px;
-        background: #fff;
+        background: rgba(255, 255, 255, 0.48);
         border: 1px solid #e8e8e8;
         display: inline-flex;
         align-items: center;
@@ -4722,14 +4723,14 @@
 
       .Planes_Progreso_Tabla {
         width: 100%;
-        min-width: 500px;
+        min-width: 620px;
         border-collapse: collapse;
         color: #2c2c2c;
         font-size: 14px;
       }
 
       .Planes_Progreso_Tabla th {
-        background: #f5f5f3;
+        background: rgba(0, 0, 0, 0.035);
         border-bottom: 1px solid #e8e8e8;
         color: #666;
         font-size: 11px;
@@ -4752,11 +4753,11 @@
       }
 
       .Planes_Progreso_Tabla tbody tr:nth-child(even) {
-        background: #fafafa;
+        background: rgba(0, 0, 0, 0.018);
       }
 
       .Planes_Progreso_Tabla tbody tr:nth-child(odd) {
-        background: #fff;
+        background: rgba(255, 255, 255, 0.24);
       }
 
       .Planes_Progreso_Tabla .Numero {
@@ -6092,6 +6093,10 @@
 
         .Planes_Contenido {
           padding: 14px 16px;
+        }
+
+        .Planes_Principal {
+          padding: 18px 16px 20px;
         }
 
         .Planner_Hero_Titulo {
@@ -18513,6 +18518,7 @@
           "planes.bajar_a": "Bajar a",
           "planes.bajar_no": "No bajar ahora",
           "planes.bajar_a_tipo": "Bajar a {tipo}",
+          "planes.origen": "Origen",
           "planes.origen_directo": "Directo",
           "planes.origen_importado": "Importado",
           "planes.origen_ajustado": "Ajustado",
@@ -21585,6 +21591,7 @@
           "planes.bajar_a": "Send down to",
           "planes.bajar_no": "Do not send down now",
           "planes.bajar_a_tipo": "Send down to {tipo}",
+          "planes.origen": "Source",
           "planes.origen_directo": "Direct",
           "planes.origen_importado": "Imported",
           "planes.origen_ajustado": "Adjusted",
@@ -24600,6 +24607,7 @@
           "planes.bajar_a": "Baixar para",
           "planes.bajar_no": "Nao baixar agora",
           "planes.bajar_a_tipo": "Baixar para {tipo}",
+          "planes.origen": "Origem",
           "planes.origen_directo": "Direto",
           "planes.origen_importado": "Importado",
           "planes.origen_ajustado": "Ajustado",
@@ -29605,6 +29613,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "es",
           { sensitivity: "base", numeric: true }
         );
+      }
+
+      function Hay_Cambio_Real_Guardado(Actual, Siguiente) {
+        return JSON.stringify(Actual) !== JSON.stringify(Siguiente);
       }
 
       function Obtener_Orden_Total_Personalizado_Baul() {
@@ -37421,6 +37433,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
+      function Meta_Datos_Comparables(Meta) {
+        return {
+          Nombre: (Meta?.Nombre || "").toString().trim(),
+          Horas_Objetivo: Normalizar_Horas_Meta(
+            Meta?.Horas_Objetivo
+          ),
+          Periodo: (Meta?.Periodo || "Semana").toString(),
+          Semana_Ref: (Meta?.Semana_Ref || "").toString(),
+          Mes_Ref: (Meta?.Mes_Ref || "").toString(),
+          Fecha_Desde: (Meta?.Fecha_Desde || "").toString(),
+          Fecha_Hasta: (Meta?.Fecha_Hasta || "").toString(),
+          Fuente_Tipo: (Meta?.Fuente_Tipo || "Categoria").toString(),
+          Fuente_Valor: (Meta?.Fuente_Valor || "").toString(),
+          Fuente_Clave: (Meta?.Fuente_Clave || "").toString(),
+          Archivada: Boolean(Meta?.Archivada)
+        };
+      }
+
       function Crear_Dato_Meta(Label, Valor) {
         const Item = document.createElement("div");
         Item.className = "Meta_Dato";
@@ -42396,6 +42426,45 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Planes_Datos_Comparables_Objetivo(Objetivo) {
+        const Etiquetas_Ids = Array.isArray(Objetivo?.Etiquetas_Ids)
+          ? Objetivo.Etiquetas_Ids
+          : Planes_Etiquetas_Ids(Objetivo);
+        return {
+          Emoji: Normalizar_Emoji(Objetivo?.Emoji || "\u2705"),
+          Nombre: (Objetivo?.Nombre || "").toString().trim(),
+          Target_Total: Number(Objetivo?.Target_Total) || 0,
+          Unidad: (Objetivo?.Unidad || "Horas").toString(),
+          Unidad_Custom: (
+            Objetivo?.Unidad_Custom || ""
+          ).toString().trim(),
+          Modo_Avance: Planes_Normalizar_Modo_Avance(Objetivo),
+          Modo_Progreso: (
+            Objetivo?.Modo_Progreso || "Hibrido"
+          ).toString(),
+          Descripcion: (Objetivo?.Descripcion || "").toString(),
+          Etiquetas_Ids: [...Etiquetas_Ids]
+            .map((Id) => String(Id || ""))
+            .filter(Boolean)
+            .sort(),
+          Vinculo_Sidebar_Activo:
+            Objetivo?.Vinculo_Sidebar_Activo !== false,
+          Vinculo_Tipo: (
+            Objetivo?.Vinculo_Tipo || "Auto"
+          ).toString(),
+          Vinculo_Id: (Objetivo?.Vinculo_Id || "").toString(),
+          Vinculo_Objetivo_Id: (
+            Objetivo?.Vinculo_Objetivo_Id || ""
+          ).toString(),
+          Vinculo_Subobjetivo_Id: (
+            Objetivo?.Vinculo_Subobjetivo_Id || ""
+          ).toString(),
+          Vinculo_Texto: (
+            Objetivo?.Vinculo_Texto || ""
+          ).toString()
+        };
+      }
+
       function Abrir_Modal_Planes_Objetivo(
         Periodo_Id,
         Objetivo_Id = null
@@ -42596,29 +42665,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "Auto"
           )
         };
+        const Bajar_A = document.getElementById(
+          "Planes_Objetivo_Bajar_A"
+        )?.value || "";
         if (Existente) {
-          const Snap = Capturar_Snapshot_Undo();
-          Object.assign(Existente, Datos, {
-            Target_Actual: Datos.Target_Total,
-            Actualizado_En: new Date().toISOString()
-          });
-          if (Existente.Origen_Objetivo === "Importado") {
-            Existente.Estado_Vinculo = "Editado";
-          }
-          if (!Existente.Parent_Objetivo_Id) {
-            Existente.Target_Automatico = Datos.Target_Total;
-          }
-          if (Existente.Fijado) {
-            Existente.Target_Fijado = Datos.Target_Total;
-          }
-          Planes_Recalcular_Desde(
-            Existente,
-            Snap,
-            t("toast.objetivos_actualizadas")
+          const Hay_Cambio = Hay_Cambio_Real_Guardado(
+            Planes_Datos_Comparables_Objetivo(Existente),
+            Planes_Datos_Comparables_Objetivo(Datos)
           );
-          const Bajar_A = document.getElementById(
-            "Planes_Objetivo_Bajar_A"
-          )?.value || "";
+          if (!Hay_Cambio && !Bajar_A) {
+            Cerrar_Modal_Planes_Objetivo();
+            return;
+          }
+          if (Hay_Cambio) {
+            const Snap = Capturar_Snapshot_Undo();
+            Object.assign(Existente, Datos, {
+              Target_Actual: Datos.Target_Total,
+              Actualizado_En: new Date().toISOString()
+            });
+            if (Existente.Origen_Objetivo === "Importado") {
+              Existente.Estado_Vinculo = "Editado";
+            }
+            if (!Existente.Parent_Objetivo_Id) {
+              Existente.Target_Automatico = Datos.Target_Total;
+            }
+            if (Existente.Fijado) {
+              Existente.Target_Fijado = Datos.Target_Total;
+            }
+            Planes_Recalcular_Desde(
+              Existente,
+              Snap,
+              t("toast.objetivos_actualizadas")
+            );
+          }
           if (Bajar_A) {
             Planes_Bajar_Objetivo_A_Capa(Existente.Id, Bajar_A);
             Render_Plan();
@@ -42626,9 +42705,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         } else {
           const Nuevo = Planes_Crear_Objetivo(Periodo_Id, Datos);
-          const Bajar_A = document.getElementById(
-            "Planes_Objetivo_Bajar_A"
-          )?.value || "";
           if (Bajar_A) {
             Planes_Bajar_Objetivo_A_Capa(Nuevo.Id, Bajar_A);
             Render_Plan();
@@ -42702,7 +42778,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ${Planes_Emoji_Estado(Objetivo.Estado)}
             </span>
           </div>
-          ${Render_Planes_Origen_Objetivo(Objetivo)}
           ${Expandido ? Render_Planes_Detalle_Objetivo(Objetivo) : ""}
         ` : `
           <div class="Planes_Objetivo_Header">
@@ -42732,7 +42807,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ${Escape_Html(Planes_Formatear_Meta_Objetivo(Objetivo))}
               </div>
             `}
-            ${Render_Planes_Origen_Objetivo(Objetivo)}
           </div>
           ${Expandido ? Render_Planes_Detalle_Objetivo(Objetivo) : ""}
         `;
@@ -42820,11 +42894,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ))
           : t("planes.origen_directo");
         return `
-          <div class="Planes_Objetivo_Origen${
+          <span class="Planes_Objetivo_Origen${
             Es_Importado ? " Importado" : ""
           }">
             ${Escape_Html(Label)}
-          </div>
+          </span>
         `;
       }
 
@@ -43108,6 +43182,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Detectado = Planes_Formatear_Numero(
           Objetivo.Progreso_Leido
         );
+        const Origen_Html = Render_Planes_Origen_Objetivo(Objetivo);
         const Estado_Clase = Objetivo.Estado === "Activo"
           ? " Planes_Dato_Valor_Activo"
           : "";
@@ -43135,6 +43210,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     <tr>
                       <th>${t("planes.estado")}</th>
                       <th>${t("planes.avance")}</th>
+                      <th>${t("planes.origen")}</th>
                       <th class="Numero">${t("planes.target")}</th>
                       <th class="Numero">${t("planes.realizado")}</th>
                       <th class="Numero">${t("planes.falta")}</th>
@@ -43151,6 +43227,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                         </span>
                       </td>
                       <td>${Escape_Html(Fuente.Label)}</td>
+                      <td>${Origen_Html}</td>
                       <td class="Numero">${Escape_Html(Meta)}</td>
                       <td class="Numero">${Realizado}</td>
                       <td class="Numero">${Falta}</td>
@@ -46058,6 +46135,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Existente = Meta_Por_Id(Datos.Id);
         if (Existente) {
+          const Hay_Cambio = Hay_Cambio_Real_Guardado(
+            Meta_Datos_Comparables(Existente),
+            Meta_Datos_Comparables(Datos)
+          );
+          if (!Hay_Cambio) {
+            Cerrar_Editor_Meta();
+            return;
+          }
           const Snap = Capturar_Snapshot_Undo();
           Object.assign(Existente, Datos);
           Mostrar_Toast_Undo(t("toast.meta_actualizada"), Snap);

@@ -226,6 +226,17 @@ de Semaplan con Playwright/Codex.
 2. Validar el resultado en la UI y, si corresponde, también tras
    recargar para confirmar persistencia real.
 
+### Regla general de guardado
+
+- Antes de confirmar una edición, comparar el estado normalizado
+  anterior contra el estado normalizado nuevo.
+- Si no hay cambios reales, no disparar toast de edición, no crear
+  snapshot de undo y no llamar a `Guardar_Estado()`.
+- La regla aplica a objetivos, metas, subobjetivos, notas,
+  configuración y cualquier modal de edición.
+- Una normalización invisible no cuenta como cambio real salvo que
+  corrija persistencia necesaria o un dato efectivamente inválido.
+
 ### Git después de cada cambio
 
 1. Antes de cerrar un cambio funcional, validarlo con Playwright sobre
