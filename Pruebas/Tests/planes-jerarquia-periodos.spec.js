@@ -209,7 +209,9 @@ async ({ page }) => {
   await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))
     .toContainText("Meta");
   await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))
-    .toContainText("2/50");
+    .toContainText("cuánto suma");
+  await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))
+    .toContainText("métrica propia");
   await page.locator("#Planes_Ayuda_Conceptual_Overlay").click({
     position: { x: 8, y: 8 }
   });
@@ -753,8 +755,11 @@ async ({ page }) => {
     .toHaveClass(/Activo/);
   await expect(page.locator("#Planes_Subobjetivo_Emoji"))
     .toBeVisible();
+  await expect(page.locator(".Planes_Subobjetivo_Aporte_Campo"))
+    .toBeVisible();
   await page.fill("#Planes_Subobjetivo_Emoji", "\uD83D\uDCD6");
   await page.fill("#Planes_Subobjetivo_Target", "4");
+  await page.fill("#Planes_Subobjetivo_Aporte", "2");
   await page.click("#Planes_Subobjetivo_Guardar");
   await expect(page.locator("#Planes_Subobjetivo_Overlay"))
     .not.toHaveClass(/Activo/);
@@ -762,10 +767,12 @@ async ({ page }) => {
     const Sub = Asegurar_Modelo_Planes().Subobjetivos[subId];
     return {
       target: Sub.Target_Total,
+      aporte: Sub.Aporte_Meta,
       emoji: Sub.Emoji
     };
   }, Sub_Modal_Id);
   expect(Sub_Editado.target).toBe(4);
+  expect(Sub_Editado.aporte).toBe(2);
   expect(Sub_Editado.emoji).toBe("\uD83D\uDCD6");
   await page.click("#Planes_Subobjetivos_Cerrar");
 
@@ -971,6 +978,7 @@ async ({ page }) => {
     Sub.Target_Total = 10;
     Sub.Unidad = "Veces";
     Sub.Progreso_Manual = 5;
+    Sub.Aporte_Meta = 0;
     Planes_Actualizar_Progreso(Padre);
     return {
       progresoSub: Padre.Progreso_Subobjetivos,
@@ -979,8 +987,9 @@ async ({ page }) => {
     };
   }, Modelo_Inicial.padreId);
 
-  expect(Progreso_Submetrica.progresoSub).toBeGreaterThan(0);
-  expect(Progreso_Submetrica.progresoTotal).toBeGreaterThan(0);
+  expect(Progreso_Submetrica.progresoSub).toBe(0);
+  expect(Progreso_Submetrica.progresoTotal)
+    .toBeGreaterThanOrEqual(0);
   expect(Progreso_Submetrica.metaSub).toContain("5/10");
 
   const Progreso_Unidades = await page.evaluate(() => {
@@ -1008,8 +1017,22 @@ async ({ page }) => {
     Planes_Actualizar_Progreso(Objetivo);
     const Modelo = Asegurar_Modelo_Planes();
     const Resultado = {
-      aporteA: Modelo.Subobjetivos[Sub_A].Target_Total,
-      aporteB: Modelo.Subobjetivos[Sub_B].Target_Total,
+      metricaA: Modelo.Subobjetivos[Sub_A].Target_Total,
+      metricaB: Modelo.Subobjetivos[Sub_B].Target_Total,
+      aporteA: Modelo.Subobjetivos[Sub_A].Aporte_Meta,
+      aporteB: Modelo.Subobjetivos[Sub_B].Aporte_Meta,
+      metaA: Planes_Formatear_Meta_Subobjetivo(
+        Modelo.Subobjetivos[Sub_A]
+      ),
+      legacyAporte: Normalizar_Subobjetivo_Plan({
+        Objetivo_Id: Objetivo.Id,
+        Texto: "Legacy"
+      }).Aporte_Meta,
+      aporteCero: Normalizar_Subobjetivo_Plan({
+        Objetivo_Id: Objetivo.Id,
+        Texto: "Cero",
+        Aporte_Meta: 0
+      }).Aporte_Meta,
       progresoSub: Objetivo.Progreso_Subobjetivos,
       progresoTotal: Objetivo.Progreso_Total,
       pendiente: Objetivo.Target_Pendiente,
@@ -1033,8 +1056,13 @@ async ({ page }) => {
   });
 
   expect(Progreso_Unidades).toEqual({
+    metricaA: 0,
+    metricaB: 0,
     aporteA: 1,
     aporteB: 1,
+    metaA: "Sin métrica · +1 libros",
+    legacyAporte: 1,
+    aporteCero: 0,
     progresoSub: 2,
     progresoTotal: 2,
     pendiente: 48,

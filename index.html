@@ -5048,6 +5048,10 @@
         grid-column: 1 / 3;
       }
 
+      .Planes_Subobjetivo_Aporte_Campo {
+        grid-column: 3 / -1;
+      }
+
       .Planes_Subobjetivo_Emoji_Campo {
         grid-column: 1 / 2;
       }
@@ -5122,7 +5126,10 @@
 
         .Planes_Nombre_Campo,
         .Planes_Meta_Campo,
-        .Planes_Unidad_Campo {
+        .Planes_Unidad_Campo,
+        .Planes_Subobjetivo_Meta_Campo,
+        .Planes_Subobjetivo_Aporte_Campo,
+        .Planes_Subobjetivo_Unidad_Campo {
           grid-column: 1 / -1;
         }
 
@@ -16600,8 +16607,8 @@
                 Con métrica
               </strong>
               <span data-i18n="planes.ayuda_metrica_texto">
-                El avance se calcula por aporte. Dos libros hechos
-                en una meta de 50 son 2/50.
+                La meta mide el total. El aporte del subobjetivo
+                dice cuánto suma al completarlo.
               </span>
             </div>
             <div class="Planes_Ayuda_Conceptual_Item">
@@ -16609,8 +16616,8 @@
                 Ítems
               </strong>
               <span data-i18n="planes.ayuda_items_texto">
-                Cada ítem puede sumar 1, otra cantidad o 0 si solo
-                prepara o ayuda.
+                Cada ítem puede sumar 1, otro valor o 0. Su métrica
+                propia puede medir páginas o avances internos.
               </span>
             </div>
             <div class="Planes_Ayuda_Conceptual_Item">
@@ -16822,10 +16829,17 @@
                 placeholder="Subobjetivo">
             </label>
             <label class="Campo Planes_Subobjetivo_Meta_Campo">
+              <span data-i18n="planes.sub_metrica">Métrica</span>
+              <input id="Planes_Subobjetivo_Target"
+                type="number"
+                min="0"
+                step="0.25">
+            </label>
+            <label class="Campo Planes_Subobjetivo_Aporte_Campo">
               <span data-i18n="planes.sub_aporte">
                 Aporte a la meta
               </span>
-              <input id="Planes_Subobjetivo_Target"
+              <input id="Planes_Subobjetivo_Aporte"
                 type="number"
                 min="0"
                 step="0.25">
@@ -17724,12 +17738,12 @@
             "el nivel de zoom.",
           "planes.ayuda_metrica_titulo": "Con métrica",
           "planes.ayuda_metrica_texto":
-            "El avance se calcula por aporte. Dos libros hechos " +
-            "en una meta de 50 son 2/50.",
+            "La meta mide el total. El aporte del subobjetivo dice " +
+            "cuánto suma al completarlo.",
           "planes.ayuda_items_titulo": "Ítems",
           "planes.ayuda_items_texto":
-            "Cada ítem puede sumar 1, otra cantidad o 0 si solo " +
-            "prepara o ayuda.",
+            "Cada ítem puede sumar 1, otro valor o 0. Su métrica " +
+            "propia puede medir páginas o avances internos.",
           "planes.ayuda_sin_metrica_titulo": "Sin métrica",
           "planes.ayuda_sin_metrica_texto":
             "El progreso puede leerse por ítems completados: " +
@@ -20697,12 +20711,12 @@
             "depending on the zoom level.",
           "planes.ayuda_metrica_titulo": "With metric",
           "planes.ayuda_metrica_texto":
-            "Progress is calculated by contribution. Two completed " +
-            "books in a 50-book goal are 2/50.",
+            "The goal metric defines the total. The subobjective " +
+            "contribution says how much it adds when completed.",
           "planes.ayuda_items_titulo": "Items",
           "planes.ayuda_items_texto":
-            "Each item can add 1, another amount, or 0 if it only " +
-            "prepares or helps.",
+            "Each item can add 1, another amount, or 0. Its own " +
+            "metric can track pages or internal progress.",
           "planes.ayuda_sin_metrica_titulo": "Without metric",
           "planes.ayuda_sin_metrica_texto":
             "Progress can be read by completed items: 1/3, 2/3, 3/3.",
@@ -23617,12 +23631,12 @@
             "segundo o nível de zoom.",
           "planes.ayuda_metrica_titulo": "Com métrica",
           "planes.ayuda_metrica_texto":
-            "O avanço é calculado por aporte. Dois livros feitos " +
-            "em uma meta de 50 são 2/50.",
+            "A métrica da meta define o total. O aporte do " +
+            "subobjetivo diz quanto soma ao concluí-lo.",
           "planes.ayuda_items_titulo": "Itens",
           "planes.ayuda_items_texto":
-            "Cada item pode somar 1, outra quantidade ou 0 se só " +
-            "prepara ou ajuda.",
+            "Cada item pode somar 1, outro valor ou 0. Sua métrica " +
+            "própria pode medir páginas ou avanço interno.",
           "planes.ayuda_sin_metrica_titulo": "Sem métrica",
           "planes.ayuda_sin_metrica_texto":
             "O progresso pode ser lido por itens concluídos: " +
@@ -38713,6 +38727,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? Unidad_Raw
           : "Personalizado";
         const Target = Number(Subobjetivo.Target_Total);
+        const Aporte_Meta_Raw =
+          Subobjetivo.Aporte_Meta ??
+          Subobjetivo.Peso_Meta ??
+          Subobjetivo.Aporte_Objetivo;
+        const Aporte_Meta = Number(Aporte_Meta_Raw);
+        const Aporte_Meta_Default =
+          Aporte_Meta_Raw === undefined ? 1 : 0;
         const Progreso = Number(Subobjetivo.Progreso_Manual);
         return {
           Id: Subobjetivo.Id || Crear_Id_Subobjetivo_Plan(),
@@ -38724,6 +38745,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Emoji: Normalizar_Emoji(Subobjetivo.Emoji || "\u2022"),
           Texto: (Subobjetivo.Texto || "").toString().trim(),
           Target_Total: Number.isFinite(Target) ? Target : 0,
+          Aporte_Meta:
+            Number.isFinite(Aporte_Meta) && Aporte_Meta >= 0
+              ? Aporte_Meta
+              : Aporte_Meta_Default,
           Unidad,
           Unidad_Custom: (
             Subobjetivo.Unidad_Custom ||
@@ -39127,15 +39152,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Subs = Planes_Subobjetivos_Metricos(Objetivo_Plan.Id);
         if (!Subs.length) return 0;
         return Subs.reduce((Total, Sub) => {
-          const Target_Sub = Number(Sub.Target_Total) || 0;
-          if (Target_Sub <= 0) return Total;
-          const Progreso_Sub = Sub.Hecha
-            ? Target_Sub
-            : Number(Sub.Progreso_Manual) || 0;
-          return Total + Math.min(
-            Target_Sub,
-            Math.max(0, Progreso_Sub)
-          );
+          const Aporte = Number(Sub.Aporte_Meta) || 0;
+          if (Aporte <= 0 || !Sub.Hecha) return Total;
+          return Total + Aporte;
         }, 0);
       }
 
@@ -39354,13 +39373,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Formatear_Meta_Subobjetivo(Sub) {
         const Target = Number(Sub.Target_Total) || 0;
         const Unidad = Planes_Unidad_Label_Subobjetivo(Sub);
+        const Aporte = Number(Sub.Aporte_Meta) || 0;
+        const Objetivo = Asegurar_Modelo_Planes()
+          .Objetivos[Sub.Objetivo_Id];
+        const Objetivo_Tiene_Metrica =
+          (Number(Objetivo?.Target_Total) || 0) > 0;
+        const Unidad_Aporte = Planes_Unidad_Label(Objetivo)
+          .toLocaleLowerCase(Obtener_Locale_Actual());
+        const Aporte_Txt = Objetivo_Tiene_Metrica && Aporte > 0
+          ? ` · +${Planes_Formatear_Numero(Aporte)}` +
+            (Unidad_Aporte ? ` ${Unidad_Aporte}` : "")
+          : "";
         if (Target <= 0) {
-          return `${Planes_Formatear_Numero(0)} ${Unidad}`.trim();
+          return `${t("planes.sin_metrica")}${Aporte_Txt}`.trim();
         }
         return `${Planes_Formatear_Numero(
           Number(Sub.Progreso_Manual) || 0
         )}/${Planes_Formatear_Numero(Target)} ` +
-          Unidad;
+          Unidad + Aporte_Txt;
       }
 
       function Planes_Porcentaje_Meta(Progreso, Target) {
@@ -41517,6 +41547,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sub.Target_Total =
             Number.isFinite(Target) && Target > 0 ? Target : 0;
         }
+        if (Datos.Aporte_Meta !== undefined) {
+          const Aporte = Number(
+            String(Datos.Aporte_Meta || "").replace(",", ".")
+          );
+          Sub.Aporte_Meta =
+            Number.isFinite(Aporte) && Aporte >= 0 ? Aporte : 0;
+        }
         if (Datos.Unidad !== undefined) {
           Sub.Unidad = Planes_Unidades.includes(Datos.Unidad)
             ? Datos.Unidad
@@ -41584,6 +41621,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Target = document.getElementById(
           "Planes_Subobjetivo_Target"
         );
+        const Aporte = document.getElementById(
+          "Planes_Subobjetivo_Aporte"
+        );
+        const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
+        const Tiene_Metrica =
+          (Number(Objetivo?.Target_Total) || 0) > 0;
+        const Aporte_Campo = Aporte?.closest(
+          ".Planes_Subobjetivo_Aporte_Campo"
+        );
+        if (Aporte_Campo) Aporte_Campo.hidden = !Tiene_Metrica;
         const Unidad = document.getElementById(
           "Planes_Subobjetivo_Unidad"
         );
@@ -41604,7 +41651,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Target) {
           Target.value = Number.isFinite(Number(Sub.Target_Total))
             ? String(Number(Sub.Target_Total))
-            : "1";
+            : "";
+        }
+        if (Aporte) {
+          Aporte.value = Number.isFinite(Number(Sub.Aporte_Meta))
+            ? String(Number(Sub.Aporte_Meta))
+            : "0";
         }
         Planes_Poblar_Select_Unidades(Unidad, Sub.Unidad);
         if (Unidad_Custom) {
@@ -41656,6 +41708,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ?.value || ""
           ).replace(",", ".")
         );
+        const Aporte = Number(
+          String(
+            document.getElementById("Planes_Subobjetivo_Aporte")
+              ?.value || ""
+          ).replace(",", ".")
+        );
         const Hecha = Boolean(
           document.getElementById("Planes_Subobjetivo_Hecha")?.checked
         );
@@ -41667,6 +41725,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Sub.Texto = Texto;
         Sub.Target_Total =
           Number.isFinite(Target) && Target > 0 ? Target : 0;
+        Sub.Aporte_Meta =
+          Number.isFinite(Aporte) && Aporte >= 0 ? Aporte : 0;
         Sub.Unidad = Planes_Unidades.includes(Unidad)
           ? Unidad
           : "Personalizado";
@@ -42572,7 +42632,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Subobjetivo_Padre_Id,
           Emoji,
           Texto,
-          Target_Total: Tiene_Metrica ? 1 : 0,
+          Aporte_Meta: Tiene_Metrica ? 1 : 0,
           Unidad: Objetivo?.Unidad || "Personalizado",
           Unidad_Custom: Objetivo?.Unidad_Custom || "",
           Orden
@@ -42656,6 +42716,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Texto: Sub_Padre.Texto,
             Hecha: Sub_Padre.Hecha,
             Target_Total: Sub_Padre.Target_Total,
+            Aporte_Meta: Sub_Padre.Aporte_Meta,
             Unidad: Sub_Padre.Unidad,
             Unidad_Custom: Sub_Padre.Unidad_Custom,
             Progreso_Manual: Sub_Padre.Progreso_Manual,
