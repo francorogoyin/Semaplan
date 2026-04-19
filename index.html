@@ -5754,16 +5754,16 @@
         max-width: 680px;
       }
 
-      .Planes_Subobjetivos_Vistas {
-        margin-bottom: 12px;
-      }
-
       .Planes_Subobjetivos_Filtros {
         display: grid;
-        grid-template-columns: minmax(110px, 150px) minmax(0, 1fr)
-          minmax(130px, 170px);
+        grid-template-columns:
+          minmax(110px, 140px)
+          minmax(220px, 300px)
+          minmax(120px, 150px)
+          minmax(120px, 150px);
         gap: 8px;
         margin: 0 0 12px;
+        justify-content: space-between;
       }
 
       .Planes_Subobjetivos_Filtro {
@@ -5773,6 +5773,10 @@
         gap: 4px;
         color: var(--Texto_Suave);
         font-size: 11px;
+      }
+
+      .Planes_Subobjetivos_Filtro.Es_Busqueda {
+        max-width: 300px;
       }
 
       .Planes_Subobjetivos_Filtro input,
@@ -17643,8 +17647,6 @@
           </div>
         </div>
         <div class="Patron_Modal_Cuerpo">
-          <div class="Planes_Vista_Toggle Planes_Subobjetivos_Vistas"
-            id="Planes_Subobjetivos_Vista_Toggle"></div>
           <div class="Planes_Subobjetivos_Filtros">
             <label class="Planes_Subobjetivos_Filtro">
               <span data-i18n="planes.filtro_estado">
@@ -17664,7 +17666,7 @@
                 </option>
               </select>
             </label>
-            <label class="Planes_Subobjetivos_Filtro">
+            <label class="Planes_Subobjetivos_Filtro Es_Busqueda">
               <span data-i18n="planes.filtro_metadato">
                 Metadato
               </span>
@@ -17691,6 +17693,24 @@
                 <option value="Vencidos"
                   data-i18n="planes.filtro_vencidos">
                   Retrasados
+                </option>
+              </select>
+            </label>
+            <label class="Planes_Subobjetivos_Filtro">
+              <span data-i18n="planes.filtro_vista">
+                Vista
+              </span>
+              <select id="Planes_Subobjetivos_Filtro_Vista">
+                <option value="Tarjetas"
+                  data-i18n="planes.vista_tarjetas">
+                  Tarjetas
+                </option>
+                <option value="Lista" data-i18n="planes.vista_lista">
+                  Lista
+                </option>
+                <option value="Biblioteca"
+                  data-i18n="planes.vista_biblioteca">
+                  Biblioteca
                 </option>
               </select>
             </label>
@@ -18969,6 +18989,7 @@
           "planes.filtro_metadato_ph":
             "autor, año, autor:Borges",
           "planes.filtro_periodo": "Período",
+          "planes.filtro_vista": "Vista",
           "planes.filtro_periodo_actual":
             "Período actual",
           "planes.filtro_sin_fecha": "Sin fecha",
@@ -22289,6 +22310,7 @@
           "planes.filtro_metadato_ph":
             "author, year, author:Borges",
           "planes.filtro_periodo": "Period",
+          "planes.filtro_vista": "View",
           "planes.filtro_periodo_actual":
             "Current period",
           "planes.filtro_sin_fecha": "No date",
@@ -25560,6 +25582,7 @@
           "planes.filtro_periodo": "PerÃ­odo",
           "planes.filtro_periodo_actual":
             "PerÃ­odo atual",
+          "planes.filtro_vista": "Vista",
           "planes.filtro_sin_fecha": "Sem data",
           "planes.filtro_vencidos": "Atrasados",
           "planes.sin_subobjetivos_filtro":
@@ -42692,7 +42715,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "planes.ui_help_sub_importar"],
           ["#Planes_Subobjetivos_Avance",
             "planes.ui_help_sub_avance"],
-          ["#Planes_Subobjetivos_Vista_Toggle .Planes_Vista_Btn",
+          ["#Planes_Subobjetivos_Filtro_Vista",
             "planes.ui_help_sub_vista"],
           ["#Planes_Subobjetivos_Filtro_Estado",
             "planes.ui_help_sub_filtro_estado"],
@@ -46951,52 +46974,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Modelo.UI.Subobjetivos_Vista;
       }
 
-      function Render_Planes_Subobjetivos_Vistas() {
-        const Toggle = document.getElementById(
-          "Planes_Subobjetivos_Vista_Toggle"
-        );
-        if (!Toggle) return;
-        const Modelo = Asegurar_Modelo_Planes();
-        const Vista_Actual = Planes_Subobjetivos_Vista_Actual();
-        Toggle.innerHTML = "";
-        [
-          ["Tarjetas", t("planes.vista_tarjetas")],
-          ["Lista", t("planes.vista_lista")],
-          ["Biblioteca", t("planes.vista_biblioteca")]
-        ].forEach(([Vista, Label]) => {
-          const Btn = document.createElement("button");
-          Btn.type = "button";
-          Btn.className = "Planes_Vista_Btn" +
-            (Vista_Actual === Vista ? " Activo" : "");
-          Btn.dataset.planSubVista = Vista;
-          Btn.textContent = Label;
-          Toggle.appendChild(Btn);
-        });
-        Toggle.onclick = (Ev) => {
-          const Btn = Ev.target.closest("[data-plan-sub-vista]");
-          if (!Btn) return;
-          Modelo.UI.Subobjetivos_Vista = Btn.dataset.planSubVista;
-          Render_Modal_Planes_Subobjetivos();
-        };
-      }
-
-      function Planes_Titulo_Modal_Subobjetivos(Objetivo) {
+      function Planes_Info_Titulo_Modal_Subobjetivos(Objetivo) {
         const Modelo = Asegurar_Modelo_Planes();
         const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
-        const Padre = Periodo?.Parent_Id
-          ? Modelo.Periodos[Periodo.Parent_Id]
-          : null;
-        const Inicio = `${Objetivo.Emoji || "\u2705"} ${Objetivo.Nombre}`
-          .trim();
-        const Partes = [
-          Inicio,
-          Planes_Titulo_Periodo_Mostrable(Periodo)
-        ].filter(Boolean);
-        let Titulo = Partes.join(" - ");
-        if (Padre) {
-          Titulo += ` (${Planes_Titulo_Periodo_Mostrable(Padre)})`;
+        if (!Periodo) {
+          return {
+            Titulo: t("planes.subobjetivos"),
+            Anio: ""
+          };
         }
-        return Titulo || t("planes.subobjetivos");
+        if (Periodo.Tipo === "Anio") {
+          const Inicio = Parsear_Fecha_ISO(Periodo.Inicio);
+          const Anio = Inicio ? String(Inicio.getFullYear()) : "";
+          return {
+            Titulo: Anio || Planes_Titulo_Periodo_Mostrable(Periodo),
+            Anio: ""
+          };
+        }
+        if (Periodo.Tipo === "Semana") {
+          const Inicio = Parsear_Fecha_ISO(Periodo.Inicio);
+          return {
+            Titulo: `${t("planner.tipo_semana")} ` +
+              `${Planes_Numero_Semana_Mes(Periodo.Inicio)}`,
+            Anio: Inicio ? String(Inicio.getFullYear()) : ""
+          };
+        }
+        const Partes = Planes_Partes_Titulo_Resumen(Periodo);
+        const Inicio = Parsear_Fecha_ISO(Periodo.Inicio);
+        return {
+          Titulo: Partes.Titulo || Planes_Titulo_Periodo_Mostrable(Periodo),
+          Anio: Partes.Anio || (Inicio
+            ? String(Inicio.getFullYear())
+            : "")
+        };
       }
 
       function Planes_Resumen_Aportes_Subobjetivos(Objetivo) {
@@ -47185,12 +47195,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Periodo = document.getElementById(
           "Planes_Subobjetivos_Filtro_Periodo"
         );
+        const Vista = document.getElementById(
+          "Planes_Subobjetivos_Filtro_Vista"
+        );
         if (Estado) Estado.value = Planes_Subobjetivos_Filtro_Estado;
         if (Metadato) {
           Metadato.value = Planes_Subobjetivos_Filtro_Metadato;
         }
         if (Periodo) {
           Periodo.value = Planes_Subobjetivos_Filtro_Periodo;
+        }
+        if (Vista) {
+          Vista.value = Planes_Subobjetivos_Vista_Actual();
         }
       }
 
@@ -47423,15 +47439,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Planes_Subobjetivos_Resumen_Aportes"
         );
         if (!Lista || !Objetivo) return;
+        const Info_Titulo =
+          Planes_Info_Titulo_Modal_Subobjetivos(Objetivo);
+        const Resumen = Planes_Resumen_Aportes_Subobjetivos(Objetivo);
         if (Titulo) {
-          Titulo.textContent =
-            Planes_Titulo_Modal_Subobjetivos(Objetivo);
+          Titulo.textContent = Info_Titulo.Titulo;
         }
         if (Resumen_Aportes) {
-          Resumen_Aportes.textContent =
-            Planes_Resumen_Aportes_Subobjetivos(Objetivo);
+          Resumen_Aportes.textContent = Info_Titulo.Anio
+            ? `${Info_Titulo.Anio} · ${Resumen}`
+            : Resumen;
         }
-        Render_Planes_Subobjetivos_Vistas();
         Planes_Sincronizar_Filtros_Subobjetivos();
         const Subs = Planes_Subobjetivos_Raices_De_Objetivo(
           Objetivo.Id
@@ -70503,6 +70521,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("change", (Ev) => {
           Planes_Subobjetivos_Filtro_Periodo =
             Ev.target.value || "Todos";
+          Render_Modal_Planes_Subobjetivos();
+        });
+      document.getElementById("Planes_Subobjetivos_Filtro_Vista")
+        ?.addEventListener("change", (Ev) => {
+          const Modelo = Asegurar_Modelo_Planes();
+          const Vista = (Ev.target.value || "").toString();
+          Modelo.UI.Subobjetivos_Vista = [
+            "Tarjetas",
+            "Lista",
+            "Biblioteca"
+          ].includes(Vista)
+            ? Vista
+            : "Tarjetas";
           Render_Modal_Planes_Subobjetivos();
         });
       document.getElementById("Planes_Subobjetivos_Overlay")

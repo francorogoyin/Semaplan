@@ -705,15 +705,13 @@ async ({ page }) => {
   await expect(page.locator("#Planes_Subobjetivos_Overlay"))
     .toHaveClass(/Activo/);
   await expect(page.locator("#Planes_Subobjetivos_Titulo"))
-    .toContainText("Leer -");
-  await expect(page.locator("#Planes_Subobjetivos_Titulo"))
-    .toContainText("Año");
+    .toHaveText("2026");
   await expect(page.locator("#Planes_Subobjetivos_Resumen_Aportes"))
     .toContainText("Aportes totales");
   await expect(page.locator("#Planes_Subobjetivos_Form"))
     .toBeHidden();
   await expect(page.locator(
-    "#Planes_Subobjetivos_Vista_Toggle button"
+    "#Planes_Subobjetivos_Filtro_Vista option"
   )).toHaveCount(3);
   await page.click("#Planes_Subobjetivos_Agregar");
   await expect(page.locator("#Planes_Subobjetivos_Input"))
@@ -724,7 +722,10 @@ async ({ page }) => {
     .toBeHidden();
   await expect(page.locator("#Planes_Subobjetivos_Lista"))
     .toContainText("Sub desde +");
-  await page.locator('[data-plan-sub-vista="Biblioteca"]').click();
+  await page.selectOption(
+    "#Planes_Subobjetivos_Filtro_Vista",
+    "Biblioteca"
+  );
   await expect(page.locator("#Planes_Subobjetivos_Lista"))
     .toHaveClass(/Biblioteca/);
   const Sub_Item = page.locator(".Planes_Subobjetivo")
