@@ -221,6 +221,19 @@ async ({ page }) => {
   await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))
     .not.toHaveClass(/Activo/);
   await expect(page.locator("#Plan_Overlay")).toHaveClass(/Activo/);
+  await page.click("#Planes_Btn_Nuevo_Header");
+  await expect(page.locator("#Planes_Objetivo_Modo_Avance"))
+    .toBeVisible();
+  await page.selectOption(
+    "#Planes_Objetivo_Modo_Avance",
+    "Sin_Metrica"
+  );
+  await expect(page.locator("#Planes_Objetivo_Form .Planes_Meta_Campo"))
+    .toBeHidden();
+  await page.selectOption("#Planes_Objetivo_Modo_Avance", "Metrica");
+  await expect(page.locator("#Planes_Objetivo_Form .Planes_Meta_Campo"))
+    .toBeVisible();
+  await page.click("#Planes_Objetivo_Cancelar");
 
   const Layout_Desktop = await page.evaluate(() => {
     const Panel = document.querySelector(".Planes_Archivero_Panel");
@@ -695,6 +708,8 @@ async ({ page }) => {
     .toContainText("Leer -");
   await expect(page.locator("#Planes_Subobjetivos_Titulo"))
     .toContainText("Año");
+  await expect(page.locator("#Planes_Subobjetivos_Resumen_Aportes"))
+    .toContainText("Aportes totales");
   await expect(page.locator("#Planes_Subobjetivos_Form"))
     .toBeHidden();
   await expect(page.locator(
@@ -1067,6 +1082,107 @@ async ({ page }) => {
     progresoTotal: 2,
     pendiente: 48,
     estado: "Activo"
+  });
+
+  const Progreso_Fechado = await page.evaluate(() => {
+    let Modelo = Asegurar_Modelo_Planes();
+    const Fecha_Anual = "2026-04-08";
+    const Fecha_Hijo = "2026-04-09";
+    const Anio = Object.values(Modelo.Periodos)
+      .find((Periodo) =>
+        Periodo.Tipo === "Anio" &&
+        Periodo.Inicio === "2026-01-01"
+      );
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Libros fecha",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 50,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    Planes_Redistribuir_Objetivo(Objetivo.Id);
+    const Sub_Anual_Id = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Libro anual abril"
+    );
+    Modelo = Asegurar_Modelo_Planes();
+    const Sub_Anual = Modelo.Subobjetivos[Sub_Anual_Id];
+    if (!Sub_Anual) {
+      return { error: "No se creo el subobjetivo anual" };
+    }
+    Sub_Anual.Hecha = true;
+    Sub_Anual.Estado = "Cumplido";
+    Sub_Anual.Fecha_Fin = Fecha_Anual;
+    Sub_Anual.Aporte_Meta = 1;
+    Planes_Recalcular_Desde(Objetivo);
+
+    const Por_Tipo = (Tipo, Fecha) => {
+      Modelo = Asegurar_Modelo_Planes();
+      return Object.values(Modelo.Objetivos)
+        .filter((Item) => Item.Nombre === "Libros fecha")
+        .find((Item) => {
+          const Periodo = Modelo.Periodos[Item.Periodo_Id];
+          return Periodo?.Tipo === Tipo &&
+            Fecha >= Periodo.Inicio &&
+            Fecha <= Periodo.Fin;
+        });
+    };
+    const Mes = Por_Tipo("Mes", Fecha_Hijo);
+    if (!Mes) {
+      return { error: "No se encontro el objetivo mensual" };
+    }
+    const Sub_Hijo_Id = Planes_Agregar_Subobjetivo(
+      Mes.Id,
+      "Libro hijo abril"
+    );
+    Modelo = Asegurar_Modelo_Planes();
+    const Sub_Hijo = Modelo.Subobjetivos[Sub_Hijo_Id];
+    if (!Sub_Hijo) {
+      return { error: "No se creo el subobjetivo mensual" };
+    }
+    Sub_Hijo.Hecha = true;
+    Sub_Hijo.Estado = "Cumplido";
+    Sub_Hijo.Fecha_Fin = Fecha_Hijo;
+    Sub_Hijo.Aporte_Meta = 1;
+    Planes_Recalcular_Desde(Mes);
+
+    Modelo = Asegurar_Modelo_Planes();
+    const Resultado = {
+      anual: Modelo.Objetivos[Objetivo.Id].Progreso_Subobjetivos,
+      semestre: Por_Tipo("Semestre", Fecha_Hijo)
+        .Progreso_Subobjetivos,
+      trimestre: Por_Tipo("Trimestre", Fecha_Hijo)
+        .Progreso_Subobjetivos,
+      mes: Por_Tipo("Mes", Fecha_Hijo).Progreso_Subobjetivos,
+      semana: Por_Tipo("Semana", Fecha_Hijo).Progreso_Subobjetivos
+    };
+    const Ids_A_Limpiar = new Set(
+      Object.values(Modelo.Objetivos)
+        .filter((Item) => Item.Nombre === "Libros fecha")
+        .map((Item) => Item.Id)
+    );
+    Object.values(Modelo.Subobjetivos)
+      .filter((Sub) => Ids_A_Limpiar.has(Sub.Objetivo_Id))
+      .forEach((Sub) => {
+        delete Modelo.Subobjetivos[Sub.Id];
+      });
+    Ids_A_Limpiar.forEach((Id) => {
+      delete Modelo.Objetivos[Id];
+    });
+    Render_Planes_Contenido();
+    return { error: "", resultado: Resultado };
+  });
+
+  expect(Progreso_Fechado.error).toBe("");
+  expect(Progreso_Fechado.resultado).toEqual({
+    anual: 2,
+    semestre: 2,
+    trimestre: 2,
+    mes: 2,
+    semana: 2
   });
 
   const Subestado = await page.evaluate(({ padreId, hijoId }) => {
