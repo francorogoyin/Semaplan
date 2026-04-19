@@ -28812,66 +28812,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Mostrar_Dialogo_Con_Fecha(Mensaje, Valor_Default) {
-        if (Dialogo_Abierto) return Promise.resolve(null);
-        Dialogo_Abierto = true;
-        return new Promise((Resolver) => {
-          const Cerrar_Con = (Valor) => {
-            document.getElementById("Dialogo_Overlay").classList.remove("Activo");
-            document.getElementById("Dialogo_Input_Contenedor")
-              .style.display = "none";
-            El_Campo.removeEventListener(
-              "keydown", On_Enter_Input
-            );
-            Dialogo_Abierto = false;
-            Resolver(Valor);
-          };
-
-          document.getElementById("Dialogo_Mensaje").textContent =
-            Mensaje;
-          const El_Campo = document.getElementById("Dialogo_Input_Campo");
-          El_Campo.type = "date";
-          El_Campo.value = Valor_Default || "";
-          document.getElementById("Dialogo_Input_Contenedor")
-            .style.display = "block";
-
-          const El_Botones = document.getElementById("Dialogo_Botones");
-          El_Botones.innerHTML = "";
-
-          const Confirmar = () => {
-            const Val = El_Campo.value;
-            Cerrar_Con(Val || null);
-          };
-
-          const Btn_OK = document.createElement("button");
-          Btn_OK.textContent = t("confirmar");
-          Btn_OK.className = "Dialogo_Boton Dialogo_Boton_Primario";
-          Btn_OK.addEventListener(
-            "click", Confirmar, { once: true }
-          );
-
-          const Btn_Cancelar = document.createElement("button");
-          Btn_Cancelar.textContent = t("cancelar");
-          Btn_Cancelar.className = "Dialogo_Boton Dialogo_Boton_Cancelar";
-          Btn_Cancelar.addEventListener(
-            "click", () => Cerrar_Con(null), { once: true }
-          );
-
-          // Enter dentro del input confirma.
-          const On_Enter_Input = (Ev) => {
-            if (Ev.key === "Enter") {
-              Ev.preventDefault();
-              Confirmar();
-            }
-          };
-          El_Campo.addEventListener(
-            "keydown", On_Enter_Input
-          );
-
-          El_Botones.appendChild(Btn_OK);
-          El_Botones.appendChild(Btn_Cancelar);
-          document.getElementById("Dialogo_Overlay").classList.add("Activo");
-          setTimeout(() => El_Campo.focus(), 0);
-        });
+        return Mostrar_Dialogo_Con_Texto(Mensaje, {
+          Tipo: "date",
+          Default: Valor_Default || "",
+          Etiqueta_Confirmar: t("confirmar"),
+          Etiqueta_Cancelar: t("cancelar")
+        }).then((Valor) => Valor || null);
       }
 
       function Mostrar_Dialogo_Con_Fecha_Y_Hora(
