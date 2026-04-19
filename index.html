@@ -19750,7 +19750,7 @@
           "contexto.editar_objetivo":
             "Editar",
           "contexto.editar_horas":
-            "Editar cantidad de horas",
+            "Editar horas",
           "contexto.editar_nota":
             "Editar nota",
           "contexto.borrar_nota":
@@ -22787,7 +22787,7 @@
           "contexto.editar_objetivo":
             "Edit",
           "contexto.editar_horas":
-            "Edit hour count",
+            "Edit hours",
           "contexto.editar_nota":
             "Edit note",
           "contexto.borrar_nota":
@@ -25872,7 +25872,7 @@
           "contexto.editar_objetivo":
             "Editar",
           "contexto.editar_horas":
-            "Editar quantidade de horas",
+            "Editar horas",
           "contexto.editar_nota":
             "Editar nota",
           "contexto.borrar_nota":
@@ -63112,18 +63112,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Menu || !Objetivo) return;
         const Grupo = [
           Html_Menu_Dia_Accion(
-            "editar-objetivo",
-            t("contexto.editar_objetivo")
-          ),
-          Html_Menu_Dia_Accion(
-            "editar-horas",
-            t("contexto.editar_horas")
-          ),
-          Html_Menu_Dia_Accion(
             "copiar-objetivo",
             t("dialog.copiar")
+          ),
+          Html_Menu_Dia_Accion(
+            "editar-objetivo",
+            t("contexto.editar_objetivo")
           )
         ];
+        if (Objetivo.Es_Bolsa) {
+          Grupo.push(
+            Html_Menu_Dia_Accion(
+              "editar-horas",
+              t("contexto.editar_horas")
+            )
+          );
+        }
+        Grupo.push(
+          Html_Menu_Dia_Accion(
+            "agregar-subobjetivo",
+            t("contexto.agregar_subobjetivo")
+          )
+        );
         if (Opciones.Incluir_Reorden) {
           Grupo.push(
             Html_Menu_Dia_Accion(
@@ -63136,12 +63146,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
           );
         }
-        Grupo.push(
-          Html_Menu_Dia_Accion(
-            "agregar-subobjetivo",
-            t("contexto.agregar_subobjetivo")
-          )
-        );
         if (Tiene_Portapapeles_Objetivos_Multi()) {
           Grupo.push(
             Html_Menu_Dia_Accion(
