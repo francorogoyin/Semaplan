@@ -4307,7 +4307,7 @@
       }
 
       .Planes_Importar_Modal {
-        max-width: 720px;
+        max-width: 800px;
       }
 
       .Planes_Importar_Cuerpo {
@@ -4395,17 +4395,25 @@
       .Planes_Importar_Objetivo {
         align-items: center;
         color: var(--Texto);
-        cursor: pointer;
         display: grid;
         font-size: 12px;
-        gap: 7px;
-        grid-template-columns: auto minmax(0, 1fr);
+        gap: 10px;
+        grid-template-columns: minmax(0, 1fr) minmax(116px, 150px);
         line-height: 1.25;
         min-height: 26px;
         position: relative;
       }
 
-      .Planes_Importar_Objetivo input {
+      .Planes_Importar_Objetivo_Check {
+        align-items: center;
+        cursor: pointer;
+        display: grid;
+        gap: 7px;
+        grid-template-columns: auto minmax(0, 1fr);
+        min-width: 0;
+      }
+
+      .Planes_Importar_Objetivo_Check > input[type="checkbox"] {
         opacity: 0;
         pointer-events: none;
         position: absolute;
@@ -4425,24 +4433,28 @@
         width: 18px;
       }
 
-      .Planes_Importar_Objetivo input:checked +
+      .Planes_Importar_Objetivo_Check
+      > input[type="checkbox"]:checked +
       .Planes_Importar_Objetivo_Marca {
         background: var(--Acento);
         border-color: var(--Acento);
         color: #fff;
       }
 
-      .Planes_Importar_Objetivo input:checked +
+      .Planes_Importar_Objetivo_Check
+      > input[type="checkbox"]:checked +
       .Planes_Importar_Objetivo_Marca::before {
         content: "\2713";
       }
 
-      .Planes_Importar_Objetivo input:not(:checked) +
+      .Planes_Importar_Objetivo_Check
+      > input[type="checkbox"]:not(:checked) +
       .Planes_Importar_Objetivo_Marca::before {
         content: "\00d7";
       }
 
-      .Planes_Importar_Objetivo input:focus-visible +
+      .Planes_Importar_Objetivo_Check
+      > input[type="checkbox"]:focus-visible +
       .Planes_Importar_Objetivo_Marca {
         outline: 2px solid var(--Acento);
         outline-offset: 2px;
@@ -4453,6 +4465,45 @@
         font-size: 12px;
         line-height: 1.25;
         overflow-wrap: anywhere;
+      }
+
+      .Planes_Importar_Manual_Campo {
+        align-items: center;
+        display: none;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      [data-plan-importar-modo="Manual"]
+      .Planes_Importar_Manual_Campo {
+        display: flex;
+      }
+
+      .Planes_Importar_Manual_Campo > span {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .Planes_Importar_Manual_Campo input {
+        border: 1px solid var(--Borde);
+        border-radius: 7px;
+        color: var(--Texto);
+        font: inherit;
+        font-size: 12px;
+        min-height: 32px;
+        min-width: 0;
+        padding: 6px 8px;
+        width: 76px;
+      }
+
+      .Planes_Importar_Manual_Campo small {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .Planes_Importar_Periodo_Texto,
@@ -6134,6 +6185,14 @@
 
         .Planes_Importar_Lista {
           grid-template-columns: 1fr;
+        }
+
+        .Planes_Importar_Objetivo {
+          grid-template-columns: 1fr;
+        }
+
+        .Planes_Importar_Manual_Campo {
+          padding-left: 25px;
         }
 
         .Planes_Control,
@@ -18585,6 +18644,10 @@
             "{n} objetivo(s) desde padres",
           "planes.importar_modo_proporcional": "Proporcional",
           "planes.importar_modo_completo": "Completo",
+          "planes.importar_modo_manual": "Manual",
+          "planes.importar_manual_valor": "Métrica",
+          "planes.importar_manual_error":
+            "Ingresá una métrica válida para cada objetivo seleccionado.",
           "planes.importar_subs": "Importar subobjetivos",
           "planes.romper_vinculo":
             "Quitar vínculo con calendario",
@@ -21663,6 +21726,10 @@
             "{n} objective(s) from parents",
           "planes.importar_modo_proporcional": "Proportional",
           "planes.importar_modo_completo": "Full",
+          "planes.importar_modo_manual": "Manual",
+          "planes.importar_manual_valor": "Metric",
+          "planes.importar_manual_error":
+            "Enter a valid metric for each selected objective.",
           "planes.importar_subs": "Import subobjectives",
           "planes.romper_vinculo": "Remove calendar link",
           "planes.romper_vinculo_confirm":
@@ -24684,6 +24751,10 @@
             "{n} objetivo(s) dos pais",
           "planes.importar_modo_proporcional": "Proporcional",
           "planes.importar_modo_completo": "Completo",
+          "planes.importar_modo_manual": "Manual",
+          "planes.importar_manual_valor": "Métrica",
+          "planes.importar_manual_error":
+            "Informe uma métrica válida para cada objetivo selecionado.",
           "planes.importar_padres":
             "Importar do período pai",
           "planes.importar_padre_periodo":
@@ -45791,7 +45862,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Snap = Capturar_Snapshot_Undo();
         Planes_Importar_Objetivos_Padres_A_Periodos(
           Config.Items,
-          { Fijar: Config.Fijar, Modo: Config.Modo }
+          {
+            Fijar: Config.Fijar,
+            Modo: Config.Modo,
+            Targets_Manuales: Config.Targets_Manuales
+          }
         );
         Render_Plan();
         Guardar_Estado();
@@ -45848,10 +45923,78 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
+      function Planes_Clave_Target_Manual_Importacion(
+        Periodo_Id,
+        Objetivo_Id
+      ) {
+        return `${Periodo_Id}|${Objetivo_Id}`;
+      }
+
+      function Planes_Parsear_Target_Importacion(Valor) {
+        const Numero = Number(
+          String(Valor ?? "").replace(",", ".")
+        );
+        if (!Number.isFinite(Numero) || Numero < 0) return null;
+        return Numero;
+      }
+
+      function Planes_Cantidad_Partes_Importacion(
+        Periodo_Padre,
+        Tipo_Destino
+      ) {
+        if (!Periodo_Padre || !Tipo_Destino) return 1;
+        const Partes = Planes_Crear_Periodos_Distribucion(
+          Periodo_Padre,
+          Tipo_Destino
+        );
+        return Math.max(1, Partes.length);
+      }
+
+      function Planes_Target_Proporcional_Importacion(
+        Objetivo_Padre,
+        Periodo_Padre,
+        Periodo_Destino
+      ) {
+        const Target = Number(Objetivo_Padre?.Target_Total) || 0;
+        if (Target <= 0) return 0;
+        const Partes = Planes_Cantidad_Partes_Importacion(
+          Periodo_Padre,
+          Periodo_Destino?.Tipo
+        );
+        return Target / Partes;
+      }
+
+      function Planes_Target_Importacion(
+        Objetivo_Padre,
+        Periodo_Padre,
+        Periodo_Destino,
+        Modo,
+        Targets_Manuales = {}
+      ) {
+        const Target_Padre = Number(Objetivo_Padre?.Target_Total) || 0;
+        if (Modo === "Completo") return Target_Padre;
+        if (Modo === "Manual") {
+          const Clave = Planes_Clave_Target_Manual_Importacion(
+            Periodo_Destino?.Id || "",
+            Objetivo_Padre?.Id || ""
+          );
+          const Manual = Planes_Parsear_Target_Importacion(
+            Targets_Manuales[Clave]
+          );
+          return Manual ?? 0;
+        }
+        return Planes_Target_Proporcional_Importacion(
+          Objetivo_Padre,
+          Periodo_Padre,
+          Periodo_Destino
+        );
+      }
+
       function Planes_Mostrar_Dialogo_Importar_Padres(Candidatos) {
         return new Promise((Resolver) => {
           const Overlay = document.createElement("div");
           Overlay.className = "Patron_Modal_Overlay Activo";
+          Overlay.dataset.planImportarModo = "Proporcional";
           Overlay.innerHTML = `
             <div class="Patron_Modal_Panel Planes_Importar_Modal">
               <div class="Patron_Modal_Cabecera">
@@ -45894,6 +46037,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                       ${Escape_Html(t("planes.importar_modo_completo"))}
                     </span>
                   </label>
+                  <label class="Planes_Importar_Opcion">
+                    <input type="radio" name="Planes_Importar_Modo"
+                      value="Manual">
+                    <span>
+                      ${Escape_Html(t("planes.importar_modo_manual"))}
+                    </span>
+                  </label>
                 </div>
                 <div class="Planes_Importar_Lista"></div>
               </div>
@@ -45916,21 +46066,51 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Periodo_Id = Escape_Html(Item.Periodo.Id);
             const Detalle_Abierto = Objetivos.length <= 4 ? "open" : "";
             const Objetivos_Html = Objetivos.map(({ Objetivo }) => {
+              const Periodo_Padre =
+                Asegurar_Modelo_Planes().Periodos[Objetivo.Periodo_Id];
+              const Target_Manual =
+                Planes_Target_Proporcional_Importacion(
+                  Objetivo,
+                  Periodo_Padre,
+                  Item.Periodo
+                );
               const Objetivo_Id = Escape_Html(Objetivo.Id);
+              const Clave_Manual = Escape_Html(
+                Planes_Clave_Target_Manual_Importacion(
+                  Item.Periodo.Id,
+                  Objetivo.Id
+                )
+              );
+              const Unidad = Escape_Html(
+                Planes_Unidad_Label(Objetivo)
+              );
               return `
-                <label class="Planes_Importar_Objetivo">
-                  <input type="checkbox"
-                    data-plan-importar-objetivo="${Objetivo_Id}"
-                    data-plan-importar-objetivo-periodo="${Periodo_Id}"
-                    ${Item.Seleccionado ? "checked" : ""}>
-                  <span class="Planes_Importar_Objetivo_Marca"
-                    aria-hidden="true"></span>
-                  <span class="Planes_Importar_Objetivo_Nombre
-                    Con_Fallback_Emoji">
-                    ${Escape_Html(Objetivo.Emoji)}
-                    ${Escape_Html(Objetivo.Nombre)}
-                  </span>
-                </label>
+                <div class="Planes_Importar_Objetivo">
+                  <label class="Planes_Importar_Objetivo_Check">
+                    <input type="checkbox"
+                      data-plan-importar-objetivo="${Objetivo_Id}"
+                      data-plan-importar-objetivo-periodo="${Periodo_Id}"
+                      ${Item.Seleccionado ? "checked" : ""}>
+                    <span class="Planes_Importar_Objetivo_Marca"
+                      aria-hidden="true"></span>
+                    <span class="Planes_Importar_Objetivo_Nombre
+                      Con_Fallback_Emoji">
+                      ${Escape_Html(Objetivo.Emoji)}
+                      ${Escape_Html(Objetivo.Nombre)}
+                    </span>
+                  </label>
+                  <label class="Planes_Importar_Manual_Campo">
+                    <span>
+                      ${Escape_Html(t("planes.importar_manual_valor"))}
+                    </span>
+                    <input type="number" min="0" step="0.25"
+                      value="${Escape_Html(
+                        String(Planes_Formatear_Numero(Target_Manual))
+                      )}"
+                      data-plan-importar-manual="${Clave_Manual}">
+                    <small>${Unidad}</small>
+                  </label>
+                </div>
               `;
             }).join("");
             const Contenedor = document.createElement("div");
@@ -45994,6 +46174,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   Seleccionados > 0 && Seleccionados < Inputs.length;
               });
           };
+          const Modo_Seleccionado = () => Overlay
+            .querySelector("input[name='Planes_Importar_Modo']:checked")
+            ?.value || "Proporcional";
+          const Actualizar_Modo = () => {
+            Overlay.dataset.planImportarModo = Modo_Seleccionado();
+          };
           Overlay.querySelector("[data-plan-importar-cerrar]")
             ?.addEventListener("click", () => Cerrar(null));
           Overlay.querySelector("[data-plan-importar-cancelar]")
@@ -46034,12 +46220,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .forEach((Input) => {
               Input.addEventListener("change", Actualizar_Conteos);
             });
+          Overlay.querySelectorAll("input[name='Planes_Importar_Modo']")
+            .forEach((Input) => {
+              Input.addEventListener("change", Actualizar_Modo);
+            });
           Overlay.querySelector("[data-plan-importar-confirmar]")
             ?.addEventListener("click", () => {
               const Mapa = new Map();
-              Array.from(
+              const Seleccionados = Array.from(
                 Overlay.querySelectorAll("[data-plan-importar-objetivo]")
-              ).filter((Input) => Input.checked)
+              ).filter((Input) => Input.checked);
+              Seleccionados
                 .forEach((Input) => {
                   const Periodo_Id =
                     Input.dataset.planImportarObjetivoPeriodo;
@@ -46054,12 +46245,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 }));
               const Fijar = Overlay
                 .querySelector("[data-plan-importar-fijar]")?.checked;
-              const Modo = Overlay
-                .querySelector("input[name='Planes_Importar_Modo']:checked")
-                ?.value || "Proporcional";
-              Cerrar({ Items, Fijar, Modo });
+              const Modo = Modo_Seleccionado();
+              const Targets_Manuales = {};
+              if (Modo === "Manual") {
+                let Manual_Invalido = false;
+                Seleccionados.forEach((Input) => {
+                  const Clave = Planes_Clave_Target_Manual_Importacion(
+                    Input.dataset.planImportarObjetivoPeriodo,
+                    Input.dataset.planImportarObjetivo
+                  );
+                  const Manual = Overlay.querySelector(
+                    `[data-plan-importar-manual="${Clave}"]`
+                  );
+                  const Valor = Planes_Parsear_Target_Importacion(
+                    Manual?.value
+                  );
+                  if (Valor === null) {
+                    Manual_Invalido = true;
+                    Manual?.focus();
+                    return;
+                  }
+                  Targets_Manuales[Clave] = Valor;
+                });
+                if (Manual_Invalido) {
+                  Mostrar_Toast_Error(t("planes.importar_manual_error"));
+                  return;
+                }
+              }
+              Cerrar({ Items, Fijar, Modo, Targets_Manuales });
             });
           document.body.appendChild(Overlay);
+          Actualizar_Modo();
           Actualizar_Conteos();
         });
       }
@@ -46101,14 +46317,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               );
               return !Planes_Objetivo_Importado_Descartado(Hijo);
             });
-          const Cuota = Opciones.Modo === "Completo"
-            ? (Number(Objetivo_Padre.Target_Total) || 0)
-            : (
-              Periodos_Destino_Activos.length
-                ? (Number(Objetivo_Padre.Target_Total) || 0) /
-                  Periodos_Destino_Activos.length
-                : 0
-            );
           Periodos_Destino_Activos.forEach((Periodo) => {
             let Hijo =
               Planes_Objetivo_Hijo_De(Objetivo_Padre.Id, Periodo.Id);
@@ -46133,6 +46341,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Restaurar_Vinculo_Objetivo(Hijo);
             Planes_Actualizar_Meta_Hijo_Importado(Objetivo_Padre, Hijo);
             if (!Hijo.Fijado && Hijo.Auto_Redistribucion !== false) {
+              const Cuota = Planes_Target_Importacion(
+                Objetivo_Padre,
+                Periodo_Padre,
+                Periodo,
+                Opciones.Modo || "Proporcional",
+                Opciones.Targets_Manuales || {}
+              );
               Hijo.Target_Total = Cuota;
               Hijo.Target_Automatico = Cuota;
               Hijo.Target_Actual = Cuota;
