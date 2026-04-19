@@ -42108,20 +42108,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? ` · +${Planes_Formatear_Numero(Aporte)}` +
             (Unidad_Aporte ? ` ${Unidad_Aporte}` : "")
           : "";
+        const Aporte_Txt_Limpio = Aporte_Txt
+          .replace(/\u00C2\u00B7/g, "\u00B7")
+          .replace(/\u00C3\u201A\u00C2\u00B7/g, "\u00B7");
         if (Target <= 0) {
-          return `${t("planes.sin_metrica")}${Aporte_Txt}`.trim();
+          return `${t("planes.sin_metrica")}${Aporte_Txt_Limpio}`
+            .trim();
         }
         const Progreso = Number(Sub.Progreso_Manual) || 0;
-        const Inicial = Number(Sub.Progreso_Inicial) || 0;
-        const Avances = Number(Sub.Progreso_Avances) || 0;
-        const Detalle = Inicial > 0 || Avances > 0
-          ? ` (${Planes_Formatear_Numero(Inicial)} + ` +
-            `${Planes_Formatear_Numero(Avances)})`
-          : "";
-        return `${Planes_Formatear_Numero(
-          Progreso
-        )}/${Planes_Formatear_Numero(Target)} ` +
-          Unidad + Detalle + Aporte_Txt;
+        const Porcentaje = Planes_Formatear_Porcentaje_Meta(
+          Progreso,
+          Target
+        );
+        const Progreso_Txt = `${Planes_Formatear_Numero(Progreso)}` +
+          `/${Planes_Formatear_Numero(Target)} ${Unidad}`;
+        return `${Porcentaje} \u00B7 ${Progreso_Txt}` +
+          Aporte_Txt_Limpio;
       }
 
       function Planes_Porcentaje_Meta(Progreso, Target) {
@@ -47221,7 +47223,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Estado_Label =
           t(`planes.estado_${Estado.toLowerCase()}`);
         Item.className = "Planes_Subobjetivo" +
-          (Sub.Importado ? " Importado" : "") +
           ` Vista_${Vista}` +
           " Reordenable";
         Item.draggable = true;
@@ -47247,12 +47248,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             <span class="Planes_Subobjetivo_Meta">
               ${Escape_Html(Planes_Formatear_Meta_Subobjetivo(Sub))}
             </span>
-            ${Planes_Render_Metadatos_Subobjetivo(Sub)}
-            ${Sub.Importado ? `
-              <span class="Planes_Subobjetivo_Importado">
-                ${t("planes.importado")}
-              </span>
-            ` : ""}
           </span>
           <span class="Planes_Subobjetivo_Estado Con_Fallback_Emoji"
             title="${Escape_Html(Estado_Label)}"

@@ -2278,3 +2278,76 @@ async ({ page }) => {
   expect(Resultado.Diciembre_Target).toBeCloseTo(5, 5);
   expect(errores).toEqual([]);
 });
+
+test("Subobjetivos muestra meta limpia sin importado ni metadatos",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    Modelo.UI.Subperiodo_Activo = 1;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Lecturas",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 12,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Liberalismo"
+    );
+    Planes_Actualizar_Subobjetivo_Datos(Sub_Id, {
+      Unidad: "Personalizado",
+      Unidad_Custom: "páginas",
+      Target_Total: 156,
+      Progreso_Inicial: 156,
+      Aporte_Meta: 1,
+      Metadatos: { Autor: "Mill" }
+    });
+    Modelo.Subobjetivos[Sub_Id].Importado = true;
+    Planes_Actualizar_Progreso(Objetivo);
+
+    Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, false);
+    const Item = document.querySelector(".Planes_Subobjetivo");
+    return {
+      Meta: Item?.querySelector(".Planes_Subobjetivo_Meta")
+        ?.textContent?.trim() || "",
+      Texto: Item?.textContent || "",
+      Badge_Importado: Boolean(
+        Item?.querySelector(".Planes_Subobjetivo_Importado")
+      ),
+      Metadatos_Visibles:
+        Item?.querySelectorAll(".Planes_Subobjetivo_Metadato")
+          .length || 0
+    };
+  });
+
+  expect(Resultado.Meta).toContain("100%");
+  expect(Resultado.Meta).toContain("156/156");
+  expect(Resultado.Meta).toContain("+1 libros");
+  expect(Resultado.Meta).not.toContain("(");
+  expect(Resultado.Badge_Importado).toBe(false);
+  expect(Resultado.Metadatos_Visibles).toBe(0);
+  expect(Resultado.Texto).not.toContain("Importado");
+  expect(errores).toEqual([]);
+});
