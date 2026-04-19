@@ -5477,6 +5477,56 @@
         gap: 6px;
       }
 
+      .Planes_Form_Seccion_Titulo {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 400;
+      }
+
+      .Planes_Objetivo_Metadatos_Campo {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .Planes_Objetivo_Metadatos_Lista {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .Planes_Objetivo_Metadato_Fila {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(130px, 170px)
+          auto;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .Planes_Objetivo_Metadato_Header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(130px, 170px)
+          auto;
+        gap: 6px;
+        color: var(--Texto_Suave);
+        font-size: 11px;
+      }
+
+      .Planes_Objetivo_Metadato_Borrar {
+        min-width: 34px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        font: inherit;
+        padding: 7px 9px;
+      }
+
+      .Planes_Objetivo_Metadato_Agregar {
+        width: fit-content;
+      }
+
       .Planes_Subobjetivos_Modal {
         max-width: 820px;
       }
@@ -5574,21 +5624,14 @@
 
       .Planes_Subobjetivo_Metadato_Fila {
         display: grid;
-        grid-template-columns: minmax(110px, 0.45fr) minmax(0, 1fr)
-          auto;
+        grid-template-columns: minmax(130px, 0.4fr) minmax(0, 1fr);
         gap: 6px;
         align-items: center;
       }
 
-      .Planes_Subobjetivo_Metadato_Borrar {
-        min-width: 34px;
-        border: 1px solid var(--Borde);
-        border-radius: 8px;
-        background: #fff;
+      .Planes_Subobjetivo_Metadato_Label {
         color: var(--Texto_Suave);
-        cursor: pointer;
-        font: inherit;
-        padding: 7px 9px;
+        font-size: 12px;
       }
 
       .Planes_Subobjetivo_Metadatos_Vacio {
@@ -5597,10 +5640,6 @@
         color: var(--Texto_Suave);
         font-size: 12px;
         padding: 8px 10px;
-      }
-
-      .Planes_Subobjetivo_Metadato_Agregar {
-        width: fit-content;
       }
 
       .Planes_Vacio {
@@ -17290,6 +17329,22 @@
               </span>
               <select id="Planes_Objetivo_Bajar_A"></select>
             </label>
+            <div class="Campo Campo_Ancho
+              Planes_Objetivo_Metadatos_Campo">
+              <span class="Planes_Form_Seccion_Titulo"
+                data-i18n="planes.meta_metadatos">
+                Metadatos del objetivo
+              </span>
+              <div class="Planes_Objetivo_Metadatos_Lista"
+                id="Planes_Objetivo_Metadatos_Lista"></div>
+              <button type="button"
+                class="Archivero_Sub_Btn Compacto
+                  Planes_Objetivo_Metadato_Agregar"
+                id="Planes_Objetivo_Metadato_Agregar"
+                data-i18n="planes.meta_metadato_agregar">
+                Agregar campo
+              </button>
+            </div>
             <div class="Campo_Ancho Planes_Form_Subobjetivos"
               id="Planes_Form_Subobjetivos">
               <span data-i18n="planes.subobjetivos">
@@ -17489,18 +17544,12 @@
             </label>
             <div class="Campo Campo_Ancho
               Planes_Subobjetivo_Metadatos_Campo">
-              <span data-i18n="planes.sub_metadatos">
+              <span class="Planes_Form_Seccion_Titulo"
+                data-i18n="planes.sub_metadatos">
                 Metadatos
               </span>
               <div class="Planes_Subobjetivo_Metadatos_Lista"
                 id="Planes_Subobjetivo_Metadatos_Lista"></div>
-              <button type="button"
-                class="Archivero_Sub_Btn Compacto
-                  Planes_Subobjetivo_Metadato_Agregar"
-                id="Planes_Subobjetivo_Metadato_Agregar"
-                data-i18n="planes.sub_metadato_agregar">
-                Agregar metadato
-              </button>
             </div>
             <label class="Campo Planes_Subobjetivo_Hecha_Campo">
               <span data-i18n="planes.estado_cumplido">
@@ -18521,6 +18570,157 @@
           "planes.sub_metadato_valor_ph": "Valor",
           "planes.sub_sin_metadatos":
             "Sin metadatos personalizados.",
+          "planes.meta_metadatos": "Metadatos del objetivo",
+          "planes.meta_metadato_agregar": "Agregar campo",
+          "planes.meta_metadato_nombre": "Nombre",
+          "planes.meta_metadato_nombre_ph":
+            "Autor, año, editorial...",
+          "planes.meta_metadato_tipo": "Tipo de variable",
+          "planes.meta_metadato_tipo_numerico":
+            "Numérico",
+          "planes.meta_metadato_tipo_string": "String",
+          "planes.meta_sin_metadatos":
+            "Este objetivo no tiene metadatos definidos.",
+          "planes.meta_metadato_nombre_error":
+            "Completá el nombre del metadato.",
+          "planes.meta_metadato_duplicado":
+            "Hay metadatos con el mismo nombre.",
+          "planes.sub_sin_metadatos_definidos":
+            "Este objetivo no tiene metadatos definidos.",
+          "planes.sub_metadato_numero_ph": "Número decimal",
+          "planes.sub_metadato_texto_ph": "Texto",
+          "planes.sub_metadato_numero_error":
+            "Ingresá un número válido para {nombre}.",
+          "planes.ui_help_tipo_periodo":
+            "Define el nivel temporal que estás mirando: año, mes, semana u otra capa.",
+          "planes.ui_help_anio":
+            "Acota la vista a un año o muestra todos los años configurados.",
+          "planes.ui_help_subperiodo":
+            "Elige el semestre, trimestre, mes o semana dentro del año activo.",
+          "planes.ui_help_custom":
+            "Crea un período manual con fechas propias.",
+          "planes.ui_help_estado_filtro":
+            "Filtra objetivos por su estado operativo.",
+          "planes.ui_help_etiqueta_filtro":
+            "Filtra objetivos por una etiqueta del sistema de Metas.",
+          "planes.ui_help_vista":
+            "Cambia la forma de leer los objetivos sin cambiar los datos.",
+          "planes.ui_help_config_anios":
+            "Configura qué años existen y se muestran en Metas.",
+          "planes.ui_help_gestionar_etiquetas":
+            "Edita las etiquetas disponibles para clasificar objetivos.",
+          "planes.ui_help_ayuda_conceptual":
+            "Abre una explicación breve del modelo de Metas.",
+          "planes.ui_help_resumen_objetivos":
+            "Cantidad de objetivos visibles en este período.",
+          "planes.ui_help_resumen_realizados":
+            "Objetivos que ya están marcados como realizados.",
+          "planes.ui_help_resumen_progreso":
+            "Porcentaje realizado según las métricas cargadas.",
+          "planes.ui_help_resumen_alertas":
+            "Señales de objetivos que necesitan revisión.",
+          "planes.ui_help_importar_periodo":
+            "Trae objetivos desde períodos superiores compatibles.",
+          "planes.ui_help_avance_periodo":
+            "Carga avance para objetivos de este período.",
+          "planes.ui_help_agregar_objetivo":
+            "Crea un objetivo dentro del período actual.",
+          "planes.ui_help_descripcion_periodo":
+            "Resumen narrativo del período; sirve para contexto, no para cálculo.",
+          "planes.ui_help_objetivo_emoji":
+            "Icono visual para reconocer el objetivo rápido.",
+          "planes.ui_help_objetivo_nombre":
+            "Nombre concreto del objetivo.",
+          "planes.ui_help_modo_avance":
+            "Define cómo se interpreta el progreso del objetivo.",
+          "planes.ui_help_meta":
+            "Métrica objetivo: el total cuantitativo que querés alcanzar.",
+          "planes.ui_help_unidad":
+            "Unidad de medida de la métrica, como libros, horas o sesiones.",
+          "planes.ui_help_descripcion":
+            "Contexto visible al pasar el mouse por el objetivo.",
+          "planes.ui_help_etiquetas":
+            "Clasificación transversal para filtrar y agrupar objetivos.",
+          "planes.ui_help_vinculo":
+            "Relación con calendario, objetivos, etiquetas o subobjetivos.",
+          "planes.ui_help_bajar_a":
+            "Replica el objetivo en una capa temporal inferior.",
+          "planes.ui_help_metadatos_objetivo":
+            "Campos propios del objetivo que después completan sus subobjetivos.",
+          "planes.ui_help_metadato_nombre":
+            "Nombre del campo, por ejemplo autor, año o editorial.",
+          "planes.ui_help_metadato_tipo":
+            "Tipo del campo: numérico con decimales o texto libre.",
+          "planes.ui_help_subobjetivos":
+            "Pasos o ítems que componen el objetivo.",
+          "planes.ui_help_detalle_estado":
+            "Estado actual del objetivo en este período.",
+          "planes.ui_help_detalle_avance":
+            "Fuente conceptual del progreso mostrado.",
+          "planes.ui_help_detalle_origen":
+            "Indica si el objetivo nació acá o fue importado.",
+          "planes.ui_help_detalle_realizado":
+            "Avance acumulado hasta ahora.",
+          "planes.ui_help_detalle_falta":
+            "Cantidad restante para alcanzar la meta.",
+          "planes.ui_help_detalle_detectado":
+            "Avance leído automáticamente desde vínculos o subobjetivos.",
+          "planes.ui_help_ver_subobjetivos":
+            "Abre el panel de subobjetivos de esta meta.",
+          "planes.ui_help_registro":
+            "Muestra el historial de avances del objetivo.",
+          "planes.ui_help_sub_agregar":
+            "Crea un subobjetivo para este objetivo.",
+          "planes.ui_help_sub_importar":
+            "Trae subobjetivos del objetivo padre importado.",
+          "planes.ui_help_sub_avance":
+            "Carga avance limitado a este objetivo y sus subobjetivos.",
+          "planes.ui_help_sub_vista":
+            "Cambia la lectura del panel de subobjetivos.",
+          "planes.ui_help_sub_filtro_estado":
+            "Filtra subobjetivos abiertos o realizados.",
+          "planes.ui_help_sub_filtro_metadato":
+            "Busca por valores de metadatos, como autor:Borges.",
+          "planes.ui_help_sub_filtro_periodo":
+            "Filtra subobjetivos por su relación con el período.",
+          "planes.ui_help_sub_emoji":
+            "Icono visual del subobjetivo.",
+          "planes.ui_help_sub_nombre":
+            "Nombre del paso o ítem que querés completar.",
+          "planes.ui_help_sub_metrica":
+            "Métrica propia del subobjetivo; permite registrar avance interno.",
+          "planes.ui_help_sub_avance_inicial":
+            "Avance ya hecho antes de empezar a registrar historial.",
+          "planes.ui_help_sub_aporte":
+            "Cuánto suma este subobjetivo a la meta del objetivo al realizarse.",
+          "planes.ui_help_sub_unidad":
+            "Unidad propia con la que se mide este subobjetivo.",
+          "planes.ui_help_sub_inicio":
+            "Fecha desde la que este subobjetivo cuenta como activo.",
+          "planes.ui_help_sub_fin":
+            "Fecha esperada de finalización del subobjetivo.",
+          "planes.ui_help_sub_metadatos":
+            "Valores de los campos definidos en el objetivo.",
+          "planes.ui_help_sub_realizado":
+            "Marca el subobjetivo como terminado.",
+          "planes.ui_help_avance_item":
+            "Objetivo o subobjetivo al que se imputará el avance.",
+          "planes.ui_help_avance_cantidad":
+            "Cantidad que se suma a la métrica elegida.",
+          "planes.ui_help_avance_fecha":
+            "Día registrado para el avance.",
+          "planes.ui_help_avance_hora":
+            "Hora registrada para el avance.",
+          "planes.ui_help_registro_fecha":
+            "Momento registrado para cada avance.",
+          "planes.ui_help_registro_fuente":
+            "Origen del avance: manual, calendario o subobjetivo.",
+          "planes.ui_help_registro_item":
+            "Objetivo o subobjetivo que recibió el avance.",
+          "planes.ui_help_registro_cantidad":
+            "Cantidad y unidad registradas.",
+          "planes.ui_help_registro_acciones":
+            "Acciones disponibles sobre registros editables.",
           "planes.filtro_estado": "Estado",
           "planes.filtro_abiertos": "Abiertos",
           "planes.filtro_cumplidos": "Realizados",
@@ -21605,6 +21805,157 @@
           "planes.sub_metadato_valor_ph": "Value",
           "planes.sub_sin_metadatos":
             "No custom metadata.",
+          "planes.meta_metadatos": "Objective metadata",
+          "planes.meta_metadato_agregar": "Add field",
+          "planes.meta_metadato_nombre": "Name",
+          "planes.meta_metadato_nombre_ph":
+            "Author, year, publisher...",
+          "planes.meta_metadato_tipo": "Variable type",
+          "planes.meta_metadato_tipo_numerico":
+            "Numeric",
+          "planes.meta_metadato_tipo_string": "String",
+          "planes.meta_sin_metadatos":
+            "This objective has no defined metadata.",
+          "planes.meta_metadato_nombre_error":
+            "Complete the metadata name.",
+          "planes.meta_metadato_duplicado":
+            "There are metadata fields with the same name.",
+          "planes.sub_sin_metadatos_definidos":
+            "This objective has no defined metadata.",
+          "planes.sub_metadato_numero_ph": "Decimal number",
+          "planes.sub_metadato_texto_ph": "Text",
+          "planes.sub_metadato_numero_error":
+            "Enter a valid number for {nombre}.",
+          "planes.ui_help_tipo_periodo":
+            "Defines the time layer you are viewing: year, month, week, or another layer.",
+          "planes.ui_help_anio":
+            "Limits the view to one year or shows all configured years.",
+          "planes.ui_help_subperiodo":
+            "Chooses the semester, quarter, month, or week inside the active year.",
+          "planes.ui_help_custom":
+            "Creates a manual period with custom dates.",
+          "planes.ui_help_estado_filtro":
+            "Filters objectives by operational status.",
+          "planes.ui_help_etiqueta_filtro":
+            "Filters objectives by a Goals tag.",
+          "planes.ui_help_vista":
+            "Changes how objectives are displayed without changing data.",
+          "planes.ui_help_config_anios":
+            "Configures which years exist and are shown in Goals.",
+          "planes.ui_help_gestionar_etiquetas":
+            "Edits the tags available to classify objectives.",
+          "planes.ui_help_ayuda_conceptual":
+            "Opens a short explanation of the Goals model.",
+          "planes.ui_help_resumen_objetivos":
+            "Number of visible objectives in this period.",
+          "planes.ui_help_resumen_realizados":
+            "Objectives already marked as completed.",
+          "planes.ui_help_resumen_progreso":
+            "Completed percentage based on loaded metrics.",
+          "planes.ui_help_resumen_alertas":
+            "Signals for objectives that need review.",
+          "planes.ui_help_importar_periodo":
+            "Brings objectives from compatible parent periods.",
+          "planes.ui_help_avance_periodo":
+            "Logs progress for objectives in this period.",
+          "planes.ui_help_agregar_objetivo":
+            "Creates an objective inside the current period.",
+          "planes.ui_help_descripcion_periodo":
+            "Narrative period summary; useful for context, not calculation.",
+          "planes.ui_help_objetivo_emoji":
+            "Visual icon to recognize the objective quickly.",
+          "planes.ui_help_objetivo_nombre":
+            "Concrete objective name.",
+          "planes.ui_help_modo_avance":
+            "Defines how objective progress is interpreted.",
+          "planes.ui_help_meta":
+            "Objective metric: the quantitative total you want to reach.",
+          "planes.ui_help_unidad":
+            "Metric unit, such as books, hours, or sessions.",
+          "planes.ui_help_descripcion":
+            "Context shown when hovering over the objective.",
+          "planes.ui_help_etiquetas":
+            "Cross-cutting classification for filtering and grouping objectives.",
+          "planes.ui_help_vinculo":
+            "Relationship with calendar, objectives, tags, or subobjectives.",
+          "planes.ui_help_bajar_a":
+            "Replicates the objective into a lower time layer.",
+          "planes.ui_help_metadatos_objetivo":
+            "Objective-owned fields later completed by its subobjectives.",
+          "planes.ui_help_metadato_nombre":
+            "Field name, for example author, year, or publisher.",
+          "planes.ui_help_metadato_tipo":
+            "Field type: decimal numeric value or free text.",
+          "planes.ui_help_subobjetivos":
+            "Steps or items that make up the objective.",
+          "planes.ui_help_detalle_estado":
+            "Current objective status in this period.",
+          "planes.ui_help_detalle_avance":
+            "Conceptual source of the displayed progress.",
+          "planes.ui_help_detalle_origen":
+            "Shows whether the objective was created here or imported.",
+          "planes.ui_help_detalle_realizado":
+            "Accumulated progress so far.",
+          "planes.ui_help_detalle_falta":
+            "Remaining amount needed to reach the goal.",
+          "planes.ui_help_detalle_detectado":
+            "Progress read automatically from links or subobjectives.",
+          "planes.ui_help_ver_subobjetivos":
+            "Opens this goal's subobjectives panel.",
+          "planes.ui_help_registro":
+            "Shows the objective progress history.",
+          "planes.ui_help_sub_agregar":
+            "Creates a subobjective for this objective.",
+          "planes.ui_help_sub_importar":
+            "Brings subobjectives from the imported parent objective.",
+          "planes.ui_help_sub_avance":
+            "Logs progress limited to this objective and its subobjectives.",
+          "planes.ui_help_sub_vista":
+            "Changes how the subobjectives panel is read.",
+          "planes.ui_help_sub_filtro_estado":
+            "Filters open or completed subobjectives.",
+          "planes.ui_help_sub_filtro_metadato":
+            "Searches metadata values, such as author:Borges.",
+          "planes.ui_help_sub_filtro_periodo":
+            "Filters subobjectives by their relationship with the period.",
+          "planes.ui_help_sub_emoji":
+            "Visual icon for the subobjective.",
+          "planes.ui_help_sub_nombre":
+            "Name of the step or item you want to complete.",
+          "planes.ui_help_sub_metrica":
+            "Subobjective's own metric; allows internal progress logging.",
+          "planes.ui_help_sub_avance_inicial":
+            "Progress already done before history logging starts.",
+          "planes.ui_help_sub_aporte":
+            "How much this subobjective adds to the objective goal when completed.",
+          "planes.ui_help_sub_unidad":
+            "Unit used to measure this subobjective.",
+          "planes.ui_help_sub_inicio":
+            "Date from which this subobjective counts as active.",
+          "planes.ui_help_sub_fin":
+            "Expected subobjective completion date.",
+          "planes.ui_help_sub_metadatos":
+            "Values for the fields defined on the objective.",
+          "planes.ui_help_sub_realizado":
+            "Marks the subobjective as completed.",
+          "planes.ui_help_avance_item":
+            "Objective or subobjective that will receive the progress.",
+          "planes.ui_help_avance_cantidad":
+            "Amount added to the selected metric.",
+          "planes.ui_help_avance_fecha":
+            "Day recorded for the progress entry.",
+          "planes.ui_help_avance_hora":
+            "Time recorded for the progress entry.",
+          "planes.ui_help_registro_fecha":
+            "Recorded time for each progress entry.",
+          "planes.ui_help_registro_fuente":
+            "Progress source: manual, calendar, or subobjective.",
+          "planes.ui_help_registro_item":
+            "Objective or subobjective that received the progress.",
+          "planes.ui_help_registro_cantidad":
+            "Recorded amount and unit.",
+          "planes.ui_help_registro_acciones":
+            "Available actions for editable history entries.",
           "planes.filtro_estado": "Status",
           "planes.filtro_abiertos": "Open",
           "planes.filtro_cumplidos": "Completed",
@@ -24638,6 +24989,157 @@
           "planes.sub_metadato_valor_ph": "Valor",
           "planes.sub_sin_metadatos":
             "Sem metadados personalizados.",
+          "planes.meta_metadatos": "Metadados do objetivo",
+          "planes.meta_metadato_agregar": "Adicionar campo",
+          "planes.meta_metadato_nombre": "Nome",
+          "planes.meta_metadato_nombre_ph":
+            "Autor, ano, editora...",
+          "planes.meta_metadato_tipo": "Tipo de variável",
+          "planes.meta_metadato_tipo_numerico":
+            "Numérico",
+          "planes.meta_metadato_tipo_string": "String",
+          "planes.meta_sin_metadatos":
+            "Este objetivo não tem metadados definidos.",
+          "planes.meta_metadato_nombre_error":
+            "Complete o nome do metadado.",
+          "planes.meta_metadato_duplicado":
+            "Há metadados com o mesmo nome.",
+          "planes.sub_sin_metadatos_definidos":
+            "Este objetivo não tem metadados definidos.",
+          "planes.sub_metadato_numero_ph": "Número decimal",
+          "planes.sub_metadato_texto_ph": "Texto",
+          "planes.sub_metadato_numero_error":
+            "Informe um número válido para {nombre}.",
+          "planes.ui_help_tipo_periodo":
+            "Define a camada temporal que você está vendo: ano, mês, semana ou outra camada.",
+          "planes.ui_help_anio":
+            "Limita a visão a um ano ou mostra todos os anos configurados.",
+          "planes.ui_help_subperiodo":
+            "Escolhe o semestre, trimestre, mês ou semana dentro do ano ativo.",
+          "planes.ui_help_custom":
+            "Cria um período manual com datas próprias.",
+          "planes.ui_help_estado_filtro":
+            "Filtra objetivos por estado operacional.",
+          "planes.ui_help_etiqueta_filtro":
+            "Filtra objetivos por uma etiqueta de Metas.",
+          "planes.ui_help_vista":
+            "Muda a forma de ler os objetivos sem alterar dados.",
+          "planes.ui_help_config_anios":
+            "Configura quais anos existem e aparecem em Metas.",
+          "planes.ui_help_gestionar_etiquetas":
+            "Edita as etiquetas disponíveis para classificar objetivos.",
+          "planes.ui_help_ayuda_conceptual":
+            "Abre uma explicação breve do modelo de Metas.",
+          "planes.ui_help_resumen_objetivos":
+            "Quantidade de objetivos visíveis neste período.",
+          "planes.ui_help_resumen_realizados":
+            "Objetivos já marcados como realizados.",
+          "planes.ui_help_resumen_progreso":
+            "Percentual realizado segundo as métricas carregadas.",
+          "planes.ui_help_resumen_alertas":
+            "Sinais de objetivos que precisam de revisão.",
+          "planes.ui_help_importar_periodo":
+            "Traz objetivos de períodos superiores compatíveis.",
+          "planes.ui_help_avance_periodo":
+            "Registra avanço para objetivos deste período.",
+          "planes.ui_help_agregar_objetivo":
+            "Cria um objetivo dentro do período atual.",
+          "planes.ui_help_descripcion_periodo":
+            "Resumo narrativo do período; serve para contexto, não para cálculo.",
+          "planes.ui_help_objetivo_emoji":
+            "Ícone visual para reconhecer o objetivo rapidamente.",
+          "planes.ui_help_objetivo_nombre":
+            "Nome concreto do objetivo.",
+          "planes.ui_help_modo_avance":
+            "Define como o progresso do objetivo é interpretado.",
+          "planes.ui_help_meta":
+            "Métrica do objetivo: o total quantitativo que você quer atingir.",
+          "planes.ui_help_unidad":
+            "Unidade da métrica, como livros, horas ou sessões.",
+          "planes.ui_help_descripcion":
+            "Contexto exibido ao passar o mouse pelo objetivo.",
+          "planes.ui_help_etiquetas":
+            "Classificação transversal para filtrar e agrupar objetivos.",
+          "planes.ui_help_vinculo":
+            "Relação com calendário, objetivos, etiquetas ou subobjetivos.",
+          "planes.ui_help_bajar_a":
+            "Replica o objetivo em uma camada temporal inferior.",
+          "planes.ui_help_metadatos_objetivo":
+            "Campos próprios do objetivo que seus subobjetivos completam depois.",
+          "planes.ui_help_metadato_nombre":
+            "Nome do campo, por exemplo autor, ano ou editora.",
+          "planes.ui_help_metadato_tipo":
+            "Tipo do campo: numérico com decimais ou texto livre.",
+          "planes.ui_help_subobjetivos":
+            "Passos ou itens que compõem o objetivo.",
+          "planes.ui_help_detalle_estado":
+            "Estado atual do objetivo neste período.",
+          "planes.ui_help_detalle_avance":
+            "Fonte conceitual do progresso mostrado.",
+          "planes.ui_help_detalle_origen":
+            "Indica se o objetivo nasceu aqui ou foi importado.",
+          "planes.ui_help_detalle_realizado":
+            "Avanço acumulado até agora.",
+          "planes.ui_help_detalle_falta":
+            "Quantidade restante para atingir a meta.",
+          "planes.ui_help_detalle_detectado":
+            "Avanço lido automaticamente de vínculos ou subobjetivos.",
+          "planes.ui_help_ver_subobjetivos":
+            "Abre o painel de subobjetivos desta meta.",
+          "planes.ui_help_registro":
+            "Mostra o histórico de avanços do objetivo.",
+          "planes.ui_help_sub_agregar":
+            "Cria um subobjetivo para este objetivo.",
+          "planes.ui_help_sub_importar":
+            "Traz subobjetivos do objetivo pai importado.",
+          "planes.ui_help_sub_avance":
+            "Registra avanço limitado a este objetivo e seus subobjetivos.",
+          "planes.ui_help_sub_vista":
+            "Muda a leitura do painel de subobjetivos.",
+          "planes.ui_help_sub_filtro_estado":
+            "Filtra subobjetivos abertos ou realizados.",
+          "planes.ui_help_sub_filtro_metadato":
+            "Busca por valores de metadados, como autor:Borges.",
+          "planes.ui_help_sub_filtro_periodo":
+            "Filtra subobjetivos pela relação com o período.",
+          "planes.ui_help_sub_emoji":
+            "Ícone visual do subobjetivo.",
+          "planes.ui_help_sub_nombre":
+            "Nome do passo ou item que você quer completar.",
+          "planes.ui_help_sub_metrica":
+            "Métrica própria do subobjetivo; permite registrar avanço interno.",
+          "planes.ui_help_sub_avance_inicial":
+            "Avanço já feito antes de começar a registrar histórico.",
+          "planes.ui_help_sub_aporte":
+            "Quanto este subobjetivo soma à meta do objetivo ao ser realizado.",
+          "planes.ui_help_sub_unidad":
+            "Unidade usada para medir este subobjetivo.",
+          "planes.ui_help_sub_inicio":
+            "Data a partir da qual este subobjetivo conta como ativo.",
+          "planes.ui_help_sub_fin":
+            "Data esperada de conclusão do subobjetivo.",
+          "planes.ui_help_sub_metadatos":
+            "Valores dos campos definidos no objetivo.",
+          "planes.ui_help_sub_realizado":
+            "Marca o subobjetivo como terminado.",
+          "planes.ui_help_avance_item":
+            "Objetivo ou subobjetivo que receberá o avanço.",
+          "planes.ui_help_avance_cantidad":
+            "Quantidade somada à métrica escolhida.",
+          "planes.ui_help_avance_fecha":
+            "Dia registrado para o avanço.",
+          "planes.ui_help_avance_hora":
+            "Hora registrada para o avanço.",
+          "planes.ui_help_registro_fecha":
+            "Momento registrado para cada avanço.",
+          "planes.ui_help_registro_fuente":
+            "Origem do avanço: manual, calendário ou subobjetivo.",
+          "planes.ui_help_registro_item":
+            "Objetivo ou subobjetivo que recebeu o avanço.",
+          "planes.ui_help_registro_cantidad":
+            "Quantidade e unidade registradas.",
+          "planes.ui_help_registro_acciones":
+            "Ações disponíveis sobre registros editáveis.",
           "planes.filtro_estado": "Estado",
           "planes.filtro_abiertos": "Abertos",
           "planes.filtro_cumplidos": "Realizados",
@@ -27604,6 +28106,9 @@
           Meses_Cortos.length = 0;
           Meses_Cortos.push(...M);
         }
+        if (typeof Aplicar_Ayudas_Contextuales_Planes === "function") {
+          Aplicar_Ayudas_Contextuales_Planes();
+        }
         Actualizar_Boton_Reintento_Sync();
       }
 
@@ -28095,10 +28600,11 @@
       let Planes_Periodo = {};
       let Planes_Vencidos_Seleccionados = new Set();
       let Planes_Objetivo_En_Edicion_Id = null;
+      let Planes_Objetivo_Metadatos_Borrador = [];
       let Planes_Subobjetivos_Objetivo_Id = null;
       let Planes_Subobjetivo_En_Edicion_Id = null;
       let Planes_Subobjetivo_Nuevo_Borrador = null;
-      let Planes_Subobjetivo_Metadatos_Borrador = [];
+      let Planes_Subobjetivo_Metadatos_Borrador = {};
       let Planes_Subobjetivos_Filtro_Estado = "Todos";
       let Planes_Subobjetivos_Filtro_Metadato = "";
       let Planes_Subobjetivos_Filtro_Periodo = "Todos";
@@ -39674,6 +40180,71 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : "Sin_Metrica";
       }
 
+      function Planes_Normalizar_Tipo_Metadato_Objetivo(Tipo) {
+        const Valor = (Tipo || "").toString().toLowerCase();
+        if (
+          ["numerico", "numero", "number", "float", "numeric"]
+            .includes(Valor)
+        ) {
+          return "Numerico";
+        }
+        return "String";
+      }
+
+      function Planes_Crear_Id_Metadato_Objetivo(Nombre = "") {
+        const Base = Normalizar_Texto_Archivero(Nombre)
+          .replace(/[^a-z0-9]+/g, "_")
+          .replace(/^_+|_+$/g, "")
+          .slice(0, 32);
+        return `Meta_${Base || "campo"}_${Date.now()}_` +
+          `${Math.floor(Math.random() * 1000)}`;
+      }
+
+      function Normalizar_Definiciones_Metadatos_Objetivo(
+        Metadatos
+      ) {
+        const Resultado = [];
+        const Nombres = new Set();
+        const Agregar = (Item) => {
+          if (!Item || typeof Item !== "object") return;
+          const Nombre = (
+            Item.Nombre ||
+            Item.Clave ||
+            Item.Key ||
+            ""
+          ).toString().trim();
+          if (!Nombre) return;
+          const Clave = Normalizar_Texto_Archivero(Nombre);
+          if (Nombres.has(Clave)) return;
+          Nombres.add(Clave);
+          Resultado.push({
+            Id: (
+              Item.Id ||
+              Item.id ||
+              Planes_Crear_Id_Metadato_Objetivo(Nombre)
+            ).toString(),
+            Nombre,
+            Tipo: Planes_Normalizar_Tipo_Metadato_Objetivo(
+              Item.Tipo || Item.Tipo_Variable || Item.Type
+            )
+          });
+        };
+        if (Array.isArray(Metadatos)) {
+          Metadatos.forEach(Agregar);
+          return Resultado;
+        }
+        if (Metadatos && typeof Metadatos === "object") {
+          Object.entries(Metadatos).forEach(([Nombre, Tipo]) => {
+            Agregar({
+              Id: Nombre,
+              Nombre,
+              Tipo: typeof Tipo === "string" ? Tipo : Tipo?.Tipo
+            });
+          });
+        }
+        return Resultado;
+      }
+
       function Normalizar_Objetivo_Plan(Objetivo, Indice = 0) {
         if (!Objetivo || typeof Objetivo !== "object") return null;
         const Ahora = new Date().toISOString();
@@ -39789,6 +40360,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Tags: Array.isArray(Objetivo.Tags)
             ? [...Objetivo.Tags]
             : [],
+          Metadatos_Campos:
+            Normalizar_Definiciones_Metadatos_Objetivo(
+              Objetivo.Metadatos_Campos ||
+              Objetivo.Metadatos_Definicion ||
+              Objetivo.Metadatos_Definiciones
+            ),
+          Metadatos_Campos_Config: Boolean(
+            Objetivo.Metadatos_Campos_Config ||
+            Array.isArray(Objetivo.Metadatos_Campos) ||
+            Array.isArray(Objetivo.Metadatos_Definicion) ||
+            Array.isArray(Objetivo.Metadatos_Definiciones)
+          ),
           Estado: Planes_Estados.includes(Objetivo.Estado)
             ? Objetivo.Estado
             : "Activo",
@@ -40762,6 +41345,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Progreso_Manual: 0,
           Etiquetas_Ids: [...(Objetivo.Etiquetas_Ids || [])],
           Tags: [...(Objetivo.Tags || [])],
+          Metadatos_Campos:
+            Planes_Definiciones_Metadatos_Objetivo(Objetivo)
+              .map((Campo) => ({ ...Campo })),
+          Metadatos_Campos_Config:
+            Boolean(Objetivo.Metadatos_Campos_Config) ||
+            Planes_Definiciones_Metadatos_Objetivo(Objetivo).length > 0,
           Vinculo_Sidebar_Activo: Objetivo.Vinculo_Sidebar_Activo,
           Vinculo_Tipo: Objetivo.Vinculo_Tipo,
           Vinculo_Id: Objetivo.Vinculo_Id,
@@ -41361,6 +41950,170 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Btn_Etiquetas) {
           Btn_Etiquetas.onclick = Abrir_Modal_Planes_Etiquetas;
         }
+        Aplicar_Ayudas_Contextuales_Planes();
+      }
+
+      function Planes_Aplicar_Ayuda_Contextual(Elemento, Clave) {
+        if (!Elemento || !Clave) return;
+        const Texto = t(Clave);
+        if (!Texto || Texto === Clave) return;
+        const Destinos = new Set([Elemento]);
+        [
+          "label",
+          ".Campo",
+          ".Planes_Control",
+          ".Planes_Subobjetivos_Filtro",
+          ".Planes_Metrica",
+          ".Planes_Form_Subobjetivos",
+          ".Planes_Objetivo_Metadatos_Campo",
+          ".Planes_Subobjetivo_Metadatos_Campo"
+        ].forEach((Selector) => {
+          const Cercano = Elemento.closest?.(Selector);
+          if (Cercano) Destinos.add(Cercano);
+        });
+        Destinos.forEach((Destino) => {
+          Destino.title = Texto;
+          Destino.classList?.add("Planes_Dato_Ayuda");
+        });
+      }
+
+      function Aplicar_Ayudas_Contextuales_Planes() {
+        const Ayudas = [
+          ["#Planes_Capa_Select", "planes.ui_help_tipo_periodo"],
+          ["#Planes_Anio_Select", "planes.ui_help_anio"],
+          ["#Planes_Subperiodo_Select", "planes.ui_help_subperiodo"],
+          ["#Planes_Btn_Custom", "planes.ui_help_custom"],
+          ["#Planes_Filtro_Estado", "planes.ui_help_estado_filtro"],
+          ["#Planes_Filtro_Etiqueta", "planes.ui_help_etiqueta_filtro"],
+          ["#Planes_Vista_Toggle .Planes_Vista_Btn",
+            "planes.ui_help_vista"],
+          ["#Planes_Config_Header", "planes.ui_help_config_anios"],
+          ["#Planes_Btn_Etiquetas_Header",
+            "planes.ui_help_gestionar_etiquetas"],
+          ["#Planes_Ayuda_Conceptual_Abrir",
+            "planes.ui_help_ayuda_conceptual"],
+          [".Planes_Metrica:nth-child(1) .Planes_Metrica_Label",
+            "planes.ui_help_resumen_objetivos"],
+          [".Planes_Metrica:nth-child(2) .Planes_Metrica_Label",
+            "planes.ui_help_resumen_realizados"],
+          [".Planes_Metrica:nth-child(3) .Planes_Metrica_Label",
+            "planes.ui_help_resumen_progreso"],
+          [".Planes_Metrica:nth-child(4) .Planes_Metrica_Label",
+            "planes.ui_help_resumen_alertas"],
+          ["[data-plan-universo-importar]",
+            "planes.ui_help_importar_periodo"],
+          ["[data-plan-universo-avance]",
+            "planes.ui_help_avance_periodo"],
+          ["[data-plan-universo-nuevo]",
+            "planes.ui_help_agregar_objetivo"],
+          [".Planes_Resumen_Vacio, .Planes_Resumen_Texto_Fila",
+            "planes.ui_help_descripcion_periodo"],
+          ["#Planes_Objetivo_Emoji",
+            "planes.ui_help_objetivo_emoji"],
+          ["#Planes_Objetivo_Nombre",
+            "planes.ui_help_objetivo_nombre"],
+          ["#Planes_Objetivo_Modo_Avance",
+            "planes.ui_help_modo_avance"],
+          ["#Planes_Objetivo_Target", "planes.ui_help_meta"],
+          ["#Planes_Objetivo_Unidad", "planes.ui_help_unidad"],
+          ["#Planes_Objetivo_Unidad_Custom",
+            "planes.ui_help_unidad"],
+          ["#Planes_Objetivo_Descripcion",
+            "planes.ui_help_descripcion"],
+          ["#Planes_Objetivo_Etiquetas",
+            "planes.ui_help_etiquetas"],
+          ["#Planes_Objetivo_Vinculo", "planes.ui_help_vinculo"],
+          ["#Planes_Objetivo_Bajar_A", "planes.ui_help_bajar_a"],
+          [".Planes_Objetivo_Metadatos_Campo",
+            "planes.ui_help_metadatos_objetivo"],
+          [".Planes_Objetivo_Metadato_Nombre",
+            "planes.ui_help_metadato_nombre"],
+          [".Planes_Objetivo_Metadato_Tipo",
+            "planes.ui_help_metadato_tipo"],
+          ["#Planes_Objetivo_Metadato_Agregar",
+            "planes.ui_help_metadatos_objetivo"],
+          ["#Planes_Form_Subobjetivos",
+            "planes.ui_help_subobjetivos"],
+          ["#Planes_Form_Subobjetivos_Agregar",
+            "planes.ui_help_sub_agregar"],
+          [".Planes_Progreso_Tabla th:nth-child(1)",
+            "planes.ui_help_detalle_estado"],
+          [".Planes_Progreso_Tabla th:nth-child(2)",
+            "planes.ui_help_detalle_avance"],
+          [".Planes_Progreso_Tabla th:nth-child(3)",
+            "planes.ui_help_detalle_origen"],
+          [".Planes_Progreso_Tabla th:nth-child(4)",
+            "planes.ui_help_meta"],
+          [".Planes_Progreso_Tabla th:nth-child(5)",
+            "planes.ui_help_detalle_realizado"],
+          [".Planes_Progreso_Tabla th:nth-child(6)",
+            "planes.ui_help_detalle_falta"],
+          [".Planes_Progreso_Tabla th:nth-child(7)",
+            "planes.ui_help_detalle_detectado"],
+          ["[data-plan-accion='admin_subs']",
+            "planes.ui_help_ver_subobjetivos"],
+          ["[data-plan-accion='registro']",
+            "planes.ui_help_registro"],
+          ["#Planes_Subobjetivos_Agregar",
+            "planes.ui_help_sub_agregar"],
+          ["#Planes_Subobjetivos_Importar",
+            "planes.ui_help_sub_importar"],
+          ["#Planes_Subobjetivos_Avance",
+            "planes.ui_help_sub_avance"],
+          ["#Planes_Subobjetivos_Vista_Toggle .Planes_Vista_Btn",
+            "planes.ui_help_sub_vista"],
+          ["#Planes_Subobjetivos_Filtro_Estado",
+            "planes.ui_help_sub_filtro_estado"],
+          ["#Planes_Subobjetivos_Filtro_Metadato",
+            "planes.ui_help_sub_filtro_metadato"],
+          ["#Planes_Subobjetivos_Filtro_Periodo",
+            "planes.ui_help_sub_filtro_periodo"],
+          ["#Planes_Subobjetivo_Emoji",
+            "planes.ui_help_sub_emoji"],
+          ["#Planes_Subobjetivo_Texto",
+            "planes.ui_help_sub_nombre"],
+          ["#Planes_Subobjetivo_Target",
+            "planes.ui_help_sub_metrica"],
+          ["#Planes_Subobjetivo_Progreso_Inicial",
+            "planes.ui_help_sub_avance_inicial"],
+          ["#Planes_Subobjetivo_Aporte",
+            "planes.ui_help_sub_aporte"],
+          ["#Planes_Subobjetivo_Unidad",
+            "planes.ui_help_sub_unidad"],
+          ["#Planes_Subobjetivo_Unidad_Custom",
+            "planes.ui_help_sub_unidad"],
+          ["#Planes_Subobjetivo_Fecha_Inicio",
+            "planes.ui_help_sub_inicio"],
+          ["#Planes_Subobjetivo_Fecha_Fin",
+            "planes.ui_help_sub_fin"],
+          [".Planes_Subobjetivo_Metadatos_Campo",
+            "planes.ui_help_sub_metadatos"],
+          [".Planes_Subobjetivo_Metadato_Input",
+            "planes.ui_help_sub_metadatos"],
+          ["#Planes_Subobjetivo_Hecha",
+            "planes.ui_help_sub_realizado"],
+          ["#Planes_Avance_Item", "planes.ui_help_avance_item"],
+          ["#Planes_Avance_Cantidad",
+            "planes.ui_help_avance_cantidad"],
+          ["#Planes_Avance_Fecha", "planes.ui_help_avance_fecha"],
+          ["#Planes_Avance_Hora", "planes.ui_help_avance_hora"],
+          [".Planes_Registro_Tabla th:nth-child(1)",
+            "planes.ui_help_registro_fecha"],
+          [".Planes_Registro_Tabla th:nth-child(2)",
+            "planes.ui_help_registro_fuente"],
+          [".Planes_Registro_Tabla th:nth-child(3)",
+            "planes.ui_help_registro_item"],
+          [".Planes_Registro_Tabla th:nth-child(4)",
+            "planes.ui_help_registro_cantidad"],
+          [".Planes_Registro_Tabla th:nth-child(5)",
+            "planes.ui_help_registro_acciones"]
+        ];
+        Ayudas.forEach(([Selector, Clave]) => {
+          document.querySelectorAll(Selector)
+            .forEach((Elemento) => {
+              Planes_Aplicar_Ayuda_Contextual(Elemento, Clave);
+            });
+        });
       }
 
       function Planes_Periodo_O_Descendiente_Pasa(Periodo) {
@@ -41789,6 +42542,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cuerpo.appendChild(
             Render_Planes_Coleccion_Capa(Modelo.UI.Filtro_Tipo || "Semana")
           );
+          Aplicar_Ayudas_Contextuales_Planes();
           return;
         }
         if (!Periodo) {
@@ -41798,6 +42552,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             <div>${Escape_Html(t("planes.capa_vacia"))}</div>
           `;
           Cuerpo.appendChild(Vacio);
+          Aplicar_Ayudas_Contextuales_Planes();
           return;
         }
         Cuerpo.appendChild(Render_Planes_Resumen(Periodo));
@@ -41837,6 +42592,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Acciones_Multi) {
           Cuerpo.appendChild(Acciones_Multi);
         }
+        Aplicar_Ayudas_Contextuales_Planes();
       }
 
       function Planes_Filtrar_Objetivos(Periodo) {
@@ -42059,6 +42815,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Ev.preventDefault();
           Abrir_Editor();
         });
+        Aplicar_Ayudas_Contextuales_Planes();
         return Cont;
       }
 
@@ -42609,6 +43366,184 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Planes_Definiciones_Metadatos_Objetivo(
+        Objetivo,
+        Opciones = {}
+      ) {
+        if (!Objetivo) return [];
+        const Definidas = Normalizar_Definiciones_Metadatos_Objetivo(
+          Objetivo.Metadatos_Campos ||
+          Objetivo.Metadatos_Definicion ||
+          Objetivo.Metadatos_Definiciones
+        );
+        if (
+          Definidas.length ||
+          Objetivo.Metadatos_Campos_Config ||
+          Opciones.Incluir_Legacy === false
+        ) {
+          return Definidas;
+        }
+        const Modelo = Asegurar_Modelo_Planes();
+        const Vistas = new Set();
+        const Inferidas = [];
+        Object.values(Modelo.Subobjetivos || {})
+          .filter((Sub) => Sub.Objetivo_Id === Objetivo.Id)
+          .forEach((Sub) => {
+            const Metadatos = Normalizar_Metadatos_Subobjetivo_Plan(
+              Sub.Metadatos
+            );
+            Object.keys(Metadatos).forEach((Nombre) => {
+              const Clave = Normalizar_Texto_Archivero(Nombre);
+              if (!Clave || Vistas.has(Clave)) return;
+              Vistas.add(Clave);
+              Inferidas.push({
+                Id: Nombre,
+                Nombre,
+                Tipo: "String"
+              });
+            });
+          });
+        return Inferidas;
+      }
+
+      function Planes_Metadatos_Objetivo_Comparables(Objetivo) {
+        return Planes_Definiciones_Metadatos_Objetivo(Objetivo)
+          .map((Campo) => ({
+            Id: (Campo.Id || "").toString(),
+            Nombre: (Campo.Nombre || "").toString().trim(),
+            Tipo: Planes_Normalizar_Tipo_Metadato_Objetivo(
+              Campo.Tipo
+            )
+          }))
+          .filter((Campo) => Campo.Nombre);
+      }
+
+      function Render_Metadatos_Modal_Objetivo() {
+        const Lista = document.getElementById(
+          "Planes_Objetivo_Metadatos_Lista"
+        );
+        if (!Lista) return;
+        Lista.innerHTML = "";
+        if (!Planes_Objetivo_Metadatos_Borrador.length) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Planes_Subobjetivo_Metadatos_Vacio";
+          Vacio.textContent = t("planes.meta_sin_metadatos");
+          Lista.appendChild(Vacio);
+          Aplicar_Ayudas_Contextuales_Planes(Lista);
+          return;
+        }
+        const Header = document.createElement("div");
+        Header.className = "Planes_Objetivo_Metadato_Header";
+        Header.innerHTML = `
+          <span>${Escape_Html(t("planes.meta_metadato_nombre"))}</span>
+          <span>${Escape_Html(t("planes.meta_metadato_tipo"))}</span>
+          <span></span>
+        `;
+        Lista.appendChild(Header);
+        Planes_Objetivo_Metadatos_Borrador.forEach(
+          (Item, Indice) => {
+            const Fila = document.createElement("div");
+            Fila.className = "Planes_Objetivo_Metadato_Fila";
+
+            const Nombre = document.createElement("input");
+            Nombre.type = "text";
+            Nombre.className = "Planes_Objetivo_Metadato_Nombre";
+            Nombre.value = Item.Nombre || "";
+            Nombre.placeholder = t(
+              "planes.meta_metadato_nombre_ph"
+            );
+            Nombre.addEventListener("input", (Ev) => {
+              Planes_Objetivo_Metadatos_Borrador[Indice].Nombre =
+                Ev.target.value;
+            });
+
+            const Tipo = document.createElement("select");
+            Tipo.className = "Planes_Objetivo_Metadato_Tipo";
+            [
+              ["Numerico", t("planes.meta_metadato_tipo_numerico")],
+              ["String", t("planes.meta_metadato_tipo_string")]
+            ].forEach(([Valor, Label]) => {
+              const Opt = document.createElement("option");
+              Opt.value = Valor;
+              Opt.textContent = Label;
+              Tipo.appendChild(Opt);
+            });
+            Tipo.value = Planes_Normalizar_Tipo_Metadato_Objetivo(
+              Item.Tipo
+            );
+            Tipo.addEventListener("change", (Ev) => {
+              Planes_Objetivo_Metadatos_Borrador[Indice].Tipo =
+                Ev.target.value;
+            });
+
+            const Borrar = document.createElement("button");
+            Borrar.type = "button";
+            Borrar.className = "Planes_Objetivo_Metadato_Borrar";
+            Borrar.textContent = "x";
+            Borrar.title = t("borrar");
+            Borrar.addEventListener("click", () => {
+              Planes_Objetivo_Metadatos_Borrador.splice(Indice, 1);
+              Render_Metadatos_Modal_Objetivo();
+            });
+
+            Fila.appendChild(Nombre);
+            Fila.appendChild(Tipo);
+            Fila.appendChild(Borrar);
+            Lista.appendChild(Fila);
+          }
+        );
+        Aplicar_Ayudas_Contextuales_Planes(Lista);
+      }
+
+      function Agregar_Metadato_Modal_Objetivo() {
+        Planes_Objetivo_Metadatos_Borrador.push({
+          Id: Planes_Crear_Id_Metadato_Objetivo(""),
+          Nombre: "",
+          Tipo: "String"
+        });
+        Render_Metadatos_Modal_Objetivo();
+        setTimeout(() => {
+          document
+            .querySelector(
+              "#Planes_Objetivo_Metadatos_Lista " +
+              ".Planes_Objetivo_Metadato_Fila:last-child input"
+            )
+            ?.focus();
+        }, 0);
+      }
+
+      function Planes_Leer_Definiciones_Metadatos_Objetivo() {
+        const Resultado = [];
+        const Nombres = new Set();
+        for (const Item of Planes_Objetivo_Metadatos_Borrador) {
+          const Nombre = (Item.Nombre || "").toString().trim();
+          if (!Nombre) {
+            Mostrar_Toast_Error(
+              t("planes.meta_metadato_nombre_error")
+            );
+            return null;
+          }
+          const Clave = Normalizar_Texto_Archivero(Nombre);
+          if (Nombres.has(Clave)) {
+            Mostrar_Toast_Error(
+              t("planes.meta_metadato_duplicado")
+            );
+            return null;
+          }
+          Nombres.add(Clave);
+          Resultado.push({
+            Id: (Item.Id || Planes_Crear_Id_Metadato_Objetivo(
+              Nombre
+            )).toString(),
+            Nombre,
+            Tipo: Planes_Normalizar_Tipo_Metadato_Objetivo(
+              Item.Tipo
+            )
+          });
+        }
+        return Resultado;
+      }
+
       function Planes_Datos_Comparables_Objetivo(Objetivo) {
         const Etiquetas_Ids = Array.isArray(Objetivo?.Etiquetas_Ids)
           ? Objetivo.Etiquetas_Ids
@@ -42644,7 +43579,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ).toString(),
           Vinculo_Texto: (
             Objetivo?.Vinculo_Texto || ""
-          ).toString()
+          ).toString(),
+          Metadatos_Campos:
+            Planes_Metadatos_Objetivo_Comparables(Objetivo)
         };
       }
 
@@ -42748,16 +43685,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             });
           Bajar_A.value = "";
         }
+        Planes_Objetivo_Metadatos_Borrador =
+          Planes_Definiciones_Metadatos_Objetivo(Objetivo)
+            .map((Campo) => ({ ...Campo }));
+        Render_Metadatos_Modal_Objetivo();
         Actualizar_Campo_Unidad_Custom_Planes();
         Actualizar_Campos_Modo_Avance_Planes();
         document.getElementById("Planes_Form_Subobjetivos")
           ?.classList.toggle("Activo", Boolean(Objetivo));
         Overlay.classList.add("Activo");
+        Aplicar_Ayudas_Contextuales_Planes(Overlay);
         setTimeout(() => Nombre?.focus(), 0);
       }
 
       function Cerrar_Modal_Planes_Objetivo() {
         Planes_Objetivo_En_Edicion_Id = null;
+        Planes_Objetivo_Metadatos_Borrador = [];
         document.getElementById("Planes_Objetivo_Overlay")
           ?.classList.remove("Activo");
       }
@@ -42814,9 +43757,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Etiquetas_Seleccionadas = Obtener_Etiquetas_Seleccionadas(
           document.getElementById("Planes_Objetivo_Etiquetas")
         );
+        const Metadatos_Campos =
+          Planes_Leer_Definiciones_Metadatos_Objetivo();
+        if (Metadatos_Campos === null) return;
         const Existente = Planes_Objetivo_En_Edicion_Id
           ? Modelo.Objetivos[Planes_Objetivo_En_Edicion_Id]
           : null;
+        const Metadatos_Existentes =
+          Planes_Definiciones_Metadatos_Objetivo(Existente);
         const Modo_Progreso = Modo_Avance === "Manual"
           ? "Manual"
           : (
@@ -42840,6 +43788,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           )?.value || "",
           Etiquetas_Ids: Etiquetas_Seleccionadas,
           Tags: Obtener_Nombres_Etiquetas(Etiquetas_Seleccionadas),
+          Metadatos_Campos,
+          Metadatos_Campos_Config:
+            Boolean(Existente?.Metadatos_Campos_Config) ||
+            Metadatos_Campos.length > 0 ||
+            Metadatos_Existentes.length > 0,
           ...Planes_Datos_Vinculo_Desde_Form(
             document.getElementById("Planes_Objetivo_Vinculo")
               ?.dataset.valorReal ||
@@ -43796,6 +44749,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Hora) Hora.value = Actual.Hora;
         document.getElementById("Planes_Avance_Overlay")
           ?.classList.add("Activo");
+        Aplicar_Ayudas_Contextuales_Planes(
+          document.getElementById("Planes_Avance_Overlay")
+        );
         setTimeout(() => {
           Cantidad?.focus();
           Cantidad?.select?.();
@@ -44022,12 +44978,72 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Metadatos_Borrador_A_Objeto() {
-        return Normalizar_Metadatos_Subobjetivo_Plan(
-          Planes_Subobjetivo_Metadatos_Borrador.map((Item) => ({
-            Clave: Item.Clave,
-            Valor: Item.Valor
-          }))
-        );
+        const Objetivo = Planes_Objetivo_De_Modal_Subobjetivo();
+        const Definiciones =
+          Planes_Definiciones_Metadatos_Objetivo(Objetivo);
+        const Resultado = {};
+        for (const Campo of Definiciones) {
+          const Valor_Raw =
+            Planes_Subobjetivo_Metadatos_Borrador[Campo.Id] ??
+            Planes_Subobjetivo_Metadatos_Borrador[Campo.Nombre] ??
+            "";
+          const Texto = String(Valor_Raw || "").trim();
+          if (!Texto) continue;
+          if (Campo.Tipo === "Numerico") {
+            const Numero = Number(Texto.replace(",", "."));
+            if (!Number.isFinite(Numero)) {
+              Mostrar_Toast_Error(
+                t("planes.sub_metadato_numero_error", {
+                  nombre: Campo.Nombre
+                })
+              );
+              return null;
+            }
+            Resultado[Campo.Id] = String(Numero);
+          } else {
+            Resultado[Campo.Id] = Texto;
+          }
+        }
+        return Resultado;
+      }
+
+      function Planes_Objetivo_De_Modal_Subobjetivo() {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Sub = Planes_Subobjetivo_En_Edicion_Id
+          ? Modelo.Subobjetivos[Planes_Subobjetivo_En_Edicion_Id]
+          : null;
+        const Objetivo_Id =
+          Sub?.Objetivo_Id ||
+          Planes_Subobjetivo_Nuevo_Borrador?.Objetivo_Id ||
+          Planes_Subobjetivos_Objetivo_Id;
+        return Modelo.Objetivos[Objetivo_Id] || null;
+      }
+
+      function Planes_Valor_Metadato_Subobjetivo(
+        Metadatos,
+        Campo
+      ) {
+        const Normalizados =
+          Normalizar_Metadatos_Subobjetivo_Plan(Metadatos);
+        const Claves = [
+          Campo.Id,
+          Campo.Nombre
+        ].filter(Boolean).map((Clave) => Clave.toString());
+        for (const Clave of Claves) {
+          if (Object.prototype.hasOwnProperty.call(
+            Normalizados,
+            Clave
+          )) {
+            return Normalizados[Clave];
+          }
+        }
+        const Nombre_Normalizado =
+          Normalizar_Texto_Archivero(Campo.Nombre || "");
+        const Entrada = Object.entries(Normalizados)
+          .find(([Clave]) =>
+            Normalizar_Texto_Archivero(Clave) === Nombre_Normalizado
+          );
+        return Entrada ? Entrada[1] : "";
       }
 
       function Render_Metadatos_Modal_Subobjetivo() {
@@ -44035,81 +45051,57 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Planes_Subobjetivo_Metadatos_Lista"
         );
         if (!Lista) return;
+        const Objetivo = Planes_Objetivo_De_Modal_Subobjetivo();
+        const Definiciones =
+          Planes_Definiciones_Metadatos_Objetivo(Objetivo);
         Lista.innerHTML = "";
-        if (Planes_Subobjetivo_Metadatos_Borrador.length === 0) {
+        if (!Definiciones.length) {
           const Vacio = document.createElement("div");
           Vacio.className =
             "Planes_Subobjetivo_Metadatos_Vacio";
-          Vacio.textContent = t("planes.sub_sin_metadatos");
+          Vacio.textContent = t(
+            "planes.sub_sin_metadatos_definidos"
+          );
           Lista.appendChild(Vacio);
+          Aplicar_Ayudas_Contextuales_Planes(Lista);
           return;
         }
-        Planes_Subobjetivo_Metadatos_Borrador.forEach(
-          (Item, Indice) => {
+        Definiciones.forEach((Campo) => {
             const Fila = document.createElement("div");
             Fila.className =
               "Planes_Subobjetivo_Metadato_Fila";
 
-            const Clave = document.createElement("input");
-            Clave.type = "text";
-            Clave.value = Item.Clave || "";
-            Clave.placeholder = t(
-              "planes.sub_metadato_clave_ph"
-            );
-            Clave.addEventListener("input", (Ev) => {
-              Planes_Subobjetivo_Metadatos_Borrador[
-                Indice
-              ].Clave = Ev.target.value;
-            });
+            const Label = document.createElement("span");
+            Label.className = "Planes_Subobjetivo_Metadato_Label";
+            Label.textContent = Campo.Nombre;
 
             const Valor = document.createElement("input");
-            Valor.type = "text";
-            Valor.value = Item.Valor || "";
+            Valor.className = "Planes_Subobjetivo_Metadato_Input";
+            Valor.type = Campo.Tipo === "Numerico"
+              ? "number"
+              : "text";
+            if (Campo.Tipo === "Numerico") {
+              Valor.step = "any";
+            }
+            Valor.value =
+              Planes_Subobjetivo_Metadatos_Borrador[Campo.Id] ??
+              "";
             Valor.placeholder = t(
-              "planes.sub_metadato_valor_ph"
+              Campo.Tipo === "Numerico"
+                ? "planes.sub_metadato_numero_ph"
+                : "planes.sub_metadato_texto_ph"
             );
             Valor.addEventListener("input", (Ev) => {
-              Planes_Subobjetivo_Metadatos_Borrador[
-                Indice
-              ].Valor = Ev.target.value;
+              Planes_Subobjetivo_Metadatos_Borrador[Campo.Id] =
+                Ev.target.value;
             });
 
-            const Borrar = document.createElement("button");
-            Borrar.type = "button";
-            Borrar.className =
-              "Planes_Subobjetivo_Metadato_Borrar";
-            Borrar.textContent = "x";
-            Borrar.title = t("borrar");
-            Borrar.addEventListener("click", () => {
-              Planes_Subobjetivo_Metadatos_Borrador.splice(
-                Indice,
-                1
-              );
-              Render_Metadatos_Modal_Subobjetivo();
-            });
-
-            Fila.appendChild(Clave);
+            Fila.appendChild(Label);
             Fila.appendChild(Valor);
-            Fila.appendChild(Borrar);
             Lista.appendChild(Fila);
           }
         );
-      }
-
-      function Agregar_Metadato_Modal_Subobjetivo() {
-        Planes_Subobjetivo_Metadatos_Borrador.push({
-          Clave: "",
-          Valor: ""
-        });
-        Render_Metadatos_Modal_Subobjetivo();
-        setTimeout(() => {
-          document
-            .querySelector(
-              "#Planes_Subobjetivo_Metadatos_Lista " +
-              ".Planes_Subobjetivo_Metadato_Fila:last-child input"
-            )
-            ?.focus();
-        }, 0);
+        Aplicar_Ayudas_Contextuales_Planes(Lista);
       }
 
       function Planes_Datos_Comparables_Subobjetivo(Sub) {
@@ -44213,15 +45205,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Inicio) Inicio.value = Sub.Fecha_Inicio || "";
         if (Fin) Fin.value = Sub.Fecha_Fin || "";
         if (Hecha) Hecha.checked = Boolean(Sub.Hecha);
-        Planes_Subobjetivo_Metadatos_Borrador =
-          Planes_Subobjetivo_Metadatos_Array(Sub).map((Item) => ({
-            Clave: Item.Clave,
-            Valor: Item.Valor
-          }));
+        Planes_Subobjetivo_Metadatos_Borrador = {};
+        Planes_Definiciones_Metadatos_Objetivo(Objetivo)
+          .forEach((Campo) => {
+            const Valor = Planes_Valor_Metadato_Subobjetivo(
+              Sub.Metadatos,
+              Campo
+            );
+            if (Valor) {
+              Planes_Subobjetivo_Metadatos_Borrador[Campo.Id] = Valor;
+            }
+          });
         Render_Metadatos_Modal_Subobjetivo();
         Actualizar_Campo_Unidad_Custom_Subobjetivo();
         document.getElementById("Planes_Subobjetivo_Overlay")
           ?.classList.add("Activo");
+        Aplicar_Ayudas_Contextuales_Planes(
+          document.getElementById("Planes_Subobjetivo_Overlay")
+        );
         setTimeout(() => Texto?.focus(), 0);
       }
 
@@ -44282,7 +45283,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Cerrar_Modal_Planes_Subobjetivo() {
         Planes_Subobjetivo_En_Edicion_Id = null;
         Planes_Subobjetivo_Nuevo_Borrador = null;
-        Planes_Subobjetivo_Metadatos_Borrador = [];
+        Planes_Subobjetivo_Metadatos_Borrador = {};
         document.getElementById("Planes_Subobjetivo_Overlay")
           ?.classList.remove("Activo");
       }
@@ -44337,7 +45338,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Hecha = Boolean(
           document.getElementById("Planes_Subobjetivo_Hecha")?.checked
         );
+        const Metadatos = Planes_Metadatos_Borrador_A_Objeto();
+        if (Metadatos === null) return;
         const Datos = {
+          Objetivo_Id:
+            Sub?.Objetivo_Id ||
+            Borrador_Nuevo?.Objetivo_Id ||
+            Planes_Subobjetivos_Objetivo_Id,
           Emoji: Normalizar_Emoji(
             document.getElementById("Planes_Subobjetivo_Emoji")
               ?.value || "\u2022"
@@ -44363,7 +45370,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             document.getElementById("Planes_Subobjetivo_Fecha_Fin")
               ?.value || ""
           ).toString(),
-          Metadatos: Planes_Metadatos_Borrador_A_Objeto(),
+          Metadatos,
           Hecha
         };
         if (
@@ -44638,6 +45645,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               );
             });
           });
+        Aplicar_Ayudas_Contextuales_Planes(
+          document.getElementById("Planes_Registro_Overlay")
+        );
       }
 
       function Abrir_Modal_Planes_Registro(Objetivo_Id) {
@@ -45145,10 +46155,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Metadatos = Normalizar_Metadatos_Subobjetivo_Plan(
           Sub?.Metadatos
         );
-        return Object.entries(Metadatos).map(([Clave, Valor]) => ({
-          Clave,
-          Valor
-        }));
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Sub?.Objetivo_Id];
+        const Usadas = new Set();
+        const Resultado = [];
+        Planes_Definiciones_Metadatos_Objetivo(Objetivo)
+          .forEach((Campo) => {
+            const Valor = Planes_Valor_Metadato_Subobjetivo(
+              Metadatos,
+              Campo
+            );
+            if (!Valor) return;
+            Resultado.push({
+              Clave: Campo.Nombre,
+              Valor,
+              Tipo: Campo.Tipo,
+              Id: Campo.Id
+            });
+            [Campo.Id, Campo.Nombre].filter(Boolean)
+              .forEach((Clave) => Usadas.add(
+                Normalizar_Texto_Archivero(Clave)
+              ));
+          });
+        Object.entries(Metadatos).forEach(([Clave, Valor]) => {
+          const Clave_Normal = Normalizar_Texto_Archivero(Clave);
+          if (!Valor || Usadas.has(Clave_Normal)) return;
+          Resultado.push({ Clave, Valor });
+        });
+        return Resultado;
       }
 
       function Planes_Render_Metadatos_Subobjetivo(Sub) {
@@ -45576,6 +46610,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Render_Modal_Planes_Subobjetivos();
           };
         }
+        Aplicar_Ayudas_Contextuales_Planes(
+          document.getElementById("Planes_Subobjetivos_Overlay")
+        );
       }
 
       function Render_Planes_Subobjetivo_Acciones(Sub) {
@@ -67815,6 +68852,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("change", Actualizar_Campo_Unidad_Custom_Planes);
       document.getElementById("Planes_Objetivo_Modo_Avance")
         ?.addEventListener("change", Actualizar_Campos_Modo_Avance_Planes);
+      document.getElementById("Planes_Objetivo_Metadato_Agregar")
+        ?.addEventListener("click", Agregar_Metadato_Modal_Objetivo);
       document.getElementById("Planes_Objetivo_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Planes_Objetivo_Overlay") {
@@ -67887,8 +68926,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", Cerrar_Modal_Planes_Subobjetivo);
       document.getElementById("Planes_Subobjetivo_Guardar")
         ?.addEventListener("click", Guardar_Modal_Planes_Subobjetivo);
-      document.getElementById("Planes_Subobjetivo_Metadato_Agregar")
-        ?.addEventListener("click", Agregar_Metadato_Modal_Subobjetivo);
       document.getElementById("Planes_Subobjetivo_Form")
         ?.addEventListener("submit", (Ev) => {
           Ev.preventDefault();
