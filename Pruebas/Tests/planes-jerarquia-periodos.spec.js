@@ -1580,6 +1580,134 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Importar desde padres trae subobjetivos del periodo",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Libros fechados",
+      Emoji: "\uD83D\uDCDA",
+      Target_Total: 12,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros"
+    });
+    const Grupo_Id = Planes_Agregar_Subobjetivo(
+      Padre.Id,
+      "Plan abril"
+    );
+    const Abril_Id = Planes_Agregar_Subobjetivo(
+      Padre.Id,
+      "Libro abril",
+      "\uD83D\uDCD8",
+      Grupo_Id
+    );
+    const Febrero_Id = Planes_Agregar_Subobjetivo(
+      Padre.Id,
+      "Libro febrero"
+    );
+    const Sin_Fecha_Id = Planes_Agregar_Subobjetivo(
+      Padre.Id,
+      "Libro sin fecha"
+    );
+    const Modelo_Subs = Asegurar_Modelo_Planes();
+    const Grupo = Modelo_Subs.Subobjetivos[Grupo_Id];
+    const Abril = Modelo_Subs.Subobjetivos[Abril_Id];
+    const Febrero = Modelo_Subs.Subobjetivos[Febrero_Id];
+    const Sin_Fecha = Modelo_Subs.Subobjetivos[Sin_Fecha_Id];
+    Object.assign(Abril, {
+      Fecha_Fin: "2026-04-20",
+      Aporte_Meta: 1,
+      Target_Total: 1,
+      Progreso_Inicial: 0,
+      Hecha: false,
+      Estado: "Activo"
+    });
+    Object.assign(Febrero, {
+      Fecha_Fin: "2026-02-10",
+      Aporte_Meta: 1,
+      Target_Total: 1,
+      Progreso_Inicial: 1,
+      Hecha: true,
+      Estado: "Cumplido"
+    });
+    Object.assign(Sin_Fecha, {
+      Aporte_Meta: 1,
+      Target_Total: 1,
+      Progreso_Inicial: 1,
+      Hecha: true,
+      Estado: "Cumplido"
+    });
+    Grupo.Aporte_Meta = 0;
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Resumen = Planes_Importar_Objetivos_Padres_A_Periodos(
+      Trimestres.map((Periodo) => ({
+        Periodo_Id: Periodo.Id,
+        Objetivo_Ids: [Padre.Id]
+      })),
+      { Modo: "Proporcional" }
+    );
+    const Subs_De = (Indice) => {
+      const Hijo = Planes_Objetivo_Hijo_De(
+        Padre.Id,
+        Trimestres[Indice].Id
+      );
+      return Planes_Subobjetivos_De_Objetivo(Hijo.Id)
+        .filter((Sub) => !Sub.Eliminado_Local)
+        .map((Sub) => ({
+          Id: Sub.Id,
+          Texto: Sub.Texto,
+          Fecha_Fin: Sub.Fecha_Fin,
+          Hecha: Sub.Hecha,
+          Parent: Sub.Parent_Subobjetivo_Id,
+          Padre_Local: Sub.Subobjetivo_Padre_Id
+        }));
+    };
+    return {
+      Resumen,
+      Q1: Subs_De(0),
+      Q2: Subs_De(1),
+      Q3: Subs_De(2)
+    };
+  });
+
+  expect(Resultado.Resumen.Creados).toBe(4);
+  expect(Resultado.Resumen.Subobjetivos).toBeGreaterThan(0);
+  expect(Resultado.Q1.map((Sub) => Sub.Texto))
+    .toEqual(["Libro febrero"]);
+  expect(Resultado.Q2.map((Sub) => Sub.Texto))
+    .toEqual(["Plan abril", "Libro abril"]);
+  const Abril_Importado = Resultado.Q2.find((Sub) =>
+    Sub.Texto === "Libro abril"
+  );
+  const Grupo_Importado = Resultado.Q2.find((Sub) =>
+    Sub.Texto === "Plan abril"
+  );
+  expect(Abril_Importado.Fecha_Fin).toBe("2026-04-20");
+  expect(Abril_Importado.Hecha).toBe(false);
+  expect(Abril_Importado.Padre_Local)
+    .toBeTruthy();
+  expect(Abril_Importado.Padre_Local)
+    .toBe(Grupo_Importado.Id);
+  expect(Resultado.Q2.map((Sub) => Sub.Texto))
+    .not.toContain("Libro sin fecha");
+  expect(Resultado.Q3.map((Sub) => Sub.Texto)).toEqual([]);
+  expect(errores).toEqual([]);
+});
+
 test("Borrar importados limpia objetivos seleccionados de la capa",
 async ({ page }) => {
   const errores = [];
@@ -1757,6 +1885,9 @@ async ({ page }) => {
         Target: Hijo.Target_Total,
         Progreso: Hijo.Progreso_Total,
         Manual: Hijo.Progreso_Manual,
+        Importado: Hijo.Progreso_Importado,
+        Registros: Planes_Registros_De_Objetivo(Hijo)
+          .map((Registro) => Registro.Fuente),
         Fijado: Hijo.Fijado,
         Auto_Redistribucion: Hijo.Auto_Redistribucion
       };
@@ -1770,7 +1901,9 @@ async ({ page }) => {
   expect(Resultado.Resumen.Creados).toBe(4);
   expect(Resultado.Hijos[0].Target).toBeCloseTo(12.5, 5);
   expect(Resultado.Hijos[0].Progreso).toBe(9);
-  expect(Resultado.Hijos[0].Manual).toBe(9);
+  expect(Resultado.Hijos[0].Manual).toBe(0);
+  expect(Resultado.Hijos[0].Importado).toBe(9);
+  expect(Resultado.Hijos[0].Registros).not.toContain("Manual previo");
   [1, 2, 3].forEach((Indice) => {
     expect(Resultado.Hijos[Indice].Target).toBeCloseTo(41 / 3, 5);
   });

@@ -40818,6 +40818,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Modo_Avance,
           Modo_Progreso: Modo,
           Progreso_Manual: Number(Objetivo.Progreso_Manual) || 0,
+          Progreso_Importado:
+            Number(Objetivo.Progreso_Importado) || 0,
           Progreso_Leido: Number(Objetivo.Progreso_Leido) || 0,
           Progreso_Subobjetivos:
             Number(Objetivo.Progreso_Subobjetivos) || 0,
@@ -41844,15 +41846,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Progreso_Subobjetivos =
           Planes_Calcular_Progreso_Subobjetivos(Objetivo_Plan);
         const Leido = Leido_Calendario + Progreso_Subobjetivos;
-        Objetivo_Plan.Progreso_Subobjetivos = Progreso_Subobjetivos;
-        Objetivo_Plan.Progreso_Leido = Leido;
         const Manual = Number(Objetivo_Plan.Progreso_Manual) || 0;
+        const Importado =
+          Number(Objetivo_Plan.Progreso_Importado) || 0;
+        Objetivo_Plan.Progreso_Subobjetivos = Progreso_Subobjetivos;
+        Objetivo_Plan.Progreso_Leido = Leido + Importado;
         if (Objetivo_Plan.Modo_Progreso === "Manual") {
-          Objetivo_Plan.Progreso_Total = Manual + Progreso_Subobjetivos;
+          Objetivo_Plan.Progreso_Total =
+            Manual + Progreso_Subobjetivos + Importado;
         } else if (Objetivo_Plan.Modo_Progreso === "Leido") {
-          Objetivo_Plan.Progreso_Total = Leido;
+          Objetivo_Plan.Progreso_Total = Leido + Importado;
         } else {
-          Objetivo_Plan.Progreso_Total = Leido + Manual;
+          Objetivo_Plan.Progreso_Total = Leido + Importado + Manual;
         }
         Objetivo_Plan.Target_Actual =
           Number(Objetivo_Plan.Target_Total) || 0;
@@ -41937,6 +41942,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Modo_Avance: Planes_Normalizar_Modo_Avance(Objetivo),
           Modo_Progreso: Objetivo.Modo_Progreso,
           Progreso_Manual: 0,
+          Progreso_Importado: 0,
           Etiquetas_Ids: [...(Objetivo.Etiquetas_Ids || [])],
           Tags: [...(Objetivo.Tags || [])],
           Metadatos_Campos:
@@ -47672,17 +47678,104 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
-      function Planes_Importar_Subs(Objetivo_Id) {
-        const Modelo = Asegurar_Modelo_Planes();
-        const Objetivo = Modelo.Objetivos[Objetivo_Id];
-        if (!Objetivo || !Objetivo.Parent_Objetivo_Id) {
-          Mostrar_Toast_Info(t("planes.toast_sin_padres"));
-          return;
-        }
-        const Subs_Padre = Planes_Subobjetivos_De_Objetivo(
-          Objetivo.Parent_Objetivo_Id
+      function Planes_Subobjetivo_Importa_En_Periodo(Sub, Periodo) {
+        if (!Sub || Sub.Eliminado_Local || !Periodo) return false;
+        if (!Sub.Fecha_Fin) return false;
+        return Planes_Periodo_Contiene_Fecha(Periodo, Sub.Fecha_Fin);
+      }
+
+      function Planes_Subobjetivos_Padre_Para_Importar(
+        Objetivo_Padre_Id,
+        Periodo = null
+      ) {
+        const Subs = Planes_Subobjetivos_De_Objetivo(
+          Objetivo_Padre_Id
         ).filter((Sub) => !Sub.Eliminado_Local);
-        let Importados = 0;
+        if (!Periodo) return Subs;
+        const Por_Id = new Map(Subs.map((Sub) => [Sub.Id, Sub]));
+        const Seleccionados = new Set();
+        const Incluir_Con_Padres = (Sub) => {
+          let Actual = Sub;
+          while (Actual && !Seleccionados.has(Actual.Id)) {
+            Seleccionados.add(Actual.Id);
+            Actual = Por_Id.get(Actual.Subobjetivo_Padre_Id || "");
+          }
+        };
+        Subs.forEach((Sub) => {
+          if (Planes_Subobjetivo_Importa_En_Periodo(Sub, Periodo)) {
+            Incluir_Con_Padres(Sub);
+          }
+        });
+        return Subs.filter((Sub) => Seleccionados.has(Sub.Id));
+      }
+
+      function Planes_Datos_Subobjetivo_Importado(
+        Sub_Padre,
+        Objetivo_Id,
+        Orden
+      ) {
+        return {
+          Objetivo_Id,
+          Parent_Subobjetivo_Id: Sub_Padre.Id,
+          Emoji: Sub_Padre.Emoji || "\u2022",
+          Texto: Sub_Padre.Texto,
+          Estado: Sub_Padre.Estado,
+          Hecha: Sub_Padre.Hecha,
+          Target_Total: Sub_Padre.Target_Total,
+          Aporte_Meta: Sub_Padre.Aporte_Meta,
+          Unidad: Sub_Padre.Unidad,
+          Unidad_Custom: Sub_Padre.Unidad_Custom,
+          Progreso_Inicial: Sub_Padre.Progreso_Inicial,
+          Progreso_Avances: Sub_Padre.Progreso_Avances,
+          Progreso_Manual: Sub_Padre.Progreso_Manual,
+          Fecha_Inicio: Sub_Padre.Fecha_Inicio,
+          Fecha_Fin: Sub_Padre.Fecha_Fin,
+          Hora_Fin: Sub_Padre.Hora_Fin,
+          Metadatos: Sub_Padre.Metadatos,
+          Importado: true,
+          Eliminado_Local: false,
+          Orden
+        };
+      }
+
+      function Planes_Datos_Subobjetivo_Importado_Comparables(Sub) {
+        if (!Sub) return "";
+        return JSON.stringify({
+          Subobjetivo_Padre_Id:
+            (Sub.Subobjetivo_Padre_Id || "").toString(),
+          Emoji: Sub.Emoji || "",
+          Texto: Sub.Texto || "",
+          Estado: Sub.Estado || "",
+          Hecha: Boolean(Sub.Hecha),
+          Target_Total: Number(Sub.Target_Total) || 0,
+          Aporte_Meta: Number(Sub.Aporte_Meta) || 0,
+          Unidad: Sub.Unidad || "",
+          Unidad_Custom: Sub.Unidad_Custom || "",
+          Progreso_Inicial: Number(Sub.Progreso_Inicial) || 0,
+          Progreso_Avances: Number(Sub.Progreso_Avances) || 0,
+          Progreso_Manual: Number(Sub.Progreso_Manual) || 0,
+          Fecha_Inicio: Sub.Fecha_Inicio || "",
+          Fecha_Fin: Sub.Fecha_Fin || "",
+          Hora_Fin: Sub.Hora_Fin || "",
+          Metadatos: Normalizar_Metadatos_Subobjetivo_Plan(
+            Sub.Metadatos
+          ),
+          Importado: Boolean(Sub.Importado),
+          Eliminado_Local: Boolean(Sub.Eliminado_Local)
+        });
+      }
+
+      function Planes_Importar_Subs_En_Objetivo(
+        Objetivo,
+        Periodo = null
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        if (!Objetivo?.Parent_Objetivo_Id) return 0;
+        const Subs_Padre = Planes_Subobjetivos_Padre_Para_Importar(
+          Objetivo.Parent_Objetivo_Id,
+          Periodo
+        );
+        let Cambios = 0;
         const Mapa_Importados = new Map();
         Subs_Padre.forEach((Sub_Padre) => {
           const Existente = Object.values(Modelo.Subobjetivos)
@@ -47691,49 +47784,73 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Sub.Parent_Subobjetivo_Id === Sub_Padre.Id
             );
           if (Existente) {
+            const Antes =
+              Planes_Datos_Subobjetivo_Importado_Comparables(
+                Existente
+              );
+            Object.assign(
+              Existente,
+              Planes_Datos_Subobjetivo_Importado(
+                Sub_Padre,
+                Objetivo.Id,
+                Existente.Orden
+              )
+            );
             Existente.Eliminado_Local = false;
-            if (!Existente.Emoji) {
-              Existente.Emoji = Sub_Padre.Emoji || "\u2022";
+            const Despues =
+              Planes_Datos_Subobjetivo_Importado_Comparables(
+                Existente
+              );
+            if (Antes !== Despues) {
+              Cambios += 1;
             }
             Mapa_Importados.set(Sub_Padre.Id, Existente.Id);
             return;
           }
           const Id = Crear_Id_Subobjetivo_Plan();
+          const Orden = Planes_Subobjetivos_De_Objetivo(
+            Objetivo.Id
+          ).length;
           Modelo.Subobjetivos[Id] = Normalizar_Subobjetivo_Plan({
             Id,
-            Objetivo_Id: Objetivo.Id,
-            Parent_Subobjetivo_Id: Sub_Padre.Id,
-            Emoji: Sub_Padre.Emoji || "\u2022",
-            Texto: Sub_Padre.Texto,
-            Hecha: Sub_Padre.Hecha,
-            Target_Total: Sub_Padre.Target_Total,
-            Aporte_Meta: Sub_Padre.Aporte_Meta,
-            Unidad: Sub_Padre.Unidad,
-            Unidad_Custom: Sub_Padre.Unidad_Custom,
-            Progreso_Inicial: Sub_Padre.Progreso_Inicial,
-            Progreso_Avances: Sub_Padre.Progreso_Avances,
-            Progreso_Manual: Sub_Padre.Progreso_Manual,
-            Fecha_Inicio: Sub_Padre.Fecha_Inicio,
-            Fecha_Fin: Sub_Padre.Fecha_Fin,
-            Metadatos: Sub_Padre.Metadatos,
-            Importado: true,
-            Orden: Planes_Subobjetivos_De_Objetivo(Objetivo.Id).length
+            ...Planes_Datos_Subobjetivo_Importado(
+              Sub_Padre,
+              Objetivo.Id,
+              Orden
+            )
           });
           Mapa_Importados.set(Sub_Padre.Id, Id);
-          Importados++;
+          Cambios += 1;
         });
         Subs_Padre.forEach((Sub_Padre) => {
           const Importado_Id = Mapa_Importados.get(Sub_Padre.Id);
           const Importado = Modelo.Subobjetivos[Importado_Id];
           if (!Importado) return;
-          Importado.Subobjetivo_Padre_Id =
+          const Padre_Importado =
             Mapa_Importados.get(Sub_Padre.Subobjetivo_Padre_Id) || "";
+          const Antes = Importado.Subobjetivo_Padre_Id || "";
+          Importado.Subobjetivo_Padre_Id =
+            Padre_Importado;
+          if (Antes !== Padre_Importado) {
+            Cambios += 1;
+          }
         });
-        if (Importados) {
-          Mostrar_Toast_Info(t("planes.toast_importado"));
+        return Cambios;
+      }
+
+      function Planes_Importar_Subs(Objetivo_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        if (!Objetivo || !Objetivo.Parent_Objetivo_Id) {
+          Mostrar_Toast_Info(t("planes.toast_sin_padres"));
+          return;
         }
-        Render_Plan();
-        Guardar_Estado();
+        const Cambios = Planes_Importar_Subs_En_Objetivo(Objetivo);
+        if (Cambios) {
+          Mostrar_Toast_Info(t("planes.toast_importado"));
+          Render_Plan();
+          Guardar_Estado();
+        }
       }
 
       async function Planes_Importar_De_Padres(Objetivo_Id) {
@@ -47750,7 +47867,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Mostrar_Toast_Info(t("planes.toast_sin_padres"));
           return;
         }
-        await Planes_Importar_De_Padres_Capa(Periodo.Tipo, Periodo.Id);
+        await Planes_Importar_De_Padres_Capa(
+          Periodo.Tipo,
+          Periodo.Id
+        );
       }
 
       async function Planes_Importar_De_Padres_Capa(
@@ -48156,10 +48276,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Tipo_Destino
         );
         const Avances_Reales = new Map();
-        const Avances_Transferibles = new Map();
+        const Avances_Importables = new Map();
         Periodos_Capa.forEach((Periodo) => {
-          const Transferible =
-            Planes_Avance_Transferible_Objetivo_En_Periodo(
+          const Importable =
+            Planes_Avances_Manuales_Objetivo_En_Periodo(
               Objetivo_Padre,
               Periodo
             );
@@ -48170,7 +48290,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           const Real_Hijo =
             Planes_Avance_Hijo_Importacion(Objetivo_Padre, Periodo);
-          Avances_Transferibles.set(Periodo.Id, Transferible);
+          Avances_Importables.set(Periodo.Id, Importable);
           Avances_Reales.set(
             Periodo.Id,
             Math.max(Real_Padre, Real_Hijo)
@@ -48201,7 +48321,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Resultado.Targets.set(Periodo.Id, Target_Periodo);
           Resultado.Avances.set(
             Periodo.Id,
-            Number(Avances_Transferibles.get(Periodo.Id)) || 0
+            Number(Avances_Importables.get(Periodo.Id)) || 0
           );
         });
         return Resultado;
@@ -48586,10 +48706,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               if (Modo === "Manual") {
                 let Manual_Invalido = false;
                 Seleccionados.forEach((Input) => {
-                  const Clave = Planes_Clave_Target_Manual_Importacion(
-                    Input.dataset.planImportarObjetivoPeriodo,
-                    Input.dataset.planImportarObjetivo
-                  );
+                  const Clave =
+                    Planes_Clave_Target_Manual_Importacion(
+                      Input.dataset.planImportarObjetivoPeriodo,
+                      Input.dataset.planImportarObjetivo
+                    );
                   const Manual = Overlay.querySelector(
                     `[data-plan-importar-manual="${Clave}"]`
                   );
@@ -48604,7 +48725,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   Targets_Manuales[Clave] = Valor;
                 });
                 if (Manual_Invalido) {
-                  Mostrar_Toast_Error(t("planes.importar_manual_error"));
+                  Mostrar_Toast_Error(
+                    t("planes.importar_manual_error")
+                  );
                   return;
                 }
               }
@@ -48648,6 +48771,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Number(Objetivo.Target_Actual) || 0,
           Progreso_Manual:
             Number(Objetivo.Progreso_Manual) || 0,
+          Progreso_Importado:
+            Number(Objetivo.Progreso_Importado) || 0,
           Progreso_Total:
             Number(Objetivo.Progreso_Total) || 0,
           Target_Fijado:
@@ -48671,6 +48796,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Creados: 0,
           Restaurados: 0,
           Actualizados: 0,
+          Subobjetivos: 0,
           Total: 0
         };
         Items.forEach((Item) => {
@@ -48766,10 +48892,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               const Avance_Importado = Number(
                 Info_Pendiente.Avances.get(Periodo.Id)
               ) || 0;
-              if (Avance_Importado > 0 || Es_Nuevo) {
-                Hijo.Progreso_Manual = Avance_Importado;
+              Hijo.Progreso_Importado = Avance_Importado;
+              const Manual_Registrado =
+                Planes_Manual_Registrado_Objetivo(Hijo.Id);
+              const Manual_Total = Number(Hijo.Progreso_Manual) || 0;
+              const Manual_Con_Importado =
+                Manual_Registrado + Avance_Importado;
+              const Parece_Importado =
+                Math.abs(
+                  Manual_Total - Manual_Con_Importado
+                ) < 0.0001;
+              if (Es_Nuevo || Parece_Importado) {
+                Hijo.Progreso_Manual = Manual_Registrado;
               }
             }
+            Resumen.Subobjetivos += Planes_Importar_Subs_En_Objetivo(
+              Hijo,
+              Periodo
+            );
             const Periodos_Fijados = Opciones.Periodos_Fijados || {};
             if (Opciones.Fijar || Periodos_Fijados[Periodo.Id]) {
               Hijo.Fijado = true;
@@ -48799,7 +48939,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Resumen.Total =
           Resumen.Creados +
           Resumen.Restaurados +
-          Resumen.Actualizados;
+          Resumen.Actualizados +
+          Resumen.Subobjetivos;
         return Resumen;
       }
 
