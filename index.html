@@ -48284,6 +48284,50 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Number(Hijo.Progreso_Total) || 0;
       }
 
+      function Planes_Objetivo_Equivalente_Importacion(
+        Objetivo_Padre,
+        Objetivo
+      ) {
+        if (!Objetivo_Padre || !Objetivo) return false;
+        if (Objetivo.Eliminado_Local) return false;
+        if (Objetivo.Id === Objetivo_Padre.Id) return false;
+        const Padre_Id = (Objetivo_Padre.Id || "").toString();
+        const Parent_Id = (
+          Objetivo.Parent_Objetivo_Id ||
+          Objetivo.Objetivo_Padre_Id ||
+          ""
+        ).toString();
+        if (Parent_Id && Parent_Id !== Padre_Id) return false;
+        if (
+          Planes_Clave_Objetivo_Importable(Objetivo) !==
+          Planes_Clave_Objetivo_Importable(Objetivo_Padre)
+        ) {
+          return false;
+        }
+        return Planes_Unidad_Label(Objetivo) ===
+          Planes_Unidad_Label(Objetivo_Padre);
+      }
+
+      function Planes_Avance_Equivalente_Importacion(
+        Objetivo_Padre,
+        Periodo
+      ) {
+        return Planes_Objetivos_De_Periodo(Periodo?.Id)
+          .filter((Objetivo) =>
+            Planes_Objetivo_Equivalente_Importacion(
+              Objetivo_Padre,
+              Objetivo
+            )
+          )
+          .reduce((Maximo, Objetivo) => {
+            Planes_Actualizar_Progreso(Objetivo);
+            return Math.max(
+              Maximo,
+              Number(Objetivo.Progreso_Total) || 0
+            );
+          }, 0);
+      }
+
       function Planes_Avance_Manual_Previo_Cerrado_Importacion(
         Objetivo_Padre,
         Periodo_Padre,
@@ -48364,10 +48408,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           const Real_Hijo =
             Planes_Avance_Hijo_Importacion(Objetivo_Padre, Periodo);
+          const Real_Equivalente =
+            Planes_Avance_Equivalente_Importacion(
+              Objetivo_Padre,
+              Periodo
+            );
           Avances_Importables.set(Periodo.Id, Importable);
           Avances_Reales.set(
             Periodo.Id,
-            Math.max(Real_Padre, Real_Hijo)
+            Math.max(Real_Padre, Real_Hijo, Real_Equivalente)
           );
         });
         const Cerrados = Periodos_Capa.filter(
