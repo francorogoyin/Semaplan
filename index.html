@@ -4199,6 +4199,68 @@
         color: var(--Acento);
       }
 
+      .Planes_Importar_Modal {
+        max-width: 720px;
+      }
+
+      .Planes_Importar_Cuerpo {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .Planes_Importar_Lista {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        max-height: min(420px, 52vh);
+        overflow-y: auto;
+      }
+
+      .Planes_Importar_Item {
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 8px;
+        padding: 10px;
+      }
+
+      .Planes_Importar_Item strong,
+      .Planes_Importar_Item span {
+        display: block;
+      }
+
+      .Planes_Importar_Item strong {
+        color: var(--Texto);
+        font-size: 13px;
+        line-height: 1.25;
+      }
+
+      .Planes_Importar_Item span {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        line-height: 1.3;
+        margin-top: 2px;
+      }
+
+      .Planes_Importar_Opciones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .Planes_Importar_Opcion {
+        align-items: center;
+        color: var(--Texto);
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 700;
+        gap: 7px;
+      }
+
       .Planes_Objetivo_Cantidad {
         color: var(--Texto_Suave);
         font-size: 12px;
@@ -5713,6 +5775,10 @@
 
         .Planes_Controles {
           flex-wrap: wrap;
+        }
+
+        .Planes_Importar_Lista {
+          grid-template-columns: 1fr;
         }
 
         .Planes_Control,
@@ -18036,6 +18102,19 @@
           "planes.origen_ajustado": "Ajustado",
           "planes.origen_revisar": "Revisar origen",
           "planes.toast_bajado": "Objetivo bajado.",
+          "planes.importar_periodos_titulo":
+            "Importar desde padres",
+          "planes.importar_periodos_desc":
+            "Elegí en qué períodos de esta capa crear objetivos desde capas superiores.",
+          "planes.importar_periodos_fijar":
+            "Fijar cuotas importadas",
+          "planes.importar_periodos_todos":
+            "Seleccionar todos",
+          "planes.importar_periodos_ninguno":
+            "Deseleccionar todos",
+          "planes.importar_periodos_confirmar": "Importar",
+          "planes.importar_periodo_padres":
+            "{n} objetivo(s) desde padres",
           "planes.importar_subs": "Importar subobjetivos",
           "planes.romper_vinculo":
             "Quitar vínculo con calendario",
@@ -21031,6 +21110,19 @@
           "planes.origen_ajustado": "Adjusted",
           "planes.origen_revisar": "Review source",
           "planes.toast_bajado": "Objective sent down.",
+          "planes.importar_periodos_titulo":
+            "Import from parents",
+          "planes.importar_periodos_desc":
+            "Choose which periods in this layer should receive objectives from upper layers.",
+          "planes.importar_periodos_fijar":
+            "Pin imported quotas",
+          "planes.importar_periodos_todos":
+            "Select all",
+          "planes.importar_periodos_ninguno":
+            "Deselect all",
+          "planes.importar_periodos_confirmar": "Import",
+          "planes.importar_periodo_padres":
+            "{n} objective(s) from parents",
           "planes.importar_subs": "Import subobjectives",
           "planes.romper_vinculo": "Remove calendar link",
           "planes.romper_vinculo_confirm":
@@ -23974,6 +24066,19 @@
           "planes.origen_ajustado": "Ajustado",
           "planes.origen_revisar": "Revisar origem",
           "planes.toast_bajado": "Objetivo baixado.",
+          "planes.importar_periodos_titulo":
+            "Importar dos pais",
+          "planes.importar_periodos_desc":
+            "Escolha em quais períodos desta camada criar objetivos de camadas superiores.",
+          "planes.importar_periodos_fijar":
+            "Fixar cotas importadas",
+          "planes.importar_periodos_todos":
+            "Selecionar todos",
+          "planes.importar_periodos_ninguno":
+            "Desmarcar todos",
+          "planes.importar_periodos_confirmar": "Importar",
+          "planes.importar_periodo_padres":
+            "{n} objetivo(s) dos pais",
           "planes.importar_padres":
             "Importar do período pai",
           "planes.importar_padres_confirm":
@@ -40100,17 +40205,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Planes_Btn_Importar_Header"
         );
         if (Btn_Importar) {
-          const Periodo = Planes_Periodo_Activo();
-          const Modelo_Actual = Asegurar_Modelo_Planes();
-          const Tiene_Padre = Boolean(
-            Periodo && Modelo_Actual.Periodos[Periodo.Parent_Id]
-          );
-          Btn_Importar.disabled = !Tiene_Padre;
+          Btn_Importar.disabled =
+            !Planes_Hay_Padres_Importables_Para_Capa(
+              Modelo.UI.Filtro_Tipo || "Semana"
+            );
           Btn_Importar.onclick = async () => {
-            const Activo = Planes_Periodo_Activo();
-            if (Activo) {
-              await Planes_Importar_De_Padres_Periodo(Activo.Id);
-            }
+            await Planes_Importar_De_Padres_Capa(
+              Modelo.UI.Filtro_Tipo || "Semana"
+            );
           };
         }
         const Btn_Etiquetas = document.getElementById(
@@ -40312,6 +40414,85 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Creados;
       }
 
+      function Planes_Nivel_Tipo(Tipo) {
+        return {
+          Anio: 1,
+          Semestre: 2,
+          Trimestre: 3,
+          Mes: 4,
+          Semana: 5
+        }[Tipo] || 99;
+      }
+
+      function Planes_Periodo_Es_Padre_De(Padre, Hijo) {
+        if (!Padre || !Hijo) return false;
+        if (Planes_Nivel_Tipo(Padre.Tipo) >= Planes_Nivel_Tipo(Hijo.Tipo)) {
+          return false;
+        }
+        return Planes_Periodo_Contiene_Periodo(Padre, Hijo);
+      }
+
+      function Planes_Periodo_Tiene_Padres_Importables(Periodo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        return Object.values(Modelo.Periodos)
+          .some((Padre) =>
+            Planes_Periodo_Es_Padre_De(Padre, Periodo) &&
+            Planes_Objetivos_De_Periodo(Padre.Id)
+              .some((Objetivo) => !Objetivo.Eliminado_Local)
+          );
+      }
+
+      function Planes_Hay_Padres_Importables_Para_Capa(Tipo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        return Object.values(Modelo.Periodos)
+          .some((Periodo) =>
+            Planes_Nivel_Tipo(Periodo.Tipo) < Planes_Nivel_Tipo(Tipo) &&
+            Planes_Objetivos_De_Periodo(Periodo.Id)
+              .some((Objetivo) => !Objetivo.Eliminado_Local)
+          );
+      }
+
+      function Planes_Candidatos_Importacion_Capa(
+        Tipo,
+        Periodo_Preferido_Id = ""
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Mapa = new Map();
+        Object.values(Modelo.Periodos)
+          .filter((Periodo) =>
+            Planes_Nivel_Tipo(Periodo.Tipo) < Planes_Nivel_Tipo(Tipo)
+          )
+          .filter((Periodo) =>
+            Planes_Objetivos_De_Periodo(Periodo.Id)
+              .some((Objetivo) => !Objetivo.Eliminado_Local)
+          )
+          .forEach((Padre) => {
+            Planes_Crear_Periodos_Distribucion(Padre, Tipo)
+              .forEach((Periodo) => {
+                if (!Planes_Periodo_Tiene_Padres_Importables(Periodo)) {
+                  return;
+                }
+                const Actual = Mapa.get(Periodo.Id) || {
+                  Periodo,
+                  Padres: new Set()
+                };
+                Actual.Padres.add(Padre.Id);
+                Mapa.set(Periodo.Id, Actual);
+              });
+          });
+        return Array.from(Mapa.values())
+          .map((Item) => ({
+            Periodo: Item.Periodo,
+            Padre_Ids: Array.from(Item.Padres),
+            Seleccionado: Periodo_Preferido_Id
+              ? Item.Periodo.Id === Periodo_Preferido_Id
+              : true
+          }))
+          .sort((A, B) =>
+            (A.Periodo.Inicio || "").localeCompare(B.Periodo.Inicio || "")
+          );
+      }
+
       function Render_Planes_Periodo_Item(Cont, Periodo, Nivel) {
         const Modelo = Asegurar_Modelo_Planes();
         const Activo = Modelo.UI.Periodo_Activo_Id === Periodo.Id;
@@ -40376,11 +40557,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             });
           Vacio.querySelector("[data-plan-importar-capa]")
             ?.addEventListener("click", async () => {
-              const Nuevo = Planes_Crear_Periodo_Actual(
+              await Planes_Importar_De_Padres_Capa(
                 Modelo.UI.Filtro_Tipo || "Semana"
               );
-              Modelo.UI.Periodo_Activo_Id = Nuevo.Id;
-              await Planes_Importar_De_Padres_Periodo(Nuevo.Id);
             });
           Cuerpo.appendChild(Vacio);
           return;
@@ -43557,58 +43736,217 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Planes_Importar_De_Padres_Periodo(Periodo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         const Periodo = Modelo.Periodos[Periodo_Id];
-        const Padre = Periodo ? Modelo.Periodos[Periodo.Parent_Id] : null;
-        if (!Padre) {
+        if (!Periodo) {
           Mostrar_Toast_Info(t("planes.toast_sin_padres"));
           return;
         }
-        const Padres = Planes_Objetivos_De_Periodo(Padre.Id)
-          .filter((Objetivo) => !Objetivo.Eliminado_Local);
-        if (!Padres.length) {
-          Mostrar_Toast_Info(t("planes.toast_sin_padres"));
-          return;
-        }
-        const Confirmar = await Mostrar_Dialogo(
-          t("planes.importar_padres_confirm"),
-          [
-            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
-            { Etiqueta: t("confirmar"), Valor: true, Tipo: "Primario" }
-          ],
-          { Ayuda: t("planes.importar_padres_help") }
+        await Planes_Importar_De_Padres_Capa(Periodo.Tipo, Periodo.Id);
+      }
+
+      async function Planes_Importar_De_Padres_Capa(
+        Tipo,
+        Periodo_Preferido_Id = ""
+      ) {
+        const Candidatos = Planes_Candidatos_Importacion_Capa(
+          Tipo,
+          Periodo_Preferido_Id
         );
-        if (!Confirmar) return;
+        if (!Candidatos.length) {
+          Mostrar_Toast_Info(t("planes.toast_sin_padres"));
+          return;
+        }
+        const Config = await Planes_Mostrar_Dialogo_Importar_Padres(
+          Candidatos
+        );
+        if (!Config || !Config.Periodo_Ids.length) return;
         const Snap = Capturar_Snapshot_Undo();
-        Padres.forEach((Objetivo_Padre) => {
-          const Existente =
-            Planes_Objetivo_Hijo_De(Objetivo_Padre.Id, Periodo.Id);
-          if (Existente) {
-            Existente.Eliminado_Local = false;
-            Planes_Actualizar_Meta_Hijo_Importado(
-              Objetivo_Padre,
-              Existente
-            );
-            return;
-          }
-          const Hijo = Planes_Crear_Objetivo_Silencioso(
-            Periodo.Id,
-            Planes_Clonar_Datos_Objetivo(Objetivo_Padre, {
-              Parent_Objetivo_Id: Objetivo_Padre.Id,
-              Objetivo_Padre_Id: Objetivo_Padre.Id,
-              Origen_Objetivo: "Importado",
-              Capa_Origen: Padre.Tipo,
-              Periodo_Origen: Padre.Id,
-              Estado_Vinculo: "Vigente",
-              Padre_Actualizado_Al_Importar:
-                Objetivo_Padre.Actualizado_En || "",
-              Target_Total: 0,
-              Target_Automatico: 0
-            })
-          );
-          Planes_Actualizar_Meta_Hijo_Importado(Objetivo_Padre, Hijo);
-        });
+        Planes_Importar_Objetivos_Padres_A_Periodos(
+          Config.Periodo_Ids,
+          { Fijar: Config.Fijar }
+        );
         Render_Plan();
         Guardar_Estado();
         Mostrar_Toast_Undo(t("planes.toast_importado"), Snap);
+      }
+
+      function Planes_Mostrar_Dialogo_Importar_Padres(Candidatos) {
+        return new Promise((Resolver) => {
+          const Overlay = document.createElement("div");
+          Overlay.className = "Patron_Modal_Overlay Activo";
+          Overlay.innerHTML = `
+            <div class="Patron_Modal_Panel Planes_Importar_Modal">
+              <div class="Patron_Modal_Cabecera">
+                <span class="Patron_Modal_Titulo">
+                  ${Escape_Html(t("planes.importar_periodos_titulo"))}
+                </span>
+                <button class="Config_Cerrar" type="button"
+                  data-plan-importar-cerrar>&times;</button>
+              </div>
+              <div class="Patron_Modal_Cuerpo Planes_Importar_Cuerpo">
+                <p class="Config_Nota" style="margin:0">
+                  ${Escape_Html(t("planes.importar_periodos_desc"))}
+                </p>
+                <div class="Planes_Importar_Opciones">
+                  <button class="Planes_Btn" type="button"
+                    data-plan-importar-todos>
+                    ${Escape_Html(t("planes.importar_periodos_todos"))}
+                  </button>
+                  <button class="Planes_Btn" type="button"
+                    data-plan-importar-ninguno>
+                    ${Escape_Html(t("planes.importar_periodos_ninguno"))}
+                  </button>
+                  <label class="Planes_Importar_Opcion">
+                    <input type="checkbox" data-plan-importar-fijar>
+                    <span>
+                      ${Escape_Html(t("planes.importar_periodos_fijar"))}
+                    </span>
+                  </label>
+                </div>
+                <div class="Planes_Importar_Lista"></div>
+              </div>
+              <div class="Patron_Modal_Acciones">
+                <button class="Config_Boton_Cancelar" type="button"
+                  data-plan-importar-cancelar>
+                  ${Escape_Html(t("cancelar"))}
+                </button>
+                <button class="Config_Boton_Guardar" type="button"
+                  data-plan-importar-confirmar>
+                  ${Escape_Html(t("planes.importar_periodos_confirmar"))}
+                </button>
+              </div>
+            </div>
+          `;
+          const Lista = Overlay.querySelector(".Planes_Importar_Lista");
+          Candidatos.forEach((Item) => {
+            const Padres = Item.Padre_Ids.length;
+            const Label = document.createElement("label");
+            Label.className = "Planes_Importar_Item";
+            Label.innerHTML = `
+              <input type="checkbox"
+                data-plan-importar-periodo="${Escape_Html(Item.Periodo.Id)}"
+                ${Item.Seleccionado ? "checked" : ""}>
+              <span>
+                <strong>
+                  ${Escape_Html(
+                    Planes_Titulo_Periodo_Mostrable(Item.Periodo)
+                  )}
+                </strong>
+                <span>
+                  ${Escape_Html(t("planes.importar_periodo_padres", {
+                    n: Padres
+                  }))}
+                </span>
+              </span>
+            `;
+            Lista.appendChild(Label);
+          });
+          const Cerrar = (Valor) => {
+            Overlay.remove();
+            Resolver(Valor);
+          };
+          Overlay.querySelector("[data-plan-importar-cerrar]")
+            ?.addEventListener("click", () => Cerrar(null));
+          Overlay.querySelector("[data-plan-importar-cancelar]")
+            ?.addEventListener("click", () => Cerrar(null));
+          Overlay.addEventListener("click", (Ev) => {
+            if (Ev.target === Overlay) Ev.preventDefault();
+          });
+          Overlay.querySelector("[data-plan-importar-todos]")
+            ?.addEventListener("click", () => {
+              Overlay.querySelectorAll("[data-plan-importar-periodo]")
+                .forEach((Input) => { Input.checked = true; });
+            });
+          Overlay.querySelector("[data-plan-importar-ninguno]")
+            ?.addEventListener("click", () => {
+              Overlay.querySelectorAll("[data-plan-importar-periodo]")
+                .forEach((Input) => { Input.checked = false; });
+            });
+          Overlay.querySelector("[data-plan-importar-confirmar]")
+            ?.addEventListener("click", () => {
+              const Periodo_Ids = Array.from(
+                Overlay.querySelectorAll("[data-plan-importar-periodo]")
+              )
+                .filter((Input) => Input.checked)
+                .map((Input) => Input.dataset.planImportarPeriodo);
+              const Fijar = Overlay
+                .querySelector("[data-plan-importar-fijar]")?.checked;
+              Cerrar({ Periodo_Ids, Fijar });
+            });
+          document.body.appendChild(Overlay);
+        });
+      }
+
+      function Planes_Importar_Objetivos_Padres_A_Periodos(
+        Periodo_Ids,
+        Opciones = {}
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Periodos = Periodo_Ids
+          .map((Id) => Modelo.Periodos[Id])
+          .filter(Boolean);
+        const Mapa_Padre_Periodos = new Map();
+        Periodos.forEach((Periodo) => {
+          Object.values(Modelo.Periodos)
+            .filter((Padre) => Planes_Periodo_Es_Padre_De(Padre, Periodo))
+            .forEach((Padre) => {
+              Planes_Objetivos_De_Periodo(Padre.Id)
+                .filter((Objetivo) => !Objetivo.Eliminado_Local)
+                .forEach((Objetivo_Padre) => {
+                  const Lista =
+                    Mapa_Padre_Periodos.get(Objetivo_Padre.Id) || [];
+                  Lista.push(Periodo);
+                  Mapa_Padre_Periodos.set(Objetivo_Padre.Id, Lista);
+                });
+            });
+        });
+        Mapa_Padre_Periodos.forEach((Periodos_Destino, Padre_Id) => {
+          const Objetivo_Padre = Modelo.Objetivos[Padre_Id];
+          const Periodo_Padre = Modelo.Periodos[
+            Objetivo_Padre?.Periodo_Id
+          ];
+          if (!Objetivo_Padre || !Periodo_Padre) return;
+          const Cuota = Periodos_Destino.length
+            ? (Number(Objetivo_Padre.Target_Total) || 0) /
+              Periodos_Destino.length
+            : 0;
+          Periodos_Destino.forEach((Periodo) => {
+            let Hijo =
+              Planes_Objetivo_Hijo_De(Objetivo_Padre.Id, Periodo.Id);
+            if (!Hijo) {
+              Hijo = Planes_Crear_Objetivo_Silencioso(
+                Periodo.Id,
+                Planes_Clonar_Datos_Objetivo(Objetivo_Padre, {
+                  Parent_Objetivo_Id: Objetivo_Padre.Id,
+                  Objetivo_Padre_Id: Objetivo_Padre.Id,
+                  Origen_Objetivo: "Importado",
+                  Capa_Origen: Periodo_Padre.Tipo,
+                  Periodo_Origen: Periodo_Padre.Id,
+                  Estado_Vinculo: "Vigente",
+                  Padre_Actualizado_Al_Importar:
+                    Objetivo_Padre.Actualizado_En || "",
+                  Target_Total: 0,
+                  Target_Automatico: 0
+                })
+              );
+            }
+            Hijo.Eliminado_Local = false;
+            Planes_Actualizar_Meta_Hijo_Importado(Objetivo_Padre, Hijo);
+            if (!Hijo.Fijado && Hijo.Auto_Redistribucion !== false) {
+              Hijo.Target_Total = Cuota;
+              Hijo.Target_Automatico = Cuota;
+              Hijo.Target_Actual = Cuota;
+            }
+            if (Opciones.Fijar) {
+              Hijo.Fijado = true;
+              Hijo.Target_Fijado = Hijo.Target_Total;
+              Hijo.Target_Fijado_Por_Usuario = true;
+              Hijo.Auto_Redistribucion = false;
+            }
+            Hijo.Actualizado_En = new Date().toISOString();
+            Planes_Actualizar_Progreso(Hijo);
+          });
+          Planes_Actualizar_Progreso(Objetivo_Padre);
+        });
       }
 
       function Planes_Objetivos_Vencidos() {
