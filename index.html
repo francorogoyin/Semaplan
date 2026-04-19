@@ -3483,8 +3483,8 @@
       }
 
       .Planes_Archivero_Panel {
-        width: min(1440px, calc(100vw - 28px));
-        max-width: 1440px;
+        width: min(1160px, calc(100vw - 28px));
+        max-width: 1160px;
       }
 
       .Patron_Modal_Cuerpo.Planes_Cuerpo {
@@ -3501,7 +3501,7 @@
       }
 
       .Planes_Cabecera {
-        align-items: center;
+        align-items: flex-start;
         gap: 8px;
         padding: 10px 12px;
       }
@@ -3516,6 +3516,7 @@
         align-items: center;
         flex: 0 0 auto;
         gap: 6px;
+        padding-top: 17px;
       }
 
       .Planes_Cabecera .Planes_Controles {
@@ -3523,7 +3524,7 @@
         min-width: 0;
         border-bottom: none;
         padding: 0;
-        gap: 6px;
+        gap: 8px;
       }
 
       .Planes_Navegacion_Custom_Btn {
@@ -3535,6 +3536,7 @@
         color: var(--Texto);
         cursor: pointer;
         display: grid;
+        align-self: flex-end;
         place-items: center;
         font: inherit;
         font-size: 18px;
@@ -3655,31 +3657,31 @@
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
-        align-items: center;
+        align-items: flex-start;
         border-bottom: 1px solid var(--Borde);
         padding: 12px;
         overflow: visible;
-      }
-
-      .Planes_Control.Planes_Capa_Select {
-        flex: 0 0 170px;
-      }
-
-      .Planes_Control.Planes_Anio_Select {
-        flex: 0 0 116px;
-      }
-
-      .Planes_Control.Planes_Subperiodo_Select_Control {
-        flex: 0 0 206px;
       }
 
       .Planes_Subperiodo_Select_Control[hidden] {
         display: none;
       }
 
-      .Planes_Control {
-        flex: 0 0 126px;
+      .Planes_Control,
+      .Planes_Vista_Control {
+        display: flex;
+        flex: 0 0 150px;
+        flex-direction: column;
+        gap: 4px;
         min-width: 0;
+      }
+
+      .Planes_Control_Label {
+        color: var(--Texto_Suave);
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.15;
+        padding-left: 2px;
       }
 
       .Planes_Control select,
@@ -3691,6 +3693,7 @@
         color: var(--Texto);
         font: inherit;
         font-size: 11px;
+        min-height: 34px;
         padding: 8px 9px;
       }
 
@@ -3698,10 +3701,12 @@
         display: inline-flex;
         flex: 0 0 auto;
         gap: 4px;
+        min-height: 34px;
         border: 1px solid var(--Borde);
         border-radius: 8px;
         padding: 3px;
         background: #fff;
+        width: 100%;
       }
 
       .Planes_Vista_Btn {
@@ -3710,9 +3715,12 @@
         background: transparent;
         color: var(--Texto_Suave);
         cursor: pointer;
+        flex: 1 1 0;
         font: inherit;
-        font-size: 11px;
-        padding: 6px 9px;
+        font-size: 10px;
+        min-width: 0;
+        padding: 6px 3px;
+        white-space: nowrap;
       }
 
       .Planes_Vista_Btn.Activo {
@@ -4021,7 +4029,7 @@
         margin-top: 3px;
         color: var(--Texto_Suave);
         font-size: 12px;
-        font-weight: 700;
+        font-weight: 400;
         line-height: 1.2;
       }
 
@@ -6041,8 +6049,8 @@
 
       /* Ajuste visual del modal de Planes */
       .Plan_Panel {
-        width: min(1440px, calc(100vw - 28px));
-        max-width: 1440px;
+        width: min(1160px, calc(100vw - 28px));
+        max-width: 1160px;
         max-height: calc(100vh - 40px);
       }
 
@@ -6371,6 +6379,7 @@
           max-width: none;
           min-width: 0;
           order: 2;
+          padding-top: 17px;
         }
 
         .Planes_Cabecera .Planes_Controles {
@@ -6400,8 +6409,9 @@
         }
 
         .Planes_Control,
+        .Planes_Vista_Control,
         .Planes_Control_Busqueda {
-          flex: 1 1 160px;
+          flex: 1 1 150px;
           max-width: none;
         }
 
@@ -17251,6 +17261,8 @@
         <div class="Patron_Modal_Cabecera Planes_Cabecera">
           <div class="Planes_Controles">
             <label class="Planes_Control Planes_Capa_Select">
+              <span class="Planes_Control_Label"
+                data-i18n="planes.tipo_periodo">Tipo</span>
               <select id="Planes_Capa_Select"
                 data-i18n-title="planes.tipo_periodo"
                 data-i18n-aria="planes.tipo_periodo"
@@ -17258,10 +17270,14 @@
                 aria-label="Tipo de periodo"></select>
             </label>
             <label class="Planes_Control Planes_Anio_Select">
+              <span class="Planes_Control_Label"
+                data-i18n="planner.anio">A&ntilde;o</span>
               <select id="Planes_Anio_Select"></select>
             </label>
             <label class="Planes_Control
               Planes_Subperiodo_Select_Control">
+              <span class="Planes_Control_Label"
+                data-i18n="planes.subperiodo">Subperiodo</span>
               <select id="Planes_Subperiodo_Select"
                 data-i18n-title="planes.subperiodo"
                 data-i18n-aria="planes.subperiodo"
@@ -17274,14 +17290,22 @@
               title="Nuevo período custom"
               type="button">+</button>
             <label class="Planes_Control">
+              <span class="Planes_Control_Label"
+                data-i18n="planes.estado_label">Estado</span>
               <select id="Planes_Filtro_Estado"></select>
             </label>
             <label class="Planes_Control">
+              <span class="Planes_Control_Label"
+                data-i18n="baul.etiqueta">Etiqueta</span>
               <select id="Planes_Filtro_Etiqueta"></select>
             </label>
             <input id="Planes_Busqueda" type="hidden" value="">
-            <div class="Planes_Vista_Toggle"
-              id="Planes_Vista_Toggle"></div>
+            <div class="Planes_Vista_Control">
+              <span class="Planes_Control_Label"
+                data-i18n="vista">Vista</span>
+              <div class="Planes_Vista_Toggle"
+                id="Planes_Vista_Toggle"></div>
+            </div>
           </div>
           <div class="Planes_Header_Acciones">
             <button class="Planes_Header_Btn"
@@ -42303,7 +42327,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sel_Anio.innerHTML = "";
           const Opt_Todos = document.createElement("option");
           Opt_Todos.value = "Todos";
-          Opt_Todos.textContent = "---";
+          Opt_Todos.textContent = t("todos");
           Sel_Anio.appendChild(Opt_Todos);
           for (
             let Anio = Modelo.UI.Anio_Desde;
@@ -42389,7 +42413,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Opt = document.createElement("option");
             Opt.value = Estado;
             Opt.textContent = Estado === "Todos"
-              ? t("planes.estado_todos")
+              ? t("todos")
               : t(`planes.estado_${Estado.toLowerCase()}`);
             Sel_Estado.appendChild(Opt);
           });
@@ -42404,7 +42428,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sel_Etiqueta.innerHTML = "";
           const Todas = document.createElement("option");
           Todas.value = "Todas";
-          Todas.textContent = t("planes.etiqueta_todas");
+          Todas.textContent = t("todas");
           Sel_Etiqueta.appendChild(Todas);
           Planes_Etiquetas_Disponibles().forEach((Etiqueta) => {
             const Opt = document.createElement("option");

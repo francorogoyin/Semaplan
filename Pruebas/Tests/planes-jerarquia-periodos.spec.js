@@ -1620,7 +1620,50 @@ async ({ page }) => {
   expect(Header.diferenciaLeft).toBeLessThanOrEqual(2);
   expect(Header.fondoNav).toBe("rgba(0, 0, 0, 0)");
   expect(Header.bordeNav).toBe("0px");
-  expect(Header.pesoRango).toBeGreaterThanOrEqual(600);
+  expect(Header.pesoRango).toBeLessThan(600);
+
+  const Controles = await page.evaluate(() => {
+    const Visibles = Array.from(
+      document.querySelectorAll(
+        ".Planes_Controles > .Planes_Control, " +
+        ".Planes_Controles > .Planes_Vista_Control"
+      )
+    ).filter((Control) =>
+      !Control.hidden && getComputedStyle(Control).display !== "none"
+    );
+    const Anchos = Visibles.map((Control) =>
+      Math.round(Control.getBoundingClientRect().width)
+    );
+    return {
+      labels: Visibles.map((Control) =>
+        Control.querySelector(".Planes_Control_Label")?.dataset.i18n
+      ),
+      diferenciaAncho: Math.max(...Anchos) - Math.min(...Anchos),
+      estadoTodos:
+        document.querySelector("#Planes_Filtro_Estado option")?.text,
+      etiquetaTodas:
+        document.querySelector("#Planes_Filtro_Etiqueta option")?.text,
+      anioTodos:
+        document.querySelector("#Planes_Anio_Select option")?.text,
+      panelAncho: Math.round(
+        document.querySelector(".Planes_Archivero_Panel")
+          .getBoundingClientRect().width
+      )
+    };
+  });
+  expect(Controles.labels).toEqual([
+    "planes.tipo_periodo",
+    "planner.anio",
+    "planes.subperiodo",
+    "planes.estado_label",
+    "baul.etiqueta",
+    "vista"
+  ]);
+  expect(Controles.diferenciaAncho).toBeLessThanOrEqual(1);
+  expect(Controles.estadoTodos).toBe("Todos");
+  expect(Controles.etiquetaTodas).toBe("Todas");
+  expect(Controles.anioTodos).toBe("Todos");
+  expect(Controles.panelAncho).toBeLessThan(1200);
 
   await expect(page.locator("[data-plan-resumen-anterior]"))
     .toBeEnabled();
