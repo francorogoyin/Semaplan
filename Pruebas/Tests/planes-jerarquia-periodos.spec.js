@@ -583,10 +583,64 @@ async ({ page }) => {
     .toHaveClass(/Activo/);
   await page.click("#Planes_Avance_Cancelar");
 
+  const Sub_Modal_Id = await page.evaluate((padreId) => {
+    const Id = Planes_Agregar_Subobjetivo(
+      padreId,
+      "Sub prueba modal"
+    );
+    const Sub = Asegurar_Modelo_Planes().Subobjetivos[Id];
+    Sub.Target_Total = 3;
+    Sub.Unidad = "Veces";
+    Render_Plan();
+    return Id;
+  }, Modelo_Inicial.padreId);
   await Card_Objetivo.locator('[data-plan-accion="admin_subs"]')
     .click();
   await expect(page.locator("#Planes_Subobjetivos_Overlay"))
     .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Subobjetivos_Titulo"))
+    .toContainText("Leer -");
+  await expect(page.locator("#Planes_Subobjetivos_Titulo"))
+    .toContainText("Año");
+  await expect(page.locator("#Planes_Subobjetivos_Form"))
+    .toBeHidden();
+  await expect(page.locator(
+    "#Planes_Subobjetivos_Vista_Toggle button"
+  )).toHaveCount(3);
+  await page.click("#Planes_Subobjetivos_Agregar");
+  await expect(page.locator("#Planes_Subobjetivos_Input"))
+    .toBeVisible();
+  await page.fill("#Planes_Subobjetivos_Input", "Sub desde +");
+  await page.press("#Planes_Subobjetivos_Input", "Enter");
+  await expect(page.locator("#Planes_Subobjetivos_Form"))
+    .toBeHidden();
+  await expect(page.locator("#Planes_Subobjetivos_Lista"))
+    .toContainText("Sub desde +");
+  await page.locator('[data-plan-sub-vista="Biblioteca"]').click();
+  await expect(page.locator("#Planes_Subobjetivos_Lista"))
+    .toHaveClass(/Biblioteca/);
+  const Sub_Item = page.locator(".Planes_Subobjetivo")
+    .filter({ hasText: "Sub prueba modal" })
+    .first();
+  await Sub_Item.click({ button: "right" });
+  await expect(page.locator(".Planes_Context_Menu"))
+    .toContainText("Editar subobjetivo");
+  await expect(page.locator(".Planes_Context_Menu"))
+    .toContainText("Avance");
+  await page.click(
+    '.Planes_Context_Menu [data-plan-sub-accion="editar"]'
+  );
+  await expect(page.locator("#Planes_Subobjetivo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.fill("#Planes_Subobjetivo_Target", "4");
+  await page.click("#Planes_Subobjetivo_Guardar");
+  await expect(page.locator("#Planes_Subobjetivo_Overlay"))
+    .not.toHaveClass(/Activo/);
+  const Sub_Editado = await page.evaluate((subId) => {
+    return Asegurar_Modelo_Planes().Subobjetivos[subId]
+      .Target_Total;
+  }, Sub_Modal_Id);
+  expect(Sub_Editado).toBe(4);
   await page.click("#Planes_Subobjetivos_Cerrar");
 
   const Eliminado_Visible = await page.evaluate(() => {
@@ -713,6 +767,15 @@ async ({ page }) => {
   ).first();
   await expect(Card_Biblioteca.locator(".Planes_Objetivo_Estado"))
     .toBeVisible();
+  await expect(Card_Biblioteca.locator(".Planes_Avance_Btn"))
+    .toHaveCount(0);
+  await Card_Biblioteca.click({ button: "right" });
+  await expect(page.locator(
+    '.Planes_Context_Menu [data-plan-accion="registrar_avance"]'
+  )).toContainText("Registrar avance");
+  await page.evaluate(() => {
+    Planes_Cerrar_Menus_Objetivo();
+  });
   await expect(Card_Biblioteca.locator(".Planes_Fuente_Badge"))
     .toHaveCount(0);
   await expect(Card_Biblioteca)

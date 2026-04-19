@@ -4002,12 +4002,6 @@
         box-shadow: 0 2px 8px rgba(86, 70, 52, 0.08);
       }
 
-      .Planes_Objetivo_Card.Vista_Biblioteca .Planes_Avance_Btn {
-        position: absolute;
-        right: 10px;
-        bottom: 10px;
-      }
-
       .Planes_Fuente_Badge {
         display: inline-flex;
         align-items: center;
@@ -4563,21 +4557,104 @@
 
       .Planes_Subobjetivo {
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        grid-template-columns: auto minmax(0, 1fr) auto;
         gap: 8px;
-        align-items: center;
+        align-items: start;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
         font-size: 13px;
+        padding: 10px;
+        position: relative;
       }
 
       .Planes_Subobjetivo.Importado {
         color: var(--Texto_Suave);
       }
 
+      .Planes_Subobjetivo.Vista_Lista {
+        align-items: center;
+        border-width: 0 0 1px;
+        border-radius: 0;
+        padding: 8px 2px;
+      }
+
+      .Planes_Subobjetivo.Vista_Biblioteca {
+        display: flex;
+        min-height: 112px;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .Planes_Subobjetivo_Check {
+        margin-top: 2px;
+      }
+
+      .Planes_Subobjetivo.Vista_Biblioteca
+        .Planes_Subobjetivo_Check {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+      }
+
+      .Planes_Subobjetivo_Info {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .Planes_Subobjetivo_Nombre {
+        color: var(--Texto);
+        font-weight: 700;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+
+      .Planes_Subobjetivo_Meta {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        line-height: 1.3;
+      }
+
+      .Planes_Subobjetivo_Estado {
+        display: inline-flex;
+        width: 24px;
+        height: 24px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: #fff;
+        font-size: 12px;
+      }
+
+      .Planes_Subobjetivo.Vista_Biblioteca
+        .Planes_Subobjetivo_Estado {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+      }
+
+      .Planes_Subobjetivo_Importado {
+        display: inline-flex;
+        width: fit-content;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        color: var(--Texto_Suave);
+        font-size: 10px;
+        padding: 2px 6px;
+      }
+
       .Planes_Sub_Form {
         display: grid;
-        grid-template-columns: 1fr auto auto;
+        grid-template-columns: 1fr auto;
         gap: 6px;
         margin-top: 8px;
+      }
+
+      .Planes_Sub_Form[hidden] {
+        display: none;
       }
 
       .Planes_Sub_Form input {
@@ -4678,7 +4755,15 @@
       }
 
       .Planes_Subobjetivos_Modal {
+        max-width: 820px;
+      }
+
+      .Planes_Subobjetivo_Modal {
         max-width: 680px;
+      }
+
+      .Planes_Subobjetivos_Vistas {
+        margin-bottom: 12px;
       }
 
       .Planes_Subobjetivos_Modal_Lista {
@@ -4686,6 +4771,31 @@
         flex-direction: column;
         gap: 8px;
         margin-bottom: 12px;
+      }
+
+      .Planes_Subobjetivos_Modal_Lista.Biblioteca {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fill,
+          minmax(138px, 1fr)
+        );
+      }
+
+      .Planes_Subobjetivos_Modal_Lista.Biblioteca
+        .Planes_Vacio {
+        grid-column: 1 / -1;
+      }
+
+      .Planes_Subobjetivo_Hecha_Campo {
+        align-items: center;
+      }
+
+      .Planes_Subobjetivo_Meta_Campo {
+        grid-column: 1 / 3;
+      }
+
+      .Planes_Subobjetivo_Unidad_Campo {
+        grid-column: 3 / -1;
       }
 
       .Planes_Vacio {
@@ -16280,36 +16390,116 @@
       id="Planes_Subobjetivos_Overlay">
       <div class="Patron_Modal_Panel Planes_Subobjetivos_Modal">
         <div class="Patron_Modal_Cabecera">
-          <button class="Modal_Ayuda_Btn"
-            id="Planes_Subobjetivos_Ayuda"
-            type="button">?</button>
-            <span class="Patron_Modal_Titulo"
-              id="Planes_Subobjetivos_Titulo"
-              data-i18n="planes.subobjetivos">
+          <span class="Patron_Modal_Titulo Con_Fallback_Emoji"
+            id="Planes_Subobjetivos_Titulo"
+            data-i18n="planes.subobjetivos">
             Subobjetivos
           </span>
-          <button class="Config_Cerrar"
-            id="Planes_Subobjetivos_Cerrar"
-            type="button">&times;</button>
+          <div class="Planes_Header_Acciones">
+            <button class="Planes_Header_Btn"
+              id="Planes_Subobjetivos_Agregar"
+              data-i18n-title="planes.agregar_subobjetivo"
+              title="Agregar subobjetivo"
+              type="button">+</button>
+            <button class="Planes_Header_Btn"
+              id="Planes_Subobjetivos_Importar"
+              data-i18n-title="planes.importar_subs"
+              title="Importar subobjetivos"
+              type="button">&#8595;</button>
+            <button class="Config_Cerrar"
+              id="Planes_Subobjetivos_Cerrar"
+              type="button">&times;</button>
+          </div>
         </div>
         <div class="Patron_Modal_Cuerpo">
-          <div class="Planes_Subobjetivos_Modal_Lista"
-            id="Planes_Subobjetivos_Lista"></div>
+          <div class="Planes_Vista_Toggle Planes_Subobjetivos_Vistas"
+            id="Planes_Subobjetivos_Vista_Toggle"></div>
           <form class="Planes_Sub_Form"
-            id="Planes_Subobjetivos_Form">
+            id="Planes_Subobjetivos_Form"
+            hidden>
             <input id="Planes_Subobjetivos_Input"
               data-i18n-ph="planes.sub_ph"
               placeholder="Subobjetivo">
-            <button class="Planes_Btn" type="submit"
-              data-i18n="planes.agregar_sub">
-              Agregar sub
-            </button>
-            <button class="Planes_Btn" type="button"
-              id="Planes_Subobjetivos_Importar"
-              data-i18n="planes.importar_subs">
-              Importar subobjetivos
+            <button class="Planes_Header_Btn"
+              type="submit"
+              data-i18n-title="planes.agregar_subobjetivo"
+              title="Agregar subobjetivo">
+              +
             </button>
           </form>
+          <div class="Planes_Subobjetivos_Modal_Lista"
+            id="Planes_Subobjetivos_Lista"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="Patron_Modal_Overlay"
+      id="Planes_Subobjetivo_Overlay">
+      <div class="Patron_Modal_Panel Planes_Subobjetivo_Modal">
+        <div class="Patron_Modal_Cabecera">
+          <span class="Patron_Modal_Titulo"
+            id="Planes_Subobjetivo_Titulo"
+            data-i18n="planes.editar_subobjetivo">
+            Editar subobjetivo
+          </span>
+          <button class="Config_Cerrar"
+            id="Planes_Subobjetivo_Cerrar"
+            type="button">&times;</button>
+        </div>
+        <div class="Patron_Modal_Cuerpo">
+          <form class="Planes_Objetivo_Form Planes_Subobjetivo_Form"
+            id="Planes_Subobjetivo_Form">
+            <label class="Campo Campo_Ancho">
+              <span data-i18n="planes.sub_ph">Subobjetivo</span>
+              <input id="Planes_Subobjetivo_Texto"
+                data-i18n-ph="planes.sub_ph"
+                placeholder="Subobjetivo">
+            </label>
+            <label class="Campo Planes_Subobjetivo_Meta_Campo">
+              <span data-i18n="planes.sub_metrica">Metrica</span>
+              <input id="Planes_Subobjetivo_Target"
+                type="number"
+                min="0"
+                step="0.25">
+            </label>
+            <label class="Campo Planes_Subobjetivo_Unidad_Campo">
+              <span data-i18n="planes.nuevo_unidad">Unidad</span>
+              <span class="Planes_Unidad_Fila">
+                <select id="Planes_Subobjetivo_Unidad"></select>
+                <input id="Planes_Subobjetivo_Unidad_Custom"
+                  data-i18n-ph="planes.unidad_custom_ph"
+                  hidden
+                  placeholder="Lecturas, ejercicios...">
+              </span>
+            </label>
+            <label class="Campo">
+              <span data-i18n="planes.sub_inicio">Inicio</span>
+              <input id="Planes_Subobjetivo_Fecha_Inicio"
+                type="date">
+            </label>
+            <label class="Campo">
+              <span data-i18n="planes.sub_fin">Fin</span>
+              <input id="Planes_Subobjetivo_Fecha_Fin"
+                type="date">
+            </label>
+            <label class="Campo Planes_Subobjetivo_Hecha_Campo">
+              <span data-i18n="planes.estado_cumplido">
+                Cumplido
+              </span>
+              <input id="Planes_Subobjetivo_Hecha"
+                type="checkbox">
+            </label>
+          </form>
+        </div>
+        <div class="Patron_Modal_Acciones">
+          <button class="Config_Boton_Cancelar"
+            id="Planes_Subobjetivo_Cancelar"
+            data-i18n="cancelar"
+            type="button">Cancelar</button>
+          <button class="Config_Boton_Guardar"
+            id="Planes_Subobjetivo_Guardar"
+            data-i18n="guardar"
+            type="button">Guardar</button>
         </div>
       </div>
     </div>
@@ -17327,6 +17517,7 @@
             "Usalo cuando esta meta ya no debe tomar datos de tareas, categorías, etiquetas o subobjetivos del calendario.",
           "planes.agregar_etiqueta": "Editar etiquetas",
           "planes.agregar_subobjetivo": "Agregar subobjetivo",
+          "planes.editar_subobjetivo": "Editar subobjetivo",
           "planes.administrar_subobjetivos":
             "Administrar subobjetivos",
           "planes.subobjetivos_help":
@@ -17378,6 +17569,8 @@
             "En todos los períodos, incluidos padres",
           "planes.err_nombre":
             "El objetivo necesita nombre.",
+          "planes.err_subobjetivo":
+            "El subobjetivo necesita nombre.",
           "planes.err_unidad_custom":
             "Indicá la unidad personalizada.",
           "planes.rango_al": "{desde} al {hasta}",
@@ -20262,6 +20455,7 @@
             "Use this when this goal should no longer pull data from calendar tasks, categories, tags, or subobjectives.",
           "planes.agregar_etiqueta": "Edit tags",
           "planes.agregar_subobjetivo": "Add subobjective",
+          "planes.editar_subobjetivo": "Edit subobjective",
           "planes.administrar_subobjetivos":
             "Manage subobjectives",
           "planes.subobjetivos_help":
@@ -20313,6 +20507,8 @@
             "In every period, including parents",
           "planes.err_nombre":
             "The objective needs a name.",
+          "planes.err_subobjetivo":
+            "The subobjective needs a name.",
           "planes.err_unidad_custom":
             "Enter the custom unit.",
           "planes.rango_al": "{desde} to {hasta}",
@@ -23151,6 +23347,7 @@
             "Use quando esta meta não deve mais trazer dados de tarefas, categorias, etiquetas ou subobjetivos do calendário.",
           "planes.agregar_etiqueta": "Editar etiquetas",
           "planes.agregar_subobjetivo": "Adicionar subobjetivo",
+          "planes.editar_subobjetivo": "Editar subobjetivo",
           "planes.administrar_subobjetivos":
             "Administrar subobjetivos",
           "planes.subobjetivos_help":
@@ -23202,6 +23399,8 @@
             "Em todos os períodos, incluindo pais",
           "planes.err_nombre":
             "O objetivo precisa de nome.",
+          "planes.err_subobjetivo":
+            "O subobjetivo precisa de nome.",
           "planes.err_unidad_custom":
             "Informe a unidade personalizada.",
           "planes.rango_al": "{desde} a {hasta}",
@@ -26444,6 +26643,8 @@
       let Planes_Vencidos_Seleccionados = new Set();
       let Planes_Objetivo_En_Edicion_Id = null;
       let Planes_Subobjetivos_Objetivo_Id = null;
+      let Planes_Subobjetivos_Form_Abierto = false;
+      let Planes_Subobjetivo_En_Edicion_Id = null;
       let Planes_Vinculo_Subobjetivos_Expandidos = new Set();
       let Planes_Vinculo_Click_Global = false;
       let Planes_Multi_Seleccion = new Set();
@@ -37794,6 +37995,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Filtro_Estado: "Todos",
             Filtro_Etiqueta: "Todas",
             Vista: "Tarjetas",
+            Subobjetivos_Vista: "Tarjetas",
             Busqueda: ""
           }
         };
@@ -37863,6 +38065,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Modelo.UI.Expandidos_Inicializados = true;
         if (!["Tarjetas", "Lista", "Biblioteca"].includes(Modelo.UI.Vista)) {
           Modelo.UI.Vista = "Tarjetas";
+        }
+        if (
+          !["Tarjetas", "Lista", "Biblioteca"]
+            .includes(Modelo.UI.Subobjetivos_Vista)
+        ) {
+          Modelo.UI.Subobjetivos_Vista = "Tarjetas";
         }
         return Modelo;
       }
@@ -39942,7 +40150,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ${Escape_Html(Objetivo.Nombre)}
               </span>
             </div>
-            ${Boton_Avance}
             <span class="Planes_Objetivo_Estado"
               title="${Escape_Html(Estado_Label)}"
               aria-label="${Escape_Html(Estado_Label)}">
@@ -40407,6 +40614,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ${t("planes.administrar_subobjetivos")}
             </button>
             <button class="Planes_Btn" type="button"
+              data-plan-accion="registrar_avance">
+              ${t("planes.registrar_avance")}
+            </button>
+            <button class="Planes_Btn" type="button"
               data-plan-accion="manual">
               ${t("planes.editar_avance_manual")}
             </button>
@@ -40819,6 +41030,154 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Guardar_Estado();
         }
         Render_Modal_Planes_Subobjetivos();
+      }
+
+      function Actualizar_Campo_Unidad_Custom_Subobjetivo() {
+        const Select = document.getElementById(
+          "Planes_Subobjetivo_Unidad"
+        );
+        const Input = document.getElementById(
+          "Planes_Subobjetivo_Unidad_Custom"
+        );
+        if (!Select || !Input) return;
+        Input.hidden = Select.value !== "Personalizado";
+      }
+
+      function Abrir_Modal_Planes_Subobjetivo(Sub_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Sub = Modelo.Subobjetivos[Sub_Id];
+        if (!Sub) return;
+        Planes_Subobjetivo_En_Edicion_Id = Sub.Id;
+        const Titulo = document.getElementById(
+          "Planes_Subobjetivo_Titulo"
+        );
+        if (Titulo) {
+          Titulo.textContent = t("planes.editar_subobjetivo");
+        }
+        const Texto = document.getElementById(
+          "Planes_Subobjetivo_Texto"
+        );
+        const Target = document.getElementById(
+          "Planes_Subobjetivo_Target"
+        );
+        const Unidad = document.getElementById(
+          "Planes_Subobjetivo_Unidad"
+        );
+        const Unidad_Custom = document.getElementById(
+          "Planes_Subobjetivo_Unidad_Custom"
+        );
+        const Inicio = document.getElementById(
+          "Planes_Subobjetivo_Fecha_Inicio"
+        );
+        const Fin = document.getElementById(
+          "Planes_Subobjetivo_Fecha_Fin"
+        );
+        const Hecha = document.getElementById(
+          "Planes_Subobjetivo_Hecha"
+        );
+        if (Texto) Texto.value = Sub.Texto || "";
+        if (Target) Target.value = Sub.Target_Total || "";
+        Planes_Poblar_Select_Unidades(Unidad, Sub.Unidad);
+        if (Unidad_Custom) {
+          Unidad_Custom.value = Sub.Unidad_Custom || "";
+        }
+        if (Inicio) Inicio.value = Sub.Fecha_Inicio || "";
+        if (Fin) Fin.value = Sub.Fecha_Fin || "";
+        if (Hecha) Hecha.checked = Boolean(Sub.Hecha);
+        Actualizar_Campo_Unidad_Custom_Subobjetivo();
+        document.getElementById("Planes_Subobjetivo_Overlay")
+          ?.classList.add("Activo");
+        setTimeout(() => Texto?.focus(), 0);
+      }
+
+      function Cerrar_Modal_Planes_Subobjetivo() {
+        Planes_Subobjetivo_En_Edicion_Id = null;
+        document.getElementById("Planes_Subobjetivo_Overlay")
+          ?.classList.remove("Activo");
+      }
+
+      function Guardar_Modal_Planes_Subobjetivo() {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Sub =
+          Modelo.Subobjetivos[Planes_Subobjetivo_En_Edicion_Id];
+        if (!Sub) return;
+        const Texto = (
+          document.getElementById("Planes_Subobjetivo_Texto")?.value ||
+          ""
+        ).trim();
+        if (!Texto) {
+          Mostrar_Toast_Error(t("planes.err_subobjetivo"));
+          return;
+        }
+        const Unidad = document.getElementById(
+          "Planes_Subobjetivo_Unidad"
+        )?.value || "Personalizado";
+        const Unidad_Custom = (
+          document.getElementById(
+            "Planes_Subobjetivo_Unidad_Custom"
+          )?.value || ""
+        ).trim();
+        if (Unidad === "Personalizado" && !Unidad_Custom) {
+          Mostrar_Toast_Error(t("planes.err_unidad_custom"));
+          return;
+        }
+        const Target = Number(
+          String(
+            document.getElementById("Planes_Subobjetivo_Target")
+              ?.value || ""
+          ).replace(",", ".")
+        );
+        const Hecha = Boolean(
+          document.getElementById("Planes_Subobjetivo_Hecha")?.checked
+        );
+        const Snap = Capturar_Snapshot_Undo();
+        Sub.Texto = Texto;
+        Sub.Target_Total =
+          Number.isFinite(Target) && Target > 0 ? Target : 0;
+        Sub.Unidad = Planes_Unidades.includes(Unidad)
+          ? Unidad
+          : "Personalizado";
+        Sub.Unidad_Custom = Unidad_Custom;
+        Sub.Fecha_Inicio = (
+          document.getElementById("Planes_Subobjetivo_Fecha_Inicio")
+            ?.value || ""
+        ).toString();
+        Sub.Fecha_Fin = (
+          document.getElementById("Planes_Subobjetivo_Fecha_Fin")
+            ?.value || ""
+        ).toString();
+        Sub.Hecha = Hecha;
+        if (Sub.Target_Total > 0) {
+          if (Hecha) {
+            Sub.Progreso_Manual = Math.max(
+              Number(Sub.Progreso_Manual) || 0,
+              Sub.Target_Total
+            );
+          } else if (
+            (Number(Sub.Progreso_Manual) || 0) >= Sub.Target_Total
+          ) {
+            Sub.Progreso_Manual = 0;
+          }
+        }
+        Sub.Estado = Sub.Hecha ? "Cumplido" : "Activo";
+        Cerrar_Modal_Planes_Subobjetivo();
+        const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
+        if (Objetivo) {
+          Planes_Recalcular_Desde(
+            Objetivo,
+            Snap,
+            t("toast.subobjetivo_actualizada")
+          );
+        } else {
+          Render_Plan();
+          Guardar_Estado();
+        }
+        if (
+          document.getElementById("Planes_Subobjetivos_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Modal_Planes_Subobjetivos();
+        }
       }
 
       function Planes_Formatear_Hora_Numero(Valor) {
@@ -41270,6 +41629,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Foco_Agregar = false
       ) {
         Planes_Subobjetivos_Objetivo_Id = Objetivo_Id;
+        Planes_Subobjetivos_Form_Abierto = Boolean(Foco_Agregar);
+        Planes_Cerrar_Menus_Objetivo();
         Render_Modal_Planes_Subobjetivos();
         document.getElementById("Planes_Subobjetivos_Overlay")
           ?.classList.add("Activo");
@@ -41283,8 +41644,134 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Cerrar_Modal_Planes_Subobjetivos() {
         Planes_Subobjetivos_Objetivo_Id = null;
+        Planes_Subobjetivos_Form_Abierto = false;
+        Planes_Cerrar_Menus_Objetivo();
         document.getElementById("Planes_Subobjetivos_Overlay")
           ?.classList.remove("Activo");
+      }
+
+      function Planes_Subobjetivos_Vista_Actual() {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Vista = Modelo.UI.Subobjetivos_Vista;
+        if (!["Tarjetas", "Lista", "Biblioteca"].includes(Vista)) {
+          Modelo.UI.Subobjetivos_Vista = "Tarjetas";
+        }
+        return Modelo.UI.Subobjetivos_Vista;
+      }
+
+      function Render_Planes_Subobjetivos_Vistas() {
+        const Toggle = document.getElementById(
+          "Planes_Subobjetivos_Vista_Toggle"
+        );
+        if (!Toggle) return;
+        const Modelo = Asegurar_Modelo_Planes();
+        const Vista_Actual = Planes_Subobjetivos_Vista_Actual();
+        Toggle.innerHTML = "";
+        [
+          ["Tarjetas", t("planes.vista_tarjetas")],
+          ["Lista", t("planes.vista_lista")],
+          ["Biblioteca", t("planes.vista_biblioteca")]
+        ].forEach(([Vista, Label]) => {
+          const Btn = document.createElement("button");
+          Btn.type = "button";
+          Btn.className = "Planes_Vista_Btn" +
+            (Vista_Actual === Vista ? " Activo" : "");
+          Btn.dataset.planSubVista = Vista;
+          Btn.textContent = Label;
+          Toggle.appendChild(Btn);
+        });
+        Toggle.onclick = (Ev) => {
+          const Btn = Ev.target.closest("[data-plan-sub-vista]");
+          if (!Btn) return;
+          Modelo.UI.Subobjetivos_Vista = Btn.dataset.planSubVista;
+          Render_Modal_Planes_Subobjetivos();
+        };
+      }
+
+      function Planes_Titulo_Modal_Subobjetivos(Objetivo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
+        const Padre = Periodo?.Parent_Id
+          ? Modelo.Periodos[Periodo.Parent_Id]
+          : null;
+        const Inicio = `${Objetivo.Emoji || "\u2705"} ${Objetivo.Nombre}`
+          .trim();
+        const Partes = [
+          Inicio,
+          Planes_Titulo_Periodo_Mostrable(Periodo)
+        ].filter(Boolean);
+        let Titulo = Partes.join(" - ");
+        if (Padre) {
+          Titulo += ` (${Planes_Titulo_Periodo_Mostrable(Padre)})`;
+        }
+        return Titulo || t("planes.subobjetivos");
+      }
+
+      function Planes_Estado_Normalizado_Subobjetivo(Sub) {
+        if (Planes_Estados.includes(Sub.Estado)) return Sub.Estado;
+        return Sub.Hecha ? "Cumplido" : "Activo";
+      }
+
+      function Render_Planes_Subobjetivo_Item(Objetivo, Sub, Vista) {
+        const Item = document.createElement("div");
+        const Estado = Planes_Estado_Normalizado_Subobjetivo(Sub);
+        const Estado_Label =
+          t(`planes.estado_${Estado.toLowerCase()}`);
+        Item.className = "Planes_Subobjetivo" +
+          (Sub.Importado ? " Importado" : "") +
+          ` Vista_${Vista}`;
+        Item.dataset.planSubobjetivoId = Sub.Id;
+        Item.setAttribute("aria-label", Sub.Texto);
+        Item.innerHTML = `
+          <input class="Planes_Subobjetivo_Check"
+            type="checkbox"
+            data-plan-sub-check="${Escape_Html(Sub.Id)}"
+            ${Sub.Hecha ? "checked" : ""}>
+          <span class="Planes_Subobjetivo_Info">
+            <span class="Planes_Subobjetivo_Nombre">
+              ${Escape_Html(Sub.Texto)}
+            </span>
+            <span class="Planes_Subobjetivo_Meta">
+              ${Escape_Html(Planes_Formatear_Meta_Subobjetivo(Sub))}
+            </span>
+            ${Sub.Importado ? `
+              <span class="Planes_Subobjetivo_Importado">
+                ${t("planes.importado")}
+              </span>
+            ` : ""}
+          </span>
+          <span class="Planes_Subobjetivo_Estado Con_Fallback_Emoji"
+            title="${Escape_Html(Estado_Label)}"
+            aria-label="${Escape_Html(Estado_Label)}">
+            ${Planes_Emoji_Estado(Estado)}
+          </span>
+        `;
+        Item.addEventListener("contextmenu", (Ev) => {
+          Ev.preventDefault();
+          Planes_Abrir_Menu_Contextual_Subobjetivo(
+            Objetivo.Id,
+            Sub.Id,
+            Ev.clientX,
+            Ev.clientY
+          );
+        });
+        Item.addEventListener("dblclick", (Ev) => {
+          if (Ev.target.closest("input, button, select, textarea")) {
+            return;
+          }
+          Abrir_Modal_Planes_Subobjetivo(Sub.Id);
+        });
+        return Item;
+      }
+
+      function Planes_Abrir_Form_Subobjetivo_Nuevo() {
+        if (!Planes_Subobjetivos_Objetivo_Id) return;
+        Planes_Subobjetivos_Form_Abierto = true;
+        Render_Modal_Planes_Subobjetivos();
+        setTimeout(() => {
+          document.getElementById("Planes_Subobjetivos_Input")
+            ?.focus();
+        }, 0);
       }
 
       function Render_Modal_Planes_Subobjetivos() {
@@ -41300,17 +41787,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Lista || !Objetivo) return;
         if (Titulo) {
           Titulo.textContent =
-            `${t("planes.subobjetivos")} · ${Objetivo.Nombre}`;
+            Planes_Titulo_Modal_Subobjetivos(Objetivo);
         }
-        const Ayuda = document.getElementById(
-          "Planes_Subobjetivos_Ayuda"
+        Render_Planes_Subobjetivos_Vistas();
+        const Form = document.getElementById(
+          "Planes_Subobjetivos_Form"
         );
-        if (Ayuda) {
-          Ayuda.title = t("planes.subobjetivos_help");
-          Ayuda.setAttribute("aria-label", t("ayuda.titulo"));
+        const Input = document.getElementById(
+          "Planes_Subobjetivos_Input"
+        );
+        if (Form) Form.hidden = !Planes_Subobjetivos_Form_Abierto;
+        if (Input && !Planes_Subobjetivos_Form_Abierto) {
+          Input.value = "";
         }
         const Subs = Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
           .filter((Sub) => !Sub.Eliminado_Local);
+        const Vista = Planes_Subobjetivos_Vista_Actual();
+        Lista.className = "Planes_Subobjetivos_Modal_Lista" +
+          (Vista === "Biblioteca" ? " Biblioteca" : "");
         Lista.innerHTML = "";
         if (!Subs.length) {
           const Vacio = document.createElement("div");
@@ -41319,71 +41813,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Lista.appendChild(Vacio);
         }
         Subs.forEach((Sub) => {
-          const Item = document.createElement("div");
-          Item.className = "Planes_Subobjetivo" +
-            (Sub.Importado ? " Importado" : "");
-          const Unidad_Opciones = Planes_Unidades.map((Unidad) => `
-            <option value="${Escape_Html(Unidad)}"
-              ${Sub.Unidad === Unidad ? "selected" : ""}>
-              ${t(`planes.${Unidad.toLowerCase()}`)}
-            </option>
-          `).join("");
-          Item.innerHTML = `
-            <input type="checkbox"
-              data-plan-sub-check="${Escape_Html(Sub.Id)}"
-              ${Sub.Hecha ? "checked" : ""}>
-            <span class="Planes_Subobjetivo_Info">
-              <span>${Escape_Html(Sub.Texto)}</span>
-              <span class="Planes_Subobjetivo_Meta">
-                ${Escape_Html(Planes_Formatear_Meta_Subobjetivo(Sub))}
-              </span>
-            </span>
-            <button class="Planes_Btn" type="button"
-              data-plan-sub-avance="${Escape_Html(Sub.Id)}">
-              ${t("planes.sub_avance")}
-            </button>
-            <button class="Planes_Btn Peligro" type="button"
-              data-plan-sub-eliminar="${Escape_Html(Sub.Id)}">
-              ${t("planes.eliminar_local")}
-            </button>
-            <div class="Planes_Subobjetivo_Config">
-              <label>
-                <span>${t("planes.sub_metrica")}</span>
-                <input type="number" min="0" step="0.25"
-                  data-plan-sub-target="${Escape_Html(Sub.Id)}"
-                  value="${Escape_Html(
-                    Number(Sub.Target_Total) > 0
-                      ? Planes_Formatear_Numero(Sub.Target_Total)
-                      : ""
-                  )}">
-              </label>
-              <label>
-                <span>${t("planes.nuevo_unidad")}</span>
-                <select data-plan-sub-unidad="${Escape_Html(Sub.Id)}">
-                  ${Unidad_Opciones}
-                </select>
-              </label>
-              <label ${Sub.Unidad === "Personalizado" ? "" : "hidden"}>
-                <span>${t("planes.sub_unidad_custom")}</span>
-                <input type="text"
-                  data-plan-sub-unidad-custom="${Escape_Html(Sub.Id)}"
-                  value="${Escape_Html(Sub.Unidad_Custom || "")}">
-              </label>
-              <label>
-                <span>${t("planes.sub_inicio")}</span>
-                <input type="date"
-                  data-plan-sub-inicio="${Escape_Html(Sub.Id)}"
-                  value="${Escape_Html(Sub.Fecha_Inicio || "")}">
-              </label>
-              <label>
-                <span>${t("planes.sub_fin")}</span>
-                <input type="date"
-                  data-plan-sub-fin="${Escape_Html(Sub.Id)}"
-                  value="${Escape_Html(Sub.Fecha_Fin || "")}">
-              </label>
-            </div>
-          `;
-          Lista.appendChild(Item);
+          Lista.appendChild(
+            Render_Planes_Subobjetivo_Item(Objetivo, Sub, Vista)
+          );
         });
         Lista.querySelectorAll("[data-plan-sub-check]")
           .forEach((Check) => {
@@ -41393,68 +41825,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Check.checked
               );
               Render_Modal_Planes_Subobjetivos();
-            });
-          });
-        Lista.querySelectorAll("[data-plan-sub-eliminar]")
-          .forEach((Btn) => {
-            Btn.addEventListener("click", () => {
-              Planes_Eliminar_Subobjetivo(
-                Btn.dataset.planSubEliminar
-              );
-              Render_Modal_Planes_Subobjetivos();
-            });
-          });
-        Lista.querySelectorAll("[data-plan-sub-avance]")
-          .forEach((Btn) => {
-            Btn.addEventListener("click", () => {
-              Abrir_Modal_Planes_Avance(
-                `Subobjetivo|${Btn.dataset.planSubAvance}`
-              );
-            });
-          });
-        Lista.querySelectorAll("[data-plan-sub-target]")
-          .forEach((Input) => {
-            Input.addEventListener("change", () => {
-              Planes_Actualizar_Subobjetivo_Datos(
-                Input.dataset.planSubTarget,
-                { Target_Total: Input.value }
-              );
-            });
-          });
-        Lista.querySelectorAll("[data-plan-sub-unidad]")
-          .forEach((Select) => {
-            Select.addEventListener("change", () => {
-              Planes_Actualizar_Subobjetivo_Datos(
-                Select.dataset.planSubUnidad,
-                { Unidad: Select.value }
-              );
-            });
-          });
-        Lista.querySelectorAll("[data-plan-sub-unidad-custom]")
-          .forEach((Input) => {
-            Input.addEventListener("change", () => {
-              Planes_Actualizar_Subobjetivo_Datos(
-                Input.dataset.planSubUnidadCustom,
-                { Unidad_Custom: Input.value }
-              );
-            });
-          });
-        Lista.querySelectorAll("[data-plan-sub-inicio]")
-          .forEach((Input) => {
-            Input.addEventListener("change", () => {
-              Planes_Actualizar_Subobjetivo_Datos(
-                Input.dataset.planSubInicio,
-                { Fecha_Inicio: Input.value }
-              );
-            });
-          });
-        Lista.querySelectorAll("[data-plan-sub-fin]")
-          .forEach((Input) => {
-            Input.addEventListener("change", () => {
-              Planes_Actualizar_Subobjetivo_Datos(
-                Input.dataset.planSubFin,
-                { Fecha_Fin: Input.value }
-              );
             });
           });
         const Importar = document.getElementById(
@@ -41468,39 +41838,97 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
-      function Render_Planes_Subobjetivos(Objetivo) {
-        const Subs = Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
-          .filter((Sub) => !Sub.Eliminado_Local);
-        const Items = Subs.map((Sub) => `
-          <label class="Planes_Subobjetivo${
-            Sub.Importado ? " Importado" : ""
-          }">
-            <input type="checkbox"
-              data-plan-sub-check="${Escape_Html(Sub.Id)}"
-              ${Sub.Hecha ? "checked" : ""}>
-            <span>${Escape_Html(Sub.Texto)}</span>
-            <button class="Planes_Btn Peligro" type="button"
-              data-plan-sub-eliminar="${Escape_Html(Sub.Id)}">
-              ${t("planes.eliminar_local")}
-            </button>
-          </label>
-        `).join("");
+      function Render_Planes_Subobjetivo_Acciones(Sub) {
         return `
-          <div class="Planes_Subobjetivos">
-            <strong>${t("planes.subobjetivos")}</strong>
-            ${Items}
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="importar_subs">
-              ${t("planes.importar_subs")}
-            </button>
-            <form class="Planes_Sub_Form" data-plan-sub-form>
-              <input placeholder="${Escape_Html(t("planes.sub_ph"))}">
-              <button class="Planes_Btn" type="submit">
-                ${t("planes.agregar_sub")}
-              </button>
-            </form>
-          </div>
+          <button class="Planes_Btn" type="button"
+            data-plan-sub-accion="editar">
+            ${t("planes.editar_subobjetivo")}
+          </button>
+          <button class="Planes_Btn" type="button"
+            data-plan-sub-accion="avance">
+            ${t("planes.sub_avance")}
+          </button>
+          <button class="Planes_Btn" type="button"
+            data-plan-sub-accion="toggle">
+            ${Sub.Hecha
+              ? t("multi.desmarcar")
+              : t("multi.marcar_hechas")}
+          </button>
+          <button class="Planes_Btn Peligro" type="button"
+            data-plan-sub-accion="eliminar">
+            ${t("planes.eliminar_local")}
+          </button>
         `;
+      }
+
+      async function Planes_Ejecutar_Accion_Subobjetivo(
+        Objetivo_Id,
+        Sub_Id,
+        Tipo
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Sub = Modelo.Subobjetivos[Sub_Id];
+        if (!Sub) return;
+        if (Tipo === "editar") {
+          Abrir_Modal_Planes_Subobjetivo(Sub_Id);
+        }
+        if (Tipo === "avance") {
+          Abrir_Modal_Planes_Avance(`Subobjetivo|${Sub_Id}`);
+        }
+        if (Tipo === "toggle") {
+          Planes_Toggle_Subobjetivo(Sub_Id, !Sub.Hecha);
+          Render_Modal_Planes_Subobjetivos();
+        }
+        if (Tipo === "eliminar") {
+          Planes_Eliminar_Subobjetivo(Sub_Id);
+          Render_Modal_Planes_Subobjetivos();
+        }
+      }
+
+      function Planes_Abrir_Menu_Contextual_Subobjetivo(
+        Objetivo_Id,
+        Sub_Id,
+        X,
+        Y
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Sub = Modelo.Subobjetivos[Sub_Id];
+        if (!Sub) return;
+        Planes_Cerrar_Menus_Objetivo();
+        const Menu = document.createElement("div");
+        Menu.className = "Planes_Context_Menu";
+        Menu.style.left = "0";
+        Menu.style.top = "0";
+        Menu.style.visibility = "hidden";
+        Menu.innerHTML = Render_Planes_Subobjetivo_Acciones(Sub);
+        Menu.addEventListener("contextmenu", (Ev) => {
+          Ev.preventDefault();
+        });
+        Menu.addEventListener("click", async (Ev) => {
+          const Accion = Ev.target.closest("[data-plan-sub-accion]");
+          if (!Accion) return;
+          const Tipo = Accion.dataset.planSubAccion;
+          Planes_Cerrar_Menus_Objetivo();
+          await Planes_Ejecutar_Accion_Subobjetivo(
+            Objetivo_Id,
+            Sub_Id,
+            Tipo
+          );
+        });
+        document.body.appendChild(Menu);
+        const Rect = Menu.getBoundingClientRect();
+        const Margen = 8;
+        const Izquierda = Math.min(
+          Math.max(Margen, X),
+          window.innerWidth - Rect.width - Margen
+        );
+        const Arriba = Math.min(
+          Math.max(Margen, Y),
+          window.innerHeight - Rect.height - Margen
+        );
+        Menu.style.left = `${Math.max(Margen, Izquierda)}px`;
+        Menu.style.top = `${Math.max(Margen, Arriba)}px`;
+        Menu.style.visibility = "";
       }
 
       function Planes_Agregar_Subobjetivo(Objetivo_Id, Texto) {
@@ -41516,6 +41944,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }, Orden);
         Render_Plan();
         Guardar_Estado();
+        return Id;
       }
 
       function Planes_Toggle_Subobjetivo(Sub_Id, Hecha) {
@@ -62861,12 +63290,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       document.getElementById("Planes_Subobjetivos_Cerrar")
         ?.addEventListener("click", Cerrar_Modal_Planes_Subobjetivos);
+      document.getElementById("Planes_Subobjetivos_Agregar")
+        ?.addEventListener("click", Planes_Abrir_Form_Subobjetivo_Nuevo);
       document.getElementById("Planes_Subobjetivos_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Planes_Subobjetivos_Overlay") {
             Cerrar_Modal_Planes_Subobjetivos();
           }
         });
+      document.getElementById("Planes_Subobjetivo_Cerrar")
+        ?.addEventListener("click", Cerrar_Modal_Planes_Subobjetivo);
+      document.getElementById("Planes_Subobjetivo_Cancelar")
+        ?.addEventListener("click", Cerrar_Modal_Planes_Subobjetivo);
+      document.getElementById("Planes_Subobjetivo_Guardar")
+        ?.addEventListener("click", Guardar_Modal_Planes_Subobjetivo);
+      document.getElementById("Planes_Subobjetivo_Form")
+        ?.addEventListener("submit", (Ev) => {
+          Ev.preventDefault();
+          Guardar_Modal_Planes_Subobjetivo();
+        });
+      document.getElementById("Planes_Subobjetivo_Overlay")
+        ?.addEventListener("click", (Ev) => {
+          if (Ev.target.id === "Planes_Subobjetivo_Overlay") {
+            Cerrar_Modal_Planes_Subobjetivo();
+          }
+        });
+      document.getElementById("Planes_Subobjetivo_Unidad")
+        ?.addEventListener(
+          "change",
+          Actualizar_Campo_Unidad_Custom_Subobjetivo
+        );
       document.getElementById("Planes_Subobjetivos_Form")
         ?.addEventListener("submit", (Ev) => {
           Ev.preventDefault();
@@ -62880,8 +63333,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Texto
           );
           Input.value = "";
+          Planes_Subobjetivos_Form_Abierto = false;
           Render_Modal_Planes_Subobjetivos();
-          Input.focus();
         });
       document.getElementById("Planes_Avance_Cerrar")
         ?.addEventListener("click", Cerrar_Modal_Planes_Avance);
@@ -68517,6 +68970,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "#Planes_Avance_Overlay.Activo, " +
             "#Planes_Registro_Overlay.Activo, " +
             "#Planes_Objetivo_Overlay.Activo, " +
+            "#Planes_Subobjetivo_Overlay.Activo, " +
             "#Planes_Subobjetivos_Overlay.Activo, " +
             "#Meta_Editor_Overlay.Activo, " +
             "#Archivero_Nota_Overlay.Activo, " +
@@ -68575,6 +69029,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.classList.contains("Activo");
         const Planes_Subobjetivos_Activo = document
           .getElementById("Planes_Subobjetivos_Overlay")
+          ?.classList.contains("Activo");
+        const Planes_Subobjetivo_Activo = document
+          .getElementById("Planes_Subobjetivo_Overlay")
           ?.classList.contains("Activo");
         const Planes_Avance_Activo = document
           .getElementById("Planes_Avance_Overlay")
@@ -68681,6 +69138,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.preventDefault();
             return;
           }
+          if (Planes_Subobjetivo_Activo) {
+            Cerrar_Modal_Planes_Subobjetivo();
+            Ev.preventDefault();
+            return;
+          }
           if (Planes_Subobjetivos_Activo) {
             Cerrar_Modal_Planes_Subobjetivos();
             Ev.preventDefault();
@@ -68780,6 +69242,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Meta_Editor_Activo ||
           Planes_Registro_Activo ||
           Planes_Avance_Activo ||
+          Planes_Subobjetivo_Activo ||
           Planes_Subobjetivos_Activo ||
           Planes_Objetivo_Activo ||
           Planes_Activo ||
