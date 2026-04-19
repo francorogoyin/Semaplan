@@ -4545,6 +4545,26 @@
         gap: 7px;
       }
 
+      .Planes_Importar_Modo_Campo {
+        align-items: center;
+        color: var(--Texto);
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 700;
+        gap: 7px;
+      }
+
+      .Planes_Importar_Modo_Campo select {
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--Texto);
+        font: inherit;
+        font-size: 12px;
+        min-height: 34px;
+        padding: 6px 10px;
+      }
+
       .Planes_Objetivo_Cantidad {
         color: var(--Texto_Suave);
         font-size: 12px;
@@ -18850,6 +18870,9 @@
           "planes.importar_modo_proporcional": "Proporcional",
           "planes.importar_modo_completo": "Completo",
           "planes.importar_modo_manual": "Manual",
+          "planes.importar_modo_pendiente":
+            "Redistribuir pendiente",
+          "planes.importar_modo_label": "Forma de importar",
           "planes.importar_manual_valor": "Métrica",
           "planes.importar_manual_error":
             "Ingresá una métrica válida para cada objetivo seleccionado.",
@@ -18873,6 +18896,10 @@
             "Copia la métrica completa del padre en cada período elegido.",
           "planes.importar_help_manual":
             "Permite escribir la métrica exacta que recibirá cada objetivo importado.",
+          "planes.importar_help_pendiente":
+            "No cambia períodos cerrados. Reparte lo pendiente según avance real entre los períodos seleccionados que siguen abiertos.",
+          "planes.importar_help_modo":
+            "Define cómo se calcula la métrica que recibirá cada objetivo importado.",
           "planes.importar_help_cancelar":
             "Cierra el modal sin aplicar cambios.",
           "planes.importar_help_confirmar":
@@ -22119,6 +22146,9 @@
           "planes.importar_modo_proporcional": "Proportional",
           "planes.importar_modo_completo": "Full",
           "planes.importar_modo_manual": "Manual",
+          "planes.importar_modo_pendiente":
+            "Redistribute pending",
+          "planes.importar_modo_label": "Import mode",
           "planes.importar_manual_valor": "Metric",
           "planes.importar_manual_error":
             "Enter a valid metric for each selected objective.",
@@ -22142,6 +22172,10 @@
             "Copies the parent's full metric into each selected period.",
           "planes.importar_help_manual":
             "Lets you enter the exact metric each imported objective receives.",
+          "planes.importar_help_pendiente":
+            "Does not change closed periods. Distributes the pending amount based on real progress across selected periods that remain open.",
+          "planes.importar_help_modo":
+            "Defines how the metric assigned to each imported objective is calculated.",
           "planes.importar_help_cancelar":
             "Closes the modal without applying changes.",
           "planes.importar_help_confirmar":
@@ -25331,6 +25365,9 @@
           "planes.importar_modo_proporcional": "Proporcional",
           "planes.importar_modo_completo": "Completo",
           "planes.importar_modo_manual": "Manual",
+          "planes.importar_modo_pendiente":
+            "Redistribuir pendente",
+          "planes.importar_modo_label": "Forma de importar",
           "planes.importar_manual_valor": "Métrica",
           "planes.importar_manual_error":
             "Informe uma métrica válida para cada objetivo selecionado.",
@@ -25354,6 +25391,10 @@
             "Copia a métrica completa do pai para cada período escolhido.",
           "planes.importar_help_manual":
             "Permite escrever a métrica exata que cada objetivo importado receberá.",
+          "planes.importar_help_pendiente":
+            "Não altera períodos fechados. Reparte o pendente segundo o avanço real entre os períodos selecionados que continuam abertos.",
+          "planes.importar_help_modo":
+            "Define como a métrica recebida por cada objetivo importado é calculada.",
           "planes.importar_help_cancelar":
             "Fecha o modal sem aplicar mudanças.",
           "planes.importar_help_confirmar":
@@ -47116,6 +47157,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Target / Partes;
       }
 
+      function Planes_Periodo_Cerrado_Importacion(Periodo) {
+        if (!Periodo?.Fin) return false;
+        return Periodo.Fin < Formatear_Fecha_ISO(new Date());
+      }
+
+      function Planes_Targets_Pendientes_Importacion(
+        Objetivo_Padre,
+        Periodo_Padre,
+        Periodos_Destino
+      ) {
+        const Resultado = new Map();
+        const Target = Number(Objetivo_Padre?.Target_Total) || 0;
+        const Destinos = Array.isArray(Periodos_Destino)
+          ? Periodos_Destino
+          : [];
+        const Abiertos = Destinos
+          .filter((Periodo) =>
+            !Planes_Periodo_Cerrado_Importacion(Periodo)
+          );
+        if (!Objetivo_Padre || !Periodo_Padre || !Abiertos.length) {
+          return Resultado;
+        }
+        const Tipo_Destino = Abiertos[0]?.Tipo || Destinos[0]?.Tipo;
+        const Periodos_Capa = Planes_Crear_Periodos_Distribucion(
+          Periodo_Padre,
+          Tipo_Destino
+        );
+        const Avance_Cerrado = Periodos_Capa
+          .filter(Planes_Periodo_Cerrado_Importacion)
+          .reduce((Total, Periodo) => {
+            const Hijo = Planes_Objetivo_Hijo_De(
+              Objetivo_Padre.Id,
+              Periodo.Id
+            );
+            if (!Hijo || Hijo.Eliminado_Local) return Total;
+            Planes_Actualizar_Progreso(Hijo);
+            return Total + (Number(Hijo.Progreso_Total) || 0);
+          }, 0);
+        const Pendiente = Math.max(0, Target - Avance_Cerrado);
+        const Cuota = Abiertos.length ? Pendiente / Abiertos.length : 0;
+        Abiertos.forEach((Periodo) => {
+          Resultado.set(Periodo.Id, Cuota);
+        });
+        return Resultado;
+      }
+
       function Planes_Target_Importacion(
         Objetivo_Padre,
         Periodo_Padre,
@@ -47187,34 +47274,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                       ${Escape_Html(t("planes.importar_periodos_fijar"))}
                     </span>
                   </label>
-                  <label class="Planes_Importar_Opcion
+                  <label class="Planes_Importar_Modo_Campo
                     Planes_Dato_Ayuda"
-                    title="${Titulo_Help(
-                      "planes.importar_help_proporcional"
-                    )}">
-                    <input type="radio" name="Planes_Importar_Modo"
-                      value="Proporcional" checked>
+                    title="${Titulo_Help("planes.importar_help_modo")}">
                     <span>
-                      ${Escape_Html(t("planes.importar_modo_proporcional"))}
+                      ${Escape_Html(t("planes.importar_modo_label"))}
                     </span>
-                  </label>
-                  <label class="Planes_Importar_Opcion
-                    Planes_Dato_Ayuda"
-                    title="${Titulo_Help("planes.importar_help_completo")}">
-                    <input type="radio" name="Planes_Importar_Modo"
-                      value="Completo">
-                    <span>
-                      ${Escape_Html(t("planes.importar_modo_completo"))}
-                    </span>
-                  </label>
-                  <label class="Planes_Importar_Opcion
-                    Planes_Dato_Ayuda"
-                    title="${Titulo_Help("planes.importar_help_manual")}">
-                    <input type="radio" name="Planes_Importar_Modo"
-                      value="Manual">
-                    <span>
-                      ${Escape_Html(t("planes.importar_modo_manual"))}
-                    </span>
+                    <select data-plan-importar-modo-select>
+                      <option value="Proporcional"
+                        title="${Titulo_Help(
+                          "planes.importar_help_proporcional"
+                        )}">
+                        ${Escape_Html(
+                          t("planes.importar_modo_proporcional")
+                        )}
+                      </option>
+                      <option value="Pendiente"
+                        title="${Titulo_Help(
+                          "planes.importar_help_pendiente"
+                        )}">
+                        ${Escape_Html(
+                          t("planes.importar_modo_pendiente")
+                        )}
+                      </option>
+                      <option value="Completo"
+                        title="${Titulo_Help(
+                          "planes.importar_help_completo"
+                        )}">
+                        ${Escape_Html(t("planes.importar_modo_completo"))}
+                      </option>
+                      <option value="Manual"
+                        title="${Titulo_Help(
+                          "planes.importar_help_manual"
+                        )}">
+                        ${Escape_Html(t("planes.importar_modo_manual"))}
+                      </option>
+                    </select>
                   </label>
                 </div>
                 <div class="Planes_Importar_Lista"></div>
@@ -47367,7 +47462,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               });
           };
           const Modo_Seleccionado = () => Overlay
-            .querySelector("input[name='Planes_Importar_Modo']:checked")
+            .querySelector("[data-plan-importar-modo-select]")
             ?.value || "Proporcional";
           const Actualizar_Modo = () => {
             Overlay.dataset.planImportarModo = Modo_Seleccionado();
@@ -47412,10 +47507,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .forEach((Input) => {
               Input.addEventListener("change", Actualizar_Conteos);
             });
-          Overlay.querySelectorAll("input[name='Planes_Importar_Modo']")
-            .forEach((Input) => {
-              Input.addEventListener("change", Actualizar_Modo);
-            });
+          Overlay.querySelector("[data-plan-importar-modo-select]")
+            ?.addEventListener("change", Actualizar_Modo);
           Overlay.querySelector("[data-plan-importar-confirmar]")
             ?.addEventListener("click", () => {
               const Mapa = new Map();
@@ -47537,15 +47630,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Mapa_Padre_Periodos.set(Objetivo_Id, Lista);
           });
         });
+        const Modo_Importacion = Opciones.Modo || "Proporcional";
         Mapa_Padre_Periodos.forEach((Periodos_Destino, Padre_Id) => {
           const Objetivo_Padre = Modelo.Objetivos[Padre_Id];
           const Periodo_Padre = Modelo.Periodos[
             Objetivo_Padre?.Periodo_Id
           ];
           if (!Objetivo_Padre || !Periodo_Padre) return;
+          const Targets_Pendientes =
+            Modo_Importacion === "Pendiente"
+              ? Planes_Targets_Pendientes_Importacion(
+                Objetivo_Padre,
+                Periodo_Padre,
+                Periodos_Destino
+              )
+              : null;
           Periodos_Destino.forEach((Periodo) => {
             let Hijo =
               Planes_Objetivo_Hijo_De(Objetivo_Padre.Id, Periodo.Id);
+            if (
+              Modo_Importacion === "Pendiente" &&
+              !Targets_Pendientes?.has(Periodo.Id)
+            ) {
+              return;
+            }
             const Es_Nuevo = !Hijo;
             const Antes = Hijo
               ? JSON.stringify(
@@ -47580,13 +47688,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Restaurar_Vinculo_Objetivo(Hijo);
             Planes_Actualizar_Meta_Hijo_Importado(Objetivo_Padre, Hijo);
             if (!Hijo.Fijado && Hijo.Auto_Redistribucion !== false) {
-              const Cuota = Planes_Target_Importacion(
-                Objetivo_Padre,
-                Periodo_Padre,
-                Periodo,
-                Opciones.Modo || "Proporcional",
-                Opciones.Targets_Manuales || {}
-              );
+              const Cuota = Modo_Importacion === "Pendiente"
+                ? Targets_Pendientes.get(Periodo.Id)
+                : Planes_Target_Importacion(
+                  Objetivo_Padre,
+                  Periodo_Padre,
+                  Periodo,
+                  Modo_Importacion,
+                  Opciones.Targets_Manuales || {}
+                );
               Hijo.Target_Total = Cuota;
               Hijo.Target_Automatico = Cuota;
               Hijo.Target_Actual = Cuota;
