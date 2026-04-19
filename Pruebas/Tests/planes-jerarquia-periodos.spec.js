@@ -1485,6 +1485,27 @@ async ({ page }) => {
   expect(Resultado.Hijos[1].Auto_Redistribucion).toBe(false);
   expect(Resultado.Hijos[2].Fijado).toBe(false);
 
+  await expect(page.locator(".Planes_Resumen_Titulo"))
+    .toHaveText("Trimestre 2");
+  await expect(page.locator(".Planes_Resumen_Titulo_Anio"))
+    .toHaveText("2026");
+  const Header = await page.evaluate(() => {
+    const Titulo = document.querySelector(".Planes_Resumen_Titulo");
+    const Rango = document.querySelector(".Planes_Resumen_Rango");
+    const Nav = document.querySelector(".Planes_Resumen_Nav");
+    return {
+      diferenciaTop: Math.abs(
+        Titulo.getBoundingClientRect().top -
+        Rango.getBoundingClientRect().top
+      ),
+      fondoNav: getComputedStyle(Nav).backgroundColor,
+      bordeNav: getComputedStyle(Nav).borderTopWidth
+    };
+  });
+  expect(Header.diferenciaTop).toBeLessThanOrEqual(4);
+  expect(Header.fondoNav).toBe("rgba(0, 0, 0, 0)");
+  expect(Header.bordeNav).toBe("0px");
+
   await expect(page.locator("[data-plan-resumen-anterior]"))
     .toBeEnabled();
   await expect(page.locator("[data-plan-resumen-siguiente]"))

@@ -3897,18 +3897,32 @@
       }
 
       .Planes_Resumen_Titulo_Fila {
-        align-items: center;
+        align-items: flex-start;
         display: flex;
         gap: 8px;
         min-width: 0;
       }
 
+      .Planes_Resumen_Titulo_Linea {
+        align-items: flex-start;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px 24px;
+        min-width: 0;
+      }
+
+      .Planes_Resumen_Titulo_Texto {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+
       .Planes_Resumen_Nav {
-        width: 28px;
+        width: 18px;
         height: 28px;
-        border: 1px solid var(--Borde);
-        border-radius: 8px;
-        background: #fff;
+        border: 0;
+        background: transparent;
         color: var(--Texto);
         cursor: pointer;
         display: inline-grid;
@@ -3921,9 +3935,8 @@
       }
 
       .Planes_Resumen_Nav:hover {
-        border-color: rgba(31, 107, 79, 0.4);
-        background: var(--Acento_Suave);
         color: var(--Acento);
+        transform: translateY(-1px);
       }
 
       .Planes_Resumen_Nav:disabled {
@@ -3932,9 +3945,8 @@
       }
 
       .Planes_Resumen_Nav:disabled:hover {
-        border-color: var(--Borde);
-        background: #fff;
         color: var(--Texto);
+        transform: none;
       }
 
       .Planes_Universo_Acciones {
@@ -4001,9 +4013,16 @@
       }
 
       .Planes_Resumen_Rango {
-        margin-top: 12px;
+        margin-top: 3px;
         color: var(--Texto_Suave);
         font-size: 12px;
+      }
+
+      .Planes_Resumen_Titulo_Anio {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1;
       }
 
       .Planes_Resumen_Texto {
@@ -41950,6 +41969,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Periodo.Titulo || "";
       }
 
+      function Planes_Partes_Titulo_Resumen(Periodo) {
+        const Titulo = Planes_Titulo_Periodo_Mostrable(Periodo);
+        const Match = Titulo.match(/\s*\((\d{4})\)\s*$/);
+        if (!Match) {
+          return { Titulo, Anio: "" };
+        }
+        const Titulo_Limpio = Titulo
+          .replace(/\s*\(\d{4}\)\s*$/, "")
+          .trim();
+        return {
+          Titulo: Titulo_Limpio || Titulo,
+          Anio: Match[1] || ""
+        };
+      }
+
       function Planes_Etiquetas_Ids_Desde_Nombres(Nombres) {
         const Claves = new Set(
           (Array.isArray(Nombres) ? Nombres : [])
@@ -43002,34 +43036,46 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Siguiente_Titulo = Escape_Html(
           t("planes.periodo_siguiente")
         );
+        const Titulo_Resumen =
+          Planes_Partes_Titulo_Resumen(Periodo);
+        const Anio_Resumen = Titulo_Resumen.Anio
+          ? `<span class="Planes_Resumen_Titulo_Anio">${
+            Escape_Html(Titulo_Resumen.Anio)
+          }</span>`
+          : "";
         const Cont = document.createElement("section");
         Cont.className = "Planes_Resumen";
         Cont.innerHTML = `
           <div class="Planes_Resumen_Cabecera">
             <div class="Planes_Resumen_Titulo_Bloque">
-              <div class="Planes_Resumen_Titulo_Fila">
-                <button class="Planes_Resumen_Nav"
-                  type="button"
-                  data-plan-resumen-anterior
-                  title="${Anterior_Titulo}"
-                  aria-label="${Anterior_Titulo}"
-                  ${Vecinos.Anterior ? "" : "disabled"}>
-                  &#8592;
-                </button>
-                <h2 class="Planes_Resumen_Titulo">
-                  ${Escape_Html(Planes_Titulo_Periodo_Mostrable(Periodo))}
-                </h2>
-                <button class="Planes_Resumen_Nav"
-                  type="button"
-                  data-plan-resumen-siguiente
-                  title="${Siguiente_Titulo}"
-                  aria-label="${Siguiente_Titulo}"
-                  ${Vecinos.Siguiente ? "" : "disabled"}>
-                  &#8594;
-                </button>
-              </div>
-              <div class="Planes_Resumen_Rango">
-                ${Escape_Html(Planes_Rango_Periodo_Tooltip(Periodo))}
+              <div class="Planes_Resumen_Titulo_Linea">
+                <div class="Planes_Resumen_Titulo_Fila">
+                  <button class="Planes_Resumen_Nav"
+                    type="button"
+                    data-plan-resumen-anterior
+                    title="${Anterior_Titulo}"
+                    aria-label="${Anterior_Titulo}"
+                    ${Vecinos.Anterior ? "" : "disabled"}>
+                    &#8592;
+                  </button>
+                  <div class="Planes_Resumen_Titulo_Texto">
+                    <h2 class="Planes_Resumen_Titulo">
+                      ${Escape_Html(Titulo_Resumen.Titulo)}
+                    </h2>
+                    ${Anio_Resumen}
+                  </div>
+                  <button class="Planes_Resumen_Nav"
+                    type="button"
+                    data-plan-resumen-siguiente
+                    title="${Siguiente_Titulo}"
+                    aria-label="${Siguiente_Titulo}"
+                    ${Vecinos.Siguiente ? "" : "disabled"}>
+                    &#8594;
+                  </button>
+                </div>
+                <div class="Planes_Resumen_Rango">
+                  ${Escape_Html(Planes_Rango_Periodo_Tooltip(Periodo))}
+                </div>
               </div>
             </div>
             <div class="Planes_Resumen_Derecha">
