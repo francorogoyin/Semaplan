@@ -1341,6 +1341,12 @@ async ({ page }) => {
   const Enero = page.locator(".Planes_Importar_Item")
     .filter({ hasText: "Enero" });
   await expect(Enero).toHaveCount(1);
+  await expect(page.locator("[data-plan-importar-fijar]"))
+    .toHaveCount(0);
+  await expect(Enero.locator("[data-plan-importar-fijar-periodo]"))
+    .toHaveCount(1);
+  await expect(Enero.locator(".Planes_Importar_Fijar_Periodo"))
+    .toContainText("Fijar");
 
   await expect(
     Enero.locator(".Planes_Importar_Objetivo_Nombre")
@@ -1355,7 +1361,7 @@ async ({ page }) => {
   const Fuente_Cine = await Enero
     .locator(".Planes_Importar_Objetivo")
     .filter({ hasText: "Cine" })
-    .locator("input")
+    .locator("[data-plan-importar-objetivo]")
     .evaluate((Input) => {
       const Modelo = window.Asegurar_Modelo_Planes();
       const Objetivo = Modelo.Objetivos[
@@ -1389,6 +1395,106 @@ async ({ page }) => {
     checked: false,
     indeterminate: true
   });
+  expect(errores).toEqual([]);
+});
+
+test("Importar pendiente redistribuye avance real del padre",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 2;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Libros redistribucion",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 50,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Avance_Id = Crear_Id_Avance_Plan();
+    Modelo.Avances[Avance_Id] = Normalizar_Avance_Plan({
+      Id: Avance_Id,
+      Objetivo_Id: Padre.Id,
+      Cantidad: 9,
+      Unidad: "libros",
+      Fecha: "2026-02-10",
+      Hora: "09:00",
+      Fecha_Hora: "2026-02-10T09:00"
+    });
+
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Items = Trimestres.map((Periodo) => ({
+      Periodo_Id: Periodo.Id,
+      Objetivo_Ids: [Padre.Id]
+    }));
+    const Resumen = Planes_Importar_Objetivos_Padres_A_Periodos(
+      Items,
+      {
+        Modo: "Pendiente",
+        Periodos_Fijados: {
+          [Trimestres[1].Id]: true
+        }
+      }
+    );
+    const Hijos = Trimestres.map((Periodo) => {
+      const Hijo = Planes_Objetivo_Hijo_De(Padre.Id, Periodo.Id);
+      return {
+        Inicio: Periodo.Inicio,
+        Target: Hijo.Target_Total,
+        Progreso: Hijo.Progreso_Total,
+        Manual: Hijo.Progreso_Manual,
+        Fijado: Hijo.Fijado,
+        Auto_Redistribucion: Hijo.Auto_Redistribucion
+      };
+    });
+
+    Modelo.UI.Periodo_Activo_Id = Trimestres[1].Id;
+    Render_Plan();
+    return { Resumen, Hijos };
+  });
+
+  expect(Resultado.Resumen.Creados).toBe(4);
+  expect(Resultado.Hijos[0].Target).toBeCloseTo(12.5, 5);
+  expect(Resultado.Hijos[0].Progreso).toBe(9);
+  expect(Resultado.Hijos[0].Manual).toBe(9);
+  [1, 2, 3].forEach((Indice) => {
+    expect(Resultado.Hijos[Indice].Target).toBeCloseTo(41 / 3, 5);
+  });
+  expect(Resultado.Hijos[1].Fijado).toBe(true);
+  expect(Resultado.Hijos[1].Auto_Redistribucion).toBe(false);
+  expect(Resultado.Hijos[2].Fijado).toBe(false);
+
+  await expect(page.locator("[data-plan-resumen-anterior]"))
+    .toBeEnabled();
+  await expect(page.locator("[data-plan-resumen-siguiente]"))
+    .toBeEnabled();
+  await page.locator("[data-plan-resumen-siguiente]").click();
+  const Periodo_Activo = await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    return Modelo.Periodos[Modelo.UI.Periodo_Activo_Id].Inicio;
+  });
+  expect(Periodo_Activo).toBe("2026-07-01");
   expect(errores).toEqual([]);
 });
 
