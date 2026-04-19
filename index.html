@@ -61377,6 +61377,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      function Copiar_Objetivo_Sidebar_Al_Portapapeles(Objetivo) {
+        const Plantilla = Construir_Plantilla_Objetivo_Multi(
+          Objetivo,
+          Clave_Semana_Actual()
+        );
+        if (!Plantilla) return false;
+        Portapapeles_Objetivos_Multi = {
+          Semana_Origen: Clave_Semana_Actual(),
+          Items: [Plantilla]
+        };
+        Mostrar_Toast_Info(
+          t("toast.objetivo_copiada"),
+          "\uD83D\uDCCB",
+          5000
+        );
+        Render_Barra_Multi_Seleccion();
+        return true;
+      }
+
       function Pegar_Objetivos_Multi_En_Semana_Actual() {
         if (!Tiene_Portapapeles_Objetivos_Multi()) return false;
         const Snap = Capturar_Snapshot_Undo();
@@ -63148,6 +63167,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Html_Menu_Dia_Accion(
             "editar-horas",
             t("contexto.editar_horas")
+          ),
+          Html_Menu_Dia_Accion(
+            "copiar-objetivo",
+            t("dialog.copiar")
           )
         ];
         if (Opciones.Incluir_Reorden) {
@@ -63193,6 +63216,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             await Pedir_Editar_Horas_Objetivo(Objetivo);
+          });
+        Menu.querySelector(`[data-acc="copiar-objetivo"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Copiar_Objetivo_Sidebar_Al_Portapapeles(Objetivo);
           });
         Menu.querySelector(`[data-acc="mover-arriba"]`)
           ?.addEventListener("click", (Ev) => {
