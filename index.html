@@ -48302,21 +48302,73 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Abiertos = Periodos_Capa.filter((Periodo) =>
           !Planes_Periodo_Cerrado_Importacion(Periodo)
         );
+        const Hijos_Capa = new Map();
+        Periodos_Capa.forEach((Periodo) => {
+          const Hijo = Planes_Objetivo_Hijo_De(
+            Objetivo_Padre?.Id,
+            Periodo?.Id
+          );
+          if (!Hijo || Hijo.Eliminado_Local) return;
+          Hijos_Capa.set(Periodo.Id, Hijo);
+        });
+        const Abiertos_Bloqueados = new Set(
+          Abiertos
+            .filter((Periodo) => {
+              const Hijo = Hijos_Capa.get(Periodo.Id);
+              return Boolean(
+                Hijo &&
+                (
+                  Hijo.Fijado ||
+                  Hijo.Auto_Redistribucion === false
+                )
+              );
+            })
+            .map((Periodo) => Periodo.Id)
+        );
+        const Target_Bloqueado_Abierto = Abiertos.reduce(
+          (Total, Periodo) => {
+            if (!Abiertos_Bloqueados.has(Periodo.Id)) return Total;
+            const Hijo = Hijos_Capa.get(Periodo.Id);
+            return Total + (Number(Hijo?.Target_Total) || 0);
+          },
+          0
+        );
+        const Abiertos_Redistribuibles = Abiertos.filter((Periodo) =>
+          !Abiertos_Bloqueados.has(Periodo.Id)
+        );
         const Avance_Cerrado = Cerrados.reduce((Total, Periodo) => {
           return Total + (Number(Avances_Reales.get(Periodo.Id)) || 0);
         }, 0);
         const Pendiente = Math.max(0, Target - Avance_Cerrado);
-        const Cuota = Abiertos.length ? Pendiente / Abiertos.length : 0;
+        const Pendiente_Redistribuible = Math.max(
+          0,
+          Pendiente - Target_Bloqueado_Abierto
+        );
+        const Cuota = Abiertos_Redistribuibles.length
+          ? Pendiente_Redistribuible /
+            Abiertos_Redistribuibles.length
+          : 0;
         Destinos.forEach((Periodo) => {
           const Base = Planes_Target_Proporcional_Importacion(
             Objetivo_Padre,
             Periodo_Padre,
             Periodo
           );
-          const Target_Periodo = Planes_Periodo_Cerrado_Importacion(
-            Periodo
-          )
+          const Cerrado = Planes_Periodo_Cerrado_Importacion(Periodo);
+          const Hijo_Bloqueado = Hijos_Capa.get(Periodo.Id);
+          const Es_Bloqueado_Abierto =
+            !Cerrado &&
+            Boolean(
+              Hijo_Bloqueado &&
+              (
+                Hijo_Bloqueado.Fijado ||
+                Hijo_Bloqueado.Auto_Redistribucion === false
+              )
+            );
+          const Target_Periodo = Cerrado
             ? Base
+            : Es_Bloqueado_Abierto
+            ? Number(Hijo_Bloqueado?.Target_Total) || 0
             : Cuota;
           Resultado.Targets.set(Periodo.Id, Target_Periodo);
           Resultado.Avances.set(

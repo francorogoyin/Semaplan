@@ -2193,3 +2193,87 @@ async ({ page }) => {
   expect(Layout.sidebarAncho).toBeLessThanOrEqual(Layout.panelAncho);
   expect(Layout.overflow).toBeLessThanOrEqual(8);
 });
+
+test("Importar pendiente respeta abiertos fijados",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Mes";
+    Modelo.UI.Subperiodo_Activo = 4;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Libros fijado",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 50,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Avance_Id = Crear_Id_Avance_Plan();
+    Modelo.Avances[Avance_Id] = Normalizar_Avance_Plan({
+      Id: Avance_Id,
+      Objetivo_Id: Padre.Id,
+      Cantidad: 6,
+      Unidad: "libros",
+      Fecha: "2026-02-10",
+      Hora: "09:00",
+      Fecha_Hora: "2026-02-10T09:00"
+    });
+
+    const Meses = Planes_Crear_Periodos_Distribucion(Anio, "Mes");
+    const Items = Meses.map((Periodo) => ({
+      Periodo_Id: Periodo.Id,
+      Objetivo_Ids: [Padre.Id]
+    }));
+    Planes_Importar_Objetivos_Padres_A_Periodos(Items, {
+      Modo: "Pendiente"
+    });
+
+    const Abril = Planes_Objetivo_Hijo_De(Padre.Id, Meses[3].Id);
+    Abril.Fijado = true;
+    Abril.Auto_Redistribucion = false;
+    Abril.Target_Total = 4;
+    Abril.Target_Automatico = 4;
+    Abril.Target_Actual = 4;
+    Abril.Target_Fijado = 4;
+    Abril.Target_Fijado_Por_Usuario = true;
+    Planes_Actualizar_Progreso(Abril);
+
+    Planes_Importar_Objetivos_Padres_A_Periodos(Items, {
+      Modo: "Pendiente"
+    });
+
+    const Mayo = Planes_Objetivo_Hijo_De(Padre.Id, Meses[4].Id);
+    const Diciembre = Planes_Objetivo_Hijo_De(Padre.Id, Meses[11].Id);
+    return {
+      Abril_Target: Abril.Target_Total,
+      Abril_Fijado: Abril.Fijado,
+      Mayo_Target: Mayo.Target_Total,
+      Diciembre_Target: Diciembre.Target_Total
+    };
+  });
+
+  expect(Resultado.Abril_Target).toBe(4);
+  expect(Resultado.Abril_Fijado).toBe(true);
+  expect(Resultado.Mayo_Target).toBeCloseTo(5, 5);
+  expect(Resultado.Diciembre_Target).toBeCloseTo(5, 5);
+  expect(errores).toEqual([]);
+});
