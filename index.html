@@ -5296,6 +5296,44 @@
         text-align: right;
       }
 
+      .Planes_Registro_Acciones {
+        display: inline-flex;
+        justify-content: flex-end;
+        gap: 6px;
+        white-space: nowrap;
+      }
+
+      .Planes_Registro_Accion {
+        align-items: center;
+        background: transparent;
+        border: 0;
+        border-radius: 50%;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        display: inline-flex;
+        font: inherit;
+        font-size: 16px;
+        font-weight: 700;
+        height: 26px;
+        justify-content: center;
+        line-height: 1;
+        padding: 0;
+        width: 26px;
+      }
+
+      .Planes_Registro_Accion:hover,
+      .Planes_Registro_Accion:focus-visible {
+        background: var(--Acento_Suave);
+        color: var(--Acento);
+        outline: none;
+      }
+
+      .Planes_Registro_Accion.Peligro:hover,
+      .Planes_Registro_Accion.Peligro:focus-visible {
+        background: rgba(140, 47, 47, 0.12);
+        color: #8c2f2f;
+      }
+
       .Planes_Detalle_Accion {
         align-self: flex-start;
         flex: 0 0 auto;
@@ -18734,6 +18772,8 @@
           "planes.registro_item": "Item",
           "planes.registro_cantidad": "Cantidad",
           "planes.registro_acciones": "Acciones",
+          "planes.registro_eliminar_confirm":
+            "Eliminar este registro de avance?",
           "planes.registro_manual": "Manual",
           "planes.registro_calendario": "Calendario",
           "planes.registro_subobjetivo": "Subobjetivo",
@@ -18908,7 +18948,7 @@
           "planes.ui_help_registro_cantidad":
             "Cantidad y unidad registradas.",
           "planes.ui_help_registro_acciones":
-            "Acciones disponibles sobre registros editables.",
+            "Permite editar o borrar registros cargados manualmente.",
           "planes.filtro_estado": "Estado",
           "planes.filtro_abiertos": "Abiertos",
           "planes.filtro_cumplidos": "Realizados",
@@ -22052,6 +22092,8 @@
           "planes.registro_item": "Item",
           "planes.registro_cantidad": "Amount",
           "planes.registro_acciones": "Actions",
+          "planes.registro_eliminar_confirm":
+            "Delete this progress entry?",
           "planes.registro_manual": "Manual",
           "planes.registro_calendario": "Calendar",
           "planes.registro_subobjetivo": "Subobjective",
@@ -22226,7 +22268,7 @@
           "planes.ui_help_registro_cantidad":
             "Recorded amount and unit.",
           "planes.ui_help_registro_acciones":
-            "Available actions for editable history entries.",
+            "Edits or deletes manually entered progress entries.",
           "planes.filtro_estado": "Status",
           "planes.filtro_abiertos": "Open",
           "planes.filtro_cumplidos": "Completed",
@@ -25319,6 +25361,8 @@
           "planes.registro_item": "Item",
           "planes.registro_cantidad": "Quantidade",
           "planes.registro_acciones": "Acoes",
+          "planes.registro_eliminar_confirm":
+            "Excluir este registro de avanco?",
           "planes.registro_manual": "Manual",
           "planes.registro_calendario": "Calendário",
           "planes.registro_subobjetivo": "Subobjetivo",
@@ -25493,7 +25537,7 @@
           "planes.ui_help_registro_cantidad":
             "Quantidade e unidade registradas.",
           "planes.ui_help_registro_acciones":
-            "Ações disponíveis sobre registros editáveis.",
+            "Edita ou exclui registros carregados manualmente.",
           "planes.filtro_estado": "Estado",
           "planes.filtro_abiertos": "Abertos",
           "planes.filtro_cumplidos": "Realizados",
@@ -46122,6 +46166,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Planes_Avance_Registro_Editable(Avance) {
+        if (!Avance) return false;
+        if (Avance.Fuente === "Subobjetivo") return true;
+        return Avance.Fuente === "Manual" && !Avance.Subobjetivo_Id;
+      }
+
+      function Planes_Manual_Registrado_Objetivo(Objetivo_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        return Object.values(Modelo.Avances || {})
+          .filter((Avance) =>
+            Avance.Objetivo_Id === Objetivo_Id &&
+            Avance.Fuente === "Manual" &&
+            !Avance.Subobjetivo_Id
+          )
+          .reduce((Total, Avance) => {
+            return Total + (Number(Avance.Cantidad) || 0);
+          }, 0);
+      }
+
+      function Planes_Manual_Previo_Objetivo(Objetivo) {
+        if (!Objetivo) return 0;
+        const Manual_Total = Number(Objetivo.Progreso_Manual) || 0;
+        const Manual_Registrado =
+          Planes_Manual_Registrado_Objetivo(Objetivo.Id);
+        return Math.max(0, Manual_Total - Manual_Registrado);
+      }
+
       function Planes_Registros_De_Objetivo(Objetivo) {
         const Modelo = Asegurar_Modelo_Planes();
         const Registros = [];
@@ -46138,7 +46209,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 : t("planes.registro_manual");
             Registros.push({
               Avance_Id: Avance.Id,
-              Editable: Avance.Fuente === "Subobjetivo",
+              Registro_Id: Avance.Id,
+              Tipo: "Avance",
+              Editable: Planes_Avance_Registro_Editable(Avance),
               Fecha_Hora: Avance.Fecha_Hora || "",
               Fecha: Planes_Formatear_Fecha_Hora_Registro(
                 Avance.Fecha_Hora,
@@ -46169,7 +46242,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               const Obj_Sidebar = Coincidencias.find(
                 (Item) => Item.Id === Evento.Objetivo_Id
               );
-              const Hora = Planes_Formatear_Hora_Numero(Evento.Inicio);
+              const Hora = Planes_Formatear_Hora_Numero(
+                Evento.Inicio
+              );
               Registros.push({
                 Fecha_Hora: `${Evento.Fecha}T${Hora}`,
                 Fecha: Planes_Formatear_Fecha_Hora_Registro(
@@ -46185,19 +46260,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             });
         }
 
-        const Manual_Total = Number(Objetivo.Progreso_Manual) || 0;
-        const Manual_Registrado = Object.values(Modelo.Avances || {})
-          .filter((Avance) =>
-            Avance.Objetivo_Id === Objetivo.Id &&
-            Avance.Fuente === "Manual" &&
-            !Avance.Subobjetivo_Id
-          )
-          .reduce((Total, Avance) => {
-            return Total + (Number(Avance.Cantidad) || 0);
-          }, 0);
-        const Manual_Previo = Manual_Total - Manual_Registrado;
+        const Manual_Previo = Planes_Manual_Previo_Objetivo(Objetivo);
         if (Manual_Previo > 0.0001) {
           Registros.push({
+            Registro_Id: Objetivo.Id,
+            Tipo: "Manual_Previo",
+            Editable: true,
             Fecha_Hora: Objetivo.Actualizado_En || "",
             Fecha: Planes_Formatear_Fecha_Hora_Registro(
               Objetivo.Actualizado_En || ""
@@ -46210,13 +46278,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
 
         return Registros.sort((A, B) => {
-          return (B.Fecha_Hora || "").localeCompare(A.Fecha_Hora || "");
+          return (B.Fecha_Hora || "").localeCompare(
+            A.Fecha_Hora || ""
+          );
         });
       }
 
       function Render_Modal_Planes_Registro(Objetivo) {
-        const Cuerpo = document.getElementById("Planes_Registro_Cuerpo");
-        const Titulo = document.getElementById("Planes_Registro_Titulo");
+        const Cuerpo = document.getElementById(
+          "Planes_Registro_Cuerpo"
+        );
+        const Titulo = document.getElementById(
+          "Planes_Registro_Titulo"
+        );
         if (!Cuerpo || !Objetivo) return;
         if (Titulo) {
           Titulo.textContent = t("planes.registro_titulo", {
@@ -46251,20 +46325,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     <td>${Escape_Html(Registro.Fuente)}</td>
                     <td>${Escape_Html(Registro.Item)}</td>
                     <td>${Escape_Html(Registro.Cantidad)}</td>
-                    <td>
+                    <td class="Planes_Registro_Acciones_Celda">
                       ${Registro.Editable ? `
-                        <button class="Planes_Btn" type="button"
-                          data-plan-avance-editar="${
-                            Escape_Html(Registro.Avance_Id)
-                          }">
-                          ${Escape_Html(t("editar"))}
-                        </button>
-                        <button class="Planes_Btn Peligro" type="button"
-                          data-plan-avance-eliminar="${
-                            Escape_Html(Registro.Avance_Id)
-                          }">
-                          ${Escape_Html(t("eliminar"))}
-                        </button>
+                        <div class="Planes_Registro_Acciones">
+                          <button class="Planes_Registro_Accion"
+                            type="button"
+                            title="${Escape_Html(t("editar"))}"
+                            aria-label="${Escape_Html(t("editar"))}"
+                            data-plan-registro-editar="${
+                              Escape_Html(Registro.Tipo)
+                            }"
+                            data-plan-registro-id="${
+                              Escape_Html(Registro.Registro_Id)
+                            }">&#9998;</button>
+                          <button
+                            class="Planes_Registro_Accion Peligro"
+                            type="button"
+                            title="${Escape_Html(t("eliminar"))}"
+                            aria-label="${Escape_Html(t("eliminar"))}"
+                            data-plan-registro-eliminar="${
+                              Escape_Html(Registro.Tipo)
+                            }"
+                            data-plan-registro-id="${
+                              Escape_Html(Registro.Registro_Id)
+                            }">&times;</button>
+                        </div>
                       ` : ""}
                     </td>
                   </tr>
@@ -46273,19 +46358,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             </table>
           </div>
         `;
-        Cuerpo.querySelectorAll("[data-plan-avance-editar]")
+        Cuerpo.querySelectorAll("[data-plan-registro-editar]")
           .forEach((Btn) => {
             Btn.addEventListener("click", () => {
-              Planes_Editar_Avance_Subobjetivo(
-                Btn.dataset.planAvanceEditar
+              Planes_Editar_Registro_Avance(
+                Btn.dataset.planRegistroEditar,
+                Btn.dataset.planRegistroId
               );
             });
           });
-        Cuerpo.querySelectorAll("[data-plan-avance-eliminar]")
+        Cuerpo.querySelectorAll("[data-plan-registro-eliminar]")
           .forEach((Btn) => {
             Btn.addEventListener("click", () => {
-              Planes_Eliminar_Avance_Subobjetivo(
-                Btn.dataset.planAvanceEliminar
+              Planes_Eliminar_Registro_Avance(
+                Btn.dataset.planRegistroEliminar,
+                Btn.dataset.planRegistroId
               );
             });
           });
@@ -46321,10 +46408,49 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
-      async function Planes_Editar_Avance_Subobjetivo(Avance_Id) {
+      function Planes_Ajustar_Manual_Por_Avance(Avance, Delta) {
+        if (
+          !Avance ||
+          Avance.Fuente !== "Manual" ||
+          Avance.Subobjetivo_Id
+        ) {
+          return;
+        }
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Avance.Objetivo_Id];
+        if (!Objetivo) return;
+        Objetivo.Progreso_Manual = Math.max(
+          0,
+          (Number(Objetivo.Progreso_Manual) || 0) + Delta
+        );
+      }
+
+      async function Planes_Editar_Registro_Avance(
+        Tipo,
+        Registro_Id
+      ) {
+        if (Tipo === "Manual_Previo") {
+          await Planes_Editar_Registro_Manual_Previo(Registro_Id);
+          return;
+        }
+        await Planes_Editar_Avance_Registro(Registro_Id);
+      }
+
+      async function Planes_Eliminar_Registro_Avance(
+        Tipo,
+        Registro_Id
+      ) {
+        if (Tipo === "Manual_Previo") {
+          await Planes_Eliminar_Registro_Manual_Previo(Registro_Id);
+          return;
+        }
+        await Planes_Eliminar_Avance_Registro(Registro_Id);
+      }
+
+      async function Planes_Editar_Avance_Registro(Avance_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         const Avance = Modelo.Avances[Avance_Id];
-        if (!Avance || Avance.Fuente !== "Subobjetivo") return;
+        if (!Planes_Avance_Registro_Editable(Avance)) return;
         const Valor = await Mostrar_Dialogo_Con_Texto(
           t("planes.avance_cantidad"),
           {
@@ -46341,19 +46467,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Mostrar_Toast_Error(t("planes.avance_err_cantidad"));
           return;
         }
+        const Cantidad_Actual = Number(Avance.Cantidad) || 0;
+        if (Math.abs(Cantidad - Cantidad_Actual) < 0.0001) return;
         const Snap = Capturar_Snapshot_Undo();
+        Planes_Ajustar_Manual_Por_Avance(
+          Avance,
+          Cantidad - Cantidad_Actual
+        );
         Avance.Cantidad = Cantidad;
         Avance.Actualizado_En = new Date().toISOString();
         Planes_Recalcular_Avance_Subobjetivo(Avance);
         Mostrar_Toast_Undo(t("planes.avance_actualizado"), Snap);
       }
 
-      async function Planes_Eliminar_Avance_Subobjetivo(Avance_Id) {
+      async function Planes_Eliminar_Avance_Registro(Avance_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         const Avance = Modelo.Avances[Avance_Id];
-        if (!Avance || Avance.Fuente !== "Subobjetivo") return;
+        if (!Planes_Avance_Registro_Editable(Avance)) return;
         const Confirmar = await Mostrar_Dialogo(
-          t("planes.avance_eliminar_confirm"),
+          t("planes.registro_eliminar_confirm"),
           [
             {
               Etiqueta: t("eliminar"),
@@ -46369,17 +46501,98 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Confirmar) return;
         const Snap = Capturar_Snapshot_Undo();
-        const Objetivo = Modelo.Objetivos[Avance.Objetivo_Id];
-        const Sub = Modelo.Subobjetivos[Avance.Subobjetivo_Id];
+        Planes_Ajustar_Manual_Por_Avance(
+          Avance,
+          -(Number(Avance.Cantidad) || 0)
+        );
         delete Modelo.Avances[Avance_Id];
-        if (Sub) {
-          Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
-        }
-        if (Objetivo) {
-          Planes_Recalcular_Desde(Objetivo);
-          Render_Modal_Planes_Registro(Objetivo);
-        }
+        Planes_Recalcular_Avance_Subobjetivo(Avance);
         Mostrar_Toast_Undo(t("planes.avance_eliminado"), Snap);
+      }
+
+      async function Planes_Editar_Registro_Manual_Previo(
+        Objetivo_Id
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        if (!Objetivo) return;
+        const Manual_Previo =
+          Planes_Manual_Previo_Objetivo(Objetivo);
+        if (Manual_Previo <= 0.0001) return;
+        const Valor = await Mostrar_Dialogo_Con_Texto(
+          t("planes.avance_cantidad"),
+          {
+            Tipo: "number",
+            Default: String(Manual_Previo),
+            Etiqueta_Input: t("planes.avance_cantidad"),
+            Etiqueta_Confirmar: t("guardar"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (Valor == null) return;
+        const Cantidad = Number(String(Valor).replace(",", "."));
+        if (!Number.isFinite(Cantidad) || Cantidad <= 0) {
+          Mostrar_Toast_Error(t("planes.avance_err_cantidad"));
+          return;
+        }
+        if (Math.abs(Cantidad - Manual_Previo) < 0.0001) return;
+        const Snap = Capturar_Snapshot_Undo();
+        const Manual_Registrado =
+          Planes_Manual_Registrado_Objetivo(Objetivo.Id);
+        Objetivo.Progreso_Manual = Manual_Registrado + Cantidad;
+        Planes_Recalcular_Desde(Objetivo);
+        Render_Modal_Planes_Registro(Objetivo);
+        Mostrar_Toast_Undo(t("planes.avance_actualizado"), Snap);
+      }
+
+      async function Planes_Eliminar_Registro_Manual_Previo(
+        Objetivo_Id
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        if (!Objetivo) return;
+        const Manual_Previo =
+          Planes_Manual_Previo_Objetivo(Objetivo);
+        if (Manual_Previo <= 0.0001) return;
+        const Confirmar = await Mostrar_Dialogo(
+          t("planes.registro_eliminar_confirm"),
+          [
+            {
+              Etiqueta: t("eliminar"),
+              Valor: true,
+              Tipo: "Peligro"
+            },
+            {
+              Etiqueta: t("cancelar"),
+              Valor: false,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
+        if (!Confirmar) return;
+        const Manual_Registrado =
+          Planes_Manual_Registrado_Objetivo(Objetivo.Id);
+        if (
+          Math.abs(
+            (Number(Objetivo.Progreso_Manual) || 0) -
+            Manual_Registrado
+          ) < 0.0001
+        ) {
+          return;
+        }
+        const Snap = Capturar_Snapshot_Undo();
+        Objetivo.Progreso_Manual = Manual_Registrado;
+        Planes_Recalcular_Desde(Objetivo);
+        Render_Modal_Planes_Registro(Objetivo);
+        Mostrar_Toast_Undo(t("planes.avance_eliminado"), Snap);
+      }
+
+      async function Planes_Editar_Avance_Subobjetivo(Avance_Id) {
+        await Planes_Editar_Avance_Registro(Avance_Id);
+      }
+
+      async function Planes_Eliminar_Avance_Subobjetivo(Avance_Id) {
+        await Planes_Eliminar_Avance_Registro(Avance_Id);
       }
 
       function Planes_Editar_Target(Objetivo_Id) {

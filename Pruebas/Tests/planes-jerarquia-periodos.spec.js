@@ -1294,6 +1294,147 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Registro de planes permite editar y borrar avances",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Objetivo_Id = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    const Anio = Object.values(Modelo.Periodos)
+      .find((Periodo) => Periodo.Tipo === "Anio");
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Libros registro",
+      Emoji: "\uD83D\uDCDA",
+      Target_Total: 10,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros",
+      Modo_Progreso: "Manual"
+    });
+    const Avance_Id = Crear_Id_Avance_Plan();
+    Modelo.Avances[Avance_Id] = Normalizar_Avance_Plan({
+      Id: Avance_Id,
+      Objetivo_Id: Objetivo.Id,
+      Fuente: "Manual",
+      Cantidad: 2,
+      Unidad: "libros",
+      Fecha: "2026-04-19",
+      Hora: "15:34",
+      Fecha_Hora: "2026-04-19T15:34"
+    });
+    Objetivo.Progreso_Manual = 2;
+    Planes_Actualizar_Progreso(Objetivo);
+    Render_Plan();
+    Abrir_Modal_Planes_Registro(Objetivo.Id);
+    return Objetivo.Id;
+  });
+
+  await expect(page.locator("#Planes_Registro_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("Manual");
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("2 libros");
+  await expect(page.locator(
+    '[data-plan-registro-editar="Avance"]'
+  )).toHaveCount(1);
+  await expect(page.locator(
+    '[data-plan-registro-eliminar="Avance"]'
+  )).toHaveCount(1);
+
+  await page.locator('[data-plan-registro-editar="Avance"]')
+    .click();
+  await page.locator("#Dialogo_Botones button")
+    .filter({ hasText: "Guardar" })
+    .click();
+  await expect(page.locator(".Undo_Toast")).toHaveCount(0);
+
+  await page.locator('[data-plan-registro-editar="Avance"]')
+    .click();
+  await page.fill("#Dialogo_Input_Campo", "3");
+  await page.locator("#Dialogo_Botones button")
+    .filter({ hasText: "Guardar" })
+    .click();
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("3 libros");
+  const Avance_Editado = await page.evaluate((objetivoId) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Objetivo = Modelo.Objetivos[objetivoId];
+    const Avance = Object.values(Modelo.Avances || {})
+      .find((Item) => Item.Objetivo_Id === objetivoId);
+    return {
+      manual: Objetivo.Progreso_Manual,
+      cantidad: Avance?.Cantidad || 0
+    };
+  }, Objetivo_Id);
+  expect(Avance_Editado.manual).toBe(3);
+  expect(Avance_Editado.cantidad).toBe(3);
+
+  await page.locator('[data-plan-registro-eliminar="Avance"]')
+    .click();
+  await page.locator("#Dialogo_Botones button")
+    .filter({ hasText: "Eliminar" })
+    .click();
+  await expect(page.locator("#Planes_Registro_Cuerpo .Planes_Vacio"))
+    .toBeVisible();
+  const Avance_Borrado = await page.evaluate((objetivoId) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Objetivo = Modelo.Objetivos[objetivoId];
+    return {
+      manual: Objetivo.Progreso_Manual,
+      registros: Object.values(Modelo.Avances || {})
+        .filter((Avance) => Avance.Objetivo_Id === objetivoId).length
+    };
+  }, Objetivo_Id);
+  expect(Avance_Borrado.manual).toBe(0);
+  expect(Avance_Borrado.registros).toBe(0);
+
+  await page.evaluate((objetivoId) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Objetivo = Modelo.Objetivos[objetivoId];
+    Objetivo.Progreso_Manual = 6;
+    Objetivo.Actualizado_En = "2026-04-19T15:34:00";
+    Planes_Actualizar_Progreso(Objetivo);
+    Render_Plan();
+    Render_Modal_Planes_Registro(Objetivo);
+  }, Objetivo_Id);
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("Manual previo");
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("6 libros");
+  await page.locator(
+    '[data-plan-registro-editar="Manual_Previo"]'
+  ).click();
+  await page.fill("#Dialogo_Input_Campo", "4");
+  await page.locator("#Dialogo_Botones button")
+    .filter({ hasText: "Guardar" })
+    .click();
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("4 libros");
+  const Manual_Previo_Editado = await page.evaluate((objetivoId) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    return Modelo.Objetivos[objetivoId].Progreso_Manual;
+  }, Objetivo_Id);
+  expect(Manual_Previo_Editado).toBe(4);
+
+  await page.locator(
+    '[data-plan-registro-eliminar="Manual_Previo"]'
+  ).click();
+  await page.locator("#Dialogo_Botones button")
+    .filter({ hasText: "Eliminar" })
+    .click();
+  await expect(page.locator("#Planes_Registro_Cuerpo .Planes_Vacio"))
+    .toBeVisible();
+  const Manual_Previo_Borrado = await page.evaluate((objetivoId) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    return Modelo.Objetivos[objetivoId].Progreso_Manual;
+  }, Objetivo_Id);
+  expect(Manual_Previo_Borrado).toBe(0);
+  expect(errores).toEqual([]);
+});
+
 test("Importar desde padres evita objetivos repetidos",
 async ({ page }) => {
   const errores = [];
