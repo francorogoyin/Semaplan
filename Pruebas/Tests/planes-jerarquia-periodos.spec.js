@@ -1479,6 +1479,47 @@ async ({ page }) => {
     Planes_Mostrar_Dialogo_Importar_Padres(Candidatos);
   });
 
+  await expect(page.locator(".Planes_Importar_Cuerpo"))
+    .not.toContainText("Eleg");
+  await expect(page.locator(
+    ".Planes_Importar_Opciones [data-plan-importar-todos]"
+  )).toHaveCount(0);
+  await expect(page.locator(
+    ".Planes_Importar_Seleccion [data-plan-importar-todos]"
+  )).toHaveCount(1);
+  await expect(page.locator(
+    ".Planes_Importar_Modo_Campo > span"
+  )).toHaveText("Forma de importar");
+  const Layout_Importar = await page
+    .locator(".Planes_Importar_Cuerpo")
+    .evaluate((Cuerpo) => {
+      const Label = Cuerpo.querySelector(
+        ".Planes_Importar_Modo_Campo > span"
+      );
+      const Select = Cuerpo.querySelector(
+        "[data-plan-importar-modo-select]"
+      );
+      const Lista = Cuerpo.querySelector(".Planes_Importar_Lista");
+      const Acciones = Cuerpo.querySelector(
+        ".Planes_Importar_Seleccion"
+      );
+      const Label_Rect = Label.getBoundingClientRect();
+      const Select_Rect = Select.getBoundingClientRect();
+      const Lista_Rect = Lista.getBoundingClientRect();
+      const Acciones_Rect = Acciones.getBoundingClientRect();
+      return {
+        labelPeso: Number(getComputedStyle(Label).fontWeight),
+        labelArriba: Label_Rect.bottom <= Select_Rect.top + 2,
+        accionesDebajo: Acciones_Rect.top > Lista_Rect.bottom,
+        accionesIzquierda:
+          Math.abs(Acciones_Rect.left - Lista_Rect.left) <= 2
+      };
+    });
+  expect(Layout_Importar.labelPeso).toBeLessThan(700);
+  expect(Layout_Importar.labelArriba).toBe(true);
+  expect(Layout_Importar.accionesDebajo).toBe(true);
+  expect(Layout_Importar.accionesIzquierda).toBe(true);
+
   const Enero = page.locator(".Planes_Importar_Item")
     .filter({ hasText: "Enero" });
   await expect(Enero).toHaveCount(1);
