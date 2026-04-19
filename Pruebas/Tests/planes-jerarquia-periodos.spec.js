@@ -1670,11 +1670,25 @@ async ({ page }) => {
   await expect(page.locator("[data-plan-resumen-siguiente]"))
     .toBeEnabled();
   await page.locator("[data-plan-resumen-siguiente]").click();
-  const Periodo_Activo = await page.evaluate(() => {
+  const Periodo_Activo_Click = await page.evaluate(() => {
     const Modelo = Asegurar_Modelo_Planes();
     return Modelo.Periodos[Modelo.UI.Periodo_Activo_Id].Inicio;
   });
-  expect(Periodo_Activo).toBe("2026-07-01");
+  expect(Periodo_Activo_Click).toBe("2026-07-01");
+
+  await page.keyboard.press("ArrowLeft");
+  const Periodo_Activo_Izquierda = await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    return Modelo.Periodos[Modelo.UI.Periodo_Activo_Id].Inicio;
+  });
+  expect(Periodo_Activo_Izquierda).toBe("2026-04-01");
+
+  await page.keyboard.press("ArrowRight");
+  const Periodo_Activo_Derecha = await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    return Modelo.Periodos[Modelo.UI.Periodo_Activo_Id].Inicio;
+  });
+  expect(Periodo_Activo_Derecha).toBe("2026-07-01");
   expect(errores).toEqual([]);
 });
 

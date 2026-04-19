@@ -41428,6 +41428,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Planes_Navegar_Periodo_Activo(Direccion) {
+        const Periodo = Planes_Periodo_Activo();
+        const Vecinos = Planes_Vecinos_Periodo_Misma_Capa(Periodo);
+        const Destino = Direccion < 0
+          ? Vecinos.Anterior
+          : Vecinos.Siguiente;
+        if (!Destino) return false;
+        Planes_Activar_Periodo_Desde_Coleccion(Destino);
+        return true;
+      }
+
       function Planes_Objetivos_De_Periodo(Periodo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         return Object.values(Modelo.Objetivos)
@@ -43325,7 +43336,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (Btn_Anterior && Vecinos.Anterior) {
           Btn_Anterior.addEventListener("click", () => {
-            Planes_Activar_Periodo_Desde_Coleccion(Vecinos.Anterior);
+            Planes_Navegar_Periodo_Activo(-1);
           });
         }
         const Btn_Siguiente = Cont.querySelector(
@@ -43333,7 +43344,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (Btn_Siguiente && Vecinos.Siguiente) {
           Btn_Siguiente.addEventListener("click", () => {
-            Planes_Activar_Periodo_Desde_Coleccion(Vecinos.Siguiente);
+            Planes_Navegar_Periodo_Activo(1);
           });
         }
         const Btn_Importar = Cont.querySelector(
@@ -75999,6 +76010,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             await Copiar_Notas_Seleccionadas_Archivero();
             return;
           }
+        }
+
+        const Planes_Submodal_Activo = document.querySelector(
+          ".Patron_Modal_Overlay.Activo:not(#Plan_Overlay), " +
+          ".Objetivo_Modal_Overlay.Activo"
+        );
+        if (
+          Planes_Activo &&
+          !Planes_Submodal_Activo &&
+          !Ev.ctrlKey &&
+          !Ev.metaKey &&
+          !Ev.altKey &&
+          !Ev.shiftKey &&
+          (Ev.key === "ArrowLeft" || Ev.key === "ArrowRight")
+        ) {
+          const Direccion = Ev.key === "ArrowLeft" ? -1 : 1;
+          Planes_Navegar_Periodo_Activo(Direccion);
+          Ev.preventDefault();
+          return;
         }
 
         // No atajos si hay modal/dialogo abierto. El Focus mode
