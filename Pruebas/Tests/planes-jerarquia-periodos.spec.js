@@ -201,6 +201,24 @@ async ({ page }) => {
 
   await expect(page.locator("#Plan_Overlay")).toHaveClass(/Activo/);
   await expect(page.locator("#Planes_Filtro_Tipo")).toBeVisible();
+  await expect(page.locator("#Planes_Ayuda_Conceptual_Abrir"))
+    .toHaveAttribute("title", "Ayuda conceptual");
+  await page.click("#Planes_Ayuda_Conceptual_Abrir");
+  await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))
+    .toContainText("Meta");
+  await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))
+    .toContainText("2/50");
+  await page.locator("#Planes_Ayuda_Conceptual_Overlay").click({
+    position: { x: 8, y: 8 }
+  });
+  await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))
+    .not.toHaveClass(/Activo/);
+  await expect(page.locator("#Plan_Overlay")).toHaveClass(/Activo/);
 
   const Layout_Desktop = await page.evaluate(() => {
     const Panel = document.querySelector(".Planes_Archivero_Panel");
