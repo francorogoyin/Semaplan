@@ -19673,6 +19673,15 @@
           "dialog.sin_horas_bolsa":
             "No hay horas suficientes en " +
             "la bolsa.",
+          "dialog.bolsa_sin_horas_agregar":
+            "No hay horas suficientes en \"{nombre}\". " +
+            "¿Querés agregar una hora a la bolsa y crear " +
+            "el bloque?",
+          "dialog.agregar_una_hora":
+            "Agregar una hora",
+          "dialog.editar_horas_objetivo":
+            "¿Cuántas horas semanales querés asignar a " +
+            "\"{nombre}\"?",
           "dialog.objetivo_suelto_ya_usado":
             "Ese objetivo suelto ya tiene " +
             "un bloque esta semana.",
@@ -19912,6 +19921,10 @@
             "Agregar nota",
           "contexto.copiar_texto":
             "Copiar texto",
+          "contexto.editar_objetivo":
+            "Editar",
+          "contexto.editar_horas":
+            "Editar cantidad de horas",
           "contexto.editar_nota":
             "Editar nota",
           "contexto.borrar_nota":
@@ -20816,6 +20829,8 @@
             "Nota copiada",
           "toast.archivero_notas_copiadas":
             "Notas copiadas",
+          "toast.bolsa_hora_agregada":
+            "Se agregó 1 hora a la bolsa",
           "toast.subobjetivos_eliminadas":
             "Se eliminaron {n} subobjetivos",
 
@@ -22691,6 +22706,14 @@
           "dialog.sin_horas_bolsa":
             "Not enough hours in the " +
             "pool.",
+          "dialog.bolsa_sin_horas_agregar":
+            "There aren't enough hours in \"{nombre}\". " +
+            "Add one hour to the pool and create the block?",
+          "dialog.agregar_una_hora":
+            "Add one hour",
+          "dialog.editar_horas_objetivo":
+            "How many weekly hours do you want to assign " +
+            "to \"{nombre}\"?",
           "dialog.objetivo_suelto_ya_usado":
             "That standalone objective " +
             "already has a block this week.",
@@ -22929,6 +22952,10 @@
             "Add note",
           "contexto.copiar_texto":
             "Copy text",
+          "contexto.editar_objetivo":
+            "Edit",
+          "contexto.editar_horas":
+            "Edit hour count",
           "contexto.editar_nota":
             "Edit note",
           "contexto.borrar_nota":
@@ -23804,6 +23831,8 @@
             "Note copied",
           "toast.archivero_notas_copiadas":
             "Notes copied",
+          "toast.bolsa_hora_agregada":
+            "1 hour added to the pool",
           "toast.subobjetivos_eliminadas":
             "{n} subobjectives deleted",
 
@@ -25755,6 +25784,14 @@
           "dialog.sin_horas_bolsa":
             "Não há horas suficientes " +
             "no banco.",
+          "dialog.bolsa_sin_horas_agregar":
+            "Não há horas suficientes em \"{nombre}\". " +
+            "Adicionar uma hora ao banco e criar o bloco?",
+          "dialog.agregar_una_hora":
+            "Adicionar uma hora",
+          "dialog.editar_horas_objetivo":
+            "Quantas horas semanais você quer atribuir a " +
+            "\"{nombre}\"?",
           "dialog.objetivo_suelto_ya_usado":
             "Esse objetivo avulso já tem " +
             "um bloco esta semana.",
@@ -25994,6 +26031,10 @@
             "Adicionar nota",
           "contexto.copiar_texto":
             "Copiar texto",
+          "contexto.editar_objetivo":
+            "Editar",
+          "contexto.editar_horas":
+            "Editar quantidade de horas",
           "contexto.editar_nota":
             "Editar nota",
           "contexto.borrar_nota":
@@ -26897,6 +26938,8 @@
             "Nota copiada",
           "toast.archivero_notas_copiadas":
             "Notas copiadas",
+          "toast.bolsa_hora_agregada":
+            "Foi adicionada 1 hora ao banco",
           "toast.subobjetivos_eliminadas":
             "Foram excluídas {n} subobjetivos",
 
@@ -55646,7 +55689,43 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) || null;
       }
 
-      function Crear_Evento_Desde_Objetivo(
+      async function Confirmar_Agregar_Hora_A_Bolsa(Objetivo) {
+        if (!Objetivo?.Es_Bolsa) return false;
+        Mostrar_Toast_Error(t("dialog.sin_horas_bolsa"));
+        const Confirmar = await Mostrar_Dialogo(
+          t("dialog.bolsa_sin_horas_agregar", {
+            nombre: Objetivo.Nombre || t("evento.sin_objetivo")
+          }),
+          [
+            {
+              Etiqueta: t("cancelar"),
+              Valor: false,
+              Tipo: "Cancelar"
+            },
+            {
+              Etiqueta: t("dialog.agregar_una_hora"),
+              Valor: true,
+              Tipo: "Primario"
+            }
+          ]
+        );
+        if (!Confirmar) return false;
+        Objetivo.Horas_Semanales =
+          Math.max(0, Number(Objetivo.Horas_Semanales) || 0) + 1;
+        Objetivo.Restante = Objetivo.Horas_Semanales;
+        Mostrar_Toast_Info(
+          t("toast.bolsa_hora_agregada"),
+          "⏱️",
+          3500
+        );
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Guardar_Estado();
+        return true;
+      }
+
+      async function Crear_Evento_Desde_Objetivo(
         Objetivo,
         Fecha,
         Hora,
@@ -55674,8 +55753,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Objetivo.Es_Bolsa &&
           Calcular_Horas_Restantes(Objetivo) < Duracion_Final
         ) {
-          Mostrar_Toast_Error(t("dialog.sin_horas_bolsa"));
-          return false;
+          const Agrego_Hora =
+            await Confirmar_Agregar_Hora_A_Bolsa(Objetivo);
+          if (
+            !Agrego_Hora ||
+            Calcular_Horas_Restantes(Objetivo) < Duracion_Final
+          ) {
+            if (Agrego_Hora) {
+              Mostrar_Toast_Error(t("dialog.sin_horas_bolsa"));
+            }
+            return false;
+          }
         }
 
         const Motivo_Conflicto =
@@ -55707,7 +55795,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
-      function Manejar_Click_Slot_Touch(
+      async function Manejar_Click_Slot_Touch(
         Fecha,
         Hora,
         Slot
@@ -55716,7 +55804,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Objetivo = Objetivo_Touch_Para_Bloque();
         if (Objetivo) {
-          Crear_Evento_Desde_Objetivo(Objetivo, Fecha, Hora);
+          await Crear_Evento_Desde_Objetivo(
+            Objetivo,
+            Fecha,
+            Hora
+          );
           return;
         }
 
@@ -62970,7 +63062,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Mostrar_Menu_Emoji_Objetivo(
               Objetivo,
               Punto?.X ?? Obtener_Punto_Menu_El(Boton).X,
-              Punto?.Y ?? Obtener_Punto_Menu_El(Boton).Y
+              Punto?.Y ?? Obtener_Punto_Menu_El(Boton).Y,
+              { Incluir_Reorden: true }
             );
           }
         );
@@ -63112,6 +63205,105 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Editor();
       }
 
+      function Abrir_Editor_Objetivo_Desde_Menu(Objetivo) {
+        if (!Objetivo) return;
+        Objetivos_Multi_Seleccion.clear();
+        Subobjetivos_Multi_Seleccion.clear();
+        Objetivo_Touch_Para_Bloque_Id = null;
+        Objetivo_Seleccionada_Id = Objetivo.Id;
+        Modo_Editor_Abierto = true;
+        Subobjetivo_En_Edicion_Id = null;
+        Datos_Editor_Borrador = Obtener_Datos_Objetivo(Objetivo);
+        Cerrar_Sidebar_Compacta();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Barra_Multi_Seleccion();
+        Guardar_Estado();
+      }
+
+      async function Aplicar_Datos_Rapidos_Objetivo(
+        Objetivo,
+        Datos
+      ) {
+        if (!Objetivo) return null;
+        const Seleccion_Previa = Objetivo_Seleccionada_Id;
+        let Alcance = "Semana";
+        if (Objetivo_Tiene_Copias_Adelante(Objetivo)) {
+          Alcance = await Solicitar_Alcance_Accion_Objetivo();
+          if (!Alcance) return null;
+        }
+
+        let Objetivo_Resultante;
+        if (Alcance === "Adelante") {
+          Objetivo_Resultante = Aplicar_Cambios_Hacia_Adelante(
+            Objetivo,
+            Datos
+          );
+        } else if (Alcance === "Todas") {
+          Objetivo_Resultante = Aplicar_Cambios_Todas_Las_Semanas(
+            Objetivo,
+            Datos
+          );
+        } else if (Datos.Es_Fija && !Objetivo.Es_Fija) {
+          Aplicar_Datos_A_Objetivo(Objetivo, Datos);
+          Objetivo.Es_Fija = true;
+          Objetivo.Familia_Id = Obtener_Familia_Objetivo(Objetivo);
+          Objetivo.Semana_Base = null;
+          Objetivo.Semana_Inicio =
+            Objetivo.Semana_Inicio || Clave_Semana_Actual();
+          Objetivo.Semana_Fin = null;
+          Objetivo_Resultante = Objetivo;
+        } else {
+          Objetivo_Resultante = Aplicar_Cambios_Esta_Semana(
+            Objetivo,
+            Datos
+          );
+        }
+
+        if (Seleccion_Previa === Objetivo.Id) {
+          Objetivo_Seleccionada_Id =
+            Objetivo_Resultante?.Id || Objetivo.Id;
+        }
+        if (Modo_Editor_Abierto && Objetivo_Seleccionada_Id) {
+          Datos_Editor_Borrador = Objetivo_Resultante
+            ? Obtener_Datos_Objetivo(Objetivo_Resultante)
+            : null;
+        }
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Eventos();
+        Render_Barra_Multi_Seleccion();
+        Guardar_Estado();
+        return Objetivo_Resultante;
+      }
+
+      async function Pedir_Editar_Horas_Objetivo(Objetivo) {
+        if (!Objetivo) return null;
+        const Valor_Actual = Math.max(
+          1,
+          Math.round(Number(Objetivo.Horas_Semanales) || 1)
+        );
+        const Horas = await Mostrar_Dialogo_Con_Numero(
+          t("dialog.editar_horas_objetivo", {
+            nombre: Objetivo.Nombre || t("evento.sin_objetivo")
+          }),
+          Valor_Actual,
+          1
+        );
+        if (Horas === null) return null;
+        const Datos = {
+          ...Obtener_Datos_Objetivo(Objetivo),
+          Es_Bolsa: true,
+          Horas_Semanales: Normalizar_Duracion(Horas)
+        };
+        return await Aplicar_Datos_Rapidos_Objetivo(
+          Objetivo,
+          Datos
+        );
+      }
+
       function Mostrar_Menu_Sidebar_Pegar(X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         if (!Menu) return false;
@@ -63143,15 +63335,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
-      function Mostrar_Menu_Emoji_Objetivo(Objetivo, X, Y) {
+      function Mostrar_Menu_Emoji_Objetivo(
+        Objetivo,
+        X,
+        Y,
+        Opciones = {}
+      ) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         if (!Menu || !Objetivo) return;
         const Grupo = [
           Html_Menu_Dia_Accion(
+            "editar-objetivo",
+            t("contexto.editar_objetivo")
+          ),
+          Html_Menu_Dia_Accion(
+            "editar-horas",
+            t("contexto.editar_horas")
+          )
+        ];
+        if (Opciones.Incluir_Reorden) {
+          Grupo.push(
+            Html_Menu_Dia_Accion(
+              "mover-arriba",
+              t("config.subir")
+            ),
+            Html_Menu_Dia_Accion(
+              "mover-abajo",
+              t("config.bajar")
+            )
+          );
+        }
+        Grupo.push(
+          Html_Menu_Dia_Accion(
             "agregar-subobjetivo",
             t("contexto.agregar_subobjetivo")
           )
-        ];
+        );
         if (Tiene_Portapapeles_Objetivos_Multi()) {
           Grupo.push(
             Html_Menu_Dia_Accion(
@@ -63166,6 +63385,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Menu.classList.add("Activo");
         Reposicionar_Menu_Dia_En_Pantalla(Menu);
 
+        Menu.querySelector(`[data-acc="editar-objetivo"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Abrir_Editor_Objetivo_Desde_Menu(Objetivo);
+          });
+        Menu.querySelector(`[data-acc="editar-horas"]`)
+          ?.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Pedir_Editar_Horas_Objetivo(Objetivo);
+          });
+        Menu.querySelector(`[data-acc="mover-arriba"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            if (!Mover_Objetivo_Un_Paso(Objetivo.Id, -1)) return;
+            Render_Emojis();
+            Guardar_Estado();
+          });
+        Menu.querySelector(`[data-acc="mover-abajo"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            if (!Mover_Objetivo_Un_Paso(Objetivo.Id, 1)) return;
+            Render_Emojis();
+            Guardar_Estado();
+          });
         Menu.querySelector(`[data-acc="agregar-subobjetivo"]`)
           ?.addEventListener("click", (Ev) => {
             Ev.stopPropagation();
@@ -66070,7 +66317,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Boolean(Respuesta);
       }
 
-      function Manejar_Drop(Evento) {
+      async function Manejar_Drop(Evento) {
         Evento.preventDefault();
         Evento.stopPropagation();
         Detener_AutoScroll_Calendario_Drag();
@@ -66098,7 +66345,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Payload.Tipo === "Objetivo") {
           const Objetivo = Objetivo_Por_Id(Payload.Objetivo_Id);
           if (!Objetivo) return;
-          Crear_Evento_Desde_Objetivo(
+          await Crear_Evento_Desde_Objetivo(
             Objetivo,
             Fecha,
             Hora,
@@ -66166,7 +66413,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
-      function Manejar_Drop_Cuerpo(Evento) {
+      async function Manejar_Drop_Cuerpo(Evento) {
         Evento.preventDefault();
         Detener_AutoScroll_Calendario_Drag();
         Limpiar_Drag_Preview_Slot_Muerto();
@@ -66194,7 +66441,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Payload.Tipo === "Objetivo") {
           const Objetivo = Objetivo_Por_Id(Payload.Objetivo_Id);
           if (!Objetivo) return;
-          Crear_Evento_Desde_Objetivo(
+          await Crear_Evento_Desde_Objetivo(
             Objetivo,
             Fecha,
             Hora
