@@ -1392,6 +1392,63 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Planes muestra todos los años de la capa",
+async ({ page }) => {
+  await Preparar(page);
+  await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2027;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Mes";
+    Modelo.UI.Subperiodo_Activo = 1;
+    Modelo.UI.Anio_Todos = false;
+    const Periodo = Planes_Crear_Periodo_Seleccionado("Mes");
+    Modelo.UI.Periodo_Activo_Id = Periodo.Id;
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(
+      Periodo.Id,
+      {
+        Nombre: "Alerta color",
+        Emoji: "\u26A0\uFE0F",
+        Target_Total: 1,
+        Unidad: "Horas"
+      }
+    );
+    Objetivo.Warnings = ["Color_Test"];
+    Render_Plan();
+  });
+
+  const Fondo_Warning = await page.locator(
+    ".Planes_Objetivo_Card.Warning"
+  ).first().evaluate((Card) => getComputedStyle(Card).backgroundColor);
+  expect(Fondo_Warning).toBe("rgba(0, 0, 0, 0)");
+
+  await page.selectOption("#Planes_Anio_Select", "Todos");
+  await expect(page.locator("#Planes_Anio_Select"))
+    .toHaveValue("Todos");
+  await expect(page.locator(".Planes_Subperiodo_Select_Control"))
+    .toBeHidden();
+  await expect(page.locator(".Planes_Coleccion_Titulo"))
+    .toContainText("---");
+  await expect(page.locator(".Planes_Periodo_Tarjeta"))
+    .toHaveCount(24);
+
+  await page.selectOption("#Planes_Capa_Select", "Anio");
+  await expect(page.locator(".Planes_Periodo_Tarjeta"))
+    .toHaveCount(2);
+
+  await page.selectOption("#Planes_Capa_Select", "Mes");
+  await page.locator(
+    '[data-plan-periodo-id="P_Mes_2027-02-01_2027-02-28"]'
+  ).click();
+  await expect(page.locator("#Planes_Anio_Select"))
+    .toHaveValue("2027");
+  await expect(page.locator("#Planes_Subperiodo_Select"))
+    .toHaveValue("2");
+  await expect(page.locator(".Planes_Coleccion")).toHaveCount(0);
+});
+
 test("Planes conserva layout responsive en mobile",
 async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 760 });

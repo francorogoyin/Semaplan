@@ -3750,6 +3750,137 @@
         padding-bottom: 36px;
       }
 
+      .Planes_Coleccion {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .Planes_Coleccion_Cabecera {
+        border-bottom: 1px solid var(--Borde);
+        padding-bottom: 14px;
+      }
+
+      .Planes_Coleccion_Titulo {
+        color: var(--Texto);
+        font-size: 22px;
+        line-height: 1.15;
+        margin: 0;
+      }
+
+      .Planes_Coleccion_Rango {
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        margin-top: 8px;
+      }
+
+      .Planes_Periodos_Grid {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fill,
+          minmax(210px, 1fr)
+        );
+        gap: 12px;
+      }
+
+      .Planes_Periodo_Tarjeta {
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 160px;
+        padding: 14px;
+        transition:
+          border-color 140ms ease,
+          transform 140ms ease;
+      }
+
+      .Planes_Periodo_Tarjeta:hover {
+        border-color: rgba(31, 107, 79, 0.36);
+        transform: translateY(-2px);
+      }
+
+      .Planes_Periodo_Tarjeta_Cabecera {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+      }
+
+      .Planes_Periodo_Tarjeta_Titulo {
+        color: var(--Texto);
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      .Planes_Periodo_Tarjeta_Rango {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        line-height: 1.3;
+        margin-top: 4px;
+      }
+
+      .Planes_Periodo_Tarjeta_Acciones {
+        display: inline-flex;
+        gap: 5px;
+      }
+
+      .Planes_Periodo_Tarjeta_Metricas {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .Planes_Periodo_Tarjeta_Metrica {
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 8px;
+        background: #faf8f4;
+        padding: 7px 6px;
+        text-align: center;
+      }
+
+      .Planes_Periodo_Tarjeta_Metrica span {
+        color: var(--Texto_Suave);
+        display: block;
+        font-size: 9px;
+        line-height: 1.1;
+      }
+
+      .Planes_Periodo_Tarjeta_Metrica strong {
+        color: var(--Texto);
+        display: block;
+        font-size: 13px;
+        line-height: 1.15;
+        margin-top: 2px;
+      }
+
+      .Planes_Periodo_Tarjeta_Objetivos {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-top: auto;
+      }
+
+      .Planes_Periodo_Tarjeta_Objetivo {
+        color: var(--Texto);
+        display: block;
+        font-size: 12px;
+        line-height: 1.25;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .Planes_Periodo_Tarjeta_Mas,
+      .Planes_Periodo_Tarjeta_Vacio {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        line-height: 1.3;
+      }
+
       .Planes_Resumen_Cabecera {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
@@ -3965,7 +4096,7 @@
       .Planes_Objetivo_Card.Warning {
         border-bottom-color: rgba(180, 120, 0, 0.45);
         box-shadow: none;
-        background: rgba(213, 154, 29, 0.06);
+        background: transparent;
       }
 
       .Planes_Objetivo_Card.Vista_Lista {
@@ -4000,6 +4131,16 @@
       .Planes_Objetivo_Card.Vista_Biblioteca.Multi_Activa {
         border-color: var(--Acento);
         box-shadow: 0 0 0 2px rgba(15, 95, 90, 0.1);
+      }
+
+      .Planes_Objetivo_Card.Vista_Biblioteca.Warning {
+        border-color: rgba(180, 120, 0, 0.45);
+        background: rgba(255, 255, 255, 0.96);
+      }
+
+      .Planes_Objetivo_Card.Expandida.Warning {
+        background: #fff;
+        border-color: rgba(180, 120, 0, 0.45);
       }
 
       .Planes_Objetivo_Card.Vista_Biblioteca .Planes_Objetivo_Header {
@@ -39187,6 +39328,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Anio_Desde: new Date().getFullYear(),
             Anio_Hasta: new Date().getFullYear(),
             Anio_Activo: new Date().getFullYear(),
+            Anio_Todos: false,
             Subperiodo_Activo: 1,
             Busqueda: ""
           }
@@ -39297,6 +39439,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Modelo.UI.Anio_Hasta
           )
           : Modelo.UI.Anio_Desde;
+        Modelo.UI.Anio_Todos = Modelo.UI.Anio_Todos === true;
         const Subperiodo = Number(Modelo.UI.Subperiodo_Activo);
         Modelo.UI.Subperiodo_Activo =
           Number.isFinite(Subperiodo) && Subperiodo > 0
@@ -39999,6 +40142,79 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .sort((A, B) => (A.Inicio || "").localeCompare(B.Inicio || ""));
       }
 
+      function Planes_Anio_Todos_Activo() {
+        return Asegurar_Modelo_Planes().UI.Anio_Todos === true;
+      }
+
+      function Planes_Crear_Periodos_Capa_Visibles(Tipo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        if (Tipo === "Custom") return Planes_Periodos_Visibles_Capa(Tipo);
+        const Periodos = [];
+        for (
+          let Anio = Modelo.UI.Anio_Desde;
+          Anio <= Modelo.UI.Anio_Hasta;
+          Anio++
+        ) {
+          const Cantidad = Tipo === "Anio"
+            ? 1
+            : Planes_Cantidad_Subperiodos(Tipo, Anio);
+          for (let Sub = 1; Sub <= Cantidad; Sub++) {
+            const [Inicio, Fin] =
+              Planes_Rango_Por_Tipo_Anio_Subperiodo(Tipo, Anio, Sub);
+            const Id = Plan_Periodo_Id(Tipo, Inicio, Fin);
+            const Existente = Modelo.Periodos[Id];
+            if (Existente) {
+              Periodos.push(Existente);
+              continue;
+            }
+            Periodos.push(Planes_Crear_Periodo(
+              Modelo,
+              Tipo,
+              Inicio,
+              Fin,
+              null,
+              Number(Inicio.replaceAll("-", ""))
+            ));
+          }
+        }
+        return Periodos.sort((A, B) =>
+          (A.Inicio || "").localeCompare(B.Inicio || "")
+        );
+      }
+
+      function Planes_Subperiodo_De_Periodo(Periodo) {
+        const Inicio = Parsear_Fecha_ISO(Periodo?.Inicio || "");
+        if (!Periodo || !Inicio) return 1;
+        const Mes = Inicio.getMonth();
+        if (Periodo.Tipo === "Semestre") return Mes < 6 ? 1 : 2;
+        if (Periodo.Tipo === "Trimestre") {
+          return Math.floor(Mes / 3) + 1;
+        }
+        if (Periodo.Tipo === "Mes") return Mes + 1;
+        if (Periodo.Tipo === "Semana") {
+          const Inicio_Anio = new Date(Inicio.getFullYear(), 0, 1);
+          let Lunes = Obtener_Lunes(Inicio_Anio);
+          if (Lunes < Inicio_Anio) Lunes = Sumar_Dias(Lunes, 7);
+          const Diff = Inicio.getTime() - Lunes.getTime();
+          return Math.floor(Diff / (7 * 24 * 60 * 60 * 1000)) + 1;
+        }
+        return 1;
+      }
+
+      function Planes_Activar_Periodo_Desde_Coleccion(Periodo) {
+        if (!Periodo) return;
+        const Modelo = Asegurar_Modelo_Planes();
+        const Anio = Number((Periodo.Inicio || "").slice(0, 4));
+        Modelo.UI.Filtro_Tipo = Periodo.Tipo;
+        if (Number.isFinite(Anio)) Modelo.UI.Anio_Activo = Anio;
+        Modelo.UI.Subperiodo_Activo =
+          Planes_Subperiodo_De_Periodo(Periodo);
+        Modelo.UI.Periodo_Activo_Id = Periodo.Id;
+        Modelo.UI.Anio_Todos = false;
+        Render_Planes_Controles();
+        Render_Planes_Contenido();
+      }
+
       function Planes_Hijos_Periodo(Periodo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         return Object.values(Modelo.Periodos)
@@ -40687,10 +40903,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Jerarquia_Planes();
         Object.values(Modelo.Objetivos)
           .forEach((Objetivo) => Planes_Actualizar_Progreso(Objetivo));
-        const Periodo = Planes_Crear_Periodo_Seleccionado(
-          Modelo.UI.Filtro_Tipo || "Semana"
-        );
-        Modelo.UI.Periodo_Activo_Id = Periodo?.Id || null;
+        if (Planes_Anio_Todos_Activo()) {
+          Planes_Crear_Periodos_Capa_Visibles(
+            Modelo.UI.Filtro_Tipo || "Semana"
+          );
+          Modelo.UI.Periodo_Activo_Id = null;
+        } else {
+          const Periodo = Planes_Crear_Periodo_Seleccionado(
+            Modelo.UI.Filtro_Tipo || "Semana"
+          );
+          Modelo.UI.Periodo_Activo_Id = Periodo?.Id || null;
+        }
         Render_Planes_Controles();
         Render_Planes_Contenido();
       }
@@ -40729,10 +40952,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Math.max(Modelo.UI.Anio_Activo, Desde),
           Hasta
         );
-        const Periodo = Planes_Crear_Periodo_Seleccionado(
-          Modelo.UI.Filtro_Tipo || "Semana"
-        );
-        Modelo.UI.Periodo_Activo_Id = Periodo?.Id || null;
+        if (Planes_Anio_Todos_Activo()) {
+          Modelo.UI.Periodo_Activo_Id = null;
+        } else {
+          const Periodo = Planes_Crear_Periodo_Seleccionado(
+            Modelo.UI.Filtro_Tipo || "Semana"
+          );
+          Modelo.UI.Periodo_Activo_Id = Periodo?.Id || null;
+        }
         Render_Planes_Controles();
         Render_Planes_Contenido();
         Guardar_Estado();
@@ -40766,8 +40993,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Actual.UI.Subperiodo_Activo || 1,
             Max
           );
-          const Periodo = Planes_Crear_Periodo_Seleccionado(Tipo);
-          Actual.UI.Periodo_Activo_Id = Periodo?.Id || null;
+          if (Actual.UI.Anio_Todos) {
+            Actual.UI.Periodo_Activo_Id = null;
+          } else {
+            const Periodo = Planes_Crear_Periodo_Seleccionado(Tipo);
+            Actual.UI.Periodo_Activo_Id = Periodo?.Id || null;
+          }
           Render_Planes_Controles();
           Render_Planes_Contenido();
         };
@@ -40786,6 +41017,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Sel_Anio) {
           Sel_Anio.innerHTML = "";
+          const Opt_Todos = document.createElement("option");
+          Opt_Todos.value = "Todos";
+          Opt_Todos.textContent = "---";
+          Sel_Anio.appendChild(Opt_Todos);
           for (
             let Anio = Modelo.UI.Anio_Desde;
             Anio <= Modelo.UI.Anio_Hasta;
@@ -40796,9 +41031,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Opt.textContent = String(Anio);
             Sel_Anio.appendChild(Opt);
           }
-          Sel_Anio.value = String(Modelo.UI.Anio_Activo);
+          Sel_Anio.value = Modelo.UI.Anio_Todos
+            ? "Todos"
+            : String(Modelo.UI.Anio_Activo);
           Sel_Anio.onchange = () => {
             const Actual = Asegurar_Modelo_Planes();
+            if (Sel_Anio.value === "Todos") {
+              Actual.UI.Anio_Todos = true;
+              Actual.UI.Periodo_Activo_Id = null;
+              Render_Planes_Controles();
+              Render_Planes_Contenido();
+              return;
+            }
+            Actual.UI.Anio_Todos = false;
             Actual.UI.Anio_Activo = Number(Sel_Anio.value);
             const Max = Planes_Cantidad_Subperiodos(
               Actual.UI.Filtro_Tipo || "Semana",
@@ -40820,7 +41065,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Sel_Subperiodo) {
           Sel_Subperiodo.innerHTML = "";
           const Tipo = Modelo.UI.Filtro_Tipo || "Semana";
-          const Ocultar = Tipo === "Anio" || Tipo === "Custom";
+          const Ocultar = Modelo.UI.Anio_Todos ||
+            Tipo === "Anio" ||
+            Tipo === "Custom";
           if (Subperiodo_Control) {
             Subperiodo_Control.hidden = Ocultar;
           }
@@ -41215,12 +41462,170 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
       }
 
+      function Planes_Metricas_Objetivos(Objetivos) {
+        const Lista = Array.isArray(Objetivos) ? Objetivos : [];
+        const Cumplidos = Lista.filter(
+          (Objetivo) => Objetivo.Estado === "Cumplido"
+        ).length;
+        const Target = Lista.reduce((Total, Objetivo) => {
+          return Total + (Number(Objetivo.Target_Total) || 0);
+        }, 0);
+        const Progreso = Lista.reduce((Total, Objetivo) => {
+          return Total + (Number(Objetivo.Progreso_Total) || 0);
+        }, 0);
+        const Warnings = Lista.reduce((Total, Objetivo) => {
+          return Total + (Objetivo.Warnings || []).length;
+        }, 0);
+        return {
+          Cantidad: Lista.length,
+          Cumplidos,
+          Porcentaje: Planes_Formatear_Porcentaje_Meta(Progreso, Target),
+          Warnings
+        };
+      }
+
+      function Render_Planes_Coleccion_Capa(Tipo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Periodos = Planes_Crear_Periodos_Capa_Visibles(Tipo);
+        const Wrap = document.createElement("section");
+        Wrap.className = "Planes_Coleccion";
+        const Rango = Modelo.UI.Anio_Desde === Modelo.UI.Anio_Hasta
+          ? String(Modelo.UI.Anio_Desde)
+          : `${Modelo.UI.Anio_Desde} - ${Modelo.UI.Anio_Hasta}`;
+        Wrap.innerHTML = `
+          <div class="Planes_Coleccion_Cabecera">
+            <h2 class="Planes_Coleccion_Titulo">
+              ${Escape_Html(Planes_Label_Tipo(Tipo))} · ---
+            </h2>
+            <div class="Planes_Coleccion_Rango">
+              ${Escape_Html(Rango)}
+            </div>
+          </div>
+        `;
+        const Grid = document.createElement("div");
+        Grid.className = "Planes_Periodos_Grid";
+        if (!Periodos.length) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Planes_Vacio";
+          Vacio.textContent = t("planes.capa_vacia");
+          Grid.appendChild(Vacio);
+        } else {
+          Periodos.forEach((Periodo) => {
+            Grid.appendChild(Render_Planes_Periodo_Tarjeta(Periodo));
+          });
+        }
+        Wrap.appendChild(Grid);
+        return Wrap;
+      }
+
+      function Render_Planes_Periodo_Tarjeta(Periodo) {
+        const Objetivos = Planes_Filtrar_Objetivos(Periodo);
+        const Metricas = Planes_Metricas_Objetivos(Objetivos);
+        const Importar_Titulo = Escape_Html(
+          t("planes.importar_padre_periodo")
+        );
+        const Agregar_Titulo = Escape_Html(
+          t("planes.agregar_en_periodo")
+        );
+        const Objetivos_Html = Objetivos.slice(0, 4)
+          .map((Objetivo) => `
+            <span class="Planes_Periodo_Tarjeta_Objetivo
+              Con_Fallback_Emoji">
+              ${Escape_Html(Objetivo.Emoji)}
+              ${Escape_Html(Objetivo.Nombre)}
+            </span>
+          `).join("");
+        const Restantes = Objetivos.length > 4
+          ? `<span class="Planes_Periodo_Tarjeta_Mas">+${
+            Objetivos.length - 4
+          }</span>`
+          : "";
+        const Cont = document.createElement("article");
+        Cont.className = "Planes_Periodo_Tarjeta" +
+          (Objetivos.length ? "" : " Vacia");
+        Cont.dataset.planPeriodoId = Periodo.Id;
+        Cont.innerHTML = `
+          <div class="Planes_Periodo_Tarjeta_Cabecera">
+            <div>
+              <div class="Planes_Periodo_Tarjeta_Titulo">
+                ${Escape_Html(Planes_Titulo_Periodo_Mostrable(Periodo))}
+              </div>
+              <div class="Planes_Periodo_Tarjeta_Rango">
+                ${Escape_Html(Planes_Rango_Periodo_Tooltip(Periodo))}
+              </div>
+            </div>
+            <div class="Planes_Periodo_Tarjeta_Acciones">
+              <button class="Planes_Universo_Accion"
+                type="button"
+                data-plan-periodo-importar
+                title="${Importar_Titulo}"
+                aria-label="${Importar_Titulo}">&#8595;</button>
+              <button class="Planes_Universo_Accion"
+                type="button"
+                data-plan-periodo-nuevo
+                title="${Agregar_Titulo}"
+                aria-label="${Agregar_Titulo}">+</button>
+            </div>
+          </div>
+          <div class="Planes_Periodo_Tarjeta_Metricas">
+            <div class="Planes_Periodo_Tarjeta_Metrica">
+              <span>${Escape_Html(t("planes.objetivos"))}</span>
+              <strong>${Metricas.Cantidad}</strong>
+            </div>
+            <div class="Planes_Periodo_Tarjeta_Metrica">
+              <span>${Escape_Html(t("planes.progreso"))}</span>
+              <strong>${Escape_Html(Metricas.Porcentaje)}</strong>
+            </div>
+            <div class="Planes_Periodo_Tarjeta_Metrica">
+              <span>${Escape_Html(t("planes.warnings"))}</span>
+              <strong>${Metricas.Warnings}</strong>
+            </div>
+          </div>
+          <div class="Planes_Periodo_Tarjeta_Objetivos">
+            ${Objetivos.length
+              ? `${Objetivos_Html}${Restantes}`
+              : `<span class="Planes_Periodo_Tarjeta_Vacio">${
+                Escape_Html(t("planes.sin_objetivos"))
+              }</span>`}
+          </div>
+        `;
+        const Btn_Importar = Cont.querySelector(
+          "[data-plan-periodo-importar]"
+        );
+        if (Btn_Importar) {
+          Btn_Importar.disabled =
+            !Planes_Periodo_Tiene_Padres_Importables(Periodo);
+          Btn_Importar.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            await Planes_Importar_De_Padres_Periodo(Periodo.Id);
+          });
+        }
+        Cont.querySelector("[data-plan-periodo-nuevo]")
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Asegurar_Modelo_Planes().UI.Periodo_Activo_Id = Periodo.Id;
+            Abrir_Modal_Planes_Objetivo(Periodo.Id);
+          });
+        Cont.addEventListener("click", (Ev) => {
+          if (Ev.target.closest("button")) return;
+          Planes_Activar_Periodo_Desde_Coleccion(Periodo);
+        });
+        return Cont;
+      }
+
       function Render_Planes_Contenido() {
         const Cuerpo = document.getElementById("Plan_Cuerpo");
         const Periodo = Planes_Periodo_Activo();
         const Modelo = Asegurar_Modelo_Planes();
         if (!Cuerpo) return;
         Cuerpo.innerHTML = "";
+        if (Planes_Anio_Todos_Activo()) {
+          Planes_Multi_Seleccion.clear();
+          Cuerpo.appendChild(
+            Render_Planes_Coleccion_Capa(Modelo.UI.Filtro_Tipo || "Semana")
+          );
+          return;
+        }
         if (!Periodo) {
           const Vacio = document.createElement("section");
           Vacio.className = "Planes_Vacio";
