@@ -506,32 +506,34 @@ async ({ page }) => {
     const Tabla = Detalle.querySelector(".Planes_Progreso_Tabla");
     const Pct = Card.querySelector(".Planes_Objetivo_Porcentaje");
     const Avance = Card.querySelector(".Planes_Avance_Btn");
+    const Emoji = Card.querySelector(".Planes_Objetivo_Emoji");
+    const Cantidad = Card.querySelector(".Planes_Objetivo_Cantidad");
     const Headers = Array.from(Tabla.querySelectorAll("th"))
       .map((Th) => Th.textContent.trim());
-    const Header_Num = Array.from(
-      Tabla.querySelectorAll("th.Numero")
-    );
-    const Celda_Num = Array.from(
-      Tabla.querySelectorAll("td.Numero")
-    );
-    const Columnas_Rect = Columnas.getBoundingClientRect();
+    const Headers_Todos = Array.from(Tabla.querySelectorAll("th"));
+    const Celdas_Todas = Array.from(Tabla.querySelectorAll("td"));
     const Footer_Rect = Footer.getBoundingClientRect();
+    const Tabla_Rect = Tabla.getBoundingClientRect();
+    const Columnas_Rect = Columnas.getBoundingClientRect();
     const Pct_Rect = Pct.getBoundingClientRect();
     const Avance_Rect = Avance.getBoundingClientRect();
+    const Emoji_Rect = Emoji.getBoundingClientRect();
     const Etiquetas = Card.querySelector(
       ".Planes_Objetivo_Detalle_Etiquetas"
     ).getBoundingClientRect();
     return {
-      columnasDos:
+      columnasUna:
         getComputedStyle(Columnas).gridTemplateColumns
-          .split(" ").length === 2,
-      gapColumnas: parseFloat(getComputedStyle(Columnas).columnGap),
+          .split(" ").length === 1,
+      tablaAnchoCompleto:
+        Math.abs(Tabla_Rect.left - Columnas_Rect.left) <= 2 &&
+        Math.abs(Tabla_Rect.right - Columnas_Rect.right) <= 2,
       headers: Headers,
-      headersNumericosDerecha: Header_Num.every((Th) =>
-        getComputedStyle(Th).textAlign === "right"
+      headersCentrados: Headers_Todos.every((Th) =>
+        getComputedStyle(Th).textAlign === "center"
       ),
-      celdasNumericasDerecha: Celda_Num.every((Td) =>
-        getComputedStyle(Td).textAlign === "right"
+      celdasCentradas: Celdas_Todas.every((Td) =>
+        getComputedStyle(Td).textAlign === "center"
       ),
       footerDebajo: Footer_Rect.top > Columnas_Rect.bottom,
       etiquetasEnFooter:
@@ -542,6 +544,15 @@ async ({ page }) => {
         Math.round(Pct_Rect.height) === 32,
       pctVerde: getComputedStyle(Pct).backgroundColor,
       avanceAlLado: Math.abs(Pct_Rect.top - Avance_Rect.top) <= 8,
+      avanceCircular:
+        Math.round(Avance_Rect.width) === 32 &&
+        Math.round(Avance_Rect.height) === 32,
+      avanceTitle: Avance.getAttribute("title"),
+      avanceTexto: Avance.textContent.trim(),
+      emojiGrande:
+        Math.round(Emoji_Rect.width) >= 38 &&
+        parseFloat(getComputedStyle(Emoji).fontSize) >= 30,
+      cantidadOculta: !Cantidad,
       estadoVerde: getComputedStyle(
         Detalle.querySelector(".Planes_Dato_Valor_Activo")
       ).color,
@@ -560,11 +571,11 @@ async ({ page }) => {
           Card.querySelector(
             ".Planes_Detalle_Etiquetas_Chips .Etiqueta_Badge"
           )
-        ).backgroundColor === "rgba(0, 0, 0, 0)"
+      ).backgroundColor === "rgba(0, 0, 0, 0)"
     };
   });
-  expect(Layout_Detalle.columnasDos).toBe(true);
-  expect(Layout_Detalle.gapColumnas).toBe(32);
+  expect(Layout_Detalle.columnasUna).toBe(true);
+  expect(Layout_Detalle.tablaAnchoCompleto).toBe(true);
   expect(Layout_Detalle.headers).toEqual([
     "Estado",
     "Avance",
@@ -573,13 +584,18 @@ async ({ page }) => {
     "Falta",
     "Detectado"
   ]);
-  expect(Layout_Detalle.headersNumericosDerecha).toBe(true);
-  expect(Layout_Detalle.celdasNumericasDerecha).toBe(true);
+  expect(Layout_Detalle.headersCentrados).toBe(true);
+  expect(Layout_Detalle.celdasCentradas).toBe(true);
   expect(Layout_Detalle.footerDebajo).toBe(true);
   expect(Layout_Detalle.etiquetasEnFooter).toBe(true);
   expect(Layout_Detalle.circuloPct).toBe(true);
   expect(Layout_Detalle.pctVerde).toBe("rgb(76, 175, 80)");
   expect(Layout_Detalle.avanceAlLado).toBe(true);
+  expect(Layout_Detalle.avanceCircular).toBe(true);
+  expect(Layout_Detalle.avanceTitle).toBe("Avance");
+  expect(Layout_Detalle.avanceTexto).toBe("\u2192");
+  expect(Layout_Detalle.emojiGrande).toBe(true);
+  expect(Layout_Detalle.cantidadOculta).toBe(true);
   expect(Layout_Detalle.estadoVerde).toBe("rgb(76, 175, 80)");
   expect(Layout_Detalle.chipsEnFila).toBe(true);
   expect(Layout_Detalle.etiquetaSinOvalo).toBe(true);
@@ -667,21 +683,56 @@ async ({ page }) => {
   await expect(page.locator(".Planes_Context_Menu"))
     .toContainText("Editar subobjetivo");
   await expect(page.locator(".Planes_Context_Menu"))
+    .toContainText("Agregar subobjetivo");
+  await expect(page.locator(".Planes_Context_Menu"))
     .toContainText("Avance");
+  await page.click(
+    '.Planes_Context_Menu [data-plan-sub-accion="agregar_sub"]'
+  );
+  await expect(page.locator("#Planes_Subobjetivos_Form"))
+    .toBeVisible();
+  await expect(page.locator("#Planes_Subobjetivos_Emoji"))
+    .toBeVisible();
+  await page.fill("#Planes_Subobjetivos_Emoji", "\uD83D\uDCC4");
+  await page.fill("#Planes_Subobjetivos_Input", "Sub hija");
+  await page.press("#Planes_Subobjetivos_Input", "Enter");
+  await expect(page.locator("#Planes_Subobjetivos_Lista"))
+    .toContainText("Sub hija");
+  const Sub_Hija = await page.evaluate((subId) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Hija = Object.values(Modelo.Subobjetivos)
+      .find((Sub) => Sub.Subobjetivo_Padre_Id === subId);
+    return {
+      padre: Hija?.Subobjetivo_Padre_Id || "",
+      emoji: Hija?.Emoji || "",
+      texto: Hija?.Texto || ""
+    };
+  }, Sub_Modal_Id);
+  expect(Sub_Hija.padre).toBe(Sub_Modal_Id);
+  expect(Sub_Hija.emoji).toBe("\uD83D\uDCC4");
+  expect(Sub_Hija.texto).toBe("Sub hija");
+  await Sub_Item.click({ button: "right" });
   await page.click(
     '.Planes_Context_Menu [data-plan-sub-accion="editar"]'
   );
   await expect(page.locator("#Planes_Subobjetivo_Overlay"))
     .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Subobjetivo_Emoji"))
+    .toBeVisible();
+  await page.fill("#Planes_Subobjetivo_Emoji", "\uD83D\uDCD6");
   await page.fill("#Planes_Subobjetivo_Target", "4");
   await page.click("#Planes_Subobjetivo_Guardar");
   await expect(page.locator("#Planes_Subobjetivo_Overlay"))
     .not.toHaveClass(/Activo/);
   const Sub_Editado = await page.evaluate((subId) => {
-    return Asegurar_Modelo_Planes().Subobjetivos[subId]
-      .Target_Total;
+    const Sub = Asegurar_Modelo_Planes().Subobjetivos[subId];
+    return {
+      target: Sub.Target_Total,
+      emoji: Sub.Emoji
+    };
   }, Sub_Modal_Id);
-  expect(Sub_Editado).toBe(4);
+  expect(Sub_Editado.target).toBe(4);
+  expect(Sub_Editado.emoji).toBe("\uD83D\uDCD6");
   await page.click("#Planes_Subobjetivos_Cerrar");
 
   const Eliminado_Visible = await page.evaluate(() => {

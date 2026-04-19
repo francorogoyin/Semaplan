@@ -86,6 +86,7 @@
       .Config_Patron_Emoji,
       .Planes_Objetivo_Emoji,
       .Planes_Objetivo_Estado,
+      .Planes_Subobjetivo_Emoji,
       .Subobjetivo_Emoji_Label {
         font-family:
           "Segoe UI Emoji",
@@ -4124,11 +4125,19 @@
 
       .Planes_Objetivo_Card.Expandida
         .Planes_Objetivo_Principal_Izq {
-        display: block;
+        display: flex;
+        align-items: center;
+        gap: 12px;
       }
 
       .Planes_Objetivo_Card.Expandida .Planes_Objetivo_Emoji {
-        display: none;
+        display: inline-flex;
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        font-size: 34px;
       }
 
       .Planes_Objetivo_Card.Expandida .Planes_Objetivo_Nombre {
@@ -4139,6 +4148,7 @@
       }
 
       .Planes_Objetivo_Card.Expandida .Planes_Objetivo_Cantidad {
+        display: none;
         margin-left: 0;
         color: #2c2c2c;
         font-size: 14px;
@@ -4302,7 +4312,7 @@
       .Planes_Detalle_Columnas {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 0;
       }
 
       .Planes_Detalle_Basicos {
@@ -4315,6 +4325,7 @@
         min-width: 0;
         overflow-x: auto;
         scrollbar-width: thin;
+        width: 100%;
       }
 
       .Planes_Progreso_Tabla {
@@ -4333,7 +4344,7 @@
         font-weight: 600;
         letter-spacing: 0.05em;
         padding: 9px 12px;
-        text-align: left;
+        text-align: center;
         text-transform: uppercase;
         white-space: nowrap;
       }
@@ -4344,6 +4355,7 @@
         font-size: 14px;
         font-weight: 600;
         padding: 10px 12px;
+        text-align: center;
         white-space: nowrap;
       }
 
@@ -4356,7 +4368,7 @@
       }
 
       .Planes_Progreso_Tabla .Numero {
-        text-align: right;
+        text-align: center;
         font-variant-numeric: tabular-nums;
       }
 
@@ -4425,9 +4437,8 @@
 
       @media (min-width: 720px) {
         .Planes_Detalle_Columnas {
-          grid-template-columns: minmax(160px, 0.75fr)
-            minmax(420px, 2fr);
-          gap: 32px;
+          grid-template-columns: 1fr;
+          gap: 0;
         }
       }
 
@@ -4480,25 +4491,24 @@
       }
 
       .Planes_Avance_Btn {
-        min-height: 30px;
-        padding: 4px 10px;
-      }
-
-      .Planes_Objetivo_Card.Expandida .Planes_Avance_Btn {
-        min-height: 42px;
-        border-color: #d6d6d6;
-        border-radius: 8px;
-        background: #fff;
+        width: 32px;
+        height: 32px;
+        min-height: 32px;
+        border: none;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.06);
         color: #2c2c2c;
-        font-size: 14px;
-        font-weight: 600;
-        padding: 0 18px;
+        display: grid;
+        place-items: center;
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1;
+        padding: 0;
       }
 
-      .Planes_Objetivo_Card.Expandida .Planes_Avance_Btn:hover {
-        border-color: #4caf50;
-        background: #fff;
-        color: #4caf50;
+      .Planes_Avance_Btn:hover {
+        background: rgba(0, 0, 0, 0.12);
+        color: #2c2c2c;
       }
 
       .Planes_Avance_Modal,
@@ -4719,12 +4729,13 @@
 
       .Planes_Subobjetivo {
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-columns: auto auto minmax(0, 1fr) auto;
         gap: 8px;
         align-items: start;
         border: 1px solid var(--Borde);
         border-radius: 8px;
         font-size: 13px;
+        margin-left: calc(var(--Nivel_Sub, 0) * 22px);
         padding: 10px;
         position: relative;
       }
@@ -4742,9 +4753,12 @@
 
       .Planes_Subobjetivo.Vista_Biblioteca {
         display: flex;
+        flex-direction: column;
+        gap: 6px;
         min-height: 112px;
         align-items: center;
         justify-content: center;
+        margin-left: 0;
         text-align: center;
       }
 
@@ -4764,6 +4778,23 @@
         min-width: 0;
         flex-direction: column;
         gap: 3px;
+      }
+
+      .Planes_Subobjetivo_Emoji {
+        display: inline-flex;
+        width: 24px;
+        height: 24px;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .Planes_Subobjetivo.Vista_Biblioteca
+        .Planes_Subobjetivo_Emoji {
+        width: auto;
+        height: auto;
+        font-size: 28px;
       }
 
       .Planes_Subobjetivo_Nombre {
@@ -4810,7 +4841,7 @@
 
       .Planes_Sub_Form {
         display: grid;
-        grid-template-columns: 1fr auto;
+        grid-template-columns: auto minmax(0, 1fr) auto;
         gap: 6px;
         margin-top: 8px;
       }
@@ -4826,6 +4857,11 @@
         font: inherit;
         font-size: 12px;
         padding: 7px 9px;
+      }
+
+      .Planes_Sub_Emoji_Input {
+        width: 42px;
+        text-align: center;
       }
 
       .Planes_Objetivo_Modal {
@@ -4954,6 +4990,14 @@
 
       .Planes_Subobjetivo_Meta_Campo {
         grid-column: 1 / 3;
+      }
+
+      .Planes_Subobjetivo_Emoji_Campo {
+        grid-column: 1 / 2;
+      }
+
+      .Planes_Subobjetivo_Nombre_Campo {
+        grid-column: 2 / -1;
       }
 
       .Planes_Subobjetivo_Unidad_Campo {
@@ -16579,6 +16623,13 @@
           <form class="Planes_Sub_Form"
             id="Planes_Subobjetivos_Form"
             hidden>
+            <input class="Planes_Sub_Emoji_Input Con_Selector_Emoji
+              Permite_Tipeo_Emoji"
+              id="Planes_Subobjetivos_Emoji"
+              maxlength="4"
+              data-i18n-title="sidebar.emoji"
+              title="Emoji"
+              value="&#8226;">
             <input id="Planes_Subobjetivos_Input"
               data-i18n-ph="planes.sub_ph"
               placeholder="Subobjetivo">
@@ -16611,7 +16662,14 @@
         <div class="Patron_Modal_Cuerpo">
           <form class="Planes_Objetivo_Form Planes_Subobjetivo_Form"
             id="Planes_Subobjetivo_Form">
-            <label class="Campo Campo_Ancho">
+            <label class="Campo Planes_Subobjetivo_Emoji_Campo">
+              <span data-i18n="sidebar.emoji">Emoji</span>
+              <input class="Con_Selector_Emoji Permite_Tipeo_Emoji"
+                id="Planes_Subobjetivo_Emoji"
+                maxlength="4"
+                value="&#8226;">
+            </label>
+            <label class="Campo Planes_Subobjetivo_Nombre_Campo">
               <span data-i18n="planes.sub_ph">Subobjetivo</span>
               <input id="Planes_Subobjetivo_Texto"
                 data-i18n-ph="planes.sub_ph"
@@ -26806,6 +26864,7 @@
       let Planes_Objetivo_En_Edicion_Id = null;
       let Planes_Subobjetivos_Objetivo_Id = null;
       let Planes_Subobjetivos_Form_Abierto = false;
+      let Planes_Subobjetivos_Sub_Padre_Id = null;
       let Planes_Subobjetivo_En_Edicion_Id = null;
       let Planes_Vinculo_Subobjetivos_Expandidos = new Set();
       let Planes_Vinculo_Click_Global = false;
@@ -38406,6 +38465,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Objetivo_Id: Subobjetivo.Objetivo_Id || null,
           Parent_Subobjetivo_Id:
             Subobjetivo.Parent_Subobjetivo_Id || null,
+          Subobjetivo_Padre_Id:
+            (Subobjetivo.Subobjetivo_Padre_Id || "").toString(),
+          Emoji: Normalizar_Emoji(Subobjetivo.Emoji || "\u2022"),
           Texto: (Subobjetivo.Texto || "").toString().trim(),
           Target_Total: Number.isFinite(Target) ? Target : 0,
           Unidad,
@@ -38647,6 +38709,46 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Object.values(Modelo.Subobjetivos)
           .filter((Sub) => Sub.Objetivo_Id === Objetivo_Id)
           .sort((A, B) => Number(A.Orden) - Number(B.Orden));
+      }
+
+      function Planes_Subobjetivos_Raices_De_Objetivo(Objetivo_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        return Planes_Subobjetivos_De_Objetivo(Objetivo_Id)
+          .filter((Sub) => {
+            if (Sub.Eliminado_Local) return false;
+            const Padre_Id = (Sub.Subobjetivo_Padre_Id || "")
+              .toString();
+            if (!Padre_Id) return true;
+            const Padre = Modelo.Subobjetivos[Padre_Id];
+            return !Padre ||
+              Padre.Eliminado_Local ||
+              Padre.Objetivo_Id !== Objetivo_Id;
+          });
+      }
+
+      function Planes_Subobjetivos_Hijos(Sub_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Padre = Modelo.Subobjetivos[Sub_Id];
+        if (!Padre) return [];
+        return Object.values(Modelo.Subobjetivos)
+          .filter((Sub) =>
+            Sub.Objetivo_Id === Padre.Objetivo_Id &&
+            (Sub.Subobjetivo_Padre_Id || "") === Sub_Id
+          )
+          .sort((A, B) => Number(A.Orden) - Number(B.Orden));
+      }
+
+      function Planes_Subobjetivos_Descendientes(
+        Sub_Id,
+        Visitados = new Set()
+      ) {
+        if (Visitados.has(Sub_Id)) return [];
+        Visitados.add(Sub_Id);
+        return Planes_Subobjetivos_Hijos(Sub_Id)
+          .flatMap((Hijo) => [
+            Hijo,
+            ...Planes_Subobjetivos_Descendientes(Hijo.Id, Visitados)
+          ]);
       }
 
       function Planes_Coincidencias_Sidebar(Objetivo_Plan) {
@@ -40294,12 +40396,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Boton_Avance = `
           <button class="Planes_Btn Planes_Avance_Btn"
             type="button"
-            title="${Escape_Html(
-              t("planes.registrar_avance_title")
-            )}"
+            title="${Escape_Html(t("planes.avance"))}"
             aria-label="${Escape_Html(t("planes.registrar_avance"))}"
             data-plan-accion="registrar_avance">
-            + ${t("planes.avance")}
+            &#8594;
           </button>
         `;
         Card.innerHTML = Es_Biblioteca ? `
@@ -40342,7 +40442,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 </span>
               </div>
             </div>
-            ${Es_Lista ? "" : `
+            ${Es_Lista || Expandido ? "" : `
               <div class="Planes_Objetivo_Cantidad">
                 ${Escape_Html(Planes_Formatear_Meta_Objetivo(Objetivo))}
               </div>
@@ -40690,12 +40790,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Detectado = Planes_Formatear_Numero(
           Objetivo.Progreso_Leido
         );
-        const Manual = Planes_Formatear_Numero(
-          Objetivo.Progreso_Manual
-        );
-        const Total = Planes_Formatear_Numero(
-          Objetivo.Progreso_Total
-        );
         const Estado_Clase = Objetivo.Estado === "Activo"
           ? " Planes_Dato_Valor_Activo"
           : "";
@@ -40717,24 +40811,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Escape_Html(t("planner.detalles"))
           }">
             <div class="Planes_Detalle_Columnas">
-              <div class="Planes_Detalle_Basicos">
-                <div class="Planes_Dato Planes_Dato_Ayuda"
-                  title="${Escape_Html(t("planes.estado_ayuda"))}">
-                  <span>${t("planes.estado")}</span>
-                  <strong class="${Estado_Clase.trim()}">
-                    ${Escape_Html(Estado_Label)}
-                  </strong>
-                </div>
-                <div class="Planes_Dato Planes_Dato_Ayuda"
-                  title="${Escape_Html(t("planes.fuente_help"))}">
-                  <span>${t("planes.avance")}</span>
-                  <strong>${Escape_Html(Fuente.Label)}</strong>
-                </div>
-                <div class="Planes_Dato">
-                  <span>${t("planes.target")}</span>
-                  <strong>${Escape_Html(Meta)}</strong>
-                </div>
-              </div>
               <div class="Planes_Progreso_Tabla_Wrap">
                 <table class="Planes_Progreso_Tabla">
                   <thead>
@@ -40764,17 +40840,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     </tr>
                   </tbody>
                 </table>
-                <div class="Planes_Progreso_Extras">
-                  <div class="Planes_Progreso_Extra Planes_Dato_Ayuda"
-                    title="${Escape_Html(t("planes.manual_ayuda"))}">
-                    <span>${t("planes.progreso_manual")}</span>
-                    <strong>${Manual}</strong>
-                  </div>
-                  <div class="Planes_Progreso_Extra">
-                    <span>${t("planes.progreso_total")}</span>
-                    <strong>${Total}</strong>
-                  </div>
-                </div>
               </div>
             </div>
             <div class="Planes_Detalle_Footer">
@@ -41050,7 +41115,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Item.Tipo === "Subobjetivo") {
           return (
             `${Obj.Emoji || ""} ${Obj.Nombre || ""} · ` +
-            `${Item.Sub.Texto || ""}`
+            `${Item.Sub.Emoji || "\u2022"} ${Item.Sub.Texto || ""}`
           ).trim();
         }
         return `${Obj.Emoji || ""} ${Obj.Nombre || ""}`.trim();
@@ -41256,6 +41321,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Texto = document.getElementById(
           "Planes_Subobjetivo_Texto"
         );
+        const Emoji = document.getElementById(
+          "Planes_Subobjetivo_Emoji"
+        );
         const Target = document.getElementById(
           "Planes_Subobjetivo_Target"
         );
@@ -41275,6 +41343,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Planes_Subobjetivo_Hecha"
         );
         if (Texto) Texto.value = Sub.Texto || "";
+        if (Emoji) Emoji.value = Sub.Emoji || "\u2022";
         if (Target) Target.value = Sub.Target_Total || "";
         Planes_Poblar_Select_Unidades(Unidad, Sub.Unidad);
         if (Unidad_Custom) {
@@ -41330,6 +41399,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           document.getElementById("Planes_Subobjetivo_Hecha")?.checked
         );
         const Snap = Capturar_Snapshot_Undo();
+        Sub.Emoji = Normalizar_Emoji(
+          document.getElementById("Planes_Subobjetivo_Emoji")
+            ?.value || "\u2022"
+        );
         Sub.Texto = Texto;
         Sub.Target_Total =
           Number.isFinite(Target) && Target > 0 ? Target : 0;
@@ -41829,6 +41902,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         Planes_Subobjetivos_Objetivo_Id = Objetivo_Id;
         Planes_Subobjetivos_Form_Abierto = Boolean(Foco_Agregar);
+        Planes_Subobjetivos_Sub_Padre_Id = null;
         Planes_Cerrar_Menus_Objetivo();
         Render_Modal_Planes_Subobjetivos();
         document.getElementById("Planes_Subobjetivos_Overlay")
@@ -41844,6 +41918,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Cerrar_Modal_Planes_Subobjetivos() {
         Planes_Subobjetivos_Objetivo_Id = null;
         Planes_Subobjetivos_Form_Abierto = false;
+        Planes_Subobjetivos_Sub_Padre_Id = null;
         Planes_Cerrar_Menus_Objetivo();
         document.getElementById("Planes_Subobjetivos_Overlay")
           ?.classList.remove("Activo");
@@ -41911,7 +41986,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Sub.Hecha ? "Cumplido" : "Activo";
       }
 
-      function Render_Planes_Subobjetivo_Item(Objetivo, Sub, Vista) {
+      function Render_Planes_Subobjetivo_Item(
+        Objetivo,
+        Sub,
+        Vista,
+        Nivel = 0
+      ) {
         const Item = document.createElement("div");
         const Estado = Planes_Estado_Normalizado_Subobjetivo(Sub);
         const Estado_Label =
@@ -41920,12 +42000,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Sub.Importado ? " Importado" : "") +
           ` Vista_${Vista}`;
         Item.dataset.planSubobjetivoId = Sub.Id;
+        Item.dataset.nivel = String(Nivel);
+        Item.style.setProperty(
+          "--Nivel_Sub",
+          String(Math.min(Math.max(Nivel, 0), 6))
+        );
         Item.setAttribute("aria-label", Sub.Texto);
         Item.innerHTML = `
           <input class="Planes_Subobjetivo_Check"
             type="checkbox"
             data-plan-sub-check="${Escape_Html(Sub.Id)}"
             ${Sub.Hecha ? "checked" : ""}>
+          <span class="Planes_Subobjetivo_Emoji Con_Fallback_Emoji">
+            ${Escape_Html(Sub.Emoji || "\u2022")}
+          </span>
           <span class="Planes_Subobjetivo_Info">
             <span class="Planes_Subobjetivo_Nombre">
               ${Escape_Html(Sub.Texto)}
@@ -41963,8 +42051,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Item;
       }
 
-      function Planes_Abrir_Form_Subobjetivo_Nuevo() {
+      function Render_Planes_Subobjetivo_Rama(
+        Objetivo,
+        Sub,
+        Vista,
+        Nivel,
+        Contenedor,
+        Visitados = new Set()
+      ) {
+        if (!Sub || Visitados.has(Sub.Id)) return;
+        Visitados.add(Sub.Id);
+        Contenedor.appendChild(
+          Render_Planes_Subobjetivo_Item(
+            Objetivo,
+            Sub,
+            Vista,
+            Nivel
+          )
+        );
+        Planes_Subobjetivos_Hijos(Sub.Id)
+          .filter((Hijo) => !Hijo.Eliminado_Local)
+          .forEach((Hijo) => {
+            Render_Planes_Subobjetivo_Rama(
+              Objetivo,
+              Hijo,
+              Vista,
+              Nivel + 1,
+              Contenedor,
+              Visitados
+            );
+          });
+      }
+
+      function Planes_Abrir_Form_Subobjetivo_Nuevo(
+        Sub_Padre_Id = ""
+      ) {
         if (!Planes_Subobjetivos_Objetivo_Id) return;
+        if (typeof Sub_Padre_Id !== "string") {
+          Sub_Padre_Id = "";
+        }
+        const Modelo = Asegurar_Modelo_Planes();
+        const Padre = Modelo.Subobjetivos[Sub_Padre_Id];
+        Planes_Subobjetivos_Sub_Padre_Id =
+          Padre &&
+          Padre.Objetivo_Id === Planes_Subobjetivos_Objetivo_Id
+            ? Padre.Id
+            : null;
         Planes_Subobjetivos_Form_Abierto = true;
         Render_Modal_Planes_Subobjetivos();
         setTimeout(() => {
@@ -41995,25 +42127,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Input = document.getElementById(
           "Planes_Subobjetivos_Input"
         );
+        const Emoji_Input = document.getElementById(
+          "Planes_Subobjetivos_Emoji"
+        );
         if (Form) Form.hidden = !Planes_Subobjetivos_Form_Abierto;
         if (Input && !Planes_Subobjetivos_Form_Abierto) {
           Input.value = "";
         }
-        const Subs = Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
-          .filter((Sub) => !Sub.Eliminado_Local);
+        if (Emoji_Input && !Planes_Subobjetivos_Form_Abierto) {
+          Emoji_Input.value = "\u2022";
+        }
+        const Subs = Planes_Subobjetivos_Raices_De_Objetivo(
+          Objetivo.Id
+        );
         const Vista = Planes_Subobjetivos_Vista_Actual();
         Lista.className = "Planes_Subobjetivos_Modal_Lista" +
           (Vista === "Biblioteca" ? " Biblioteca" : "");
         Lista.innerHTML = "";
-        if (!Subs.length) {
+        if (
+          !Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
+            .some((Sub) => !Sub.Eliminado_Local)
+        ) {
           const Vacio = document.createElement("div");
           Vacio.className = "Planes_Vacio";
           Vacio.textContent = t("planes.sin_subobjetivos");
           Lista.appendChild(Vacio);
         }
         Subs.forEach((Sub) => {
-          Lista.appendChild(
-            Render_Planes_Subobjetivo_Item(Objetivo, Sub, Vista)
+          Render_Planes_Subobjetivo_Rama(
+            Objetivo,
+            Sub,
+            Vista,
+            0,
+            Lista
           );
         });
         Lista.querySelectorAll("[data-plan-sub-check]")
@@ -42039,6 +42185,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Render_Planes_Subobjetivo_Acciones(Sub) {
         return `
+          <button class="Planes_Btn" type="button"
+            data-plan-sub-accion="agregar_sub">
+            ${t("planes.agregar_subobjetivo")}
+          </button>
           <button class="Planes_Btn" type="button"
             data-plan-sub-accion="editar">
             ${t("planes.editar_subobjetivo")}
@@ -42068,6 +42218,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Sub = Modelo.Subobjetivos[Sub_Id];
         if (!Sub) return;
+        if (Tipo === "agregar_sub") {
+          Planes_Abrir_Form_Subobjetivo_Nuevo(Sub_Id);
+        }
         if (Tipo === "editar") {
           Abrir_Modal_Planes_Subobjetivo(Sub_Id);
         }
@@ -42130,14 +42283,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Menu.style.visibility = "";
       }
 
-      function Planes_Agregar_Subobjetivo(Objetivo_Id, Texto) {
+      function Planes_Agregar_Subobjetivo(
+        Objetivo_Id,
+        Texto,
+        Emoji = "\u2022",
+        Sub_Padre_Id = ""
+      ) {
         const Modelo = Asegurar_Modelo_Planes();
+        const Padre = Modelo.Subobjetivos[Sub_Padre_Id];
+        const Subobjetivo_Padre_Id =
+          Padre && Padre.Objetivo_Id === Objetivo_Id ? Padre.Id : "";
         const Orden = Planes_Subobjetivos_De_Objetivo(Objetivo_Id)
+          .filter((Sub) =>
+            (Sub.Subobjetivo_Padre_Id || "") ===
+            Subobjetivo_Padre_Id
+          )
           .length;
         const Id = Crear_Id_Subobjetivo_Plan();
         Modelo.Subobjetivos[Id] = Normalizar_Subobjetivo_Plan({
           Id,
           Objetivo_Id,
+          Subobjetivo_Padre_Id,
+          Emoji,
           Texto,
           Orden
         }, Orden);
@@ -42173,7 +42340,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Sub = Modelo.Subobjetivos[Sub_Id];
         if (!Sub) return;
-        Sub.Eliminado_Local = true;
+        [
+          Sub,
+          ...Planes_Subobjetivos_Descendientes(Sub_Id)
+        ].forEach((Item) => {
+          Item.Eliminado_Local = true;
+        });
         Render_Plan();
         Guardar_Estado();
       }
@@ -42189,6 +42361,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Objetivo.Parent_Objetivo_Id
         ).filter((Sub) => !Sub.Eliminado_Local);
         let Importados = 0;
+        const Mapa_Importados = new Map();
         Subs_Padre.forEach((Sub_Padre) => {
           const Existente = Object.values(Modelo.Subobjetivos)
             .find((Sub) =>
@@ -42197,6 +42370,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           if (Existente) {
             Existente.Eliminado_Local = false;
+            if (!Existente.Emoji) {
+              Existente.Emoji = Sub_Padre.Emoji || "\u2022";
+            }
+            Mapa_Importados.set(Sub_Padre.Id, Existente.Id);
             return;
           }
           const Id = Crear_Id_Subobjetivo_Plan();
@@ -42204,6 +42381,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Id,
             Objetivo_Id: Objetivo.Id,
             Parent_Subobjetivo_Id: Sub_Padre.Id,
+            Emoji: Sub_Padre.Emoji || "\u2022",
             Texto: Sub_Padre.Texto,
             Hecha: Sub_Padre.Hecha,
             Target_Total: Sub_Padre.Target_Total,
@@ -42215,7 +42393,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Importado: true,
             Orden: Planes_Subobjetivos_De_Objetivo(Objetivo.Id).length
           });
+          Mapa_Importados.set(Sub_Padre.Id, Id);
           Importados++;
+        });
+        Subs_Padre.forEach((Sub_Padre) => {
+          const Importado_Id = Mapa_Importados.get(Sub_Padre.Id);
+          const Importado = Modelo.Subobjetivos[Importado_Id];
+          if (!Importado) return;
+          Importado.Subobjetivo_Padre_Id =
+            Mapa_Importados.get(Sub_Padre.Subobjetivo_Padre_Id) || "";
         });
         if (Importados) {
           Mostrar_Toast_Info(t("planes.toast_importado"));
@@ -63525,14 +63711,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Input = document.getElementById(
             "Planes_Subobjetivos_Input"
           );
+          const Emoji = document.getElementById(
+            "Planes_Subobjetivos_Emoji"
+          );
           const Texto = (Input?.value || "").trim();
           if (!Texto || !Planes_Subobjetivos_Objetivo_Id) return;
           Planes_Agregar_Subobjetivo(
             Planes_Subobjetivos_Objetivo_Id,
-            Texto
+            Texto,
+            Normalizar_Emoji(Emoji?.value || "\u2022"),
+            Planes_Subobjetivos_Sub_Padre_Id || ""
           );
           Input.value = "";
+          if (Emoji) Emoji.value = "\u2022";
           Planes_Subobjetivos_Form_Abierto = false;
+          Planes_Subobjetivos_Sub_Padre_Id = null;
+          Cerrar_Selector_Emojis();
           Render_Modal_Planes_Subobjetivos();
         });
       document.getElementById("Planes_Avance_Cerrar")
