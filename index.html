@@ -3905,9 +3905,7 @@
 
       .Planes_Resumen_Titulo_Linea {
         align-items: flex-start;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 14px 24px;
+        display: block;
         min-width: 0;
       }
 
@@ -4016,13 +4014,8 @@
         margin-top: 3px;
         color: var(--Texto_Suave);
         font-size: 12px;
-      }
-
-      .Planes_Resumen_Titulo_Anio {
-        color: var(--Texto_Suave);
-        font-size: 11px;
         font-weight: 700;
-        line-height: 1;
+        line-height: 1.2;
       }
 
       .Planes_Resumen_Texto {
@@ -19087,6 +19080,8 @@
           "planes.err_unidad_custom":
             "Indicá la unidad personalizada.",
           "planes.rango_al": "{desde} al {hasta}",
+          "planes.rango_con_anio":
+            "de {desde} a {hasta} de {anio}",
           "planes.warning_sin_sidebar":
             "No hay coincidencia por nombre y emoji en el sidebar.",
           "planes.warning_incumplible":
@@ -22370,6 +22365,8 @@
           "planes.err_unidad_custom":
             "Enter the custom unit.",
           "planes.rango_al": "{desde} to {hasta}",
+          "planes.rango_con_anio":
+            "from {desde} to {hasta}, {anio}",
           "planes.warning_sin_sidebar":
             "No name and emoji match in the sidebar.",
           "planes.warning_incumplible":
@@ -25608,6 +25605,8 @@
           "planes.err_unidad_custom":
             "Informe a unidade personalizada.",
           "planes.rango_al": "{desde} a {hasta}",
+          "planes.rango_con_anio":
+            "de {desde} a {hasta} de {anio}",
           "planes.warning_sin_sidebar":
             "Não há coincidência de nome e emoji no sidebar.",
           "planes.warning_incumplible":
@@ -41918,6 +41917,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
+      function Planes_Rango_Periodo_Resumen(Periodo, Anio = "") {
+        if (!Periodo) return "";
+        const Fin = Parsear_Fecha_ISO(Periodo.Fin);
+        const Inicio = Parsear_Fecha_ISO(Periodo.Inicio);
+        const Anio_Texto = Anio ||
+          (Fin ? Fin.getFullYear() : Inicio?.getFullYear() || "");
+        return t("planes.rango_con_anio", {
+          desde: Planes_Formatear_Fecha_Larga(Periodo.Inicio),
+          hasta: Planes_Formatear_Fecha_Larga(Periodo.Fin),
+          anio: Anio_Texto
+        });
+      }
+
       function Planes_Numero_Semana_Mes(Inicio) {
         const Fecha = Parsear_Fecha_ISO(Inicio);
         if (!Fecha) return 1;
@@ -43043,11 +43055,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Titulo_Resumen =
           Planes_Partes_Titulo_Resumen(Periodo);
-        const Anio_Resumen = Titulo_Resumen.Anio
-          ? `<span class="Planes_Resumen_Titulo_Anio">${
-            Escape_Html(Titulo_Resumen.Anio)
-          }</span>`
-          : "";
+        const Rango_Resumen = Planes_Rango_Periodo_Resumen(
+          Periodo,
+          Titulo_Resumen.Anio
+        );
         const Cont = document.createElement("section");
         Cont.className = "Planes_Resumen";
         Cont.innerHTML = `
@@ -43067,7 +43078,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     <h2 class="Planes_Resumen_Titulo">
                       ${Escape_Html(Titulo_Resumen.Titulo)}
                     </h2>
-                    ${Anio_Resumen}
+                    <div class="Planes_Resumen_Rango">
+                      ${Escape_Html(Rango_Resumen)}
+                    </div>
                   </div>
                   <button class="Planes_Resumen_Nav"
                     type="button"
@@ -43077,9 +43090,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     ${Vecinos.Siguiente ? "" : "disabled"}>
                     &#8594;
                   </button>
-                </div>
-                <div class="Planes_Resumen_Rango">
-                  ${Escape_Html(Planes_Rango_Periodo_Tooltip(Periodo))}
                 </div>
               </div>
             </div>

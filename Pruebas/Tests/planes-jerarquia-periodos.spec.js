@@ -1488,23 +1488,28 @@ async ({ page }) => {
   await expect(page.locator(".Planes_Resumen_Titulo"))
     .toHaveText("Trimestre 2");
   await expect(page.locator(".Planes_Resumen_Titulo_Anio"))
-    .toHaveText("2026");
+    .toHaveCount(0);
+  await expect(page.locator(".Planes_Resumen_Rango"))
+    .toHaveText("de 1 de abril a 30 de junio de 2026");
   const Header = await page.evaluate(() => {
     const Titulo = document.querySelector(".Planes_Resumen_Titulo");
     const Rango = document.querySelector(".Planes_Resumen_Rango");
     const Nav = document.querySelector(".Planes_Resumen_Nav");
+    const Rect_Titulo = Titulo.getBoundingClientRect();
+    const Rect_Rango = Rango.getBoundingClientRect();
     return {
-      diferenciaTop: Math.abs(
-        Titulo.getBoundingClientRect().top -
-        Rango.getBoundingClientRect().top
-      ),
+      rangoDebajo: Rect_Rango.top > Rect_Titulo.bottom,
+      diferenciaLeft: Math.abs(Rect_Rango.left - Rect_Titulo.left),
       fondoNav: getComputedStyle(Nav).backgroundColor,
-      bordeNav: getComputedStyle(Nav).borderTopWidth
+      bordeNav: getComputedStyle(Nav).borderTopWidth,
+      pesoRango: Number(getComputedStyle(Rango).fontWeight)
     };
   });
-  expect(Header.diferenciaTop).toBeLessThanOrEqual(4);
+  expect(Header.rangoDebajo).toBe(true);
+  expect(Header.diferenciaLeft).toBeLessThanOrEqual(2);
   expect(Header.fondoNav).toBe("rgba(0, 0, 0, 0)");
   expect(Header.bordeNav).toBe("0px");
+  expect(Header.pesoRango).toBeGreaterThanOrEqual(600);
 
   await expect(page.locator("[data-plan-resumen-anterior]"))
     .toBeEnabled();
