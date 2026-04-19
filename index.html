@@ -3495,6 +3495,10 @@
         min-height: min(780px, calc(100vh - 104px));
       }
 
+      .Planes_Layout.Sidebar_Expandido {
+        grid-template-columns: 360px minmax(0, 1fr);
+      }
+
       .Planes_Sidebar {
         width: 100%;
         flex: 0 0 auto;
@@ -3609,6 +3613,10 @@
       .Planes_Sidebar_Acciones {
         display: flex;
         gap: 6px;
+      }
+
+      .Planes_Sidebar_Toggle {
+        min-width: 32px;
       }
 
       .Planes_Sidebar .Archivero_Sidebar_Texto {
@@ -3783,11 +3791,6 @@
         border-radius: 8px;
         padding: 3px;
         background: #fff;
-      }
-
-      #Planes_Btn_Vencidos {
-        flex: 0 0 auto;
-        white-space: nowrap;
       }
 
       .Planes_Vista_Btn {
@@ -5343,11 +5346,16 @@
       .Archivero_Layout.Planes_Layout,
       .Planes_Layout {
         display: grid;
-        grid-template-columns: 360px minmax(0, 1fr);
+        grid-template-columns: 220px minmax(0, 1fr);
         gap: 0;
         padding: 0;
         overflow: hidden;
         min-height: min(760px, calc(100vh - 112px));
+      }
+
+      .Archivero_Layout.Planes_Layout.Sidebar_Expandido,
+      .Planes_Layout.Sidebar_Expandido {
+        grid-template-columns: 360px minmax(0, 1fr);
       }
 
       .Archivero_Sidebar.Planes_Sidebar,
@@ -5687,6 +5695,11 @@
         .Planes_Layout {
           grid-template-columns: 1fr;
           min-height: auto;
+        }
+
+        .Archivero_Layout.Planes_Layout.Sidebar_Expandido,
+        .Planes_Layout.Sidebar_Expandido {
+          grid-template-columns: 1fr;
         }
 
         .Archivero_Sidebar.Planes_Sidebar,
@@ -16577,6 +16590,12 @@
           <div class="Archivero_Layout Planes_Layout">
           <aside class="Archivero_Sidebar Planes_Sidebar">
             <div class="Planes_Sidebar_Acciones">
+              <button class="Archivero_Btn_Nuevo_Cajon
+                Planes_Sidebar_Toggle"
+                id="Planes_Sidebar_Toggle"
+                data-i18n-title="planes.sidebar_expandir"
+                title="Expandir períodos"
+                type="button">&raquo;</button>
               <button class="Archivero_Btn_Nuevo_Cajon"
                 id="Planes_Btn_Custom"
                 data-i18n-title="planes.custom_nuevo"
@@ -16588,14 +16607,11 @@
           </aside>
           <section class="Archivero_Contenido Planes_Contenido">
             <div class="Planes_Controles">
-            <label class="Planes_Control">
-              <select id="Planes_Filtro_Tipo"></select>
-            </label>
-            <div class="Planes_Capa_Toggle"
-              id="Planes_Capa_Toggle"></div>
-            <label class="Planes_Control">
-              <select id="Planes_Filtro_Estado"></select>
-            </label>
+              <div class="Planes_Capa_Toggle"
+                id="Planes_Capa_Toggle"></div>
+              <label class="Planes_Control">
+                <select id="Planes_Filtro_Estado"></select>
+              </label>
               <label class="Planes_Control">
                 <select id="Planes_Filtro_Etiqueta"></select>
               </label>
@@ -16606,11 +16622,6 @@
               </label>
               <div class="Planes_Vista_Toggle"
                 id="Planes_Vista_Toggle"></div>
-              <button class="Planes_Btn" id="Planes_Btn_Vencidos"
-                type="button"
-                data-i18n="planes.vencidos">
-                Seleccionar vencidos
-              </button>
             </div>
             <div class="Planes_Principal" id="Plan_Cuerpo">
               <div class="Plan_Seccion" id="Plan_Seccion_Periodos"></div>
@@ -17832,6 +17843,8 @@
           "planes.periodos": "Períodos",
           "planes.sidebar_desc":
             "Jerarquía temporal de año a semana.",
+          "planes.sidebar_expandir": "Expandir períodos",
+          "planes.sidebar_colapsar": "Contraer períodos",
           "planes.custom_nuevo": "Nuevo período custom",
           "planes.buscar_ph": "Buscar objetivos",
           "planes.vencidos": "Seleccionar vencidos",
@@ -20828,6 +20841,8 @@
           "planes.periodos": "Periods",
           "planes.sidebar_desc":
             "Time hierarchy from year to week.",
+          "planes.sidebar_expandir": "Expand periods",
+          "planes.sidebar_colapsar": "Collapse periods",
           "planes.custom_nuevo": "New custom period",
           "planes.buscar_ph": "Search objectives",
           "planes.vencidos": "Select overdue",
@@ -23772,6 +23787,8 @@
           "planes.periodos": "Períodos",
           "planes.sidebar_desc":
             "Hierarquia temporal do ano à semana.",
+          "planes.sidebar_expandir": "Expandir períodos",
+          "planes.sidebar_colapsar": "Recolher períodos",
           "planes.custom_nuevo": "Novo período custom",
           "planes.buscar_ph": "Buscar objetivos",
           "planes.vencidos": "Selecionar atrasados",
@@ -38638,6 +38655,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Filtro_Etiqueta: "Todas",
             Vista: "Tarjetas",
             Subobjetivos_Vista: "Tarjetas",
+            Sidebar_Expandido: false,
             Busqueda: ""
           }
         };
@@ -38714,6 +38732,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) {
           Modelo.UI.Subobjetivos_Vista = "Tarjetas";
         }
+        Modelo.UI.Sidebar_Expandido =
+          Modelo.UI.Sidebar_Expandido === true;
         if (!Planes_Tipos.includes(Modelo.UI.Filtro_Tipo)) {
           Modelo.UI.Filtro_Tipo = "Semana";
         }
@@ -39929,13 +39949,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Render_Planes_Controles() {
         const Modelo = Asegurar_Modelo_Planes();
-        const Sel_Tipo = document.getElementById("Planes_Filtro_Tipo");
         const Sel_Estado =
           document.getElementById("Planes_Filtro_Estado");
         const Sel_Etiqueta =
           document.getElementById("Planes_Filtro_Etiqueta");
         const Busqueda = document.getElementById("Planes_Busqueda");
         const Toggle = document.getElementById("Planes_Vista_Toggle");
+        const Layout = document.querySelector(".Planes_Layout");
+        const Sidebar_Toggle = document.getElementById(
+          "Planes_Sidebar_Toggle"
+        );
         const Capa_Toggle = document.getElementById(
           "Planes_Capa_Toggle"
         );
@@ -39950,17 +39973,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Planes_Contenido();
         };
 
-        if (Sel_Tipo) {
-          Sel_Tipo.innerHTML = "";
-          Planes_Tipos.forEach((Tipo) => {
-            const Opt = document.createElement("option");
-            Opt.value = Tipo;
-            Opt.textContent = Planes_Label_Tipo(Tipo);
-            Sel_Tipo.appendChild(Opt);
-          });
-          Sel_Tipo.value = Modelo.UI.Filtro_Tipo || "Semana";
-          Sel_Tipo.onchange = () => {
-            Cambiar_Capa(Sel_Tipo.value);
+        Layout?.classList.toggle(
+          "Sidebar_Expandido",
+          Modelo.UI.Sidebar_Expandido === true
+        );
+        if (Sidebar_Toggle) {
+          const Expandido = Modelo.UI.Sidebar_Expandido === true;
+          Sidebar_Toggle.innerHTML = Expandido ? "&laquo;" : "&raquo;";
+          Sidebar_Toggle.title = Expandido
+            ? t("planes.sidebar_colapsar")
+            : t("planes.sidebar_expandir");
+          Sidebar_Toggle.onclick = () => {
+            const Actual = Asegurar_Modelo_Planes();
+            Actual.UI.Sidebar_Expandido =
+              Actual.UI.Sidebar_Expandido !== true;
+            Render_Planes_Controles();
           };
         }
 
@@ -40091,12 +40118,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (Btn_Etiquetas) {
           Btn_Etiquetas.onclick = Abrir_Modal_Planes_Etiquetas;
-        }
-        const Btn_Vencidos =
-          document.getElementById("Planes_Btn_Vencidos");
-        if (Btn_Vencidos) {
-          Btn_Vencidos.hidden = !Planes_Objetivos_Vencidos().length;
-          Btn_Vencidos.onclick = Abrir_Modal_Planes_Vencidos;
         }
       }
 
