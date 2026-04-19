@@ -506,6 +506,7 @@ async ({ page }) => {
     const Tabla = Detalle.querySelector(".Planes_Progreso_Tabla");
     const Pct = Card.querySelector(".Planes_Objetivo_Porcentaje");
     const Avance = Card.querySelector(".Planes_Avance_Btn");
+    const Estado = Card.querySelector(".Planes_Objetivo_Estado");
     const Emoji = Card.querySelector(".Planes_Objetivo_Emoji");
     const Cantidad = Card.querySelector(".Planes_Objetivo_Cantidad");
     const Headers = Array.from(Tabla.querySelectorAll("th"))
@@ -517,6 +518,7 @@ async ({ page }) => {
     const Columnas_Rect = Columnas.getBoundingClientRect();
     const Pct_Rect = Pct.getBoundingClientRect();
     const Avance_Rect = Avance.getBoundingClientRect();
+    const Estado_Rect = Estado.getBoundingClientRect();
     const Emoji_Rect = Emoji.getBoundingClientRect();
     const Etiquetas = Card.querySelector(
       ".Planes_Objetivo_Detalle_Etiquetas"
@@ -544,9 +546,19 @@ async ({ page }) => {
         Math.round(Pct_Rect.height) === 32,
       pctVerde: getComputedStyle(Pct).backgroundColor,
       avanceAlLado: Math.abs(Pct_Rect.top - Avance_Rect.top) <= 8,
+      avanceALaDerecha:
+        Avance_Rect.left > Estado_Rect.right &&
+        Estado_Rect.left > Pct_Rect.right,
+      avanceSeparado: Avance_Rect.left - Estado_Rect.right >= 8,
+      estadoVisible:
+        getComputedStyle(Estado).display !== "none" &&
+        Math.round(Estado_Rect.width) === 28 &&
+        Math.round(Estado_Rect.height) === 28,
       avanceCircular:
-        Math.round(Avance_Rect.width) === 32 &&
-        Math.round(Avance_Rect.height) === 32,
+        Math.round(Avance_Rect.width) === 24 &&
+        Math.round(Avance_Rect.height) === 24,
+      avanceFlechaChica:
+        parseFloat(getComputedStyle(Avance).fontSize) <= 12,
       avanceTitle: Avance.getAttribute("title"),
       avanceTexto: Avance.textContent.trim(),
       emojiGrande:
@@ -591,7 +603,11 @@ async ({ page }) => {
   expect(Layout_Detalle.circuloPct).toBe(true);
   expect(Layout_Detalle.pctVerde).toBe("rgb(76, 175, 80)");
   expect(Layout_Detalle.avanceAlLado).toBe(true);
+  expect(Layout_Detalle.avanceALaDerecha).toBe(true);
+  expect(Layout_Detalle.avanceSeparado).toBe(true);
+  expect(Layout_Detalle.estadoVisible).toBe(true);
   expect(Layout_Detalle.avanceCircular).toBe(true);
+  expect(Layout_Detalle.avanceFlechaChica).toBe(true);
   expect(Layout_Detalle.avanceTitle).toBe("Avance");
   expect(Layout_Detalle.avanceTexto).toBe("\u2192");
   expect(Layout_Detalle.emojiGrande).toBe(true);
