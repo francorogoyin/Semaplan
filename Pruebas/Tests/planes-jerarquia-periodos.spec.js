@@ -1398,6 +1398,117 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Borrar importados limpia objetivos seleccionados de la capa",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 2;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Libros = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Libros capa",
+      Emoji: "\uD83D\uDCDA",
+      Target_Total: 50,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros"
+    });
+    const Cine = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Cine capa",
+      Emoji: "\uD83C\uDFAC",
+      Target_Total: 20,
+      Unidad: "Personalizado",
+      Unidad_Custom: "peliculas"
+    });
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Items = Trimestres.map((Periodo) => ({
+      Periodo_Id: Periodo.Id,
+      Objetivo_Ids: [Libros.Id, Cine.Id]
+    }));
+    Planes_Importar_Objetivos_Padres_A_Periodos(Items, {
+      Modo: "Proporcional"
+    });
+    Modelo.UI.Periodo_Activo_Id = Trimestres[1].Id;
+    Render_Plan();
+  });
+
+  const Boton_Borrar = page.locator(
+    "[data-plan-universo-borrar-importados]"
+  );
+  await expect(Boton_Borrar).toBeEnabled();
+  const Estilo_Boton = await Boton_Borrar.evaluate((Btn) => ({
+    fondo: getComputedStyle(Btn).backgroundColor,
+    borde: getComputedStyle(Btn).borderTopWidth
+  }));
+  expect(Estilo_Boton.fondo).toBe("rgba(0, 0, 0, 0)");
+  expect(Estilo_Boton.borde).toBe("0px");
+
+  await Boton_Borrar.click();
+  const Modal = page.locator(".Planes_Borrar_Importados_Modal");
+  await expect(Modal).toBeVisible();
+  await expect(Modal.locator(".Planes_Borrar_Importados_Item"))
+    .toHaveCount(2);
+  await expect(Modal).toContainText("Libros capa");
+  await expect(Modal).toContainText("Cine capa");
+
+  await Modal.locator(".Planes_Borrar_Importados_Item")
+    .filter({ hasText: "Cine capa" })
+    .locator("input")
+    .uncheck();
+  await Modal.locator("[data-plan-borrar-importados-confirmar]")
+    .click();
+
+  const Resultado = await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Importados = Object.values(Modelo.Objetivos)
+      .filter((Objetivo) => Planes_Es_Objetivo_Importado(Objetivo));
+    const Estado = (Nombre) => {
+      const Objetivos = Importados.filter((Objetivo) =>
+        Objetivo.Nombre === Nombre
+      );
+      return {
+        activos: Objetivos.filter((Objetivo) =>
+          !Objetivo.Eliminado_Local
+        ).length,
+        borrados: Objetivos.filter((Objetivo) =>
+          Objetivo.Eliminado_Local
+        ).length
+      };
+    };
+    return {
+      libros: Estado("Libros capa"),
+      cine: Estado("Cine capa"),
+      grupos: Planes_Grupos_Objetivos_Importados_Capa("Trimestre")
+        .map((Grupo) => Grupo.Nombre)
+    };
+  });
+
+  expect(Resultado.libros).toEqual({ activos: 0, borrados: 4 });
+  expect(Resultado.cine).toEqual({ activos: 4, borrados: 0 });
+  expect(Resultado.grupos).toEqual(["Cine capa"]);
+  await expect(page.locator(".Planes_Objetivo_Card"))
+    .toContainText("Cine capa");
+  await expect(page.locator(".Planes_Objetivo_Card"))
+    .not.toContainText("Libros capa");
+  expect(errores).toEqual([]);
+});
+
 test("Importar pendiente redistribuye avance real del padre",
 async ({ page }) => {
   const errores = [];
