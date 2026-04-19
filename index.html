@@ -18853,6 +18853,8 @@
           "planes.importar_manual_valor": "Métrica",
           "planes.importar_manual_error":
             "Ingresá una métrica válida para cada objetivo seleccionado.",
+          "planes.importar_sin_cambios":
+            "No hubo cambios para importar.",
           "planes.importar_subs": "Importar subobjetivos",
           "planes.romper_vinculo":
             "Quitar vínculo con calendario",
@@ -22086,6 +22088,8 @@
           "planes.importar_manual_valor": "Metric",
           "planes.importar_manual_error":
             "Enter a valid metric for each selected objective.",
+          "planes.importar_sin_cambios":
+            "There were no changes to import.",
           "planes.importar_subs": "Import subobjectives",
           "planes.romper_vinculo": "Remove calendar link",
           "planes.romper_vinculo_confirm":
@@ -25262,6 +25266,8 @@
           "planes.importar_manual_valor": "Métrica",
           "planes.importar_manual_error":
             "Informe uma métrica válida para cada objetivo selecionado.",
+          "planes.importar_sin_cambios":
+            "Não houve mudanças para importar.",
           "planes.importar_padres":
             "Importar do período pai",
           "planes.importar_padre_periodo":
@@ -46900,7 +46906,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Config || !Config.Items.length) return;
         const Snap = Capturar_Snapshot_Undo();
-        Planes_Importar_Objetivos_Padres_A_Periodos(
+        const Resumen = Planes_Importar_Objetivos_Padres_A_Periodos(
           Config.Items,
           {
             Fijar: Config.Fijar,
@@ -46908,6 +46914,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Targets_Manuales: Config.Targets_Manuales
           }
         );
+        if (!Resumen.Total) {
+          Mostrar_Toast_Info(t("planes.importar_sin_cambios"));
+          return;
+        }
         Render_Plan();
         Guardar_Estado();
         Mostrar_Toast_Undo(t("planes.toast_importado"), Snap);
@@ -47320,12 +47330,54 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
+      function Planes_Datos_Importacion_Comparables(Objetivo) {
+        if (!Objetivo) return null;
+        return {
+          ...Planes_Datos_Comparables_Objetivo(Objetivo),
+          Parent_Objetivo_Id:
+            (Objetivo.Parent_Objetivo_Id || "").toString(),
+          Objetivo_Padre_Id:
+            (Objetivo.Objetivo_Padre_Id || "").toString(),
+          Origen_Objetivo:
+            (Objetivo.Origen_Objetivo || "").toString(),
+          Capa_Origen:
+            (Objetivo.Capa_Origen || "").toString(),
+          Periodo_Origen:
+            (Objetivo.Periodo_Origen || "").toString(),
+          Regla_Distribucion:
+            (Objetivo.Regla_Distribucion || "").toString(),
+          Estado_Vinculo:
+            (Objetivo.Estado_Vinculo || "").toString(),
+          Padre_Actualizado_Al_Importar:
+            (Objetivo.Padre_Actualizado_Al_Importar || "")
+              .toString(),
+          Target_Automatico:
+            Number(Objetivo.Target_Automatico) || 0,
+          Target_Actual:
+            Number(Objetivo.Target_Actual) || 0,
+          Target_Fijado:
+            Number(Objetivo.Target_Fijado) || 0,
+          Fijado: Boolean(Objetivo.Fijado),
+          Target_Fijado_Por_Usuario:
+            Boolean(Objetivo.Target_Fijado_Por_Usuario),
+          Auto_Redistribucion:
+            Objetivo.Auto_Redistribucion !== false,
+          Eliminado_Local: Boolean(Objetivo.Eliminado_Local)
+        };
+      }
+
       function Planes_Importar_Objetivos_Padres_A_Periodos(
         Items,
         Opciones = {}
       ) {
         const Modelo = Asegurar_Modelo_Planes();
         const Mapa_Padre_Periodos = new Map();
+        const Resumen = {
+          Creados: 0,
+          Restaurados: 0,
+          Actualizados: 0,
+          Total: 0
+        };
         Items.forEach((Item) => {
           const Periodo = Modelo.Periodos[Item.Periodo_Id];
           if (!Periodo) return;
@@ -47349,17 +47401,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Objetivo_Padre?.Periodo_Id
           ];
           if (!Objetivo_Padre || !Periodo_Padre) return;
-          const Periodos_Destino_Activos = Periodos_Destino
-            .filter((Periodo) => {
-              const Hijo = Planes_Objetivo_Hijo_De(
-                Objetivo_Padre.Id,
-                Periodo.Id
-              );
-              return !Planes_Objetivo_Importado_Descartado(Hijo);
-            });
-          Periodos_Destino_Activos.forEach((Periodo) => {
+          Periodos_Destino.forEach((Periodo) => {
             let Hijo =
               Planes_Objetivo_Hijo_De(Objetivo_Padre.Id, Periodo.Id);
+            const Es_Nuevo = !Hijo;
+            const Antes = Hijo
+              ? JSON.stringify(
+                Planes_Datos_Importacion_Comparables(Hijo)
+              )
+              : "";
             if (!Hijo) {
               Hijo = Planes_Crear_Objetivo_Silencioso(
                 Periodo.Id,
@@ -47376,7 +47426,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   Target_Automatico: 0
                 })
               );
+              Resumen.Creados += 1;
             }
+            const Estaba_Descartado =
+              !Es_Nuevo &&
+              (
+                Boolean(Hijo.Eliminado_Local) ||
+                Planes_Objetivo_Importado_Descartado(Hijo)
+              );
             Hijo.Eliminado_Local = false;
             Planes_Restaurar_Vinculo_Objetivo(Hijo);
             Planes_Actualizar_Meta_Hijo_Importado(Objetivo_Padre, Hijo);
@@ -47398,11 +47455,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Hijo.Target_Fijado_Por_Usuario = true;
               Hijo.Auto_Redistribucion = false;
             }
-            Hijo.Actualizado_En = new Date().toISOString();
             Planes_Actualizar_Progreso(Hijo);
+            if (Es_Nuevo) {
+              Hijo.Actualizado_En = new Date().toISOString();
+              return;
+            }
+            const Despues = JSON.stringify(
+              Planes_Datos_Importacion_Comparables(Hijo)
+            );
+            if (Antes !== Despues) {
+              Hijo.Actualizado_En = new Date().toISOString();
+              if (Estaba_Descartado) {
+                Resumen.Restaurados += 1;
+              } else {
+                Resumen.Actualizados += 1;
+              }
+            }
           });
           Planes_Actualizar_Progreso(Objetivo_Padre);
         });
+        Resumen.Total =
+          Resumen.Creados +
+          Resumen.Restaurados +
+          Resumen.Actualizados;
+        return Resumen;
       }
 
       function Planes_Objetivos_Vencidos() {
