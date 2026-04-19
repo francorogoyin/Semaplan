@@ -501,24 +501,50 @@ async ({ page }) => {
     .not.toContainText("Etiqueta:");
   const Layout_Detalle = await Card_Objetivo.evaluate((Card) => {
     const Detalle = Card.querySelector(".Planes_Objetivo_Detalle");
-    const Items = Array.from(
-      Detalle.querySelectorAll(".Planes_Dato, .Planes_Detalle_Accion")
+    const Columnas = Detalle.querySelector(".Planes_Detalle_Columnas");
+    const Footer = Detalle.querySelector(".Planes_Detalle_Footer");
+    const Tabla = Detalle.querySelector(".Planes_Progreso_Tabla");
+    const Pct = Card.querySelector(".Planes_Objetivo_Porcentaje");
+    const Avance = Card.querySelector(".Planes_Avance_Btn");
+    const Headers = Array.from(Tabla.querySelectorAll("th"))
+      .map((Th) => Th.textContent.trim());
+    const Header_Num = Array.from(
+      Tabla.querySelectorAll("th.Numero")
     );
-    const Tops = Items.map((Item) =>
-      Math.round(Item.getBoundingClientRect().top)
+    const Celda_Num = Array.from(
+      Tabla.querySelectorAll("td.Numero")
     );
+    const Columnas_Rect = Columnas.getBoundingClientRect();
+    const Footer_Rect = Footer.getBoundingClientRect();
+    const Pct_Rect = Pct.getBoundingClientRect();
+    const Avance_Rect = Avance.getBoundingClientRect();
     const Etiquetas = Card.querySelector(
       ".Planes_Objetivo_Detalle_Etiquetas"
     ).getBoundingClientRect();
-    const Detalle_Rect = Detalle.getBoundingClientRect();
-    const Primer_Item = Items[0].getBoundingClientRect();
-    const Ultimo_Item = Items[Items.length - 1].getBoundingClientRect();
     return {
-      todosMismaLinea: Math.max(...Tops) - Math.min(...Tops) <= 2,
-      usaAnchoDisponible:
-        Ultimo_Item.right - Primer_Item.left >
-        Detalle_Rect.width * 0.82,
-      etiquetasDebajo: Etiquetas.top > Detalle_Rect.bottom,
+      columnasDos:
+        getComputedStyle(Columnas).gridTemplateColumns
+          .split(" ").length === 2,
+      gapColumnas: parseFloat(getComputedStyle(Columnas).columnGap),
+      headers: Headers,
+      headersNumericosDerecha: Header_Num.every((Th) =>
+        getComputedStyle(Th).textAlign === "right"
+      ),
+      celdasNumericasDerecha: Celda_Num.every((Td) =>
+        getComputedStyle(Td).textAlign === "right"
+      ),
+      footerDebajo: Footer_Rect.top > Columnas_Rect.bottom,
+      etiquetasEnFooter:
+        Etiquetas.top >= Footer_Rect.top &&
+        Etiquetas.bottom <= Footer_Rect.bottom + 2,
+      circuloPct:
+        Math.round(Pct_Rect.width) === 32 &&
+        Math.round(Pct_Rect.height) === 32,
+      pctVerde: getComputedStyle(Pct).backgroundColor,
+      avanceAlLado: Math.abs(Pct_Rect.top - Avance_Rect.top) <= 8,
+      estadoVerde: getComputedStyle(
+        Detalle.querySelector(".Planes_Dato_Valor_Activo")
+      ).color,
       chipsEnFila: Array.from(
         Card.querySelectorAll(
           ".Planes_Detalle_Etiquetas_Chips .Etiqueta_Badge"
@@ -537,9 +563,24 @@ async ({ page }) => {
         ).backgroundColor === "rgba(0, 0, 0, 0)"
     };
   });
-  expect(Layout_Detalle.todosMismaLinea).toBe(true);
-  expect(Layout_Detalle.usaAnchoDisponible).toBe(true);
-  expect(Layout_Detalle.etiquetasDebajo).toBe(true);
+  expect(Layout_Detalle.columnasDos).toBe(true);
+  expect(Layout_Detalle.gapColumnas).toBe(32);
+  expect(Layout_Detalle.headers).toEqual([
+    "Estado",
+    "Avance",
+    "Meta",
+    "Realizado",
+    "Falta",
+    "Detectado"
+  ]);
+  expect(Layout_Detalle.headersNumericosDerecha).toBe(true);
+  expect(Layout_Detalle.celdasNumericasDerecha).toBe(true);
+  expect(Layout_Detalle.footerDebajo).toBe(true);
+  expect(Layout_Detalle.etiquetasEnFooter).toBe(true);
+  expect(Layout_Detalle.circuloPct).toBe(true);
+  expect(Layout_Detalle.pctVerde).toBe("rgb(76, 175, 80)");
+  expect(Layout_Detalle.avanceAlLado).toBe(true);
+  expect(Layout_Detalle.estadoVerde).toBe("rgb(76, 175, 80)");
   expect(Layout_Detalle.chipsEnFila).toBe(true);
   expect(Layout_Detalle.etiquetaSinOvalo).toBe(true);
 
