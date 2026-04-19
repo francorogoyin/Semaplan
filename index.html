@@ -40976,7 +40976,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Existente =
             Planes_Objetivo_Hijo_De(Objetivo.Id, Periodo_Destino.Id);
           if (Existente) {
+            if (Planes_Objetivo_Importado_Descartado(Existente)) {
+              return;
+            }
             Existente.Eliminado_Local = false;
+            Planes_Restaurar_Vinculo_Objetivo(Existente);
             Planes_Actualizar_Meta_Hijo_Importado(Objetivo, Existente);
             return;
           }
@@ -42581,9 +42585,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Confirmar) return;
         Aplicar_Cambios_Planes_Multi((Objetivo) => {
-          if (Objetivo.Eliminado_Local) return false;
-          Objetivo.Eliminado_Local = true;
-          return true;
+          return Planes_Marcar_Objetivo_Eliminado_Local(Objetivo);
         });
       }
 
@@ -42674,13 +42676,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Render_Planes_Objetivo_Acciones(Objetivo) {
-        const Modelo = Asegurar_Modelo_Planes();
-        const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
-        const Tipo_Inferior =
-          Planes_Tipo_Inferior_Default(Periodo?.Tipo || "");
-        const Redis_Label = Objetivo.Auto_Redistribucion === false
-          ? t("planes.redis_off")
-          : t("planes.redis_on");
         const Eliminar_Label = Objetivo.Eliminado_Local
           ? t("planes.recuperar")
           : t("planes.eliminar_local");
@@ -42698,40 +42693,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ${t("planes.registrar_avance")}
             </button>
             <button class="Planes_Btn" type="button"
-              data-plan-accion="manual">
-              ${t("planes.editar_avance_manual")}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="modo">
-              ${t("planes.editar_tipo_progreso")}
-            </button>
-            <button class="Planes_Btn" type="button"
               data-plan-accion="estado">
               ${t("planes.editar_estado")}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="fijar">
-              ${Objetivo.Fijado
-                ? t("planes.desfijar_metrica")
-                : t("planes.fijar_metrica")}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="redis">${Redis_Label}</button>
-            ${Tipo_Inferior ? `
-              <button class="Planes_Btn" type="button"
-                data-plan-accion="bajar">
-                ${t("planes.bajar_a_tipo", {
-                  tipo: Planes_Label_Tipo(Tipo_Inferior)
-                })}
-              </button>
-            ` : ""}
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="importar">
-              ${t("planes.importar_padres")}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="vinculo">
-              ${t("planes.romper_vinculo")}
             </button>
             <button class="Planes_Btn Peligro" type="button"
               data-plan-accion="eliminar">${Eliminar_Label}</button>
@@ -43880,7 +43843,51 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Objetivo) return;
         const Snap = Capturar_Snapshot_Undo();
         Objetivo.Eliminado_Local = !Objetivo.Eliminado_Local;
+        if (!Objetivo.Eliminado_Local) {
+          Planes_Restaurar_Vinculo_Objetivo(Objetivo);
+        } else {
+          Planes_Marcar_Objetivo_Importado_Descartado(Objetivo);
+        }
         Planes_Recalcular_Desde(Objetivo, Snap);
+      }
+
+      function Planes_Es_Objetivo_Importado(Objetivo) {
+        return Boolean(
+          Objetivo?.Parent_Objetivo_Id ||
+          Objetivo?.Objetivo_Padre_Id ||
+          Objetivo?.Origen_Objetivo === "Importado"
+        );
+      }
+
+      function Planes_Objetivo_Importado_Descartado(Objetivo) {
+        return Boolean(
+          Objetivo?.Eliminado_Local &&
+          Objetivo?.Estado_Vinculo === "Eliminado"
+        );
+      }
+
+      function Planes_Marcar_Objetivo_Importado_Descartado(
+        Objetivo
+      ) {
+        if (!Planes_Es_Objetivo_Importado(Objetivo)) return;
+        Objetivo.Estado_Vinculo = "Eliminado";
+      }
+
+      function Planes_Restaurar_Vinculo_Objetivo(Objetivo) {
+        if (
+          Planes_Es_Objetivo_Importado(Objetivo) &&
+          Objetivo.Estado_Vinculo === "Eliminado"
+        ) {
+          Objetivo.Estado_Vinculo = "Vigente";
+        }
+      }
+
+      function Planes_Marcar_Objetivo_Eliminado_Local(Objetivo) {
+        if (!Objetivo || Objetivo.Eliminado_Local) return false;
+        Objetivo.Eliminado_Local = true;
+        Objetivo.Actualizado_En = new Date().toISOString();
+        Planes_Marcar_Objetivo_Importado_Descartado(Objetivo);
+        return true;
       }
 
       function Planes_Objetivos_Hijos(Objetivo_Id) {
@@ -43918,6 +43925,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Objetivo.Eliminado_Local) {
           const Snap = Capturar_Snapshot_Undo();
           Objetivo.Eliminado_Local = false;
+          Planes_Restaurar_Vinculo_Objetivo(Objetivo);
           Planes_Recalcular_Desde(Objetivo, Snap);
           return;
         }
@@ -43950,15 +43958,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Respuesta) return;
         const Snap = Capturar_Snapshot_Undo();
-        Objetivo.Eliminado_Local = true;
+        Planes_Marcar_Objetivo_Eliminado_Local(Objetivo);
         if (Respuesta === "Hijos" || Respuesta === "Todos") {
           const Afectados = Respuesta === "Todos"
             ? Planes_Objetivos_Relacionados_Todos(Objetivo.Id)
             : Planes_Objetivos_Hijos(Objetivo.Id);
           Afectados
             .forEach((Hijo) => {
-              Hijo.Eliminado_Local = true;
-              Hijo.Actualizado_En = new Date().toISOString();
+              Planes_Marcar_Objetivo_Eliminado_Local(Hijo);
             });
         }
         Planes_Recalcular_Desde(Objetivo, Snap);
@@ -45073,15 +45080,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Objetivo_Padre?.Periodo_Id
           ];
           if (!Objetivo_Padre || !Periodo_Padre) return;
+          const Periodos_Destino_Activos = Periodos_Destino
+            .filter((Periodo) => {
+              const Hijo = Planes_Objetivo_Hijo_De(
+                Objetivo_Padre.Id,
+                Periodo.Id
+              );
+              return !Planes_Objetivo_Importado_Descartado(Hijo);
+            });
           const Cuota = Opciones.Modo === "Completo"
             ? (Number(Objetivo_Padre.Target_Total) || 0)
             : (
-              Periodos_Destino.length
+              Periodos_Destino_Activos.length
                 ? (Number(Objetivo_Padre.Target_Total) || 0) /
-                  Periodos_Destino.length
+                  Periodos_Destino_Activos.length
                 : 0
             );
-          Periodos_Destino.forEach((Periodo) => {
+          Periodos_Destino_Activos.forEach((Periodo) => {
             let Hijo =
               Planes_Objetivo_Hijo_De(Objetivo_Padre.Id, Periodo.Id);
             if (!Hijo) {
@@ -45102,6 +45117,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               );
             }
             Hijo.Eliminado_Local = false;
+            Planes_Restaurar_Vinculo_Objetivo(Hijo);
             Planes_Actualizar_Meta_Hijo_Importado(Objetivo_Padre, Hijo);
             if (!Hijo.Fijado && Hijo.Auto_Redistribucion !== false) {
               Hijo.Target_Total = Cuota;
