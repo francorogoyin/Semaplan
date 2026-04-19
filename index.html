@@ -48284,6 +48284,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Number(Hijo.Progreso_Total) || 0;
       }
 
+      function Planes_Avance_Manual_Previo_Cerrado_Importacion(
+        Objetivo_Padre,
+        Periodo_Padre,
+        Periodos_Capa
+      ) {
+        const Resultado = new Map();
+        const Manual_Previo =
+          Planes_Manual_Previo_Objetivo(Objetivo_Padre);
+        if (Manual_Previo <= 0) return Resultado;
+        const Cerrados = Periodos_Capa
+          .filter(Planes_Periodo_Cerrado_Importacion)
+          .sort((A, B) => (A.Inicio || "").localeCompare(
+            B.Inicio || ""
+          ));
+        if (!Cerrados.length) return Resultado;
+        let Restante = Manual_Previo;
+        Cerrados.forEach((Periodo, Indice) => {
+          if (Restante <= 0) return;
+          const Es_Ultimo = Indice === Cerrados.length - 1;
+          const Base = Math.max(
+            0,
+            Planes_Target_Proporcional_Importacion(
+              Objetivo_Padre,
+              Periodo_Padre,
+              Periodo
+            )
+          );
+          const Aporte = Es_Ultimo || Base <= 0
+            ? Restante
+            : Math.min(Restante, Base);
+          Resultado.set(Periodo.Id, Aporte);
+          Restante -= Aporte;
+        });
+        return Resultado;
+      }
+
       function Planes_Info_Pendiente_Importacion(
         Objetivo_Padre,
         Periodo_Padre,
@@ -48307,13 +48343,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Avances_Reales = new Map();
         const Avances_Importables = new Map();
+        const Avances_Previos =
+          Planes_Avance_Manual_Previo_Cerrado_Importacion(
+            Objetivo_Padre,
+            Periodo_Padre,
+            Periodos_Capa
+          );
         Periodos_Capa.forEach((Periodo) => {
           const Importable =
             Planes_Avances_Manuales_Objetivo_En_Periodo(
               Objetivo_Padre,
               Periodo
             );
-          const Real_Padre =
+          const Manual_Previo =
+            Number(Avances_Previos.get(Periodo.Id)) || 0;
+          const Real_Padre = Manual_Previo +
             Planes_Avance_Real_Objetivo_En_Periodo(
               Objetivo_Padre,
               Periodo
