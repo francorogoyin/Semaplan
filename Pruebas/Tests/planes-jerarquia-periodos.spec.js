@@ -1294,6 +1294,104 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Importar desde padres evita objetivos repetidos",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Subperiodo_Activo = 1;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Datos = [
+      ["Cine", "\uD83C\uDFAC"],
+      ["Libros", "\uD83D\uDCDA"],
+      ["Musica", "\uD83C\uDFB5"],
+      ["Escritura", "\u270D\uFE0F"],
+      ["Proyecto", "\uD83D\uDCCC"]
+    ];
+    const Objetivos = Datos.map(([Nombre, Emoji]) =>
+      Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+        Nombre,
+        Emoji,
+        Target_Total: 10,
+        Unidad: "Horas"
+      })
+    );
+
+    Planes_Bajar_Objetivo_A_Capa(Objetivos[0].Id, "Semestre");
+    const Candidatos = Planes_Candidatos_Importacion_Capa("Mes")
+      .filter((Item) => Item.Periodo.Inicio === "2026-01-01");
+    Planes_Mostrar_Dialogo_Importar_Padres(Candidatos);
+  });
+
+  const Enero = page.locator(".Planes_Importar_Item")
+    .filter({ hasText: "Enero" });
+  await expect(Enero).toHaveCount(1);
+
+  await expect(
+    Enero.locator(".Planes_Importar_Objetivo_Nombre")
+      .filter({ hasText: "Cine" })
+  ).toHaveCount(1);
+  await expect(
+    Enero.locator(".Planes_Importar_Objetivo_Nombre")
+  ).toHaveCount(5);
+  await expect(Enero.locator(".Planes_Importar_Objetivos_Conteo"))
+    .toHaveText("5/5");
+
+  const Fuente_Cine = await Enero
+    .locator(".Planes_Importar_Objetivo")
+    .filter({ hasText: "Cine" })
+    .locator("input")
+    .evaluate((Input) => {
+      const Modelo = window.Asegurar_Modelo_Planes();
+      const Objetivo = Modelo.Objetivos[
+        Input.dataset.planImportarObjetivo
+      ];
+      const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
+      return Periodo.Tipo;
+    });
+  expect(Fuente_Cine).toBe("Anio");
+
+  const Detalle_Abierto = await Enero
+    .locator(".Planes_Importar_Objetivos_Detalle")
+    .evaluate((Detalle) => Detalle.open);
+  expect(Detalle_Abierto).toBe(false);
+
+  await Enero.locator(".Planes_Importar_Objetivos_Detalle summary")
+    .click();
+  await Enero.locator(".Planes_Importar_Objetivo")
+    .filter({ hasText: "Libros" })
+    .click();
+  await expect(Enero.locator(".Planes_Importar_Objetivos_Conteo"))
+    .toHaveText("4/5");
+
+  const Estado_Periodo = await Enero
+    .locator("[data-plan-importar-periodo]")
+    .evaluate((Input) => ({
+      checked: Input.checked,
+      indeterminate: Input.indeterminate
+    }));
+  expect(Estado_Periodo).toEqual({
+    checked: false,
+    indeterminate: true
+  });
+  expect(errores).toEqual([]);
+});
+
 test("Planes conserva layout responsive en mobile",
 async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 760 });

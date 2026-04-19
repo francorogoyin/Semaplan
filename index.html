@@ -4179,6 +4179,7 @@
       }
 
       .Planes_Importar_Item {
+        align-items: start;
         border: 1px solid var(--Borde);
         border-radius: 8px;
         background: #fff;
@@ -4193,11 +4194,55 @@
         cursor: default;
       }
 
+      .Planes_Importar_Objetivos_Detalle {
+        grid-column: 2;
+        margin-top: 4px;
+        min-width: 0;
+      }
+
+      .Planes_Importar_Objetivos_Detalle summary {
+        align-items: center;
+        color: var(--Texto);
+        cursor: pointer;
+        display: flex;
+        font-size: 12px;
+        font-weight: 700;
+        gap: 8px;
+        line-height: 1.25;
+        list-style: none;
+      }
+
+      .Planes_Importar_Objetivos_Detalle
+      summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .Planes_Importar_Objetivos_Detalle summary::before {
+        border-bottom: 4px solid transparent;
+        border-left: 5px solid var(--Texto_Suave);
+        border-top: 4px solid transparent;
+        content: "";
+        display: inline-block;
+        height: 0;
+        transition: transform 0.15s ease;
+        width: 0;
+      }
+
+      .Planes_Importar_Objetivos_Detalle[open] summary::before {
+        transform: rotate(90deg);
+      }
+
+      .Planes_Importar_Objetivos_Conteo {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 700;
+        margin-left: auto;
+      }
+
       .Planes_Importar_Objetivos {
         display: flex;
         flex-direction: column;
         gap: 6px;
-        grid-column: 2;
         margin-top: 8px;
       }
 
@@ -4205,24 +4250,78 @@
         align-items: center;
         color: var(--Texto);
         cursor: pointer;
-        display: inline-flex;
+        display: grid;
         font-size: 12px;
         gap: 7px;
+        grid-template-columns: auto minmax(0, 1fr);
         line-height: 1.25;
+        min-height: 26px;
+        position: relative;
       }
 
-      .Planes_Importar_Item strong,
-      .Planes_Importar_Item span {
+      .Planes_Importar_Objetivo input {
+        opacity: 0;
+        pointer-events: none;
+        position: absolute;
+      }
+
+      .Planes_Importar_Objetivo_Marca {
+        align-items: center;
+        border: 1px solid var(--Borde);
+        border-radius: 5px;
+        color: var(--Texto_Suave);
+        display: flex;
+        font-size: 12px;
+        font-weight: 800;
+        height: 18px;
+        justify-content: center;
+        line-height: 1;
+        width: 18px;
+      }
+
+      .Planes_Importar_Objetivo input:checked +
+      .Planes_Importar_Objetivo_Marca {
+        background: var(--Acento);
+        border-color: var(--Acento);
+        color: #fff;
+      }
+
+      .Planes_Importar_Objetivo input:checked +
+      .Planes_Importar_Objetivo_Marca::before {
+        content: "\2713";
+      }
+
+      .Planes_Importar_Objetivo input:not(:checked) +
+      .Planes_Importar_Objetivo_Marca::before {
+        content: "\00d7";
+      }
+
+      .Planes_Importar_Objetivo input:focus-visible +
+      .Planes_Importar_Objetivo_Marca {
+        outline: 2px solid var(--Acento);
+        outline-offset: 2px;
+      }
+
+      .Planes_Importar_Objetivo_Nombre {
+        color: var(--Texto);
+        font-size: 12px;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+
+      .Planes_Importar_Periodo_Texto,
+      .Planes_Importar_Periodo_Texto strong,
+      .Planes_Importar_Periodo_Texto > span {
         display: block;
       }
 
-      .Planes_Importar_Item strong {
+      .Planes_Importar_Periodo_Texto strong {
         color: var(--Texto);
         font-size: 13px;
         line-height: 1.25;
       }
 
-      .Planes_Importar_Item span {
+      .Planes_Importar_Periodo_Texto > span {
         color: var(--Texto_Suave);
         font-size: 11px;
         line-height: 1.3;
@@ -44881,6 +44980,56 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Mostrar_Toast_Undo(t("planes.toast_importado"), Snap);
       }
 
+      function Planes_Clave_Objetivo_Importable(Objetivo) {
+        const Nombre = Normalizar_Texto_Meta_Objetivo(
+          Objetivo?.Nombre || ""
+        );
+        const Emoji = (Objetivo?.Emoji || "").toString().trim();
+        if (Nombre || Emoji) {
+          return `${Emoji}|${Nombre}`;
+        }
+        return `id:${Planes_Objetivo_Raiz_Id(Objetivo?.Id || "")}`;
+      }
+
+      function Planes_Objetivos_Importables_De_Padres(Padre_Ids) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Mapa = new Map();
+        Padre_Ids.forEach((Periodo_Padre_Id) => {
+          const Periodo_Padre = Modelo.Periodos[Periodo_Padre_Id];
+          const Nivel = Planes_Nivel_Tipo(Periodo_Padre?.Tipo);
+          Planes_Objetivos_De_Periodo(Periodo_Padre_Id)
+            .filter((Objetivo) => !Objetivo.Eliminado_Local)
+            .forEach((Objetivo, Indice) => {
+              const Orden_Valor = Number(Objetivo.Orden);
+              const Orden = Number.isFinite(Orden_Valor)
+                ? Orden_Valor
+                : Indice;
+              const Item = {
+                Objetivo,
+                Padre_Id: Periodo_Padre_Id,
+                Nivel,
+                Orden
+              };
+              const Clave = Planes_Clave_Objetivo_Importable(Objetivo);
+              const Actual = Mapa.get(Clave);
+              if (!Actual || Item.Nivel < Actual.Nivel) {
+                Mapa.set(Clave, Item);
+                return;
+              }
+              if (
+                Item.Nivel === Actual.Nivel &&
+                Item.Orden < Actual.Orden
+              ) {
+                Mapa.set(Clave, Item);
+              }
+            });
+        });
+        return Array.from(Mapa.values()).sort((A, B) => {
+          if (A.Nivel !== B.Nivel) return A.Nivel - B.Nivel;
+          return A.Orden - B.Orden;
+        });
+      }
+
       function Planes_Mostrar_Dialogo_Importar_Padres(Candidatos) {
         return new Promise((Resolver) => {
           const Overlay = document.createElement("div");
@@ -44943,20 +45092,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             </div>
           `;
           const Lista = Overlay.querySelector(".Planes_Importar_Lista");
-          const Modelo = Asegurar_Modelo_Planes();
           Candidatos.forEach((Item) => {
-            const Objetivos = Item.Padre_Ids.flatMap((Padre_Id) => {
-              return Planes_Objetivos_De_Periodo(Padre_Id)
-                .filter((Objetivo) => !Objetivo.Eliminado_Local)
-                .map((Objetivo) => ({ Objetivo, Padre_Id }));
-            });
-            const Label = document.createElement("label");
-            Label.className = "Planes_Importar_Item";
-            Label.innerHTML = `
+            const Objetivos =
+              Planes_Objetivos_Importables_De_Padres(Item.Padre_Ids);
+            const Periodo_Id = Escape_Html(Item.Periodo.Id);
+            const Detalle_Abierto = Objetivos.length <= 4 ? "open" : "";
+            const Objetivos_Html = Objetivos.map(({ Objetivo }) => {
+              const Objetivo_Id = Escape_Html(Objetivo.Id);
+              return `
+                <label class="Planes_Importar_Objetivo">
+                  <input type="checkbox"
+                    data-plan-importar-objetivo="${Objetivo_Id}"
+                    data-plan-importar-objetivo-periodo="${Periodo_Id}"
+                    ${Item.Seleccionado ? "checked" : ""}>
+                  <span class="Planes_Importar_Objetivo_Marca"
+                    aria-hidden="true"></span>
+                  <span class="Planes_Importar_Objetivo_Nombre
+                    Con_Fallback_Emoji">
+                    ${Escape_Html(Objetivo.Emoji)}
+                    ${Escape_Html(Objetivo.Nombre)}
+                  </span>
+                </label>
+              `;
+            }).join("");
+            const Contenedor = document.createElement("div");
+            Contenedor.className = "Planes_Importar_Item";
+            Contenedor.innerHTML = `
               <input type="checkbox"
-                data-plan-importar-periodo="${Escape_Html(Item.Periodo.Id)}"
+                data-plan-importar-periodo="${Periodo_Id}"
                 ${Item.Seleccionado ? "checked" : ""}>
-              <span>
+              <span class="Planes_Importar_Periodo_Texto">
                 <strong>
                   ${Escape_Html(
                     Planes_Titulo_Periodo_Mostrable(Item.Periodo)
@@ -44968,26 +45133,48 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   }))}
                 </span>
               </span>
-              <span class="Planes_Importar_Objetivos">
-                ${Objetivos.map(({ Objetivo }) => `
-                  <label class="Planes_Importar_Objetivo">
-                    <input type="checkbox"
-                      data-plan-importar-objetivo="${Escape_Html(Objetivo.Id)}"
-                      data-plan-importar-objetivo-periodo="${Escape_Html(Item.Periodo.Id)}"
-                      ${Item.Seleccionado ? "checked" : ""}>
-                    <span>
-                      ${Escape_Html(Objetivo.Emoji)}
-                      ${Escape_Html(Objetivo.Nombre)}
-                    </span>
-                  </label>
-                `).join("")}
-              </span>
+              <details class="Planes_Importar_Objetivos_Detalle"
+                ${Detalle_Abierto}>
+                <summary>
+                  <span>${Escape_Html(t("planes.objetivos"))}</span>
+                  <span class="Planes_Importar_Objetivos_Conteo"
+                    data-plan-importar-conteo="${Periodo_Id}">
+                    ${Item.Seleccionado ? Objetivos.length : 0}/
+                    ${Objetivos.length}
+                  </span>
+                </summary>
+                <div class="Planes_Importar_Objetivos">
+                  ${Objetivos_Html}
+                </div>
+              </details>
             `;
-            Lista.appendChild(Label);
+            Lista.appendChild(Contenedor);
           });
           const Cerrar = (Valor) => {
             Overlay.remove();
             Resolver(Valor);
+          };
+          const Actualizar_Conteos = () => {
+            Overlay.querySelectorAll("[data-plan-importar-conteo]")
+              .forEach((Nodo) => {
+                const Periodo_Id = Nodo.dataset.planImportarConteo;
+                const Inputs = Array.from(Overlay.querySelectorAll(
+                  `[data-plan-importar-objetivo-periodo="${Periodo_Id}"]`
+                ));
+                const Seleccionados = Inputs
+                  .filter((Input) => Input.checked)
+                  .length;
+                Nodo.textContent = `${Seleccionados}/${Inputs.length}`;
+                const Periodo_Input = Overlay.querySelector(
+                  `[data-plan-importar-periodo="${Periodo_Id}"]`
+                );
+                if (!Periodo_Input) return;
+                Periodo_Input.checked = Boolean(
+                  Inputs.length && Seleccionados === Inputs.length
+                );
+                Periodo_Input.indeterminate =
+                  Seleccionados > 0 && Seleccionados < Inputs.length;
+              });
           };
           Overlay.querySelector("[data-plan-importar-cerrar]")
             ?.addEventListener("click", () => Cerrar(null));
@@ -45003,6 +45190,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 "[data-plan-importar-objetivo]"
               )
                 .forEach((Input) => { Input.checked = true; });
+              Actualizar_Conteos();
             });
           Overlay.querySelector("[data-plan-importar-ninguno]")
             ?.addEventListener("click", () => {
@@ -45011,6 +45199,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 "[data-plan-importar-objetivo]"
               )
                 .forEach((Input) => { Input.checked = false; });
+              Actualizar_Conteos();
             });
           Overlay.querySelectorAll("[data-plan-importar-periodo]")
             .forEach((Input) => {
@@ -45020,7 +45209,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ).forEach((Obj_Input) => {
                   Obj_Input.checked = Input.checked;
                 });
+                Actualizar_Conteos();
               });
+            });
+          Overlay.querySelectorAll("[data-plan-importar-objetivo]")
+            .forEach((Input) => {
+              Input.addEventListener("change", Actualizar_Conteos);
             });
           Overlay.querySelector("[data-plan-importar-confirmar]")
             ?.addEventListener("click", () => {
@@ -45048,6 +45242,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Cerrar({ Items, Fijar, Modo });
             });
           document.body.appendChild(Overlay);
+          Actualizar_Conteos();
         });
       }
 
