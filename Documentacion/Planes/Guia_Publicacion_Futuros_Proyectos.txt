@@ -1,0 +1,549 @@
+Guia para publicar futuros proyectos en internet.
+
+Objetivo.
+
+Este documento resume lo que conviene preparar para subir un
+proyecto nuevo a internet sin repetir dudas resueltas durante
+Semaplan.
+
+La idea no es copiar Semaplan punto por punto, sino usarlo como
+plantilla mental para decidir hosting, dominio, base de datos,
+autenticacion, pagos, seguridad, pruebas y mantenimiento.
+
+Recomendacion base.
+
+Para un proyecto chico o mediano, la combinacion mas razonable
+es esta.
+
+- Repositorio en GitHub.
+- Hosting estatico en GitHub Pages o Cloudflare Pages.
+- DNS y seguridad perimetral en Cloudflare.
+- Dominio comprado en Namecheap u otro registrador serio.
+- Backend administrado en Supabase.
+- Edge Functions para secretos, pagos y webhooks.
+- Mercado Pago para cobrar en Argentina.
+- Stripe como alternativa para pagos internacionales.
+- Playwright para pruebas criticas antes de publicar.
+- Un archivo de lanzamiento por proyecto con checklist propio.
+
+La regla importante es no poner secretos ni logica sensible en el
+frontend. El navegador puede tener claves publicas, pero nunca
+tokens privados, service role keys, access tokens de pagos ni
+credenciales administrativas.
+
+Decision inicial.
+
+Antes de crear cuentas o tocar DNS, definir estas cosas.
+
+1. Que problema resuelve el producto.
+2. Si necesita usuarios, datos privados o pagos.
+3. Si sera solo web, tambien mobile o tambien desktop.
+4. Si necesita backend propio o alcanza con Supabase.
+5. Si el hosting sera estatico o con servidor.
+6. Si habra staging separado de produccion.
+7. Que dominio principal se quiere usar.
+8. Que correo sera dueno de las cuentas criticas.
+9. Quien puede recuperar acceso si se pierde la cuenta principal.
+10. Que datos personales se van a guardar.
+
+Si el proyecto no tiene usuarios, pagos ni datos privados, conviene
+empezar simple: GitHub Pages o Cloudflare Pages, dominio propio,
+analytics basico y formulario de contacto.
+
+Si el proyecto tiene usuarios, pagos o informacion privada, conviene
+separar frontend, base de datos, funciones servidor y monitoreo desde
+el comienzo.
+
+Cuentas y propiedad.
+
+Crear o elegir una cuenta principal para administrar el proyecto.
+Esa cuenta debe tener doble factor de autenticacion y acceso de
+recuperacion documentado.
+
+Servicios minimos a registrar.
+
+- GitHub, para codigo, issues, releases y deploy.
+- Supabase, para base de datos, auth, storage y Edge Functions.
+- Cloudflare, para DNS, CDN, SSL, reglas y Turnstile.
+- Registrador de dominio, por ejemplo Namecheap.
+- Mercado Pago Developers, para pagos locales.
+- Stripe, si se necesitan pagos internacionales.
+- Proveedor de email transaccional, si habra emails propios.
+- Servicio de analytics, si se medira uso real.
+- Servicio de monitoreo o errores, si el proyecto tendra usuarios.
+
+No usar una cuenta personal sin respaldo para el proyecto. Si el
+producto crece, migrar propiedad despues suele ser mas riesgoso que
+hacerlo bien al principio.
+
+Repositorio y estructura.
+
+Crear el repositorio antes de configurar hosting. El repositorio es
+la fuente de verdad del proyecto.
+
+Checklist recomendado.
+
+- Crear `README.md` con objetivo, stack y comandos.
+- Crear `.gitignore` antes de trabajar con secretos.
+- Crear `.env.example` sin valores reales.
+- Separar documentos, scripts, pruebas y archivos locales.
+- Guardar decisiones tecnicas en `Documentacion`.
+- Guardar checklist de lanzamiento por proyecto.
+- Crear ramas o commits chicos para cambios independientes.
+- Evitar commits que mezclen pagos, auth, UI y documentacion.
+
+Para proyectos estaticos, mantener claro cual es el entrypoint.
+Puede ser `index.html` o una carpeta `dist`, segun haya build o no.
+
+Hosting.
+
+Elegir el hosting segun la complejidad real.
+
+GitHub Pages conviene cuando el sitio es estatico, simple y el
+deploy puede salir directo desde el repositorio. Es suficiente para
+landing pages, aplicaciones frontend puras y proyectos como Semaplan.
+
+Cloudflare Pages conviene cuando se quiere integrar mejor con
+Cloudflare, usar previews por rama o sumar funciones livianas del
+lado de Cloudflare.
+
+Vercel o Netlify convienen cuando hay framework moderno, build
+frontend, previews frecuentes, SSR o integraciones ya pensadas para
+ese ecosistema.
+
+Un VPS o backend propio solo conviene cuando hay procesos largos,
+workers, sockets, control fino del servidor o requisitos que no
+encajan bien en servicios administrados.
+
+Dominio.
+
+Comprar el dominio apenas el nombre este razonablemente decidido.
+No esperar al final: un buen nombre puede desaparecer.
+
+Checklist de dominio.
+
+- Comprar el dominio en un registrador confiable.
+- Activar renovacion automatica.
+- Registrar quien tiene acceso y como se recupera.
+- Configurar privacidad de WHOIS si aplica.
+- Agregar el dominio en Cloudflare.
+- Cambiar nameservers del registrador a Cloudflare.
+- Esperar propagacion DNS antes de diagnosticar de mas.
+- Definir si el dominio canonico sera raiz o `www`.
+- Configurar redireccion entre raiz y `www`.
+- Verificar que no haya registros DNS viejos.
+
+Para GitHub Pages, primero agregar el dominio en la configuracion
+del repositorio y despues configurar DNS. Hacerlo al reves puede
+abrir riesgo de toma de subdominio si alguien apunta DNS antes de
+que GitHub sepa que el dominio pertenece al proyecto.
+
+En Windows, verificar DNS con PowerShell.
+
+`Resolve-DnsName ejemplo.com`.
+
+`Resolve-DnsName www.ejemplo.com`.
+
+Cloudflare.
+
+Cloudflare puede cumplir cuatro roles: DNS, CDN, SSL y proteccion
+basica contra abuso.
+
+Checklist recomendado.
+
+- Importar los registros DNS existentes y eliminar duplicados.
+- Configurar registros `A`, `AAAA` o `CNAME` segun hosting.
+- Activar HTTPS y revisar modo SSL/TLS.
+- Usar Full strict cuando el origen tenga certificado valido.
+- Activar redireccion HTTP a HTTPS.
+- Crear reglas de redireccion para dominio canonico.
+- Revisar cache antes de culpar al deploy.
+- Configurar Turnstile si hay login, registro o formularios.
+- Guardar site key publica y secret key privada por entorno.
+- No activar reglas agresivas sin probar login y webhooks.
+
+Para GitHub Pages, tener cuidado con el proxy de Cloudflare durante
+la emision o renovacion de certificados. Si GitHub no valida el
+dominio o no emite HTTPS, probar temporalmente con DNS only y volver
+a revisar cuando el certificado este listo.
+
+Supabase.
+
+Supabase debe tratarse como backend de produccion, no como simple
+almacenamiento remoto.
+
+Checklist inicial.
+
+- Crear proyecto en la region mas cercana a los usuarios.
+- Guardar project ref, anon key y URL del proyecto.
+- No exponer service role key en frontend.
+- Versionar el esquema SQL desde el inicio.
+- Activar Row Level Security en tablas publicas.
+- Crear politicas RLS antes de cargar usuarios reales.
+- Probar cada politica con usuarios distintos.
+- Configurar Auth URL y redirect URLs.
+- Agregar URLs de localhost, staging y produccion.
+- Configurar plantillas de email si se usa login por mail.
+- Configurar SMTP propio si el volumen o la marca lo justifican.
+- Configurar backups antes de tener datos importantes.
+- Revisar logs y limites del plan.
+
+La anon key puede estar en el navegador si RLS esta bien definida.
+La service role key nunca debe estar en el navegador porque saltea
+RLS y permite operaciones administrativas.
+
+Auth.
+
+Checklist de autenticacion.
+
+- Definir metodos de login permitidos.
+- Configurar `SITE_URL` con la URL oficial.
+- Configurar redirect URLs adicionales para desarrollo y staging.
+- Revisar que los emails de confirmacion vuelvan a la URL correcta.
+- Probar recuperacion de contrasena.
+- Probar logout y cambio de cuenta.
+- Activar CAPTCHA si hay registro publico.
+- Documentar como desactivar CAPTCHA solo para pruebas controladas.
+- Evitar mensajes de error que revelen informacion sensible.
+
+Si se usa una aplicacion mobile, definir tambien deep links antes de
+lanzar auth. Corregirlos despues implica actualizar apps, emails y
+configuracion de Supabase.
+
+Base de datos.
+
+Checklist de datos.
+
+- Escribir el esquema en SQL versionado.
+- Separar tablas de usuarios, planes, pagos y auditoria.
+- Usar IDs estables y no depender de emails como clave primaria.
+- Agregar `created_at` y `updated_at` donde aporte trazabilidad.
+- Agregar restricciones, indices y claves foraneas.
+- Crear politicas RLS por accion: select, insert, update, delete.
+- Probar que un usuario no pueda leer datos de otro.
+- Probar que un usuario no pueda escalar permisos.
+- Crear datos de prueba separados de datos reales.
+- Planificar exportacion y borrado de cuenta desde el comienzo.
+
+No conviene resolver seguridad solo en frontend. Cualquier regla
+importante debe vivir en la base, una funcion server-side o ambos.
+
+Edge Functions.
+
+Usar Edge Functions para todo lo que requiera secretos o validacion
+server-side.
+
+Casos tipicos.
+
+- Crear preferencias o suscripciones de pago.
+- Recibir webhooks de Mercado Pago o Stripe.
+- Enviar emails transaccionales.
+- Ejecutar acciones administrativas con service role key.
+- Consultar APIs privadas.
+- Normalizar datos antes de escribir en la base.
+
+Checklist operativo.
+
+- Crear una funcion por responsabilidad clara.
+- Validar metodo HTTP y origen cuando corresponda.
+- Responder rapido a webhooks y procesar de forma idempotente.
+- Guardar secrets en Supabase, no en el repositorio.
+- Usar `.env.local` solo para desarrollo.
+- Agregar `.env*` a `.gitignore`.
+- No loguear tokens, secrets ni payloads sensibles.
+- Versionar contratos de entrada y salida.
+- Probar errores, retries y duplicados.
+
+Mercado Pago.
+
+Para Argentina, Mercado Pago suele ser la opcion local mas practica.
+La integracion debe hacerse desde backend o Edge Functions, no desde
+frontend puro.
+
+Checklist inicial.
+
+- Crear aplicacion en Mercado Pago Developers.
+- Obtener credenciales de prueba y de produccion.
+- Guardar access tokens como secrets server-side.
+- Definir si se usara Checkout Pro, suscripciones o Checkout API.
+- Crear una preferencia o suscripcion por operacion real.
+- Incluir `external_reference` o metadata con el usuario interno.
+- Configurar URLs de exito, fallo y pendiente.
+- Configurar webhooks para cambios de pago.
+- Usar URL de prueba y URL de produccion separadas.
+- Validar firma secreta de webhooks cuando aplique.
+- Responder webhook con HTTP 200 o 201 si fue recibido.
+- Consultar la API de Mercado Pago antes de confirmar estado final.
+- Hacer el procesamiento idempotente.
+- Probar pago aprobado, rechazado, pendiente y cancelado.
+- Probar que el usuario obtenga el beneficio solo tras confirmacion.
+
+No confiar solo en el redirect del navegador despues del pago. El
+redirect sirve para experiencia de usuario, pero la fuente de verdad
+debe ser el webhook y la verificacion server-side contra Mercado Pago.
+
+Para pagos recurrentes, documentar la relacion entre usuario,
+suscripcion, estado remoto, fecha de renovacion y estado premium.
+Tambien definir que pasa ante cancelacion, contracargo, pago fallido
+o reembolso.
+
+Stripe.
+
+Stripe conviene como alternativa para pagos internacionales o cuando
+se necesiten tarjetas fuera de Argentina.
+
+Checklist minimo.
+
+- Crear producto y precio en modo test.
+- Usar Stripe Checkout o Billing antes que un checkout propio.
+- Guardar secret key y webhook secret como secrets.
+- Asociar usuario interno con `client_reference_id` o metadata.
+- Escuchar webhooks de checkout y suscripcion.
+- Probar tarjetas de test y fallos de pago.
+- Pasar a live solo cuando el flujo test este cerrado.
+
+No conviene implementar Stripe y Mercado Pago al mismo tiempo sin una
+tabla de pagos comun. Primero definir el modelo interno de pagos y
+despues conectar proveedores.
+
+Email.
+
+Todo proyecto con usuarios necesita pensar email antes del
+lanzamiento.
+
+Checklist recomendado.
+
+- Definir remitente oficial.
+- Configurar dominio o subdominio para emails.
+- Configurar SPF, DKIM y DMARC.
+- Probar entrega a Gmail, Outlook y Yahoo.
+- Personalizar emails de auth si se usan.
+- Crear correo de soporte.
+- Crear plantilla de bienvenida si aporta.
+- Crear plantilla de recuperacion de cuenta.
+- Evitar mandar emails desde cuentas personales.
+
+Legal y confianza.
+
+Aunque el proyecto sea chico, si hay usuarios o pagos hace falta una
+base minima de confianza.
+
+Checklist minimo.
+
+- Pagina o documento de terminos de uso.
+- Politica de privacidad.
+- Medio de contacto visible.
+- Condiciones de reembolso si hay pagos.
+- Explicacion clara del plan pago.
+- Procedimiento de baja o eliminacion de cuenta.
+- Registro de datos personales guardados.
+- Criterio de retencion y borrado de datos.
+- Consulta contable antes de cobrar de forma sostenida.
+
+No conviene dejar lo legal para despues si ya hay cobros. Los textos
+pueden empezar simples, pero tienen que existir y coincidir con lo
+que el sistema realmente hace.
+
+Analytics, monitoreo y soporte.
+
+Despues de publicar, el problema deja de ser solo deploy. Tambien hay
+que saber si la app funciona y si la gente puede usarla.
+
+Checklist recomendado.
+
+- Medir visitas y conversiones basicas.
+- Registrar errores frontend.
+- Revisar logs de Edge Functions.
+- Revisar errores de Supabase Auth.
+- Crear alerta de caida del sitio.
+- Crear cuenta o canal de soporte.
+- Registrar bugs reportados por usuarios.
+- Separar bugs, mejoras y tareas comerciales.
+- Hacer backups antes de cambios grandes.
+
+Testing.
+
+Antes de publicar, probar como usuario real y no solo como
+desarrollador.
+
+Checklist minimo.
+
+- Abrir el sitio desde una ventana limpia.
+- Probar desktop y mobile.
+- Probar login, logout y recuperacion.
+- Probar carga inicial sin datos.
+- Probar carga inicial con datos existentes.
+- Probar permisos entre dos usuarios.
+- Probar flujo completo de pago en modo test.
+- Probar webhook con payload repetido.
+- Probar recarga despues de guardar.
+- Probar dominio raiz y `www`.
+- Probar HTTPS.
+- Probar formulario de contacto o soporte.
+
+Para flujos criticos, crear pruebas Playwright. Como minimo, cubrir
+login, sync, pagos, importacion, exportacion y eliminacion de cuenta
+si existen.
+
+Staging.
+
+Un entorno de staging evita probar cambios peligrosos sobre usuarios
+reales.
+
+Opcion simple.
+
+- Un proyecto Supabase separado para staging.
+- Un subdominio `staging.ejemplo.com`.
+- Credenciales de pago en modo test.
+- Datos de prueba descartables.
+- Redirect URLs propias de staging.
+
+Opcion minima si no hay staging completo.
+
+- Usar localhost con Supabase de prueba.
+- Usar credenciales test de Mercado Pago.
+- No probar webhooks reales contra produccion.
+- Hacer backup antes de tocar datos reales.
+
+Lanzamiento.
+
+Checklist de salida a produccion.
+
+- Dominio resuelve correctamente.
+- HTTPS funciona.
+- Redireccion canonica funciona.
+- Supabase tiene RLS activo.
+- Auth redirige a produccion.
+- Secrets productivos estan cargados.
+- Webhooks productivos estan configurados.
+- Mercado Pago usa credenciales productivas.
+- Pagos test fueron validados antes de activar cobro real.
+- Emails llegan correctamente.
+- Politica de privacidad esta publicada.
+- Terminos o condiciones estan publicados.
+- Soporte tiene canal visible.
+- Smoke test de produccion esta aprobado.
+- Backup inicial esta hecho.
+- Version o release esta identificado.
+
+No declarar lanzado un proyecto con pagos hasta verificar un cobro de
+prueba o una operacion real controlada de punta a punta.
+
+Post lanzamiento.
+
+Durante los primeros dias conviene mirar el sistema con mas frecuencia
+que durante el desarrollo.
+
+Checklist posterior.
+
+- Revisar logs de Supabase.
+- Revisar webhooks fallidos.
+- Revisar pagos pendientes o rechazados.
+- Revisar errores de navegador.
+- Revisar consultas de usuarios.
+- Revisar costos de Supabase, Cloudflare y pagos.
+- Revisar dominios y vencimientos.
+- Corregir textos confusos de onboarding.
+- Registrar incidentes y decisiones.
+
+Inventario de secretos.
+
+Cada proyecto deberia tener un inventario privado de secretos. No va
+en Git si contiene valores reales.
+
+Campos sugeridos.
+
+- Nombre del secreto.
+- Servicio al que pertenece.
+- Entorno: desarrollo, staging o produccion.
+- Donde se carga.
+- Quien puede rotarlo.
+- Fecha de ultima rotacion.
+- Que se rompe si se revoca.
+
+Secretos comunes.
+
+- Supabase anon key.
+- Supabase service role key.
+- Supabase database URL.
+- Mercado Pago access token.
+- Mercado Pago webhook secret.
+- Stripe secret key.
+- Stripe webhook secret.
+- SMTP password.
+- Turnstile secret key.
+- API keys de terceros.
+
+La anon key puede documentarse como publica. Las demas claves deben
+tratarse como privadas salvo confirmacion explicita del proveedor.
+
+Errores que conviene evitar.
+
+- Publicar primero y pensar auth despues.
+- Configurar DNS antes de configurar el dominio en el hosting.
+- Usar service role key en frontend.
+- Dejar RLS desactivado en tablas con datos de usuarios.
+- Confirmar pagos solo por redirect.
+- No validar webhooks.
+- No responder webhooks rapido.
+- Mezclar datos de test y produccion.
+- No tener cuenta de recuperacion.
+- No tener backups.
+- No tener politica de privacidad si se guardan datos personales.
+- No documentar decisiones tecnicas.
+
+Plantilla corta para un nuevo proyecto.
+
+1. Crear repo.
+2. Crear documento de arquitectura minima.
+3. Elegir hosting.
+4. Comprar dominio.
+5. Pasar DNS a Cloudflare.
+6. Configurar hosting y dominio.
+7. Crear proyecto Supabase.
+8. Versionar esquema SQL.
+9. Configurar RLS.
+10. Configurar Auth y redirect URLs.
+11. Crear Edge Functions necesarias.
+12. Cargar secrets por entorno.
+13. Crear integracion de Mercado Pago.
+14. Configurar webhooks.
+15. Probar pagos en modo test.
+16. Configurar email transaccional.
+17. Publicar textos legales minimos.
+18. Crear smoke test.
+19. Hacer backup inicial.
+20. Lanzar.
+21. Monitorear los primeros dias.
+
+Decision recomendada para proyectos parecidos a Semaplan.
+
+Usar GitHub Pages si el frontend es estatico y no necesita build.
+Usar Cloudflare como DNS y capa de seguridad. Usar Supabase para
+datos, auth y funciones. Usar Mercado Pago para cobros locales. Usar
+Stripe solo si aparece una necesidad concreta de cobro internacional.
+
+Esta combinacion mantiene bajo el costo y evita administrar
+servidores. Igual permite tener autenticacion, base de datos, pagos y
+webhooks con un nivel razonable de seguridad.
+
+Referencias oficiales.
+
+- Supabase production checklist:
+  https://supabase.com/docs/guides/deployment/going-into-prod.
+- Supabase secrets para Edge Functions:
+  https://supabase.com/docs/guides/functions/secrets.
+- Supabase redirect URLs:
+  https://supabase.com/docs/guides/auth/redirect-urls.
+- GitHub Pages custom domains:
+  https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site.
+- Namecheap con nameservers de Cloudflare:
+  https://www.namecheap.com/support/knowledgebase/article.aspx/9607/2210/how-to-set-up-dns-records-for-your-domain-in-a-cloudflare-account/.
+- Cloudflare Full strict SSL:
+  https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/.
+- Cloudflare Turnstile:
+  https://developers.cloudflare.com/turnstile/reference/.
+- Mercado Pago crear preferencia de pago:
+  https://www.mercadopago.com.ar/developers/es/docs/checkout-pro/create-payment-preference.
+- Mercado Pago webhooks:
+  https://www.mercadopago.com.ar/developers/es/docs/checkout-pro/additional-content/notifications/webhooks.
