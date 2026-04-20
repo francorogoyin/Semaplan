@@ -49953,6 +49953,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Resultado;
       }
 
+      function Planes_Objetivo_Bloquea_Pendiente_Importacion(
+        Objetivo
+      ) {
+        return Boolean(
+          Objetivo &&
+          (
+            Objetivo.Fijado ||
+            Objetivo.Target_Fijado_Por_Usuario
+          )
+        );
+      }
+
       function Planes_Info_Pendiente_Importacion(
         Objetivo_Padre,
         Periodo_Padre,
@@ -50030,12 +50042,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Abiertos
             .filter((Periodo) => {
               const Hijo = Hijos_Capa.get(Periodo.Id);
-              return Boolean(
-                Hijo &&
-                (
-                  Hijo.Fijado ||
-                  Hijo.Auto_Redistribucion === false
-                )
+              return Planes_Objetivo_Bloquea_Pendiente_Importacion(
+                Hijo
               );
             })
             .map((Periodo) => Periodo.Id)
@@ -50074,12 +50082,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Hijo_Bloqueado = Hijos_Capa.get(Periodo.Id);
           const Es_Bloqueado_Abierto =
             !Cerrado &&
-            Boolean(
-              Hijo_Bloqueado &&
-              (
-                Hijo_Bloqueado.Fijado ||
-                Hijo_Bloqueado.Auto_Redistribucion === false
-              )
+            Planes_Objetivo_Bloquea_Pendiente_Importacion(
+              Hijo_Bloqueado
             );
           const Target_Periodo = Cerrado
             ? Base
@@ -50639,7 +50643,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Hijo.Eliminado_Local = false;
             Planes_Restaurar_Vinculo_Objetivo(Hijo);
             Planes_Actualizar_Meta_Hijo_Importado(Objetivo_Padre, Hijo);
-            if (!Hijo.Fijado && Hijo.Auto_Redistribucion !== false) {
+            const Recalcula_Pendiente =
+              Modo_Importacion === "Pendiente" &&
+              !Planes_Objetivo_Bloquea_Pendiente_Importacion(Hijo);
+            if (
+              Recalcula_Pendiente ||
+              (
+                !Hijo.Fijado &&
+                Hijo.Auto_Redistribucion !== false
+              )
+            ) {
               const Cuota = Modo_Importacion === "Pendiente"
                 ? (
                   Info_Pendiente.Targets.get(Periodo.Id) ??
@@ -50659,6 +50672,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Hijo.Target_Total = Cuota;
               Hijo.Target_Automatico = Cuota;
               Hijo.Target_Actual = Cuota;
+              if (Recalcula_Pendiente) {
+                Hijo.Auto_Redistribucion = true;
+              }
             }
             if (Modo_Importacion === "Pendiente") {
               const Avance_Importado = Number(

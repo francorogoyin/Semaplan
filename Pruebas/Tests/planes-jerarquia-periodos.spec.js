@@ -2377,6 +2377,120 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Importar pendiente desde selector aplica modo pendiente",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 2;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Libros selector",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 50,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Hijo_T1 = Planes_Crear_Objetivo_Silencioso(
+      Trimestres[0].Id,
+      Planes_Clonar_Datos_Objetivo(Padre, {
+        Parent_Objetivo_Id: Padre.Id,
+        Objetivo_Padre_Id: Padre.Id,
+        Origen_Objetivo: "Importado",
+        Target_Total: 12.5,
+        Target_Automatico: 12.5,
+        Target_Actual: 12.5
+      })
+    );
+    Modelo.Subobjetivos.Sub_Selector_T1 =
+      Normalizar_Subobjetivo_Plan({
+        Id: "Sub_Selector_T1",
+        Objetivo_Id: Hijo_T1.Id,
+        Texto: "Libros terminados",
+        Hecha: true,
+        Aporte_Meta: 6,
+        Fecha_Fin: "31/03/2026"
+      });
+    const Hijo_T2 = Planes_Crear_Objetivo_Silencioso(
+      Trimestres[1].Id,
+      Planes_Clonar_Datos_Objetivo(Padre, {
+        Parent_Objetivo_Id: Padre.Id,
+        Objetivo_Padre_Id: Padre.Id,
+        Origen_Objetivo: "Importado",
+        Target_Total: 50 / 3,
+        Target_Automatico: 50 / 3,
+        Target_Actual: 50 / 3,
+        Progreso_Manual: 5,
+        Auto_Redistribucion: false
+      })
+    );
+    Planes_Actualizar_Progreso(Hijo_T1);
+    Planes_Actualizar_Progreso(Hijo_T2);
+    Modelo.UI.Periodo_Activo_Id = Trimestres[1].Id;
+    Render_Plan();
+    window.__Trimestre_Selector_Id = Trimestres[1].Id;
+    window.__Padre_Selector_Id = Padre.Id;
+    window.__Importar_Selector_Promesa =
+      Planes_Importar_De_Padres_Periodo(Trimestres[1].Id);
+  });
+
+  const Selector = page.locator("[data-plan-importar-modo-select]");
+  await expect(Selector).toBeVisible();
+  await Selector.selectOption("Pendiente");
+  await expect(Selector).toHaveValue("Pendiente");
+  await page.locator("[data-plan-importar-confirmar]").click();
+  await page.waitForFunction(() =>
+    !document.querySelector("[data-plan-importar-confirmar]")
+  );
+
+  const Resultado = await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Hijo = Planes_Objetivo_Hijo_De(
+      window.__Padre_Selector_Id,
+      window.__Trimestre_Selector_Id
+    );
+    return {
+      Target: Hijo.Target_Total,
+      Progreso: Hijo.Progreso_Total,
+      Auto_Redistribucion: Hijo.Auto_Redistribucion,
+      Cantidad: Object.values(Modelo.Objetivos)
+        .filter((Objetivo) =>
+          Objetivo.Periodo_Id === window.__Trimestre_Selector_Id &&
+          Objetivo.Nombre === "Libros selector" &&
+          !Objetivo.Eliminado_Local
+        )
+        .length
+    };
+  });
+
+  expect(Resultado.Cantidad).toBe(1);
+  expect(Resultado.Target).toBeCloseTo(44 / 3, 5);
+  expect(Resultado.Progreso).toBe(5);
+  expect(Resultado.Auto_Redistribucion).toBe(true);
+  expect(errores).toEqual([]);
+});
+
 test("Importar pendiente descuenta hijos indirectos",
 async ({ page }) => {
   const errores = [];
