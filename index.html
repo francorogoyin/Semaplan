@@ -42919,7 +42919,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Fecha instanceof Date) {
           return Planes_ISO(Fecha);
         }
-        return Fecha.toString().slice(0, 10);
+        const Valor = Fecha.toString().trim();
+        const Partes_ISO = Valor.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (Partes_ISO) {
+          return `${Partes_ISO[1]}-${Partes_ISO[2]}-${Partes_ISO[3]}`;
+        }
+        const Partes_Locales =
+          Valor.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+        if (Partes_Locales) {
+          let Dia = Number(Partes_Locales[1]);
+          let Mes = Number(Partes_Locales[2]);
+          if (Dia <= 12 && Mes > 12) {
+            Dia = Number(Partes_Locales[2]);
+            Mes = Number(Partes_Locales[1]);
+          }
+          if (Dia >= 1 && Dia <= 31 && Mes >= 1 && Mes <= 12) {
+            const Dia_Texto = Dia.toString().padStart(2, "0");
+            const Mes_Texto = Mes.toString().padStart(2, "0");
+            return `${Partes_Locales[3]}-${Mes_Texto}-${Dia_Texto}`;
+          }
+        }
+        const Parseada = new Date(Valor);
+        if (!Number.isNaN(Parseada.getTime())) {
+          return Planes_ISO(Parseada);
+        }
+        return Valor.slice(0, 10);
       }
 
       function Planes_Periodo_Contiene_Fecha(Periodo, Fecha) {

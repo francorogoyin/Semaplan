@@ -2213,7 +2213,7 @@ async ({ page }) => {
         Texto: "Libros terminados",
         Hecha: true,
         Aporte_Meta: 6,
-        Fecha_Fin: "2026-03-31T10:00"
+        Fecha_Fin: "31/03/2026"
       });
     Planes_Actualizar_Progreso(Hijo_T1);
     Planes_Actualizar_Progreso(Padre);
