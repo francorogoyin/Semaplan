@@ -1035,6 +1035,12 @@
         text-align: center;
       }
 
+      .Hora_Item.Hora_Fila_Seleccionada {
+        background: #f1eadf;
+        color: var(--Texto);
+        font-weight: 700;
+      }
+
       /* --- Editor de patrones en Config --- */
       .Config_Patron_Fila {
         display: flex;
@@ -7059,6 +7065,14 @@
         border-bottom: 1px solid var(--Borde);
         background: rgba(255, 255, 255, 0.72);
         user-select: none;
+      }
+
+      .Slot.Hora_Fila_Seleccionada {
+        background: rgba(255, 255, 255, 0.62);
+      }
+
+      .Slot_Muerto.Hora_Fila_Seleccionada::after {
+        filter: brightness(0.94);
       }
 
       .Slot.Multi_Activa::before {
@@ -14270,6 +14284,62 @@
 
             <div class="Config_Seccion">
               <p class="Config_Seccion_Titulo Config_Hint">
+                <span data-i18n="config.bloques_horarios"
+                  >Bloques horarios</span>
+                <span class="Config_Hint_Icono">ⓘ</span>
+                <span class="Config_Hint_Texto"
+                  data-i18n="config.bloques_horarios_hint"
+                  >Define los rangos usados por los atajos de
+                  "Mostrar horario".</span>
+              </p>
+              <div class="Config_Fila Config_Fila_Multi">
+                <span class="Config_Label"
+                  data-i18n="hora.bloque_madrugada"
+                  >Madrugada</span>
+                <select class="Config_Select"
+                  id="Cfg_Bloque_Madrugada_Desde"></select>
+                <span style="font-size:11px;color:var(--Texto_Suave)"
+                  >→</span>
+                <select class="Config_Select"
+                  id="Cfg_Bloque_Madrugada_Hasta"></select>
+              </div>
+              <div class="Config_Fila Config_Fila_Multi">
+                <span class="Config_Label"
+                  data-i18n="hora.bloque_manana"
+                  >Mañana</span>
+                <select class="Config_Select"
+                  id="Cfg_Bloque_Manana_Desde"></select>
+                <span style="font-size:11px;color:var(--Texto_Suave)"
+                  >→</span>
+                <select class="Config_Select"
+                  id="Cfg_Bloque_Manana_Hasta"></select>
+              </div>
+              <div class="Config_Fila Config_Fila_Multi">
+                <span class="Config_Label"
+                  data-i18n="hora.bloque_tarde"
+                  >Tarde</span>
+                <select class="Config_Select"
+                  id="Cfg_Bloque_Tarde_Desde"></select>
+                <span style="font-size:11px;color:var(--Texto_Suave)"
+                  >→</span>
+                <select class="Config_Select"
+                  id="Cfg_Bloque_Tarde_Hasta"></select>
+              </div>
+              <div class="Config_Fila Config_Fila_Multi">
+                <span class="Config_Label"
+                  data-i18n="hora.bloque_noche"
+                  >Noche</span>
+                <select class="Config_Select"
+                  id="Cfg_Bloque_Noche_Desde"></select>
+                <span style="font-size:11px;color:var(--Texto_Suave)"
+                  >→</span>
+                <select class="Config_Select"
+                  id="Cfg_Bloque_Noche_Hasta"></select>
+              </div>
+            </div>
+
+            <div class="Config_Seccion">
+              <p class="Config_Seccion_Titulo Config_Hint">
                 <span data-i18n="config.inicio_semana"
                   >Inicio de semana</span>
                 <span class="Config_Hint_Icono">ⓘ</span>
@@ -19352,6 +19422,14 @@
             "muestra en el calendario y la " +
             "hora a la que arranca el scroll " +
             "inicial.",
+          "config.bloques_horarios":
+            "Bloques horarios",
+          "config.bloques_horarios_hint":
+            "Define los rangos usados por los " +
+            "atajos de \"Mostrar horario\".",
+          "config.bloque_invalido":
+            "En un bloque horario, el fin debe " +
+            "ser mayor al inicio.",
           "config.mostrar_desde":
             "Mostrar desde",
           "config.hasta": "hasta",
@@ -20769,6 +20847,40 @@
           "dia.limpiar_dia": "Limpiar día",
           "dia.limpiar_dia_confirm":
             "¿Limpiar este día completo?",
+          "hora.bloquear_horario":
+            "Bloquear horario",
+          "hora.desbloquear_horario":
+            "Desbloquear horario",
+          "hora.mostrar_horario":
+            "Mostrar horario",
+          "hora.atajos":
+            "Atajos",
+          "hora.atajo_solo_madrugada":
+            "Mostrar solo madrugada",
+          "hora.atajo_solo_manana":
+            "Mostrar solo mañana",
+          "hora.atajo_solo_tarde":
+            "Mostrar solo tarde",
+          "hora.atajo_solo_noche":
+            "Mostrar solo noche",
+          "hora.bloque_madrugada":
+            "Madrugada",
+          "hora.bloque_manana":
+            "Mañana",
+          "hora.bloque_tarde":
+            "Tarde",
+          "hora.bloque_noche":
+            "Noche",
+          "hora.copiar_horario":
+            "Copiar horario",
+          "hora.pegar_horario":
+            "Pegar horario",
+          "hora.pegar_horario_titulo":
+            "¿Cómo pegar el horario?",
+          "hora.limpiar_horario":
+            "Limpiar horario",
+          "hora.limpiar_horario_confirm":
+            "¿Limpiar este horario completo?",
           "focus.sin_bloque":
             "No hay un bloque en curso" +
             " ni próximo.",
@@ -21533,12 +21645,14 @@
           "toast.baul_moldes_movidos_categoria":
             "Se movieron {n} moldes a {categoria}",
           "toast.dia_pegado": "Día pegado",
+          "toast.horario_pegado": "Horario pegado",
           "toast.meta_actualizada": "Meta actualizada",
           "toast.meta_archivada": "Meta archivada",
           "toast.meta_recuperada": "Meta recuperada",
           "toast.meta_eliminada": "Meta eliminada",
           "toast.semana_limpiada": "Semana limpiada",
           "toast.dia_limpiado": "Día limpiado",
+          "toast.horario_limpiado": "Horario limpiado",
           "toast.bloques_multi_eliminados":
             "Se eliminaron {n} bloques",
           "toast.cal_multi_limpiado":
@@ -22675,6 +22789,14 @@
             "Set which part of the day is " +
             "shown in the calendar and the " +
             "initial scroll position.",
+          "config.bloques_horarios":
+            "Time blocks",
+          "config.bloques_horarios_hint":
+            "Defines the ranges used by the " +
+            "\"Show hours\" shortcuts.",
+          "config.bloque_invalido":
+            "In a time block, the end must be " +
+            "after the start.",
           "config.mostrar_desde": "Show from",
           "config.hasta": "to",
           "config.scroll_inicial":
@@ -24060,6 +24182,40 @@
           "dia.limpiar_dia": "Clear day",
           "dia.limpiar_dia_confirm":
             "Clear this entire day?",
+          "hora.bloquear_horario":
+            "Block hour",
+          "hora.desbloquear_horario":
+            "Unblock hour",
+          "hora.mostrar_horario":
+            "Show hours",
+          "hora.atajos":
+            "Shortcuts",
+          "hora.atajo_solo_madrugada":
+            "Show only early morning",
+          "hora.atajo_solo_manana":
+            "Show only morning",
+          "hora.atajo_solo_tarde":
+            "Show only afternoon",
+          "hora.atajo_solo_noche":
+            "Show only night",
+          "hora.bloque_madrugada":
+            "Early morning",
+          "hora.bloque_manana":
+            "Morning",
+          "hora.bloque_tarde":
+            "Afternoon",
+          "hora.bloque_noche":
+            "Night",
+          "hora.copiar_horario":
+            "Copy hour",
+          "hora.pegar_horario":
+            "Paste hour",
+          "hora.pegar_horario_titulo":
+            "How do you want to paste the hour?",
+          "hora.limpiar_horario":
+            "Clear hour",
+          "hora.limpiar_horario_confirm":
+            "Clear this hour across visible days?",
           "focus.sin_bloque":
             "There's no current or" +
             " upcoming block.",
@@ -24795,12 +24951,14 @@
           "toast.baul_moldes_movidos_categoria":
             "{n} templates moved to {categoria}",
           "toast.dia_pegado": "Day pasted",
+          "toast.horario_pegado": "Hour pasted",
           "toast.meta_actualizada": "Goal updated",
           "toast.meta_archivada": "Goal archived",
           "toast.meta_recuperada": "Goal restored",
           "toast.meta_eliminada": "Goal deleted",
           "toast.semana_limpiada": "Week cleared",
           "toast.dia_limpiado": "Day cleared",
+          "toast.horario_limpiado": "Hour cleared",
           "toast.bloques_multi_eliminados":
             "{n} blocks deleted",
           "toast.cal_multi_limpiado":
@@ -25957,6 +26115,14 @@
             "aparece no calendário e a " +
             "hora em que o scroll inicial" +
             " começa.",
+          "config.bloques_horarios":
+            "Blocos horários",
+          "config.bloques_horarios_hint":
+            "Define os intervalos usados pelos " +
+            "atalhos de \"Mostrar horário\".",
+          "config.bloque_invalido":
+            "Em um bloco horário, o fim deve " +
+            "ser maior que o início.",
           "config.mostrar_desde":
             "Mostrar a partir de",
           "config.hasta": "até",
@@ -27399,6 +27565,40 @@
           "dia.limpiar_dia": "Limpar dia",
           "dia.limpiar_dia_confirm":
             "Limpar este dia inteiro?",
+          "hora.bloquear_horario":
+            "Bloquear horário",
+          "hora.desbloquear_horario":
+            "Desbloquear horário",
+          "hora.mostrar_horario":
+            "Mostrar horário",
+          "hora.atajos":
+            "Atalhos",
+          "hora.atajo_solo_madrugada":
+            "Mostrar só madrugada",
+          "hora.atajo_solo_manana":
+            "Mostrar só manhã",
+          "hora.atajo_solo_tarde":
+            "Mostrar só tarde",
+          "hora.atajo_solo_noche":
+            "Mostrar só noite",
+          "hora.bloque_madrugada":
+            "Madrugada",
+          "hora.bloque_manana":
+            "Manhã",
+          "hora.bloque_tarde":
+            "Tarde",
+          "hora.bloque_noche":
+            "Noite",
+          "hora.copiar_horario":
+            "Copiar horário",
+          "hora.pegar_horario":
+            "Colar horário",
+          "hora.pegar_horario_titulo":
+            "Como colar o horário?",
+          "hora.limpiar_horario":
+            "Limpar horário",
+          "hora.limpiar_horario_confirm":
+            "Limpar este horário completo?",
           "focus.sin_bloque":
             "Não há um bloco em" +
             " andamento nem próximo.",
@@ -28163,12 +28363,14 @@
           "toast.baul_moldes_movidos_categoria":
             "Foram movidos {n} modelos para {categoria}",
           "toast.dia_pegado": "Dia colado",
+          "toast.horario_pegado": "Horário colado",
           "toast.meta_actualizada": "Meta atualizada",
           "toast.meta_archivada": "Meta arquivada",
           "toast.meta_recuperada": "Meta recuperada",
           "toast.meta_eliminada": "Meta excluída",
           "toast.semana_limpiada": "Semana limpa",
           "toast.dia_limpiado": "Dia limpo",
+          "toast.horario_limpiado": "Horário limpo",
           "toast.bloques_multi_eliminados":
             "{n} blocos removidos",
           "toast.cal_multi_limpiado":
@@ -28865,6 +29067,18 @@
         Scroll_Inicial: 8,
         Dias_Visibles: [0, 1, 2, 3, 4, 5, 6],
         Ocultar_Dias_Automatico: "Ninguno",
+        Bloques_Horarios: {
+          Madrugada: { Desde: 0, Hasta: 8 },
+          Manana: { Desde: 8, Hasta: 13 },
+          Tarde: { Desde: 13, Hasta: 20 },
+          Noche: { Desde: 20, Hasta: 0 }
+        },
+        Bloques_Horarios_Visibles: [
+          "Madrugada",
+          "Manana",
+          "Tarde",
+          "Noche"
+        ],
         Slots_Muertos_Default: {},
         Agrupar_Por_Categorias: false,
         Globito_Activo: true,
@@ -37383,9 +37597,624 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               if (Refrescar_Submenu_Dias_Visibles(Menu)) {
                 Instalar_Submenu_Dias_Visibles(Menu);
               }
+               Reposicionar_Menu_Dia_En_Pantalla(Menu);
+             });
+           });
+       }
+
+      // --- Menú de hora (encabezado horizontal) ---
+
+      let Hora_Fila_Seleccionada = null;
+
+      function Seleccionar_Fila_Hora(Hora) {
+        const Hora_Num = Math.floor(Number(Hora) || 0);
+        const Hora_Str = String(Hora_Num);
+        Deseleccionar_Fila_Hora();
+        Hora_Fila_Seleccionada = Hora_Str;
+        document.querySelectorAll(
+          `.Hora_Item[data-hora="${Hora_Str}"]`
+        ).forEach((El) => {
+          El.classList.add("Hora_Fila_Seleccionada");
+        });
+        document.querySelectorAll(
+          `.Slot[data-hora="${Hora_Str}"]`
+        ).forEach((El) => {
+          El.classList.add("Hora_Fila_Seleccionada");
+        });
+      }
+
+      function Deseleccionar_Fila_Hora() {
+        Hora_Fila_Seleccionada = null;
+        document.querySelectorAll(
+          ".Hora_Item.Hora_Fila_Seleccionada"
+        ).forEach((El) => {
+          El.classList.remove("Hora_Fila_Seleccionada");
+        });
+        document.querySelectorAll(
+          ".Slot.Hora_Fila_Seleccionada"
+        ).forEach((El) => {
+          El.classList.remove("Hora_Fila_Seleccionada");
+        });
+      }
+
+      function Nombre_Bloque_Horario(Bloque_Id) {
+        if (Bloque_Id === "Madrugada")
+          return t("hora.bloque_madrugada");
+        if (Bloque_Id === "Manana")
+          return t("hora.bloque_manana");
+        if (Bloque_Id === "Tarde")
+          return t("hora.bloque_tarde");
+        if (Bloque_Id === "Noche")
+          return t("hora.bloque_noche");
+        return String(Bloque_Id || "");
+      }
+
+      function Construir_Submenu_Bloques_Horarios_Visibles() {
+        const Visibles =
+          Normalizar_Bloques_Horarios_Visibles(
+            Config.Bloques_Horarios_Visibles
+          );
+        const Html_Atajos =
+          `<div class="Dia_Accion_Submenu_Titulo">` +
+          `${t("hora.atajos")}</div>` +
+          `<button class="Dia_Accion_Submenu_Item" type="button"` +
+          ` data-hora-atajo="solo-madrugada">` +
+          `<span>${t("hora.atajo_solo_madrugada")}</span>` +
+          `<span class="Dia_Accion_Submenu_Estado"></span>` +
+          `</button>` +
+          `<button class="Dia_Accion_Submenu_Item" type="button"` +
+          ` data-hora-atajo="solo-manana">` +
+          `<span>${t("hora.atajo_solo_manana")}</span>` +
+          `<span class="Dia_Accion_Submenu_Estado"></span>` +
+          `</button>` +
+          `<button class="Dia_Accion_Submenu_Item" type="button"` +
+          ` data-hora-atajo="solo-tarde">` +
+          `<span>${t("hora.atajo_solo_tarde")}</span>` +
+          `<span class="Dia_Accion_Submenu_Estado"></span>` +
+          `</button>` +
+          `<button class="Dia_Accion_Submenu_Item" type="button"` +
+          ` data-hora-atajo="solo-noche">` +
+          `<span>${t("hora.atajo_solo_noche")}</span>` +
+          `<span class="Dia_Accion_Submenu_Estado"></span>` +
+          `</button>` +
+          `<div class="Dia_Accion_Separador"` +
+          ` role="separator"></div>`;
+        const Html_Bloques =
+          Obtener_Ids_Bloques_Horarios().map((Bloque_Id) => {
+            const Visible = Visibles.includes(Bloque_Id);
+            const Es_Ultimo =
+              Visible && Visibles.length <= 1;
+            const Clases =
+              "Dia_Accion_Submenu_Item" +
+              (Es_Ultimo ? " Deshabilitado" : "");
+            const Estado = Visible ? "✓" : "✖";
+            const Nombre = Nombre_Bloque_Horario(Bloque_Id);
+            return (
+              `<button class="${Clases}" type="button"` +
+              ` data-hora-bloque="${Bloque_Id}"` +
+              (Es_Ultimo ? " disabled" : "") +
+              ">" +
+              `<span>${Escape_Html(Nombre)}</span>` +
+              `<span class="Dia_Accion_Submenu_Estado">` +
+              `${Estado}</span>` +
+              "</button>"
+            );
+          }).join("");
+        return Html_Atajos + Html_Bloques;
+      }
+
+      function Resolver_Bloque_Atajo_Horario(Atajo) {
+        if (Atajo === "solo-madrugada") return "Madrugada";
+        if (Atajo === "solo-manana") return "Manana";
+        if (Atajo === "solo-tarde") return "Tarde";
+        if (Atajo === "solo-noche") return "Noche";
+        return "";
+      }
+
+      function Alternar_Bloque_Horario_Visible_Desde_Menu(
+        Bloque_Id
+      ) {
+        const Visibles =
+          Normalizar_Bloques_Horarios_Visibles(
+            Config.Bloques_Horarios_Visibles
+          );
+        const Set_Nuevo = new Set(Visibles);
+        if (Set_Nuevo.has(Bloque_Id)) {
+          if (Visibles.length <= 1) return false;
+          Set_Nuevo.delete(Bloque_Id);
+        } else {
+          Set_Nuevo.add(Bloque_Id);
+        }
+        Config.Bloques_Horarios_Visibles =
+          Obtener_Ids_Bloques_Horarios().filter((Id) =>
+            Set_Nuevo.has(Id)
+          );
+        Config.Bloques_Horarios_Visibles =
+          Normalizar_Bloques_Horarios_Visibles(
+            Config.Bloques_Horarios_Visibles
+          );
+        Render_Calendario();
+        Guardar_Estado();
+        return true;
+      }
+
+      function Aplicar_Atajo_Bloques_Horarios_Visibles(Atajo) {
+        const Bloque =
+          Resolver_Bloque_Atajo_Horario(Atajo);
+        if (!Bloque) return false;
+        Config.Bloques_Horarios_Visibles = [Bloque];
+        Render_Calendario();
+        Guardar_Estado();
+        return true;
+      }
+
+      function Refrescar_Submenu_Bloques_Horarios_Visibles(Menu) {
+        const Btn = Menu?.querySelector(
+          `[data-accion="horario"]`
+        );
+        const Grupo = Btn?.closest(
+          ".Dia_Accion_Submenu_Grupo"
+        );
+        const Sub = Grupo?.querySelector(
+          ".Dia_Accion_Submenu"
+        );
+        if (!Sub) return false;
+        Sub.innerHTML =
+          Construir_Submenu_Bloques_Horarios_Visibles();
+        return true;
+      }
+
+      function Instalar_Submenu_Bloques_Horarios_Visibles(Menu) {
+        if (!Menu) return;
+        const Hora_Ref = Menu.dataset.horaRef || "";
+
+        Menu.querySelectorAll("[data-hora-atajo]")
+          .forEach((Btn) => {
+            if (Btn._Listener_Hora_Atajo) return;
+            Btn._Listener_Hora_Atajo = true;
+            Btn.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              const Atajo = Btn.dataset.horaAtajo || "";
+              const Ok =
+                Aplicar_Atajo_Bloques_Horarios_Visibles(Atajo);
+              if (!Ok) return;
+              if (
+                Refrescar_Submenu_Bloques_Horarios_Visibles(Menu)
+              ) {
+                Instalar_Submenu_Bloques_Horarios_Visibles(Menu);
+              }
+              if (Hora_Ref) Seleccionar_Fila_Hora(Hora_Ref);
               Reposicionar_Menu_Dia_En_Pantalla(Menu);
             });
           });
+
+        Menu.querySelectorAll("[data-hora-bloque]")
+          .forEach((Btn) => {
+            if (Btn._Listener_Hora_Bloque) return;
+            Btn._Listener_Hora_Bloque = true;
+            Btn.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              const Bloque_Id = Btn.dataset.horaBloque || "";
+              const Ok =
+                Alternar_Bloque_Horario_Visible_Desde_Menu(
+                  Bloque_Id
+                );
+              if (!Ok) return;
+              if (
+                Refrescar_Submenu_Bloques_Horarios_Visibles(Menu)
+              ) {
+                Instalar_Submenu_Bloques_Horarios_Visibles(Menu);
+              }
+              if (Hora_Ref) Seleccionar_Fila_Hora(Hora_Ref);
+              Reposicionar_Menu_Dia_En_Pantalla(Menu);
+            });
+          });
+      }
+
+      function Todos_Los_Slots_Son_Muertos_Horario(Hora) {
+        const Dias_Visibles =
+          Obtener_Dias_Visibles_Efectivos();
+        for (const Dia_Index of Dias_Visibles) {
+          const Fecha = Formatear_Fecha_ISO(
+            Obtener_Fecha_Semana(Dia_Index)
+          );
+          if (!Slot_Es_Muerto(Fecha, Hora)) return false;
+        }
+        return Dias_Visibles.length > 0;
+      }
+
+      function Bloquear_Horario_Completo(Hora, Tipo_Id) {
+        const Tipos = Obtener_Tipos_Slot();
+        const Tipo_Final = Tipo_Id || Tipos[0]?.Id || "Sueno";
+        Obtener_Dias_Visibles_Efectivos()
+          .forEach((Dia_Index) => {
+            const Fecha = Formatear_Fecha_ISO(
+              Obtener_Fecha_Semana(Dia_Index)
+            );
+            Crear_Slot_Muerto(Fecha, Hora, Tipo_Final);
+          });
+        Render_Calendario();
+        Guardar_Estado();
+      }
+
+      function Desbloquear_Horario_Completo(Hora) {
+        Obtener_Dias_Visibles_Efectivos()
+          .forEach((Dia_Index) => {
+            const Fecha = Formatear_Fecha_ISO(
+              Obtener_Fecha_Semana(Dia_Index)
+            );
+            Quitar_Slot_Muerto_Silencioso(Fecha, Hora);
+          });
+        Render_Calendario();
+        Guardar_Estado();
+      }
+
+      let Portapapeles_Hora = null;
+
+      function Copiar_Horario(Hora) {
+        const Hora_Base = Number(Hora) || 0;
+        const Datos_Por_Dia = {};
+        const Dias_Visibles =
+          Obtener_Dias_Visibles_Efectivos();
+        const Desde = Hora_Base - 0.0001;
+        const Hasta = Hora_Base + 1 - 0.0001;
+        Dias_Visibles.forEach((Dia_Index) => {
+          const Fecha = Formatear_Fecha_ISO(
+            Obtener_Fecha_Semana(Dia_Index)
+          );
+          const Eventos_Dia = Eventos
+            .filter((Ev) =>
+              Ev.Fecha === Fecha &&
+              Ev.Inicio >= Desde &&
+              Ev.Inicio < Hasta
+            )
+            .map((Ev) => ({
+              Objetivo_Id: Ev.Objetivo_Id,
+              Inicio_Offset: Ev.Inicio - Hora_Base,
+              Duracion: Ev.Duracion,
+              Hecho: false,
+              Color: Ev.Color,
+              Nota: Ev.Nota
+            }));
+          const Clave = Clave_Slot(Fecha, Hora_Base);
+          const Slots_Dia = Slots_Muertos.includes(Clave)
+            ? [
+              {
+                Hora: Hora_Base,
+                Tipo: Slots_Muertos_Tipos[Clave] || "Sueno",
+                Nombre: Obtener_Nombre_Slot_Por_Clave(Clave),
+                Titulo_Visible:
+                  Slot_Muerto_Titulo_Es_Visible_Clave(Clave),
+                Nombre_Auto:
+                  Slot_Muerto_Nombre_Es_Auto_Clave(Clave)
+              }
+            ]
+            : [];
+          const Nombres_Slots = Slots_Muertos_Nombres[Clave]
+            ? [
+              {
+                Hora: Hora_Base,
+                Nombre: Obtener_Nombre_Slot_Por_Clave(Clave),
+                Titulo_Visible:
+                  Slot_Muerto_Titulo_Es_Visible_Clave(Clave),
+                Nombre_Auto:
+                  Slot_Muerto_Nombre_Es_Auto_Clave(Clave)
+              }
+            ]
+            : [];
+          Datos_Por_Dia[String(Dia_Index)] = {
+            Eventos: Eventos_Dia,
+            Slots: Slots_Dia,
+            Nombres_Slots
+          };
+        });
+        Portapapeles_Hora = {
+          Hora_Base,
+          Dias: Dias_Visibles,
+          Datos_Por_Dia
+        };
+      }
+
+      async function Pegar_Horario(Hora_Destino) {
+        if (!Portapapeles_Hora) return;
+        const Modo = await Mostrar_Dialogo(
+          t("hora.pegar_horario_titulo"),
+          [
+            {
+              Etiqueta: t("dialog.completar_falta"),
+              Valor: "Completar",
+              Tipo: "Primario"
+            },
+            {
+              Etiqueta: t("dialog.reemplazar_todo"),
+              Valor: "Reemplazar",
+              Tipo: "Peligro"
+            },
+            { Etiqueta: t("cancelar"), Valor: null, Tipo: "Cancelar" }
+          ]
+        );
+        if (!Modo) return;
+
+        const Snap = Capturar_Snapshot_Undo();
+        const Hora_Base = Number(Portapapeles_Hora.Hora_Base) || 0;
+        const Hora_Dest = Number(Hora_Destino) || 0;
+        const Dias_Visibles =
+          Obtener_Dias_Visibles_Efectivos();
+        const Set_Copia = new Set(
+          (Portapapeles_Hora.Dias || []).map((D) => Number(D))
+        );
+        const Dias_Aplicar =
+          Dias_Visibles.filter((D) => Set_Copia.has(D));
+        const Datos_Por_Dia = Portapapeles_Hora.Datos_Por_Dia || {};
+
+        const Fechas_Aplicar = Dias_Aplicar.map((Dia_Index) =>
+          Formatear_Fecha_ISO(
+            Obtener_Fecha_Semana(Dia_Index)
+          )
+        );
+
+        if (Modo === "Reemplazar") {
+          const Fechas_Set = new Set(Fechas_Aplicar);
+          const Desde = Hora_Dest - 0.0001;
+          const Hasta = Hora_Dest + 1 - 0.0001;
+          Eventos = Eventos.filter((Ev) => {
+            if (!Fechas_Set.has(Ev.Fecha)) return true;
+            return Ev.Inicio < Desde || Ev.Inicio >= Hasta;
+          });
+          Fechas_Aplicar.forEach((Fecha) => {
+            Quitar_Slot_Muerto_Silencioso(Fecha, Hora_Dest);
+          });
+        }
+
+        Dias_Aplicar.forEach((Dia_Index) => {
+          const Fecha = Formatear_Fecha_ISO(
+            Obtener_Fecha_Semana(Dia_Index)
+          );
+          const Datos = Datos_Por_Dia[String(Dia_Index)];
+          if (!Datos) return;
+
+          (Datos.Slots || []).forEach((S) => {
+            const Hora_Final = Hora_Dest + (S.Hora - Hora_Base);
+            const Clave = Clave_Slot(Fecha, Hora_Final);
+            if (!Slots_Muertos.includes(Clave)) {
+              Slots_Muertos.push(Clave);
+            }
+            Slots_Muertos_Tipos[Clave] = S.Tipo;
+            if (S.Nombre) {
+              Guardar_Nombre_Slot_Muerto(
+                Clave,
+                S.Nombre,
+                S.Titulo_Visible !== false,
+                Boolean(S.Nombre_Auto)
+              );
+            } else {
+              Sincronizar_Titulo_Slot_Muerto_Clave(
+                Clave,
+                S.Tipo,
+                false
+              );
+            }
+          });
+
+          (Datos.Nombres_Slots || []).forEach((S) => {
+            const Hora_Final = Hora_Dest + (S.Hora - Hora_Base);
+            const Clave = Clave_Slot(Fecha, Hora_Final);
+            if (S.Nombre) {
+              Guardar_Nombre_Slot_Muerto(
+                Clave,
+                S.Nombre,
+                S.Titulo_Visible !== false,
+                Boolean(S.Nombre_Auto)
+              );
+            } else {
+              Limpiar_Nombre_Slot_Muerto(Clave);
+            }
+          });
+
+          (Datos.Eventos || []).forEach((Plantilla) => {
+            const Inicio_N =
+              Hora_Dest + (Plantilla.Inicio_Offset || 0);
+            const Motivo_Conflicto =
+              Obtener_Motivo_Conflicto_Evento(
+                Fecha,
+                Inicio_N,
+                Plantilla.Duracion
+              );
+            if (Motivo_Conflicto) return;
+            const Objetivo =
+              Objetivo_Por_Id(Plantilla.Objetivo_Id);
+            if (!Objetivo) return;
+            if (Objetivo.Es_Bolsa) {
+              const Restantes =
+                Calcular_Horas_Restantes(Objetivo);
+              if (Restantes < Plantilla.Duracion) return;
+            }
+            Eventos.push({
+              Id: `Evento_${Contador_Eventos++}`,
+              Objetivo_Id: Plantilla.Objetivo_Id,
+              Fecha,
+              Inicio: Inicio_N,
+              Duracion: Plantilla.Duracion,
+              Hecho: false,
+              Color: Plantilla.Color,
+              ...(Plantilla.Nota ? { Nota: Plantilla.Nota } : {})
+            });
+          });
+        });
+
+        Mostrar_Toast_Undo(t("toast.horario_pegado"), Snap);
+        Render_Calendario();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Guardar_Estado();
+      }
+
+      async function Limpiar_Horario_Completo(Hora) {
+        const Confirmar = await Mostrar_Dialogo(
+          t("hora.limpiar_horario_confirm"),
+          [
+            {
+              Etiqueta: t("cancelar"),
+              Valor: false,
+              Tipo: "Cancelar"
+            },
+            {
+              Etiqueta: t("hora.limpiar_horario"),
+              Valor: true,
+              Tipo: "Peligro"
+            }
+          ]
+        );
+        if (!Confirmar) return;
+
+        const Snap = Capturar_Snapshot_Undo();
+        const Hora_Base = Number(Hora) || 0;
+        const Dias_Visibles =
+          Obtener_Dias_Visibles_Efectivos();
+        const Fechas = new Set(
+          Dias_Visibles.map((Dia_Index) =>
+            Formatear_Fecha_ISO(
+              Obtener_Fecha_Semana(Dia_Index)
+            )
+          )
+        );
+        const Desde = Hora_Base - 0.0001;
+        const Hasta = Hora_Base + 1 - 0.0001;
+        Eventos = Eventos.filter((Ev) => {
+          if (!Fechas.has(Ev.Fecha)) return true;
+          return Ev.Inicio < Desde || Ev.Inicio >= Hasta;
+        });
+        Dias_Visibles.forEach((Dia_Index) => {
+          const Fecha = Formatear_Fecha_ISO(
+            Obtener_Fecha_Semana(Dia_Index)
+          );
+          Quitar_Slot_Muerto_Silencioso(Fecha, Hora_Base);
+        });
+
+        Render_Calendario();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        if (
+          typeof Focus_Esta_Abierto === "function" &&
+          Focus_Esta_Abierto()
+        ) {
+          Render_Focus_Mode();
+        }
+        Guardar_Estado();
+        Mostrar_Toast_Undo(t("toast.horario_limpiado"), Snap);
+      }
+
+      function Mostrar_Menu_Hora(Hora, Rect) {
+        const Menu = document.getElementById("Dia_Accion_Menu");
+        const Todo_Muerto =
+          Todos_Los_Slots_Son_Muertos_Horario(Hora);
+        const Etiqueta_Block = Todo_Muerto
+          ? t("hora.desbloquear_horario")
+          : t("hora.bloquear_horario");
+
+        Cerrar_Menu_Dia();
+        Seleccionar_Fila_Hora(Hora);
+
+        let Html =
+          `<button class="Dia_Accion_Item" type="button"` +
+          ` data-accion="block">${Etiqueta_Block}</button>`;
+
+        Html +=
+          `<div class="Dia_Accion_Submenu_Grupo">` +
+          `<button class="Dia_Accion_Item Con_Submenu"` +
+          ` type="button" data-accion="horario">` +
+          `<span>${t("hora.mostrar_horario")}</span>` +
+          `<span class="Dia_Accion_Submenu_Chevron">▾</span>` +
+          `</button>` +
+          `<div class="Dia_Accion_Submenu">` +
+          `${Construir_Submenu_Bloques_Horarios_Visibles()}` +
+          `</div>` +
+          `</div>`;
+
+        Html +=
+          `<button class="Dia_Accion_Item" type="button"` +
+          ` data-accion="copiar-hora">` +
+          `${t("hora.copiar_horario")}</button>`;
+
+        if (Portapapeles_Hora) {
+          Html +=
+            `<button class="Dia_Accion_Item" type="button"` +
+            ` data-accion="pegar-hora">` +
+            `${t("hora.pegar_horario")}</button>`;
+        }
+
+        Html +=
+          `<button class="Dia_Accion_Item Dia_Accion_Peligro"` +
+          ` type="button" data-accion="limpiar-hora">` +
+          `${t("hora.limpiar_horario")}</button>`;
+
+        Menu.innerHTML = Html;
+        Menu.style.left = `${Rect.left}px`;
+        Menu.style.top = `${Rect.bottom + 4}px`;
+        Menu.classList.add("Activo");
+        Menu.dataset.horaRef = String(Hora);
+        Reposicionar_Menu_Dia_En_Pantalla(Menu);
+
+        Menu.querySelector(`[data-accion="block"]`)
+          .addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            if (Todo_Muerto) {
+              Desbloquear_Horario_Completo(Hora);
+              return;
+            }
+            const Tipo_Id = await Solicitar_Tipo_Slot_Bloqueo();
+            if (!Tipo_Id) return;
+            Bloquear_Horario_Completo(Hora, Tipo_Id);
+          });
+
+        Menu.querySelector(`[data-accion="horario"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Alternar_Submenu_Menu_Dia(
+              Menu,
+              Ev.currentTarget
+            );
+          });
+
+        Instalar_Submenu_Bloques_Horarios_Visibles(Menu);
+
+        Menu.querySelector(`[data-accion="copiar-hora"]`)
+          .addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Copiar_Horario(Hora);
+          });
+
+        const Btn_Pegar = Menu.querySelector(
+          `[data-accion="pegar-hora"]`
+        );
+        if (Btn_Pegar) {
+          Btn_Pegar.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            void Pegar_Horario(Hora);
+          });
+        }
+
+        Menu.querySelector(`[data-accion="limpiar-hora"]`)
+          .addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Limpiar_Horario_Completo(Hora);
+          });
+
+        // Cerrar al hacer click fuera del menú.
+        // Limpiar listener previo si quedó.
+        if (Fn_Cierre_Menu) {
+          document.removeEventListener("click", Fn_Cierre_Menu);
+          Fn_Cierre_Menu = null;
+        }
+        Fn_Cierre_Menu = (Ev) => {
+          if (!Menu.contains(Ev.target)) Cerrar_Menu_Dia();
+        };
+        document.addEventListener("click", Fn_Cierre_Menu);
       }
 
       function Mostrar_Menu_Dia(
@@ -37538,6 +38367,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           document.removeEventListener("click", Fn_Cierre_Menu);
           Fn_Cierre_Menu = null;
         }
+        Deseleccionar_Fila_Hora();
       }
 
       function Reposicionar_Menu_Dia_En_Pantalla(Menu) {
@@ -52088,6 +52918,50 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Fin.value = Config.Fin_Hora;
         El_Scroll.value = Config.Scroll_Inicial;
 
+        // Bloques horarios (madrugada/mañana/tarde/noche).
+        Config.Bloques_Horarios =
+          Normalizar_Bloques_Horarios(
+            Config.Bloques_Horarios
+          );
+        const Opts_Bloque_Desde =
+          Generar_Opciones_Horas(0, 23);
+        const Opts_Bloque_Hasta =
+          Generar_Opciones_Horas(0, 24);
+        const Pintar_Bloque = (
+          Desde_Id,
+          Hasta_Id,
+          Bloque
+        ) => {
+          const El_Desde = document.getElementById(Desde_Id);
+          const El_Hasta = document.getElementById(Hasta_Id);
+          if (!El_Desde || !El_Hasta || !Bloque) return;
+          El_Desde.innerHTML = Opts_Bloque_Desde;
+          El_Hasta.innerHTML = Opts_Bloque_Hasta;
+          El_Desde.value = String(Bloque.Desde);
+          El_Hasta.value = String(Bloque.Hasta);
+        };
+        const Bloques = Config.Bloques_Horarios;
+        Pintar_Bloque(
+          "Cfg_Bloque_Madrugada_Desde",
+          "Cfg_Bloque_Madrugada_Hasta",
+          Bloques.Madrugada
+        );
+        Pintar_Bloque(
+          "Cfg_Bloque_Manana_Desde",
+          "Cfg_Bloque_Manana_Hasta",
+          Bloques.Manana
+        );
+        Pintar_Bloque(
+          "Cfg_Bloque_Tarde_Desde",
+          "Cfg_Bloque_Tarde_Hasta",
+          Bloques.Tarde
+        );
+        Pintar_Bloque(
+          "Cfg_Bloque_Noche_Desde",
+          "Cfg_Bloque_Noche_Hasta",
+          Bloques.Noche
+        );
+
         // Inicio de semana (corte para contar re-fijadas).
         const El_Sem_Dia = document.getElementById(
           "Cfg_Inicio_Semana_Dia"
@@ -57282,6 +58156,79 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Config.Scroll_Inicial = parseInt(
           document.getElementById("Cfg_Scroll_Inicial").value
         );
+        Config.Scroll_Inicial = Math.max(
+          Config.Inicio_Hora,
+          Math.min(
+            Config.Fin_Hora - 1,
+            Number(Config.Scroll_Inicial) || Config.Inicio_Hora
+          )
+        );
+
+        const Leer_Hora_Bloque = (Id, Def) => {
+          const Valor = parseInt(
+            document.getElementById(Id)?.value,
+            10
+          );
+          return Number.isFinite(Valor) ? Valor : Def;
+        };
+
+        const Bloques_Nuevo = Normalizar_Bloques_Horarios({
+          Madrugada: {
+            Desde: Leer_Hora_Bloque(
+              "Cfg_Bloque_Madrugada_Desde",
+              0
+            ),
+            Hasta: Leer_Hora_Bloque(
+              "Cfg_Bloque_Madrugada_Hasta",
+              8
+            )
+          },
+          Manana: {
+            Desde: Leer_Hora_Bloque(
+              "Cfg_Bloque_Manana_Desde",
+              8
+            ),
+            Hasta: Leer_Hora_Bloque(
+              "Cfg_Bloque_Manana_Hasta",
+              13
+            )
+          },
+          Tarde: {
+            Desde: Leer_Hora_Bloque(
+              "Cfg_Bloque_Tarde_Desde",
+              13
+            ),
+            Hasta: Leer_Hora_Bloque(
+              "Cfg_Bloque_Tarde_Hasta",
+              20
+            )
+          },
+          Noche: {
+            Desde: Leer_Hora_Bloque(
+              "Cfg_Bloque_Noche_Desde",
+              20
+            ),
+            Hasta: Leer_Hora_Bloque(
+              "Cfg_Bloque_Noche_Hasta",
+              0
+            )
+          }
+        });
+
+        const Bloques_Ids = Obtener_Ids_Bloques_Horarios();
+        for (const Bloque_Id of Bloques_Ids) {
+          const Bloque = Bloques_Nuevo[Bloque_Id];
+          const Desde = Number(Bloque?.Desde) || 0;
+          const Hasta = Resolver_Hasta_Bloque(
+            Desde,
+            Number(Bloque?.Hasta) || 0
+          );
+          if (Hasta <= Desde) {
+            Mostrar_Toast_Error(t("config.bloque_invalido"));
+            return;
+          }
+        }
+        Config.Bloques_Horarios = Bloques_Nuevo;
 
         // Inicio de semana (corte para contar re-fijadas).
         const Sem_Dia_El = document.getElementById(
@@ -57508,8 +58455,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Calendario();
         const El_Viewport = document.querySelector(".Calendario_Viewport");
         if (El_Viewport) {
+          const Segmentos_Horas =
+            Obtener_Segmentos_Horarios_Visibles();
+          const Offset =
+            Calcular_Offset_Visible_Desde_Hora(
+              Config.Scroll_Inicial,
+              Segmentos_Horas
+            );
           El_Viewport.scrollTop =
-            Config.Scroll_Inicial * Config.Altura_Slot;
+            Offset * Config.Altura_Slot;
         }
         Guardar_Estado();
       }
@@ -59239,6 +60193,196 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return true;
         });
         return Filtrados.length ? Filtrados : Base;
+      }
+
+      // --- Horas visibles por bloques (madrugada/mañana/...) ---
+
+      function Obtener_Ids_Bloques_Horarios() {
+        return ["Madrugada", "Manana", "Tarde", "Noche"];
+      }
+
+      function Resolver_Hasta_Bloque(Desde, Hasta) {
+        const D = Math.max(0, Math.min(24, Number(Desde) || 0));
+        let H = Math.max(0, Math.min(24, Number(Hasta) || 0));
+        if (H === 0 && D > 0) H = 24;
+        return H;
+      }
+
+      function Normalizar_Bloques_Horarios(Bloques) {
+        const Def = {
+          Madrugada: { Desde: 0, Hasta: 8 },
+          Manana: { Desde: 8, Hasta: 13 },
+          Tarde: { Desde: 13, Hasta: 20 },
+          Noche: { Desde: 20, Hasta: 0 }
+        };
+        const Origen =
+          Bloques && typeof Bloques === "object" ? Bloques : {};
+        const Normalizado = {};
+        Obtener_Ids_Bloques_Horarios().forEach((Id) => {
+          const Base = Origen[Id] || {};
+          const Def_B = Def[Id];
+          const Desde = Number.isFinite(Number(Base.Desde))
+            ? Math.trunc(Number(Base.Desde))
+            : Def_B.Desde;
+          const Hasta = Number.isFinite(Number(Base.Hasta))
+            ? Math.trunc(Number(Base.Hasta))
+            : Def_B.Hasta;
+          Normalizado[Id] = {
+            Desde: Math.max(0, Math.min(23, Desde)),
+            Hasta: Math.max(0, Math.min(24, Hasta))
+          };
+        });
+        return Normalizado;
+      }
+
+      function Normalizar_Bloques_Horarios_Visibles(Lista) {
+        const Base = Obtener_Ids_Bloques_Horarios();
+        const Permitidos = new Set(Base);
+        const Filtrado = Array.isArray(Lista)
+          ? Lista.map((X) => String(X || "")).filter((Id) =>
+              Permitidos.has(Id)
+            )
+          : [];
+        const Unicos = [...new Set(Filtrado)];
+        return Unicos.length ? Unicos : Base;
+      }
+
+      function Obtener_Bloques_Horarios_Visibles_Base() {
+        return Normalizar_Bloques_Horarios_Visibles(
+          Config.Bloques_Horarios_Visibles
+        );
+      }
+
+      function Obtener_Segmentos_Horarios_Visibles() {
+        const Bloques = Normalizar_Bloques_Horarios(
+          Config.Bloques_Horarios
+        );
+        const Visibles = Obtener_Bloques_Horarios_Visibles_Base();
+        const Segmentos = [];
+        Visibles.forEach((Id) => {
+          const Bloque = Bloques[Id];
+          if (!Bloque) return;
+          const Desde_Bloque =
+            Math.max(0, Math.min(24, Number(Bloque.Desde) || 0));
+          const Desde = Math.max(
+            Config.Inicio_Hora,
+            Math.min(Config.Fin_Hora, Desde_Bloque)
+          );
+          const Hasta_Resuelto = Resolver_Hasta_Bloque(
+            Desde,
+            Number(Bloque.Hasta) || 0
+          );
+          const Hasta = Math.max(
+            Config.Inicio_Hora,
+            Math.min(Config.Fin_Hora, Hasta_Resuelto)
+          );
+          if (Hasta > Desde) Segmentos.push({ Desde, Hasta });
+        });
+
+        Segmentos.sort((A, B) => A.Desde - B.Desde);
+        const Unificados = [];
+        Segmentos.forEach((S) => {
+          const Ult = Unificados[Unificados.length - 1];
+          if (!Ult) {
+            Unificados.push({ ...S });
+            return;
+          }
+          if (S.Desde <= Ult.Hasta + 0.0001) {
+            Ult.Hasta = Math.max(Ult.Hasta, S.Hasta);
+            return;
+          }
+          Unificados.push({ ...S });
+        });
+
+        if (!Unificados.length) {
+          return [
+            {
+              Desde: Config.Inicio_Hora,
+              Hasta: Config.Fin_Hora
+            }
+          ];
+        }
+        return Unificados;
+      }
+
+      function Calcular_Duracion_Segmentos_Horarios(Segmentos) {
+        if (!Array.isArray(Segmentos)) return 0;
+        return Segmentos.reduce((Total, S) => {
+          const D = Number(S?.Desde) || 0;
+          const H = Number(S?.Hasta) || 0;
+          return Total + Math.max(0, H - D);
+        }, 0);
+      }
+
+      function Calcular_Offset_Visible_Desde_Hora(
+        Hora,
+        Segmentos = null
+      ) {
+        const Segs = Array.isArray(Segmentos)
+          ? Segmentos
+          : Obtener_Segmentos_Horarios_Visibles();
+        const H = Number(Hora) || 0;
+        let Acum = 0;
+        for (const S of Segs) {
+          if (!S) continue;
+          if (H >= S.Hasta) {
+            Acum += S.Hasta - S.Desde;
+            continue;
+          }
+          if (H <= S.Desde) return Acum;
+          Acum += H - S.Desde;
+          return Acum;
+        }
+        return Acum;
+      }
+
+      function Calcular_Hora_Desde_Offset_Visible(
+        Offset,
+        Segmentos = null
+      ) {
+        const Segs = Array.isArray(Segmentos)
+          ? Segmentos
+          : Obtener_Segmentos_Horarios_Visibles();
+        let Resto = Math.max(0, Number(Offset) || 0);
+        for (const S of Segs) {
+          if (!S) continue;
+          const Len = S.Hasta - S.Desde;
+          if (Resto < Len) return S.Desde + Resto;
+          Resto -= Len;
+        }
+        const Ult = Segs[Segs.length - 1];
+        return Ult ? Ult.Hasta : Config.Inicio_Hora;
+      }
+
+      function Rango_Horas_Esta_Visible(
+        Inicio,
+        Duracion,
+        Segmentos = null
+      ) {
+        const Segs = Array.isArray(Segmentos)
+          ? Segmentos
+          : Obtener_Segmentos_Horarios_Visibles();
+        const I = Number(Inicio) || 0;
+        const D = Number(Duracion) || 0;
+        const Fin = I + D;
+        return Segs.some((S) => (
+          S &&
+          I >= S.Desde - 0.0001 &&
+          Fin <= S.Hasta + 0.0001
+        ));
+      }
+
+      function Obtener_Horas_Visibles_Efectivas() {
+        const Segmentos = Obtener_Segmentos_Horarios_Visibles();
+        const Horas = [];
+        Segmentos.forEach((S) => {
+          const Desde = Math.ceil(Number(S?.Desde) || 0);
+          const Hasta = Math.floor(Number(S?.Hasta) || 0);
+          for (let H = Desde; H < Hasta; H++) {
+            if (H >= 0 && H <= 23) Horas.push(H);
+          }
+        });
+        return Horas;
       }
 
       function Obtener_Info_Semana_ISO(Fecha) {
@@ -62270,14 +63414,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Fecha, Inicio, Duracion, Evento_Omitir_Id = null
       ) {
         const Fin = Inicio + Duracion;
-        if (
-          Inicio < Config.Inicio_Hora ||
-          Fin > Config.Fin_Hora + 0.0001
-        ) {
-          return "Ese bloque se sale del horario visible.";
+        if (!Rango_Horas_Esta_Visible(Inicio, Duracion)) {
+          return t("cal_multi.conflicto_visible");
         }
         if (Evento_Cae_En_Slot_Muerto(Fecha, Inicio, Duracion)) {
-          return "Ese rango toca horas bloqueadas.";
+          return t("cal_multi.conflicto_bloqueado");
         }
         if (
           Obtener_Evento_Conflicto(
@@ -62287,7 +63428,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Evento_Omitir_Id
           )
         ) {
-          return "Ese horario ya está ocupado.";
+          return t("cal_multi.conflicto_ocupado");
         }
         return "";
       }
@@ -62295,7 +63436,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Calcular_Max_Duracion_Evento(
         Fecha, Inicio, Evento_Omitir_Id = null
       ) {
-        let Max_Dur = Config.Fin_Hora - Inicio;
+        const Segmentos =
+          Obtener_Segmentos_Horarios_Visibles();
+        const Seg = Segmentos.find((S) =>
+          S &&
+          Inicio >= S.Desde - 0.0001 &&
+          Inicio < S.Hasta + 0.0001
+        );
+        let Max_Dur = Seg ? (Seg.Hasta - Inicio) : 0;
         Eventos.forEach((Otro) => {
           if (Otro.Id === Evento_Omitir_Id) return;
           if (Otro.Fecha !== Fecha) return;
@@ -62303,9 +63451,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Dist = Otro.Inicio - Inicio;
           if (Dist < Max_Dur) Max_Dur = Dist;
         });
+        const Hasta_Max = Seg ? Seg.Hasta : Config.Fin_Hora;
         for (
           let Hora = Math.floor(Inicio);
-          Hora < Config.Fin_Hora;
+          Hora < Hasta_Max;
           Hora++
         ) {
           if (!Slot_Es_Muerto(Fecha, Hora)) continue;
@@ -62895,6 +64044,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Evento_Esta_Visible_En_Calendario(Evento) {
         if (!Evento?.Fecha) return false;
+        if (
+          !Rango_Horas_Esta_Visible(
+            Evento.Inicio,
+            Evento.Duracion
+          )
+        ) {
+          return false;
+        }
         return Boolean(
           El_Calendario?.querySelector(
             `.Dia_Columna[data-fecha="${Evento.Fecha}"]`
@@ -65984,6 +67141,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Dias_Visibles: Config.Dias_Visibles,
             Ocultar_Dias_Automatico:
               Config.Ocultar_Dias_Automatico,
+            Bloques_Horarios: Config.Bloques_Horarios,
+            Bloques_Horarios_Visibles:
+              Config.Bloques_Horarios_Visibles,
             Slots_Muertos_Default: Config.Slots_Muertos_Default,
             Agrupar_Por_Categorias: Config.Agrupar_Por_Categorias,
             Globito_Activo: Config.Globito_Activo,
@@ -66204,6 +67364,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (Extra.Ocultar_Dias_Automatico)
               Config.Ocultar_Dias_Automatico =
                 Extra.Ocultar_Dias_Automatico;
+            if (
+              Extra.Bloques_Horarios &&
+              typeof Extra.Bloques_Horarios === "object"
+            ) {
+              Config.Bloques_Horarios =
+                Normalizar_Bloques_Horarios({
+                  ...Config.Bloques_Horarios,
+                  ...Extra.Bloques_Horarios
+                });
+            }
+            if (Array.isArray(Extra.Bloques_Horarios_Visibles)) {
+              Config.Bloques_Horarios_Visibles =
+                Normalizar_Bloques_Horarios_Visibles(
+                  Extra.Bloques_Horarios_Visibles
+                );
+            }
             if (Extra.Slots_Muertos_Default)
               Config.Slots_Muertos_Default = Extra.Slots_Muertos_Default;
             if (Extra.Agrupar_Por_Categorias !== undefined)
@@ -68743,10 +69919,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Vacio = document.createElement("div");
         Vacio.className = "Hora_Vacio";
         Columna_Horas.appendChild(Vacio);
-        for (let Hora = Config.Inicio_Hora; Hora < Config.Fin_Hora; Hora++) {
+        const Horas_Visibles =
+          Obtener_Horas_Visibles_Efectivas();
+        for (const Hora of Horas_Visibles) {
           const Item = document.createElement("div");
           Item.className = "Hora_Item";
+          Item.dataset.hora = Hora.toString();
           Item.textContent = `${Hora.toString().padStart(2, "0")}:00`;
+          Item.addEventListener("contextmenu", (Ev) => {
+            Ev.preventDefault();
+            Ev.stopPropagation();
+            Mostrar_Menu_Hora(
+              Hora,
+              Ev.currentTarget.getBoundingClientRect()
+            );
+          });
           Columna_Horas.appendChild(Item);
         }
         El_Calendario.appendChild(Columna_Horas);
@@ -68784,7 +69971,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cuerpo.addEventListener("dragover", (Evento) => Evento.preventDefault());
           Cuerpo.addEventListener("drop", Manejar_Drop_Cuerpo);
 
-          for (let Hora = Config.Inicio_Hora; Hora < Config.Fin_Hora; Hora++) {
+          for (const Hora of Horas_Visibles) {
           const Slot = document.createElement("div");
           Slot.className = "Slot";
           Slot.dataset.dia = Dia_Index.toString();
@@ -69102,9 +70289,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .querySelectorAll(".Evento")
           .forEach((Nodo) => Nodo.remove());
         Normalizar_Eventos_Multi_Seleccion();
+        const Segmentos_Horas =
+          Obtener_Segmentos_Horarios_Visibles();
 
         Eventos.forEach((Evento) => {
           if (!Evento.Fecha) return;
+          if (
+            !Rango_Horas_Esta_Visible(
+              Evento.Inicio,
+              Evento.Duracion,
+              Segmentos_Horas
+            )
+          ) return;
           const Columna = El_Calendario.querySelector(
             `.Dia_Columna[data-fecha="${Evento.Fecha}"]`
           );
@@ -69131,11 +70327,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Bloque.draggable = true;
           Bloque.dataset.id = Evento.Id;
           Bloque.dataset.duracion = Evento.Duracion.toString();
+          const Top =
+            Calcular_Offset_Visible_Desde_Hora(
+              Evento.Inicio,
+              Segmentos_Horas
+            );
           Bloque.style.top =
-            `${
-              (Evento.Inicio - Config.Inicio_Hora) *
-              Config.Altura_Slot + 3
-            }px`;
+            `${Top * Config.Altura_Slot + 3}px`;
           Bloque.style.height =
             `${Evento.Duracion * Config.Altura_Slot - 6}px`;
           Bloque.style.background = Color;
@@ -70333,11 +71531,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Rect = Cuerpo.getBoundingClientRect();
         const Posicion_Y = Evento.clientY - Rect.top;
-        const Hora_Exacta = Config.Inicio_Hora +
-          Math.max(0, Math.min(
+        const Segmentos_Horas =
+          Obtener_Segmentos_Horarios_Visibles();
+        const Duracion_Total =
+          Calcular_Duracion_Segmentos_Horarios(
+            Segmentos_Horas
+          );
+        const Offset_Visible = Math.max(
+          0,
+          Math.min(
             Posicion_Y / Config.Altura_Slot,
-            Config.Fin_Hora - Config.Inicio_Hora - 0.001
-          ));
+            Math.max(0, Duracion_Total - 0.001)
+          )
+        );
+        const Hora_Exacta =
+          Calcular_Hora_Desde_Offset_Visible(
+            Offset_Visible,
+            Segmentos_Horas
+          );
         // Snap según la granularidad de Duracion_Default.
         const Dur_Cfg2 = Config.Duracion_Default;
         const Gran2 =
@@ -73502,8 +74713,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Posicionar el scroll del calendario según Config.Scroll_Inicial.
         const El_Viewport = document.querySelector(".Calendario_Viewport");
         if (El_Viewport) {
+          const Segmentos_Horas =
+            Obtener_Segmentos_Horarios_Visibles();
+          const Offset =
+            Calcular_Offset_Visible_Desde_Hora(
+              Config.Scroll_Inicial,
+              Segmentos_Horas
+            );
           El_Viewport.scrollTop =
-            Config.Scroll_Inicial * Config.Altura_Slot;
+            Offset * Config.Altura_Slot;
         }
       }
 
