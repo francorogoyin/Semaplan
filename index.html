@@ -67187,6 +67187,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
           );
         }
+        Grupo.push(
+          Html_Menu_Dia_Accion(
+            "borrar-objetivo",
+            t("borrar"),
+            "Peligro"
+          )
+        );
         Menu.innerHTML = Construir_Menu_Dia_Por_Grupos([Grupo]);
         Menu.style.left = `${X}px`;
         Menu.style.top = `${Y}px`;
@@ -67238,6 +67245,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Pegar_Objetivos_Multi_En_Semana_Actual();
+          });
+        Menu.querySelector(`[data-acc="borrar-objetivo"]`)
+          ?.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            if (!await Confirmar_Borrar_Objetivo(Objetivo)) return;
+            await Borrar_Objetivo(Objetivo.Id);
           });
         if (Fn_Cierre_Menu) {
           document.removeEventListener("click", Fn_Cierre_Menu);
