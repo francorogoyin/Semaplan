@@ -49845,29 +49845,56 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Objetivo.Eliminado_Local) return false;
         if (Objetivo.Id === Objetivo_Padre.Id) return false;
         const Padre_Id = (Objetivo_Padre.Id || "").toString();
-        const Parent_Id = (
-          Objetivo.Parent_Objetivo_Id ||
-          Objetivo.Objetivo_Padre_Id ||
-          ""
-        ).toString();
-        if (
-          Parent_Id &&
-          Parent_Id !== Padre_Id &&
-          !Planes_Objetivo_Relacionado_Importacion(
-            Objetivo_Padre,
-            Objetivo
-          )
-        ) {
-          return false;
-        }
         if (
           Planes_Clave_Objetivo_Importable(Objetivo) !==
           Planes_Clave_Objetivo_Importable(Objetivo_Padre)
         ) {
           return false;
         }
-        return Planes_Unidad_Label(Objetivo) ===
-          Planes_Unidad_Label(Objetivo_Padre);
+        if (
+          Planes_Unidad_Label(Objetivo) !==
+          Planes_Unidad_Label(Objetivo_Padre)
+        ) {
+          return false;
+        }
+        const Parent_Id = (
+          Objetivo.Parent_Objetivo_Id ||
+          Objetivo.Objetivo_Padre_Id ||
+          ""
+        ).toString();
+        if (!Parent_Id || Parent_Id === Padre_Id) return true;
+        if (
+          Planes_Objetivo_Relacionado_Importacion(
+            Objetivo_Padre,
+            Objetivo
+          )
+        ) return true;
+        return Objetivo.Origen_Objetivo === "Importado";
+      }
+
+      function Planes_Objetivo_Equivalente_De_Importacion(
+        Objetivo_Padre,
+        Periodo
+      ) {
+        const Padre_Id = (Objetivo_Padre?.Id || "").toString();
+        return Planes_Objetivos_De_Periodo(Periodo?.Id)
+          .filter((Objetivo) =>
+            Planes_Objetivo_Equivalente_Importacion(
+              Objetivo_Padre,
+              Objetivo
+            )
+          )
+          .sort((A, B) => {
+            const A_Padre = Planes_Objetivo_Padre_Id(A) === Padre_Id;
+            const B_Padre = Planes_Objetivo_Padre_Id(B) === Padre_Id;
+            if (A_Padre !== B_Padre) return A_Padre ? -1 : 1;
+            const A_Importado = A.Origen_Objetivo === "Importado";
+            const B_Importado = B.Origen_Objetivo === "Importado";
+            if (A_Importado !== B_Importado) {
+              return A_Importado ? -1 : 1;
+            }
+            return (Number(A.Orden) || 0) - (Number(B.Orden) || 0);
+          })[0] || null;
       }
 
       function Planes_Avance_Equivalente_Importacion(
@@ -49992,6 +50019,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Hijo = Planes_Objetivo_Hijo_De(
             Objetivo_Padre?.Id,
             Periodo?.Id
+          ) || Planes_Objetivo_Equivalente_De_Importacion(
+            Objetivo_Padre,
+            Periodo
           );
           if (!Hijo || Hijo.Eliminado_Local) return;
           Hijos_Capa.set(Periodo.Id, Hijo);
@@ -50571,7 +50601,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               : null;
           Periodos_Destino.forEach((Periodo) => {
             let Hijo =
-              Planes_Objetivo_Hijo_De(Objetivo_Padre.Id, Periodo.Id);
+              Planes_Objetivo_Hijo_De(Objetivo_Padre.Id, Periodo.Id) ||
+              Planes_Objetivo_Equivalente_De_Importacion(
+                Objetivo_Padre,
+                Periodo
+              );
             const Es_Nuevo = !Hijo;
             const Antes = Hijo
               ? JSON.stringify(

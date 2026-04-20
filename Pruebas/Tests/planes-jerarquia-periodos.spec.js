@@ -2258,6 +2258,125 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Importar pendiente reusa importados con padre obsoleto",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 2;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Libros obsoleto",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 50,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Crear_Hijo_Obsoleto = (Periodo, Target, Aporte, Fecha) => {
+      const Hijo = Planes_Crear_Objetivo_Silencioso(
+        Periodo.Id,
+        Planes_Clonar_Datos_Objetivo(Padre, {
+          Parent_Objetivo_Id: "Padre_Obsoleto",
+          Objetivo_Padre_Id: "Padre_Obsoleto",
+          Origen_Objetivo: "Importado",
+          Target_Total: Target,
+          Target_Automatico: Target,
+          Target_Actual: Target
+        })
+      );
+      const Sub_Id = `Sub_${Periodo.Id}`;
+      Modelo.Subobjetivos[Sub_Id] = Normalizar_Subobjetivo_Plan({
+        Id: Sub_Id,
+        Objetivo_Id: Hijo.Id,
+        Texto: "Libros terminados",
+        Hecha: true,
+        Aporte_Meta: Aporte,
+        Fecha_Fin: Fecha
+      });
+      Planes_Actualizar_Progreso(Hijo);
+      return Hijo;
+    };
+    Crear_Hijo_Obsoleto(Trimestres[0], 12.5, 6, "31/03/2026");
+    Crear_Hijo_Obsoleto(
+      Trimestres[1],
+      50 / 3,
+      5,
+      "15/04/2026"
+    );
+
+    const Destinos = Trimestres.slice(1);
+    const Info = Planes_Info_Pendiente_Importacion(
+      Padre,
+      Anio,
+      Destinos
+    );
+    const Resumen = Planes_Importar_Objetivos_Padres_A_Periodos(
+      Destinos.map((Periodo) => ({
+        Periodo_Id: Periodo.Id,
+        Objetivo_Ids: [Padre.Id]
+      })),
+      { Modo: "Pendiente" }
+    );
+    const Hijos = Trimestres.map((Periodo) => {
+      const Objetivos = Object.values(Modelo.Objetivos)
+        .filter((Objetivo) =>
+          Objetivo.Periodo_Id === Periodo.Id &&
+          Objetivo.Nombre === "Libros obsoleto" &&
+          !Objetivo.Eliminado_Local
+        );
+      const Hijo = Planes_Objetivo_Hijo_De(Padre.Id, Periodo.Id);
+      const Visible = Objetivos[0];
+      return {
+        Cantidad: Objetivos.length,
+        Target_Info: Info.Targets.get(Periodo.Id),
+        Target: (Hijo || Visible)?.Target_Total || null,
+        Progreso: (Hijo || Visible)?.Progreso_Total || null,
+        Parent: (Hijo || Visible)?.Parent_Objetivo_Id || "",
+        Padre: (Hijo || Visible)?.Objetivo_Padre_Id || ""
+      };
+    });
+    return { Resumen, Hijos };
+  });
+
+  expect(Resultado.Resumen.Creados).toBe(2);
+  expect(Resultado.Resumen.Actualizados).toBe(1);
+  expect(Resultado.Hijos[0].Cantidad).toBe(1);
+  expect(Resultado.Hijos[0].Target).toBeCloseTo(12.5, 5);
+  expect(Resultado.Hijos[0].Progreso).toBe(6);
+  [1, 2, 3].forEach((Indice) => {
+    expect(Resultado.Hijos[Indice].Cantidad).toBe(1);
+    expect(Resultado.Hijos[Indice].Target_Info)
+      .toBeCloseTo(44 / 3, 5);
+    expect(Resultado.Hijos[Indice].Target)
+      .toBeCloseTo(44 / 3, 5);
+    expect(Resultado.Hijos[Indice].Parent).toBeTruthy();
+    expect(Resultado.Hijos[Indice].Padre).toBeTruthy();
+  });
+  expect(Resultado.Hijos[1].Progreso).toBe(5);
+  expect(errores).toEqual([]);
+});
+
 test("Importar pendiente descuenta hijos indirectos",
 async ({ page }) => {
   const errores = [];
