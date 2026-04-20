@@ -2322,6 +2322,139 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Importar pendiente recalcula importados borrados fijados",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 2;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Libros borrados",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 50,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Crear_Hijo_Borrado = (
+      Periodo,
+      Target,
+      Aporte = 0,
+      Fecha = ""
+    ) => {
+      const Hijo = Planes_Crear_Objetivo_Silencioso(
+        Periodo.Id,
+        Planes_Clonar_Datos_Objetivo(Padre, {
+          Objetivo_Padre_Id: Padre.Id,
+          Target_Total: Target,
+          Target_Automatico: Target,
+          Target_Actual: Target,
+          Regla_Distribucion: "Pendiente"
+        })
+      );
+      Hijo.Fijado = true;
+      Hijo.Target_Fijado = Target;
+      Hijo.Target_Fijado_Por_Usuario = true;
+      Hijo.Auto_Redistribucion = false;
+      Hijo.Estado_Vinculo = "Eliminado";
+      if (Aporte) {
+        const Sub_Id = `Sub_${Periodo.Id}`;
+        Modelo.Subobjetivos[Sub_Id] = Normalizar_Subobjetivo_Plan({
+          Id: Sub_Id,
+          Objetivo_Id: Hijo.Id,
+          Texto: "Libros terminados",
+          Hecha: true,
+          Aporte_Meta: Aporte,
+          Fecha_Fin: Fecha
+        });
+      }
+      Planes_Actualizar_Progreso(Hijo);
+      Hijo.Eliminado_Local = true;
+      return Hijo;
+    };
+    Crear_Hijo_Borrado(Trimestres[0], 12.5, 6, "31/03/2026");
+    Crear_Hijo_Borrado(Trimestres[1], 50 / 3, 5, "15/04/2026");
+    Crear_Hijo_Borrado(Trimestres[2], 50 / 3);
+    Crear_Hijo_Borrado(Trimestres[3], 50 / 3);
+    Planes_Actualizar_Progreso(Padre);
+
+    const Info = Planes_Info_Pendiente_Importacion(
+      Padre,
+      Anio,
+      Trimestres
+    );
+    const Resumen = Planes_Importar_Objetivos_Padres_A_Periodos(
+      Trimestres.map((Periodo) => ({
+        Periodo_Id: Periodo.Id,
+        Objetivo_Ids: [Padre.Id]
+      })),
+      { Modo: "Pendiente" }
+    );
+    const Hijos = Trimestres.map((Periodo) => {
+      const Hijo = Planes_Objetivo_Hijo_De(Padre.Id, Periodo.Id);
+      const Activos = Object.values(Modelo.Objetivos)
+        .filter((Objetivo) =>
+          Objetivo.Periodo_Id === Periodo.Id &&
+          Objetivo.Nombre === "Libros borrados" &&
+          !Objetivo.Eliminado_Local
+        );
+      return {
+        Cantidad: Activos.length,
+        Target_Info: Info.Targets.get(Periodo.Id),
+        Target: Hijo.Target_Total,
+        Progreso: Hijo.Progreso_Total,
+        Eliminado: Hijo.Eliminado_Local,
+        Fijado: Hijo.Fijado,
+        Fijado_Usuario: Hijo.Target_Fijado_Por_Usuario,
+        Auto_Redistribucion: Hijo.Auto_Redistribucion !== false
+      };
+    });
+    return { Resumen, Hijos };
+  });
+
+  expect(Resultado.Resumen.Restaurados).toBe(4);
+  expect(Resultado.Hijos[0].Cantidad).toBe(1);
+  expect(Resultado.Hijos[0].Target_Info).toBeCloseTo(12.5, 5);
+  expect(Resultado.Hijos[0].Target).toBeCloseTo(12.5, 5);
+  expect(Resultado.Hijos[0].Progreso).toBe(6);
+  [1, 2, 3].forEach((Indice) => {
+    expect(Resultado.Hijos[Indice].Cantidad).toBe(1);
+    expect(Resultado.Hijos[Indice].Target_Info)
+      .toBeCloseTo(44 / 3, 5);
+    expect(Resultado.Hijos[Indice].Target)
+      .toBeCloseTo(44 / 3, 5);
+  });
+  Resultado.Hijos.forEach((Hijo) => {
+    expect(Hijo.Eliminado).toBe(false);
+    expect(Hijo.Fijado).toBe(false);
+    expect(Hijo.Fijado_Usuario).toBe(false);
+    expect(Hijo.Auto_Redistribucion).toBe(true);
+  });
+  expect(Resultado.Hijos[1].Progreso).toBe(5);
+  expect(errores).toEqual([]);
+});
+
 test("Importar pendiente reusa importados con padre obsoleto",
 async ({ page }) => {
   const errores = [];

@@ -50034,12 +50034,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Objetivo_Bloquea_Pendiente_Importacion(
         Objetivo
       ) {
+        if (
+          !Objetivo ||
+          Objetivo.Eliminado_Local ||
+          Planes_Objetivo_Importado_Descartado(Objetivo)
+        ) {
+          return false;
+        }
         return Boolean(
-          Objetivo &&
-          (
-            Objetivo.Fijado ||
-            Objetivo.Target_Fijado_Por_Usuario
-          )
+          Objetivo.Fijado ||
+          Objetivo.Target_Fijado_Por_Usuario
         );
       }
 
@@ -50699,6 +50703,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Boolean(Hijo.Eliminado_Local) ||
                 Planes_Objetivo_Importado_Descartado(Hijo)
               );
+            if (Estaba_Descartado) {
+              Hijo.Fijado = false;
+              Hijo.Target_Fijado = 0;
+              Hijo.Target_Fijado_Por_Usuario = false;
+              Hijo.Auto_Redistribucion = true;
+            }
             Hijo.Eliminado_Local = false;
             Planes_Restaurar_Vinculo_Objetivo(Hijo);
             Planes_Actualizar_Meta_Hijo_Importado(Objetivo_Padre, Hijo);
