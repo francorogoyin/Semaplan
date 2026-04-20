@@ -4201,21 +4201,13 @@
       }
 
       .Planes_Objetivo_Card.Atrasado {
-        border-bottom-color: rgba(166, 54, 49, 0.24);
-        background: rgba(166, 54, 49, 0.045);
-      }
-
-      .Planes_Objetivo_Card.Atrasado.Expandida {
-        box-shadow: inset 3px 0 0 rgba(166, 54, 49, 0.72);
+        border-bottom-color: rgba(0, 0, 0, 0.08);
+        background: transparent;
       }
 
       .Planes_Objetivo_Card.Saldado {
-        border-bottom-color: rgba(47, 141, 85, 0.22);
-        background: rgba(47, 141, 85, 0.04);
-      }
-
-      .Planes_Objetivo_Card.Saldado.Expandida {
-        box-shadow: inset 3px 0 0 rgba(47, 141, 85, 0.72);
+        border-bottom-color: rgba(0, 0, 0, 0.08);
+        background: transparent;
       }
 
       .Planes_Objetivo_Card.Vista_Lista {
@@ -4856,23 +4848,35 @@
         line-height: 1;
       }
 
-      .Planes_Objetivo_Card.Atrasado
+      .Planes_Objetivo_Card.Atrasado.Expandida
         .Planes_Objetivo_Porcentaje {
         background: #a63631;
       }
 
-      .Planes_Objetivo_Card.Atrasado
+      .Planes_Objetivo_Card.Atrasado:not(.Expandida)
+        .Planes_Objetivo_Porcentaje {
+        background: transparent;
+        color: #a63631;
+      }
+
+      .Planes_Objetivo_Card.Atrasado.Expandida
         .Planes_Objetivo_Estado {
         border-color: rgba(166, 54, 49, 0.24);
         background: rgba(166, 54, 49, 0.1);
       }
 
-      .Planes_Objetivo_Card.Saldado
+      .Planes_Objetivo_Card.Saldado.Expandida
         .Planes_Objetivo_Porcentaje {
         background: #2f8d55;
       }
 
-      .Planes_Objetivo_Card.Saldado
+      .Planes_Objetivo_Card.Saldado:not(.Expandida)
+        .Planes_Objetivo_Porcentaje {
+        background: transparent;
+        color: #2f8d55;
+      }
+
+      .Planes_Objetivo_Card.Saldado.Expandida
         .Planes_Objetivo_Estado {
         border-color: rgba(47, 141, 85, 0.24);
         background: rgba(47, 141, 85, 0.1);
@@ -50092,6 +50096,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Planes_Periodo_Real_Importacion(Periodo) {
+        return Object.values(Asegurar_Modelo_Planes().Periodos)
+          .find((Item) =>
+            !Item.Eliminado_Local &&
+            Planes_Periodos_Equivalentes(Item, Periodo)
+          ) || Periodo;
+      }
+
       function Planes_Info_Pendiente_Importacion(
         Objetivo_Padre,
         Periodo_Padre,
@@ -50101,7 +50113,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Targets: new Map(),
           Avances: new Map()
         };
-        const Target = Number(Objetivo_Padre?.Target_Total) || 0;
         const Destinos = Array.isArray(Periodos_Destino)
           ? Periodos_Destino
           : [];
@@ -50113,21 +50124,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Periodo_Padre,
           Tipo_Destino
         );
-        const Avances_Reales = new Map();
-        const Avances_Importables = new Map();
         const Avances_Previos =
           Planes_Avance_Manual_Previo_Cerrado_Importacion(
             Objetivo_Padre,
             Periodo_Padre,
             Periodos_Capa
           );
-        Periodos_Capa.forEach((Periodo) => {
-          const Periodo_Real = Object.values(
-            Asegurar_Modelo_Planes().Periodos
-          ).find((P) =>
-            !P.Eliminado_Local &&
-            Planes_Periodos_Equivalentes(P, Periodo)
-          ) || Periodo;
+        const Periodos_Info = Periodos_Capa.map((Periodo) => {
+          const Periodo_Real =
+            Planes_Periodo_Real_Importacion(Periodo);
+          const Base = Planes_Target_Proporcional_Importacion(
+            Objetivo_Padre,
+            Periodo_Padre,
+            Periodo
+          );
+          const Pasado =
+            Planes_Periodo_Cerrado_Importacion(Periodo);
           const Importable =
             Planes_Avances_Manuales_Objetivo_En_Periodo(
               Objetivo_Padre,
@@ -50150,26 +50162,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Objetivo_Padre,
               Periodo_Real
             );
-          Avances_Importables.set(Periodo.Id, Importable);
-          Avances_Reales.set(
-            Periodo.Id,
-            Math.max(Real_Padre, Real_Hijo, Real_Equivalente)
+          const Realizado = Math.max(
+            Real_Padre,
+            Real_Hijo,
+            Real_Equivalente
           );
-        });
-        const Cerrados = Periodos_Capa.filter(
-          Planes_Periodo_Cerrado_Importacion
-        );
-        const Abiertos = Periodos_Capa.filter((Periodo) =>
-          !Planes_Periodo_Cerrado_Importacion(Periodo)
-        );
-        const Hijos_Capa = new Map();
-        Periodos_Capa.forEach((Periodo) => {
-          const Periodo_Real = Object.values(
-            Asegurar_Modelo_Planes().Periodos
-          ).find((P) =>
-            !P.Eliminado_Local &&
-            Planes_Periodos_Equivalentes(P, Periodo)
-          ) || Periodo;
           const Hijo = Planes_Objetivo_Hijo_De(
             Objetivo_Padre?.Id,
             Periodo_Real?.Id
@@ -50177,65 +50174,47 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Objetivo_Padre,
             Periodo_Real
           );
-          if (!Hijo || Hijo.Eliminado_Local) return;
-          Hijos_Capa.set(Periodo.Id, Hijo);
+          const Bloqueado =
+            !Pasado &&
+            Planes_Objetivo_Bloquea_Pendiente_Importacion(Hijo);
+          return {
+            Periodo,
+            Base,
+            Pasado,
+            Abierto: !Pasado,
+            Importable,
+            Realizado,
+            Hijo,
+            Bloqueado,
+            Deuda: Pasado
+              ? Math.max(0, Base - Realizado)
+              : 0
+          };
         });
-        const Abiertos_Bloqueados = new Set(
-          Abiertos
-            .filter((Periodo) => {
-              const Hijo = Hijos_Capa.get(Periodo.Id);
-              return Planes_Objetivo_Bloquea_Pendiente_Importacion(
-                Hijo
-              );
-            })
-            .map((Periodo) => Periodo.Id)
-        );
-        const Target_Bloqueado_Abierto = Abiertos.reduce(
-          (Total, Periodo) => {
-            if (!Abiertos_Bloqueados.has(Periodo.Id)) return Total;
-            const Hijo = Hijos_Capa.get(Periodo.Id);
-            return Total + (Number(Hijo?.Target_Total) || 0);
-          },
+        const Deuda_Total = Periodos_Info.reduce(
+          (Total, Info) => Total + Info.Deuda,
           0
         );
-        const Abiertos_Redistribuibles = Abiertos.filter((Periodo) =>
-          !Abiertos_Bloqueados.has(Periodo.Id)
+        const Abiertos_Redistribuibles = Periodos_Info.filter(
+          (Info) => Info.Abierto && !Info.Bloqueado
         );
-        const Avance_Cerrado = Cerrados.reduce((Total, Periodo) => {
-          const Avance =
-            Number(Avances_Reales.get(Periodo.Id)) || 0;
-          return Total + Avance;
-        }, 0);
-        const Pendiente_Redistribuible = Math.max(
-          0,
-          Target - Avance_Cerrado - Target_Bloqueado_Abierto
-        );
-        const Cuota_Redistribuible = Abiertos_Redistribuibles.length
-          ? Pendiente_Redistribuible /
-            Abiertos_Redistribuibles.length
+        const Deuda_Por_Abierto = Abiertos_Redistribuibles.length
+          ? Deuda_Total / Abiertos_Redistribuibles.length
           : 0;
         Destinos.forEach((Periodo) => {
-          const Base = Planes_Target_Proporcional_Importacion(
-            Objetivo_Padre,
-            Periodo_Padre,
-            Periodo
+          const Info = Periodos_Info.find((Item) =>
+            Planes_Periodos_Equivalentes(Item.Periodo, Periodo)
           );
-          const Cerrado = Planes_Periodo_Cerrado_Importacion(Periodo);
-          const Hijo_Bloqueado = Hijos_Capa.get(Periodo.Id);
-          const Es_Bloqueado_Abierto =
-            !Cerrado &&
-            Planes_Objetivo_Bloquea_Pendiente_Importacion(
-              Hijo_Bloqueado
-            );
-          const Target_Periodo = Cerrado
-            ? Base
-            : Es_Bloqueado_Abierto
-            ? Number(Hijo_Bloqueado?.Target_Total) || 0
-            : Cuota_Redistribuible;
+          if (!Info) return;
+          const Target_Periodo = Info.Pasado
+            ? Info.Base
+            : Info.Bloqueado
+            ? Number(Info.Hijo?.Target_Total) || 0
+            : Info.Base + Deuda_Por_Abierto;
           Resultado.Targets.set(Periodo.Id, Target_Periodo);
           Resultado.Avances.set(
             Periodo.Id,
-            Number(Avances_Importables.get(Periodo.Id)) || 0
+            Number(Info.Importable) || 0
           );
         });
         return Resultado;

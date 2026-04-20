@@ -2278,6 +2278,34 @@ async ({ page }) => {
   await expect(
     Card_T1.locator(".Planes_Progreso_Tabla tbody tr td").first()
   ).toContainText("Atrasado");
+
+  await page.evaluate(({ periodoId }) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.UI.Objetivos_Expandidos = {};
+    Planes_Activar_Periodo_Desde_Coleccion(
+      Modelo.Periodos[periodoId]
+    );
+    Render_Plan();
+  }, {
+    periodoId: Resultado.Hijos[0].Periodo_Id
+  });
+
+  const Estilo_Cerrado = await Card_T1.evaluate((Card) => {
+    const Porcentaje = Card.querySelector(
+      ".Planes_Objetivo_Porcentaje"
+    );
+    const Estado = Card.querySelector(".Planes_Objetivo_Estado");
+    return {
+      porcentajeColor: getComputedStyle(Porcentaje).color,
+      porcentajeFondo: getComputedStyle(Porcentaje).backgroundColor,
+      estadoFondo: getComputedStyle(Estado).backgroundColor,
+      estadoSombra: getComputedStyle(Estado).boxShadow
+    };
+  });
+  expect(Estilo_Cerrado.porcentajeColor).toBe("rgb(166, 54, 49)");
+  expect(Estilo_Cerrado.porcentajeFondo).toBe("rgba(0, 0, 0, 0)");
+  expect(Estilo_Cerrado.estadoFondo).toBe("rgba(0, 0, 0, 0)");
+  expect(Estilo_Cerrado.estadoSombra).toBe("none");
   expect(errores).toEqual([]);
 });
 
@@ -2802,8 +2830,8 @@ async ({ page }) => {
 
   expect(Resultado.Abril_Target).toBe(4);
   expect(Resultado.Abril_Fijado).toBe(true);
-  expect(Resultado.Mayo_Target).toBeCloseTo(5, 5);
-  expect(Resultado.Diciembre_Target).toBeCloseTo(5, 5);
+  expect(Resultado.Mayo_Target).toBeCloseTo(125 / 24, 5);
+  expect(Resultado.Diciembre_Target).toBeCloseTo(125 / 24, 5);
   expect(errores).toEqual([]);
 });
 
