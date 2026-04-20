@@ -42868,16 +42868,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .filter((Sub) => !Sub.Eliminado_Local);
       }
 
+      function Planes_Objetivo_Padre_Id(Objetivo) {
+        return (
+          Objetivo?.Parent_Objetivo_Id ||
+          Objetivo?.Objetivo_Padre_Id ||
+          ""
+        ).toString();
+      }
+
       function Planes_Objetivo_Raiz_Id(Objetivo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         let Actual = Modelo.Objetivos[Objetivo_Id];
         const Visitados = new Set();
         while (
-          Actual?.Parent_Objetivo_Id &&
+          Planes_Objetivo_Padre_Id(Actual) &&
           !Visitados.has(Actual.Id)
         ) {
           Visitados.add(Actual.Id);
-          Actual = Modelo.Objetivos[Actual.Parent_Objetivo_Id];
+          Actual = Modelo.Objetivos[
+            Planes_Objetivo_Padre_Id(Actual)
+          ];
         }
         return Actual?.Id || Objetivo_Id;
       }
@@ -42904,9 +42914,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Actual?.Id || Sub?.Id || "";
       }
 
+      function Planes_Normalizar_Fecha_Comparacion(Fecha) {
+        if (!Fecha) return "";
+        if (Fecha instanceof Date) {
+          return Planes_ISO(Fecha);
+        }
+        return Fecha.toString().slice(0, 10);
+      }
+
       function Planes_Periodo_Contiene_Fecha(Periodo, Fecha) {
         if (!Periodo || !Fecha) return false;
-        return Fecha >= Periodo.Inicio && Fecha <= Periodo.Fin;
+        const Fecha_ISO = Planes_Normalizar_Fecha_Comparacion(Fecha);
+        if (!Fecha_ISO) return false;
+        return Fecha_ISO >= Periodo.Inicio && Fecha_ISO <= Periodo.Fin;
       }
 
       function Planes_Periodo_Contiene_Periodo(Periodo, Interno) {
@@ -48353,7 +48373,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Directos = Object.values(Modelo.Objetivos)
           .filter((Objetivo) =>
-            Objetivo.Parent_Objetivo_Id === Objetivo_Id
+            Planes_Objetivo_Padre_Id(Objetivo) === Objetivo_Id
           );
         return Directos.flatMap((Objetivo) => [
           Objetivo,
@@ -48364,8 +48384,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Objetivos_Relacionados_Todos(Objetivo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         let Raiz = Modelo.Objetivos[Objetivo_Id];
-        while (Raiz?.Parent_Objetivo_Id) {
-          Raiz = Modelo.Objetivos[Raiz.Parent_Objetivo_Id];
+        while (Planes_Objetivo_Padre_Id(Raiz)) {
+          Raiz = Modelo.Objetivos[Planes_Objetivo_Padre_Id(Raiz)];
         }
         if (!Raiz) return [];
         const Set_Ids = new Set([Raiz.Id]);

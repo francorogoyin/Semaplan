@@ -2160,6 +2160,104 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Importar pendiente descuenta subobjetivos realizados",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 2;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Libros con subobjetivos",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 50,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Hijo_T1 = Planes_Crear_Objetivo_Silencioso(
+      Trimestres[0].Id,
+      Planes_Clonar_Datos_Objetivo(Padre, {
+        Parent_Objetivo_Id: null,
+        Objetivo_Padre_Id: Padre.Id,
+        Origen_Objetivo: "Importado",
+        Target_Total: 12.5,
+        Target_Automatico: 12.5,
+        Target_Actual: 12.5
+      })
+    );
+    Modelo.Subobjetivos.Sub_Libros_T1 =
+      Normalizar_Subobjetivo_Plan({
+        Id: "Sub_Libros_T1",
+        Objetivo_Id: Hijo_T1.Id,
+        Texto: "Libros terminados",
+        Hecha: true,
+        Aporte_Meta: 6,
+        Fecha_Fin: "2026-03-31T10:00"
+      });
+    Planes_Actualizar_Progreso(Hijo_T1);
+    Planes_Actualizar_Progreso(Padre);
+
+    const Info = Planes_Info_Pendiente_Importacion(
+      Padre,
+      Anio,
+      Trimestres
+    );
+    const Items = Trimestres.map((Periodo) => ({
+      Periodo_Id: Periodo.Id,
+      Objetivo_Ids: [Padre.Id]
+    }));
+    Planes_Importar_Objetivos_Padres_A_Periodos(
+      Items,
+      { Modo: "Pendiente" }
+    );
+    const Hijos = Trimestres.map((Periodo) => {
+      const Hijo = Planes_Objetivo_Hijo_De(Padre.Id, Periodo.Id);
+      return {
+        Target: Hijo.Target_Total,
+        Progreso: Hijo.Progreso_Total
+      };
+    });
+    return {
+      Avance_T1: Planes_Avance_Real_Objetivo_En_Periodo(
+        Padre,
+        Trimestres[0]
+      ),
+      Target_Info_T2: Info.Targets.get(Trimestres[1].Id),
+      Hijos
+    };
+  });
+
+  expect(Resultado.Avance_T1).toBe(6);
+  expect(Resultado.Target_Info_T2).toBeCloseTo(44 / 3, 5);
+  expect(Resultado.Hijos[0].Target).toBeCloseTo(12.5, 5);
+  expect(Resultado.Hijos[0].Progreso).toBe(6);
+  [1, 2, 3].forEach((Indice) => {
+    expect(Resultado.Hijos[Indice].Target).toBeCloseTo(44 / 3, 5);
+  });
+  expect(errores).toEqual([]);
+});
+
 test("Importar pendiente descuenta hijos indirectos",
 async ({ page }) => {
   const errores = [];
