@@ -49995,24 +49995,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Periodos_Capa
           );
         Periodos_Capa.forEach((Periodo) => {
+          const Periodo_Real = Object.values(
+            Asegurar_Modelo_Planes().Periodos
+          ).find((P) =>
+            !P.Eliminado_Local &&
+            Planes_Periodos_Equivalentes(P, Periodo)
+          ) || Periodo;
           const Importable =
             Planes_Avances_Manuales_Objetivo_En_Periodo(
               Objetivo_Padre,
-              Periodo
+              Periodo_Real
             );
           const Manual_Previo =
             Number(Avances_Previos.get(Periodo.Id)) || 0;
           const Real_Padre = Manual_Previo +
             Planes_Avance_Real_Objetivo_En_Periodo(
               Objetivo_Padre,
-              Periodo
+              Periodo_Real
             );
           const Real_Hijo =
-            Planes_Avance_Hijo_Importacion(Objetivo_Padre, Periodo);
+            Planes_Avance_Hijo_Importacion(
+              Objetivo_Padre,
+              Periodo_Real
+            );
           const Real_Equivalente =
             Planes_Avance_Equivalente_Importacion(
               Objetivo_Padre,
-              Periodo
+              Periodo_Real
             );
           Avances_Importables.set(Periodo.Id, Importable);
           Avances_Reales.set(
@@ -50028,12 +50037,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Hijos_Capa = new Map();
         Periodos_Capa.forEach((Periodo) => {
+          const Periodo_Real = Object.values(
+            Asegurar_Modelo_Planes().Periodos
+          ).find((P) =>
+            !P.Eliminado_Local &&
+            Planes_Periodos_Equivalentes(P, Periodo)
+          ) || Periodo;
           const Hijo = Planes_Objetivo_Hijo_De(
             Objetivo_Padre?.Id,
-            Periodo?.Id
+            Periodo_Real?.Id
           ) || Planes_Objetivo_Equivalente_De_Importacion(
             Objetivo_Padre,
-            Periodo
+            Periodo_Real
           );
           if (!Hijo || Hijo.Eliminado_Local) return;
           Hijos_Capa.set(Periodo.Id, Hijo);
