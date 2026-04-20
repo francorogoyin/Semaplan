@@ -203,11 +203,35 @@ async ({ page }) => {
   await expect(page.locator("#Plan_Overlay")).toHaveClass(/Activo/);
   await expect(page.locator("#Planes_Capa_Select")).toBeVisible();
   await expect(page.locator("#Planes_Ayuda_Conceptual_Abrir"))
-    .toHaveAttribute(
-      "title",
-      "Abre una explicación breve del modelo de Metas."
+    .toHaveCount(0);
+  const Barra = await page.evaluate(() => {
+    const Config = document.getElementById("Planes_Config_Header");
+    const Cerrar = document.getElementById("Plan_Cerrar");
+    const Vista = document.querySelector(".Planes_Vista_Toggle");
+    const Biblioteca = document.querySelector(
+      '[data-plan-vista="Biblioteca"]'
     );
-  await page.click("#Planes_Ayuda_Conceptual_Abrir");
+    return {
+      configRadius: getComputedStyle(Config).borderRadius,
+      configBg: getComputedStyle(Config).backgroundColor,
+      cerrarRadius: getComputedStyle(Cerrar).borderRadius,
+      vistaAncho: Math.round(
+        Vista.getBoundingClientRect().width
+      ),
+      bibliotecaSinCorte:
+        Biblioteca.scrollWidth <= Biblioteca.clientWidth,
+      tieneTuerca: Boolean(Config.querySelector("svg"))
+    };
+  });
+  expect(Barra.configRadius).toBe("8px");
+  expect(Barra.configBg).toBe("rgb(255, 255, 255)");
+  expect(Barra.cerrarRadius).toBe("8px");
+  expect(Barra.vistaAncho).toBeGreaterThanOrEqual(170);
+  expect(Barra.bibliotecaSinCorte).toBe(true);
+  expect(Barra.tieneTuerca).toBe(true);
+  await page.evaluate(() => {
+    Abrir_Modal_Planes_Ayuda_Conceptual();
+  });
   await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))
     .toHaveClass(/Activo/);
   await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))

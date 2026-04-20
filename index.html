@@ -3586,7 +3586,7 @@
         width: 32px;
         height: 32px;
         border: 1px solid var(--Borde);
-        border-radius: 999px;
+        border-radius: 8px;
         background: #fff;
         color: var(--Texto);
         cursor: pointer;
@@ -3603,9 +3603,33 @@
         color: var(--Acento);
       }
 
-      .Planes_Header_Ayuda_Btn {
-        font-size: 16px;
-        font-weight: 800;
+      .Planes_Icono_Tuerca {
+        display: block;
+        width: 16px;
+        height: 16px;
+      }
+
+      .Planes_Icono_Tuerca path,
+      .Planes_Icono_Tuerca circle {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .Planes_Header_Acciones .Config_Cerrar {
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--Texto);
+      }
+
+      .Planes_Header_Acciones .Config_Cerrar:hover {
+        background: var(--Acento_Suave);
+        color: var(--Acento);
       }
 
       .Planes_Header_Btn:disabled {
@@ -3676,7 +3700,7 @@
       .Planes_Control,
       .Planes_Vista_Control {
         display: flex;
-        flex: 0 0 150px;
+        flex: 0 0 176px;
         flex-direction: column;
         gap: 4px;
         min-width: 0;
@@ -3723,9 +3747,9 @@
         cursor: pointer;
         flex: 1 1 0;
         font: inherit;
-        font-size: 10px;
+        font-size: 11px;
         min-width: 0;
-        padding: 6px 3px;
+        padding: 6px 6px;
         white-space: nowrap;
       }
 
@@ -17610,18 +17634,27 @@
               id="Planes_Config_Header"
               data-i18n-title="planes.config_visible"
               title="Configurar años visibles"
-              type="button">&#9881;</button>
+              type="button"
+              aria-label="Configurar años visibles">
+              <svg class="Planes_Icono_Tuerca" viewBox="0 0 24 24"
+                aria-hidden="true" focusable="false">
+                <path d="M10.5 3.8h3l.48 2.02c.39.12.77.28 1.12.48
+                  l1.86-1.04 2.12 2.12-1.04 1.86c.2.35.36.73.48 1.12
+                  l2.02.48v3l-2.02.48c-.12.39-.28.77-.48 1.12l1.04
+                  1.86-2.12 2.12-1.86-1.04c-.35.2-.73.36-1.12.48l-.48
+                  2.02h-3l-.48-2.02c-.39-.12-.77-.28-1.12-.48l-1.86
+                  1.04-2.12-2.12 1.04-1.86c-.2-.35-.36-.73-.48-1.12
+                  L3.46 13.8v-3l2.02-.48c.12-.39.28-.77.48-1.12L4.92
+                  7.34l2.12-2.12 1.86 1.04c.35-.2.73-.36 1.12-.48
+                  L10.5 3.8Z"></path>
+                <circle cx="12" cy="12" r="2.95"></circle>
+              </svg>
+            </button>
             <button class="Planes_Header_Btn"
               id="Planes_Btn_Etiquetas_Header"
               data-i18n-title="archivero.gestionar_etiquetas_title"
               title="Gestionar etiquetas"
               type="button">#</button>
-            <button class="Planes_Header_Btn
-              Planes_Header_Ayuda_Btn"
-              id="Planes_Ayuda_Conceptual_Abrir"
-              data-i18n-title="planes.ayuda_conceptual_title"
-              title="Ayuda conceptual"
-              type="button">?</button>
             <button class="Config_Cerrar"
               id="Plan_Cerrar"
               type="button">&times;</button>
@@ -44135,8 +44168,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ["#Planes_Config_Header", "planes.ui_help_config_anios"],
           ["#Planes_Btn_Etiquetas_Header",
             "planes.ui_help_gestionar_etiquetas"],
-          ["#Planes_Ayuda_Conceptual_Abrir",
-            "planes.ui_help_ayuda_conceptual"],
           [".Planes_Metrica:nth-child(1) .Planes_Metrica_Label",
             "planes.ui_help_resumen_objetivos"],
           [".Planes_Metrica:nth-child(2) .Planes_Metrica_Label",
@@ -72828,11 +72859,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // Modal único de Plan (planner por períodos + semanal).
       document.getElementById("Plan_Cerrar")
         ?.addEventListener("click", Cerrar_Plan);
-      document.getElementById("Planes_Ayuda_Conceptual_Abrir")
-        ?.addEventListener(
-          "click",
-          Abrir_Modal_Planes_Ayuda_Conceptual
-        );
       document.getElementById("Planes_Ayuda_Conceptual_Cerrar")
         ?.addEventListener(
           "click",
