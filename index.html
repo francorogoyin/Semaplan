@@ -4176,8 +4176,26 @@
         background: #f7f7f7;
       }
 
+      .Planes_Objetivo_Card.Reordenable {
+        cursor: grab;
+      }
+
+      .Planes_Objetivo_Card.Reordenable:active {
+        cursor: grabbing;
+      }
+
+      .Planes_Objetivo_Card.Drop_Antes {
+        border-top-color: var(--Acento);
+        box-shadow: inset 0 2px 0 var(--Acento);
+      }
+
+      .Planes_Objetivo_Card.Drop_Despues {
+        border-bottom-color: var(--Acento);
+        box-shadow: inset 0 -2px 0 var(--Acento);
+      }
+
       .Planes_Objetivo_Card.Warning {
-        border-bottom-color: rgba(180, 120, 0, 0.45);
+        border-bottom-color: rgba(0, 0, 0, 0.08);
         box-shadow: none;
         background: transparent;
       }
@@ -4869,6 +4887,11 @@
         padding: 7px 9px;
       }
 
+      .Planes_Context_Menu .Planes_Btn:disabled {
+        cursor: default;
+        opacity: 0.45;
+      }
+
       .Planes_Objetivo_Menu_Btn {
         width: 30px;
         height: 30px;
@@ -5460,7 +5483,7 @@
 
       .Planes_Subobjetivo {
         display: grid;
-        grid-template-columns: auto auto minmax(0, 1fr) auto;
+        grid-template-columns: auto minmax(0, 1fr) auto;
         gap: 8px;
         align-items: start;
         border: 1px solid var(--Borde);
@@ -5817,16 +5840,24 @@
         grid-column: 1 / -1;
       }
 
-      .Planes_Subobjetivo_Hecha_Campo {
-        align-items: center;
+      .Planes_Subobjetivo_Form {
+        grid-template-columns:
+          minmax(72px, 0.8fr)
+          minmax(120px, 1fr)
+          minmax(104px, 0.95fr)
+          minmax(104px, 0.95fr)
+          minmax(92px, 0.85fr);
       }
 
-      .Planes_Subobjetivo_Meta_Campo {
-        grid-column: 1 / 3;
-      }
-
-      .Planes_Subobjetivo_Aporte_Campo {
-        grid-column: 3 / -1;
+      .Planes_Subobjetivo_Meta_Campo,
+      .Planes_Subobjetivo_Avance_Campo,
+      .Planes_Subobjetivo_Aporte_Campo,
+      .Planes_Subobjetivo_Unidad_Campo,
+      .Planes_Subobjetivo_Unidad_Custom_Campo,
+      .Planes_Subobjetivo_Fecha_Obj_Campo,
+      .Planes_Subobjetivo_Fecha_Ini_Campo,
+      .Planes_Subobjetivo_Fecha_Fin_Campo {
+        grid-column: auto;
       }
 
       .Planes_Subobjetivo_Emoji_Campo {
@@ -5837,8 +5868,8 @@
         grid-column: 2 / -1;
       }
 
-      .Planes_Subobjetivo_Unidad_Campo {
-        grid-column: 3 / -1;
+      .Planes_Subobjetivo_Unidad_Custom_Campo[hidden] {
+        display: none;
       }
 
       .Planes_Subobjetivo_Metadatos_Campo {
@@ -5957,8 +5988,13 @@
         .Planes_Meta_Campo,
         .Planes_Unidad_Campo,
         .Planes_Subobjetivo_Meta_Campo,
+        .Planes_Subobjetivo_Avance_Campo,
         .Planes_Subobjetivo_Aporte_Campo,
-        .Planes_Subobjetivo_Unidad_Campo {
+        .Planes_Subobjetivo_Unidad_Campo,
+        .Planes_Subobjetivo_Unidad_Custom_Campo,
+        .Planes_Subobjetivo_Fecha_Obj_Campo,
+        .Planes_Subobjetivo_Fecha_Ini_Campo,
+        .Planes_Subobjetivo_Fecha_Fin_Campo {
           grid-column: 1 / -1;
         }
 
@@ -12086,14 +12122,14 @@
       /* --- Overlay del modal --- */
       .Config_Overlay {
         display: none;
-        position: absolute;
+        position: fixed;
         inset: 0;
         background: rgba(31, 31, 31, 0.22);
         z-index: 6000;
-        border-radius: var(--Radio);
         align-items: flex-start;
         justify-content: center;
-        padding: 32px 20px;
+        overflow-y: auto;
+        padding: 56px 20px 32px;
       }
 
       .Config_Overlay.Activo {
@@ -13329,6 +13365,23 @@
         cursor: pointer;
       }
 
+      .Config_Boton_Secundario {
+        background: #fff;
+        color: var(--Acento);
+        border: 1px solid rgba(31, 107, 79, 0.28);
+        border-radius: 10px;
+        padding: 9px 18px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .Config_Boton_Secundario:hover,
+      .Config_Boton_Secundario:focus-visible {
+        background: var(--Acento_Suave);
+        outline: none;
+      }
+
       /* --- Pantalla de autenticación --- */
       .Auth_Overlay {
         display: none;
@@ -14021,12 +14074,19 @@
           <button class="Boton_Principal Creador_Toggle" id="Mostrar_Creador" type="button" data-i18n="sidebar.crear_objetivo">Crear objetivo</button>
           <div class="Creador_Contenido Oculto" id="Creador_Contenido">
           <div class="Campo">
-            <label for="Nombre_Objetivo" data-i18n="sidebar.nombre">Nombre</label>
+            <label for="Nombre_Objetivo"
+              class="Planes_Dato_Ayuda"
+              data-i18n="sidebar.nombre"
+              data-i18n-title="sidebar.help_nombre"
+              title="Nombre visible del objetivo.">Nombre</label>
             <input id="Nombre_Objetivo" type="text" data-i18n-ph="sidebar.nombre_ph" placeholder="Gimnasio" />
           </div>
           <div class="Campo">
             <label for="Descripcion_Corta_Objetivo"
+              class="Planes_Dato_Ayuda"
               data-i18n="sidebar.descripcion_corta"
+              data-i18n-title="sidebar.help_descripcion_corta"
+              title="Contexto breve visible al pasar el mouse."
               >Descripción corta</label>
             <textarea id="Descripcion_Corta_Objetivo"
               rows="2"
@@ -14034,38 +14094,75 @@
               placeholder="Contexto breve del objetivo semanal."></textarea>
           </div>
           <div class="Campo">
-            <label for="Emoji_Objetivo" data-i18n="sidebar.emoji">Emoji</label>
+            <label for="Emoji_Objetivo"
+              class="Planes_Dato_Ayuda"
+              data-i18n="sidebar.emoji"
+              data-i18n-title="sidebar.help_emoji"
+              title="Ícono para reconocer el objetivo.">Emoji</label>
             <input id="Emoji_Objetivo" type="text" placeholder="&#127919;" class="Con_Selector_Emoji" />
           </div>
           <div class="Campo">
-            <label for="Color_Objetivo" data-i18n="sidebar.color">Color</label>
+            <label for="Color_Objetivo"
+              class="Planes_Dato_Ayuda"
+              data-i18n="sidebar.color"
+              data-i18n-title="sidebar.help_color"
+              title="Color usado en calendario y badges.">Color</label>
             <input id="Color_Objetivo" type="color" value="#f1b77e" />
             <div class="Swatches" id="Swatches_Nuevos"></div>
           </div>
           <div class="Campo">
-            <label for="Horas_Semanales" data-i18n="sidebar.horas_semanales">Horas semanales</label>
+            <label for="Horas_Semanales"
+              class="Planes_Dato_Ayuda"
+              data-i18n="sidebar.horas_semanales"
+              data-i18n-title="sidebar.help_horas_semanales"
+              title="Carga semanal esperada para este objetivo.">
+              Horas semanales
+            </label>
             <input id="Horas_Semanales" type="number" min="0" step="1" data-i18n-ph="sidebar.horas_ph" placeholder="6" />
           </div>
           <div class="Campo">
-            <label for="Es_Bolsa" data-i18n="sidebar.tipo">Tipo</label>
+            <label for="Es_Bolsa"
+              class="Planes_Dato_Ayuda"
+              data-i18n="sidebar.tipo"
+              data-i18n-title="sidebar.help_tipo"
+              title="Bolsa de horas u objetivo semanal.">
+              Tipo
+            </label>
             <select id="Es_Bolsa">
               <option value="Si" data-i18n="sidebar.bolsa_horas">Bolsa de horas</option>
               <option value="No" data-i18n="sidebar.objetivo_normal">Objetivo semanal</option>
             </select>
           </div>
           <div class="Campo">
-            <label for="Periodicidad_Objetivo" data-i18n="sidebar.alcance">Alcance</label>
+            <label for="Periodicidad_Objetivo"
+              class="Planes_Dato_Ayuda"
+              data-i18n="sidebar.alcance"
+              data-i18n-title="sidebar.help_alcance"
+              title="Define si vive solo esta semana o queda fijo.">
+              Alcance
+            </label>
             <select id="Periodicidad_Objetivo">
               <option value="Semana" data-i18n="sidebar.solo_semana">Solo esta semana</option>
               <option value="Fija" data-i18n="sidebar.objetivo_fija">Objetivo fijo</option>
             </select>
           </div>
           <div class="Campo" id="Campo_Categoria_Nueva">
-            <label for="Categoria_Objetivo" data-i18n="sidebar.categoria">Categoría</label>
+            <label for="Categoria_Objetivo"
+              class="Planes_Dato_Ayuda"
+              data-i18n="sidebar.categoria"
+              data-i18n-title="sidebar.help_categoria"
+              title="Grupo principal para ordenar objetivos.">
+              Categoría
+            </label>
             <select id="Categoria_Objetivo"></select>
           </div>
           <div class="Campo" id="Campo_Etiquetas_Nuevas">
-            <label data-i18n="sidebar.etiquetas">Etiquetas</label>
+            <label class="Planes_Dato_Ayuda"
+              data-i18n="sidebar.etiquetas"
+              data-i18n-title="sidebar.help_etiquetas"
+              title="Tags adicionales para buscar y filtrar.">
+              Etiquetas
+            </label>
             <div class="Selector_Etiquetas"
               id="Etiquetas_Objetivo"></div>
           </div>
@@ -17832,16 +17929,31 @@
                 data-i18n-ph="planes.sub_ph"
                 placeholder="Subobjetivo">
             </label>
+            <label class="Campo Planes_Subobjetivo_Unidad_Campo">
+              <span data-i18n="planes.nuevo_unidad">Unidad</span>
+              <select id="Planes_Subobjetivo_Unidad"></select>
+            </label>
+            <label class="Campo
+              Planes_Subobjetivo_Unidad_Custom_Campo" hidden>
+              <span data-i18n="planes.unidad_custom">
+                Unidad personalizada
+              </span>
+              <input id="Planes_Subobjetivo_Unidad_Custom"
+                data-i18n-ph="planes.unidad_custom_ph"
+                placeholder="Lecturas, ejercicios...">
+            </label>
             <label class="Campo Planes_Subobjetivo_Meta_Campo">
-              <span data-i18n="planes.sub_metrica">Métrica</span>
+              <span data-i18n="planes.sub_valor_objetivo">
+                Valor objetivo
+              </span>
               <input id="Planes_Subobjetivo_Target"
                 type="number"
                 min="0"
                 step="0.25">
             </label>
             <label class="Campo Planes_Subobjetivo_Avance_Campo">
-              <span data-i18n="planes.sub_avance_inicial">
-                Avance inicial
+              <span data-i18n="planes.sub_valor_inicial">
+                Valor inicial
               </span>
               <input id="Planes_Subobjetivo_Progreso_Inicial"
                 type="number"
@@ -17850,31 +17962,30 @@
             </label>
             <label class="Campo Planes_Subobjetivo_Aporte_Campo">
               <span data-i18n="planes.sub_aporte">
-                Aporte a la meta
+                Aporte
               </span>
               <input id="Planes_Subobjetivo_Aporte"
                 type="number"
                 min="0"
                 step="0.25">
             </label>
-            <label class="Campo Planes_Subobjetivo_Unidad_Campo">
-              <span data-i18n="planes.nuevo_unidad">Unidad</span>
-              <span class="Planes_Unidad_Fila">
-                <select id="Planes_Subobjetivo_Unidad"></select>
-                <input id="Planes_Subobjetivo_Unidad_Custom"
-                  data-i18n-ph="planes.unidad_custom_ph"
-                  hidden
-                  placeholder="Lecturas, ejercicios...">
+            <label class="Campo Planes_Subobjetivo_Fecha_Obj_Campo">
+              <span data-i18n="planes.sub_fecha_objetivo">
+                Fecha objetivo
               </span>
+              <input id="Planes_Subobjetivo_Fecha_Objetivo"
+                type="date">
             </label>
-            <label class="Campo">
-              <span data-i18n="planes.sub_inicio">Inicio</span>
+            <label class="Campo Planes_Subobjetivo_Fecha_Ini_Campo">
+              <span data-i18n="planes.sub_fecha_inicial">
+                Fecha inicial
+              </span>
               <input id="Planes_Subobjetivo_Fecha_Inicio"
                 type="date">
             </label>
-            <label class="Campo">
-              <span data-i18n="planes.sub_fin">
-                Fecha estimada de finalización
+            <label class="Campo Planes_Subobjetivo_Fecha_Fin_Campo">
+              <span data-i18n="planes.sub_fecha_final">
+                Fecha final
               </span>
               <input id="Planes_Subobjetivo_Fecha_Fin"
                 type="date">
@@ -17888,13 +17999,6 @@
               <div class="Planes_Subobjetivo_Metadatos_Lista"
                 id="Planes_Subobjetivo_Metadatos_Lista"></div>
             </div>
-            <label class="Campo Planes_Subobjetivo_Hecha_Campo">
-              <span data-i18n="planes.estado_cumplido">
-                Realizado
-              </span>
-              <input id="Planes_Subobjetivo_Hecha"
-                type="checkbox">
-            </label>
           </form>
         </div>
         <div class="Patron_Modal_Acciones">
@@ -17902,6 +18006,10 @@
             id="Planes_Subobjetivo_Cancelar"
             data-i18n="cancelar"
             type="button">Cancelar</button>
+          <button class="Config_Boton_Secundario"
+            id="Planes_Subobjetivo_Realizado"
+            data-i18n="planes.marcar_realizado"
+            type="button">Marcar como realizado</button>
           <button class="Config_Boton_Guardar"
             id="Planes_Subobjetivo_Guardar"
             data-i18n="guardar"
@@ -18657,6 +18765,28 @@
           "sidebar.categoria": "Categoría",
           "sidebar.etiquetas": "Etiquetas",
           "sidebar.ocultar": "Ocultar",
+          "sidebar.help_nombre":
+            "Nombre visible del objetivo semanal o de la bolsa.",
+          "sidebar.help_descripcion_corta":
+            "Contexto breve que aparece al pasar el mouse por el " +
+            "objetivo.",
+          "sidebar.help_emoji":
+            "Ícono visual para reconocer el objetivo rápido.",
+          "sidebar.help_color":
+            "Color usado en bloques del calendario y badges.",
+          "sidebar.help_horas_semanales":
+            "Carga semanal esperada. En una bolsa funciona como " +
+            "cupo de horas.",
+          "sidebar.help_tipo":
+            "Bolsa de horas acumula cupo semanal; objetivo semanal " +
+            "se mide por sus bloques.",
+          "sidebar.help_alcance":
+            "Solo esta semana crea algo puntual; objetivo fijo se " +
+            "mantiene en semanas futuras.",
+          "sidebar.help_categoria":
+            "Grupo principal para ordenar, filtrar y leer objetivos.",
+          "sidebar.help_etiquetas":
+            "Tags adicionales para buscar, filtrar o cruzar objetivos.",
           "sidebar.aviso":
             "Arrastra un emoji al calendario " +
             "para crear un bloque.",
@@ -18878,6 +19008,24 @@
             "Definí una métrica para el subobjetivo antes de avanzar.",
           "planes.avance_finaliza_confirm":
             "Esto finaliza \"{nombre}\". ¿Querés guardar?",
+          "planes.marcar_realizado": "Marcar como realizado",
+          "planes.sub_realizar_confirm":
+            "Se agregarán {cantidad} {unidad} a la fecha {fecha} " +
+            "y la hora {hora}. ¿Confirmar?",
+          "planes.sub_realizar_sin_avance_confirm":
+            "No falta avance por registrar. Se marcará como " +
+            "realizado con fecha final {fecha} y hora {hora}. " +
+            "¿Confirmar?",
+          "planes.sub_fecha_final_cambio_confirm":
+            "Cambió la fecha final. ¿Confirmar?",
+          "planes.sub_fecha_final_realiza_confirm":
+            "Se puso fecha final. El subobjetivo quedará como " +
+            "realizado. ¿Registrar avance hasta el final? " +
+            "Se agregarán {cantidad} {unidad} a la fecha {fecha} " +
+            "y la hora {hora}. ¿Estás de acuerdo?",
+          "planes.sub_fecha_final_realiza_sin_avance_confirm":
+            "Se puso fecha final. El subobjetivo quedará como " +
+            "realizado. No falta avance por registrar. ¿Confirmar?",
           "planes.registro": "Registro",
           "planes.registro_titulo": "Registro · {nombre}",
           "planes.registro_vacio":
@@ -18893,14 +19041,21 @@
           "planes.registro_calendario": "Calendario",
           "planes.registro_subobjetivo": "Subobjetivo",
           "planes.registro_manual_previo": "Manual previo",
-          "planes.sub_aporte": "Aporte a la meta",
+          "planes.sub_aporte": "Aporte",
+          "planes.sub_valor_objetivo": "Valor objetivo",
+          "planes.sub_valor_inicial": "Valor inicial",
           "planes.sub_metrica": "Métrica",
           "planes.sub_avance_inicial": "Avance inicial",
           "planes.sub_unidad_custom":
             "Unidad propia",
+          "planes.sub_fecha_objetivo": "Fecha objetivo",
+          "planes.sub_fecha_inicial": "Fecha inicial",
+          "planes.sub_fecha_final": "Fecha final",
           "planes.sub_inicio": "Inicio",
           "planes.sub_fin":
             "Fecha estimada de finalización",
+          "planes.err_sub_valor_inicial_mayor":
+            "El valor inicial no puede ser mayor al valor objetivo.",
           "planes.sub_metadatos": "Metadatos",
           "planes.sub_metadato_agregar":
             "Agregar metadato",
@@ -18975,19 +19130,25 @@
           "planes.ui_help_objetivo_nombre":
             "Nombre concreto del objetivo.",
           "planes.ui_help_modo_avance":
-            "Define cómo se interpreta el progreso del objetivo.",
+            "Con métrica mide contra un número final; manual suma " +
+            "registros cargados; sin métrica deja solo seguimiento " +
+            "cualitativo.",
           "planes.ui_help_meta":
-            "Métrica objetivo: el total cuantitativo que querés alcanzar.",
+            "Número final a alcanzar. Ejemplo: 50 libros, 120 " +
+            "películas o 100 horas.",
           "planes.ui_help_unidad":
-            "Unidad de medida de la métrica, como libros, horas o sesiones.",
+            "Qué representa ese número: libros, horas, sesiones o " +
+            "una unidad propia.",
           "planes.ui_help_descripcion":
             "Contexto visible al pasar el mouse por el objetivo.",
           "planes.ui_help_etiquetas":
             "Clasificación transversal para filtrar y agrupar objetivos.",
           "planes.ui_help_vinculo":
-            "Relación con calendario, objetivos, etiquetas o subobjetivos.",
+            "De dónde se puede leer avance automáticamente: " +
+            "calendario, otro objetivo, etiqueta o subobjetivo.",
           "planes.ui_help_bajar_a":
-            "Replica el objetivo en una capa temporal inferior.",
+            "Crea copias en períodos más chicos para distribuir el " +
+            "objetivo sin reescribirlo.",
           "planes.ui_help_metadatos_objetivo":
             "Campos propios del objetivo que después completan sus subobjetivos.",
           "planes.ui_help_metadato_nombre":
@@ -19031,17 +19192,23 @@
           "planes.ui_help_sub_nombre":
             "Nombre del paso o ítem que querés completar.",
           "planes.ui_help_sub_metrica":
-            "Métrica propia del subobjetivo; permite registrar avance interno.",
+            "Valor final propio del subobjetivo. Al llegar a ese " +
+            "número se considera realizado.",
           "planes.ui_help_sub_avance_inicial":
-            "Avance ya hecho antes de empezar a registrar historial.",
+            "Cantidad ya hecha antes de empezar a registrar avances " +
+            "con fecha y hora.",
           "planes.ui_help_sub_aporte":
-            "Cuánto suma este subobjetivo a la meta del objetivo al realizarse.",
+            "Cuánto suma este subobjetivo al objetivo padre cuando " +
+            "queda realizado.",
           "planes.ui_help_sub_unidad":
             "Unidad propia con la que se mide este subobjetivo.",
           "planes.ui_help_sub_inicio":
             "Fecha desde la que este subobjetivo cuenta como activo.",
+          "planes.ui_help_sub_objetivo_fecha":
+            "Fecha planificada para completar el subobjetivo.",
           "planes.ui_help_sub_fin":
-            "Fecha esperada de finalización del subobjetivo.",
+            "Fecha real de cierre. Si se completa, el subobjetivo " +
+            "queda marcado como realizado.",
           "planes.ui_help_sub_metadatos":
             "Valores de los campos definidos en el objetivo.",
           "planes.ui_help_sub_realizado":
@@ -21686,6 +21853,8 @@
             "Subobjetivo actualizado",
           "toast.subobjetivo_reordenada":
             "Subobjetivo reordenado",
+          "toast.objetivos_reordenados":
+            "Objetivo reordenado",
           "toast.subobjetivos_trasladadas":
             "Se trasladaron {n} subobjetivos",
           "toast.objetivo_copiada": "Objetivo copiado",
@@ -22035,6 +22204,27 @@
           "sidebar.categoria": "Category",
           "sidebar.etiquetas": "Tags",
           "sidebar.ocultar": "Hide",
+          "sidebar.help_nombre":
+            "Visible name for the weekly objective or hour pool.",
+          "sidebar.help_descripcion_corta":
+            "Short context shown when hovering over the objective.",
+          "sidebar.help_emoji":
+            "Visual icon to recognize the objective quickly.",
+          "sidebar.help_color":
+            "Color used on calendar blocks and badges.",
+          "sidebar.help_horas_semanales":
+            "Expected weekly load. In an hour pool, it works as the " +
+            "hour budget.",
+          "sidebar.help_tipo":
+            "Hour pool tracks a weekly budget; weekly objective is " +
+            "measured through its blocks.",
+          "sidebar.help_alcance":
+            "This week only creates a one-off item; recurring " +
+            "objective continues into future weeks.",
+          "sidebar.help_categoria":
+            "Main group for sorting, filtering, and reading goals.",
+          "sidebar.help_etiquetas":
+            "Extra tags for searching, filtering, or crossing goals.",
           "sidebar.aviso":
             "Drag an emoji to the calendar " +
             "to create a block.",
@@ -22250,6 +22440,23 @@
             "Define a metric for the subobjective before logging progress.",
           "planes.avance_finaliza_confirm":
             "This completes \"{nombre}\". Save it?",
+          "planes.marcar_realizado": "Mark as done",
+          "planes.sub_realizar_confirm":
+            "{cantidad} {unidad} will be added on {fecha} at " +
+            "{hora}. Confirm?",
+          "planes.sub_realizar_sin_avance_confirm":
+            "There is no remaining progress to log. The subobjective " +
+            "will be marked done with final date {fecha} at {hora}. " +
+            "Confirm?",
+          "planes.sub_fecha_final_cambio_confirm":
+            "The final date changed. Confirm?",
+          "planes.sub_fecha_final_realiza_confirm":
+            "A final date was set. The subobjective will be marked " +
+            "done. Log progress through the end? {cantidad} " +
+            "{unidad} will be added on {fecha} at {hora}. Confirm?",
+          "planes.sub_fecha_final_realiza_sin_avance_confirm":
+            "A final date was set. The subobjective will be marked " +
+            "done. There is no remaining progress to log. Confirm?",
           "planes.registro": "History",
           "planes.registro_titulo": "History · {nombre}",
           "planes.registro_vacio":
@@ -22265,14 +22472,21 @@
           "planes.registro_calendario": "Calendar",
           "planes.registro_subobjetivo": "Subobjective",
           "planes.registro_manual_previo": "Previous manual",
-          "planes.sub_aporte": "Goal contribution",
+          "planes.sub_aporte": "Contribution",
+          "planes.sub_valor_objetivo": "Target value",
+          "planes.sub_valor_inicial": "Initial value",
           "planes.sub_metrica": "Metric",
           "planes.sub_avance_inicial": "Initial progress",
           "planes.sub_unidad_custom":
             "Custom unit",
+          "planes.sub_fecha_objetivo": "Target date",
+          "planes.sub_fecha_inicial": "Initial date",
+          "planes.sub_fecha_final": "Final date",
           "planes.sub_inicio": "Start",
           "planes.sub_fin":
             "Estimated completion date",
+          "planes.err_sub_valor_inicial_mayor":
+            "The initial value cannot be greater than the target value.",
           "planes.sub_metadatos": "Metadata",
           "planes.sub_metadato_agregar":
             "Add metadata",
@@ -22347,19 +22561,25 @@
           "planes.ui_help_objetivo_nombre":
             "Concrete objective name.",
           "planes.ui_help_modo_avance":
-            "Defines how objective progress is interpreted.",
+            "With metric measures against a final number; manual " +
+            "adds logged entries; without metric keeps qualitative " +
+            "tracking only.",
           "planes.ui_help_meta":
-            "Objective metric: the quantitative total you want to reach.",
+            "Final number to reach. Example: 50 books, 120 movies, " +
+            "or 100 hours.",
           "planes.ui_help_unidad":
-            "Metric unit, such as books, hours, or sessions.",
+            "What that number represents: books, hours, sessions, " +
+            "or a custom unit.",
           "planes.ui_help_descripcion":
             "Context shown when hovering over the objective.",
           "planes.ui_help_etiquetas":
             "Cross-cutting classification for filtering and grouping objectives.",
           "planes.ui_help_vinculo":
-            "Relationship with calendar, objectives, tags, or subobjectives.",
+            "Where progress can be read from automatically: " +
+            "calendar, another objective, tag, or subobjective.",
           "planes.ui_help_bajar_a":
-            "Replicates the objective into a lower time layer.",
+            "Creates copies in smaller periods to distribute the " +
+            "objective without rewriting it.",
           "planes.ui_help_metadatos_objetivo":
             "Objective-owned fields later completed by its subobjectives.",
           "planes.ui_help_metadato_nombre":
@@ -22403,17 +22623,22 @@
           "planes.ui_help_sub_nombre":
             "Name of the step or item you want to complete.",
           "planes.ui_help_sub_metrica":
-            "Subobjective's own metric; allows internal progress logging.",
+            "Subobjective's own final value. Reaching it marks the " +
+            "subobjective as done.",
           "planes.ui_help_sub_avance_inicial":
-            "Progress already done before history logging starts.",
+            "Amount already done before logging dated progress entries.",
           "planes.ui_help_sub_aporte":
-            "How much this subobjective adds to the objective goal when completed.",
+            "How much this subobjective adds to the parent objective " +
+            "when it is done.",
           "planes.ui_help_sub_unidad":
             "Unit used to measure this subobjective.",
           "planes.ui_help_sub_inicio":
             "Date from which this subobjective counts as active.",
+          "planes.ui_help_sub_objetivo_fecha":
+            "Planned date to complete the subobjective.",
           "planes.ui_help_sub_fin":
-            "Expected subobjective completion date.",
+            "Actual closing date. If completed, the subobjective is " +
+            "marked as done.",
           "planes.ui_help_sub_metadatos":
             "Values for the fields defined on the objective.",
           "planes.ui_help_sub_realizado":
@@ -24992,6 +25217,8 @@
             "Subobjective updated",
           "toast.subobjetivo_reordenada":
             "Subobjective reordered",
+          "toast.objetivos_reordenados":
+            "Objective reordered",
           "toast.subobjetivos_trasladadas":
             "{n} subobjectives moved",
           "toast.objetivo_copiada": "Objective copied",
@@ -25350,6 +25577,27 @@
           "sidebar.categoria": "Categoria",
           "sidebar.etiquetas": "Tags",
           "sidebar.ocultar": "Ocultar",
+          "sidebar.help_nombre":
+            "Nome visível do objetivo semanal ou do banco de horas.",
+          "sidebar.help_descripcion_corta":
+            "Contexto breve exibido ao passar o mouse pelo objetivo.",
+          "sidebar.help_emoji":
+            "Ícone visual para reconhecer o objetivo rapidamente.",
+          "sidebar.help_color":
+            "Cor usada nos blocos do calendário e nos badges.",
+          "sidebar.help_horas_semanales":
+            "Carga semanal esperada. Em um banco, funciona como " +
+            "cota de horas.",
+          "sidebar.help_tipo":
+            "Banco de horas acompanha uma cota semanal; objetivo " +
+            "semanal é medido pelos blocos.",
+          "sidebar.help_alcance":
+            "Só esta semana cria algo pontual; objetivo fixo segue " +
+            "nas semanas futuras.",
+          "sidebar.help_categoria":
+            "Grupo principal para ordenar, filtrar e ler objetivos.",
+          "sidebar.help_etiquetas":
+            "Tags adicionais para buscar, filtrar ou cruzar objetivos.",
           "sidebar.aviso":
             "Arraste um emoji para o " +
             "calendário para criar um " +
@@ -25571,6 +25819,24 @@
             "Defina uma métrica para o subobjetivo antes de avançar.",
           "planes.avance_finaliza_confirm":
             "Isto finaliza \"{nombre}\". Quer salvar?",
+          "planes.marcar_realizado": "Marcar como realizado",
+          "planes.sub_realizar_confirm":
+            "Serão adicionados {cantidad} {unidad} na data {fecha} " +
+            "e hora {hora}. Confirmar?",
+          "planes.sub_realizar_sin_avance_confirm":
+            "Não falta avanço para registrar. O subobjetivo será " +
+            "marcado como realizado com data final {fecha} e hora " +
+            "{hora}. Confirmar?",
+          "planes.sub_fecha_final_cambio_confirm":
+            "A data final mudou. Confirmar?",
+          "planes.sub_fecha_final_realiza_confirm":
+            "Foi definida uma data final. O subobjetivo ficará " +
+            "realizado. Registrar avanço até o final? Serão " +
+            "adicionados {cantidad} {unidad} na data {fecha} e " +
+            "hora {hora}. Confirmar?",
+          "planes.sub_fecha_final_realiza_sin_avance_confirm":
+            "Foi definida uma data final. O subobjetivo ficará " +
+            "realizado. Não falta avanço para registrar. Confirmar?",
           "planes.registro": "Histórico",
           "planes.registro_titulo": "Histórico · {nombre}",
           "planes.registro_vacio":
@@ -25586,14 +25852,21 @@
           "planes.registro_calendario": "Calendário",
           "planes.registro_subobjetivo": "Subobjetivo",
           "planes.registro_manual_previo": "Manual anterior",
-          "planes.sub_aporte": "Aporte para a meta",
+          "planes.sub_aporte": "Aporte",
+          "planes.sub_valor_objetivo": "Valor objetivo",
+          "planes.sub_valor_inicial": "Valor inicial",
           "planes.sub_metrica": "Métrica",
           "planes.sub_avance_inicial": "Avanco inicial",
           "planes.sub_unidad_custom":
             "Unidade própria",
+          "planes.sub_fecha_objetivo": "Data objetivo",
+          "planes.sub_fecha_inicial": "Data inicial",
+          "planes.sub_fecha_final": "Data final",
           "planes.sub_inicio": "Início",
           "planes.sub_fin":
             "Data estimada de conclusÃ£o",
+          "planes.err_sub_valor_inicial_mayor":
+            "O valor inicial não pode ser maior que o valor objetivo.",
           "planes.sub_metadatos": "Metadados",
           "planes.sub_metadato_agregar":
             "Adicionar metadado",
@@ -25668,19 +25941,25 @@
           "planes.ui_help_objetivo_nombre":
             "Nome concreto do objetivo.",
           "planes.ui_help_modo_avance":
-            "Define como o progresso do objetivo é interpretado.",
+            "Com métrica mede contra um número final; manual soma " +
+            "registros carregados; sem métrica mantém apenas " +
+            "acompanhamento qualitativo.",
           "planes.ui_help_meta":
-            "Métrica do objetivo: o total quantitativo que você quer atingir.",
+            "Número final a atingir. Exemplo: 50 livros, 120 filmes " +
+            "ou 100 horas.",
           "planes.ui_help_unidad":
-            "Unidade da métrica, como livros, horas ou sessões.",
+            "O que esse número representa: livros, horas, sessões ou " +
+            "uma unidade própria.",
           "planes.ui_help_descripcion":
             "Contexto exibido ao passar o mouse pelo objetivo.",
           "planes.ui_help_etiquetas":
             "Classificação transversal para filtrar e agrupar objetivos.",
           "planes.ui_help_vinculo":
-            "Relação com calendário, objetivos, etiquetas ou subobjetivos.",
+            "De onde o avanço pode ser lido automaticamente: " +
+            "calendário, outro objetivo, etiqueta ou subobjetivo.",
           "planes.ui_help_bajar_a":
-            "Replica o objetivo em uma camada temporal inferior.",
+            "Cria cópias em períodos menores para distribuir o " +
+            "objetivo sem reescrevê-lo.",
           "planes.ui_help_metadatos_objetivo":
             "Campos próprios do objetivo que seus subobjetivos completam depois.",
           "planes.ui_help_metadato_nombre":
@@ -25724,17 +26003,23 @@
           "planes.ui_help_sub_nombre":
             "Nome do passo ou item que você quer completar.",
           "planes.ui_help_sub_metrica":
-            "Métrica própria do subobjetivo; permite registrar avanço interno.",
+            "Valor final próprio do subobjetivo. Ao chegar nesse " +
+            "número, ele é considerado realizado.",
           "planes.ui_help_sub_avance_inicial":
-            "Avanço já feito antes de começar a registrar histórico.",
+            "Quantidade já feita antes de começar a registrar avanços " +
+            "com data e hora.",
           "planes.ui_help_sub_aporte":
-            "Quanto este subobjetivo soma à meta do objetivo ao ser realizado.",
+            "Quanto este subobjetivo soma ao objetivo pai quando fica " +
+            "realizado.",
           "planes.ui_help_sub_unidad":
             "Unidade usada para medir este subobjetivo.",
           "planes.ui_help_sub_inicio":
             "Data a partir da qual este subobjetivo conta como ativo.",
+          "planes.ui_help_sub_objetivo_fecha":
+            "Data planejada para completar o subobjetivo.",
           "planes.ui_help_sub_fin":
-            "Data esperada de conclusão do subobjetivo.",
+            "Data real de fechamento. Se for completada, o " +
+            "subobjetivo fica marcado como realizado.",
           "planes.ui_help_sub_metadatos":
             "Valores dos campos definidos no objetivo.",
           "planes.ui_help_sub_realizado":
@@ -28404,6 +28689,8 @@
             "Subobjetivo atualizado",
           "toast.subobjetivo_reordenada":
             "Subobjetivo reordenado",
+          "toast.objetivos_reordenados":
+            "Objetivo reordenado",
           "toast.subobjetivos_trasladadas":
             "Foram movidos {n} subobjetivos",
           "toast.objetivo_copiada": "Objetivo copiado",
@@ -41836,6 +42123,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             : null,
           Progreso_Avances:
             Number(Subobjetivo.Progreso_Avances) || 0,
+          Fecha_Objetivo:
+            (Subobjetivo.Fecha_Objetivo || "").toString(),
           Fecha_Inicio:
             (Subobjetivo.Fecha_Inicio || "").toString(),
           Fecha_Fin:
@@ -42991,7 +43280,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Normalizar_Modo_Avance(Objetivo) === "Sin_Metrica" ||
           (Number(Objetivo.Target_Total) || 0) <= 0
         ) {
-          return t("planes.sin_metrica");
+          return "";
         }
         return `${Planes_Formatear_Numero(
           Objetivo.Target_Total
@@ -43017,7 +43306,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .replace(/\u00C2\u00B7/g, "\u00B7")
           .replace(/\u00C3\u201A\u00C2\u00B7/g, "\u00B7");
         if (Target <= 0) {
-          return `${t("planes.sin_metrica")}${Aporte_Txt_Limpio}`
+          return Aporte_Txt_Limpio.replace(/^\s*·\s*/, "")
             .trim();
         }
         const Progreso = Number(Sub.Progreso_Manual) || 0;
@@ -43529,6 +43818,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Cercano = Elemento.closest?.(Selector);
           if (Cercano) Destinos.add(Cercano);
         });
+        const Label_Texto = Elemento.closest?.("label")
+          ?.querySelector("span");
+        if (Label_Texto) Destinos.add(Label_Texto);
         Destinos.forEach((Destino) => {
           Destino.title = Texto;
           Destino.classList?.add("Planes_Dato_Ayuda");
@@ -43644,6 +43936,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "planes.ui_help_sub_unidad"],
           ["#Planes_Subobjetivo_Unidad_Custom",
             "planes.ui_help_sub_unidad"],
+          ["#Planes_Subobjetivo_Fecha_Objetivo",
+            "planes.ui_help_sub_objetivo_fecha"],
           ["#Planes_Subobjetivo_Fecha_Inicio",
             "planes.ui_help_sub_inicio"],
           ["#Planes_Subobjetivo_Fecha_Fin",
@@ -43652,7 +43946,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "planes.ui_help_sub_metadatos"],
           [".Planes_Subobjetivo_Metadato_Input",
             "planes.ui_help_sub_metadatos"],
-          ["#Planes_Subobjetivo_Hecha",
+          ["#Planes_Subobjetivo_Realizado",
             "planes.ui_help_sub_realizado"],
           ["#Planes_Avance_Item", "planes.ui_help_avance_item"],
           ["#Planes_Avance_Cantidad",
@@ -45499,6 +45793,54 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Planes_Contenido();
       }
 
+      function Planes_Reordenar_Objetivo(
+        Periodo_Id,
+        Origen_Id,
+        Destino_Id,
+        Insertar_Despues = false
+      ) {
+        if (!Periodo_Id || !Origen_Id || !Destino_Id ||
+            Origen_Id === Destino_Id) {
+          return false;
+        }
+        const Modelo = Asegurar_Modelo_Planes();
+        const Origen = Modelo.Objetivos[Origen_Id];
+        const Destino = Modelo.Objetivos[Destino_Id];
+        if (!Origen || !Destino) return false;
+        if (
+          Origen.Periodo_Id !== Periodo_Id ||
+          Destino.Periodo_Id !== Periodo_Id
+        ) {
+          return false;
+        }
+        const Lista = Planes_Objetivos_De_Periodo(Periodo_Id)
+          .filter((Objetivo) => !Objetivo.Eliminado_Local);
+        const Sin_Origen = Lista.filter(
+          (Objetivo) => Objetivo.Id !== Origen_Id
+        );
+        const Index_Destino = Sin_Origen.findIndex(
+          (Objetivo) => Objetivo.Id === Destino_Id
+        );
+        if (Index_Destino < 0) return false;
+        const Index_Insertar = Index_Destino +
+          (Insertar_Despues ? 1 : 0);
+        Sin_Origen.splice(Index_Insertar, 0, Origen);
+        const Antes = Lista.map((Objetivo) => Objetivo.Id).join("|");
+        const Despues = Sin_Origen
+          .map((Objetivo) => Objetivo.Id)
+          .join("|");
+        if (Antes === Despues) return false;
+        const Snap = Capturar_Snapshot_Undo();
+        Sin_Origen.forEach((Objetivo, Indice) => {
+          Objetivo.Orden = Indice;
+          Objetivo.Actualizado_En = new Date().toISOString();
+        });
+        Render_Plan();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(t("toast.objetivos_reordenados"), Snap);
+        return true;
+      }
+
       function Render_Planes_Objetivo(Objetivo) {
         const Modelo = Asegurar_Modelo_Planes();
         Planes_Actualizar_Progreso(Objetivo);
@@ -45518,7 +45860,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Multi_Seleccion.has(Objetivo.Id)
               ? " Multi_Activa" : ""
           ) +
-          (Expandido ? " Expandida" : "");
+          (Expandido ? " Expandida" : "") +
+          " Reordenable";
+        Card.draggable = true;
         Card.dataset.planObjetivoId = Objetivo.Id;
         const Estado_Label =
           t(`planes.estado_${Objetivo.Estado.toLowerCase()}`);
@@ -45526,6 +45870,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Objetivo.Progreso_Total,
           Objetivo.Target_Total
         );
+        const Meta_Objetivo_Texto =
+          Planes_Formatear_Meta_Objetivo(Objetivo);
         const Boton_Avance = `
           <button class="Planes_Btn Planes_Avance_Btn"
             type="button"
@@ -45575,9 +45921,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ${Es_Lista ? "" : Boton_Avance}
               </div>
             </div>
-            ${Es_Lista || Expandido ? "" : `
+            ${Es_Lista || Expandido || !Meta_Objetivo_Texto ? "" : `
               <div class="Planes_Objetivo_Cantidad">
-                ${Escape_Html(Planes_Formatear_Meta_Objetivo(Objetivo))}
+                ${Escape_Html(Meta_Objetivo_Texto)}
               </div>
             `}
           </div>
@@ -45595,6 +45941,55 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.clientX,
             Ev.clientY
           );
+        });
+        Card.addEventListener("dragstart", (Ev) => {
+          if (Ev.target.closest("button, input, select, textarea, a")) {
+            Ev.preventDefault();
+            return;
+          }
+          Ev.dataTransfer.effectAllowed = "move";
+          Ev.dataTransfer.setData(
+            "application/x-planes-objetivo",
+            Objetivo.Id
+          );
+        });
+        Card.addEventListener("dragover", (Ev) => {
+          Ev.preventDefault();
+          Ev.dataTransfer.dropEffect = "move";
+          const Rect = Card.getBoundingClientRect();
+          const Insertar_Despues =
+            Ev.clientY >= Rect.top + Rect.height / 2;
+          Card.classList.toggle("Drop_Antes", !Insertar_Despues);
+          Card.classList.toggle("Drop_Despues", Insertar_Despues);
+        });
+        Card.addEventListener("dragleave", () => {
+          Card.classList.remove("Drop_Antes");
+          Card.classList.remove("Drop_Despues");
+        });
+        Card.addEventListener("drop", (Ev) => {
+          Ev.preventDefault();
+          Card.classList.remove("Drop_Antes");
+          Card.classList.remove("Drop_Despues");
+          const Origen_Id = Ev.dataTransfer.getData(
+            "application/x-planes-objetivo"
+          );
+          const Rect = Card.getBoundingClientRect();
+          const Insertar_Despues =
+            Ev.clientY >= Rect.top + Rect.height / 2;
+          Planes_Reordenar_Objetivo(
+            Objetivo.Periodo_Id,
+            Origen_Id,
+            Objetivo.Id,
+            Insertar_Despues
+          );
+        });
+        Card.addEventListener("dragend", () => {
+          document.querySelectorAll(
+            ".Planes_Objetivo_Card.Drop_Antes, " +
+            ".Planes_Objetivo_Card.Drop_Despues"
+          ).forEach((Nodo) => {
+            Nodo.classList.remove("Drop_Antes", "Drop_Despues");
+          });
         });
         Card.addEventListener("click", async (Ev) => {
           const Accion = Ev.target.closest("[data-plan-accion]");
@@ -46577,6 +46972,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Datos.Unidad_Custom !== undefined) {
           Sub.Unidad_Custom = Datos.Unidad_Custom.toString().trim();
         }
+        if (Datos.Fecha_Objetivo !== undefined) {
+          Sub.Fecha_Objetivo = Datos.Fecha_Objetivo.toString();
+        }
         if (Datos.Fecha_Inicio !== undefined) {
           Sub.Fecha_Inicio = Datos.Fecha_Inicio.toString();
         }
@@ -46611,7 +47009,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Planes_Subobjetivo_Unidad_Custom"
         );
         if (!Select || !Input) return;
-        Input.hidden = Select.value !== "Personalizado";
+        const Campo = Input.closest(
+          ".Planes_Subobjetivo_Unidad_Custom_Campo"
+        );
+        const Oculto = Select.value !== "Personalizado";
+        Input.hidden = Oculto;
+        if (Campo) Campo.hidden = Oculto;
       }
 
       function Planes_Metadatos_Borrador_A_Objeto() {
@@ -46763,6 +47166,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Unidad_Custom: (Sub?.Unidad_Custom || "")
             .toString()
             .trim(),
+          Fecha_Objetivo: (Sub?.Fecha_Objetivo || "").toString(),
           Fecha_Inicio: (Sub?.Fecha_Inicio || "").toString(),
           Fecha_Fin: (Sub?.Fecha_Fin || "").toString(),
           Metadatos,
@@ -46807,14 +47211,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Unidad_Custom = document.getElementById(
           "Planes_Subobjetivo_Unidad_Custom"
         );
+        const Fecha_Objetivo = document.getElementById(
+          "Planes_Subobjetivo_Fecha_Objetivo"
+        );
         const Inicio = document.getElementById(
           "Planes_Subobjetivo_Fecha_Inicio"
         );
         const Fin = document.getElementById(
           "Planes_Subobjetivo_Fecha_Fin"
-        );
-        const Hecha = document.getElementById(
-          "Planes_Subobjetivo_Hecha"
         );
         if (Texto) Texto.value = Sub.Texto || "";
         if (Emoji) Emoji.value = Sub.Emoji || "\u2022";
@@ -46839,9 +47243,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Unidad_Custom) {
           Unidad_Custom.value = Sub.Unidad_Custom || "";
         }
+        if (Fecha_Objetivo) {
+          Fecha_Objetivo.value = Sub.Fecha_Objetivo || "";
+        }
         if (Inicio) Inicio.value = Sub.Fecha_Inicio || "";
         if (Fin) Fin.value = Sub.Fecha_Fin || "";
-        if (Hecha) Hecha.checked = Boolean(Sub.Hecha);
+        const Boton_Realizado = document.getElementById(
+          "Planes_Subobjetivo_Realizado"
+        );
+        if (Boton_Realizado) {
+          Boton_Realizado.hidden = !Planes_Subobjetivo_En_Edicion_Id;
+          Boton_Realizado.disabled = Boolean(Sub.Hecha);
+        }
         Planes_Subobjetivo_Metadatos_Borrador = {};
         Planes_Definiciones_Metadatos_Objetivo(Objetivo)
           .forEach((Campo) => {
@@ -46901,6 +47314,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Aporte_Meta: Tiene_Metrica ? 1 : 0,
           Unidad: Objetivo.Unidad || "Horas",
           Unidad_Custom: Objetivo.Unidad_Custom || "",
+          Fecha_Objetivo: "",
           Fecha_Inicio: "",
           Fecha_Fin: "",
           Metadatos: {},
@@ -46925,10 +47339,151 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.classList.remove("Activo");
       }
 
-      function Guardar_Modal_Planes_Subobjetivo() {
+      function Planes_Formatear_Fecha_Confirmacion(Fecha) {
+        return Planes_Formatear_Fecha_Larga(Fecha) ||
+          Fecha || "";
+      }
+
+      function Planes_Restante_Subobjetivo_Con_Datos(
+        Sub,
+        Datos,
+        Modelo = null
+      ) {
+        const Target = Number(Datos?.Target_Total ?? Sub?.Target_Total) ||
+          0;
+        if (Target <= 0) return 0;
+        const Inicial = Number(
+          Datos?.Progreso_Inicial ?? Sub?.Progreso_Inicial
+        ) || 0;
+        const Avances = Sub?.Id
+          ? Planes_Total_Avances_Subobjetivo(Sub.Id, Modelo)
+          : 0;
+        return Math.max(0, Target - Inicial - Avances);
+      }
+
+      function Planes_Datos_Confirmacion_Realizado(
+        Item,
+        Cantidad,
+        Fecha,
+        Hora
+      ) {
+        return {
+          cantidad: Planes_Formatear_Numero(Cantidad),
+          unidad: Planes_Unidad_Label_Subobjetivo(Item),
+          fecha: Planes_Formatear_Fecha_Confirmacion(Fecha),
+          hora: Hora || ""
+        };
+      }
+
+      async function Planes_Confirmar_Realizado_Subobjetivo(
+        Item,
+        Cantidad,
+        Fecha,
+        Hora,
+        Claves
+      ) {
+        const Clave = Cantidad > 0
+          ? Claves.Con_Avance
+          : Claves.Sin_Avance;
+        const Confirmar = await Mostrar_Dialogo(
+          t(
+            Clave,
+            Planes_Datos_Confirmacion_Realizado(
+              Item,
+              Cantidad,
+              Fecha,
+              Hora
+            )
+          ),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            { Etiqueta: t("confirmar"), Valor: true, Tipo: "Primario" }
+          ]
+        );
+        return Boolean(Confirmar);
+      }
+
+      function Planes_Agregar_Avance_Final_Subobjetivo(
+        Sub,
+        Objetivo,
+        Cantidad,
+        Fecha,
+        Hora,
+        Modelo
+      ) {
+        if (!Sub || !Objetivo || Cantidad <= 0) return;
+        const Id = Crear_Id_Avance_Plan();
+        Modelo.Avances[Id] = Normalizar_Avance_Plan({
+          Id,
+          Objetivo_Id: Objetivo.Id,
+          Subobjetivo_Id: Sub.Id,
+          Fuente: "Subobjetivo",
+          Cantidad,
+          Unidad: Planes_Unidad_Label_Subobjetivo(Sub),
+          Fecha,
+          Hora,
+          Fecha_Hora: `${Fecha}T${Hora || "00:00"}`
+        });
+      }
+
+      async function Planes_Marcar_Subobjetivo_Como_Realizado(Sub_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Sub = Modelo.Subobjetivos[Sub_Id];
+        const Objetivo = Modelo.Objetivos[Sub?.Objetivo_Id];
+        if (!Sub || !Objetivo) return false;
+        if (Sub.Hecha) return false;
+        const Actual = Planes_Fecha_Hora_Actual();
+        const Cantidad = Planes_Restante_Subobjetivo_Con_Datos(
+          Sub,
+          Sub,
+          Modelo
+        );
+        const Confirmar =
+          await Planes_Confirmar_Realizado_Subobjetivo(
+            Sub,
+            Cantidad,
+            Actual.Fecha,
+            Actual.Hora,
+            {
+              Con_Avance: "planes.sub_realizar_confirm",
+              Sin_Avance: "planes.sub_realizar_sin_avance_confirm"
+            }
+          );
+        if (!Confirmar) return false;
+        const Snap = Capturar_Snapshot_Undo();
+        Planes_Agregar_Avance_Final_Subobjetivo(
+          Sub,
+          Objetivo,
+          Cantidad,
+          Actual.Fecha,
+          Actual.Hora,
+          Modelo
+        );
+        Sub.Hecha = true;
+        Sub.Estado = "Cumplido";
+        Sub.Fecha_Fin = Actual.Fecha;
+        Sub.Hora_Fin = Actual.Hora;
+        Sub.Actualizado_En = new Date().toISOString();
+        Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+        Planes_Recalcular_Desde(
+          Objetivo,
+          Snap,
+          t("planes.avance_registrado")
+        );
+        if (
+          document.getElementById("Planes_Subobjetivos_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Modal_Planes_Subobjetivos();
+        }
+        return true;
+      }
+
+      async function Guardar_Modal_Planes_Subobjetivo(Opciones = {}) {
         const Modelo = Asegurar_Modelo_Planes();
         const Borrador_Nuevo = Planes_Subobjetivo_Nuevo_Borrador;
         const Es_Nuevo = Boolean(Borrador_Nuevo);
+        const Forzar_Realizado = Opciones.Marcar_Realizado === true;
         let Sub = Es_Nuevo
           ? null
           : Modelo.Subobjetivos[Planes_Subobjetivo_En_Edicion_Id];
@@ -46972,11 +47527,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )?.value || ""
           ).replace(",", ".")
         );
-        const Hecha = Boolean(
-          document.getElementById("Planes_Subobjetivo_Hecha")?.checked
-        );
         const Metadatos = Planes_Metadatos_Borrador_A_Objeto();
         if (Metadatos === null) return;
+        const Target_Normalizado =
+          Number.isFinite(Target) && Target > 0 ? Target : 0;
+        const Progreso_Inicial_Normalizado =
+          Number.isFinite(Progreso_Inicial) && Progreso_Inicial > 0
+            ? Progreso_Inicial
+            : 0;
+        if (Progreso_Inicial_Normalizado > Target_Normalizado) {
+          Mostrar_Toast_Error(t("planes.err_sub_valor_inicial_mayor"));
+          return;
+        }
+        const Actual = Planes_Fecha_Hora_Actual();
+        const Fecha_Final_Form = (
+          document.getElementById("Planes_Subobjetivo_Fecha_Fin")
+            ?.value || ""
+        ).toString();
+        const Fecha_Final = Forzar_Realizado
+          ? Actual.Fecha
+          : Fecha_Final_Form;
         const Datos = {
           Objetivo_Id:
             Sub?.Objetivo_Id ||
@@ -46987,31 +47557,71 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ?.value || "\u2022"
           ),
           Texto,
-          Target_Total:
-            Number.isFinite(Target) && Target > 0 ? Target : 0,
-          Progreso_Inicial:
-            Number.isFinite(Progreso_Inicial) && Progreso_Inicial > 0
-              ? Progreso_Inicial
-              : 0,
+          Target_Total: Target_Normalizado,
+          Progreso_Inicial: Progreso_Inicial_Normalizado,
           Aporte_Meta:
             Number.isFinite(Aporte) && Aporte >= 0 ? Aporte : 0,
           Unidad: Planes_Unidades.includes(Unidad)
             ? Unidad
             : "Personalizado",
           Unidad_Custom,
+          Fecha_Objetivo: (
+            document.getElementById(
+              "Planes_Subobjetivo_Fecha_Objetivo"
+            )?.value || ""
+          ).toString(),
           Fecha_Inicio: (
             document.getElementById("Planes_Subobjetivo_Fecha_Inicio")
               ?.value || ""
           ).toString(),
-          Fecha_Fin: (
-            document.getElementById("Planes_Subobjetivo_Fecha_Fin")
-              ?.value || ""
-          ).toString(),
+          Fecha_Fin: Fecha_Final,
           Metadatos,
-          Hecha
+          Hecha: Boolean(Sub?.Hecha)
         };
+        const Fecha_Final_Cambio =
+          Sub && (Sub.Fecha_Fin || "") !== Datos.Fecha_Fin;
+        const Debe_Marcar_Realizado =
+          Forzar_Realizado || (Boolean(Datos.Fecha_Fin) && !Datos.Hecha);
+        const Hora_Final = Forzar_Realizado || Debe_Marcar_Realizado
+          ? Actual.Hora
+          : (Sub?.Hora_Fin || "");
+        const Cantidad_Final = Debe_Marcar_Realizado
+          ? Planes_Restante_Subobjetivo_Con_Datos(Sub, Datos, Modelo)
+          : 0;
+        if (Fecha_Final_Cambio && !Debe_Marcar_Realizado) {
+          const Confirmar_Fecha = await Mostrar_Dialogo(
+            t("planes.sub_fecha_final_cambio_confirm"),
+            [
+              { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+              { Etiqueta: t("confirmar"), Valor: true, Tipo: "Primario" }
+            ]
+          );
+          if (!Confirmar_Fecha) return;
+        }
+        if (Debe_Marcar_Realizado) {
+          const Confirmar_Final =
+            await Planes_Confirmar_Realizado_Subobjetivo(
+              Datos,
+              Cantidad_Final,
+              Datos.Fecha_Fin,
+              Hora_Final,
+              Forzar_Realizado
+                ? {
+                  Con_Avance: "planes.sub_realizar_confirm",
+                  Sin_Avance: "planes.sub_realizar_sin_avance_confirm"
+                }
+                : {
+                  Con_Avance:
+                    "planes.sub_fecha_final_realiza_confirm",
+                  Sin_Avance:
+                    "planes.sub_fecha_final_realiza_sin_avance_confirm"
+                }
+            );
+          if (!Confirmar_Final) return;
+        }
         if (
           Sub &&
+          !Debe_Marcar_Realizado &&
           !Hay_Cambio_Real_Guardado(
             Planes_Datos_Comparables_Subobjetivo(Sub),
             Planes_Datos_Comparables_Subobjetivo(Datos)
@@ -47051,17 +47661,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Actualizado_En: new Date().toISOString()
           });
         }
-        Sub.Hecha = Datos.Hecha;
-        Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
-        if (
-          Hecha &&
-          Sub.Target_Total > 0 &&
-          (Number(Sub.Progreso_Manual) || 0) < Sub.Target_Total
-        ) {
-          Sub.Progreso_Inicial +=
-            Sub.Target_Total - (Number(Sub.Progreso_Manual) || 0);
-          Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+        if (Debe_Marcar_Realizado) {
+          const Objetivo_Final = Modelo.Objetivos[Sub.Objetivo_Id];
+          Planes_Agregar_Avance_Final_Subobjetivo(
+            Sub,
+            Objetivo_Final,
+            Cantidad_Final,
+            Datos.Fecha_Fin,
+            Hora_Final,
+            Modelo
+          );
+          Sub.Hecha = true;
+          Sub.Estado = "Cumplido";
+          Sub.Fecha_Fin = Datos.Fecha_Fin;
+          Sub.Hora_Fin = Hora_Final;
+          Sub.Actualizado_En = new Date().toISOString();
         }
+        Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
         Cerrar_Modal_Planes_Subobjetivo();
         const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
         if (Objetivo) {
@@ -48026,8 +48642,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Periodo?.Inicio && !Periodo?.Fin) return false;
         const Inicio_Periodo = Periodo.Inicio || Periodo.Fin || "";
         const Fin_Periodo = Periodo.Fin || Periodo.Inicio || "";
-        const Inicio_Sub = Sub.Fecha_Inicio || Sub.Fecha_Fin || "";
-        const Fin_Sub = Sub.Fecha_Fin || Sub.Fecha_Inicio || "";
+        const Fecha_Ref =
+          Sub.Fecha_Objetivo || Sub.Fecha_Fin || Sub.Fecha_Inicio || "";
+        const Inicio_Sub = Sub.Fecha_Inicio || Fecha_Ref;
+        const Fin_Sub = Sub.Fecha_Fin || Fecha_Ref;
         if (!Inicio_Sub && !Fin_Sub) return false;
         return (!Fin_Periodo || Inicio_Sub <= Fin_Periodo) &&
           (!Inicio_Periodo || Fin_Sub >= Inicio_Periodo);
@@ -48139,10 +48757,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Item.setAttribute("aria-label", Sub.Texto);
         Item.innerHTML = `
-          <input class="Planes_Subobjetivo_Check"
-            type="checkbox"
-            data-plan-sub-check="${Escape_Html(Sub.Id)}"
-            ${Sub.Hecha ? "checked" : ""}>
           <span class="Planes_Subobjetivo_Emoji Con_Fallback_Emoji">
             ${Escape_Html(Sub.Emoji || "\u2022")}
           </span>
@@ -48385,16 +48999,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Lista
           );
         });
-        Lista.querySelectorAll("[data-plan-sub-check]")
-          .forEach((Check) => {
-            Check.addEventListener("change", () => {
-              Planes_Toggle_Subobjetivo(
-                Check.dataset.planSubCheck,
-                Check.checked
-              );
-              Render_Modal_Planes_Subobjetivos();
-            });
-          });
         const Importar = document.getElementById(
           "Planes_Subobjetivos_Importar"
         );
@@ -48412,22 +49016,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Render_Planes_Subobjetivo_Acciones(Sub) {
         return `
           <button class="Planes_Btn" type="button"
-            data-plan-sub-accion="agregar_sub">
-            ${t("planes.agregar_subobjetivo")}
-          </button>
-          <button class="Planes_Btn" type="button"
             data-plan-sub-accion="editar">
-            ${t("planes.editar_subobjetivo")}
+            ${t("editar")}
           </button>
           <button class="Planes_Btn" type="button"
             data-plan-sub-accion="avance">
-            ${t("planes.sub_avance")}
+            ${t("planes.registrar_avance")}
           </button>
           <button class="Planes_Btn" type="button"
-            data-plan-sub-accion="toggle">
-            ${Sub.Hecha
-              ? t("multi.desmarcar")
-              : t("multi.marcar_hechas")}
+            data-plan-sub-accion="realizar"
+            ${Sub.Hecha ? "disabled" : ""}>
+            ${t("planes.marcar_realizado")}
           </button>
           <button class="Planes_Btn Peligro" type="button"
             data-plan-sub-accion="eliminar">
@@ -48444,9 +49043,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Sub = Modelo.Subobjetivos[Sub_Id];
         if (!Sub) return;
-        if (Tipo === "agregar_sub") {
-          Planes_Abrir_Modal_Subobjetivo_Nuevo(Sub_Id);
-        }
         if (Tipo === "editar") {
           Abrir_Modal_Planes_Subobjetivo(Sub_Id);
         }
@@ -48456,9 +49052,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             { Tipo: "Objetivo", Id: Sub.Objetivo_Id }
           );
         }
-        if (Tipo === "toggle") {
-          Planes_Toggle_Subobjetivo(Sub_Id, !Sub.Hecha);
-          Render_Modal_Planes_Subobjetivos();
+        if (Tipo === "realizar") {
+          await Planes_Marcar_Subobjetivo_Como_Realizado(Sub_Id);
         }
         if (Tipo === "eliminar") {
           Planes_Eliminar_Subobjetivo(Sub_Id);
@@ -48598,8 +49193,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Subobjetivo_Importa_En_Periodo(Sub, Periodo) {
         if (!Sub || Sub.Eliminado_Local || !Periodo) return false;
-        if (!Sub.Fecha_Fin) return false;
-        return Planes_Periodo_Contiene_Fecha(Periodo, Sub.Fecha_Fin);
+        const Fecha = Sub.Fecha_Objetivo || Sub.Fecha_Fin || "";
+        if (!Fecha) return false;
+        return Planes_Periodo_Contiene_Fecha(Periodo, Fecha);
       }
 
       function Planes_Subobjetivos_Padre_Para_Importar(
@@ -48646,6 +49242,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Progreso_Inicial: Sub_Padre.Progreso_Inicial,
           Progreso_Avances: Sub_Padre.Progreso_Avances,
           Progreso_Manual: Sub_Padre.Progreso_Manual,
+          Fecha_Objetivo: Sub_Padre.Fecha_Objetivo,
           Fecha_Inicio: Sub_Padre.Fecha_Inicio,
           Fecha_Fin: Sub_Padre.Fecha_Fin,
           Hora_Fin: Sub_Padre.Hora_Fin,
@@ -48672,6 +49269,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Progreso_Inicial: Number(Sub.Progreso_Inicial) || 0,
           Progreso_Avances: Number(Sub.Progreso_Avances) || 0,
           Progreso_Manual: Number(Sub.Progreso_Manual) || 0,
+          Fecha_Objetivo: Sub.Fecha_Objetivo || "",
           Fecha_Inicio: Sub.Fecha_Inicio || "",
           Fecha_Fin: Sub.Fecha_Fin || "",
           Hora_Fin: Sub.Hora_Fin || "",
@@ -49379,37 +49977,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Abiertos_Redistribuibles = Abiertos.filter((Periodo) =>
           !Abiertos_Bloqueados.has(Periodo.Id)
         );
-        const Deuda_Cerrada = Cerrados.reduce((Total, Periodo) => {
-          const Base = Planes_Target_Proporcional_Importacion(
-            Objetivo_Padre,
-            Periodo_Padre,
-            Periodo
-          );
+        const Avance_Cerrado = Cerrados.reduce((Total, Periodo) => {
           const Avance =
             Number(Avances_Reales.get(Periodo.Id)) || 0;
-          return Total + Math.max(0, Base - Avance);
+          return Total + Avance;
         }, 0);
-        const Base_Bloqueado_Abierto = Abiertos.reduce(
-          (Total, Periodo) => {
-            if (!Abiertos_Bloqueados.has(Periodo.Id)) return Total;
-            return Total + Planes_Target_Proporcional_Importacion(
-              Objetivo_Padre,
-              Periodo_Padre,
-              Periodo
-            );
-          },
-          0
-        );
-        const Exceso_Bloqueado_Abierto = Math.max(
+        const Pendiente_Redistribuible = Math.max(
           0,
-          Target_Bloqueado_Abierto - Base_Bloqueado_Abierto
+          Target - Avance_Cerrado - Target_Bloqueado_Abierto
         );
-        const Deuda_Redistribuible = Math.max(
-          0,
-          Deuda_Cerrada - Exceso_Bloqueado_Abierto
-        );
-        const Cuota_Deuda = Abiertos_Redistribuibles.length
-          ? Deuda_Redistribuible /
+        const Cuota_Redistribuible = Abiertos_Redistribuibles.length
+          ? Pendiente_Redistribuible /
             Abiertos_Redistribuibles.length
           : 0;
         Destinos.forEach((Periodo) => {
@@ -49433,7 +50011,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? Base
             : Es_Bloqueado_Abierto
             ? Number(Hijo_Bloqueado?.Target_Total) || 0
-            : Base + Cuota_Deuda;
+            : Cuota_Redistribuible;
           Resultado.Targets.set(Periodo.Id, Target_Periodo);
           Resultado.Avances.set(
             Periodo.Id,
@@ -71887,6 +72465,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Cerrar_Menus_Objetivo();
           }
         });
+      document.addEventListener("click", (Ev) => {
+        if (
+          Ev.target.closest(".Planes_Context_Menu") ||
+          Ev.target.closest(".Planes_Objetivo_Acciones")
+        ) {
+          return;
+        }
+        Planes_Cerrar_Menus_Objetivo();
+      });
+      document.addEventListener("contextmenu", (Ev) => {
+        if (
+          Ev.target.closest(".Planes_Context_Menu") ||
+          Ev.target.closest("[data-plan-objetivo-id]") ||
+          Ev.target.closest("[data-plan-subobjetivo-id]")
+        ) {
+          return;
+        }
+        Planes_Cerrar_Menus_Objetivo();
+      });
       document.getElementById("Planes_Objetivo_Cerrar")
         ?.addEventListener("click", Cerrar_Modal_Planes_Objetivo);
       document.getElementById("Planes_Objetivo_Cancelar")
@@ -71988,11 +72585,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Planes_Subobjetivo_Cancelar")
         ?.addEventListener("click", Cerrar_Modal_Planes_Subobjetivo);
       document.getElementById("Planes_Subobjetivo_Guardar")
-        ?.addEventListener("click", Guardar_Modal_Planes_Subobjetivo);
+        ?.addEventListener("click", () => {
+          void Guardar_Modal_Planes_Subobjetivo();
+        });
+      document.getElementById("Planes_Subobjetivo_Realizado")
+        ?.addEventListener("click", () => {
+          void Guardar_Modal_Planes_Subobjetivo({
+            Marcar_Realizado: true
+          });
+        });
       document.getElementById("Planes_Subobjetivo_Form")
         ?.addEventListener("submit", (Ev) => {
           Ev.preventDefault();
-          Guardar_Modal_Planes_Subobjetivo();
+          void Guardar_Modal_Planes_Subobjetivo();
         });
       document.getElementById("Planes_Subobjetivo_Overlay")
         ?.addEventListener("click", (Ev) => {
