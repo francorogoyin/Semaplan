@@ -21376,7 +21376,10 @@
             ": abrir metas.<br>" +
             "<strong>A</strong>: " +
             "nueva nota al " +
-            "archivero.",
+            "archivero.<br><strong>" +
+            "Metas</strong>: &larr;/&rarr; " +
+            "períodos; &uarr;/&darr; " +
+            "capas.",
           "ayuda.atajos_sidebar":
             "Sidebar",
           "ayuda.atajos_crear":
@@ -24630,7 +24633,10 @@
             "open goals.<br>" +
             "<strong>A</strong>: " +
             "new note to file " +
-            "cabinet.",
+            "cabinet.<br><strong>" +
+            "Goals</strong>: &larr;/&rarr; " +
+            "periods; &uarr;/&darr; " +
+            "layers.",
           "ayuda.atajos_sidebar":
             "Sidebar",
           "ayuda.atajos_crear":
@@ -27990,7 +27996,11 @@
             "<strong>M</strong>: " +
             "abrir metas.<br>" +
             "<strong>A</strong>: " +
-            "nova nota no arquivo.",
+            "nova nota no arquivo." +
+            "<br><strong>Metas" +
+            "</strong>: &larr;/&rarr; " +
+            "períodos; &uarr;/&darr; " +
+            "camadas.",
           "ayuda.atajos_sidebar":
             "Sidebar",
           "ayuda.atajos_crear":
@@ -41521,6 +41531,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      function Planes_Navegar_Capa_Activa(Direccion) {
+        const Periodo = Planes_Periodo_Activo();
+        if (!Periodo) return false;
+        const Indice = Planes_Tipos.indexOf(Periodo.Tipo);
+        if (Indice < 0) return false;
+        const Tipo_Destino = Planes_Tipos[Indice + Direccion];
+        if (!Tipo_Destino) return false;
+        const Periodos = Planes_Crear_Periodos_Capa_Visibles(
+          Tipo_Destino
+        );
+        const Destino =
+          Periodos.find((Item) =>
+            Planes_Periodo_Contiene_Periodo(Item, Periodo) ||
+            Planes_Periodo_Contiene_Periodo(Periodo, Item) ||
+            Planes_Periodo_Contiene_Fecha(Item, Periodo.Inicio)
+          ) ||
+          Periodos.find((Item) =>
+            Planes_Periodo_Contiene_Fecha(Item, Periodo.Fin)
+          );
+        if (!Destino) return false;
+        Planes_Activar_Periodo_Desde_Coleccion(Destino);
+        return true;
+      }
+
       function Planes_Objetivos_De_Periodo(Periodo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         return Object.values(Modelo.Objetivos)
@@ -48491,16 +48525,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Abiertos_Redistribuibles = Abiertos.filter((Periodo) =>
           !Abiertos_Bloqueados.has(Periodo.Id)
         );
-        const Avance_Cerrado = Cerrados.reduce((Total, Periodo) => {
-          return Total + (Number(Avances_Reales.get(Periodo.Id)) || 0);
+        const Deuda_Cerrada = Cerrados.reduce((Total, Periodo) => {
+          const Base = Planes_Target_Proporcional_Importacion(
+            Objetivo_Padre,
+            Periodo_Padre,
+            Periodo
+          );
+          const Avance =
+            Number(Avances_Reales.get(Periodo.Id)) || 0;
+          return Total + Math.max(0, Base - Avance);
         }, 0);
-        const Pendiente = Math.max(0, Target - Avance_Cerrado);
-        const Pendiente_Redistribuible = Math.max(
-          0,
-          Pendiente - Target_Bloqueado_Abierto
+        const Base_Bloqueado_Abierto = Abiertos.reduce(
+          (Total, Periodo) => {
+            if (!Abiertos_Bloqueados.has(Periodo.Id)) return Total;
+            return Total + Planes_Target_Proporcional_Importacion(
+              Objetivo_Padre,
+              Periodo_Padre,
+              Periodo
+            );
+          },
+          0
         );
-        const Cuota = Abiertos_Redistribuibles.length
-          ? Pendiente_Redistribuible /
+        const Exceso_Bloqueado_Abierto = Math.max(
+          0,
+          Target_Bloqueado_Abierto - Base_Bloqueado_Abierto
+        );
+        const Deuda_Redistribuible = Math.max(
+          0,
+          Deuda_Cerrada - Exceso_Bloqueado_Abierto
+        );
+        const Cuota_Deuda = Abiertos_Redistribuibles.length
+          ? Deuda_Redistribuible /
             Abiertos_Redistribuibles.length
           : 0;
         Destinos.forEach((Periodo) => {
@@ -48524,7 +48579,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? Base
             : Es_Bloqueado_Abierto
             ? Number(Hijo_Bloqueado?.Target_Total) || 0
-            : Cuota;
+            : Base + Cuota_Deuda;
           Resultado.Targets.set(Periodo.Id, Target_Periodo);
           Resultado.Avances.set(
             Periodo.Id,
@@ -76647,10 +76702,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           !Ev.metaKey &&
           !Ev.altKey &&
           !Ev.shiftKey &&
-          (Ev.key === "ArrowLeft" || Ev.key === "ArrowRight")
+          (
+            Ev.key === "ArrowLeft" ||
+            Ev.key === "ArrowRight" ||
+            Ev.key === "ArrowUp" ||
+            Ev.key === "ArrowDown"
+          )
         ) {
-          const Direccion = Ev.key === "ArrowLeft" ? -1 : 1;
-          Planes_Navegar_Periodo_Activo(Direccion);
+          if (Ev.key === "ArrowLeft" || Ev.key === "ArrowRight") {
+            const Direccion = Ev.key === "ArrowLeft" ? -1 : 1;
+            Planes_Navegar_Periodo_Activo(Direccion);
+          } else {
+            const Direccion = Ev.key === "ArrowUp" ? -1 : 1;
+            Planes_Navegar_Capa_Activa(Direccion);
+          }
           Ev.preventDefault();
           return;
         }
