@@ -4767,6 +4767,10 @@
         margin-left: 30px;
       }
 
+      .Planes_Objetivo_Cantidad.Vacia {
+        visibility: hidden;
+      }
+
       .Planes_Objetivo_Porcentaje {
         color: var(--Texto);
         font-weight: 700;
@@ -5896,22 +5900,28 @@
 
       .Planes_Subobjetivo_Form {
         grid-template-columns:
-          minmax(72px, 0.8fr)
-          minmax(120px, 1fr)
-          minmax(104px, 0.95fr)
-          minmax(104px, 0.95fr)
-          minmax(92px, 0.85fr);
+          minmax(76px, 0.85fr)
+          minmax(130px, 1fr)
+          minmax(116px, 0.95fr)
+          minmax(116px, 0.95fr)
+          minmax(116px, 0.95fr);
       }
 
       .Planes_Subobjetivo_Meta_Campo,
       .Planes_Subobjetivo_Avance_Campo,
       .Planes_Subobjetivo_Aporte_Campo,
       .Planes_Subobjetivo_Unidad_Campo,
-      .Planes_Subobjetivo_Unidad_Custom_Campo,
-      .Planes_Subobjetivo_Fecha_Obj_Campo,
+      .Planes_Subobjetivo_Unidad_Custom_Campo {
+        grid-column: auto;
+      }
+
       .Planes_Subobjetivo_Fecha_Ini_Campo,
       .Planes_Subobjetivo_Fecha_Fin_Campo {
-        grid-column: auto;
+        grid-column: span 2;
+      }
+
+      .Planes_Subobjetivo_Fecha_Obj_Campo {
+        grid-column: 1 / -1;
       }
 
       .Planes_Subobjetivo_Emoji_Campo {
@@ -18023,13 +18033,6 @@
                 min="0"
                 step="0.25">
             </label>
-            <label class="Campo Planes_Subobjetivo_Fecha_Obj_Campo">
-              <span data-i18n="planes.sub_fecha_objetivo">
-                Fecha objetivo
-              </span>
-              <input id="Planes_Subobjetivo_Fecha_Objetivo"
-                type="date">
-            </label>
             <label class="Campo Planes_Subobjetivo_Fecha_Ini_Campo">
               <span data-i18n="planes.sub_fecha_inicial">
                 Fecha inicial
@@ -18042,6 +18045,13 @@
                 Fecha final
               </span>
               <input id="Planes_Subobjetivo_Fecha_Fin"
+                type="date">
+            </label>
+            <label class="Campo Planes_Subobjetivo_Fecha_Obj_Campo">
+              <span data-i18n="planes.sub_fecha_objetivo">
+                Fecha objetivo
+              </span>
+              <input id="Planes_Subobjetivo_Fecha_Objetivo"
                 type="date">
             </label>
             <div class="Campo Campo_Ancho
@@ -19052,6 +19062,10 @@
           "planes.avance_eliminado": "Avance eliminado.",
           "planes.avance_eliminar_confirm":
             "Eliminar este avance del subobjetivo?",
+          "planes.avance_past_redistribucion_confirm":
+            "¿Estás seguro de este avance? " +
+            "Se van a cambiar los valores objetivo " +
+            "de los periodos abiertos.",
           "planes.avance_sin_items":
             "No hay metas disponibles para registrar avance.",
           "planes.avance_err_item":
@@ -19321,6 +19335,7 @@
           "planes.minutos": "Minutos",
           "planes.sesiones": "Sesiones",
           "planes.veces": "Veces",
+          "planes.unidades": "Unidades",
           "planes.subobjetivos": "Subobjetivos",
           "planes.ver_subobjetivos": "Ver subobjetivos",
           "planes.aportes_resumen":
@@ -22482,6 +22497,10 @@
           "planes.avance_eliminado": "Progress entry deleted.",
           "planes.avance_eliminar_confirm":
             "Delete this subobjective progress entry?",
+          "planes.avance_past_redistribucion_confirm":
+            "Are you sure about this progress entry? " +
+            "The target values for open periods " +
+            "will change.",
           "planes.avance_sin_items":
             "There are no goals available for progress logging.",
           "planes.avance_err_item":
@@ -22749,6 +22768,7 @@
           "planes.minutos": "Minutes",
           "planes.sesiones": "Sessions",
           "planes.veces": "Times",
+          "planes.unidades": "Units",
           "planes.subobjetivos": "Subobjectives",
           "planes.ver_subobjetivos": "View subobjectives",
           "planes.aportes_resumen":
@@ -25859,6 +25879,9 @@
           "planes.avance_eliminado": "Avanco eliminado.",
           "planes.avance_eliminar_confirm":
             "Excluir este avanco do subobjetivo?",
+          "planes.avance_past_redistribucion_confirm":
+            "Tem certeza deste avanço? Os valores-alvo " +
+            "dos períodos abertos vão mudar.",
           "planes.avance_sin_items":
             "Não há metas disponíveis para registrar avanço.",
           "planes.avance_err_item":
@@ -26128,6 +26151,7 @@
           "planes.minutos": "Minutos",
           "planes.sesiones": "Sessões",
           "planes.veces": "Vezes",
+          "planes.unidades": "Unidades",
           "planes.subobjetivos": "Subobjetivos",
           "planes.ver_subobjetivos": "Ver subobjetivos",
           "planes.aportes_resumen":
@@ -41673,6 +41697,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         "Veces",
         "Personalizado"
       ];
+      const Planes_Unidades_Subobjetivo = [
+        "Dias",
+        "Horas",
+        "Minutos",
+        "Unidades",
+        "Veces",
+        "Personalizado"
+      ];
+
+      function Planes_Normalizar_Unidad_Subobjetivo(Unidad) {
+        const Unidad_Raw = (Unidad || "").toString();
+        if (Unidad_Raw === "Sesiones") return "Unidades";
+        return Planes_Unidades_Subobjetivo.includes(Unidad_Raw)
+          ? Unidad_Raw
+          : "Personalizado";
+      }
       const Planes_Modos_Avance = [
         "Metrica",
         "Sin_Metrica",
@@ -41783,11 +41823,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Modelo.UI.Expandidos = Raw.UI?.Expandidos_Inicializados
           ? Expandidos_Existentes
           : {};
+        const Objetivos_Expandidos_Raw =
+          Modelo.UI.Objetivos_Expandidos;
         if (
-          !Modelo.UI.Objetivos_Expandidos ||
-          typeof Modelo.UI.Objetivos_Expandidos !== "object"
+          !Objetivos_Expandidos_Raw ||
+          typeof Objetivos_Expandidos_Raw !== "object"
         ) {
           Modelo.UI.Objetivos_Expandidos = {};
+        } else if (
+          Object.values(Objetivos_Expandidos_Raw)
+            .some((Valor) => typeof Valor === "boolean")
+        ) {
+          const Convertidos = {};
+          Object.entries(Objetivos_Expandidos_Raw)
+            .forEach(([Objetivo_Id, Abierto]) => {
+              if (!Abierto) return;
+              const Objetivo = Modelo.Objetivos[Objetivo_Id];
+              if (!Objetivo) return;
+              Convertidos[Objetivo.Periodo_Id] = Objetivo.Id;
+            });
+          Modelo.UI.Objetivos_Expandidos = Convertidos;
         }
         Modelo.UI.Expandidos_Inicializados = true;
         if (!["Tarjetas", "Lista", "Biblioteca"].includes(Modelo.UI.Vista)) {
@@ -42129,10 +42184,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Normalizar_Subobjetivo_Plan(Subobjetivo, Indice = 0) {
         if (!Subobjetivo || typeof Subobjetivo !== "object") return null;
-        const Unidad_Raw = (Subobjetivo.Unidad || "").toString();
-        const Unidad = Planes_Unidades.includes(Unidad_Raw)
-          ? Unidad_Raw
-          : "Personalizado";
+        const Unidad = Planes_Normalizar_Unidad_Subobjetivo(
+          Subobjetivo.Unidad
+        );
         const Target = Number(Subobjetivo.Target_Total);
         const Aporte_Meta_Raw =
           Subobjetivo.Aporte_Meta ??
@@ -43184,6 +43238,91 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Periodo.Fin < Formatear_Fecha_ISO(new Date());
       }
 
+      function Planes_Periodo_De_Fecha(Fecha) {
+        const Fecha_ISO = Planes_Normalizar_Fecha_Comparacion(Fecha);
+        if (!Fecha_ISO) return null;
+        const Modelo = Asegurar_Modelo_Planes();
+        return Object.values(Modelo.Periodos || {})
+          .find((Periodo) =>
+            Planes_Periodo_Contiene_Fecha(Periodo, Fecha_ISO)
+          ) || null;
+      }
+
+      function Planes_Fecha_En_Periodo_Cerrado(Fecha) {
+        const Fecha_ISO = Planes_Normalizar_Fecha_Comparacion(Fecha);
+        if (!Fecha_ISO) return false;
+        const Periodo = Planes_Periodo_De_Fecha(Fecha_ISO);
+        if (Periodo) return Planes_Periodo_Cerrado(Periodo);
+        return Fecha_ISO < Formatear_Fecha_ISO(new Date());
+      }
+
+      function Planes_Familia_Tiene_Redistribucion_Pendiente_Activa(
+        Objetivo_Id
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Familia = Planes_Objetivos_Familia_Ids(Objetivo_Id);
+        const Hoy = Formatear_Fecha_ISO(new Date());
+        return Object.values(Modelo.Objetivos || {})
+          .some((Item) => {
+            if (!Item || Item.Eliminado_Local) return false;
+            if (!Familia.has(Item.Id)) return false;
+            if (Item.Regla_Distribucion !== "Pendiente") return false;
+            if (Item.Auto_Redistribucion === false) return false;
+            if (Item.Fijado) return false;
+            const Periodo = Modelo.Periodos[Item.Periodo_Id];
+            return Boolean(Periodo && Periodo.Fin >= Hoy);
+          });
+      }
+
+      async function Planes_Confirmar_Avance_Pasado_Redistribucion(
+        Objetivo_Id,
+        Fecha
+      ) {
+        if (!Planes_Fecha_En_Periodo_Cerrado(Fecha)) return true;
+        if (!Planes_Familia_Tiene_Redistribucion_Pendiente_Activa(
+          Objetivo_Id
+        )) {
+          return true;
+        }
+        const Confirmar = await Mostrar_Dialogo(
+          t("planes.avance_past_redistribucion_confirm"),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            { Etiqueta: t("confirmar"), Valor: true, Tipo: "Primario" }
+          ]
+        );
+        return Boolean(Confirmar);
+      }
+
+      function Planes_Recalcular_Redistribucion_Pendiente_Familia(
+        Objetivo_Id
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Familia = Array.from(
+          Planes_Objetivos_Familia_Ids(Objetivo_Id)
+        );
+        if (!Familia.length) return false;
+        const Mapa = new Map();
+        Familia.forEach((Id) => {
+          const Objetivo = Modelo.Objetivos[Id];
+          if (!Objetivo || Objetivo.Eliminado_Local) return;
+          const Lista = Mapa.get(Objetivo.Periodo_Id) || [];
+          Lista.push(Objetivo.Id);
+          Mapa.set(Objetivo.Periodo_Id, Lista);
+        });
+        const Items = Array.from(Mapa.entries())
+          .map(([Periodo_Id, Objetivo_Ids]) => ({
+            Periodo_Id,
+            Objetivo_Ids
+          }));
+        if (!Items.length) return false;
+        const Resumen = Planes_Importar_Objetivos_Padres_A_Periodos(
+          Items,
+          { Modo: "Pendiente" }
+        );
+        return Resumen.Total > 0;
+      }
+
       function Planes_Progreso_Familia_Importada(Objetivo) {
         const Modelo = Asegurar_Modelo_Planes();
         const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
@@ -43415,13 +43554,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Unidad_Label_Subobjetivo(Sub) {
         if (!Sub) return "";
-        if (Sub.Unidad === "Personalizado") {
+        const Unidad = Planes_Normalizar_Unidad_Subobjetivo(Sub.Unidad);
+        if (Unidad === "Personalizado") {
           return (
             Sub.Unidad_Custom ||
             t("planes.personalizado")
           ).toLocaleLowerCase(Obtener_Locale_Actual());
         }
-        return t(`planes.${Sub.Unidad.toLowerCase()}`)
+        if (Unidad === "Unidades") {
+          return t("planes.unidades")
+          .toLocaleLowerCase(Obtener_Locale_Actual());
+        }
+        return t(`planes.${Unidad.toLowerCase()}`)
           .toLocaleLowerCase(Obtener_Locale_Actual());
       }
 
@@ -45307,10 +45451,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
-      function Planes_Poblar_Select_Unidades(Select, Valor_Actual) {
+      function Planes_Poblar_Select_Unidades(
+        Select,
+        Valor_Actual,
+        Opciones = Planes_Unidades
+      ) {
         if (!Select) return;
         Select.innerHTML = "";
-        Planes_Unidades.forEach((Unidad) => {
+        Opciones.forEach((Unidad) => {
           const Opt = document.createElement("option");
           Opt.value = Unidad;
           Opt.textContent = t(`planes.${Unidad.toLowerCase()}`);
@@ -45923,13 +46071,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Toggle_Expansion_Objetivo(Objetivo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
-        if (!Modelo.Objetivos[Objetivo_Id]) return;
-        if (!Modelo.UI.Objetivos_Expandidos ||
-            typeof Modelo.UI.Objetivos_Expandidos !== "object") {
-          Modelo.UI.Objetivos_Expandidos = {};
-        }
-        Modelo.UI.Objetivos_Expandidos[Objetivo_Id] =
-          Modelo.UI.Objetivos_Expandidos[Objetivo_Id] !== true;
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        if (!Objetivo) return;
+        const Expandidos =
+          Planes_Normalizar_Objetivos_Expandidos();
+        const Clave_Periodo = Objetivo.Periodo_Id || "";
+        Expandidos[Clave_Periodo] =
+          Expandidos[Clave_Periodo] === Objetivo_Id ? "" : Objetivo_Id;
         Render_Planes_Contenido();
       }
 
@@ -45981,14 +46129,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      function Planes_Normalizar_Objetivos_Expandidos() {
+        const Modelo = Asegurar_Modelo_Planes();
+        if (!Modelo.UI.Objetivos_Expandidos ||
+            typeof Modelo.UI.Objetivos_Expandidos !== "object") {
+          Modelo.UI.Objetivos_Expandidos = {};
+          return Modelo.UI.Objetivos_Expandidos;
+        }
+        if (!Object.values(Modelo.UI.Objetivos_Expandidos)
+          .some((Valor) => typeof Valor === "boolean")) {
+          return Modelo.UI.Objetivos_Expandidos;
+        }
+        const Convertidos = {};
+        Object.entries(Modelo.UI.Objetivos_Expandidos)
+          .forEach(([Objetivo_Id, Abierto]) => {
+            if (!Abierto) return;
+            const Objetivo = Modelo.Objetivos[Objetivo_Id];
+            if (!Objetivo) return;
+            Convertidos[Objetivo.Periodo_Id || ""] = Objetivo.Id;
+          });
+        Modelo.UI.Objetivos_Expandidos = Convertidos;
+        return Modelo.UI.Objetivos_Expandidos;
+      }
+
       function Render_Planes_Objetivo(Objetivo) {
         const Modelo = Asegurar_Modelo_Planes();
         Planes_Actualizar_Progreso(Objetivo);
         const Es_Lista = Modelo.UI.Vista === "Lista";
         const Es_Biblioteca = Modelo.UI.Vista === "Biblioteca";
+        const Clave_Periodo = Objetivo.Periodo_Id || "";
+        const Expandidos =
+          Planes_Normalizar_Objetivos_Expandidos();
         const Expandido =
           !Es_Lista &&
-          Modelo.UI.Objetivos_Expandidos?.[Objetivo.Id] === true;
+          Expandidos?.[Clave_Periodo] === Objetivo.Id;
         const Estado_Efectivo =
           Planes_Estado_Efectivo_Objetivo(Objetivo);
         const Card = document.createElement("article");
@@ -46065,9 +46239,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ${Es_Lista ? "" : Boton_Avance}
               </div>
             </div>
-            ${Es_Lista || Expandido || !Meta_Objetivo_Texto ? "" : `
-              <div class="Planes_Objetivo_Cantidad">
-                ${Escape_Html(Meta_Objetivo_Texto)}
+            ${Es_Lista || Expandido ? "" : `
+              <div class="Planes_Objetivo_Cantidad${
+                Meta_Objetivo_Texto ? "" : " Vacia"
+              }"${Meta_Objetivo_Texto ? "" : " aria-hidden=\"true\""}>
+                ${Meta_Objetivo_Texto
+                  ? Escape_Html(Meta_Objetivo_Texto)
+                  : "&nbsp;"}
               </div>
             `}
           </div>
@@ -47038,6 +47216,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             await Planes_Confirmar_Finalizacion_Avance(Item);
           if (!Confirmar) return;
         }
+        const Debe_Recalcular_Redistribucion =
+          Planes_Fecha_En_Periodo_Cerrado(Fecha) &&
+          Planes_Familia_Tiene_Redistribucion_Pendiente_Activa(
+            Item.Objetivo.Id
+          );
+        if (Debe_Recalcular_Redistribucion) {
+          const Confirmar_Redistribucion =
+            await Planes_Confirmar_Avance_Pasado_Redistribucion(
+              Item.Objetivo.Id,
+              Fecha
+            );
+          if (!Confirmar_Redistribucion) return;
+        }
         const Modelo = Asegurar_Modelo_Planes();
         const Snap = Capturar_Snapshot_Undo();
         const Id = Crear_Id_Avance_Plan();
@@ -47065,6 +47256,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Finaliza) {
             Planes_Aplicar_Finalizacion_Avance(Item, Fecha, Hora);
           }
+        }
+        if (Debe_Recalcular_Redistribucion) {
+          Planes_Recalcular_Redistribucion_Pendiente_Familia(
+            Item.Objetivo.Id
+          );
         }
         Cerrar_Modal_Planes_Avance();
         if (
@@ -47107,9 +47303,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Number.isFinite(Inicial) && Inicial > 0 ? Inicial : 0;
         }
         if (Datos.Unidad !== undefined) {
-          Sub.Unidad = Planes_Unidades.includes(Datos.Unidad)
-            ? Datos.Unidad
-            : "Personalizado";
+          Sub.Unidad = Planes_Normalizar_Unidad_Subobjetivo(
+            Datos.Unidad
+          );
         }
         if (Datos.Unidad_Custom !== undefined) {
           Sub.Unidad_Custom = Datos.Unidad_Custom.toString().trim();
@@ -47381,7 +47577,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? String(Number(Sub.Aporte_Meta))
             : "0";
         }
-        Planes_Poblar_Select_Unidades(Unidad, Sub.Unidad);
+        Planes_Poblar_Select_Unidades(
+          Unidad,
+          Planes_Normalizar_Unidad_Subobjetivo(Sub.Unidad),
+          Planes_Unidades_Subobjetivo
+        );
         if (Unidad_Custom) {
           Unidad_Custom.value = Sub.Unidad_Custom || "";
         }
@@ -47641,12 +47841,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Unidad = document.getElementById(
           "Planes_Subobjetivo_Unidad"
         )?.value || "Personalizado";
+        const Unidad_Normalizada =
+          Planes_Normalizar_Unidad_Subobjetivo(Unidad);
         const Unidad_Custom = (
           document.getElementById(
             "Planes_Subobjetivo_Unidad_Custom"
           )?.value || ""
         ).trim();
-        if (Unidad === "Personalizado" && !Unidad_Custom) {
+        if (Unidad_Normalizada === "Personalizado" && !Unidad_Custom) {
           Mostrar_Toast_Error(t("planes.err_unidad_custom"));
           return;
         }
@@ -47703,9 +47905,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Progreso_Inicial: Progreso_Inicial_Normalizado,
           Aporte_Meta:
             Number.isFinite(Aporte) && Aporte >= 0 ? Aporte : 0,
-          Unidad: Planes_Unidades.includes(Unidad)
-            ? Unidad
-            : "Personalizado",
+          Unidad: Unidad_Normalizada,
           Unidad_Custom,
           Fecha_Objetivo: (
             document.getElementById(
@@ -47760,6 +47960,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 }
             );
           if (!Confirmar_Final) return;
+        }
+        const Debe_Recalcular_Redistribucion =
+          (Fecha_Final_Cambio || Debe_Marcar_Realizado) &&
+          Planes_Fecha_En_Periodo_Cerrado(Datos.Fecha_Fin) &&
+          Planes_Familia_Tiene_Redistribucion_Pendiente_Activa(
+            Datos.Objetivo_Id
+          );
+        if (Debe_Recalcular_Redistribucion) {
+          const Confirmar_Redistribucion =
+            await Planes_Confirmar_Avance_Pasado_Redistribucion(
+              Datos.Objetivo_Id,
+              Datos.Fecha_Fin
+            );
+          if (!Confirmar_Redistribucion) return;
         }
         if (
           Sub &&
@@ -47820,6 +48034,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sub.Actualizado_En = new Date().toISOString();
         }
         Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+        if (Debe_Recalcular_Redistribucion) {
+          Planes_Recalcular_Redistribucion_Pendiente_Familia(
+            Sub.Objetivo_Id
+          );
+        }
         Cerrar_Modal_Planes_Subobjetivo();
         const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
         if (Objetivo) {
