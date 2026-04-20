@@ -429,7 +429,8 @@ async ({ page }) => {
   const Modelo_Inicial = await page.evaluate(() => {
     const Padre = Object.values(Planes_Periodo.Objetivos)
       .find((Objetivo) =>
-        Objetivo.Nombre === "Leer" && !Objetivo.Parent_Objetivo_Id
+        Objetivo.Nombre === "Leer" &&
+        !Planes_Objetivo_Padre_Id(Objetivo)
       );
     const Modelo = Asegurar_Modelo_Planes();
     const Periodo_Padre = Modelo.Periodos[Padre.Periodo_Id];
@@ -449,7 +450,7 @@ async ({ page }) => {
         Emoji: Padre.Emoji,
         Target_Total: 6,
         Unidad: Padre.Unidad,
-        Parent_Objetivo_Id: Padre.Id,
+        Objetivo_Padre_Id: Padre.Id,
         Modo_Avance: Padre.Modo_Avance,
         Modo_Progreso: Padre.Modo_Progreso,
         Etiquetas_Ids: [...(Padre.Etiquetas_Ids || [])],
@@ -551,9 +552,6 @@ async ({ page }) => {
     Card_Objetivo.locator(".Planes_Objetivo_Detalle")
   ).toContainText("Falta");
   await expect(
-    Card_Objetivo.locator(".Planes_Objetivo_Detalle")
-  ).toContainText("Detectado");
-  await expect(
     Card_Objetivo.locator(".Planes_Objetivo_Detalle_Etiquetas")
   ).toContainText("#Lectura");
   await expect(Card_Objetivo)
@@ -653,8 +651,7 @@ async ({ page }) => {
     "Origen",
     "Meta",
     "Realizado",
-    "Falta",
-    "Detectado"
+    "Falta"
   ]);
   expect(Layout_Detalle.headersCentrados).toBe(true);
   expect(Layout_Detalle.celdasCentradas).toBe(true);
@@ -1190,7 +1187,7 @@ async ({ page }) => {
           Target_Total: 50,
           Unidad: "Personalizado",
           Unidad_Custom: "libros",
-          Parent_Objetivo_Id: Objetivo.Id
+          Objetivo_Padre_Id: Objetivo.Id
         }
       );
       Planes_Importar_Subs_En_Objetivo(Hijo, Periodo);
@@ -2099,10 +2096,7 @@ async ({ page }) => {
       const Hijo = Planes_Crear_Objetivo_Silencioso(
         Periodo.Id,
         Planes_Clonar_Datos_Objetivo(Padre, {
-          Parent_Objetivo_Id: null,
           Objetivo_Padre_Id: Padre.Id,
-          Origen_Objetivo: "Importado",
-          Capa_Origen: "Anio",
           Periodo_Origen: Anio.Id,
           Target_Total: 12.5,
           Target_Automatico: 12.5,
@@ -2137,7 +2131,6 @@ async ({ page }) => {
         Cantidad: Objetivos.length,
         Target: Hijo.Target_Total,
         Progreso: Hijo.Progreso_Total,
-        Parent: Hijo.Parent_Objetivo_Id,
         Padre: Hijo.Objetivo_Padre_Id
       };
     });
@@ -2148,7 +2141,6 @@ async ({ page }) => {
   expect(Resultado.Resumen.Creados).toBe(2);
   Resultado.Hijos.forEach((Hijo) => {
     expect(Hijo.Cantidad).toBe(1);
-    expect(Hijo.Parent).toBeTruthy();
     expect(Hijo.Padre).toBeTruthy();
   });
   expect(Resultado.Hijos[0].Target).toBeCloseTo(12.5, 5);
@@ -2198,9 +2190,7 @@ async ({ page }) => {
     const Hijo_T1 = Planes_Crear_Objetivo_Silencioso(
       Trimestres[0].Id,
       Planes_Clonar_Datos_Objetivo(Padre, {
-        Parent_Objetivo_Id: null,
         Objetivo_Padre_Id: Padre.Id,
-        Origen_Objetivo: "Importado",
         Target_Total: 12.5,
         Target_Automatico: 12.5,
         Target_Actual: 12.5
@@ -2237,7 +2227,24 @@ async ({ page }) => {
         Id: Hijo.Id,
         Periodo_Id: Periodo.Id,
         Target: Hijo.Target_Total,
-        Progreso: Hijo.Progreso_Total
+        Progreso: Hijo.Progreso_Total,
+        Regla: Hijo.Regla_Distribucion,
+        Tiene_Parent: Object.prototype.hasOwnProperty.call(
+          Hijo,
+          "Parent_Objetivo_Id"
+        ),
+        Tiene_Origen: Object.prototype.hasOwnProperty.call(
+          Hijo,
+          "Origen_Objetivo"
+        ),
+        Tiene_Capa: Object.prototype.hasOwnProperty.call(
+          Hijo,
+          "Capa_Origen"
+        ),
+        Tiene_Importacion: Object.prototype.hasOwnProperty.call(
+          Hijo,
+          "Importacion_Id"
+        )
       };
     });
     return {
@@ -2254,8 +2261,14 @@ async ({ page }) => {
   expect(Resultado.Target_Info_T2).toBeCloseTo(44 / 3, 5);
   expect(Resultado.Hijos[0].Target).toBeCloseTo(12.5, 5);
   expect(Resultado.Hijos[0].Progreso).toBe(6);
+  expect(Resultado.Hijos[0].Regla).toBe("Pendiente");
+  expect(Resultado.Hijos[0].Tiene_Parent).toBe(false);
+  expect(Resultado.Hijos[0].Tiene_Origen).toBe(false);
+  expect(Resultado.Hijos[0].Tiene_Capa).toBe(false);
+  expect(Resultado.Hijos[0].Tiene_Importacion).toBe(false);
   [1, 2, 3].forEach((Indice) => {
     expect(Resultado.Hijos[Indice].Target).toBeCloseTo(44 / 3, 5);
+    expect(Resultado.Hijos[Indice].Regla).toBe("Pendiente");
   });
 
   await page.evaluate(({ objetivoId, periodoId }) => {
@@ -2348,9 +2361,7 @@ async ({ page }) => {
       const Hijo = Planes_Crear_Objetivo_Silencioso(
         Periodo.Id,
         Planes_Clonar_Datos_Objetivo(Padre, {
-          Parent_Objetivo_Id: "Padre_Obsoleto",
           Objetivo_Padre_Id: "Padre_Obsoleto",
-          Origen_Objetivo: "Importado",
           Target_Total: Target,
           Target_Automatico: Target,
           Target_Actual: Target
@@ -2403,7 +2414,6 @@ async ({ page }) => {
         Target_Info: Info.Targets.get(Periodo.Id),
         Target: (Hijo || Visible)?.Target_Total || null,
         Progreso: (Hijo || Visible)?.Progreso_Total || null,
-        Parent: (Hijo || Visible)?.Parent_Objetivo_Id || "",
         Padre: (Hijo || Visible)?.Objetivo_Padre_Id || ""
       };
     });
@@ -2421,7 +2431,6 @@ async ({ page }) => {
       .toBeCloseTo(44 / 3, 5);
     expect(Resultado.Hijos[Indice].Target)
       .toBeCloseTo(44 / 3, 5);
-    expect(Resultado.Hijos[Indice].Parent).toBeTruthy();
     expect(Resultado.Hijos[Indice].Padre).toBeTruthy();
   });
   expect(Resultado.Hijos[1].Progreso).toBe(5);
@@ -2466,9 +2475,7 @@ async ({ page }) => {
     const Hijo_T1 = Planes_Crear_Objetivo_Silencioso(
       Trimestres[0].Id,
       Planes_Clonar_Datos_Objetivo(Padre, {
-        Parent_Objetivo_Id: Padre.Id,
         Objetivo_Padre_Id: Padre.Id,
-        Origen_Objetivo: "Importado",
         Target_Total: 12.5,
         Target_Automatico: 12.5,
         Target_Actual: 12.5
@@ -2486,9 +2493,7 @@ async ({ page }) => {
     const Hijo_T2 = Planes_Crear_Objetivo_Silencioso(
       Trimestres[1].Id,
       Planes_Clonar_Datos_Objetivo(Padre, {
-        Parent_Objetivo_Id: Padre.Id,
         Objetivo_Padre_Id: Padre.Id,
-        Origen_Objetivo: "Importado",
         Target_Total: 50 / 3,
         Target_Automatico: 50 / 3,
         Target_Actual: 50 / 3,
@@ -2586,9 +2591,7 @@ async ({ page }) => {
     const Padre_Semestre = Planes_Crear_Objetivo_Silencioso(
       Semestre.Id,
       Planes_Clonar_Datos_Objetivo(Padre, {
-        Parent_Objetivo_Id: Padre.Id,
         Objetivo_Padre_Id: Padre.Id,
-        Origen_Objetivo: "Importado",
         Target_Total: 25,
         Target_Automatico: 25,
         Target_Actual: 25
@@ -2599,9 +2602,7 @@ async ({ page }) => {
     const Hijo_Q1 = Planes_Crear_Objetivo_Silencioso(
       Trimestres[0].Id,
       Planes_Clonar_Datos_Objetivo(Padre_Semestre, {
-        Parent_Objetivo_Id: Padre_Semestre.Id,
         Objetivo_Padre_Id: Padre_Semestre.Id,
-        Origen_Objetivo: "Importado",
         Target_Total: 12.5,
         Target_Automatico: 12.5,
         Target_Actual: 12.5,
@@ -2611,9 +2612,7 @@ async ({ page }) => {
     const Hijo_Q2 = Planes_Crear_Objetivo_Silencioso(
       Trimestres[1].Id,
       Planes_Clonar_Datos_Objetivo(Padre, {
-        Parent_Objetivo_Id: Padre.Id,
         Objetivo_Padre_Id: Padre.Id,
-        Origen_Objetivo: "Importado",
         Target_Total: 50 / 3,
         Target_Automatico: 50 / 3,
         Target_Actual: 50 / 3,

@@ -19221,8 +19221,6 @@
             "Avance acumulado hasta ahora.",
           "planes.ui_help_detalle_falta":
             "Cantidad restante para alcanzar la meta.",
-          "planes.ui_help_detalle_detectado":
-            "Avance leído automáticamente desde vínculos o subobjetivos.",
           "planes.ui_help_ver_subobjetivos":
             "Abre el panel de subobjetivos de esta meta.",
           "planes.ui_help_registro":
@@ -19307,7 +19305,6 @@
           "planes.auto": "Automático",
           "planes.actual": "Actual",
           "planes.progreso_manual": "Manual",
-          "planes.progreso_leido": "Detectado",
           "planes.progreso_total": "Total",
           "planes.fijado": "Fijado",
           "planes.modo_avance": "Modo de avance",
@@ -22653,8 +22650,6 @@
             "Accumulated progress so far.",
           "planes.ui_help_detalle_falta":
             "Remaining amount needed to reach the goal.",
-          "planes.ui_help_detalle_detectado":
-            "Progress read automatically from links or subobjectives.",
           "planes.ui_help_ver_subobjetivos":
             "Opens this goal's subobjectives panel.",
           "planes.ui_help_registro":
@@ -22738,7 +22733,6 @@
           "planes.auto": "Automatic",
           "planes.actual": "Current",
           "planes.progreso_manual": "Manual",
-          "planes.progreso_leido": "Detected",
           "planes.progreso_total": "Total",
           "planes.fijado": "Fixed",
           "planes.modo_avance": "Progress mode",
@@ -26034,8 +26028,6 @@
             "Avanço acumulado até agora.",
           "planes.ui_help_detalle_falta":
             "Quantidade restante para atingir a meta.",
-          "planes.ui_help_detalle_detectado":
-            "Avanço lido automaticamente de vínculos ou subobjetivos.",
           "planes.ui_help_ver_subobjetivos":
             "Abre o painel de subobjetivos desta meta.",
           "planes.ui_help_registro":
@@ -26120,7 +26112,6 @@
           "planes.auto": "Automático",
           "planes.actual": "Atual",
           "planes.progreso_manual": "Manual",
-          "planes.progreso_leido": "Detectado",
           "planes.progreso_total": "Total",
           "planes.fijado": "Fixado",
           "planes.modo_avance": "Modo de avanço",
@@ -41993,6 +41984,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Target = Number(Objetivo.Target_Total);
         const Target_Normalizado =
           Number.isFinite(Target) ? Target : 0;
+        const Objetivo_Padre_Id = (
+          Objetivo.Objetivo_Padre_Id ||
+          Objetivo.Parent_Objetivo_Id ||
+          ""
+        ).toString();
+        const Regla_Distribucion_Raw =
+          (Objetivo.Regla_Distribucion || "").toString();
+        const Regla_Distribucion =
+          Regla_Distribucion_Raw === "Reparto_Uniforme"
+            ? "Uniforme"
+            : Regla_Distribucion_Raw;
         const Modo_Avance = Planes_Normalizar_Modo_Avance({
           ...Objetivo,
           Target_Total: Target_Normalizado,
@@ -42004,22 +42006,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return {
           Id: Objetivo.Id || Crear_Id_Objetivo_Plan(),
           Periodo_Id: Objetivo.Periodo_Id || null,
-          Parent_Objetivo_Id: Objetivo.Parent_Objetivo_Id || null,
-          Origen_Objetivo: Objetivo.Origen_Objetivo || (
-            Objetivo.Parent_Objetivo_Id ? "Importado" : "Directo"
-          ),
-          Objetivo_Padre_Id:
-            Objetivo.Objetivo_Padre_Id ||
-            Objetivo.Parent_Objetivo_Id ||
-            null,
-          Capa_Origen: (Objetivo.Capa_Origen || "").toString(),
+          Objetivo_Padre_Id: Objetivo_Padre_Id || null,
           Periodo_Origen: (Objetivo.Periodo_Origen || "").toString(),
-          Importacion_Id: (Objetivo.Importacion_Id || "").toString(),
-          Regla_Distribucion:
-            (Objetivo.Regla_Distribucion || "").toString(),
+          Regla_Distribucion,
           Estado_Vinculo:
             (Objetivo.Estado_Vinculo || "").toString() ||
-            (Objetivo.Parent_Objetivo_Id ? "Vigente" : "Directo"),
+            (Objetivo_Padre_Id ? "Vigente" : "Directo"),
           Padre_Actualizado_Al_Importar:
             (Objetivo.Padre_Actualizado_Al_Importar || "").toString(),
           Nombre: (Objetivo.Nombre || "").toString().trim(),
@@ -42927,7 +42919,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Objetivo_Padre_Id(Objetivo) {
         return (
-          Objetivo?.Parent_Objetivo_Id ||
           Objetivo?.Objetivo_Padre_Id ||
           ""
         ).toString();
@@ -43292,8 +43283,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Periodo_Buscado = Modelo.Periodos[Periodo_Id];
         return Object.values(Modelo.Objetivos).find((Objetivo) => {
           const Es_Hijo =
-            (Objetivo.Parent_Objetivo_Id || "").toString() === Padre ||
-            (Objetivo.Objetivo_Padre_Id || "").toString() === Padre;
+            Planes_Objetivo_Padre_Id(Objetivo) === Padre;
           if (!Es_Hijo) return false;
           if (Objetivo.Periodo_Id === Periodo_Id) return true;
           return Planes_Periodos_Equivalentes(
@@ -43357,7 +43347,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Crear_Objetivo_Silencioso(
               Hijo_Periodo.Id,
               Planes_Clonar_Datos_Objetivo(Objetivo, {
-                Parent_Objetivo_Id: Objetivo.Id,
+                Objetivo_Padre_Id: Objetivo.Id,
                 Target_Total: 0,
                 Target_Automatico: 0
               })
@@ -44063,8 +44053,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "planes.ui_help_detalle_realizado"],
           [".Planes_Progreso_Tabla th:nth-child(6)",
             "planes.ui_help_detalle_falta"],
-          [".Planes_Progreso_Tabla th:nth-child(7)",
-            "planes.ui_help_detalle_detectado"],
           ["[data-plan-accion='admin_subs']",
             "planes.ui_help_ver_subobjetivos"],
           ["[data-plan-accion='registro']",
@@ -44226,17 +44214,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Actualizar_Meta_Hijo_Importado(Padre, Hijo) {
         if (!Padre || !Hijo) return;
-        Hijo.Origen_Objetivo = "Importado";
         Hijo.Objetivo_Padre_Id = Padre.Id;
-        Hijo.Parent_Objetivo_Id = Padre.Id;
-        const Modelo = Asegurar_Modelo_Planes();
-        const Periodo_Padre = Modelo.Periodos[Padre.Periodo_Id];
-        Hijo.Capa_Origen = Periodo_Padre?.Tipo || Hijo.Capa_Origen || "";
         Hijo.Periodo_Origen = Padre.Periodo_Id || "";
-        Hijo.Importacion_Id = Hijo.Importacion_Id ||
-          `Imp_${Padre.Id}_${Date.now()}`;
         Hijo.Regla_Distribucion = Hijo.Regla_Distribucion ||
-          "Reparto_Uniforme";
+          "Uniforme";
         Hijo.Estado_Vinculo = Hijo.Estado_Vinculo || "Vigente";
         Hijo.Padre_Actualizado_Al_Importar =
           Padre.Actualizado_En || "";
@@ -44268,11 +44249,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Hijo = Planes_Crear_Objetivo_Silencioso(
             Periodo_Destino.Id,
             Planes_Clonar_Datos_Objetivo(Objetivo, {
-              Parent_Objetivo_Id: Objetivo.Id,
               Objetivo_Padre_Id: Objetivo.Id,
-              Origen_Objetivo: "Importado",
-              Capa_Origen: Periodo.Tipo,
               Periodo_Origen: Periodo.Id,
+              Regla_Distribucion: "Uniforme",
               Estado_Vinculo: "Vigente",
               Padre_Actualizado_Al_Importar:
                 Objetivo.Actualizado_En || "",
@@ -45911,10 +45890,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Target_Actual: Datos.Target_Total,
               Actualizado_En: new Date().toISOString()
             });
-            if (Existente.Origen_Objetivo === "Importado") {
+            if (Planes_Es_Objetivo_Importado(Existente)) {
               Existente.Estado_Vinculo = "Editado";
             }
-            if (!Existente.Parent_Objetivo_Id) {
+            if (!Planes_Objetivo_Padre_Id(Existente)) {
               Existente.Target_Automatico = Datos.Target_Total;
             }
             if (Existente.Fijado) {
@@ -46201,15 +46180,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Render_Planes_Origen_Objetivo(Objetivo) {
         const Modelo = Asegurar_Modelo_Planes();
-        const Padre = Modelo.Objetivos[
-          Objetivo.Objetivo_Padre_Id ||
-          Objetivo.Parent_Objetivo_Id
-        ];
-        const Es_Importado = Boolean(
-          Objetivo.Parent_Objetivo_Id ||
-          Objetivo.Objetivo_Padre_Id ||
-          Objetivo.Origen_Objetivo === "Importado"
-        );
+        const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+        const Padre = Modelo.Objetivos[Padre_Id];
+        const Es_Importado = Boolean(Padre_Id);
         const Padre_Cambio = Boolean(
           Padre &&
           Objetivo.Padre_Actualizado_Al_Importar &&
@@ -46352,7 +46325,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Objetivos.forEach((Objetivo) => {
           if (!Aplicar(Objetivo)) return;
           Objetivo.Actualizado_En = new Date().toISOString();
-          Raices.add(Objetivo.Parent_Objetivo_Id || Objetivo.Id);
+          Raices.add(Planes_Objetivo_Padre_Id(Objetivo) || Objetivo.Id);
           Cambios += 1;
         });
         if (!Cambios) return;
@@ -46514,9 +46487,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Falta = Planes_Formatear_Numero(
           Objetivo.Target_Pendiente
         );
-        const Detectado = Planes_Formatear_Numero(
-          Objetivo.Progreso_Leido
-        );
         const Origen_Html = Render_Planes_Origen_Objetivo(Objetivo);
         const Estado_Clase =
           Estado_Efectivo === "Activo"
@@ -46558,9 +46528,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                       <th class="Numero">${t("planes.target")}</th>
                       <th class="Numero">${t("planes.realizado")}</th>
                       <th class="Numero">${t("planes.falta")}</th>
-                      <th class="Numero">
-                        ${t("planes.progreso_leido")}
-                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -46575,7 +46542,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                       <td class="Numero">${Escape_Html(Meta)}</td>
                       <td class="Numero">${Realizado}</td>
                       <td class="Numero">${Falta}</td>
-                      <td class="Numero">${Detectado}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -48487,11 +48453,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Es_Objetivo_Importado(Objetivo) {
-        return Boolean(
-          Objetivo?.Parent_Objetivo_Id ||
-          Objetivo?.Objetivo_Padre_Id ||
-          Objetivo?.Origen_Objetivo === "Importado"
-        );
+        return Boolean(Planes_Objetivo_Padre_Id(Objetivo));
       }
 
       function Planes_Objetivo_Importado_Descartado(Objetivo) {
@@ -49462,9 +49424,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Periodo = null
       ) {
         const Modelo = Asegurar_Modelo_Planes();
-        if (!Objetivo?.Parent_Objetivo_Id) return 0;
+        const Objetivo_Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+        if (!Objetivo_Padre_Id) return 0;
         const Subs_Padre = Planes_Subobjetivos_Padre_Para_Importar(
-          Objetivo.Parent_Objetivo_Id,
+          Objetivo_Padre_Id,
           Periodo
         );
         let Cambios = 0;
@@ -49533,7 +49496,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Importar_Subs(Objetivo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
-        if (!Objetivo || !Objetivo.Parent_Objetivo_Id) {
+        if (!Objetivo || !Planes_Objetivo_Padre_Id(Objetivo)) {
           Mostrar_Toast_Info(t("planes.toast_sin_padres"));
           return;
         }
@@ -49600,11 +49563,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Clave_Grupo_Importado_Capa(Objetivo) {
-        const Padre_Id = (
-          Objetivo?.Objetivo_Padre_Id ||
-          Objetivo?.Parent_Objetivo_Id ||
-          ""
-        ).toString();
+        const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
         if (Padre_Id) {
           return `Padre:${Planes_Objetivo_Raiz_Id(Padre_Id)}`;
         }
@@ -49635,11 +49594,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           })
           .forEach((Objetivo) => {
             const Clave = Planes_Clave_Grupo_Importado_Capa(Objetivo);
-            const Padre_Id = (
-              Objetivo.Objetivo_Padre_Id ||
-              Objetivo.Parent_Objetivo_Id ||
-              ""
-            ).toString();
+            const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
             const Padre = Modelo.Objetivos[Padre_Id];
             const Actual = Mapa.get(Clave) || {
               Clave,
@@ -49956,11 +49911,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Visitados = new Set();
         while (Actual && !Visitados.has(Actual.Id)) {
           Visitados.add(Actual.Id);
-          const Parent_Id = (
-            Actual.Parent_Objetivo_Id ||
-            Actual.Objetivo_Padre_Id ||
-            ""
-          ).toString();
+          const Parent_Id = Planes_Objetivo_Padre_Id(Actual);
           if (!Parent_Id) return false;
           if (Parent_Id === Padre_Id) return true;
           Actual = Modelo.Objetivos[Parent_Id];
@@ -49988,11 +49939,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) {
           return false;
         }
-        const Parent_Id = (
-          Objetivo.Parent_Objetivo_Id ||
-          Objetivo.Objetivo_Padre_Id ||
-          ""
-        ).toString();
+        const Parent_Id = Planes_Objetivo_Padre_Id(Objetivo);
         if (!Parent_Id || Parent_Id === Padre_Id) return true;
         if (
           Planes_Objetivo_Relacionado_Importacion(
@@ -50000,7 +49947,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Objetivo
           )
         ) return true;
-        return Objetivo.Origen_Objetivo === "Importado";
+        return Boolean(Parent_Id);
       }
 
       function Planes_Objetivo_Equivalente_De_Importacion(
@@ -50019,8 +49966,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const A_Padre = Planes_Objetivo_Padre_Id(A) === Padre_Id;
             const B_Padre = Planes_Objetivo_Padre_Id(B) === Padre_Id;
             if (A_Padre !== B_Padre) return A_Padre ? -1 : 1;
-            const A_Importado = A.Origen_Objetivo === "Importado";
-            const B_Importado = B.Origen_Objetivo === "Importado";
+            const A_Importado = Planes_Es_Objetivo_Importado(A);
+            const B_Importado = Planes_Es_Objetivo_Importado(B);
             if (A_Importado !== B_Importado) {
               return A_Importado ? -1 : 1;
             }
@@ -50641,14 +50588,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Objetivo) return null;
         return {
           ...Planes_Datos_Comparables_Objetivo(Objetivo),
-          Parent_Objetivo_Id:
-            (Objetivo.Parent_Objetivo_Id || "").toString(),
           Objetivo_Padre_Id:
             (Objetivo.Objetivo_Padre_Id || "").toString(),
-          Origen_Objetivo:
-            (Objetivo.Origen_Objetivo || "").toString(),
-          Capa_Origen:
-            (Objetivo.Capa_Origen || "").toString(),
           Periodo_Origen:
             (Objetivo.Periodo_Origen || "").toString(),
           Regla_Distribucion:
@@ -50741,10 +50682,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Hijo = Planes_Crear_Objetivo_Silencioso(
                 Periodo.Id,
                 Planes_Clonar_Datos_Objetivo(Objetivo_Padre, {
-                  Parent_Objetivo_Id: Objetivo_Padre.Id,
                   Objetivo_Padre_Id: Objetivo_Padre.Id,
-                  Origen_Objetivo: "Importado",
-                  Capa_Origen: Periodo_Padre.Tipo,
                   Periodo_Origen: Periodo_Padre.Id,
                   Estado_Vinculo: "Vigente",
                   Padre_Actualizado_Al_Importar:
@@ -50764,6 +50702,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Hijo.Eliminado_Local = false;
             Planes_Restaurar_Vinculo_Objetivo(Hijo);
             Planes_Actualizar_Meta_Hijo_Importado(Objetivo_Padre, Hijo);
+            Hijo.Regla_Distribucion = Modo_Importacion === "Proporcional"
+              ? "Uniforme"
+              : Modo_Importacion;
             const Recalcula_Pendiente =
               Modo_Importacion === "Pendiente" &&
               !Planes_Objetivo_Bloquea_Pendiente_Importacion(Hijo);
@@ -50949,7 +50890,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Objetivo) return;
           if (Modo === "Mover") {
             Objetivo.Periodo_Id = Destino.Id;
-            Objetivo.Parent_Objetivo_Id = null;
+            Objetivo.Objetivo_Padre_Id = null;
             Objetivo.Estado = "Activo";
             Objetivo.Eliminado_Local = false;
             Planes_Actualizar_Progreso(Objetivo);
@@ -50958,7 +50899,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Crear_Objetivo_Silencioso(
             Destino.Id,
             Planes_Clonar_Datos_Objetivo(Objetivo, {
-              Parent_Objetivo_Id: null,
+              Objetivo_Padre_Id: null,
               Target_Total: Math.max(
                 0,
                 Number(Objetivo.Target_Pendiente) ||
