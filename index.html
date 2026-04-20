@@ -49977,37 +49977,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Abiertos_Redistribuibles = Abiertos.filter((Periodo) =>
           !Abiertos_Bloqueados.has(Periodo.Id)
         );
-        const Deuda_Cerrada = Cerrados.reduce((Total, Periodo) => {
-          const Base = Planes_Target_Proporcional_Importacion(
-            Objetivo_Padre,
-            Periodo_Padre,
-            Periodo
-          );
+        const Avance_Cerrado = Cerrados.reduce((Total, Periodo) => {
           const Avance =
             Number(Avances_Reales.get(Periodo.Id)) || 0;
-          return Total + Math.max(0, Base - Avance);
+          return Total + Avance;
         }, 0);
-        const Base_Bloqueado_Abierto = Abiertos.reduce(
-          (Total, Periodo) => {
-            if (!Abiertos_Bloqueados.has(Periodo.Id)) return Total;
-            return Total + Planes_Target_Proporcional_Importacion(
-              Objetivo_Padre,
-              Periodo_Padre,
-              Periodo
-            );
-          },
-          0
-        );
-        const Exceso_Bloqueado_Abierto = Math.max(
+        const Pendiente_Redistribuible = Math.max(
           0,
-          Target_Bloqueado_Abierto - Base_Bloqueado_Abierto
+          Target - Avance_Cerrado - Target_Bloqueado_Abierto
         );
-        const Deuda_Redistribuible = Math.max(
-          0,
-          Deuda_Cerrada - Exceso_Bloqueado_Abierto
-        );
-        const Cuota_Deuda = Abiertos_Redistribuibles.length
-          ? Deuda_Redistribuible /
+        const Cuota_Redistribuible = Abiertos_Redistribuibles.length
+          ? Pendiente_Redistribuible /
             Abiertos_Redistribuibles.length
           : 0;
         Destinos.forEach((Periodo) => {
@@ -50031,7 +50011,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? Base
             : Es_Bloqueado_Abierto
             ? Number(Hijo_Bloqueado?.Target_Total) || 0
-            : Base + Cuota_Deuda;
+            : Cuota_Redistribuible;
           Resultado.Targets.set(Periodo.Id, Target_Periodo);
           Resultado.Avances.set(
             Periodo.Id,

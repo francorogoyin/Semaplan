@@ -193,16 +193,20 @@ async ({ page }) => {
   await page.evaluate(() => {
     Abrir_Plan();
     const Modelo = Asegurar_Jerarquia_Planes();
-    const Anio = Object.values(Modelo.Periodos)
-      .find((Periodo) => Periodo.Tipo === "Anio");
-    Modelo.UI.Periodo_Activo_Id = Anio.Id;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    Modelo.UI.Anio_Todos = false;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Subperiodo_Activo = 1;
     Render_Plan();
   });
 
   await expect(page.locator("#Plan_Overlay")).toHaveClass(/Activo/);
-  await expect(page.locator("#Planes_Filtro_Tipo")).toBeVisible();
+  await expect(page.locator("#Planes_Capa_Select")).toBeVisible();
   await expect(page.locator("#Planes_Ayuda_Conceptual_Abrir"))
-    .toHaveAttribute("title", "Ayuda conceptual");
+    .toHaveAttribute(
+      "title",
+      "Abre una explicación breve del modelo de Metas."
+    );
   await page.click("#Planes_Ayuda_Conceptual_Abrir");
   await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))
     .toHaveClass(/Activo/);
@@ -221,7 +225,7 @@ async ({ page }) => {
   await expect(page.locator("#Planes_Ayuda_Conceptual_Overlay"))
     .not.toHaveClass(/Activo/);
   await expect(page.locator("#Plan_Overlay")).toHaveClass(/Activo/);
-  await page.click("#Planes_Btn_Nuevo_Header");
+  await page.click("[data-plan-universo-nuevo]");
   await expect(page.locator("#Planes_Objetivo_Modo_Avance"))
     .toBeVisible();
   await page.selectOption(
@@ -237,25 +241,26 @@ async ({ page }) => {
 
   const Layout_Desktop = await page.evaluate(() => {
     const Panel = document.querySelector(".Planes_Archivero_Panel");
-    const Sidebar = document.querySelector(".Planes_Sidebar");
-    const Items = Array.from(
-      document.querySelectorAll(".Planes_Periodo_Item")
+    const Layout = document.querySelector(".Planes_Layout");
+    const Rango_Resumen = document.querySelector(
+      ".Planes_Resumen_Rango"
     );
     const Controles = Array.from(
       document.querySelectorAll(
-        "#Planes_Filtro_Tipo, #Planes_Filtro_Estado, " +
+        "#Planes_Capa_Select, #Planes_Filtro_Estado, " +
         "#Planes_Filtro_Etiqueta, #Planes_Busqueda, " +
         "#Planes_Vista_Toggle"
       )
+    ).filter((El) =>
+      El.getBoundingClientRect().height > 0
     );
     const Tops = Controles.map((El) =>
       Math.round(El.getBoundingClientRect().top)
     );
     return {
       panelAncho: Math.round(Panel.getBoundingClientRect().width),
-      sidebarAncho: Math.round(Sidebar.getBoundingClientRect().width),
-      primerPeriodo: Items[0]?.innerText || "",
-      primerTooltip: Items[0]?.getAttribute("title") || "",
+      layoutDisplay: getComputedStyle(Layout).display,
+      rangoResumen: Rango_Resumen?.textContent || "",
       controlesUnaLinea: Math.max(...Tops) - Math.min(...Tops) <= 4,
       gapCuerpo: getComputedStyle(
         document.querySelector(".Planes_Principal")
@@ -272,17 +277,18 @@ async ({ page }) => {
     };
   });
 
-  expect(Layout_Desktop.panelAncho).toBeGreaterThan(1200);
-  expect(Layout_Desktop.sidebarAncho).toBeGreaterThan(330);
-  expect(Layout_Desktop.primerPeriodo).not.toContain("2026-01-01");
-  expect(Layout_Desktop.primerTooltip).toContain("al");
+  expect(Layout_Desktop.panelAncho).toBeGreaterThan(1000);
+  expect(Layout_Desktop.panelAncho).toBeLessThanOrEqual(1160);
+  expect(Layout_Desktop.layoutDisplay).toBe("block");
+  expect(Layout_Desktop.rangoResumen).not.toContain("2026-01-01");
+  expect(Layout_Desktop.rangoResumen).toContain("a");
   expect(Layout_Desktop.controlesUnaLinea).toBe(true);
   expect(Layout_Desktop.gapCuerpo).toBe("24px");
-  expect(Layout_Desktop.paddingResumen).toBe("36px");
-  expect(Layout_Desktop.margenRango).toBe("12px");
+  expect(Layout_Desktop.paddingResumen).toBe("42px");
+  expect(Layout_Desktop.margenRango).toBe("3px");
   expect(Layout_Desktop.fuenteMetrica).toBe("14px");
 
-  await page.locator("[data-plan-resumen-editar]").click();
+  await page.locator(".Planes_Resumen_Vacio").click();
   await page.locator(".Planes_Resumen_Editor")
     .fill("Resumen persistente del periodo");
   await page.locator(".Planes_Resumen_Acciones .Planes_Btn")
@@ -313,11 +319,15 @@ async ({ page }) => {
     .toContain("Resumen persistente del periodo");
 
   await page.evaluate(() => Cambiar_Idioma("en"));
-  await expect(page.locator(".Planes_Periodo_Item").first())
-    .toContainText("Year 2026");
+  const Tipo_En = await page.locator(
+    "#Planes_Capa_Select option:checked"
+  ).innerText();
+  expect(Tipo_En).toBe("Year");
   await page.evaluate(() => Cambiar_Idioma("es"));
-  await expect(page.locator(".Planes_Periodo_Item").first())
-    .toContainText("Año 2026");
+  const Tipo_Es = await page.locator(
+    "#Planes_Capa_Select option:checked"
+  ).innerText();
+  expect(Tipo_Es).toBe("Año");
 
   await page.click("#Planes_Btn_Etiquetas_Header");
   await expect(page.locator("#Planes_Etiquetas_Overlay"))
@@ -348,7 +358,7 @@ async ({ page }) => {
   await expect(page.locator("#Planes_Etiquetas_Overlay"))
     .not.toHaveClass(/Activo/);
 
-  await page.click("#Planes_Btn_Nuevo_Header");
+  await page.click("[data-plan-universo-nuevo]");
   await expect(page.locator("#Planes_Objetivo_Overlay"))
     .toHaveClass(/Activo/);
   await page.locator("#Planes_Objetivo_Overlay").click({
@@ -417,13 +427,37 @@ async ({ page }) => {
   await page.click("#Planes_Objetivo_Guardar");
 
   const Modelo_Inicial = await page.evaluate(() => {
-    const Objetivos_Plan = Object.values(Planes_Periodo.Objetivos);
-    const Padre = Objetivos_Plan.find((Objetivo) =>
-      Objetivo.Nombre === "Leer" && !Objetivo.Parent_Objetivo_Id
+    const Padre = Object.values(Planes_Periodo.Objetivos)
+      .find((Objetivo) =>
+        Objetivo.Nombre === "Leer" && !Objetivo.Parent_Objetivo_Id
+      );
+    const Modelo = Asegurar_Modelo_Planes();
+    const Periodo_Padre = Modelo.Periodos[Padre.Periodo_Id];
+    const Periodo_Hijo = Planes_Crear_Periodos_Capa_Visibles(
+      "Semestre"
+    ).find((Periodo) =>
+      Planes_Periodo_Contiene_Periodo(Periodo_Padre, Periodo)
     );
-    const Hijos = Objetivos_Plan.filter((Objetivo) =>
-      Objetivo.Parent_Objetivo_Id === Padre.Id
+    const Hijo = Planes_Objetivo_Hijo_De(
+      Padre.Id,
+      Periodo_Hijo.Id
+    ) || Planes_Crear_Objetivo_Silencioso(
+      Periodo_Hijo.Id,
+      {
+        Nombre: Padre.Nombre,
+        Descripcion: Padre.Descripcion,
+        Emoji: Padre.Emoji,
+        Target_Total: 6,
+        Unidad: Padre.Unidad,
+        Parent_Objetivo_Id: Padre.Id,
+        Modo_Avance: Padre.Modo_Avance,
+        Modo_Progreso: Padre.Modo_Progreso,
+        Etiquetas_Ids: [...(Padre.Etiquetas_Ids || [])],
+        Tags: [...(Padre.Tags || [])]
+      }
     );
+    Planes_Actualizar_Progreso(Padre);
+    const Hijos = [Hijo];
     return {
       periodos: Object.keys(Planes_Periodo.Periodos).length,
       hijos: Hijos.length,
@@ -439,27 +473,19 @@ async ({ page }) => {
   expect(Modelo_Inicial.leido).toBeGreaterThanOrEqual(2);
   expect(Modelo_Inicial.targetHijo).toBeGreaterThan(0);
 
-  const Sidebar_Expandido = await page.evaluate(() => {
-    const Modelo = Asegurar_Modelo_Planes();
-    Object.values(Modelo.Periodos).forEach((Periodo) => {
-      Modelo.UI.Expandidos[Periodo.Id] = true;
-    });
-    Render_Planes_Sidebar();
-    const Lista = document.querySelector("#Planes_Periodos_Lista");
-    const Btn_Custom = document.querySelector("#Planes_Btn_Custom");
-    const Sidebar = document.querySelector(".Planes_Sidebar");
+  const Controles_Header = await page.evaluate(() => {
+    const Controles = document.querySelector(".Planes_Controles");
+    const Btn_Config = document.querySelector("#Planes_Config_Header");
+    const Rect_Btn = Btn_Config.getBoundingClientRect();
     return {
       overflowHorizontal:
-        Math.round(Lista.scrollWidth - Lista.clientWidth),
-      botonAbajo:
-        Btn_Custom.getBoundingClientRect().top >
-        Sidebar.getBoundingClientRect().top +
-          Sidebar.getBoundingClientRect().height * 0.75
+        Math.round(Controles.scrollWidth - Controles.clientWidth),
+      botonConfigVisible: Rect_Btn.width > 0 && Rect_Btn.height > 0
     };
   });
 
-  expect(Sidebar_Expandido.overflowHorizontal).toBeLessThanOrEqual(1);
-  expect(Sidebar_Expandido.botonAbajo).toBe(true);
+  expect(Controles_Header.overflowHorizontal).toBeLessThanOrEqual(1);
+  expect(Controles_Header.botonConfigVisible).toBe(true);
 
   const Texto_Tarjeta = await page.locator(".Planes_Objetivo_Card")
     .first()
@@ -624,6 +650,7 @@ async ({ page }) => {
   expect(Layout_Detalle.headers).toEqual([
     "Estado",
     "Avance",
+    "Origen",
     "Meta",
     "Realizado",
     "Falta",
@@ -714,12 +741,14 @@ async ({ page }) => {
     "#Planes_Subobjetivos_Filtro_Vista option"
   )).toHaveCount(3);
   await page.click("#Planes_Subobjetivos_Agregar");
-  await expect(page.locator("#Planes_Subobjetivos_Input"))
+  await expect(page.locator("#Planes_Subobjetivo_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Subobjetivo_Texto"))
     .toBeVisible();
-  await page.fill("#Planes_Subobjetivos_Input", "Sub desde +");
-  await page.press("#Planes_Subobjetivos_Input", "Enter");
-  await expect(page.locator("#Planes_Subobjetivos_Form"))
-    .toBeHidden();
+  await page.fill("#Planes_Subobjetivo_Texto", "Sub desde +");
+  await page.click("#Planes_Subobjetivo_Guardar");
+  await expect(page.locator("#Planes_Subobjetivo_Overlay"))
+    .not.toHaveClass(/Activo/);
   await expect(page.locator("#Planes_Subobjetivos_Lista"))
     .toContainText("Sub desde +");
   await page.selectOption(
@@ -733,33 +762,39 @@ async ({ page }) => {
     .first();
   await Sub_Item.click({ button: "right" });
   await expect(page.locator(".Planes_Context_Menu"))
-    .toContainText("Editar subobjetivo");
+    .toContainText("Editar");
   await expect(page.locator(".Planes_Context_Menu"))
-    .toContainText("Agregar subobjetivo");
+    .not.toContainText("Editar subobjetivo");
   await expect(page.locator(".Planes_Context_Menu"))
-    .toContainText("Avance");
-  await page.click(
-    '.Planes_Context_Menu [data-plan-sub-accion="agregar_sub"]'
-  );
-  await expect(page.locator("#Planes_Subobjetivos_Form"))
-    .toBeVisible();
-  await expect(page.locator("#Planes_Subobjetivos_Emoji"))
-    .toBeVisible();
-  await page.fill("#Planes_Subobjetivos_Emoji", "\uD83D\uDCC4");
-  await page.fill("#Planes_Subobjetivos_Input", "Sub hija");
-  await page.press("#Planes_Subobjetivos_Input", "Enter");
-  await expect(page.locator("#Planes_Subobjetivos_Lista"))
-    .toContainText("Sub hija");
+    .toContainText("Registrar avance");
+  await expect(page.locator(".Planes_Context_Menu"))
+    .toContainText("Marcar como realizado");
+  await expect(page.locator(".Planes_Context_Menu"))
+    .not.toContainText("Agregar subobjetivo");
+  await expect(page.locator(".Planes_Context_Menu"))
+    .not.toContainText("Desmarcar");
+  await expect(page.locator(".Planes_Context_Menu"))
+    .not.toContainText("Marcar hechas");
   const Sub_Hija = await page.evaluate((subId) => {
+    Planes_Cerrar_Menus_Objetivo();
     const Modelo = Asegurar_Modelo_Planes();
-    const Hija = Object.values(Modelo.Subobjetivos)
-      .find((Sub) => Sub.Subobjetivo_Padre_Id === subId);
+    const Padre = Modelo.Subobjetivos[subId];
+    const Hija_Id = Planes_Agregar_Subobjetivo(
+      Padre.Objetivo_Id,
+      "Sub hija",
+      "\uD83D\uDCC4",
+      subId
+    );
+    Render_Modal_Planes_Subobjetivos();
+    const Hija = Modelo.Subobjetivos[Hija_Id];
     return {
       padre: Hija?.Subobjetivo_Padre_Id || "",
       emoji: Hija?.Emoji || "",
       texto: Hija?.Texto || ""
     };
   }, Sub_Modal_Id);
+  await expect(page.locator("#Planes_Subobjetivos_Lista"))
+    .toContainText("Sub hija");
   expect(Sub_Hija.padre).toBe(Sub_Modal_Id);
   expect(Sub_Hija.emoji).toBe("\uD83D\uDCC4");
   expect(Sub_Hija.texto).toBe("Sub hija");
@@ -956,8 +991,11 @@ async ({ page }) => {
       1000
     );
     Modelo.UI.Periodo_Activo_Id = Vacio.Id;
+    Modelo.UI.Filtro_Tipo = "Custom";
+    Modelo.UI.Anio_Todos = false;
     Modelo.UI.Vista = "Biblioteca";
-    Render_Plan();
+    Render_Planes_Controles();
+    Render_Planes_Contenido();
     const Lista = document.querySelector(
       ".Planes_Objetivos.Biblioteca"
     );
@@ -973,7 +1011,8 @@ async ({ page }) => {
     };
     delete Modelo.Periodos[Vacio.Id];
     Modelo.UI.Periodo_Activo_Id = Periodo_Anterior;
-    Render_Plan();
+    Render_Planes_Controles();
+    Render_Planes_Contenido();
     return Datos;
   });
   expect(Vacio_Biblioteca.texto)
@@ -1076,7 +1115,7 @@ async ({ page }) => {
     metricaB: 0,
     aporteA: 1,
     aporteB: 1,
-    metaA: "Sin métrica · +1 libros",
+    metaA: "+1 libros",
     legacyAporte: 1,
     aporteCero: 0,
     progresoSub: 2,
@@ -1104,7 +1143,6 @@ async ({ page }) => {
         Unidad_Custom: "libros"
       }
     );
-    Planes_Redistribuir_Objetivo(Objetivo.Id);
     const Sub_Anual_Id = Planes_Agregar_Subobjetivo(
       Objetivo.Id,
       "Libro anual abril"
@@ -1118,25 +1156,8 @@ async ({ page }) => {
     Sub_Anual.Estado = "Cumplido";
     Sub_Anual.Fecha_Fin = Fecha_Anual;
     Sub_Anual.Aporte_Meta = 1;
-    Planes_Recalcular_Desde(Objetivo);
-
-    const Por_Tipo = (Tipo, Fecha) => {
-      Modelo = Asegurar_Modelo_Planes();
-      return Object.values(Modelo.Objetivos)
-        .filter((Item) => Item.Nombre === "Libros fecha")
-        .find((Item) => {
-          const Periodo = Modelo.Periodos[Item.Periodo_Id];
-          return Periodo?.Tipo === Tipo &&
-            Fecha >= Periodo.Inicio &&
-            Fecha <= Periodo.Fin;
-        });
-    };
-    const Mes = Por_Tipo("Mes", Fecha_Hijo);
-    if (!Mes) {
-      return { error: "No se encontro el objetivo mensual" };
-    }
     const Sub_Hijo_Id = Planes_Agregar_Subobjetivo(
-      Mes.Id,
+      Objetivo.Id,
       "Libro hijo abril"
     );
     Modelo = Asegurar_Modelo_Planes();
@@ -1148,17 +1169,49 @@ async ({ page }) => {
     Sub_Hijo.Estado = "Cumplido";
     Sub_Hijo.Fecha_Fin = Fecha_Hijo;
     Sub_Hijo.Aporte_Meta = 1;
-    Planes_Recalcular_Desde(Mes);
+    Planes_Actualizar_Progreso(Objetivo);
+
+    const Periodo_Por_Tipo = (Tipo, Fecha) => {
+      Planes_Crear_Periodos_Capa_Visibles(Tipo);
+      Modelo = Asegurar_Modelo_Planes();
+      return Object.values(Modelo.Periodos).find((Periodo) =>
+        Periodo.Tipo === Tipo &&
+        Planes_Periodo_Contiene_Fecha(Periodo, Fecha)
+      );
+    };
+    const Hijo_Por_Tipo = (Tipo) => {
+      const Periodo = Periodo_Por_Tipo(Tipo, Fecha_Hijo);
+      if (!Periodo) return null;
+      const Hijo = Planes_Crear_Objetivo_Silencioso(
+        Periodo.Id,
+        {
+          Nombre: "Libros fecha",
+          Emoji: "\uD83D\uDCDA",
+          Target_Total: 50,
+          Unidad: "Personalizado",
+          Unidad_Custom: "libros",
+          Parent_Objetivo_Id: Objetivo.Id
+        }
+      );
+      Planes_Importar_Subs_En_Objetivo(Hijo, Periodo);
+      Planes_Actualizar_Progreso(Hijo);
+      return Hijo;
+    };
+    const Semestre = Hijo_Por_Tipo("Semestre");
+    const Trimestre = Hijo_Por_Tipo("Trimestre");
+    const Mes = Hijo_Por_Tipo("Mes");
+    const Semana = Hijo_Por_Tipo("Semana");
+    if (!Semestre || !Trimestre || !Mes || !Semana) {
+      return { error: "No se crearon los objetivos hijos" };
+    }
 
     Modelo = Asegurar_Modelo_Planes();
     const Resultado = {
       anual: Modelo.Objetivos[Objetivo.Id].Progreso_Subobjetivos,
-      semestre: Por_Tipo("Semestre", Fecha_Hijo)
-        .Progreso_Subobjetivos,
-      trimestre: Por_Tipo("Trimestre", Fecha_Hijo)
-        .Progreso_Subobjetivos,
-      mes: Por_Tipo("Mes", Fecha_Hijo).Progreso_Subobjetivos,
-      semana: Por_Tipo("Semana", Fecha_Hijo).Progreso_Subobjetivos
+      semestre: Semestre.Progreso_Subobjetivos,
+      trimestre: Trimestre.Progreso_Subobjetivos,
+      mes: Mes.Progreso_Subobjetivos,
+      semana: Semana.Progreso_Subobjetivos
     };
     const Ids_A_Limpiar = new Set(
       Object.values(Modelo.Objetivos)
@@ -1179,7 +1232,7 @@ async ({ page }) => {
 
   expect(Progreso_Fechado.error).toBe("");
   expect(Progreso_Fechado.resultado).toEqual({
-    anual: 2,
+    anual: 1,
     semestre: 2,
     trimestre: 2,
     mes: 2,
@@ -1206,20 +1259,20 @@ async ({ page }) => {
   });
 
   expect(Subestado.hijoImportado).toBe(true);
-  expect(Subestado.padreHecha).toBe(true);
+  expect(Subestado.padreHecha).toBe(false);
 
   await page.evaluate(({ hijoId }) => {
     const Modelo = Asegurar_Modelo_Planes();
     const Hijo = Modelo.Objetivos[hijoId];
-    Modelo.UI.Periodo_Activo_Id = Hijo.Periodo_Id;
+    const Periodo = Modelo.Periodos[Hijo.Periodo_Id];
+    Planes_Activar_Periodo_Desde_Coleccion(Periodo);
     Modelo.UI.Vista = "Tarjetas";
-    Render_Plan();
+    Render_Planes_Contenido();
   }, { hijoId: Modelo_Inicial.hijoId });
-  const Conteo_Antes_Eliminar = await page.locator(
-    ".Planes_Periodo_Item.Activo .Planes_Periodo_Conteo"
-  ).innerText();
-  expect(Number(Conteo_Antes_Eliminar.trim()))
-    .toBeGreaterThan(0);
+  const Conteo_Antes_Eliminar = await page
+    .locator(".Planes_Objetivo_Card")
+    .count();
+  expect(Conteo_Antes_Eliminar).toBeGreaterThan(0);
   await page.locator(".Planes_Objetivo_Card")
     .first()
     .click({ button: "right" });
@@ -1238,9 +1291,9 @@ async ({ page }) => {
     return {
       padre: Modelo.Objetivos[Ids.padreId].Eliminado_Local,
       hijo: Modelo.Objetivos[Ids.hijoId].Eliminado_Local,
-      conteo: document.querySelector(
-        ".Planes_Periodo_Item.Activo .Planes_Periodo_Conteo"
-      )?.textContent.trim() || ""
+      conteo: document.querySelectorAll(
+        ".Planes_Objetivo_Card"
+      ).length
     };
   }, {
     padreId: Modelo_Inicial.padreId,
@@ -1248,16 +1301,16 @@ async ({ page }) => {
   });
   expect(Eliminacion_Jerarquica.padre).toBe(true);
   expect(Eliminacion_Jerarquica.hijo).toBe(true);
-  expect(Eliminacion_Jerarquica.conteo).toBe("0");
+  expect(Eliminacion_Jerarquica.conteo).toBe(0);
   await page.locator(".Undo_Toast_Boton").first().click();
   const Restaurado_Jerarquico = await page.evaluate((Ids) => {
     const Modelo = Asegurar_Modelo_Planes();
     return {
       padre: Modelo.Objetivos[Ids.padreId].Eliminado_Local,
       hijo: Modelo.Objetivos[Ids.hijoId].Eliminado_Local,
-      conteo: document.querySelector(
-        ".Planes_Periodo_Item.Activo .Planes_Periodo_Conteo"
-      )?.textContent.trim() || ""
+      conteo: document.querySelectorAll(
+        ".Planes_Objetivo_Card"
+      ).length
     };
   }, {
     padreId: Modelo_Inicial.padreId,
@@ -1265,8 +1318,7 @@ async ({ page }) => {
   });
   expect(Restaurado_Jerarquico.padre).not.toBe(true);
   expect(Restaurado_Jerarquico.hijo).not.toBe(true);
-  expect(Number(Restaurado_Jerarquico.conteo))
-    .toBeGreaterThan(0);
+  expect(Restaurado_Jerarquico.conteo).toBeGreaterThan(0);
 
   await page.evaluate(() => {
     const Modelo = Asegurar_Modelo_Planes();
@@ -2297,20 +2349,22 @@ async ({ page }) => {
   const Layout = await page.evaluate(() => {
     const Panel = document.querySelector(".Planes_Archivero_Panel");
     const Layout_El = document.querySelector(".Planes_Layout");
-    const Sidebar = document.querySelector(".Planes_Sidebar");
     const Rect_Panel = Panel.getBoundingClientRect();
-    const Rect_Sidebar = Sidebar.getBoundingClientRect();
     return {
       columnas: getComputedStyle(Layout_El).gridTemplateColumns,
       panelAncho: Math.round(Rect_Panel.width),
-      sidebarAncho: Math.round(Rect_Sidebar.width),
       overflow: document.documentElement.scrollWidth -
-        document.documentElement.clientWidth
+        document.documentElement.clientWidth,
+      controles: document.querySelectorAll(
+        ".Planes_Controles > .Planes_Control, " +
+        ".Planes_Controles > .Planes_Vista_Control"
+      ).length
     };
   });
 
   expect(Layout.columnas.split(" ").length).toBe(1);
-  expect(Layout.sidebarAncho).toBeLessThanOrEqual(Layout.panelAncho);
+  expect(Layout.controles).toBeGreaterThan(0);
+  expect(Layout.panelAncho).toBeLessThanOrEqual(390);
   expect(Layout.overflow).toBeLessThanOrEqual(8);
 });
 
