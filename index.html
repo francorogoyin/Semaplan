@@ -4200,6 +4200,24 @@
         background: transparent;
       }
 
+      .Planes_Objetivo_Card.Atrasado {
+        border-bottom-color: rgba(166, 54, 49, 0.24);
+        background: rgba(166, 54, 49, 0.045);
+      }
+
+      .Planes_Objetivo_Card.Atrasado.Expandida {
+        box-shadow: inset 3px 0 0 rgba(166, 54, 49, 0.72);
+      }
+
+      .Planes_Objetivo_Card.Saldado {
+        border-bottom-color: rgba(47, 141, 85, 0.22);
+        background: rgba(47, 141, 85, 0.04);
+      }
+
+      .Planes_Objetivo_Card.Saldado.Expandida {
+        box-shadow: inset 3px 0 0 rgba(47, 141, 85, 0.72);
+      }
+
       .Planes_Objetivo_Card.Vista_Lista {
         display: block;
         padding: 8px 0;
@@ -4838,6 +4856,28 @@
         line-height: 1;
       }
 
+      .Planes_Objetivo_Card.Atrasado
+        .Planes_Objetivo_Porcentaje {
+        background: #a63631;
+      }
+
+      .Planes_Objetivo_Card.Atrasado
+        .Planes_Objetivo_Estado {
+        border-color: rgba(166, 54, 49, 0.24);
+        background: rgba(166, 54, 49, 0.1);
+      }
+
+      .Planes_Objetivo_Card.Saldado
+        .Planes_Objetivo_Porcentaje {
+        background: #2f8d55;
+      }
+
+      .Planes_Objetivo_Card.Saldado
+        .Planes_Objetivo_Estado {
+        border-color: rgba(47, 141, 85, 0.24);
+        background: rgba(47, 141, 85, 0.1);
+      }
+
       .Planes_Badge {
         border-radius: 999px;
         background: rgba(0, 0, 0, 0.05);
@@ -5076,6 +5116,16 @@
 
       .Planes_Dato_Valor_Activo {
         color: #4caf50 !important;
+      }
+
+      .Planes_Dato_Valor_Atrasado {
+        color: #a63631 !important;
+        font-weight: 700;
+      }
+
+      .Planes_Dato_Valor_Saldado {
+        color: #2f8d55 !important;
+        font-weight: 700;
       }
 
       .Planes_Detalle_Footer {
@@ -19460,7 +19510,8 @@
           "planes.recuperar": "Recuperar",
           "planes.estado_activo": "En proceso",
           "planes.estado_cumplido": "Realizado",
-          "planes.estado_vencido": "Retrasado",
+          "planes.estado_vencido": "Atrasado",
+          "planes.estado_saldado": "Saldado",
           "planes.estado_cancelado": "Cancelado",
           "planes.estado_archivado": "Archivado",
           "planes.estado_warning": "Inconsistente",
@@ -22887,7 +22938,8 @@
           "planes.recuperar": "Recover",
           "planes.estado_activo": "In progress",
           "planes.estado_cumplido": "Completed",
-          "planes.estado_vencido": "Delayed",
+          "planes.estado_vencido": "Behind",
+          "planes.estado_saldado": "Settled",
           "planes.estado_cancelado": "Cancelled",
           "planes.estado_archivado": "Archived",
           "planes.estado_warning": "Inconsistent",
@@ -26272,6 +26324,7 @@
           "planes.estado_activo": "Em andamento",
           "planes.estado_cumplido": "Realizado",
           "planes.estado_vencido": "Atrasado",
+          "planes.estado_saldado": "Saldado",
           "planes.estado_cancelado": "Cancelado",
           "planes.estado_archivado": "Arquivado",
           "planes.estado_warning": "Inconsistente",
@@ -43131,6 +43184,65 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      function Planes_Periodo_Cerrado(Periodo) {
+        if (!Periodo?.Fin) return false;
+        return Periodo.Fin < Formatear_Fecha_ISO(new Date());
+      }
+
+      function Planes_Progreso_Familia_Importada(Objetivo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+        const Periodo = Modelo.Periodos[Objetivo?.Periodo_Id];
+        if (!Padre_Id || !Periodo) return 0;
+        return Object.values(Modelo.Objetivos)
+          .filter((Item) => {
+            if (!Item || Item.Eliminado_Local) return false;
+            if (Planes_Objetivo_Padre_Id(Item) !== Padre_Id) {
+              return false;
+            }
+            const Periodo_Item = Modelo.Periodos[Item.Periodo_Id];
+            return Periodo_Item?.Tipo === Periodo.Tipo;
+          })
+          .reduce((Total, Item) => {
+            return Total + (Number(Item.Progreso_Total) || 0);
+          }, 0);
+      }
+
+      function Planes_Objetivo_Padre_Cumplido(Objetivo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+        const Padre = Modelo.Objetivos[Padre_Id];
+        const Target_Padre = Number(Padre?.Target_Total) || 0;
+        if (!Padre || Target_Padre <= 0) return false;
+        const Progreso_Padre = Number(Padre.Progreso_Total) || 0;
+        const Progreso_Hijos =
+          Planes_Progreso_Familia_Importada(Objetivo);
+        return Math.max(Progreso_Padre, Progreso_Hijos) >=
+          Target_Padre;
+      }
+
+      function Planes_Estado_Efectivo_Objetivo(Objetivo) {
+        if (!Objetivo) return "Activo";
+        const Modelo = Asegurar_Modelo_Planes();
+        const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
+        const Target = Number(Objetivo.Target_Total) || 0;
+        const Progreso = Number(Objetivo.Progreso_Total) || 0;
+        const Pendiente = Number(Objetivo.Target_Pendiente) || 0;
+        if (Target > 0 && Progreso >= Target) return "Cumplido";
+        const Cerrado = Planes_Periodo_Cerrado(Periodo);
+        const Padre_Cumplido =
+          Planes_Es_Objetivo_Importado(Objetivo) &&
+          Planes_Objetivo_Padre_Cumplido(Objetivo);
+        if (Cerrado && Pendiente > 0) {
+          return Padre_Cumplido ? "Saldado" : "Vencido";
+        }
+        if (Padre_Cumplido) return "Cumplido";
+        if (Planes_Estados.includes(Objetivo.Estado)) {
+          return Objetivo.Estado;
+        }
+        return "Activo";
+      }
+
       function Planes_Crear_Objetivo_Silencioso(
         Periodo_Id,
         Datos = {}
@@ -43376,12 +43488,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Emoji_Estado(Estado) {
-        if (Estado === "Cumplido") return "✅";
-        if (Estado === "Vencido") return "⏰";
-        if (Estado === "Cancelado") return "✖️";
-        if (Estado === "Archivado") return "📦";
-        if (Estado === "Warning") return "⚠️";
-        return "🟢";
+        if (Estado === "Cumplido") return "\u2705";
+        if (Estado === "Saldado") return "\u2705";
+        if (Estado === "Vencido") return "\u23f0";
+        if (Estado === "Cancelado") return "\u2716\ufe0f";
+        if (Estado === "Archivado") return "\ud83d\udce6";
+        if (Estado === "Warning") return "\u26a0\ufe0f";
+        return "\ud83d\udfe2";
       }
 
       function Planes_Formatear_Fecha_Larga(Valor) {
@@ -45893,10 +46006,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Expandido =
           !Es_Lista &&
           Modelo.UI.Objetivos_Expandidos?.[Objetivo.Id] === true;
+        const Estado_Efectivo =
+          Planes_Estado_Efectivo_Objetivo(Objetivo);
         const Card = document.createElement("article");
         Card.className = "Planes_Objetivo_Card" +
           (Objetivo.Eliminado_Local ? " Eliminado" : "") +
           ((Objetivo.Warnings || []).length ? " Warning" : "") +
+          (Estado_Efectivo === "Vencido" ? " Atrasado" : "") +
+          (Estado_Efectivo === "Saldado" ? " Saldado" : "") +
           (Es_Lista ? " Vista_Lista" : "") +
           (Es_Biblioteca ? " Vista_Biblioteca" : "") +
           (
@@ -45909,7 +46026,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Card.draggable = true;
         Card.dataset.planObjetivoId = Objetivo.Id;
         const Estado_Label =
-          t(`planes.estado_${Objetivo.Estado.toLowerCase()}`);
+          t(`planes.estado_${Estado_Efectivo.toLowerCase()}`);
         const Porcentaje = Planes_Formatear_Porcentaje_Meta(
           Objetivo.Progreso_Total,
           Objetivo.Target_Total
@@ -45938,7 +46055,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             <span class="Planes_Objetivo_Estado"
               title="${Escape_Html(Estado_Label)}"
               aria-label="${Escape_Html(Estado_Label)}">
-              ${Planes_Emoji_Estado(Objetivo.Estado)}
+              ${Planes_Emoji_Estado(Estado_Efectivo)}
             </span>
           </div>
           ${Expandido ? Render_Planes_Detalle_Objetivo(Objetivo) : ""}
@@ -45960,7 +46077,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 <span class="Planes_Objetivo_Estado"
                   title="${Escape_Html(Estado_Label)}"
                   aria-label="${Escape_Html(Estado_Label)}">
-                  ${Planes_Emoji_Estado(Objetivo.Estado)}
+                  ${Planes_Emoji_Estado(Estado_Efectivo)}
                 </span>
                 ${Es_Lista ? "" : Boton_Avance}
               </div>
@@ -46380,8 +46497,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Render_Planes_Detalle_Objetivo(Objetivo) {
+        const Estado_Efectivo =
+          Planes_Estado_Efectivo_Objetivo(Objetivo);
         const Estado_Label =
-          t(`planes.estado_${Objetivo.Estado.toLowerCase()}`);
+          t(`planes.estado_${Estado_Efectivo.toLowerCase()}`);
         const Fuente = Planes_Fuente_Progreso(Objetivo);
         const Etiquetas = Planes_Etiquetas_Nombres(Objetivo);
         const Meta = Planes_Formatear_Meta_Objetivo(Objetivo);
@@ -46395,9 +46514,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Objetivo.Progreso_Leido
         );
         const Origen_Html = Render_Planes_Origen_Objetivo(Objetivo);
-        const Estado_Clase = Objetivo.Estado === "Activo"
-          ? " Planes_Dato_Valor_Activo"
-          : "";
+        const Estado_Clase =
+          Estado_Efectivo === "Activo"
+            ? " Planes_Dato_Valor_Activo"
+            : (
+              Estado_Efectivo === "Vencido"
+                ? " Planes_Dato_Valor_Atrasado"
+                : (
+                  Estado_Efectivo === "Saldado"
+                    ? " Planes_Dato_Valor_Saldado"
+                    : ""
+                )
+            );
         const Etiquetas_Html = Etiquetas.length
           ? `
             <div class="Planes_Objetivo_Detalle_Etiquetas">
@@ -49797,8 +49925,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Periodo_Cerrado_Importacion(Periodo) {
-        if (!Periodo?.Fin) return false;
-        return Periodo.Fin < Formatear_Fecha_ISO(new Date());
+        return Planes_Periodo_Cerrado(Periodo);
       }
 
       function Planes_Avance_Hijo_Importacion(
@@ -50752,11 +50879,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Hoy = Formatear_Fecha_ISO(new Date());
         return Object.values(Modelo.Objetivos)
           .filter((Objetivo) => {
+            if (Objetivo.Eliminado_Local) return false;
             const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
             if (!Periodo || Periodo.Fin >= Hoy) return false;
-            if (Objetivo.Eliminado_Local) return false;
-            if (Objetivo.Estado === "Cumplido") return false;
-            return (Number(Objetivo.Target_Pendiente) || 0) > 0;
+            Planes_Actualizar_Progreso(Objetivo);
+            return Planes_Estado_Efectivo_Objetivo(Objetivo) ===
+              "Vencido";
           })
           .sort((A, B) => {
             const PA = Modelo.Periodos[A.Periodo_Id];

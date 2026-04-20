@@ -2234,6 +2234,8 @@ async ({ page }) => {
     const Hijos = Trimestres.map((Periodo) => {
       const Hijo = Planes_Objetivo_Hijo_De(Padre.Id, Periodo.Id);
       return {
+        Id: Hijo.Id,
+        Periodo_Id: Periodo.Id,
         Target: Hijo.Target_Total,
         Progreso: Hijo.Progreso_Total
       };
@@ -2255,6 +2257,27 @@ async ({ page }) => {
   [1, 2, 3].forEach((Indice) => {
     expect(Resultado.Hijos[Indice].Target).toBeCloseTo(44 / 3, 5);
   });
+
+  await page.evaluate(({ objetivoId, periodoId }) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.UI.Vista = "Tarjetas";
+    Modelo.UI.Objetivos_Expandidos = { [objetivoId]: true };
+    Planes_Activar_Periodo_Desde_Coleccion(
+      Modelo.Periodos[periodoId]
+    );
+    Render_Plan();
+  }, {
+    objetivoId: Resultado.Hijos[0].Id,
+    periodoId: Resultado.Hijos[0].Periodo_Id
+  });
+
+  const Card_T1 = page.locator(
+    `[data-plan-objetivo-id="${Resultado.Hijos[0].Id}"]`
+  );
+  await expect(Card_T1).toHaveClass(/Atrasado/);
+  await expect(
+    Card_T1.locator(".Planes_Progreso_Tabla tbody tr td").first()
+  ).toContainText("Atrasado");
   expect(errores).toEqual([]);
 });
 
@@ -2630,6 +2653,7 @@ async ({ page }) => {
         Nombre: "Alerta color",
         Emoji: "\u26A0\uFE0F",
         Target_Total: 1,
+        Progreso_Manual: 1,
         Unidad: "Horas"
       }
     );
