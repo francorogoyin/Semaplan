@@ -345,7 +345,14 @@
         text-align: center;
       }
 
+      .Metas_Sugeridas_Fila input[readonly] {
+        background: rgba(255, 255, 255, 0.68);
+        cursor: pointer;
+      }
+
       .Metas_Sugeridas_Fila input[type="color"] {
+        appearance: none;
+        -webkit-appearance: none;
         width: 34px;
         height: 34px;
         min-height: 34px;
@@ -354,6 +361,19 @@
         padding: 0;
         border-radius: 50%;
         cursor: pointer;
+      }
+
+      .Metas_Sugeridas_Fila input[type="color"]::-webkit-color-swatch,
+      .Metas_Sugeridas_Fila
+        input[type="color"]::-webkit-color-swatch-wrapper {
+        border: none;
+        border-radius: 50%;
+        padding: 0;
+      }
+
+      .Metas_Sugeridas_Fila input[type="color"]::-moz-color-swatch {
+        border: none;
+        border-radius: 50%;
       }
 
       .Metas_Sugeridas_Head {
@@ -418,11 +438,16 @@
 
       .Metas_Sugeridas_Partes_Item {
         display: grid;
-        grid-template-columns: 28px minmax(0, 1fr) auto;
+        grid-template-columns: 22px 28px minmax(0, 1fr) auto;
         gap: 8px;
         align-items: center;
         border-bottom: 1px solid var(--Borde);
         padding: 8px 0;
+      }
+
+      .Metas_Sugeridas_Partes_Item input {
+        width: 16px;
+        height: 16px;
       }
 
       .Metas_Sugeridas_Partes_Item:last-child {
@@ -20013,6 +20038,10 @@
           "sidebar.metas_col_importar": "Importar",
           "sidebar.metas_partes_n": "{n} parte(s)",
           "sidebar.metas_partes_ninguna": "Sin partes",
+          "sidebar.metas_partes_importar_n":
+            "Importa {n} parte(s)",
+          "sidebar.metas_partes_importar_ninguna":
+            "No importa partes",
           "sidebar.tipo": "Tipo",
           "sidebar.bolsa_horas":
             "Bolsa de horas",
@@ -23628,6 +23657,10 @@
           "sidebar.metas_col_importar": "Import",
           "sidebar.metas_partes_n": "{n} part(s)",
           "sidebar.metas_partes_ninguna": "No parts",
+          "sidebar.metas_partes_importar_n":
+            "Imports {n} part(s)",
+          "sidebar.metas_partes_importar_ninguna":
+            "Imports no parts",
           "sidebar.tipo": "Type",
           "sidebar.bolsa_horas": "Hour pool",
           "sidebar.objetivo_normal":
@@ -27174,6 +27207,10 @@
           "sidebar.metas_col_importar": "Importar",
           "sidebar.metas_partes_n": "{n} parte(s)",
           "sidebar.metas_partes_ninguna": "Sem partes",
+          "sidebar.metas_partes_importar_n":
+            "Importa {n} parte(s)",
+          "sidebar.metas_partes_importar_ninguna":
+            "Nao importa partes",
           "sidebar.tipo": "Tipo",
           "sidebar.bolsa_horas":
             "Banco de horas",
@@ -50174,6 +50211,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Poblar_Select_Categorias(Select, Valor || null);
       }
 
+      function Metas_Sugeridas_Fijar_Input(Input) {
+        if (!Input) return;
+        Input.readOnly = true;
+        Input.addEventListener("click", () => {
+          Input.readOnly = false;
+          Input.focus();
+          Input.select?.();
+        });
+        Input.addEventListener("keydown", (Ev) => {
+          if (Ev.key === "Enter") {
+            Ev.preventDefault();
+            Input.readOnly = true;
+            Input.blur();
+          }
+        });
+        Input.addEventListener("blur", () => {
+          Input.readOnly = true;
+        });
+      }
+
       function Render_Metas_Sugeridas() {
         if (!El_Metas_Sugeridas_Tabla) return;
         const Items = Metas_Sugeridas_Items();
@@ -50210,30 +50267,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Emoji = document.createElement("input");
           Emoji.className = "Con_Selector_Emoji";
           Emoji.value = Item.Sub.Emoji || Item.Objetivo.Emoji || "";
-          Emoji.addEventListener("keydown", (Ev) => {
-            if (Ev.key === "Enter") {
-              Ev.preventDefault();
-              Emoji.blur();
-            }
-          });
+          Metas_Sugeridas_Fijar_Input(Emoji);
 
           const Nombre = document.createElement("input");
           Nombre.value = Item.Sub.Texto || Item.Objetivo.Nombre || "";
-          Nombre.addEventListener("keydown", (Ev) => {
-            if (Ev.key === "Enter") {
-              Ev.preventDefault();
-              Nombre.blur();
-            }
-          });
+          Metas_Sugeridas_Fijar_Input(Nombre);
 
           const Vinculo = document.createElement("div");
           Vinculo.className = "Metas_Sugeridas_Vinculo";
-          Vinculo.textContent = Meta_Aporte_Label_Item({
-            Tipo: "Subobjetivo",
-            Id: Item.Sub.Id,
-            Objetivo: Item.Objetivo,
-            Sub: Item.Sub
-          });
+          Vinculo.textContent =
+            `${Item.Sub.Emoji || "\u2022"} ${Item.Sub.Texto || ""}`
+              .trim();
 
           const Aporte = document.createElement("div");
           Aporte.className = "Metas_Sugeridas_Aporte";
@@ -50242,12 +50286,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Aporte_Input.min = "0";
           Aporte_Input.step = "1";
           Aporte_Input.value = String(Item.Aporte);
-          Aporte_Input.addEventListener("keydown", (Ev) => {
-            if (Ev.key === "Enter") {
-              Ev.preventDefault();
-              Aporte_Input.blur();
-            }
-          });
+          Metas_Sugeridas_Fijar_Input(Aporte_Input);
           const Unidad = document.createElement("span");
           Unidad.className = "Metas_Sugeridas_Unidad";
           Unidad.textContent = Item.Unidad;
@@ -50267,12 +50306,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Partes.dataset.partesIds = Item.Partes
             .map((Parte) => Parte.Id)
             .join(",");
+          Partes.dataset.partesSeleccionadas = Partes.dataset.partesIds;
           Partes.textContent = Item.Partes.length
-            ? t("sidebar.metas_partes_n", { n: Item.Partes.length })
+            ? t("sidebar.metas_partes_importar_n", {
+              n: Item.Partes.length
+            })
             : t("sidebar.metas_partes_ninguna");
           Partes.disabled = Item.Partes.length === 0;
-          Partes.addEventListener("click", () => {
-            Metas_Sugeridas_Mostrar_Partes(Item.Partes);
+          Partes.addEventListener("click", async () => {
+            await Metas_Sugeridas_Mostrar_Partes(Item.Partes, Partes);
           });
 
           const Importar = document.createElement("input");
@@ -50293,14 +50335,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
-      async function Metas_Sugeridas_Mostrar_Partes(Partes) {
+      async function Metas_Sugeridas_Mostrar_Partes(Partes, Boton) {
         const Lista = Array.isArray(Partes) ? Partes : [];
         if (!Lista.length) return;
         const Cont = document.createElement("div");
         Cont.className = "Metas_Sugeridas_Partes_Modal";
+        const Seleccionadas = new Set(
+          (Boton?.dataset.partesSeleccionadas || "")
+            .split(",")
+            .filter(Boolean)
+        );
         Lista.forEach((Parte) => {
           const Item = document.createElement("div");
           Item.className = "Metas_Sugeridas_Partes_Item";
+          const Check = document.createElement("input");
+          Check.type = "checkbox";
+          Check.checked = Seleccionadas.has(Parte.Id);
+          Check.dataset.parteId = Parte.Id;
           const Emoji = document.createElement("span");
           Emoji.className = "Con_Fallback_Emoji";
           Emoji.textContent = Parte.Emoji || "\u2022";
@@ -50309,18 +50360,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Meta = document.createElement("span");
           Meta.className = "Metas_Sugeridas_Partes_Meta";
           Meta.textContent = Planes_Formatear_Parte(Parte);
+          Item.appendChild(Check);
           Item.appendChild(Emoji);
           Item.appendChild(Nombre);
           Item.appendChild(Meta);
           Cont.appendChild(Item);
         });
-        await Mostrar_Dialogo(Cont, [
+        const Resultado = await Mostrar_Dialogo(Cont, [
+          {
+            Etiqueta: t("guardar"),
+            Valor: "Guardar",
+            Tipo: "Primario"
+          },
           {
             Etiqueta: t("cerrar"),
-            Valor: true,
-            Tipo: "Primario"
+            Valor: null,
+            Tipo: "Cancelar"
           }
         ]);
+        if (Resultado !== "Guardar" || !Boton) return;
+        const Ids = Array.from(
+          Cont.querySelectorAll("input[type='checkbox']:checked")
+        ).map((Check) => Check.dataset.parteId).filter(Boolean);
+        Boton.dataset.partesSeleccionadas = Ids.join(",");
+        Boton.textContent = Ids.length
+          ? t("sidebar.metas_partes_importar_n", { n: Ids.length })
+          : t("sidebar.metas_partes_importar_ninguna");
       }
 
       function Abrir_Metas_Sugeridas() {
@@ -50371,7 +50436,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }, Metas_Sugeridas_Clave_Semana());
           const Partes_Ids = (
             Fila.querySelector(".Metas_Sugeridas_Partes")
-              ?.dataset.partesIds || ""
+              ?.dataset.partesSeleccionadas || ""
           ).split(",").filter(Boolean);
           const Subs = Obtener_Subobjetivos_Semana(
             Objetivo,
