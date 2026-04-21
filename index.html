@@ -19110,6 +19110,59 @@
           </div>
         </div>
         <div class="Patron_Modal_Cuerpo">
+          <div class="Planes_Subobjetivos_Filtros">
+            <label class="Planes_Subobjetivos_Filtro">
+              <span data-i18n="planes.filtro_estado">
+                Estado
+              </span>
+              <select id="Planes_Partes_Filtro_Estado">
+                <option value="Todos" data-i18n="todos">
+                  Todos
+                </option>
+                <option value="Abiertos"
+                  data-i18n="planes.filtro_abiertos">
+                  Abiertos
+                </option>
+                <option value="Cumplidos"
+                  data-i18n="planes.filtro_cumplidos">
+                  Cumplidos
+                </option>
+              </select>
+            </label>
+            <label class="Planes_Subobjetivos_Filtro">
+              <span data-i18n="planes.ordenar_por">
+                Ordenar por
+              </span>
+              <select id="Planes_Partes_Orden_Campo">
+                <option value="Manual"
+                  data-i18n="planes.orden_manual">
+                  Manual
+                </option>
+                <option value="Nombre"
+                  data-i18n="planes.orden_nombre">
+                  Nombre
+                </option>
+                <option value="Estado"
+                  data-i18n="planes.orden_estado">
+                  Estado
+                </option>
+                <option value="Fecha_Objetivo"
+                  data-i18n="planes.orden_fecha_objetivo">
+                  Fecha objetivo
+                </option>
+              </select>
+            </label>
+            <div class="Planes_Subobjetivos_Filtro">
+              <span data-i18n="planes.orden_direccion">
+                Dirección
+              </span>
+              <button type="button"
+                class="Planes_Subobjetivos_Orden_Direccion"
+                id="Planes_Partes_Orden_Direccion">
+                &uarr; Ascendente
+              </button>
+            </div>
+          </div>
           <div class="Planes_Subobjetivos_Modal_Lista"
             id="Planes_Partes_Lista"></div>
         </div>
@@ -31496,11 +31549,14 @@
       let Planes_Parte_En_Edicion_Id = null;
       let Planes_Importar_Partes_Objetivo_Id = null;
       let Planes_Registro_Objetivo_Id = null;
-      let Planes_Subobjetivos_Filtro_Estado = "Todos";
+      let Planes_Subobjetivos_Filtro_Estado = "Abiertos";
       let Planes_Subobjetivos_Filtro_Metadato = "";
       let Planes_Subobjetivos_Filtro_Periodo = "Todos";
-      let Planes_Subobjetivos_Orden_Campo = "Manual";
+      let Planes_Subobjetivos_Orden_Campo = "Fecha_Objetivo";
       let Planes_Subobjetivos_Orden_Direccion = "Asc";
+      let Planes_Partes_Filtro_Estado = "Abiertos";
+      let Planes_Partes_Orden_Campo = "Fecha_Objetivo";
+      let Planes_Partes_Orden_Direccion = "Asc";
       let Planes_Avance_Alcance = { Tipo: "Global", Id: "" };
       let Planes_Vinculo_Subobjetivos_Expandidos = new Set();
       let Planes_Vinculo_Click_Global = false;
@@ -44233,6 +44289,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Number(Parte.Progreso_Avances) || 0,
           Progreso_Total:
             Number(Parte.Progreso_Total) || 0,
+          Fecha_Objetivo:
+            (Parte.Fecha_Objetivo || "").toString(),
           Estado: ["Pendiente", "Parcial", "Realizada"].includes(
             Parte.Estado
           )
@@ -53953,7 +54011,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Fecha_Fin"
         ];
         if (!Opciones.includes(Planes_Subobjetivos_Orden_Campo)) {
-          Planes_Subobjetivos_Orden_Campo = "Manual";
+          Planes_Subobjetivos_Orden_Campo = "Fecha_Objetivo";
         }
         return Planes_Subobjetivos_Orden_Campo;
       }
@@ -54460,6 +54518,117 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         )}`;
       }
 
+      function Planes_Partes_Orden_Campo_Actual() {
+        const Opciones = [
+          "Manual",
+          "Nombre",
+          "Estado",
+          "Fecha_Objetivo"
+        ];
+        if (!Opciones.includes(Planes_Partes_Orden_Campo)) {
+          Planes_Partes_Orden_Campo = "Fecha_Objetivo";
+        }
+        return Planes_Partes_Orden_Campo;
+      }
+
+      function Planes_Partes_Direccion_Actual() {
+        if (!["Asc", "Desc"].includes(Planes_Partes_Orden_Direccion)) {
+          Planes_Partes_Orden_Direccion = "Asc";
+        }
+        return Planes_Partes_Orden_Direccion;
+      }
+
+      function Planes_Valor_Orden_Parte(Parte, Campo) {
+        if (Campo === "Nombre") {
+          return Normalizar_Texto_Archivero(Parte?.Nombre || "");
+        }
+        if (Campo === "Estado") {
+          const Orden = { Pendiente: 0, Parcial: 1, Realizada: 2 };
+          const Estado = Planes_Estado_Calculado_Parte(Parte);
+          return Orden[Estado] ?? 99;
+        }
+        if (Campo === "Fecha_Objetivo") {
+          return (Parte?.Fecha_Objetivo || "").toString();
+        }
+        return Number(Parte?.Orden) || 0;
+      }
+
+      function Planes_Comparar_Partes_Orden(A, B) {
+        const Campo = Planes_Partes_Orden_Campo_Actual();
+        const Direccion = Planes_Partes_Direccion_Actual();
+        let Resultado = 0;
+        if (Campo === "Fecha_Objetivo") {
+          const Fecha_A = Planes_Valor_Orden_Parte(A, Campo);
+          const Fecha_B = Planes_Valor_Orden_Parte(B, Campo);
+          const Vacia_A = !Fecha_A;
+          const Vacia_B = !Fecha_B;
+          if (Vacia_A || Vacia_B) {
+            if (Vacia_A && Vacia_B) Resultado = 0;
+            else Resultado = Vacia_A ? 1 : -1;
+          } else {
+            Resultado = Fecha_A.localeCompare(Fecha_B);
+          }
+        } else {
+          const Valor_A = Planes_Valor_Orden_Parte(A, Campo);
+          const Valor_B = Planes_Valor_Orden_Parte(B, Campo);
+          if (typeof Valor_A === "number" &&
+              typeof Valor_B === "number") {
+            Resultado = Valor_A - Valor_B;
+          } else {
+            Resultado = String(Valor_A).localeCompare(
+              String(Valor_B),
+              undefined,
+              { sensitivity: "base" }
+            );
+          }
+        }
+        if (Resultado === 0) {
+          Resultado = (Number(A?.Orden) || 0) - (Number(B?.Orden) || 0);
+        }
+        return Direccion === "Desc" ? -Resultado : Resultado;
+      }
+
+      function Planes_Parte_Pasa_Filtros(Parte) {
+        const Estado = Planes_Estado_Calculado_Parte(Parte);
+        if (
+          Planes_Partes_Filtro_Estado === "Abiertos" &&
+          Estado === "Realizada"
+        ) {
+          return false;
+        }
+        if (
+          Planes_Partes_Filtro_Estado === "Cumplidos" &&
+          Estado !== "Realizada"
+        ) {
+          return false;
+        }
+        return true;
+      }
+
+      function Planes_Actualizar_Boton_Orden_Partes(Boton) {
+        if (!Boton) return;
+        const Es_Asc = Planes_Partes_Direccion_Actual() === "Asc";
+        Boton.textContent = t(
+          Es_Asc ? "planes.orden_asc" : "planes.orden_desc"
+        );
+        Boton.setAttribute("aria-label", Boton.textContent);
+      }
+
+      function Planes_Sincronizar_Controles_Partes() {
+        const Estado = document.getElementById(
+          "Planes_Partes_Filtro_Estado"
+        );
+        const Orden = document.getElementById(
+          "Planes_Partes_Orden_Campo"
+        );
+        const Direccion = document.getElementById(
+          "Planes_Partes_Orden_Direccion"
+        );
+        if (Estado) Estado.value = Planes_Partes_Filtro_Estado;
+        if (Orden) Orden.value = Planes_Partes_Orden_Campo_Actual();
+        Planes_Actualizar_Boton_Orden_Partes(Direccion);
+      }
+
       function Render_Planes_Parte_Acciones(Parte) {
         const Estado = Planes_Estado_Calculado_Parte(Parte);
         return `
@@ -54772,23 +54941,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Resumen = document.getElementById("Planes_Partes_Resumen");
         if (!Sub || !Lista) return;
         const Partes = Planes_Partes_De_Subobjetivo(Sub.Id, Modelo);
+        const Partes_Visibles = Partes
+          .filter(Planes_Parte_Pasa_Filtros)
+          .sort(Planes_Comparar_Partes_Orden);
         if (Titulo) {
           Titulo.textContent =
             `${t("planes.partes")} · ${Sub.Emoji || ""} ${Sub.Texto}`;
         }
         if (Resumen) {
           Resumen.textContent = t("planes.partes_resumen", {
-            n: Partes.length
+            n: Partes_Visibles.length
           });
         }
+        Planes_Sincronizar_Controles_Partes();
         Lista.innerHTML = "";
-        if (!Partes.length) {
+        if (!Partes_Visibles.length) {
           const Vacio = document.createElement("div");
           Vacio.className = "Planes_Vacio";
-          Vacio.textContent = t("planes.sin_partes");
+          Vacio.textContent = Partes.length
+            ? t("planes.sin_subobjetivos_filtro")
+            : t("planes.sin_partes");
           Lista.appendChild(Vacio);
         }
-        Partes.forEach((Parte) => {
+        Partes_Visibles.forEach((Parte) => {
           Lista.appendChild(Render_Planes_Parte_Item(Parte));
         });
       }
@@ -80638,6 +80813,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", Cerrar_Modal_Planes_Partes);
       document.getElementById("Planes_Partes_Agregar")
         ?.addEventListener("click", Abrir_Modal_Planes_Parte_Nueva);
+      document.getElementById("Planes_Partes_Filtro_Estado")
+        ?.addEventListener("change", (Ev) => {
+          Planes_Partes_Filtro_Estado = Ev.target.value || "Abiertos";
+          Render_Modal_Planes_Partes();
+        });
+      document.getElementById("Planes_Partes_Orden_Campo")
+        ?.addEventListener("change", (Ev) => {
+          Planes_Partes_Orden_Campo =
+            Ev.target.value || "Fecha_Objetivo";
+          Render_Modal_Planes_Partes();
+        });
+      document.getElementById("Planes_Partes_Orden_Direccion")
+        ?.addEventListener("click", () => {
+          Planes_Partes_Orden_Direccion =
+            Planes_Partes_Direccion_Actual() === "Asc"
+              ? "Desc"
+              : "Asc";
+          Render_Modal_Planes_Partes();
+        });
       document.getElementById("Planes_Partes_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Planes_Partes_Overlay") {
