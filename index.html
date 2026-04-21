@@ -6200,9 +6200,9 @@
 
       .Planes_Subobjetivo_Partes_Btn {
         align-self: center;
-        border: 1px solid var(--Borde);
+        border: none;
         border-radius: 8px;
-        background: #fff;
+        background: transparent;
         color: var(--Texto);
         cursor: pointer;
         font: inherit;
@@ -6214,7 +6214,7 @@
 
       .Planes_Subobjetivo_Partes_Btn:hover,
       .Planes_Subobjetivo_Partes_Btn:focus-visible {
-        border-color: var(--Acento);
+        background: var(--Acento_Suave);
         color: var(--Acento);
       }
 
@@ -20670,6 +20670,12 @@
             "Avance parcial de parte: {parte}",
           "planes.parte_nota_semana":
             "Parte semanal realizada: {parte} ({objetivo})",
+          "planes.parte_realizar_registrar_avance_confirm":
+            "¿Anotar esta parte realizada como avance nuevo?",
+          "planes.parte_registrar_avance_si":
+            "Sí, anotar avance",
+          "planes.parte_registrar_avance_no":
+            "No, computar como avance inicial",
           "planes.parte_actualizada": "Parte actualizada.",
           "planes.parte_eliminada": "Parte eliminada.",
           "planes.parte_archivar_confirm":
@@ -24263,6 +24269,12 @@
             "Partial part progress: {parte}",
           "planes.parte_nota_semana":
             "Weekly part done: {parte} ({objetivo})",
+          "planes.parte_realizar_registrar_avance_confirm":
+            "Log this completed part as new progress?",
+          "planes.parte_registrar_avance_si":
+            "Yes, log progress",
+          "planes.parte_registrar_avance_no":
+            "No, count as initial progress",
           "planes.parte_actualizada": "Part updated.",
           "planes.parte_eliminada": "Part deleted.",
           "planes.parte_archivar_confirm":
@@ -27812,6 +27824,12 @@
             "Avanco parcial de parte: {parte}",
           "planes.parte_nota_semana":
             "Parte semanal realizada: {parte} ({objetivo})",
+          "planes.parte_realizar_registrar_avance_confirm":
+            "Registrar esta parte realizada como novo avanco?",
+          "planes.parte_registrar_avance_si":
+            "Sim, registrar avanco",
+          "planes.parte_registrar_avance_no":
+            "Nao, computar como avanco inicial",
           "planes.parte_actualizada": "Parte atualizada.",
           "planes.parte_eliminada": "Parte eliminada.",
           "planes.parte_archivar_confirm":
@@ -31246,6 +31264,7 @@
       let Planes_Partes_Subobjetivo_Id = null;
       let Planes_Parte_En_Edicion_Id = null;
       let Planes_Importar_Partes_Objetivo_Id = null;
+      let Planes_Registro_Objetivo_Id = null;
       let Planes_Subobjetivos_Filtro_Estado = "Todos";
       let Planes_Subobjetivos_Filtro_Metadato = "";
       let Planes_Subobjetivos_Filtro_Periodo = "Todos";
@@ -44363,6 +44382,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Math.max(0, Aporte - Sin_Origen);
       }
 
+      function Planes_Computar_Parte_Realizada_Como_Inicial(
+        Parte,
+        Modelo = null
+      ) {
+        if (!Parte) return false;
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Aporte = Number(Parte.Aporte_Total) || 0;
+        if (Aporte <= 0) return false;
+        const Avance_Auto = Planes_Avance_Parte_Por_Origen(
+          Parte.Id,
+          "Parte_Meta",
+          Parte.Id,
+          M
+        );
+        if (Avance_Auto) delete M.Avances[Avance_Auto.Id];
+        const Avances = Planes_Total_Avances_Parte(Parte.Id, M);
+        Parte.Progreso_Inicial = Math.max(0, Aporte - Avances);
+        Parte.Actualizado_En = new Date().toISOString();
+        Planes_Recalcular_Progreso_Parte(Parte, M);
+        const Sub = M.Subobjetivos[Parte.Subobjetivo_Id];
+        if (Sub) {
+          Planes_Recalcular_Progreso_Subobjetivo(Sub, M);
+        }
+        return true;
+      }
+
       function Planes_Marcar_Parte_Realizada(
         Parte_Id,
         Opciones = {}
@@ -44370,6 +44415,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Parte = Modelo.Partes?.[Parte_Id];
         if (!Parte) return false;
+        if (Opciones.Registrar_Avance === false) {
+          const Cambio = Planes_Computar_Parte_Realizada_Como_Inicial(
+            Parte,
+            Modelo
+          );
+          if (Cambio && !Opciones.Solo_Modelo) {
+            Planes_Recalcular_Parte_Y_Meta(
+              Parte,
+              Modelo,
+              Opciones.Snapshot || null,
+              Opciones.Toast || ""
+            );
+          }
+          return Cambio;
+        }
         const Cantidad = Planes_Cantidad_Auto_Realizada_Parte(
           Parte,
           "Parte_Meta",
@@ -45824,9 +45884,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Progreso,
           Target
         );
+        const Partes_Cant =
+          Planes_Partes_De_Subobjetivo(Sub.Id).length;
+        const Partes_Txt = Partes_Cant > 0
+          ? ` \u00B7 ${Partes_Cant} ${t("planes.partes").toLowerCase()}`
+          : "";
         const Progreso_Txt = `${Planes_Formatear_Numero(Progreso)}` +
           `/${Planes_Formatear_Numero(Target)} ${Unidad}`;
-        return `${Porcentaje} \u00B7 ${Progreso_Txt}` +
+        return `${Porcentaje}${Partes_Txt} \u00B7 ${Progreso_Txt}` +
           Aporte_Txt_Limpio;
       }
 
@@ -45842,13 +45907,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Emoji_Estado(Estado) {
-        if (Estado === "Cumplido") return "\u2705";
-        if (Estado === "Saldado") return "\u2705";
+        if (Estado === "Cumplido") return "\ud83d\udfe2";
+        if (Estado === "Saldado") return "\ud83d\udfe2";
         if (Estado === "Vencido") return "\u23f0";
         if (Estado === "Cancelado") return "\u2716\ufe0f";
         if (Estado === "Archivado") return "\ud83d\udce6";
         if (Estado === "Warning") return "\u26a0\ufe0f";
-        return "\ud83d\udfe2";
+        return "\ud83d\udfe0";
       }
 
       function Planes_Formatear_Fecha_Larga(Valor) {
@@ -52031,6 +52096,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Avance.Fuente === "Manual" && !Avance.Subobjetivo_Id;
       }
 
+      function Planes_Avance_Registro_Editable_En_Objetivo(
+        Avance,
+        Objetivo,
+        Modelo = null
+      ) {
+        if (!Planes_Avance_Registro_Editable(Avance)) return false;
+        if (!Objetivo) return false;
+        if (Avance.Objetivo_Id === Objetivo.Id) return true;
+        if (Avance.Fuente !== "Subobjetivo") return false;
+        return Boolean(
+          Planes_Subobjetivo_Local_Para_Registro(
+            Avance,
+            Objetivo,
+            Modelo || Asegurar_Modelo_Planes()
+          )
+        );
+      }
+
       function Planes_Manual_Registrado_Objetivo(Objetivo_Id) {
         const Modelo = Asegurar_Modelo_Planes();
         return Object.values(Modelo.Avances || {})
@@ -52133,8 +52216,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Avance_Id: Avance.Id,
               Registro_Id: Avance.Id,
               Tipo: "Avance",
-              Editable: Avance.Objetivo_Id === Objetivo.Id &&
-                Planes_Avance_Registro_Editable(Avance),
+              Editable: Planes_Avance_Registro_Editable_En_Objetivo(
+                Avance,
+                Objetivo,
+                Modelo
+              ),
               Fecha_Hora: Avance.Fecha_Hora || "",
               Fecha: Planes_Formatear_Fecha_Hora_Registro(
                 Avance.Fecha_Hora,
@@ -52309,12 +52395,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
         if (!Objetivo) return;
+        Planes_Registro_Objetivo_Id = Objetivo.Id;
         Render_Modal_Planes_Registro(Objetivo);
         document.getElementById("Planes_Registro_Overlay")
           ?.classList.add("Activo");
       }
 
       function Cerrar_Modal_Planes_Registro() {
+        Planes_Registro_Objetivo_Id = null;
         document.getElementById("Planes_Registro_Overlay")
           ?.classList.remove("Activo");
       }
@@ -52328,7 +52416,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Objetivo) {
           Planes_Recalcular_Desde(Objetivo);
-          Render_Modal_Planes_Registro(Objetivo);
+          const Objetivo_Registro = Modelo.Objetivos[
+            Planes_Registro_Objetivo_Id
+          ];
+          Render_Modal_Planes_Registro(Objetivo_Registro || Objetivo);
         }
       }
 
@@ -53403,7 +53494,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             data-plan-sub-accion-inline="partes"
             title="${Escape_Html(t("planes.administrar_partes"))}">
             ${Escape_Html(t("planes.partes"))}
-            ${Partes_Cant ? `(${Partes_Cant})` : ""}
           </button>
           <span class="Planes_Subobjetivo_Estado Con_Fallback_Emoji"
             title="${Escape_Html(Estado_Label)}"
@@ -53708,8 +53798,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Abrir_Modal_Planes_Parte(Parte.Id);
         }
         if (Tipo === "realizar") {
+          const Registrar_Avance = await Mostrar_Dialogo(
+            t("planes.parte_realizar_registrar_avance_confirm"),
+            [
+              {
+                Etiqueta: t("planes.parte_registrar_avance_si"),
+                Valor: true,
+                Tipo: "Primario"
+              },
+              {
+                Etiqueta: t("planes.parte_registrar_avance_no"),
+                Valor: false,
+                Tipo: "Secundario"
+              },
+              {
+                Etiqueta: t("cancelar"),
+                Valor: null,
+                Tipo: "Cancelar"
+              }
+            ]
+          );
+          if (Registrar_Avance === null) return;
           const Snap = Capturar_Snapshot_Undo();
           Planes_Marcar_Parte_Realizada(Parte.Id, {
+            Registrar_Avance,
             Snapshot: Snap,
             Toast: t("planes.parte_actualizada")
           });
@@ -54069,26 +54181,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Solo_Modelo: true
           }
         );
-        if (Estado_Form === "Realizada") {
-          const Cantidad = Planes_Cantidad_Auto_Realizada_Parte(
-            Parte,
-            "Parte_Meta",
-            Parte.Id,
-            Modelo
+        const Estado_Antes = Comparables_Antes?.Estado || "Pendiente";
+        if (
+          Estado_Form === "Realizada" &&
+          (Es_Nueva || Estado_Antes !== "Realizada")
+        ) {
+          const Registrar_Avance = await Mostrar_Dialogo(
+            t("planes.parte_realizar_registrar_avance_confirm"),
+            [
+              {
+                Etiqueta: t("planes.parte_registrar_avance_si"),
+                Valor: true,
+                Tipo: "Primario"
+              },
+              {
+                Etiqueta: t("planes.parte_registrar_avance_no"),
+                Valor: false,
+                Tipo: "Secundario"
+              },
+              {
+                Etiqueta: t("cancelar"),
+                Valor: null,
+                Tipo: "Cancelar"
+              }
+            ]
           );
-          Planes_Upsert_Avance_Parte(
-            Parte,
-            Cantidad,
-            "Parte_Meta",
-            Parte.Id,
-            {
-              Automatico: true,
-              Nota: t("planes.parte_nota_realizada", {
-                parte: Parte.Nombre || ""
-              }),
-              Solo_Modelo: true
-            }
-          );
+          if (Registrar_Avance === null) return;
+          Planes_Marcar_Parte_Realizada(Parte.Id, {
+            Registrar_Avance,
+            Solo_Modelo: true
+          });
         }
         const Comparables_Despues =
           Planes_Datos_Comparables_Parte(Parte);
