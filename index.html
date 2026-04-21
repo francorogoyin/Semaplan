@@ -6284,6 +6284,22 @@
         opacity: 0.58;
       }
 
+      .Planes_Parte.Reordenable {
+        cursor: grab;
+      }
+
+      .Planes_Parte.Reordenable:active {
+        cursor: grabbing;
+      }
+
+      .Planes_Parte.Drop_Antes {
+        border-top: 2px solid var(--Acento);
+      }
+
+      .Planes_Parte.Drop_Despues {
+        border-bottom: 2px solid var(--Acento);
+      }
+
       .Planes_Parte_Emoji {
         display: inline-flex;
         width: 24px;
@@ -44258,6 +44274,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Modelo = null
       ) {
         if (!Parte) return "Pendiente";
+        if (Parte.Estado === "Realizada") return "Realizada";
         const Total = Planes_Progreso_Total_Parte(Parte, Modelo);
         const Aporte = Number(Parte.Aporte_Total) || 0;
         if (Aporte > 0 && Total >= Aporte) return "Realizada";
@@ -44278,7 +44295,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Parte.Progreso_Inicial = Inicial;
         Parte.Progreso_Avances = Avances;
         Parte.Progreso_Total = Inicial + Avances;
-        Parte.Estado = Planes_Estado_Calculado_Parte(Parte, Modelo);
+        Parte.Estado = Parte.Estado === "Realizada"
+          ? "Realizada"
+          : Planes_Estado_Calculado_Parte(Parte, Modelo);
       }
 
       function Planes_Maximo_Registrable_Parte(
@@ -44480,6 +44499,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Parte = Modelo.Partes?.[Parte_Id];
         if (!Parte) return false;
+        Parte.Estado = "Realizada";
         if (Opciones.Registrar_Avance === false) {
           const Cambio = Planes_Computar_Parte_Realizada_Como_Inicial(
             Parte,
@@ -44523,6 +44543,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Parte = Modelo.Partes?.[Parte_Id];
         if (!Parte) return false;
+        Parte.Estado = "Pendiente";
         return Planes_Upsert_Avance_Parte(
           Parte,
           0,
@@ -53919,6 +53940,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      function Planes_Reordenar_Parte(
+        Parte_Origen_Id,
+        Parte_Destino_Id,
+        Insertar_Despues = false
+      ) {
+        if (!Parte_Origen_Id || !Parte_Destino_Id) return false;
+        if (Parte_Origen_Id === Parte_Destino_Id) return false;
+        const Modelo = Asegurar_Modelo_Planes();
+        const Origen = Modelo.Partes?.[Parte_Origen_Id];
+        const Destino = Modelo.Partes?.[Parte_Destino_Id];
+        if (!Origen || !Destino) return false;
+        if (Origen.Subobjetivo_Id !== Destino.Subobjetivo_Id) {
+          return false;
+        }
+        const Partes = Planes_Partes_De_Subobjetivo(
+          Origen.Subobjetivo_Id,
+          Modelo
+        );
+        const Ids = Partes.map((Parte) => Parte.Id);
+        const Index_Origen = Ids.indexOf(Parte_Origen_Id);
+        const Index_Destino = Ids.indexOf(Parte_Destino_Id);
+        if (Index_Origen < 0 || Index_Destino < 0) return false;
+        const [Movida] = Ids.splice(Index_Origen, 1);
+        let Index_Final = Ids.indexOf(Parte_Destino_Id);
+        if (Insertar_Despues) Index_Final += 1;
+        Ids.splice(Index_Final, 0, Movida);
+        Ids.forEach((Id, Orden) => {
+          if (!Modelo.Partes[Id]) return;
+          Modelo.Partes[Id].Orden = Orden;
+          Modelo.Partes[Id].Actualizado_En = new Date().toISOString();
+        });
+        return true;
+      }
+
       function Planes_Abrir_Menu_Parte(Parte_Id, Ancla) {
         const Modelo = Asegurar_Modelo_Planes();
         const Parte = Modelo.Partes?.[Parte_Id];
@@ -53974,7 +54029,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : 0;
         Item.className = "Planes_Parte" +
           (Parte.Eliminado_Local ? " Eliminada" : "");
+        Item.classList.add("Reordenable");
         Item.dataset.parteId = Parte.Id;
+        Item.draggable = true;
         Item.innerHTML = `
           <span class="Planes_Parte_Emoji Con_Fallback_Emoji">
             ${Escape_Html(Parte.Emoji || "\u2022")}
@@ -54000,6 +54057,56 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             </button>
           </span>
         `;
+        Item.addEventListener("dragstart", (Ev) => {
+          if (Ev.target.closest("[data-parte-menu]")) {
+            Ev.preventDefault();
+            return;
+          }
+          Ev.dataTransfer.setData("text/plain", Parte.Id);
+          Ev.dataTransfer.effectAllowed = "move";
+        });
+        Item.addEventListener("dragover", (Ev) => {
+          Ev.preventDefault();
+          Ev.dataTransfer.dropEffect = "move";
+          const Rect = Item.getBoundingClientRect();
+          const Insertar_Despues =
+            Ev.clientY > Rect.top + Rect.height / 2;
+          Item.classList.toggle("Drop_Antes", !Insertar_Despues);
+          Item.classList.toggle("Drop_Despues", Insertar_Despues);
+        });
+        Item.addEventListener("dragleave", () => {
+          Item.classList.remove("Drop_Antes", "Drop_Despues");
+        });
+        Item.addEventListener("drop", (Ev) => {
+          Ev.preventDefault();
+          Item.classList.remove("Drop_Antes", "Drop_Despues");
+          const Origen_Id = Ev.dataTransfer.getData("text/plain");
+          const Rect = Item.getBoundingClientRect();
+          const Insertar_Despues =
+            Ev.clientY > Rect.top + Rect.height / 2;
+          const Snap = Capturar_Snapshot_Undo();
+          if (!Planes_Reordenar_Parte(
+            Origen_Id,
+            Parte.Id,
+            Insertar_Despues
+          )) {
+            return;
+          }
+          const Sub = Asegurar_Modelo_Planes()
+            .Subobjetivos[Parte.Subobjetivo_Id];
+          const Objetivo = Asegurar_Modelo_Planes()
+            .Objetivos[Sub?.Objetivo_Id];
+          Render_Modal_Planes_Partes();
+          if (Objetivo) {
+            Planes_Recalcular_Desde(
+              Objetivo,
+              Snap,
+              t("planes.parte_actualizada")
+            );
+          } else {
+            Guardar_Estado();
+          }
+        });
         Item.addEventListener("click", async (Ev) => {
           const Menu_Btn = Ev.target.closest("[data-parte-menu]");
           if (Menu_Btn) {
@@ -54201,6 +54308,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }));
           return;
         }
+        const Estado_Form =
+          document.getElementById("Planes_Parte_Estado")?.value ||
+          "Pendiente";
         const Datos = {
           Objetivo_Id: Sub.Objetivo_Id,
           Subobjetivo_Id: Sub.Id,
@@ -54212,11 +54322,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Aporte_Total: Aporte_Normalizado,
           Unidad,
           Unidad_Custom,
-          Progreso_Inicial: Inicial_Normalizado
+          Progreso_Inicial: Inicial_Normalizado,
+          Estado: Estado_Form === "Realizada"
+            ? "Realizada"
+            : "Pendiente"
         };
-        const Estado_Form =
-          document.getElementById("Planes_Parte_Estado")?.value ||
-          "Pendiente";
         const Comparables_Antes = Parte
           ? Planes_Datos_Comparables_Parte(Parte)
           : null;
@@ -54260,37 +54370,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Solo_Modelo: true
           }
         );
-        const Estado_Antes = Comparables_Antes?.Estado || "Pendiente";
-        if (
-          Estado_Form === "Realizada" &&
-          (Es_Nueva || Estado_Antes !== "Realizada")
-        ) {
-          const Registrar_Avance = await Mostrar_Dialogo(
-            t("planes.parte_realizar_registrar_avance_confirm"),
-            [
-              {
-                Etiqueta: t("planes.parte_registrar_avance_si"),
-                Valor: true,
-                Tipo: "Primario"
-              },
-              {
-                Etiqueta: t("planes.parte_registrar_avance_no"),
-                Valor: false,
-                Tipo: "Secundario"
-              },
-              {
-                Etiqueta: t("cancelar"),
-                Valor: null,
-                Tipo: "Cancelar"
-              }
-            ]
-          );
-          if (Registrar_Avance === null) return;
-          Planes_Marcar_Parte_Realizada(Parte.Id, {
-            Registrar_Avance,
-            Solo_Modelo: true
-          });
-        }
         const Comparables_Despues =
           Planes_Datos_Comparables_Parte(Parte);
         if (
