@@ -555,16 +555,33 @@ async ({ page }) => {
     borderTop: "0px"
   });
   await expect(
-    Parte_Item.locator('[data-parte-accion="editar"]')
-  ).toBeHidden();
+    page.locator(".Planes_Parte_Menu_Flotante")
+  ).toHaveCount(0);
   await Parte_Item.locator("[data-parte-menu]").click();
   await expect(
-    Parte_Item.locator('[data-parte-accion="editar"]')
+    page.locator(
+      '.Planes_Parte_Menu_Flotante [data-parte-accion="editar"]'
+    )
   ).toBeVisible();
+  const Menu_Flotante = await page.locator(
+    ".Planes_Parte_Menu_Flotante"
+  ).evaluate((El) => {
+    const Estilos = getComputedStyle(El);
+    return {
+      parent: El.parentElement?.tagName,
+      position: Estilos.position,
+      zIndex: Number(Estilos.zIndex)
+    };
+  });
+  expect(Menu_Flotante).toEqual({
+    parent: "BODY",
+    position: "fixed",
+    zIndex: 10030
+  });
   await page.mouse.click(20, 20);
   await expect(
-    Parte_Item.locator('[data-parte-accion="editar"]')
-  ).toBeHidden();
+    page.locator(".Planes_Parte_Menu_Flotante")
+  ).toHaveCount(0);
 
   expect(errores).toEqual([]);
   expect(resultado.parcial).toEqual({ parte: 5, sub: 5 });

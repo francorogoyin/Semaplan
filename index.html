@@ -6239,6 +6239,10 @@
         padding: 8px 9px;
       }
 
+      .Planes_Parte_Menu_Flotante {
+        min-width: 190px;
+      }
+
       .Planes_Objetivo_Modal {
         max-width: 720px;
       }
@@ -53128,6 +53132,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Menu.querySelector("[data-parte-menu]")
               ?.setAttribute("aria-expanded", "false");
           });
+        document.querySelectorAll("[data-parte-menu]")
+          .forEach((Btn) => {
+            Btn.setAttribute("aria-expanded", "false");
+          });
+        document.querySelectorAll(".Planes_Parte_Menu_Flotante")
+          .forEach((Menu) => Menu.remove());
       }
 
       function Actualizar_Campo_Unidad_Custom_Parte() {
@@ -53174,6 +53184,101 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         )}`;
       }
 
+      function Render_Planes_Parte_Acciones(Parte) {
+        const Estado = Planes_Estado_Calculado_Parte(Parte);
+        return `
+          <button class="Planes_Btn" type="button"
+            data-parte-accion="editar">${Escape_Html(t("editar"))}</button>
+          <button class="Planes_Btn" type="button"
+            data-parte-accion="realizar"
+            ${Estado === "Realizada" ? "disabled" : ""}>
+            ${Escape_Html(t("planes.marcar_realizado"))}
+          </button>
+          <button class="Planes_Btn" type="button"
+            data-parte-accion="desmarcar"
+            ${Estado !== "Realizada" ? "disabled" : ""}>
+            ${Escape_Html(t("planes.parte_desmarcar"))}
+          </button>
+          <button class="Planes_Btn Peligro" type="button"
+            data-parte-accion="eliminar">
+            ${Escape_Html(t("planes.eliminar_local"))}
+          </button>
+        `;
+      }
+
+      async function Planes_Ejecutar_Accion_Parte(Parte_Id, Tipo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Parte = Modelo.Partes?.[Parte_Id];
+        if (!Parte) return;
+        if (Tipo === "editar") {
+          Abrir_Modal_Planes_Parte(Parte.Id);
+        }
+        if (Tipo === "realizar") {
+          const Snap = Capturar_Snapshot_Undo();
+          Planes_Marcar_Parte_Realizada(Parte.Id, {
+            Snapshot: Snap,
+            Toast: t("planes.parte_actualizada")
+          });
+          Render_Modal_Planes_Partes();
+        }
+        if (Tipo === "desmarcar") {
+          const Snap = Capturar_Snapshot_Undo();
+          Planes_Desmarcar_Parte_Realizada(Parte.Id, {
+            Snapshot: Snap,
+            Toast: t("planes.parte_actualizada")
+          });
+          Render_Modal_Planes_Partes();
+        }
+        if (Tipo === "eliminar") {
+          await Planes_Eliminar_Parte(Parte.Id);
+        }
+      }
+
+      function Planes_Abrir_Menu_Parte(Parte_Id, Ancla) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Parte = Modelo.Partes?.[Parte_Id];
+        if (!Parte || !Ancla) return;
+        Planes_Cerrar_Menus_Parte();
+        const Menu = document.createElement("div");
+        Menu.className =
+          "Planes_Context_Menu Planes_Parte_Menu_Flotante";
+        Menu.style.left = "0";
+        Menu.style.top = "0";
+        Menu.style.visibility = "hidden";
+        Menu.innerHTML = Render_Planes_Parte_Acciones(Parte);
+        Menu.addEventListener("contextmenu", (Ev) => {
+          Ev.preventDefault();
+        });
+        Menu.addEventListener("click", async (Ev) => {
+          const Accion = Ev.target.closest("[data-parte-accion]");
+          if (!Accion || Accion.disabled) return;
+          const Tipo = Accion.dataset.parteAccion;
+          Planes_Cerrar_Menus_Parte();
+          await Planes_Ejecutar_Accion_Parte(Parte_Id, Tipo);
+        });
+        document.body.appendChild(Menu);
+        const Rect_Ancla = Ancla.getBoundingClientRect();
+        const Rect_Menu = Menu.getBoundingClientRect();
+        const Margen = 8;
+        const Espacio_Debajo =
+          window.innerHeight - Rect_Ancla.bottom - Margen;
+        const Y_Base = Espacio_Debajo >= Rect_Menu.height
+          ? Rect_Ancla.bottom + 6
+          : Rect_Ancla.top - Rect_Menu.height - 6;
+        const X = Math.min(
+          Math.max(Margen, Rect_Ancla.right - Rect_Menu.width),
+          window.innerWidth - Rect_Menu.width - Margen
+        );
+        const Y = Math.min(
+          Math.max(Margen, Y_Base),
+          window.innerHeight - Rect_Menu.height - Margen
+        );
+        Menu.style.left = `${Math.max(Margen, X)}px`;
+        Menu.style.top = `${Math.max(Margen, Y)}px`;
+        Menu.style.visibility = "";
+        Ancla.setAttribute("aria-expanded", "true");
+      }
+
       function Render_Planes_Parte_Item(Parte) {
         const Item = document.createElement("div");
         const Estado = Planes_Estado_Calculado_Parte(Parte);
@@ -53208,36 +53313,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               title="${Escape_Html(t("planes.parte_acciones"))}">
               ...
             </button>
-            <span class="Planes_Parte_Menu_Popup">
-              <button class="Planes_Btn" type="button"
-                data-parte-accion="editar">${t("editar")}</button>
-              <button class="Planes_Btn" type="button"
-                data-parte-accion="realizar"
-                ${Estado === "Realizada" ? "disabled" : ""}>
-                ${t("planes.marcar_realizado")}
-              </button>
-              <button class="Planes_Btn" type="button"
-                data-parte-accion="desmarcar"
-                ${Estado !== "Realizada" ? "disabled" : ""}>
-                ${t("planes.parte_desmarcar")}
-              </button>
-              <button class="Planes_Btn Peligro" type="button"
-                data-parte-accion="eliminar">
-                ${t("planes.eliminar_local")}
-              </button>
-            </span>
           </span>
         `;
         Item.addEventListener("click", async (Ev) => {
           const Menu_Btn = Ev.target.closest("[data-parte-menu]");
           if (Menu_Btn) {
             Ev.stopPropagation();
-            const Menu = Menu_Btn.closest(".Planes_Parte_Acciones");
-            const Abrir = !Menu?.classList.contains("Activo");
-            Planes_Cerrar_Menus_Parte(Menu);
-            if (Menu && Abrir) {
-              Menu.classList.add("Activo");
-              Menu_Btn.setAttribute("aria-expanded", "true");
+            const Abrir =
+              Menu_Btn.getAttribute("aria-expanded") !== "true";
+            if (Abrir) {
+              Planes_Abrir_Menu_Parte(Parte.Id, Menu_Btn);
+            } else {
+              Planes_Cerrar_Menus_Parte();
             }
             return;
           }
@@ -53245,28 +53332,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Accion) return;
           Planes_Cerrar_Menus_Parte();
           const Tipo = Accion.dataset.parteAccion;
-          if (Tipo === "editar") {
-            Abrir_Modal_Planes_Parte(Parte.Id);
-          }
-          if (Tipo === "realizar") {
-            const Snap = Capturar_Snapshot_Undo();
-            Planes_Marcar_Parte_Realizada(Parte.Id, {
-              Snapshot: Snap,
-              Toast: t("planes.parte_actualizada")
-            });
-            Render_Modal_Planes_Partes();
-          }
-          if (Tipo === "desmarcar") {
-            const Snap = Capturar_Snapshot_Undo();
-            Planes_Desmarcar_Parte_Realizada(Parte.Id, {
-              Snapshot: Snap,
-              Toast: t("planes.parte_actualizada")
-            });
-            Render_Modal_Planes_Partes();
-          }
-          if (Tipo === "eliminar") {
-            await Planes_Eliminar_Parte(Parte.Id);
-          }
+          await Planes_Ejecutar_Accion_Parte(Parte.Id, Tipo);
         });
         return Item;
       }
@@ -79095,7 +79161,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         });
       document.addEventListener("click", (Ev) => {
-        if (Ev.target.closest(".Planes_Parte_Acciones")) return;
+        if (
+          Ev.target.closest(".Planes_Parte_Acciones") ||
+          Ev.target.closest(".Planes_Parte_Menu_Flotante")
+        ) {
+          return;
+        }
         Planes_Cerrar_Menus_Parte();
       });
       document.getElementById("Planes_Parte_Cerrar")
