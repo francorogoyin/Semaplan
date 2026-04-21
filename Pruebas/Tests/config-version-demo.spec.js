@@ -150,10 +150,10 @@ test("muestra la version actual publicada en configuracion", async ({
     window.Abrir_Config();
   });
 
-  await expect(page.locator("#Cfg_Version_Programa")).toHaveValue("1.0.0");
+  await expect(page.locator("#Cfg_Version_Programa")).toHaveValue("1.1.0");
   await expect(page.locator("#Cfg_Version_Abrir_Btn")).toBeDisabled();
   await expect(page.locator("#Cfg_Version_Detalle"))
-    .toContainText("1.0.0");
+    .toContainText("1.1.0");
   await expect(page.locator("#Cfg_Version_Detalle"))
     .toContainText("Publicada el");
   await expect(page.locator("#Cfg_Version_Detalle"))

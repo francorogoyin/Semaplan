@@ -41,21 +41,29 @@ async ({ page }) => {
             Id: "1.1.0",
             Archivo: "Semaplan_Version_1_1_0.html",
             Estado: "stable",
-            Fecha_Publicacion: "2026-04-16",
-            Esquema_Estado_Min: 1,
-            Esquema_Estado_Max: 1
+            Fecha_Publicacion: "2026-04-21",
+            Esquema_Estado_Min: 2,
+            Esquema_Estado_Max: 2
+          },
+          {
+            Id: "1.1.1",
+            Archivo: "Semaplan_Version_1_1_1.html",
+            Estado: "stable",
+            Fecha_Publicacion: "2026-04-21",
+            Esquema_Estado_Min: 2,
+            Esquema_Estado_Max: 2
           }
         ])
       });
     }
   );
   await page.route(
-    "**/Semaplan_Version_1_1_0.html",
+    "**/Semaplan_Version_1_1_1.html",
     async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "text/html",
-        body: "<html><body>release 1.1.0</body></html>"
+        body: "<html><body>release 1.1.1</body></html>"
       });
     }
   );
@@ -110,7 +118,7 @@ async ({ page }) => {
         Modo_Editor_Abierto: false,
         Inicio_Semana: "2026-04-13",
         Duracion_Defecto: 1,
-        Esquema_Estado_Version: 1,
+        Esquema_Estado_Version: 2,
         Config_Extra: {},
         Tipos_Slot: [],
         Tipos_Slot_Inicializados: false,
@@ -144,14 +152,14 @@ async ({ page }) => {
     return Select && Select.options.length >= 2;
   });
 
-  await page.selectOption("#Cfg_Version_Programa", "1.1.0");
+  await page.selectOption("#Cfg_Version_Programa", "1.1.1");
   await expect(page.locator("#Cfg_Version_Abrir_Btn")).toBeEnabled();
 
   await Promise.all([
-    page.waitForURL("**/Semaplan_Version_1_1_0.html"),
+    page.waitForURL("**/Semaplan_Version_1_1_1.html"),
     page.click("#Cfg_Version_Abrir_Btn")
   ]);
 
   await expect(page.locator("body"))
-    .toContainText("release 1.1.0");
+    .toContainText("release 1.1.1");
 });
