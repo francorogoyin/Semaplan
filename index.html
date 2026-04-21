@@ -6064,6 +6064,98 @@
         min-height: 52px;
       }
 
+      .Planes_Avance_Select_Oculto {
+        display: none !important;
+      }
+
+      .Planes_Avance_Custom {
+        position: relative;
+        width: 100%;
+      }
+
+      .Planes_Avance_Boton {
+        width: 100%;
+        min-height: 52px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--Texto);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 12px;
+        text-align: left;
+      }
+
+      .Planes_Avance_Boton::after {
+        content: "▾";
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        flex: 0 0 auto;
+      }
+
+      .Planes_Avance_Custom.Abierto .Planes_Avance_Boton::after {
+        content: "▴";
+      }
+
+      .Planes_Avance_Menu {
+        display: none;
+        position: absolute;
+        z-index: 12020;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        max-height: min(420px, 56vh);
+        overflow: auto;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 12px 28px rgba(35, 28, 20, 0.18);
+        padding: 6px;
+      }
+
+      .Planes_Avance_Custom.Abierto .Planes_Avance_Menu {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .Planes_Avance_Grupo_Titulo {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 800;
+        padding: 8px 8px 3px;
+        text-transform: uppercase;
+      }
+
+      .Planes_Avance_Item {
+        width: 100%;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: var(--Texto);
+        cursor: pointer;
+        font: inherit;
+        padding: 8px 10px;
+        text-align: left;
+      }
+
+      .Planes_Avance_Item:hover,
+      .Planes_Avance_Item.Activo {
+        background: var(--Acento_Suave);
+        color: var(--Acento);
+      }
+
+      .Planes_Avance_Item.Subobjetivo {
+        padding-left: 22px;
+      }
+
+      .Planes_Avance_Item.Parte {
+        padding-left: 38px;
+      }
+
       .Planes_Avance_Fila {
         display: grid;
         grid-template-columns:
@@ -31632,6 +31724,8 @@
       let Planes_Partes_Orden_Campo = "Fecha_Objetivo";
       let Planes_Partes_Orden_Direccion = "Asc";
       let Planes_Avance_Alcance = { Tipo: "Global", Id: "" };
+      let Planes_Avance_Subobjetivos_Expandidos = new Set();
+      let Planes_Avance_Click_Global = false;
       let Planes_Vinculo_Subobjetivos_Expandidos = new Set();
       let Planes_Vinculo_Click_Global = false;
       let Planes_Multi_Seleccion = new Set();
@@ -49763,6 +49857,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Item) return true;
         const Target = Planes_Target_Item_Avance(Item);
         const Progreso = Planes_Progreso_Item_Avance(Item);
+        if (Item.Tipo === "Parte") {
+          const Estado_Parte = Planes_Estado_Calculado_Parte(
+            Item.Parte
+          );
+          if (Estado_Parte === "Realizada") return true;
+          return Target > 0 && Progreso >= Target;
+        }
         if (Item.Tipo === "Subobjetivo") {
           const Estado_Sub = Planes_Estado_Normalizado_Subobjetivo(
             Item.Sub || {}
@@ -49824,8 +49925,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
             return Number(A.Orden) - Number(B.Orden);
           });
-        const Items = [];
+        const Objetivos_Unicos = [];
+        const Familias = new Set();
         Objetivos_Ordenados.forEach((Objetivo) => {
+          const Clave = Planes_Objetivo_Raiz_Id(Objetivo.Id) ||
+            Objetivo.Id;
+          if (Familias.has(Clave)) return;
+          Familias.add(Clave);
+          Objetivos_Unicos.push(Objetivo);
+        });
+        const Items = [];
+        Objetivos_Unicos.forEach((Objetivo) => {
           const Item_Objetivo = {
             Tipo: "Objetivo",
             Id: Objetivo.Id,
@@ -49846,12 +49956,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               )
             )
             .forEach((Sub) => {
-              Items.push({
+              const Item_Sub = {
                 Tipo: "Subobjetivo",
                 Id: Sub.Id,
                 Objetivo,
                 Sub
-              });
+              };
+              Items.push(Item_Sub);
+              Planes_Partes_De_Subobjetivo(Sub.Id, Modelo)
+                .filter((Parte) =>
+                  Planes_Item_Puede_Recibir_Avance(
+                    {
+                      Tipo: "Parte",
+                      Id: Parte.Id,
+                      Objetivo,
+                      Sub,
+                      Parte
+                    },
+                    Alcance_Normalizado
+                  )
+                )
+                .forEach((Parte) => {
+                  Items.push({
+                    Tipo: "Parte",
+                    Id: Parte.Id,
+                    Objetivo,
+                    Sub,
+                    Parte
+                  });
+                });
             });
         });
         return Items;
@@ -49877,11 +50010,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Objetivo) return null;
           return Validar({ Tipo, Id, Objetivo, Sub });
         }
+        if (Tipo === "Parte" && Modelo.Partes[Id]) {
+          const Parte = Modelo.Partes[Id];
+          const Sub = Modelo.Subobjetivos[Parte.Subobjetivo_Id];
+          const Objetivo = Modelo.Objetivos[Parte.Objetivo_Id];
+          if (!Sub || !Objetivo) return null;
+          return Validar({ Tipo, Id, Objetivo, Sub, Parte });
+        }
         return null;
       }
 
       function Planes_Unidad_Item_Avance(Item) {
         if (!Item) return "";
+        if (Item.Tipo === "Parte") {
+          return Planes_Unidad_Label_Parte(Item.Parte);
+        }
         if (Item.Tipo === "Subobjetivo") {
           return Planes_Unidad_Label_Subobjetivo(Item.Sub);
         }
@@ -49892,6 +50035,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Label_Item_Avance(Item) {
         if (!Item) return "";
         const Obj = Item.Objetivo;
+        if (Item.Tipo === "Parte") {
+          return (
+            `${Obj.Emoji || ""} ${Obj.Nombre || ""} · ` +
+            `${Item.Sub?.Emoji || "\u2022"} ${Item.Sub?.Texto || ""} · ` +
+            `${Item.Parte?.Emoji || "\u2022"} ${Item.Parte?.Nombre || ""}`
+          ).trim();
+        }
         if (Item.Tipo === "Subobjetivo") {
           return (
             `${Obj.Emoji || ""} ${Obj.Nombre || ""} · ` +
@@ -51722,8 +51872,108 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Select.value = Valores.has(Valor_Default)
           ? Valor_Default
           : Planes_Valor_Item_Avance(Items[0]);
+        Planes_Render_Select_Avance_Custom(Select, Items);
         Actualizar_Unidad_Modal_Planes_Avance();
         return true;
+      }
+
+      function Planes_Asegurar_Select_Avance_Custom(Select) {
+        let Wrap = Select.nextElementSibling;
+        if (!Wrap || !Wrap.classList.contains("Planes_Avance_Custom")) {
+          Wrap = document.createElement("div");
+          Wrap.className = "Planes_Avance_Custom";
+          Wrap.innerHTML = `
+            <button class="Planes_Avance_Boton"
+              type="button"></button>
+            <div class="Planes_Avance_Menu"></div>
+          `;
+          Select.insertAdjacentElement("afterend", Wrap);
+        }
+        Select.classList.add("Planes_Avance_Select_Oculto");
+        return Wrap;
+      }
+
+      function Planes_Render_Select_Avance_Custom(Select, Items = null) {
+        if (!Select) return;
+        const Lista = Items || Planes_Items_Avance_Disponibles(
+          Planes_Avance_Alcance
+        );
+        const Wrap = Planes_Asegurar_Select_Avance_Custom(Select);
+        const Btn = Wrap.querySelector(".Planes_Avance_Boton");
+        const Menu = Wrap.querySelector(".Planes_Avance_Menu");
+        if (!Btn || !Menu) return;
+        const Valor_Actual = Select.value || "";
+        const Item_Actual = Lista.find((Item) =>
+          Planes_Valor_Item_Avance(Item) === Valor_Actual
+        ) || Planes_Item_Avance_Por_Valor(
+          Valor_Actual,
+          Planes_Avance_Alcance
+        );
+        Btn.textContent = Planes_Label_Item_Avance(Item_Actual) ||
+          t("planes.avance_item");
+        Menu.innerHTML = "";
+
+        const Agregar_Titulo = (Texto) => {
+          const Titulo = document.createElement("div");
+          Titulo.className = "Planes_Avance_Grupo_Titulo";
+          Titulo.textContent = Texto;
+          Menu.appendChild(Titulo);
+        };
+        const Agregar_Item = (Item, Clase = "") => {
+          const Valor = Planes_Valor_Item_Avance(Item);
+          const Boton = document.createElement("button");
+          Boton.type = "button";
+          Boton.className = "Planes_Avance_Item" +
+            (Clase ? ` ${Clase}` : "") +
+            (Valor === Valor_Actual ? " Activo" : "");
+          Boton.textContent = Planes_Label_Item_Avance(Item);
+          Boton.dataset.valor = Valor;
+          Menu.appendChild(Boton);
+          return Boton;
+        };
+
+        Agregar_Titulo(t("planes.objetivos"));
+        Lista.filter((Item) => Item.Tipo !== "Parte")
+          .forEach((Item) => {
+            Agregar_Item(
+              Item,
+              Item.Tipo === "Subobjetivo" ? "Subobjetivo" : ""
+            );
+          });
+
+        const Subs_Con_Partes = Lista
+          .filter((Item) => Item.Tipo === "Subobjetivo")
+          .map((Item) => ({
+            Sub_Item: Item,
+            Partes: Lista.filter((Parte_Item) =>
+              Parte_Item.Tipo === "Parte" &&
+              Parte_Item.Sub?.Id === Item.Sub?.Id
+            )
+          }))
+          .filter((Grupo) => Grupo.Partes.length > 0);
+
+        if (Subs_Con_Partes.length) {
+          Agregar_Titulo(t("planes.partes"));
+          Subs_Con_Partes.forEach((Grupo) => {
+            const Sub_Id = Grupo.Sub_Item.Sub.Id;
+            const Expandido =
+              Planes_Avance_Subobjetivos_Expandidos.has(Sub_Id);
+            const Toggle = document.createElement("button");
+            Toggle.type = "button";
+            Toggle.className = "Planes_Avance_Item Subobjetivo";
+            Toggle.dataset.toggleSub = Sub_Id;
+            Toggle.textContent =
+              `${Expandido ? "−" : "+"} ` +
+              `${Grupo.Sub_Item.Sub.Emoji || "\u2022"} ` +
+              `${Grupo.Sub_Item.Sub.Texto || ""}`;
+            Menu.appendChild(Toggle);
+            if (Expandido) {
+              Grupo.Partes.forEach((Parte_Item) => {
+                Agregar_Item(Parte_Item, "Parte");
+              });
+            }
+          });
+        }
       }
 
       function Actualizar_Unidad_Modal_Planes_Avance() {
@@ -51735,6 +51985,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Avance_Alcance
         );
         Unidad.textContent = Planes_Unidad_Item_Avance(Item);
+        Planes_Render_Select_Avance_Custom(Select);
       }
 
       function Abrir_Modal_Planes_Avance(
@@ -51779,6 +52030,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Target_Item_Avance(Item) {
         if (!Item) return 0;
+        if (Item.Tipo === "Parte") {
+          return Number(Item.Parte?.Aporte_Total) || 0;
+        }
         if (Item.Tipo === "Subobjetivo") {
           return Number(Item.Sub?.Target_Total) || 0;
         }
@@ -51787,11 +52041,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Progreso_Item_Avance(Item) {
         if (!Item) return 0;
+        if (Item.Tipo === "Parte") {
+          return Planes_Progreso_Total_Parte(Item.Parte);
+        }
         if (Item.Tipo === "Subobjetivo") {
           const Avances = Planes_Total_Avances_Subobjetivo(
             Item.Sub?.Id
           );
-          return Avances;
+          return Math.max(
+            Avances,
+            Number(Item.Sub?.Progreso_Manual) || 0
+          );
         }
         if (Item.Objetivo) {
           Planes_Actualizar_Progreso(Item.Objetivo);
@@ -51809,6 +52069,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Aplicar_Finalizacion_Avance(Item, Fecha, Hora) {
         if (!Item) return;
         const Ahora = new Date().toISOString();
+        if (Item.Tipo === "Parte" && Item.Parte) {
+          Item.Parte.Estado = "Realizada";
+          Item.Parte.Actualizado_En = Ahora;
+          return;
+        }
         if (Item.Tipo === "Subobjetivo" && Item.Sub) {
           Item.Sub.Hecha = true;
           Item.Sub.Estado = "Cumplido";
@@ -51864,8 +52129,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return;
         }
         if (
-          Item.Tipo === "Subobjetivo" &&
-          (Number(Item.Sub.Target_Total) || 0) <= 0
+          ["Subobjetivo", "Parte"].includes(Item.Tipo) &&
+          Planes_Target_Item_Avance(Item) <= 0
         ) {
           Mostrar_Toast_Error(t("planes.avance_err_sub_metrica"));
           return;
@@ -51899,16 +52164,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Id,
           Objetivo_Id: Item.Objetivo.Id,
           Subobjetivo_Id:
-            Item.Tipo === "Subobjetivo" ? Item.Sub.Id : "",
+            ["Subobjetivo", "Parte"].includes(Item.Tipo)
+              ? Item.Sub.Id
+              : "",
+          Parte_Id: Item.Tipo === "Parte" ? Item.Parte.Id : "",
           Fuente:
-            Item.Tipo === "Subobjetivo" ? "Subobjetivo" : "Manual",
+            ["Subobjetivo", "Parte"].includes(Item.Tipo)
+              ? "Subobjetivo"
+              : "Manual",
           Cantidad,
           Unidad: Planes_Unidad_Item_Avance(Item),
           Fecha,
           Hora,
           Fecha_Hora: `${Fecha}T${Hora || "00:00"}`
         });
-        if (Item.Tipo === "Subobjetivo") {
+        if (Item.Tipo === "Parte") {
+          Planes_Recalcular_Progreso_Parte(Item.Parte, Modelo);
+          Planes_Recalcular_Progreso_Subobjetivo(Item.Sub, Modelo);
+          if (Finaliza) {
+            Planes_Aplicar_Finalizacion_Avance(Item, Fecha, Hora);
+          }
+        } else if (Item.Tipo === "Subobjetivo") {
           Planes_Recalcular_Progreso_Subobjetivo(Item.Sub, Modelo);
           if (Finaliza) {
             Planes_Aplicar_Finalizacion_Avance(Item, Fecha, Hora);
@@ -80710,6 +80986,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "change",
           Actualizar_Unidad_Modal_Planes_Avance
         );
+      {
+        const Select_Avance = document.getElementById(
+          "Planes_Avance_Item"
+        );
+        const Wrap_Avance = Select_Avance
+          ? Planes_Asegurar_Select_Avance_Custom(Select_Avance)
+          : null;
+        const Btn_Avance = Wrap_Avance?.querySelector(
+          ".Planes_Avance_Boton"
+        );
+        const Menu_Avance = Wrap_Avance?.querySelector(
+          ".Planes_Avance_Menu"
+        );
+        if (!Planes_Avance_Click_Global) {
+          Planes_Avance_Click_Global = true;
+          document.addEventListener("click", (Ev) => {
+            if (Ev.target.closest(".Planes_Avance_Custom")) return;
+            document.querySelectorAll(".Planes_Avance_Custom.Abierto")
+              .forEach((Item) => Item.classList.remove("Abierto"));
+          });
+        }
+        Btn_Avance?.addEventListener("click", (Ev) => {
+          Ev.stopPropagation();
+          Wrap_Avance.classList.toggle("Abierto");
+          Planes_Render_Select_Avance_Custom(Select_Avance);
+        });
+        Menu_Avance?.addEventListener("click", (Ev) => {
+          Ev.stopPropagation();
+          const Toggle = Ev.target.closest("[data-toggle-sub]");
+          if (Toggle) {
+            const Sub_Id = Toggle.dataset.toggleSub || "";
+            if (Planes_Avance_Subobjetivos_Expandidos.has(Sub_Id)) {
+              Planes_Avance_Subobjetivos_Expandidos.delete(Sub_Id);
+            } else {
+              Planes_Avance_Subobjetivos_Expandidos.add(Sub_Id);
+            }
+            Planes_Render_Select_Avance_Custom(Select_Avance);
+            return;
+          }
+          const Item = Ev.target.closest("[data-valor]");
+          if (!Item || !Select_Avance) return;
+          Select_Avance.value = Item.dataset.valor || "";
+          Select_Avance.dispatchEvent(new Event("change"));
+          Wrap_Avance?.classList.remove("Abierto");
+        });
+      }
       document.getElementById("Planes_Registro_Cerrar")
         ?.addEventListener("click", Cerrar_Modal_Planes_Registro);
       document.getElementById("Planes_Vencidos_Overlay")
