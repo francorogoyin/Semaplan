@@ -29889,6 +29889,7 @@
       let Planes_Vinculo_Subobjetivos_Expandidos = new Set();
       let Planes_Vinculo_Click_Global = false;
       let Planes_Multi_Seleccion = new Set();
+      let Planes_Periodo_Expansion_Render_Id = null;
       let Planes_Etiquetas_Originales = null;
       // Modal único de Plan: pestaña activa.
       // "Periodos" | "Semana" | "Cerrar" | "Historial"
@@ -44965,8 +44966,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Render_Planes_Contenido() {
         const Cuerpo = document.getElementById("Plan_Cuerpo");
-        const Periodo = Planes_Periodo_Activo();
         const Modelo = Asegurar_Modelo_Planes();
+        Planes_Limpiar_Expansion_Si_Cambio_Periodo(Modelo);
+        const Periodo = Planes_Periodo_Activo();
         if (!Cuerpo) return;
         Cuerpo.innerHTML = "";
         if (Planes_Anio_Todos_Activo()) {
@@ -46464,6 +46466,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Modelo.UI.Objetivos_Expandidos;
       }
 
+      function Planes_Limpiar_Expansion_Si_Cambio_Periodo(
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Periodo_Id = M.UI.Periodo_Activo_Id || "";
+        if (Planes_Periodo_Expansion_Render_Id === Periodo_Id) return;
+        M.UI.Objetivos_Expandidos = {};
+        Planes_Periodo_Expansion_Render_Id = Periodo_Id;
+      }
+
       function Render_Planes_Objetivo(Objetivo) {
         const Modelo = Asegurar_Modelo_Planes();
         Planes_Actualizar_Progreso(Objetivo);
@@ -46653,6 +46665,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Es_Biblioteca && Planes_Multi_Seleccion.size > 0) {
             Planes_Multi_Seleccion.clear();
           }
+          if (Es_Lista) return;
           Planes_Toggle_Expansion_Objetivo(Objetivo.Id);
         });
         return Card;

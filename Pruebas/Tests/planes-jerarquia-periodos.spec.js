@@ -1433,6 +1433,91 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Objetivos expandidos no se recuerdan al cambiar periodo",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Datos = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Anio_Todos = false;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 1;
+    Modelo.UI.Vista = "Tarjetas";
+    Modelo.UI.Objetivos_Expandidos = {};
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(
+      Trimestres[0].Id,
+      {
+        Nombre: "Memoria visual",
+        Emoji: "\uD83D\uDCD8",
+        Target_Total: 12,
+        Unidad: "Horas",
+        Progreso_Manual: 3
+      }
+    );
+    Planes_Crear_Objetivo_Silencioso(
+      Trimestres[1].Id,
+      {
+        Nombre: "Otro trimestre",
+        Emoji: "\uD83D\uDCD9",
+        Target_Total: 12,
+        Unidad: "Horas"
+      }
+    );
+    Modelo.UI.Periodo_Activo_Id = Trimestres[0].Id;
+    Render_Plan();
+    return { Objetivo_Id: Objetivo.Id };
+  });
+
+  const Card = page.locator(
+    `[data-plan-objetivo-id="${Datos.Objetivo_Id}"]`
+  );
+  await Card.click();
+  await expect(Card).toHaveClass(/Expandida/);
+
+  await page.locator("[data-plan-resumen-siguiente]").click();
+  await expect(page.locator(".Planes_Resumen_Titulo"))
+    .toHaveText("Trimestre 2");
+  await page.locator("[data-plan-resumen-anterior]").click();
+  await expect(page.locator(".Planes_Resumen_Titulo"))
+    .toHaveText("Trimestre 1");
+  await expect(Card).not.toHaveClass(/Expandida/);
+
+  await page.locator('[data-plan-vista="Biblioteca"]').click();
+  const Card_Biblioteca = page.locator(
+    `[data-plan-objetivo-id="${Datos.Objetivo_Id}"]`
+  );
+  await Card_Biblioteca.click();
+  await expect(Card_Biblioteca).toHaveClass(/Expandida/);
+  await page.locator("[data-plan-resumen-siguiente]").click();
+  await page.locator("[data-plan-resumen-anterior]").click();
+  await expect(Card_Biblioteca).not.toHaveClass(/Expandida/);
+
+  await page.locator('[data-plan-vista="Lista"]').click();
+  await page.locator(
+    `[data-plan-objetivo-id="${Datos.Objetivo_Id}"]`
+  ).click();
+  await page.locator('[data-plan-vista="Tarjetas"]').click();
+  await expect(Card).not.toHaveClass(/Expandida/);
+  expect(errores).toEqual([]);
+});
+
 test("Registro de planes permite editar y borrar avances",
 async ({ page }) => {
   const errores = [];
@@ -2506,22 +2591,23 @@ async ({ page }) => {
     expect(Resultado.Hijos[Indice].Regla).toBe("Pendiente");
   });
 
-  await page.evaluate(({ objetivoId, periodoId }) => {
+  await page.evaluate(({ periodoId }) => {
     const Modelo = Asegurar_Modelo_Planes();
     Modelo.UI.Vista = "Tarjetas";
-    Modelo.UI.Objetivos_Expandidos = { [objetivoId]: true };
+    Modelo.UI.Objetivos_Expandidos = {};
     Planes_Activar_Periodo_Desde_Coleccion(
       Modelo.Periodos[periodoId]
     );
     Render_Plan();
   }, {
-    objetivoId: Resultado.Hijos[0].Id,
     periodoId: Resultado.Hijos[0].Periodo_Id
   });
 
   const Card_T1 = page.locator(
     `[data-plan-objetivo-id="${Resultado.Hijos[0].Id}"]`
   );
+  await Card_T1.click();
+  await expect(Card_T1).toHaveClass(/Expandida/);
   await expect(Card_T1).toHaveClass(/Atrasado/);
   await expect(
     Card_T1.locator(".Planes_Progreso_Tabla tbody tr td").first()
