@@ -44459,6 +44459,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Ids;
       }
 
+      function Planes_Subobjetivo_Dueno_Partes(
+        Sub_Id,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Raiz_Id = Planes_Subobjetivo_Raiz_Id(Sub_Id, M);
+        return M.Subobjetivos?.[Raiz_Id] ||
+          M.Subobjetivos?.[Sub_Id] ||
+          null;
+      }
+
       function Planes_Avances_De_Subobjetivo(Sub_Id, Modelo = null) {
         const M = Modelo || Asegurar_Modelo_Planes();
         const Sub_Ids = Planes_Subobjetivos_Familia_Ids(Sub_Id, M);
@@ -44527,9 +44538,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Incluir_Eliminadas = false
       ) {
         const M = Modelo || Asegurar_Modelo_Planes();
+        const Familia_Ids = Planes_Subobjetivos_Familia_Ids(Sub_Id, M);
         return Object.values(M.Partes || {})
           .filter((Parte) =>
-            Parte.Subobjetivo_Id === Sub_Id &&
+            Familia_Ids.has(Parte.Subobjetivo_Id) &&
             (Incluir_Eliminadas || !Parte.Eliminado_Local)
           )
           .sort((A, B) => {
@@ -54672,6 +54684,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return {
           Emoji: Normalizar_Emoji(Parte.Emoji || "\u2022"),
           Nombre: (Parte.Nombre || "").toString().trim(),
+          Objetivo_Id: (Parte.Objetivo_Id || "").toString(),
+          Subobjetivo_Id: (Parte.Subobjetivo_Id || "").toString(),
           Aporte_Total: Number(Parte.Aporte_Total) || 0,
           Unidad: Planes_Normalizar_Unidad_Subobjetivo(Parte.Unidad),
           Unidad_Custom: (Parte.Unidad_Custom || "").toString().trim(),
@@ -55239,6 +55253,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Partes_Subobjetivo_Id;
         const Sub = Modelo.Subobjetivos[Sub_Id];
         if (!Sub) return;
+        const Sub_Dueno =
+          Planes_Subobjetivo_Dueno_Partes(Sub.Id, Modelo) || Sub;
         const Nombre = (
           document.getElementById("Planes_Parte_Nombre")?.value || ""
         ).trim();
@@ -55323,8 +55339,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? Planes_Progreso_Total_Parte(Parte, Modelo)
           : 0;
         const Datos = {
-          Objetivo_Id: Sub.Objetivo_Id,
-          Subobjetivo_Id: Sub.Id,
+          Objetivo_Id: Sub_Dueno.Objetivo_Id,
+          Subobjetivo_Id: Sub_Dueno.Id,
           Emoji: Normalizar_Emoji(
             document.getElementById("Planes_Parte_Emoji")?.value ||
             "\u2022"
@@ -55364,7 +55380,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Parcial_Normalizado - Progreso_Parte_Antes
         );
         const Consumo_Inicial = await Planes_Preguntar_Consumo_Inicial_Parte(
-          Sub,
+          Sub_Dueno,
           Parte,
           Incremento_Parcial,
           Modelo
