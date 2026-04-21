@@ -204,6 +204,13 @@ corresponde según el pedido del usuario.
 12. Si Playwright o Chromium fallan por bloqueo de sandbox o permisos,
     pedir escalado enseguida y no repetir intentos inútiles dentro del
     sandbox.
+13. Al cargar partes de lectura desde un PDF en Semaplan, no dejar
+    nombres en mayúsculas sostenidas salvo siglas o casos editoriales
+    inevitables. Normalizar a capitalización legible y, si el PDF
+    organiza capítulos bajo partes mayores, incluir el nombre de la
+    parte padre en cada título, por ejemplo
+    `Disciplina I. Los cuerpos dóciles`, para que `I`, `II` o `III`
+    no queden ambiguos.
 
 ### Procedimiento 1: próximas objetivos
 
