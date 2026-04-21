@@ -177,6 +177,110 @@
         display: none;
       }
 
+      .Creador_Contenido:not(.Oculto) {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        z-index: 1600;
+        width: min(560px, calc(100vw - 28px));
+        max-height: calc(100vh - 40px);
+        overflow: auto;
+        transform: translate(-50%, -50%);
+        padding: 18px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: var(--Panel);
+        box-shadow:
+          0 20px 58px rgba(35, 28, 20, 0.28),
+          0 0 0 9999px rgba(38, 29, 20, 0.36);
+      }
+
+      .Meta_Aporte_Campo.Oculto,
+      .Meta_Aporte_Sugerencia.Oculto {
+        display: none;
+      }
+
+      .Meta_Aporte_Fila {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .Meta_Aporte_Unidad,
+      .Meta_Aporte_Hora_Label {
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .Meta_Aporte_Sugerencia {
+        display: grid;
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.58);
+        font-size: 13px;
+        color: var(--Texto);
+      }
+
+      .Meta_Aporte_Sugerencia button {
+        justify-self: start;
+      }
+
+      .Aporte_Meta_Bloque {
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 12px;
+        background: var(--Panel);
+      }
+
+      .Aporte_Meta_Titulo {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      .Aporte_Meta_Row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .Aporte_Meta_Unidad {
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .Aporte_Meta_Acciones {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .Aporte_Meta_Btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        border: 1px solid var(--Borde);
+        background: var(--Panel);
+        cursor: pointer;
+      }
+
+      .Aporte_Meta_Btn.Activo {
+        background: var(--Acento);
+        color: #fff;
+        border-color: var(--Acento);
+      }
+
       .Oculto {
         display: none !important;
       }
@@ -14409,6 +14513,48 @@
             <div class="Selector_Etiquetas"
               id="Etiquetas_Objetivo"></div>
           </div>
+          <div class="Campo">
+            <label for="Meta_Vinculo_Objetivo"
+              data-i18n="sidebar.vinculo_meta">
+              Vínculo con meta
+            </label>
+            <select id="Meta_Vinculo_Objetivo"
+              class="Con_Fallback_Emoji"></select>
+          </div>
+          <div class="Campo Meta_Aporte_Campo Oculto"
+            id="Meta_Aporte_Campo">
+            <label for="Meta_Aporte_Semanal"
+              data-i18n="sidebar.aporte_semanal">
+              Aporte semanal
+            </label>
+            <div class="Meta_Aporte_Fila">
+              <input id="Meta_Aporte_Semanal"
+                type="number" min="0" step="1" value="0" />
+              <span class="Meta_Aporte_Unidad"
+                id="Meta_Aporte_Unidad"></span>
+            </div>
+          </div>
+          <div class="Campo Meta_Aporte_Campo Oculto"
+            id="Meta_Aporte_Hora_Campo">
+            <label for="Meta_Aporte_Hora"
+              data-i18n="sidebar.aporte_por_hora">
+              Aporte por hora
+            </label>
+            <div class="Meta_Aporte_Fila">
+              <input id="Meta_Aporte_Hora"
+                type="number" readonly value="0" />
+              <span class="Meta_Aporte_Hora_Label"
+                id="Meta_Aporte_Hora_Unidad"></span>
+            </div>
+          </div>
+          <div class="Meta_Aporte_Sugerencia Oculto"
+            id="Meta_Aporte_Sugerencia">
+            <span id="Meta_Aporte_Sugerencia_Texto"></span>
+            <button class="Boton_Secundario"
+              id="Meta_Aporte_Sugerencia_Aceptar"
+              data-i18n="sidebar.aporte_aceptar"
+              type="button">Aceptar sugerencia</button>
+          </div>
           <div class="Creador_Acciones">
             <button class="Boton_Principal" id="Crear_Objetivo" type="button" data-i18n="sidebar.crear_objetivo">Crear objetivo</button>
             <button class="Boton_Secundario" id="Ocultar_Creador" type="button" data-i18n="sidebar.ocultar">Ocultar</button>
@@ -18712,6 +18858,48 @@
               <div class="Selector_Etiquetas"
                 id="Editor_Etiquetas_Input"></div>
             </div>
+            <div class="Campo">
+              <label for="Editor_Meta_Vinculo_Input"
+                data-i18n="sidebar.vinculo_meta">
+                Vínculo con meta
+              </label>
+              <select id="Editor_Meta_Vinculo_Input"
+                class="Con_Fallback_Emoji"></select>
+            </div>
+            <div class="Campo Meta_Aporte_Campo Oculto"
+              id="Editor_Meta_Aporte_Campo">
+              <label for="Editor_Meta_Aporte_Semanal_Input"
+                data-i18n="sidebar.aporte_semanal">
+                Aporte semanal
+              </label>
+              <div class="Meta_Aporte_Fila">
+                <input id="Editor_Meta_Aporte_Semanal_Input"
+                  type="number" min="0" step="1" value="0" />
+                <span class="Meta_Aporte_Unidad"
+                  id="Editor_Meta_Aporte_Unidad"></span>
+              </div>
+            </div>
+            <div class="Campo Meta_Aporte_Campo Oculto"
+              id="Editor_Meta_Aporte_Hora_Campo">
+              <label for="Editor_Meta_Aporte_Hora_Input"
+                data-i18n="sidebar.aporte_por_hora">
+                Aporte por hora
+              </label>
+              <div class="Meta_Aporte_Fila">
+                <input id="Editor_Meta_Aporte_Hora_Input"
+                  type="number" readonly value="0" />
+                <span class="Meta_Aporte_Hora_Label"
+                  id="Editor_Meta_Aporte_Hora_Unidad"></span>
+              </div>
+            </div>
+            <div class="Meta_Aporte_Sugerencia Oculto"
+              id="Editor_Meta_Aporte_Sugerencia">
+              <span id="Editor_Meta_Aporte_Sugerencia_Texto"></span>
+              <button class="Boton_Secundario"
+                id="Editor_Meta_Aporte_Sugerencia_Aceptar"
+                data-i18n="sidebar.aporte_aceptar"
+                type="button">Aceptar sugerencia</button>
+            </div>
 
             <div class="Editor_Acciones">
               <button class="Boton_Principal"
@@ -19018,6 +19206,14 @@
           "sidebar.horas_semanales":
             "Horas semanales",
           "sidebar.horas_ph": "6",
+          "sidebar.vinculo_meta": "Vínculo con meta",
+          "sidebar.vinculo_meta_sin": "Sin vínculo",
+          "sidebar.aporte_semanal": "Aporte semanal",
+          "sidebar.aporte_por_hora": "Aporte por hora",
+          "sidebar.aporte_aceptar": "Aceptar sugerencia",
+          "sidebar.aporte_sugerencia":
+            "{meta} termina el {fecha}. Quedan {semanas} " +
+            "semanas; sugerencia: {cantidad} {unidad}.",
           "sidebar.tipo": "Tipo",
           "sidebar.bolsa_horas":
             "Bolsa de horas",
@@ -19100,6 +19296,25 @@
             "Borrar bloque",
           "evento.tiene_nota_title":
             "Tiene nota",
+          "plan.aporte_meta": "Aporte a la meta",
+          "plan.aporte_meta_planear": "Planear aporte",
+          "plan.aporte_meta_tildar": "Tildar aporte",
+          "meta_aporte.confirmar_registrar":
+            "Vas a registrar {cantidad} {unidad} en {meta}. " +
+            "¿Confirmás?",
+          "meta_aporte.confirmar_quitar":
+            "El aporte pasará a 0, se borrará el avance de " +
+            "{cantidad} {unidad} y se redistribuirá en los " +
+            "bloques futuros disponibles. ¿Confirmás?",
+          "meta_aporte.confirmar_editar":
+            "El avance cambiará de {anterior} a {nueva} " +
+            "{unidad} y se redistribuirá la diferencia en " +
+            "bloques futuros disponibles. ¿Confirmás?",
+          "meta_aporte.sin_capacidad":
+            "No hay bloques futuros ni horas pendientes para " +
+            "redistribuir ese aporte.",
+          "meta_aporte.nota_avance":
+            "Bloque semanal: {objetivo}",
           "menu.plan": "Plan actual",
           "menu.planes": "Metas",
           "menu.resumen": "Resumen semanal",
@@ -22501,6 +22716,14 @@
           "sidebar.horas_semanales":
             "Weekly hours",
           "sidebar.horas_ph": "6",
+          "sidebar.vinculo_meta": "Goal link",
+          "sidebar.vinculo_meta_sin": "No link",
+          "sidebar.aporte_semanal": "Weekly contribution",
+          "sidebar.aporte_por_hora": "Contribution per hour",
+          "sidebar.aporte_aceptar": "Accept suggestion",
+          "sidebar.aporte_sugerencia":
+            "{meta} ends on {fecha}. {semanas} weeks left; " +
+            "suggestion: {cantidad} {unidad}.",
           "sidebar.tipo": "Type",
           "sidebar.bolsa_horas": "Hour pool",
           "sidebar.objetivo_normal":
@@ -22580,6 +22803,25 @@
             "Delete block",
           "evento.tiene_nota_title":
             "Has note",
+          "plan.aporte_meta": "Goal contribution",
+          "plan.aporte_meta_planear": "Plan contribution",
+          "plan.aporte_meta_tildar": "Check contribution",
+          "meta_aporte.confirmar_registrar":
+            "This will register {cantidad} {unidad} in {meta}. " +
+            "Confirm?",
+          "meta_aporte.confirmar_quitar":
+            "The contribution will become 0, the {cantidad} " +
+            "{unidad} progress entry will be deleted and it will " +
+            "be redistributed into available future blocks. Confirm?",
+          "meta_aporte.confirmar_editar":
+            "Progress will change from {anterior} to {nueva} " +
+            "{unidad} and the difference will be redistributed into " +
+            "available future blocks. Confirm?",
+          "meta_aporte.sin_capacidad":
+            "There are no future blocks or pending hours to " +
+            "redistribute that contribution.",
+          "meta_aporte.nota_avance":
+            "Weekly block: {objetivo}",
           "menu.plan": "Current plan",
           "menu.planes": "Goals",
           "menu.resumen": "Weekly summary",
@@ -25917,6 +26159,14 @@
           "sidebar.horas_semanales":
             "Horas semanais",
           "sidebar.horas_ph": "6",
+          "sidebar.vinculo_meta": "Vínculo com meta",
+          "sidebar.vinculo_meta_sin": "Sem vínculo",
+          "sidebar.aporte_semanal": "Aporte semanal",
+          "sidebar.aporte_por_hora": "Aporte por hora",
+          "sidebar.aporte_aceptar": "Aceitar sugestão",
+          "sidebar.aporte_sugerencia":
+            "{meta} termina em {fecha}. Faltam {semanas} " +
+            "semanas; sugestão: {cantidad} {unidad}.",
           "sidebar.tipo": "Tipo",
           "sidebar.bolsa_horas":
             "Banco de horas",
@@ -25999,6 +26249,25 @@
             "Marcar feito",
           "evento.borrar_bloque_title":
             "Excluir bloco",
+          "plan.aporte_meta": "Aporte à meta",
+          "plan.aporte_meta_planear": "Planejar aporte",
+          "plan.aporte_meta_tildar": "Marcar aporte",
+          "meta_aporte.confirmar_registrar":
+            "Você vai registrar {cantidad} {unidad} em {meta}. " +
+            "Confirma?",
+          "meta_aporte.confirmar_quitar":
+            "O aporte passará para 0, o avanço de {cantidad} " +
+            "{unidad} será apagado e redistribuído nos blocos " +
+            "futuros disponíveis. Confirma?",
+          "meta_aporte.confirmar_editar":
+            "O avanço mudará de {anterior} para {nueva} " +
+            "{unidad} e a diferença será redistribuída nos " +
+            "blocos futuros disponíveis. Confirma?",
+          "meta_aporte.sin_capacidad":
+            "Não há blocos futuros nem horas pendentes para " +
+            "redistribuir esse aporte.",
+          "meta_aporte.nota_avance":
+            "Bloco semanal: {objetivo}",
           "menu.plan": "Plano atual",
           "menu.planes": "Metas",
           "menu.resumen": "Resumo semanal",
@@ -30104,6 +30373,7 @@
       let Patron_Modal_Dia_Activo = "0";
       let Abordaje_Evento_Id = null;
       let Abordaje_Borrador = [];
+      let Abordaje_Aporte_Meta_Borrador = null;
       let Abordaje_Nuevo_Texto_Borrador = "";
       let Abordaje_Nuevo_Emoji_Borrador = "\u2022";
       let Plan_Slot_Clave_Activa = null;
@@ -30378,6 +30648,27 @@
       const El_Horas_Semanales = document.getElementById("Horas_Semanales");
       const El_Es_Bolsa = document.getElementById("Es_Bolsa");
       const El_Periodicidad_Objetivo = document.getElementById("Periodicidad_Objetivo");
+      const El_Meta_Vinculo_Objetivo = document.getElementById(
+        "Meta_Vinculo_Objetivo"
+      );
+      const El_Meta_Aporte_Campo =
+        document.getElementById("Meta_Aporte_Campo");
+      const El_Meta_Aporte_Semanal =
+        document.getElementById("Meta_Aporte_Semanal");
+      const El_Meta_Aporte_Unidad =
+        document.getElementById("Meta_Aporte_Unidad");
+      const El_Meta_Aporte_Hora_Campo =
+        document.getElementById("Meta_Aporte_Hora_Campo");
+      const El_Meta_Aporte_Hora =
+        document.getElementById("Meta_Aporte_Hora");
+      const El_Meta_Aporte_Hora_Unidad =
+        document.getElementById("Meta_Aporte_Hora_Unidad");
+      const El_Meta_Aporte_Sugerencia =
+        document.getElementById("Meta_Aporte_Sugerencia");
+      const El_Meta_Aporte_Sugerencia_Texto =
+        document.getElementById("Meta_Aporte_Sugerencia_Texto");
+      const El_Meta_Aporte_Sugerencia_Aceptar =
+        document.getElementById("Meta_Aporte_Sugerencia_Aceptar");
       const El_Semana_Label = document.getElementById("Semana_Label");
       const El_Semana_Principal_Fila = document.getElementById("Semana_Principal_Fila");
       const El_Semana_Rango = document.getElementById("Semana_Rango");
@@ -30398,6 +30689,31 @@
       const El_Editor_Horas_Input = document.getElementById("Editor_Horas_Input");
       const El_Editor_Tipo_Input = document.getElementById("Editor_Tipo_Input");
       const El_Editor_Periodicidad_Input = document.getElementById("Editor_Periodicidad_Input");
+      const El_Editor_Meta_Vinculo_Input = document.getElementById(
+        "Editor_Meta_Vinculo_Input"
+      );
+      const El_Editor_Meta_Aporte_Campo =
+        document.getElementById("Editor_Meta_Aporte_Campo");
+      const El_Editor_Meta_Aporte_Semanal_Input =
+        document.getElementById("Editor_Meta_Aporte_Semanal_Input");
+      const El_Editor_Meta_Aporte_Unidad =
+        document.getElementById("Editor_Meta_Aporte_Unidad");
+      const El_Editor_Meta_Aporte_Hora_Campo =
+        document.getElementById("Editor_Meta_Aporte_Hora_Campo");
+      const El_Editor_Meta_Aporte_Hora_Input =
+        document.getElementById("Editor_Meta_Aporte_Hora_Input");
+      const El_Editor_Meta_Aporte_Hora_Unidad =
+        document.getElementById("Editor_Meta_Aporte_Hora_Unidad");
+      const El_Editor_Meta_Aporte_Sugerencia =
+        document.getElementById("Editor_Meta_Aporte_Sugerencia");
+      const El_Editor_Meta_Aporte_Sugerencia_Texto =
+        document.getElementById(
+          "Editor_Meta_Aporte_Sugerencia_Texto"
+        );
+      const El_Editor_Meta_Aporte_Sugerencia_Aceptar =
+        document.getElementById(
+          "Editor_Meta_Aporte_Sugerencia_Aceptar"
+        );
       const El_Resumen_Editar = document.getElementById("Resumen_Editar");
       const El_Categoria_Objetivo = document.getElementById("Categoria_Objetivo");
       const El_Etiquetas_Objetivo = document.getElementById("Etiquetas_Objetivo");
@@ -31418,7 +31734,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Categoria_Id: Datos.Categoria_Id || null,
           Etiquetas_Ids: Normalizar_Etiquetas_Ids(
             Datos.Etiquetas_Ids
-          )
+          ),
+          Meta_Vinculo_Tipo: Datos.Meta_Vinculo_Tipo || "",
+          Meta_Vinculo_Id: Datos.Meta_Vinculo_Id || "",
+          Meta_Aporte_Semanal:
+            Meta_Aporte_Numero(Datos.Meta_Aporte_Semanal),
+          Meta_Aporte_Unidad: Datos.Meta_Aporte_Unidad || ""
         };
         Objetivos.push(Objetivo);
         return Objetivo;
@@ -37839,7 +38160,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               return;
             }
 
-            Eventos.push({
+            Eventos.push(Meta_Aporte_Preparar_Evento({
               Id: `Evento_${Contador_Eventos++}`,
               Objetivo_Id: Objetivo.Id,
               Fecha: Fecha_ISO,
@@ -37847,7 +38168,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Duracion: Dur_Evento,
               Hecho: false,
               Color: Objetivo.Color
-            });
+            }, Objetivo));
+            Meta_Aporte_Redistribuir_Objetivo(Objetivo);
           }
         });
       }
@@ -38719,7 +39041,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Calcular_Horas_Restantes(Objetivo);
               if (Restantes < Plantilla.Duracion) return;
             }
-            Eventos.push({
+            Eventos.push(Meta_Aporte_Preparar_Evento({
               Id: `Evento_${Contador_Eventos++}`,
               Objetivo_Id: Plantilla.Objetivo_Id,
               Fecha,
@@ -38728,7 +39050,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Hecho: false,
               Color: Plantilla.Color,
               ...(Plantilla.Nota ? { Nota: Plantilla.Nota } : {})
-            });
+            }, Objetivo));
+            Meta_Aporte_Redistribuir_Objetivo(Objetivo);
           });
         });
 
@@ -39285,7 +39608,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Restantes = Calcular_Horas_Restantes(Objetivo);
             if (Restantes < Plantilla.Duracion) return;
           }
-          Eventos.push({
+          Eventos.push(Meta_Aporte_Preparar_Evento({
             Id: `Evento_${Contador_Eventos++}`,
             Objetivo_Id: Plantilla.Objetivo_Id,
             Fecha: Fecha_ISO,
@@ -39294,7 +39617,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Hecho: false,
             Color: Plantilla.Color,
             ...(Plantilla.Nota ? { Nota: Plantilla.Nota } : {})
-          });
+          }, Objetivo));
+          Meta_Aporte_Redistribuir_Objetivo(Objetivo);
         });
 
         Mostrar_Toast_Undo(t("toast.dia_pegado"), Snap);
@@ -40683,7 +41007,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Lunes_Siguiente,
                 Math.max(0, Math.min(6, Delta))
               );
-              Eventos.push({
+              const Objetivo = Objetivo_Por_Id(Ev.Objetivo_Id);
+              Eventos.push(Meta_Aporte_Preparar_Evento({
                 Id: `Evento_${Contador_Eventos++}`,
                 Objetivo_Id: Ev.Objetivo_Id,
                 Fecha: Formatear_Fecha_ISO(Nueva_Fecha),
@@ -40691,7 +41016,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Duracion: Ev.Duracion,
                 Hecho: false,
                 Color: Ev.Color || null
-              });
+              }, Objetivo));
+              Meta_Aporte_Redistribuir_Objetivo(Objetivo);
             } else if (Accion === "Baul") {
               const Objetivo = Objetivo_Por_Id(Ev.Objetivo_Id);
               if (
@@ -45974,6 +46300,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             (Avance.Fecha_Hora || `${Fecha}T${Hora || "00:00"}`)
               .toString(),
           Nota: (Avance.Nota || "").toString(),
+          Origen_Tipo: (Avance.Origen_Tipo || "").toString(),
+          Origen_Id: (Avance.Origen_Id || "").toString(),
+          Origen_Objetivo_Semanal_Id:
+            (Avance.Origen_Objetivo_Semanal_Id || "").toString(),
           Orden: Number.isFinite(Number(Avance.Orden))
             ? Number(Avance.Orden)
             : Indice,
@@ -47592,6 +47922,642 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ).trim();
         }
         return `${Obj.Emoji || ""} ${Obj.Nombre || ""}`.trim();
+      }
+
+      function Meta_Aporte_Numero(Valor) {
+        const Numero = Number(
+          String(Valor ?? "").replace(",", ".")
+        );
+        return Number.isFinite(Numero) && Numero > 0
+          ? Numero
+          : 0;
+      }
+
+      function Meta_Aporte_Debe_Redondear(Unidad = "") {
+        const Texto = Normalizar_Texto_Archivero(Unidad || "");
+        return [
+          "paginas",
+          "pagina",
+          "unidades",
+          "unidad",
+          "veces",
+          "sesiones",
+          "dias",
+          "dia"
+        ].some((Clave) => Texto.includes(Clave));
+      }
+
+      function Meta_Aporte_Redondear(Valor, Unidad = "") {
+        const Numero = Math.max(0, Number(Valor) || 0);
+        if (!Meta_Aporte_Debe_Redondear(Unidad)) {
+          return Math.round(Numero * 100) / 100;
+        }
+        return Math.max(0, Math.round(Numero));
+      }
+
+      function Meta_Aporte_Formatear(Valor, Unidad = "") {
+        return String(Meta_Aporte_Redondear(Valor, Unidad));
+      }
+
+      function Meta_Vinculo_Valor(Tipo = "", Id = "") {
+        return Tipo && Id ? `${Tipo}|${Id}` : "";
+      }
+
+      function Meta_Vinculo_Valor_Objetivo(Objetivo) {
+        return Meta_Vinculo_Valor(
+          Objetivo?.Meta_Vinculo_Tipo || "",
+          Objetivo?.Meta_Vinculo_Id || ""
+        );
+      }
+
+      function Meta_Vinculo_Parsear(Valor = "") {
+        const [Tipo, Id] = String(Valor || "").split("|");
+        if (
+          ["Objetivo", "Subobjetivo"].includes(Tipo) &&
+          Id
+        ) {
+          return { Tipo, Id };
+        }
+        return { Tipo: "", Id: "" };
+      }
+
+      function Meta_Aporte_Items_Semana(
+        Clave_Semana = Clave_Semana_Actual()
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Por_Raiz = new Map();
+        Object.values(Modelo.Objetivos || {})
+          .filter((Objetivo) => !Objetivo.Eliminado_Local)
+          .forEach((Objetivo) => {
+            const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
+            if (!Planes_Periodo_Contiene_Fecha(
+              Periodo, Clave_Semana
+            )) {
+              return;
+            }
+            const Raiz_Id = Planes_Objetivo_Raiz_Id(Objetivo.Id);
+            const Raiz = Modelo.Objetivos[Raiz_Id] || Objetivo;
+            if (Raiz.Eliminado_Local) return;
+            const Periodo_Raiz = Modelo.Periodos[Raiz.Periodo_Id];
+            if (
+              Periodo_Raiz &&
+              !Planes_Periodo_Contiene_Fecha(
+                Periodo_Raiz, Clave_Semana
+              )
+            ) {
+              return;
+            }
+            Por_Raiz.set(Raiz.Id, {
+              Tipo: "Objetivo",
+              Id: Raiz.Id,
+              Objetivo: Raiz,
+              Periodo: Periodo_Raiz || Periodo
+            });
+          });
+
+        const Items = [];
+        Array.from(Por_Raiz.values())
+          .sort((A, B) => {
+            const PA = A.Periodo?.Inicio || "";
+            const PB = B.Periodo?.Inicio || "";
+            if (PA !== PB) return PA.localeCompare(PB);
+            return Number(A.Objetivo.Orden) -
+              Number(B.Objetivo.Orden);
+          })
+          .forEach((Item) => {
+            Items.push(Item);
+            Planes_Subobjetivos_De_Objetivo(Item.Objetivo.Id)
+              .filter((Sub) => !Sub.Eliminado_Local)
+              .forEach((Sub) => {
+                Items.push({
+                  Tipo: "Subobjetivo",
+                  Id: Sub.Id,
+                  Objetivo: Item.Objetivo,
+                  Sub,
+                  Periodo: Item.Periodo
+                });
+              });
+          });
+        return Items;
+      }
+
+      function Meta_Aporte_Item_Por_Valor(Valor = "") {
+        const Parseado = Meta_Vinculo_Parsear(Valor);
+        if (!Parseado.Id) return null;
+        const Items = Meta_Aporte_Items_Semana();
+        const Encontrado = Items.find((Item) =>
+          Item.Tipo === Parseado.Tipo && Item.Id === Parseado.Id
+        );
+        if (Encontrado) return Encontrado;
+        const Modelo = Asegurar_Modelo_Planes();
+        if (
+          Parseado.Tipo === "Objetivo" &&
+          Modelo.Objetivos[Parseado.Id]
+        ) {
+          const Objetivo = Modelo.Objetivos[Parseado.Id];
+          return {
+            Tipo: "Objetivo",
+            Id: Objetivo.Id,
+            Objetivo,
+            Periodo: Modelo.Periodos[Objetivo.Periodo_Id]
+          };
+        }
+        if (
+          Parseado.Tipo === "Subobjetivo" &&
+          Modelo.Subobjetivos[Parseado.Id]
+        ) {
+          const Sub = Modelo.Subobjetivos[Parseado.Id];
+          const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
+          if (!Objetivo) return null;
+          return {
+            Tipo: "Subobjetivo",
+            Id: Sub.Id,
+            Objetivo,
+            Sub,
+            Periodo: Modelo.Periodos[Objetivo.Periodo_Id]
+          };
+        }
+        return null;
+      }
+
+      function Meta_Aporte_Unidad_Item(Item) {
+        if (!Item) return "";
+        if (Item.Tipo === "Subobjetivo") {
+          return Planes_Unidad_Label_Subobjetivo(Item.Sub);
+        }
+        return Planes_Unidad_Label(Item.Objetivo);
+      }
+
+      function Meta_Aporte_Label_Item(Item) {
+        if (!Item) return "";
+        const Obj = Item.Objetivo;
+        if (Item.Tipo === "Subobjetivo") {
+          return (
+            `${Obj.Emoji || ""} ${Obj.Nombre || ""} · ` +
+            `${Item.Sub.Emoji || "\u2022"} ${Item.Sub.Texto || ""}`
+          ).trim();
+        }
+        return `${Obj.Emoji || ""} ${Obj.Nombre || ""}`.trim();
+      }
+
+      function Meta_Aporte_Poblar_Select(Select, Valor_Actual = "") {
+        if (!Select) return;
+        Select.innerHTML = "";
+        const Opt_Vacio = document.createElement("option");
+        Opt_Vacio.value = "";
+        Opt_Vacio.textContent = t("sidebar.vinculo_meta_sin");
+        Select.appendChild(Opt_Vacio);
+        Meta_Aporte_Items_Semana().forEach((Item) => {
+          const Opt = document.createElement("option");
+          Opt.value = Meta_Vinculo_Valor(Item.Tipo, Item.Id);
+          Opt.textContent = Meta_Aporte_Label_Item(Item);
+          Select.appendChild(Opt);
+        });
+        const Valores = new Set(
+          Array.from(Select.options).map((Opt) => Opt.value)
+        );
+        Select.value = Valores.has(Valor_Actual)
+          ? Valor_Actual
+          : "";
+      }
+
+      function Meta_Aporte_Fecha_Objetivo_Item(Item) {
+        if (!Item) return "";
+        if (Item.Tipo === "Subobjetivo") {
+          return (Item.Sub.Fecha_Objetivo || "").toString();
+        }
+        return (Item.Periodo?.Fin || "").toString();
+      }
+
+      function Meta_Aporte_Target_Item(Item) {
+        if (!Item) return 0;
+        if (Item.Tipo === "Subobjetivo") {
+          return Number(Item.Sub.Target_Total) || 0;
+        }
+        return Number(Item.Objetivo.Target_Total) || 0;
+      }
+
+      function Meta_Aporte_Progreso_Item(Item) {
+        if (!Item) return 0;
+        if (Item.Tipo === "Subobjetivo") {
+          return Planes_Progreso_Total_Subobjetivo(Item.Sub);
+        }
+        Planes_Actualizar_Progreso(Item.Objetivo);
+        return Number(Item.Objetivo.Progreso_Total) || 0;
+      }
+
+      function Meta_Aporte_Sugerencia_Item(Item) {
+        const Fecha = Meta_Aporte_Fecha_Objetivo_Item(Item);
+        const Fecha_Fin = Parsear_Fecha_ISO(Fecha);
+        const Semana = Parsear_Fecha_ISO(Clave_Semana_Actual());
+        if (!Item || !Fecha_Fin || !Semana) return null;
+        if (Fecha_Fin < Semana) return null;
+        const Target = Meta_Aporte_Target_Item(Item);
+        if (Target <= 0) return null;
+        const Pendiente = Math.max(
+          0,
+          Target - Meta_Aporte_Progreso_Item(Item)
+        );
+        if (Pendiente <= 0) return null;
+        const Dias = Math.max(
+          1,
+          Math.ceil(
+            (Fecha_Fin.getTime() - Semana.getTime()) /
+            (24 * 60 * 60 * 1000)
+          ) + 1
+        );
+        const Semanas = Math.max(1, Math.ceil(Dias / 7));
+        const Unidad = Meta_Aporte_Unidad_Item(Item);
+        const Cantidad = Meta_Aporte_Redondear(
+          Pendiente / Semanas,
+          Unidad
+        );
+        if (Cantidad <= 0) return null;
+        return {
+          Fecha,
+          Semanas,
+          Cantidad,
+          Unidad,
+          Nombre: Meta_Aporte_Label_Item(Item)
+        };
+      }
+
+      function Meta_Aporte_Actualizar_UI_Form(Refs = {}) {
+        const Select = Refs.Select;
+        const Input = Refs.Input;
+        const Item = Meta_Aporte_Item_Por_Valor(Select?.value || "");
+        const Tiene_Item = Boolean(Item);
+        Refs.Campo?.classList.toggle("Oculto", !Tiene_Item);
+        Refs.Campo_Hora?.classList.toggle(
+          "Oculto",
+          !Tiene_Item || Refs.Tipo?.value !== "Si"
+        );
+        if (!Tiene_Item) {
+          if (Input) Input.value = "0";
+          if (Refs.Unidad) Refs.Unidad.textContent = "";
+          if (Refs.Sugerencia) {
+            Refs.Sugerencia.classList.add("Oculto");
+          }
+          return;
+        }
+        const Unidad = Meta_Aporte_Unidad_Item(Item);
+        if (Refs.Unidad) Refs.Unidad.textContent = Unidad;
+        if (Refs.Unidad_Hora) {
+          Refs.Unidad_Hora.textContent = Unidad
+            ? `${Unidad}/h`
+            : "";
+        }
+        const Aporte = Meta_Aporte_Numero(Input?.value);
+        const Horas = Math.max(0, Number(Refs.Horas?.value) || 0);
+        if (Refs.Hora) {
+          const Por_Hora =
+            Refs.Tipo?.value === "Si" && Horas > 0
+              ? Aporte / Horas
+              : 0;
+          Refs.Hora.value = Meta_Aporte_Formatear(
+            Por_Hora,
+            Unidad
+          );
+        }
+        const Sugerencia = Meta_Aporte_Sugerencia_Item(Item);
+        if (Refs.Sugerencia && Refs.Sugerencia_Texto) {
+          if (Sugerencia) {
+            Refs.Sugerencia_Texto.textContent =
+              t("sidebar.aporte_sugerencia", {
+                meta: Sugerencia.Nombre,
+                fecha: Planes_Formatear_Fecha_Larga(
+                  Sugerencia.Fecha
+                ),
+                semanas: Sugerencia.Semanas,
+                cantidad: Sugerencia.Cantidad,
+                unidad: Sugerencia.Unidad
+              });
+            Refs.Sugerencia.dataset.cantidad =
+              String(Sugerencia.Cantidad);
+            Refs.Sugerencia.classList.remove("Oculto");
+          } else {
+            Refs.Sugerencia.classList.add("Oculto");
+            Refs.Sugerencia.dataset.cantidad = "";
+          }
+        }
+      }
+
+      function Meta_Aporte_Leer_Datos_Form(Select, Input) {
+        const Item = Meta_Aporte_Item_Por_Valor(Select?.value || "");
+        if (!Item) {
+          return {
+            Meta_Vinculo_Tipo: "",
+            Meta_Vinculo_Id: "",
+            Meta_Aporte_Semanal: 0,
+            Meta_Aporte_Unidad: ""
+          };
+        }
+        const Unidad = Meta_Aporte_Unidad_Item(Item);
+        return {
+          Meta_Vinculo_Tipo: Item.Tipo,
+          Meta_Vinculo_Id: Item.Id,
+          Meta_Aporte_Semanal: Meta_Aporte_Redondear(
+            Meta_Aporte_Numero(Input?.value),
+            Unidad
+          ),
+          Meta_Aporte_Unidad: Unidad
+        };
+      }
+
+      function Meta_Aporte_Objetivo_Tiene_Vinculo(Objetivo) {
+        return Boolean(
+          Objetivo?.Meta_Vinculo_Tipo &&
+          Objetivo?.Meta_Vinculo_Id
+        );
+      }
+
+      function Meta_Aporte_Item_Objetivo(Objetivo) {
+        return Meta_Aporte_Item_Por_Valor(
+          Meta_Vinculo_Valor_Objetivo(Objetivo)
+        );
+      }
+
+      function Meta_Aporte_Unidad_Objetivo(Objetivo) {
+        return (
+          Objetivo?.Meta_Aporte_Unidad ||
+          Meta_Aporte_Unidad_Item(Meta_Aporte_Item_Objetivo(Objetivo))
+        );
+      }
+
+      function Meta_Aporte_Asignado_Evento(Evento) {
+        const Objetivo = Objetivo_Por_Id(Evento?.Objetivo_Id);
+        if (!Objetivo || !Meta_Aporte_Objetivo_Tiene_Vinculo(Objetivo)) {
+          return 0;
+        }
+        const Unidad = Meta_Aporte_Unidad_Objetivo(Objetivo);
+        const Manual = Number(Evento.Meta_Aporte_Cantidad);
+        if (Number.isFinite(Manual) && Manual >= 0) {
+          return Meta_Aporte_Redondear(Manual, Unidad);
+        }
+        if (Objetivo.Es_Bolsa) {
+          const Horas = Math.max(
+            0,
+            Number(Objetivo.Horas_Semanales) || 0
+          );
+          if (Horas <= 0) return 0;
+          return Meta_Aporte_Redondear(
+            (Number(Objetivo.Meta_Aporte_Semanal) || 0) *
+              (Number(Evento.Duracion) || 0) / Horas,
+            Unidad
+          );
+        }
+        return Meta_Aporte_Redondear(
+          Number(Objetivo.Meta_Aporte_Semanal) || 0,
+          Unidad
+        );
+      }
+
+      function Meta_Aporte_Evento_Es_Futuro(Evento) {
+        const Fecha = Parsear_Fecha_ISO(Evento?.Fecha || "");
+        if (!Fecha) return false;
+        Fecha.setHours(Number(Evento.Inicio) || 0, 0, 0, 0);
+        return Fecha.getTime() >= Date.now();
+      }
+
+      function Meta_Aporte_Eventos_Objetivo_Semana(Objetivo) {
+        if (!Objetivo) return [];
+        const Clave = Obtener_Clave_Semana_Objetivo(Objetivo);
+        return Eventos.filter((Evento) =>
+          Evento_Pertenece_A_Objetivo_Semana(
+            Evento,
+            Objetivo,
+            Clave
+          )
+        );
+      }
+
+      function Meta_Aporte_Redistribuir_Objetivo(Objetivo) {
+        if (!Objetivo || !Meta_Aporte_Objetivo_Tiene_Vinculo(Objetivo)) {
+          return true;
+        }
+        const Unidad = Meta_Aporte_Unidad_Objetivo(Objetivo);
+        const Aporte_Semanal =
+          Meta_Aporte_Redondear(
+            Number(Objetivo.Meta_Aporte_Semanal) || 0,
+            Unidad
+          );
+        const Eventos_Objetivo =
+          Meta_Aporte_Eventos_Objetivo_Semana(Objetivo);
+        const Confirmados = Eventos_Objetivo
+          .filter((Evento) =>
+            Evento.Hecho &&
+            Evento.Meta_Aporte_Tildado === true &&
+            Boolean(Meta_Aporte_Buscar_Avance_Evento(Evento))
+          )
+          .reduce((Total, Evento) => {
+            return Total + Meta_Aporte_Asignado_Evento(Evento);
+          }, 0);
+        const Pendiente = Math.max(0, Aporte_Semanal - Confirmados);
+        const Futuros = Eventos_Objetivo
+          .filter((Evento) =>
+            !Evento.Hecho &&
+            Meta_Aporte_Evento_Es_Futuro(Evento)
+          )
+          .sort((A, B) => {
+            const FA = `${A.Fecha}T${A.Inicio}`;
+            const FB = `${B.Fecha}T${B.Inicio}`;
+            return FA.localeCompare(FB);
+          });
+        const Horas_Colocadas = Eventos_Objetivo.reduce(
+          (Total, Evento) => Total + (Number(Evento.Duracion) || 0),
+          0
+        );
+        const Horas_Pendientes = Objetivo.Es_Bolsa
+          ? Math.max(
+            0,
+            (Number(Objetivo.Horas_Semanales) || 0) -
+              Horas_Colocadas
+          )
+          : 0;
+        const Capacidad = Objetivo.Es_Bolsa
+          ? Futuros.reduce((Total, Evento) => {
+            return Total + (Number(Evento.Duracion) || 0);
+          }, 0) + Horas_Pendientes
+          : Futuros.length;
+        if (!Objetivo.Es_Bolsa && !Futuros.length) return true;
+        if (Pendiente > 0 && Capacidad <= 0) {
+          Mostrar_Toast_Info(t("meta_aporte.sin_capacidad"));
+          return false;
+        }
+        if (!Futuros.length) return true;
+        let Restante = Pendiente;
+        Futuros.forEach((Evento, Indice) => {
+          const Es_Ultimo = Indice === Futuros.length - 1;
+          let Cantidad;
+          if (
+            Es_Ultimo &&
+            (!Objetivo.Es_Bolsa || Horas_Pendientes <= 0)
+          ) {
+            Cantidad = Restante;
+          } else if (Objetivo.Es_Bolsa) {
+            Cantidad = Pendiente *
+              ((Number(Evento.Duracion) || 0) / Capacidad);
+          } else {
+            Cantidad = Pendiente / Futuros.length;
+          }
+          Cantidad = Meta_Aporte_Redondear(Cantidad, Unidad);
+          Restante = Math.max(0, Restante - Cantidad);
+          Evento.Meta_Aporte_Cantidad = Cantidad;
+          Evento.Meta_Aporte_Unidad = Unidad;
+          Evento.Meta_Aporte_Planeado = true;
+          if (Evento.Meta_Aporte_Tildado === undefined) {
+            Evento.Meta_Aporte_Tildado = true;
+          }
+        });
+        return true;
+      }
+
+      function Meta_Aporte_Preparar_Evento(Evento, Objetivo = null) {
+        const Obj = Objetivo || Objetivo_Por_Id(Evento?.Objetivo_Id);
+        if (!Evento || !Obj || !Meta_Aporte_Objetivo_Tiene_Vinculo(Obj)) {
+          return Evento;
+        }
+        const Unidad = Meta_Aporte_Unidad_Objetivo(Obj);
+        Evento.Meta_Aporte_Cantidad =
+          Meta_Aporte_Redondear(
+            Meta_Aporte_Asignado_Evento(Evento),
+            Unidad
+          );
+        Evento.Meta_Aporte_Unidad = Unidad;
+        Evento.Meta_Aporte_Planeado =
+          Evento.Meta_Aporte_Planeado !== false;
+        Evento.Meta_Aporte_Tildado =
+          Evento.Meta_Aporte_Tildado !== false;
+        return Evento;
+      }
+
+      function Meta_Aporte_Buscar_Avance_Evento(Evento) {
+        const Modelo = Asegurar_Modelo_Planes();
+        if (Evento?.Meta_Avance_Id && Modelo.Avances[Evento.Meta_Avance_Id]) {
+          return Modelo.Avances[Evento.Meta_Avance_Id];
+        }
+        return Object.values(Modelo.Avances || {})
+          .find((Avance) =>
+            Avance.Origen_Tipo === "Evento_Aporte_Meta" &&
+            Avance.Origen_Id === Evento?.Id
+          ) || null;
+      }
+
+      function Meta_Aporte_Eliminar_Avance_Evento(Evento) {
+        const Avance = Meta_Aporte_Buscar_Avance_Evento(Evento);
+        if (!Avance) {
+          if (Evento) delete Evento.Meta_Avance_Id;
+          return false;
+        }
+        const Modelo = Asegurar_Modelo_Planes();
+        delete Modelo.Avances[Avance.Id];
+        if (Evento) delete Evento.Meta_Avance_Id;
+        const Objetivo = Modelo.Objetivos[Avance.Objetivo_Id];
+        if (Avance.Subobjetivo_Id) {
+          const Sub = Modelo.Subobjetivos[Avance.Subobjetivo_Id];
+          Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+        }
+        if (Objetivo) Planes_Recalcular_Desde(Objetivo);
+        return true;
+      }
+
+      function Meta_Aporte_Upsert_Avance_Evento(Evento) {
+        const Objetivo_Semanal = Objetivo_Por_Id(Evento?.Objetivo_Id);
+        const Item = Meta_Aporte_Item_Objetivo(Objetivo_Semanal);
+        const Cantidad = Meta_Aporte_Asignado_Evento(Evento);
+        if (
+          !Item ||
+          Cantidad <= 0 ||
+          Evento.Meta_Aporte_Tildado === false
+        ) {
+          return Meta_Aporte_Eliminar_Avance_Evento(Evento);
+        }
+        const Modelo = Asegurar_Modelo_Planes();
+        const Existente = Meta_Aporte_Buscar_Avance_Evento(Evento);
+        const Id = Existente?.Id || Crear_Id_Avance_Plan();
+        const Hora = `${String(Math.floor(
+          Number(Evento.Inicio) || 0
+        )).padStart(2, "0")}:00`;
+        Modelo.Avances[Id] = Normalizar_Avance_Plan({
+          ...(Existente || {}),
+          Id,
+          Objetivo_Id: Item.Objetivo.Id,
+          Subobjetivo_Id:
+            Item.Tipo === "Subobjetivo" ? Item.Sub.Id : "",
+          Fuente:
+            Item.Tipo === "Subobjetivo" ? "Subobjetivo" : "Manual",
+          Cantidad,
+          Unidad: Meta_Aporte_Unidad_Item(Item),
+          Fecha: Evento.Fecha,
+          Hora,
+          Fecha_Hora: `${Evento.Fecha}T${Hora}`,
+          Nota: t("meta_aporte.nota_avance", {
+            objetivo: Objetivo_Semanal?.Nombre || ""
+          }),
+          Origen_Tipo: "Evento_Aporte_Meta",
+          Origen_Id: Evento.Id,
+          Origen_Objetivo_Semanal_Id:
+            Objetivo_Semanal?.Id || ""
+        });
+        Evento.Meta_Avance_Id = Id;
+        if (Item.Tipo === "Subobjetivo") {
+          Planes_Recalcular_Progreso_Subobjetivo(Item.Sub, Modelo);
+        }
+        Planes_Recalcular_Desde(Item.Objetivo);
+        return true;
+      }
+
+      async function Meta_Aporte_Confirmar(Clave, Datos = {}) {
+        const Confirmar = await Mostrar_Dialogo(
+          t(Clave, Datos),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            { Etiqueta: t("confirmar"), Valor: true, Tipo: "Primario" }
+          ]
+        );
+        return Boolean(Confirmar);
+      }
+
+      async function Meta_Aporte_Cambiar_Hecho_Evento(
+        Evento,
+        Nuevo_Hecho
+      ) {
+        if (!Evento) return false;
+        const Objetivo = Objetivo_Por_Id(Evento.Objetivo_Id);
+        const Tiene_Vinculo =
+          Meta_Aporte_Objetivo_Tiene_Vinculo(Objetivo);
+        if (Nuevo_Hecho) {
+          Meta_Aporte_Preparar_Evento(Evento, Objetivo);
+          const Cantidad = Meta_Aporte_Asignado_Evento(Evento);
+          if (Tiene_Vinculo && Cantidad > 0) {
+            const Ok = await Meta_Aporte_Confirmar(
+              "meta_aporte.confirmar_registrar",
+              {
+                cantidad: Meta_Aporte_Formatear(
+                  Cantidad,
+                  Meta_Aporte_Unidad_Objetivo(Objetivo)
+                ),
+                unidad: Meta_Aporte_Unidad_Objetivo(Objetivo),
+                meta: Meta_Aporte_Label_Item(
+                  Meta_Aporte_Item_Objetivo(Objetivo)
+                )
+              }
+            );
+            if (!Ok) return false;
+          }
+          Evento.Hecho = true;
+          Evento.Anulada = false;
+          if (Tiene_Vinculo && Cantidad > 0) {
+            Evento.Meta_Aporte_Tildado = true;
+            Evento.Meta_Aporte_Planeado = true;
+            Meta_Aporte_Upsert_Avance_Evento(Evento);
+          }
+          Meta_Aporte_Redistribuir_Objetivo(Objetivo);
+        } else {
+          Evento.Hecho = false;
+          Meta_Aporte_Eliminar_Avance_Evento(Evento);
+        }
+        return true;
       }
 
       function Planes_Poblar_Select_Avance(
@@ -53825,7 +54791,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (Restantes < Evento_Origen.Duracion) return;
           }
 
-          Eventos.push({
+          Eventos.push(Meta_Aporte_Preparar_Evento({
             Id: `Evento_${Contador_Eventos++}`,
             Objetivo_Id: Evento_Origen.Objetivo_Id,
             Fecha,
@@ -53833,8 +54799,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Duracion: Evento_Origen.Duracion,
             Hecho: false,
             Color: Evento_Origen.Color
-          });
+          }, Objetivo));
         });
+
+        Meta_Aporte_Redistribuir_Objetivo(Objetivo);
 
         Render_Emojis();
         Render_Resumen_Objetivo();
@@ -57631,6 +58599,215 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         )}`;
       }
 
+      function Meta_Aporte_Borrador_Abordaje(Evento) {
+        const Objetivo = Objetivo_Por_Id(Evento?.Objetivo_Id);
+        if (!Meta_Aporte_Objetivo_Tiene_Vinculo(Objetivo)) {
+          return null;
+        }
+        const Unidad = Meta_Aporte_Unidad_Objetivo(Objetivo);
+        const Cantidad = Meta_Aporte_Asignado_Evento(Evento);
+        const Tenia_Avance = Boolean(
+          Meta_Aporte_Buscar_Avance_Evento(Evento)
+        );
+        const Tildado = Evento.Hecho
+          ? (Tenia_Avance || Evento.Meta_Aporte_Tildado === true)
+          : Evento.Meta_Aporte_Tildado !== false;
+        return {
+          Activo: true,
+          Meta: Meta_Aporte_Label_Item(
+            Meta_Aporte_Item_Objetivo(Objetivo)
+          ),
+          Unidad,
+          Cantidad,
+          Original_Cantidad: Cantidad,
+          Planeado: Evento.Meta_Aporte_Planeado !== false,
+          Tildado,
+          Original_Tildado: Tildado,
+          Tenia_Avance
+        };
+      }
+
+      function Render_Aporte_Meta_Abordaje(Cuerpo) {
+        if (!Cuerpo || !Abordaje_Aporte_Meta_Borrador) return;
+        const Borrador = Abordaje_Aporte_Meta_Borrador;
+        const Wrap = document.createElement("div");
+        Wrap.className = "Aporte_Meta_Bloque";
+
+        const Titulo = document.createElement("div");
+        Titulo.className = "Aporte_Meta_Titulo";
+        const Texto = document.createElement("span");
+        Texto.textContent = t("plan.aporte_meta");
+        const Meta = document.createElement("span");
+        Meta.className = "Aporte_Meta_Unidad";
+        Meta.textContent = Borrador.Meta;
+        Titulo.appendChild(Texto);
+        Titulo.appendChild(Meta);
+        Wrap.appendChild(Titulo);
+
+        const Row = document.createElement("div");
+        Row.className = "Aporte_Meta_Row";
+
+        const Acciones = document.createElement("div");
+        Acciones.className = "Aporte_Meta_Acciones";
+
+        const Btn_Plan = document.createElement("button");
+        Btn_Plan.type = "button";
+        Btn_Plan.className = "Aporte_Meta_Btn" +
+          (Borrador.Planeado ? " Activo" : "");
+        Btn_Plan.textContent = "★";
+        Btn_Plan.title = t("plan.aporte_meta_planear");
+        Btn_Plan.addEventListener("click", () => {
+          Borrador.Planeado = !Borrador.Planeado;
+          Render_Modal_Abordaje();
+        });
+
+        const Btn_Tildar = document.createElement("button");
+        Btn_Tildar.type = "button";
+        Btn_Tildar.className = "Aporte_Meta_Btn" +
+          (Borrador.Tildado ? " Activo" : "");
+        Btn_Tildar.textContent = "✓";
+        Btn_Tildar.title = t("plan.aporte_meta_tildar");
+        Btn_Tildar.addEventListener("click", () => {
+          Borrador.Tildado = !Borrador.Tildado;
+          if (Borrador.Tildado) {
+            Borrador.Planeado = true;
+            if (Number(Borrador.Cantidad) <= 0) {
+              Borrador.Cantidad =
+                Borrador.Original_Cantidad || 0;
+            }
+          } else {
+            Borrador.Cantidad = 0;
+          }
+          Render_Modal_Abordaje();
+        });
+
+        Acciones.appendChild(Btn_Plan);
+        Acciones.appendChild(Btn_Tildar);
+
+        const Input = document.createElement("input");
+        Input.type = "number";
+        Input.min = "0";
+        Input.step = Meta_Aporte_Debe_Redondear(Borrador.Unidad)
+          ? "1"
+          : "0.01";
+        Input.value = Meta_Aporte_Formatear(
+          Borrador.Cantidad,
+          Borrador.Unidad
+        );
+        Input.addEventListener("input", () => {
+          Borrador.Cantidad = Meta_Aporte_Numero(Input.value);
+          Borrador.Tildado = Borrador.Cantidad > 0;
+          if (Borrador.Tildado) Borrador.Planeado = true;
+        });
+
+        const Unidad = document.createElement("span");
+        Unidad.className = "Aporte_Meta_Unidad";
+        Unidad.textContent = Borrador.Unidad;
+
+        Row.appendChild(Acciones);
+        Row.appendChild(Input);
+        Row.appendChild(Unidad);
+        Wrap.appendChild(Row);
+        Cuerpo.appendChild(Wrap);
+      }
+
+      async function Guardar_Aporte_Meta_Abordaje(
+        Evento,
+        Borrador = Abordaje_Aporte_Meta_Borrador
+      ) {
+        if (!Evento || !Borrador?.Activo) return true;
+        const Objetivo = Objetivo_Por_Id(Evento.Objetivo_Id);
+        if (!Meta_Aporte_Objetivo_Tiene_Vinculo(Objetivo)) {
+          return true;
+        }
+        const Unidad = Meta_Aporte_Unidad_Objetivo(Objetivo);
+        const Cantidad_Nueva = Meta_Aporte_Redondear(
+          Borrador.Tildado ? Borrador.Cantidad : 0,
+          Unidad
+        );
+        const Tildado_Nuevo =
+          Borrador.Tildado && Cantidad_Nueva > 0;
+        const Cantidad_Anterior = Meta_Aporte_Asignado_Evento(Evento);
+        const Tenia_Avance = Boolean(
+          Meta_Aporte_Buscar_Avance_Evento(Evento)
+        );
+        if (
+          Evento.Hecho &&
+          !Tenia_Avance &&
+          !Borrador.Original_Tildado &&
+          !Borrador.Tildado
+        ) {
+          return true;
+        }
+        if (Evento.Hecho) {
+          if (!Tildado_Nuevo && (Tenia_Avance || Borrador.Original_Tildado)) {
+            const Ok = await Meta_Aporte_Confirmar(
+              "meta_aporte.confirmar_quitar",
+              {
+                cantidad: Meta_Aporte_Formatear(
+                  Cantidad_Anterior,
+                  Unidad
+                ),
+                unidad: Unidad
+              }
+            );
+            if (!Ok) return false;
+          } else if (
+            Tildado_Nuevo &&
+            Tenia_Avance &&
+            Cantidad_Nueva !== Cantidad_Anterior
+          ) {
+            const Ok = await Meta_Aporte_Confirmar(
+              "meta_aporte.confirmar_editar",
+              {
+                anterior: Meta_Aporte_Formatear(
+                  Cantidad_Anterior,
+                  Unidad
+                ),
+                nueva: Meta_Aporte_Formatear(
+                  Cantidad_Nueva,
+                  Unidad
+                ),
+                unidad: Unidad
+              }
+            );
+            if (!Ok) return false;
+          } else if (Tildado_Nuevo && !Tenia_Avance) {
+            const Ok = await Meta_Aporte_Confirmar(
+              "meta_aporte.confirmar_registrar",
+              {
+                cantidad: Meta_Aporte_Formatear(
+                  Cantidad_Nueva,
+                  Unidad
+                ),
+                unidad: Unidad,
+                meta: Borrador.Meta
+              }
+            );
+            if (!Ok) return false;
+          }
+        }
+
+        Evento.Meta_Aporte_Cantidad = Cantidad_Nueva;
+        Evento.Meta_Aporte_Unidad = Unidad;
+        Evento.Meta_Aporte_Planeado =
+          Boolean(Borrador.Planeado) || Tildado_Nuevo;
+        Evento.Meta_Aporte_Tildado = Tildado_Nuevo;
+        Evento.Meta_Aporte_Manual =
+          Cantidad_Nueva !== Borrador.Original_Cantidad ||
+          Tildado_Nuevo !== Borrador.Original_Tildado;
+
+        if (Evento.Hecho) {
+          if (Tildado_Nuevo) {
+            Meta_Aporte_Upsert_Avance_Evento(Evento);
+          } else {
+            Meta_Aporte_Eliminar_Avance_Evento(Evento);
+          }
+        }
+        Meta_Aporte_Redistribuir_Objetivo(Objetivo);
+        return true;
+      }
+
       function Abrir_Modal_Abordaje(Evento_Id) {
         const Evento = Evento_Por_Id(Evento_Id);
         if (!Evento) return;
@@ -57723,6 +58900,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
 
         Abordaje_Borrador = Items;
+        Abordaje_Aporte_Meta_Borrador =
+          Meta_Aporte_Borrador_Abordaje(Evento);
         // Las subs ya hechas arrancan colapsadas siempre.
         Abordaje_Hechas_Expandido = false;
         // Default del filtro según el estado del bloque:
@@ -57759,6 +58938,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Cerrar_Modal_Abordaje() {
         Abordaje_Evento_Id = null;
         Abordaje_Borrador = [];
+        Abordaje_Aporte_Meta_Borrador = null;
         Resetear_Nuevo_Abordaje();
         document.getElementById("Abordaje_Modal_Overlay")
           .classList.remove("Activo");
@@ -57792,6 +58972,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "Abordaje_Bloque_Pasado", Es_Pasado
           );
         }
+        Render_Aporte_Meta_Abordaje(Cuerpo);
 
         // El filtro siempre pasa items con trabajo (Marcado)
         // o con intención (Planeada). Las planeadas-sin-
@@ -58397,7 +59578,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Modal_Abordaje();
       }
 
-      function Guardar_Modal_Abordaje() {
+      async function Guardar_Modal_Abordaje() {
         if (!Abordaje_Evento_Id) return;
         const Evento = Evento_Por_Id(Abordaje_Evento_Id);
         if (!Evento) {
@@ -58405,6 +59586,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return;
         }
         const Objetivo = Objetivo_Por_Id(Evento.Objetivo_Id);
+        const Aporte_Guardado =
+          await Guardar_Aporte_Meta_Abordaje(Evento);
+        if (!Aporte_Guardado) return;
 
         // Construir el abordaje final con todo lo que tenga
         // alguna marca: items Marcados (con Estado) o items
@@ -63161,7 +64345,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return false;
         }
 
-        Eventos.push({
+        const Nuevo_Evento = Meta_Aporte_Preparar_Evento({
           Id: `Evento_${Contador_Eventos++}`,
           Objetivo_Id: Objetivo.Id,
           Fecha,
@@ -63169,7 +64353,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Duracion: Duracion_Final,
           Hecho: false,
           Color: Objetivo.Color
-        });
+        }, Objetivo);
+        Eventos.push(Nuevo_Evento);
+        Meta_Aporte_Redistribuir_Objetivo(Objetivo);
 
         Render_Emojis();
         Render_Resumen_Objetivo();
@@ -64664,7 +65850,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Categoria_Id: Objetivo?.Categoria_Id || null,
           Etiquetas_Ids: Normalizar_Etiquetas_Ids(
             Objetivo?.Etiquetas_Ids
-          )
+          ),
+          Meta_Vinculo_Tipo:
+            (Objetivo?.Meta_Vinculo_Tipo || "").toString(),
+          Meta_Vinculo_Id:
+            (Objetivo?.Meta_Vinculo_Id || "").toString(),
+          Meta_Aporte_Semanal:
+            Meta_Aporte_Numero(Objetivo?.Meta_Aporte_Semanal),
+          Meta_Aporte_Unidad:
+            (Objetivo?.Meta_Aporte_Unidad || "").toString()
         };
       }
 
@@ -64685,6 +65879,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Categoria_Id: El_Editor_Categoria_Input?.value || null,
           Etiquetas_Ids: Obtener_Etiquetas_Seleccionadas(
             El_Editor_Etiquetas_Input
+          ),
+          ...Meta_Aporte_Leer_Datos_Form(
+            El_Editor_Meta_Vinculo_Input,
+            El_Editor_Meta_Aporte_Semanal_Input
           )
         };
       }
@@ -64727,7 +65925,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Categoria_Id: Base_Objetivo.Categoria_Id || null,
           Etiquetas_Ids: Normalizar_Etiquetas_Ids(
             Base_Objetivo.Etiquetas_Ids
-          )
+          ),
+          Meta_Vinculo_Tipo:
+            Base_Objetivo.Meta_Vinculo_Tipo || "",
+          Meta_Vinculo_Id:
+            Base_Objetivo.Meta_Vinculo_Id || "",
+          Meta_Aporte_Semanal:
+            Meta_Aporte_Numero(
+              Base_Objetivo.Meta_Aporte_Semanal
+            ),
+          Meta_Aporte_Unidad:
+            Base_Objetivo.Meta_Aporte_Unidad || ""
         };
         Objetivos.push(Override);
         return Override;
@@ -64756,7 +65964,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Categoria_Id: Datos.Categoria_Id || null,
           Etiquetas_Ids: Normalizar_Etiquetas_Ids(
             Datos.Etiquetas_Ids
-          )
+          ),
+          Meta_Vinculo_Tipo: Datos.Meta_Vinculo_Tipo || "",
+          Meta_Vinculo_Id: Datos.Meta_Vinculo_Id || "",
+          Meta_Aporte_Semanal:
+            Meta_Aporte_Numero(Datos.Meta_Aporte_Semanal),
+          Meta_Aporte_Unidad: Datos.Meta_Aporte_Unidad || ""
         };
         Objetivos.push(Segmento);
         return Segmento;
@@ -64775,6 +65988,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Objetivo.Etiquetas_Ids = Normalizar_Etiquetas_Ids(
           Datos.Etiquetas_Ids
         );
+        Objetivo.Meta_Vinculo_Tipo = Datos.Meta_Vinculo_Tipo || "";
+        Objetivo.Meta_Vinculo_Id = Datos.Meta_Vinculo_Id || "";
+        Objetivo.Meta_Aporte_Semanal =
+          Meta_Aporte_Numero(Datos.Meta_Aporte_Semanal);
+        Objetivo.Meta_Aporte_Unidad = Datos.Meta_Aporte_Unidad || "";
       }
 
       function Reasignar_Eventos_Familia(Familia_Id, Desde_Semana, Nuevo_Objetivo_Id, Solo_Semana = false) {
@@ -65033,6 +66251,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Objetivo_Seleccionada_Id =
           Objetivo_Resultante?.Id || Objetivo_Seleccionada_Id;
+        Meta_Aporte_Redistribuir_Objetivo(Objetivo_Resultante);
         Datos_Editor_Borrador = Objetivo_Resultante
           ? Obtener_Datos_Objetivo(Objetivo_Resultante)
           : null;
@@ -67248,15 +68467,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
-      function Marcar_Eventos_Multi(Hecho) {
+      async function Marcar_Eventos_Multi(Hecho) {
         const Lista = Obtener_Eventos_Multi_Seleccionados_Ordenados();
         if (!Lista.length) return;
-        Lista.forEach((Evento) => {
-          Evento.Hecho = Boolean(Hecho);
-          if (Evento.Hecho) {
-            Evento.Anulada = false;
-          }
-        });
+        for (const Evento of Lista) {
+          const Cambio = await Meta_Aporte_Cambiar_Hecho_Evento(
+            Evento,
+            Boolean(Hecho)
+          );
+          if (!Cambio) break;
+        }
         Render_Emojis();
         Render_Resumen_Objetivo();
         Render_Editor();
@@ -67285,9 +68505,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Confirmar) return;
         const Snap = Capturar_Snapshot_Undo();
+        const Objetivos_Afectados = new Set();
+        Eventos.forEach((Evento) => {
+          if (!Ids_Set.has(Evento.Id)) return;
+          Objetivos_Afectados.add(Evento.Objetivo_Id);
+          Meta_Aporte_Eliminar_Avance_Evento(Evento);
+        });
         Eventos = Eventos.filter((Evento) =>
           !Ids_Set.has(Evento.Id)
         );
+        Objetivos_Afectados.forEach((Objetivo_Id) => {
+          Meta_Aporte_Redistribuir_Objetivo(
+            Objetivo_Por_Id(Objetivo_Id)
+          );
+        });
         Limpiar_Multi_Seleccion_Calendario(false);
         Render_Emojis();
         Render_Resumen_Objetivo();
@@ -68313,6 +69544,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Modo === "Reemplazar" && Eval.Conflictos_Ids.length > 0) {
           const Reemplazos = new Set(Eval.Conflictos_Ids);
+          Eventos.forEach((Evento) => {
+            if (Reemplazos.has(Evento.Id)) {
+              Meta_Aporte_Eliminar_Avance_Evento(Evento);
+            }
+          });
           Eventos = Eventos.filter(
             (Evento) => !Reemplazos.has(Evento.Id)
           );
@@ -68335,7 +69571,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           }
           const Nuevo_Id = `Evento_${Contador_Eventos++}`;
-          Eventos.push({
+          Eventos.push(Meta_Aporte_Preparar_Evento({
             Id: Nuevo_Id,
             Objetivo_Id: Item.Objetivo_Id,
             Fecha: Item.Fecha,
@@ -68345,7 +69581,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Anulada: false,
             Color: Item.Color,
             ...(Item.Nota ? { Nota: Item.Nota } : {})
-          });
+          }, Objetivo));
+          Meta_Aporte_Redistribuir_Objetivo(Objetivo);
           Nuevos_Ids.push(Nuevo_Id);
         });
         Eventos_Multi_Seleccion.clear();
@@ -68411,7 +69648,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           }
           const Nuevo_Id = `Evento_${Contador_Eventos++}`;
-          Eventos.push({
+          Eventos.push(Meta_Aporte_Preparar_Evento({
             Id: Nuevo_Id,
             Objetivo_Id: Item.Objetivo_Id,
             Fecha: Item.Fecha,
@@ -68421,7 +69658,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Anulada: false,
             Color: Item.Color,
             ...(Item.Nota ? { Nota: Item.Nota } : {})
-          });
+          }, Objetivo));
+          Meta_Aporte_Redistribuir_Objetivo(Objetivo);
           Nuevos_Ids.push(Nuevo_Id);
         });
         const Mapa_Grupo_Ids = new Map();
@@ -69655,6 +70893,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Actualizar el selector de categorías con las actuales.
         Poblar_Select_Categorias(El_Categoria_Objetivo, null);
         Render_Selector_Etiquetas(El_Etiquetas_Objetivo);
+        Meta_Aporte_Poblar_Select(El_Meta_Vinculo_Objetivo, "");
+        El_Meta_Aporte_Semanal.value = "0";
+        Actualizar_Form_Creador_Meta_Aporte();
+        setTimeout(() => El_Nombre_Objetivo?.focus(), 0);
       }
 
       function Ocultar_Creador() {
@@ -70500,6 +71742,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Etiquetas_Ids: Normalizar_Etiquetas_Ids(
               Objetivo.Etiquetas_Ids
             ),
+            Meta_Vinculo_Tipo:
+              ["Objetivo", "Subobjetivo"].includes(
+                Objetivo.Meta_Vinculo_Tipo
+              )
+                ? Objetivo.Meta_Vinculo_Tipo
+                : "",
+            Meta_Vinculo_Id:
+              (Objetivo.Meta_Vinculo_Id || "").toString(),
+            Meta_Aporte_Semanal:
+              Meta_Aporte_Numero(Objetivo.Meta_Aporte_Semanal),
+            Meta_Aporte_Unidad:
+              (Objetivo.Meta_Aporte_Unidad || "").toString(),
             Semana_Base: Es_Fija ? null : Semana_Base,
             Semana_Inicio: Es_Fija ? Semana_Inicio : null,
             Semana_Fin: Es_Fija ? Semana_Fin : null
@@ -70536,7 +71790,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Evento.Tarea_Id || null,
             Fecha,
             Inicio,
-            Duracion
+            Duracion,
+            Meta_Aporte_Cantidad:
+              Number.isFinite(Number(Evento.Meta_Aporte_Cantidad))
+                ? Math.max(0, Number(Evento.Meta_Aporte_Cantidad))
+                : undefined,
+            Meta_Aporte_Unidad:
+              (Evento.Meta_Aporte_Unidad || "").toString(),
+            Meta_Aporte_Planeado:
+              Evento.Meta_Aporte_Planeado === undefined
+                ? undefined
+                : Boolean(Evento.Meta_Aporte_Planeado),
+            Meta_Aporte_Tildado:
+              Evento.Meta_Aporte_Tildado === undefined
+                ? undefined
+                : Boolean(Evento.Meta_Aporte_Tildado),
+            Meta_Aporte_Manual:
+              Evento.Meta_Aporte_Manual === undefined
+                ? undefined
+                : Boolean(Evento.Meta_Aporte_Manual),
+            Meta_Avance_Id:
+              (Evento.Meta_Avance_Id || "").toString()
           };
         });
 
@@ -72445,6 +73719,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Datos.Etiquetas_Ids,
           Actualizar_Borrador_Editor
         );
+        Meta_Aporte_Poblar_Select(
+          El_Editor_Meta_Vinculo_Input,
+          Meta_Vinculo_Valor(
+            Datos.Meta_Vinculo_Tipo,
+            Datos.Meta_Vinculo_Id
+          )
+        );
+        El_Editor_Meta_Aporte_Semanal_Input.value =
+          Meta_Aporte_Formatear(
+            Datos.Meta_Aporte_Semanal,
+            Datos.Meta_Aporte_Unidad
+          );
+        Actualizar_Form_Editor_Meta_Aporte();
         Actualizar_Resumen_Editor(Objetivo, Datos);
         Render_Colores_Compactos(El_Swatches_Editor, Datos.Color || Obtener_Color_Default(), (Color) => {
           El_Editor_Color_Input.value = Color;
@@ -72486,11 +73773,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Actualizar_Form_Creador_Meta_Aporte() {
+        Meta_Aporte_Actualizar_UI_Form({
+          Select: El_Meta_Vinculo_Objetivo,
+          Input: El_Meta_Aporte_Semanal,
+          Unidad: El_Meta_Aporte_Unidad,
+          Campo: El_Meta_Aporte_Campo,
+          Campo_Hora: El_Meta_Aporte_Hora_Campo,
+          Hora: El_Meta_Aporte_Hora,
+          Unidad_Hora: El_Meta_Aporte_Hora_Unidad,
+          Sugerencia: El_Meta_Aporte_Sugerencia,
+          Sugerencia_Texto: El_Meta_Aporte_Sugerencia_Texto,
+          Horas: El_Horas_Semanales,
+          Tipo: El_Es_Bolsa
+        });
+      }
+
+      function Actualizar_Form_Editor_Meta_Aporte() {
+        Meta_Aporte_Actualizar_UI_Form({
+          Select: El_Editor_Meta_Vinculo_Input,
+          Input: El_Editor_Meta_Aporte_Semanal_Input,
+          Unidad: El_Editor_Meta_Aporte_Unidad,
+          Campo: El_Editor_Meta_Aporte_Campo,
+          Campo_Hora: El_Editor_Meta_Aporte_Hora_Campo,
+          Hora: El_Editor_Meta_Aporte_Hora_Input,
+          Unidad_Hora: El_Editor_Meta_Aporte_Hora_Unidad,
+          Sugerencia: El_Editor_Meta_Aporte_Sugerencia,
+          Sugerencia_Texto: El_Editor_Meta_Aporte_Sugerencia_Texto,
+          Horas: El_Editor_Horas_Input,
+          Tipo: El_Editor_Tipo_Input
+        });
+      }
+
       function Actualizar_Borrador_Editor() {
         const Objetivo = Objetivo_Seleccionada();
         if (!Objetivo) return;
 
         Datos_Editor_Borrador = Obtener_Datos_Editor();
+        Actualizar_Form_Editor_Meta_Aporte();
         Actualizar_Resumen_Editor(Objetivo, Datos_Editor_Borrador);
       }
 
@@ -72951,13 +74271,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Boton_Hecho.className = "Evento_Boton";
           Boton_Hecho.title = t("evento.marcar_hecho_title");
           Boton_Hecho.textContent = "\u2713";
-          Boton_Hecho.addEventListener("click", (E) => {
+          Boton_Hecho.addEventListener("click", async (E) => {
             E.stopPropagation();
             const Cruces_Metas = !Evento.Hecho
               ? Obtener_Hitos_Cruzados_Por_Evento(Evento)
               : [];
-            Evento.Hecho = !Evento.Hecho;
-            if (Evento.Hecho) Evento.Anulada = false;
+            const Cambio = await Meta_Aporte_Cambiar_Hecho_Evento(
+              Evento,
+              !Evento.Hecho
+            );
+            if (!Cambio) return;
             Render_Emojis();
             Render_Resumen_Objetivo();
             Render_Editor();
@@ -73375,7 +74698,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   Dur_Cfg
                 )
               ) break;
-              Eventos.push({
+              Eventos.push(Meta_Aporte_Preparar_Evento({
                 Id: `Evento_${Contador_Eventos++}`,
                 Objetivo_Id: Evento.Objetivo_Id,
                 Fecha: Evento.Fecha,
@@ -73383,9 +74706,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Duracion: Dur_Cfg,
                 Hecho: false,
                 Color: Evento.Color
-              });
+              }, Objetivo));
             }
           }
+
+          Meta_Aporte_Redistribuir_Objetivo(Objetivo);
 
           Render_Emojis();
           Render_Resumen_Objetivo();
@@ -73876,8 +75201,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Borrar_Evento(Evento_Id) {
         const Index = Eventos.findIndex((Evento) => Evento.Id === Evento_Id);
         if (Index === -1) return;
+        const Evento = Eventos[Index];
+        const Objetivo = Objetivo_Por_Id(Evento.Objetivo_Id);
+        Meta_Aporte_Eliminar_Avance_Evento(Evento);
 
         Eventos.splice(Index, 1);
+        Meta_Aporte_Redistribuir_Objetivo(Objetivo);
         Render_Emojis();
         Render_Resumen_Objetivo();
         Render_Editor();
@@ -74062,6 +75391,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           Bloque.Fecha = Fecha;
           Bloque.Inicio = Hora;
+          Meta_Aporte_Redistribuir_Objetivo(
+            Objetivo_Por_Id(Bloque.Objetivo_Id)
+          );
           Render_Eventos();
           Guardar_Estado();
           return;
@@ -74170,6 +75502,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           Bloque.Fecha = Fecha;
           Bloque.Inicio = Hora;
+          Meta_Aporte_Redistribuir_Objetivo(
+            Objetivo_Por_Id(Bloque.Objetivo_Id)
+          );
           Render_Eventos();
           Guardar_Estado();
           return;
@@ -74283,6 +75618,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Es_Bolsa = El_Es_Bolsa.value === "Si";
         const Horas = Es_Bolsa ? Normalizar_Duracion(El_Horas_Semanales.value) : 0;
         const Es_Fija = El_Periodicidad_Objetivo.value === "Fija";
+        const Datos_Meta = Meta_Aporte_Leer_Datos_Form(
+          El_Meta_Vinculo_Objetivo,
+          El_Meta_Aporte_Semanal
+        );
         const Id = Crear_Id();
         const Objetivo = {
           Id,
@@ -74307,15 +75646,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Categoria_Id: El_Categoria_Objetivo?.value || null,
           Etiquetas_Ids: Obtener_Etiquetas_Seleccionadas(
             El_Etiquetas_Objetivo
-          )
+          ),
+          ...Datos_Meta
         };
 
         Objetivos.push(Objetivo);
+        Meta_Aporte_Redistribuir_Objetivo(Objetivo);
 
         El_Nombre_Objetivo.value = "";
         El_Descripcion_Corta_Objetivo.value = "";
         El_Emoji_Objetivo.value = "";
         El_Horas_Semanales.value = "";
+        El_Meta_Vinculo_Objetivo.value = "";
+        El_Meta_Aporte_Semanal.value = "0";
         Render_Selector_Etiquetas(El_Etiquetas_Objetivo);
         Ocultar_Creador();
         Normalizar_Estado();
@@ -74353,7 +75696,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       El_Es_Bolsa.addEventListener("change", () => {
         El_Horas_Semanales.disabled = El_Es_Bolsa.value !== "Si";
+        Actualizar_Form_Creador_Meta_Aporte();
       });
+
+      El_Meta_Vinculo_Objetivo?.addEventListener(
+        "change",
+        Actualizar_Form_Creador_Meta_Aporte
+      );
+      El_Meta_Aporte_Semanal?.addEventListener(
+        "input",
+        Actualizar_Form_Creador_Meta_Aporte
+      );
+      El_Horas_Semanales?.addEventListener(
+        "input",
+        Actualizar_Form_Creador_Meta_Aporte
+      );
+      El_Meta_Aporte_Sugerencia_Aceptar?.addEventListener(
+        "click",
+        () => {
+          const Cantidad =
+            El_Meta_Aporte_Sugerencia?.dataset.cantidad || "0";
+          El_Meta_Aporte_Semanal.value = Cantidad;
+          Actualizar_Form_Creador_Meta_Aporte();
+        }
+      );
 
       El_Color_Objetivo.addEventListener("input", () => {
         Render_Creador_Colores();
@@ -75510,6 +76876,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Editor_Horas_Input.disabled = El_Editor_Tipo_Input.value !== "Si";
         Actualizar_Borrador_Editor();
       });
+      El_Editor_Meta_Vinculo_Input?.addEventListener("change", () => {
+        Actualizar_Borrador_Editor();
+      });
+      El_Editor_Meta_Aporte_Semanal_Input?.addEventListener(
+        "input",
+        () => {
+          Actualizar_Borrador_Editor();
+        }
+      );
+      El_Editor_Meta_Aporte_Sugerencia_Aceptar?.addEventListener(
+        "click",
+        () => {
+          const Cantidad =
+            El_Editor_Meta_Aporte_Sugerencia?.dataset.cantidad || "0";
+          El_Editor_Meta_Aporte_Semanal_Input.value = Cantidad;
+          Actualizar_Borrador_Editor();
+        }
+      );
       El_Editor_Periodicidad_Input.addEventListener("change", () => {
         Actualizar_Borrador_Editor();
       });
@@ -75517,8 +76901,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Actualizar_Borrador_Editor();
       });
 
-      document.getElementById("Editor_Guardar").addEventListener("click", () => {
-        Guardar_Cambios_Editor();
+      document.getElementById("Editor_Guardar").addEventListener("click", async () => {
+        await Guardar_Cambios_Editor();
         Modo_Editor_Abierto = false;
         Datos_Editor_Borrador = null;
         Render_Editor();
@@ -77722,6 +79106,89 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Render_Aporte_Meta_Focus(Cuerpo, Evento) {
+        const Borrador = Meta_Aporte_Borrador_Abordaje(Evento);
+        if (!Cuerpo || !Borrador) return;
+        const Wrap = document.createElement("div");
+        Wrap.className = "Aporte_Meta_Bloque";
+
+        const Titulo = document.createElement("div");
+        Titulo.className = "Aporte_Meta_Titulo";
+        const Texto = document.createElement("span");
+        Texto.textContent = t("plan.aporte_meta");
+        const Meta = document.createElement("span");
+        Meta.className = "Aporte_Meta_Unidad";
+        Meta.textContent = Borrador.Meta;
+        Titulo.appendChild(Texto);
+        Titulo.appendChild(Meta);
+        Wrap.appendChild(Titulo);
+
+        const Row = document.createElement("div");
+        Row.className = "Aporte_Meta_Row";
+        const Acciones = document.createElement("div");
+        Acciones.className = "Aporte_Meta_Acciones";
+
+        const Btn_Plan = document.createElement("button");
+        Btn_Plan.type = "button";
+        Btn_Plan.className = "Aporte_Meta_Btn" +
+          (Borrador.Planeado ? " Activo" : "");
+        Btn_Plan.textContent = "★";
+        Btn_Plan.title = t("plan.aporte_meta_planear");
+        Btn_Plan.addEventListener("click", async () => {
+          Borrador.Planeado = !Borrador.Planeado;
+          await Guardar_Aporte_Meta_Abordaje(Evento, Borrador);
+          Render_Focus_Mode();
+        });
+
+        const Btn_Tildar = document.createElement("button");
+        Btn_Tildar.type = "button";
+        Btn_Tildar.className = "Aporte_Meta_Btn" +
+          (Borrador.Tildado ? " Activo" : "");
+        Btn_Tildar.textContent = "✓";
+        Btn_Tildar.title = t("plan.aporte_meta_tildar");
+        Btn_Tildar.addEventListener("click", async () => {
+          Borrador.Tildado = !Borrador.Tildado;
+          if (!Borrador.Tildado) {
+            Borrador.Cantidad = 0;
+          } else if (Number(Borrador.Cantidad) <= 0) {
+            Borrador.Cantidad =
+              Borrador.Original_Cantidad || 0;
+          }
+          await Guardar_Aporte_Meta_Abordaje(Evento, Borrador);
+          Render_Focus_Mode();
+        });
+
+        Acciones.appendChild(Btn_Plan);
+        Acciones.appendChild(Btn_Tildar);
+
+        const Input = document.createElement("input");
+        Input.type = "number";
+        Input.min = "0";
+        Input.step = Meta_Aporte_Debe_Redondear(Borrador.Unidad)
+          ? "1"
+          : "0.01";
+        Input.value = Meta_Aporte_Formatear(
+          Borrador.Cantidad,
+          Borrador.Unidad
+        );
+        Input.addEventListener("blur", async () => {
+          Borrador.Cantidad = Meta_Aporte_Numero(Input.value);
+          Borrador.Tildado = Borrador.Cantidad > 0;
+          if (Borrador.Tildado) Borrador.Planeado = true;
+          await Guardar_Aporte_Meta_Abordaje(Evento, Borrador);
+          Render_Focus_Mode();
+        });
+
+        const Unidad = document.createElement("span");
+        Unidad.className = "Aporte_Meta_Unidad";
+        Unidad.textContent = Borrador.Unidad;
+        Row.appendChild(Acciones);
+        Row.appendChild(Input);
+        Row.appendChild(Unidad);
+        Wrap.appendChild(Row);
+        Cuerpo.appendChild(Wrap);
+      }
+
       function Render_Focus_Mode() {
         // Reconstruye el panel del focus a partir del bloque
         // detectado. Llamar tras cualquier mutación visible
@@ -77851,6 +79318,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Cuerpo.appendChild(Fila_CD);
         Actualizar_Countdown_Focus();
+        Render_Aporte_Meta_Focus(Cuerpo, Evento);
 
         // ─── Nota del evento (siempre editable) ───
         const Nota_Tit = document.createElement("div");
@@ -78513,15 +79981,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? t("focus.bloque_ya_hecho")
             : t("focus.marcar_bloque_hecho");
           Btn_Hecho.textContent = "✓";
-          Btn_Hecho.addEventListener("click", () => {
+          Btn_Hecho.addEventListener("click", async () => {
             const Ev_Bloque = Bloque.Evento;
             const Cruces = !Ev_Bloque.Hecho
               ? Obtener_Hitos_Cruzados_Por_Evento(Ev_Bloque)
               : [];
-            Ev_Bloque.Hecho = !Ev_Bloque.Hecho;
-            // Mutuamente excluyente con Anulada.
-            if (Ev_Bloque.Hecho)
-              Ev_Bloque.Anulada = false;
+            const Cambio = await Meta_Aporte_Cambiar_Hecho_Evento(
+              Ev_Bloque,
+              !Ev_Bloque.Hecho
+            );
+            if (!Cambio) return;
             Guardar_Estado();
             Render_Emojis();
             Render_Resumen_Objetivo();
@@ -78558,8 +80027,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               const Ev_Bloque = Bloque.Evento;
               Ev_Bloque.Anulada =
                 !Ev_Bloque.Anulada;
-              if (Ev_Bloque.Anulada)
+              if (Ev_Bloque.Anulada) {
                 Ev_Bloque.Hecho = false;
+                Meta_Aporte_Eliminar_Avance_Evento(Ev_Bloque);
+              }
               Guardar_Estado();
               Render_Emojis();
               Render_Resumen_Objetivo();
