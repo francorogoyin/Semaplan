@@ -238,6 +238,103 @@
         justify-self: start;
       }
 
+      .Metas_Sugeridas_Bloque {
+        display: grid;
+        gap: 8px;
+        margin: 10px 0 12px;
+      }
+
+      .Metas_Sugeridas_Btn {
+        width: 100%;
+      }
+
+      .Metas_Sugeridas_Panel {
+        display: grid;
+        gap: 10px;
+        padding: 12px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .Metas_Sugeridas_Panel.Oculto {
+        display: none;
+      }
+
+      .Metas_Sugeridas_Titulo {
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .Metas_Sugeridas_Tabla {
+        display: grid;
+        gap: 8px;
+        max-height: 50vh;
+        overflow: auto;
+      }
+
+      .Metas_Sugeridas_Fila {
+        display: grid;
+        grid-template-columns: 42px minmax(130px, 1.2fr)
+          minmax(110px, 0.8fr) minmax(110px, 0.8fr)
+          minmax(120px, 0.8fr) 74px minmax(130px, 1fr);
+        gap: 8px;
+        align-items: center;
+        min-width: 860px;
+      }
+
+      .Metas_Sugeridas_Fila input,
+      .Metas_Sugeridas_Fila select {
+        width: 100%;
+        min-width: 0;
+        padding: 8px 9px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--Texto);
+        font: inherit;
+        font-size: 12px;
+      }
+
+      .Metas_Sugeridas_Fila input[type="color"] {
+        min-height: 34px;
+        padding: 3px;
+      }
+
+      .Metas_Sugeridas_Head {
+        color: var(--Texto_Suave);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+      }
+
+      .Metas_Sugeridas_Aporte {
+        display: grid;
+        grid-template-columns: minmax(64px, 1fr) auto;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .Metas_Sugeridas_Unidad,
+      .Metas_Sugeridas_Vinculo,
+      .Metas_Sugeridas_Partes {
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
+
+      .Metas_Sugeridas_Acciones {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .Metas_Sugeridas_Vacio {
+        padding: 10px;
+        color: var(--Texto_Suave);
+        font-size: 13px;
+      }
+
       .Aporte_Meta_Bloque {
         border: none;
         border-radius: 0;
@@ -14916,6 +15013,34 @@
             <button class="Boton_Secundario" id="Ocultar_Creador" type="button" data-i18n="sidebar.ocultar">Ocultar</button>
           </div>
           </div>
+          <div class="Metas_Sugeridas_Bloque">
+            <button
+              class="Boton_Secundario Metas_Sugeridas_Btn"
+              id="Metas_Sugeridas_Abrir"
+              type="button"
+              data-i18n="sidebar.metas_sugeridas">
+              Sugerencias de metas
+            </button>
+            <div
+              class="Metas_Sugeridas_Panel Oculto"
+              id="Metas_Sugeridas_Panel">
+              <div class="Metas_Sugeridas_Titulo"
+                data-i18n="sidebar.metas_sugeridas_titulo">
+                Metas sugeridas para esta semana
+              </div>
+              <div class="Metas_Sugeridas_Tabla"
+                id="Metas_Sugeridas_Tabla"></div>
+              <div class="Metas_Sugeridas_Acciones">
+                <button
+                  class="Boton_Principal"
+                  id="Metas_Sugeridas_Importar"
+                  type="button"
+                  data-i18n="sidebar.metas_sugeridas_importar">
+                  Importar
+                </button>
+              </div>
+            </div>
+          </div>
           <div class="Aviso" data-i18n="sidebar.aviso">Arrastra un emoji al calendario para crear un bloque.</div>
 
           <div class="Barra_Emojis" id="Barra_Emojis"></div>
@@ -19728,6 +19853,25 @@
           "sidebar.aporte_sugerencia":
             "{meta} termina el {fecha}. Quedan {semanas} semanas.\n" +
             "Se sugieren para esta semana: {cantidad} {unidad}.",
+          "sidebar.metas_sugeridas": "Sugerencias de metas",
+          "sidebar.metas_sugeridas_titulo":
+            "Metas sugeridas para esta semana",
+          "sidebar.metas_sugeridas_importar": "Importar",
+          "sidebar.metas_sugeridas_vacio":
+            "No hay subobjetivos sugeridos para esta semana.",
+          "sidebar.metas_sugeridas_sin_importar":
+            "No hay sugerencias validas para importar.",
+          "sidebar.metas_sugeridas_importadas":
+            "Se importaron {n} sugerencia(s).",
+          "sidebar.metas_col_emoji": "Emoji",
+          "sidebar.metas_col_nombre": "Nombre",
+          "sidebar.metas_col_vinculacion": "Vinculacion",
+          "sidebar.metas_col_aporte": "Aporte sugerido",
+          "sidebar.metas_col_categoria": "Categoria",
+          "sidebar.metas_col_color": "Color",
+          "sidebar.metas_col_partes": "Partes vinculadas",
+          "sidebar.metas_partes_n": "{n} parte(s)",
+          "sidebar.metas_partes_ninguna": "Sin partes",
           "sidebar.tipo": "Tipo",
           "sidebar.bolsa_horas":
             "Bolsa de horas",
@@ -23315,6 +23459,25 @@
           "sidebar.aporte_sugerencia":
             "{meta} ends on {fecha}. {semanas} weeks left.\n" +
             "Suggested for this week: {cantidad} {unidad}.",
+          "sidebar.metas_sugeridas": "Goal suggestions",
+          "sidebar.metas_sugeridas_titulo":
+            "Suggested goals for this week",
+          "sidebar.metas_sugeridas_importar": "Import",
+          "sidebar.metas_sugeridas_vacio":
+            "There are no suggested subobjectives for this week.",
+          "sidebar.metas_sugeridas_sin_importar":
+            "There are no valid suggestions to import.",
+          "sidebar.metas_sugeridas_importadas":
+            "{n} suggestion(s) imported.",
+          "sidebar.metas_col_emoji": "Emoji",
+          "sidebar.metas_col_nombre": "Name",
+          "sidebar.metas_col_vinculacion": "Link",
+          "sidebar.metas_col_aporte": "Suggested contribution",
+          "sidebar.metas_col_categoria": "Category",
+          "sidebar.metas_col_color": "Color",
+          "sidebar.metas_col_partes": "Linked parts",
+          "sidebar.metas_partes_n": "{n} part(s)",
+          "sidebar.metas_partes_ninguna": "No parts",
           "sidebar.tipo": "Type",
           "sidebar.bolsa_horas": "Hour pool",
           "sidebar.objetivo_normal":
@@ -26833,6 +26996,25 @@
           "sidebar.aporte_sugerencia":
             "{meta} termina em {fecha}. Faltam {semanas} semanas.\n" +
             "Sugerido para esta semana: {cantidad} {unidad}.",
+          "sidebar.metas_sugeridas": "Sugestoes de metas",
+          "sidebar.metas_sugeridas_titulo":
+            "Metas sugeridas para esta semana",
+          "sidebar.metas_sugeridas_importar": "Importar",
+          "sidebar.metas_sugeridas_vacio":
+            "Nao ha subobjetivos sugeridos para esta semana.",
+          "sidebar.metas_sugeridas_sin_importar":
+            "Nao ha sugestoes validas para importar.",
+          "sidebar.metas_sugeridas_importadas":
+            "{n} sugestao(oes) importada(s).",
+          "sidebar.metas_col_emoji": "Emoji",
+          "sidebar.metas_col_nombre": "Nome",
+          "sidebar.metas_col_vinculacion": "Vinculo",
+          "sidebar.metas_col_aporte": "Aporte sugerido",
+          "sidebar.metas_col_categoria": "Categoria",
+          "sidebar.metas_col_color": "Cor",
+          "sidebar.metas_col_partes": "Partes vinculadas",
+          "sidebar.metas_partes_n": "{n} parte(s)",
+          "sidebar.metas_partes_ninguna": "Sem partes",
           "sidebar.tipo": "Tipo",
           "sidebar.bolsa_horas":
             "Banco de horas",
@@ -31413,6 +31595,18 @@
         document.getElementById("Meta_Aporte_Sugerencia");
       const El_Meta_Aporte_Sugerencia_Texto =
         document.getElementById("Meta_Aporte_Sugerencia_Texto");
+      const El_Metas_Sugeridas_Abrir = document.getElementById(
+        "Metas_Sugeridas_Abrir"
+      );
+      const El_Metas_Sugeridas_Panel = document.getElementById(
+        "Metas_Sugeridas_Panel"
+      );
+      const El_Metas_Sugeridas_Tabla = document.getElementById(
+        "Metas_Sugeridas_Tabla"
+      );
+      const El_Metas_Sugeridas_Importar = document.getElementById(
+        "Metas_Sugeridas_Importar"
+      );
       const El_Semana_Label = document.getElementById("Semana_Label");
       const El_Semana_Principal_Fila = document.getElementById("Semana_Principal_Fila");
       const El_Semana_Rango = document.getElementById("Semana_Rango");
@@ -49593,6 +49787,306 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Objetivo_Semanal_Tiene_Partes_Importables(Objetivo) {
         return Planes_Partes_Importables_Objetivo_Semanal(Objetivo)
           .some((Item) => !Item.Importada);
+      }
+
+      function Metas_Sugeridas_Rango_Subobjetivo(
+        Sub,
+        Objetivo,
+        Modelo
+      ) {
+        const Periodo = Modelo.Periodos[Objetivo?.Periodo_Id];
+        const Inicio =
+          Planes_Normalizar_Fecha_Comparacion(Sub?.Fecha_Inicio) ||
+          Periodo?.Inicio || "";
+        const Fin =
+          Planes_Normalizar_Fecha_Comparacion(
+            Sub?.Fecha_Objetivo || Sub?.Fecha_Fin
+          ) || Periodo?.Fin || "";
+        return { Inicio, Fin, Periodo };
+      }
+
+      function Metas_Sugeridas_Rangos_Cruzan(
+        Inicio_A,
+        Fin_A,
+        Inicio_B,
+        Fin_B
+      ) {
+        if (!Inicio_A || !Fin_A || !Inicio_B || !Fin_B) return false;
+        return Inicio_A <= Fin_B && Fin_A >= Inicio_B;
+      }
+
+      function Metas_Sugeridas_Semanas_Restantes(Fin) {
+        const Fin_Fecha = Parsear_Fecha_ISO(Fin);
+        if (!Fin_Fecha) return 1;
+        const Fin_Semana = Obtener_Lunes(Fin_Fecha);
+        const Dias = Dias_Entre(Semana_Actual, Fin_Semana);
+        return Math.max(1, Math.floor(Dias / 7) + 1);
+      }
+
+      function Metas_Sugeridas_Aporte(Sub, Fin, Unidad) {
+        const Target = Number(Sub?.Target_Total) || 0;
+        const Aporte = Number(Sub?.Aporte_Meta) || 0;
+        const Base = Target > 0 ? Target : Aporte;
+        if (Base <= 0) return 0;
+        const Progreso = Math.max(
+          0,
+          Planes_Progreso_Total_Subobjetivo(Sub) ||
+          Number(Sub?.Progreso_Total) ||
+          Number(Sub?.Progreso_Manual) || 0
+        );
+        const Pendiente = Math.max(0, Base - Progreso);
+        const Semanas = Metas_Sugeridas_Semanas_Restantes(Fin);
+        return Meta_Aporte_Redondear(Pendiente / Semanas, Unidad);
+      }
+
+      function Metas_Sugeridas_Objetivo_Existente(Sub_Id) {
+        const Clave = Clave_Semana_Actual();
+        return Objetivos.find((Objetivo) =>
+          Obtener_Semana_Base_Objetivo(Objetivo) === Clave &&
+          Objetivo.Meta_Vinculo_Tipo === "Subobjetivo" &&
+          Objetivo.Meta_Vinculo_Id === Sub_Id
+        ) || null;
+      }
+
+      function Metas_Sugeridas_Partes(Sub, Modelo) {
+        return Planes_Partes_De_Subobjetivo(Sub.Id, Modelo)
+          .filter((Parte) =>
+            Planes_Estado_Calculado_Parte(Parte, Modelo) !==
+            "Realizada"
+          );
+      }
+
+      function Metas_Sugeridas_Items() {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Inicio_Semana = Clave_Semana_Actual();
+        const Fin_Semana = Formatear_Fecha_ISO(
+          Sumar_Dias(Semana_Actual, 6)
+        );
+        return Object.values(Modelo.Subobjetivos || {})
+          .filter((Sub) => !Sub.Eliminado_Local && !Sub.Hecha)
+          .map((Sub) => {
+            const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
+            if (!Objetivo || Objetivo.Eliminado_Local) return null;
+            const Rango = Metas_Sugeridas_Rango_Subobjetivo(
+              Sub,
+              Objetivo,
+              Modelo
+            );
+            if (!Metas_Sugeridas_Rangos_Cruzan(
+              Rango.Inicio,
+              Rango.Fin,
+              Inicio_Semana,
+              Fin_Semana
+            )) return null;
+            const Unidad = Planes_Unidad_Label_Subobjetivo(Sub);
+            const Aporte = Metas_Sugeridas_Aporte(
+              Sub,
+              Rango.Fin,
+              Unidad
+            );
+            if (Aporte <= 0) return null;
+            if (Metas_Sugeridas_Objetivo_Existente(Sub.Id)) {
+              return null;
+            }
+            return {
+              Sub,
+              Objetivo,
+              Unidad,
+              Aporte,
+              Partes: Metas_Sugeridas_Partes(Sub, Modelo)
+            };
+          })
+          .filter(Boolean)
+          .sort((A, B) =>
+            (A.Objetivo.Nombre || "").localeCompare(
+              B.Objetivo.Nombre || "",
+              "es",
+              { sensitivity: "base", numeric: true }
+            )
+          );
+      }
+
+      function Metas_Sugeridas_Render_Select_Categorias(
+        Select,
+        Valor = ""
+      ) {
+        if (!Select) return;
+        Poblar_Select_Categorias(Select, Valor || null);
+      }
+
+      function Render_Metas_Sugeridas() {
+        if (!El_Metas_Sugeridas_Tabla) return;
+        const Items = Metas_Sugeridas_Items();
+        El_Metas_Sugeridas_Tabla.innerHTML = "";
+        if (!Items.length) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Metas_Sugeridas_Vacio";
+          Vacio.textContent = t("sidebar.metas_sugeridas_vacio");
+          El_Metas_Sugeridas_Tabla.appendChild(Vacio);
+          return;
+        }
+        const Head = document.createElement("div");
+        Head.className = "Metas_Sugeridas_Fila Metas_Sugeridas_Head";
+        [
+          "emoji",
+          "nombre",
+          "vinculacion",
+          "aporte",
+          "categoria",
+          "color",
+          "partes"
+        ].forEach((Clave) => {
+          const Celda = document.createElement("div");
+          Celda.textContent = t(`sidebar.metas_col_${Clave}`);
+          Head.appendChild(Celda);
+        });
+        El_Metas_Sugeridas_Tabla.appendChild(Head);
+        Items.forEach((Item) => {
+          const Fila = document.createElement("div");
+          Fila.className = "Metas_Sugeridas_Fila";
+          Fila.dataset.subobjetivoId = Item.Sub.Id;
+
+          const Emoji = document.createElement("input");
+          Emoji.className = "Con_Selector_Emoji";
+          Emoji.value = Item.Sub.Emoji || Item.Objetivo.Emoji || "";
+
+          const Nombre = document.createElement("input");
+          Nombre.value = Item.Sub.Texto || Item.Objetivo.Nombre || "";
+
+          const Vinculo = document.createElement("div");
+          Vinculo.className = "Metas_Sugeridas_Vinculo";
+          Vinculo.textContent = Meta_Aporte_Label_Item({
+            Tipo: "Subobjetivo",
+            Id: Item.Sub.Id,
+            Objetivo: Item.Objetivo,
+            Sub: Item.Sub
+          });
+
+          const Aporte = document.createElement("div");
+          Aporte.className = "Metas_Sugeridas_Aporte";
+          const Aporte_Input = document.createElement("input");
+          Aporte_Input.type = "number";
+          Aporte_Input.min = "0";
+          Aporte_Input.step = "1";
+          Aporte_Input.value = String(Item.Aporte);
+          const Unidad = document.createElement("span");
+          Unidad.className = "Metas_Sugeridas_Unidad";
+          Unidad.textContent = Item.Unidad;
+          Aporte.appendChild(Aporte_Input);
+          Aporte.appendChild(Unidad);
+
+          const Categoria = document.createElement("select");
+          Metas_Sugeridas_Render_Select_Categorias(Categoria, "");
+
+          const Color = document.createElement("input");
+          Color.type = "color";
+          Color.value = Obtener_Color_Default();
+
+          const Partes = document.createElement("div");
+          Partes.className = "Metas_Sugeridas_Partes";
+          Partes.dataset.partesIds = Item.Partes
+            .map((Parte) => Parte.Id)
+            .join(",");
+          Partes.textContent = Item.Partes.length
+            ? t("sidebar.metas_partes_n", { n: Item.Partes.length })
+            : t("sidebar.metas_partes_ninguna");
+
+          Fila.appendChild(Emoji);
+          Fila.appendChild(Nombre);
+          Fila.appendChild(Vinculo);
+          Fila.appendChild(Aporte);
+          Fila.appendChild(Categoria);
+          Fila.appendChild(Color);
+          Fila.appendChild(Partes);
+          El_Metas_Sugeridas_Tabla.appendChild(Fila);
+        });
+      }
+
+      function Alternar_Metas_Sugeridas() {
+        if (!El_Metas_Sugeridas_Panel) return;
+        const Abrir =
+          El_Metas_Sugeridas_Panel.classList.contains("Oculto");
+        El_Metas_Sugeridas_Panel.classList.toggle("Oculto", !Abrir);
+        if (Abrir) Render_Metas_Sugeridas();
+      }
+
+      function Importar_Metas_Sugeridas() {
+        if (!El_Metas_Sugeridas_Tabla) return;
+        const Modelo = Asegurar_Modelo_Planes();
+        const Filas = Array.from(
+          El_Metas_Sugeridas_Tabla.querySelectorAll(
+            ".Metas_Sugeridas_Fila[data-subobjetivo-id]"
+          )
+        );
+        let Creadas = 0;
+        Filas.forEach((Fila) => {
+          const Sub = Modelo.Subobjetivos[Fila.dataset.subobjetivoId];
+          const Objetivo_Plan = Modelo.Objetivos[Sub?.Objetivo_Id];
+          if (!Sub || !Objetivo_Plan) return;
+          if (Metas_Sugeridas_Objetivo_Existente(Sub.Id)) return;
+          const Inputs = Fila.querySelectorAll("input");
+          const Emoji = Normalizar_Emoji(Inputs[0]?.value || "");
+          const Nombre = (Inputs[1]?.value || "").trim();
+          const Aporte = Meta_Aporte_Numero(Inputs[2]?.value || 0);
+          if (!Nombre || Aporte <= 0) return;
+          const Categoria = Fila.querySelector("select")?.value || null;
+          const Color = Inputs[3]?.value || Obtener_Color_Default();
+          const Objetivo = Crear_Objetivo_Semanal_Con_Datos({
+            Nombre,
+            Emoji,
+            Color,
+            Es_Bolsa: false,
+            Categoria_Id: Categoria,
+            Meta_Vinculo_Tipo: "Subobjetivo",
+            Meta_Vinculo_Id: Sub.Id,
+            Meta_Aporte_Semanal: Aporte,
+            Meta_Aporte_Unidad: Planes_Unidad_Label_Subobjetivo(Sub)
+          }, Clave_Semana_Actual());
+          const Partes_Ids = (
+            Fila.querySelector(".Metas_Sugeridas_Partes")
+              ?.dataset.partesIds || ""
+          ).split(",").filter(Boolean);
+          const Subs = Obtener_Subobjetivos_Semana(
+            Objetivo,
+            true,
+            Clave_Semana_Actual()
+          );
+          Partes_Ids.forEach((Parte_Id) => {
+            const Parte = Modelo.Partes?.[Parte_Id];
+            if (!Parte || Parte.Eliminado_Local) return;
+            Subs.push({
+              Id: Crear_Id_Subobjetivo(),
+              Plantilla_Id: null,
+              Origen_Plantilla_Id: null,
+              Parte_Meta_Id: Parte.Id,
+              Subobjetivo_Meta_Id: Parte.Subobjetivo_Id,
+              Objetivo_Meta_Id: Parte.Objetivo_Id,
+              Emoji: Parte.Emoji || "\u2022",
+              Texto: Parte.Nombre || "",
+              Aporte_Total: Number(Parte.Aporte_Total) || 0,
+              Unidad: Parte.Unidad || "",
+              Unidad_Custom: Parte.Unidad_Custom || "",
+              Hecha: false,
+              Sincronizacion_Parte: "Auto",
+              Orden: Subs.length
+            });
+          });
+          Creadas += 1;
+        });
+        if (Creadas <= 0) {
+          Mostrar_Toast_Error(t("sidebar.metas_sugeridas_sin_importar"));
+          return;
+        }
+        El_Metas_Sugeridas_Panel?.classList.add("Oculto");
+        Normalizar_Estado();
+        Render_Creador_Colores();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Guardar_Estado();
+        Mostrar_Toast_Info(t("sidebar.metas_sugeridas_importadas", {
+          n: Creadas
+        }));
       }
 
       function Abrir_Modal_Importar_Partes_Meta(Objetivo_Id) {
@@ -78839,6 +79333,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       El_Ocultar_Creador.addEventListener("click", () => {
         Ocultar_Creador();
+      });
+
+      El_Metas_Sugeridas_Abrir?.addEventListener("click", () => {
+        Alternar_Metas_Sugeridas();
+      });
+
+      El_Metas_Sugeridas_Importar?.addEventListener("click", () => {
+        Importar_Metas_Sugeridas();
       });
 
       El_Sidebar_Compacta_Boton?.addEventListener(
