@@ -749,13 +749,21 @@ async ({ page }) => {
   await page.click("#Planes_Avance_Cancelar");
 
   const Sub_Modal_Id = await page.evaluate((padreId) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Padre = Modelo.Objetivos[padreId];
+    Padre.Unidad = "Personalizado";
+    Padre.Unidad_Custom = "libros";
     const Id = Planes_Agregar_Subobjetivo(
       padreId,
       "Sub prueba modal"
     );
-    const Sub = Asegurar_Modelo_Planes().Subobjetivos[Id];
+    const Sub = Modelo.Subobjetivos[Id];
     Sub.Target_Total = 3;
-    Sub.Unidad = "Veces";
+    Sub.Unidad = "Personalizado";
+    Sub.Unidad_Custom = "Paginas";
+    Sub.Fecha_Inicio = "2026-03-11";
+    Sub.Fecha_Objetivo = "2026-03-20";
+    Sub.Fecha_Fin = "2026-04-02";
     Render_Plan();
     return Id;
   }, Modelo_Inicial.padreId);
@@ -840,6 +848,28 @@ async ({ page }) => {
     .toBeVisible();
   await expect(page.locator(".Planes_Subobjetivo_Aporte_Campo"))
     .toBeVisible();
+  const Layout_Sub_Modal = await page.evaluate(() => {
+    const Campo = (Id) =>
+      document.getElementById(Id).closest(".Campo")
+        .getBoundingClientRect();
+    const Inicio = Campo("Planes_Subobjetivo_Fecha_Inicio");
+    const Objetivo = Campo("Planes_Subobjetivo_Fecha_Objetivo");
+    const Fin = Campo("Planes_Subobjetivo_Fecha_Fin");
+    return {
+      aporteLabel: document.getElementById(
+        "Planes_Subobjetivo_Aporte_Label"
+      )?.textContent.trim(),
+      fechasMismaLinea:
+        Math.abs(Inicio.top - Objetivo.top) <= 2 &&
+        Math.abs(Inicio.top - Fin.top) <= 2,
+      fechasOrdenadas:
+        Inicio.left < Objetivo.left &&
+        Objetivo.left < Fin.left
+    };
+  });
+  expect(Layout_Sub_Modal.aporteLabel).toBe("Aporte en libros");
+  expect(Layout_Sub_Modal.fechasMismaLinea).toBe(true);
+  expect(Layout_Sub_Modal.fechasOrdenadas).toBe(true);
   await page.fill("#Planes_Subobjetivo_Emoji", "\uD83D\uDCD6");
   await page.fill("#Planes_Subobjetivo_Target", "4");
   await page.fill("#Planes_Subobjetivo_Aporte", "2");

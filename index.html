@@ -5999,24 +5999,37 @@
           minmax(130px, 1fr)
           minmax(116px, 0.95fr)
           minmax(116px, 0.95fr)
+          minmax(116px, 0.95fr)
           minmax(116px, 0.95fr);
       }
 
       .Planes_Subobjetivo_Meta_Campo,
       .Planes_Subobjetivo_Avance_Campo,
-      .Planes_Subobjetivo_Aporte_Campo,
       .Planes_Subobjetivo_Unidad_Campo,
       .Planes_Subobjetivo_Unidad_Custom_Campo {
         grid-column: auto;
       }
 
+      .Planes_Subobjetivo_Aporte_Campo {
+        grid-column: span 2;
+      }
+
       .Planes_Subobjetivo_Fecha_Ini_Campo,
+      .Planes_Subobjetivo_Fecha_Obj_Campo,
       .Planes_Subobjetivo_Fecha_Fin_Campo {
         grid-column: span 2;
       }
 
+      .Planes_Subobjetivo_Fecha_Ini_Campo {
+        grid-column-start: 1;
+      }
+
       .Planes_Subobjetivo_Fecha_Obj_Campo {
-        grid-column: 1 / -1;
+        grid-column-start: 3;
+      }
+
+      .Planes_Subobjetivo_Fecha_Fin_Campo {
+        grid-column-start: 5;
       }
 
       .Planes_Subobjetivo_Emoji_Campo {
@@ -18130,7 +18143,8 @@
                 step="0.25">
             </label>
             <label class="Campo Planes_Subobjetivo_Aporte_Campo">
-              <span data-i18n="planes.sub_aporte">
+              <span id="Planes_Subobjetivo_Aporte_Label"
+                data-i18n="planes.sub_aporte">
                 Aporte
               </span>
               <input id="Planes_Subobjetivo_Aporte"
@@ -18145,18 +18159,18 @@
               <input id="Planes_Subobjetivo_Fecha_Inicio"
                 type="date">
             </label>
-            <label class="Campo Planes_Subobjetivo_Fecha_Fin_Campo">
-              <span data-i18n="planes.sub_fecha_final">
-                Fecha final
-              </span>
-              <input id="Planes_Subobjetivo_Fecha_Fin"
-                type="date">
-            </label>
             <label class="Campo Planes_Subobjetivo_Fecha_Obj_Campo">
               <span data-i18n="planes.sub_fecha_objetivo">
                 Fecha objetivo
               </span>
               <input id="Planes_Subobjetivo_Fecha_Objetivo"
+                type="date">
+            </label>
+            <label class="Campo Planes_Subobjetivo_Fecha_Fin_Campo">
+              <span data-i18n="planes.sub_fecha_final">
+                Fecha final
+              </span>
+              <input id="Planes_Subobjetivo_Fecha_Fin"
                 type="date">
             </label>
             <div class="Campo Campo_Ancho
@@ -19215,6 +19229,7 @@
           "planes.registro_subobjetivo": "Subobjetivo",
           "planes.registro_manual_previo": "Manual previo",
           "planes.sub_aporte": "Aporte",
+          "planes.sub_aporte_en": "Aporte en {Unidad}",
           "planes.sub_valor_objetivo": "Valor objetivo",
           "planes.sub_valor_inicial": "Valor inicial",
           "planes.sub_metrica": "Métrica",
@@ -22669,6 +22684,7 @@
           "planes.registro_subobjetivo": "Subobjective",
           "planes.registro_manual_previo": "Previous manual",
           "planes.sub_aporte": "Contribution",
+          "planes.sub_aporte_en": "Contribution in {Unidad}",
           "planes.sub_valor_objetivo": "Target value",
           "planes.sub_valor_inicial": "Initial value",
           "planes.sub_metrica": "Metric",
@@ -26071,6 +26087,7 @@
           "planes.registro_subobjetivo": "Subobjetivo",
           "planes.registro_manual_previo": "Manual anterior",
           "planes.sub_aporte": "Aporte",
+          "planes.sub_aporte_en": "Aporte em {Unidad}",
           "planes.sub_valor_objetivo": "Valor objetivo",
           "planes.sub_valor_inicial": "Valor inicial",
           "planes.sub_metrica": "Métrica",
@@ -47785,6 +47802,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ".Planes_Subobjetivo_Aporte_Campo"
         );
         if (Aporte_Campo) Aporte_Campo.hidden = !Tiene_Metrica;
+        const Aporte_Label = document.getElementById(
+          "Planes_Subobjetivo_Aporte_Label"
+        );
+        if (Aporte_Label) {
+          const Unidad_Aporte = Planes_Unidad_Label(Objetivo);
+          Aporte_Label.textContent = Unidad_Aporte
+            ? t("planes.sub_aporte_en", { Unidad: Unidad_Aporte })
+            : t("planes.sub_aporte");
+        }
         const Unidad = document.getElementById(
           "Planes_Subobjetivo_Unidad"
         );
