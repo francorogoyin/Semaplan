@@ -64,7 +64,7 @@ async function preparar(page, estadoInicial) {
   }, estadoInicial);
   await page.goto("/index.html");
   await page.waitForLoadState("domcontentloaded");
-  await page.evaluate(() => {
+  await page.evaluate((Inicio) => {
     document.getElementById("Auth_Overlay")
       ?.classList.remove("Activo");
     document.getElementById("App_Loader")
@@ -72,7 +72,13 @@ async function preparar(page, estadoInicial) {
     if (typeof window.Inicializar === "function") {
       window.Inicializar();
     }
-  });
+    const Fecha = Inicio && Parsear_Fecha_ISO(Inicio);
+    if (Fecha) {
+      Semana_Actual = Obtener_Lunes(Fecha);
+      Render_Calendario();
+      Render_Emojis();
+    }
+  }, estadoInicial.Inicio_Semana);
 }
 
 function crearEstadoBase() {
@@ -206,7 +212,7 @@ test("al crear subobjetivo con enter pide alcance y la replica", async ({
   const { estado, monday, nextMonday } = crearEstadoBase();
   await preparar(page, estado);
 
-  const resultado = await page.evaluate(async () => {
+  const resultado = await page.evaluate(async (Clave_Destino) => {
     Objetivo_Seleccionada_Id = "T1";
     Render_Resumen_Objetivo();
     const Objetivo = Objetivo_Por_Id("T1");
@@ -410,6 +416,77 @@ test("los botones de subtareas borran y trasladan", async ({
     { texto: "Tildar", hecha: true }
   ]);
   expect(resultado.destino).toContain("Trasladar");
+});
+
+test("mueve objetivo a otra semana sin trasladar bloques", async ({
+  page
+}) => {
+  const { estado, monday, nextMonday } = crearEstadoBase();
+  estado.Objetivos = [estado.Objetivos[0]];
+  estado.Objetivos[0].Subobjetivos_Semanales[monday] = [
+    {
+      Id: "S_mover",
+      Emoji: "*",
+      Texto: "Mantener subobjetivo",
+      Hecha: false
+    }
+  ];
+  estado.Eventos = [
+    {
+      Id: "E1",
+      Objetivo_Id: "T1",
+      Fecha: monday,
+      Inicio: 8,
+      Duracion: 1,
+      Hecho: false,
+      Color: "#f1b77e"
+    }
+  ];
+  await preparar(page, estado);
+
+  const resultado = await page.evaluate(async (Clave_Destino) => {
+    Objetivo_Seleccionada_Id = "T1";
+    Render_Resumen_Objetivo();
+    const Original = Mostrar_Dialogo;
+    Mostrar_Dialogo = async (Texto) => {
+      const Texto_Dialogo = String(Texto || "");
+      if (Texto_Dialogo.includes("mover el objetivo")) {
+        return "siguiente";
+      }
+      if (Texto_Dialogo.includes("bloques actuales")) {
+        return true;
+      }
+      return true;
+    };
+    try {
+      await Mover_Objetivo_A_Otra_Semana(Objetivo_Por_Id("T1"));
+    } finally {
+      Mostrar_Dialogo = Original;
+    }
+    const Destino = Objetivos.find((Objetivo) =>
+      Objetivo.Id !== "T1" &&
+      Objetivo.Semana_Base === Clave_Destino
+    );
+    return {
+      Semana: Clave_Semana_Actual(),
+      Origen_Existe: Boolean(Objetivo_Por_Id("T1")),
+      Destino_Nombre: Destino?.Nombre || "",
+      Eventos: Eventos.length,
+      Subobjetivos: Destino
+        ? Obtener_Subobjetivos_Semana(
+          Destino,
+          true,
+          Clave_Destino
+        ).map((Sub) => Sub.Texto)
+        : []
+    };
+  }, nextMonday);
+
+  expect(resultado.Semana).toBe(nextMonday);
+  expect(resultado.Origen_Existe).toBe(false);
+  expect(resultado.Destino_Nombre).toBe("Proyecto repetido");
+  expect(resultado.Eventos).toBe(0);
+  expect(resultado.Subobjetivos).toContain("Mantener subobjetivo");
 });
 
 test("si solo hay copias pasadas no pide alcance al crear subobjetivo", async ({

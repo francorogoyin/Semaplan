@@ -411,7 +411,10 @@ test(
     await preparar(page, estado);
 
     await page.click('[data-objetivo-id="o1"]');
-    await page.click("#Resumen_Editar");
+    await page.click("#Resumen_Menu_Acciones");
+    await page.locator("#Dia_Accion_Menu")
+      .getByRole("button", { name: "Editar" })
+      .click();
     const fuenteEditor = await page.evaluate(() => {
       const cuerpo = window.getComputedStyle(
         document.body

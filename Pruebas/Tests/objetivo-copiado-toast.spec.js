@@ -187,8 +187,11 @@ test("muestra toast al copiar un objetivo", async ({
     window.Inicializar();
   });
 
-  await page.locator('.Emoji_Item[title^="Proyecto copia"]').click();
-  await page.locator("#Resumen_Copiar").click();
+  await page.locator(".Emoji_Item").first().click();
+  await page.locator("#Resumen_Menu_Acciones").click();
+  await page.locator("#Dia_Accion_Menu")
+    .getByRole("button", { name: "Copiar" })
+    .click();
   await page.getByRole("button", { name: "Sin subobjetivos" }).click();
   await page.getByRole("button", { name: "Semana específica" }).click();
   await page.locator("#Dialogo_Input_Campo").fill(nextMonday);

@@ -742,52 +742,78 @@
 
       .Subobjetivo_Item {
         display: grid;
-        grid-template-columns: 20px 24px minmax(0, 1fr) 24px 24px;
-        align-items: center;
-        gap: 6px;
-        padding: 6px;
-        border-radius: 10px;
-        background: #f7f2ea;
-        border: 1px solid rgba(31, 31, 31, 0.06);
+        grid-template-columns: 20px 24px minmax(0, 1fr) auto auto;
+        align-items: start;
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: transparent;
+        font-size: 13px;
       }
 
       .Subobjetivo_Item[data-hecha="1"] {
-        opacity: 0.82;
+        opacity: 0.88;
       }
 
       .Subobjetivo_Check {
         grid-column: 1;
         width: 16px;
         height: 16px;
-        margin: 0;
+        margin: 3px 0 0;
       }
 
       .Subobjetivo_Emoji_Label {
         grid-column: 2;
+        display: inline-flex;
         width: 24px;
-        text-align: center;
-        font-size: 13px;
+        height: 24px;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        line-height: 1;
         cursor: text;
         user-select: none;
       }
 
-      .Subobjetivo_Texto_Label {
+      .Subobjetivo_Item.Estado_Activo
+        .Subobjetivo_Emoji_Label {
+        border-radius: 999px;
+        background: #f59e0b;
+        color: #241307;
+        font-size: 16px;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.46),
+          0 1px 4px rgba(151, 84, 0, 0.16);
+      }
+
+      .Subobjetivo_Info {
         grid-column: 3;
+        display: flex;
         min-width: 0;
-        min-height: 22px;
-        display: block;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .Subobjetivo_Texto_Label {
+        min-width: 0;
+        color: var(--Texto);
+        font-weight: 700;
         font-size: 13px;
-        line-height: 22px;
-        padding: 0 2px;
+        line-height: 1.25;
         cursor: text;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow-wrap: anywhere;
       }
 
       .Subobjetivo_Texto_Label[data-hecha="1"] {
         text-decoration: line-through;
         color: var(--Texto_Suave);
+      }
+
+      .Subobjetivo_Meta {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        line-height: 1.3;
       }
 
       .Subobjetivo_Emoji_Input,
@@ -802,12 +828,12 @@
 
       .Subobjetivo_Emoji_Input {
         grid-column: 2;
+        height: 28px;
         text-align: center;
         padding: 4px;
       }
 
       .Subobjetivo_Texto_Input {
-        grid-column: 3;
         min-width: 0;
       }
 
@@ -821,26 +847,45 @@
         display: none;
       }
 
-      .Subobjetivo_Borrar {
-        grid-column: 5;
+      .Subobjetivo_Estado {
+        grid-column: 4;
+        display: inline-flex;
         width: 24px;
         height: 24px;
-        border: 0;
-        border-radius: 8px;
-        background: rgba(0, 0, 0, 0.06);
-        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: #fff;
+        font-size: 12px;
       }
 
+      .Subobjetivo_Acciones {
+        grid-column: 5;
+        display: inline-flex;
+        gap: 4px;
+        align-items: center;
+      }
+
+      .Subobjetivo_Borrar,
       .Subobjetivo_Transferir {
-        grid-column: 4;
+        flex: 0 0 24px;
         width: 24px;
         height: 24px;
-        border: 0;
-        border-radius: 8px;
-        background: rgba(0, 0, 0, 0.06);
+        border: 1px solid var(--Borde);
+        border-radius: 6px;
+        background: #fff;
+        color: var(--Texto);
         cursor: pointer;
         font-size: 14px;
         line-height: 1;
+        padding: 0;
+      }
+
+      .Subobjetivo_Borrar:hover,
+      .Subobjetivo_Transferir:hover {
+        background: var(--Acento_Suave);
+        color: var(--Acento);
       }
 
       .Barra_Progreso {
@@ -1347,13 +1392,16 @@
 
       .Objetivo_Modal_Top_Bar {
         display: flex;
+        align-items: center;
         justify-content: flex-end;
+        gap: 6px;
         padding: 12px 12px 0;
         flex-shrink: 0;
       }
 
       /* Unificado con Config_Cerrar para que todos los modales
          compartan el mismo botón de cerrar. */
+      .Objetivo_Modal_Menu_Btn,
       .Objetivo_Modal_Cerrar_Btn {
         width: 28px;
         height: 28px;
@@ -1370,6 +1418,13 @@
         padding: 0;
       }
 
+      .Objetivo_Modal_Menu_Btn {
+        padding-bottom: 3px;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .Objetivo_Modal_Menu_Btn:hover,
       .Objetivo_Modal_Cerrar_Btn:hover {
         background: rgba(0, 0, 0, 0.12);
       }
@@ -18764,6 +18819,13 @@
       <div class="Objetivo_Modal_Panel">
         <div class="Objetivo_Modal_Top_Bar">
           <button
+            id="Resumen_Menu_Acciones"
+            type="button"
+            title="Acciones"
+            data-i18n-title="resumen_objetivo.menu_acciones"
+            class="Objetivo_Modal_Menu_Btn"
+          >⋯</button>
+          <button
             id="Resumen_Contraer"
             type="button"
             title="Cerrar"
@@ -18793,17 +18855,11 @@
               </div>
             </div>
 
-            <div class="Resumen_Acciones">
-              <button class="Resumen_Boton Resumen_Boton_Principal" id="Resumen_Editar" title="Editar" data-i18n-title="editar">&#9998;</button>
-              <button class="Resumen_Boton Resumen_Boton_Copiar" id="Resumen_Copiar" title="Copiar a semana" data-i18n-title="resumen_objetivo.copiar">&#10697;</button>
-              <button class="Resumen_Boton Resumen_Boton_Secundario" id="Resumen_Subobjetivo_Agregar" title="Agregar subobjetivo" data-i18n-title="resumen_objetivo.subobjetivo_agregar">+</button>
-              <button class="Resumen_Boton Resumen_Boton_Secundario" id="Resumen_Trasladar_Restantes" title="Trasladar subobjetivos no hechos a otra semana" data-i18n-title="resumen_objetivo.trasladar">↪</button>
-              <button class="Resumen_Boton Resumen_Boton_Peligro Inactiva" id="Resumen_Fracasada" title="Marcar semana anulada" data-i18n-title="resumen_objetivo.fracasada">!</button>
-              <button class="Resumen_Boton Resumen_Boton_Secundario" id="Resumen_Borrar" title="Borrar" data-i18n-title="borrar">&times;</button>
-            </div>
             <div class="Subobjetivos">
               <div class="Subobjetivos_Encabezado">
-                <span data-i18n="resumen_objetivo.subobjetivos">Subobjetivos semanales</span>
+                <span data-i18n="planes.administrar_subobjetivos">
+                  Administrar subobjetivos
+                </span>
                 <span class="Subobjetivos_Encabezado_Derecha">
                   <span id="Subobjetivos_Contador">0/0</span>
                   <button class="Subobjetivos_Toggle" id="Subobjetivos_Toggle" type="button" title="Contraer/expandir subobjetivos" data-i18n-title="resumen_objetivo.subobjetivos_toggle_title">−</button>
@@ -20969,11 +21025,13 @@
             "Resumen semanal",
           "resumen_objetivo.sin_seleccion":
             "Sin seleccion",
+          "resumen_objetivo.menu_acciones":
+            "Acciones",
           "resumen_objetivo.subobjetivos":
             "Subobjetivos semanales",
           "resumen_objetivo.editar": "Editar",
           "resumen_objetivo.copiar":
-            "Copiar a semana",
+            "Copiar",
           "resumen_objetivo.subobjetivo_agregar":
             "Agregar subobjetivo",
           "resumen_objetivo.subobjetivos_toggle_title":
@@ -20981,12 +21039,22 @@
           "resumen_objetivo.transferir_title":
             "Transferir a otra semana",
           "resumen_objetivo.trasladar":
-            "Trasladar subobjetivos no hechos " +
+            "Transferir subobjetivos no realizados " +
             "a otra semana",
           "resumen_objetivo.fracasada":
-            "Marcar semana anulada",
+            "Anular",
           "resumen_objetivo.fracasada_quitar":
-            "Borrar semana anulada",
+            "Quitar anulación",
+          "resumen_objetivo.mover_semana":
+            "Mover a otra semana",
+          "resumen_objetivo.mover_semana_dialog":
+            "¿A qué semana mover el objetivo?",
+          "resumen_objetivo.mover_misma_semana":
+            "El objetivo ya está en esa semana",
+          "resumen_objetivo.mover_semana_confirm":
+            "El objetivo se moverá a la semana elegida. " +
+            "Sus bloques actuales no se moverán y se quitarán " +
+            "del calendario. ¿Continuar?",
           "resumen_objetivo.borrar": "Borrar",
           "editor.selecciona":
             "Selecciona un objetivo",
@@ -22419,6 +22487,8 @@
           "toast.subobjetivos_trasladadas":
             "Se trasladaron {n} subobjetivos",
           "toast.objetivo_copiada": "Objetivo copiado",
+          "toast.objetivo_movida":
+            "Objetivo \"{nombre}\" movido",
           "toast.objetivos_eliminadas":
             "Se eliminaron {n} objetivos",
           "toast.objetivos_archivadas":
@@ -24440,11 +24510,13 @@
             "Weekly summary",
           "resumen_objetivo.sin_seleccion":
             "No selection",
+          "resumen_objetivo.menu_acciones":
+            "Actions",
           "resumen_objetivo.subobjetivos":
             "Weekly subobjectives",
           "resumen_objetivo.editar": "Edit",
           "resumen_objetivo.copiar":
-            "Copy to week",
+            "Copy",
           "resumen_objetivo.subobjetivo_agregar":
             "Add subobjective",
           "resumen_objetivo.subobjetivos_toggle_title":
@@ -24452,12 +24524,22 @@
           "resumen_objetivo.transferir_title":
             "Move to another week",
           "resumen_objetivo.trasladar":
-            "Move undone subobjectives to " +
+            "Move incomplete subobjectives to " +
             "another week",
           "resumen_objetivo.fracasada":
-            "Mark week as cancelled",
+            "Cancel",
           "resumen_objetivo.fracasada_quitar":
-            "Delete cancelled week",
+            "Remove cancellation",
+          "resumen_objetivo.mover_semana":
+            "Move to another week",
+          "resumen_objetivo.mover_semana_dialog":
+            "Which week should the objective move to?",
+          "resumen_objetivo.mover_misma_semana":
+            "The objective is already in that week",
+          "resumen_objetivo.mover_semana_confirm":
+            "The objective will move to the selected week. " +
+            "Its current calendar blocks will not move and " +
+            "will be removed from the calendar. Continue?",
           "resumen_objetivo.borrar": "Delete",
           "editor.selecciona":
             "Select a objective",
@@ -25856,6 +25938,8 @@
           "toast.subobjetivos_trasladadas":
             "{n} subobjectives moved",
           "toast.objetivo_copiada": "Objective copied",
+          "toast.objetivo_movida":
+            "Objective \"{nombre}\" moved",
           "toast.objetivos_eliminadas":
             "{n} objectives deleted",
           "toast.objetivos_archivadas":
@@ -27946,11 +28030,13 @@
             "Resumo semanal",
           "resumen_objetivo.sin_seleccion":
             "Sem seleção",
+          "resumen_objetivo.menu_acciones":
+            "Ações",
           "resumen_objetivo.subobjetivos":
             "Subobjetivos semanais",
           "resumen_objetivo.editar": "Editar",
           "resumen_objetivo.copiar":
-            "Copiar para semana",
+            "Copiar",
           "resumen_objetivo.subobjetivo_agregar":
             "Adicionar subobjetivo",
           "resumen_objetivo.subobjetivos_toggle_title":
@@ -27958,12 +28044,22 @@
           "resumen_objetivo.transferir_title":
             "Transferir para outra semana",
           "resumen_objetivo.trasladar":
-            "Transferir subobjetivos não " +
-            "feitas para outra semana",
+            "Transferir subobjetivos não realizados " +
+            "para outra semana",
           "resumen_objetivo.fracasada":
-            "Marcar semana como anulada",
+            "Anular",
           "resumen_objetivo.fracasada_quitar":
-            "Excluir semana anulada",
+            "Remover anulação",
+          "resumen_objetivo.mover_semana":
+            "Mover para outra semana",
+          "resumen_objetivo.mover_semana_dialog":
+            "Para qual semana mover o objetivo?",
+          "resumen_objetivo.mover_misma_semana":
+            "O objetivo já está nessa semana",
+          "resumen_objetivo.mover_semana_confirm":
+            "O objetivo será movido para a semana escolhida. " +
+            "Seus blocos atuais não serão movidos e serão " +
+            "removidos do calendário. Continuar?",
           "resumen_objetivo.borrar": "Apagar",
           "editor.selecciona":
             "Selecione uma objetivo",
@@ -29400,6 +29496,8 @@
           "toast.subobjetivos_trasladadas":
             "Foram movidos {n} subobjetivos",
           "toast.objetivo_copiada": "Objetivo copiado",
+          "toast.objetivo_movida":
+            "Objetivo \"{nombre}\" movido",
           "toast.objetivos_eliminadas":
             "Foram excluídos {n} objetivos",
           "toast.objetivos_archivadas":
@@ -30753,16 +30851,15 @@
         document.getElementById(
           "Editor_Meta_Aporte_Sugerencia_Aceptar"
         );
-      const El_Resumen_Editar = document.getElementById("Resumen_Editar");
+      const El_Resumen_Menu_Acciones = document.getElementById(
+        "Resumen_Menu_Acciones"
+      );
       const El_Categoria_Objetivo = document.getElementById("Categoria_Objetivo");
       const El_Etiquetas_Objetivo = document.getElementById("Etiquetas_Objetivo");
       const El_Editor_Categoria_Input = document.getElementById("Editor_Categoria_Input");
       const El_Editor_Etiquetas_Input = document.getElementById(
         "Editor_Etiquetas_Input"
       );
-      const El_Resumen_Subobjetivo_Agregar = document.getElementById("Resumen_Subobjetivo_Agregar");
-      const El_Resumen_Fracasada = document.getElementById("Resumen_Fracasada");
-      const El_Resumen_Borrar = document.getElementById("Resumen_Borrar");
       const El_Subobjetivos_Contador = document.getElementById("Subobjetivos_Contador");
       const El_Subobjetivos_Toggle = document.getElementById("Subobjetivos_Toggle");
       const El_Subobjetivos_Lista = document.getElementById("Subobjetivos_Lista");
@@ -31051,7 +31148,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       const El_Suscripcion_Card_Upgrade = document.getElementById(
         "Suscripcion_Card_Upgrade"
       );
-      const El_Resumen_Copiar = document.getElementById("Resumen_Copiar");
 
       // --- Estado del sistema de diálogos ---
       let Dialogo_Resolver_Fn = null;
@@ -55152,6 +55248,195 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
+      async function Solicitar_Destino_Mover_Objetivo(
+        Clave_Origen
+      ) {
+        const Fecha_Origen =
+          Parsear_Fecha_ISO(Clave_Origen) || Semana_Actual;
+        const Eleccion = await Mostrar_Dialogo(
+          t("resumen_objetivo.mover_semana_dialog"),
+          [
+            {
+              Etiqueta: t("dialog.semana_anterior"),
+              Valor: "anterior",
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("dialog.semana_siguiente"),
+              Valor: "siguiente",
+              Tipo: "Primario"
+            },
+            {
+              Etiqueta: t("dialog.elegir_semana"),
+              Valor: "manual",
+              Tipo: "Secundario"
+            },
+            { Etiqueta: t("cancelar"), Valor: null, Tipo: "Cancelar" }
+          ]
+        );
+        if (!Eleccion) return null;
+        if (Eleccion === "anterior") {
+          return Formatear_Fecha_ISO(
+            Sumar_Dias(Fecha_Origen, -7)
+          );
+        }
+        if (Eleccion === "siguiente") {
+          return Formatear_Fecha_ISO(
+            Sumar_Dias(Fecha_Origen, 7)
+          );
+        }
+        const Fecha_Str = await Mostrar_Dialogo_Con_Fecha(
+          t("dialog.elegir_dia_semana_destino"),
+          Clave_Origen
+        );
+        const Fecha_Manual = Parsear_Fecha_ISO(Fecha_Str);
+        if (!Fecha_Manual) return null;
+        return Formatear_Fecha_ISO(Obtener_Lunes(Fecha_Manual));
+      }
+
+      function Copiar_Subobjetivos_Objetivo_Semana(
+        Origen,
+        Destino,
+        Clave_Origen,
+        Clave_Destino
+      ) {
+        if (!Origen || !Destino) return;
+        const Subobjetivos_Origen = Obtener_Subobjetivos_Semana(
+          Origen,
+          true,
+          Clave_Origen
+        );
+        if (Subobjetivos_Origen.length > 0) {
+          Destino.Subobjetivos_Semanales[Clave_Destino] =
+            Subobjetivos_Origen.map((Subobjetivo) => ({
+              Id: Crear_Id_Subobjetivo(),
+              Plantilla_Id: Subobjetivo?.Plantilla_Id || null,
+              Origen_Plantilla_Id:
+                Subobjetivo?.Origen_Plantilla_Id || null,
+              Emoji: Normalizar_Emoji(
+                Subobjetivo?.Emoji || "\u2022"
+              ),
+              Texto: (Subobjetivo?.Texto || "").toString(),
+              Hecha: Boolean(Subobjetivo?.Hecha)
+            }));
+        }
+
+        const Excluidas_Origen =
+          Origen.Subobjetivos_Excluidos_Semanales?.[
+            Clave_Origen
+          ];
+        if (Array.isArray(Excluidas_Origen)) {
+          Destino.Subobjetivos_Excluidos_Semanales[
+            Clave_Destino
+          ] = Excluidas_Origen.map((Id) => (Id || "").toString());
+        }
+
+        const Contraidas_Origen =
+          Origen.Subobjetivos_Contraidas_Semanales?.[
+            Clave_Origen
+          ];
+        if (Contraidas_Origen !== undefined) {
+          Destino.Subobjetivos_Contraidas_Semanales[
+            Clave_Destino
+          ] = Boolean(Contraidas_Origen);
+        }
+      }
+
+      function Quitar_Objetivo_De_Semana_Actual(Objetivo) {
+        if (!Objetivo) return;
+        if (Boolean(Objetivo.Es_Fija)) {
+          Borrar_Objetivo_Fija_Esta_Semana(Objetivo);
+          return;
+        }
+        const Objetivo_Id = Objetivo.Id;
+        Objetivos = Objetivos.filter(
+          (Item) => Item.Id !== Objetivo_Id
+        );
+        Eventos = Eventos.filter(
+          (Evento) => Evento.Objetivo_Id !== Objetivo_Id
+        );
+        if (Objetivo_Seleccionada_Id === Objetivo_Id) {
+          Objetivo_Seleccionada_Id = null;
+        }
+      }
+
+      async function Mover_Objetivo_A_Otra_Semana(Objetivo) {
+        if (!Objetivo) return;
+        const Clave_Origen = Clave_Semana_Actual();
+        const Clave_Destino =
+          await Solicitar_Destino_Mover_Objetivo(Clave_Origen);
+        if (!Clave_Destino) return;
+        if (Clave_Destino === Clave_Origen) {
+          Mostrar_Toast_Info(
+            t("resumen_objetivo.mover_misma_semana"),
+            "\u2194",
+            4000
+          );
+          return;
+        }
+
+        const Tiene_Bloques = Eventos.some(
+          (Evento) => Evento.Objetivo_Id === Objetivo.Id
+        );
+        if (Tiene_Bloques) {
+          const Confirmar = await Mostrar_Dialogo(
+            t("resumen_objetivo.mover_semana_confirm"),
+            [
+              {
+                Etiqueta: t("cancelar"),
+                Valor: false,
+                Tipo: "Cancelar"
+              },
+              {
+                Etiqueta: t("resumen_objetivo.mover_semana"),
+                Valor: true,
+                Tipo: "Primario"
+              }
+            ]
+          );
+          if (!Confirmar) return;
+        }
+
+        const Snap_Undo = Capturar_Snapshot_Undo();
+        const Nombre_Objetivo =
+          Objetivo.Nombre || t("objetivo.sin_nombre");
+        const Datos = Obtener_Datos_Objetivo(Objetivo);
+        Datos.Es_Fija = false;
+        const Objetivo_Destino = Crear_Objetivo_Semanal_Con_Datos(
+          Datos,
+          Clave_Destino
+        );
+        Objetivo_Destino.Familia_Id =
+          Obtener_Familia_Objetivo(Objetivo);
+        Copiar_Subobjetivos_Objetivo_Semana(
+          Objetivo,
+          Objetivo_Destino,
+          Clave_Origen,
+          Clave_Destino
+        );
+        Quitar_Objetivo_De_Semana_Actual(Objetivo);
+        Normalizar_Estado();
+
+        const Fecha_Destino = Parsear_Fecha_ISO(Clave_Destino);
+        if (Fecha_Destino) {
+          Semana_Actual = Obtener_Lunes(Fecha_Destino);
+        }
+        Objetivo_Seleccionada_Id = Objetivo_Destino.Id;
+        Modo_Editor_Abierto = false;
+        Datos_Editor_Borrador = null;
+
+        Render_Calendario();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Eventos();
+        Mostrar_Toast_Undo(
+          t("toast.objetivo_movida", { nombre: Nombre_Objetivo }),
+          Snap_Undo
+        );
+        Guardar_Estado();
+      }
+
       // --- Funciones del modal de configuración ---
 
       function Generar_Opciones_Horas(Desde, Hasta) {
@@ -73788,11 +74073,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : 100;
         El_Resumen_Barra.style.width = `${Math.max(0, Math.min(100, Porcentaje))}%`;
         El_Resumen_Barra.style.background = Objetivo.Color || Obtener_Color_Default();
-        const Fracasada = Objetivo_Esta_Fracasada(Objetivo);
-        El_Resumen_Fracasada.classList.toggle("Inactiva", !Fracasada);
-        El_Resumen_Fracasada.title = Fracasada
-          ? t("resumen_objetivo.fracasada_quitar")
-          : t("resumen_objetivo.fracasada");
         Render_Subobjetivos_Resumen(Objetivo);
       }
 
@@ -73808,6 +74088,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Subobjetivos.forEach((Subobjetivo) => {
           const Item = document.createElement("div");
           Item.className = "Subobjetivo_Item";
+          if (!Subobjetivo.Hecha) {
+            Item.classList.add("Estado_Activo");
+          }
           if (Subobjetivos_Multi_Seleccion.has(Subobjetivo.Id)) {
             Item.classList.add("Multi_Activa");
           }
@@ -73851,6 +74134,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto_Input.dataset.rol = "texto";
           Texto_Input.placeholder =
             t("focus.placeholder_subobjetivo");
+
+          const Info = document.createElement("div");
+          Info.className = "Subobjetivo_Info";
+
+          const Meta = document.createElement("div");
+          Meta.className = "Subobjetivo_Meta";
+          Meta.textContent = Subobjetivo.Hecha
+            ? t("planes.estado_cumplido")
+            : t("planes.estado_activo");
+
+          const Estado = document.createElement("span");
+          Estado.className = "Subobjetivo_Estado Con_Fallback_Emoji";
+          Estado.title = Meta.textContent;
+          Estado.setAttribute("aria-label", Meta.textContent);
+          Estado.textContent = Planes_Emoji_Estado(
+            Subobjetivo.Hecha ? "Cumplido" : "Activo"
+          );
+
+          const Acciones = document.createElement("div");
+          Acciones.className = "Subobjetivo_Acciones";
 
           const Borrar = document.createElement("button");
           Borrar.type = "button";
@@ -73908,10 +74211,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Item.appendChild(Check);
           Item.appendChild(Emoji_Label);
           Item.appendChild(Emoji_Input);
-          Item.appendChild(Texto_Label);
-          Item.appendChild(Texto_Input);
-          Item.appendChild(Transferir);
-          Item.appendChild(Borrar);
+          Info.appendChild(Texto_Label);
+          Info.appendChild(Texto_Input);
+          Info.appendChild(Meta);
+          Item.appendChild(Info);
+          Item.appendChild(Estado);
+          Acciones.appendChild(Transferir);
+          Acciones.appendChild(Borrar);
+          Item.appendChild(Acciones);
           El_Subobjetivos_Lista.appendChild(Item);
 
           if (Item.dataset.editando === "1") {
@@ -77149,34 +77456,143 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Editor();
           Guardar_Estado();
         });
-      El_Resumen_Editar.addEventListener("click", () => {
+
+      function Abrir_Editor_Resumen_Objetivo() {
         if (!Objetivo_Seleccionada()) return;
         Modo_Editor_Abierto = true;
-        Datos_Editor_Borrador = Obtener_Datos_Objetivo(Objetivo_Seleccionada());
-        // Re-renderizar también el resumen para que se oculte
-        // cuando el editor pasa a estar abierto.
+        Datos_Editor_Borrador = Obtener_Datos_Objetivo(
+          Objetivo_Seleccionada()
+        );
         Render_Resumen_Objetivo();
         Render_Editor();
         Guardar_Estado();
-      });
-      El_Resumen_Copiar.addEventListener("click", () => {
-        const Objetivo = Objetivo_Seleccionada();
-        if (!Objetivo) return;
-        Copiar_Objetivo(Objetivo);
-      });
-      El_Resumen_Subobjetivo_Agregar.addEventListener("click", async () => {
-        const Objetivo = Objetivo_Seleccionada();
-        if (!Objetivo) return;
-        // El alcance se pregunta al guardar (focusout), no aquí.
-        Preparar_Objetivo_Para_Agregar_Subobjetivo(Objetivo);
-        // No guardamos todavía: el subobjetivo está vacío hasta que el
-        // usuario escriba algo. El Guardar_Estado se hace al confirmar.
-      });
+      }
 
-      document.getElementById("Resumen_Trasladar_Restantes")
-        ?.addEventListener(
-          "click", Trasladar_Subobjetivos_Restantes
-        );
+      function Agregar_Subobjetivo_Desde_Resumen() {
+        const Objetivo = Objetivo_Seleccionada();
+        if (!Objetivo) return;
+        Preparar_Objetivo_Para_Agregar_Subobjetivo(Objetivo);
+      }
+
+      function Alternar_Fracasada_Desde_Resumen() {
+        const Objetivo = Objetivo_Seleccionada();
+        if (!Objetivo) return;
+        Alternar_Fracasada_Semana_Objetivo(Objetivo);
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Eventos();
+        Guardar_Estado();
+      }
+
+      async function Borrar_Objetivo_Desde_Resumen() {
+        const Objetivo = Objetivo_Seleccionada();
+        if (!Objetivo) return;
+        if (!await Confirmar_Borrar_Objetivo(Objetivo)) return;
+        await Borrar_Objetivo(Objetivo.Id);
+      }
+
+      async function Ejecutar_Accion_Menu_Resumen(Accion) {
+        const Objetivo = Objetivo_Seleccionada();
+        if (!Objetivo) return;
+        if (Accion === "editar") {
+          Abrir_Editor_Resumen_Objetivo();
+        } else if (Accion === "anular") {
+          Alternar_Fracasada_Desde_Resumen();
+        } else if (Accion === "copiar") {
+          await Copiar_Objetivo(Objetivo);
+        } else if (Accion === "agregar-subobjetivo") {
+          Agregar_Subobjetivo_Desde_Resumen();
+        } else if (Accion === "trasladar-restantes") {
+          await Trasladar_Subobjetivos_Restantes();
+        } else if (Accion === "mover-semana") {
+          await Mover_Objetivo_A_Otra_Semana(Objetivo);
+        } else if (Accion === "borrar") {
+          await Borrar_Objetivo_Desde_Resumen();
+        }
+      }
+
+      function Mostrar_Menu_Resumen_Objetivo(Evento) {
+        Evento.preventDefault();
+        Evento.stopPropagation();
+        const Objetivo = Objetivo_Seleccionada();
+        const Menu = document.getElementById("Dia_Accion_Menu");
+        if (!Objetivo || !Menu || !El_Resumen_Menu_Acciones) return;
+        Cerrar_Menu_Dia();
+
+        const Fracasada = Objetivo_Esta_Fracasada(Objetivo);
+        Menu.innerHTML = Construir_Menu_Dia_Por_Grupos([
+          [
+            Html_Menu_Dia_Accion(
+              "editar",
+              t("resumen_objetivo.editar")
+            ),
+            Html_Menu_Dia_Accion(
+              "anular",
+              Fracasada
+                ? t("resumen_objetivo.fracasada_quitar")
+                : t("resumen_objetivo.fracasada")
+            ),
+            Html_Menu_Dia_Accion(
+              "copiar",
+              t("resumen_objetivo.copiar")
+            )
+          ],
+          [
+            Html_Menu_Dia_Accion(
+              "agregar-subobjetivo",
+              t("resumen_objetivo.subobjetivo_agregar")
+            ),
+            Html_Menu_Dia_Accion(
+              "trasladar-restantes",
+              t("resumen_objetivo.trasladar")
+            )
+          ],
+          [
+            Html_Menu_Dia_Accion(
+              "mover-semana",
+              t("resumen_objetivo.mover_semana")
+            ),
+            Html_Menu_Dia_Accion(
+              "borrar",
+              t("resumen_objetivo.borrar"),
+              "Dia_Accion_Peligro"
+            )
+          ]
+        ]);
+
+        const Rect = El_Resumen_Menu_Acciones.getBoundingClientRect();
+        Menu.style.left = `${Rect.left}px`;
+        Menu.style.top = `${Rect.bottom + 6}px`;
+        Menu.classList.add("Activo");
+        Reposicionar_Menu_Dia_En_Pantalla(Menu);
+
+        Menu.querySelectorAll("[data-acc]").forEach((Boton) => {
+          Boton.addEventListener("click", async (Ev) => {
+            Ev.preventDefault();
+            Ev.stopPropagation();
+            const Accion = Boton.dataset.acc || "";
+            Cerrar_Menu_Dia();
+            await Ejecutar_Accion_Menu_Resumen(Accion);
+          });
+        });
+
+        if (Fn_Cierre_Menu) {
+          document.removeEventListener("click", Fn_Cierre_Menu);
+          Fn_Cierre_Menu = null;
+        }
+        Fn_Cierre_Menu = (Ev) => {
+          if (Menu.contains(Ev.target)) return;
+          if (El_Resumen_Menu_Acciones.contains(Ev.target)) return;
+          Cerrar_Menu_Dia();
+        };
+        document.addEventListener("click", Fn_Cierre_Menu);
+      }
+
+      El_Resumen_Menu_Acciones?.addEventListener(
+        "click",
+        Mostrar_Menu_Resumen_Objetivo
+      );
       El_Subobjetivos_Toggle.addEventListener("click", () => {
         const Objetivo = Objetivo_Seleccionada();
         if (!Objetivo) return;
@@ -77435,23 +77851,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Resumen_Objetivo();
         Guardar_Estado();
       });
-      El_Resumen_Fracasada.addEventListener("click", () => {
-        const Objetivo = Objetivo_Seleccionada();
-        if (!Objetivo) return;
-        Alternar_Fracasada_Semana_Objetivo(Objetivo);
-        Render_Emojis();
-        Render_Resumen_Objetivo();
-        Render_Editor();
-        Render_Eventos();
-        Guardar_Estado();
-      });
-      El_Resumen_Borrar.addEventListener("click", async () => {
-        const Objetivo = Objetivo_Seleccionada();
-        if (!Objetivo) return;
-        if (!await Confirmar_Borrar_Objetivo(Objetivo)) return;
-        await Borrar_Objetivo(Objetivo.Id);
-      });
-
       // ============================================================
       //  Selector universal de emojis
       // ============================================================
