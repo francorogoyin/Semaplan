@@ -138,6 +138,11 @@
         overflow: auto;
       }
 
+      body.Creador_Objetivo_Activo .Panel_Lateral {
+        z-index: 11000;
+        overflow: visible;
+      }
+
       .Calendario_Contenedor {
         grid-area: calendario;
       }
@@ -181,7 +186,7 @@
         position: fixed;
         left: 50%;
         top: 50%;
-        z-index: 1600;
+        z-index: 11000;
         width: min(560px, calc(100vw - 28px));
         max-height: calc(100vh - 40px);
         overflow: auto;
@@ -70888,6 +70893,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Sidebar_Compacta_Esta_Activa()) {
           Abrir_Sidebar_Compacta();
         }
+        if (El_Creador_Contenido.parentElement !== document.body) {
+          document.body.appendChild(El_Creador_Contenido);
+        }
+        document.body.classList.add("Creador_Objetivo_Activo");
         El_Creador_Contenido.classList.remove("Oculto");
         El_Mostrar_Creador.classList.add("Oculto");
         // Actualizar el selector de categorías con las actuales.
@@ -70901,6 +70910,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Ocultar_Creador() {
         El_Creador_Contenido.classList.add("Oculto");
+        document.body.classList.remove("Creador_Objetivo_Activo");
         El_Mostrar_Creador.classList.remove("Oculto");
       }
 
