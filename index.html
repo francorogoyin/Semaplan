@@ -3489,8 +3489,8 @@
       }
 
       .Planes_Archivero_Panel {
-        width: min(1160px, calc(100vw - 28px));
-        max-width: 1160px;
+        width: min(1040px, calc(100vw - 28px));
+        max-width: 1040px;
       }
 
       .Patron_Modal_Cuerpo.Planes_Cuerpo {
@@ -3509,7 +3509,7 @@
       .Planes_Cabecera {
         align-items: flex-start;
         gap: 8px;
-        padding: 10px 12px;
+        padding: 10px 36px;
       }
 
       .Planes_Cabecera .Patron_Modal_Titulo {
@@ -3728,11 +3728,11 @@
       }
 
       .Planes_Control {
-        flex: 0 0 132px;
+        flex: 0 0 124px;
       }
 
       .Planes_Vista_Control {
-        flex: 0 0 156px;
+        flex: 0 0 196px;
       }
 
       .Planes_Control_Label {
@@ -3778,7 +3778,7 @@
         font: inherit;
         font-size: 10px;
         min-width: 0;
-        padding: 5px 4px;
+        padding: 5px 8px;
         white-space: nowrap;
       }
 
@@ -6318,8 +6318,8 @@
 
       /* Ajuste visual del modal de Planes */
       .Plan_Panel {
-        width: min(1160px, calc(100vw - 28px));
-        max-width: 1160px;
+        width: min(1040px, calc(100vw - 28px));
+        max-width: 1040px;
         max-height: calc(100vh - 40px);
       }
 
@@ -6638,6 +6638,7 @@
         .Planes_Cabecera {
           align-items: flex-start;
           flex-wrap: wrap;
+          padding: 10px 12px;
         }
 
         .Planes_Header_Acciones {
@@ -19228,6 +19229,7 @@
           "planes.registro_calendario": "Calendario",
           "planes.registro_subobjetivo": "Subobjetivo",
           "planes.registro_manual_previo": "Manual previo",
+          "planes.meta_faltan": "Faltan {Cantidad}",
           "planes.sub_aporte": "Aporte",
           "planes.sub_aporte_en": "Aporte en {Unidad}",
           "planes.sub_valor_objetivo": "Valor objetivo",
@@ -22683,6 +22685,7 @@
           "planes.registro_calendario": "Calendar",
           "planes.registro_subobjetivo": "Subobjective",
           "planes.registro_manual_previo": "Previous manual",
+          "planes.meta_faltan": "Remaining {Cantidad}",
           "planes.sub_aporte": "Contribution",
           "planes.sub_aporte_en": "Contribution in {Unidad}",
           "planes.sub_valor_objetivo": "Target value",
@@ -26086,6 +26089,7 @@
           "planes.registro_calendario": "Calendário",
           "planes.registro_subobjetivo": "Subobjetivo",
           "planes.registro_manual_previo": "Manual anterior",
+          "planes.meta_faltan": "Faltam {Cantidad}",
           "planes.sub_aporte": "Aporte",
           "planes.sub_aporte_en": "Aporte em {Unidad}",
           "planes.sub_valor_objetivo": "Valor objetivo",
@@ -43751,17 +43755,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .toLocaleLowerCase(Obtener_Locale_Actual());
       }
 
-      function Planes_Formatear_Meta_Objetivo(Objetivo) {
+      function Planes_Target_Pendiente_Objetivo(Objetivo) {
+        const Target = Number(Objetivo?.Target_Total) || 0;
+        const Pendiente = Number(Objetivo?.Target_Pendiente);
+        if (Number.isFinite(Pendiente)) {
+          return Math.max(0, Pendiente);
+        }
+        const Progreso = Number(Objetivo?.Progreso_Total) || 0;
+        return Math.max(0, Target - Progreso);
+      }
+
+      function Planes_Formatear_Meta_Objetivo(
+        Objetivo,
+        Opciones = {}
+      ) {
         if (
           Planes_Normalizar_Modo_Avance(Objetivo) === "Sin_Metrica" ||
           (Number(Objetivo.Target_Total) || 0) <= 0
         ) {
           return "";
         }
-        return `${Planes_Formatear_Numero(
+        const Texto = `${Planes_Formatear_Numero(
           Objetivo.Target_Total
         )} ${Planes_Unidad_Label(Objetivo)
           .toLocaleLowerCase(Obtener_Locale_Actual())}`.trim();
+        if (!Opciones.Incluir_Faltante) return Texto;
+        const Faltante = Planes_Formatear_Numero(
+          Planes_Target_Pendiente_Objetivo(Objetivo)
+        );
+        return `${Texto} (${t("planes.meta_faltan", {
+          Cantidad: Faltante
+        })})`;
       }
 
       function Planes_Formatear_Meta_Subobjetivo(Sub) {
@@ -46448,7 +46472,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Objetivo.Target_Total
         );
         const Meta_Objetivo_Texto =
-          Planes_Formatear_Meta_Objetivo(Objetivo);
+          Planes_Formatear_Meta_Objetivo(
+            Objetivo,
+            { Incluir_Faltante: true }
+          );
         const Boton_Avance = `
           <button class="Planes_Btn Planes_Avance_Btn"
             type="button"

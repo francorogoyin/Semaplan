@@ -214,6 +214,14 @@ async ({ page }) => {
     const Biblioteca = document.querySelector(
       '[data-plan-vista="Biblioteca"]'
     );
+    const Biblioteca_Rango = document.createRange();
+    Biblioteca_Rango.selectNodeContents(Biblioteca);
+    const Biblioteca_Texto = Biblioteca_Rango.getBoundingClientRect();
+    const Biblioteca_Rect = Biblioteca.getBoundingClientRect();
+    const Biblioteca_Aire_Izq =
+      Biblioteca_Texto.left - Biblioteca_Rect.left;
+    const Biblioteca_Aire_Der =
+      Biblioteca_Rect.right - Biblioteca_Texto.right;
     return {
       configBg: getComputedStyle(Config).backgroundColor,
       configBorder: getComputedStyle(Config).borderStyle,
@@ -227,6 +235,9 @@ async ({ page }) => {
       ),
       bibliotecaSinCorte:
         Biblioteca.scrollWidth <= Biblioteca.clientWidth,
+      bibliotecaAireParejo:
+        Math.abs(Biblioteca_Aire_Izq - Biblioteca_Aire_Der) <= 2 &&
+        Biblioteca_Aire_Der >= 8,
       tieneTuerca: Boolean(Config.querySelector("svg"))
     };
   });
@@ -238,6 +249,7 @@ async ({ page }) => {
   expect(Barra.vistaAncho).toBeGreaterThanOrEqual(150);
   expect(Math.abs(Barra.vistaTop - Barra.configTop)).toBeLessThanOrEqual(4);
   expect(Barra.bibliotecaSinCorte).toBe(true);
+  expect(Barra.bibliotecaAireParejo).toBe(true);
   expect(Barra.tieneTuerca).toBe(true);
   await page.evaluate(() => {
     Abrir_Modal_Planes_Ayuda_Conceptual();
@@ -275,6 +287,7 @@ async ({ page }) => {
 
   const Layout_Desktop = await page.evaluate(() => {
     const Panel = document.querySelector(".Planes_Archivero_Panel");
+    const Cabecera = document.querySelector(".Planes_Cabecera");
     const Layout = document.querySelector(".Planes_Layout");
     const Rango_Resumen = document.querySelector(
       ".Planes_Resumen_Rango"
@@ -293,6 +306,7 @@ async ({ page }) => {
     );
     return {
       panelAncho: Math.round(Panel.getBoundingClientRect().width),
+      paddingCabecera: getComputedStyle(Cabecera).paddingLeft,
       layoutDisplay: getComputedStyle(Layout).display,
       rangoResumen: Rango_Resumen?.textContent || "",
       controlesUnaLinea: Math.max(...Tops) - Math.min(...Tops) <= 4,
@@ -312,7 +326,8 @@ async ({ page }) => {
   });
 
   expect(Layout_Desktop.panelAncho).toBeGreaterThan(1000);
-  expect(Layout_Desktop.panelAncho).toBeLessThanOrEqual(1160);
+  expect(Layout_Desktop.panelAncho).toBeLessThanOrEqual(1040);
+  expect(Layout_Desktop.paddingCabecera).toBe("36px");
   expect(Layout_Desktop.layoutDisplay).toBe("block");
   expect(Layout_Desktop.rangoResumen).not.toContain("2026-01-01");
   expect(Layout_Desktop.rangoResumen).toContain("a");
@@ -527,6 +542,7 @@ async ({ page }) => {
     .innerText();
   expect(Texto_Tarjeta).toContain("%");
   expect(Texto_Tarjeta).toContain("horas");
+  expect(Texto_Tarjeta).toContain("Faltan");
   expect(Texto_Tarjeta).not.toContain("#Lectura");
   expect(Texto_Tarjeta).not.toContain("Horas");
   expect(Texto_Tarjeta).not.toContain("Mixto");
@@ -2229,7 +2245,7 @@ async ({ page }) => {
     "baul.etiqueta",
     "vista"
   ]);
-  expect(Controles.diferenciaAncho).toBeLessThanOrEqual(24);
+  expect(Controles.diferenciaAncho).toBeLessThanOrEqual(80);
   expect(Controles.estadoTodos).toBe("Todos");
   expect(Controles.etiquetaTodas).toBe("Todas");
   expect(Controles.anioTodos).toBe("Todos");
