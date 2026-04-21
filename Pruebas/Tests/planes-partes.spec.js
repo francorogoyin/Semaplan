@@ -383,6 +383,40 @@ async ({ page }) => {
     };
   });
 
+  await page.evaluate(() => {
+    Abrir_Modal_Planes_Partes("sub_libro");
+  });
+  const Parte_Item = page.locator(
+    "#Planes_Partes_Lista .Planes_Parte"
+  ).first();
+  await expect(Parte_Item).toBeVisible();
+  const Estilos_Parte = await Parte_Item.evaluate((El) => {
+    const Estilos = getComputedStyle(El);
+    return {
+      background: Estilos.backgroundColor,
+      borderBottom: Estilos.borderBottomWidth,
+      borderRadius: Estilos.borderRadius,
+      borderTop: Estilos.borderTopWidth
+    };
+  });
+  expect(Estilos_Parte).toEqual({
+    background: "rgba(0, 0, 0, 0)",
+    borderBottom: "1px",
+    borderRadius: "0px",
+    borderTop: "0px"
+  });
+  await expect(
+    Parte_Item.locator('[data-parte-accion="editar"]')
+  ).toBeHidden();
+  await Parte_Item.locator("[data-parte-menu]").click();
+  await expect(
+    Parte_Item.locator('[data-parte-accion="editar"]')
+  ).toBeVisible();
+  await page.mouse.click(20, 20);
+  await expect(
+    Parte_Item.locator('[data-parte-accion="editar"]')
+  ).toBeHidden();
+
   expect(errores).toEqual([]);
   expect(resultado.parcial).toEqual({ parte: 5, sub: 5 });
   expect(resultado.debug).toEqual({

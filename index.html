@@ -6055,12 +6055,15 @@
       .Planes_Parte {
         display: grid;
         grid-template-columns: auto minmax(0, 1fr) auto;
-        gap: 8px;
+        gap: 10px;
         align-items: start;
-        border: 1px solid var(--Borde);
-        border-radius: 8px;
-        background: #fff;
-        padding: 10px;
+        border-bottom: 1px solid var(--Borde);
+        background: transparent;
+        padding: 10px 0;
+      }
+
+      .Planes_Parte:last-child {
+        border-bottom: none;
       }
 
       .Planes_Parte.Eliminada {
@@ -6112,10 +6115,59 @@
       }
 
       .Planes_Parte_Acciones {
+        position: relative;
         display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
         justify-content: flex-end;
+      }
+
+      .Planes_Parte_Menu_Btn {
+        width: 30px;
+        height: 30px;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: transparent;
+        color: var(--Texto);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        font: inherit;
+        font-size: 16px;
+        line-height: 1;
+        padding: 0 0 3px;
+      }
+
+      .Planes_Parte_Menu_Btn:hover,
+      .Planes_Parte_Menu_Btn:focus-visible {
+        background: var(--Acento_Suave);
+        color: var(--Acento);
+      }
+
+      .Planes_Parte_Menu_Popup {
+        display: none;
+        position: absolute;
+        top: 34px;
+        right: 0;
+        z-index: 5;
+        min-width: 190px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: var(--Panel);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+        padding: 5px;
+      }
+
+      .Planes_Parte_Acciones.Activo .Planes_Parte_Menu_Popup {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .Planes_Parte_Menu_Popup .Planes_Btn {
+        width: 100%;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        text-align: left;
+        padding: 8px 9px;
       }
 
       .Planes_Objetivo_Modal {
@@ -20366,6 +20418,7 @@
           "planes.agregar_parte": "Agregar parte",
           "planes.nueva_parte": "Nueva parte",
           "planes.editar_parte": "Editar parte",
+          "planes.parte_acciones": "Acciones de parte",
           "planes.parte_nombre": "Parte",
           "planes.parte_aporte_total": "Aporte total",
           "planes.parte_avance_inicial": "Avance inicial",
@@ -23923,6 +23976,7 @@
           "planes.agregar_parte": "Add part",
           "planes.nueva_parte": "New part",
           "planes.editar_parte": "Edit part",
+          "planes.parte_acciones": "Part actions",
           "planes.parte_nombre": "Part",
           "planes.parte_aporte_total": "Total contribution",
           "planes.parte_avance_inicial": "Initial progress",
@@ -27434,6 +27488,7 @@
           "planes.agregar_parte": "Adicionar parte",
           "planes.nueva_parte": "Nova parte",
           "planes.editar_parte": "Editar parte",
+          "planes.parte_acciones": "Acoes da parte",
           "planes.parte_nombre": "Parte",
           "planes.parte_aporte_total": "Aporte total",
           "planes.parte_avance_inicial": "Avanco inicial",
@@ -52575,9 +52630,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Cerrar_Modal_Planes_Partes() {
+        Planes_Cerrar_Menus_Parte();
         document.getElementById("Planes_Partes_Overlay")
           ?.classList.remove("Activo");
         Planes_Partes_Subobjetivo_Id = null;
+      }
+
+      function Planes_Cerrar_Menus_Parte(Excepto = null) {
+        document.querySelectorAll(".Planes_Parte_Acciones.Activo")
+          .forEach((Menu) => {
+            if (Excepto && Menu === Excepto) return;
+            Menu.classList.remove("Activo");
+            Menu.querySelector("[data-parte-menu]")
+              ?.setAttribute("aria-expanded", "false");
+          });
       }
 
       function Actualizar_Campo_Unidad_Custom_Parte() {
@@ -52651,27 +52717,49 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             </span>
           </span>
           <span class="Planes_Parte_Acciones">
-            <button class="Planes_Btn" type="button"
-              data-parte-accion="editar">${t("editar")}</button>
-            <button class="Planes_Btn" type="button"
-              data-parte-accion="realizar"
-              ${Estado === "Realizada" ? "disabled" : ""}>
-              ${t("planes.marcar_realizado")}
+            <button class="Planes_Parte_Menu_Btn" type="button"
+              data-parte-menu
+              aria-expanded="false"
+              aria-label="${Escape_Html(t("planes.parte_acciones"))}"
+              title="${Escape_Html(t("planes.parte_acciones"))}">
+              ...
             </button>
-            <button class="Planes_Btn" type="button"
-              data-parte-accion="desmarcar"
-              ${Estado !== "Realizada" ? "disabled" : ""}>
-              ${t("planes.parte_desmarcar")}
-            </button>
-            <button class="Planes_Btn Peligro" type="button"
-              data-parte-accion="eliminar">
-              ${t("planes.eliminar_local")}
-            </button>
+            <span class="Planes_Parte_Menu_Popup">
+              <button class="Planes_Btn" type="button"
+                data-parte-accion="editar">${t("editar")}</button>
+              <button class="Planes_Btn" type="button"
+                data-parte-accion="realizar"
+                ${Estado === "Realizada" ? "disabled" : ""}>
+                ${t("planes.marcar_realizado")}
+              </button>
+              <button class="Planes_Btn" type="button"
+                data-parte-accion="desmarcar"
+                ${Estado !== "Realizada" ? "disabled" : ""}>
+                ${t("planes.parte_desmarcar")}
+              </button>
+              <button class="Planes_Btn Peligro" type="button"
+                data-parte-accion="eliminar">
+                ${t("planes.eliminar_local")}
+              </button>
+            </span>
           </span>
         `;
         Item.addEventListener("click", async (Ev) => {
+          const Menu_Btn = Ev.target.closest("[data-parte-menu]");
+          if (Menu_Btn) {
+            Ev.stopPropagation();
+            const Menu = Menu_Btn.closest(".Planes_Parte_Acciones");
+            const Abrir = !Menu?.classList.contains("Activo");
+            Planes_Cerrar_Menus_Parte(Menu);
+            if (Menu && Abrir) {
+              Menu.classList.add("Activo");
+              Menu_Btn.setAttribute("aria-expanded", "true");
+            }
+            return;
+          }
           const Accion = Ev.target.closest("[data-parte-accion]");
           if (!Accion) return;
+          Planes_Cerrar_Menus_Parte();
           const Tipo = Accion.dataset.parteAccion;
           if (Tipo === "editar") {
             Abrir_Modal_Planes_Parte(Parte.Id);
@@ -78276,6 +78364,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.preventDefault();
           }
         });
+      document.addEventListener("click", (Ev) => {
+        if (Ev.target.closest(".Planes_Parte_Acciones")) return;
+        Planes_Cerrar_Menus_Parte();
+      });
       document.getElementById("Planes_Parte_Cerrar")
         ?.addEventListener("click", Cerrar_Modal_Planes_Parte);
       document.getElementById("Planes_Parte_Cancelar")
