@@ -65988,9 +65988,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Fecha_Origen,
         Hora_Origen,
         Fecha_Destino,
-        Hora_Destino
+        Hora_Destino,
+        Opciones = {}
       ) {
-        const Franja = Obtener_Franja_Slot_Muerto(
+        const Franja_Origen = Obtener_Franja_Slot_Muerto(
           Fecha_Origen,
           Hora_Origen
         );
@@ -66012,9 +66013,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Slot_Muerto_Es_Arrastrable(Fecha_Origen, Hora_Origen)) {
           return false;
         }
-        if (!Franja) return false;
-        const Grupo_Id_Franja =
-          Asegurar_Grupo_Id_Franja_Slot(Franja);
+        if (!Franja_Origen) return false;
+        const Mover_Franja = Boolean(Opciones?.Mover_Franja);
+        const Franja = Mover_Franja
+          ? Franja_Origen
+          : {
+            Fecha: Fecha_Origen,
+            Hora_Ancla: Hora_Origen,
+            Inicio: Hora_Origen,
+            Fin: Hora_Origen + 1,
+            Horas: [Hora_Origen],
+            Claves: [Clave_Origen]
+          };
+        const Grupo_Id_Franja = Mover_Franja
+          ? Asegurar_Grupo_Id_Franja_Slot(Franja)
+          : "";
         const Motivo_Conflicto =
           Obtener_Motivo_Conflicto_Traslado_Franja_Slot(
             Franja,
@@ -66050,7 +66063,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Fecha_Origen,
                 Hora_Item
               ),
-              Grupo_Id: Grupo_Id_Franja
+              Grupo_Id: Mover_Franja
+                ? Grupo_Id_Franja
+                : Crear_Id_Grupo_Slot_Muerto()
             }
           };
         });

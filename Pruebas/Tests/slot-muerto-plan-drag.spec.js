@@ -69,6 +69,8 @@ async function preparar(page, estadoInicial) {
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Semana_Actual = Parsear_Fecha_ISO("2026-04-13");
+    Render_Calendario();
   });
 }
 
@@ -308,7 +310,7 @@ test("arrastra slot muerto con plan, tipo y titulo", async ({
   expect(data.alerta).toBe("");
 });
 
-test("arrastra una franja contigua de slots muertos", async ({
+test("arrastra un slot muerto agrupado sin mover vecinos", async ({
   page
 }) => {
   const estado = estadoBase();
@@ -341,22 +343,31 @@ test("arrastra una franja contigua de slots muertos", async ({
     origen_11: Slots_Muertos.includes("2026-04-13|11"),
     destino_12: Slots_Muertos.includes("2026-04-13|12"),
     destino_13: Slots_Muertos.includes("2026-04-13|13"),
+    plan_11:
+      Planes_Slot["2026-04-13|11"]?.Items?.[0]?.Texto || "",
     plan_12:
       Planes_Slot["2026-04-13|12"]?.Items?.[0]?.Texto || "",
     plan_13:
       Planes_Slot["2026-04-13|13"]?.Items?.[0]?.Texto || "",
+    grupo_11: Slots_Muertos_Grupo_Ids["2026-04-13|11"] || "",
+    grupo_12: Slots_Muertos_Grupo_Ids["2026-04-13|12"] || "",
+    titulo_11: Slots_Muertos_Nombres["2026-04-13|11"] || "",
     titulo_12: Slots_Muertos_Nombres["2026-04-13|12"] || "",
     titulo_13: Slots_Muertos_Nombres["2026-04-13|13"] || ""
   }));
 
   expect(data.origen_10).toBeFalsy();
-  expect(data.origen_11).toBeFalsy();
+  expect(data.origen_11).toBeTruthy();
   expect(data.destino_12).toBeTruthy();
-  expect(data.destino_13).toBeTruthy();
+  expect(data.destino_13).toBeFalsy();
+  expect(data.plan_11).toBe("Idea central");
   expect(data.plan_12).toBe("Idea central");
-  expect(data.plan_13).toBe("Idea central");
+  expect(data.plan_13).toBe("");
+  expect(data.grupo_11).toBe("grupo_10");
+  expect(data.grupo_12).not.toBe("grupo_10");
+  expect(data.titulo_11).toBe("Almuerzo largo");
   expect(data.titulo_12).toBe("Almuerzo largo");
-  expect(data.titulo_13).toBe("Almuerzo largo");
+  expect(data.titulo_13).toBe("");
 });
 
 test("slots contiguos sin grupo explicito no se arrastran juntos", async ({
@@ -482,7 +493,10 @@ test("slots iguales de grupos distintos no quedan fusionados tras recargar", asy
   expect(data.slot_12).toBeTruthy();
   expect(data.slot_13).toBeFalsy();
   expect(data.grupo_11).toBe("grupo_11");
-  expect(data.grupo_12).toBe("grupo_10");
+  expect(data.grupo_12).not.toBe("grupo_10");
+  expect(data.grupo_12).not.toBe("grupo_11");
+
+  const Grupo_12_Movido = data.grupo_12;
 
   const estadoRecargado = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("Semaplan_Estado_V2"))
@@ -509,8 +523,9 @@ test("slots iguales de grupos distintos no quedan fusionados tras recargar", asy
   expect(data.slot_12).toBeTruthy();
   expect(data.slot_13).toBeTruthy();
   expect(data.slot_14).toBeFalsy();
-  expect(data.grupo_12).toBe("grupo_10");
-  expect(data.grupo_13).toBe("grupo_11");
+  expect(data.grupo_12).toBe(Grupo_12_Movido);
+  expect(data.grupo_13).not.toBe("grupo_11");
+  expect(data.grupo_13).not.toBe(Grupo_12_Movido);
 });
 
 test("no pisa un horario ocupado al arrastrar slot muerto", async ({
@@ -711,7 +726,6 @@ test("el menu de slot muerto agrupa identidad, plan y patron", async ({
     "plan-slot",
     "copiar-plan-slot",
     "borrar-plan-slot",
-    "pegar-plan-slot",
     "insertar-patron-slot",
     "guardar-patron-slot",
     "cambiar-tipo-slot",
@@ -768,6 +782,7 @@ test("el menu de slot vacio agrupa plan, patron y pegar bloques", async ({
 
   expect(acciones).toEqual([
     "plan-slot",
+    "copiar-plan-slot",
     "borrar-plan-slot",
     "insertar-patron-slot",
     "guardar-patron-slot",
@@ -1253,6 +1268,8 @@ test("el menu contextual puede limpiar un bloque y la celda debajo", async ({
   ).toHaveCount(0);
   expect(acciones_menu).toEqual([
     "abordaje",
+    "copiar-plan-evento",
+    "borrar-plan-evento",
     "nota",
     "borrar-nota",
     "repetir",
