@@ -3453,6 +3453,124 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Actualizar capa traslada avances de subobjetivos importados",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 2;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Libros Melville",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 12,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Sub_Id = Crear_Id_Subobjetivo_Plan();
+    Modelo.Subobjetivos[Sub_Id] = Normalizar_Subobjetivo_Plan({
+      Id: Sub_Id,
+      Objetivo_Id: Padre.Id,
+      Emoji: "\uD83D\uDCD6",
+      Texto: "Cuentos de Melville",
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Target_Total: 4,
+      Progreso_Inicial: 0,
+      Aporte_Meta: 1,
+      Fecha_Fin: "2026-04-30"
+    });
+    const Sub = Modelo.Subobjetivos[Sub_Id];
+    const Registrar = (Fecha, Hora) => {
+      const Id = Crear_Id_Avance_Plan();
+      Modelo.Avances[Id] = Normalizar_Avance_Plan({
+        Id,
+        Objetivo_Id: Padre.Id,
+        Subobjetivo_Id: Sub.Id,
+        Fuente: "Subobjetivo",
+        Cantidad: 1,
+        Unidad: "paginas",
+        Fecha,
+        Hora,
+        Fecha_Hora: `${Fecha}T${Hora}`
+      });
+    };
+    Registrar("2026-04-12", "10:00");
+    Registrar("2026-04-20", "11:00");
+    Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+    Planes_Actualizar_Progreso(Padre);
+
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    Planes_Importar_Objetivos_Padres_A_Periodos(
+      Trimestres.map((Periodo) => ({
+        Periodo_Id: Periodo.Id,
+        Objetivo_Ids: [Padre.Id]
+      })),
+      { Modo: "Pendiente" }
+    );
+    const Segundo = Trimestres[1];
+    const Hijo = Planes_Objetivo_Hijo_De(Padre.Id, Segundo.Id);
+    const Sub_Hijo = Planes_Subobjetivos_De_Objetivo(Hijo.Id)
+      .find((Item) =>
+        !Item.Eliminado_Local &&
+        Item.Parent_Subobjetivo_Id === Sub.Id
+      );
+    Planes_Recalcular_Progreso_Subobjetivo(Sub_Hijo, Modelo);
+    Planes_Actualizar_Progreso(Hijo);
+    const Registros = Planes_Registros_De_Objetivo(Hijo);
+
+    return {
+      Sub_Hijo_Existe: Boolean(Sub_Hijo),
+      Sub_Hijo_Avances: Sub_Hijo?.Progreso_Avances || 0,
+      Sub_Hijo_Total: Sub_Hijo?.Progreso_Manual || 0,
+      Progreso_Subobjetivos: Hijo.Progreso_Subobjetivos,
+      Progreso_Total: Hijo.Progreso_Total,
+      Registros: Registros.map((Registro) => ({
+        Fuente: Registro.Fuente,
+        Item: Registro.Item,
+        Editable: Registro.Editable,
+        Cantidad: Registro.Cantidad
+      }))
+    };
+  });
+
+  expect(Resultado.Sub_Hijo_Existe).toBe(true);
+  expect(Resultado.Sub_Hijo_Avances).toBe(2);
+  expect(Resultado.Sub_Hijo_Total).toBe(2);
+  expect(Resultado.Progreso_Subobjetivos).toBeCloseTo(0.5, 5);
+  expect(Resultado.Progreso_Total).toBeCloseTo(0.5, 5);
+  expect(Resultado.Registros).toHaveLength(2);
+  expect(Resultado.Registros.map((Registro) => Registro.Item))
+    .toEqual([
+      "Cuentos de Melville",
+      "Cuentos de Melville"
+    ]);
+  expect(Resultado.Registros.every((Registro) =>
+    Registro.Editable === false
+  )).toBe(true);
+  expect(errores).toEqual([]);
+});
+
 test("Subobjetivos muestra meta limpia sin importado ni metadatos",
 async ({ page }) => {
   const errores = [];

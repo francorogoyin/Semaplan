@@ -42411,11 +42411,49 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         )}`;
       }
 
+      function Planes_Subobjetivo_Raiz_Id(
+        Sub_Id,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        let Actual = M.Subobjetivos?.[Sub_Id];
+        const Visitados = new Set();
+        while (
+          Actual?.Parent_Subobjetivo_Id &&
+          !Visitados.has(Actual.Id)
+        ) {
+          Visitados.add(Actual.Id);
+          Actual = M.Subobjetivos[Actual.Parent_Subobjetivo_Id];
+        }
+        return Actual?.Id || Sub_Id || "";
+      }
+
+      function Planes_Subobjetivos_Familia_Ids(
+        Sub_Id,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Raiz_Id = Planes_Subobjetivo_Raiz_Id(Sub_Id, M);
+        const Ids = new Set();
+        Object.values(M.Subobjetivos || {}).forEach((Sub) => {
+          if (
+            Planes_Subobjetivo_Raiz_Id(Sub.Id, M) === Raiz_Id
+          ) {
+            Ids.add(Sub.Id);
+          }
+        });
+        if (!Ids.size && Sub_Id) {
+          Ids.add(Sub_Id);
+        }
+        return Ids;
+      }
+
       function Planes_Avances_De_Subobjetivo(Sub_Id, Modelo = null) {
         const M = Modelo || Asegurar_Modelo_Planes();
+        const Sub_Ids = Planes_Subobjetivos_Familia_Ids(Sub_Id, M);
         return Object.values(M.Avances || {})
           .filter((Avance) =>
-            Avance.Subobjetivo_Id === Sub_Id &&
+            Sub_Ids.has(Avance.Subobjetivo_Id) &&
             Avance.Fuente === "Subobjetivo"
           );
       }
@@ -43148,17 +43186,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Subobjetivo_Raiz_Aporte_Id(Sub) {
-        const Modelo = Asegurar_Modelo_Planes();
-        let Actual = Sub;
-        const Visitados = new Set();
-        while (
-          Actual?.Parent_Subobjetivo_Id &&
-          !Visitados.has(Actual.Id)
-        ) {
-          Visitados.add(Actual.Id);
-          Actual = Modelo.Subobjetivos[Actual.Parent_Subobjetivo_Id];
-        }
-        return Actual?.Id || Sub?.Id || "";
+        return Planes_Subobjetivo_Raiz_Id(Sub?.Id || "");
       }
 
       function Planes_Normalizar_Fecha_Comparacion(Fecha) {
@@ -43211,14 +43239,56 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Periodo,
         Modelo
       ) {
-        if (!Sub?.Hecha || Sub.Eliminado_Local) return false;
-        if ((Number(Sub.Aporte_Meta) || 0) <= 0) return false;
-        if (Sub.Fecha_Fin) {
-          return Planes_Periodo_Contiene_Fecha(Periodo, Sub.Fecha_Fin);
+        return Planes_Aporte_Subobjetivo_En_Periodo(
+          Sub,
+          Periodo,
+          Modelo
+        ) > 0;
+      }
+
+      function Planes_Subobjetivo_Ubicado_En_Periodo(
+        Sub,
+        Periodo,
+        Modelo
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        if (!Sub || Sub.Eliminado_Local || !Periodo) return false;
+        const Fecha = Planes_Fecha_Subobjetivo_Importacion(Sub);
+        if (Fecha) {
+          return Planes_Periodo_Contiene_Fecha(Periodo, Fecha);
         }
-        const Objetivo_Sub = Modelo.Objetivos[Sub.Objetivo_Id];
-        const Periodo_Sub = Modelo.Periodos[Objetivo_Sub?.Periodo_Id];
+        const Objetivo_Sub = M.Objetivos[Sub.Objetivo_Id];
+        const Periodo_Sub = M.Periodos[Objetivo_Sub?.Periodo_Id];
         return Planes_Periodo_Contiene_Periodo(Periodo, Periodo_Sub);
+      }
+
+      function Planes_Aporte_Subobjetivo_En_Periodo(
+        Sub,
+        Periodo,
+        Modelo
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        if (!Planes_Subobjetivo_Ubicado_En_Periodo(
+          Sub,
+          Periodo,
+          M
+        )) return 0;
+        const Aporte = Math.max(0, Number(Sub.Aporte_Meta) || 0);
+        if (Aporte <= 0) return 0;
+        const Target = Number(Sub.Target_Total) || 0;
+        if (Sub.Hecha) return Aporte;
+        if (Target <= 0) return 0;
+        const Inicial = Math.max(
+          0,
+          Number(Sub.Progreso_Inicial) || 0
+        );
+        const Avances = Planes_Total_Avances_Subobjetivo(
+          Sub.Id,
+          M
+        );
+        const Progreso = Inicial + Avances;
+        if (Progreso <= 0) return 0;
+        return Math.min(Aporte, Aporte * (Progreso / Target));
       }
 
       function Planes_Aportes_Subobjetivos_En_Periodo(Objetivo_Plan) {
@@ -43243,19 +43313,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Por_Raiz = new Map();
         Object.values(Modelo.Subobjetivos || {}).forEach((Sub) => {
           if (!Objetivo_Ids.has(Sub.Objetivo_Id)) return;
-          if (!Planes_Subobjetivo_Cuenta_En_Periodo(
+          const Aporte = Planes_Aporte_Subobjetivo_En_Periodo(
             Sub,
             Periodo,
             Modelo
-          )) return;
-          const Aporte = Number(Sub.Aporte_Meta) || 0;
+          );
+          if (Aporte <= 0) return;
           const Raiz_Id = Planes_Subobjetivo_Raiz_Aporte_Id(Sub);
           const Actual = Por_Raiz.get(Raiz_Id);
           if (!Actual || Aporte > Actual.Aporte) {
             Por_Raiz.set(Raiz_Id, {
               Sub,
               Aporte,
-              Fecha: Sub.Fecha_Fin || ""
+              Fecha: Planes_Fecha_Subobjetivo_Importacion(Sub)
             });
           }
         });
@@ -48373,14 +48443,61 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Math.max(0, Manual_Total - Manual_Registrado);
       }
 
+      function Planes_Subobjetivo_Local_Para_Registro(
+        Avance,
+        Objetivo,
+        Modelo
+      ) {
+        if (!Avance?.Subobjetivo_Id || !Objetivo) return null;
+        const Sub = Modelo.Subobjetivos[Avance.Subobjetivo_Id];
+        if (!Sub || Sub.Eliminado_Local) return null;
+        if (Sub.Objetivo_Id === Objetivo.Id) return Sub;
+        const Raiz_Id = Planes_Subobjetivo_Raiz_Id(Sub.Id, Modelo);
+        return Object.values(Modelo.Subobjetivos || {})
+          .find((Item) =>
+            !Item.Eliminado_Local &&
+            Item.Objetivo_Id === Objetivo.Id &&
+            Planes_Subobjetivo_Raiz_Id(Item.Id, Modelo) === Raiz_Id
+          ) || null;
+      }
+
+      function Planes_Avance_Aparece_En_Registro_Objetivo(
+        Avance,
+        Objetivo,
+        Modelo
+      ) {
+        if (!Avance || !Objetivo) return false;
+        if (Avance.Objetivo_Id === Objetivo.Id) return true;
+        if (Avance.Fuente !== "Subobjetivo") return false;
+        const Sub_Local = Planes_Subobjetivo_Local_Para_Registro(
+          Avance,
+          Objetivo,
+          Modelo
+        );
+        if (!Sub_Local) return false;
+        const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
+        const Fecha = Planes_Fecha_Avance_Plan(Avance);
+        return Planes_Periodo_Contiene_Fecha(Periodo, Fecha);
+      }
+
       function Planes_Registros_De_Objetivo(Objetivo) {
         const Modelo = Asegurar_Modelo_Planes();
         const Registros = [];
         Object.values(Modelo.Avances || {})
-          .filter((Avance) => Avance.Objetivo_Id === Objetivo.Id)
+          .filter((Avance) =>
+            Planes_Avance_Aparece_En_Registro_Objetivo(
+              Avance,
+              Objetivo,
+              Modelo
+            )
+          )
           .forEach((Avance) => {
             const Sub = Avance.Subobjetivo_Id
-              ? Modelo.Subobjetivos[Avance.Subobjetivo_Id]
+              ? Planes_Subobjetivo_Local_Para_Registro(
+                Avance,
+                Objetivo,
+                Modelo
+              )
               : null;
             const Fuente = Avance.Fuente === "Subobjetivo"
               ? t("planes.registro_subobjetivo")
@@ -48391,7 +48508,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Avance_Id: Avance.Id,
               Registro_Id: Avance.Id,
               Tipo: "Avance",
-              Editable: Planes_Avance_Registro_Editable(Avance),
+              Editable: Avance.Objetivo_Id === Objetivo.Id &&
+                Planes_Avance_Registro_Editable(Avance),
               Fecha_Hora: Avance.Fecha_Hora || "",
               Fecha: Planes_Formatear_Fecha_Hora_Registro(
                 Avance.Fecha_Hora,
