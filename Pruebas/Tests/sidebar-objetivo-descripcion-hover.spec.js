@@ -230,6 +230,68 @@ test(
     });
     expect(sugerenciaDentroCampo).toBe(true);
 
+    await page.evaluate(() => {
+      const Objetivo = Crear_Objetivo_Semanal_Con_Datos({
+        Nombre: "Leer Melville",
+        Descripcion_Corta: "",
+        Emoji: "\uD83D\uDCD6",
+        Color: "#1f6b4f",
+        Es_Bolsa: true,
+        Horas_Semanales: 7,
+        Categoria_Id: null,
+        Etiquetas_Ids: [],
+        Meta_Vinculo_Tipo: "Subobjetivo",
+        Meta_Vinculo_Id: "sub_melville",
+        Meta_Aporte_Semanal: 90,
+        Meta_Aporte_Unidad: "P\u00e1ginas"
+      }, Clave_Semana_Actual());
+      Objetivo_Seleccionada_Id = Objetivo.Id;
+      Modo_Editor_Abierto = true;
+      Datos_Editor_Borrador = Obtener_Datos_Objetivo(Objetivo);
+      document.getElementById("Objetivo_Modal_Overlay")
+        ?.classList.add("Activo");
+      Render_Resumen_Objetivo();
+      Render_Editor();
+    });
+
+    await expect(page.locator("#Editor_Objetivo")).toBeVisible();
+    await expect(page.locator("#Editor_Meta_Aporte_Campo"))
+      .toBeVisible();
+    await expect(page.locator("#Editor_Meta_Aporte_Sugerencia"))
+      .toBeVisible();
+    await expect(page.locator("#Editor_Meta_Aporte_Sugerencia_Texto"))
+      .toContainText(
+        "Cuentos de Melville termina el 30 de abril. " +
+        "Quedan 2 semanas."
+      );
+    await expect(page.locator("#Editor_Meta_Aporte_Sugerencia_Texto"))
+      .toContainText(
+        "Se sugieren para esta semana: 90 p\u00e1ginas."
+      );
+    await expect(page.locator("#Editor_Meta_Aporte_Sugerencia_Aceptar"))
+      .toHaveCount(0);
+
+    const sugerenciaEditorDentroCampo = await page.evaluate(() => {
+      const Campo = document.getElementById(
+        "Editor_Meta_Aporte_Campo"
+      );
+      const Sugerencia = document.getElementById(
+        "Editor_Meta_Aporte_Sugerencia"
+      );
+      return Boolean(Campo && Sugerencia &&
+        Campo.contains(Sugerencia));
+    });
+    expect(sugerenciaEditorDentroCampo).toBe(true);
+
+    await page.evaluate(() => {
+      document.getElementById("Objetivo_Modal_Overlay")
+        ?.classList.remove("Activo");
+      Modo_Editor_Abierto = false;
+      Objetivo_Seleccionada_Id = null;
+      Render_Editor();
+      Render_Resumen_Objetivo();
+    });
+
     await page.click("#Emoji_Objetivo");
     await expect(page.locator("#Selector_Emojis_Popover"))
       .toBeVisible();
