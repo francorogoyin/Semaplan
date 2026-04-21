@@ -321,6 +321,9 @@ async ({ page }) => {
     }, Clave_Semana);
     Abrir_Modal_Importar_Partes_Meta(Semanal.Id);
     document.querySelector(
+      '[data-parte-importar-id="parte_1"]'
+    ).checked = true;
+    document.querySelector(
       '[data-parte-importar-id="parte_2"]'
     ).checked = true;
     Importar_Partes_Meta_A_Semana();
@@ -364,6 +367,107 @@ async ({ page }) => {
       Avance.Origen_Tipo === "Semana_Parte"
     );
 
+    Eventos.push(Meta_Aporte_Preparar_Evento({
+      Id: "evento_partes",
+      Objetivo_Id: Semanal.Id,
+      Fecha: "2026-04-13",
+      Inicio: 10,
+      Duracion: 1,
+      Hecho: false,
+      Color: "#1f6b4f"
+    }, Semanal));
+    const Evento = Evento_Por_Id("evento_partes");
+    Evento.Meta_Aporte_Cantidad = 10;
+    Evento.Meta_Aporte_Unidad = "paginas";
+    Evento.Meta_Aporte_Tildado = true;
+    Evento.Meta_Aporte_Planeado = true;
+    Evento.Meta_Aporte_Distribucion = [
+      { Tipo: "Parte", Parte_Id: "parte_1", Cantidad: 6 },
+      { Tipo: "Parte", Parte_Id: "parte_2", Cantidad: 4 }
+    ];
+    Evento.Meta_Aporte_Distribucion_Manual = true;
+    const Distribucion_Valida =
+      Meta_Aporte_Validar_Distribucion_Evento(Evento, false);
+    Evento.Hecho = true;
+    const Upsert_1 = Meta_Aporte_Upsert_Avance_Evento(Evento);
+    const Avance_1 = Meta_Aporte_Buscar_Avance_Evento(Evento);
+    const Modelo_Bloque_1 = Asegurar_Modelo_Planes();
+    const Progreso_Bloque_1 = {
+      parte1: Planes_Progreso_Total_Parte(
+        Modelo_Bloque_1.Partes.parte_1,
+        Modelo_Bloque_1
+      ),
+      parte2: Planes_Progreso_Total_Parte(
+        Modelo_Bloque_1.Partes.parte_2,
+        Modelo_Bloque_1
+      ),
+      sub: Planes_Progreso_Total_Subobjetivo(
+        Modelo_Bloque_1.Subobjetivos.sub_libro,
+        Modelo_Bloque_1
+      ),
+      distribucion: Avance_1.Distribucion
+    };
+
+    Evento.Meta_Aporte_Distribucion = [
+      { Tipo: "Parte", Parte_Id: "parte_1", Cantidad: 1 },
+      { Tipo: "Parte", Parte_Id: "parte_2", Cantidad: 1 }
+    ];
+    const Upsert_2 = Meta_Aporte_Upsert_Avance_Evento(Evento);
+    const Avance_2 = Meta_Aporte_Buscar_Avance_Evento(Evento);
+    const Modelo_Bloque_2 = Asegurar_Modelo_Planes();
+    const Progreso_Bloque_2 = {
+      parte1: Planes_Progreso_Total_Parte(
+        Modelo_Bloque_2.Partes.parte_1,
+        Modelo_Bloque_2
+      ),
+      parte2: Planes_Progreso_Total_Parte(
+        Modelo_Bloque_2.Partes.parte_2,
+        Modelo_Bloque_2
+      ),
+      sub: Planes_Progreso_Total_Subobjetivo(
+        Modelo_Bloque_2.Subobjetivos.sub_libro,
+        Modelo_Bloque_2
+      ),
+      distribucion: Avance_2.Distribucion
+    };
+
+    Evento.Meta_Aporte_Cantidad = 10;
+    Evento.Meta_Aporte_Distribucion = [
+      { Tipo: "Parte", Parte_Id: "parte_1", Cantidad: 6 },
+      { Tipo: "Parte", Parte_Id: "parte_2", Cantidad: 5 }
+    ];
+    const Invalida_Suma =
+      Meta_Aporte_Validar_Distribucion_Evento(Evento, false);
+    Evento.Meta_Aporte_Cantidad = 40;
+    Evento.Meta_Aporte_Distribucion = [
+      { Tipo: "Parte", Parte_Id: "parte_1", Cantidad: 36 }
+    ];
+    const Invalida_Maximo =
+      Meta_Aporte_Validar_Distribucion_Evento(Evento, false);
+    const Borro_Bloque = Meta_Aporte_Eliminar_Avance_Evento(Evento);
+    const Modelo_Revertido = Asegurar_Modelo_Planes();
+    const Progreso_Revertido = {
+      parte1: Planes_Progreso_Total_Parte(
+        Modelo_Revertido.Partes.parte_1,
+        Modelo_Revertido
+      ),
+      parte2: Planes_Progreso_Total_Parte(
+        Modelo_Revertido.Partes.parte_2,
+        Modelo_Revertido
+      ),
+      sub: Planes_Progreso_Total_Subobjetivo(
+        Modelo_Revertido.Subobjetivos.sub_libro,
+        Modelo_Revertido
+      )
+    };
+    Evento.Hecho = false;
+    Evento.Meta_Aporte_Cantidad = 10;
+    Evento.Meta_Aporte_Distribucion = [
+      { Tipo: "Parte", Parte_Id: "parte_1", Cantidad: 5 },
+      { Tipo: "Parte", Parte_Id: "parte_2", Cantidad: 5 }
+    ];
+    Evento.Meta_Aporte_Distribucion_Manual = false;
+
     return {
       parcial: Parcial,
       despuesRealizada: Despues_Realizada,
@@ -379,8 +483,53 @@ async ({ page }) => {
         registros: Avances_Semana.length,
         finales: Avances_Semana_Finales.length
       },
+      bloque: {
+        valida: Distribucion_Valida,
+        upsert1: Upsert_1,
+        upsert2: Upsert_2,
+        progreso1: Progreso_Bloque_1,
+        progreso2: Progreso_Bloque_2,
+        invalidaSuma: Invalida_Suma,
+        invalidaMaximo: Invalida_Maximo,
+        borro: Borro_Bloque,
+        revertido: Progreso_Revertido
+      },
       debug: { antes: Debug_Antes, marcar1: Marcar_1, marcar2: Marcar_2 }
     };
+  });
+
+  await page.evaluate(() => {
+    Abrir_Modal_Abordaje("evento_partes");
+  });
+  await expect(
+    page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_Destinos")
+  ).toBeVisible();
+  await expect(
+    page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_Destino")
+  ).toHaveCount(2);
+  await expect(
+    page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_General")
+  ).toContainText("Aporte general");
+  await page.evaluate(() => Cerrar_Modal_Abordaje());
+  const focusDistribucion = await page.evaluate(() => {
+    const Cuerpo = document.createElement("div");
+    document.body.appendChild(Cuerpo);
+    Render_Aporte_Meta_Focus(Cuerpo, Evento_Por_Id("evento_partes"));
+    const Datos = {
+      destinos: Cuerpo.querySelectorAll(".Aporte_Meta_Destino").length,
+      confirmar: Boolean(
+        Cuerpo.querySelector(".Aporte_Meta_Confirmar")
+      ),
+      general: Cuerpo.querySelector(".Aporte_Meta_General")
+        ?.textContent || ""
+    };
+    Cuerpo.remove();
+    return Datos;
+  });
+  expect(focusDistribucion).toEqual({
+    destinos: 2,
+    confirmar: true,
+    general: "Aporte general: 0 paginas"
   });
 
   await page.evaluate(() => {
@@ -436,7 +585,7 @@ async ({ page }) => {
     manuales: 1,
     autos: 0
   });
-  expect(resultado.importadas).toBe(1);
+  expect(resultado.importadas).toBe(2);
   expect(resultado.parteImportada).toEqual({
     parteId: "parte_2",
     nombre: "Capitulo 2",
@@ -446,5 +595,36 @@ async ({ page }) => {
     cantidad: 25,
     registros: 1,
     finales: 0
+  });
+  expect(resultado.bloque.valida).toBeTruthy();
+  expect(resultado.bloque.upsert1).toBeTruthy();
+  expect(resultado.bloque.upsert2).toBeTruthy();
+  expect(resultado.bloque.progreso1).toEqual({
+    parte1: 11,
+    parte2: 4,
+    sub: 15,
+    distribucion: [
+      { Tipo: "Parte", Parte_Id: "parte_1", Cantidad: 6 },
+      { Tipo: "Parte", Parte_Id: "parte_2", Cantidad: 4 },
+      { Tipo: "General", Parte_Id: "", Cantidad: 0 }
+    ]
+  });
+  expect(resultado.bloque.progreso2).toEqual({
+    parte1: 6,
+    parte2: 1,
+    sub: 15,
+    distribucion: [
+      { Tipo: "Parte", Parte_Id: "parte_1", Cantidad: 1 },
+      { Tipo: "Parte", Parte_Id: "parte_2", Cantidad: 1 },
+      { Tipo: "General", Parte_Id: "", Cantidad: 8 }
+    ]
+  });
+  expect(resultado.bloque.invalidaSuma).toBeFalsy();
+  expect(resultado.bloque.invalidaMaximo).toBeFalsy();
+  expect(resultado.bloque.borro).toBeTruthy();
+  expect(resultado.bloque.revertido).toEqual({
+    parte1: 5,
+    parte2: 0,
+    sub: 5
   });
 });

@@ -258,7 +258,7 @@
 
       .Aporte_Meta_Row {
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
         align-items: center;
         gap: 8px;
       }
@@ -267,6 +267,62 @@
         color: var(--Texto_Suave);
         font-size: 12px;
         white-space: nowrap;
+      }
+
+      .Aporte_Meta_Destinos {
+        display: grid;
+        gap: 7px;
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid var(--Borde);
+      }
+
+      .Aporte_Meta_Destinos_Titulo,
+      .Aporte_Meta_General {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+      }
+
+      .Aporte_Meta_Destino {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) minmax(82px, 120px);
+        align-items: center;
+        gap: 8px;
+      }
+
+      .Aporte_Meta_Destino_Nombre {
+        min-width: 0;
+        color: var(--Texto);
+        font-size: 12px;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+      }
+
+      .Aporte_Meta_Destino_Nombre small {
+        display: block;
+        color: var(--Texto_Suave);
+        font-size: 10px;
+        font-weight: 600;
+        margin-top: 1px;
+      }
+
+      .Aporte_Meta_Destino_Input {
+        width: 100%;
+        padding: 7px 8px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--Texto);
+        font: inherit;
+        font-size: 12px;
+      }
+
+      .Aporte_Meta_Destino:not(.Activo)
+        .Aporte_Meta_Destino_Input {
+        opacity: 0.5;
       }
 
       .Aporte_Meta_Acciones {
@@ -318,6 +374,19 @@
         background: var(--Acento);
         color: #fff;
         border-color: var(--Acento);
+      }
+
+      .Aporte_Meta_Confirmar {
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--Acento);
+        border-radius: 8px;
+        background: var(--Acento);
+        color: #fff;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
       }
 
       .Oculto {
@@ -19740,6 +19809,12 @@
           "plan.aporte_meta": "Aporte a la meta",
           "plan.aporte_meta_planear": "Planear aporte",
           "plan.aporte_meta_tildar": "Tildar aporte",
+          "plan.aporte_meta_partes": "Partes del bloque",
+          "plan.aporte_meta_general":
+            "Aporte general: {cantidad} {unidad}",
+          "plan.aporte_meta_disponible":
+            "Disponible: {cantidad} {unidad}",
+          "plan.aporte_meta_confirmar": "Confirmar aporte",
           "meta_aporte.confirmar_registrar":
             "Vas a registrar {cantidad} {unidad} en {meta}. " +
             "¿Confirmás?",
@@ -19751,6 +19826,17 @@
             "El avance cambiará de {anterior} a {nueva} " +
             "{unidad} y se redistribuirá la diferencia en " +
             "bloques futuros disponibles. ¿Confirmás?",
+          "meta_aporte.confirmar_bloque":
+            "Vas a cambiar el aporte del bloque a {cantidad} " +
+            "{unidad}. {general} {unidad} quedarán como aporte " +
+            "general. ¿Confirmás?",
+          "meta_aporte.confirmar_distribucion":
+            "Vas a cambiar el destino del avance del bloque. " +
+            "Se ajustarán las partes y el aporte general sin " +
+            "duplicar avance. ¿Confirmás?",
+          "meta_aporte.err_distribucion_excede":
+            "La suma asignada a partes supera el aporte del bloque " +
+            "por {exceso} {unidad}.",
           "meta_aporte.sin_capacidad":
             "No hay bloques futuros ni horas pendientes para " +
             "redistribuir ese aporte.",
@@ -23307,6 +23393,12 @@
           "plan.aporte_meta": "Goal contribution",
           "plan.aporte_meta_planear": "Plan contribution",
           "plan.aporte_meta_tildar": "Check contribution",
+          "plan.aporte_meta_partes": "Block parts",
+          "plan.aporte_meta_general":
+            "General contribution: {cantidad} {unidad}",
+          "plan.aporte_meta_disponible":
+            "Available: {cantidad} {unidad}",
+          "plan.aporte_meta_confirmar": "Confirm contribution",
           "meta_aporte.confirmar_registrar":
             "This will register {cantidad} {unidad} in {meta}. " +
             "Confirm?",
@@ -23318,6 +23410,17 @@
             "Progress will change from {anterior} to {nueva} " +
             "{unidad} and the difference will be redistributed into " +
             "available future blocks. Confirm?",
+          "meta_aporte.confirmar_bloque":
+            "You will change the block contribution to {cantidad} " +
+            "{unidad}. {general} {unidad} will remain as general " +
+            "contribution. Confirm?",
+          "meta_aporte.confirmar_distribucion":
+            "You will change the destination of this block's " +
+            "progress. Parts and general contribution will be " +
+            "adjusted without duplicating progress. Confirm?",
+          "meta_aporte.err_distribucion_excede":
+            "The amount assigned to parts exceeds the block " +
+            "contribution by {exceso} {unidad}.",
           "meta_aporte.sin_capacidad":
             "There are no future blocks or pending hours to " +
             "redistribute that contribution.",
@@ -26811,6 +26914,12 @@
           "plan.aporte_meta": "Aporte à meta",
           "plan.aporte_meta_planear": "Planejar aporte",
           "plan.aporte_meta_tildar": "Marcar aporte",
+          "plan.aporte_meta_partes": "Partes do bloco",
+          "plan.aporte_meta_general":
+            "Aporte geral: {cantidad} {unidad}",
+          "plan.aporte_meta_disponible":
+            "Disponível: {cantidad} {unidad}",
+          "plan.aporte_meta_confirmar": "Confirmar aporte",
           "meta_aporte.confirmar_registrar":
             "Você vai registrar {cantidad} {unidad} em {meta}. " +
             "Confirma?",
@@ -26822,6 +26931,17 @@
             "O avanço mudará de {anterior} para {nueva} " +
             "{unidad} e a diferença será redistribuída nos " +
             "blocos futuros disponíveis. Confirma?",
+          "meta_aporte.confirmar_bloque":
+            "Você vai alterar o aporte do bloco para {cantidad} " +
+            "{unidad}. {general} {unidad} ficarão como aporte " +
+            "geral. Confirma?",
+          "meta_aporte.confirmar_distribucion":
+            "Você vai alterar o destino do avanço deste bloco. " +
+            "As partes e o aporte geral serão ajustados sem " +
+            "duplicar avanço. Confirma?",
+          "meta_aporte.err_distribucion_excede":
+            "A soma atribuída às partes supera o aporte do bloco " +
+            "em {exceso} {unidad}.",
           "meta_aporte.sin_capacidad":
             "Não há blocos futuros nem horas pendentes para " +
             "redistribuir esse aporte.",
@@ -43787,10 +43907,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         const M = Modelo || Asegurar_Modelo_Planes();
         return Object.values(M.Avances || {})
-          .filter((Avance) =>
-            Avance.Parte_Id === Parte_Id &&
-            Avance.Fuente === "Subobjetivo"
-          );
+          .reduce((Lista, Avance) => {
+            if (Avance.Fuente !== "Subobjetivo") return Lista;
+            if (Avance.Parte_Id === Parte_Id) {
+              Lista.push(Avance);
+              return Lista;
+            }
+            const Distribuida = (Avance.Distribucion || [])
+              .find((Item) =>
+                Item.Tipo === "Parte" &&
+                Item.Parte_Id === Parte_Id
+              );
+            if (!Distribuida) return Lista;
+            const Cantidad = Number(Distribuida.Cantidad) || 0;
+            if (Cantidad <= 0) return Lista;
+            Lista.push({
+              ...Avance,
+              Parte_Id,
+              Cantidad
+            });
+            return Lista;
+          }, []);
       }
 
       function Planes_Total_Avances_Parte(
@@ -43818,9 +43955,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Modelo = null
       ) {
         const M = Modelo || Asegurar_Modelo_Planes();
-        return Object.values(M.Avances || {})
+        return Planes_Avances_De_Parte(Parte_Id, M)
           .find((Avance) =>
-            Avance.Parte_Id === Parte_Id &&
             Avance.Origen_Tipo === Origen_Tipo &&
             Avance.Origen_Id === Origen_Id
           ) || null;
@@ -49731,6 +49867,332 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cantidad >= 0;
       }
 
+      function Meta_Aporte_Escala_Unidad(Unidad = "") {
+        return Meta_Aporte_Debe_Redondear(Unidad) ? 1 : 100;
+      }
+
+      function Meta_Aporte_A_Escala(Valor, Unidad = "") {
+        return Math.max(
+          0,
+          Math.round(
+            (Number(Valor) || 0) * Meta_Aporte_Escala_Unidad(Unidad)
+          )
+        );
+      }
+
+      function Meta_Aporte_Desde_Escala(Valor, Unidad = "") {
+        return Meta_Aporte_Redondear(
+          (Number(Valor) || 0) / Meta_Aporte_Escala_Unidad(Unidad),
+          Unidad
+        );
+      }
+
+      function Meta_Aporte_Normalizar_Distribucion(
+        Lista = [],
+        Unidad = ""
+      ) {
+        if (!Array.isArray(Lista)) return [];
+        const Salida = [];
+        Lista.forEach((Item) => {
+          const Tipo = Item?.Tipo === "General" ? "General" : "Parte";
+          const Parte_Id = (Item?.Parte_Id || "").toString();
+          const Cantidad = Meta_Aporte_Redondear(
+            Number(Item?.Cantidad) || 0,
+            Unidad
+          );
+          if (Tipo === "Parte" && !Parte_Id) return;
+          if (Cantidad < 0) return;
+          Salida.push({
+            Tipo,
+            Parte_Id: Tipo === "Parte" ? Parte_Id : "",
+            Cantidad
+          });
+        });
+        return Salida;
+      }
+
+      function Meta_Aporte_Distribucion_Evento(Evento, Unidad = "") {
+        const Propia = Meta_Aporte_Normalizar_Distribucion(
+          Evento?.Meta_Aporte_Distribucion || [],
+          Unidad
+        ).filter((Item) => Item.Tipo === "Parte");
+        if (Propia.length) return Propia;
+        const Avance = Meta_Aporte_Buscar_Avance_Evento(Evento);
+        return Meta_Aporte_Normalizar_Distribucion(
+          Avance?.Distribucion || [],
+          Unidad
+        ).filter((Item) => Item.Tipo === "Parte");
+      }
+
+      function Meta_Aporte_Suma_Distribucion_Partes(
+        Distribucion = [],
+        Unidad = ""
+      ) {
+        return Meta_Aporte_Redondear(
+          Meta_Aporte_Normalizar_Distribucion(Distribucion, Unidad)
+            .filter((Item) => Item.Tipo === "Parte")
+            .reduce((Total, Item) => {
+              return Total + (Number(Item.Cantidad) || 0);
+            }, 0),
+          Unidad
+        );
+      }
+
+      function Meta_Aporte_Distribucion_Igual(A, B, Unidad = "") {
+        const Mapear = (Lista) => {
+          const Mapa = new Map();
+          Meta_Aporte_Normalizar_Distribucion(Lista, Unidad)
+            .filter((Item) => Item.Tipo === "Parte")
+            .forEach((Item) => {
+              Mapa.set(
+                Item.Parte_Id,
+                Meta_Aporte_Redondear(Item.Cantidad, Unidad)
+              );
+            });
+          return Mapa;
+        };
+        const MA = Mapear(A);
+        const MB = Mapear(B);
+        if (MA.size !== MB.size) return false;
+        return Array.from(MA.entries()).every(([Parte_Id, Cantidad]) =>
+          MB.has(Parte_Id) &&
+          Meta_Aporte_Redondear(MB.get(Parte_Id), Unidad) === Cantidad
+        );
+      }
+
+      function Meta_Aporte_General_Distribucion(
+        Cantidad,
+        Distribucion = [],
+        Unidad = ""
+      ) {
+        return Meta_Aporte_Redondear(
+          Math.max(
+            0,
+            (Number(Cantidad) || 0) -
+              Meta_Aporte_Suma_Distribucion_Partes(
+                Distribucion,
+                Unidad
+              )
+          ),
+          Unidad
+        );
+      }
+
+      function Meta_Aporte_Partes_Objetivo(
+        Objetivo,
+        Clave = Clave_Semana_Actual()
+      ) {
+        const Item = Meta_Aporte_Item_Subobjetivo(Objetivo);
+        if (!Item?.Sub) return [];
+        const Modelo = Asegurar_Modelo_Planes();
+        const Unidad = Meta_Aporte_Unidad_Objetivo(Objetivo);
+        const Vistas = new Set();
+        return Obtener_Subobjetivos_Semana(Objetivo, false, Clave)
+          .map((Sub) => {
+            const Parte_Id = (Sub.Parte_Meta_Id || "").toString();
+            if (!Parte_Id || Vistas.has(Parte_Id)) return null;
+            const Parte = Modelo.Partes?.[Parte_Id];
+            if (!Parte || Parte.Eliminado_Local) return null;
+            if (Parte.Subobjetivo_Id !== Item.Sub.Id) return null;
+            const Unidad_Parte = Planes_Unidad_Label_Parte(Parte);
+            if (Unidad && Unidad_Parte && Unidad_Parte !== Unidad) {
+              return null;
+            }
+            Vistas.add(Parte_Id);
+            return { Parte, Subobjetivo: Sub, Unidad: Unidad_Parte };
+          })
+          .filter(Boolean);
+      }
+
+      function Meta_Aporte_Distribuir_Auto_Borrador(Borrador) {
+        if (!Borrador?.Partes?.length) return;
+        const Seleccionadas = Borrador.Partes
+          .filter((Parte) => Parte.Seleccionada);
+        Borrador.Partes.forEach((Parte) => {
+          if (Parte.Seleccionada) Parte.Cantidad = 0;
+        });
+        let Restante = Meta_Aporte_A_Escala(
+          Borrador.Tildado ? Borrador.Cantidad : 0,
+          Borrador.Unidad
+        );
+        const Items = Seleccionadas
+          .map((Parte) => ({
+            Parte,
+            Disponible: Meta_Aporte_A_Escala(
+              Parte.Disponible,
+              Borrador.Unidad
+            ),
+            Asignado: 0
+          }));
+        let Activas = Items.filter((Item) => Item.Disponible > 0);
+        while (Restante > 0 && Activas.length) {
+          const Base = Math.floor(Restante / Activas.length);
+          const Extra = Restante % Activas.length;
+          let Usado = 0;
+          const Siguientes = [];
+          Activas.forEach((Item, Indice) => {
+            const Deseado = Base + (Indice < Extra ? 1 : 0);
+            const Cantidad = Math.min(Item.Disponible, Deseado);
+            Item.Asignado += Cantidad;
+            Item.Disponible -= Cantidad;
+            Usado += Cantidad;
+            if (Item.Disponible > 0) Siguientes.push(Item);
+          });
+          if (Usado <= 0) break;
+          Restante -= Usado;
+          Activas = Siguientes;
+        }
+        Seleccionadas.forEach((Parte) => {
+          const Item = Items.find((A) => A.Parte === Parte);
+          const Asignado = Item?.Asignado || 0;
+          Parte.Cantidad = Meta_Aporte_Desde_Escala(
+            Asignado,
+            Borrador.Unidad
+          );
+        });
+        Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+      }
+
+      function Meta_Aporte_Sincronizar_Distribucion_Borrador(
+        Borrador
+      ) {
+        if (!Borrador) return;
+        Borrador.Distribucion = (Borrador.Partes || [])
+          .filter((Parte) => Parte.Seleccionada)
+          .map((Parte) => ({
+            Tipo: "Parte",
+            Parte_Id: Parte.Parte_Id,
+            Cantidad: Meta_Aporte_Redondear(
+              Parte.Cantidad,
+              Borrador.Unidad
+            )
+          }));
+      }
+
+      function Meta_Aporte_Validar_Distribucion_Borrador(
+        Borrador,
+        Mostrar = true
+      ) {
+        if (!Borrador) return true;
+        Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+        const Total = Meta_Aporte_Redondear(
+          Borrador.Tildado ? Borrador.Cantidad : 0,
+          Borrador.Unidad
+        );
+        const Suma = Meta_Aporte_Suma_Distribucion_Partes(
+          Borrador.Distribucion,
+          Borrador.Unidad
+        );
+        if (Suma > Total) {
+          if (Mostrar) {
+            Mostrar_Toast_Error(t(
+              "meta_aporte.err_distribucion_excede",
+              {
+                exceso: Meta_Aporte_Formatear(
+                  Suma - Total,
+                  Borrador.Unidad
+                ),
+                unidad: Borrador.Unidad
+              }
+            ));
+          }
+          return false;
+        }
+        const Excedida = (Borrador.Partes || [])
+          .find((Parte) =>
+            Parte.Seleccionada &&
+            Meta_Aporte_Redondear(Parte.Cantidad, Borrador.Unidad) >
+              Meta_Aporte_Redondear(Parte.Disponible, Borrador.Unidad)
+          );
+        if (Excedida) {
+          if (Mostrar) {
+            Mostrar_Toast_Error(t("planes.parte_err_excede", {
+              maximo: Meta_Aporte_Formatear(
+                Excedida.Disponible,
+                Borrador.Unidad
+              ),
+              unidad: Borrador.Unidad
+            }));
+          }
+          return false;
+        }
+        return true;
+      }
+
+      function Meta_Aporte_Distribucion_Avance(
+        Evento,
+        Cantidad,
+        Unidad = ""
+      ) {
+        const Partes = Meta_Aporte_Normalizar_Distribucion(
+          Evento?.Meta_Aporte_Distribucion || [],
+          Unidad
+        ).filter((Item) => Item.Tipo === "Parte");
+        const General = Meta_Aporte_General_Distribucion(
+          Cantidad,
+          Partes,
+          Unidad
+        );
+        return [
+          ...Partes,
+          {
+            Tipo: "General",
+            Parte_Id: "",
+            Cantidad: General
+          }
+        ];
+      }
+
+      function Meta_Aporte_Parte_Ids_Avance(Avance) {
+        const Ids = new Set();
+        if (Avance?.Parte_Id) Ids.add(Avance.Parte_Id);
+        (Avance?.Distribucion || []).forEach((Item) => {
+          if (Item.Tipo === "Parte" && Item.Parte_Id) {
+            Ids.add(Item.Parte_Id);
+          }
+        });
+        return Array.from(Ids);
+      }
+
+      function Meta_Aporte_Recalcular_Partes_Ids(Ids, Modelo = null) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        (Ids || []).forEach((Parte_Id) => {
+          const Parte = M.Partes?.[Parte_Id];
+          if (Parte) Planes_Recalcular_Progreso_Parte(Parte, M);
+        });
+      }
+
+      function Meta_Aporte_Validar_Distribucion_Evento(
+        Evento,
+        Mostrar = true
+      ) {
+        const Borrador = Meta_Aporte_Borrador_Abordaje(Evento);
+        return !Borrador ||
+          Meta_Aporte_Validar_Distribucion_Borrador(Borrador, Mostrar);
+      }
+
+      function Meta_Aporte_Recalcular_Distribucion_Auto_Evento(Evento) {
+        if (!Evento || Evento.Meta_Aporte_Distribucion_Manual) return;
+        const Objetivo = Objetivo_Por_Id(Evento.Objetivo_Id);
+        const Unidad = Meta_Aporte_Unidad_Objetivo(Objetivo) ||
+          (Evento.Meta_Aporte_Unidad || "").toString();
+        const Distribucion = Meta_Aporte_Distribucion_Evento(
+          Evento,
+          Unidad
+        );
+        if (!Distribucion.length) return;
+        const Borrador = Meta_Aporte_Borrador_Abordaje(Evento);
+        if (!Borrador) return;
+        const Seleccionadas = new Set(
+          Distribucion.map((Item) => Item.Parte_Id)
+        );
+        Borrador.Partes.forEach((Parte) => {
+          Parte.Seleccionada = Seleccionadas.has(Parte.Parte_Id);
+        });
+        Meta_Aporte_Distribuir_Auto_Borrador(Borrador);
+        Evento.Meta_Aporte_Distribucion = Borrador.Distribucion;
+      }
+
       function Meta_Aporte_Redistribuir_Objetivo(Objetivo) {
         if (!Objetivo || !Meta_Aporte_Objetivo_Tiene_Vinculo(Objetivo)) {
           return true;
@@ -49821,6 +50283,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Evento.Meta_Aporte_Tildado === undefined) {
             Evento.Meta_Aporte_Tildado = true;
           }
+          Meta_Aporte_Recalcular_Distribucion_Auto_Evento(Evento);
         });
         return true;
       }
@@ -49841,6 +50304,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Evento.Meta_Aporte_Planeado !== false;
         Evento.Meta_Aporte_Tildado =
           Evento.Meta_Aporte_Tildado !== false;
+        Meta_Aporte_Recalcular_Distribucion_Auto_Evento(Evento);
         return Evento;
       }
 
@@ -49863,8 +50327,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return false;
         }
         const Modelo = Asegurar_Modelo_Planes();
+        const Parte_Ids = Meta_Aporte_Parte_Ids_Avance(Avance);
         delete Modelo.Avances[Avance.Id];
         if (Evento) delete Evento.Meta_Avance_Id;
+        Meta_Aporte_Recalcular_Partes_Ids(Parte_Ids, Modelo);
         const Objetivo = Modelo.Objetivos[Avance.Objetivo_Id];
         if (Avance.Subobjetivo_Id) {
           const Sub = Modelo.Subobjetivos[Avance.Subobjetivo_Id];
@@ -49886,8 +50352,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return Meta_Aporte_Eliminar_Avance_Evento(Evento);
         }
         const Modelo = Asegurar_Modelo_Planes();
+        if (!Meta_Aporte_Validar_Distribucion_Evento(Evento, true)) {
+          return false;
+        }
         const Existente = Meta_Aporte_Buscar_Avance_Evento(Evento);
+        const Parte_Ids_Anteriores =
+          Meta_Aporte_Parte_Ids_Avance(Existente);
         const Id = Existente?.Id || Crear_Id_Avance_Plan();
+        const Unidad = Meta_Aporte_Unidad_Item(Item);
+        const Distribucion = Meta_Aporte_Distribucion_Avance(
+          Evento,
+          Cantidad,
+          Unidad
+        );
         const Hora = `${String(Math.floor(
           Number(Evento.Inicio) || 0
         )).padStart(2, "0")}:00`;
@@ -49900,7 +50377,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fuente:
             Item.Tipo === "Subobjetivo" ? "Subobjetivo" : "Manual",
           Cantidad,
-          Unidad: Meta_Aporte_Unidad_Item(Item),
+          Cantidad_Total: Cantidad,
+          Unidad,
           Fecha: Evento.Fecha,
           Hora,
           Fecha_Hora: `${Evento.Fecha}T${Hora}`,
@@ -49910,9 +50388,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Origen_Tipo: "Evento_Aporte_Meta",
           Origen_Id: Evento.Id,
           Origen_Objetivo_Semanal_Id:
-            Objetivo_Semanal?.Id || ""
+            Objetivo_Semanal?.Id || "",
+          Distribucion
         });
         Evento.Meta_Avance_Id = Id;
+        Meta_Aporte_Recalcular_Partes_Ids([
+          ...new Set([
+            ...Parte_Ids_Anteriores,
+            ...Meta_Aporte_Parte_Ids_Avance(Modelo.Avances[Id])
+          ])
+        ], Modelo);
         if (Item.Tipo === "Subobjetivo") {
           Planes_Recalcular_Progreso_Subobjetivo(Item.Sub, Modelo);
         }
@@ -49943,6 +50428,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Meta_Aporte_Preparar_Evento(Evento, Objetivo);
           const Cantidad = Meta_Aporte_Asignado_Evento(Evento);
           if (Tiene_Vinculo && Cantidad > 0) {
+            if (!Meta_Aporte_Validar_Distribucion_Evento(Evento, true)) {
+              return false;
+            }
             const Ok = await Meta_Aporte_Confirmar(
               "meta_aporte.confirmar_registrar",
               {
@@ -49963,7 +50451,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Tiene_Vinculo && Cantidad > 0) {
             Evento.Meta_Aporte_Tildado = true;
             Evento.Meta_Aporte_Planeado = true;
-            Meta_Aporte_Upsert_Avance_Evento(Evento);
+            const Ok_Avance = Meta_Aporte_Upsert_Avance_Evento(Evento);
+            if (!Ok_Avance) {
+              Evento.Hecho = false;
+              return false;
+            }
           }
           Meta_Aporte_Redistribuir_Objetivo(Objetivo);
         } else {
@@ -60795,7 +61287,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tildado = Evento.Hecho
           ? (Tenia_Avance || Evento.Meta_Aporte_Tildado === true)
           : Evento.Meta_Aporte_Tildado !== false;
-        return {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Distribucion = Meta_Aporte_Distribucion_Evento(
+          Evento,
+          Unidad
+        );
+        const Distribucion_Por_Parte = new Map(
+          Distribucion.map((Item) => [Item.Parte_Id, Item])
+        );
+        const Infos = Meta_Aporte_Partes_Objetivo(
+          Objetivo,
+          Obtener_Clave_Semana_Evento(Evento)
+        );
+        const Vistas = new Set(Infos.map((Info) => Info.Parte.Id));
+        Distribucion.forEach((Item) => {
+          if (Vistas.has(Item.Parte_Id)) return;
+          const Parte = Modelo.Partes?.[Item.Parte_Id];
+          if (!Parte) return;
+          Infos.push({
+            Parte,
+            Subobjetivo: null,
+            Unidad: Planes_Unidad_Label_Parte(Parte)
+          });
+          Vistas.add(Item.Parte_Id);
+        });
+        const Borrador = {
           Activo: true,
           Meta: Meta_Aporte_Label_Item(
             Meta_Aporte_Item_Objetivo(Objetivo)
@@ -60807,8 +61323,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Tildado,
           Original_Tildado: Tildado,
           Original_Manual: Evento.Meta_Aporte_Manual === true,
+          Original_Distribucion: Distribucion,
+          Distribucion_Manual:
+            Evento.Meta_Aporte_Distribucion_Manual === true,
+          Distribucion: [],
+          Partes: Infos.map(({ Parte, Subobjetivo, Unidad: Unidad_P }) => {
+            const Dist = Distribucion_Por_Parte.get(Parte.Id);
+            return {
+              Parte_Id: Parte.Id,
+              Subobjetivo_Semanal_Id: Subobjetivo?.Id || "",
+              Emoji: Parte.Emoji || Subobjetivo?.Emoji || "\u2022",
+              Nombre:
+                Parte.Nombre || Subobjetivo?.Texto ||
+                t("objetivo.sin_nombre"),
+              Unidad: Unidad_P || Unidad,
+              Disponible: Planes_Maximo_Registrable_Parte(
+                Parte.Id,
+                "Evento_Aporte_Meta",
+                Evento.Id,
+                Modelo
+              ),
+              Seleccionada: Boolean(Dist),
+              Cantidad: Dist
+                ? Meta_Aporte_Redondear(Dist.Cantidad, Unidad)
+                : 0
+            };
+          }),
           Tenia_Avance
         };
+        Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+        return Borrador;
       }
 
       function Meta_Aporte_Actualizar_Borrador_Cantidad(
@@ -60819,6 +61363,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Borrador.Cantidad = Meta_Aporte_Numero(Valor);
         Borrador.Tildado = Borrador.Cantidad > 0;
         Borrador.Planeado = Borrador.Cantidad > 0;
+        if (!Borrador.Distribucion_Manual) {
+          Meta_Aporte_Distribuir_Auto_Borrador(Borrador);
+        } else {
+          Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+        }
       }
 
       function Crear_Check_Aporte_Meta(Borrador, Al_Cambiar) {
@@ -60834,9 +61383,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Borrador.Planeado = Borrador.Tildado;
           if (!Borrador.Tildado) {
             Borrador.Cantidad = 0;
+            (Borrador.Partes || []).forEach((Parte) => {
+              Parte.Cantidad = 0;
+            });
           } else if (Number(Borrador.Cantidad) <= 0) {
             Borrador.Cantidad =
               Borrador.Original_Cantidad || 0;
+          }
+          if (!Borrador.Distribucion_Manual) {
+            Meta_Aporte_Distribuir_Auto_Borrador(Borrador);
+          } else {
+            Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
           }
           await Al_Cambiar?.();
         });
@@ -60852,6 +61409,117 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Abordaje_Aporte_Meta_Borrador,
           Input.value
         );
+      }
+
+      function Render_Aporte_Meta_Destinos(
+        Wrap,
+        Borrador,
+        Opciones = {}
+      ) {
+        if (!Wrap || !Borrador?.Partes?.length) return;
+        const Cont = document.createElement("div");
+        Cont.className = "Aporte_Meta_Destinos";
+
+        const Titulo = document.createElement("div");
+        Titulo.className = "Aporte_Meta_Destinos_Titulo";
+        Titulo.textContent = t("plan.aporte_meta_partes");
+        Cont.appendChild(Titulo);
+
+        const General = document.createElement("div");
+        General.className = "Aporte_Meta_General";
+        const Actualizar_General = () => {
+          Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+          const Valor = Meta_Aporte_General_Distribucion(
+            Borrador.Tildado ? Borrador.Cantidad : 0,
+            Borrador.Distribucion,
+            Borrador.Unidad
+          );
+          General.textContent = t("plan.aporte_meta_general", {
+            cantidad: Meta_Aporte_Formatear(Valor, Borrador.Unidad),
+            unidad: Borrador.Unidad
+          });
+        };
+
+        Borrador.Partes.forEach((Parte) => {
+          const Fila = document.createElement("label");
+          Fila.className = "Aporte_Meta_Destino" +
+            (Parte.Seleccionada ? " Activo" : "");
+
+          const Check = document.createElement("input");
+          Check.type = "checkbox";
+          Check.className = "Aporte_Meta_Destino_Check";
+          Check.checked = Parte.Seleccionada;
+          Check.disabled = !Borrador.Tildado;
+
+          const Nombre = document.createElement("span");
+          Nombre.className =
+            "Aporte_Meta_Destino_Nombre Con_Fallback_Emoji";
+          Nombre.textContent =
+            `${Parte.Emoji || "\u2022"} ${Parte.Nombre || ""}`.trim();
+          const Disp = document.createElement("small");
+          Disp.textContent = t("plan.aporte_meta_disponible", {
+            cantidad: Meta_Aporte_Formatear(
+              Parte.Disponible,
+              Borrador.Unidad
+            ),
+            unidad: Borrador.Unidad
+          });
+          Nombre.appendChild(Disp);
+
+          const Input = document.createElement("input");
+          Input.type = "number";
+          Input.min = "0";
+          Input.step = Meta_Aporte_Debe_Redondear(Borrador.Unidad)
+            ? "1"
+            : "0.01";
+          Input.className = "Aporte_Meta_Destino_Input";
+          Input.disabled = !Borrador.Tildado || !Parte.Seleccionada;
+          Input.value = Meta_Aporte_Formatear(
+            Parte.Cantidad,
+            Borrador.Unidad
+          );
+
+          Check.addEventListener("change", async () => {
+            Parte.Seleccionada = Check.checked;
+            if (!Parte.Seleccionada) Parte.Cantidad = 0;
+            if (!Borrador.Distribucion_Manual) {
+              Meta_Aporte_Distribuir_Auto_Borrador(Borrador);
+            } else {
+              Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+            }
+            await Opciones.Al_Cambiar?.();
+          });
+
+          Input.addEventListener("input", () => {
+            Parte.Cantidad = Meta_Aporte_Numero(Input.value);
+            Parte.Seleccionada = Check.checked ||
+              Parte.Cantidad > 0;
+            Borrador.Distribucion_Manual = true;
+            Check.checked = Parte.Seleccionada;
+            Fila.classList.toggle("Activo", Parte.Seleccionada);
+            Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+            Actualizar_General();
+          });
+
+          Input.addEventListener("blur", async () => {
+            if (
+              !Meta_Aporte_Validar_Distribucion_Borrador(Borrador, true)
+            ) {
+              await Opciones.Al_Error?.();
+              return;
+            }
+            await Opciones.Al_Cambiar?.();
+          });
+
+          Fila.appendChild(Check);
+          Fila.appendChild(Nombre);
+          Fila.appendChild(Input);
+          Cont.appendChild(Fila);
+        });
+
+        Actualizar_General();
+        Cont.appendChild(General);
+        Wrap.appendChild(Cont);
       }
 
       function Render_Aporte_Meta_Abordaje(Cuerpo) {
@@ -60908,6 +61576,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           } else {
             Borrador.Cantidad = 0;
+            (Borrador.Partes || []).forEach((Parte) => {
+              Parte.Cantidad = 0;
+            });
+          }
+          if (!Borrador.Distribucion_Manual) {
+            Meta_Aporte_Distribuir_Auto_Borrador(Borrador);
+          } else {
+            Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
           }
           Render_Modal_Abordaje();
         });
@@ -60933,6 +61609,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Check.classList.toggle("Activo", Borrador.Tildado);
         });
+        Input.addEventListener("change", () => {
+          Render_Modal_Abordaje();
+        });
 
         const Unidad = document.createElement("span");
         Unidad.className = "Aporte_Meta_Unidad";
@@ -60943,6 +61622,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Row.appendChild(Input);
         Row.appendChild(Unidad);
         Wrap.appendChild(Row);
+        Render_Aporte_Meta_Destinos(Wrap, Borrador, {
+          Al_Cambiar: () => Render_Modal_Abordaje()
+        });
         Cuerpo.appendChild(Wrap);
       }
 
@@ -60963,6 +61645,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tildado_Nuevo =
           Borrador.Tildado && Cantidad_Nueva > 0;
         const Cantidad_Anterior = Meta_Aporte_Asignado_Evento(Evento);
+        Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+        if (!Meta_Aporte_Validar_Distribucion_Borrador(Borrador, true)) {
+          return false;
+        }
+        const Distribucion_Nueva = Tildado_Nuevo
+          ? Meta_Aporte_Normalizar_Distribucion(
+            Borrador.Distribucion,
+            Unidad
+          )
+          : [];
+        const Cambio_Distribucion =
+          !Meta_Aporte_Distribucion_Igual(
+            Distribucion_Nueva,
+            Borrador.Original_Distribucion || [],
+            Unidad
+          );
+        const General_Nuevo = Meta_Aporte_General_Distribucion(
+          Cantidad_Nueva,
+          Distribucion_Nueva,
+          Unidad
+        );
         const Tenia_Avance = Boolean(
           Meta_Aporte_Buscar_Avance_Evento(Evento)
         );
@@ -61007,6 +61710,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               }
             );
             if (!Ok) return false;
+          } else if (
+            Tildado_Nuevo &&
+            Tenia_Avance &&
+            Cambio_Distribucion
+          ) {
+            const Ok = await Meta_Aporte_Confirmar(
+              "meta_aporte.confirmar_distribucion"
+            );
+            if (!Ok) return false;
           } else if (Tildado_Nuevo && !Tenia_Avance) {
             const Ok = await Meta_Aporte_Confirmar(
               "meta_aporte.confirmar_registrar",
@@ -61021,6 +61733,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
             if (!Ok) return false;
           }
+        } else if (Cantidad_Nueva !== Borrador.Original_Cantidad) {
+          const Ok = await Meta_Aporte_Confirmar(
+            "meta_aporte.confirmar_bloque",
+            {
+              cantidad: Meta_Aporte_Formatear(Cantidad_Nueva, Unidad),
+              general: Meta_Aporte_Formatear(General_Nuevo, Unidad),
+              unidad: Unidad
+            }
+          );
+          if (!Ok) return false;
         }
 
         Evento.Meta_Aporte_Cantidad = Cantidad_Nueva;
@@ -61031,10 +61753,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Borrador.Original_Manual ||
           Cantidad_Nueva !== Borrador.Original_Cantidad ||
           Tildado_Nuevo !== Borrador.Original_Tildado;
+        Evento.Meta_Aporte_Distribucion = Distribucion_Nueva;
+        Evento.Meta_Aporte_Distribucion_Manual =
+          Tildado_Nuevo &&
+          Distribucion_Nueva.length > 0 &&
+          Borrador.Distribucion_Manual === true;
 
         if (Evento.Hecho) {
           if (Tildado_Nuevo) {
-            Meta_Aporte_Upsert_Avance_Evento(Evento);
+            if (!Meta_Aporte_Upsert_Avance_Evento(Evento)) {
+              return false;
+            }
           } else {
             Meta_Aporte_Eliminar_Avance_Evento(Evento);
           }
@@ -74131,6 +74860,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Evento.Meta_Aporte_Manual === undefined
                 ? undefined
                 : Boolean(Evento.Meta_Aporte_Manual),
+            Meta_Aporte_Distribucion:
+              Meta_Aporte_Normalizar_Distribucion(
+                Evento.Meta_Aporte_Distribucion || [],
+                Evento.Meta_Aporte_Unidad || ""
+              ),
+            Meta_Aporte_Distribucion_Manual:
+              Evento.Meta_Aporte_Distribucion_Manual === undefined
+                ? undefined
+                : Boolean(Evento.Meta_Aporte_Distribucion_Manual),
             Meta_Avance_Id:
               (Evento.Meta_Avance_Id || "").toString()
           };
@@ -81604,6 +82342,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Render_Aporte_Meta_Focus(Cuerpo, Evento) {
         const Borrador = Meta_Aporte_Borrador_Abordaje(Evento);
         if (!Cuerpo || !Borrador) return;
+        const Guardar_Aporte_Focus = async () => {
+          if (
+            !Meta_Aporte_Validar_Distribucion_Borrador(Borrador, true)
+          ) {
+            Render_Focus_Mode();
+            return false;
+          }
+          const Ok = await Guardar_Aporte_Meta_Abordaje(
+            Evento,
+            Borrador
+          );
+          if (!Ok) return false;
+          Render_Focus_Mode();
+          Guardar_Estado();
+          return true;
+        };
         const Wrap = document.createElement("div");
         Wrap.className = "Aporte_Meta_Bloque";
 
@@ -81622,10 +82376,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Row.className = "Aporte_Meta_Row";
         const Check = Crear_Check_Aporte_Meta(
           Borrador,
-          async () => {
-            await Guardar_Aporte_Meta_Abordaje(Evento, Borrador);
-            Render_Focus_Mode();
-          }
+          Guardar_Aporte_Focus
         );
         const Acciones = document.createElement("div");
         Acciones.className = "Aporte_Meta_Acciones";
@@ -81638,8 +82389,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Btn_Plan.title = t("plan.aporte_meta_planear");
         Btn_Plan.addEventListener("click", async () => {
           Borrador.Planeado = !Borrador.Planeado;
-          await Guardar_Aporte_Meta_Abordaje(Evento, Borrador);
-          Render_Focus_Mode();
+          await Guardar_Aporte_Focus();
         });
 
         const Btn_Tildar = document.createElement("button");
@@ -81656,8 +82406,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Borrador.Cantidad =
               Borrador.Original_Cantidad || 0;
           }
-          await Guardar_Aporte_Meta_Abordaje(Evento, Borrador);
-          Render_Focus_Mode();
+          if (!Borrador.Distribucion_Manual) {
+            Meta_Aporte_Distribuir_Auto_Borrador(Borrador);
+          } else {
+            Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+          }
+          await Guardar_Aporte_Focus();
         });
 
         Acciones.appendChild(Btn_Plan);
@@ -81674,14 +82428,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Borrador.Cantidad,
           Borrador.Unidad
         );
-        Input.addEventListener("blur", async () => {
+        const Btn_Confirmar = document.createElement("button");
+        Btn_Confirmar.type = "button";
+        Btn_Confirmar.className = "Aporte_Meta_Confirmar";
+        Btn_Confirmar.title = t("plan.aporte_meta_confirmar");
+        Btn_Confirmar.textContent = "\u2713";
+        Btn_Confirmar.addEventListener("click", Guardar_Aporte_Focus);
+
+        Input.addEventListener("input", () => {
           Meta_Aporte_Actualizar_Borrador_Cantidad(
             Borrador,
             Input.value
           );
           Check.classList.toggle("Activo", Borrador.Tildado);
-          await Guardar_Aporte_Meta_Abordaje(Evento, Borrador);
-          Render_Focus_Mode();
+        });
+        Input.addEventListener("keydown", async (Ev) => {
+          if (Ev.key !== "Enter") return;
+          Ev.preventDefault();
+          Meta_Aporte_Actualizar_Borrador_Cantidad(
+            Borrador,
+            Input.value
+          );
+          await Guardar_Aporte_Focus();
+        });
+        Input.addEventListener("blur", () => {
+          Meta_Aporte_Actualizar_Borrador_Cantidad(
+            Borrador,
+            Input.value
+          );
+          Check.classList.toggle("Activo", Borrador.Tildado);
         });
 
         const Unidad = document.createElement("span");
@@ -81691,7 +82466,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Row.appendChild(Acciones);
         Row.appendChild(Input);
         Row.appendChild(Unidad);
+        Row.appendChild(Btn_Confirmar);
         Wrap.appendChild(Row);
+        Render_Aporte_Meta_Destinos(Wrap, Borrador, {
+          Al_Cambiar: Guardar_Aporte_Focus,
+          Al_Error: () => Render_Focus_Mode()
+        });
         Cuerpo.appendChild(Wrap);
       }
 
