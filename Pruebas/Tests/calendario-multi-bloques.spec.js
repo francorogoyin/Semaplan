@@ -70,6 +70,8 @@ async function Preparar(page, Estado_Inicial) {
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Semana_Actual = Parsear_Fecha_ISO("2026-04-13");
+    Render_Calendario();
   });
 }
 
@@ -599,6 +601,7 @@ test(
     expect(Botones).toEqual([
       "Mover a...",
       "Copiar",
+      "Establecer plan",
       "Limpiar"
     ]);
 
@@ -639,6 +642,206 @@ test(
       "2026-04-13|10",
       "2026-04-13|11"
     ]);
+  }
+);
+
+test(
+  "establece plan en varios slots muertos seleccionados",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+
+    await page.evaluate(() => {
+      const Datos_Base = {
+        Tipo_Id: "Sueno",
+        Nombre: "Dormir",
+        Visible: true,
+        Nombre_Auto: false,
+        Plan_Items: []
+      };
+      Aplicar_Datos_Slot_Muerto(
+        "2026-04-13",
+        9,
+        {
+          ...Datos_Base,
+          Plan_Items: [
+            {
+              Id: "plan_slot_viejo",
+              Emoji: "V",
+              Texto: "Viejo",
+              Estado: "Planeado"
+            }
+          ]
+        },
+        true
+      );
+      Aplicar_Datos_Slot_Muerto(
+        "2026-04-13",
+        10,
+        Datos_Base,
+        true
+      );
+      Render_Calendario();
+      Guardar_Estado();
+    });
+
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="9"]',
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
+      { modifiers: ["Control"] }
+    );
+
+    const Botones = await page.locator(
+      "#Calendario_Multi_Grupo_Acciones button"
+    ).allTextContents();
+    expect(Botones).toContain("Establecer plan");
+
+    await page.click(
+      '#Calendario_Multi_Grupo_Acciones ' +
+      'button:has-text("Establecer plan")'
+    );
+    await expect(
+      page.locator("#Plan_Slot_Overlay")
+    ).toHaveClass(/Activo/);
+    await expect(
+      page.locator("#Plan_Slot_Titulo")
+    ).toContainText("2");
+
+    await page.click("#Plan_Slot_Cuerpo .Config_Boton");
+    await page.fill("#Plan_Slot_Nuevo_Emoji", "P");
+    await page.fill("#Plan_Slot_Nuevo_Input", "Plan comun");
+    await page.click("#Plan_Slot_Cuerpo .Abordaje_Nuevo_Btn");
+    await page.click("#Plan_Slot_Guardar");
+
+    await expect(
+      page.locator("#Dialogo_Overlay")
+    ).toHaveClass(/Activo/);
+    await expect(
+      page.locator("#Dialogo_Mensaje")
+    ).toContainText("Ya hay planes");
+    await page.click(
+      "#Dialogo_Botones .Dialogo_Boton_Primario"
+    );
+
+    const Resultado = await page.evaluate(() => ({
+      planes: [
+        "2026-04-13|9",
+        "2026-04-13|10"
+      ].map((Clave) =>
+        (Planes_Slot[Clave]?.Items || [])
+          .map((Item) => Item.Texto)
+      ),
+      seleccion: Array.from(Slots_Multi_Seleccion).sort(),
+      barra_activa: document.getElementById(
+        "Calendario_Multi_Acciones"
+      )?.classList.contains("Activa")
+    }));
+
+    expect(Resultado.planes).toEqual([
+      ["Plan comun"],
+      ["Plan comun"]
+    ]);
+    expect(Resultado.seleccion).toEqual([]);
+    expect(Resultado.barra_activa).toBeFalsy();
+  }
+);
+
+test(
+  "establece plan en bloques de una misma tarea",
+  async ({ page }) => {
+    await Preparar(page, Crear_Estado_Base());
+    const Ids = await Crear_Escenario(page);
+
+    await page.evaluate(({ Objetivo_A_Id }) => {
+      const Evento_A = Evento_Por_Id("ev_a");
+      if (Evento_A) {
+        Evento_A.Abordaje = [
+          {
+            Id: "plan_evento_viejo",
+            Emoji: "V",
+            Texto: "Viejo",
+            Suelta: true,
+            Planeada: true
+          }
+        ];
+      }
+      const Objetivo = Objetivo_Por_Id(Objetivo_A_Id);
+      Eventos.push({
+        Id: "ev_a_2",
+        Objetivo_Id: Objetivo_A_Id,
+        Fecha: "2026-04-13",
+        Inicio: 10,
+        Duracion: 1,
+        Hecho: false,
+        Anulada: false,
+        Color: Objetivo?.Color || "#1f6b4f"
+      });
+      Render_Calendario();
+      Guardar_Estado();
+    }, {
+      Objetivo_A_Id: Ids.Objetivo_A_Id
+    });
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      '.Evento[data-id="ev_a_2"]',
+      { modifiers: ["Control"] }
+    );
+
+    let Botones = await page.locator(
+      "#Calendario_Multi_Grupo_Acciones button"
+    ).allTextContents();
+    expect(Botones).toContain("Establecer plan");
+
+    await page.click(
+      '#Calendario_Multi_Grupo_Acciones ' +
+      'button:has-text("Establecer plan")'
+    );
+    await page.click("#Plan_Slot_Cuerpo .Config_Boton");
+    await page.fill("#Plan_Slot_Nuevo_Emoji", "P");
+    await page.fill("#Plan_Slot_Nuevo_Input", "Plan tarea");
+    await page.click("#Plan_Slot_Cuerpo .Abordaje_Nuevo_Btn");
+    await page.click("#Plan_Slot_Guardar");
+
+    await expect(
+      page.locator("#Dialogo_Overlay")
+    ).toHaveClass(/Activo/);
+    await page.click(
+      "#Dialogo_Botones .Dialogo_Boton_Primario"
+    );
+
+    const Resultado = await page.evaluate(() => ({
+      planes: ["ev_a", "ev_a_2"].map((Id) =>
+        Obtener_Items_Plan_Explicito_Evento(
+          Evento_Por_Id(Id)
+        ).map((Item) => Item.Texto)
+      ),
+      seleccion: Array.from(Eventos_Multi_Seleccion).sort()
+    }));
+
+    expect(Resultado.planes).toEqual([
+      ["Plan tarea"],
+      ["Plan tarea"]
+    ]);
+    expect(Resultado.seleccion).toEqual([]);
+
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_A_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    await page.click(
+      `.Evento[data-id="${Ids.Evento_B_Id}"]`,
+      { modifiers: ["Control"] }
+    );
+    Botones = await page.locator(
+      "#Calendario_Multi_Grupo_Acciones button"
+    ).allTextContents();
+    expect(Botones).not.toContain("Establecer plan");
   }
 );
 

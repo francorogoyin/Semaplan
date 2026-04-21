@@ -21016,6 +21016,15 @@
             "Tildar",
           "cal_multi.destildar":
             "Destildar",
+          "cal_multi.establecer_plan":
+            "Establecer plan",
+          "cal_multi.plan_reemplazar_confirm":
+            "Ya hay planes en algunos bloques. " +
+            "Desea removerlos por este nuevo?",
+          "cal_multi.plan_titulo":
+            "Plan para {n} bloques",
+          "cal_multi.plan_guardado":
+            "Plan aplicado a {n} bloques.",
           "cal_multi.borrar_confirm":
             "¿Borrar {n} bloques seleccionados?",
           "cal_multi.limpiar_confirm":
@@ -24435,6 +24444,15 @@
             "Check",
           "cal_multi.destildar":
             "Uncheck",
+          "cal_multi.establecer_plan":
+            "Set plan",
+          "cal_multi.plan_reemplazar_confirm":
+            "Some blocks already have plans. " +
+            "Do you want to replace them with this new one?",
+          "cal_multi.plan_titulo":
+            "Plan for {n} blocks",
+          "cal_multi.plan_guardado":
+            "Plan applied to {n} blocks.",
           "cal_multi.borrar_confirm":
             "Delete {n} selected blocks?",
           "cal_multi.limpiar_confirm":
@@ -27901,6 +27919,15 @@
             "Marcar",
           "cal_multi.destildar":
             "Desmarcar",
+          "cal_multi.establecer_plan":
+            "Estabelecer plano",
+          "cal_multi.plan_reemplazar_confirm":
+            "Ja existem planos em alguns blocos. " +
+            "Deseja remove-los por este novo?",
+          "cal_multi.plan_titulo":
+            "Plano para {n} blocos",
+          "cal_multi.plan_guardado":
+            "Plano aplicado a {n} blocos.",
           "cal_multi.borrar_confirm":
             "Apagar {n} blocos selecionados?",
           "cal_multi.limpiar_confirm":
@@ -29970,6 +29997,7 @@
       let Plan_Slot_Mostrando_Nuevo = false;
       let Plan_Slot_Nuevo_Texto_Borrador = "";
       let Plan_Slot_Nuevo_Emoji_Borrador = "";
+      let Plan_Slot_Modo_Masivo = null;
       // Planner por períodos: selección y navegación.
       let Planner_Tipo = "Trimestre";
       let Planner_Fecha_Base = null;
@@ -58300,6 +58328,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Abrir_Modal_Plan_Slot(Fecha, Hora) {
         Cerrar_Selector_Emojis();
+        Plan_Slot_Modo_Masivo = null;
         Plan_Slot_Clave_Activa = Clave_Slot(Fecha, Hora);
         Modal_Plan_Slot_Fecha = Fecha;
         Modal_Plan_Slot_Hora = Hora;
@@ -58321,6 +58350,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Cerrar_Modal_Plan_Slot() {
         Cerrar_Selector_Emojis();
+        Plan_Slot_Modo_Masivo = null;
         Plan_Slot_Clave_Activa = null;
         Modal_Plan_Slot_Fecha = "";
         Modal_Plan_Slot_Hora = null;
@@ -58380,11 +58410,189 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }, 0);
           return;
         }
+        if (Plan_Slot_Modo_Masivo) {
+          await Guardar_Modal_Plan_Slot_Masivo(Items);
+          return;
+        }
         Planes_Slot[Clave] = { Items };
         Cerrar_Modal_Plan_Slot();
         Render_Calendario();
         Guardar_Estado();
         await Forzar_Sync_Inmediato_Cambio_Critico();
+      }
+
+      function Obtener_Contexto_Plan_Calendario_Multi() {
+        Normalizar_Eventos_Multi_Seleccion();
+        Normalizar_Slots_Multi_Seleccion();
+        const Cantidad = Cantidad_Multi_Calendario();
+        if (Cantidad <= 1) return null;
+
+        const Eventos_Lista =
+          Obtener_Eventos_Multi_Seleccionados_Ordenados();
+        const Slots_Claves =
+          Obtener_Slots_Multi_Seleccionados_Ordenados();
+        if (Eventos_Lista.length && Slots_Claves.length) {
+          return null;
+        }
+
+        if (Eventos_Lista.length) {
+          const Objetivo_Id =
+            String(Eventos_Lista[0]?.Objetivo_Id || "");
+          if (!Objetivo_Id) return null;
+          const Mismo_Objetivo = Eventos_Lista.every(
+            (Evento) => Evento.Objetivo_Id === Objetivo_Id
+          );
+          if (!Mismo_Objetivo) return null;
+          return {
+            Tipo: "Eventos",
+            Evento_Ids: Eventos_Lista.map((Evento) => Evento.Id),
+            Objetivo_Id,
+            Cantidad: Eventos_Lista.length,
+            Fecha: Eventos_Lista[0].Fecha,
+            Hora: Eventos_Lista[0].Inicio
+          };
+        }
+
+        if (Slots_Claves.length) {
+          const Todos_Muertos = Slots_Claves.every((Clave) => {
+            const [Fecha, Hora] = String(Clave).split("|");
+            return Slot_Es_Muerto(Fecha, Number(Hora));
+          });
+          if (!Todos_Muertos) return null;
+          const [Fecha, Hora] = String(Slots_Claves[0])
+            .split("|");
+          return {
+            Tipo: "Slots",
+            Claves: Slots_Claves,
+            Cantidad: Slots_Claves.length,
+            Fecha,
+            Hora: Number(Hora) || 0
+          };
+        }
+
+        return null;
+      }
+
+      function Plan_Multi_Tiene_Planes_Existentes(Contexto) {
+        if (!Contexto) return false;
+        if (Contexto.Tipo === "Slots") {
+          return (Contexto.Claves || []).some((Clave) => {
+            const [Fecha, Hora] = String(Clave).split("|");
+            return Contar_Items_Plan_Slot(
+              Fecha,
+              Number(Hora)
+            ) > 0;
+          });
+        }
+        if (Contexto.Tipo === "Eventos") {
+          return (Contexto.Evento_Ids || []).some((Id) => {
+            const Evento = Evento_Por_Id(Id);
+            return Evento &&
+              Evento_Tiene_Contenido_Plan(Evento);
+          });
+        }
+        return false;
+      }
+
+      function Abrir_Modal_Plan_Multi_Calendario() {
+        const Contexto = Obtener_Contexto_Plan_Calendario_Multi();
+        if (!Contexto) return false;
+        Cerrar_Selector_Emojis();
+        Plan_Slot_Modo_Masivo = Contexto;
+        Plan_Slot_Clave_Activa = `Multi|${Date.now()}`;
+        Modal_Plan_Slot_Fecha = Contexto.Fecha || "";
+        Modal_Plan_Slot_Hora = Number(Contexto.Hora) || 0;
+        Plan_Slot_Borrador = [];
+        Plan_Slot_Mostrando_Nuevo = false;
+        Resetear_Nuevo_Plan_Slot();
+        const Titulo = document.getElementById("Plan_Slot_Titulo");
+        if (Titulo) {
+          Titulo.textContent = t("cal_multi.plan_titulo", {
+            n: Contexto.Cantidad
+          });
+        }
+        Render_Modal_Plan_Slot();
+        document.getElementById("Plan_Slot_Overlay")
+          ?.classList.add("Activo");
+        return true;
+      }
+
+      async function Confirmar_Reemplazo_Plan_Multi(Contexto) {
+        if (!Plan_Multi_Tiene_Planes_Existentes(Contexto)) {
+          return true;
+        }
+        return Boolean(await Mostrar_Dialogo(
+          t("cal_multi.plan_reemplazar_confirm"),
+          [
+            {
+              Etiqueta: t("cancelar"),
+              Valor: false,
+              Tipo: "Cancelar"
+            },
+            {
+              Etiqueta: t("dialog.reemplazar_todo"),
+              Valor: true,
+              Tipo: "Primario"
+            }
+          ]
+        ));
+      }
+
+      function Aplicar_Plan_Multi_A_Slots(Contexto, Items) {
+        (Contexto.Claves || []).forEach((Clave) => {
+          Planes_Slot[Clave] = {
+            Items: Clonar_Items_Plan_Slot(Items)
+          };
+        });
+      }
+
+      function Aplicar_Plan_Multi_A_Eventos(Contexto, Items) {
+        (Contexto.Evento_Ids || []).forEach((Id) => {
+          const Evento = Evento_Por_Id(Id);
+          if (!Evento) return;
+          const Base = Quitar_Plan_De_Items_Abordaje(
+            Obtener_Abordaje_Con_Plan_Slot(Evento)
+          );
+          const Nuevos = Clonar_Items_Plan_Evento(Items, {
+            Requiere_Planeada: false
+          });
+          Evento.Abordaje = Fusionar_Plan_En_Abordaje(
+            Base,
+            Nuevos
+          );
+          Limpiar_Planes_Slot_Evento(Evento);
+        });
+      }
+
+      async function Guardar_Modal_Plan_Slot_Masivo(Items) {
+        const Contexto = Plan_Slot_Modo_Masivo;
+        if (!Contexto) return false;
+        const Confirmar =
+          await Confirmar_Reemplazo_Plan_Multi(Contexto);
+        if (!Confirmar) return false;
+
+        if (Contexto.Tipo === "Slots") {
+          Aplicar_Plan_Multi_A_Slots(Contexto, Items);
+        } else if (Contexto.Tipo === "Eventos") {
+          Aplicar_Plan_Multi_A_Eventos(Contexto, Items);
+        } else {
+          return false;
+        }
+
+        Eventos_Multi_Seleccion.clear();
+        Slots_Multi_Seleccion.clear();
+        Cerrar_Modal_Plan_Slot();
+        Render_Calendario();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Render_Acciones_Multi_Calendario();
+        Guardar_Estado();
+        Mostrar_Toast_Info(t("cal_multi.plan_guardado", {
+          n: Contexto.Cantidad
+        }));
+        await Forzar_Sync_Inmediato_Cambio_Critico();
+        return true;
       }
 
       function Formatear_Id_Tipo_Slot(Aplica_A) {
@@ -65895,6 +66103,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tiene_Items_Movibles =
           Cantidad_Eventos > 0 ||
           Cantidad_Slots_Muertos > 0;
+        const Contexto_Plan =
+          Obtener_Contexto_Plan_Calendario_Multi();
         const Cantidad = Cantidad_Multi_Calendario();
         if (Cantidad === 0) {
           El_Calendario_Multi_Acciones.classList.remove("Activa");
@@ -65920,6 +66130,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 t("dialog.copiar"),
                 () => {
                   Ejecutar_Copiar_Seleccion_Calendario();
+                }
+              )
+            );
+          }
+          if (Contexto_Plan) {
+            El_Calendario_Multi_Grupo.appendChild(
+              Crear_Boton_Multi_Inline(
+                t("cal_multi.establecer_plan"),
+                () => {
+                  Abrir_Modal_Plan_Multi_Calendario();
                 }
               )
             );
@@ -65966,6 +66186,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           )
         );
+        if (Contexto_Plan) {
+          El_Calendario_Multi_Grupo.appendChild(
+            Crear_Boton_Multi_Inline(
+              t("cal_multi.establecer_plan"),
+              () => {
+                Abrir_Modal_Plan_Multi_Calendario();
+              }
+            )
+          );
+        }
         El_Calendario_Multi_Grupo.appendChild(
           Crear_Boton_Multi_Inline(
             t("cal_multi.tildar"),
@@ -66007,6 +66237,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tiene_Items_Movibles =
           Cantidad_Eventos > 0 ||
           Cantidad_Slots_Muertos > 0;
+        const Contexto_Plan =
+          Obtener_Contexto_Plan_Calendario_Multi();
         const Grupo = [];
 
         if (Cantidad_Slots > 0) {
@@ -66021,6 +66253,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Html_Menu_Dia_Accion(
                 "multi-copiar",
                 t("dialog.copiar")
+              )
+            );
+          }
+          if (Contexto_Plan) {
+            Grupo.push(
+              Html_Menu_Dia_Accion(
+                "multi-plan",
+                t("cal_multi.establecer_plan")
               )
             );
           }
@@ -66051,6 +66291,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               t("dialog.copiar")
             )
           );
+          if (Contexto_Plan) {
+            Grupo.push(
+              Html_Menu_Dia_Accion(
+                "multi-plan",
+                t("cal_multi.establecer_plan")
+              )
+            );
+          }
           Grupo.push(
             Html_Menu_Dia_Accion(
               "multi-tildar",
@@ -66097,6 +66345,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 await Solicitar_Mover_Seleccion_Calendario_Multi();
               } else if (Accion === "multi-copiar") {
                 Ejecutar_Copiar_Seleccion_Calendario();
+              } else if (Accion === "multi-plan") {
+                Abrir_Modal_Plan_Multi_Calendario();
               } else if (Accion === "multi-limpiar") {
                 await Limpiar_Seleccion_Calendario_Multi();
               } else if (Accion === "multi-borrar") {
