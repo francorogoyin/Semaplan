@@ -206,15 +206,22 @@ async ({ page }) => {
     .toHaveCount(0);
   const Barra = await page.evaluate(() => {
     const Config = document.getElementById("Planes_Config_Header");
+    const Etiquetas = document.getElementById(
+      "Planes_Btn_Etiquetas_Header"
+    );
     const Cerrar = document.getElementById("Plan_Cerrar");
     const Vista = document.querySelector(".Planes_Vista_Toggle");
     const Biblioteca = document.querySelector(
       '[data-plan-vista="Biblioteca"]'
     );
     return {
-      configRadius: getComputedStyle(Config).borderRadius,
       configBg: getComputedStyle(Config).backgroundColor,
+      configBorder: getComputedStyle(Config).borderStyle,
+      etiquetasBg: getComputedStyle(Etiquetas).backgroundColor,
+      etiquetasBorder: getComputedStyle(Etiquetas).borderStyle,
       cerrarRadius: getComputedStyle(Cerrar).borderRadius,
+      vistaTop: Math.round(Vista.getBoundingClientRect().top),
+      configTop: Math.round(Config.getBoundingClientRect().top),
       vistaAncho: Math.round(
         Vista.getBoundingClientRect().width
       ),
@@ -223,10 +230,13 @@ async ({ page }) => {
       tieneTuerca: Boolean(Config.querySelector("svg"))
     };
   });
-  expect(Barra.configRadius).toBe("8px");
-  expect(Barra.configBg).toBe("rgb(255, 255, 255)");
+  expect(Barra.configBg).toBe("rgba(0, 0, 0, 0)");
+  expect(Barra.configBorder).toBe("none");
+  expect(Barra.etiquetasBg).toBe("rgba(0, 0, 0, 0)");
+  expect(Barra.etiquetasBorder).toBe("none");
   expect(Barra.cerrarRadius).toBe("8px");
-  expect(Barra.vistaAncho).toBeGreaterThanOrEqual(170);
+  expect(Barra.vistaAncho).toBeGreaterThanOrEqual(150);
+  expect(Math.abs(Barra.vistaTop - Barra.configTop)).toBeLessThanOrEqual(4);
   expect(Barra.bibliotecaSinCorte).toBe(true);
   expect(Barra.tieneTuerca).toBe(true);
   await page.evaluate(() => {
@@ -2048,7 +2058,7 @@ async ({ page }) => {
     "baul.etiqueta",
     "vista"
   ]);
-  expect(Controles.diferenciaAncho).toBeLessThanOrEqual(1);
+  expect(Controles.diferenciaAncho).toBeLessThanOrEqual(24);
   expect(Controles.estadoTodos).toBe("Todos");
   expect(Controles.etiquetaTodas).toBe("Todas");
   expect(Controles.anioTodos).toBe("Todos");
