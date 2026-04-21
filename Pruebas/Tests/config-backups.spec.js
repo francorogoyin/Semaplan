@@ -1238,3 +1238,177 @@ test("el salvavidas persiste cambios locales desfasados", async ({
   expect(resumen.objetivos).toContain("obj_1");
   expect(resumen.backups).toEqual(["bkp-manual"]);
 });
+
+test("importacion no falla si backup preventivo supera cuota",
+async ({ page }) => {
+  await page.route(
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: ""
+      });
+    }
+  );
+  await page.route(
+    "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: ""
+      });
+    }
+  );
+  await page.addInitScript(() => {
+    window.supabase = {
+      createClient() {
+        return {
+          auth: {
+            async getSession() {
+              return { data: { session: null } };
+            },
+            onAuthStateChange() {
+              return {
+                data: {
+                  subscription: { unsubscribe() {} }
+                }
+              };
+            },
+            async signOut() {
+              return { error: null };
+            }
+          }
+        };
+      }
+    };
+    window.turnstile = {
+      render() {
+        return 1;
+      },
+      remove() {},
+      reset() {}
+    };
+    window.alert = () => {};
+    localStorage.setItem(
+      "Semaplan_Estado_V2",
+      JSON.stringify({
+        Objetivos: [],
+        Eventos: [],
+        Metas: [],
+        Slots_Muertos: [],
+        Plantillas_Subobjetivos: [],
+        Planes_Slot: {},
+        Categorias: [],
+        Etiquetas: [],
+        Baul_Objetivos: [],
+        Baul_Grupos_Colapsados: {},
+        Archiveros: [],
+        Notas_Archivero: [],
+        Patrones: [],
+        Contador_Eventos: 1,
+        Objetivo_Seleccionada_Id: null,
+        Modo_Editor_Abierto: false,
+        Inicio_Semana: "2026-04-13",
+        Duracion_Defecto: 1,
+        Config_Extra: {},
+        Tipos_Slot: [],
+        Tipos_Slot_Inicializados: false,
+        Slots_Muertos_Tipos: {},
+        Slots_Muertos_Nombres: {},
+        Abordajes_Migrados_V1: true,
+        Semanas_Con_Defaults: [],
+        Planes_Semana: {}
+      })
+    );
+  });
+
+  await page.goto("/index.html");
+  await page.waitForFunction(() =>
+    typeof window.Inicializar === "function"
+  );
+
+  const resumen = await page.evaluate(() => {
+    document.getElementById("Auth_Overlay")
+      ?.classList.remove("Activo");
+    document.getElementById("App_Loader")
+      ?.classList.add("Oculto");
+    window.Inicializar();
+    Cargando_Inicial = false;
+
+    let Descargas = 0;
+    Descargar_Json_Respaldo = () => {
+      Descargas += 1;
+    };
+
+    const SetItem_Original = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (Clave, Valor) {
+      if (String(Clave).startsWith("Semaplan_Backups_V1")) {
+        throw new DOMException(
+          "quota",
+          "QuotaExceededError"
+        );
+      }
+      return SetItem_Original.call(this, Clave, Valor);
+    };
+
+    let Error_Mensaje = "";
+    try {
+      Descargar_Backup_Pre_Importacion();
+    } catch (Err) {
+      Error_Mensaje = Err.message;
+    }
+    Storage.prototype.setItem = SetItem_Original;
+
+    localStorage.setItem(
+      "Semaplan_Backups_V1",
+      JSON.stringify([{
+        Id: "bkp-viejo",
+        Tipo: "Manual",
+        Fecha: 1,
+        Estado: {
+          Objetivos: [],
+          Eventos: []
+        }
+      }])
+    );
+
+    let Fallos_Estado = 0;
+    Storage.prototype.setItem = function (Clave, Valor) {
+      if (
+        Clave === "Semaplan_Estado_V2" &&
+        Fallos_Estado === 0
+      ) {
+        Fallos_Estado += 1;
+        throw new DOMException(
+          "quota",
+          "QuotaExceededError"
+        );
+      }
+      return SetItem_Original.call(this, Clave, Valor);
+    };
+
+    Guardar_Estado_Importado_Local({
+      Objetivos: [],
+      Eventos: []
+    });
+    Storage.prototype.setItem = SetItem_Original;
+
+    return {
+      descargas: Descargas,
+      error: Error_Mensaje,
+      backups: localStorage.getItem("Semaplan_Backups_V1"),
+      fallos_estado: Fallos_Estado,
+      estado: JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") || "{}"
+      )
+    };
+  });
+
+  expect(resumen.error).toBe("");
+  expect(resumen.descargas).toBe(1);
+  expect(resumen.backups).toBeNull();
+  expect(resumen.fallos_estado).toBe(1);
+  expect(resumen.estado.Objetivos).toEqual([]);
+});

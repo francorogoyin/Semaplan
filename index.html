@@ -9251,7 +9251,7 @@
       .Config_Backup_Historial > .Cfg_Cuenta_Etiqueta {
         flex: 0 0 auto;
         width: auto;
-        margin-bottom: 10px;
+        margin-bottom: 3px;
       }
 
       .Config_Backup_Historial .Config_Backup_Lista {
@@ -21629,6 +21629,9 @@
             "Copia manual guardada.",
           "config.backup_aviso_auto":
             "Copia automática guardada.",
+          "config.backup_error_cuota":
+            "No se pudo guardar el backup local. " +
+            "Borra backups viejos o exporta un respaldo.",
           "config.cuenta": "Cuenta",
           "config.cuenta_hint":
             "Tu sesión activa, plan, " +
@@ -25205,6 +25208,9 @@
             "Manual backup saved.",
           "config.backup_aviso_auto":
             "Automatic backup saved.",
+          "config.backup_error_cuota":
+            "Local backup could not be saved. " +
+            "Delete old backups or export a copy.",
           "config.cuenta": "Account",
           "config.cuenta_hint":
             "Your active session, plan, " +
@@ -28783,6 +28789,9 @@
             "Copia manual salva.",
           "config.backup_aviso_auto":
             "Copia automática salva.",
+          "config.backup_error_cuota":
+            "Nao foi possivel salvar o backup local. " +
+            "Apague backups antigos ou exporte uma copia.",
           "config.cuenta": "Conta",
           "config.cuenta_hint":
             "Sua sessão ativa, plano, " +
@@ -67102,16 +67111,92 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ];
       }
 
+      function Es_Error_Cuota_Storage(Err) {
+        const Nombre = String(Err?.name || "");
+        const Mensaje = String(Err?.message || "");
+        return Nombre === "QuotaExceededError" ||
+          Nombre === "NS_ERROR_DOM_QUOTA_REACHED" ||
+          Err?.code === 22 ||
+          Err?.code === 1014 ||
+          Mensaje.toLowerCase().includes("quota");
+      }
+
+      function Crear_Candidatos_Backups_Cuota(
+        Lista = []
+      ) {
+        const Validos =
+          Recortar_Backups_Locales_Lista(Lista);
+        const Manuales = Validos.filter((Item) => {
+          return Item.Tipo !== "Auto";
+        });
+        const Autos = Validos.filter((Item) => {
+          return Item.Tipo === "Auto";
+        });
+        const Candidatos = [Validos];
+        if (Manuales.length) {
+          for (
+            let Cantidad = Autos.length - 1;
+            Cantidad >= 0;
+            Cantidad -= 1
+          ) {
+            Candidatos.push([
+              ...Manuales,
+              ...Autos.slice(0, Cantidad)
+            ]);
+          }
+          for (
+            let Cantidad = Manuales.length - 1;
+            Cantidad >= 0;
+            Cantidad -= 1
+          ) {
+            Candidatos.push(
+              Manuales.slice(0, Cantidad)
+            );
+          }
+        } else {
+          for (
+            let Cantidad = Validos.length - 1;
+            Cantidad >= 0;
+            Cantidad -= 1
+          ) {
+            Candidatos.push(
+              Validos.slice(0, Cantidad)
+            );
+          }
+        }
+        return Candidatos;
+      }
+
       function Guardar_Backups_Locales() {
         Backups_Locales =
           Recortar_Backups_Locales_Lista(
             Backups_Locales
           );
         Backups_Locales_Cargados = true;
-        localStorage.setItem(
-          Obtener_Clave_Backups_Actual(),
-          JSON.stringify(Backups_Locales)
-        );
+        const Clave = Obtener_Clave_Backups_Actual();
+        const Candidatos =
+          Crear_Candidatos_Backups_Cuota(
+            Backups_Locales
+          );
+        for (const Lista of Candidatos) {
+          try {
+            localStorage.setItem(
+              Clave,
+              JSON.stringify(Lista)
+            );
+            Backups_Locales = Lista;
+            return true;
+          } catch (Err) {
+            if (!Es_Error_Cuota_Storage(Err)) {
+              throw Err;
+            }
+          }
+        }
+        Backups_Locales = [];
+        try {
+          localStorage.removeItem(Clave);
+        } catch {}
+        return false;
       }
 
       function Crear_Id_Backup_Local() {
@@ -67694,11 +67779,59 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Descargar_Backup_Pre_Importacion() {
         const Estado_Actual = Construir_Estado_Completo();
-        Crear_Backup_Local("Auto");
         Descargar_Json_Respaldo(
           Estado_Actual,
           "Semaplan_Pre_Importacion"
         );
+        try {
+          Crear_Backup_Local("Auto", {
+            Silenciar_Exito: true,
+            Silenciar_Error: true
+          });
+        } catch (Err) {
+          Log_Error_App(
+            "backups",
+            "backup_pre_importacion",
+            "No se pudo guardar el backup local previo",
+            Err
+          );
+        }
+      }
+
+      function Liberar_Espacio_Backups_Locales() {
+        const Claves = [
+          Obtener_Clave_Backups_Actual(),
+          Clave_Backups
+        ];
+        const Id_Cache = Obtener_Id_Usuario_Cache_Local();
+        if (Id_Cache) {
+          Claves.push(
+            Obtener_Clave_Backups_Usuario(Id_Cache)
+          );
+        }
+        for (const Clave of new Set(Claves.filter(Boolean))) {
+          try {
+            localStorage.removeItem(Clave);
+          } catch {}
+        }
+        Backups_Locales = [];
+        Backups_Locales_Cargados = true;
+        Render_Config_Backups();
+      }
+
+      function Guardar_Estado_Importado_Local(Obj) {
+        const Raw = JSON.stringify(Obj);
+        try {
+          localStorage.setItem(Clave_Local, Raw);
+          return true;
+        } catch (Err) {
+          if (!Es_Error_Cuota_Storage(Err)) {
+            throw Err;
+          }
+          Liberar_Espacio_Backups_Locales();
+          localStorage.setItem(Clave_Local, Raw);
+          return true;
+        }
       }
 
       async function Aplicar_Importacion_Objeto(
@@ -67734,7 +67867,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           return false;
         }
-        localStorage.setItem(Clave_Local, JSON.stringify(Obj));
+        Guardar_Estado_Importado_Local(Obj);
         if (Supa && Usuario_Actual) {
           try {
             const { error } = await Supa
@@ -67763,7 +67896,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
-      function Crear_Backup_Local(Tipo = "Manual") {
+      function Crear_Backup_Local(
+        Tipo = "Manual",
+        Opciones = {}
+      ) {
         Cargar_Backups_Locales();
         const Backup = {
           Id: Crear_Id_Backup_Local(),
@@ -67772,8 +67908,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado: Construir_Estado_Completo()
         };
         Backups_Locales.unshift(Backup);
-        Guardar_Backups_Locales();
+        const Guardado = Guardar_Backups_Locales();
+        const Backup_Guardado =
+          Backups_Locales.some((Item) => {
+            return Item.Id === Backup.Id;
+          });
         Render_Config_Backups();
+        if (!Guardado || !Backup_Guardado) {
+          Log_Error_App(
+            "backups",
+            "crear_backup_local",
+            "No se pudo guardar el backup local",
+            null,
+            { tipo: Backup.Tipo }
+          );
+          if (!Opciones.Silenciar_Error) {
+            Mostrar_Toast_Error(
+              t("config.backup_error_cuota"),
+              7000
+            );
+          }
+          return null;
+        }
+        if (Opciones.Silenciar_Exito) {
+          return Backup;
+        }
         Mostrar_Toast_Info(
           t("config.backup_realizado"),
           "💾",
@@ -67792,10 +67951,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Ahora < Proximo) {
           return false;
         }
-        Crear_Backup_Local("Auto");
+        const Backup = Crear_Backup_Local("Auto", {
+          Silenciar_Error: true
+        });
         Config.Backup_Auto_Ultimo = Ahora;
         Actualizar_Config_Backup_Auto_UI();
-        return true;
+        return Boolean(Backup);
       }
 
       async function Restaurar_Backup_Local(Backup) {
