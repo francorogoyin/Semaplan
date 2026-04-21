@@ -871,10 +871,14 @@ async ({ page }) => {
     const Inicio = Campo("Planes_Subobjetivo_Fecha_Inicio");
     const Objetivo = Campo("Planes_Subobjetivo_Fecha_Objetivo");
     const Fin = Campo("Planes_Subobjetivo_Fecha_Fin");
+    const Modal = document.querySelector(".Planes_Subobjetivo_Modal");
+    const Form = document.querySelector(".Planes_Subobjetivo_Form");
     return {
       aporteLabel: document.getElementById(
         "Planes_Subobjetivo_Aporte_Label"
       )?.textContent.trim(),
+      modalOverflow: Modal.scrollWidth - Modal.clientWidth,
+      formOverflow: Form.scrollWidth - Form.clientWidth,
       fechasMismaLinea:
         Math.abs(Inicio.top - Objetivo.top) <= 2 &&
         Math.abs(Inicio.top - Fin.top) <= 2,
@@ -884,6 +888,8 @@ async ({ page }) => {
     };
   });
   expect(Layout_Sub_Modal.aporteLabel).toBe("Aporte en libros");
+  expect(Layout_Sub_Modal.modalOverflow).toBeLessThanOrEqual(1);
+  expect(Layout_Sub_Modal.formOverflow).toBeLessThanOrEqual(1);
   expect(Layout_Sub_Modal.fechasMismaLinea).toBe(true);
   expect(Layout_Sub_Modal.fechasOrdenadas).toBe(true);
   await page.fill("#Planes_Subobjetivo_Emoji", "\uD83D\uDCD6");
@@ -2540,6 +2546,121 @@ async ({ page }) => {
   expect(Estilo_Cerrado.porcentajeFondo).toBe("rgba(0, 0, 0, 0)");
   expect(Estilo_Cerrado.estadoFondo).toBe("rgba(0, 0, 0, 0)");
   expect(Estilo_Cerrado.estadoSombra).toBe("none");
+  expect(errores).toEqual([]);
+});
+
+test("Actualizar capa redistribuye fecha final nueva del padre",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 2;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Peliculas redistribuidas",
+        Emoji: "\uD83C\uDFA5",
+        Target_Total: 120,
+        Unidad: "Personalizado",
+        Unidad_Custom: "peliculas"
+      }
+    );
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Items = Trimestres.map((Periodo) => ({
+      Periodo_Id: Periodo.Id,
+      Objetivo_Ids: [Padre.Id]
+    }));
+
+    Planes_Importar_Objetivos_Padres_A_Periodos(
+      Items,
+      { Modo: "Pendiente" }
+    );
+
+    const Antes = Trimestres.map((Periodo) =>
+      Planes_Objetivo_Hijo_De(Padre.Id, Periodo.Id).Target_Total
+    );
+    Trimestres.forEach((Periodo) => {
+      const Hijo = Planes_Objetivo_Hijo_De(Padre.Id, Periodo.Id);
+      Hijo.Fijado = true;
+      Hijo.Target_Fijado = Hijo.Target_Total;
+      Hijo.Target_Fijado_Por_Usuario = true;
+      Hijo.Auto_Redistribucion = false;
+    });
+    const Sub_Id = Crear_Id_Subobjetivo_Plan();
+    Modelo.Subobjetivos[Sub_Id] = Normalizar_Subobjetivo_Plan({
+      Id: Sub_Id,
+      Objetivo_Id: Padre.Id,
+      Emoji: "\uD83C\uDFA5",
+      Texto: "Pelicula Q1",
+      Aporte_Meta: 1,
+      Target_Total: 1,
+      Progreso_Inicial: 1,
+      Hecha: true,
+      Estado: "Cumplido",
+      Fecha_Fin: "2026-03-20"
+    });
+    Planes_Actualizar_Progreso(Padre);
+
+    const Preview =
+      Planes_Previsualizar_Actualizar_Importados_Capa("Trimestre");
+    const Resumen =
+      Planes_Actualizar_Importados_Capa("Trimestre");
+    const Despues = Trimestres.map((Periodo) => {
+      const Hijo = Planes_Objetivo_Hijo_De(Padre.Id, Periodo.Id);
+      return {
+        Target: Hijo.Target_Total,
+        Target_Fijado: Hijo.Target_Fijado,
+        Progreso: Hijo.Progreso_Total,
+        Regla: Hijo.Regla_Distribucion,
+        Fijado: Hijo.Fijado,
+        Auto_Redistribucion: Hijo.Auto_Redistribucion
+      };
+    });
+    return {
+      Antes,
+      Preview,
+      Resumen,
+      Despues,
+      Padre_Progreso: Padre.Progreso_Total
+    };
+  });
+
+  expect(Resultado.Antes[0]).toBeCloseTo(30, 5);
+  [1, 2, 3].forEach((Indice) => {
+    expect(Resultado.Antes[Indice]).toBeCloseTo(40, 5);
+  });
+  expect(Resultado.Preview.Total).toBeGreaterThan(0);
+  expect(Resultado.Resumen.Total).toBeGreaterThan(0);
+  expect(Resultado.Padre_Progreso).toBe(1);
+  expect(Resultado.Despues[0].Target).toBeCloseTo(30, 5);
+  [1, 2, 3].forEach((Indice) => {
+    expect(Resultado.Despues[Indice].Target)
+      .toBeCloseTo(119 / 3, 5);
+    expect(Resultado.Despues[Indice].Target_Fijado)
+      .toBeCloseTo(119 / 3, 5);
+    expect(Resultado.Despues[Indice].Regla).toBe("Pendiente");
+    expect(Resultado.Despues[Indice].Fijado).toBe(true);
+    expect(Resultado.Despues[Indice].Auto_Redistribucion)
+      .toBe(false);
+  });
   expect(errores).toEqual([]);
 });
 

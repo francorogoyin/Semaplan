@@ -5933,7 +5933,7 @@
       }
 
       .Planes_Subobjetivo_Modal {
-        max-width: 680px;
+        max-width: 760px;
       }
 
       .Planes_Subobjetivos_Filtros {
@@ -5994,50 +5994,44 @@
       }
 
       .Planes_Subobjetivo_Form {
-        grid-template-columns:
-          minmax(76px, 0.85fr)
-          minmax(130px, 1fr)
-          minmax(116px, 0.95fr)
-          minmax(116px, 0.95fr)
-          minmax(116px, 0.95fr)
-          minmax(116px, 0.95fr);
+        grid-template-columns: repeat(12, minmax(0, 1fr));
       }
 
       .Planes_Subobjetivo_Meta_Campo,
       .Planes_Subobjetivo_Avance_Campo,
       .Planes_Subobjetivo_Unidad_Campo,
       .Planes_Subobjetivo_Unidad_Custom_Campo {
-        grid-column: auto;
+        grid-column: span 3;
       }
 
       .Planes_Subobjetivo_Aporte_Campo {
-        grid-column: span 2;
+        grid-column: span 3;
       }
 
       .Planes_Subobjetivo_Fecha_Ini_Campo,
       .Planes_Subobjetivo_Fecha_Obj_Campo,
       .Planes_Subobjetivo_Fecha_Fin_Campo {
-        grid-column: span 2;
+        grid-column: span 4;
       }
 
       .Planes_Subobjetivo_Fecha_Ini_Campo {
-        grid-column-start: 1;
+        grid-column: 1 / span 4;
       }
 
       .Planes_Subobjetivo_Fecha_Obj_Campo {
-        grid-column-start: 3;
+        grid-column: 5 / span 4;
       }
 
       .Planes_Subobjetivo_Fecha_Fin_Campo {
-        grid-column-start: 5;
+        grid-column: 9 / span 4;
       }
 
       .Planes_Subobjetivo_Emoji_Campo {
-        grid-column: 1 / 2;
+        grid-column: span 2;
       }
 
       .Planes_Subobjetivo_Nombre_Campo {
-        grid-column: 2 / -1;
+        grid-column: span 10;
       }
 
       .Planes_Subobjetivo_Unidad_Custom_Campo[hidden] {
@@ -50236,7 +50230,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Info_Pendiente_Importacion(
               Item.Padre,
               Item.Periodo_Padre,
-              Item.Periodos
+              Item.Periodos,
+              {
+                Recalcular_Si_Todos_Bloqueados: true,
+                Bloquear_Auto_Redistribucion: true
+              }
             )
           );
         });
@@ -50248,6 +50246,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Hijo.Target_Total = Valor;
         Hijo.Target_Automatico = Valor;
         Hijo.Target_Actual = Valor;
+        if (Hijo.Fijado) {
+          Hijo.Target_Fijado = Valor;
+        }
       }
 
       function Planes_Recalcular_Target_Hijo_Importado(
@@ -50270,7 +50271,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Info_Pendiente) return;
           const Avance = Info_Pendiente.Avances.get(Periodo.Id);
           Hijo.Progreso_Importado = Number(Avance) || 0;
-          if (Target_Bloqueado) return;
+          const Forzar_Target = Boolean(
+            Info_Pendiente.Forzar_Targets?.has(Periodo.Id)
+          );
+          if (Target_Bloqueado && !Forzar_Target) return;
           const Target = Info_Pendiente.Targets.get(Periodo.Id);
           if (Target === undefined) return;
           Planes_Aplicar_Target_Hijo_Importado(Hijo, Target);
@@ -50837,7 +50841,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Objetivo_Bloquea_Pendiente_Importacion(
-        Objetivo
+        Objetivo,
+        Opciones = {}
       ) {
         if (
           !Objetivo ||
@@ -50848,7 +50853,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         return Boolean(
           Objetivo.Fijado ||
-          Objetivo.Target_Fijado_Por_Usuario
+          Objetivo.Target_Fijado_Por_Usuario ||
+          (
+            Opciones.Incluir_Auto_Redistribucion === true &&
+            Objetivo.Auto_Redistribucion === false
+          )
         );
       }
 
@@ -50863,11 +50872,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Info_Pendiente_Importacion(
         Objetivo_Padre,
         Periodo_Padre,
-        Periodos_Destino
+        Periodos_Destino,
+        Opciones = {}
       ) {
         const Resultado = {
           Targets: new Map(),
-          Avances: new Map()
+          Avances: new Map(),
+          Forzar_Targets: new Set()
         };
         const Destinos = Array.isArray(Periodos_Destino)
           ? Periodos_Destino
@@ -50932,7 +50943,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           const Bloqueado =
             !Pasado &&
-            Planes_Objetivo_Bloquea_Pendiente_Importacion(Hijo);
+            Planes_Objetivo_Bloquea_Pendiente_Importacion(
+              Hijo,
+              {
+                Incluir_Auto_Redistribucion:
+                  Opciones.Bloquear_Auto_Redistribucion === true
+              }
+            );
           return {
             Periodo,
             Base,
@@ -50947,6 +50964,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               : 0
           };
         });
+        const Abiertos_Bloqueados = Periodos_Info.filter((Info) =>
+          Info.Abierto && Info.Bloqueado
+        );
+        const Hay_Abiertos =
+          Periodos_Info.some((Info) => Info.Abierto);
+        const Hay_Abiertos_Libres =
+          Periodos_Info.some((Info) =>
+            Info.Abierto && !Info.Bloqueado
+          );
+        const Recalcular_Bloqueados =
+          Opciones.Recalcular_Si_Todos_Bloqueados === true &&
+          Hay_Abiertos &&
+          Abiertos_Bloqueados.length > 0 &&
+          !Hay_Abiertos_Libres;
+        if (Recalcular_Bloqueados) {
+          Abiertos_Bloqueados.forEach((Info) => {
+            Info.Bloqueado = false;
+            Info.Forzar_Target = true;
+          });
+        }
         const Deuda_Total = Periodos_Info.reduce(
           (Total, Info) => Total + Info.Deuda,
           0
@@ -50962,6 +50999,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Periodos_Equivalentes(Item.Periodo, Periodo)
           );
           if (!Info) return;
+          if (Info.Forzar_Target) {
+            Resultado.Forzar_Targets.add(Periodo.Id);
+          }
           const Target_Periodo = Info.Pasado
             ? Info.Base
             : Info.Bloqueado
