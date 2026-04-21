@@ -73249,14 +73249,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Slot_Base) {
           Slot_Base.draggable = false;
         }
-        const Grupo_Id_Franja =
-          Asegurar_Grupo_Id_Franja_Slot(Franja);
         const Datos_Prototipo = {
-          ...Capturar_Datos_Slot_Muerto(
-            Fecha,
-            Hora
-          ),
-          Grupo_Id: Grupo_Id_Franja
+          ...Capturar_Datos_Slot_Muerto(Fecha, Hora)
         };
         const Y_Inicial = Mouse_Ev.clientY;
         const Fin_Inicial = Franja.Fin;
@@ -73301,7 +73295,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Aplicar_Datos_Slot_Muerto(
                 Fecha,
                 Hora_Nueva,
-                Datos_Prototipo,
+                {
+                  ...Datos_Prototipo,
+                  Grupo_Id: Crear_Id_Grupo_Slot_Muerto()
+                },
                 true
               );
             }

@@ -1351,7 +1351,7 @@ test("un bloque no renderiza titulos de slot muerto superpuesto", async ({
   expect(data.texto_bloque).not.toContain("Almuerzo largo");
 });
 
-test("resize personalizado expande y recorta una franja de slot muerto", async ({
+test("resize duplica slot muerto con identidad independiente", async ({
   page
 }) => {
   const estado = estadoBase();
@@ -1404,6 +1404,8 @@ test("resize personalizado expande y recorta una franja de slot muerto", async (
     slot_11: Slots_Muertos.includes("2026-04-13|11"),
     tipo_11: Slots_Muertos_Tipos["2026-04-13|11"] || "",
     titulo_11: Slots_Muertos_Nombres["2026-04-13|11"] || "",
+    grupo_10: Slots_Muertos_Grupo_Ids["2026-04-13|10"] || "",
+    grupo_11: Slots_Muertos_Grupo_Ids["2026-04-13|11"] || "",
     plan_11:
       Planes_Slot["2026-04-13|11"]?.Items?.[0]?.Texto || ""
   }));
@@ -1412,44 +1414,28 @@ test("resize personalizado expande y recorta una franja de slot muerto", async (
   expect(data.slot_11).toBeTruthy();
   expect(data.tipo_11).toBe("Comida");
   expect(data.titulo_11).toBe("Almuerzo largo");
+  expect(data.grupo_10).not.toBe(data.grupo_11);
   expect(data.plan_11).toBe("Idea central");
 
-  const slotFinal = page.locator(
-    '.Slot[data-fecha="2026-04-13"][data-hora="11"]'
-  );
-  const handleFinal = slotFinal.locator(
-    ".Slot_Muerto_Resize_Handle"
-  );
-  await expect(handleFinal).toBeVisible();
-
-  const cajaHandleFinal = await handleFinal.boundingBox();
-  const cajaSlotFinal = await slotFinal.boundingBox();
-  if (!cajaHandleFinal || !cajaSlotFinal) {
-    throw new Error("No se pudo medir el resize final");
-  }
-
-  await page.mouse.move(
-    cajaHandleFinal.x + cajaHandleFinal.width / 2,
-    cajaHandleFinal.y + cajaHandleFinal.height / 2
-  );
-  await page.mouse.down();
-  await page.mouse.move(
-    cajaHandleFinal.x + cajaHandleFinal.width / 2,
-    cajaHandleFinal.y + cajaHandleFinal.height / 2
-      - cajaSlotFinal.height,
-    { steps: 6 }
-  );
-  await page.mouse.up();
+  await arrastrarSlot(page, 10, 12);
 
   data = await page.evaluate(() => ({
     slot_10: Slots_Muertos.includes("2026-04-13|10"),
     slot_11: Slots_Muertos.includes("2026-04-13|11"),
-    plan_11: Planes_Slot["2026-04-13|11"]?.Items?.length || 0
+    slot_12: Slots_Muertos.includes("2026-04-13|12"),
+    slot_13: Slots_Muertos.includes("2026-04-13|13"),
+    plan_11:
+      Planes_Slot["2026-04-13|11"]?.Items?.[0]?.Texto || "",
+    plan_12:
+      Planes_Slot["2026-04-13|12"]?.Items?.[0]?.Texto || ""
   }));
 
-  expect(data.slot_10).toBeTruthy();
-  expect(data.slot_11).toBeFalsy();
-  expect(data.plan_11).toBe(0);
+  expect(data.slot_10).toBeFalsy();
+  expect(data.slot_11).toBeTruthy();
+  expect(data.slot_12).toBeTruthy();
+  expect(data.slot_13).toBeFalsy();
+  expect(data.plan_11).toBe("Idea central");
+  expect(data.plan_12).toBe("Idea central");
 });
 
 test("resize de slot muerto visible sin modo personalizado", async ({
@@ -1488,9 +1474,12 @@ test("resize de slot muerto visible sin modo personalizado", async ({
 
   const data = await page.evaluate(() => ({
     slot_10: Slots_Muertos.includes("2026-04-13|10"),
-    slot_11: Slots_Muertos.includes("2026-04-13|11")
+    slot_11: Slots_Muertos.includes("2026-04-13|11"),
+    grupo_10: Slots_Muertos_Grupo_Ids["2026-04-13|10"] || "",
+    grupo_11: Slots_Muertos_Grupo_Ids["2026-04-13|11"] || ""
   }));
 
   expect(data.slot_10).toBeTruthy();
   expect(data.slot_11).toBeTruthy();
+  expect(data.grupo_10).not.toBe(data.grupo_11);
 });
