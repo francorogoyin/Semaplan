@@ -322,6 +322,15 @@ async ({ page }) => {
   await expect(
     page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_Btn:visible")
   ).toHaveCount(0);
+  await expect(
+    page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_Bloque")
+  ).toHaveCSS("border-top-width", "0px");
+  await expect(
+    page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_Bloque")
+  ).toHaveCSS("border-radius", "0px");
+  await expect(
+    page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_Bloque")
+  ).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(page.locator(".Aporte_Meta_Check")).toHaveCount(1);
   await expect(page.locator(".Aporte_Meta_Check"))
     .toHaveClass(/Activo/);
@@ -356,6 +365,15 @@ async ({ page }) => {
   await expect(
     page.locator("#Focus_Cuerpo .Aporte_Meta_Check")
   ).toHaveCount(1);
+  await expect(
+    page.locator("#Focus_Cuerpo .Aporte_Meta_Bloque")
+  ).toHaveCSS("border-top-width", "0px");
+  await expect(
+    page.locator("#Focus_Cuerpo .Aporte_Meta_Bloque")
+  ).toHaveCSS("border-radius", "0px");
+  await expect(
+    page.locator("#Focus_Cuerpo .Aporte_Meta_Bloque")
+  ).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(
     page.locator("#Focus_Cuerpo .Aporte_Meta_Check")
   ).toHaveClass(/Activo/);
