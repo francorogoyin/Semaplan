@@ -44005,10 +44005,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Periodo.Avances &&
           Planes_Periodo.UI
         ) {
+          Planes_Asegurar_Progreso_Calculado(Planes_Periodo);
           return Planes_Periodo;
         }
         Planes_Periodo = Normalizar_Modelo_Planes(Planes_Periodo);
+        Planes_Asegurar_Progreso_Calculado(Planes_Periodo);
         return Planes_Periodo;
+      }
+
+      function Planes_Asegurar_Progreso_Calculado(Modelo) {
+        if (!Modelo || Modelo.Progreso_Calculado_Version >= 1) return;
+        Modelo.Progreso_Calculado_Version = 1;
+        Object.values(Modelo.Partes || {})
+          .forEach((Parte) => {
+            Planes_Recalcular_Progreso_Parte(Parte, Modelo);
+          });
+        Object.values(Modelo.Subobjetivos || {})
+          .forEach((Sub) => {
+            Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+          });
+        Object.values(Modelo.Objetivos || {})
+          .forEach((Objetivo) => {
+            Planes_Actualizar_Progreso(Objetivo);
+          });
       }
 
       function Normalizar_Periodo_Plan(Periodo, Indice = 0) {
@@ -44500,6 +44519,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Sub_Ids = Planes_Subobjetivos_Familia_Ids(Sub_Id, M);
         return Object.values(M.Avances || {})
           .filter((Avance) =>
+            Avance &&
             Sub_Ids.has(Avance.Subobjetivo_Id) &&
             Avance.Fuente === "Subobjetivo"
           );
@@ -44585,6 +44605,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const M = Modelo || Asegurar_Modelo_Planes();
         return Object.values(M.Avances || {})
           .reduce((Lista, Avance) => {
+            if (!Avance) return Lista;
             if (Avance.Fuente !== "Subobjetivo") return Lista;
             if (Avance.Parte_Id === Parte_Id) {
               Lista.push(Avance);
@@ -45780,6 +45801,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Objetivos_Descendencia_Ids(Objetivo_Plan.Id);
         return Object.values(Modelo.Avances || {})
           .reduce((Total, Avance) => {
+            if (!Avance) return Total;
             const Fecha = Planes_Fecha_Avance_Plan(Avance);
             if (!Planes_Periodo_Contiene_Fecha(Periodo, Fecha)) {
               return Total;
@@ -53201,6 +53223,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         return Object.values(Modelo.Avances || {})
           .filter((Avance) =>
+            Avance &&
             Avance.Objetivo_Id === Objetivo_Id &&
             Avance.Fuente === "Manual" &&
             !Avance.Subobjetivo_Id
