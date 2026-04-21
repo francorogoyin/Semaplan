@@ -88,7 +88,7 @@ function estadoBase() {
     Contador_Eventos: 1,
     Objetivo_Seleccionada_Id: null,
     Modo_Editor_Abierto: false,
-    Inicio_Semana: "2026-04-13",
+    Inicio_Semana: "2026-04-20",
     Duracion_Defecto: 1,
     Config_Extra: {
       Inicio_Hora: 0,
@@ -144,6 +144,116 @@ function estadoBase() {
     Planes_Semana: {}
   };
 }
+
+test(
+  "creador muestra sugerencia manual y deja elegir emoji",
+  async ({ page }) => {
+    const estado = estadoBase();
+    estado.Inicio_Semana = "2026-04-20";
+    estado.Planes_Periodo = {
+      Version: 2,
+      Periodos: {
+        anio_2026: {
+          Id: "anio_2026",
+          Tipo: "Anio",
+          Inicio: "2026-01-01",
+          Fin: "2026-12-31",
+          Estado: "Activo",
+          Orden: 0
+        }
+      },
+      Objetivos: {
+        obj_libros: {
+          Id: "obj_libros",
+          Periodo_Id: "anio_2026",
+          Nombre: "Libros",
+          Emoji: "\uD83D\uDCDA",
+          Target_Total: 0,
+          Unidad: "Personalizado",
+          Unidad_Custom: "P\u00e1ginas",
+          Estado: "Activo",
+          Orden: 0
+        }
+      },
+      Subobjetivos: {
+        sub_melville: {
+          Id: "sub_melville",
+          Objetivo_Id: "obj_libros",
+          Texto: "Cuentos de Melville",
+          Emoji: "\uD83D\uDCD6",
+          Target_Total: 180,
+          Unidad: "Personalizado",
+          Unidad_Custom: "P\u00e1ginas",
+          Progreso_Manual: 0,
+          Fecha_Objetivo: "2026-04-30",
+          Estado: "Activo",
+          Orden: 0
+        }
+      },
+      Avances: {},
+      UI: {}
+    };
+
+    await preparar(page, estado);
+
+    await page.click("#Mostrar_Creador");
+    await page.selectOption(
+      "#Meta_Vinculo_Objetivo",
+      "Subobjetivo|sub_melville"
+    );
+
+    await expect(page.locator("#Meta_Aporte_Campo"))
+      .toBeVisible();
+    await expect(page.locator("#Meta_Aporte_Sugerencia"))
+      .toBeVisible();
+    await expect(page.locator("#Meta_Aporte_Sugerencia_Texto"))
+      .toContainText(
+        "Cuentos de Melville termina el 30 de abril. " +
+        "Quedan 2 semanas."
+      );
+    await expect(page.locator("#Meta_Aporte_Sugerencia_Texto"))
+      .toContainText(
+        "Se sugieren para esta semana: 90 p\u00e1ginas."
+      );
+    await expect(page.locator("#Meta_Aporte_Sugerencia_Texto"))
+      .not.toContainText("Libros");
+    await expect(page.locator("#Meta_Aporte_Sugerencia_Aceptar"))
+      .toHaveCount(0);
+
+    const sugerenciaDentroCampo = await page.evaluate(() => {
+      const Campo = document.getElementById("Meta_Aporte_Campo");
+      const Sugerencia = document.getElementById(
+        "Meta_Aporte_Sugerencia"
+      );
+      return Boolean(Campo && Sugerencia &&
+        Campo.contains(Sugerencia));
+    });
+    expect(sugerenciaDentroCampo).toBe(true);
+
+    await page.click("#Emoji_Objetivo");
+    await expect(page.locator("#Selector_Emojis_Popover"))
+      .toBeVisible();
+
+    const capas = await page.evaluate(() => {
+      const Modal = document.getElementById("Creador_Contenido");
+      const Pop = document.getElementById(
+        "Selector_Emojis_Popover"
+      );
+      return {
+        modal: Number(window.getComputedStyle(Modal).zIndex),
+        pop: Number(window.getComputedStyle(Pop).zIndex)
+      };
+    });
+    expect(capas.pop).toBeGreaterThan(capas.modal);
+
+    await page.locator(
+      "#Selector_Emojis_Grid .Selector_Emojis_Btn"
+    ).first().click();
+
+    const emoji = await page.inputValue("#Emoji_Objetivo");
+    expect(emoji.length).toBeGreaterThan(0);
+  }
+);
 
 test(
   "crea descripcion corta del objetivo semanal y la muestra en hover",
@@ -239,7 +349,7 @@ test(
         Restante: 0,
         Es_Bolsa: false,
         Es_Fija: false,
-        Semana_Base: "2026-04-13",
+        Semana_Base: "2026-04-20",
         Semana_Inicio: null,
         Semana_Fin: null,
         Categoria_Id: null,
@@ -290,7 +400,7 @@ test(
         Restante: 0,
         Es_Bolsa: false,
         Es_Fija: false,
-        Semana_Base: "2026-04-13",
+        Semana_Base: "2026-04-20",
         Semana_Inicio: null,
         Semana_Fin: null,
         Categoria_Id: null,

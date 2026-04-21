@@ -230,6 +230,10 @@
         color: var(--Texto);
       }
 
+      .Meta_Aporte_Sugerencia span {
+        white-space: pre-line;
+      }
+
       .Meta_Aporte_Sugerencia button {
         justify-self: start;
       }
@@ -14055,7 +14059,7 @@
       /* --- Selector universal de emojis --- */
       .Selector_Emojis_Popover {
         position: fixed;
-        z-index: 10500;
+        z-index: 13000;
         background: #fff;
         border: 1px solid var(--Borde);
         border-radius: 12px;
@@ -14538,6 +14542,10 @@
               <span class="Meta_Aporte_Unidad"
                 id="Meta_Aporte_Unidad"></span>
             </div>
+            <div class="Meta_Aporte_Sugerencia Oculto"
+              id="Meta_Aporte_Sugerencia">
+              <span id="Meta_Aporte_Sugerencia_Texto"></span>
+            </div>
           </div>
           <div class="Campo Meta_Aporte_Campo Oculto"
             id="Meta_Aporte_Hora_Campo">
@@ -14551,14 +14559,6 @@
               <span class="Meta_Aporte_Hora_Label"
                 id="Meta_Aporte_Hora_Unidad"></span>
             </div>
-          </div>
-          <div class="Meta_Aporte_Sugerencia Oculto"
-            id="Meta_Aporte_Sugerencia">
-            <span id="Meta_Aporte_Sugerencia_Texto"></span>
-            <button class="Boton_Secundario"
-              id="Meta_Aporte_Sugerencia_Aceptar"
-              data-i18n="sidebar.aporte_aceptar"
-              type="button">Aceptar sugerencia</button>
           </div>
           <div class="Creador_Acciones">
             <button class="Boton_Principal" id="Crear_Objetivo" type="button" data-i18n="sidebar.crear_objetivo">Crear objetivo</button>
@@ -19217,8 +19217,8 @@
           "sidebar.aporte_por_hora": "Aporte por hora",
           "sidebar.aporte_aceptar": "Aceptar sugerencia",
           "sidebar.aporte_sugerencia":
-            "{meta} termina el {fecha}. Quedan {semanas} " +
-            "semanas; sugerencia: {cantidad} {unidad}.",
+            "{meta} termina el {fecha}. Quedan {semanas} semanas.\n" +
+            "Se sugieren para esta semana: {cantidad} {unidad}.",
           "sidebar.tipo": "Tipo",
           "sidebar.bolsa_horas":
             "Bolsa de horas",
@@ -22727,8 +22727,8 @@
           "sidebar.aporte_por_hora": "Contribution per hour",
           "sidebar.aporte_aceptar": "Accept suggestion",
           "sidebar.aporte_sugerencia":
-            "{meta} ends on {fecha}. {semanas} weeks left; " +
-            "suggestion: {cantidad} {unidad}.",
+            "{meta} ends on {fecha}. {semanas} weeks left.\n" +
+            "Suggested for this week: {cantidad} {unidad}.",
           "sidebar.tipo": "Type",
           "sidebar.bolsa_horas": "Hour pool",
           "sidebar.objetivo_normal":
@@ -26170,8 +26170,8 @@
           "sidebar.aporte_por_hora": "Aporte por hora",
           "sidebar.aporte_aceptar": "Aceitar sugestão",
           "sidebar.aporte_sugerencia":
-            "{meta} termina em {fecha}. Faltam {semanas} " +
-            "semanas; sugestão: {cantidad} {unidad}.",
+            "{meta} termina em {fecha}. Faltam {semanas} semanas.\n" +
+            "Sugerido para esta semana: {cantidad} {unidad}.",
           "sidebar.tipo": "Tipo",
           "sidebar.bolsa_horas":
             "Banco de horas",
@@ -30672,8 +30672,6 @@
         document.getElementById("Meta_Aporte_Sugerencia");
       const El_Meta_Aporte_Sugerencia_Texto =
         document.getElementById("Meta_Aporte_Sugerencia_Texto");
-      const El_Meta_Aporte_Sugerencia_Aceptar =
-        document.getElementById("Meta_Aporte_Sugerencia_Aceptar");
       const El_Semana_Label = document.getElementById("Semana_Label");
       const El_Semana_Principal_Fila = document.getElementById("Semana_Principal_Fila");
       const El_Semana_Rango = document.getElementById("Semana_Rango");
@@ -48183,6 +48181,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return `${Obj.Emoji || ""} ${Obj.Nombre || ""}`.trim();
       }
 
+      function Meta_Aporte_Nombre_Sugerencia_Item(Item) {
+        if (!Item) return "";
+        if (Item.Tipo === "Subobjetivo") {
+          return (Item.Sub?.Texto || "").toString().trim() ||
+            Meta_Aporte_Label_Item(Item);
+        }
+        return (Item.Objetivo?.Nombre || "").toString().trim() ||
+          Meta_Aporte_Label_Item(Item);
+      }
+
       function Meta_Aporte_Poblar_Select(Select, Valor_Actual = "") {
         if (!Select) return;
         Select.innerHTML = "";
@@ -48261,7 +48269,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Semanas,
           Cantidad,
           Unidad,
-          Nombre: Meta_Aporte_Label_Item(Item)
+          Nombre: Meta_Aporte_Nombre_Sugerencia_Item(Item)
         };
       }
 
@@ -75812,15 +75820,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       El_Horas_Semanales?.addEventListener(
         "input",
         Actualizar_Form_Creador_Meta_Aporte
-      );
-      El_Meta_Aporte_Sugerencia_Aceptar?.addEventListener(
-        "click",
-        () => {
-          const Cantidad =
-            El_Meta_Aporte_Sugerencia?.dataset.cantidad || "0";
-          El_Meta_Aporte_Semanal.value = Cantidad;
-          Actualizar_Form_Creador_Meta_Aporte();
-        }
       );
 
       El_Color_Objetivo.addEventListener("input", () => {
