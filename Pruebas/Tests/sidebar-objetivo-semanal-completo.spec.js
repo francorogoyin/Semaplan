@@ -232,3 +232,141 @@ async ({ page }) => {
     .toHaveClass(/Evento_Hecho/);
   await expect(Emoji).toHaveClass(/Completa/);
 });
+
+test("edita aporte a meta desde el plan sin redistribuirlo",
+async ({ page }) => {
+  const Estado = Crear_Estado();
+  Estado.Inicio_Semana = "2026-04-20";
+  Estado.Objetivos = [
+    {
+      ...Crear_Objetivo_Semanal(),
+      Id: "obj_meta",
+      Familia_Id: "obj_meta",
+      Semana_Base: "2026-04-20",
+      Nombre: "Lectura semanal",
+      Meta_Vinculo_Tipo: "Subobjetivo",
+      Meta_Vinculo_Id: "sub_melville",
+      Meta_Aporte_Semanal: 9,
+      Meta_Aporte_Unidad: "p\u00e1ginas"
+    }
+  ];
+  Estado.Eventos = [
+    {
+      Id: "ev_meta",
+      Objetivo_Id: "obj_meta",
+      Fecha: "2026-04-22",
+      Inicio: 9,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Meta_Aporte_Cantidad: 9,
+      Meta_Aporte_Unidad: "p\u00e1ginas",
+      Meta_Aporte_Planeado: true,
+      Meta_Aporte_Tildado: true
+    }
+  ];
+  Estado.Contador_Eventos = 2;
+  Estado.Planes_Periodo = {
+    Version: 2,
+    Periodos: {
+      anio_2026: {
+        Id: "anio_2026",
+        Tipo: "Anio",
+        Inicio: "2026-01-01",
+        Fin: "2026-12-31",
+        Estado: "Activo",
+        Orden: 0
+      }
+    },
+    Objetivos: {
+      obj_libros: {
+        Id: "obj_libros",
+        Periodo_Id: "anio_2026",
+        Nombre: "Libros",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 180,
+        Unidad: "Personalizado",
+        Unidad_Custom: "p\u00e1ginas",
+        Estado: "Activo",
+        Orden: 0
+      }
+    },
+    Subobjetivos: {
+      sub_melville: {
+        Id: "sub_melville",
+        Objetivo_Id: "obj_libros",
+        Texto: "Cuentos de Melville",
+        Emoji: "\uD83D\uDCD6",
+        Target_Total: 180,
+        Unidad: "Personalizado",
+        Unidad_Custom: "p\u00e1ginas",
+        Estado: "Activo",
+        Orden: 0
+      }
+    },
+    Avances: {},
+    UI: {}
+  };
+
+  await Preparar(page, Estado);
+  await page.evaluate(() => {
+    Semana_Actual = Obtener_Lunes(
+      Parsear_Fecha_ISO("2026-04-20")
+    );
+    Abrir_Modal_Abordaje("ev_meta");
+  });
+
+  await expect(page.locator("#Abordaje_Modal_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(
+    page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_Btn:visible")
+  ).toHaveCount(0);
+  await expect(page.locator(".Aporte_Meta_Check")).toHaveCount(1);
+  await expect(page.locator(".Aporte_Meta_Check"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator(".Aporte_Meta_Input"))
+    .toHaveCSS("border-radius", "12px");
+  await page.fill(".Aporte_Meta_Input", "25");
+  await page.click("#Abordaje_Modal_Guardar_Btn");
+
+  const Datos = await page.evaluate(() => {
+    const Evento = Eventos.find((Item) => Item.Id === "ev_meta");
+    return {
+      cantidad: Evento?.Meta_Aporte_Cantidad,
+      manual: Evento?.Meta_Aporte_Manual,
+      planeado: Evento?.Meta_Aporte_Planeado,
+      tildado: Evento?.Meta_Aporte_Tildado
+    };
+  });
+
+  expect(Datos).toEqual({
+    cantidad: 25,
+    manual: true,
+    planeado: true,
+    tildado: true
+  });
+
+  await page.evaluate(() => {
+    Focus_Navegacion_Id = "ev_meta";
+    Abrir_Focus_Mode();
+  });
+  await expect(page.locator("#Focus_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(
+    page.locator("#Focus_Cuerpo .Aporte_Meta_Check")
+  ).toHaveCount(1);
+  await expect(
+    page.locator("#Focus_Cuerpo .Aporte_Meta_Check")
+  ).toHaveClass(/Activo/);
+  await expect(
+    page.locator("#Focus_Cuerpo .Aporte_Meta_Input")
+  ).toHaveValue("25");
+  await page.evaluate(() => Cerrar_Focus_Mode());
+
+  await page.evaluate(() => Abrir_Modal_Abordaje("ev_meta"));
+  await expect(
+    page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_Input")
+  )
+    .toHaveValue("25");
+});

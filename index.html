@@ -270,9 +270,39 @@
       }
 
       .Aporte_Meta_Acciones {
-        display: flex;
-        align-items: center;
-        gap: 6px;
+        display: none;
+      }
+
+      .Aporte_Meta_Check {
+        width: 28px;
+        height: 28px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: transparent;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .Aporte_Meta_Check.Activo {
+        background: var(--Acento);
+        border-color: var(--Acento);
+        color: #fff;
+      }
+
+      .Aporte_Meta_Input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--Borde);
+        border-radius: 12px;
+        background: #fff;
+        color: var(--Texto);
+        font-family: inherit;
+        font-size: 14px;
       }
 
       .Aporte_Meta_Btn {
@@ -48422,6 +48452,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Meta_Aporte_Evento_Tiene_Manual(Evento) {
+        const Cantidad = Number(Evento?.Meta_Aporte_Cantidad);
+        return Evento?.Meta_Aporte_Manual === true &&
+          Number.isFinite(Cantidad) &&
+          Cantidad >= 0;
+      }
+
       function Meta_Aporte_Redistribuir_Objetivo(Objetivo) {
         if (!Objetivo || !Meta_Aporte_Objetivo_Tiene_Vinculo(Objetivo)) {
           return true;
@@ -48443,11 +48480,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .reduce((Total, Evento) => {
             return Total + Meta_Aporte_Asignado_Evento(Evento);
           }, 0);
-        const Pendiente = Math.max(0, Aporte_Semanal - Confirmados);
+        const Manuales = Eventos_Objetivo
+          .filter((Evento) =>
+            !Evento.Hecho &&
+            Meta_Aporte_Evento_Tiene_Manual(Evento)
+          )
+          .reduce((Total, Evento) => {
+            return Total + Meta_Aporte_Asignado_Evento(Evento);
+          }, 0);
+        const Pendiente = Math.max(
+          0,
+          Aporte_Semanal - Confirmados - Manuales
+        );
         const Futuros = Eventos_Objetivo
           .filter((Evento) =>
             !Evento.Hecho &&
-            Meta_Aporte_Evento_Es_Futuro(Evento)
+            Meta_Aporte_Evento_Es_Futuro(Evento) &&
+            !Meta_Aporte_Evento_Tiene_Manual(Evento)
           )
           .sort((A, B) => {
             const FA = `${A.Fecha}T${A.Inicio}`;
@@ -48496,6 +48545,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Evento.Meta_Aporte_Cantidad = Cantidad;
           Evento.Meta_Aporte_Unidad = Unidad;
           Evento.Meta_Aporte_Planeado = true;
+          Evento.Meta_Aporte_Manual = false;
           if (Evento.Meta_Aporte_Tildado === undefined) {
             Evento.Meta_Aporte_Tildado = true;
           }
@@ -58728,8 +58778,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planeado: Evento.Meta_Aporte_Planeado !== false,
           Tildado,
           Original_Tildado: Tildado,
+          Original_Manual: Evento.Meta_Aporte_Manual === true,
           Tenia_Avance
         };
+      }
+
+      function Meta_Aporte_Actualizar_Borrador_Cantidad(
+        Borrador,
+        Valor
+      ) {
+        if (!Borrador) return;
+        Borrador.Cantidad = Meta_Aporte_Numero(Valor);
+        Borrador.Tildado = Borrador.Cantidad > 0;
+        Borrador.Planeado = Borrador.Cantidad > 0;
+      }
+
+      function Crear_Check_Aporte_Meta(Borrador, Al_Cambiar) {
+        const Btn = document.createElement("button");
+        Btn.type = "button";
+        Btn.className = "Aporte_Meta_Check" +
+          (Borrador?.Tildado ? " Activo" : "");
+        Btn.textContent = "\u2713";
+        Btn.title = t("plan.aporte_meta_tildar");
+        Btn.addEventListener("click", async () => {
+          if (!Borrador) return;
+          Borrador.Tildado = !Borrador.Tildado;
+          Borrador.Planeado = Borrador.Tildado;
+          if (!Borrador.Tildado) {
+            Borrador.Cantidad = 0;
+          } else if (Number(Borrador.Cantidad) <= 0) {
+            Borrador.Cantidad =
+              Borrador.Original_Cantidad || 0;
+          }
+          await Al_Cambiar?.();
+        });
+        return Btn;
+      }
+
+      function Sincronizar_Aporte_Meta_Borrador_Desde_DOM() {
+        const Input = document.querySelector(
+          "#Abordaje_Modal_Cuerpo .Aporte_Meta_Input"
+        );
+        if (!Input || !Abordaje_Aporte_Meta_Borrador) return;
+        Meta_Aporte_Actualizar_Borrador_Cantidad(
+          Abordaje_Aporte_Meta_Borrador,
+          Input.value
+        );
       }
 
       function Render_Aporte_Meta_Abordaje(Cuerpo) {
@@ -58751,6 +58845,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Row = document.createElement("div");
         Row.className = "Aporte_Meta_Row";
+        const Check = Crear_Check_Aporte_Meta(
+          Borrador,
+          () => Render_Modal_Abordaje()
+        );
 
         const Acciones = document.createElement("div");
         Acciones.className = "Aporte_Meta_Acciones";
@@ -58795,20 +58893,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Input.step = Meta_Aporte_Debe_Redondear(Borrador.Unidad)
           ? "1"
           : "0.01";
+        Input.className = "Aporte_Meta_Input";
         Input.value = Meta_Aporte_Formatear(
           Borrador.Cantidad,
           Borrador.Unidad
         );
         Input.addEventListener("input", () => {
-          Borrador.Cantidad = Meta_Aporte_Numero(Input.value);
-          Borrador.Tildado = Borrador.Cantidad > 0;
-          if (Borrador.Tildado) Borrador.Planeado = true;
+          Meta_Aporte_Actualizar_Borrador_Cantidad(
+            Borrador,
+            Input.value
+          );
+          Check.classList.toggle("Activo", Borrador.Tildado);
         });
 
         const Unidad = document.createElement("span");
         Unidad.className = "Aporte_Meta_Unidad";
         Unidad.textContent = Borrador.Unidad;
 
+        Row.appendChild(Check);
         Row.appendChild(Acciones);
         Row.appendChild(Input);
         Row.appendChild(Unidad);
@@ -58895,10 +58997,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Evento.Meta_Aporte_Cantidad = Cantidad_Nueva;
         Evento.Meta_Aporte_Unidad = Unidad;
-        Evento.Meta_Aporte_Planeado =
-          Boolean(Borrador.Planeado) || Tildado_Nuevo;
+        Evento.Meta_Aporte_Planeado = Tildado_Nuevo;
         Evento.Meta_Aporte_Tildado = Tildado_Nuevo;
         Evento.Meta_Aporte_Manual =
+          Borrador.Original_Manual ||
           Cantidad_Nueva !== Borrador.Original_Cantidad ||
           Tildado_Nuevo !== Borrador.Original_Tildado;
 
@@ -59691,6 +59793,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return;
         }
         const Objetivo = Objetivo_Por_Id(Evento.Objetivo_Id);
+        Sincronizar_Aporte_Meta_Borrador_Desde_DOM();
         const Aporte_Guardado =
           await Guardar_Aporte_Meta_Abordaje(Evento);
         if (!Aporte_Guardado) return;
@@ -79226,6 +79329,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Row = document.createElement("div");
         Row.className = "Aporte_Meta_Row";
+        const Check = Crear_Check_Aporte_Meta(
+          Borrador,
+          async () => {
+            await Guardar_Aporte_Meta_Abordaje(Evento, Borrador);
+            Render_Focus_Mode();
+          }
+        );
         const Acciones = document.createElement("div");
         Acciones.className = "Aporte_Meta_Acciones";
 
@@ -79268,14 +79378,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Input.step = Meta_Aporte_Debe_Redondear(Borrador.Unidad)
           ? "1"
           : "0.01";
+        Input.className = "Aporte_Meta_Input";
         Input.value = Meta_Aporte_Formatear(
           Borrador.Cantidad,
           Borrador.Unidad
         );
         Input.addEventListener("blur", async () => {
-          Borrador.Cantidad = Meta_Aporte_Numero(Input.value);
-          Borrador.Tildado = Borrador.Cantidad > 0;
-          if (Borrador.Tildado) Borrador.Planeado = true;
+          Meta_Aporte_Actualizar_Borrador_Cantidad(
+            Borrador,
+            Input.value
+          );
+          Check.classList.toggle("Activo", Borrador.Tildado);
           await Guardar_Aporte_Meta_Abordaje(Evento, Borrador);
           Render_Focus_Mode();
         });
@@ -79283,6 +79396,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Unidad = document.createElement("span");
         Unidad.className = "Aporte_Meta_Unidad";
         Unidad.textContent = Borrador.Unidad;
+        Row.appendChild(Check);
         Row.appendChild(Acciones);
         Row.appendChild(Input);
         Row.appendChild(Unidad);
