@@ -410,6 +410,8 @@ async ({ page }) => {
   await page.click("[data-plan-universo-nuevo]");
   await expect(page.locator("#Planes_Objetivo_Overlay"))
     .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Form_Subobjetivos"))
+    .toHaveCount(0);
   await page.locator("#Planes_Objetivo_Overlay").click({
     position: { x: 8, y: 8 }
   });
@@ -2200,16 +2202,20 @@ async ({ page }) => {
     const Nav = document.querySelector(".Planes_Resumen_Nav");
     const Rect_Titulo = Titulo.getBoundingClientRect();
     const Rect_Rango = Rango.getBoundingClientRect();
+    const Centro_Titulo =
+      Rect_Titulo.left + (Rect_Titulo.width / 2);
+    const Centro_Rango =
+      Rect_Rango.left + (Rect_Rango.width / 2);
     return {
       rangoDebajo: Rect_Rango.top > Rect_Titulo.bottom,
-      diferenciaLeft: Math.abs(Rect_Rango.left - Rect_Titulo.left),
+      diferenciaCentro: Math.abs(Centro_Rango - Centro_Titulo),
       fondoNav: getComputedStyle(Nav).backgroundColor,
       bordeNav: getComputedStyle(Nav).borderTopWidth,
       pesoRango: Number(getComputedStyle(Rango).fontWeight)
     };
   });
   expect(Header.rangoDebajo).toBe(true);
-  expect(Header.diferenciaLeft).toBeLessThanOrEqual(2);
+  expect(Header.diferenciaCentro).toBeLessThanOrEqual(2);
   expect(Header.fondoNav).toBe("rgba(0, 0, 0, 0)");
   expect(Header.bordeNav).toBe("0px");
   expect(Header.pesoRango).toBeLessThan(600);
