@@ -238,38 +238,86 @@
         justify-self: start;
       }
 
-      .Metas_Sugeridas_Bloque {
+      .Metas_Sugeridas_Flotante {
+        position: fixed;
+        left: 22px;
+        bottom: 22px;
+        z-index: 9000;
+        width: 64px;
+        height: 64px;
         display: grid;
-        gap: 8px;
-        margin: 10px 0 12px;
+        place-items: center;
+        border: 1px solid var(--Borde);
+        border-radius: 50%;
+        background: var(--Acento);
+        color: #fff;
+        box-shadow: 0 14px 34px rgba(35, 28, 20, 0.24);
+        cursor: pointer;
+        font-size: 29px;
+        line-height: 1;
       }
 
-      .Metas_Sugeridas_Btn {
-        width: 100%;
+      .Metas_Sugeridas_Flotante:hover {
+        transform: translateY(-1px);
       }
 
-      .Metas_Sugeridas_Panel {
+      .Metas_Sugeridas_Overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 12000;
+        display: none;
+        place-items: center;
+        padding: 24px;
+        background: rgba(38, 29, 20, 0.38);
+      }
+
+      .Metas_Sugeridas_Overlay.Activo {
         display: grid;
-        gap: 10px;
-        padding: 12px;
+      }
+
+      .Metas_Sugeridas_Modal {
+        width: min(1120px, calc(100vw - 32px));
+        max-height: min(760px, calc(100vh - 48px));
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 12px;
+        padding: 16px;
         border: 1px solid var(--Borde);
         border-radius: 8px;
-        background: rgba(255, 255, 255, 0.72);
+        background: var(--Panel);
+        box-shadow: 0 22px 64px rgba(35, 28, 20, 0.32);
       }
 
-      .Metas_Sugeridas_Panel.Oculto {
-        display: none;
+      .Metas_Sugeridas_Header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
       }
 
       .Metas_Sugeridas_Titulo {
-        font-size: 13px;
+        font-size: 18px;
         font-weight: 800;
+      }
+
+      .Metas_Sugeridas_Cerrar {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--Texto);
+        cursor: pointer;
+        font-size: 20px;
+        line-height: 1;
       }
 
       .Metas_Sugeridas_Tabla {
         display: grid;
         gap: 8px;
-        max-height: 50vh;
+        min-height: 0;
         overflow: auto;
       }
 
@@ -15013,34 +15061,6 @@
             <button class="Boton_Secundario" id="Ocultar_Creador" type="button" data-i18n="sidebar.ocultar">Ocultar</button>
           </div>
           </div>
-          <div class="Metas_Sugeridas_Bloque">
-            <button
-              class="Boton_Secundario Metas_Sugeridas_Btn"
-              id="Metas_Sugeridas_Abrir"
-              type="button"
-              data-i18n="sidebar.metas_sugeridas">
-              Sugerencias de metas
-            </button>
-            <div
-              class="Metas_Sugeridas_Panel Oculto"
-              id="Metas_Sugeridas_Panel">
-              <div class="Metas_Sugeridas_Titulo"
-                data-i18n="sidebar.metas_sugeridas_titulo">
-                Metas sugeridas para esta semana
-              </div>
-              <div class="Metas_Sugeridas_Tabla"
-                id="Metas_Sugeridas_Tabla"></div>
-              <div class="Metas_Sugeridas_Acciones">
-                <button
-                  class="Boton_Principal"
-                  id="Metas_Sugeridas_Importar"
-                  type="button"
-                  data-i18n="sidebar.metas_sugeridas_importar">
-                  Importar
-                </button>
-              </div>
-            </div>
-          </div>
           <div class="Aviso" data-i18n="sidebar.aviso">Arrastra un emoji al calendario para crear un bloque.</div>
 
           <div class="Barra_Emojis" id="Barra_Emojis"></div>
@@ -15048,6 +15068,48 @@
       </section>
 
       <section class="Panel Calendario_Contenedor">
+        <button
+          class="Metas_Sugeridas_Flotante Con_Fallback_Emoji"
+          id="Metas_Sugeridas_Abrir"
+          type="button"
+          data-i18n-title="sidebar.metas_sugeridas"
+          title="Sugerencias de metas">
+          &#128161;
+        </button>
+        <div class="Metas_Sugeridas_Overlay"
+          id="Metas_Sugeridas_Overlay">
+          <div class="Metas_Sugeridas_Modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="Metas_Sugeridas_Titulo">
+            <div class="Metas_Sugeridas_Header">
+              <div class="Metas_Sugeridas_Titulo"
+                id="Metas_Sugeridas_Titulo"
+                data-i18n="sidebar.metas_sugeridas_titulo">
+                Metas sugeridas para esta semana
+              </div>
+              <button
+                class="Metas_Sugeridas_Cerrar"
+                id="Metas_Sugeridas_Cerrar"
+                type="button"
+                data-i18n-aria="cerrar"
+                aria-label="Cerrar">
+                &times;
+              </button>
+            </div>
+            <div class="Metas_Sugeridas_Tabla"
+              id="Metas_Sugeridas_Tabla"></div>
+            <div class="Metas_Sugeridas_Acciones">
+              <button
+                class="Boton_Principal"
+                id="Metas_Sugeridas_Importar"
+                type="button"
+                data-i18n="sidebar.metas_sugeridas_importar">
+                Importar
+              </button>
+            </div>
+          </div>
+        </div>
         <div class="Plan_Top_Indicador Oculto"
           id="Plan_Top_Indicador"></div>
         <div class="Calendario_Top">
@@ -31617,14 +31679,17 @@
       const El_Metas_Sugeridas_Abrir = document.getElementById(
         "Metas_Sugeridas_Abrir"
       );
-      const El_Metas_Sugeridas_Panel = document.getElementById(
-        "Metas_Sugeridas_Panel"
+      const El_Metas_Sugeridas_Overlay = document.getElementById(
+        "Metas_Sugeridas_Overlay"
       );
       const El_Metas_Sugeridas_Tabla = document.getElementById(
         "Metas_Sugeridas_Tabla"
       );
       const El_Metas_Sugeridas_Importar = document.getElementById(
         "Metas_Sugeridas_Importar"
+      );
+      const El_Metas_Sugeridas_Cerrar = document.getElementById(
+        "Metas_Sugeridas_Cerrar"
       );
       const El_Semana_Label = document.getElementById("Semana_Label");
       const El_Semana_Principal_Fila = document.getElementById("Semana_Principal_Fila");
@@ -49854,6 +49919,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .some((Item) => !Item.Importada);
       }
 
+      function Metas_Sugeridas_Semana_Base() {
+        return Semana_Actual || Obtener_Lunes(new Date());
+      }
+
+      function Metas_Sugeridas_Clave_Semana() {
+        return Formatear_Fecha_ISO(Metas_Sugeridas_Semana_Base());
+      }
+
       function Metas_Sugeridas_Rango_Subobjetivo(
         Sub,
         Objetivo,
@@ -49884,7 +49957,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Fin_Fecha = Parsear_Fecha_ISO(Fin);
         if (!Fin_Fecha) return 1;
         const Fin_Semana = Obtener_Lunes(Fin_Fecha);
-        const Dias = Dias_Entre(Semana_Actual, Fin_Semana);
+        const Dias = Dias_Entre(
+          Metas_Sugeridas_Semana_Base(),
+          Fin_Semana
+        );
         return Math.max(1, Math.floor(Dias / 7) + 1);
       }
 
@@ -49905,7 +49981,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Metas_Sugeridas_Objetivo_Existente(Sub_Id) {
-        const Clave = Clave_Semana_Actual();
+        const Clave = Metas_Sugeridas_Clave_Semana();
         return Objetivos.find((Objetivo) =>
           Obtener_Semana_Base_Objetivo(Objetivo) === Clave &&
           Objetivo.Meta_Vinculo_Tipo === "Subobjetivo" &&
@@ -49923,9 +49999,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Metas_Sugeridas_Items() {
         const Modelo = Asegurar_Modelo_Planes();
-        const Inicio_Semana = Clave_Semana_Actual();
+        const Base_Semana = Metas_Sugeridas_Semana_Base();
+        const Inicio_Semana = Metas_Sugeridas_Clave_Semana();
         const Fin_Semana = Formatear_Fecha_ISO(
-          Sumar_Dias(Semana_Actual, 6)
+          Sumar_Dias(Base_Semana, 6)
         );
         return Object.values(Modelo.Subobjetivos || {})
           .filter((Sub) => !Sub.Eliminado_Local && !Sub.Hecha)
@@ -50067,12 +50144,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
-      function Alternar_Metas_Sugeridas() {
-        if (!El_Metas_Sugeridas_Panel) return;
-        const Abrir =
-          El_Metas_Sugeridas_Panel.classList.contains("Oculto");
-        El_Metas_Sugeridas_Panel.classList.toggle("Oculto", !Abrir);
-        if (Abrir) Render_Metas_Sugeridas();
+      function Abrir_Metas_Sugeridas() {
+        if (!El_Metas_Sugeridas_Overlay) return;
+        Render_Metas_Sugeridas();
+        El_Metas_Sugeridas_Overlay.classList.add("Activo");
+      }
+
+      function Cerrar_Metas_Sugeridas() {
+        El_Metas_Sugeridas_Overlay?.classList.remove("Activo");
       }
 
       function Importar_Metas_Sugeridas() {
@@ -50106,7 +50185,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Meta_Vinculo_Id: Sub.Id,
             Meta_Aporte_Semanal: Aporte,
             Meta_Aporte_Unidad: Planes_Unidad_Label_Subobjetivo(Sub)
-          }, Clave_Semana_Actual());
+          }, Metas_Sugeridas_Clave_Semana());
           const Partes_Ids = (
             Fila.querySelector(".Metas_Sugeridas_Partes")
               ?.dataset.partesIds || ""
@@ -50114,7 +50193,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Subs = Obtener_Subobjetivos_Semana(
             Objetivo,
             true,
-            Clave_Semana_Actual()
+            Metas_Sugeridas_Clave_Semana()
           );
           Partes_Ids.forEach((Parte_Id) => {
             const Parte = Modelo.Partes?.[Parte_Id];
@@ -50142,7 +50221,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Mostrar_Toast_Error(t("sidebar.metas_sugeridas_sin_importar"));
           return;
         }
-        El_Metas_Sugeridas_Panel?.classList.add("Oculto");
+        Cerrar_Metas_Sugeridas();
         Normalizar_Estado();
         Render_Creador_Colores();
         Render_Emojis();
@@ -79458,11 +79537,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       });
 
       El_Metas_Sugeridas_Abrir?.addEventListener("click", () => {
-        Alternar_Metas_Sugeridas();
+        Abrir_Metas_Sugeridas();
       });
 
       El_Metas_Sugeridas_Importar?.addEventListener("click", () => {
         Importar_Metas_Sugeridas();
+      });
+
+      El_Metas_Sugeridas_Cerrar?.addEventListener("click", () => {
+        Cerrar_Metas_Sugeridas();
+      });
+
+      El_Metas_Sugeridas_Overlay?.addEventListener("click", (Ev) => {
+        if (Ev.target === El_Metas_Sugeridas_Overlay) {
+          Cerrar_Metas_Sugeridas();
+        }
       });
 
       El_Sidebar_Compacta_Boton?.addEventListener(
