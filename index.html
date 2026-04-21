@@ -17983,19 +17983,6 @@
               <div class="Selector_Etiquetas"
                 id="Planes_Objetivo_Etiquetas"></div>
             </label>
-            <label class="Campo Campo_Ancho">
-              <span data-i18n="planes.vinculo">
-                Vínculo
-              </span>
-              <select id="Planes_Objetivo_Vinculo"
-                class="Con_Fallback_Emoji"></select>
-            </label>
-            <label class="Campo Campo_Ancho">
-              <span data-i18n="planes.bajar_a">
-                Bajar a
-              </span>
-              <select id="Planes_Objetivo_Bajar_A"></select>
-            </label>
             <div class="Campo Campo_Ancho
               Planes_Objetivo_Metadatos_Campo">
               <span class="Planes_Form_Seccion_Titulo"
@@ -44643,8 +44630,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "planes.ui_help_descripcion"],
           ["#Planes_Objetivo_Etiquetas",
             "planes.ui_help_etiquetas"],
-          ["#Planes_Objetivo_Vinculo", "planes.ui_help_vinculo"],
-          ["#Planes_Objetivo_Bajar_A", "planes.ui_help_bajar_a"],
           [".Planes_Objetivo_Metadatos_Campo",
             "planes.ui_help_metadatos_objetivo"],
           [".Planes_Objetivo_Metadato_Nombre",
@@ -46398,12 +46383,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Etiquetas_Input = document.getElementById(
           "Planes_Objetivo_Etiquetas"
         );
-        const Vinculo = document.getElementById(
-          "Planes_Objetivo_Vinculo"
-        );
-        const Bajar_A = document.getElementById(
-          "Planes_Objetivo_Bajar_A"
-        );
         if (Emoji) Emoji.value = Objetivo?.Emoji || "\u2705";
         if (Nombre) Nombre.value = Objetivo?.Nombre || "";
         if (Target) Target.value = Objetivo?.Target_Total || "";
@@ -46422,36 +46401,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Etiquetas_Input,
           Planes_Etiquetas_Ids(Objetivo)
         );
-        Planes_Vinculo_Subobjetivos_Expandidos = new Set();
-        if (Objetivo?.Vinculo_Tipo === "Subobjetivo" &&
-            Objetivo.Vinculo_Objetivo_Id) {
-          Planes_Vinculo_Subobjetivos_Expandidos.add(
-            Objetivo.Vinculo_Objetivo_Id
-          );
-        }
-        Planes_Configurar_Select_Vinculo(
-          Vinculo,
-          Planes_Valor_Vinculo(Objetivo)
-        );
-        if (Bajar_A) {
-          const Periodo = Modelo.Periodos[Periodo_Id];
-          Bajar_A.innerHTML = "";
-          const Ninguno = document.createElement("option");
-          Ninguno.value = "";
-          Ninguno.textContent = t("planes.bajar_no");
-          Bajar_A.appendChild(Ninguno);
-          Planes_Tipos_Inferiores(Periodo?.Tipo)
-            .forEach((Tipo) => {
-              const Opt = document.createElement("option");
-              Opt.value = Tipo;
-              Opt.textContent = t(
-                "planes.bajar_a_tipo",
-                { tipo: Planes_Label_Tipo(Tipo) }
-              );
-              Bajar_A.appendChild(Opt);
-            });
-          Bajar_A.value = "";
-        }
         Planes_Objetivo_Metadatos_Borrador =
           Planes_Definiciones_Metadatos_Objetivo(Objetivo)
             .map((Campo) => ({ ...Campo }));
@@ -46532,6 +46481,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : null;
         const Metadatos_Existentes =
           Planes_Definiciones_Metadatos_Objetivo(Existente);
+        const Datos_Vinculo = Existente
+          ? {
+            Vinculo_Sidebar_Activo:
+              Existente.Vinculo_Sidebar_Activo !== false,
+            Vinculo_Tipo: (
+              Existente.Vinculo_Tipo || "Auto"
+            ).toString(),
+            Vinculo_Id: (Existente.Vinculo_Id || "").toString(),
+            Vinculo_Objetivo_Id: (
+              Existente.Vinculo_Objetivo_Id || ""
+            ).toString(),
+            Vinculo_Subobjetivo_Id: (
+              Existente.Vinculo_Subobjetivo_Id || ""
+            ).toString(),
+            Vinculo_Texto: (
+              Existente.Vinculo_Texto || ""
+            ).toString()
+          }
+          : Planes_Datos_Vinculo_Desde_Form("Auto");
         const Modo_Progreso = Modo_Avance === "Manual"
           ? "Manual"
           : (
@@ -46560,23 +46528,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Boolean(Existente?.Metadatos_Campos_Config) ||
             Metadatos_Campos.length > 0 ||
             Metadatos_Existentes.length > 0,
-          ...Planes_Datos_Vinculo_Desde_Form(
-            document.getElementById("Planes_Objetivo_Vinculo")
-              ?.dataset.valorReal ||
-            document.getElementById("Planes_Objetivo_Vinculo")
-              ?.value ||
-            "Auto"
-          )
+          ...Datos_Vinculo
         };
-        const Bajar_A = document.getElementById(
-          "Planes_Objetivo_Bajar_A"
-        )?.value || "";
         if (Existente) {
           const Hay_Cambio = Hay_Cambio_Real_Guardado(
             Planes_Datos_Comparables_Objetivo(Existente),
             Planes_Datos_Comparables_Objetivo(Datos)
           );
-          if (!Hay_Cambio && !Bajar_A) {
+          if (!Hay_Cambio) {
             Cerrar_Modal_Planes_Objetivo();
             return;
           }
@@ -46601,18 +46560,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               t("toast.objetivos_actualizadas")
             );
           }
-          if (Bajar_A) {
-            Planes_Bajar_Objetivo_A_Capa(Existente.Id, Bajar_A);
-            Render_Plan();
-            Guardar_Estado();
-          }
         } else {
-          const Nuevo = Planes_Crear_Objetivo(Periodo_Id, Datos);
-          if (Bajar_A) {
-            Planes_Bajar_Objetivo_A_Capa(Nuevo.Id, Bajar_A);
-            Render_Plan();
-            Guardar_Estado();
-          }
+          Planes_Crear_Objetivo(Periodo_Id, Datos);
         }
         Cerrar_Modal_Planes_Objetivo();
       }

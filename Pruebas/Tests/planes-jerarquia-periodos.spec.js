@@ -417,18 +417,14 @@ async ({ page }) => {
   });
   await expect(page.locator("#Planes_Objetivo_Overlay"))
     .toHaveClass(/Activo/);
-  const Fuente_Vinculo = await page.locator(
-    "#Planes_Objetivo_Vinculo"
-  ).evaluate((El) => getComputedStyle(El).fontFamily);
-  expect(Fuente_Vinculo).toContain("Segoe UI Emoji");
-  await page.locator(".Planes_Vinculo_Boton").click();
-  await expect(page.locator(".Planes_Vinculo_Menu")).toBeVisible();
-  const Orden_Vinculo = await page.locator(
-    ".Planes_Vinculo_Grupo_Titulo"
-  ).allTextContents();
-  expect(Orden_Vinculo.indexOf("Categorías"))
-    .toBeLessThan(Orden_Vinculo.indexOf("Objetivos"));
-  await page.locator(".Planes_Vinculo_Boton").click();
+  await expect(page.locator("#Planes_Objetivo_Vinculo"))
+    .toHaveCount(0);
+  await expect(page.locator("#Planes_Objetivo_Bajar_A"))
+    .toHaveCount(0);
+  await expect(page.locator("#Planes_Objetivo_Overlay"))
+    .not.toContainText("Vínculo");
+  await expect(page.locator("#Planes_Objetivo_Overlay"))
+    .not.toContainText("Bajar a");
   await expect(page.locator(".Planes_Meta_Campo"))
     .toContainText("Meta");
   await expect(page.locator("#Planes_Objetivo_Overlay"))
@@ -979,44 +975,18 @@ async ({ page }) => {
     Sub.Texto = "Capitulo local";
     const Modelo = Asegurar_Modelo_Planes();
     const Padre = Modelo.Objetivos[padreId];
-    Abrir_Modal_Planes_Objetivo(Padre.Periodo_Id, Padre.Id);
-    const Select = document.getElementById("Planes_Objetivo_Vinculo");
-    const Antes = Array.from(Select.options)
-      .map((Opt) => Opt.textContent);
-    Select.value = `ToggleSub|${Objetivo_Semanal.Id}`;
-    Select.dispatchEvent(new Event("change", { bubbles: true }));
-    const Despues = Array.from(Select.options)
-      .map((Opt) => Opt.textContent);
-    Cerrar_Modal_Planes_Objetivo();
-    return { Antes, Despues };
+    return {
+      Select_Existe: Boolean(
+        document.getElementById("Planes_Objetivo_Vinculo")
+      ),
+      Vinculo_Tipo: Padre.Vinculo_Tipo,
+      Vinculo_Label: Planes_Label_Vinculo("Auto")
+    };
   }, Modelo_Inicial.padreId);
 
-  expect(Vinculos.Antes.some((Texto) =>
-    Texto.includes("+") && Texto.includes("Leer")
-  )).toBe(true);
-  expect(Vinculos.Antes.join(" ")).not.toContain("Capitulo local");
-  expect(Vinculos.Despues.join(" ")).toContain("Capitulo local");
-
-  await page.evaluate((padreId) => {
-    const Modelo = Asegurar_Modelo_Planes();
-    const Padre = Modelo.Objetivos[padreId];
-    Abrir_Modal_Planes_Objetivo(Padre.Periodo_Id, Padre.Id);
-  }, Modelo_Inicial.padreId);
-  await page.locator(".Planes_Vinculo_Boton").click();
-  await page.locator(
-    '.Planes_Vinculo_Item[data-valor="ToggleSub|Obj_Leer"]'
-  ).click();
-  await expect(page.locator(".Planes_Vinculo_Menu")).toBeVisible();
-  await expect(page.locator(
-    '.Planes_Vinculo_Item[data-valor^="Subobjetivo|Obj_Leer|"]'
-  )).toContainText("Capitulo local");
-  await page.locator(
-    '.Planes_Vinculo_Item[data-valor="ToggleSub|Obj_Leer"]'
-  ).click();
-  await expect(page.locator(
-    '.Planes_Vinculo_Item[data-valor^="Subobjetivo|Obj_Leer|"]'
-  )).toHaveCount(0);
-  await page.click("#Planes_Objetivo_Cancelar");
+  expect(Vinculos.Select_Existe).toBe(false);
+  expect(Vinculos.Vinculo_Tipo).toBe("Auto");
+  expect(Vinculos.Vinculo_Label).toBeTruthy();
 
   await page.locator('[data-plan-vista="Lista"]').click();
   const Texto_Lista = await page.locator(".Planes_Objetivo_Card")
