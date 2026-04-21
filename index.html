@@ -6417,20 +6417,6 @@
         line-height: 1.35;
       }
 
-      .Planes_Parte_Barra {
-        height: 5px;
-        overflow: hidden;
-        border-radius: 999px;
-        background: rgba(0, 0, 0, 0.08);
-      }
-
-      .Planes_Parte_Barra span {
-        display: block;
-        height: 100%;
-        border-radius: inherit;
-        background: var(--Acento);
-      }
-
       .Planes_Parte_Acciones {
         position: relative;
         display: flex;
@@ -44626,6 +44612,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      function Planes_Sincronizar_Form_Estado_Parte() {
+        const Estado = document.getElementById("Planes_Parte_Estado");
+        const Aporte = document.getElementById(
+          "Planes_Parte_Aporte_Total"
+        );
+        const Parcial = document.getElementById(
+          "Planes_Parte_Avance_Parcial"
+        );
+        if (!Estado || !Aporte || !Parcial) return;
+        const Realizada = Estado.value === "Realizada";
+        if (Realizada) {
+          Parcial.value = Aporte.value || "0";
+        }
+        Parcial.disabled = Realizada;
+      }
+
       function Planes_Marcar_Parte_Realizada(
         Parte_Id,
         Opciones = {}
@@ -54295,9 +54297,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Estado = Planes_Estado_Calculado_Parte(Parte);
         const Aporte = Number(Parte.Aporte_Total) || 0;
         const Total = Planes_Progreso_Total_Parte(Parte);
-        const Porcentaje = Aporte > 0
-          ? Math.max(0, Math.min(100, (Total / Aporte) * 100))
-          : 0;
+        const Porcentaje_Texto =
+          Planes_Formatear_Porcentaje_Meta(Total, Aporte);
         Item.className = "Planes_Parte" +
           (Parte.Eliminado_Local ? " Eliminada" : "");
         Item.classList.add("Reordenable");
@@ -54314,8 +54315,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             <span class="Planes_Parte_Meta">
               ${Escape_Html(Planes_Formatear_Parte(Parte))}
             </span>
-            <span class="Planes_Parte_Barra">
-              <span style="width:${Porcentaje}%"></span>
+            <span class="Planes_Parte_Meta">
+              ${Escape_Html(Porcentaje_Texto)}
             </span>
           </span>
           <span class="Planes_Parte_Acciones">
@@ -54490,6 +54491,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? "Realizada"
             : "Pendiente";
         Actualizar_Campo_Unidad_Custom_Parte();
+        Planes_Sincronizar_Form_Estado_Parte();
       }
 
       function Planes_Leer_Numero_Input(Id) {
@@ -54538,6 +54540,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Avance_Parcial = Planes_Leer_Numero_Input(
           "Planes_Parte_Avance_Parcial"
         );
+        const Estado_Form =
+          document.getElementById("Planes_Parte_Estado")?.value ||
+          "Pendiente";
         const Aporte_Normalizado =
           Number.isFinite(Aporte_Total) && Aporte_Total > 0
             ? Aporte_Total
@@ -54546,10 +54551,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Number.isFinite(Progreso_Inicial) && Progreso_Inicial > 0
             ? Progreso_Inicial
             : 0;
-        const Parcial_Normalizado =
+        const Parcial_Base =
           Number.isFinite(Avance_Parcial) && Avance_Parcial > 0
             ? Avance_Parcial
             : 0;
+        const Parcial_Normalizado =
+          Estado_Form === "Realizada"
+            ? Aporte_Normalizado
+            : Parcial_Base;
         if (Aporte_Normalizado <= 0) {
           Mostrar_Toast_Error(t("planes.err_parte_aporte"));
           return;
@@ -54579,9 +54588,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }));
           return;
         }
-        const Estado_Form =
-          document.getElementById("Planes_Parte_Estado")?.value ||
-          "Pendiente";
         const Datos = {
           Objetivo_Id: Sub.Objetivo_Id,
           Subobjetivo_Id: Sub.Id,
@@ -80257,6 +80263,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener(
           "change",
           Actualizar_Campo_Unidad_Custom_Parte
+        );
+      document.getElementById("Planes_Parte_Estado")
+        ?.addEventListener(
+          "change",
+          Planes_Sincronizar_Form_Estado_Parte
+        );
+      document.getElementById("Planes_Parte_Aporte_Total")
+        ?.addEventListener(
+          "input",
+          Planes_Sincronizar_Form_Estado_Parte
         );
       document.getElementById("Planes_Importar_Partes_Cerrar")
         ?.addEventListener("click", Cerrar_Modal_Importar_Partes);
