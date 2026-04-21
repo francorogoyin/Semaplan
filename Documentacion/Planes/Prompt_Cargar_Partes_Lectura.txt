@@ -1,0 +1,195 @@
+Entra a la cuenta de patricioe.nogueroles.
+
+Objetivo: cargar partes de lectura en Semaplan a partir de un PDF,
+preservando texto, emojis, metricas y sin modificar el objetivo padre
+salvo instruccion explicita.
+
+Fuente:
+Carpeta: C:\Users\Patricio\Documents\Biblioteca\Libros\
+(Revisa en carpetas hijas)
+Libro/PDF: [Libro]
+
+Destino en Semaplan:
+Objetivo anual: Libros
+Subobjetivo: El mismo que el libro
+
+Primero lee el PDF y detecta las partes principales de lectura:
+- cuentos, capitulos o secciones principales, segun corresponda;
+- inclui introduccion, prologo, agradecimientos, prefacio, nota
+  editorial, nota al texto, advertencia, estudio preliminar u otro
+  material inicial o editorial cuando forme parte de la lectura;
+- exclui bibliografia, autor o sobre el autor, notas finales, notas al
+  pie separadas como seccion autonoma, laminas, graficos, cronologia,
+  indices, anexos tecnicos, catalogos, tablas no narrativas y material
+  claramente no lectivo;
+- calcula paginas por rango: desde la pagina inicial de cada parte
+  hasta la pagina anterior a la siguiente parte principal.
+
+Antes de editar Semaplan, genera internamente una tabla fuente con:
+Nombre exacto normalizado | paginas | emoji propuesto
+
+Reglas estrictas de alcance:
+- Modifica solo el subobjetivo indicado.
+- No modifiques el objetivo anual padre, sus metricas, target, unidad,
+  estado, progreso manual, configuracion ni metadatos, salvo
+  instruccion explicita.
+- Antes de editar, guarda una lectura del estado del objetivo padre:
+  nombre, unidad, unidad personalizada, target, estado y progreso.
+- Despues de guardar y recargar, verifica que esos campos del objetivo
+  padre siguen iguales.
+- Si el objetivo padre cambio por efecto colateral, restauralo antes
+  de cerrar.
+
+Reglas estrictas para borrar partes anteriores:
+- Antes de crear partes nuevas, identifica todas las partes existentes
+  del subobjetivo indicado.
+- Borra todas esas partes anteriores, no solo las visibles por filtro.
+- La busqueda debe incluir partes abiertas, pendientes, parciales,
+  realizadas, archivadas, ocultas o filtradas.
+- Borra tambien los avances asociados a esas partes anteriores para
+  que no queden metricas viejas colgando.
+- Despues de borrar y antes de crear, verifica que el subobjetivo
+  queda con 0 partes anteriores activas.
+- Si quedan partes previas, no crees las nuevas todavia: corregi el
+  borrado primero.
+- Despues de crear y recargar, verifica que la cantidad final de
+  partes sea exactamente la cantidad detectada en el PDF, no "cantidad
+  anterior + cantidad nueva".
+- Si aparecen duplicados, partes viejas o una cantidad inesperada,
+  borra y recrea correctamente antes de cerrar.
+
+Reglas estrictas de nombres de partes:
+- No dejes nombres de partes en mayusculas sostenidas, aunque el PDF
+  las muestre asi, salvo siglas, nombres propios o casos editoriales
+  donde la mayuscula sea parte real del titulo.
+- Normaliza los titulos a capitalizacion legible en espanol: primera
+  palabra con mayuscula y el resto en minuscula, respetando nombres
+  propios, acentos, enes, dieresis, signos y puntuacion.
+- Si el PDF organiza capitulos o secciones bajo partes mayores,
+  incorpora el nombre de la parte padre al nombre de cada parte creada
+  para evitar ambiguedades con numerales repetidos.
+- Ejemplo: si el PDF tiene la parte mayor DISCIPLINA y debajo
+  I. LOS CUERPOS DOCILES, la parte debe cargarse como
+  Disciplina I. Los cuerpos dociles, no como I. LOS CUERPOS DOCILES.
+- No inventes una parte padre si el PDF no muestra una jerarquia
+  clara.
+
+Reglas estrictas de texto:
+- Conserva acentos, enes, dieresis, comillas espanolas, signos de
+  apertura y puntuacion original.
+- No permitas que aparezcan caracteres reemplazados como ?, �,
+  mojibake o texto deformado.
+- No permitas unidades corruptas como p?ginas.
+- La unidad debe quedar como Páginas, con tilde correcta.
+- Si una herramienta o script degrada el texto, detenete y cambia de
+  metodo antes de guardar.
+- No uses comandos, pipes, scripts inline de PowerShell ni literales
+  que puedan perder UTF-8.
+- Si usas Node/Playwright, evita pasar acentos o emojis por consola.
+  Usa una de estas vias:
+  - archivo JSON temporal escrito y leido como UTF-8 real; o
+  - construccion dentro del navegador con String.fromCodePoint /
+    String.fromCharCode para acentos y emojis.
+- Despues de guardar, recarga Semaplan y lee nuevamente los nombres
+  desde la app/modelo para verificar que siguen intactos.
+
+Reglas estrictas de emojis:
+- Usa solo emojis simples, ampliamente soportados en Windows y
+  navegadores.
+- Evita emojis compuestos problematicos, secuencias ZWJ, tonos de
+  piel, banderas o simbolos raros.
+- Preferi este set seguro cuando alcance:
+  📖 📚 ✏️ 📝 🔥 🌊 ⚓ 🎵 🎨 🍎 ⚡ 🔔 🏠 🕯️ 🧭 🌹 🗝️ 🏛️ ⛪ 📣 🍷 🍮
+- Si un emoji no se renderiza bien despues de guardar, reemplazalo por
+  otro mas seguro.
+- Verifica despues de recargar que ningun emoji aparezca como ?, ??,
+  cuadrado vacio o caracter roto.
+
+Edicion en Semaplan:
+1. Abri Semaplan.com.
+2. Confirma que la cuenta activa sea patricioe.nogueroles@gmail.com.
+3. Espera inicializacion completa: Semana_Actual existente y
+   Cargando_Inicial === false.
+4. Anda al objetivo anual indicado.
+5. Anda al subobjetivo indicado.
+6. Registra internamente el estado del objetivo anual padre.
+7. Identifica todas las partes actuales del subobjetivo indicado, sin
+   depender del filtro visual del modal.
+8. Borra todas esas partes y sus avances asociados.
+9. Verifica que quedaron 0 partes anteriores activas para ese
+   subobjetivo.
+10. Crea una parte por cada parte principal detectada del PDF.
+11. Cada parte debe tener:
+    - nombre exacto, normalizado y legible;
+    - si corresponde, nombre de la parte padre incluido;
+    - emoji seguro;
+    - metrica en paginas;
+    - unidad Páginas, con tilde correcta;
+    - orden igual al orden del PDF.
+12. Marca como realizadas las primeras [N] partes. Si no indico N, no
+    marques ninguna.
+13. No marques como realizadas partes adicionales.
+14. No recalcules ni sobrescribas el objetivo anual padre de forma que
+    cambie su target, unidad o progreso.
+
+Regla probable sobre partes ya realizadas:
+- Es probable que el pedido indique que ciertos capitulos, cuentos o
+  partes deben quedar realizados.
+- Si el pedido lo indica, marca exactamente esas partes como
+  realizadas y no otras.
+- Despues de marcarlas realizadas, edita el registro de avance
+  asociado y quitale la fecha. El registro debe quedar sin fecha.
+- Verifica despues de recargar que esas partes siguen realizadas, que
+  las demas siguen pendientes y que los registros de esas partes
+  realizadas quedaron sin fecha.
+
+Verificacion obligatoria:
+Despues de guardar, espera sync completa:
+Sync_Estado === "Guardado" y Hay_Sync_Pendiente() === false.
+
+Luego recarga Semaplan y verifica:
+- la cuenta sigue siendo patricioe.nogueroles@gmail.com;
+- el objetivo anual padre mantiene sus campos originales;
+- el subobjetivo correcto tiene exactamente la cantidad esperada de
+  partes;
+- no quedaron partes anteriores, duplicadas ni fuera de orden;
+- los nombres no tienen mayusculas sostenidas indebidas;
+- los nombres incluyen la parte padre cuando el PDF tenia jerarquia
+  clara;
+- los nombres no tienen ?, �, mojibake ni perdida de acentos;
+- la unidad se ve como Páginas, con tilde correcta, no p?ginas;
+- los emojis se ven correctamente y ninguno aparece como ?, ?? o
+  cuadrado;
+- las paginas coinciden con la tabla fuente;
+- la suma total de paginas coincide con lo calculado;
+- solo las primeras [N] partes o las partes indicadas explicitamente
+  estan realizadas;
+- todas las demas quedan pendientes;
+- si hubo partes realizadas, sus registros de avance quedaron sin
+  fecha;
+- la sincronizacion quedo guardada.
+
+Si falla cualquier verificacion:
+- no cierres la tarea;
+- corregi el dato en Semaplan antes de responder;
+- si el problema viene del metodo de carga, no repitas el mismo
+  metodo;
+- si aparecen partes viejas o duplicadas, borra todas las partes del
+  subobjetivo y recrea desde cero;
+- si cambio el objetivo padre, restauralo antes de cerrar.
+
+No modifiques codigo ni archivos del proyecto.
+No hagas commits.
+No toques otros objetivos, subobjetivos ni partes.
+
+Al final informa solo:
+- PDF usado;
+- cantidad de partes anteriores borradas;
+- cantidad de partes creadas;
+- total de paginas;
+- cuantas partes quedaron realizadas;
+- confirmacion explicita de que se verificaron despues de recargar:
+  borrado de anteriores, nombres normalizados, jerarquia padre en los
+  nombres cuando correspondia, acentos, unidad Páginas con tilde
+  correcta, emojis, estados, registros sin fecha cuando hubo partes
+  realizadas y objetivo padre sin cambios indebidos.
