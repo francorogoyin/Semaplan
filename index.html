@@ -62505,11 +62505,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Boolean(Objetivo.Es_Fija) ? Clave_Semana_Actual() : Obtener_Semana_Base_Objetivo(Objetivo);
       }
 
+      function Evento_Pertenece_A_Objetivo_Semana(
+        Evento,
+        Objetivo,
+        Clave_Semana
+      ) {
+        if (!Evento || !Objetivo) return false;
+        if (Obtener_Clave_Semana_Evento(Evento) !== Clave_Semana) {
+          return false;
+        }
+        if (Evento.Objetivo_Id === Objetivo.Id) return true;
+        const Objetivo_Evento = Objetivo_Por_Id(Evento.Objetivo_Id);
+        if (!Objetivo_Evento) return false;
+        return Obtener_Familia_Objetivo(Objetivo_Evento) ===
+          Obtener_Familia_Objetivo(Objetivo);
+      }
+
       function Calcular_Horas_Asignadas(Objetivo) {
         const Clave = Obtener_Clave_Semana_Objetivo(Objetivo);
         return Eventos
-          .filter((Evento) => Evento.Objetivo_Id === Objetivo.Id && Obtener_Clave_Semana_Evento(Evento) === Clave)
-          .reduce((Total, Evento) => Total + (Number(Evento.Duracion) || 0), 0);
+          .filter((Evento) =>
+            Evento_Pertenece_A_Objetivo_Semana(
+              Evento,
+              Objetivo,
+              Clave
+            )
+          )
+          .reduce(
+            (Total, Evento) =>
+              Total + (Number(Evento.Duracion) || 0),
+            0
+          );
       }
 
       function Obtener_Subobjetivos_Semana(Objetivo, Crear = false, Clave_Semana = Clave_Semana_Actual()) {
@@ -63503,7 +63529,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Obtener_Eventos_Objetivo(Objetivo) {
         const Clave = Obtener_Clave_Semana_Objetivo(Objetivo);
         return Eventos.filter((Evento) =>
-          Evento.Objetivo_Id === Objetivo.Id && Obtener_Clave_Semana_Evento(Evento) === Clave
+          Evento_Pertenece_A_Objetivo_Semana(
+            Evento,
+            Objetivo,
+            Clave
+          )
         );
       }
 
@@ -80865,8 +80895,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Objetivo || Objetivo.Es_Bolsa) return false;
         const Clave = Normalizar_Clave_Semana_Desde_Fecha(Fecha);
         return Eventos.some((Evento) => {
-          return Evento.Objetivo_Id === Objetivo.Id &&
-            Obtener_Clave_Semana_Evento(Evento) === Clave;
+          return Evento_Pertenece_A_Objetivo_Semana(
+            Evento,
+            Objetivo,
+            Clave
+          );
         });
       }
 
