@@ -4445,6 +4445,34 @@
         width: 22px;
       }
 
+      .Planes_Objetivo_Card.Estado_Activo .Planes_Objetivo_Emoji,
+      .Planes_Subobjetivo.Estado_Activo .Planes_Subobjetivo_Emoji {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: #f59e0b;
+        color: #241307;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.46),
+          0 1px 4px rgba(151, 84, 0, 0.16);
+      }
+
+      .Planes_Objetivo_Card.Estado_Activo .Planes_Objetivo_Emoji {
+        flex-basis: 26px;
+        width: 26px;
+        height: 26px;
+        font-size: 18px;
+      }
+
+      .Planes_Objetivo_Card.Vista_Biblioteca.Estado_Activo
+        .Planes_Objetivo_Emoji {
+        flex-basis: 42px;
+        width: 42px;
+        height: 42px;
+        font-size: 27px;
+      }
+
       .Planes_Objetivo_Estado {
         font-size: 14px;
         line-height: 1;
@@ -4873,6 +4901,14 @@
         height: 40px;
         align-items: center;
         justify-content: center;
+        font-size: 34px;
+      }
+
+      .Planes_Objetivo_Card.Expandida.Estado_Activo
+        .Planes_Objetivo_Emoji {
+        flex-basis: 40px;
+        width: 40px;
+        height: 40px;
         font-size: 34px;
       }
 
@@ -5693,11 +5729,25 @@
         line-height: 1;
       }
 
+      .Planes_Subobjetivo.Estado_Activo
+        .Planes_Subobjetivo_Emoji {
+        flex: 0 0 24px;
+        font-size: 16px;
+      }
+
       .Planes_Subobjetivo.Vista_Biblioteca
         .Planes_Subobjetivo_Emoji {
         width: auto;
         height: auto;
         font-size: 28px;
+      }
+
+      .Planes_Subobjetivo.Vista_Biblioteca.Estado_Activo
+        .Planes_Subobjetivo_Emoji {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 auto;
+        font-size: 25px;
       }
 
       .Planes_Subobjetivo_Nombre {
@@ -5917,13 +5967,15 @@
       .Planes_Subobjetivos_Filtros {
         display: grid;
         grid-template-columns:
-          minmax(110px, 140px)
-          minmax(220px, 300px)
-          minmax(120px, 150px)
-          minmax(120px, 150px);
+          minmax(100px, 130px)
+          minmax(180px, 1fr)
+          minmax(105px, 135px)
+          minmax(105px, 135px)
+          minmax(130px, 160px)
+          minmax(120px, auto);
         gap: 8px;
         margin: 0 0 12px;
-        justify-content: space-between;
+        justify-content: stretch;
       }
 
       .Planes_Subobjetivos_Filtro {
@@ -5949,6 +6001,27 @@
         font: inherit;
         font-size: 12px;
         padding: 7px 9px;
+      }
+
+      .Planes_Subobjetivos_Orden_Direccion {
+        min-width: 0;
+        min-height: 32px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--Texto);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        padding: 7px 10px;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .Planes_Subobjetivos_Orden_Direccion:hover {
+        border-color: var(--Acento);
+        color: var(--Acento);
       }
 
       .Planes_Subobjetivos_Modal_Lista {
@@ -11890,7 +11963,7 @@
         background: #1f1f1f;
         color: #fff;
         border-radius: 12px;
-        padding: 12px 16px 16px;
+        padding: 14px 36px 16px 16px;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -11947,6 +12020,30 @@
         filter: brightness(1.15);
       }
 
+      .Toast_Cerrar {
+        position: absolute;
+        top: 5px;
+        right: 6px;
+        width: 22px;
+        height: 22px;
+        border: none;
+        border-radius: 999px;
+        background: transparent;
+        color: currentColor;
+        cursor: pointer;
+        font: inherit;
+        font-size: 17px;
+        font-weight: 900;
+        line-height: 1;
+        opacity: 0.66;
+        padding: 0;
+      }
+
+      .Toast_Cerrar:hover {
+        background: rgba(255, 255, 255, 0.14);
+        opacity: 1;
+      }
+
       .Undo_Toast_Barra_Contenedor {
         position: absolute;
         bottom: 0;
@@ -11977,7 +12074,7 @@
       .Meta_Toast {
         min-width: 250px;
         max-width: 360px;
-        padding: 12px 14px;
+        padding: 14px 36px 14px 14px;
         border-radius: 16px;
         border: 1px solid rgba(15, 95, 90, 0.18);
         background:
@@ -11995,6 +12092,8 @@
         transition:
           transform 0.25s ease,
           opacity 0.25s ease;
+        pointer-events: all;
+        position: relative;
       }
 
       .Meta_Toast.Activo {
@@ -12025,6 +12124,10 @@
         font-size: 12px;
         line-height: 1.35;
         color: var(--Texto_Suave);
+      }
+
+      .Meta_Toast .Toast_Cerrar:hover {
+        background: rgba(15, 95, 90, 0.1);
       }
 
       .Dia_Header {
@@ -18020,6 +18123,47 @@
                 </option>
               </select>
             </label>
+            <label class="Planes_Subobjetivos_Filtro">
+              <span data-i18n="planes.ordenar_por">
+                Ordenar por
+              </span>
+              <select id="Planes_Subobjetivos_Orden_Campo">
+                <option value="Manual"
+                  data-i18n="planes.orden_manual">
+                  Manual
+                </option>
+                <option value="Nombre"
+                  data-i18n="planes.orden_nombre">
+                  Nombre
+                </option>
+                <option value="Estado"
+                  data-i18n="planes.orden_estado">
+                  Estado
+                </option>
+                <option value="Fecha_Inicio"
+                  data-i18n="planes.orden_fecha_inicio">
+                  Fecha inicial
+                </option>
+                <option value="Fecha_Objetivo"
+                  data-i18n="planes.orden_fecha_objetivo">
+                  Fecha objetivo
+                </option>
+                <option value="Fecha_Fin"
+                  data-i18n="planes.orden_fecha_fin">
+                  Fecha final
+                </option>
+              </select>
+            </label>
+            <div class="Planes_Subobjetivos_Filtro">
+              <span data-i18n="planes.orden_direccion">
+                Dirección
+              </span>
+              <button type="button"
+                class="Planes_Subobjetivos_Orden_Direccion"
+                id="Planes_Subobjetivos_Orden_Direccion">
+                &uarr; Ascendente
+              </button>
+            </div>
           </div>
           <div class="Planes_Subobjetivos_Modal_Lista"
             id="Planes_Subobjetivos_Lista"></div>
@@ -19375,6 +19519,16 @@
             "Período actual",
           "planes.filtro_sin_fecha": "Sin fecha",
           "planes.filtro_vencidos": "Retrasados",
+          "planes.ordenar_por": "Ordenar por",
+          "planes.orden_manual": "Manual",
+          "planes.orden_nombre": "Nombre",
+          "planes.orden_estado": "Estado",
+          "planes.orden_fecha_inicio": "Fecha inicial",
+          "planes.orden_fecha_objetivo": "Fecha objetivo",
+          "planes.orden_fecha_fin": "Fecha final",
+          "planes.orden_direccion": "Direcci\u00f3n",
+          "planes.orden_ascendente": "Ascendente",
+          "planes.orden_descendente": "Descendente",
           "planes.sin_subobjetivos_filtro":
             "No hay subobjetivos que coincidan con esos filtros.",
           "planes.reorden_mismo_nivel":
@@ -22839,6 +22993,16 @@
             "Current period",
           "planes.filtro_sin_fecha": "No date",
           "planes.filtro_vencidos": "Delayed",
+          "planes.ordenar_por": "Sort by",
+          "planes.orden_manual": "Manual",
+          "planes.orden_nombre": "Name",
+          "planes.orden_estado": "Status",
+          "planes.orden_fecha_inicio": "Start date",
+          "planes.orden_fecha_objetivo": "Target date",
+          "planes.orden_fecha_fin": "End date",
+          "planes.orden_direccion": "Direction",
+          "planes.orden_ascendente": "Ascending",
+          "planes.orden_descendente": "Descending",
           "planes.sin_subobjetivos_filtro":
             "No subobjectives match those filters.",
           "planes.reorden_mismo_nivel":
@@ -26253,6 +26417,16 @@
           "planes.filtro_vista": "Vista",
           "planes.filtro_sin_fecha": "Sem data",
           "planes.filtro_vencidos": "Atrasados",
+          "planes.ordenar_por": "Ordenar por",
+          "planes.orden_manual": "Manual",
+          "planes.orden_nombre": "Nome",
+          "planes.orden_estado": "Estado",
+          "planes.orden_fecha_inicio": "Data inicial",
+          "planes.orden_fecha_objetivo": "Data objetivo",
+          "planes.orden_fecha_fin": "Data final",
+          "planes.orden_direccion": "Dire\u00e7\u00e3o",
+          "planes.orden_ascendente": "Ascendente",
+          "planes.orden_descendente": "Descendente",
           "planes.sin_subobjetivos_filtro":
             "Nenhum subobjetivo coincide com esses filtros.",
           "planes.reorden_mismo_nivel":
@@ -29885,6 +30059,8 @@
       let Planes_Subobjetivos_Filtro_Estado = "Todos";
       let Planes_Subobjetivos_Filtro_Metadato = "";
       let Planes_Subobjetivos_Filtro_Periodo = "Todos";
+      let Planes_Subobjetivos_Orden_Campo = "Manual";
+      let Planes_Subobjetivos_Orden_Direccion = "Asc";
       let Planes_Avance_Alcance = { Tipo: "Global", Id: "" };
       let Planes_Vinculo_Subobjetivos_Expandidos = new Set();
       let Planes_Vinculo_Click_Global = false;
@@ -37904,6 +38080,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Undo_Contador_Id = 0;
       const Undo_Duracion_Ms = 15000;
 
+      function Agregar_Boton_Cerrar_Toast(El_Toast, Al_Cerrar) {
+        if (!El_Toast || typeof Al_Cerrar !== "function") return;
+        const El_Cerrar = document.createElement("button");
+        El_Cerrar.className = "Toast_Cerrar";
+        El_Cerrar.type = "button";
+        El_Cerrar.textContent = "\u00d7";
+        El_Cerrar.title = t("cerrar");
+        El_Cerrar.setAttribute("aria-label", t("cerrar"));
+        El_Cerrar.addEventListener("click", (Ev) => {
+          Ev.preventDefault();
+          Ev.stopPropagation();
+          Al_Cerrar();
+        });
+        El_Toast.appendChild(El_Cerrar);
+      }
+
       async function Solicitar_Tipo_Slot_Bloqueo() {
         // Pregunta el tipo de slot al bloquear día completo.
         const Tipos = Obtener_Tipos_Slot();
@@ -39583,6 +39775,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Toast = document.createElement("div");
         Toast.className = "Meta_Toast";
         Toast.dataset.toastId = String(Id);
+        let Cerrado = false;
+        let Timer_Id = null;
 
         const Icono = document.createElement("span");
         Icono.className = "Meta_Toast_Icono";
@@ -39603,6 +39797,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Textos.appendChild(Sub);
         Toast.appendChild(Icono);
         Toast.appendChild(Textos);
+        Agregar_Boton_Cerrar_Toast(Toast, () => {
+          if (Cerrado) return;
+          Cerrado = true;
+          clearTimeout(Timer_Id);
+          Toast.classList.remove("Activo");
+          setTimeout(() => Toast.remove(), 250);
+        });
         El_Meta_Toast_Contenedor.appendChild(Toast);
 
         requestAnimationFrame(() => {
@@ -39611,7 +39812,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
         });
 
-        setTimeout(() => {
+        Timer_Id = setTimeout(() => {
+          if (Cerrado) return;
+          Cerrado = true;
           Toast.classList.remove("Activo");
           setTimeout(() => Toast.remove(), 250);
         }, 4200);
@@ -46432,14 +46635,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .map((Objetivo) => Objetivo.Id)
           .join("|");
         if (Antes === Despues) return false;
-        const Snap = Capturar_Snapshot_Undo();
         Sin_Origen.forEach((Objetivo, Indice) => {
           Objetivo.Orden = Indice;
           Objetivo.Actualizado_En = new Date().toISOString();
         });
         Render_Plan();
         Guardar_Estado();
-        Mostrar_Toast_Undo(t("toast.objetivos_reordenados"), Snap);
         return true;
       }
 
@@ -46493,6 +46694,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Card.className = "Planes_Objetivo_Card" +
           (Objetivo.Eliminado_Local ? " Eliminado" : "") +
           ((Objetivo.Warnings || []).length ? " Warning" : "") +
+          (Estado_Efectivo === "Activo" ? " Estado_Activo" : "") +
           (Estado_Efectivo === "Vencido" ? " Atrasado" : "") +
           (Estado_Efectivo === "Saldado" ? " Saldado" : "") +
           (Es_Lista ? " Vista_Lista" : "") +
@@ -49483,6 +49685,139 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
       }
 
+      function Planes_Subobjetivos_Orden_Campo_Actual() {
+        const Opciones = [
+          "Manual",
+          "Nombre",
+          "Estado",
+          "Fecha_Inicio",
+          "Fecha_Objetivo",
+          "Fecha_Fin"
+        ];
+        if (!Opciones.includes(Planes_Subobjetivos_Orden_Campo)) {
+          Planes_Subobjetivos_Orden_Campo = "Manual";
+        }
+        return Planes_Subobjetivos_Orden_Campo;
+      }
+
+      function Planes_Subobjetivos_Direccion_Actual() {
+        if (!["Asc", "Desc"].includes(
+          Planes_Subobjetivos_Orden_Direccion
+        )) {
+          Planes_Subobjetivos_Orden_Direccion = "Asc";
+        }
+        return Planes_Subobjetivos_Orden_Direccion;
+      }
+
+      function Planes_Valor_Orden_Subobjetivo(Sub, Campo) {
+        if (Campo === "Nombre") {
+          return Normalizar_Texto_Archivero(Sub?.Texto || "");
+        }
+        if (Campo === "Estado") {
+          const Orden = {
+            Activo: 0,
+            Vencido: 1,
+            Cumplido: 2,
+            Cancelado: 3
+          };
+          const Estado = Planes_Estado_Normalizado_Subobjetivo(Sub);
+          return Orden[Estado] ?? 99;
+        }
+        if (Campo === "Fecha_Inicio") {
+          return (Sub?.Fecha_Inicio || "").toString();
+        }
+        if (Campo === "Fecha_Objetivo") {
+          return (Sub?.Fecha_Objetivo || "").toString();
+        }
+        if (Campo === "Fecha_Fin") {
+          return (Sub?.Fecha_Fin || "").toString();
+        }
+        return Number(Sub?.Orden) || 0;
+      }
+
+      function Planes_Comparar_Fechas_Subobjetivo(A, B, Campo) {
+        const Direccion = Planes_Subobjetivos_Direccion_Actual();
+        const Fecha_A = Planes_Valor_Orden_Subobjetivo(A, Campo);
+        const Fecha_B = Planes_Valor_Orden_Subobjetivo(B, Campo);
+        const Vacia_A = !Fecha_A;
+        const Vacia_B = !Fecha_B;
+        if (Vacia_A || Vacia_B) {
+          if (Vacia_A && Vacia_B) return 0;
+          return Vacia_A ? 1 : -1;
+        }
+        const Base = Fecha_A.localeCompare(Fecha_B);
+        return Direccion === "Desc" ? -Base : Base;
+      }
+
+      function Planes_Comparar_Subobjetivos_Orden(A, B) {
+        const Campo = Planes_Subobjetivos_Orden_Campo_Actual();
+        const Direccion = Planes_Subobjetivos_Direccion_Actual();
+        const Es_Fecha = [
+          "Fecha_Inicio",
+          "Fecha_Objetivo",
+          "Fecha_Fin"
+        ].includes(Campo);
+        let Resultado = 0;
+        if (Es_Fecha) {
+          Resultado = Planes_Comparar_Fechas_Subobjetivo(
+            A,
+            B,
+            Campo
+          );
+        } else {
+          const Valor_A = Planes_Valor_Orden_Subobjetivo(A, Campo);
+          const Valor_B = Planes_Valor_Orden_Subobjetivo(B, Campo);
+          if (typeof Valor_A === "number" &&
+              typeof Valor_B === "number") {
+            Resultado = Valor_A - Valor_B;
+          } else {
+            Resultado = String(Valor_A).localeCompare(
+              String(Valor_B),
+              undefined,
+              { sensitivity: "base" }
+            );
+          }
+          if (Campo !== "Manual" && Direccion === "Desc") {
+            Resultado *= -1;
+          }
+        }
+        if (Resultado !== 0) return Resultado;
+        const Orden_A = Number(A?.Orden) || 0;
+        const Orden_B = Number(B?.Orden) || 0;
+        if (Orden_A !== Orden_B) return Orden_A - Orden_B;
+        return String(A?.Texto || "").localeCompare(
+          String(B?.Texto || ""),
+          undefined,
+          { sensitivity: "base" }
+        );
+      }
+
+      function Planes_Ordenar_Subobjetivos_Para_Vista(Subs) {
+        return [...(Subs || [])].sort(
+          Planes_Comparar_Subobjetivos_Orden
+        );
+      }
+
+      function Planes_Actualizar_Boton_Orden_Subobjetivos(
+        Boton = null
+      ) {
+        const El_Boton = Boton || document.getElementById(
+          "Planes_Subobjetivos_Orden_Direccion"
+        );
+        if (!El_Boton) return;
+        const Direccion = Planes_Subobjetivos_Direccion_Actual();
+        const Es_Asc = Direccion === "Asc";
+        const Label = t(
+          Es_Asc
+            ? "planes.orden_ascendente"
+            : "planes.orden_descendente"
+        );
+        El_Boton.textContent = `${Es_Asc ? "\u2191" : "\u2193"} ` +
+          Label;
+        El_Boton.title = Label;
+        El_Boton.setAttribute("aria-label", Label);
+      }
+
       function Planes_Subobjetivo_Rama_Visible(Sub, Objetivo) {
         if (!Planes_Subobjetivos_Tiene_Filtros()) return true;
         if (Planes_Subobjetivo_Pasa_Filtros(Sub, Objetivo)) {
@@ -49507,6 +49842,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Vista = document.getElementById(
           "Planes_Subobjetivos_Filtro_Vista"
         );
+        const Orden = document.getElementById(
+          "Planes_Subobjetivos_Orden_Campo"
+        );
+        const Direccion = document.getElementById(
+          "Planes_Subobjetivos_Orden_Direccion"
+        );
         if (Estado) Estado.value = Planes_Subobjetivos_Filtro_Estado;
         if (Metadato) {
           Metadato.value = Planes_Subobjetivos_Filtro_Metadato;
@@ -49517,6 +49858,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Vista) {
           Vista.value = Planes_Subobjetivos_Vista_Actual();
         }
+        if (Orden) {
+          Orden.value = Planes_Subobjetivos_Orden_Campo_Actual();
+        }
+        Planes_Actualizar_Boton_Orden_Subobjetivos(Direccion);
       }
 
       function Render_Planes_Subobjetivo_Item(
@@ -49531,6 +49876,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           t(`planes.estado_${Estado.toLowerCase()}`);
         Item.className = "Planes_Subobjetivo" +
           ` Vista_${Vista}` +
+          (Estado === "Activo" ? " Estado_Activo" : "") +
           " Reordenable";
         Item.draggable = true;
         Item.dataset.planSubobjetivoId = Sub.Id;
@@ -49634,11 +49980,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Nivel
           )
         );
-        Planes_Subobjetivos_Hijos(Sub.Id)
-          .filter((Hijo) => !Hijo.Eliminado_Local)
-          .filter((Hijo) =>
-            Planes_Subobjetivo_Rama_Visible(Hijo, Objetivo)
-          )
+        Planes_Ordenar_Subobjetivos_Para_Vista(
+          Planes_Subobjetivos_Hijos(Sub.Id)
+            .filter((Hijo) => !Hijo.Eliminado_Local)
+            .filter((Hijo) =>
+              Planes_Subobjetivo_Rama_Visible(Hijo, Objetivo)
+            )
+        )
           .forEach((Hijo) => {
             Render_Planes_Subobjetivo_Rama(
               Objetivo,
@@ -49698,18 +50046,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Antes = Hermanos.map((Sub) => Sub.Id).join("|");
         const Despues = Sin_Origen.map((Sub) => Sub.Id).join("|");
         if (Antes === Despues) return false;
-        const Snap = Capturar_Snapshot_Undo();
         Sin_Origen.forEach((Sub, Indice) => {
           Sub.Orden = Indice;
           Sub.Actualizado_En = new Date().toISOString();
         });
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
         if (Objetivo) {
-          Planes_Recalcular_Desde(
-            Objetivo,
-            Snap,
-            t("toast.subobjetivo_reordenada")
-          );
+          Planes_Recalcular_Desde(Objetivo);
         } else {
           Render_Plan();
           Guardar_Estado();
@@ -49749,10 +50092,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             : Resumen;
         }
         Planes_Sincronizar_Filtros_Subobjetivos();
-        const Subs = Planes_Subobjetivos_Raices_De_Objetivo(
-          Objetivo.Id
-        ).filter((Sub) =>
-          Planes_Subobjetivo_Rama_Visible(Sub, Objetivo)
+        const Subs = Planes_Ordenar_Subobjetivos_Para_Vista(
+          Planes_Subobjetivos_Raices_De_Objetivo(Objetivo.Id)
+            .filter((Sub) =>
+              Planes_Subobjetivo_Rama_Visible(Sub, Objetivo)
+            )
         );
         const Vista = Planes_Subobjetivos_Vista_Actual();
         Lista.className = "Planes_Subobjetivos_Modal_Lista" +
@@ -52251,6 +52595,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Toast.appendChild(El_Texto);
         El_Toast.appendChild(El_Seg);
         El_Toast.appendChild(El_Boton);
+        Agregar_Boton_Cerrar_Toast(El_Toast, () => {
+          Eliminar_Toast_Undo(Id);
+        });
         El_Toast.appendChild(El_Barra_Cont);
 
         // Insertar al inicio del contenedor (nuevos arriba de los viejos).
@@ -52315,6 +52662,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Contenedor) return;
         const Inicio_Ms = Date.now();
+        let Cerrado = false;
+        let Timer_Id = null;
 
         const El_Toast = document.createElement("div");
         El_Toast.className = "Undo_Toast";
@@ -52343,6 +52692,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Toast.appendChild(El_Icono);
         El_Toast.appendChild(El_Texto);
         El_Toast.appendChild(El_Seg);
+        Agregar_Boton_Cerrar_Toast(El_Toast, () => {
+          if (Cerrado) return;
+          Cerrado = true;
+          clearTimeout(Timer_Id);
+          clearInterval(Intervalo_Id);
+          El_Toast.classList.remove("Activo");
+          setTimeout(() => El_Toast.remove(), 300);
+        });
         El_Toast.appendChild(El_Barra_Cont);
 
         Contenedor.insertBefore(
@@ -52369,7 +52726,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Seg.textContent = Restante.toString();
         }, 250);
 
-        setTimeout(() => {
+        Timer_Id = setTimeout(() => {
+          if (Cerrado) return;
+          Cerrado = true;
           clearInterval(Intervalo_Id);
           El_Toast.classList.remove("Activo");
           setTimeout(() => El_Toast.remove(), 300);
@@ -74065,6 +74424,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ].includes(Vista)
             ? Vista
             : "Tarjetas";
+          Render_Modal_Planes_Subobjetivos();
+        });
+      document.getElementById("Planes_Subobjetivos_Orden_Campo")
+        ?.addEventListener("change", (Ev) => {
+          Planes_Subobjetivos_Orden_Campo =
+            Ev.target.value || "Manual";
+          Render_Modal_Planes_Subobjetivos();
+        });
+      document.getElementById("Planes_Subobjetivos_Orden_Direccion")
+        ?.addEventListener("click", () => {
+          Planes_Subobjetivos_Orden_Direccion =
+            Planes_Subobjetivos_Direccion_Actual() === "Asc"
+              ? "Desc"
+              : "Asc";
           Render_Modal_Planes_Subobjetivos();
         });
       document.getElementById("Planes_Subobjetivos_Overlay")

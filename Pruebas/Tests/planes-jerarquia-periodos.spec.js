@@ -3839,3 +3839,273 @@ async ({ page }) => {
   expect(Resultado.Texto).not.toContain("Importado");
   expect(errores).toEqual([]);
 });
+
+test("Toasts permiten cierre manual con cruz",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Mostrar_Toast_Info("Info de prueba", "\u2139\ufe0f", 5000);
+  });
+  await expect(
+    page.locator("#Undo_Contenedor .Toast_Cerrar")
+  ).toHaveCount(1);
+  await page.locator("#Undo_Contenedor .Toast_Cerrar").first()
+    .click();
+  await expect(
+    page.locator("#Undo_Contenedor .Undo_Toast")
+  ).toHaveCount(0);
+
+  await page.evaluate(() => {
+    Mostrar_Toast_Undo("Undo de prueba", Capturar_Snapshot_Undo());
+  });
+  await expect(
+    page.locator("#Undo_Contenedor .Toast_Cerrar")
+  ).toHaveCount(1);
+  await page.locator("#Undo_Contenedor .Toast_Cerrar").first()
+    .click();
+  await expect(
+    page.locator("#Undo_Contenedor .Undo_Toast")
+  ).toHaveCount(0);
+
+  await page.evaluate(() => {
+    Mostrar_Toast_Meta("Meta", "Subtitulo");
+  });
+  await expect(
+    page.locator("#Meta_Toast_Contenedor .Toast_Cerrar")
+  ).toHaveCount(1);
+  await page.locator("#Meta_Toast_Contenedor .Toast_Cerrar")
+    .first()
+    .click();
+  await expect(
+    page.locator("#Meta_Toast_Contenedor .Meta_Toast")
+  ).toHaveCount(0);
+
+  expect(errores).toEqual([]);
+});
+
+test("Subobjetivos ordena por campos y direccion",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    Modelo.UI.Periodo_Activo_Id = Anio.Id;
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Lecturas",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 10,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Zeta = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Zeta"
+    );
+    const Alfa = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Alfa"
+    );
+    const Beta = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Beta"
+    );
+    const Modelo_Subs = Asegurar_Modelo_Planes();
+    Object.assign(Modelo_Subs.Subobjetivos[Zeta], {
+      Fecha_Inicio: "2026-05-02",
+      Fecha_Objetivo: "2026-06-01",
+      Fecha_Fin: "2026-06-05"
+    });
+    Object.assign(Modelo_Subs.Subobjetivos[Alfa], {
+      Estado: "Cumplido",
+      Hecha: true,
+      Fecha_Inicio: "2026-04-01",
+      Fecha_Objetivo: "2026-04-20",
+      Fecha_Fin: "2026-04-25"
+    });
+    Object.assign(Modelo_Subs.Subobjetivos[Beta], {
+      Fecha_Inicio: "2026-03-15",
+      Fecha_Objetivo: "2026-05-10",
+      Fecha_Fin: "2026-05-20"
+    });
+    Planes_Actualizar_Progreso(Objetivo);
+    Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, false);
+
+    const Leer = () => Array.from(
+      document.querySelectorAll(".Planes_Subobjetivo_Nombre")
+    ).map((Nodo) => Nodo.textContent.trim());
+    const Ordenar = (Campo, Direccion) => {
+      Planes_Subobjetivos_Orden_Campo = Campo;
+      Planes_Subobjetivos_Orden_Direccion = Direccion;
+      Render_Modal_Planes_Subobjetivos();
+      return Leer();
+    };
+    return {
+      Tiene_Campo: Boolean(
+        document.getElementById("Planes_Subobjetivos_Orden_Campo")
+      ),
+      Tiene_Direccion: Boolean(
+        document.getElementById(
+          "Planes_Subobjetivos_Orden_Direccion"
+        )
+      ),
+      Nombre_Asc: Ordenar("Nombre", "Asc"),
+      Nombre_Desc: Ordenar("Nombre", "Desc"),
+      Estado_Asc: Ordenar("Estado", "Asc"),
+      Inicio_Asc: Ordenar("Fecha_Inicio", "Asc"),
+      Objetivo_Asc: Ordenar("Fecha_Objetivo", "Asc"),
+      Fin_Desc: Ordenar("Fecha_Fin", "Desc")
+    };
+  });
+
+  expect(Resultado.Tiene_Campo).toBe(true);
+  expect(Resultado.Tiene_Direccion).toBe(true);
+  expect(Resultado.Nombre_Asc).toEqual(["Alfa", "Beta", "Zeta"]);
+  expect(Resultado.Nombre_Desc).toEqual(["Zeta", "Beta", "Alfa"]);
+  expect(Resultado.Estado_Asc).toEqual(["Zeta", "Beta", "Alfa"]);
+  expect(Resultado.Inicio_Asc).toEqual(["Beta", "Alfa", "Zeta"]);
+  expect(Resultado.Objetivo_Asc).toEqual(["Alfa", "Beta", "Zeta"]);
+  expect(Resultado.Fin_Desc).toEqual(["Zeta", "Beta", "Alfa"]);
+  expect(errores).toEqual([]);
+});
+
+test("Reordenar objetivos y subobjetivos no muestra undo",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    Modelo.UI.Periodo_Activo_Id = Anio.Id;
+    const Primero = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      { Nombre: "Primero", Emoji: "\u0031\ufe0f\u20e3" }
+    );
+    const Segundo = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      { Nombre: "Segundo", Emoji: "\u0032\ufe0f\u20e3" }
+    );
+    const Sub_A = Planes_Agregar_Subobjetivo(
+      Primero.Id,
+      "Sub A"
+    );
+    const Sub_B = Planes_Agregar_Subobjetivo(
+      Primero.Id,
+      "Sub B"
+    );
+    const Ok_Objetivo = Planes_Reordenar_Objetivo(
+      Anio.Id,
+      Primero.Id,
+      Segundo.Id,
+      true
+    );
+    const Ok_Sub = Planes_Reordenar_Subobjetivo(
+      Primero.Id,
+      Sub_A,
+      Sub_B,
+      true
+    );
+    return {
+      Ok_Objetivo,
+      Ok_Sub,
+      Toasts: document.querySelectorAll(".Undo_Toast").length,
+      Objetivos: Planes_Objetivos_De_Periodo(Anio.Id)
+        .map((Item) => Item.Nombre),
+      Subs: Planes_Subobjetivos_De_Objetivo(Primero.Id)
+        .map((Item) => Item.Texto)
+    };
+  });
+
+  expect(Resultado.Ok_Objetivo).toBe(true);
+  expect(Resultado.Ok_Sub).toBe(true);
+  expect(Resultado.Toasts).toBe(0);
+  expect(Resultado.Objetivos).toEqual(["Segundo", "Primero"]);
+  expect(Resultado.Subs).toEqual(["Sub B", "Sub A"]);
+  expect(errores).toEqual([]);
+});
+
+test("Emoji activo usa bola naranja en objetivos y subobjetivos",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    Modelo.UI.Vista = "Tarjetas";
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    Modelo.UI.Periodo_Activo_Id = Anio.Id;
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Lecturas",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 10,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    Planes_Agregar_Subobjetivo(Objetivo.Id, "Activo");
+    Render_Planes_Contenido();
+    const Obj_Emoji = document.querySelector(
+      ".Planes_Objetivo_Card.Estado_Activo " +
+      ".Planes_Objetivo_Emoji"
+    );
+    Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, false);
+    const Sub_Emoji = document.querySelector(
+      ".Planes_Subobjetivo.Estado_Activo " +
+      ".Planes_Subobjetivo_Emoji"
+    );
+    return {
+      Objetivo_Bg: getComputedStyle(Obj_Emoji)
+        .backgroundColor,
+      Sub_Bg: getComputedStyle(Sub_Emoji)
+        .backgroundColor
+    };
+  });
+
+  expect(Resultado.Objetivo_Bg).toBe("rgb(245, 158, 11)");
+  expect(Resultado.Sub_Bg).toBe("rgb(245, 158, 11)");
+  expect(errores).toEqual([]);
+});
