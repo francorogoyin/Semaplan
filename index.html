@@ -21581,6 +21581,8 @@
             "Mostrar horario",
           "hora.atajos":
             "Atajos",
+          "hora.atajo_todo_dia":
+            "Mostrar todo el día",
           "hora.atajo_solo_madrugada":
             "Mostrar solo madrugada",
           "hora.atajo_solo_manana":
@@ -25045,6 +25047,8 @@
             "Show hours",
           "hora.atajos":
             "Shortcuts",
+          "hora.atajo_todo_dia":
+            "Show all day",
           "hora.atajo_solo_madrugada":
             "Show only early morning",
           "hora.atajo_solo_manana":
@@ -28558,6 +28562,8 @@
             "Mostrar horário",
           "hora.atajos":
             "Atalhos",
+          "hora.atajo_todo_dia":
+            "Mostrar o dia todo",
           "hora.atajo_solo_madrugada":
             "Mostrar só madrugada",
           "hora.atajo_solo_manana":
@@ -38703,6 +38709,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `<div class="Dia_Accion_Submenu_Titulo">` +
           `${t("hora.atajos")}</div>` +
           `<button class="Dia_Accion_Submenu_Item" type="button"` +
+          ` data-hora-atajo="todo-dia">` +
+          `<span>${t("hora.atajo_todo_dia")}</span>` +
+          `<span class="Dia_Accion_Submenu_Estado"></span>` +
+          `</button>` +
+          `<button class="Dia_Accion_Submenu_Item" type="button"` +
           ` data-hora-atajo="solo-madrugada">` +
           `<span>${t("hora.atajo_solo_madrugada")}</span>` +
           `<span class="Dia_Accion_Submenu_Estado"></span>` +
@@ -38784,6 +38795,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Aplicar_Atajo_Bloques_Horarios_Visibles(Atajo) {
+        if (Atajo === "todo-dia") {
+          Config.Bloques_Horarios_Visibles =
+            Obtener_Ids_Bloques_Horarios();
+          Render_Calendario();
+          Guardar_Estado();
+          return true;
+        }
         const Bloque =
           Resolver_Bloque_Atajo_Horario(Atajo);
         if (!Bloque) return false;

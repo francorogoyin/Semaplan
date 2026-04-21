@@ -223,6 +223,8 @@ test(
   });
   await page.click('#Dia_Accion_Menu [data-accion="horario"]');
   await expect(page.locator("#Dia_Accion_Menu"))
+    .toContainText("Mostrar todo el día");
+  await expect(page.locator("#Dia_Accion_Menu"))
     .toContainText("Mostrar solo madrugada");
   await expect(page.locator("#Dia_Accion_Menu"))
     .toContainText("Madrugada");
@@ -247,6 +249,22 @@ test(
     [...Config.Bloques_Horarios_Visibles]
   ));
   expect(bloquesVisibles).toEqual(["Madrugada", "Tarde"]);
+
+  await page.click('#Dia_Accion_Menu [data-hora-atajo="todo-dia"]');
+  await expect(page.locator('.Hora_Item[data-hora="8"]'))
+    .toHaveCount(1);
+  await expect(page.locator('.Hora_Item[data-hora="20"]'))
+    .toHaveCount(1);
+
+  const todosLosBloques = await page.evaluate(() => (
+    [...Config.Bloques_Horarios_Visibles]
+  ));
+  expect(todosLosBloques).toEqual([
+    "Madrugada",
+    "Manana",
+    "Tarde",
+    "Noche"
+  ]);
 
   await page.evaluate(() => {
     Cerrar_Menu_Dia();
