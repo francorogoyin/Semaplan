@@ -47279,6 +47279,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      function Planes_Item_Avance_Terminado(Item) {
+        if (!Item) return true;
+        const Target = Planes_Target_Item_Avance(Item);
+        const Progreso = Planes_Progreso_Item_Avance(Item);
+        if (Item.Tipo === "Subobjetivo") {
+          if (Item.Sub?.Hecha) return true;
+          return Target > 0 && Progreso >= Target;
+        }
+        const Estado = Planes_Estado_Efectivo_Objetivo(Item.Objetivo);
+        if (Estado === "Cumplido" || Estado === "Cancelado") {
+          return true;
+        }
+        return Target > 0 && Progreso >= Target;
+      }
+
+      function Planes_Item_Puede_Recibir_Avance(Item, Alcance = null) {
+        return Planes_Item_Cumple_Alcance_Avance(Item, Alcance) &&
+          !Planes_Item_Avance_Terminado(Item);
+      }
+
       function Planes_Items_Avance_Disponibles(Alcance = null) {
         const Modelo = Asegurar_Modelo_Planes();
         const Periodos = Modelo.Periodos || {};
@@ -47295,6 +47315,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
             return true;
           })
+          .filter((Objetivo) =>
+            Planes_Item_Puede_Recibir_Avance(
+              {
+                Tipo: "Objetivo",
+                Id: Objetivo.Id,
+                Objetivo
+              },
+              Alcance_Normalizado
+            )
+          )
           .sort((A, B) => {
             const PA = Periodos[A.Periodo_Id];
             const PB = Periodos[B.Periodo_Id];
@@ -47307,13 +47337,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
         const Items = [];
         Objetivos_Ordenados.forEach((Objetivo) => {
-          Items.push({
+          const Item_Objetivo = {
             Tipo: "Objetivo",
             Id: Objetivo.Id,
             Objetivo
-          });
+          };
+          Items.push(Item_Objetivo);
           Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
             .filter((Sub) => !Sub.Eliminado_Local)
+            .filter((Sub) =>
+              Planes_Item_Puede_Recibir_Avance(
+                {
+                  Tipo: "Subobjetivo",
+                  Id: Sub.Id,
+                  Objetivo,
+                  Sub
+                },
+                Alcance_Normalizado
+              )
+            )
             .forEach((Sub) => {
               Items.push({
                 Tipo: "Subobjetivo",
@@ -47330,7 +47372,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const [Tipo, Id] = (Valor || "").toString().split("|");
         const Modelo = Asegurar_Modelo_Planes();
         const Validar = (Item) =>
-          Planes_Item_Cumple_Alcance_Avance(Item, Alcance)
+          Planes_Item_Puede_Recibir_Avance(Item, Alcance)
             ? Item
             : null;
         if (Tipo === "Objetivo" && Modelo.Objetivos[Id]) {

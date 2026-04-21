@@ -1518,6 +1518,116 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Registrar avance lista solo objetivos pendientes",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    let Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 2;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Periodo = Trimestres[1];
+    const Pendiente = Planes_Crear_Objetivo_Silencioso(
+      Periodo.Id,
+      {
+        Nombre: "Libros pendientes",
+        Emoji: "\uD83D\uDCD7",
+        Target_Total: 10,
+        Unidad: "Horas",
+        Progreso_Manual: 3
+      }
+    );
+    const Terminado = Planes_Crear_Objetivo_Silencioso(
+      Periodo.Id,
+      {
+        Nombre: "Libros terminados",
+        Emoji: "\uD83D\uDCD5",
+        Target_Total: 5,
+        Unidad: "Horas",
+        Progreso_Manual: 5
+      }
+    );
+    const Sub_Pendiente_Id = Planes_Agregar_Subobjetivo(
+      Pendiente.Id,
+      "Sub pendiente"
+    );
+    const Sub_Terminado_Id = Planes_Agregar_Subobjetivo(
+      Pendiente.Id,
+      "Sub terminado"
+    );
+    Modelo = Asegurar_Modelo_Planes();
+    Object.assign(Modelo.Subobjetivos[Sub_Pendiente_Id], {
+      Target_Total: 4,
+      Progreso_Inicial: 1,
+      Hecha: false,
+      Estado: "Activo"
+    });
+    Object.assign(Modelo.Subobjetivos[Sub_Terminado_Id], {
+      Target_Total: 4,
+      Progreso_Inicial: 4,
+      Hecha: true,
+      Estado: "Cumplido"
+    });
+    Planes_Recalcular_Progreso_Subobjetivo(
+      Modelo.Subobjetivos[Sub_Pendiente_Id],
+      Modelo
+    );
+    Planes_Recalcular_Progreso_Subobjetivo(
+      Modelo.Subobjetivos[Sub_Terminado_Id],
+      Modelo
+    );
+    Planes_Actualizar_Progreso(Pendiente);
+    Planes_Actualizar_Progreso(Terminado);
+    Modelo.UI.Periodo_Activo_Id = Periodo.Id;
+    Render_Plan();
+    Abrir_Modal_Planes_Avance("", {
+      Tipo: "Periodo",
+      Id: Periodo.Id
+    });
+    const Opciones = Array.from(
+      document.querySelectorAll("#Planes_Avance_Item option")
+    ).map((Opt) => Opt.textContent.trim());
+    return {
+      Opciones,
+      Terminado_Valido: Boolean(Planes_Item_Avance_Por_Valor(
+        `Objetivo|${Terminado.Id}`,
+        { Tipo: "Periodo", Id: Periodo.Id }
+      )),
+      Sub_Terminado_Valido: Boolean(Planes_Item_Avance_Por_Valor(
+        `Subobjetivo|${Sub_Terminado_Id}`,
+        { Tipo: "Periodo", Id: Periodo.Id }
+      ))
+    };
+  });
+
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .toHaveClass(/Activo/);
+  expect(Resultado.Opciones.join(" ")).toContain("Libros pendientes");
+  expect(Resultado.Opciones.join(" ")).toContain("Sub pendiente");
+  expect(Resultado.Opciones.join(" ")).not.toContain("Libros terminados");
+  expect(Resultado.Opciones.join(" ")).not.toContain("Sub terminado");
+  expect(Resultado.Terminado_Valido).toBe(false);
+  expect(Resultado.Sub_Terminado_Valido).toBe(false);
+  expect(errores).toEqual([]);
+});
+
 test("Registro de planes permite editar y borrar avances",
 async ({ page }) => {
   const errores = [];
