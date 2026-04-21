@@ -20798,6 +20798,8 @@
           "planes.parte_estado_parcial": "Parcial",
           "planes.parte_estado_realizada": "Realizada",
           "planes.parte_desmarcar": "Desmarcar",
+          "planes.parte_subir": "Subir",
+          "planes.parte_bajar": "Bajar",
           "planes.partes_resumen": "{n} parte(s)",
           "planes.sin_partes": "Todavia no hay partes.",
           "planes.err_parte": "La parte necesita nombre.",
@@ -24399,6 +24401,8 @@
           "planes.parte_estado_parcial": "Partial",
           "planes.parte_estado_realizada": "Done",
           "planes.parte_desmarcar": "Uncheck",
+          "planes.parte_subir": "Move up",
+          "planes.parte_bajar": "Move down",
           "planes.partes_resumen": "{n} part(s)",
           "planes.sin_partes": "There are no parts yet.",
           "planes.err_parte": "The part needs a name.",
@@ -27954,6 +27958,8 @@
           "planes.parte_estado_parcial": "Parcial",
           "planes.parte_estado_realizada": "Realizada",
           "planes.parte_desmarcar": "Desmarcar",
+          "planes.parte_subir": "Subir",
+          "planes.parte_bajar": "Baixar",
           "planes.partes_resumen": "{n} parte(s)",
           "planes.sin_partes": "Ainda nao ha partes.",
           "planes.err_parte": "A parte precisa de nome.",
@@ -44544,8 +44550,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         if (!Parte) return false;
         const M = Modelo || Asegurar_Modelo_Planes();
-        const Aporte = Number(Parte.Aporte_Total) || 0;
-        if (Aporte <= 0) return false;
         const Avance_Auto = Planes_Avance_Parte_Por_Origen(
           Parte.Id,
           "Parte_Meta",
@@ -44553,9 +44557,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           M
         );
         if (Avance_Auto) delete M.Avances[Avance_Auto.Id];
-        const Avances = Planes_Total_Avances_Parte(Parte.Id, M);
-        Parte.Progreso_Inicial = Math.max(0, Aporte - Avances);
+        Parte.Estado = "Realizada";
         Parte.Actualizado_En = new Date().toISOString();
+        Planes_Recalcular_Progreso_Parte(Parte, M);
+        const Sub = M.Subobjetivos[Parte.Subobjetivo_Id];
+        if (Sub) {
+          Planes_Recalcular_Progreso_Subobjetivo(Sub, M);
+        }
+        return true;
+      }
+
+      function Planes_Quitar_Avance_Auto_Parte(
+        Parte,
+        Modelo = null
+      ) {
+        if (!Parte) return false;
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Avance_Auto = Planes_Avance_Parte_Por_Origen(
+          Parte.Id,
+          "Parte_Meta",
+          Parte.Id,
+          M
+        );
+        if (!Avance_Auto) return false;
+        delete M.Avances[Avance_Auto.Id];
         Planes_Recalcular_Progreso_Parte(Parte, M);
         const Sub = M.Subobjetivos[Parte.Subobjetivo_Id];
         if (Sub) {
@@ -54011,6 +54036,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           <button class="Planes_Btn" type="button"
             data-parte-accion="editar">${Escape_Html(t("editar"))}</button>
           <button class="Planes_Btn" type="button"
+            data-parte-accion="subir">
+            ${Escape_Html(t("planes.parte_subir"))}
+          </button>
+          <button class="Planes_Btn" type="button"
+            data-parte-accion="bajar">
+            ${Escape_Html(t("planes.parte_bajar"))}
+          </button>
+          <button class="Planes_Btn" type="button"
             data-parte-accion="realizar"
             ${Estado === "Realizada" ? "disabled" : ""}>
             ${Escape_Html(t("planes.marcar_realizado"))}
@@ -54033,6 +54066,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Parte) return;
         if (Tipo === "editar") {
           Abrir_Modal_Planes_Parte(Parte.Id);
+        }
+        if (Tipo === "subir" || Tipo === "bajar") {
+          const Snap = Capturar_Snapshot_Undo();
+          if (Planes_Mover_Parte(Parte.Id, Tipo === "bajar")) {
+            const Sub = Modelo.Subobjetivos[Parte.Subobjetivo_Id];
+            const Objetivo = Modelo.Objetivos[Sub?.Objetivo_Id];
+            Render_Modal_Planes_Partes();
+            if (Objetivo) {
+              Planes_Recalcular_Desde(
+                Objetivo,
+                Snap,
+                t("planes.parte_actualizada")
+              );
+            } else {
+              Guardar_Estado();
+            }
+          }
         }
         if (Tipo === "realizar") {
           const Registrar_Avance = await Mostrar_Dialogo(
@@ -54109,6 +54159,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Modelo.Partes[Id].Actualizado_En = new Date().toISOString();
         });
         return true;
+      }
+
+      function Planes_Mover_Parte(Parte_Id, Bajar = false) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Parte = Modelo.Partes?.[Parte_Id];
+        if (!Parte) return false;
+        const Partes = Planes_Partes_De_Subobjetivo(
+          Parte.Subobjetivo_Id,
+          Modelo
+        );
+        const Index = Partes.findIndex((Item) => Item.Id === Parte_Id);
+        const Destino_Index = Bajar ? Index + 1 : Index - 1;
+        const Destino = Partes[Destino_Index];
+        if (!Destino) return false;
+        return Planes_Reordenar_Parte(
+          Parte.Id,
+          Destino.Id,
+          Bajar
+        );
       }
 
       function Planes_Abrir_Menu_Parte(Parte_Id, Ancla) {
@@ -54493,6 +54562,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Parte.Id,
             { Solo_Modelo: true }
           );
+        } else {
+          Planes_Quitar_Avance_Auto_Parte(Parte, Modelo);
         }
         Planes_Upsert_Avance_Parte(
           Parte,
