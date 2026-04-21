@@ -5683,6 +5683,12 @@
         color: var(--Texto_Suave);
       }
 
+      .Planes_Subobjetivo.Embebido {
+        border-style: dashed;
+        background: rgba(245, 158, 11, 0.04);
+        cursor: default;
+      }
+
       .Planes_Subobjetivo.Vista_Lista {
         align-items: center;
         border-width: 0 0 1px;
@@ -42672,6 +42678,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }, 0);
       }
 
+      function Planes_Progreso_Total_Subobjetivo(
+        Sub,
+        Modelo = null
+      ) {
+        if (!Sub) return 0;
+        const Progreso_Manual = Number(Sub.Progreso_Manual) || 0;
+        const Progreso_Inicial = Number(Sub.Progreso_Inicial);
+        const Avances = Planes_Total_Avances_Subobjetivo(
+          Sub.Id,
+          Modelo
+        );
+        if (!Number.isFinite(Progreso_Inicial) && Avances <= 0) {
+          return Math.max(0, Progreso_Manual);
+        }
+        const Inicial = Math.max(0, Progreso_Inicial || 0);
+        if (Avances <= 0 && Progreso_Manual > Inicial) {
+          return Math.max(0, Progreso_Manual);
+        }
+        return Inicial + Avances;
+      }
+
       function Planes_Recalcular_Progreso_Subobjetivo(
         Sub,
         Modelo = null
@@ -43389,6 +43416,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ]);
       }
 
+      function Planes_Objetivos_Descendencia_Ids(Objetivo_Id) {
+        return new Set([
+          Objetivo_Id,
+          ...Planes_Objetivos_Hijos(Objetivo_Id)
+            .map((Item) => Item.Id)
+        ]);
+      }
+
       function Planes_Subobjetivo_Raiz_Aporte_Id(Sub) {
         return Planes_Subobjetivo_Raiz_Id(Sub?.Id || "");
       }
@@ -43482,15 +43517,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Target = Number(Sub.Target_Total) || 0;
         if (Sub.Hecha) return Aporte;
         if (Target <= 0) return 0;
-        const Inicial = Math.max(
-          0,
-          Number(Sub.Progreso_Inicial) || 0
-        );
-        const Avances = Planes_Total_Avances_Subobjetivo(
-          Sub.Id,
-          M
-        );
-        const Progreso = Inicial + Avances;
+        const Progreso = Planes_Progreso_Total_Subobjetivo(Sub, M);
         if (Progreso <= 0) return 0;
         return Math.min(Aporte, Aporte * (Progreso / Target));
       }
@@ -44021,15 +44048,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         })})`;
       }
 
-      function Planes_Formatear_Meta_Subobjetivo(Sub) {
+      function Planes_Formatear_Meta_Subobjetivo(
+        Sub,
+        Objetivo_Contexto = null
+      ) {
         const Target = Number(Sub.Target_Total) || 0;
         const Unidad = Planes_Unidad_Label_Subobjetivo(Sub);
         const Aporte = Number(Sub.Aporte_Meta) || 0;
         const Objetivo = Asegurar_Modelo_Planes()
           .Objetivos[Sub.Objetivo_Id];
+        const Objetivo_Aporte = Objetivo_Contexto || Objetivo;
         const Objetivo_Tiene_Metrica =
-          (Number(Objetivo?.Target_Total) || 0) > 0;
-        const Unidad_Aporte = Planes_Unidad_Label(Objetivo)
+          (Number(Objetivo_Aporte?.Target_Total) || 0) > 0;
+        const Unidad_Aporte = Planes_Unidad_Label(Objetivo_Aporte)
           .toLocaleLowerCase(Obtener_Locale_Actual());
         const Aporte_Txt = Objetivo_Tiene_Metrica && Aporte > 0
           ? ` · +${Planes_Formatear_Numero(Aporte)}` +
@@ -44042,7 +44073,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return Aporte_Txt_Limpio.replace(/^\s*·\s*/, "")
             .trim();
         }
-        const Progreso = Number(Sub.Progreso_Manual) || 0;
+        const Progreso = Planes_Progreso_Total_Subobjetivo(Sub);
         const Porcentaje = Planes_Formatear_Porcentaje_Meta(
           Progreso,
           Target
@@ -48709,6 +48740,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Sub = Modelo.Subobjetivos[Avance.Subobjetivo_Id];
         if (!Sub || Sub.Eliminado_Local) return null;
         if (Sub.Objetivo_Id === Objetivo.Id) return Sub;
+        if (
+          Planes_Objetivos_Descendencia_Ids(Objetivo.Id)
+            .has(Sub.Objetivo_Id)
+        ) {
+          return Sub;
+        }
         const Raiz_Id = Planes_Subobjetivo_Raiz_Id(Sub.Id, Modelo);
         return Object.values(Modelo.Subobjetivos || {})
           .find((Item) =>
@@ -49521,8 +49558,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Resumen_Aportes_Subobjetivos(Objetivo) {
         const Target = Number(Objetivo?.Target_Total) || 0;
         if (Target <= 0) return t("planes.aportes_sin_metrica");
-        const Total = Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
-          .filter((Sub) => !Sub.Eliminado_Local)
+        const Total = Planes_Subobjetivos_Contexto_Objetivo(Objetivo)
+          .Items
           .reduce((Suma, Sub) => {
             return Suma + (Number(Sub.Aporte_Meta) || 0);
           }, 0);
@@ -49544,6 +49581,112 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Estado_Normalizado_Subobjetivo(Sub) {
         if (Planes_Estados.includes(Sub.Estado)) return Sub.Estado;
         return Sub.Hecha ? "Cumplido" : "Activo";
+      }
+
+      function Planes_Subobjetivo_Embeber_En_Objetivo(
+        Sub,
+        Objetivo_Id,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        if (!Sub || Sub.Eliminado_Local) return false;
+        if (Sub.Objetivo_Id === Objetivo_Id) return false;
+        if (Sub.Parent_Subobjetivo_Id) return false;
+        const Objetivo_Sub = M.Objetivos[Sub.Objetivo_Id];
+        if (!Objetivo_Sub || Objetivo_Sub.Eliminado_Local) return false;
+        return Planes_Objetivos_Hijos(Objetivo_Id)
+          .some((Hijo) => Hijo.Id === Sub.Objetivo_Id);
+      }
+
+      function Planes_Padre_Visible_Subobjetivo_Embebido(
+        Sub,
+        Objetivo_Id,
+        Items_Por_Id,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        let Padre_Id = (Sub?.Subobjetivo_Padre_Id || "").toString();
+        const Visitados = new Set();
+        while (Padre_Id && !Visitados.has(Padre_Id)) {
+          Visitados.add(Padre_Id);
+          const Padre = M.Subobjetivos[Padre_Id];
+          if (!Padre || Padre.Eliminado_Local) return "";
+          if (Items_Por_Id.has(Padre.Id)) return Padre.Id;
+          const Padre_Original_Id =
+            (Padre.Parent_Subobjetivo_Id || "").toString();
+          if (Padre_Original_Id && Items_Por_Id.has(Padre_Original_Id)) {
+            return Padre_Original_Id;
+          }
+          if (Padre.Objetivo_Id === Objetivo_Id) return Padre.Id;
+          Padre_Id = (Padre.Subobjetivo_Padre_Id || "").toString();
+        }
+        return "";
+      }
+
+      function Planes_Subobjetivos_Contexto_Objetivo(Objetivo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Items = [];
+        const Items_Por_Id = new Map();
+        const Agregar = (Sub, Embebido, Padre_Id = "") => {
+          if (!Sub || Sub.Eliminado_Local || Items_Por_Id.has(Sub.Id)) {
+            return;
+          }
+          Items_Por_Id.set(Sub.Id, {
+            Sub,
+            Embebido: Boolean(Embebido),
+            Padre_Id
+          });
+          Items.push(Sub);
+        };
+        Planes_Subobjetivos_De_Objetivo(Objetivo?.Id)
+          .filter((Sub) => !Sub.Eliminado_Local)
+          .forEach((Sub) => {
+            const Padre_Id = (Sub.Subobjetivo_Padre_Id || "")
+              .toString();
+            Agregar(Sub, false, Padre_Id);
+          });
+        const Hijos_Ids = new Set(
+          Planes_Objetivos_Hijos(Objetivo?.Id || "")
+            .filter((Hijo) => !Hijo.Eliminado_Local)
+            .map((Hijo) => Hijo.Id)
+        );
+        Object.values(Modelo.Subobjetivos || {})
+          .filter((Sub) => Hijos_Ids.has(Sub.Objetivo_Id))
+          .filter((Sub) =>
+            Planes_Subobjetivo_Embeber_En_Objetivo(
+              Sub,
+              Objetivo?.Id || "",
+              Modelo
+            )
+          )
+          .sort(Planes_Comparar_Subobjetivos_Orden)
+          .forEach((Sub) => {
+            const Padre_Id =
+              Planes_Padre_Visible_Subobjetivo_Embebido(
+                Sub,
+                Objetivo.Id,
+                Items_Por_Id,
+                Modelo
+              );
+            Agregar(Sub, true, Padre_Id);
+          });
+        const Hijos_Por_Padre = new Map();
+        Items_Por_Id.forEach((Info, Id) => {
+          const Padre_Id = Items_Por_Id.has(Info.Padre_Id)
+            ? Info.Padre_Id
+            : "";
+          Info.Padre_Id = Padre_Id;
+          if (!Hijos_Por_Padre.has(Padre_Id)) {
+            Hijos_Por_Padre.set(Padre_Id, []);
+          }
+          Hijos_Por_Padre.get(Padre_Id).push(Info);
+        });
+        Hijos_Por_Padre.forEach((Lista) => {
+          Lista.sort((A, B) =>
+            Planes_Comparar_Subobjetivos_Orden(A.Sub, B.Sub)
+          );
+        });
+        return { Items, Items_Por_Id, Hijos_Por_Padre };
       }
 
       function Planes_Subobjetivo_Metadatos_Array(Sub) {
@@ -49829,6 +49972,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
+      function Planes_Subobjetivo_Rama_Visible_Contexto(
+        Sub,
+        Objetivo,
+        Hijos_Por_Padre
+      ) {
+        if (!Planes_Subobjetivos_Tiene_Filtros()) return true;
+        if (Planes_Subobjetivo_Pasa_Filtros(Sub, Objetivo)) {
+          return true;
+        }
+        return (Hijos_Por_Padre.get(Sub.Id) || [])
+          .some((Info) =>
+            Planes_Subobjetivo_Rama_Visible_Contexto(
+              Info.Sub,
+              Objetivo,
+              Hijos_Por_Padre
+            )
+          );
+      }
+
       function Planes_Sincronizar_Filtros_Subobjetivos() {
         const Estado = document.getElementById(
           "Planes_Subobjetivos_Filtro_Estado"
@@ -49868,7 +50030,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Objetivo,
         Sub,
         Vista,
-        Nivel = 0
+        Nivel = 0,
+        Opciones = {}
       ) {
         const Item = document.createElement("div");
         const Estado = Planes_Estado_Normalizado_Subobjetivo(Sub);
@@ -49877,8 +50040,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Item.className = "Planes_Subobjetivo" +
           ` Vista_${Vista}` +
           (Estado === "Activo" ? " Estado_Activo" : "") +
-          " Reordenable";
-        Item.draggable = true;
+          (Opciones.Embebido ? " Embebido" : " Reordenable");
+        Item.draggable = !Opciones.Embebido;
         Item.dataset.planSubobjetivoId = Sub.Id;
         Item.dataset.nivel = String(Nivel);
         Item.style.setProperty(
@@ -49895,7 +50058,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ${Escape_Html(Sub.Texto)}
             </span>
             <span class="Planes_Subobjetivo_Meta">
-              ${Escape_Html(Planes_Formatear_Meta_Subobjetivo(Sub))}
+              ${Escape_Html(Planes_Formatear_Meta_Subobjetivo(
+                Sub,
+                Opciones.Objetivo_Contexto || Objetivo
+              ))}
             </span>
           </span>
           <span class="Planes_Subobjetivo_Estado Con_Fallback_Emoji"
@@ -49904,6 +50070,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ${Planes_Emoji_Estado(Estado)}
           </span>
         `;
+        if (Opciones.Embebido) return Item;
         Item.addEventListener("dragstart", (Ev) => {
           Ev.dataTransfer.effectAllowed = "move";
           Ev.dataTransfer.setData(
@@ -49968,35 +50135,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Vista,
         Nivel,
         Contenedor,
-        Visitados = new Set()
+        Visitados = new Set(),
+        Contexto = null
       ) {
         if (!Sub || Visitados.has(Sub.Id)) return;
         Visitados.add(Sub.Id);
+        const Info = Contexto?.Items_Por_Id?.get(Sub.Id);
         Contenedor.appendChild(
           Render_Planes_Subobjetivo_Item(
             Objetivo,
             Sub,
             Vista,
-            Nivel
+            Nivel,
+            {
+              Embebido: Boolean(Info?.Embebido),
+              Objetivo_Contexto: Objetivo
+            }
           )
         );
-        Planes_Ordenar_Subobjetivos_Para_Vista(
-          Planes_Subobjetivos_Hijos(Sub.Id)
-            .filter((Hijo) => !Hijo.Eliminado_Local)
-            .filter((Hijo) =>
-              Planes_Subobjetivo_Rama_Visible(Hijo, Objetivo)
+        const Hijos = Contexto?.Hijos_Por_Padre
+          ? (Contexto.Hijos_Por_Padre.get(Sub.Id) || [])
+            .filter((Item) =>
+              Planes_Subobjetivo_Rama_Visible_Contexto(
+                Item.Sub,
+                Objetivo,
+                Contexto.Hijos_Por_Padre
+              )
             )
-        )
-          .forEach((Hijo) => {
-            Render_Planes_Subobjetivo_Rama(
-              Objetivo,
-              Hijo,
-              Vista,
-              Nivel + 1,
-              Contenedor,
-              Visitados
-            );
-          });
+            .map((Item) => Item.Sub)
+          : Planes_Ordenar_Subobjetivos_Para_Vista(
+            Planes_Subobjetivos_Hijos(Sub.Id)
+              .filter((Hijo) => !Hijo.Eliminado_Local)
+              .filter((Hijo) =>
+                Planes_Subobjetivo_Rama_Visible(Hijo, Objetivo)
+              )
+          );
+        Hijos.forEach((Hijo) => {
+          Render_Planes_Subobjetivo_Rama(
+            Objetivo,
+            Hijo,
+            Vista,
+            Nivel + 1,
+            Contenedor,
+            Visitados,
+            Contexto
+          );
+        });
       }
 
       function Planes_Reordenar_Subobjetivo(
@@ -50092,18 +50276,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             : Resumen;
         }
         Planes_Sincronizar_Filtros_Subobjetivos();
+        const Contexto =
+          Planes_Subobjetivos_Contexto_Objetivo(Objetivo);
         const Subs = Planes_Ordenar_Subobjetivos_Para_Vista(
-          Planes_Subobjetivos_Raices_De_Objetivo(Objetivo.Id)
-            .filter((Sub) =>
-              Planes_Subobjetivo_Rama_Visible(Sub, Objetivo)
+          (Contexto.Hijos_Por_Padre.get("") || [])
+            .filter((Info) =>
+              Planes_Subobjetivo_Rama_Visible_Contexto(
+                Info.Sub,
+                Objetivo,
+                Contexto.Hijos_Por_Padre
+              )
             )
+            .map((Info) => Info.Sub)
         );
         const Vista = Planes_Subobjetivos_Vista_Actual();
         Lista.className = "Planes_Subobjetivos_Modal_Lista" +
           (Vista === "Biblioteca" ? " Biblioteca" : "");
         Lista.innerHTML = "";
-        const Total_Subs = Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
-          .filter((Sub) => !Sub.Eliminado_Local);
+        const Total_Subs = Contexto.Items;
         if (
           Total_Subs.length === 0
         ) {
@@ -50124,7 +50314,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Sub,
             Vista,
             0,
-            Lista
+            Lista,
+            new Set(),
+            Contexto
           );
         });
         const Importar = document.getElementById(

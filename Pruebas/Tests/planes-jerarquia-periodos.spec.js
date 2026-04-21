@@ -3767,6 +3767,214 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Padre embebe subobjetivos y avances de hijos",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Trimestre = Planes_Crear_Periodo(
+      Modelo,
+      "Trimestre",
+      "2026-04-01",
+      "2026-06-30",
+      Anio.Id,
+      1
+    );
+    const Mes = Planes_Crear_Periodo(
+      Modelo,
+      "Mes",
+      "2026-04-01",
+      "2026-04-30",
+      Trimestre.Id,
+      3
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Libros anual",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 12,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Hijo = Planes_Crear_Objetivo_Silencioso(
+      Trimestre.Id,
+      {
+        Nombre: "Libros trimestre",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 3,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros",
+        Objetivo_Padre_Id: Padre.Id
+      }
+    );
+    const Nieto = Planes_Crear_Objetivo_Silencioso(
+      Mes.Id,
+      {
+        Nombre: "Libros mes",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 1,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros",
+        Objetivo_Padre_Id: Hijo.Id
+      }
+    );
+    const Directo_Id = Planes_Agregar_Subobjetivo(
+      Padre.Id,
+      "Libro anual directo"
+    );
+    let Modelo_Subs = Asegurar_Modelo_Planes();
+    Modelo_Subs.Subobjetivos[Directo_Id].Aporte_Meta = 0;
+    Planes_Importar_Subs_En_Objetivo(Hijo);
+
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Hijo.Id,
+      "Cuentos de Melville"
+    );
+    Modelo_Subs = Asegurar_Modelo_Planes();
+    const Sub = Modelo_Subs.Subobjetivos[Sub_Id];
+    Object.assign(Sub, {
+      Emoji: "\uD83D\uDCD6",
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Target_Total: 4,
+      Aporte_Meta: 1
+    });
+    const Sub_Nieto_Id = Planes_Agregar_Subobjetivo(
+      Nieto.Id,
+      "Bartleby"
+    );
+    Modelo_Subs = Asegurar_Modelo_Planes();
+    const Sub_Nieto = Modelo_Subs.Subobjetivos[Sub_Nieto_Id];
+    Object.assign(Sub_Nieto, {
+      Emoji: "\uD83D\uDCD6",
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Target_Total: 2,
+      Aporte_Meta: 2
+    });
+    const Registrar = (Fecha, Hora) => {
+      const Id = Crear_Id_Avance_Plan();
+      Modelo_Subs.Avances[Id] = Normalizar_Avance_Plan({
+        Id,
+        Objetivo_Id: Hijo.Id,
+        Subobjetivo_Id: Sub.Id,
+        Fuente: "Subobjetivo",
+        Cantidad: 1,
+        Unidad: "paginas",
+        Fecha,
+        Hora,
+        Fecha_Hora: `${Fecha}T${Hora}`
+      });
+    };
+    const Registrar_Nieto = (Fecha, Hora) => {
+      const Id = Crear_Id_Avance_Plan();
+      Modelo_Subs.Avances[Id] = Normalizar_Avance_Plan({
+        Id,
+        Objetivo_Id: Nieto.Id,
+        Subobjetivo_Id: Sub_Nieto.Id,
+        Fuente: "Subobjetivo",
+        Cantidad: 1,
+        Unidad: "paginas",
+        Fecha,
+        Hora,
+        Fecha_Hora: `${Fecha}T${Hora}`
+      });
+    };
+    Registrar("2026-04-12", "10:00");
+    Registrar("2026-04-20", "11:00");
+    Registrar_Nieto("2026-04-24", "12:00");
+    Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+    Planes_Recalcular_Progreso_Subobjetivo(Sub_Nieto, Modelo);
+    Planes_Actualizar_Progreso(Nieto);
+    Planes_Actualizar_Progreso(Hijo);
+    Planes_Actualizar_Progreso(Padre);
+    Abrir_Modal_Planes_Subobjetivos(Padre.Id, false);
+    const Items = Array.from(
+      document.querySelectorAll(".Planes_Subobjetivo")
+    );
+    const Textos = Items.map((Item) =>
+      Item.querySelector(".Planes_Subobjetivo_Nombre")
+        ?.textContent?.trim()
+    );
+    const Embebido = Items.find((Item) =>
+      Item.textContent.includes("Cuentos de Melville")
+    );
+    const Embebido_Nieto = Items.find((Item) =>
+      Item.textContent.includes("Bartleby")
+    );
+    const Registros = Planes_Registros_De_Objetivo(Padre);
+    return {
+      Progreso_Padre: Padre.Progreso_Subobjetivos,
+      Total_Padre: Padre.Progreso_Total,
+      Textos,
+      Directos_Conteo: Textos.filter((Texto) =>
+        Texto === "Libro anual directo"
+      ).length,
+      Embebido: Boolean(Embebido),
+      Embebido_Clase: Embebido?.classList.contains("Embebido") ||
+        false,
+      Embebido_Draggable: Embebido?.draggable || false,
+      Meta: Embebido?.querySelector(".Planes_Subobjetivo_Meta")
+        ?.textContent?.trim() || "",
+      Nieto_Embebido: Boolean(Embebido_Nieto),
+      Nieto_Clase:
+        Embebido_Nieto?.classList.contains("Embebido") || false,
+      Nieto_Meta: Embebido_Nieto
+        ?.querySelector(".Planes_Subobjetivo_Meta")
+        ?.textContent?.trim() || "",
+      Registros: Registros.map((Registro) => ({
+        Item: Registro.Item,
+        Cantidad: Registro.Cantidad,
+        Editable: Registro.Editable
+      }))
+    };
+  });
+
+  expect(Resultado.Progreso_Padre).toBeCloseTo(1.5, 5);
+  expect(Resultado.Total_Padre).toBeCloseTo(1.5, 5);
+  expect(Resultado.Textos).toContain("Cuentos de Melville");
+  expect(Resultado.Textos).toContain("Bartleby");
+  expect(Resultado.Directos_Conteo).toBe(1);
+  expect(Resultado.Embebido).toBe(true);
+  expect(Resultado.Embebido_Clase).toBe(true);
+  expect(Resultado.Embebido_Draggable).toBe(false);
+  expect(Resultado.Meta).toContain("50%");
+  expect(Resultado.Meta).toContain("2/4");
+  expect(Resultado.Meta).toContain("+1 libros");
+  expect(Resultado.Nieto_Embebido).toBe(true);
+  expect(Resultado.Nieto_Clase).toBe(true);
+  expect(Resultado.Nieto_Meta).toContain("50%");
+  expect(Resultado.Nieto_Meta).toContain("1/2");
+  expect(Resultado.Nieto_Meta).toContain("+2 libros");
+  expect(Resultado.Registros).toHaveLength(3);
+  expect(Resultado.Registros.filter((Registro) =>
+    Registro.Item === "Cuentos de Melville"
+  )).toHaveLength(2);
+  expect(Resultado.Registros.filter((Registro) =>
+    Registro.Item === "Bartleby"
+  )).toHaveLength(1);
+  expect(Resultado.Registros.every((Registro) =>
+    Registro.Editable === false
+  )).toBe(true);
+  expect(errores).toEqual([]);
+});
+
 test("Subobjetivos muestra meta limpia sin importado ni metadatos",
 async ({ page }) => {
   const errores = [];
