@@ -43858,7 +43858,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Periodo) return [];
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo_Ids =
-          Planes_Objetivos_Familia_Ids(Objetivo_Plan.Id);
+          Planes_Objetivos_Descendencia_Ids(Objetivo_Plan.Id);
         const Por_Raiz = new Map();
         Object.values(Modelo.Subobjetivos || {}).forEach((Sub) => {
           if (!Objetivo_Ids.has(Sub.Objetivo_Id)) return;
@@ -43895,7 +43895,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Objetivo_Plan || !Periodo) return 0;
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo_Ids =
-          Planes_Objetivos_Familia_Ids(Objetivo_Plan.Id);
+          Planes_Objetivos_Descendencia_Ids(Objetivo_Plan.Id);
         return Object.values(Modelo.Avances || {})
           .reduce((Total, Avance) => {
             const Fecha = Planes_Fecha_Avance_Plan(Avance);
@@ -43907,6 +43907,61 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Cantidad = Number(Avance.Cantidad) || 0;
             return Total + Cantidad;
           }, 0);
+      }
+
+      function Planes_Objetivo_Cuenta_En_Periodo(
+        Objetivo,
+        Periodo,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Periodo_Objetivo = M.Periodos[Objetivo?.Periodo_Id];
+        if (!Objetivo || Objetivo.Eliminado_Local || !Periodo) {
+          return false;
+        }
+        if (!Periodo_Objetivo) return true;
+        return Planes_Periodo_Contiene_Periodo(
+          Periodo,
+          Periodo_Objetivo
+        ) || Planes_Periodo_Contiene_Fecha(
+          Periodo,
+          Periodo_Objetivo.Inicio
+        );
+      }
+
+      function Planes_Manual_Previo_Rama_Objetivo_En_Periodo(
+        Objetivo_Plan,
+        Periodo
+      ) {
+        if (!Objetivo_Plan || !Periodo) return 0;
+        const Modelo = Asegurar_Modelo_Planes();
+        return Array.from(
+          Planes_Objetivos_Descendencia_Ids(Objetivo_Plan.Id)
+        )
+          .reduce((Total, Objetivo_Id) => {
+            const Objetivo = Modelo.Objetivos[Objetivo_Id];
+            if (!Planes_Objetivo_Cuenta_En_Periodo(
+              Objetivo,
+              Periodo,
+              Modelo
+            )) {
+              return Total;
+            }
+            return Total + Planes_Manual_Previo_Objetivo(Objetivo);
+          }, 0);
+      }
+
+      function Planes_Progreso_Manual_Rama_Objetivo_En_Periodo(
+        Objetivo_Plan,
+        Periodo
+      ) {
+        return Planes_Manual_Previo_Rama_Objetivo_En_Periodo(
+          Objetivo_Plan,
+          Periodo
+        ) + Planes_Avances_Manuales_Objetivo_En_Periodo(
+          Objetivo_Plan,
+          Periodo
+        );
       }
 
       function Planes_Avance_Transferible_Objetivo_En_Periodo(
@@ -43956,7 +44011,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Progreso_Subobjetivos =
           Planes_Calcular_Progreso_Subobjetivos(Objetivo_Plan);
         const Leido = Leido_Calendario + Progreso_Subobjetivos;
-        const Manual = Number(Objetivo_Plan.Progreso_Manual) || 0;
+        const Manual =
+          Planes_Progreso_Manual_Rama_Objetivo_En_Periodo(
+            Objetivo_Plan,
+            Periodo
+          );
         const Importado =
           Number(Objetivo_Plan.Progreso_Importado) || 0;
         Objetivo_Plan.Progreso_Subobjetivos = Progreso_Subobjetivos;
@@ -47801,7 +47860,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Target = Planes_Target_Item_Avance(Item);
         const Progreso = Planes_Progreso_Item_Avance(Item);
         if (Item.Tipo === "Subobjetivo") {
+          const Estado_Sub = Planes_Estado_Normalizado_Subobjetivo(
+            Item.Sub || {}
+          );
           if (Item.Sub?.Hecha) return true;
+          if (
+            Estado_Sub === "Cumplido" ||
+            Estado_Sub === "Cancelado"
+          ) {
+            return true;
+          }
           return Target > 0 && Progreso >= Target;
         }
         const Estado = Planes_Estado_Efectivo_Objetivo(Item.Objetivo);
@@ -48012,12 +48080,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ) {
               return;
             }
-            Por_Raiz.set(Raiz.Id, {
+            const Item_Raiz = {
               Tipo: "Objetivo",
               Id: Raiz.Id,
               Objetivo: Raiz,
               Periodo: Periodo_Raiz || Periodo
-            });
+            };
+            if (Planes_Item_Avance_Terminado(Item_Raiz)) return;
+            Por_Raiz.set(Raiz.Id, Item_Raiz);
           });
 
         const Items = [];
@@ -48031,8 +48101,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           })
           .forEach((Item) => {
             Items.push(Item);
-            Planes_Subobjetivos_De_Objetivo(Item.Objetivo.Id)
+            Planes_Subobjetivos_Contexto_Objetivo(Item.Objetivo).Items
               .filter((Sub) => !Sub.Eliminado_Local)
+              .filter((Sub) => !Planes_Item_Avance_Terminado({
+                Tipo: "Subobjetivo",
+                Id: Sub.Id,
+                Objetivo: Item.Objetivo,
+                Sub
+              }))
               .forEach((Sub) => {
                 Items.push({
                   Tipo: "Subobjetivo",
@@ -48060,12 +48136,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Modelo.Objetivos[Parseado.Id]
         ) {
           const Objetivo = Modelo.Objetivos[Parseado.Id];
-          return {
+          const Item = {
             Tipo: "Objetivo",
             Id: Objetivo.Id,
             Objetivo,
             Periodo: Modelo.Periodos[Objetivo.Periodo_Id]
           };
+          return Planes_Item_Avance_Terminado(Item) ? null : Item;
         }
         if (
           Parseado.Tipo === "Subobjetivo" &&
@@ -48074,13 +48151,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Sub = Modelo.Subobjetivos[Parseado.Id];
           const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
           if (!Objetivo) return null;
-          return {
+          const Item = {
             Tipo: "Subobjetivo",
             Id: Sub.Id,
             Objetivo,
             Sub,
             Periodo: Modelo.Periodos[Objetivo.Periodo_Id]
           };
+          return Planes_Item_Avance_Terminado(Item) ? null : Item;
         }
         return null;
       }
@@ -48655,6 +48733,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Item.Sub?.Id
           );
           return Inicial + Avances;
+        }
+        if (Item.Objetivo) {
+          Planes_Actualizar_Progreso(Item.Objetivo);
         }
         return Number(Item.Objetivo?.Progreso_Total) || 0;
       }
@@ -49682,6 +49763,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         if (!Avance || !Objetivo) return false;
         if (Avance.Objetivo_Id === Objetivo.Id) return true;
+        const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
+        const Fecha = Planes_Fecha_Avance_Plan(Avance);
+        if (
+          Avance.Fuente === "Manual" &&
+          !Avance.Subobjetivo_Id &&
+          Planes_Objetivos_Descendencia_Ids(Objetivo.Id)
+            .has(Avance.Objetivo_Id)
+        ) {
+          return Planes_Periodo_Contiene_Fecha(Periodo, Fecha);
+        }
         if (Avance.Fuente !== "Subobjetivo") return false;
         const Sub_Local = Planes_Subobjetivo_Local_Para_Registro(
           Avance,
@@ -49689,8 +49780,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Modelo
         );
         if (!Sub_Local) return false;
-        const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
-        const Fecha = Planes_Fecha_Avance_Plan(Avance);
         return Planes_Periodo_Contiene_Fecha(Periodo, Fecha);
       }
 
@@ -49713,6 +49802,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Modelo
               )
               : null;
+            const Objetivo_Avance =
+              Modelo.Objetivos[Avance.Objetivo_Id];
             const Fuente = Avance.Fuente === "Subobjetivo"
               ? t("planes.registro_subobjetivo")
               : Avance.Fuente === "Calendario"
@@ -49731,7 +49822,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Avance.Hora
               ),
               Fuente,
-              Item: Sub?.Texto || Objetivo.Nombre,
+              Item: Sub?.Texto || Objetivo_Avance?.Nombre ||
+                Objetivo.Nombre,
               Cantidad: `${Planes_Formatear_Numero(
                 Avance.Cantidad
               )} ${Avance.Unidad || Planes_Unidad_Label(Objetivo)}`

@@ -3810,6 +3810,8 @@ async ({ page }) => {
     );
     let Modelo_Subs = Asegurar_Modelo_Planes();
     Modelo_Subs.Subobjetivos[Directo_Id].Aporte_Meta = 0;
+    Modelo_Subs.Subobjetivos[Directo_Id].Hecha = true;
+    Modelo_Subs.Subobjetivos[Directo_Id].Estado = "Cumplido";
     Planes_Importar_Subs_En_Objetivo(Hijo);
 
     const Sub_Id = Planes_Agregar_Subobjetivo(
@@ -3866,9 +3868,23 @@ async ({ page }) => {
         Fecha_Hora: `${Fecha}T${Hora}`
       });
     };
+    const Registrar_Manual_Hijo = (Fecha, Hora) => {
+      const Id = Crear_Id_Avance_Plan();
+      Modelo_Subs.Avances[Id] = Normalizar_Avance_Plan({
+        Id,
+        Objetivo_Id: Hijo.Id,
+        Fuente: "Manual",
+        Cantidad: 2,
+        Unidad: "libros",
+        Fecha,
+        Hora,
+        Fecha_Hora: `${Fecha}T${Hora}`
+      });
+    };
     Registrar("2026-04-12", "10:00");
     Registrar("2026-04-20", "11:00");
     Registrar_Nieto("2026-04-24", "12:00");
+    Registrar_Manual_Hijo("2026-04-25", "13:00");
     Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
     Planes_Recalcular_Progreso_Subobjetivo(Sub_Nieto, Modelo);
     Planes_Actualizar_Progreso(Nieto);
@@ -3889,10 +3905,13 @@ async ({ page }) => {
       Item.textContent.includes("Bartleby")
     );
     const Registros = Planes_Registros_De_Objetivo(Padre);
+    const Vinculos = Meta_Aporte_Items_Semana("2026-04-13")
+      .map(Meta_Aporte_Label_Item);
     return {
       Progreso_Padre: Padre.Progreso_Subobjetivos,
       Total_Padre: Padre.Progreso_Total,
       Textos,
+      Vinculos,
       Directos_Conteo: Textos.filter((Texto) =>
         Texto === "Libro anual directo"
       ).length,
@@ -3917,9 +3936,14 @@ async ({ page }) => {
   });
 
   expect(Resultado.Progreso_Padre).toBeCloseTo(1.5, 5);
-  expect(Resultado.Total_Padre).toBeCloseTo(1.5, 5);
+  expect(Resultado.Total_Padre).toBeCloseTo(3.5, 5);
   expect(Resultado.Textos).toContain("Cuentos de Melville");
   expect(Resultado.Textos).toContain("Bartleby");
+  expect(Resultado.Vinculos.join(" | "))
+    .toContain("Cuentos de Melville");
+  expect(Resultado.Vinculos.join(" | ")).toContain("Bartleby");
+  expect(Resultado.Vinculos.join(" | "))
+    .not.toContain("Libro anual directo");
   expect(Resultado.Directos_Conteo).toBe(1);
   expect(Resultado.Embebido).toBe(true);
   expect(Resultado.Embebido_Clase).toBe(true);
@@ -3932,12 +3956,16 @@ async ({ page }) => {
   expect(Resultado.Nieto_Meta).toContain("50%");
   expect(Resultado.Nieto_Meta).toContain("1/2");
   expect(Resultado.Nieto_Meta).toContain("+2 libros");
-  expect(Resultado.Registros).toHaveLength(3);
+  expect(Resultado.Registros).toHaveLength(4);
   expect(Resultado.Registros.filter((Registro) =>
     Registro.Item === "Cuentos de Melville"
   )).toHaveLength(2);
   expect(Resultado.Registros.filter((Registro) =>
     Registro.Item === "Bartleby"
+  )).toHaveLength(1);
+  expect(Resultado.Registros.filter((Registro) =>
+    Registro.Item === "Libros trimestre" &&
+    Registro.Cantidad === "2 libros"
   )).toHaveLength(1);
   expect(Resultado.Registros.every((Registro) =>
     Registro.Editable === false
