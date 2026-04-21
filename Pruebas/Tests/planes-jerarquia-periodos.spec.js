@@ -648,8 +648,9 @@ async ({ page }) => {
       avanceCircular:
         Math.round(Avance_Rect.width) === 24 &&
         Math.round(Avance_Rect.height) === 24,
-      avanceFlechaChica:
-        parseFloat(getComputedStyle(Avance).fontSize) <= 12,
+      avanceFlechaPesada:
+        parseFloat(getComputedStyle(Avance).fontSize) >= 15 &&
+        parseFloat(getComputedStyle(Avance).fontWeight) >= 700,
       avanceTitle: Avance.getAttribute("title"),
       avanceTexto: Avance.textContent.trim(),
       emojiGrande:
@@ -698,9 +699,9 @@ async ({ page }) => {
   expect(Layout_Detalle.avanceSeparado).toBe(true);
   expect(Layout_Detalle.estadoVisible).toBe(true);
   expect(Layout_Detalle.avanceCircular).toBe(true);
-  expect(Layout_Detalle.avanceFlechaChica).toBe(true);
+  expect(Layout_Detalle.avanceFlechaPesada).toBe(true);
   expect(Layout_Detalle.avanceTitle).toBe("Avance");
-  expect(Layout_Detalle.avanceTexto).toBe("\u2192");
+  expect(Layout_Detalle.avanceTexto).toBe("\u279c");
   expect(Layout_Detalle.emojiGrande).toBe(true);
   expect(Layout_Detalle.cantidadOculta).toBe(true);
   expect(Layout_Detalle.estadoVerde).toBe("rgb(76, 175, 80)");
@@ -1881,10 +1882,15 @@ async ({ page }) => {
 
   const Botones = page.locator("[data-plan-periodo-actualizar]");
   await expect(Botones).toHaveCount(4);
-  await expect(Botones.first()).toHaveText("Actualizar");
+  await expect(Botones.first()).toHaveText("\u21bb");
   await expect(Botones.first()).toBeEnabled();
 
   await Botones.nth(1).click();
+  await expect(page.locator("#Dialogo_Overlay")).toHaveClass(/Activo/);
+  await expect(page.locator("#Dialogo_Mensaje"))
+    .toContainText("Cambios observados");
+  await page.locator("#Dialogo_Botones .Dialogo_Boton_Primario")
+    .click();
   await expect(page.locator(".Planes_Importar_Modal")).toHaveCount(0);
 
   const Resultado = await page.evaluate(() => {
@@ -3133,6 +3139,142 @@ async ({ page }) => {
   expect(Resultado.Abril_Fijado).toBe(true);
   expect(Resultado.Mayo_Target).toBeCloseTo(125 / 24, 5);
   expect(Resultado.Diciembre_Target).toBeCloseTo(125 / 24, 5);
+  expect(errores).toEqual([]);
+});
+
+test("Actualizar capa confirma y reubica subobjetivos por fecha",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Inicial = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Mes";
+    Modelo.UI.Subperiodo_Activo = 4;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Fechas derivadas",
+        Emoji: "\uD83D\uDCC5",
+        Target_Total: 12,
+        Unidad: "Horas"
+      }
+    );
+    const Crear_Sub = (Texto, Datos) => {
+      const Id = Crear_Id_Subobjetivo_Plan();
+      Modelo.Subobjetivos[Id] = Normalizar_Subobjetivo_Plan({
+        Id,
+        Objetivo_Id: Padre.Id,
+        Emoji: "\u2022",
+        Texto,
+        Aporte_Meta: 1,
+        Unidad: "Horas",
+        ...Datos
+      });
+      return Modelo.Subobjetivos[Id];
+    };
+    Crear_Sub("Por fecha fin", {
+      Fecha_Fin: "2026-04-10",
+      Fecha_Objetivo: "2026-03-10",
+      Fecha_Inicio: "2026-02-10"
+    });
+    const Sub_Objetivo = Crear_Sub("Por fecha objetivo", {
+      Fecha_Objetivo: "2026-05-10",
+      Fecha_Inicio: "2026-04-10"
+    });
+    Crear_Sub("Por fecha inicio", {
+      Fecha_Inicio: "2026-06-10"
+    });
+
+    const Meses = Planes_Crear_Periodos_Distribucion(Anio, "Mes");
+    Planes_Importar_Objetivos_Padres_A_Periodos(
+      Meses.map((Periodo) => ({
+        Periodo_Id: Periodo.Id,
+        Objetivo_Ids: [Padre.Id]
+      })),
+      { Modo: "Pendiente" }
+    );
+
+    const Textos_Mes = (Indice) => {
+      const Hijo = Planes_Objetivo_Hijo_De(
+        Padre.Id,
+        Meses[Indice].Id
+      );
+      return Planes_Subobjetivos_De_Objetivo(Hijo.Id)
+        .filter((Sub) => !Sub.Eliminado_Local)
+        .map((Sub) => Sub.Texto)
+        .sort();
+    };
+    const Antes = {
+      Abril: Textos_Mes(3),
+      Mayo: Textos_Mes(4),
+      Junio: Textos_Mes(5),
+      Julio: Textos_Mes(6)
+    };
+
+    Sub_Objetivo.Fecha_Fin = "2026-07-10";
+    Sub_Objetivo.Hecha = true;
+    Modelo.UI.Periodo_Activo_Id = Meses[3].Id;
+    Render_Plan();
+
+    return Antes;
+  });
+
+  expect(Inicial.Abril).toContain("Por fecha fin");
+  expect(Inicial.Abril).not.toContain("Por fecha objetivo");
+  expect(Inicial.Mayo).toContain("Por fecha objetivo");
+  expect(Inicial.Junio).toContain("Por fecha inicio");
+  expect(Inicial.Julio).not.toContain("Por fecha objetivo");
+
+  await page.click("[data-plan-universo-actualizar]");
+  await expect(page.locator("#Dialogo_Overlay")).toHaveClass(/Activo/);
+  await expect(page.locator("#Dialogo_Mensaje"))
+    .toContainText("Cambios observados");
+  await page.locator("#Dialogo_Botones .Dialogo_Boton_Primario")
+    .click();
+
+  const Resultado = await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Padre = Object.values(Modelo.Objetivos)
+      .find((Objetivo) => Objetivo.Nombre === "Fechas derivadas");
+    const Meses = Planes_Crear_Periodos_Distribucion(
+      Modelo.Periodos[Padre.Periodo_Id],
+      "Mes"
+    );
+    const Textos_Mes = (Indice) => {
+      const Hijo = Planes_Objetivo_Hijo_De(
+        Padre.Id,
+        Meses[Indice].Id
+      );
+      return Planes_Subobjetivos_De_Objetivo(Hijo.Id)
+        .filter((Sub) => !Sub.Eliminado_Local)
+        .map((Sub) => Sub.Texto)
+        .sort();
+    };
+    return {
+      Mayo: Textos_Mes(4),
+      Julio: Textos_Mes(6),
+      Preview: Planes_Previsualizar_Actualizar_Importados_Capa("Mes")
+    };
+  });
+
+  expect(Resultado.Mayo).not.toContain("Por fecha objetivo");
+  expect(Resultado.Julio).toContain("Por fecha objetivo");
+  expect(Resultado.Preview.Total).toBe(0);
   expect(errores).toEqual([]);
 });
 
