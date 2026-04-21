@@ -82372,6 +82372,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Selector_Emojis_Cat_Activa = "caras";
       let Selector_Emojis_Construido = false;
       let Selector_Emojis_Input_Bloqueado = null;
+      let Selector_Emojis_Input_Readonly_Original = null;
 
       function Normalizar_Texto_Selector(Texto) {
         // Devuelve el texto en minúsculas y sin acentos para
@@ -82563,6 +82564,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Preparar_Input_Emoji(Input_El) {
+        if (!Input_El) return;
+        Input_El.setAttribute("autocomplete", "off");
+        Input_El.setAttribute("autocorrect", "off");
+        Input_El.setAttribute("autocapitalize", "off");
+        Input_El.setAttribute("spellcheck", "false");
+        Input_El.setAttribute("inputmode", "none");
+      }
+
+      function Preparar_Inputs_Emoji(Contenedor = document) {
+        Contenedor
+          .querySelectorAll?.(".Con_Selector_Emoji")
+          .forEach((Input_El) => Preparar_Input_Emoji(Input_El));
+      }
+
+      function Bloquear_Input_Emoji_Activo(Input_El) {
+        if (!Input_El) return;
+        Selector_Emojis_Input_Readonly_Original =
+          Input_El.readOnly === true;
+        Input_El.readOnly = true;
+      }
+
+      function Restaurar_Input_Emoji_Activo() {
+        const Input = Selector_Emojis_Input_Activo;
+        if (!Input) return;
+        Input.readOnly =
+          Selector_Emojis_Input_Readonly_Original === true;
+        Selector_Emojis_Input_Readonly_Original = null;
+      }
+
       function Abrir_Selector_Emojis(Input_El) {
         // Abre el popover anclado al input recibido. Si ya
         // está abierto sobre ese input, no hace nada.
@@ -82573,14 +82604,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) {
           return;
         }
-        // El selector complementa el tipeo manual y el pegado
-        // de emojis. Mantener editable el input evita bloquear
-        // modales que validan el emoji antes de guardar.
-        Input_El.readOnly = false;
-        const Permite_Tipeo_Manual =
-          Input_El.classList.contains("Permite_Tipeo_Emoji");
+        Restaurar_Input_Emoji_Activo();
+        Preparar_Input_Emoji(Input_El);
         Construir_Selector_Emojis();
         Selector_Emojis_Input_Activo = Input_El;
+        Bloquear_Input_Emoji_Activo(Input_El);
         const Buscador = document.getElementById(
           "Selector_Emojis_Buscador"
         );
@@ -82596,9 +82624,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           // usuario pueda empezar a tipear de una sin tener
           // que clickearlo. El RAF garantiza que el popover
           // ya está posicionado y visible.
-          if (Buscador && !Permite_Tipeo_Manual) {
-            Buscador.focus();
-          }
+          Buscador?.focus();
         });
       }
 
@@ -82607,6 +82633,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Selector_Emojis_Popover"
         );
         if (Pop) Pop.classList.remove("Activo");
+        Restaurar_Input_Emoji_Activo();
         Selector_Emojis_Input_Activo = null;
       }
 
@@ -82656,6 +82683,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             T.classList &&
             T.classList.contains("Con_Selector_Emoji")
           ) {
+            Preparar_Input_Emoji(T);
             if (T === Selector_Emojis_Input_Bloqueado) return;
             Abrir_Selector_Emojis(T);
           }
@@ -82667,6 +82695,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             T.classList &&
             T.classList.contains("Con_Selector_Emoji")
           ) {
+            Preparar_Input_Emoji(T);
             if (T === Selector_Emojis_Input_Bloqueado) return;
             Abrir_Selector_Emojis(T);
           }
@@ -82688,6 +82717,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             return;
           }
           Cerrar_Selector_Emojis();
+        });
+        document.addEventListener("beforeinput", (Ev) => {
+          const T = Ev.target;
+          if (
+            T &&
+            T.classList &&
+            T.classList.contains("Con_Selector_Emoji") &&
+            Selector_Emojis_Esta_Abierto() &&
+            Selector_Emojis_Input_Activo === T
+          ) {
+            Ev.preventDefault();
+          }
         });
         document.addEventListener("keydown", (Ev) => {
           if (
@@ -82724,6 +82765,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           Sincronizar_Sidebar_Compacta();
         });
+        Preparar_Inputs_Emoji();
       }
 
       function Inicializar() {

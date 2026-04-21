@@ -92,6 +92,12 @@ Seguir el estilo global del proyecto:
 - Ese fallback debe incluir `"Segoe UI Emoji"`, `"Apple Color Emoji"`,
   `"Noto Color Emoji"` y `"Segoe UI Symbol"` para evitar cuadrados en
   Windows y otras computadoras.
+- Todo campo editable de emoji debe usar `Con_Selector_Emoji` y no debe
+  permitir autocompletado, autocorreccion, sugerencias ni spellcheck del
+  navegador.
+- Al abrir el selector de emojis, el input de origen debe quedar
+  `readonly` mientras el selector este abierto: el usuario elige desde
+  el popover y no escribe encima del campo.
 
 ## Regla UX de seleccion multiple
 
