@@ -20837,8 +20837,18 @@
             "Parte realizada: {parte}",
           "planes.parte_nota_manual":
             "Avance parcial de parte: {parte}",
+          "planes.parte_nota_inicial":
+            "Parte computada como avance inicial: {parte}",
           "planes.parte_nota_semana":
             "Parte semanal realizada: {parte} ({objetivo})",
+          "planes.parte_inicial_confirm":
+            "Hay {stock} {unidad} de avance inicial disponible. " +
+            "Â¿Computar {cantidad} {unidad} de esta parte como " +
+            "avance inicial?",
+          "planes.parte_inicial_si":
+            "SÃ­, usar avance inicial",
+          "planes.parte_inicial_no":
+            "No, registrar avance nuevo",
           "planes.parte_realizar_registrar_avance_confirm":
             "¿Anotar esta parte realizada como avance nuevo?",
           "planes.parte_registrar_avance_si":
@@ -24443,8 +24453,17 @@
           "planes.parte_nota_realizada": "Part done: {parte}",
           "planes.parte_nota_manual":
             "Partial part progress: {parte}",
+          "planes.parte_nota_inicial":
+            "Part counted as initial progress: {parte}",
           "planes.parte_nota_semana":
             "Weekly part done: {parte} ({objetivo})",
+          "planes.parte_inicial_confirm":
+            "There are {stock} {unidad} of initial progress available. " +
+            "Count {cantidad} {unidad} from this part as initial progress?",
+          "planes.parte_inicial_si":
+            "Yes, use initial progress",
+          "planes.parte_inicial_no":
+            "No, log new progress",
           "planes.parte_realizar_registrar_avance_confirm":
             "Log this completed part as new progress?",
           "planes.parte_registrar_avance_si":
@@ -28005,8 +28024,18 @@
             "Parte realizada: {parte}",
           "planes.parte_nota_manual":
             "Avanco parcial de parte: {parte}",
+          "planes.parte_nota_inicial":
+            "Parte computada como avanco inicial: {parte}",
           "planes.parte_nota_semana":
             "Parte semanal realizada: {parte} ({objetivo})",
+          "planes.parte_inicial_confirm":
+            "Ha {stock} {unidad} de avanco inicial disponivel. " +
+            "Computar {cantidad} {unidad} desta parte como " +
+            "avanco inicial?",
+          "planes.parte_inicial_si":
+            "Sim, usar avanco inicial",
+          "planes.parte_inicial_no":
+            "Nao, registrar novo avanco",
           "planes.parte_realizar_registrar_avance_confirm":
             "Registrar esta parte realizada como novo avanco?",
           "planes.parte_registrar_avance_si":
@@ -44346,6 +44375,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Omitir = {}
       ) {
         return Planes_Avances_De_Parte(Parte_Id, Modelo)
+          .filter((Avance) =>
+            Avance.Origen_Tipo !== "Parte_Meta_Inicial"
+          )
           .filter((Avance) => {
             if (!Omitir.Origen_Tipo && !Omitir.Origen_Id) return true;
             return !(
@@ -44356,6 +44388,49 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .reduce((Total, Avance) => {
             return Total + (Number(Avance.Cantidad) || 0);
           }, 0);
+      }
+
+      function Planes_Avance_Inicial_Parte_Por_Origen(
+        Parte_Id,
+        Origen_Id,
+        Modelo = null
+      ) {
+        return Planes_Avance_Parte_Por_Origen(
+          Parte_Id,
+          "Parte_Meta_Inicial",
+          Origen_Id,
+          Modelo
+        );
+      }
+
+      function Planes_Cantidad_Inicial_Parte(
+        Parte_Id,
+        Modelo = null
+      ) {
+        return Planes_Avances_De_Parte(Parte_Id, Modelo)
+          .filter((Avance) =>
+            Avance.Origen_Tipo === "Parte_Meta_Inicial"
+          )
+          .reduce((Total, Avance) =>
+            Total + (Number(Avance.Cantidad_Total) || 0), 0);
+      }
+
+      function Planes_Stock_Inicial_Subobjetivo(
+        Sub,
+        Modelo = null,
+        Omitir_Parte_Id = ""
+      ) {
+        if (!Sub) return 0;
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Inicial = Math.max(
+          0,
+          Number(Sub.Progreso_Inicial) || 0
+        );
+        const Usado = Planes_Partes_De_Subobjetivo(Sub.Id, M, true)
+          .filter((Parte) => Parte.Id !== Omitir_Parte_Id)
+          .reduce((Total, Parte) =>
+            Total + Planes_Cantidad_Inicial_Parte(Parte.Id, M), 0);
+        return Math.max(0, Inicial - Usado);
       }
 
       function Planes_Avance_Parte_Por_Origen(
@@ -44378,7 +44453,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         if (!Parte) return 0;
         return Math.max(0, Number(Parte.Progreso_Inicial) || 0) +
-          Planes_Total_Avances_Parte(Parte.Id, Modelo);
+          Planes_Total_Avances_Parte(Parte.Id, Modelo) +
+          Planes_Cantidad_Inicial_Parte(Parte.Id, Modelo);
       }
 
       function Planes_Estado_Calculado_Parte(
@@ -44558,6 +44634,60 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      function Planes_Upsert_Avance_Inicial_Parte(
+        Parte,
+        Cantidad,
+        Opciones = {}
+      ) {
+        if (!Parte) return false;
+        const Modelo = Asegurar_Modelo_Planes();
+        const Existente = Planes_Avance_Inicial_Parte_Por_Origen(
+          Parte.Id,
+          Parte.Id,
+          Modelo
+        );
+        const Valor = Math.max(0, Number(Cantidad) || 0);
+        if (Valor <= 0) {
+          if (Existente) delete Modelo.Avances[Existente.Id];
+          Planes_Recalcular_Progreso_Parte(Parte, Modelo);
+          const Sub = Modelo.Subobjetivos[Parte.Subobjetivo_Id];
+          if (Sub) {
+            Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+          }
+          return Boolean(Existente);
+        }
+        const Fecha_Hora = Planes_Fecha_Hora_Actual();
+        const Id = Existente?.Id || Crear_Id_Avance_Plan();
+        Modelo.Avances[Id] = Normalizar_Avance_Plan({
+          ...(Existente || {}),
+          Id,
+          Objetivo_Id: Parte.Objetivo_Id,
+          Subobjetivo_Id: Parte.Subobjetivo_Id,
+          Parte_Id: Parte.Id,
+          Fuente: "Subobjetivo",
+          Cantidad: 0,
+          Cantidad_Total: Valor,
+          Unidad: Planes_Unidad_Label_Parte(Parte),
+          Fecha: Opciones.Fecha || Fecha_Hora.Fecha,
+          Hora: Opciones.Hora || Fecha_Hora.Hora,
+          Fecha_Hora:
+            `${Opciones.Fecha || Fecha_Hora.Fecha}T` +
+            `${Opciones.Hora || Fecha_Hora.Hora}`,
+          Nota: Opciones.Nota || t("planes.parte_nota_inicial", {
+            parte: Parte.Nombre || ""
+          }),
+          Origen_Tipo: "Parte_Meta_Inicial",
+          Origen_Id: Parte.Id,
+          Automatico: false
+        });
+        Planes_Recalcular_Progreso_Parte(Parte, Modelo);
+        const Sub = Modelo.Subobjetivos[Parte.Subobjetivo_Id];
+        if (Sub) {
+          Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+        }
+        return true;
+      }
+
       function Planes_Cantidad_Auto_Realizada_Parte(
         Parte,
         Origen_Tipo,
@@ -44637,6 +44767,50 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Parcial.value = Aporte.value || "0";
         }
         Parcial.disabled = Realizada;
+      }
+
+      async function Planes_Preguntar_Consumo_Inicial_Parte(
+        Sub,
+        Parte,
+        Cantidad_Nueva,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Stock = Planes_Stock_Inicial_Subobjetivo(
+          Sub,
+          M
+        );
+        const Cantidad = Math.max(0, Number(Cantidad_Nueva) || 0);
+        if (Cantidad <= 0 || Stock <= 0) return 0;
+        const Maximo = Math.min(Stock, Cantidad);
+        const Unidad = Planes_Unidad_Label_Parte(Parte) ||
+          Planes_Unidad_Label_Subobjetivo(Sub);
+        const Usar_Inicial = await Mostrar_Dialogo(
+          t("planes.parte_inicial_confirm", {
+            cantidad: Meta_Aporte_Formatear(Maximo, Unidad),
+            unidad: Unidad,
+            stock: Meta_Aporte_Formatear(Stock, Unidad)
+          }),
+          [
+            {
+              Etiqueta: t("planes.parte_inicial_si"),
+              Valor: true,
+              Tipo: "Primario"
+            },
+            {
+              Etiqueta: t("planes.parte_inicial_no"),
+              Valor: false,
+              Tipo: "Secundario"
+            },
+            {
+              Etiqueta: t("cancelar"),
+              Valor: null,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
+        if (Usar_Inicial === null) return null;
+        return Usar_Inicial ? Maximo : 0;
       }
 
       function Planes_Marcar_Parte_Realizada(
@@ -54599,6 +54773,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }));
           return;
         }
+        const Inicial_Asignado_Antes = Parte
+          ? Planes_Cantidad_Inicial_Parte(Parte.Id, Modelo)
+          : 0;
+        const Progreso_Parte_Antes = Parte
+          ? Planes_Progreso_Total_Parte(Parte, Modelo)
+          : 0;
         const Datos = {
           Objetivo_Id: Sub.Objetivo_Id,
           Subobjetivo_Id: Sub.Id,
@@ -54636,6 +54816,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Actualizado_En: new Date().toISOString()
           });
         }
+        const Incremento_Parcial = Math.max(
+          0,
+          Parcial_Normalizado - Progreso_Parte_Antes
+        );
+        const Consumo_Inicial = await Planes_Preguntar_Consumo_Inicial_Parte(
+          Sub,
+          Parte,
+          Incremento_Parcial,
+          Modelo
+        );
+        if (Consumo_Inicial === null) {
+          Planes_Periodo = Normalizar_Modelo_Planes(
+            Snap.Planes_Periodo
+          );
+          Render_Modal_Planes_Partes();
+          return;
+        }
+        const Inicial_Asignado_Final =
+          Math.min(Parcial_Normalizado, Inicial_Asignado_Antes) +
+          (Number(Consumo_Inicial) || 0);
+        const Avance_Nuevo_Final = Math.max(
+          0,
+          Parcial_Normalizado - Inicial_Asignado_Final
+        );
         if (Estado_Form !== "Realizada") {
           Planes_Upsert_Avance_Parte(
             Parte,
@@ -54647,9 +54851,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           Planes_Quitar_Avance_Auto_Parte(Parte, Modelo);
         }
+        Planes_Upsert_Avance_Inicial_Parte(
+          Parte,
+          Inicial_Asignado_Final,
+          {
+            Nota: t("planes.parte_nota_inicial", {
+              parte: Parte.Nombre || ""
+            })
+          }
+        );
         Planes_Upsert_Avance_Parte(
           Parte,
-          Parcial_Normalizado,
+          Avance_Nuevo_Final,
           "Parte_Meta_Manual",
           Parte.Id,
           {
