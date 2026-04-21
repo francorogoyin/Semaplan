@@ -50324,10 +50324,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Metas_Sugeridas_Objetivo_Existente(Sub_Id) {
         const Clave = Metas_Sugeridas_Clave_Semana();
+        const Modelo = Asegurar_Modelo_Planes();
+        const Familia = Planes_Subobjetivos_Familia_Ids(
+          Sub_Id,
+          Modelo
+        );
         return Objetivos.find((Objetivo) =>
           Obtener_Semana_Base_Objetivo(Objetivo) === Clave &&
           Objetivo.Meta_Vinculo_Tipo === "Subobjetivo" &&
-          Objetivo.Meta_Vinculo_Id === Sub_Id
+          Familia.has(Objetivo.Meta_Vinculo_Id)
         ) || null;
       }
 
@@ -50346,11 +50351,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Fin_Semana = Formatear_Fecha_ISO(
           Sumar_Dias(Base_Semana, 6)
         );
-        return Object.values(Modelo.Subobjetivos || {})
+        const Por_Raiz = new Map();
+        Object.values(Modelo.Subobjetivos || {})
           .filter((Sub) => !Sub.Eliminado_Local && !Sub.Hecha)
-          .map((Sub) => {
+          .forEach((Sub) => {
             const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
-            if (!Objetivo || Objetivo.Eliminado_Local) return null;
+            if (!Objetivo || Objetivo.Eliminado_Local) return;
             const Rango = Metas_Sugeridas_Rango_Subobjetivo(
               Sub,
               Objetivo,
@@ -50361,26 +50367,38 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Rango.Fin,
               Inicio_Semana,
               Fin_Semana
-            )) return null;
+            )) return;
             const Unidad = Planes_Unidad_Label_Subobjetivo(Sub);
             const Aporte = Metas_Sugeridas_Aporte(
               Sub,
               Rango.Fin,
               Unidad
             );
-            if (Aporte <= 0) return null;
+            if (Aporte <= 0) return;
             if (Metas_Sugeridas_Objetivo_Existente(Sub.Id)) {
-              return null;
+              return;
             }
-            return {
+            const Item = {
               Sub,
               Objetivo,
               Unidad,
               Aporte,
+              Rango,
               Partes: Metas_Sugeridas_Partes(Sub, Modelo)
             };
-          })
-          .filter(Boolean)
+            const Raiz_Id = Planes_Subobjetivo_Raiz_Id(Sub.Id, Modelo);
+            const Actual = Por_Raiz.get(Raiz_Id);
+            if (
+              !Actual ||
+              Metas_Sugeridas_Comparar_Item_Deduplicado(
+                Item,
+                Actual
+              ) < 0
+            ) {
+              Por_Raiz.set(Raiz_Id, Item);
+            }
+          });
+        return Array.from(Por_Raiz.values())
           .sort((A, B) =>
             (A.Objetivo.Nombre || "").localeCompare(
               B.Objetivo.Nombre || "",
@@ -50388,6 +50406,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               { sensitivity: "base", numeric: true }
             )
           );
+      }
+
+      function Metas_Sugeridas_Tipo_Periodo_Rango(Item) {
+        const Orden = {
+          Semana: 0,
+          Mes: 1,
+          Trimestre: 2,
+          Semestre: 3,
+          Anio: 4,
+          Custom: 5
+        };
+        const Tipo = Item?.Rango?.Periodo?.Tipo || "Custom";
+        return Orden[Tipo] ?? 9;
+      }
+
+      function Metas_Sugeridas_Comparar_Item_Deduplicado(A, B) {
+        const Tipo_A = Metas_Sugeridas_Tipo_Periodo_Rango(A);
+        const Tipo_B = Metas_Sugeridas_Tipo_Periodo_Rango(B);
+        if (Tipo_A !== Tipo_B) return Tipo_A - Tipo_B;
+        const Inicio_A = A?.Rango?.Inicio || "";
+        const Inicio_B = B?.Rango?.Inicio || "";
+        if (Inicio_A !== Inicio_B) {
+          return Inicio_B.localeCompare(Inicio_A);
+        }
+        const Fin_A = A?.Rango?.Fin || "";
+        const Fin_B = B?.Rango?.Fin || "";
+        if (Fin_A !== Fin_B) return Fin_A.localeCompare(Fin_B);
+        return (A?.Sub?.Id || "").localeCompare(B?.Sub?.Id || "");
       }
 
       function Metas_Sugeridas_Render_Select_Categorias(
