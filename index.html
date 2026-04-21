@@ -68190,20 +68190,144 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
-      function Limpiar_Multi_Seleccion() {
+      const Multi_Barras_Acciones_Selectores = [
+        "#Multi_Sel_Barra",
+        "#Calendario_Multi_Acciones",
+        "#Baul_Multi_Acciones",
+        "#Archivero_Multi_Acciones",
+        ".Planes_Multi_Acciones"
+      ].join(", ");
+
+      const Multi_Elementos_Seleccionables_Selectores = [
+        ".Emoji_Item",
+        ".Subobjetivo_Item",
+        ".Evento",
+        ".Slot",
+        ".Baul_Card",
+        ".Baul_Fila",
+        ".Archivero_Nota_Card",
+        ".Planes_Objetivo_Card"
+      ].join(", ");
+
+      const Multi_Acciones_Activas_Selectores = [
+        "#Dialogo_Overlay",
+        "#Archivero_Nota_Overlay.Activo",
+        "#Archivero_Cajon_Overlay.Activo",
+        "#Archivero_Etiquetas_Overlay.Activo",
+        "#Baul_Nuevo_Overlay.Activo",
+        "#Baul_Semanas_Overlay.Activo",
+        "#Planes_Objetivo_Overlay.Activo",
+        "#Planes_Subobjetivos_Overlay.Activo",
+        "#Planes_Subobjetivo_Overlay.Activo",
+        "#Planes_Avance_Overlay.Activo",
+        "#Planes_Registro_Overlay.Activo",
+        "#Planes_Vencidos_Overlay.Activo",
+        "#Planes_Etiquetas_Overlay.Activo"
+      ].join(", ");
+
+      function Hay_Multi_Seleccion_Activa_Global() {
+        return Boolean(
+          Objetivos_Multi_Seleccion.size ||
+          Subobjetivos_Multi_Seleccion.size ||
+          Eventos_Multi_Seleccion.size ||
+          Slots_Multi_Seleccion.size ||
+          Baul_Multi_Seleccion.size ||
+          Archivero_Notas_Seleccionadas.size ||
+          Planes_Multi_Seleccion.size
+        );
+      }
+
+      function Limpiar_Multi_Seleccion_Global() {
+        const Tenia_Sidebar =
+          Objetivos_Multi_Seleccion.size > 0 ||
+          Subobjetivos_Multi_Seleccion.size > 0;
+        const Tenia_Calendario =
+          Cantidad_Multi_Calendario() > 0;
+        const Tenia_Baul =
+          Baul_Multi_Seleccion.size > 0;
+        const Tenia_Archivero =
+          Archivero_Notas_Seleccionadas.size > 0;
+        const Tenia_Planes =
+          Planes_Multi_Seleccion.size > 0;
+
         Objetivos_Multi_Seleccion.clear();
         Subobjetivos_Multi_Seleccion.clear();
         Eventos_Multi_Seleccion.clear();
         Slots_Multi_Seleccion.clear();
         Baul_Multi_Seleccion.clear();
-        Render_Emojis();
-        Render_Resumen_Objetivo();
-        if (Baul_Abierto()) {
-          Render_Baul();
-          return;
+        Archivero_Notas_Seleccionadas.clear();
+        Planes_Multi_Seleccion.clear();
+
+        if (Tenia_Sidebar) {
+          Render_Emojis();
+          Render_Resumen_Objetivo();
+          Render_Editor();
+          Render_Barra_Multi_Seleccion();
         }
-        Render_Acciones_Multi_Calendario();
-        Render_Barra_Multi_Seleccion();
+        if (Tenia_Calendario) {
+          Aplicar_Seleccion_Eventos_En_DOM();
+          Aplicar_Seleccion_Slots_En_DOM();
+          Render_Acciones_Multi_Calendario();
+        }
+        if (Tenia_Baul) {
+          if (Baul_Abierto()) {
+            Render_Baul();
+          } else {
+            Render_Barra_Multi_Seleccion();
+          }
+        }
+        if (Tenia_Archivero) {
+          if (
+            document.getElementById("Archivero_Overlay")
+              ?.classList.contains("Activo")
+          ) {
+            Render_Archivero_Notas();
+          } else {
+            Render_Archivero_Multi_Acciones();
+          }
+        }
+        if (Tenia_Planes) {
+          if (
+            document.getElementById("Plan_Overlay")
+              ?.classList.contains("Activo")
+          ) {
+            Render_Planes_Contenido();
+          }
+        }
+      }
+
+      function Limpiar_Multi_Seleccion() {
+        Limpiar_Multi_Seleccion_Global();
+      }
+
+      function Gestionar_Click_Global_Multi_Seleccion(Ev) {
+        if (!Hay_Multi_Seleccion_Activa_Global()) return false;
+        const Objetivo = Ev.target;
+        if (!(Objetivo instanceof Element)) return false;
+        if (Objetivo.closest(Multi_Barras_Acciones_Selectores)) {
+          return false;
+        }
+        if (Objetivo.closest(Multi_Acciones_Activas_Selectores)) {
+          return false;
+        }
+        if (Ev.type === "contextmenu") {
+          Ev.preventDefault();
+          Ev.stopPropagation();
+          Limpiar_Multi_Seleccion_Global();
+          return true;
+        }
+        if (Ev.type !== "mousedown" || Ev.button !== 0) {
+          return false;
+        }
+        if (
+          Objetivo.closest(
+            Multi_Elementos_Seleccionables_Selectores
+          )
+        ) {
+          return false;
+        }
+        Limpiar_Multi_Seleccion_Global();
+        return true;
       }
 
       function Render_Barra_Multi_Seleccion() {
@@ -69992,13 +70116,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
 
           // Click normal: si hay multi-selección, limpiarla.
-          if (Objetivos_Multi_Seleccion.size > 0) {
+          if (
+            Objetivos_Multi_Seleccion.size > 0 ||
+            Subobjetivos_Multi_Seleccion.size > 0
+          ) {
             Objetivos_Multi_Seleccion.clear();
-            Render_Emojis();
-            Render_Resumen_Objetivo();
-            Render_Editor();
+            Subobjetivos_Multi_Seleccion.clear();
             Render_Barra_Multi_Seleccion();
-            return;
           }
 
           if (Interaccion_Touch_Activa()) {
@@ -74634,6 +74758,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.addEventListener("click", () => {
         Limpiar_Click_Cierre_Cartel_Calendario_Pendiente();
       });
+
+      document.addEventListener(
+        "mousedown",
+        Gestionar_Click_Global_Multi_Seleccion,
+        true
+      );
+      document.addEventListener(
+        "contextmenu",
+        Gestionar_Click_Global_Multi_Seleccion,
+        true
+      );
 
       document.addEventListener("mousedown", (Ev) => {
         if (Objetivos_Multi_Seleccion.size === 0) return;

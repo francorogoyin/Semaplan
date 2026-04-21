@@ -261,6 +261,117 @@ test("la barra multi de objetivos conserva borrar y nuevas acciones", async ({
   });
 });
 
+test("la regla global limpia selecciones multi fuera de barras", async ({
+  page
+}) => {
+  await preparar(page, crearEstadoBase());
+
+  const resultado = await page.evaluate(() => {
+    Objetivos_Multi_Seleccion = new Set(["o1"]);
+    Subobjetivos_Multi_Seleccion = new Set(["s1"]);
+    Eventos_Multi_Seleccion = new Set(["e1"]);
+    Slots_Multi_Seleccion = new Set(["2026-04-13|9"]);
+    Baul_Multi_Seleccion = new Set(["b1"]);
+    Archivero_Notas_Seleccionadas = new Set(["n1"]);
+    Planes_Multi_Seleccion = new Set(["p1"]);
+    document.body.dispatchEvent(
+      new MouseEvent("mousedown", {
+        bubbles: true,
+        cancelable: true,
+        button: 0
+      })
+    );
+    return {
+      objetivos: Objetivos_Multi_Seleccion.size,
+      subobjetivos: Subobjetivos_Multi_Seleccion.size,
+      eventos: Eventos_Multi_Seleccion.size,
+      slots: Slots_Multi_Seleccion.size,
+      baul: Baul_Multi_Seleccion.size,
+      archivero: Archivero_Notas_Seleccionadas.size,
+      planes: Planes_Multi_Seleccion.size
+    };
+  });
+
+  expect(resultado).toEqual({
+    objetivos: 0,
+    subobjetivos: 0,
+    eventos: 0,
+    slots: 0,
+    baul: 0,
+    archivero: 0,
+    planes: 0
+  });
+});
+
+test("click derecho en seleccionable limpia sin abrir menu", async ({
+  page
+}) => {
+  await preparar(page, crearEstadoBase());
+
+  const resultado = await page.evaluate(() => {
+    Objetivos_Multi_Seleccion = new Set(["o1", "o2"]);
+    Render_Emojis();
+    Render_Barra_Multi_Seleccion();
+    const Item = document.querySelector(".Emoji_Item");
+    const Evento = new MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      button: 2
+    });
+    const Permitido = Item.dispatchEvent(Evento);
+    return {
+      defaultPrevented: Evento.defaultPrevented,
+      permitido: Permitido,
+      objetivos: Objetivos_Multi_Seleccion.size,
+      menuActivo: document.getElementById("Dia_Accion_Menu")
+        ?.classList.contains("Activo") || false
+    };
+  });
+
+  expect(resultado.defaultPrevented).toBe(true);
+  expect(resultado.permitido).toBe(false);
+  expect(resultado.objetivos).toBe(0);
+  expect(resultado.menuActivo).toBe(false);
+});
+
+test("las barras de lote no rompen la seleccion", async ({
+  page
+}) => {
+  await preparar(page, crearEstadoBase());
+
+  const resultado = await page.evaluate(() => {
+    Objetivos_Multi_Seleccion = new Set(["o1", "o2"]);
+    Render_Emojis();
+    Render_Barra_Multi_Seleccion();
+    const Barra = document.getElementById("Multi_Sel_Barra");
+    Barra.dispatchEvent(
+      new MouseEvent("mousedown", {
+        bubbles: true,
+        cancelable: true,
+        button: 0
+      })
+    );
+    const Despues_Click = Objetivos_Multi_Seleccion.size;
+    const Evento = new MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      button: 2
+    });
+    const Permitido = Barra.dispatchEvent(Evento);
+    return {
+      despuesClick: Despues_Click,
+      despuesDerecho: Objetivos_Multi_Seleccion.size,
+      defaultPrevented: Evento.defaultPrevented,
+      permitido: Permitido
+    };
+  });
+
+  expect(resultado.despuesClick).toBe(2);
+  expect(resultado.despuesDerecho).toBe(2);
+  expect(resultado.defaultPrevented).toBe(false);
+  expect(resultado.permitido).toBe(true);
+});
+
 test("copia y pega objetivos multi en otra semana", async ({
   page
 }) => {

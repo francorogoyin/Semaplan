@@ -93,6 +93,16 @@ Seguir el estilo global del proyecto:
   `"Noto Color Emoji"` y `"Segoe UI Symbol"` para evitar cuadrados en
   Windows y otras computadoras.
 
+## Regla UX de seleccion multiple
+
+Cuando una seleccion multiple muestra una barra de acciones en lote
+(calendario, Archivero, Baul, sidebar o Planes), un click izquierdo
+fuera de la barra y fuera de otro elemento seleccionable debe limpiar
+la seleccion sin abrir modales ni menus. Un click derecho fuera de esa
+barra, incluso sobre otro elemento seleccionable, debe limpiar la
+seleccion y no abrir menu contextual. El click izquierdo sobre otro
+elemento seleccionable conserva su accion normal.
+
 ## Comunicación
 
 La fórmula `Entendí que...` se usa solo al iniciar un objetivo nueva,
