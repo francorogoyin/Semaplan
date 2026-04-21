@@ -33,6 +33,22 @@ Primero lee el PDF y detecta las partes principales de lectura:
 Antes de editar Semaplan, genera internamente una tabla fuente con:
 Nombre exacto normalizado | paginas | emoji propuesto
 
+Metodo recomendado con JSON temporal:
+- Cuando uses automatizacion con Node, Playwright u otra herramienta,
+  guarda la tabla fuente en un archivo JSON temporal escrito y leido
+  como UTF-8 real.
+- El JSON debe incluir, como minimo: PDF usado, subobjetivo destino,
+  nombre exacto de cada parte, paginas, emoji, orden y partes que
+  deben quedar realizadas.
+- No pases nombres con acentos, enes, dieresis, comillas o emojis por
+  argumentos de consola, literales de PowerShell ni pipes si hay una
+  alternativa con JSON UTF-8.
+- El JSON temporal no debe borrarse al terminar la carga.
+- Solo borra el JSON si el usuario lo autoriza explicitamente despues
+  de que hayas verificado e informado que todo se subio bien.
+- Si la verificacion falla, queda incompleta o el usuario no autoriza
+  la limpieza, conserva el JSON temporal e informa su ruta.
+
 Reglas estrictas de alcance:
 - Modifica solo el subobjetivo indicado.
 - No modifiques el objetivo anual padre, sus metricas, target, unidad,
@@ -92,7 +108,8 @@ Reglas estrictas de texto:
   que puedan perder UTF-8.
 - Si usas Node/Playwright, evita pasar acentos o emojis por consola.
   Usa una de estas vias:
-  - archivo JSON temporal escrito y leido como UTF-8 real; o
+  - preferentemente, archivo JSON temporal escrito y leido como UTF-8
+    real; o
   - construccion dentro del navegador con String.fromCodePoint /
     String.fromCharCode para acentos y emojis.
 - Despues de guardar, recarga Semaplan y lee nuevamente los nombres
