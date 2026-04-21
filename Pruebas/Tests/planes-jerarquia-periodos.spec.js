@@ -1792,6 +1792,141 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Actualizar periodos refresca importados de toda la capa",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Anio_Todos = true;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Libros heredados",
+      Emoji: "\uD83D\uDCDA",
+      Target_Total: 12,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros"
+    });
+    const Febrero_Id = Planes_Agregar_Subobjetivo(
+      Padre.Id,
+      "Libro febrero"
+    );
+    const Abril_Id = Planes_Agregar_Subobjetivo(
+      Padre.Id,
+      "Libro abril"
+    );
+    const Modelo_Subs = Asegurar_Modelo_Planes();
+    Object.assign(Modelo_Subs.Subobjetivos[Febrero_Id], {
+      Fecha_Fin: "2026-02-10",
+      Aporte_Meta: 1,
+      Target_Total: 1,
+      Progreso_Inicial: 0,
+      Hecha: false,
+      Estado: "Activo"
+    });
+    Object.assign(Modelo_Subs.Subobjetivos[Abril_Id], {
+      Fecha_Fin: "2026-04-20",
+      Aporte_Meta: 1,
+      Target_Total: 1,
+      Progreso_Inicial: 0,
+      Hecha: false,
+      Estado: "Activo"
+    });
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    Planes_Importar_Objetivos_Padres_A_Periodos(
+      Trimestres.map((Periodo) => ({
+        Periodo_Id: Periodo.Id,
+        Objetivo_Ids: [Padre.Id]
+      })),
+      { Modo: "Completo" }
+    );
+
+    Object.assign(Modelo_Subs.Objetivos[Padre.Id], {
+      Nombre: "Libros actualizados",
+      Target_Total: 16,
+      Actualizado_En: "2026-05-01T12:00:00.000Z"
+    });
+    Object.assign(Modelo_Subs.Subobjetivos[Febrero_Id], {
+      Progreso_Inicial: 1,
+      Hecha: true,
+      Estado: "Cumplido"
+    });
+    Object.assign(Modelo_Subs.Subobjetivos[Abril_Id], {
+      Progreso_Inicial: 1,
+      Hecha: true,
+      Estado: "Cumplido"
+    });
+    window.__Semaplan_Actualizar_Periodos_Test = {
+      Padre_Id: Padre.Id,
+      Trimestre_Ids: Trimestres.map((Periodo) => Periodo.Id)
+    };
+    Render_Plan();
+  });
+
+  const Botones = page.locator("[data-plan-periodo-actualizar]");
+  await expect(Botones).toHaveCount(4);
+  await expect(Botones.first()).toHaveText("Actualizar");
+  await expect(Botones.first()).toBeEnabled();
+
+  await Botones.nth(1).click();
+  await expect(page.locator(".Planes_Importar_Modal")).toHaveCount(0);
+
+  const Resultado = await page.evaluate(() => {
+    const Datos = window.__Semaplan_Actualizar_Periodos_Test;
+    const Hijo_De = (Indice) => Planes_Objetivo_Hijo_De(
+      Datos.Padre_Id,
+      Datos.Trimestre_Ids[Indice]
+    );
+    const Sub_De = (Objetivo, Texto) =>
+      Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
+        .find((Sub) => !Sub.Eliminado_Local && Sub.Texto === Texto);
+    const Hijo_Q1 = Hijo_De(0);
+    const Hijo_Q2 = Hijo_De(1);
+    const Importados = Datos.Trimestre_Ids
+      .map((Periodo_Id) => Planes_Objetivo_Hijo_De(
+        Datos.Padre_Id,
+        Periodo_Id
+      ))
+      .filter(Boolean);
+    return {
+      Importados: Importados.length,
+      Q1_Nombre: Hijo_Q1.Nombre,
+      Q2_Nombre: Hijo_Q2.Nombre,
+      Q1_Target: Hijo_Q1.Target_Total,
+      Q2_Target: Hijo_Q2.Target_Total,
+      Q1_Febrero: Sub_De(Hijo_Q1, "Libro febrero"),
+      Q2_Abril: Sub_De(Hijo_Q2, "Libro abril")
+    };
+  });
+
+  expect(Resultado.Importados).toBe(4);
+  expect(Resultado.Q1_Nombre).toBe("Libros actualizados");
+  expect(Resultado.Q2_Nombre).toBe("Libros actualizados");
+  expect(Resultado.Q1_Target).toBe(16);
+  expect(Resultado.Q2_Target).toBe(16);
+  expect(Resultado.Q1_Febrero.Hecha).toBe(true);
+  expect(Resultado.Q1_Febrero.Estado).toBe("Cumplido");
+  expect(Resultado.Q2_Abril.Hecha).toBe(true);
+  expect(Resultado.Q2_Abril.Estado).toBe("Cumplido");
+  expect(errores).toEqual([]);
+});
+
 test("Borrar importados limpia objetivos seleccionados de la capa",
 async ({ page }) => {
   const errores = [];

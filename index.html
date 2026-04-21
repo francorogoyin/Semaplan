@@ -3890,6 +3890,7 @@
 
       .Planes_Periodo_Tarjeta_Acciones {
         display: inline-flex;
+        align-items: center;
         gap: 5px;
       }
 
@@ -4057,6 +4058,41 @@
       .Planes_Universo_Accion:focus-visible {
         outline: 2px solid rgba(31, 107, 79, 0.34);
         outline-offset: 2px;
+      }
+
+      .Planes_Periodo_Actualizar_Btn {
+        height: 28px;
+        border: 1px solid var(--Borde);
+        border-radius: 7px;
+        background: #fff;
+        color: var(--Texto);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1;
+        padding: 0 8px;
+        transition: color 0.18s ease, border-color 0.18s ease,
+          background 0.18s ease, transform 0.18s ease;
+      }
+
+      .Planes_Periodo_Actualizar_Btn:hover {
+        border-color: rgba(31, 107, 79, 0.32);
+        background: rgba(31, 107, 79, 0.08);
+        color: var(--Acento);
+        transform: translateY(-1px);
+      }
+
+      .Planes_Periodo_Actualizar_Btn:disabled {
+        cursor: default;
+        opacity: 0.42;
+      }
+
+      .Planes_Periodo_Actualizar_Btn:disabled:hover {
+        border-color: var(--Borde);
+        background: #fff;
+        color: var(--Texto);
+        transform: none;
       }
 
       .Planes_Resumen_Editar_Btn {
@@ -19455,6 +19491,10 @@
             "Importar desde período padre",
           "planes.importar_padre_periodo":
             "Importar desde el padre de este periodo",
+          "planes.actualizar_periodos_capa":
+            "Actualizar",
+          "planes.actualizar_periodos_capa_title":
+            "Actualizar importados de toda la capa",
           "planes.agregar_en_periodo":
             "Agregar objetivo en este periodo",
           "planes.borrar_importados_capa":
@@ -19487,6 +19527,12 @@
             "No hubo importados para borrar.",
           "planes.importados_borrados_toast":
             "Se borraron {n} objetivo(s) importado(s).",
+          "planes.actualizar_periodos_sin_importados":
+            "No hay objetivos importados para actualizar en esta capa.",
+          "planes.actualizar_periodos_sin_cambios":
+            "No hubo cambios para actualizar.",
+          "planes.actualizar_periodos_toast":
+            "Períodos actualizados.",
           "planes.periodo_anterior": "Periodo anterior",
           "planes.periodo_siguiente": "Periodo siguiente",
           "planes.importar_padres_confirm":
@@ -22886,6 +22932,10 @@
             "Import from parent period",
           "planes.importar_padre_periodo":
             "Import from this period parent",
+          "planes.actualizar_periodos_capa":
+            "Refresh",
+          "planes.actualizar_periodos_capa_title":
+            "Refresh imports across this layer",
           "planes.agregar_en_periodo":
             "Add objective in this period",
           "planes.borrar_importados_capa":
@@ -22918,6 +22968,12 @@
             "There were no imports to delete.",
           "planes.importados_borrados_toast":
             "{n} imported objective(s) deleted.",
+          "planes.actualizar_periodos_sin_importados":
+            "There are no imported objectives to refresh in this layer.",
+          "planes.actualizar_periodos_sin_cambios":
+            "There were no changes to refresh.",
+          "planes.actualizar_periodos_toast":
+            "Periods refreshed.",
           "planes.periodo_anterior": "Previous period",
           "planes.periodo_siguiente": "Next period",
           "planes.importar_padres_confirm":
@@ -26346,6 +26402,10 @@
             "Importar do período pai",
           "planes.importar_padre_periodo":
             "Importar do pai deste periodo",
+          "planes.actualizar_periodos_capa":
+            "Atualizar",
+          "planes.actualizar_periodos_capa_title":
+            "Atualizar importados de toda esta camada",
           "planes.agregar_en_periodo":
             "Adicionar objetivo neste periodo",
           "planes.borrar_importados_capa":
@@ -26378,6 +26438,12 @@
             "Não houve importados para excluir.",
           "planes.importados_borrados_toast":
             "{n} objetivo(s) importado(s) excluído(s).",
+          "planes.actualizar_periodos_sin_importados":
+            "Não há objetivos importados para atualizar nesta camada.",
+          "planes.actualizar_periodos_sin_cambios":
+            "Não houve mudanças para atualizar.",
+          "planes.actualizar_periodos_toast":
+            "Períodos atualizados.",
           "planes.periodo_anterior": "Período anterior",
           "planes.periodo_siguiente": "Próximo período",
           "planes.importar_padres_confirm":
@@ -44206,6 +44272,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "planes.ui_help_resumen_alertas"],
           ["[data-plan-universo-importar]",
             "planes.ui_help_importar_periodo"],
+          ["[data-plan-periodo-actualizar]",
+            "planes.actualizar_periodos_capa_title"],
           ["[data-plan-universo-avance]",
             "planes.ui_help_avance_periodo"],
           ["[data-plan-universo-nuevo]",
@@ -44426,6 +44494,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Padre.Actualizado_En || "";
       }
 
+      function Planes_Actualizar_Datos_Hijo_Importado(Padre, Hijo) {
+        if (!Padre || !Hijo) return;
+        const Campos =
+          Planes_Definiciones_Metadatos_Objetivo(Padre)
+            .map((Campo) => ({ ...Campo }));
+        Object.assign(Hijo, {
+          Nombre: Padre.Nombre,
+          Descripcion: Padre.Descripcion || "",
+          Emoji: Padre.Emoji,
+          Color: Padre.Color,
+          Unidad: Padre.Unidad,
+          Unidad_Custom: Padre.Unidad_Custom || "",
+          Regla_Lectura: Padre.Regla_Lectura,
+          Modo_Avance: Planes_Normalizar_Modo_Avance(Padre),
+          Modo_Progreso: Padre.Modo_Progreso,
+          Etiquetas_Ids: [...(Padre.Etiquetas_Ids || [])],
+          Tags: [...(Padre.Tags || [])],
+          Metadatos_Campos: Campos,
+          Metadatos_Campos_Config:
+            Boolean(Padre.Metadatos_Campos_Config) ||
+            Campos.length > 0,
+          Vinculo_Sidebar_Activo: Padre.Vinculo_Sidebar_Activo,
+          Vinculo_Tipo: Padre.Vinculo_Tipo,
+          Vinculo_Id: Padre.Vinculo_Id,
+          Vinculo_Objetivo_Id: Padre.Vinculo_Objetivo_Id,
+          Vinculo_Subobjetivo_Id: Padre.Vinculo_Subobjetivo_Id,
+          Vinculo_Texto: Padre.Vinculo_Texto
+        });
+        Planes_Actualizar_Meta_Hijo_Importado(Padre, Hijo);
+      }
+
       function Planes_Bajar_Objetivo_A_Capa(Objetivo_Id, Tipo_Destino) {
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
@@ -44641,8 +44740,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Importar_Titulo = Escape_Html(
           t("planes.importar_padre_periodo")
         );
+        const Actualizar_Titulo = Escape_Html(
+          t("planes.actualizar_periodos_capa_title")
+        );
         const Agregar_Titulo = Escape_Html(
           t("planes.agregar_en_periodo")
+        );
+        const Actualizar_Texto = Escape_Html(
+          t("planes.actualizar_periodos_capa")
         );
         const Objetivos_Html = Objetivos.slice(0, 4)
           .map((Objetivo) => `
@@ -44677,6 +44782,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 data-plan-periodo-importar
                 title="${Importar_Titulo}"
                 aria-label="${Importar_Titulo}">&#8595;</button>
+              <button class="Planes_Periodo_Actualizar_Btn"
+                type="button"
+                data-plan-periodo-actualizar
+                title="${Actualizar_Titulo}"
+                aria-label="${Actualizar_Titulo}">
+                ${Actualizar_Texto}
+              </button>
               <button class="Planes_Universo_Accion"
                 type="button"
                 data-plan-periodo-nuevo
@@ -44715,6 +44827,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Btn_Importar.addEventListener("click", async (Ev) => {
             Ev.stopPropagation();
             await Planes_Importar_De_Padres_Periodo(Periodo.Id);
+          });
+        }
+        const Btn_Actualizar = Cont.querySelector(
+          "[data-plan-periodo-actualizar]"
+        );
+        if (Btn_Actualizar) {
+          Btn_Actualizar.disabled =
+            !Planes_Capa_Tiene_Importados_Actualizables(Periodo.Tipo);
+          Btn_Actualizar.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Planes_Actualizar_Importados_Capa(Periodo.Tipo);
           });
         }
         Cont.querySelector("[data-plan-periodo-nuevo]")
@@ -49840,6 +49963,178 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Mostrar_Toast_Undo(t("planes.toast_importado"), Snap);
       }
 
+      function Planes_Importados_Actualizables_Capa(Tipo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Periodos = Planes_Crear_Periodos_Capa_Visibles(Tipo);
+        const Periodo_Ids = new Set(Periodos.map((Periodo) =>
+          Periodo.Id
+        ));
+        const Orden_Periodos = new Map(Periodos.map(
+          (Periodo, Indice) => [Periodo.Id, Indice]
+        ));
+        return Object.values(Modelo.Objetivos || {})
+          .filter((Objetivo) => {
+            if (!Objetivo || Objetivo.Eliminado_Local) return false;
+            if (!Periodo_Ids.has(Objetivo.Periodo_Id)) return false;
+            const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+            if (!Padre_Id) return false;
+            const Padre = Modelo.Objetivos[Padre_Id];
+            return Boolean(Padre && !Padre.Eliminado_Local);
+          })
+          .sort((A, B) => {
+            const Orden_A = Orden_Periodos.get(A.Periodo_Id) ?? 9999;
+            const Orden_B = Orden_Periodos.get(B.Periodo_Id) ?? 9999;
+            if (Orden_A !== Orden_B) return Orden_A - Orden_B;
+            return Number(A.Orden) - Number(B.Orden);
+          });
+      }
+
+      function Planes_Capa_Tiene_Importados_Actualizables(Tipo) {
+        return Planes_Importados_Actualizables_Capa(Tipo).length > 0;
+      }
+
+      function Planes_Info_Pendiente_Actualizacion_Capa(Importados) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Por_Padre = new Map();
+        Importados.forEach((Objetivo) => {
+          if (Objetivo.Regla_Distribucion !== "Pendiente") return;
+          const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+          const Padre = Modelo.Objetivos[Padre_Id];
+          const Periodo_Padre = Modelo.Periodos[Padre?.Periodo_Id];
+          const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
+          if (!Padre || !Periodo_Padre || !Periodo) return;
+          const Actual = Por_Padre.get(Padre_Id) || {
+            Padre,
+            Periodo_Padre,
+            Periodos: []
+          };
+          Actual.Periodos.push(Periodo);
+          Por_Padre.set(Padre_Id, Actual);
+        });
+        const Info = new Map();
+        Por_Padre.forEach((Item, Padre_Id) => {
+          Info.set(
+            Padre_Id,
+            Planes_Info_Pendiente_Importacion(
+              Item.Padre,
+              Item.Periodo_Padre,
+              Item.Periodos
+            )
+          );
+        });
+        return Info;
+      }
+
+      function Planes_Aplicar_Target_Hijo_Importado(Hijo, Target) {
+        const Valor = Number(Target) || 0;
+        Hijo.Target_Total = Valor;
+        Hijo.Target_Automatico = Valor;
+        Hijo.Target_Actual = Valor;
+      }
+
+      function Planes_Recalcular_Target_Hijo_Importado(
+        Padre,
+        Periodo_Padre,
+        Hijo,
+        Periodo,
+        Info_Pendiente
+      ) {
+        if (!Padre || !Periodo_Padre || !Hijo || !Periodo) return;
+        const Regla = (Hijo.Regla_Distribucion || "Uniforme")
+          .toString();
+        const Target_Bloqueado = Boolean(
+          Hijo.Fijado ||
+          Hijo.Target_Fijado_Por_Usuario ||
+          Hijo.Auto_Redistribucion === false
+        );
+        if (Regla === "Manual") return;
+        if (Regla === "Pendiente") {
+          if (!Info_Pendiente) return;
+          const Avance = Info_Pendiente.Avances.get(Periodo.Id);
+          Hijo.Progreso_Importado = Number(Avance) || 0;
+          if (Target_Bloqueado) return;
+          const Target = Info_Pendiente.Targets.get(Periodo.Id);
+          if (Target === undefined) return;
+          Planes_Aplicar_Target_Hijo_Importado(Hijo, Target);
+          return;
+        }
+        if (Target_Bloqueado) return;
+        const Modo = Regla === "Completo" ? "Completo" : "Proporcional";
+        const Target = Planes_Target_Importacion(
+          Padre,
+          Periodo_Padre,
+          Periodo,
+          Modo
+        );
+        Planes_Aplicar_Target_Hijo_Importado(Hijo, Target);
+      }
+
+      function Planes_Actualizar_Importados_Capa(Tipo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Importados = Planes_Importados_Actualizables_Capa(Tipo);
+        if (!Importados.length) {
+          Mostrar_Toast_Info(
+            t("planes.actualizar_periodos_sin_importados")
+          );
+          return { Actualizados: 0, Subobjetivos: 0, Total: 0 };
+        }
+        const Snap = Capturar_Snapshot_Undo();
+        const Info_Pendiente =
+          Planes_Info_Pendiente_Actualizacion_Capa(Importados);
+        const Padres = new Set();
+        const Resumen = {
+          Actualizados: 0,
+          Subobjetivos: 0,
+          Total: 0
+        };
+        Importados.forEach((Objetivo) => {
+          const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+          const Padre = Modelo.Objetivos[Padre_Id];
+          const Periodo_Padre = Modelo.Periodos[Padre?.Periodo_Id];
+          const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
+          if (!Padre || !Periodo_Padre || !Periodo) return;
+          const Antes = JSON.stringify(
+            Planes_Datos_Importacion_Comparables(Objetivo)
+          );
+          Planes_Actualizar_Datos_Hijo_Importado(Padre, Objetivo);
+          Planes_Recalcular_Target_Hijo_Importado(
+            Padre,
+            Periodo_Padre,
+            Objetivo,
+            Periodo,
+            Info_Pendiente.get(Padre_Id)
+          );
+          Resumen.Subobjetivos += Planes_Importar_Subs_En_Objetivo(
+            Objetivo,
+            Periodo
+          );
+          Planes_Actualizar_Progreso(Objetivo);
+          const Despues = JSON.stringify(
+            Planes_Datos_Importacion_Comparables(Objetivo)
+          );
+          if (Antes !== Despues) {
+            Objetivo.Actualizado_En = new Date().toISOString();
+            Resumen.Actualizados += 1;
+          }
+          Padres.add(Padre.Id);
+        });
+        Padres.forEach((Padre_Id) => {
+          const Padre = Modelo.Objetivos[Padre_Id];
+          if (Padre) Planes_Actualizar_Progreso(Padre);
+        });
+        Resumen.Total = Resumen.Actualizados + Resumen.Subobjetivos;
+        if (!Resumen.Total) {
+          Mostrar_Toast_Info(
+            t("planes.actualizar_periodos_sin_cambios")
+          );
+          return Resumen;
+        }
+        Render_Plan();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(t("planes.actualizar_periodos_toast"), Snap);
+        return Resumen;
+      }
+
       function Planes_Clave_Grupo_Importado_Capa(Objetivo) {
         const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
         if (Padre_Id) {
@@ -50989,7 +51284,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
             Hijo.Eliminado_Local = false;
             Planes_Restaurar_Vinculo_Objetivo(Hijo);
-            Planes_Actualizar_Meta_Hijo_Importado(Objetivo_Padre, Hijo);
+            Planes_Actualizar_Datos_Hijo_Importado(Objetivo_Padre, Hijo);
             Hijo.Regla_Distribucion = Modo_Importacion === "Proporcional"
               ? "Uniforme"
               : Modo_Importacion;
