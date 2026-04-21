@@ -1366,7 +1366,7 @@ async ({ page }) => {
     '.Planes_Context_Menu [data-plan-accion="eliminar"]'
   );
   await expect(page.locator("#Dialogo_Ayuda_Btn"))
-    .toBeHidden();
+    .toHaveCount(0);
   await page.locator("#Dialogo_Botones button")
     .filter({ hasText: "incluidos padres" })
     .click();
@@ -1941,6 +1941,8 @@ async ({ page }) => {
 
   await Botones.nth(1).click();
   await expect(page.locator("#Dialogo_Overlay")).toHaveClass(/Activo/);
+  await expect(page.locator("#Dialogo_Ayuda_Btn"))
+    .toHaveCount(0);
   await expect(page.locator("#Dialogo_Mensaje"))
     .toContainText("Cambios observados");
   await page.locator("#Dialogo_Botones .Dialogo_Boton_Primario")

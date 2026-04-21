@@ -3404,30 +3404,6 @@
         flex-shrink: 0;
       }
 
-      .Modal_Ayuda_Btn {
-        width: 26px;
-        height: 26px;
-        border: 1px solid var(--Borde);
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.92);
-        color: var(--Texto_Suave);
-        cursor: help;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 auto;
-        font: inherit;
-        font-size: 13px;
-        font-weight: 800;
-        line-height: 1;
-      }
-
-      .Modal_Ayuda_Btn:hover {
-        border-color: var(--Acento);
-        color: var(--Acento);
-        background: var(--Acento_Suave);
-      }
-
       .Patron_Modal_Titulo {
         font-size: 15px;
         font-weight: 700;
@@ -11559,17 +11535,6 @@
         position: relative;
       }
 
-      .Dialogo_Ayuda_Btn {
-        position: absolute;
-        left: 16px;
-        top: 16px;
-      }
-
-      .Modal_Ayuda_Btn[hidden],
-      .Dialogo_Ayuda_Btn[hidden] {
-        display: none !important;
-      }
-
       .Dialogo_Mensaje {
         font-size: 15px;
         font-weight: 600;
@@ -16442,10 +16407,6 @@
     <!-- Diálogo genérico reutilizable (debe estar antes del script) -->
     <div class="Dialogo_Overlay" id="Dialogo_Overlay">
       <div class="Dialogo_Panel">
-        <button class="Modal_Ayuda_Btn Dialogo_Ayuda_Btn"
-          id="Dialogo_Ayuda_Btn"
-          type="button"
-          hidden>?</button>
         <p class="Dialogo_Mensaje" id="Dialogo_Mensaje"></p>
         <div class="Dialogo_Input_Contenedor" id="Dialogo_Input_Contenedor"
           style="display:none">
@@ -30595,15 +30556,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       // --- Sistema de diálogos elegantes (reemplaza confirm/prompt) ---
 
-      function Configurar_Ayuda_Dialogo(Texto) {
-        const Btn = document.getElementById("Dialogo_Ayuda_Btn");
-        if (!Btn) return;
-        const Hay_Ayuda = Boolean((Texto || "").toString().trim());
-        Btn.hidden = !Hay_Ayuda;
-        Btn.title = Hay_Ayuda ? Texto : "";
-        Btn.setAttribute("aria-label", t("ayuda.titulo"));
-      }
-
       function Mostrar_Dialogo(Mensaje, Opciones, Config_Dialogo = {}) {
         if (Dialogo_Abierto) return Promise.resolve(null);
         Dialogo_Abierto = true;
@@ -30612,14 +30564,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             document.getElementById("Dialogo_Overlay").classList.remove("Activo");
             Dialogo_Abierto = false;
             Dialogo_Resolver_Fn = null;
-            Configurar_Ayuda_Dialogo("");
             Resolver(Valor);
           };
           Dialogo_Resolver_Fn = Cerrar_Con;
 
           document.getElementById("Dialogo_Mensaje").textContent =
             Mensaje;
-          Configurar_Ayuda_Dialogo(Config_Dialogo.Ayuda || "");
           document.getElementById("Dialogo_Input_Contenedor")
             .style.display = "none";
 
@@ -30749,7 +30699,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             El_Overlay.classList.remove("Activo");
             Limpiar_Controles();
             Limpiar_Turnstile_Dialogo();
-            Configurar_Ayuda_Dialogo("");
             El_Campo.removeEventListener(
               "keydown", On_Enter_Input
             );
@@ -30764,7 +30713,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           document.getElementById("Dialogo_Mensaje")
             .textContent = Mensaje;
-          Configurar_Ayuda_Dialogo(Opciones.Ayuda || "");
 
           El_Cont.style.display = "block";
           if (El_Label) {
