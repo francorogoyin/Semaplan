@@ -323,12 +323,12 @@
 
       .Metas_Sugeridas_Fila {
         display: grid;
-        grid-template-columns: 42px minmax(130px, 1.2fr)
-          minmax(110px, 0.8fr) minmax(110px, 0.8fr)
-          minmax(120px, 0.8fr) 74px minmax(130px, 1fr);
+        grid-template-columns: 54px minmax(150px, 1.2fr)
+          minmax(130px, 0.85fr) minmax(94px, 0.55fr)
+          minmax(130px, 0.75fr) 54px minmax(124px, 0.75fr) 58px;
         gap: 8px;
         align-items: center;
-        min-width: 860px;
+        min-width: 980px;
       }
 
       .Metas_Sugeridas_Fila input,
@@ -342,11 +342,18 @@
         color: var(--Texto);
         font: inherit;
         font-size: 12px;
+        text-align: center;
       }
 
       .Metas_Sugeridas_Fila input[type="color"] {
+        width: 34px;
+        height: 34px;
         min-height: 34px;
-        padding: 3px;
+        justify-self: center;
+        overflow: hidden;
+        padding: 0;
+        border-radius: 50%;
+        cursor: pointer;
       }
 
       .Metas_Sugeridas_Head {
@@ -354,14 +361,20 @@
         font-size: 10px;
         font-weight: 800;
         letter-spacing: 0.3px;
+        text-align: center;
         text-transform: uppercase;
       }
 
       .Metas_Sugeridas_Aporte {
         display: grid;
-        grid-template-columns: minmax(64px, 1fr) auto;
+        grid-template-columns: minmax(48px, 68px) auto;
         gap: 6px;
         align-items: center;
+        justify-content: center;
+      }
+
+      .Metas_Sugeridas_Aporte input {
+        max-width: 68px;
       }
 
       .Metas_Sugeridas_Unidad,
@@ -370,6 +383,55 @@
         color: var(--Texto_Suave);
         font-size: 12px;
         overflow-wrap: anywhere;
+        text-align: center;
+      }
+
+      .Metas_Sugeridas_Partes {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        font: inherit;
+        padding: 7px 9px;
+      }
+
+      .Metas_Sugeridas_Partes:disabled {
+        cursor: default;
+        opacity: 0.72;
+      }
+
+      .Metas_Sugeridas_Importar_Check {
+        width: 18px !important;
+        height: 18px;
+        justify-self: center;
+        cursor: pointer;
+      }
+
+      .Metas_Sugeridas_Partes_Modal {
+        display: grid;
+        gap: 10px;
+      }
+
+      .Metas_Sugeridas_Partes_Item {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        border-bottom: 1px solid var(--Borde);
+        padding: 8px 0;
+      }
+
+      .Metas_Sugeridas_Partes_Item:last-child {
+        border-bottom: none;
+      }
+
+      .Metas_Sugeridas_Partes_Meta {
+        color: var(--Texto_Suave);
+        font-size: 12px;
       }
 
       .Metas_Sugeridas_Acciones {
@@ -19948,6 +20010,7 @@
           "sidebar.metas_col_categoria": "Categoria",
           "sidebar.metas_col_color": "Color",
           "sidebar.metas_col_partes": "Partes vinculadas",
+          "sidebar.metas_col_importar": "Importar",
           "sidebar.metas_partes_n": "{n} parte(s)",
           "sidebar.metas_partes_ninguna": "Sin partes",
           "sidebar.tipo": "Tipo",
@@ -23560,6 +23623,7 @@
           "sidebar.metas_col_categoria": "Category",
           "sidebar.metas_col_color": "Color",
           "sidebar.metas_col_partes": "Linked parts",
+          "sidebar.metas_col_importar": "Import",
           "sidebar.metas_partes_n": "{n} part(s)",
           "sidebar.metas_partes_ninguna": "No parts",
           "sidebar.tipo": "Type",
@@ -27103,6 +27167,7 @@
           "sidebar.metas_col_categoria": "Categoria",
           "sidebar.metas_col_color": "Cor",
           "sidebar.metas_col_partes": "Partes vinculadas",
+          "sidebar.metas_col_importar": "Importar",
           "sidebar.metas_partes_n": "{n} parte(s)",
           "sidebar.metas_partes_ninguna": "Sem partes",
           "sidebar.tipo": "Tipo",
@@ -32086,8 +32151,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           };
           Dialogo_Resolver_Fn = Cerrar_Con;
 
-          document.getElementById("Dialogo_Mensaje").textContent =
-            Mensaje;
+          const Dialogo_Mensaje = document.getElementById(
+            "Dialogo_Mensaje"
+          );
+          Dialogo_Mensaje.innerHTML = "";
+          if (Mensaje instanceof Node) {
+            Dialogo_Mensaje.appendChild(Mensaje);
+          } else {
+            Dialogo_Mensaje.textContent = Mensaje;
+          }
           document.getElementById("Dialogo_Input_Contenedor")
             .style.display = "none";
 
@@ -50097,7 +50169,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "aporte",
           "categoria",
           "color",
-          "partes"
+          "partes",
+          "importar"
         ].forEach((Clave) => {
           const Celda = document.createElement("div");
           Celda.textContent = t(`sidebar.metas_col_${Clave}`);
@@ -50112,9 +50185,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Emoji = document.createElement("input");
           Emoji.className = "Con_Selector_Emoji";
           Emoji.value = Item.Sub.Emoji || Item.Objetivo.Emoji || "";
+          Emoji.addEventListener("keydown", (Ev) => {
+            if (Ev.key === "Enter") {
+              Ev.preventDefault();
+              Emoji.blur();
+            }
+          });
 
           const Nombre = document.createElement("input");
           Nombre.value = Item.Sub.Texto || Item.Objetivo.Nombre || "";
+          Nombre.addEventListener("keydown", (Ev) => {
+            if (Ev.key === "Enter") {
+              Ev.preventDefault();
+              Nombre.blur();
+            }
+          });
 
           const Vinculo = document.createElement("div");
           Vinculo.className = "Metas_Sugeridas_Vinculo";
@@ -50132,6 +50217,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Aporte_Input.min = "0";
           Aporte_Input.step = "1";
           Aporte_Input.value = String(Item.Aporte);
+          Aporte_Input.addEventListener("keydown", (Ev) => {
+            if (Ev.key === "Enter") {
+              Ev.preventDefault();
+              Aporte_Input.blur();
+            }
+          });
           const Unidad = document.createElement("span");
           Unidad.className = "Metas_Sugeridas_Unidad";
           Unidad.textContent = Item.Unidad;
@@ -50145,7 +50236,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Color.type = "color";
           Color.value = Obtener_Color_Default();
 
-          const Partes = document.createElement("div");
+          const Partes = document.createElement("button");
+          Partes.type = "button";
           Partes.className = "Metas_Sugeridas_Partes";
           Partes.dataset.partesIds = Item.Partes
             .map((Parte) => Parte.Id)
@@ -50153,6 +50245,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Partes.textContent = Item.Partes.length
             ? t("sidebar.metas_partes_n", { n: Item.Partes.length })
             : t("sidebar.metas_partes_ninguna");
+          Partes.disabled = Item.Partes.length === 0;
+          Partes.addEventListener("click", () => {
+            Metas_Sugeridas_Mostrar_Partes(Item.Partes);
+          });
+
+          const Importar = document.createElement("input");
+          Importar.type = "checkbox";
+          Importar.className = "Metas_Sugeridas_Importar_Check";
+          Importar.checked = true;
+          Importar.title = t("sidebar.metas_col_importar");
 
           Fila.appendChild(Emoji);
           Fila.appendChild(Nombre);
@@ -50161,8 +50263,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fila.appendChild(Categoria);
           Fila.appendChild(Color);
           Fila.appendChild(Partes);
+          Fila.appendChild(Importar);
           El_Metas_Sugeridas_Tabla.appendChild(Fila);
         });
+      }
+
+      async function Metas_Sugeridas_Mostrar_Partes(Partes) {
+        const Lista = Array.isArray(Partes) ? Partes : [];
+        if (!Lista.length) return;
+        const Cont = document.createElement("div");
+        Cont.className = "Metas_Sugeridas_Partes_Modal";
+        Lista.forEach((Parte) => {
+          const Item = document.createElement("div");
+          Item.className = "Metas_Sugeridas_Partes_Item";
+          const Emoji = document.createElement("span");
+          Emoji.className = "Con_Fallback_Emoji";
+          Emoji.textContent = Parte.Emoji || "\u2022";
+          const Nombre = document.createElement("strong");
+          Nombre.textContent = Parte.Nombre || "";
+          const Meta = document.createElement("span");
+          Meta.className = "Metas_Sugeridas_Partes_Meta";
+          Meta.textContent = Planes_Formatear_Parte(Parte);
+          Item.appendChild(Emoji);
+          Item.appendChild(Nombre);
+          Item.appendChild(Meta);
+          Cont.appendChild(Item);
+        });
+        await Mostrar_Dialogo(Cont, [
+          {
+            Etiqueta: t("cerrar"),
+            Valor: true,
+            Tipo: "Primario"
+          }
+        ]);
       }
 
       function Abrir_Metas_Sugeridas() {
@@ -50185,6 +50318,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         let Creadas = 0;
         Filas.forEach((Fila) => {
+          const Check = Fila.querySelector(
+            ".Metas_Sugeridas_Importar_Check"
+          );
+          if (Check && !Check.checked) return;
           const Sub = Modelo.Subobjetivos[Fila.dataset.subobjetivoId];
           const Objetivo_Plan = Modelo.Objetivos[Sub?.Objetivo_Id];
           if (!Sub || !Objetivo_Plan) return;
