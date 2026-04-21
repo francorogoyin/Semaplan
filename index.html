@@ -5009,9 +5009,9 @@
         align-items: center;
         justify-content: center;
         font-size: 13px;
-        background: rgba(255, 255, 255, 0.94);
-        border: 1px solid rgba(208, 191, 168, 0.92);
-        box-shadow: 0 2px 8px rgba(86, 70, 52, 0.08);
+        background: transparent;
+        border: 0;
+        box-shadow: none;
       }
 
       .Planes_Fuente_Badge {
@@ -5101,6 +5101,19 @@
           0 1px 4px rgba(151, 84, 0, 0.16);
       }
 
+      .Planes_Objetivo_Card.Estado_Cumplido .Planes_Objetivo_Emoji,
+      .Planes_Objetivo_Card.Saldado .Planes_Objetivo_Emoji {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: #2f8d55;
+        color: #fff;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.34),
+          0 1px 4px rgba(31, 107, 79, 0.16);
+      }
+
       .Planes_Objetivo_Card.Estado_Activo .Planes_Objetivo_Emoji {
         flex-basis: 26px;
         width: 26px;
@@ -5108,7 +5121,25 @@
         font-size: 18px;
       }
 
+      .Planes_Objetivo_Card.Estado_Cumplido .Planes_Objetivo_Emoji,
+      .Planes_Objetivo_Card.Saldado .Planes_Objetivo_Emoji {
+        flex-basis: 26px;
+        width: 26px;
+        height: 26px;
+        font-size: 18px;
+      }
+
       .Planes_Objetivo_Card.Vista_Biblioteca.Estado_Activo
+        .Planes_Objetivo_Emoji {
+        flex-basis: 42px;
+        width: 42px;
+        height: 42px;
+        font-size: 27px;
+      }
+
+      .Planes_Objetivo_Card.Vista_Biblioteca.Estado_Cumplido
+        .Planes_Objetivo_Emoji,
+      .Planes_Objetivo_Card.Vista_Biblioteca.Saldado
         .Planes_Objetivo_Emoji {
         flex-basis: 42px;
         width: 42px;
@@ -5555,6 +5586,16 @@
         font-size: 34px;
       }
 
+      .Planes_Objetivo_Card.Expandida.Estado_Cumplido
+        .Planes_Objetivo_Emoji,
+      .Planes_Objetivo_Card.Expandida.Saldado
+        .Planes_Objetivo_Emoji {
+        flex-basis: 40px;
+        width: 40px;
+        height: 40px;
+        font-size: 34px;
+      }
+
       .Planes_Objetivo_Card.Expandida .Planes_Objetivo_Nombre {
         color: #2c2c2c;
         font-size: 16px;
@@ -5580,8 +5621,8 @@
         width: 28px;
         height: 28px;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.48);
-        border: 1px solid #e8e8e8;
+        background: transparent;
+        border: 0;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -5616,8 +5657,7 @@
 
       .Planes_Objetivo_Card.Atrasado.Expandida
         .Planes_Objetivo_Estado {
-        border-color: rgba(166, 54, 49, 0.24);
-        background: rgba(166, 54, 49, 0.1);
+        background: transparent;
       }
 
       .Planes_Objetivo_Card.Saldado.Expandida
@@ -5633,8 +5673,7 @@
 
       .Planes_Objetivo_Card.Saldado.Expandida
         .Planes_Objetivo_Estado {
-        border-color: rgba(47, 141, 85, 0.24);
-        background: rgba(47, 141, 85, 0.1);
+        background: transparent;
       }
 
       .Planes_Badge {
@@ -48925,6 +48964,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Objetivo.Eliminado_Local ? " Eliminado" : "") +
           ((Objetivo.Warnings || []).length ? " Warning" : "") +
           (Estado_Efectivo === "Activo" ? " Estado_Activo" : "") +
+          (Estado_Efectivo === "Cumplido" ? " Estado_Cumplido" : "") +
           (Estado_Efectivo === "Vencido" ? " Atrasado" : "") +
           (Estado_Efectivo === "Saldado" ? " Saldado" : "") +
           (Es_Lista ? " Vista_Lista" : "") +
