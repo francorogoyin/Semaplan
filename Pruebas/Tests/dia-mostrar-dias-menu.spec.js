@@ -174,6 +174,9 @@ test("el menu del encabezado alterna dias visibles", async ({
     const Textos_Atajos = Array.from(
       Menu.querySelectorAll("[data-dia-atajo]")
     ).map((Btn) => Btn.textContent || "");
+    const Atajos = Array.from(
+      Menu.querySelectorAll("[data-dia-atajo]")
+    ).map((Btn) => Btn.dataset.diaAtajo || "");
     const Btn_Martes = Menu.querySelector(
       '[data-dia-toggle="1"]'
     );
@@ -208,6 +211,10 @@ test("el menu del encabezado alterna dias visibles", async ({
     );
     const Texto_Viernes = Btn_Viernes?.textContent || "";
     Btn_Viernes?.click();
+    const Estado_Sin_Viernes = [...Config.Dias_Visibles];
+    const Tiene_Header_Viernes = Boolean(
+      document.querySelector('.Dia_Header[data-dia="4"]')
+    );
 
     const Header_Lunes_2 = document.querySelector(
       '.Dia_Header[data-dia="0"]'
@@ -229,19 +236,21 @@ test("el menu del encabezado alterna dias visibles", async ({
       submenuAbierto: Submenu_Abierto,
       tituloAtajos: Titulo_Atajos,
       textosAtajos: Textos_Atajos,
+      atajos: Atajos,
       textoMartes: Texto_Martes,
       menuActivoTrasMartes: Menu_Activo_Tras_Martes,
       submenuTrasMartes: Submenu_Tras_Martes,
       diasConMartes: Estado_Con_Martes,
       tieneHeaderMartes: Tiene_Header_Martes,
       textoViernes: Texto_Viernes,
-      diasSinViernes: [...Config.Dias_Visibles],
-      tieneHeaderViernes: Boolean(
-        document.querySelector('.Dia_Header[data-dia="4"]')
-      ),
+      diasSinViernes: Estado_Sin_Viernes,
+      tieneHeaderViernes: Tiene_Header_Viernes,
       diasSoloHoy: [...Config.Dias_Visibles],
+      diaHoy: Obtener_Dia_Hoy_Index(),
       tieneHeaderSoloHoy: Boolean(
-        document.querySelector('.Dia_Header[data-dia="4"]')
+        document.querySelector(
+          `.Dia_Header[data-dia="${Obtener_Dia_Hoy_Index()}"]`
+        )
       ),
       tieneHeaderLunesSoloHoy: Boolean(
         document.querySelector('.Dia_Header[data-dia="0"]')
@@ -255,6 +264,11 @@ test("el menu del encabezado alterna dias visibles", async ({
   expect(resultado.textosAtajos.join(" ")).toContain(
     "Ocultar todos menos hoy"
   );
+  expect(resultado.atajos.slice(0, 3)).toEqual([
+    "todos-dias",
+    "ocultar-fin-semana",
+    "ocultar-dias-semana"
+  ]);
   expect(resultado.textosAtajos.join(" ")).toContain(
     "Ocultar días anteriores"
   );
@@ -271,9 +285,9 @@ test("el menu del encabezado alterna dias visibles", async ({
   expect(resultado.textoViernes).toContain("✓");
   expect(resultado.diasSinViernes).toEqual([0, 1, 2]);
   expect(resultado.tieneHeaderViernes).toBe(false);
-  expect(resultado.diasSoloHoy).toEqual([4]);
+  expect(resultado.diasSoloHoy).toEqual([resultado.diaHoy]);
   expect(resultado.tieneHeaderSoloHoy).toBe(true);
-  expect(resultado.tieneHeaderLunesSoloHoy).toBe(false);
+  expect(resultado.tieneHeaderLunesSoloHoy).toBe(resultado.diaHoy === 0);
 });
 
 test("el encabezado permite limpiar un dia con confirmacion", async ({
@@ -281,7 +295,10 @@ test("el encabezado permite limpiar un dia con confirmacion", async ({
 }) => {
   await preparar(page, crearEstado());
 
-  const Fecha = "2026-04-13";
+  const Fecha = await page.evaluate(() =>
+    document.querySelector('.Dia_Header[data-dia="0"]')?.dataset.fecha ||
+    Clave_Semana_Actual()
+  );
 
   await page.evaluate((Fecha_Dia) => {
     const Objetivo = Crear_Objetivo_Semanal_Con_Datos(
