@@ -1,0 +1,111 @@
+Cambio en Planes: mostrar por rango.
+
+Fecha: 22 de abril de 2026.
+
+Resumen.
+
+Se cambio la logica de Planes para que mostrar un objetivo en un
+periodo hijo no cree una copia del objetivo padre.
+
+El objetivo padre sigue siendo la fuente de verdad.
+El periodo hijo solo muestra una vista contextual de ese objetivo.
+Esa vista puede tener una meta propia para el periodo, pero no
+duplica nombre, metadatos, unidad, fechas ni subobjetivos.
+
+Criterio de visibilidad.
+
+Un objetivo aparece en un periodo si su rango de fechas solapa ese
+periodo.
+
+El rango se calcula con esta prioridad.
+
+- Fecha inicial y fecha final.
+- Fecha inicial y fecha objetivo.
+- Fecha final sola.
+- Fecha objetivo sola.
+- Fecha inicial sola.
+
+Si las fechas cambian y el objetivo deja de solapar un periodo, deja
+de mostrarse ahi.
+Si vuelve a solapar, vuelve a aparecer sin necesitar una nueva copia.
+
+Metas por periodo.
+
+Lo unico que puede variar por periodo es la meta del objetivo.
+
+Para eso se agrego una estructura de ajustes por periodo en el propio
+objetivo padre.
+Cada ajuste guarda la meta del periodo, si esta fijada, la regla de
+distribucion y datos tecnicos de vinculo.
+
+Al editar la meta desde un periodo hijo, se abre un modal que muestra
+el periodo base y todos los periodos relacionados de esa capa.
+Desde ahi se puede cambiar la meta anual o base, editar las metas de
+cada periodo, fijar periodos y redistribuir el saldo.
+
+Subobjetivos.
+
+Los subobjetivos no pueden tener fechas fuera del rango del objetivo
+padre.
+
+Si el objetivo padre no tiene rango y se intenta fechar un
+subobjetivo, el guardado se bloquea.
+Si el padre tiene rango y el subobjetivo cae antes o despues de ese
+rango, el guardado tambien se bloquea.
+
+Los subobjetivos sin fechas no se muestran en periodos hijos.
+Viven solo en el objetivo padre.
+
+Los subobjetivos con rango se muestran completos en todos los
+periodos que solapan.
+El planeado numerico solo cuenta cuando la fecha objetivo o final del
+subobjetivo cae dentro del periodo.
+
+Avances.
+
+Los avances con fecha se filtran por el periodo donde se esta viendo
+el registro.
+
+Los avances sin fecha quedan asociados solo al objetivo padre.
+No aparecen como avance del objetivo mostrado en un periodo hijo.
+
+Esto evita que un avance cargado en anual contamine trimestres,
+meses o semanas sin una fecha real.
+
+Cambios visibles.
+
+Los textos visibles de importacion pasaron a hablar de mostrar.
+La accion sigue usando algunos nombres internos heredados, pero la
+experiencia visible ya no presenta el flujo como duplicacion.
+
+Tambien se agregaron campos de fecha al modal de objetivo para poder
+definir fecha inicial, fecha objetivo y fecha final.
+
+Pruebas.
+
+Se agregaron pruebas para estos casos.
+
+- Mostrar por rango sin duplicar objetivos.
+- Filtrar avances sin fecha fuera de los periodos hijos.
+- Mostrar planeados fechados en objetivos sin target numerico.
+- Editar la meta desde un periodo viendo todos los periodos
+  relacionados.
+
+Los tests antiguos que validaban importacion por duplicacion quedaron
+marcados como legacy y salteados.
+Esos tests ya no representan el comportamiento buscado.
+
+Validaciones ejecutadas.
+
+- npx playwright test Pruebas/Tests/planes-jerarquia-periodos.spec.js
+  --reporter=line.
+- npm run test:smoke:prod.
+- git diff --check.
+
+Resultado.
+
+La spec de Planes quedo con 17 pruebas activas pasando y 18 pruebas
+legacy salteadas.
+El smoke de produccion paso.
+El cambio quedo commiteado y pusheado en main con el commit
+750160ab.
