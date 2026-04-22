@@ -13442,6 +13442,15 @@
         opacity: 1;
       }
 
+      .Meta_Toast.Con_Link {
+        cursor: pointer;
+      }
+
+      .Meta_Toast.Con_Link:hover {
+        border-color: rgba(15, 95, 90, 0.34);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+      }
+
       .Meta_Toast_Icono {
         font-size: 22px;
         line-height: 1;
@@ -42156,12 +42165,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
-      function Mostrar_Toast_Meta(Titulo, Subtitulo) {
+      function Mostrar_Toast_Meta(Titulo, Subtitulo, Opciones = {}) {
         if (!El_Meta_Toast_Contenedor) return;
         const Id = ++Meta_Toast_Contador_Id;
         const Toast = document.createElement("div");
         Toast.className = "Meta_Toast";
         Toast.dataset.toastId = String(Id);
+        const Meta_Id = (Opciones.Meta_Id || "").toString();
         let Cerrado = false;
         let Timer_Id = null;
 
@@ -42184,6 +42194,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Textos.appendChild(Sub);
         Toast.appendChild(Icono);
         Toast.appendChild(Textos);
+        if (Meta_Id) {
+          Toast.classList.add("Con_Link");
+          Toast.title = t("paleta.abrir_metas");
+          Toast.addEventListener("click", (Ev) => {
+            if (Ev.target.closest(".Toast_Cerrar")) return;
+            Abrir_Metas(Meta_Id);
+          });
+        }
         Agregar_Boton_Cerrar_Toast(Toast, () => {
           if (Cerrado) return;
           Cerrado = true;
@@ -42293,7 +42311,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Cruces.forEach((Cruce) => {
           Mostrar_Toast_Meta(
             `${Cruce.Meta.Nombre} llegó al ${Cruce.Hito}%`,
-            `${Cruce.Porcentaje_Final}% de la meta cumplido`
+            `${Cruce.Porcentaje_Final}% de la meta cumplido`,
+            { Meta_Id: Cruce.Meta.Id }
           );
         });
       }
@@ -42864,8 +42883,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
-      function Abrir_Metas() {
-        Abrir_Plan();
+      function Abrir_Metas(Meta_Id = null) {
+        if (!Validar_Acceso_Premium("Metas")) return;
+        const Id_Seleccion = (Meta_Id || "").toString();
+        const Meta_Seleccionada = Id_Seleccion
+          ? Meta_Por_Id(Id_Seleccion)
+          : null;
+        Cerrar_Editor_Meta();
+        Mostrar_Mensaje_Metas("");
+        if (
+          Meta_Seleccionada?.Archivada &&
+          El_Metas_Mostrar_Archivadas
+        ) {
+          El_Metas_Mostrar_Archivadas.checked = true;
+        }
+        if (
+          Id_Seleccion &&
+          El_Metas_Filtro_Estado &&
+          !Obtener_Metas_Filtradas()
+            .some(({ Meta }) => Meta.Id === Id_Seleccion)
+        ) {
+          El_Metas_Filtro_Estado.value = "Todas";
+        }
+        if (Id_Seleccion) {
+          Meta_Seleccion_Id = Id_Seleccion;
+        }
+        Render_Metas();
+        El_Metas_Overlay?.classList.add("Activo");
       }
 
       function Cerrar_Metas() {
@@ -91137,8 +91181,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Descripcion: t("paleta.abrir_metas_desc"),
             Icono: "🎯",
             Handler: () => {
-              if (typeof Abrir_Plan === "function") {
-                Abrir_Plan();
+              if (typeof Abrir_Metas === "function") {
+                Abrir_Metas();
               }
             }
           },
@@ -91970,8 +92014,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.preventDefault();
           }
         } else if (Ev.key === "m" || Ev.key === "M") {
-          if (typeof Abrir_Plan === "function") {
-            Abrir_Plan();
+          if (typeof Abrir_Metas === "function") {
+            Abrir_Metas();
             Ev.preventDefault();
           }
         } else if (Ev.key === "f" || Ev.key === "F") {
