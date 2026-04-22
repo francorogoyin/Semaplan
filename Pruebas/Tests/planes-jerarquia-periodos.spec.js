@@ -5512,6 +5512,133 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Ocultar objetivo en periodo afecta descendientes",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(async () => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Semestre";
+    Modelo.UI.Vista = "Tarjetas";
+    Modelo.UI.Mostrar_Ocultos_Periodo = false;
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Semestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Semestre");
+    const Meses = Planes_Crear_Periodos_Distribucion(Anio, "Mes");
+    const Enero = Meses.find((Periodo) =>
+      Periodo.Inicio === "2026-01-01"
+    );
+    const Julio = Meses.find((Periodo) =>
+      Periodo.Inicio === "2026-07-01"
+    );
+    Modelo.UI.Periodo_Activo_Id = Semestres[0].Id;
+    const Padre = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Libros",
+      Emoji: "\uD83D\uDCDA",
+      Target_Total: 120,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros"
+    });
+    Render_Plan();
+    const Boton_Ojo = Boolean(
+      document.querySelector("[data-plan-universo-ocultos]")
+    );
+    const Menu_Antes =
+      Render_Planes_Objetivo_Acciones(
+        Padre,
+        Semestres[0].Id
+      );
+    const Ocultar_Ok =
+      Planes_Cambiar_Ocultamiento_Objetivo_Periodo(
+        Padre.Id,
+        Semestres[0].Id,
+        true
+      );
+    const Ids = (Periodo) =>
+      Planes_Filtrar_Objetivos(Periodo)
+        .map((Objetivo) => Objetivo.__Objetivo_Canonico_Id || Objetivo.Id);
+    const Sin_Ocultos = {
+      Anio: Ids(Anio),
+      Semestre_1: Ids(Semestres[0]),
+      Semestre_2: Ids(Semestres[1]),
+      Enero: Ids(Enero),
+      Julio: Ids(Julio)
+    };
+    Asegurar_Modelo_Planes().UI.Mostrar_Ocultos_Periodo = true;
+    const Con_Ocultos = {
+      Semestre_1: Ids(Semestres[0]),
+      Enero: Ids(Enero)
+    };
+    Asegurar_Modelo_Planes().UI.Periodo_Activo_Id = Semestres[0].Id;
+    Render_Plan();
+    const Card_Oculto = document.querySelector(
+      ".Planes_Objetivo_Card.Oculto_Contextual"
+    );
+    const Menu_Despues =
+      Render_Planes_Objetivo_Acciones(
+        Padre,
+        Semestres[0].Id
+      );
+    const Mostrar_Ok =
+      Planes_Cambiar_Ocultamiento_Objetivo_Periodo(
+        Padre.Id,
+        Enero.Id,
+        false
+      );
+    Asegurar_Modelo_Planes().UI.Mostrar_Ocultos_Periodo = false;
+    const Restaurado = {
+      Semestre_1: Ids(Semestres[0]),
+      Enero: Ids(Enero)
+    };
+    return {
+      Padre_Id: Padre.Id,
+      Boton_Ojo,
+      Menu_Antes,
+      Menu_Despues,
+      Ocultar_Ok,
+      Mostrar_Ok,
+      Sin_Ocultos,
+      Con_Ocultos,
+      Restaurado,
+      Card_Oculto: Boolean(Card_Oculto)
+    };
+  });
+
+  expect(Resultado.Boton_Ojo).toBe(true);
+  expect(Resultado.Menu_Antes).toContain("Ocultar");
+  expect(Resultado.Menu_Despues).toContain("Mostrar");
+  expect(Resultado.Ocultar_Ok).toBe(true);
+  expect(Resultado.Mostrar_Ok).toBe(true);
+  expect(Resultado.Sin_Ocultos.Anio).toContain(Resultado.Padre_Id);
+  expect(Resultado.Sin_Ocultos.Semestre_1).not.toContain(
+    Resultado.Padre_Id
+  );
+  expect(Resultado.Sin_Ocultos.Semestre_2).toContain(
+    Resultado.Padre_Id
+  );
+  expect(Resultado.Sin_Ocultos.Enero).not.toContain(Resultado.Padre_Id);
+  expect(Resultado.Sin_Ocultos.Julio).toContain(Resultado.Padre_Id);
+  expect(Resultado.Con_Ocultos.Semestre_1).toContain(Resultado.Padre_Id);
+  expect(Resultado.Con_Ocultos.Enero).toContain(Resultado.Padre_Id);
+  expect(Resultado.Card_Oculto).toBe(true);
+  expect(Resultado.Restaurado.Semestre_1).toContain(Resultado.Padre_Id);
+  expect(Resultado.Restaurado.Enero).toContain(Resultado.Padre_Id);
+  expect(errores).toEqual([]);
+});
+
 test("Objetivo sin target muestra planeados fechados",
 async ({ page }) => {
   const errores = [];

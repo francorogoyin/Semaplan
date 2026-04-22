@@ -4749,6 +4749,10 @@
         transform: translateY(-1px);
       }
 
+      .Planes_Universo_Accion.Activo {
+        color: var(--Acento);
+      }
+
       .Planes_Universo_Accion:disabled {
         cursor: default;
         opacity: 0.36;
@@ -4971,6 +4975,10 @@
       .Planes_Objetivo_Card.Eliminado {
         opacity: 0.55;
         background: #f7f7f7;
+      }
+
+      .Planes_Objetivo_Card.Oculto_Contextual {
+        opacity: 0.58;
       }
 
       .Planes_Objetivo_Card.Reordenable {
@@ -21371,6 +21379,14 @@
             "fecha objetivo y fecha inicial.",
           "planes.agregar_en_periodo":
             "Agregar objetivo en este periodo",
+          "planes.ocultar_periodo": "Ocultar",
+          "planes.mostrar_periodo": "Mostrar",
+          "planes.mostrar_ocultos": "Mostrar ocultos",
+          "planes.ocultar_ocultos": "Ocultar ocultos",
+          "planes.objetivo_oculto_periodo":
+            "Objetivo oculto en este per\u00edodo.",
+          "planes.objetivo_visible_periodo":
+            "Objetivo visible en este per\u00edodo.",
           "planes.borrar_importados_capa":
             "Ocultar mostrados de esta capa",
           "planes.borrar_importados_titulo":
@@ -25031,6 +25047,14 @@
             "date and initial date.",
           "planes.agregar_en_periodo":
             "Add objective in this period",
+          "planes.ocultar_periodo": "Hide",
+          "planes.mostrar_periodo": "Show",
+          "planes.mostrar_ocultos": "Show hidden",
+          "planes.ocultar_ocultos": "Hide hidden",
+          "planes.objetivo_oculto_periodo":
+            "Objective hidden in this period.",
+          "planes.objetivo_visible_periodo":
+            "Objective visible in this period.",
           "planes.borrar_importados_capa":
             "Hide shown objectives from this layer",
           "planes.borrar_importados_titulo":
@@ -28725,6 +28749,14 @@
             "e data inicial.",
           "planes.agregar_en_periodo":
             "Adicionar objetivo neste periodo",
+          "planes.ocultar_periodo": "Ocultar",
+          "planes.mostrar_periodo": "Mostrar",
+          "planes.mostrar_ocultos": "Mostrar ocultos",
+          "planes.ocultar_ocultos": "Ocultar ocultos",
+          "planes.objetivo_oculto_periodo":
+            "Objetivo oculto neste per\u00edodo.",
+          "planes.objetivo_visible_periodo":
+            "Objetivo vis\u00edvel neste per\u00edodo.",
           "planes.borrar_importados_capa":
             "Ocultar mostrados desta camada",
           "planes.borrar_importados_titulo":
@@ -44432,7 +44464,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Anio_Activo: new Date().getFullYear(),
             Anio_Todos: false,
             Subperiodo_Activo: 1,
-            Busqueda: ""
+            Busqueda: "",
+            Mostrar_Ocultos_Periodo: false
           }
         };
       }
@@ -44581,6 +44614,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Planes_Tipos.includes(Modelo.UI.Filtro_Tipo)) {
           Modelo.UI.Filtro_Tipo = "Anio";
         }
+        Modelo.UI.Mostrar_Ocultos_Periodo =
+          Modelo.UI.Mostrar_Ocultos_Periodo === true;
         return Modelo;
       }
 
@@ -44809,6 +44844,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Resultado;
       }
 
+      function Planes_Normalizar_Oculto_Periodos(Valor) {
+        const Resultado = {};
+        const Agregar = (Periodo_Id, Activo = true) => {
+          const Id = (Periodo_Id || "").toString();
+          if (!Id || !Activo) return;
+          Resultado[Id] = true;
+        };
+        if (Array.isArray(Valor)) {
+          Valor.forEach((Periodo_Id) => Agregar(Periodo_Id));
+          return Resultado;
+        }
+        if (Valor && typeof Valor === "object") {
+          Object.entries(Valor).forEach(([Periodo_Id, Activo]) => {
+            Agregar(Periodo_Id, Activo === true);
+          });
+        }
+        return Resultado;
+      }
+
       function Normalizar_Objetivo_Plan(Objetivo, Indice = 0) {
         if (!Objetivo || typeof Objetivo !== "object") return null;
         const Ahora = new Date().toISOString();
@@ -44937,6 +44991,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Objetivo.Redistribucion_Target ||
               Objetivo.Redistribucion_Objetivo ||
               Objetivo.Redistribucion
+            ),
+          Oculto_Periodos:
+            Planes_Normalizar_Oculto_Periodos(
+              Objetivo.Oculto_Periodos ||
+              Objetivo.Periodos_Ocultos ||
+              Objetivo.Ocultamientos_Periodo
             ),
           Fijado: Boolean(Objetivo.Fijado),
           Target_Fijado_Por_Usuario:
@@ -48742,6 +48802,72 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Planes_Periodo_Contiene_Periodo(Padre, Hijo);
       }
 
+      function Planes_Objetivo_Canonico_Contextual(
+        Objetivo,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Id = (
+          Objetivo?.__Objetivo_Canonico_Id ||
+          Planes_Objetivo_Raiz_Id(Objetivo?.Id || "")
+        ).toString();
+        return M.Objetivos[Id] || Objetivo || null;
+      }
+
+      function Planes_Ocultos_Periodos_Objetivo(Objetivo) {
+        if (!Objetivo) return {};
+        if (
+          !Objetivo.Oculto_Periodos ||
+          typeof Objetivo.Oculto_Periodos !== "object" ||
+          Array.isArray(Objetivo.Oculto_Periodos)
+        ) {
+          Objetivo.Oculto_Periodos =
+            Planes_Normalizar_Oculto_Periodos(Objetivo.Oculto_Periodos);
+        }
+        return Objetivo.Oculto_Periodos;
+      }
+
+      function Planes_Ocultamiento_Objetivo_Periodo(
+        Objetivo,
+        Periodo,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Canonico =
+          Planes_Objetivo_Canonico_Contextual(Objetivo, M);
+        const Ocultos = Planes_Ocultos_Periodos_Objetivo(Canonico);
+        if (!Canonico || !Periodo || !Ocultos) {
+          return { Oculto: false, Periodo_Id: "" };
+        }
+        const Fuentes = Object.keys(Ocultos)
+          .filter((Periodo_Id) => Ocultos[Periodo_Id])
+          .map((Periodo_Id) => M.Periodos[Periodo_Id])
+          .filter(Boolean)
+          .filter((Fuente) =>
+            Fuente.Id === Periodo.Id ||
+            Planes_Periodo_Es_Padre_De(Fuente, Periodo)
+          )
+          .sort((A, B) =>
+            Planes_Nivel_Tipo(B.Tipo) - Planes_Nivel_Tipo(A.Tipo)
+          );
+        return {
+          Oculto: Fuentes.length > 0,
+          Periodo_Id: Fuentes[0]?.Id || ""
+        };
+      }
+
+      function Planes_Objetivo_Oculto_En_Periodo(
+        Objetivo,
+        Periodo,
+        Modelo = null
+      ) {
+        return Planes_Ocultamiento_Objetivo_Periodo(
+          Objetivo,
+          Periodo,
+          Modelo
+        ).Oculto;
+      }
+
       function Planes_Periodo_Tiene_Padres_Importables(Periodo) {
         const Modelo = Asegurar_Modelo_Planes();
         const Padre_Ids = Object.values(Modelo.Periodos)
@@ -49022,6 +49148,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Estado = Modelo.UI.Filtro_Estado || "Todos";
         const Etiqueta = Modelo.UI.Filtro_Etiqueta || "Todas";
+        const Mostrar_Ocultos =
+          Modelo.UI.Mostrar_Ocultos_Periodo === true;
         const Busqueda = Normalizar_Texto_Meta_Objetivo(
           Modelo.UI.Busqueda || ""
         );
@@ -49037,6 +49165,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Periodo,
               Modelo
             )) {
+              return;
+            }
+            if (
+              !Mostrar_Ocultos &&
+              Planes_Objetivo_Oculto_En_Periodo(
+                Objetivo,
+                Periodo,
+                Modelo
+              )
+            ) {
               return;
             }
             Visibles.push(Planes_Objetivo_Para_Periodo(
@@ -49070,6 +49208,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Render_Planes_Resumen(Periodo) {
+        const Modelo = Asegurar_Modelo_Planes();
         const Objetivos_Periodo =
           Planes_Filtrar_Objetivos(Periodo)
             .filter((Objetivo) => !Objetivo.Eliminado_Local);
@@ -49092,6 +49231,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Avance_Titulo = Escape_Html(
           t("planes.registrar_avance")
+        );
+        const Mostrar_Ocultos =
+          Modelo.UI.Mostrar_Ocultos_Periodo === true;
+        const Ocultos_Titulo = Escape_Html(
+          Mostrar_Ocultos
+            ? t("planes.ocultar_ocultos")
+            : t("planes.mostrar_ocultos")
         );
         const Vecinos = Planes_Vecinos_Periodo_Misma_Capa(Periodo);
         const Anterior_Titulo = Escape_Html(
@@ -49182,6 +49328,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   data-plan-universo-avance
                   title="${Avance_Titulo}"
                   aria-label="${Avance_Titulo}">&#10140;</button>
+                <button class="Planes_Universo_Accion Con_Fallback_Emoji${
+                    Mostrar_Ocultos ? " Activo" : ""
+                  }"
+                  type="button"
+                  data-plan-universo-ocultos
+                  title="${Ocultos_Titulo}"
+                  aria-label="${Ocultos_Titulo}">&#128065;</button>
               </div>
             </div>
           </div>
@@ -49223,6 +49376,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Tipo: "Periodo",
               Id: Periodo.Id
             });
+          });
+        }
+        const Btn_Ocultos = Cont.querySelector(
+          "[data-plan-universo-ocultos]"
+        );
+        if (Btn_Ocultos) {
+          Btn_Ocultos.addEventListener("click", () => {
+            const Modelo = Asegurar_Modelo_Planes();
+            Modelo.UI.Periodo_Activo_Id = Periodo.Id;
+            Modelo.UI.Mostrar_Ocultos_Periodo =
+              Modelo.UI.Mostrar_Ocultos_Periodo !== true;
+            Render_Planes_Contenido();
           });
         }
         const Hay_Resumen = Boolean((Periodo.Resumen || "").trim());
@@ -50574,9 +50739,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Expandidos?.[Clave_Periodo] === Objetivo.Id;
         const Estado_Efectivo =
           Planes_Estado_Efectivo_Objetivo(Objetivo);
+        const Periodo_Contexto =
+          Planes_Periodo_Contexto_Objetivo(Objetivo, Modelo);
+        const Oculto_Contextual =
+          Planes_Objetivo_Oculto_En_Periodo(
+            Objetivo,
+            Periodo_Contexto,
+            Modelo
+          );
         const Card = document.createElement("article");
         Card.className = "Planes_Objetivo_Card" +
           (Objetivo.Eliminado_Local ? " Eliminado" : "") +
+          (Oculto_Contextual ? " Oculto_Contextual" : "") +
           ((Objetivo.Warnings || []).length ? " Warning" : "") +
           (Estado_Efectivo === "Activo" ? " Estado_Activo" : "") +
           (Estado_Efectivo === "Cumplido" ? " Estado_Cumplido" : "") +
@@ -51172,7 +51346,70 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         `;
       }
 
-      function Render_Planes_Objetivo_Acciones(Objetivo) {
+      function Planes_Cambiar_Ocultamiento_Objetivo_Periodo(
+        Objetivo_Id,
+        Periodo_Id,
+        Ocultar
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        const Canonico =
+          Planes_Objetivo_Canonico_Contextual(Objetivo, Modelo);
+        const Periodo = Modelo.Periodos[
+          (Periodo_Id || Objetivo?.Periodo_Id || "").toString()
+        ];
+        if (!Canonico || !Periodo) return false;
+        const Ocultos = Planes_Ocultos_Periodos_Objetivo(Canonico);
+        const Estado_Actual =
+          Planes_Ocultamiento_Objetivo_Periodo(
+            Canonico,
+            Periodo,
+            Modelo
+          );
+        const Snap = Capturar_Snapshot_Undo();
+        if (Ocultar) {
+          if (Ocultos[Periodo.Id]) return false;
+          Ocultos[Periodo.Id] = true;
+        } else {
+          const Fuente_Id = Estado_Actual.Periodo_Id || Periodo.Id;
+          if (!Ocultos[Fuente_Id]) return false;
+          delete Ocultos[Fuente_Id];
+        }
+        Canonico.Actualizado_En = new Date().toISOString();
+        Render_Plan();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          Ocultar
+            ? t("planes.objetivo_oculto_periodo")
+            : t("planes.objetivo_visible_periodo"),
+          Snap
+        );
+        return true;
+      }
+
+      function Render_Planes_Objetivo_Acciones(
+        Objetivo,
+        Periodo_Contexto_Id = ""
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Periodo = Modelo.Periodos[
+          Periodo_Contexto_Id ||
+          Objetivo?.__Periodo_Contexto_Id ||
+          Objetivo?.Periodo_Id ||
+          ""
+        ];
+        const Ocultamiento =
+          Planes_Ocultamiento_Objetivo_Periodo(
+            Objetivo,
+            Periodo,
+            Modelo
+          );
+        const Ocultar_Accion = Ocultamiento.Oculto
+          ? "mostrar_periodo"
+          : "ocultar_periodo";
+        const Ocultar_Label = Ocultamiento.Oculto
+          ? t("planes.mostrar_periodo")
+          : t("planes.ocultar_periodo");
         const Eliminar_Label = Objetivo.Eliminado_Local
           ? t("planes.recuperar")
           : t("planes.eliminar_local");
@@ -51192,6 +51429,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             <button class="Planes_Btn" type="button"
               data-plan-accion="estado">
               ${t("planes.editar_estado")}
+            </button>
+            <button class="Planes_Btn" type="button"
+              data-plan-accion="${Ocultar_Accion}">
+              ${Ocultar_Label}
             </button>
             <button class="Planes_Btn Peligro" type="button"
               data-plan-accion="eliminar">${Eliminar_Label}</button>
@@ -51247,6 +51488,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Tipo === "estado") await Planes_Cambiar_Estado(Objetivo.Id);
         if (Tipo === "vinculo") await Planes_Romper_Vinculo(Objetivo.Id);
         if (Tipo === "tags") Planes_Editar_Etiquetas(Objetivo.Id);
+        if (Tipo === "ocultar_periodo") {
+          Planes_Cambiar_Ocultamiento_Objetivo_Periodo(
+            Objetivo.Id,
+            Periodo_Contexto_Id || Objetivo.Periodo_Id,
+            true
+          );
+        }
+        if (Tipo === "mostrar_periodo") {
+          Planes_Cambiar_Ocultamiento_Objetivo_Periodo(
+            Objetivo.Id,
+            Periodo_Contexto_Id || Objetivo.Periodo_Id,
+            false
+          );
+        }
         if (Tipo === "eliminar") {
           await Planes_Solicitar_Eliminar(Objetivo.Id);
         }
@@ -51267,7 +51522,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Menu.style.left = "0";
         Menu.style.top = "0";
         Menu.style.visibility = "hidden";
-        Menu.innerHTML = Render_Planes_Objetivo_Acciones(Objetivo);
+        Menu.innerHTML = Render_Planes_Objetivo_Acciones(
+          Objetivo,
+          Periodo_Contexto_Id
+        );
         Menu.addEventListener("contextmenu", (Ev) => {
           Ev.preventDefault();
         });
@@ -51492,6 +51750,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         )) {
           return false;
         }
+        if (
+          M.UI.Mostrar_Ocultos_Periodo !== true &&
+          Planes_Objetivo_Oculto_En_Periodo(Objetivo, Periodo, M)
+        ) {
+          return false;
+        }
         if (Item.Tipo === "Objetivo") return true;
         const Objetivo_Contexto =
           Planes_Objetivo_Para_Periodo(Objetivo, Periodo);
@@ -51564,6 +51828,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Objetivo,
               Periodo,
               M
+            ) && (
+              M.UI.Mostrar_Ocultos_Periodo === true ||
+              !Planes_Objetivo_Oculto_En_Periodo(
+                Objetivo,
+                Periodo,
+                M
+              )
             )) {
               Agregar(Objetivo);
             }
