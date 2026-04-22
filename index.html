@@ -46144,10 +46144,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Partes_De_Subobjetivo(
         Sub_Id,
         Modelo = null,
-        Incluir_Eliminadas = false
+        Incluir_Eliminadas = false,
+        Incluir_Hijos = false
       ) {
         const M = Modelo || Asegurar_Modelo_Planes();
-        const Familia_Ids = Planes_Subobjetivos_Familia_Ids(Sub_Id, M);
+        const Familia_Ids = Incluir_Hijos
+          ? Planes_Subobjetivos_Familia_Con_Hijos_Ids(Sub_Id, M)
+          : Planes_Subobjetivos_Familia_Ids(Sub_Id, M);
         return Object.values(M.Partes || {})
           .filter((Parte) =>
             Familia_Ids.has(Parte.Subobjetivo_Id) &&
@@ -46163,6 +46166,50 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               { sensitivity: "base", numeric: true }
             );
           });
+      }
+
+      function Planes_Subobjetivos_Familia_Con_Hijos_Ids(
+        Sub_Id,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Ids = Planes_Subobjetivos_Familia_Ids(Sub_Id, M);
+        let Cambio = true;
+        while (Cambio) {
+          Cambio = false;
+          Object.values(M.Subobjetivos || {}).forEach((Sub) => {
+            const Padre_Id = (
+              Sub?.Subobjetivo_Padre_Id ||
+              ""
+            ).toString();
+            if (!Padre_Id || !Ids.has(Padre_Id)) return;
+            if (!Ids.has(Sub.Id)) {
+              Ids.add(Sub.Id);
+              Cambio = true;
+            }
+          });
+        }
+        return Ids;
+      }
+
+      function Planes_Subobjetivo_Raiz_Con_Hijos_Id(
+        Sub_Id,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        let Actual = M.Subobjetivos?.[Sub_Id];
+        const Visitados = new Set();
+        while (Actual?.Id && !Visitados.has(Actual.Id)) {
+          Visitados.add(Actual.Id);
+          const Padre_Id = (
+            Actual.Subobjetivo_Padre_Id ||
+            Actual.Parent_Subobjetivo_Id ||
+            ""
+          ).toString();
+          if (!Padre_Id || !M.Subobjetivos?.[Padre_Id]) break;
+          Actual = M.Subobjetivos[Padre_Id];
+        }
+        return Actual?.Id || Sub_Id || "";
       }
 
       function Planes_Ajustar_Unidad_Por_Cantidad(
@@ -53055,7 +53102,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         return Planes_Partes_De_Subobjetivo(
           Item.Sub.Id,
-          Modelo
+          Modelo,
+          false,
+          true
         )
           .filter((Parte) => !Parte.Eliminado_Local)
           .filter((Parte) =>
@@ -53105,9 +53154,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Objetivo = Planes_Normalizar_Fecha_Comparacion(
           Parte?.Fecha_Objetivo || ""
         );
-        if (Inicio && Objetivo) {
-          const Desde = Inicio <= Objetivo ? Inicio : Objetivo;
-          const Hasta = Inicio <= Objetivo ? Objetivo : Inicio;
+        const Fin = Planes_Normalizar_Fecha_Comparacion(
+          Parte?.Fecha_Fin || ""
+        );
+        const Extremo = Objetivo || Fin;
+        if (Inicio && Extremo) {
+          const Desde = Inicio <= Extremo ? Inicio : Extremo;
+          const Hasta = Inicio <= Extremo ? Extremo : Inicio;
           return Metas_Sugeridas_Rangos_Cruzan(
             Desde,
             Hasta,
@@ -53115,7 +53168,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fin_Semana
           );
         }
-        const Fecha = Objetivo || Inicio;
+        const Fecha = Objetivo || Inicio || Fin;
         if (!Fecha) return false;
         return Fecha >= Inicio_Semana && Fecha <= Fin_Semana;
       }
@@ -53218,7 +53271,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Metas_Sugeridas_Partes(Sub, Modelo) {
         const Semana = Metas_Sugeridas_Rango_Semana();
-        return Planes_Partes_De_Subobjetivo(Sub.Id, Modelo)
+        return Planes_Partes_De_Subobjetivo(
+          Sub.Id,
+          Modelo,
+          false,
+          true
+        )
           .filter((Parte) => !Parte.Eliminado_Local)
           .filter((Parte) =>
             Planes_Estado_Calculado_Parte(Parte, Modelo) !==
@@ -53248,12 +53306,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Objetivo,
               Modelo
             );
-            if (!Metas_Sugeridas_Rangos_Cruzan(
+            const Partes = Metas_Sugeridas_Partes(Sub, Modelo);
+            const Rango_Cruza = Metas_Sugeridas_Rangos_Cruzan(
               Rango.Inicio,
               Rango.Fin,
               Semana.Inicio,
               Semana.Fin
-            )) return;
+            );
+            const Tiene_Parte_Semanal = Partes.some(
+              (Info) => Info.Sugerida
+            );
+            if (!Rango_Cruza && !Tiene_Parte_Semanal) return;
             const Unidad = Planes_Unidad_Label_Subobjetivo(Sub);
             const Aporte = Metas_Sugeridas_Aporte(
               Sub,
@@ -53275,9 +53338,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Unidad
               ),
               Rango,
-              Partes: Metas_Sugeridas_Partes(Sub, Modelo)
+              Partes
             };
-            const Raiz_Id = Planes_Subobjetivo_Raiz_Id(Sub.Id, Modelo);
+            const Raiz_Id = Planes_Subobjetivo_Raiz_Con_Hijos_Id(
+              Sub.Id,
+              Modelo
+            );
             const Actual = Por_Raiz.get(Raiz_Id);
             if (
               !Actual ||
