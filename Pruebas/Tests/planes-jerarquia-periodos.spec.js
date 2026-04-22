@@ -3628,6 +3628,188 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Actualizar capa reordena subobjetivos pendientes por rango",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 2;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Pendientes por rango",
+        Emoji: "\uD83D\uDCC5",
+        Target_Total: 12,
+        Unidad: "Horas"
+      }
+    );
+    const Crear_Sub = (Texto, Orden, Inicio, Fin) => {
+      const Id = Crear_Id_Subobjetivo_Plan();
+      Modelo.Subobjetivos[Id] = Normalizar_Subobjetivo_Plan({
+        Id,
+        Objetivo_Id: Padre.Id,
+        Emoji: "\u2022",
+        Texto,
+        Orden,
+        Fecha_Inicio: Inicio,
+        Fecha_Fin: Fin,
+        Aporte_Meta: 1,
+        Unidad: "Horas"
+      });
+      return Modelo.Subobjetivos[Id];
+    };
+    Crear_Sub("Mayo", 0, "2026-05-01", "2026-05-31");
+    Crear_Sub("Abril", 1, "2026-04-01", "2026-04-30");
+
+    const Trimestres = Planes_Crear_Periodos_Distribucion(
+      Anio,
+      "Trimestre"
+    );
+    Planes_Importar_Objetivos_Padres_A_Periodos(
+      [{
+        Periodo_Id: Trimestres[1].Id,
+        Objetivo_Ids: [Padre.Id]
+      }],
+      { Modo: "Pendiente" }
+    );
+    const Hijo = Planes_Objetivo_Hijo_De(
+      Padre.Id,
+      Trimestres[1].Id
+    );
+    const Subs = Planes_Subobjetivos_De_Objetivo(Hijo.Id)
+      .filter((Sub) => !Sub.Eliminado_Local);
+    Subs.find((Sub) => Sub.Texto === "Mayo").Orden = 0;
+    Subs.find((Sub) => Sub.Texto === "Abril").Orden = 1;
+    const Textos = () => Planes_Subobjetivos_De_Objetivo(Hijo.Id)
+      .filter((Sub) => !Sub.Eliminado_Local)
+      .map((Sub) => Sub.Texto);
+    const Antes = Textos();
+    const Resumen = Planes_Actualizar_Importados_Capa(
+      "Trimestre",
+      { Silencioso: true }
+    );
+    return {
+      Antes,
+      Despues: Textos(),
+      Resumen
+    };
+  });
+
+  expect(Resultado.Antes).toEqual(["Mayo", "Abril"]);
+  expect(Resultado.Despues).toEqual(["Abril", "Mayo"]);
+  expect(Resultado.Resumen.Subobjetivos).toBeGreaterThan(0);
+  expect(Resultado.Resumen.Total).toBeGreaterThan(0);
+  expect(errores).toEqual([]);
+});
+
+test("Subobjetivo permite editar distribucion importada",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Datos = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Mes";
+    Modelo.UI.Subperiodo_Activo = 4;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Distribucion familiar",
+        Emoji: "\uD83D\uDCCA",
+        Target_Total: 120,
+        Unidad: "Horas"
+      }
+    );
+    const Meses = Planes_Crear_Periodos_Distribucion(Anio, "Mes");
+    Planes_Importar_Objetivos_Padres_A_Periodos(
+      [3, 4].map((Indice) => ({
+        Periodo_Id: Meses[Indice].Id,
+        Objetivo_Ids: [Padre.Id]
+      })),
+      { Modo: "Proporcional" }
+    );
+    const Abril = Planes_Objetivo_Hijo_De(Padre.Id, Meses[3].Id);
+    const Mayo = Planes_Objetivo_Hijo_De(Padre.Id, Meses[4].Id);
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Abril.Id,
+      "Ajustar cuota"
+    );
+    Abrir_Modal_Planes_Subobjetivos(Abril.Id, false);
+    Render_Modal_Planes_Subobjetivos();
+    return {
+      Sub_Id,
+      Abril_Id: Abril.Id,
+      Mayo_Id: Mayo.Id
+    };
+  });
+
+  const Sub = page.locator(
+    `[data-plan-subobjetivo-id="${Datos.Sub_Id}"]`
+  );
+  await expect(Sub).toBeVisible();
+  await Sub.click({ button: "right" });
+  await expect(
+    page.locator(
+      '.Planes_Context_Menu [data-plan-sub-accion="distribucion"]'
+    )
+  ).toBeVisible();
+  await page.locator(
+    '.Planes_Context_Menu [data-plan-sub-accion="distribucion"]'
+  ).click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.getByRole("button", {
+    name: "Redistribuir pendiente"
+  }).click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .not.toHaveClass(/Activo/);
+
+  const Resultado = await page.evaluate((Ids) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    return {
+      Abril_Regla:
+        Modelo.Objetivos[Ids.Abril_Id]?.Regla_Distribucion,
+      Mayo_Regla:
+        Modelo.Objetivos[Ids.Mayo_Id]?.Regla_Distribucion
+    };
+  }, Datos);
+
+  expect(Resultado.Abril_Regla).toBe("Pendiente");
+  expect(Resultado.Mayo_Regla).toBe("Pendiente");
+  expect(errores).toEqual([]);
+});
+
 test("Actualizar capa traslada avances de subobjetivos importados",
 async ({ page }) => {
   const errores = [];
@@ -4309,6 +4491,11 @@ async ({ page }) => {
   await expect(
     page.locator(
       '.Planes_Context_Menu [data-plan-sub-accion="editar"]'
+    )
+  ).toBeVisible();
+  await expect(
+    page.locator(
+      '.Planes_Context_Menu [data-plan-sub-accion="distribucion"]'
     )
   ).toBeVisible();
   await page.locator(

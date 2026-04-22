@@ -21143,6 +21143,13 @@
             "Ingresá una métrica válida para cada objetivo seleccionado.",
           "planes.importar_sin_cambios":
             "No hubo cambios para importar.",
+          "planes.editar_distribucion": "Editar distribución",
+          "planes.distribucion_editar_titulo":
+            "Elegí cómo distribuir este objetivo importado.",
+          "planes.distribucion_sin_importado":
+            "Este subobjetivo no pertenece a un objetivo importado.",
+          "planes.distribucion_actualizada":
+            "Distribución actualizada.",
           "planes.importar_help_titulo":
             "Elegí qué períodos hijos reciben objetivos del período padre.",
           "planes.importar_help_cerrar":
@@ -24743,6 +24750,13 @@
             "Enter a valid metric for each selected objective.",
           "planes.importar_sin_cambios":
             "There were no changes to import.",
+          "planes.editar_distribucion": "Edit distribution",
+          "planes.distribucion_editar_titulo":
+            "Choose how to distribute this imported objective.",
+          "planes.distribucion_sin_importado":
+            "This subobjective does not belong to an imported objective.",
+          "planes.distribucion_actualizada":
+            "Distribution updated.",
           "planes.importar_help_titulo":
             "Choose which child periods receive objectives from the parent period.",
           "planes.importar_help_cerrar":
@@ -28232,6 +28246,13 @@
             "Informe uma métrica válida para cada objetivo selecionado.",
           "planes.importar_sin_cambios":
             "Não houve mudanças para importar.",
+          "planes.editar_distribucion": "Editar distribuição",
+          "planes.distribucion_editar_titulo":
+            "Escolha como distribuir este objetivo importado.",
+          "planes.distribucion_sin_importado":
+            "Este subobjetivo não pertence a um objetivo importado.",
+          "planes.distribucion_actualizada":
+            "Distribuição atualizada.",
           "planes.importar_help_titulo":
             "Escolha quais períodos filhos recebem objetivos do período pai.",
           "planes.importar_help_cerrar":
@@ -56184,6 +56205,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Render_Planes_Subobjetivo_Acciones(Sub) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Sub?.Objetivo_Id];
+        const Puede_Editar_Distribucion = Boolean(
+          Planes_Objetivo_Padre_Id(Objetivo)
+        );
         return `
           <button class="Planes_Btn" type="button"
             data-plan-sub-accion="editar">
@@ -56197,6 +56223,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             data-plan-sub-accion="partes">
             ${t("planes.administrar_partes")}
           </button>
+          ${Puede_Editar_Distribucion ? `
+          <button class="Planes_Btn" type="button"
+            data-plan-sub-accion="distribucion">
+            ${t("planes.editar_distribucion")}
+          </button>
+          ` : ""}
           <button class="Planes_Btn" type="button"
             data-plan-sub-accion="realizar"
             ${Sub.Hecha ? "disabled" : ""}>
@@ -56228,6 +56260,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Tipo === "partes") {
           Abrir_Modal_Planes_Partes(Sub_Id);
+        }
+        if (Tipo === "distribucion") {
+          await Planes_Editar_Distribucion_Objetivo(Sub.Objetivo_Id);
         }
         if (Tipo === "realizar") {
           await Planes_Marcar_Subobjetivo_Como_Realizado(Sub_Id);
@@ -56407,6 +56442,99 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ).toString();
       }
 
+      function Planes_Fecha_Orden_Subobjetivo_Importacion(Sub) {
+        const Rango = Planes_Subobjetivo_Rango_Temporal(Sub);
+        if (Rango?.Inicio) return Rango.Inicio;
+        return Planes_Normalizar_Fecha_Comparacion(
+          Planes_Fecha_Subobjetivo_Importacion(Sub)
+        );
+      }
+
+      function Planes_Comparar_Subobjetivos_Importacion(A, B) {
+        const Fecha_A = Planes_Fecha_Orden_Subobjetivo_Importacion(A);
+        const Fecha_B = Planes_Fecha_Orden_Subobjetivo_Importacion(B);
+        if (Fecha_A && Fecha_B && Fecha_A !== Fecha_B) {
+          return Fecha_A.localeCompare(Fecha_B);
+        }
+        if (Fecha_A && !Fecha_B) return -1;
+        if (!Fecha_A && Fecha_B) return 1;
+        const Orden_A = Number(A?.Orden) || 0;
+        const Orden_B = Number(B?.Orden) || 0;
+        if (Orden_A !== Orden_B) return Orden_A - Orden_B;
+        return (A?.Texto || "").localeCompare(B?.Texto || "");
+      }
+
+      function Planes_Reordenar_Subobjetivos_Importados_En_Objetivo(
+        Objetivo,
+        Subs_Padre
+      ) {
+        if (!Objetivo || !Subs_Padre?.length) return 0;
+        const Modelo = Asegurar_Modelo_Planes();
+        const Orden_Importacion = new Map(
+          Subs_Padre
+            .slice()
+            .sort(Planes_Comparar_Subobjetivos_Importacion)
+            .map((Sub, Indice) => [Sub.Id, Indice])
+        );
+        const Por_Padre = new Map();
+        Object.values(Modelo.Subobjetivos || {}).forEach((Sub) => {
+          if (Sub.Objetivo_Id !== Objetivo.Id) return;
+          if (Sub.Eliminado_Local) return;
+          const Padre_Id = (Sub.Subobjetivo_Padre_Id || "")
+            .toString();
+          const Lista = Por_Padre.get(Padre_Id) || [];
+          Lista.push(Sub);
+          Por_Padre.set(Padre_Id, Lista);
+        });
+        let Cambios = 0;
+        Por_Padre.forEach((Hermanos) => {
+          const Ordenados = Hermanos
+            .filter((Sub) =>
+              Sub.Importado &&
+              Orden_Importacion.has(Sub.Parent_Subobjetivo_Id)
+            )
+            .sort((A, B) => {
+              const Orden_A = Orden_Importacion.get(
+                A.Parent_Subobjetivo_Id
+              ) ?? 999999;
+              const Orden_B = Orden_Importacion.get(
+                B.Parent_Subobjetivo_Id
+              ) ?? 999999;
+              if (Orden_A !== Orden_B) return Orden_A - Orden_B;
+              return Number(A.Orden) - Number(B.Orden);
+            });
+          if (Ordenados.length < 2) return;
+          let Indice_Importado = 0;
+          const Reordenados = Hermanos
+            .slice()
+            .sort((A, B) => Number(A.Orden) - Number(B.Orden))
+            .map((Sub) => {
+              const Ordenable = Sub.Importado &&
+                Orden_Importacion.has(Sub.Parent_Subobjetivo_Id);
+              if (!Ordenable) return Sub;
+              const Ordenado = Ordenados[Indice_Importado] || Sub;
+              Indice_Importado += 1;
+              return Ordenado;
+            });
+          const Antes = Hermanos
+            .slice()
+            .sort((A, B) => Number(A.Orden) - Number(B.Orden))
+            .map((Sub) => Sub.Id)
+            .join("|");
+          const Despues = Reordenados
+            .map((Sub) => Sub.Id)
+            .join("|");
+          if (Antes === Despues) return;
+          Reordenados.forEach((Sub, Indice) => {
+            if (Number(Sub.Orden) === Indice) return;
+            Sub.Orden = Indice;
+            Sub.Actualizado_En = new Date().toISOString();
+            Cambios += 1;
+          });
+        });
+        return Cambios;
+      }
+
       function Planes_Subobjetivo_Importa_En_Periodo(Sub, Periodo) {
         if (!Sub || Sub.Eliminado_Local || !Periodo) return false;
         const Rango = Planes_Subobjetivo_Rango_Temporal(Sub);
@@ -56580,6 +56708,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sub.Eliminado_Local = true;
           Cambios += 1;
         });
+        Cambios += Planes_Reordenar_Subobjetivos_Importados_En_Objetivo(
+          Objetivo,
+          Subs_Padre
+        );
         return Cambios;
       }
 
@@ -56829,7 +56961,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Opciones = {}
       ) {
         const Modelo = Asegurar_Modelo_Planes();
-        const Importados = Planes_Importados_Actualizables_Capa(Tipo);
+        const Importados = Array.isArray(Opciones.Importados)
+          ? Opciones.Importados
+          : Planes_Importados_Actualizables_Capa(Tipo);
         const Silencioso = Opciones.Silencioso === true;
         const Resumen = {
           Actualizados: 0,
@@ -56905,6 +57039,137 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         }
         return Resumen;
+      }
+
+      function Planes_Modo_Desde_Regla_Distribucion(Regla) {
+        const Valor = (Regla || "Uniforme").toString();
+        if (Valor === "Pendiente") return "Pendiente";
+        if (Valor === "Completo") return "Completo";
+        return "Proporcional";
+      }
+
+      function Planes_Regla_Desde_Modo_Distribucion(Modo) {
+        const Valor = (Modo || "Proporcional").toString();
+        if (Valor === "Pendiente") return "Pendiente";
+        if (Valor === "Completo") return "Completo";
+        return "Uniforme";
+      }
+
+      function Planes_Aplicar_Distribucion_Familia_Importada(
+        Objetivo,
+        Modo,
+        Importados = null
+      ) {
+        const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+        if (!Padre_Id) return 0;
+        const Regla = Planes_Regla_Desde_Modo_Distribucion(Modo);
+        let Cambios = 0;
+        (Importados || Planes_Importados_Familia_Importada(Objetivo))
+          .forEach((Hijo) => {
+            if (Planes_Objetivo_Padre_Id(Hijo) !== Padre_Id) return;
+            const Antes = JSON.stringify(
+              Planes_Datos_Importacion_Comparables(Hijo)
+            );
+            Hijo.Regla_Distribucion = Regla;
+            if (!Hijo.Fijado && Regla !== "Manual") {
+              Hijo.Auto_Redistribucion = true;
+            }
+            const Despues = JSON.stringify(
+              Planes_Datos_Importacion_Comparables(Hijo)
+            );
+            if (Antes === Despues) return;
+            Hijo.Actualizado_En = new Date().toISOString();
+            Cambios += 1;
+          });
+        return Cambios;
+      }
+
+      function Planes_Importados_Familia_Importada(Objetivo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+        const Periodo_Base = Modelo.Periodos[Objetivo?.Periodo_Id];
+        if (!Padre_Id || !Periodo_Base) return [];
+        return Object.values(Modelo.Objetivos || {})
+          .filter((Item) => {
+            if (!Item || Item.Eliminado_Local) return false;
+            if (Planes_Objetivo_Padre_Id(Item) !== Padre_Id) {
+              return false;
+            }
+            const Periodo = Modelo.Periodos[Item.Periodo_Id];
+            return Periodo?.Tipo === Periodo_Base.Tipo;
+          })
+          .sort((A, B) => {
+            const Periodo_A = Modelo.Periodos[A.Periodo_Id];
+            const Periodo_B = Modelo.Periodos[B.Periodo_Id];
+            const Inicio_A = Periodo_A?.Inicio || "";
+            const Inicio_B = Periodo_B?.Inicio || "";
+            if (Inicio_A !== Inicio_B) {
+              return Inicio_A.localeCompare(Inicio_B);
+            }
+            return Number(A.Orden) - Number(B.Orden);
+          });
+      }
+
+      async function Planes_Editar_Distribucion_Objetivo(
+        Objetivo_Id
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+        const Periodo = Modelo.Periodos[Objetivo?.Periodo_Id];
+        if (!Objetivo || !Padre_Id || !Periodo) {
+          Mostrar_Toast_Info(t("planes.distribucion_sin_importado"));
+          return;
+        }
+        const Actual = Planes_Modo_Desde_Regla_Distribucion(
+          Objetivo.Regla_Distribucion
+        );
+        const Opcion = (Modo, Clave) => ({
+          Etiqueta: t(Clave),
+          Valor: Modo,
+          Tipo: Actual === Modo ? "Primario" : "Secundario"
+        });
+        const Modo = await Mostrar_Dialogo(
+          t("planes.distribucion_editar_titulo"),
+          [
+            { Etiqueta: t("cancelar"), Valor: null, Tipo: "Cancelar" },
+            Opcion("Proporcional", "planes.importar_modo_proporcional"),
+            Opcion("Pendiente", "planes.importar_modo_pendiente"),
+            Opcion("Completo", "planes.importar_modo_completo")
+          ]
+        );
+        if (!Modo || Modo === Actual) return;
+        const Snap = Capturar_Snapshot_Undo();
+        const Importados = Planes_Importados_Familia_Importada(Objetivo);
+        const Cambios_Distribucion =
+          Planes_Aplicar_Distribucion_Familia_Importada(
+            Objetivo,
+            Modo,
+            Importados
+          );
+        const Resumen = Planes_Actualizar_Importados_Capa(
+          Periodo.Tipo,
+          { Silencioso: true, Importados }
+        );
+        const Total = Cambios_Distribucion + Resumen.Total;
+        if (!Total) {
+          Mostrar_Toast_Info(t("planes.actualizar_periodos_sin_cambios"));
+          return;
+        }
+        const Padre = Modelo.Objetivos[Padre_Id];
+        if (Padre) {
+          Planes_Sincronizar_Familia_Objetivo(Padre.Id, Modelo);
+          Planes_Actualizar_Progreso(Padre);
+        }
+        Render_Plan();
+        if (
+          document.getElementById("Planes_Subobjetivos_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Modal_Planes_Subobjetivos();
+        }
+        Guardar_Estado();
+        Mostrar_Toast_Undo(t("planes.distribucion_actualizada"), Snap);
       }
 
       function Planes_Clave_Grupo_Importado_Capa(Objetivo) {
