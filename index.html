@@ -46367,6 +46367,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Planes_Item_Solapa_Periodo(Objetivo, Periodo);
       }
 
+      function Planes_Ajuste_Periodo_Objetivo_Existente(
+        Objetivo,
+        Periodo_Id
+      ) {
+        const Ajustes = Objetivo?.Ajustes_Periodos;
+        if (!Ajustes || typeof Ajustes !== "object") return null;
+        return Ajustes[(Periodo_Id || "").toString()] || null;
+      }
+
+      function Planes_Objetivo_Importable_En_Periodo(
+        Objetivo,
+        Periodo,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        if (!Objetivo || Objetivo.Eliminado_Local || !Periodo) {
+          return false;
+        }
+        const Periodo_Base = Planes_Periodo_Base_Objetivo(Objetivo, M);
+        if (!Planes_Periodo_Es_Padre_De(Periodo_Base, Periodo)) {
+          return false;
+        }
+        if (Planes_Objetivo_Solapa_Periodo(Objetivo, Periodo)) {
+          return true;
+        }
+        if (Planes_Ajuste_Periodo_Objetivo_Existente(
+          Objetivo,
+          Periodo.Id
+        )) {
+          return true;
+        }
+        return false;
+      }
+
       function Planes_Objetivo_Mostrable_En_Periodo(
         Objetivo,
         Periodo,
@@ -46383,8 +46417,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return false;
         }
         const Ajuste =
-          Planes_Ajustes_Periodos_Objetivo(Objetivo)[Periodo.Id];
+          Planes_Ajuste_Periodo_Objetivo_Existente(
+            Objetivo,
+            Periodo.Id
+          );
         if (Ajuste?.Eliminado_Local) return false;
+        if (Ajuste) return true;
         return Planes_Objetivo_Solapa_Periodo(Objetivo, Periodo);
       }
 
@@ -46430,11 +46468,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const M = Modelo || Asegurar_Modelo_Planes();
         const Base = Planes_Periodo_Base_Objetivo(Objetivo, M);
         if (!Base || !Tipo) return [];
+        const Rango = Planes_Rango_Item_Fechado(Objetivo);
         return Object.values(M.Periodos || {})
           .filter((Periodo) =>
             Periodo.Tipo === Tipo &&
             Planes_Periodo_Es_Padre_De(Base, Periodo) &&
-            Planes_Objetivo_Solapa_Periodo(Objetivo, Periodo)
+            (
+              Rango
+                ? Planes_Periodo_Solapa_Rango(Periodo, Rango)
+                : true
+            )
           )
           .sort((A, B) =>
             (A.Inicio || "").localeCompare(B.Inicio || "")
@@ -58912,9 +58955,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .filter((Objetivo) => !Objetivo.Eliminado_Local)
             .filter((Objetivo) =>
               !Periodo_Destino ||
-              Planes_Objetivo_Solapa_Periodo(
+              Planes_Objetivo_Importable_En_Periodo(
                 Objetivo,
-                Periodo_Destino
+                Periodo_Destino,
+                Modelo
               )
             )
             .forEach((Objetivo, Indice) => {
@@ -59794,13 +59838,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Item.Objetivo_Ids || []).forEach((Objetivo_Id) => {
             const Padre = Modelo.Objetivos[Objetivo_Id];
             if (!Padre || Padre.Eliminado_Local) return;
+            if (!Planes_Objetivo_Importable_En_Periodo(
+              Padre,
+              Periodo,
+              Modelo
+            )) {
+              return;
+            }
             const Periodo_Padre = Modelo.Periodos[Padre.Periodo_Id];
-            if (!Planes_Periodo_Es_Padre_De(Periodo_Padre, Periodo)) {
-              return;
-            }
-            if (!Planes_Objetivo_Solapa_Periodo(Padre, Periodo)) {
-              return;
-            }
             const Lista = Mapa_Padre_Periodos.get(Objetivo_Id) || [];
             Lista.push(Periodo);
             Mapa_Padre_Periodos.set(Objetivo_Id, Lista);

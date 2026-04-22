@@ -4846,6 +4846,132 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Mostrar reactiva objetivos ocultos sin fecha propia",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(async () => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Semestre";
+    Modelo.UI.Vista = "Tarjetas";
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Semestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Semestre");
+    Modelo.UI.Periodo_Activo_Id = Semestres[0].Id;
+    const Padre = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Proyecto anual",
+      Emoji: "\uD83D\uDCCD",
+      Target_Total: 10,
+      Unidad: "Horas"
+    });
+    const Ajuste_Inicial = Planes_Asegurar_Ajuste_Periodo_Objetivo(
+      Padre,
+      Semestres[0].Id
+    );
+    Ajuste_Inicial.Estado_Vinculo = "Eliminado";
+    Ajuste_Inicial.Eliminado_Local = true;
+    Ajuste_Inicial.Regla_Distribucion = "Uniforme";
+    Ajuste_Inicial.Target_Total = 5;
+    Ajuste_Inicial.Target_Automatico = 5;
+    Render_Plan();
+    const Visibles_Inicial =
+      Planes_Filtrar_Objetivos(Semestres[0]).length;
+
+    const Abrir_Y_Confirmar = async () => {
+      const Boton = document.querySelector(
+        "[data-plan-universo-importar]"
+      );
+      const Deshabilitado = Boolean(Boton?.disabled);
+      Boton?.click();
+      await new Promise((Resolver) => setTimeout(Resolver, 0));
+      const Confirmar = document.querySelector(
+        "[data-plan-importar-confirmar]"
+      );
+      const Modal_Abierto = Boolean(Confirmar);
+      Confirmar?.click();
+      await new Promise((Resolver) => setTimeout(Resolver, 0));
+      return { Deshabilitado, Modal_Abierto };
+    };
+
+    const Primera = await Abrir_Y_Confirmar();
+    let Modelo_Actual = Asegurar_Modelo_Planes();
+    let Padre_Actual = Modelo_Actual.Objetivos[Padre.Id];
+    let Visibles = Planes_Filtrar_Objetivos(Semestres[0]);
+    const Visible = Visibles.find((Objetivo) =>
+      Objetivo.__Objetivo_Canonico_Id === Padre.Id
+    );
+    const Ajuste_Activo =
+      Padre_Actual.Ajustes_Periodos?.[Semestres[0].Id];
+    const Target_Activo = Number(Visible?.Target_Total) || 0;
+    const Activo_Eliminado =
+      Boolean(Ajuste_Activo?.Eliminado_Local);
+
+    Planes_Marcar_Objetivo_Mostrado_Eliminado(Visible);
+    Render_Plan();
+    Modelo_Actual = Asegurar_Modelo_Planes();
+    Padre_Actual = Modelo_Actual.Objetivos[Padre.Id];
+    const Ajuste_Eliminado =
+      Padre_Actual.Ajustes_Periodos?.[Semestres[0].Id];
+    const Eliminado = Boolean(Ajuste_Eliminado?.Eliminado_Local);
+    const Visibles_Eliminado =
+      Planes_Filtrar_Objetivos(Semestres[0]).length;
+
+    const Segunda = await Abrir_Y_Confirmar();
+    Modelo_Actual = Asegurar_Modelo_Planes();
+    Padre_Actual = Modelo_Actual.Objetivos[Padre.Id];
+    Visibles = Planes_Filtrar_Objetivos(Semestres[0]);
+    const Visible_Restaurado = Visibles.find((Objetivo) =>
+      Objetivo.__Objetivo_Canonico_Id === Padre.Id
+    );
+    const Ajuste_Restaurado =
+      Padre_Actual.Ajustes_Periodos?.[Semestres[0].Id];
+
+    return {
+      Primera,
+      Segunda,
+      Visibles_Inicial,
+      Target_Activo,
+      Activo_Proyectado: Boolean(Visible?.__Plan_Proyectado),
+      Activo_Eliminado,
+      Eliminado,
+      Visibles_Eliminado,
+      Restaurado_Proyectado:
+        Boolean(Visible_Restaurado?.__Plan_Proyectado),
+      Restaurado_Eliminado:
+        Boolean(Ajuste_Restaurado?.Eliminado_Local),
+      Target_Restaurado: Number(Visible_Restaurado?.Target_Total) || 0
+    };
+  });
+
+  expect(Resultado.Visibles_Inicial).toBe(0);
+  expect(Resultado.Primera.Deshabilitado).toBe(false);
+  expect(Resultado.Primera.Modal_Abierto).toBe(true);
+  expect(Resultado.Activo_Proyectado).toBe(true);
+  expect(Resultado.Activo_Eliminado).toBe(false);
+  expect(Resultado.Target_Activo).toBe(5);
+  expect(Resultado.Eliminado).toBe(true);
+  expect(Resultado.Visibles_Eliminado).toBe(0);
+  expect(Resultado.Segunda.Deshabilitado).toBe(false);
+  expect(Resultado.Segunda.Modal_Abierto).toBe(true);
+  expect(Resultado.Restaurado_Proyectado).toBe(true);
+  expect(Resultado.Restaurado_Eliminado).toBe(false);
+  expect(Resultado.Target_Restaurado).toBe(5);
+  expect(errores).toEqual([]);
+});
+
 test("Objetivo sin target muestra planeados fechados",
 async ({ page }) => {
   const errores = [];
