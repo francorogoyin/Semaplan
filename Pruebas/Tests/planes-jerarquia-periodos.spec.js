@@ -3594,11 +3594,8 @@ async ({ page }) => {
   expect(Inicial.Julio).not.toContain("Por fecha objetivo");
 
   await page.click("[data-plan-universo-actualizar]");
-  await expect(page.locator("#Dialogo_Overlay")).toHaveClass(/Activo/);
-  await expect(page.locator("#Dialogo_Mensaje"))
-    .toContainText("Cambios observados");
-  await page.locator("#Dialogo_Botones .Dialogo_Boton_Primario")
-    .click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .not.toHaveClass(/Activo/);
 
   const Resultado = await page.evaluate(() => {
     const Modelo = Asegurar_Modelo_Planes();
@@ -3891,7 +3888,7 @@ async ({ page }) => {
     M = Asegurar_Modelo_Planes();
     const Padre_Final = M.Subobjetivos[Sub_Padre_Id];
     const Hijo_Final = M.Subobjetivos[Sub_Hijo.Id];
-    return {
+    const Resultado_Final = {
       error: "",
       padreTexto: Sub_Padre.Texto,
       hijoTexto: Sub_Hijo_Editado.Texto,
@@ -3911,6 +3908,23 @@ async ({ page }) => {
         Planes_Progreso_Total_Subobjetivo(Padre_Final, M),
       hijoProgreso:
         Planes_Progreso_Total_Subobjetivo(Hijo_Final, M)
+    };
+    Padre_Final.Hecha = false;
+    Padre_Final.Estado = "Activo";
+    Padre_Final.Fecha_Fin = "";
+    Padre_Final.Hora_Fin = "";
+    Planes_Periodo = Normalizar_Modelo_Planes(Planes_Periodo);
+    const M_Reconciliado = Asegurar_Modelo_Planes();
+    const Padre_Reconciliado =
+      M_Reconciliado.Subobjetivos[Sub_Padre_Id];
+    const Hijo_Reconciliado =
+      M_Reconciliado.Subobjetivos[Sub_Hijo.Id];
+    return {
+      ...Resultado_Final,
+      legacyPadreHecha: Padre_Reconciliado.Hecha,
+      legacyHijoHecha: Hijo_Reconciliado.Hecha,
+      legacyPadreFin: Padre_Reconciliado.Fecha_Fin,
+      legacyHijoFin: Hijo_Reconciliado.Fecha_Fin
     };
   });
 
@@ -3934,6 +3948,10 @@ async ({ page }) => {
   expect(Resultado.hijoFin).toBe("2026-04-20");
   expect(Resultado.padreProgreso).toBe(5);
   expect(Resultado.hijoProgreso).toBe(5);
+  expect(Resultado.legacyPadreHecha).toBe(true);
+  expect(Resultado.legacyHijoHecha).toBe(true);
+  expect(Resultado.legacyPadreFin).toBe("2026-04-20");
+  expect(Resultado.legacyHijoFin).toBe("2026-04-20");
   expect(errores).toEqual([]);
 });
 

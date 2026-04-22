@@ -31814,6 +31814,8 @@
       let Planes_Partes_Orden_Campo = "Fecha_Objetivo";
       let Planes_Partes_Orden_Direccion = "Asc";
       let Planes_Id_Secuencia = 0;
+      let Planes_Reconciliando_Auto = false;
+      let Planes_Auto_Sync_Pendiente_Guardar = false;
       let Planes_Avance_Alcance = { Tipo: "Global", Id: "" };
       let Planes_Avance_Subobjetivos_Expandidos = new Set();
       let Planes_Avance_Click_Global = false;
@@ -44123,6 +44125,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .forEach((Objetivo) => {
             Planes_Actualizar_Progreso(Objetivo);
           });
+        const Cambios =
+          Planes_Reconciliar_Estado_Subobjetivos_Auto(Modelo);
+        if (Cambios > 0) {
+          Planes_Auto_Sync_Pendiente_Guardar = true;
+        }
       }
 
       function Normalizar_Periodo_Plan(Periodo, Indice = 0) {
@@ -44819,6 +44826,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         });
         return Cambios;
+      }
+
+      function Planes_Reconciliar_Estado_Subobjetivos_Auto(
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        if (Planes_Reconciliando_Auto) return 0;
+        Planes_Reconciliando_Auto = true;
+        try {
+          const Raices = new Set();
+          Object.values(M.Subobjetivos || {}).forEach((Sub) => {
+            if (!Sub || Sub.Eliminado_Local) return;
+            Raices.add(Planes_Subobjetivo_Raiz_Id(Sub.Id, M));
+          });
+          let Cambios = 0;
+          Raices.forEach((Sub_Id) => {
+            Cambios += Planes_Sincronizar_Estado_Familia_Subobjetivo(
+              Sub_Id,
+              M
+            );
+          });
+          if (Cambios > 0) {
+            Object.values(M.Objetivos || {}).forEach((Objetivo) => {
+              Planes_Actualizar_Progreso(Objetivo);
+            });
+          }
+          return Cambios;
+        } finally {
+          Planes_Reconciliando_Auto = false;
+        }
       }
 
       function Planes_Partes_De_Subobjetivo(
@@ -46831,8 +46868,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Render_Plan() {
         const Modelo = Asegurar_Jerarquia_Planes();
-        Object.values(Modelo.Objetivos)
-          .forEach((Objetivo) => Planes_Actualizar_Progreso(Objetivo));
         if (Planes_Anio_Todos_Activo()) {
           Planes_Crear_Periodos_Capa_Visibles(
             Modelo.UI.Filtro_Tipo || "Semana"
@@ -46844,8 +46879,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Modelo.UI.Periodo_Activo_Id = Periodo?.Id || null;
         }
+        Planes_Reconciliar_Familias_Auto(Modelo);
+        Object.values(Modelo.Objetivos)
+          .forEach((Objetivo) => Planes_Actualizar_Progreso(Objetivo));
         Render_Planes_Controles();
         Render_Planes_Contenido();
+        if (Planes_Auto_Sync_Pendiente_Guardar) {
+          Planes_Auto_Sync_Pendiente_Guardar = false;
+          Guardar_Estado();
+        }
       }
 
       function Planes_Label_Tipo(Tipo) {
@@ -50271,8 +50313,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .reverse()
           .forEach((Objetivo) => {
             Planes_Actualizar_Progreso(Objetivo);
-          });
+        });
         return Cambios;
+      }
+
+      function Planes_Reconciliar_Familias_Auto(Modelo = null) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        if (Planes_Reconciliando_Auto) return 0;
+        Planes_Reconciliando_Auto = true;
+        try {
+          const Raices = new Set();
+          Object.values(M.Objetivos || {}).forEach((Objetivo) => {
+            if (!Objetivo || Objetivo.Eliminado_Local) return;
+            Raices.add(Planes_Objetivo_Raiz_Id(Objetivo.Id));
+          });
+          let Cambios = 0;
+          Raices.forEach((Objetivo_Id) => {
+            Cambios += Planes_Sincronizar_Familia_Objetivo(
+              Objetivo_Id,
+              M
+            );
+          });
+          if (Cambios > 0) {
+            Planes_Auto_Sync_Pendiente_Guardar = true;
+          }
+          return Cambios;
+        } finally {
+          Planes_Reconciliando_Auto = false;
+        }
       }
 
       function Planes_Recalcular_Desde(
