@@ -4322,17 +4322,7 @@
       }
 
       .Planes_Header_Acciones .Config_Cerrar {
-        width: 32px;
-        height: 32px;
-        border: 1px solid var(--Borde);
-        border-radius: 8px;
-        background: #fff;
-        color: var(--Texto);
-      }
-
-      .Planes_Header_Acciones .Config_Cerrar:hover {
-        background: var(--Acento_Suave);
-        color: var(--Acento);
+        flex: 0 0 auto;
       }
 
       .Planes_Header_Btn:disabled {
@@ -6956,7 +6946,7 @@
 
       .Planes_Objetivo_Form {
         display: grid;
-        grid-template-columns: 72px minmax(120px, 160px) minmax(0, 1fr);
+        grid-template-columns: repeat(12, minmax(0, 1fr));
         gap: 12px;
       }
 
@@ -6978,20 +6968,20 @@
         grid-column: 2 / -1;
       }
 
-      .Planes_Modo_Avance_Campo {
-        grid-column: 1 / -1;
-      }
-
       .Planes_Meta_Campo {
-        grid-column: 1 / 3;
+        grid-column: 1 / span 5;
       }
 
       .Planes_Unidad_Campo {
-        grid-column: 3 / -1;
+        grid-column: 6 / -1;
       }
 
       .Planes_Unidad_Subobjetivos_Campo {
         grid-column: 1 / -1;
+      }
+
+      .Planes_Objetivo_Fecha_Campo {
+        grid-column: span 6;
       }
 
       .Planes_Unidad_Fila {
@@ -7236,22 +7226,12 @@
         grid-column: span 3;
       }
 
-      .Planes_Subobjetivo_Fecha_Ini_Campo,
-      .Planes_Subobjetivo_Fecha_Obj_Campo,
-      .Planes_Subobjetivo_Fecha_Fin_Campo {
-        grid-column: span 4;
-      }
-
       .Planes_Subobjetivo_Fecha_Ini_Campo {
-        grid-column: 1 / span 4;
+        grid-column: 1 / span 6;
       }
 
       .Planes_Subobjetivo_Fecha_Obj_Campo {
-        grid-column: 5 / span 4;
-      }
-
-      .Planes_Subobjetivo_Fecha_Fin_Campo {
-        grid-column: 9 / span 4;
+        grid-column: 7 / span 6;
       }
 
       .Planes_Subobjetivo_Emoji_Campo {
@@ -7378,9 +7358,9 @@
         }
 
         .Planes_Nombre_Campo,
-        .Planes_Modo_Avance_Campo,
         .Planes_Meta_Campo,
         .Planes_Unidad_Campo,
+        .Planes_Objetivo_Fecha_Campo,
         .Planes_Subobjetivo_Meta_Campo,
         .Planes_Subobjetivo_Avance_Campo,
         .Planes_Subobjetivo_Aporte_Campo,
@@ -7388,7 +7368,6 @@
         .Planes_Subobjetivo_Unidad_Custom_Campo,
         .Planes_Subobjetivo_Fecha_Obj_Campo,
         .Planes_Subobjetivo_Fecha_Ini_Campo,
-        .Planes_Subobjetivo_Fecha_Fin_Campo,
         .Planes_Parte_Meta_Campo,
         .Planes_Parte_Avance_Campo,
         .Planes_Parte_Parcial_Campo,
@@ -15659,7 +15638,7 @@
                 Metas sugeridas para esta semana
               </div>
               <button
-                class="Metas_Sugeridas_Cerrar"
+                class="Config_Cerrar"
                 id="Metas_Sugeridas_Cerrar"
                 type="button"
                 data-i18n-aria="cerrar"
@@ -19200,12 +19179,6 @@
                 data-i18n-ph="planes.nuevo_titulo"
                 placeholder="Nuevo objetivo">
             </label>
-            <label class="Campo Planes_Modo_Avance_Campo">
-              <span data-i18n="planes.modo_avance">
-                Modo de avance
-              </span>
-              <select id="Planes_Objetivo_Modo_Avance"></select>
-            </label>
             <label class="Campo Planes_Meta_Campo">
               <span data-i18n="planes.nuevo_target">
                 Meta
@@ -19240,25 +19213,18 @@
                   placeholder="Lecturas, ejercicios...">
               </span>
             </label>
-            <label class="Campo">
+            <label class="Campo Planes_Objetivo_Fecha_Campo">
               <span data-i18n="planes.sub_fecha_inicial">
                 Fecha inicial
               </span>
               <input id="Planes_Objetivo_Fecha_Inicio"
                 type="date">
             </label>
-            <label class="Campo">
+            <label class="Campo Planes_Objetivo_Fecha_Campo">
               <span data-i18n="planes.sub_fecha_objetivo">
                 Fecha objetivo
               </span>
               <input id="Planes_Objetivo_Fecha_Objetivo"
-                type="date">
-            </label>
-            <label class="Campo">
-              <span data-i18n="planes.sub_fecha_final">
-                Fecha final
-              </span>
-              <input id="Planes_Objetivo_Fecha_Fin"
                 type="date">
             </label>
             <label class="Campo Campo_Ancho">
@@ -19530,13 +19496,6 @@
                 Fecha objetivo
               </span>
               <input id="Planes_Subobjetivo_Fecha_Objetivo"
-                type="date">
-            </label>
-            <label class="Campo Planes_Subobjetivo_Fecha_Fin_Campo">
-              <span data-i18n="planes.sub_fecha_final">
-                Fecha final
-              </span>
-              <input id="Planes_Subobjetivo_Fecha_Fin"
                 type="date">
             </label>
             <div class="Campo Campo_Ancho
@@ -20268,10 +20227,9 @@
           <span class="Resumen_Sem_Titulo"
             data-i18n="resumen_sem.titulo"
             >Resumen semanal</span>
-          <button class="Config_Boton"
+          <button class="Config_Cerrar"
             id="Resumen_Sem_Cerrar"
-            type="button"
-            style="font-size:16px">×</button>
+            type="button">&times;</button>
         </div>
         <div class="Resumen_Sem_Cuerpo" id="Resumen_Sem_Cuerpo"></div>
       </div>
@@ -20298,10 +20256,9 @@
             id="Abordaje_Modal_Titulo"
             data-i18n="abordaje.titulo"
 	            >Plan</span>
-	          <button class="Config_Boton"
-	            id="Abordaje_Modal_Cerrar"
-	            type="button"
-	            style="font-size:16px">×</button>
+          <button class="Config_Cerrar"
+            id="Abordaje_Modal_Cerrar"
+            type="button">&times;</button>
         </div>
         <div class="Patron_Modal_Cuerpo"
           id="Abordaje_Modal_Cuerpo"></div>
@@ -20323,10 +20280,9 @@
         <div class="Patron_Modal_Cabecera">
           <span class="Patron_Modal_Titulo"
             id="Plan_Slot_Titulo">Plan</span>
-          <button class="Config_Boton"
+          <button class="Config_Cerrar"
             id="Plan_Slot_Cerrar"
-            type="button"
-            style="font-size:16px">×</button>
+            type="button">&times;</button>
         </div>
         <div class="Patron_Modal_Cuerpo"
           id="Plan_Slot_Cuerpo"></div>
@@ -20350,10 +20306,9 @@
             id="Patron_Modal_Titulo"
             data-i18n="patron.nuevo"
             >Nuevo patrón</span>
-          <button class="Config_Boton"
+          <button class="Config_Cerrar"
             id="Patron_Modal_Cerrar"
-            type="button"
-            style="font-size:16px">×</button>
+            type="button">&times;</button>
         </div>
         <div class="Patron_Modal_Cuerpo"
           id="Patron_Modal_Cuerpo"></div>
@@ -20553,7 +20508,8 @@
           "sidebar.aporte_aceptar": "Aceptar sugerencia",
           "sidebar.aporte_sugerencia":
             "{meta} termina el {fecha}. Quedan {semanas} semanas.\n" +
-            "Se sugieren para esta semana: {cantidad} {unidad}.",
+            "Se sugieren: {cantidad} {unidad}/semana " +
+            "({diario} {unidad}/día).",
           "sidebar.metas_sugeridas": "Sugerencias de metas",
           "sidebar.metas_sugeridas_titulo":
             "Metas sugeridas para esta semana",
@@ -20590,6 +20546,8 @@
           "sidebar.categoria": "Categoría",
           "sidebar.etiquetas": "Etiquetas",
           "sidebar.ocultar": "Ocultar",
+          "sidebar.ocultar_realizados": "Ocultar realizados",
+          "sidebar.mostrar_realizados": "Mostrar realizados",
           "sidebar.help_nombre":
             "Nombre visible del objetivo semanal o de la bolsa.",
           "sidebar.help_descripcion_corta":
@@ -22094,6 +22052,11 @@
           "metas.mes": "Mes",
           "metas.fuente": "Fuente",
           "metas.objetivo": "Objetivo",
+          "metas.progreso": "Progreso",
+          "metas.tiempo": "Tiempo",
+          "metas.faltan": "Faltan",
+          "metas.ritmo": "Ritmo",
+          "metas.diario": "Diario",
           "metas.semana_ref":
             "Semana de referencia",
           "metas.desde": "Desde",
@@ -22990,6 +22953,8 @@
             "Atajos",
           "dia.atajo_solo_hoy":
             "Ocultar todos menos hoy",
+          "dia.atajo_todos_dias":
+            "Mostrar todos los días",
           "dia.atajo_ocultar_anteriores":
             "Ocultar días anteriores",
           "dia.atajo_ocultar_posteriores":
@@ -24190,7 +24155,8 @@
           "sidebar.aporte_aceptar": "Accept suggestion",
           "sidebar.aporte_sugerencia":
             "{meta} ends on {fecha}. {semanas} weeks left.\n" +
-            "Suggested for this week: {cantidad} {unidad}.",
+            "Suggested: {cantidad} {unidad}/week " +
+            "({diario} {unidad}/day).",
           "sidebar.metas_sugeridas": "Goal suggestions",
           "sidebar.metas_sugeridas_titulo":
             "Suggested goals for this week",
@@ -24227,6 +24193,8 @@
           "sidebar.categoria": "Category",
           "sidebar.etiquetas": "Tags",
           "sidebar.ocultar": "Hide",
+          "sidebar.ocultar_realizados": "Hide completed",
+          "sidebar.mostrar_realizados": "Show completed",
           "sidebar.help_nombre":
             "Visible name for the weekly objective or hour pool.",
           "sidebar.help_descripcion_corta":
@@ -25700,6 +25668,11 @@
           "metas.mes": "Month",
           "metas.fuente": "Source",
           "metas.objetivo": "Objective",
+          "metas.progreso": "Progress",
+          "metas.tiempo": "Time",
+          "metas.faltan": "Left",
+          "metas.ritmo": "Pace",
+          "metas.diario": "Daily",
           "metas.semana_ref":
             "Reference week",
           "metas.desde": "From",
@@ -26580,6 +26553,8 @@
             "Shortcuts",
           "dia.atajo_solo_hoy":
             "Hide all but today",
+          "dia.atajo_todos_dias":
+            "Show all days",
           "dia.atajo_ocultar_anteriores":
             "Hide previous days",
           "dia.atajo_ocultar_posteriores":
@@ -27759,7 +27734,8 @@
           "sidebar.aporte_aceptar": "Aceitar sugestão",
           "sidebar.aporte_sugerencia":
             "{meta} termina em {fecha}. Faltam {semanas} semanas.\n" +
-            "Sugerido para esta semana: {cantidad} {unidad}.",
+            "Sugerido: {cantidad} {unidad}/semana " +
+            "({diario} {unidad}/dia).",
           "sidebar.metas_sugeridas": "Sugestoes de metas",
           "sidebar.metas_sugeridas_titulo":
             "Metas sugeridas para esta semana",
@@ -27797,6 +27773,8 @@
           "sidebar.categoria": "Categoria",
           "sidebar.etiquetas": "Tags",
           "sidebar.ocultar": "Ocultar",
+          "sidebar.ocultar_realizados": "Ocultar realizados",
+          "sidebar.mostrar_realizados": "Mostrar realizados",
           "sidebar.help_nombre":
             "Nome visível do objetivo semanal ou do banco de horas.",
           "sidebar.help_descripcion_corta":
@@ -29312,6 +29290,11 @@
           "metas.mes": "Mês",
           "metas.fuente": "Fonte",
           "metas.objetivo": "Objetivo",
+          "metas.progreso": "Progresso",
+          "metas.tiempo": "Tempo",
+          "metas.faltan": "Faltam",
+          "metas.ritmo": "Ritmo",
+          "metas.diario": "Diario",
           "metas.semana_ref":
             "Semana de referência",
           "metas.desde": "De",
@@ -30220,6 +30203,8 @@
             "Atalhos",
           "dia.atajo_solo_hoy":
             "Ocultar todos menos hoje",
+          "dia.atajo_todos_dias":
+            "Mostrar todos os dias",
           "dia.atajo_ocultar_anteriores":
             "Ocultar dias anteriores",
           "dia.atajo_ocultar_posteriores":
@@ -31768,6 +31753,7 @@
         Resize_Personalizado: false,
         Notas_Hover: false,
         Mostrar_Archivadas: false,
+        Ocultar_Realizados_Sidebar: false,
         Focus_Auto: false,
         // Estilo del menú de la barra superior:
         // "Iconos" (default) muestra todos los botones inline.
@@ -40193,6 +40179,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `<span class="Dia_Accion_Submenu_Estado"></span>` +
           `</button>` +
           `<button class="Dia_Accion_Submenu_Item" type="button"` +
+          ` data-dia-atajo="todos-dias">` +
+          `<span>${t("dia.atajo_todos_dias")}</span>` +
+          `<span class="Dia_Accion_Submenu_Estado"></span>` +
+          `</button>` +
+          `<button class="Dia_Accion_Submenu_Item" type="button"` +
           ` data-dia-atajo="ocultar-anteriores">` +
           `<span>${t("dia.atajo_ocultar_anteriores")}</span>` +
           `<span class="Dia_Accion_Submenu_Estado"></span>` +
@@ -40286,6 +40277,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         let Nuevo = null;
         if (Atajo === "solo-hoy") {
           Nuevo = [Ref];
+        } else if (Atajo === "todos-dias") {
+          Nuevo = [0, 1, 2, 3, 4, 5, 6];
         } else if (Atajo === "ocultar-anteriores") {
           Nuevo = Construir_Rango_Dias_Atajo(Ref, 6);
         } else if (Atajo === "ocultar-posteriores") {
@@ -41645,16 +41638,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         // Ritmo semanal necesario para llegar a tiempo.
         let Ritmo_Semanal = 0;
+        let Ritmo_Diario = 0;
         if (Rango) {
           const Ahora_Ritmo = new Date();
           const Ms_Restantes = Math.max(
             0,
             Rango.Fin - Ahora_Ritmo
           );
+          const Dias_Restantes =
+            Ms_Restantes / (24 * 3600 * 1000);
           const Semanas_Restantes =
             Ms_Restantes / (7 * 24 * 3600 * 1000);
           Ritmo_Semanal = Semanas_Restantes > 0.14
             ? Horas_Faltantes / Semanas_Restantes
+            : 0;
+          Ritmo_Diario = Dias_Restantes > 0.2
+            ? Horas_Faltantes / Dias_Restantes
             : 0;
         }
 
@@ -41681,6 +41680,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ratio_Tiempo * 100
           ),
           Ritmo_Semanal,
+          Ritmo_Diario,
           Horas_Semanales,
           Objetivo_Semanal: Horas_Semanales.length > 0
             ? Meta.Horas_Objetivo /
@@ -42417,32 +42417,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? `${Datos.Ritmo_Semanal.toFixed(1)} h`
           : "—";
 
+        const Ritmo_Diario_Txt = Datos.Ritmo_Diario > 0
+          ? `${Datos.Ritmo_Diario.toFixed(1)} h`
+          : "\u2014";
+
         const Datos_Grid = document.createElement(
           "div"
         );
         Datos_Grid.className = "Meta_Card_Datos";
         Datos_Grid.appendChild(
           Crear_Dato_Meta(
-            "Progreso",
+            t("metas.progreso"),
             `${Datos.Porcentaje_Meta}%`
           )
         );
         Datos_Grid.appendChild(
           Crear_Dato_Meta(
-            "Tiempo",
+            t("metas.tiempo"),
             `${Datos.Porcentaje_Tiempo}%`
           )
         );
         Datos_Grid.appendChild(
           Crear_Dato_Meta(
-            "Faltan",
+            t("metas.faltan"),
             Formatear_Horas(Datos.Horas_Faltantes)
           )
         );
         Datos_Grid.appendChild(
           Crear_Dato_Meta(
-            "Ritmo",
+            t("metas.ritmo"),
             Ritmo_Txt + "/sem"
+          )
+        );
+        Datos_Grid.appendChild(
+          Crear_Dato_Meta(
+            t("metas.diario"),
+            Ritmo_Diario_Txt + "/d"
           )
         );
         Detalle.appendChild(Datos_Grid);
@@ -46347,6 +46357,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Planes_Periodo_Es_Padre_De(Periodo_Base, Periodo)) {
           return false;
         }
+        const Ajuste =
+          Planes_Ajustes_Periodos_Objetivo(Objetivo)[Periodo.Id];
+        if (Ajuste?.Eliminado_Local) return false;
         return Planes_Objetivo_Solapa_Periodo(Objetivo, Periodo);
       }
 
@@ -46463,6 +46476,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Auto_Redistribucion:
             Fuente.Auto_Redistribucion !== false,
           Regla_Distribucion: Regla,
+          Estado_Vinculo: (
+            Fuente.Estado_Vinculo || "Vigente"
+          ).toString(),
+          Eliminado_Local: Boolean(Fuente.Eliminado_Local),
           Progreso_Importado:
             Number(Fuente.Progreso_Importado) || 0
         };
@@ -47779,15 +47796,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "planes.ui_help_objetivo_emoji"],
           ["#Planes_Objetivo_Nombre",
             "planes.ui_help_objetivo_nombre"],
-          ["#Planes_Objetivo_Modo_Avance",
-            "planes.ui_help_modo_avance"],
           ["#Planes_Objetivo_Target", "planes.ui_help_meta"],
           ["#Planes_Objetivo_Fecha_Inicio",
             "planes.ui_help_sub_inicio"],
           ["#Planes_Objetivo_Fecha_Objetivo",
             "planes.ui_help_sub_objetivo_fecha"],
-          ["#Planes_Objetivo_Fecha_Fin",
-            "planes.ui_help_sub_fin"],
           ["#Planes_Objetivo_Unidad", "planes.ui_help_unidad"],
           ["#Planes_Objetivo_Unidad_Custom",
             "planes.ui_help_unidad"],
@@ -47853,8 +47866,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "planes.ui_help_sub_objetivo_fecha"],
           ["#Planes_Subobjetivo_Fecha_Inicio",
             "planes.ui_help_sub_inicio"],
-          ["#Planes_Subobjetivo_Fecha_Fin",
-            "planes.ui_help_sub_fin"],
           [".Planes_Subobjetivo_Metadatos_Campo",
             "planes.ui_help_sub_metadatos"],
           [".Planes_Subobjetivo_Metadato_Input",
@@ -49382,40 +49393,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return { Unidad, Unidad_Custom };
       }
 
-      function Planes_Label_Modo_Avance(Modo) {
-        if (Modo === "Manual") return t("planes.modo_avance_manual");
-        if (Modo === "Sin_Metrica") {
-          return t("planes.modo_avance_sin_metrica");
-        }
-        return t("planes.modo_avance_metrica");
-      }
-
-      function Planes_Poblar_Select_Modo_Avance(Select, Valor) {
-        if (!Select) return;
-        Select.innerHTML = "";
-        Planes_Modos_Avance.forEach((Modo) => {
-          const Opt = document.createElement("option");
-          Opt.value = Modo;
-          Opt.textContent = Planes_Label_Modo_Avance(Modo);
-          Select.appendChild(Opt);
-        });
-        Select.value = Planes_Modos_Avance.includes(Valor)
-          ? Valor
-          : "Metrica";
-      }
-
-      function Actualizar_Campos_Modo_Avance_Planes() {
-        const Select = document.getElementById(
-          "Planes_Objetivo_Modo_Avance"
-        );
-        const Sin_Metrica = Select?.value === "Sin_Metrica";
-        document.querySelector(".Planes_Meta_Campo")
-          ?.toggleAttribute("hidden", Sin_Metrica);
-        document.querySelector(".Planes_Unidad_Campo")
-          ?.toggleAttribute("hidden", Sin_Metrica);
-        if (!Sin_Metrica) Actualizar_Campo_Unidad_Custom_Planes();
-      }
-
       function Planes_Datos_Vinculo_Desde_Form(Valor) {
         const Partes = (Valor || "Auto").split("|");
         const Tipo = Partes[0] || "Auto";
@@ -49763,12 +49740,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Fecha_Objetivo = document.getElementById(
           "Planes_Objetivo_Fecha_Objetivo"
         );
-        const Fecha_Fin = document.getElementById(
-          "Planes_Objetivo_Fecha_Fin"
-        );
-        const Modo_Avance = document.getElementById(
-          "Planes_Objetivo_Modo_Avance"
-        );
         const Unidad = document.getElementById(
           "Planes_Objetivo_Unidad"
         );
@@ -49796,13 +49767,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Fecha_Objetivo) {
           Fecha_Objetivo.value = Objetivo?.Fecha_Objetivo || "";
         }
-        if (Fecha_Fin) {
-          Fecha_Fin.value = Objetivo?.Fecha_Fin || "";
-        }
-        Planes_Poblar_Select_Modo_Avance(
-          Modo_Avance,
-          Objetivo ? Planes_Normalizar_Modo_Avance(Objetivo) : "Metrica"
-        );
         Planes_Poblar_Select_Unidades(Unidad, Objetivo?.Unidad);
         if (Unidad_Custom) {
           Unidad_Custom.value = Objetivo?.Unidad_Custom || "";
@@ -49831,7 +49795,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Metadatos_Modal_Objetivo();
         Actualizar_Campo_Unidad_Custom_Planes();
         Actualizar_Campo_Unidad_Subobjetivos_Custom_Planes();
-        Actualizar_Campos_Modo_Avance_Planes();
         document.getElementById("Planes_Form_Subobjetivos")
           ?.classList.toggle("Activo", Boolean(Objetivo));
         Overlay.classList.add("Activo");
@@ -49880,9 +49843,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "Planes_Objetivo_Unidad_Subobjetivos_Custom"
           )?.value || ""
         ).trim();
-        const Modo_Avance_Form = document.getElementById(
-          "Planes_Objetivo_Modo_Avance"
-        )?.value || "Metrica";
+        const Target_Form = Number(
+          document.getElementById("Planes_Objetivo_Target")
+            ?.value
+        ) || 0;
+        const Modo_Avance_Form = Target_Form > 0
+          ? "Metrica"
+          : "Sin_Metrica";
         if (
           Modo_Avance_Form !== "Sin_Metrica" &&
           Unidad === "Personalizado" &&
@@ -49898,10 +49865,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Mostrar_Toast_Error(t("planes.err_unidad_custom"));
           return;
         }
-        const Target_Form = Number(
-          document.getElementById("Planes_Objetivo_Target")
-            ?.value
-        ) || 0;
         let Modo_Avance = Planes_Modos_Avance
           .includes(Modo_Avance_Form)
             ? Modo_Avance_Form
@@ -49974,10 +49937,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             document.getElementById("Planes_Objetivo_Fecha_Objetivo")
               ?.value || ""
           ).toString(),
-          Fecha_Fin: (
-            document.getElementById("Planes_Objetivo_Fecha_Fin")
-              ?.value || ""
-          ).toString(),
+          Fecha_Fin: (Existente?.Fecha_Fin || "").toString(),
           Etiquetas_Ids: Etiquetas_Seleccionadas,
           Tags: Obtener_Nombres_Etiquetas(Etiquetas_Seleccionadas),
           Metadatos_Campos,
@@ -51558,11 +51518,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Pendiente / Semanas,
           Unidad
         );
+        const Diario = Meta_Aporte_Redondear(
+          Pendiente / Dias,
+          Unidad
+        );
         if (Cantidad <= 0) return null;
         return {
           Fecha,
+          Dias,
           Semanas,
           Cantidad,
+          Diario,
           Unidad,
           Nombre: Meta_Aporte_Nombre_Sugerencia_Item(Item)
         };
@@ -51616,6 +51582,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ),
                 semanas: Sugerencia.Semanas,
                 cantidad: Sugerencia.Cantidad,
+                diario: Sugerencia.Diario,
                 unidad: Sugerencia.Unidad
               });
             Refs.Sugerencia.dataset.cantidad =
@@ -51757,6 +51724,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Meta_Aporte_Redondear(Pendiente / Semanas, Unidad);
       }
 
+      function Metas_Sugeridas_Aporte_Diario(Sub, Rango, Unidad) {
+        const Inicio_Explicito =
+          Planes_Normalizar_Fecha_Comparacion(Sub?.Fecha_Inicio);
+        const Fin_Explicito =
+          Planes_Normalizar_Fecha_Comparacion(
+            Sub?.Fecha_Objetivo || Sub?.Fecha_Fin
+          );
+        if (!Inicio_Explicito || !Fin_Explicito) return 0;
+        const Inicio = Parsear_Fecha_ISO(Inicio_Explicito);
+        const Fin = Parsear_Fecha_ISO(Fin_Explicito);
+        const Base = Metas_Sugeridas_Semana_Base();
+        if (!Inicio || !Fin || Fin < Base) return 0;
+        const Desde = Inicio > Base ? Inicio : Base;
+        const Dias = Math.max(1, Dias_Entre(Desde, Fin) + 1);
+        const Target = Number(Sub?.Target_Total) || 0;
+        const Aporte = Number(Sub?.Aporte_Meta) || 0;
+        const Total = Target > 0 ? Target : Aporte;
+        if (Total <= 0) return 0;
+        const Progreso = Math.max(
+          0,
+          Planes_Progreso_Total_Subobjetivo(Sub) ||
+          Number(Sub?.Progreso_Total) ||
+          Number(Sub?.Progreso_Manual) || 0
+        );
+        const Pendiente = Math.max(0, Total - Progreso);
+        if (Pendiente <= 0) return 0;
+        return Meta_Aporte_Redondear(Pendiente / Dias, Unidad);
+      }
+
       function Metas_Sugeridas_Objetivo_Existente(Sub_Id) {
         const Clave = Metas_Sugeridas_Clave_Semana();
         const Modelo = Asegurar_Modelo_Planes();
@@ -51818,6 +51814,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Objetivo,
               Unidad,
               Aporte,
+              Diario: Metas_Sugeridas_Aporte_Diario(
+                Sub,
+                Rango,
+                Unidad
+              ),
               Rango,
               Partes: Metas_Sugeridas_Partes(Sub, Modelo)
             };
@@ -51986,6 +51987,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Aporte.appendChild(Aporte_Input);
           Aporte.appendChild(Unidad);
           Metrica.appendChild(Aporte);
+          if (Item.Diario > 0) {
+            const Diario = document.createElement("div");
+            Diario.className =
+              "Metas_Sugeridas_Detalle Metas_Sugeridas_Diario";
+            Diario.textContent =
+              `${Item.Diario} ${Item.Unidad}/d`;
+            Metrica.appendChild(Diario);
+          }
 
           const Categoria = document.createElement("select");
           Categoria.className = "Metas_Sugeridas_Categoria";
@@ -53879,9 +53888,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Inicio = document.getElementById(
           "Planes_Subobjetivo_Fecha_Inicio"
         );
-        const Fin = document.getElementById(
-          "Planes_Subobjetivo_Fecha_Fin"
-        );
         if (Texto) Texto.value = Sub.Texto || "";
         if (Emoji) Emoji.value = Sub.Emoji || "\u2022";
         if (Target) {
@@ -53906,7 +53912,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fecha_Objetivo.value = Sub.Fecha_Objetivo || "";
         }
         if (Inicio) Inicio.value = Sub.Fecha_Inicio || "";
-        if (Fin) Fin.value = Sub.Fecha_Fin || "";
         const Boton_Realizado = document.getElementById(
           "Planes_Subobjetivo_Realizado"
         );
@@ -54188,10 +54193,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Target_Normalizado =
           Number.isFinite(Target) && Target > 0 ? Target : 0;
         const Actual = Planes_Fecha_Hora_Actual();
-        const Fecha_Final_Form = (
-          document.getElementById("Planes_Subobjetivo_Fecha_Fin")
-            ?.value || ""
-        ).toString();
+        const Fecha_Final_Form = (Sub?.Fecha_Fin || "").toString();
         const Fecha_Final = Forzar_Realizado
           ? Actual.Fecha
           : Fecha_Final_Form;
@@ -58442,6 +58444,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Clave_Grupo_Importado_Capa(Objetivo) {
+        if (Objetivo?.__Plan_Proyectado) {
+          const Raiz_Id = Planes_Objetivo_Raiz_Id(
+            Objetivo.__Objetivo_Canonico_Id || Objetivo.Id
+          );
+          return `Mostrado:${Raiz_Id}`;
+        }
         const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
         if (Padre_Id) {
           return `Padre:${Planes_Objetivo_Raiz_Id(Padre_Id)}`;
@@ -58449,36 +58457,51 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return `Importado:${Planes_Clave_Objetivo_Importable(Objetivo)}`;
       }
 
+      function Planes_Objetivo_Mostrado_En_Capa(Objetivo) {
+        return Boolean(
+          Objetivo?.__Plan_Proyectado ||
+          Planes_Es_Objetivo_Importado(Objetivo)
+        );
+      }
+
+      function Planes_Objetivo_Base_Grupo_Mostrado(Objetivo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        if (Objetivo?.__Plan_Proyectado) {
+          const Id = Objetivo.__Objetivo_Canonico_Id || Objetivo.Id;
+          return Modelo.Objetivos[Id] || Objetivo;
+        }
+        const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+        return Modelo.Objetivos[Padre_Id] || Objetivo;
+      }
+
       function Planes_Grupos_Objetivos_Importados_Capa(Tipo) {
         const Modelo = Asegurar_Modelo_Planes();
         const Periodos = Planes_Periodos_Visibles_Capa(Tipo);
-        const Periodo_Ids = new Set(Periodos.map((Periodo) =>
-          Periodo.Id
-        ));
         const Orden_Periodos = new Map(Periodos.map(
           (Periodo, Indice) => [Periodo.Id, Indice]
         ));
         const Mapa = new Map();
-        Object.values(Modelo.Objetivos)
-          .filter((Objetivo) =>
-            Periodo_Ids.has(Objetivo.Periodo_Id) &&
-            !Objetivo.Eliminado_Local &&
-            Planes_Es_Objetivo_Importado(Objetivo)
-          )
+        Periodos.flatMap((Periodo) => Planes_Filtrar_Objetivos(Periodo))
+          .filter((Objetivo) => Planes_Objetivo_Mostrado_En_Capa(
+            Objetivo
+          ))
           .sort((A, B) => {
-            const Orden_A = Orden_Periodos.get(A.Periodo_Id) ?? 9999;
-            const Orden_B = Orden_Periodos.get(B.Periodo_Id) ?? 9999;
+            const Periodo_A =
+              A.__Periodo_Contexto_Id || A.Periodo_Id;
+            const Periodo_B =
+              B.__Periodo_Contexto_Id || B.Periodo_Id;
+            const Orden_A = Orden_Periodos.get(Periodo_A) ?? 9999;
+            const Orden_B = Orden_Periodos.get(Periodo_B) ?? 9999;
             if (Orden_A !== Orden_B) return Orden_A - Orden_B;
             return Number(A.Orden) - Number(B.Orden);
           })
           .forEach((Objetivo) => {
             const Clave = Planes_Clave_Grupo_Importado_Capa(Objetivo);
-            const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
-            const Padre = Modelo.Objetivos[Padre_Id];
+            const Base = Planes_Objetivo_Base_Grupo_Mostrado(Objetivo);
             const Actual = Mapa.get(Clave) || {
               Clave,
-              Emoji: Padre?.Emoji || Objetivo.Emoji || "",
-              Nombre: Padre?.Nombre || Objetivo.Nombre || "",
+              Emoji: Base?.Emoji || Objetivo.Emoji || "",
+              Nombre: Base?.Nombre || Objetivo.Nombre || "",
               Objetivos: []
             };
             Actual.Objetivos.push(Objetivo);
@@ -58644,7 +58667,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Snap = Capturar_Snapshot_Undo();
         let Cambios = 0;
         Objetivos.forEach((Objetivo) => {
-          if (!Planes_Marcar_Objetivo_Eliminado_Local(Objetivo)) {
+          if (!Planes_Marcar_Objetivo_Mostrado_Eliminado(Objetivo)) {
             return;
           }
           Cambios += 1;
@@ -58659,6 +58682,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Snap
         );
         return Cambios;
+      }
+
+      function Planes_Marcar_Objetivo_Mostrado_Eliminado(
+        Objetivo
+      ) {
+        if (!Objetivo?.__Plan_Proyectado) {
+          return Planes_Marcar_Objetivo_Eliminado_Local(Objetivo);
+        }
+        const Modelo = Asegurar_Modelo_Planes();
+        const Canonico_Id =
+          Objetivo.__Objetivo_Canonico_Id || Objetivo.Id;
+        const Canonico = Modelo.Objetivos[Canonico_Id];
+        const Periodo_Id =
+          Objetivo.__Periodo_Contexto_Id || Objetivo.Periodo_Id;
+        if (!Canonico || !Periodo_Id) return false;
+        const Ajuste =
+          Planes_Asegurar_Ajuste_Periodo_Objetivo(
+            Canonico,
+            Periodo_Id
+          );
+        if (!Ajuste || Ajuste.Eliminado_Local) return false;
+        Ajuste.Eliminado_Local = true;
+        Ajuste.Estado_Vinculo = "Eliminado";
+        Ajuste.Actualizado_En = new Date().toISOString();
+        Canonico.Actualizado_En = Ajuste.Actualizado_En;
+        return true;
       }
 
       async function Planes_Solicitar_Borrar_Importados_Capa(Tipo) {
@@ -66869,13 +66918,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Fila.dataset.itemId = Item.Id;
 
         const Drag = document.createElement("div");
-        Drag.className = "Abordaje_Item_Drag";
+        Drag.className = "Abordaje_Item_Drag Con_Fallback_Emoji";
         Drag.title = t("focus.drag_reordenar");
-        Drag.textContent = "⋮⋮";
+        Drag.textContent = "\u22EE\u22EE";
 
         const Emoji = document.createElement("span");
-        Emoji.className = "Abordaje_Item_Emoji";
-        Emoji.textContent = Item.Emoji || "•";
+        Emoji.className = "Abordaje_Item_Emoji Con_Fallback_Emoji";
+        Emoji.textContent = Item.Emoji || "\u2022";
 
         const Texto = document.createElement("span");
         Texto.className = "Abordaje_Item_Texto";
@@ -66889,9 +66938,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Btn_P = document.createElement("button");
         Btn_P.type = "button";
-        Btn_P.className = "Abordaje_Planear_Btn" +
+        Btn_P.className = "Abordaje_Planear_Btn Con_Fallback_Emoji" +
           (Estado === "Planeado" ? " Activo" : "");
-        Btn_P.textContent = "★";
+        Btn_P.textContent = "\u2605";
         Btn_P.title = Estado === "Planeado"
           ? t("slot.estado_planeado")
           : t("abordaje.plan_poner_title");
@@ -66905,9 +66954,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Btn_C = document.createElement("button");
         Btn_C.type = "button";
-        Btn_C.className = "Abordaje_Toggle_Btn" +
+        Btn_C.className = "Abordaje_Toggle_Btn Con_Fallback_Emoji" +
           (Estado === "Realizado" ? " Activo" : "");
-        Btn_C.textContent = "✓";
+        Btn_C.textContent = "\u2713";
         Btn_C.title = t("abordaje.completado_title");
         Btn_C.addEventListener("click", () => {
           Item.Estado = Estado === "Realizado"
@@ -66918,9 +66967,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Btn_A = document.createElement("button");
         Btn_A.type = "button";
-        Btn_A.className = "Abordaje_Toggle_Btn" +
+        Btn_A.className = "Abordaje_Toggle_Btn Con_Fallback_Emoji" +
           (Estado === "Abordado" ? " Activo" : "");
-        Btn_A.textContent = "•";
+        Btn_A.textContent = "\u2022";
         Btn_A.title = t("abordaje.abordado_title");
         Btn_A.addEventListener("click", () => {
           Item.Estado = Estado === "Abordado"
@@ -66950,7 +66999,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Borrar = document.createElement("button");
         Borrar.type = "button";
         Borrar.className = "Abordaje_Item_Borrar";
-        Borrar.textContent = "×";
+        Borrar.textContent = "\u00D7";
         Borrar.title = t("abordaje.borrar_item_title");
         Borrar.addEventListener("click", () => {
           const Idx = Lista.findIndex((I) => I.Id === Item.Id);
@@ -72065,6 +72114,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Boolean(Objetivo.Archivada) && !Config.Mostrar_Archivadas) {
             return false;
           }
+          if (
+            Config.Ocultar_Realizados_Sidebar &&
+            Objetivo_Esta_Completa(Objetivo)
+          ) {
+            return false;
+          }
           return true;
         });
       }
@@ -73546,15 +73601,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Guardar_Cambios_Editor() {
         const Objetivo = Objetivo_Seleccionada();
-        if (!Objetivo) return;
+        if (!Objetivo) return null;
 
         const Datos = Obtener_Datos_Editor();
+        const Hay_Cambio = Hay_Cambio_Real_Guardado(
+          Obtener_Datos_Objetivo(Objetivo),
+          Datos
+        );
+        if (!Hay_Cambio) {
+          Datos_Editor_Borrador = null;
+          return false;
+        }
 
         // Preguntar alcance solo si hay copias hacia adelante.
         let Alcance = "Semana";
         if (Objetivo_Tiene_Copias_Adelante(Objetivo)) {
           Alcance = await Solicitar_Alcance_Accion_Objetivo();
-          if (!Alcance) return;
+          if (!Alcance) return null;
         }
 
         let Objetivo_Resultante;
@@ -73594,6 +73657,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Editor();
         Render_Eventos();
         Guardar_Estado();
+        return true;
       }
 
       function Clave_Slot(Fecha, Hora) {
@@ -78373,6 +78437,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Resize_Personalizado: Config.Resize_Personalizado,
             Notas_Hover: Config.Notas_Hover,
             Mostrar_Archivadas: Config.Mostrar_Archivadas,
+            Ocultar_Realizados_Sidebar:
+              Config.Ocultar_Realizados_Sidebar,
             Focus_Auto: Config.Focus_Auto,
             Menu_Estilo: Config.Menu_Estilo,
             Menu_Botones_Visibles:
@@ -78645,6 +78711,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Config.Notas_Hover = Extra.Notas_Hover;
             if (typeof Extra.Mostrar_Archivadas === "boolean")
               Config.Mostrar_Archivadas = Extra.Mostrar_Archivadas;
+            if (
+              typeof Extra.Ocultar_Realizados_Sidebar === "boolean"
+            ) {
+              Config.Ocultar_Realizados_Sidebar =
+                Extra.Ocultar_Realizados_Sidebar;
+            }
             if (typeof Extra.Focus_Auto === "boolean")
               Config.Focus_Auto = Extra.Focus_Auto;
             if (
@@ -79630,20 +79702,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
-      function Mostrar_Menu_Sidebar_Pegar(X, Y) {
+      function Mostrar_Menu_Sidebar(X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         if (!Menu) return false;
-        if (!Tiene_Portapapeles_Objetivos_Multi()) return false;
-        Menu.innerHTML = Construir_Menu_Dia_Por_Grupos([[
+        const Grupo = [
           Html_Menu_Dia_Accion(
-            "pegar-objetivos",
-            t("multi.pegar")
+            "toggle-realizados-sidebar",
+            Config.Ocultar_Realizados_Sidebar
+              ? t("sidebar.mostrar_realizados")
+              : t("sidebar.ocultar_realizados")
           )
-        ]]);
+        ];
+        if (Tiene_Portapapeles_Objetivos_Multi()) {
+          Grupo.push(
+            Html_Menu_Dia_Accion(
+              "pegar-objetivos",
+              t("multi.pegar")
+            )
+          );
+        }
+        Menu.innerHTML = Construir_Menu_Dia_Por_Grupos([Grupo]);
         Menu.style.left = `${X}px`;
         Menu.style.top = `${Y}px`;
         Menu.classList.add("Activo");
         Reposicionar_Menu_Dia_En_Pantalla(Menu);
+        Menu.querySelector(`[data-acc="toggle-realizados-sidebar"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Alternar_Realizados_Sidebar();
+          });
         Menu.querySelector(`[data-acc="pegar-objetivos"]`)
           ?.addEventListener("click", (Ev) => {
             Ev.stopPropagation();
@@ -79659,6 +79747,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
         document.addEventListener("click", Fn_Cierre_Menu);
         return true;
+      }
+
+      function Alternar_Realizados_Sidebar() {
+        Config.Ocultar_Realizados_Sidebar =
+          !Config.Ocultar_Realizados_Sidebar;
+        if (
+          Objetivo_Seleccionada() &&
+          !Obtener_Objetivos_Visibles()
+            .some((Objetivo) =>
+              Objetivo.Id === Objetivo_Seleccionada_Id
+            )
+        ) {
+          Objetivo_Seleccionada_Id = null;
+          Modo_Editor_Abierto = false;
+          Datos_Editor_Borrador = null;
+        }
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Guardar_Estado();
       }
 
       function Mostrar_Menu_Emoji_Objetivo(
@@ -79713,6 +79821,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
           );
         }
+        Grupo.push(
+          Html_Menu_Dia_Accion(
+            "toggle-realizados-sidebar",
+            Config.Ocultar_Realizados_Sidebar
+              ? t("sidebar.mostrar_realizados")
+              : t("sidebar.ocultar_realizados")
+          )
+        );
         Grupo.push(
           Html_Menu_Dia_Accion(
             "borrar-objetivo",
@@ -79771,6 +79887,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Pegar_Objetivos_Multi_En_Semana_Actual();
+          });
+        Menu.querySelector(`[data-acc="toggle-realizados-sidebar"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Alternar_Realizados_Sidebar();
           });
         Menu.querySelector(`[data-acc="borrar-objetivo"]`)
           ?.addEventListener("click", async (Ev) => {
@@ -83326,8 +83448,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "change",
           Actualizar_Campo_Unidad_Subobjetivos_Custom_Planes
         );
-      document.getElementById("Planes_Objetivo_Modo_Avance")
-        ?.addEventListener("change", Actualizar_Campos_Modo_Avance_Planes);
       document.getElementById("Planes_Objetivo_Metadato_Agregar")
         ?.addEventListener("click", Agregar_Metadato_Modal_Objetivo);
       document.getElementById("Planes_Objetivo_Overlay")
@@ -84410,10 +84530,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       El_Lista_Emojis?.addEventListener("contextmenu", (Ev) => {
         if (Ev.target.closest(".Emoji_Item")) return;
-        if (!Tiene_Portapapeles_Objetivos_Multi()) return;
         Ev.preventDefault();
         Ev.stopPropagation();
-        Mostrar_Menu_Sidebar_Pegar(Ev.clientX, Ev.clientY);
+        Mostrar_Menu_Sidebar(Ev.clientX, Ev.clientY);
       });
 
       El_Semana_Anterior.addEventListener("click", () => {
@@ -84481,12 +84600,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       });
 
       document.getElementById("Editor_Guardar").addEventListener("click", async () => {
-        await Guardar_Cambios_Editor();
+        const Resultado = await Guardar_Cambios_Editor();
+        if (Resultado === null) return;
         Modo_Editor_Abierto = false;
         Datos_Editor_Borrador = null;
         Render_Editor();
         Render_Resumen_Objetivo();
-        Guardar_Estado();
       });
       document.getElementById("Editor_Borrar").addEventListener("click", async () => {
         const Objetivo = Objetivo_Seleccionada();

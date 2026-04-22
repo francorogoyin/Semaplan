@@ -74,40 +74,15 @@ Rutas operativas principales:
   documentación, pruebas, empaquetado, hosting y assets.
 - Al mover, actualizar referencias dentro del mismo turno.
 
-## Convenciones de código
+## Convenciones de codigo
 
-Seguir el estilo global del proyecto:
-
-- Pascal_Snake_Case para todo (variables, funciones, clases CSS, IDs).
-- Todo en español.
-- Sin librerías externas.
-- Líneas ≤ 70 caracteres.
-- Toda función nueva, texto nuevo o cambio visible en UI debe quedar
-  traducido en todos los idiomas disponibles en la app en ese momento,
-  dentro del mismo turno.
-- No dejar textos hardcodeados en una sola lengua para "después".
-- Si un elemento de UI muestra emojis (inputs, selects, options,
-  badges, botones o texto generado), aplicar `Con_Fallback_Emoji` o
-  sumar su selector al bloque CSS de fallback emoji.
-- Ese fallback debe incluir `"Segoe UI Emoji"`, `"Apple Color Emoji"`,
-  `"Noto Color Emoji"` y `"Segoe UI Symbol"` para evitar cuadrados en
-  Windows y otras computadoras.
-- Todo campo editable de emoji debe usar `Con_Selector_Emoji` y no debe
-  permitir autocompletado, autocorreccion, sugerencias ni spellcheck del
-  navegador.
-- Al abrir el selector de emojis, el input de origen debe quedar
-  `readonly` mientras el selector este abierto: el usuario elige desde
-  el popover y no escribe encima del campo.
+Antes de tocar frontend, modales, guardado o UX, leer
+`Documentacion/Planes/Funcionamiento_Semaplan.md`. Ese archivo es la
+fuente base para reglas de funcionamiento y estilo.
 
 ## Regla UX de seleccion multiple
 
-Cuando una seleccion multiple muestra una barra de acciones en lote
-(calendario, Archivero, Baul, sidebar o Planes), un click izquierdo
-fuera de la barra y fuera de otro elemento seleccionable debe limpiar
-la seleccion sin abrir modales ni menus. Un click derecho fuera de esa
-barra, incluso sobre otro elemento seleccionable, debe limpiar la
-seleccion y no abrir menu contextual. El click izquierdo sobre otro
-elemento seleccionable conserva su accion normal.
+Seguir `Documentacion/Planes/Funcionamiento_Semaplan.md`.
 
 ## Comunicación
 
@@ -251,14 +226,7 @@ de Semaplan con Playwright/Codex.
 
 ### Regla general de guardado
 
-- Antes de confirmar una edición, comparar el estado normalizado
-  anterior contra el estado normalizado nuevo.
-- Si no hay cambios reales, no disparar toast de edición, no crear
-  snapshot de undo y no llamar a `Guardar_Estado()`.
-- La regla aplica a objetivos, metas, subobjetivos, notas,
-  configuración y cualquier modal de edición.
-- Una normalización invisible no cuenta como cambio real salvo que
-  corrija persistencia necesaria o un dato efectivamente inválido.
+Seguir `Documentacion/Planes/Funcionamiento_Semaplan.md`.
 
 ### Git después de cada cambio
 
