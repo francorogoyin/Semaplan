@@ -47122,10 +47122,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Objetivo_Hijo_Legacy_Para_Periodo(Objetivo, Periodo);
         const Fuente = Ajuste || Legacy || {};
         const Config = Planes_Redistribucion_Target_Objetivo(Objetivo);
-        const Target = Planes_Target_Contextual_Objetivo(
+        const Target_Auto = Planes_Target_Contextual_Objetivo(
           Objetivo,
           Periodo
         );
+        const Target_Manual = Number(Fuente.Target_Total);
+        const Tiene_Target_Manual =
+          Number.isFinite(Target_Manual) &&
+          (
+            Fuente.Fijado ||
+            Fuente.Target_Fijado_Por_Usuario ||
+            Fuente.Auto_Redistribucion === false ||
+            Fuente.Regla_Distribucion === "Manual"
+          );
+        const Target = Tiene_Target_Manual
+          ? Target_Manual
+          : Target_Auto;
         return {
           Fecha_Inicio: (Periodo.Inicio || "").toString(),
           Fecha_Objetivo: (Periodo.Fin || "").toString(),
