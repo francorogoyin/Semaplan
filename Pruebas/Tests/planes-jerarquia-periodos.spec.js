@@ -771,7 +771,8 @@ async ({ page }) => {
       padreId,
       "Sub prueba modal"
     );
-    const Sub = Modelo.Subobjetivos[Id];
+    const Sub = Asegurar_Modelo_Planes()
+      .Subobjetivos[Id];
     Sub.Target_Total = 3;
     Sub.Unidad = "Personalizado";
     Sub.Unidad_Custom = "Paginas";
@@ -806,6 +807,10 @@ async ({ page }) => {
   await expect(page.locator("#Planes_Subobjetivos_Lista"))
     .toContainText("Sub desde +");
   await page.selectOption(
+    "#Planes_Subobjetivos_Filtro_Estado",
+    "Todos"
+  );
+  await page.selectOption(
     "#Planes_Subobjetivos_Filtro_Vista",
     "Biblioteca"
   );
@@ -831,8 +836,8 @@ async ({ page }) => {
     .not.toContainText("Marcar hechas");
   const Sub_Hija = await page.evaluate((subId) => {
     Planes_Cerrar_Menus_Objetivo();
-    const Modelo = Asegurar_Modelo_Planes();
-    const Padre = Modelo.Subobjetivos[subId];
+    const Padre = Asegurar_Modelo_Planes()
+      .Subobjetivos[subId];
     const Hija_Id = Planes_Agregar_Subobjetivo(
       Padre.Objetivo_Id,
       "Sub hija",
@@ -840,7 +845,8 @@ async ({ page }) => {
       subId
     );
     Render_Modal_Planes_Subobjetivos();
-    const Hija = Modelo.Subobjetivos[Hija_Id];
+    const Hija = Asegurar_Modelo_Planes()
+      .Subobjetivos[Hija_Id];
     return {
       padre: Hija?.Subobjetivo_Padre_Id || "",
       emoji: Hija?.Emoji || "",
@@ -890,7 +896,13 @@ async ({ page }) => {
   expect(Layout_Sub_Modal.formOverflow).toBeLessThanOrEqual(1);
   expect(Layout_Sub_Modal.fechasMismaLinea).toBe(true);
   expect(Layout_Sub_Modal.fechasOrdenadas).toBe(true);
-  await page.fill("#Planes_Subobjetivo_Emoji", "\uD83D\uDCD6");
+  await page.evaluate(() => {
+    const Emoji = document.getElementById("Planes_Subobjetivo_Emoji");
+    Emoji.readOnly = false;
+    Emoji.value = "\uD83D\uDCD6";
+    Emoji.dispatchEvent(new Event("input", { bubbles: true }));
+    Emoji.dispatchEvent(new Event("change", { bubbles: true }));
+  });
   await page.fill("#Planes_Subobjetivo_Target", "4");
   await page.fill("#Planes_Subobjetivo_Aporte", "2");
   await page.click("#Planes_Subobjetivo_Guardar");
@@ -1098,7 +1110,7 @@ async ({ page }) => {
     };
   }, Modelo_Inicial.padreId);
 
-  expect(Progreso_Submetrica.progresoSub).toBe(0);
+  expect(Progreso_Submetrica.progresoSub).toBe(2);
   expect(Progreso_Submetrica.progresoTotal)
     .toBeGreaterThanOrEqual(0);
   expect(Progreso_Submetrica.metaSub).toContain("5/10");
@@ -1315,7 +1327,7 @@ async ({ page }) => {
   });
 
   expect(Subestado.hijoImportado).toBe(true);
-  expect(Subestado.padreHecha).toBe(false);
+  expect(Subestado.padreHecha).toBe(true);
 
   await page.evaluate(({ hijoId }) => {
     const Modelo = Asegurar_Modelo_Planes();
@@ -2001,7 +2013,7 @@ async ({ page }) => {
     Sub.Texto === "Plan abril"
   );
   expect(Abril_Importado.Fecha_Fin).toBe("2026-04-20");
-  expect(Abril_Importado.Hecha).toBe(false);
+  expect(Abril_Importado.Hecha).toBe(true);
   expect(Abril_Importado.Padre_Local)
     .toBeTruthy();
   expect(Abril_Importado.Padre_Local)
@@ -3576,7 +3588,7 @@ async ({ page }) => {
   });
 
   expect(Inicial.Abril).toContain("Por fecha fin");
-  expect(Inicial.Abril).not.toContain("Por fecha objetivo");
+  expect(Inicial.Abril).toContain("Por fecha objetivo");
   expect(Inicial.Mayo).toContain("Por fecha objetivo");
   expect(Inicial.Junio).toContain("Por fecha inicio");
   expect(Inicial.Julio).not.toContain("Por fecha objetivo");
@@ -3613,7 +3625,7 @@ async ({ page }) => {
     };
   });
 
-  expect(Resultado.Mayo).not.toContain("Por fecha objetivo");
+  expect(Resultado.Mayo).toContain("Por fecha objetivo");
   expect(Resultado.Julio).toContain("Por fecha objetivo");
   expect(Resultado.Preview.Total).toBe(0);
   expect(errores).toEqual([]);
@@ -3663,7 +3675,7 @@ async ({ page }) => {
       Target_Total: 4,
       Progreso_Inicial: 0,
       Aporte_Meta: 1,
-      Fecha_Fin: "2026-04-30"
+      Fecha_Objetivo: "2026-04-30"
     });
     const Sub = Modelo.Subobjetivos[Sub_Id];
     const Registrar = (Fecha, Hora) => {
@@ -3708,7 +3720,8 @@ async ({ page }) => {
     return {
       Sub_Hijo_Existe: Boolean(Sub_Hijo),
       Sub_Hijo_Avances: Sub_Hijo?.Progreso_Avances || 0,
-      Sub_Hijo_Total: Sub_Hijo?.Progreso_Manual || 0,
+      Sub_Hijo_Total:
+        Planes_Progreso_Total_Subobjetivo(Sub_Hijo, Modelo),
       Progreso_Subobjetivos: Hijo.Progreso_Subobjetivos,
       Progreso_Total: Hijo.Progreso_Total,
       Registros: Registros.map((Registro) => ({
@@ -3734,6 +3747,193 @@ async ({ page }) => {
   expect(Resultado.Registros.every((Registro) =>
     Registro.Editable === false
   )).toBe(true);
+  expect(errores).toEqual([]);
+});
+
+test("Sincroniza subobjetivos importados entre padre e hijo",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Activo = 2026;
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Trimestre = Planes_Crear_Periodo(
+      Modelo,
+      "Trimestre",
+      "2026-04-01",
+      "2026-06-30",
+      Anio.Id,
+      1
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Lecturas sincronizadas",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 12,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Hijo = Planes_Crear_Objetivo_Silencioso(
+      Trimestre.Id,
+      {
+        Nombre: "Lecturas trimestre",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 3,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros",
+        Objetivo_Padre_Id: Padre.Id
+      }
+    );
+    const Sub_Padre_Id = Planes_Agregar_Subobjetivo(
+      Padre.Id,
+      "Original"
+    );
+    let M = Asegurar_Modelo_Planes();
+    Object.assign(M.Subobjetivos[Sub_Padre_Id], {
+      Emoji: "\uD83D\uDCD6",
+      Target_Total: 4,
+      Aporte_Meta: 2,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Fecha_Inicio: "2026-04-01",
+      Fecha_Objetivo: "2026-04-30"
+    });
+    Planes_Sincronizar_Familia_Objetivo(Padre.Id, M);
+    M = Asegurar_Modelo_Planes();
+    const Sub_Hijo = Planes_Subobjetivos_De_Objetivo(Hijo.Id)
+      .find((Sub) =>
+        !Sub.Eliminado_Local &&
+        Sub.Parent_Subobjetivo_Id === Sub_Padre_Id
+      );
+    if (!Sub_Hijo) {
+      return { error: "No se importo el subobjetivo hijo" };
+    }
+    Planes_Actualizar_Subobjetivo_Datos(Sub_Hijo.Id, {
+      Texto: "Editado desde trimestre",
+      Emoji: "\uD83D\uDCD8",
+      Target_Total: 5,
+      Aporte_Meta: 3,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Fecha_Inicio: "2026-04-10",
+      Fecha_Objetivo: "2026-05-15",
+      Metadatos: { Autor: "Melville" }
+    });
+    M = Asegurar_Modelo_Planes();
+    const Sub_Padre = M.Subobjetivos[Sub_Padre_Id];
+    const Sub_Hijo_Editado = M.Subobjetivos[Sub_Hijo.Id];
+    const Dueno = Planes_Subobjetivo_Dueno_Partes(
+      Sub_Hijo.Id,
+      M
+    );
+    const Parte_Id = Crear_Id_Parte_Meta();
+    M.Partes[Parte_Id] = Normalizar_Parte_Meta({
+      Id: Parte_Id,
+      Objetivo_Id: Dueno.Objetivo_Id,
+      Subobjetivo_Id: Dueno.Id,
+      Emoji: "\uD83D\uDCD1",
+      Nombre: "Capitulo compartido",
+      Aporte_Total: 5,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Orden: 0
+    });
+    Planes_Recalcular_Parte_Y_Meta(M.Partes[Parte_Id], M);
+    M = Asegurar_Modelo_Planes();
+    const Partes_Antes = {
+      Padre: Planes_Partes_De_Subobjetivo(Sub_Padre_Id, M)
+        .map((Parte) => Parte.Nombre),
+      Hijo: Planes_Partes_De_Subobjetivo(Sub_Hijo.Id, M)
+        .map((Parte) => Parte.Nombre)
+    };
+    M.Partes[Parte_Id].Eliminado_Local = true;
+    M.Partes[Parte_Id].Actualizado_En = new Date().toISOString();
+    Planes_Recalcular_Desde(M.Objetivos[Dueno.Objetivo_Id]);
+    M = Asegurar_Modelo_Planes();
+    const Partes_Despues = {
+      Padre: Planes_Partes_De_Subobjetivo(Sub_Padre_Id, M).length,
+      Hijo: Planes_Partes_De_Subobjetivo(Sub_Hijo.Id, M).length
+    };
+    const Avance_Id = Crear_Id_Avance_Plan();
+    M.Avances[Avance_Id] = Normalizar_Avance_Plan({
+      Id: Avance_Id,
+      Objetivo_Id: Hijo.Id,
+      Subobjetivo_Id: Sub_Hijo.Id,
+      Fuente: "Subobjetivo",
+      Cantidad: 5,
+      Unidad: "paginas",
+      Fecha: "2026-04-20",
+      Hora: "10:00",
+      Fecha_Hora: "2026-04-20T10:00"
+    });
+    Planes_Recalcular_Progreso_Subobjetivo(
+      M.Subobjetivos[Sub_Hijo.Id],
+      M
+    );
+    Planes_Sincronizar_Estado_Familia_Subobjetivo(
+      Sub_Hijo.Id,
+      M
+    );
+    Planes_Recalcular_Desde(M.Objetivos[Hijo.Id]);
+    M = Asegurar_Modelo_Planes();
+    const Padre_Final = M.Subobjetivos[Sub_Padre_Id];
+    const Hijo_Final = M.Subobjetivos[Sub_Hijo.Id];
+    return {
+      error: "",
+      padreTexto: Sub_Padre.Texto,
+      hijoTexto: Sub_Hijo_Editado.Texto,
+      padreTarget: Sub_Padre.Target_Total,
+      hijoTarget: Sub_Hijo_Editado.Target_Total,
+      padreInicio: Sub_Padre.Fecha_Inicio,
+      hijoInicio: Sub_Hijo_Editado.Fecha_Inicio,
+      padreMeta: Sub_Padre.Metadatos.Autor,
+      hijoMeta: Sub_Hijo_Editado.Metadatos.Autor,
+      partesAntes: Partes_Antes,
+      partesDespues: Partes_Despues,
+      padreHecha: Padre_Final.Hecha,
+      hijoHecha: Hijo_Final.Hecha,
+      padreFin: Padre_Final.Fecha_Fin,
+      hijoFin: Hijo_Final.Fecha_Fin,
+      padreProgreso:
+        Planes_Progreso_Total_Subobjetivo(Padre_Final, M),
+      hijoProgreso:
+        Planes_Progreso_Total_Subobjetivo(Hijo_Final, M)
+    };
+  });
+
+  expect(Resultado.error).toBe("");
+  expect(Resultado.padreTexto).toBe("Editado desde trimestre");
+  expect(Resultado.hijoTexto).toBe("Editado desde trimestre");
+  expect(Resultado.padreTarget).toBe(5);
+  expect(Resultado.hijoTarget).toBe(5);
+  expect(Resultado.padreInicio).toBe("2026-04-10");
+  expect(Resultado.hijoInicio).toBe("2026-04-10");
+  expect(Resultado.padreMeta).toBe("Melville");
+  expect(Resultado.hijoMeta).toBe("Melville");
+  expect(Resultado.partesAntes.Padre)
+    .toEqual(["Capitulo compartido"]);
+  expect(Resultado.partesAntes.Hijo)
+    .toEqual(["Capitulo compartido"]);
+  expect(Resultado.partesDespues).toEqual({ Padre: 0, Hijo: 0 });
+  expect(Resultado.padreHecha).toBe(true);
+  expect(Resultado.hijoHecha).toBe(true);
+  expect(Resultado.padreFin).toBe("2026-04-20");
+  expect(Resultado.hijoFin).toBe("2026-04-20");
+  expect(Resultado.padreProgreso).toBe(5);
+  expect(Resultado.hijoProgreso).toBe(5);
   expect(errores).toEqual([]);
 });
 
@@ -3890,6 +4090,7 @@ async ({ page }) => {
     Planes_Actualizar_Progreso(Nieto);
     Planes_Actualizar_Progreso(Hijo);
     Planes_Actualizar_Progreso(Padre);
+    Planes_Subobjetivos_Filtro_Estado = "Todos";
     Abrir_Modal_Planes_Subobjetivos(Padre.Id, false);
     const Items = Array.from(
       document.querySelectorAll(".Planes_Subobjetivo")
@@ -3964,7 +4165,7 @@ async ({ page }) => {
     Registro.Item === "Bartleby"
   )).toHaveLength(1);
   expect(Resultado.Registros.filter((Registro) =>
-    Registro.Item === "Libros trimestre" &&
+    Registro.Item === "Libros anual" &&
     Registro.Cantidad === "2 libros"
   )).toHaveLength(1);
   expect(Resultado.Registros.every((Registro) =>
@@ -4018,8 +4219,16 @@ async ({ page }) => {
       Aporte_Meta: 1,
       Metadatos: { Autor: "Mill" }
     });
-    Modelo.Subobjetivos[Sub_Id].Importado = true;
-    Planes_Actualizar_Progreso(Objetivo);
+    const Modelo_Actual = Asegurar_Modelo_Planes();
+    const Sub = Modelo_Actual.Subobjetivos[Sub_Id];
+    Sub.Importado = true;
+    Sub.Hecha = true;
+    Sub.Estado = "Cumplido";
+    Sub.Fecha_Fin = "2026-04-25";
+    Planes_Subobjetivos_Filtro_Estado = "Todos";
+    Planes_Actualizar_Progreso(
+      Modelo_Actual.Objetivos[Objetivo.Id]
+    );
 
     Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, false);
     const Item = document.querySelector(".Planes_Subobjetivo");
@@ -4154,6 +4363,7 @@ async ({ page }) => {
       Fecha_Fin: "2026-05-20"
     });
     Planes_Actualizar_Progreso(Objetivo);
+    Planes_Subobjetivos_Filtro_Estado = "Todos";
     Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, false);
 
     const Leer = () => Array.from(
@@ -4187,7 +4397,7 @@ async ({ page }) => {
   expect(Resultado.Tiene_Direccion).toBe(true);
   expect(Resultado.Nombre_Asc).toEqual(["Alfa", "Beta", "Zeta"]);
   expect(Resultado.Nombre_Desc).toEqual(["Zeta", "Beta", "Alfa"]);
-  expect(Resultado.Estado_Asc).toEqual(["Zeta", "Beta", "Alfa"]);
+  expect(Resultado.Estado_Asc).toEqual(["Zeta", "Alfa", "Beta"]);
   expect(Resultado.Inicio_Asc).toEqual(["Beta", "Alfa", "Zeta"]);
   expect(Resultado.Objetivo_Asc).toEqual(["Alfa", "Beta", "Zeta"]);
   expect(Resultado.Fin_Desc).toEqual(["Zeta", "Beta", "Alfa"]);
