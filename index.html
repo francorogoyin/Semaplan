@@ -56535,6 +56535,160 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Cambios;
       }
 
+      function Planes_Asegurar_Objetivo_Importado_Para_Periodo(
+        Padre,
+        Periodo,
+        Referencia = null
+      ) {
+        if (!Padre || !Periodo) return null;
+        let Hijo =
+          Planes_Objetivo_Hijo_De(Padre.Id, Periodo.Id) ||
+          Planes_Objetivo_Equivalente_De_Importacion(Padre, Periodo);
+        if (!Hijo) {
+          Hijo = Planes_Crear_Objetivo_Silencioso(
+            Periodo.Id,
+            Planes_Clonar_Datos_Objetivo(Padre, {
+              Objetivo_Padre_Id: Padre.Id,
+              Periodo_Origen: Padre.Periodo_Id || "",
+              Regla_Distribucion:
+                Referencia?.Regla_Distribucion || "Uniforme",
+              Estado_Vinculo: "Vigente",
+              Padre_Actualizado_Al_Importar:
+                Padre.Actualizado_En || "",
+              Target_Total: 0,
+              Target_Automatico: 0,
+              Target_Actual: 0,
+              Progreso_Importado: 0
+            })
+          );
+        }
+        Hijo.Eliminado_Local = false;
+        Planes_Restaurar_Vinculo_Objetivo(Hijo);
+        Planes_Actualizar_Datos_Hijo_Importado(Padre, Hijo);
+        Hijo.Regla_Distribucion =
+          Referencia?.Regla_Distribucion || Hijo.Regla_Distribucion ||
+          "Uniforme";
+        Hijo.Actualizado_En = new Date().toISOString();
+        return Hijo;
+      }
+
+      function Planes_Mover_Subobjetivo_A_Objetivo(
+        Sub_Id,
+        Objetivo_Destino_Id,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Sub = M.Subobjetivos[Sub_Id];
+        const Destino = M.Objetivos[Objetivo_Destino_Id];
+        if (!Sub || !Destino || Sub.Objetivo_Id === Destino.Id) {
+          return 0;
+        }
+        const Familia = [
+          Sub,
+          ...Planes_Subobjetivos_Descendientes(Sub.Id)
+        ].filter(Boolean);
+        const Ids = new Set(Familia.map((Item) => Item.Id));
+        const Orden_Raiz = Planes_Subobjetivos_De_Objetivo(Destino.Id)
+          .filter((Item) =>
+            !Item.Eliminado_Local &&
+            !(Item.Subobjetivo_Padre_Id || "").toString()
+          ).length;
+        let Cambios = 0;
+        Familia.forEach((Item) => {
+          if (Item.Objetivo_Id !== Destino.Id) {
+            Item.Objetivo_Id = Destino.Id;
+            Cambios += 1;
+          }
+          if (Item.Id === Sub.Id) {
+            Item.Subobjetivo_Padre_Id = "";
+            Item.Orden = Orden_Raiz;
+          }
+          Item.Actualizado_En = new Date().toISOString();
+        });
+        Object.values(M.Partes || {}).forEach((Parte) => {
+          if (!Ids.has(Parte.Subobjetivo_Id)) return;
+          if (Parte.Objetivo_Id === Destino.Id) return;
+          Parte.Objetivo_Id = Destino.Id;
+          Parte.Actualizado_En = new Date().toISOString();
+          Cambios += 1;
+        });
+        Object.values(M.Avances || {}).forEach((Avance) => {
+          if (!Ids.has(Avance.Subobjetivo_Id)) return;
+          if (Avance.Objetivo_Id === Destino.Id) return;
+          Avance.Objetivo_Id = Destino.Id;
+          Avance.Actualizado_En = new Date().toISOString();
+          Cambios += 1;
+        });
+        return Cambios;
+      }
+
+      function Planes_Reubicar_Subobjetivos_Directos_Capa(
+        Tipo,
+        Importados
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Periodos = Planes_Crear_Periodos_Capa_Visibles(Tipo);
+        const Importados_Ids = new Set(
+          (Importados || []).map((Objetivo) => Objetivo.Id)
+        );
+        const Resumen = {
+          Objetivos: 0,
+          Subobjetivos: 0
+        };
+        (Importados || []).slice().forEach((Objetivo) => {
+          const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+          const Padre = Modelo.Objetivos[Padre_Id];
+          const Periodo_Origen = Modelo.Periodos[Objetivo.Periodo_Id];
+          if (!Padre || !Periodo_Origen) return;
+          Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
+            .filter((Sub) =>
+              !Sub.Eliminado_Local &&
+              !Sub.Importado &&
+              !Sub.Parent_Subobjetivo_Id &&
+              !(Sub.Subobjetivo_Padre_Id || "").toString()
+            )
+            .forEach((Sub) => {
+              const Rango = Planes_Subobjetivo_Rango_Temporal(Sub);
+              if (!Rango) return;
+              if (Planes_Periodo_Solapa_Rango(Periodo_Origen, Rango)) {
+                return;
+              }
+              const Periodo_Destino = Periodos.find((Periodo) =>
+                Periodo.Id !== Periodo_Origen.Id &&
+                Planes_Periodo_Solapa_Rango(Periodo, Rango)
+              );
+              if (!Periodo_Destino) return;
+              const Existente =
+                Planes_Objetivo_Hijo_De(Padre.Id, Periodo_Destino.Id) ||
+                Planes_Objetivo_Equivalente_De_Importacion(
+                  Padre,
+                  Periodo_Destino
+                );
+              const Destino =
+                Planes_Asegurar_Objetivo_Importado_Para_Periodo(
+                  Padre,
+                  Periodo_Destino,
+                  Objetivo
+                );
+              if (!Destino) return;
+              if (!Importados_Ids.has(Destino.Id)) {
+                Importados.push(Destino);
+                Importados_Ids.add(Destino.Id);
+              }
+              if (!Existente || Existente.Eliminado_Local) {
+                Resumen.Objetivos += 1;
+              }
+              Resumen.Subobjetivos +=
+                Planes_Mover_Subobjetivo_A_Objetivo(
+                  Sub.Id,
+                  Destino.Id,
+                  Modelo
+                );
+            });
+        });
+        return Resumen;
+      }
+
       function Planes_Subobjetivo_Importa_En_Periodo(Sub, Periodo) {
         if (!Sub || Sub.Eliminado_Local || !Periodo) return false;
         const Rango = Planes_Subobjetivo_Rango_Temporal(Sub);
@@ -56980,6 +57134,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return Resumen;
         }
         const Snap = Silencioso ? null : Capturar_Snapshot_Undo();
+        const Reubicados =
+          Planes_Reubicar_Subobjetivos_Directos_Capa(Tipo, Importados);
+        Resumen.Actualizados += Reubicados.Objetivos;
+        Resumen.Subobjetivos += Reubicados.Subobjetivos;
+        Resumen.Importados = Importados.length;
         const Info_Pendiente =
           Planes_Info_Pendiente_Actualizacion_Capa(Importados);
         const Padres = new Set();

@@ -3719,6 +3719,105 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Actualizar capa mueve subobjetivo directo al trimestre del rango",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Subperiodo_Activo = 2;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Objetivo anual con traslado",
+        Emoji: "\uD83D\uDCC6",
+        Target_Total: 12,
+        Unidad: "Horas"
+      }
+    );
+    const Trimestres = Planes_Crear_Periodos_Distribucion(
+      Anio,
+      "Trimestre"
+    );
+    Planes_Importar_Objetivos_Padres_A_Periodos(
+      [{
+        Periodo_Id: Trimestres[1].Id,
+        Objetivo_Ids: [Padre.Id]
+      }],
+      { Modo: "Pendiente" }
+    );
+    const Hijo_T2 = Planes_Objetivo_Hijo_De(
+      Padre.Id,
+      Trimestres[1].Id
+    );
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Hijo_T2.Id,
+      "Mudanza a julio"
+    );
+    let M = Asegurar_Modelo_Planes();
+    Object.assign(M.Subobjetivos[Sub_Id], {
+      Fecha_Inicio: "2026-05-10",
+      Fecha_Objetivo: "2026-05-20"
+    });
+    const Antes_T2 = Planes_Subobjetivos_De_Objetivo(Hijo_T2.Id)
+      .filter((Sub) => !Sub.Eliminado_Local)
+      .map((Sub) => Sub.Texto);
+    Object.assign(M.Subobjetivos[Sub_Id], {
+      Fecha_Inicio: "2026-07-01",
+      Fecha_Objetivo: "2026-07-31"
+    });
+    const Resumen = Planes_Actualizar_Importados_Capa(
+      "Trimestre",
+      { Silencioso: true }
+    );
+    M = Asegurar_Modelo_Planes();
+    const Hijo_T3 = Planes_Objetivo_Hijo_De(
+      Padre.Id,
+      Trimestres[2].Id
+    );
+    const Textos = (Objetivo) => Objetivo
+      ? Planes_Subobjetivos_De_Objetivo(Objetivo.Id)
+        .filter((Sub) => !Sub.Eliminado_Local)
+        .map((Sub) => Sub.Texto)
+      : [];
+    return {
+      Antes_T2,
+      Despues_T2: Textos(Hijo_T2),
+      Despues_T3: Textos(Hijo_T3),
+      Sub_Objetivo_Id: M.Subobjetivos[Sub_Id]?.Objetivo_Id,
+      Hijo_T3_Id: Hijo_T3?.Id || "",
+      Hijo_T3_Importado:
+        Planes_Objetivo_Padre_Id(Hijo_T3) === Padre.Id,
+      Resumen
+    };
+  });
+
+  expect(Resultado.Antes_T2).toContain("Mudanza a julio");
+  expect(Resultado.Despues_T2).not.toContain("Mudanza a julio");
+  expect(Resultado.Despues_T3).toContain("Mudanza a julio");
+  expect(Resultado.Sub_Objetivo_Id).toBe(Resultado.Hijo_T3_Id);
+  expect(Resultado.Hijo_T3_Importado).toBe(true);
+  expect(Resultado.Resumen.Subobjetivos).toBeGreaterThan(0);
+  expect(Resultado.Resumen.Total).toBeGreaterThan(0);
+  expect(errores).toEqual([]);
+});
+
 test("Subobjetivo permite editar distribucion importada",
 async ({ page }) => {
   const errores = [];
