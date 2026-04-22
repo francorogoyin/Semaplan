@@ -52586,16 +52586,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Estado_Calculado_Parte(Parte, Modelo) !==
             "Realizada"
           )
-          .filter((Parte) =>
-            Metas_Sugeridas_Parte_En_Semana(
+          .map((Parte) => ({
+            Parte,
+            Importada: Ya_Importadas.has(Parte.Id),
+            Sugerida: Metas_Sugeridas_Parte_En_Semana(
               Parte,
               Inicio_Semana,
               Fin_Semana
             )
-          )
-          .map((Parte) => ({
-            Parte,
-            Importada: Ya_Importadas.has(Parte.Id)
           }));
       }
 
@@ -52750,13 +52748,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Estado_Calculado_Parte(Parte, Modelo) !==
             "Realizada"
           )
-          .filter((Parte) =>
-            Metas_Sugeridas_Parte_En_Semana(
+          .map((Parte) => ({
+            Parte,
+            Sugerida: Metas_Sugeridas_Parte_En_Semana(
               Parte,
               Semana.Inicio,
               Semana.Fin
             )
-          );
+          }));
       }
 
       function Metas_Sugeridas_Items() {
@@ -53066,16 +53065,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Partes = document.createElement("button");
           Partes.type = "button";
           Partes.className = "Metas_Sugeridas_Partes";
+          const Partes_Ids = Item.Partes
+            .map((Info) => Info.Parte?.Id || "")
+            .filter(Boolean);
+          const Partes_Seleccionadas = Item.Partes
+            .filter((Info) => Info.Sugerida)
+            .map((Info) => Info.Parte?.Id || "")
+            .filter(Boolean);
           Partes.dataset.partesIds = Item.Partes
-            .map((Parte) => Parte.Id)
+            .map((Info) => Info.Parte?.Id || "")
+            .filter(Boolean)
             .join(",");
-          Partes.dataset.partesSeleccionadas = Partes.dataset.partesIds;
-          Partes.textContent = Item.Partes.length
+          Partes.dataset.partesSeleccionadas =
+            Partes_Seleccionadas.join(",");
+          Partes.textContent = Partes_Ids.length
             ? t("sidebar.metas_partes_importar_n", {
-              n: Item.Partes.length
+              n: Partes_Seleccionadas.length
             })
             : t("sidebar.metas_partes_ninguna");
-          Partes.disabled = Item.Partes.length === 0;
+          if (Partes_Ids.length && !Partes_Seleccionadas.length) {
+            Partes.textContent =
+              t("sidebar.metas_partes_importar_ninguna");
+          }
+          Partes.disabled = Partes_Ids.length === 0;
           Partes.addEventListener("click", async () => {
             await Metas_Sugeridas_Mostrar_Partes(Item.Partes, Partes);
           });
@@ -53147,7 +53159,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .split(",")
             .filter(Boolean)
         );
-        Lista.forEach((Parte) => {
+        Lista.forEach((Info) => {
+          const Parte = Info?.Parte || Info;
+          if (!Parte) return;
           const Item = document.createElement("div");
           Item.className = "Metas_Sugeridas_Partes_Item";
           const Check = document.createElement("input");
@@ -53355,7 +53369,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Lista.appendChild(Vacio);
           return;
         }
-        Items.forEach(({ Parte, Importada }) => {
+        Items.forEach(({ Parte, Importada, Sugerida }) => {
           const Fila = document.createElement("label");
           Fila.className = "Planes_Parte" +
             (Importada ? " Eliminada" : "");
@@ -53363,6 +53377,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fila.innerHTML = `
             <input type="checkbox"
               data-parte-importar-id="${Escape_Html(Parte.Id)}"
+              ${Sugerida && !Importada ? "checked" : ""}
               ${Importada ? "disabled" : ""}>
             <span class="Planes_Parte_Emoji Con_Fallback_Emoji">
               ${Escape_Html(Parte.Emoji || "\u2022")}
