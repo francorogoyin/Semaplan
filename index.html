@@ -11536,8 +11536,10 @@
         cursor: pointer;
       }
       .Archivero_Nota_Card.Activa {
+        border-width: 3px;
         border-color: var(--Acento);
-        box-shadow: 0 0 0 2px rgba(59,130,246,0.14);
+        padding: 10px 12px;
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.16);
       }
       .Archivero_Nota_Card.Drop_Antes {
         border-top: 3px solid var(--Acento);
@@ -11968,23 +11970,6 @@
       .Archivero_Vacio_Emoji {
         font-size: 36px;
         opacity: 0.6;
-      }
-
-      .Archivero_Extension_Aviso {
-        flex-shrink: 0;
-        padding: 10px 14px;
-        border-radius: 10px;
-        background: #fff8ed;
-        border: 1px dashed #e5c889;
-        color: #8a5a20;
-        font-size: 12px;
-        line-height: 1.4;
-      }
-
-      .Archivero_Extension_Aviso a {
-        color: #8a5a20;
-        text-decoration: underline;
-        font-weight: 600;
       }
 
       .Otras_Apps_Panel {
@@ -18307,20 +18292,6 @@
               </div>
             </section>
           </div>
-          <div class="Archivero_Extension_Aviso">
-            <strong data-i18n="archivero.extension_titulo">
-              ¿Querés capturar frases con click derecho desde
-              cualquier página web?
-            </strong>
-            <span data-i18n="archivero.extension_desc">
-              La extensión del navegador está en camino —
-            </span>
-            <a href="#"
-              id="Archivero_Extension_Link"
-              onclick="event.preventDefault()"
-              data-i18n="archivero.extension_link"
-              >avisame cuando esté disponible</a>.
-          </div>
         </div>
       </div>
     </div>
@@ -22254,15 +22225,6 @@
             "Esto va a borrar {N} notas que " +
             "tiene adentro. No se puede " +
             "deshacer.",
-          "archivero.extension_titulo":
-            "¿Querés capturar frases con " +
-            "click derecho desde cualquier " +
-            "página web?",
-          "archivero.extension_desc":
-            "La extensión del navegador " +
-            "está en camino —",
-          "archivero.extension_link":
-            "avisame cuando esté disponible",
           "plan.titulo":
             "Plan de la semana",
           "plan.fijar":
@@ -25864,15 +25826,6 @@
             "Delete the drawer \"{Nombre}\"? " +
             "This will delete {N} notes inside. " +
             "This can't be undone.",
-          "archivero.extension_titulo":
-            "Want to capture quotes with " +
-            "right-click from any web page?",
-          "archivero.extension_desc":
-            "The browser extension is on " +
-            "the way —",
-          "archivero.extension_link":
-            "let me know when it's " +
-            "available",
           "plan.titulo": "Week plan",
           "plan.fijar":
             "Set this week's plan",
@@ -29496,16 +29449,6 @@
             "Excluir a gaveta \"{Nombre}\"? " +
             "Isso vai apagar {N} notas dentro. " +
             "Não dá para desfazer.",
-          "archivero.extension_titulo":
-            "Quer capturar frases com " +
-            "clique direito de qualquer " +
-            "página web?",
-          "archivero.extension_desc":
-            "A extensão do navegador " +
-            "está a caminho —",
-          "archivero.extension_link":
-            "me avise quando estiver " +
-            "disponível",
           "plan.titulo":
             "Plano da semana",
           "plan.fijar":
@@ -38545,7 +38488,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return (Array.isArray(Notas) ? Notas : [])
           .map((Nota) => Construir_Texto_Copia_Nota_Archivero(Nota))
           .filter(Boolean)
-          .join("\n\n");
+          .join("\r\n\r\n");
       }
 
       async function Copiar_Notas_Seleccionadas_Archivero() {
@@ -38912,8 +38855,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Archivero();
         });
       }
-
-      // --- Hook público para la futura extensión ---
+      // --- Hook publico para integraciones locales ---
 
       function Agregar_Nota_Archivero(
         Texto,
@@ -38921,10 +38863,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Cajon_Id,
         Etiquetas
       ) {
-        // Punto de entrada que la futura extensión del
-        // navegador (o cualquier integración externa)
+        // Punto de entrada que una integracion externa
         // puede invocar para agregar una nota sin abrir
-        // la UI. Si no recibe Cajon_Id, usa el cajón
+        // la UI. Si no recibe Cajon_Id, usa el cajon
         // seleccionado actualmente o el primero. Si no
         // hay cajones, crea los defaults primero.
         // Etiquetas es un array opcional de strings.
@@ -38963,10 +38904,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         return Nota;
       }
-
-      // Exponer el hook como global para que cualquier
-      // extensión / script externo pueda llamarlo desde
-      // la consola o vía postMessage en el futuro.
+      // Exponer el hook como global para scripts locales.
       window.Agregar_Nota_Archivero =
         Agregar_Nota_Archivero;
 

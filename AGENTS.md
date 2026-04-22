@@ -224,6 +224,14 @@ de Semaplan con Playwright/Codex.
 2. Validar el resultado en la UI y, si corresponde, también tras
    recargar para confirmar persistencia real.
 
+### Registro de avance de mejoras
+
+Cada vez que se complete una mejora, cambio funcional o cambio de
+instrucciones, agregar un resumen breve al comienzo de
+`Documentacion/Registros/Registro_Avance.txt`, usando la plantilla del
+archivo y hora local de Argentina (`America/Buenos_Aires`). El registro
+debe quedar antes de los registros anteriores.
+
 ### Regla general de guardado
 
 Seguir `Documentacion/Planes/Funcionamiento_Semaplan.md`.
