@@ -7228,7 +7228,7 @@
 
       .Planes_Redistribucion_Resumen {
         color: var(--Texto);
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 400;
         line-height: 1.25;
       }
@@ -7255,7 +7255,6 @@
         font-family: inherit;
       }
 
-      .Planes_Redistribucion_Overlay .Patron_Modal_Titulo,
       .Planes_Redistribucion_Overlay
         .Planes_Target_Encabezado_Texto strong,
       .Planes_Redistribucion_Overlay
@@ -56225,8 +56224,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Info = Planes_Resumen_Redistribucion_Target(Objetivo);
         Campo.hidden = !Info.Disponible;
         Boton.disabled = !Info.Disponible;
-        Resumen.textContent = Info.Titulo;
-        Detalle.textContent = Info.Detalle;
+        Resumen.textContent = [
+          Info.Titulo,
+          Info.Detalle
+        ].filter(Boolean).join(" · ");
+        Detalle.textContent = "";
+        Detalle.hidden = true;
       }
 
       function Planes_Mostrar_Dialogo_Redistribucion_Target(
