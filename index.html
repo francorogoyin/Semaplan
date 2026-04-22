@@ -7055,14 +7055,14 @@
       }
 
       #Plan_Overlay.Periodo_Cerrado .Plan_Panel {
-        background: #202326;
-        border-color: #3a3e42;
-        color: #eceff1;
+        background: #e8eaed;
+        border-color: #c8cdd2;
+        color: var(--Texto);
       }
 
       #Plan_Overlay.Periodo_Cerrado .Planes_Cuerpo,
       #Plan_Overlay.Periodo_Cerrado .Planes_Principal {
-        background: #202326;
+        background: #e8eaed;
       }
 
       #Plan_Overlay.Periodo_Cerrado .Patron_Modal_Titulo,
@@ -7075,7 +7075,7 @@
         .Planes_Periodo_Tarjeta_Titulo,
       #Plan_Overlay.Periodo_Cerrado
         .Planes_Periodo_Tarjeta_Metrica strong {
-        color: #eceff1;
+        color: var(--Texto);
       }
 
       #Plan_Overlay.Periodo_Cerrado .Planes_Resumen_Rango,
@@ -7092,16 +7092,16 @@
         .Planes_Periodo_Tarjeta_Mas,
       #Plan_Overlay.Periodo_Cerrado
         .Planes_Periodo_Tarjeta_Vacio {
-        color: #aeb6bd;
+        color: var(--Texto_Suave);
       }
 
       #Plan_Overlay.Periodo_Cerrado input,
       #Plan_Overlay.Periodo_Cerrado select,
       #Plan_Overlay.Periodo_Cerrado textarea,
       #Plan_Overlay.Periodo_Cerrado .Planes_Vista_Toggle {
-        background: #151719;
-        border-color: #454a50;
-        color: #f1f3f4;
+        background: #fff;
+        border-color: #c3c8ce;
+        color: var(--Texto);
       }
 
       #Plan_Overlay.Periodo_Cerrado .Planes_Resumen,
@@ -7109,7 +7109,7 @@
       #Plan_Overlay.Periodo_Cerrado .Planes_Objetivo_Card,
       #Plan_Overlay.Periodo_Cerrado .Planes_Periodo_Tarjeta,
       #Plan_Overlay.Periodo_Cerrado .Planes_Resumen_Texto_Fila {
-        border-color: #3a3e42;
+        border-color: #c8cdd2;
       }
 
       #Plan_Overlay.Periodo_Cerrado .Planes_Periodo_Tarjeta,
@@ -7119,7 +7119,7 @@
       #Plan_Overlay.Periodo_Cerrado .Planes_Resumen_Texto_Fila,
       #Plan_Overlay.Periodo_Cerrado
         .Planes_Periodo_Tarjeta_Metrica {
-        background: #272b2f;
+        background: #f4f5f6;
       }
 
       #Plan_Overlay.Periodo_Cerrado .Planes_Header_Icono,
@@ -7128,7 +7128,7 @@
       #Plan_Overlay.Periodo_Cerrado .Planes_Resumen_Nav,
       #Plan_Overlay.Periodo_Cerrado .Planes_Universo_Accion,
       #Plan_Overlay.Periodo_Cerrado .Planes_Periodo_Actualizar_Btn {
-        color: #eceff1;
+        color: var(--Texto);
       }
 
       .Planes_Form_Subobjetivos {
@@ -7199,6 +7199,53 @@
 
       .Planes_Objetivo_Metadato_Agregar {
         width: fit-content;
+      }
+
+      .Planes_Objetivo_Redistribucion_Campo {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .Planes_Objetivo_Redistribucion_Campo[hidden] {
+        display: none;
+      }
+
+      .Planes_Redistribucion_Opcion {
+        align-items: center;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        display: grid;
+        gap: 10px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding: 10px;
+      }
+
+      .Planes_Redistribucion_Texto {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+      }
+
+      .Planes_Redistribucion_Texto strong {
+        color: var(--Texto);
+        font-size: 13px;
+        line-height: 1.25;
+      }
+
+      .Planes_Redistribucion_Texto span {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        line-height: 1.35;
+      }
+
+      .Planes_Objetivo_Redistribucion_Editar {
+        white-space: nowrap;
+      }
+
+      .Planes_Redistribucion_Overlay {
+        z-index: 12100;
       }
 
       .Planes_Subobjetivos_Modal {
@@ -19049,6 +19096,11 @@
         Planes_Archivero_Panel">
         <div class="Patron_Modal_Cabecera Planes_Cabecera">
           <div class="Planes_Controles">
+            <label class="Planes_Control Planes_Anio_Select">
+              <span class="Planes_Control_Label"
+                data-i18n="planner.anio">A&ntilde;o</span>
+              <select id="Planes_Anio_Select"></select>
+            </label>
             <label class="Planes_Control Planes_Capa_Select">
               <span class="Planes_Control_Label"
                 data-i18n="planes.tipo_periodo">Tipo</span>
@@ -19057,11 +19109,6 @@
                 data-i18n-aria="planes.tipo_periodo"
                 title="Tipo de periodo"
                 aria-label="Tipo de periodo"></select>
-            </label>
-            <label class="Planes_Control Planes_Anio_Select">
-              <span class="Planes_Control_Label"
-                data-i18n="planner.anio">A&ntilde;o</span>
-              <select id="Planes_Anio_Select"></select>
             </label>
             <label class="Planes_Control
               Planes_Subperiodo_Select_Control">
@@ -19321,6 +19368,29 @@
                 id="Planes_Objetivo_Etiquetas"></div>
             </label>
             <div class="Campo Campo_Ancho
+              Planes_Objetivo_Redistribucion_Campo"
+              id="Planes_Objetivo_Redistribucion_Campo">
+              <span class="Planes_Form_Seccion_Titulo"
+                data-i18n="planes.redistribucion">
+                Redistribuci&oacute;n
+              </span>
+              <div class="Planes_Redistribucion_Opcion">
+                <div class="Planes_Redistribucion_Texto">
+                  <strong id="Planes_Objetivo_Redistribucion_Resumen">
+                  </strong>
+                  <span id="Planes_Objetivo_Redistribucion_Detalle">
+                  </span>
+                </div>
+                <button type="button"
+                  class="Archivero_Sub_Btn Compacto
+                    Planes_Objetivo_Redistribucion_Editar"
+                  id="Planes_Objetivo_Redistribucion"
+                  data-i18n="planes.redistribucion_editar">
+                  Editar distribuci&oacute;n
+                </button>
+              </div>
+            </div>
+            <div class="Campo Campo_Ancho
               Planes_Objetivo_Metadatos_Campo">
               <span class="Planes_Form_Seccion_Titulo"
                 data-i18n="planes.meta_metadatos">
@@ -19339,10 +19409,6 @@
           </form>
         </div>
         <div class="Patron_Modal_Acciones">
-          <button class="Config_Boton_Cancelar"
-            id="Planes_Objetivo_Redistribucion"
-            data-i18n="planes.redistribucion"
-            type="button">Redistribución</button>
           <button class="Config_Boton_Cancelar"
             id="Planes_Objetivo_Cancelar"
             data-i18n="cancelar"
@@ -21246,21 +21312,30 @@
             "Revisá las metas: deben ser números válidos.",
           "planes.target_periodos_guardado":
             "Metas actualizadas.",
-          "planes.redistribucion": "RedistribuciÃ³n",
+          "planes.redistribucion": "Redistribuci\u00f3n",
           "planes.redistribucion_titulo":
-            "RedistribuciÃ³n del valor objetivo",
+            "Redistribuci\u00f3n del valor objetivo",
           "planes.redistribucion_total": "Valor total",
           "planes.redistribucion_granularidad": "Periodo hijo",
           "planes.redistribucion_modo": "Modo",
           "planes.redistribucion_equitativa":
-            "DistribuciÃ³n equitativa",
+            "Distribuci\u00f3n equitativa",
           "planes.redistribucion_deuda":
-            "DistribuciÃ³n de deuda",
+            "Distribuci\u00f3n de deuda",
           "planes.redistribucion_manual": "Manual",
           "planes.redistribucion_sin_periodos":
             "Este periodo no tiene periodos hijos redistribuibles.",
           "planes.redistribucion_manual_suma_error":
-            "La redistribuciÃ³n manual debe sumar exactamente el valor objetivo total.",
+            "La redistribuci\u00f3n manual debe sumar exactamente el valor objetivo total.",
+          "planes.redistribucion_editar":
+            "Editar distribuci\u00f3n",
+          "planes.redistribucion_no_disponible":
+            "Sin redistribuci\u00f3n disponible",
+          "planes.redistribucion_resumen_detalle":
+            "{Total} {Unidad} repartidos en {Cantidad} per\u00edodos.",
+          "planes.redistribucion_tipo_semestre": "Semestral",
+          "planes.redistribucion_tipo_trimestre": "Trimestral",
+          "planes.redistribucion_tipo_mes": "Mensual",
           "planes.redis_on":
             "Desactivar redistribución automática",
           "planes.redis_off":
@@ -24912,6 +24987,15 @@
             "This period has no redistributable child periods.",
           "planes.redistribucion_manual_suma_error":
             "Manual redistribution must add up exactly to the total target value.",
+          "planes.redistribucion_editar":
+            "Edit distribution",
+          "planes.redistribucion_no_disponible":
+            "No distribution available",
+          "planes.redistribucion_resumen_detalle":
+            "{Total} {Unidad} split across {Cantidad} periods.",
+          "planes.redistribucion_tipo_semestre": "Semiannual",
+          "planes.redistribucion_tipo_trimestre": "Quarterly",
+          "planes.redistribucion_tipo_mes": "Monthly",
           "planes.redis_on":
             "Disable automatic redistribution",
           "planes.redis_off":
@@ -28500,21 +28584,30 @@
             "Revise as metas: devem ser números válidos.",
           "planes.target_periodos_guardado":
             "Metas atualizadas.",
-          "planes.redistribucion": "RedistribuiÃ§Ã£o",
+          "planes.redistribucion": "Redistribui\u00e7\u00e3o",
           "planes.redistribucion_titulo":
-            "RedistribuiÃ§Ã£o do valor objetivo",
+            "Redistribui\u00e7\u00e3o do valor objetivo",
           "planes.redistribucion_total": "Valor total",
-          "planes.redistribucion_granularidad": "PerÃ­odo filho",
+          "planes.redistribucion_granularidad": "Per\u00edodo filho",
           "planes.redistribucion_modo": "Modo",
           "planes.redistribucion_equitativa":
-            "DistribuiÃ§Ã£o equitativa",
+            "Distribui\u00e7\u00e3o equitativa",
           "planes.redistribucion_deuda":
-            "DistribuiÃ§Ã£o de dÃ­vida",
+            "Distribui\u00e7\u00e3o de d\u00edvida",
           "planes.redistribucion_manual": "Manual",
           "planes.redistribucion_sin_periodos":
-            "Este perÃ­odo nÃ£o tem perÃ­odos filhos redistribuÃ­veis.",
+            "Este per\u00edodo n\u00e3o tem per\u00edodos filhos redistribu\u00edveis.",
           "planes.redistribucion_manual_suma_error":
-            "A redistribuiÃ§Ã£o manual deve somar exatamente o valor objetivo total.",
+            "A redistribui\u00e7\u00e3o manual deve somar exatamente o valor objetivo total.",
+          "planes.redistribucion_editar":
+            "Editar distribui\u00e7\u00e3o",
+          "planes.redistribucion_no_disponible":
+            "Sem distribui\u00e7\u00e3o dispon\u00edvel",
+          "planes.redistribucion_resumen_detalle":
+            "{Total} {Unidad} divididos em {Cantidad} per\u00edodos.",
+          "planes.redistribucion_tipo_semestre": "Semestral",
+          "planes.redistribucion_tipo_trimestre": "Trimestral",
+          "planes.redistribucion_tipo_mes": "Mensal",
           "planes.redis_on":
             "Desativar redistribuição automática",
           "planes.redis_off":
@@ -46306,7 +46399,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Periodos = Planes_Crear_Periodos_Capa_Visibles(
           Tipo_Destino
         );
+        const Hoy = Formatear_Fecha_ISO(new Date());
         const Destino =
+          Periodos.find((Item) =>
+            Planes_Periodo_Contiene_Fecha(Item, Hoy)
+          ) ||
           Periodos.find((Item) =>
             Planes_Periodo_Contiene_Periodo(Item, Periodo) ||
             Planes_Periodo_Contiene_Periodo(Periodo, Item) ||
@@ -47516,17 +47613,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Unidad_Label(Objetivo) {
         if (!Objetivo) return "";
+        const Unidad = (Objetivo.Unidad || "Horas").toString();
         const Normalizar_Label = (Texto) =>
           (Texto || "").toString().toLocaleLowerCase(
             Idioma_Actual || "es"
           );
-        if (Objetivo.Unidad === "Personalizado") {
+        if (Unidad === "Personalizado") {
           return Normalizar_Label(
             Objetivo.Unidad_Custom || t("planes.personalizado")
           );
         }
         return Normalizar_Label(
-          t(`planes.${Objetivo.Unidad.toLowerCase()}`)
+          t(`planes.${Unidad.toLowerCase()}`)
         );
       }
 
@@ -50126,15 +50224,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Actualizar_Campo_Unidad_Subobjetivos_Custom_Planes();
         document.getElementById("Planes_Form_Subobjetivos")
           ?.classList.toggle("Activo", Boolean(Objetivo));
-        const Redistribucion = document.getElementById(
-          "Planes_Objetivo_Redistribucion"
-        );
-        if (Redistribucion) {
-          Redistribucion.disabled =
-            !Planes_Tipos_Redistribucion_Disponibles(
-              Periodo_Form?.Tipo || ""
-            ).length;
-        }
+        Render_Redistribucion_Modal_Objetivo();
         Overlay.classList.add("Activo");
         Aplicar_Ayudas_Contextuales_Planes(Overlay);
         setTimeout(() => Nombre?.focus(), 0);
@@ -55741,16 +55831,111 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Target = Number(
           document.getElementById("Planes_Objetivo_Target")?.value
         ) || 0;
+        const Unidad =
+          document.getElementById("Planes_Objetivo_Unidad")?.value ||
+          Existente?.Unidad ||
+          "Horas";
+        const Unidad_Custom =
+          document.getElementById("Planes_Objetivo_Unidad_Custom")
+            ?.value ||
+          Existente?.Unidad_Custom ||
+          "";
         return {
           ...(Existente || {}),
           Id: Existente?.Id || "Borrador_Redistribucion",
           Periodo_Id,
           Target_Total: Target,
+          Unidad,
+          Unidad_Custom,
           Redistribucion_Target:
             Planes_Normalizar_Redistribucion_Target(
               Planes_Objetivo_Redistribucion_Borrador
             )
         };
+      }
+
+      function Planes_Clave_Modo_Redistribucion(Modo) {
+        const Normal = Planes_Normalizar_Modo_Redistribucion_Target(
+          Modo
+        );
+        if (Normal === "Manual") return "planes.redistribucion_manual";
+        if (Normal === "Deuda") return "planes.redistribucion_deuda";
+        return "planes.redistribucion_equitativa";
+      }
+
+      function Planes_Label_Tipo_Redistribucion(Tipo) {
+        if (Tipo === "Semestre") {
+          return t("planes.redistribucion_tipo_semestre");
+        }
+        if (Tipo === "Trimestre") {
+          return t("planes.redistribucion_tipo_trimestre");
+        }
+        if (Tipo === "Mes") {
+          return t("planes.redistribucion_tipo_mes");
+        }
+        return Planes_Label_Tipo(Tipo);
+      }
+
+      function Planes_Resumen_Redistribucion_Target(Objetivo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Base = Planes_Periodo_Base_Objetivo(Objetivo, Modelo);
+        const Tipos = Planes_Tipos_Redistribucion_Disponibles(
+          Base?.Tipo || ""
+        );
+        if (!Base || !Tipos.length) {
+          return {
+            Disponible: false,
+            Titulo: t("planes.redistribucion_no_disponible"),
+            Detalle: t("planes.redistribucion_sin_periodos")
+          };
+        }
+        const Config = Planes_Redistribucion_Target_Objetivo(
+          Objetivo,
+          Modelo
+        );
+        const Periodos = Planes_Periodos_Redistribucion_Target(
+          Objetivo,
+          Config.Tipo,
+          Modelo
+        );
+        const Titulo = [
+          Planes_Label_Tipo_Redistribucion(Config.Tipo),
+          t(Planes_Clave_Modo_Redistribucion(Config.Modo))
+        ].filter(Boolean).join(" · ");
+        const Unidad = Planes_Unidad_Label(Objetivo);
+        const Detalle = t("planes.redistribucion_resumen_detalle")
+          .replace("{Total}", Planes_Formatear_Numero(
+            Number(Objetivo?.Target_Total) || 0
+          ))
+          .replace("{Unidad}", Unidad || "")
+          .replace("{Cantidad}", String(Periodos.length));
+        return {
+          Disponible: true,
+          Titulo,
+          Detalle
+        };
+      }
+
+      function Render_Redistribucion_Modal_Objetivo() {
+        const Campo = document.getElementById(
+          "Planes_Objetivo_Redistribucion_Campo"
+        );
+        const Resumen = document.getElementById(
+          "Planes_Objetivo_Redistribucion_Resumen"
+        );
+        const Detalle = document.getElementById(
+          "Planes_Objetivo_Redistribucion_Detalle"
+        );
+        const Boton = document.getElementById(
+          "Planes_Objetivo_Redistribucion"
+        );
+        if (!Campo || !Resumen || !Detalle || !Boton) return;
+        const Objetivo = Planes_Objetivo_Borrador_Redistribucion_Modal();
+        const Info = Planes_Resumen_Redistribucion_Target(Objetivo);
+        Campo.hidden = !Info.Disponible;
+        Boton.disabled = !Info.Disponible;
+        Resumen.textContent = Info.Titulo;
+        Detalle.textContent = Info.Detalle;
       }
 
       function Planes_Mostrar_Dialogo_Redistribucion_Target(
@@ -55777,7 +55962,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           let Modo_Activo = Config_Base.Modo || "Equitativa";
           const Valores_Manual = { ...(Config_Base.Valores || {}) };
           const Overlay = document.createElement("div");
-          Overlay.className = "Patron_Modal_Overlay Activo";
+          Overlay.className =
+            "Patron_Modal_Overlay Planes_Redistribucion_Overlay Activo";
           const Target_Total = Number(Objetivo.Target_Total) || 0;
 
           const Calcular_Valores = () => {
@@ -56011,6 +56197,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         if (!Resultado) return;
         Planes_Objetivo_Redistribucion_Borrador = Resultado;
+        Render_Redistribucion_Modal_Objetivo();
       }
 
       function Planes_Mostrar_Dialogo_Target_Periodos(
@@ -56711,7 +56898,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Sub.Objetivo_Id === Objetivo_Id) return false;
         if (Sub.Parent_Subobjetivo_Id) return false;
         const Objetivo_Sub = M.Objetivos[Sub.Objetivo_Id];
-        if (!Objetivo_Sub || Objetivo_Sub.Eliminado_Local) return false;
+        if (!Objetivo_Sub) return false;
+        if (
+          Objetivo_Sub.Eliminado_Local &&
+          !Planes_Objetivo_Padre_Id(Objetivo_Sub)
+        ) {
+          return false;
+        }
         return Planes_Objetivos_Hijos(Objetivo_Id)
           .some((Hijo) => Hijo.Id === Sub.Objetivo_Id);
       }
@@ -56790,7 +56983,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
         const Hijos_Ids = new Set(
           Planes_Objetivos_Hijos(Objetivo?.Id || "")
-            .filter((Hijo) => !Hijo.Eliminado_Local)
             .map((Hijo) => Hijo.Id)
         );
         Object.values(Modelo.Subobjetivos || {})
@@ -84555,8 +84747,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Ev.preventDefault();
           Guardar_Modal_Planes_Objetivo();
         });
+      document.getElementById("Planes_Objetivo_Target")
+        ?.addEventListener("input", Render_Redistribucion_Modal_Objetivo);
       document.getElementById("Planes_Objetivo_Unidad")
         ?.addEventListener("change", Actualizar_Campo_Unidad_Custom_Planes);
+      document.getElementById("Planes_Objetivo_Unidad")
+        ?.addEventListener("change", Render_Redistribucion_Modal_Objetivo);
+      document.getElementById("Planes_Objetivo_Unidad_Custom")
+        ?.addEventListener("input", Render_Redistribucion_Modal_Objetivo);
       document.getElementById("Planes_Objetivo_Unidad_Subobjetivos")
         ?.addEventListener(
           "change",
