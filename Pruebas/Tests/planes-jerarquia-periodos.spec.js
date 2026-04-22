@@ -332,6 +332,101 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Redistribucion mensual edita el objetivo real y se ve en hijos",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(async () => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Semestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Semestre");
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Meses = Planes_Crear_Periodos_Distribucion(Anio, "Mes");
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Libros",
+      Emoji: "\uD83D\uDCD6",
+      Target_Total: 120,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros"
+    });
+    Abrir_Modal_Planes_Objetivo(Meses[0].Id, Objetivo.Id);
+    document.getElementById("Planes_Objetivo_Redistribucion").click();
+    await new Promise((Resolver) => setTimeout(Resolver, 0));
+    const Overlay = Array.from(
+      document.querySelectorAll(".Patron_Modal_Overlay.Activo")
+    ).find((Nodo) => Nodo.querySelector("[data-plan-redis-tipo]"));
+    const Tipo = Overlay.querySelector("[data-plan-redis-tipo]");
+    const Modo = Overlay.querySelector("[data-plan-redis-modo]");
+    Tipo.value = "Mes";
+    Tipo.dispatchEvent(new Event("change"));
+    await new Promise((Resolver) => setTimeout(Resolver, 0));
+    const Overlay_Actual = Array.from(
+      document.querySelectorAll(".Patron_Modal_Overlay.Activo")
+    ).find((Nodo) => Nodo.querySelector("[data-plan-redis-tipo]"));
+    const Modo_Actual =
+      Overlay_Actual.querySelector("[data-plan-redis-modo]");
+    Modo_Actual.value = "Manual";
+    Modo_Actual.dispatchEvent(new Event("change"));
+    await new Promise((Resolver) => setTimeout(Resolver, 0));
+    const Overlay_Manual = Array.from(
+      document.querySelectorAll(".Patron_Modal_Overlay.Activo")
+    ).find((Nodo) => Nodo.querySelector("[data-plan-redis-tipo]"));
+    Overlay_Manual
+      .querySelectorAll("[data-plan-redis-periodo]")
+      .forEach((Input) => { Input.value = "10"; });
+    Overlay_Manual.querySelector("[data-plan-redis-guardar]").click();
+    await new Promise((Resolver) => setTimeout(Resolver, 0));
+    await Guardar_Modal_Planes_Objetivo();
+
+    const Guardado =
+      Asegurar_Modelo_Planes().Objetivos[Objetivo.Id];
+    const Semestre = Planes_Objetivo_Para_Periodo(
+      Guardado,
+      Semestres[0]
+    );
+    const Trimestre = Planes_Objetivo_Para_Periodo(
+      Guardado,
+      Trimestres[0]
+    );
+    const Mes = Planes_Objetivo_Para_Periodo(Guardado, Meses[0]);
+
+    return {
+      Vive_En_Anio: Guardado.Periodo_Id === Anio.Id,
+      Modo: Guardado.Redistribucion_Target?.Modo || "",
+      Tipo: Guardado.Redistribucion_Target?.Tipo || "",
+      Semestre: Number(Semestre.Target_Total) || 0,
+      Trimestre: Number(Trimestre.Target_Total) || 0,
+      Mes: Number(Mes.Target_Total) || 0,
+      Overlay_Cerrado: document.getElementById("Planes_Objetivo_Overlay")
+        ?.classList.contains("Activo")
+    };
+  });
+
+  expect(Resultado.Vive_En_Anio).toBe(true);
+  expect(Resultado.Tipo).toBe("Mes");
+  expect(Resultado.Modo).toBe("Manual");
+  expect(Resultado.Semestre).toBe(60);
+  expect(Resultado.Trimestre).toBe(30);
+  expect(Resultado.Mes).toBe(10);
+  expect(Resultado.Overlay_Cerrado).toBe(false);
+  expect(errores).toEqual([]);
+});
+
 test("Planes renderiza jerarquia, redistribuye e importa",
 async ({ page }) => {
   const errores = [];
@@ -5080,7 +5175,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Mostrar reactiva objetivos ocultos sin fecha propia",
+test("Objetivo padre se ve en hijos sin Mostrar ni ocultamiento",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -5121,37 +5216,22 @@ async ({ page }) => {
     Ajuste_Inicial.Target_Total = 5;
     Ajuste_Inicial.Target_Automatico = 5;
     Render_Plan();
-    const Visibles_Inicial =
-      Planes_Filtrar_Objetivos(Semestres[0]).length;
-
-    const Abrir_Y_Confirmar = async () => {
-      const Boton = document.querySelector(
-        "[data-plan-universo-importar]"
-      );
-      const Deshabilitado = Boolean(Boton?.disabled);
-      Boton?.click();
-      await new Promise((Resolver) => setTimeout(Resolver, 0));
-      const Confirmar = document.querySelector(
-        "[data-plan-importar-confirmar]"
-      );
-      const Modal_Abierto = Boolean(Confirmar);
-      Confirmar?.click();
-      await new Promise((Resolver) => setTimeout(Resolver, 0));
-      return { Deshabilitado, Modal_Abierto };
-    };
-
-    const Primera = await Abrir_Y_Confirmar();
-    let Modelo_Actual = Asegurar_Modelo_Planes();
-    let Padre_Actual = Modelo_Actual.Objetivos[Padre.Id];
     let Visibles = Planes_Filtrar_Objetivos(Semestres[0]);
     const Visible = Visibles.find((Objetivo) =>
       Objetivo.__Objetivo_Canonico_Id === Padre.Id
     );
+    let Modelo_Actual = Asegurar_Modelo_Planes();
+    let Padre_Actual = Modelo_Actual.Objetivos[Padre.Id];
     const Ajuste_Activo =
       Padre_Actual.Ajustes_Periodos?.[Semestres[0].Id];
     const Target_Activo = Number(Visible?.Target_Total) || 0;
     const Activo_Eliminado =
       Boolean(Ajuste_Activo?.Eliminado_Local);
+    const Botones_Mostrar = document.querySelectorAll(
+      "[data-plan-universo-importar], " +
+      "[data-plan-periodo-importar], " +
+      "[data-plan-importar-periodo]"
+    ).length;
 
     Planes_Marcar_Objetivo_Mostrado_Eliminado(Visible);
     Render_Plan();
@@ -5160,49 +5240,37 @@ async ({ page }) => {
     const Ajuste_Eliminado =
       Padre_Actual.Ajustes_Periodos?.[Semestres[0].Id];
     const Eliminado = Boolean(Ajuste_Eliminado?.Eliminado_Local);
-    const Visibles_Eliminado =
-      Planes_Filtrar_Objetivos(Semestres[0]).length;
-
-    const Segunda = await Abrir_Y_Confirmar();
-    Modelo_Actual = Asegurar_Modelo_Planes();
-    Padre_Actual = Modelo_Actual.Objetivos[Padre.Id];
-    Visibles = Planes_Filtrar_Objetivos(Semestres[0]);
-    const Visible_Restaurado = Visibles.find((Objetivo) =>
+    const Visibles_Tras_Ocultar = Planes_Filtrar_Objetivos(
+      Semestres[0]
+    );
+    const Visible_Tras_Ocultar = Visibles_Tras_Ocultar.find((Objetivo) =>
       Objetivo.__Objetivo_Canonico_Id === Padre.Id
     );
-    const Ajuste_Restaurado =
-      Padre_Actual.Ajustes_Periodos?.[Semestres[0].Id];
 
     return {
-      Primera,
-      Segunda,
-      Visibles_Inicial,
+      Botones_Mostrar,
+      Visibles_Inicial: Visibles.length,
       Target_Activo,
       Activo_Proyectado: Boolean(Visible?.__Plan_Proyectado),
       Activo_Eliminado,
       Eliminado,
-      Visibles_Eliminado,
-      Restaurado_Proyectado:
-        Boolean(Visible_Restaurado?.__Plan_Proyectado),
-      Restaurado_Eliminado:
-        Boolean(Ajuste_Restaurado?.Eliminado_Local),
-      Target_Restaurado: Number(Visible_Restaurado?.Target_Total) || 0
+      Visibles_Tras_Ocultar: Visibles_Tras_Ocultar.length,
+      Proyectado_Tras_Ocultar:
+        Boolean(Visible_Tras_Ocultar?.__Plan_Proyectado),
+      Target_Tras_Ocultar:
+        Number(Visible_Tras_Ocultar?.Target_Total) || 0
     };
   });
 
-  expect(Resultado.Visibles_Inicial).toBe(0);
-  expect(Resultado.Primera.Deshabilitado).toBe(false);
-  expect(Resultado.Primera.Modal_Abierto).toBe(true);
+  expect(Resultado.Botones_Mostrar).toBe(0);
+  expect(Resultado.Visibles_Inicial).toBe(1);
   expect(Resultado.Activo_Proyectado).toBe(true);
-  expect(Resultado.Activo_Eliminado).toBe(false);
+  expect(Resultado.Activo_Eliminado).toBe(true);
   expect(Resultado.Target_Activo).toBe(5);
   expect(Resultado.Eliminado).toBe(true);
-  expect(Resultado.Visibles_Eliminado).toBe(0);
-  expect(Resultado.Segunda.Deshabilitado).toBe(false);
-  expect(Resultado.Segunda.Modal_Abierto).toBe(true);
-  expect(Resultado.Restaurado_Proyectado).toBe(true);
-  expect(Resultado.Restaurado_Eliminado).toBe(false);
-  expect(Resultado.Target_Restaurado).toBe(5);
+  expect(Resultado.Visibles_Tras_Ocultar).toBe(1);
+  expect(Resultado.Proyectado_Tras_Ocultar).toBe(true);
+  expect(Resultado.Target_Tras_Ocultar).toBe(5);
   expect(errores).toEqual([]);
 });
 
@@ -5250,11 +5318,54 @@ async ({ page }) => {
       Objetivo_Actual,
       { Incluir_Faltante: true }
     );
+    const Anio_Pasado = Planes_Crear_Periodo(
+      Modelo_Actual,
+      "Anio",
+      "2020-01-01",
+      "2020-12-31",
+      null,
+      2020
+    );
+    const Trimestres_Pasados =
+      Planes_Crear_Periodos_Distribucion(Anio_Pasado, "Trimestre");
+    const Objetivo_Pasado = Planes_Crear_Objetivo_Silencioso(
+      Trimestres_Pasados[2].Id,
+      {
+        Nombre: "Planeado pasado",
+        Emoji: "\uD83D\uDCC5",
+        Target_Total: 0,
+        Modo_Avance: "Sin_Metrica"
+      }
+    );
+    const Sub_Pasado_Id = Planes_Agregar_Subobjetivo(
+      Objetivo_Pasado.Id,
+      "Hito pasado"
+    );
+    const Sub_Pasado = Modelo_Actual.Subobjetivos[Sub_Pasado_Id];
+    Sub_Pasado.Fecha_Objetivo = "2020-07-20";
+    Sub_Pasado.Aporte_Meta = 1;
+    const Texto_Pasado = Planes_Formatear_Meta_Objetivo(
+      Objetivo_Pasado,
+      { Incluir_Faltante: true }
+    );
+    Abrir_Modal_Planes_Objetivo(
+      Trimestres_Pasados[2].Id,
+      Objetivo_Pasado.Id
+    );
+    const Modal_Pasado = document
+      .getElementById("Planes_Objetivo_Overlay")
+      ?.classList.contains("Periodo_Cerrado");
+    Cerrar_Modal_Planes_Objetivo();
     const Contexto =
       Planes_Subobjetivos_Contexto_Objetivo(Objetivo_Actual);
     return {
       Texto,
+      Texto_Pasado,
+      Modal_Pasado,
       Aportes: Planes_Aportes_Planeados_Objetivo(Objetivo_Actual),
+      Pasado_Cerrado: Planes_Periodo_Cerrado(
+        Modelo_Actual.Periodos[Objetivo_Pasado.Periodo_Id]
+      ),
       Periodo: Modelo_Actual.Periodos[Objetivo_Actual.Periodo_Id],
       Items: Contexto.Items.map((Item) => ({
         Texto: Item.Texto,
@@ -5270,6 +5381,9 @@ async ({ page }) => {
   });
 
   expect(Resultado.Texto).toContain("1 planeados");
+  expect(Resultado.Pasado_Cerrado).toBe(true);
+  expect(Resultado.Modal_Pasado).toBe(true);
+  expect(Resultado.Texto_Pasado).not.toContain("planeados");
   expect(Resultado.Aportes).toBe(1);
   expect(errores).toEqual([]);
 });
