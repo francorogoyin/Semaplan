@@ -7054,40 +7054,81 @@
         line-height: 1.45;
       }
 
-      .Patron_Modal_Overlay.Periodo_Cerrado .Patron_Modal_Panel {
+      #Plan_Overlay.Periodo_Cerrado .Plan_Panel {
         background: #202326;
         border-color: #3a3e42;
         color: #eceff1;
       }
 
-      .Patron_Modal_Overlay.Periodo_Cerrado
-        .Patron_Modal_Titulo,
-      .Patron_Modal_Overlay.Periodo_Cerrado
-        .Planes_Form_Seccion_Titulo,
-      .Patron_Modal_Overlay.Periodo_Cerrado
-        .Planes_Objetivo_Form label {
-        color: #d6dade;
+      #Plan_Overlay.Periodo_Cerrado .Planes_Cuerpo,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Principal {
+        background: #202326;
       }
 
-      .Patron_Modal_Overlay.Periodo_Cerrado input,
-      .Patron_Modal_Overlay.Periodo_Cerrado select,
-      .Patron_Modal_Overlay.Periodo_Cerrado textarea,
-      .Patron_Modal_Overlay.Periodo_Cerrado
-        .Planes_Avance_Boton {
+      #Plan_Overlay.Periodo_Cerrado .Patron_Modal_Titulo,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Control_Label,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Resumen_Titulo,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Coleccion_Titulo,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Objetivo_Nombre,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Metrica_Valor,
+      #Plan_Overlay.Periodo_Cerrado
+        .Planes_Periodo_Tarjeta_Titulo,
+      #Plan_Overlay.Periodo_Cerrado
+        .Planes_Periodo_Tarjeta_Metrica strong {
+        color: #eceff1;
+      }
+
+      #Plan_Overlay.Periodo_Cerrado .Planes_Resumen_Rango,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Coleccion_Rango,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Metrica_Label,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Resumen_Texto,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Fuente_Badge,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Objetivo_Origen,
+      #Plan_Overlay.Periodo_Cerrado
+        .Planes_Periodo_Tarjeta_Rango,
+      #Plan_Overlay.Periodo_Cerrado
+        .Planes_Periodo_Tarjeta_Metrica span,
+      #Plan_Overlay.Periodo_Cerrado
+        .Planes_Periodo_Tarjeta_Mas,
+      #Plan_Overlay.Periodo_Cerrado
+        .Planes_Periodo_Tarjeta_Vacio {
+        color: #aeb6bd;
+      }
+
+      #Plan_Overlay.Periodo_Cerrado input,
+      #Plan_Overlay.Periodo_Cerrado select,
+      #Plan_Overlay.Periodo_Cerrado textarea,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Vista_Toggle {
         background: #151719;
         border-color: #454a50;
         color: #f1f3f4;
       }
 
-      .Patron_Modal_Overlay.Periodo_Cerrado
-        .Planes_Target_Fila,
-      .Patron_Modal_Overlay.Periodo_Cerrado
-        .Planes_Importar_Item,
-      .Patron_Modal_Overlay.Periodo_Cerrado
-        .Planes_Registro_Tabla tbody tr:nth-child(even),
-      .Patron_Modal_Overlay.Periodo_Cerrado
-        .Planes_Progreso_Tabla tbody tr:nth-child(even) {
+      #Plan_Overlay.Periodo_Cerrado .Planes_Resumen,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Coleccion_Cabecera,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Objetivo_Card,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Periodo_Tarjeta,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Resumen_Texto_Fila {
+        border-color: #3a3e42;
+      }
+
+      #Plan_Overlay.Periodo_Cerrado .Planes_Periodo_Tarjeta,
+      #Plan_Overlay.Periodo_Cerrado
+        .Planes_Objetivo_Card.Vista_Biblioteca,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Vacio,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Resumen_Texto_Fila,
+      #Plan_Overlay.Periodo_Cerrado
+        .Planes_Periodo_Tarjeta_Metrica {
         background: #272b2f;
+      }
+
+      #Plan_Overlay.Periodo_Cerrado .Planes_Header_Icono,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Header_Btn,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Navegacion_Custom_Btn,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Resumen_Nav,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Universo_Accion,
+      #Plan_Overlay.Periodo_Cerrado .Planes_Periodo_Actualizar_Btn {
+        color: #eceff1;
       }
 
       .Planes_Form_Subobjetivos {
@@ -42932,7 +42973,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Cerrar_Plan() {
         Cerrar_Modal_Planes_Ayuda_Conceptual();
         document.getElementById("Plan_Overlay")
-          ?.classList.remove("Activo");
+          ?.classList.remove("Activo", "Periodo_Cerrado");
       }
 
       function Abrir_Modal_Planes_Ayuda_Conceptual() {
@@ -47233,6 +47274,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         const Overlay = document.getElementById(Overlay_Id);
         if (!Overlay) return;
+        if (Overlay_Id !== "Plan_Overlay") {
+          Overlay.classList.remove("Periodo_Cerrado");
+          return;
+        }
         const Periodo = Asegurar_Modelo_Planes()
           .Periodos[Periodo_Id || ""];
         Overlay.classList.toggle(
@@ -48811,6 +48856,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         Planes_Limpiar_Expansion_Si_Cambio_Periodo(Modelo);
         const Periodo = Planes_Periodo_Activo();
+        Planes_Aplicar_Contexto_Modal_Periodo(
+          "Plan_Overlay",
+          Periodo?.Id || ""
+        );
         if (!Cuerpo) return;
         Cuerpo.innerHTML = "";
         if (Planes_Anio_Todos_Activo()) {
@@ -55729,16 +55778,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Valores_Manual = { ...(Config_Base.Valores || {}) };
           const Overlay = document.createElement("div");
           Overlay.className = "Patron_Modal_Overlay Activo";
-          const Contexto_Periodo_Id = document
-            .getElementById("Planes_Objetivo_Overlay")
-            ?.dataset.contextoPeriodoId || Objetivo.Periodo_Id || "";
-          const Contexto_Periodo =
-            Modelo.Periodos[Contexto_Periodo_Id];
-          Overlay.classList.toggle(
-            "Periodo_Cerrado",
-            Boolean(Contexto_Periodo &&
-              Planes_Periodo_Cerrado(Contexto_Periodo))
-          );
           const Target_Total = Number(Objetivo.Target_Total) || 0;
 
           const Calcular_Valores = () => {

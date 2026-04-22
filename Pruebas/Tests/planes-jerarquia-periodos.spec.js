@@ -5348,6 +5348,12 @@ async ({ page }) => {
       Objetivo_Pasado,
       { Incluir_Faltante: true }
     );
+    Modelo_Actual.UI.Periodo_Activo_Id = Trimestres_Pasados[2].Id;
+    Modelo_Actual.UI.Filtro_Tipo = "Trimestre";
+    Render_Planes_Contenido();
+    const Principal_Pasado = document
+      .getElementById("Plan_Overlay")
+      ?.classList.contains("Periodo_Cerrado");
     Abrir_Modal_Planes_Objetivo(
       Trimestres_Pasados[2].Id,
       Objetivo_Pasado.Id
@@ -5361,6 +5367,7 @@ async ({ page }) => {
     return {
       Texto,
       Texto_Pasado,
+      Principal_Pasado,
       Modal_Pasado,
       Aportes: Planes_Aportes_Planeados_Objetivo(Objetivo_Actual),
       Pasado_Cerrado: Planes_Periodo_Cerrado(
@@ -5382,7 +5389,8 @@ async ({ page }) => {
 
   expect(Resultado.Texto).toContain("1 planeados");
   expect(Resultado.Pasado_Cerrado).toBe(true);
-  expect(Resultado.Modal_Pasado).toBe(true);
+  expect(Resultado.Principal_Pasado).toBe(true);
+  expect(Resultado.Modal_Pasado).toBe(false);
   expect(Resultado.Texto_Pasado).not.toContain("planeados");
   expect(Resultado.Aportes).toBe(1);
   expect(errores).toEqual([]);
