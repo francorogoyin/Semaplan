@@ -19671,6 +19671,20 @@
                 min="0"
                 step="0.25">
             </label>
+            <label class="Campo Planes_Parte_Fecha_Ini_Campo">
+              <span data-i18n="planes.sub_fecha_inicial">
+                Fecha inicial
+              </span>
+              <input id="Planes_Parte_Fecha_Inicio"
+                type="date">
+            </label>
+            <label class="Campo Planes_Parte_Fecha_Obj_Campo">
+              <span data-i18n="planes.sub_fecha_objetivo">
+                Fecha objetivo
+              </span>
+              <input id="Planes_Parte_Fecha_Objetivo"
+                type="date">
+            </label>
             <label class="Campo Planes_Parte_Estado_Campo">
               <span data-i18n="planes.estado_label">Estado</span>
               <select id="Planes_Parte_Estado">
@@ -44141,9 +44155,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         "Anio",
         "Semestre",
         "Trimestre",
-        "Mes",
-        "Semana",
-        "Custom"
+        "Mes"
       ];
       const Planes_Estados = [
         "Cumplido",
@@ -44202,7 +44214,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Expandidos: {},
             Objetivos_Expandidos: {},
             Expandidos_Inicializados: false,
-            Filtro_Tipo: "Todos",
+            Filtro_Tipo: "Anio",
             Filtro_Estado: "Todos",
             Filtro_Etiqueta: "Todas",
             Vista: "Tarjetas",
@@ -44359,7 +44371,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? Math.floor(Subperiodo)
             : 1;
         if (!Planes_Tipos.includes(Modelo.UI.Filtro_Tipo)) {
-          Modelo.UI.Filtro_Tipo = "Semana";
+          Modelo.UI.Filtro_Tipo = "Anio";
         }
         return Modelo;
       }
@@ -44878,6 +44890,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Number(Parte.Progreso_Avances) || 0,
           Progreso_Total:
             Number(Parte.Progreso_Total) || 0,
+          Fecha_Inicio:
+            (Parte.Fecha_Inicio || "").toString(),
           Fecha_Objetivo:
             (Parte.Fecha_Objetivo || "").toString(),
           Estado: ["Pendiente", "Parcial", "Realizada"].includes(
@@ -45094,6 +45108,88 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Periodo,
           Planes_Rango_Item_Fechado(Item)
         );
+      }
+
+      function Planes_Fechas_Periodo_Objetivo(Periodo) {
+        if (!Periodo?.Inicio || !Periodo?.Fin) return null;
+        return {
+          Fecha_Inicio: (Periodo.Inicio || "").toString(),
+          Fecha_Objetivo: (Periodo.Fin || "").toString()
+        };
+      }
+
+      function Planes_Periodo_De_Objetivo(
+        Objetivo,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        return M.Periodos[
+          Objetivo?.__Periodo_Contexto_Id ||
+          Objetivo?.Periodo_Id
+        ] || null;
+      }
+
+      function Planes_Fechas_Objetivo_Por_Periodo(
+        Objetivo,
+        Modelo = null
+      ) {
+        return Planes_Fechas_Periodo_Objetivo(
+          Planes_Periodo_De_Objetivo(Objetivo, Modelo)
+        );
+      }
+
+      function Planes_Rango_Objetivo(
+        Objetivo,
+        Modelo = null
+      ) {
+        const Fechas =
+          Planes_Fechas_Objetivo_Por_Periodo(Objetivo, Modelo);
+        if (Fechas) {
+          return {
+            Inicio: Fechas.Fecha_Inicio,
+            Fin: Fechas.Fecha_Objetivo
+          };
+        }
+        return Planes_Rango_Item_Fechado(Objetivo);
+      }
+
+      function Planes_Aplicar_Fechas_Periodo_Objetivo(
+        Objetivo,
+        Modelo = null
+      ) {
+        const Fechas =
+          Planes_Fechas_Objetivo_Por_Periodo(Objetivo, Modelo);
+        if (!Objetivo || !Fechas) return false;
+        let Cambio = false;
+        if ((Objetivo.Fecha_Inicio || "") !== Fechas.Fecha_Inicio) {
+          Objetivo.Fecha_Inicio = Fechas.Fecha_Inicio;
+          Cambio = true;
+        }
+        if ((Objetivo.Fecha_Objetivo || "") !==
+            Fechas.Fecha_Objetivo) {
+          Objetivo.Fecha_Objetivo = Fechas.Fecha_Objetivo;
+          Cambio = true;
+        }
+        if (Cambio) {
+          Objetivo.Actualizado_En = new Date().toISOString();
+        }
+        return Cambio;
+      }
+
+      function Planes_Asegurar_Fechas_Objetivos_Periodo(
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        let Cambios = 0;
+        Object.values(M.Objetivos || {}).forEach((Objetivo) => {
+          if (Planes_Aplicar_Fechas_Periodo_Objetivo(Objetivo, M)) {
+            Cambios += 1;
+          }
+        });
+        if (Cambios > 0) {
+          Planes_Auto_Sync_Pendiente_Guardar = true;
+        }
+        return Cambios;
       }
 
       function Planes_Fecha_Planeado_Item(Item) {
@@ -45729,39 +45825,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               const Mes_0 = Q_Mes + M;
               const M_Ini = new Date(Anio, Mes_0, 1);
               const M_Fin = Ultimo_Dia_Mes(Anio, Mes_0);
-              const Mes_Id = Planes_Crear_Periodo(
+              Planes_Crear_Periodo(
                 Modelo,
                 "Mes",
                 Planes_ISO(M_Ini),
                 Planes_ISO(M_Fin),
                 Tri_Id,
                 Mes_0
-              ).Id;
-
-              let Semana = Obtener_Lunes(M_Ini);
-              if (Semana < M_Ini) {
-                Semana = Sumar_Dias(Semana, 7);
-              }
-              while (Semana <= M_Fin) {
-                Planes_Crear_Periodo(
-                  Modelo,
-                  "Semana",
-                  Planes_ISO(Semana),
-                  Planes_ISO(Sumar_Dias(Semana, 6)),
-                  Mes_Id,
-                  Number(Planes_ISO(Semana).replaceAll("-", ""))
-                );
-                Semana = Sumar_Dias(Semana, 7);
-              }
+              );
             }
           }
         }
 
-        const Semana_Actual_Id = Plan_Periodo_Id(
-          "Semana",
-          Planes_ISO(Obtener_Lunes(Hoy)),
-          Planes_ISO(Sumar_Dias(Obtener_Lunes(Hoy), 6))
-        );
+        Planes_Asegurar_Fechas_Objetivos_Periodo(Modelo);
         if (
           Modelo.UI.Periodo_Activo_Id &&
           !Modelo.Periodos[Modelo.UI.Periodo_Activo_Id]
@@ -45924,7 +46000,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Tipo === "Anio") return "Semestre";
         if (Tipo === "Semestre") return "Mes";
         if (Tipo === "Trimestre") return "Mes";
-        if (Tipo === "Mes") return "Semana";
         return "";
       }
 
@@ -45932,8 +46007,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Tipo === "Anio") return ["Semestre", "Trimestre", "Mes"];
         if (Tipo === "Semestre") return ["Mes"];
         if (Tipo === "Trimestre") return ["Mes"];
-        if (Tipo === "Mes") return ["Semana"];
-        if (Tipo === "Custom") return ["Mes", "Semana"];
         return [];
       }
 
@@ -46364,7 +46437,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Objetivo_Solapa_Periodo(Objetivo, Periodo) {
-        return Planes_Item_Solapa_Periodo(Objetivo, Periodo);
+        return Planes_Periodo_Solapa_Rango(
+          Periodo,
+          Planes_Rango_Objetivo(Objetivo)
+        );
       }
 
       function Planes_Ajuste_Periodo_Objetivo_Existente(
@@ -46468,7 +46544,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const M = Modelo || Asegurar_Modelo_Planes();
         const Base = Planes_Periodo_Base_Objetivo(Objetivo, M);
         if (!Base || !Tipo) return [];
-        const Rango = Planes_Rango_Item_Fechado(Objetivo);
+        const Rango = Planes_Rango_Objetivo(Objetivo, M);
         return Object.values(M.Periodos || {})
           .filter((Periodo) =>
             Periodo.Tipo === Tipo &&
@@ -47013,6 +47089,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Periodo_Id,
           Orden: Datos.Orden ?? Orden
         }, Orden);
+        Planes_Aplicar_Fechas_Periodo_Objetivo(
+          Modelo.Objetivos[Id],
+          Modelo
+        );
         Planes_Actualizar_Progreso(Modelo.Objetivos[Id]);
         return Modelo.Objetivos[Id];
       }
@@ -47081,8 +47161,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Modo_Progreso: Objetivo.Modo_Progreso,
           Progreso_Manual: 0,
           Progreso_Importado: 0,
-          Fecha_Inicio: Objetivo.Fecha_Inicio || "",
-          Fecha_Objetivo: Objetivo.Fecha_Objetivo || "",
           Fecha_Fin: Objetivo.Fecha_Fin || "",
           Hora_Fin: Objetivo.Hora_Fin || "",
           Etiquetas_Ids: [...(Objetivo.Etiquetas_Ids || [])],
@@ -47499,12 +47577,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Jerarquia_Planes();
         if (Planes_Anio_Todos_Activo()) {
           Planes_Crear_Periodos_Capa_Visibles(
-            Modelo.UI.Filtro_Tipo || "Semana"
+            Modelo.UI.Filtro_Tipo || "Anio"
           );
           Modelo.UI.Periodo_Activo_Id = null;
         } else {
           const Periodo = Planes_Crear_Periodo_Seleccionado(
-            Modelo.UI.Filtro_Tipo || "Semana"
+            Modelo.UI.Filtro_Tipo || "Anio"
           );
           Modelo.UI.Periodo_Activo_Id = Periodo?.Id || null;
         }
@@ -47557,7 +47635,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Modelo.UI.Periodo_Activo_Id = null;
         } else {
           const Periodo = Planes_Crear_Periodo_Seleccionado(
-            Modelo.UI.Filtro_Tipo || "Semana"
+            Modelo.UI.Filtro_Tipo || "Anio"
           );
           Modelo.UI.Periodo_Activo_Id = Periodo?.Id || null;
         }
@@ -47612,7 +47690,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Opt.textContent = Planes_Label_Tipo(Tipo);
             Sel_Capa.appendChild(Opt);
           });
-          Sel_Capa.value = Modelo.UI.Filtro_Tipo || "Semana";
+          Sel_Capa.value = Modelo.UI.Filtro_Tipo || "Anio";
           Sel_Capa.onchange = () => Cambiar_Capa(Sel_Capa.value);
         }
 
@@ -47647,7 +47725,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Actual.UI.Anio_Todos = false;
             Actual.UI.Anio_Activo = Number(Sel_Anio.value);
             const Max = Planes_Cantidad_Subperiodos(
-              Actual.UI.Filtro_Tipo || "Semana",
+              Actual.UI.Filtro_Tipo || "Anio",
               Actual.UI.Anio_Activo
             );
             Actual.UI.Subperiodo_Activo = Math.min(
@@ -47655,7 +47733,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Max
             );
             const Periodo = Planes_Crear_Periodo_Seleccionado(
-              Actual.UI.Filtro_Tipo || "Semana"
+              Actual.UI.Filtro_Tipo || "Anio"
             );
             Actual.UI.Periodo_Activo_Id = Periodo?.Id || null;
             Render_Planes_Controles();
@@ -47665,7 +47743,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Sel_Subperiodo) {
           Sel_Subperiodo.innerHTML = "";
-          const Tipo = Modelo.UI.Filtro_Tipo || "Semana";
+          const Tipo = Modelo.UI.Filtro_Tipo || "Anio";
           const Ocultar = Modelo.UI.Anio_Todos ||
             Tipo === "Anio" ||
             Tipo === "Custom";
@@ -48072,6 +48150,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Actualizar_Datos_Hijo_Importado(Padre, Hijo) {
         if (!Padre || !Hijo) return;
+        const Fechas_Hijo =
+          Planes_Fechas_Objetivo_Por_Periodo(Hijo) || {};
         const Campos =
           Planes_Definiciones_Metadatos_Objetivo(Padre)
             .map((Campo) => ({ ...Campo }));
@@ -48096,8 +48176,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Regla_Lectura: Padre.Regla_Lectura,
           Modo_Avance: Planes_Normalizar_Modo_Avance(Padre),
           Modo_Progreso: Padre.Modo_Progreso,
-          Fecha_Inicio: Padre.Fecha_Inicio || "",
-          Fecha_Objetivo: Padre.Fecha_Objetivo || "",
+          Fecha_Inicio: Fechas_Hijo.Fecha_Inicio || "",
+          Fecha_Objetivo: Fechas_Hijo.Fecha_Objetivo || "",
           Fecha_Fin: Padre.Fecha_Fin || "",
           Hora_Fin: Padre.Hora_Fin || "",
           Etiquetas_Ids: [...(Padre.Etiquetas_Ids || [])],
@@ -48147,8 +48227,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Modo_Progreso: (
             Objetivo.Modo_Progreso || "Hibrido"
           ).toString(),
-          Fecha_Inicio: (Objetivo.Fecha_Inicio || "").toString(),
-          Fecha_Objetivo: (Objetivo.Fecha_Objetivo || "").toString(),
           Fecha_Fin: (Objetivo.Fecha_Fin || "").toString(),
           Hora_Fin: (Objetivo.Hora_Fin || "").toString(),
           Etiquetas_Ids: [...(Objetivo.Etiquetas_Ids || [])],
@@ -48318,7 +48396,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Objetivos_De_Periodo(Periodo.Id)
               .some((Objetivo) =>
                 !Objetivo.Eliminado_Local &&
-                Planes_Rango_Item_Fechado(Objetivo)
+                Planes_Rango_Objetivo(Objetivo, Modelo)
               )
           );
       }
@@ -48559,7 +48637,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Planes_Anio_Todos_Activo()) {
           Planes_Multi_Seleccion.clear();
           Cuerpo.appendChild(
-            Render_Planes_Coleccion_Capa(Modelo.UI.Filtro_Tipo || "Semana")
+            Render_Planes_Coleccion_Capa(Modelo.UI.Filtro_Tipo || "Anio")
           );
           Aplicar_Ayudas_Contextuales_Planes();
           return;
@@ -49793,6 +49871,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Fechas_Fijadas_Periodo = Boolean(
           Objetivo?.__Fechas_Periodo_Fijadas
         );
+        const Fechas_Periodo =
+          Planes_Fechas_Periodo_Objetivo(Periodo_Contexto);
         Planes_Objetivo_En_Edicion_Id = Objetivo_Canonico?.Id || null;
         const Overlay = document.getElementById(
           "Planes_Objetivo_Overlay"
@@ -49800,7 +49880,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Overlay) return;
         Overlay.dataset.periodoId = Periodo_Id || "";
         Overlay.dataset.fechasPeriodoFijadas =
-          Fechas_Fijadas_Periodo ? "1" : "";
+          (Fechas_Fijadas_Periodo || Fechas_Periodo) ? "1" : "";
         const Titulo = document.getElementById(
           "Planes_Objetivo_Titulo"
         );
@@ -49846,12 +49926,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Nombre) Nombre.value = Objetivo?.Nombre || "";
         if (Target) Target.value = Objetivo?.Target_Total || "";
         if (Fecha_Inicio) {
-          Fecha_Inicio.value = Objetivo?.Fecha_Inicio || "";
-          Fecha_Inicio.disabled = Fechas_Fijadas_Periodo;
+          Fecha_Inicio.value =
+            Fechas_Periodo?.Fecha_Inicio ||
+            Objetivo?.Fecha_Inicio ||
+            "";
+          Fecha_Inicio.disabled = true;
+          Fecha_Inicio.readOnly = true;
         }
         if (Fecha_Objetivo) {
-          Fecha_Objetivo.value = Objetivo?.Fecha_Objetivo || "";
-          Fecha_Objetivo.disabled = Fechas_Fijadas_Periodo;
+          Fecha_Objetivo.value =
+            Fechas_Periodo?.Fecha_Objetivo ||
+            Objetivo?.Fecha_Objetivo ||
+            "";
+          Fecha_Objetivo.disabled = true;
+          Fecha_Objetivo.readOnly = true;
         }
         Planes_Poblar_Select_Unidades(Unidad, Objetivo?.Unidad);
         if (Unidad_Custom) {
@@ -49978,6 +50066,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : null;
         const Fechas_Periodo_Fijadas =
           Overlay?.dataset.fechasPeriodoFijadas === "1";
+        const Periodo_Datos = Modelo.Periodos[
+          Existente?.Periodo_Id || Periodo_Id
+        ];
+        const Fechas_Periodo =
+          Planes_Fechas_Periodo_Objetivo(Periodo_Datos);
         const Metadatos_Existentes =
           Planes_Definiciones_Metadatos_Objetivo(Existente);
         const Datos_Vinculo = Existente
@@ -50024,19 +50117,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "Planes_Objetivo_Descripcion"
           )?.value || "",
           Fecha_Inicio:
-            Fechas_Periodo_Fijadas && Existente
-              ? (Existente.Fecha_Inicio || "").toString()
-              : (
-                document.getElementById("Planes_Objetivo_Fecha_Inicio")
-                  ?.value || ""
-              ).toString(),
+            Fechas_Periodo?.Fecha_Inicio ||
+            (
+              Fechas_Periodo_Fijadas && Existente
+                ? (Existente.Fecha_Inicio || "").toString()
+                : (
+                  document.getElementById("Planes_Objetivo_Fecha_Inicio")
+                    ?.value || ""
+                ).toString()
+            ),
           Fecha_Objetivo:
-            Fechas_Periodo_Fijadas && Existente
-              ? (Existente.Fecha_Objetivo || "").toString()
-              : (
-                document.getElementById("Planes_Objetivo_Fecha_Objetivo")
-                  ?.value || ""
-              ).toString(),
+            Fechas_Periodo?.Fecha_Objetivo ||
+            (
+              Fechas_Periodo_Fijadas && Existente
+                ? (Existente.Fecha_Objetivo || "").toString()
+                : (
+                  document.getElementById("Planes_Objetivo_Fecha_Objetivo")
+                    ?.value || ""
+                ).toString()
+            ),
           Fecha_Fin: (Existente?.Fecha_Fin || "").toString(),
           Etiquetas_Ids: Etiquetas_Seleccionadas,
           Tags: Obtener_Nombres_Etiquetas(Etiquetas_Seleccionadas),
@@ -53939,8 +54038,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Datos_Objetivo
       ) {
         if (!Planes_Subobjetivo_Tiene_Fechas(Datos_Sub)) return true;
-        const Rango_Sub = Planes_Rango_Item_Fechado(Datos_Sub);
-        const Rango_Objetivo = Planes_Rango_Item_Fechado(Datos_Objetivo);
+        const Rango_Sub = Planes_Rango_Item_Planeado(Datos_Sub);
+        const Rango_Objetivo =
+          Planes_Rango_Limite_Subobjetivo(Datos_Objetivo);
         if (!Rango_Sub) return true;
         if (!Rango_Objetivo) return false;
         return Rango_Sub.Inicio >= Rango_Objetivo.Inicio &&
@@ -53952,7 +54052,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Datos_Objetivo
       ) {
         if (!Planes_Subobjetivo_Tiene_Fechas(Datos_Sub)) return true;
-        const Rango_Objetivo = Planes_Rango_Item_Fechado(Datos_Objetivo);
+        const Rango_Objetivo =
+          Planes_Rango_Limite_Subobjetivo(Datos_Objetivo);
         if (!Rango_Objetivo) {
           Mostrar_Toast_Error(t(
             "planes.err_sub_rango_padre_sin_fechas"
@@ -53962,6 +54063,105 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Planes_Rango_Subobjetivo_Dentro_Objetivo(
           Datos_Sub,
           Datos_Objetivo
+        )) {
+          Mostrar_Toast_Error(t("planes.err_sub_rango_fuera_padre"));
+          return false;
+        }
+        return true;
+      }
+
+      function Planes_Rango_Item_Planeado(Item) {
+        if (!Item) return null;
+        const Inicio = Planes_Normalizar_Fecha_Comparacion(
+          Item.Fecha_Inicio || ""
+        );
+        const Objetivo = Planes_Normalizar_Fecha_Comparacion(
+          Item.Fecha_Objetivo || ""
+        );
+        if (!Inicio && !Objetivo) return null;
+        const A = Inicio || Objetivo;
+        const B = Objetivo || Inicio;
+        return {
+          Inicio: A <= B ? A : B,
+          Fin: A <= B ? B : A
+        };
+      }
+
+      function Planes_Aplicar_Limites_Input_Fecha(Input, Rango) {
+        if (!Input) return;
+        Input.min = Rango?.Inicio || "";
+        Input.max = Rango?.Fin || "";
+      }
+
+      function Planes_Rango_Limite_Subobjetivo(
+        Objetivo,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        let Base = Objetivo;
+        const Canonico_Id = (
+          Objetivo?.__Objetivo_Canonico_Id ||
+          Objetivo?.Id ||
+          ""
+        ).toString();
+        if (Canonico_Id && M.Objetivos[Canonico_Id]) {
+          Base = M.Objetivos[Canonico_Id];
+        }
+        let Padre_Id = Planes_Objetivo_Padre_Id(Base);
+        const Visitados = new Set();
+        while (Padre_Id && !Visitados.has(Padre_Id)) {
+          Visitados.add(Padre_Id);
+          const Padre = M.Objetivos[Padre_Id];
+          if (!Padre) break;
+          Base = Padre;
+          Padre_Id = Planes_Objetivo_Padre_Id(Padre);
+        }
+        return Planes_Rango_Objetivo(Base, M);
+      }
+
+      function Planes_Parte_Tiene_Fechas(Datos) {
+        return Boolean(Datos?.Fecha_Inicio || Datos?.Fecha_Objetivo);
+      }
+
+      function Planes_Rango_Limite_Parte(Sub, Modelo = null) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Rango_Sub = Planes_Rango_Item_Planeado(Sub);
+        if (Rango_Sub) return Rango_Sub;
+        const Objetivo = M.Objetivos[Sub?.Objetivo_Id];
+        return Planes_Rango_Objetivo(Objetivo, M);
+      }
+
+      function Planes_Rango_Parte_Dentro_Subobjetivo(
+        Datos_Parte,
+        Sub,
+        Modelo = null
+      ) {
+        if (!Planes_Parte_Tiene_Fechas(Datos_Parte)) return true;
+        const Rango_Parte = Planes_Rango_Item_Planeado(Datos_Parte);
+        const Rango_Sub = Planes_Rango_Limite_Parte(Sub, Modelo);
+        if (!Rango_Parte) return true;
+        if (!Rango_Sub) return false;
+        return Rango_Parte.Inicio >= Rango_Sub.Inicio &&
+          Rango_Parte.Fin <= Rango_Sub.Fin;
+      }
+
+      function Planes_Validar_Rango_Parte(
+        Datos_Parte,
+        Sub,
+        Modelo = null
+      ) {
+        if (!Planes_Parte_Tiene_Fechas(Datos_Parte)) return true;
+        const Rango_Sub = Planes_Rango_Limite_Parte(Sub, Modelo);
+        if (!Rango_Sub) {
+          Mostrar_Toast_Error(t(
+            "planes.err_sub_rango_padre_sin_fechas"
+          ));
+          return false;
+        }
+        if (!Planes_Rango_Parte_Dentro_Subobjetivo(
+          Datos_Parte,
+          Sub,
+          Modelo
         )) {
           Mostrar_Toast_Error(t("planes.err_sub_rango_fuera_padre"));
           return false;
@@ -54099,6 +54299,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Inicio = document.getElementById(
           "Planes_Subobjetivo_Fecha_Inicio"
         );
+        const Rango_Limite =
+          Planes_Rango_Limite_Subobjetivo(Objetivo, Modelo);
         if (Texto) Texto.value = Sub.Texto || "";
         if (Emoji) Emoji.value = Sub.Emoji || "\u2022";
         if (Target) {
@@ -54120,9 +54322,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Unidad_Custom.value = Sub.Unidad_Custom || "";
         }
         if (Fecha_Objetivo) {
-          Fecha_Objetivo.value = Sub.Fecha_Objetivo || "";
+          Planes_Aplicar_Limites_Input_Fecha(
+            Fecha_Objetivo,
+            Rango_Limite
+          );
+          Fecha_Objetivo.value =
+            Sub.Fecha_Objetivo || Rango_Limite?.Fin || "";
         }
-        if (Inicio) Inicio.value = Sub.Fecha_Inicio || "";
+        if (Inicio) {
+          Planes_Aplicar_Limites_Input_Fecha(Inicio, Rango_Limite);
+          Inicio.value = Sub.Fecha_Inicio || Rango_Limite?.Inicio || "";
+        }
         const Boton_Realizado = document.getElementById(
           "Planes_Subobjetivo_Realizado"
         );
@@ -54181,6 +54391,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Number(Objetivo.Target_Total) || 0) > 0;
         const Default_Unidad =
           Planes_Unidad_Default_Subobjetivo_Objetivo(Objetivo);
+        const Rango_Limite =
+          Planes_Rango_Limite_Subobjetivo(Objetivo, Modelo);
         const Borrador = {
           Objetivo_Id: Objetivo.Id,
           Subobjetivo_Padre_Id: Padre_Id,
@@ -54190,8 +54402,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Aporte_Meta: Tiene_Metrica ? 1 : 0,
           Unidad: Default_Unidad.Unidad,
           Unidad_Custom: Default_Unidad.Unidad_Custom,
-          Fecha_Objetivo: "",
-          Fecha_Inicio: "",
+          Fecha_Objetivo: Rango_Limite?.Fin || "",
+          Fecha_Inicio: Rango_Limite?.Inicio || "",
           Fecha_Fin: "",
           Metadatos: {},
           Hecha: false
@@ -56703,6 +56915,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Aporte_Total: Number(Parte.Aporte_Total) || 0,
           Unidad: Planes_Normalizar_Unidad_Subobjetivo(Parte.Unidad),
           Unidad_Custom: (Parte.Unidad_Custom || "").toString().trim(),
+          Fecha_Inicio: (Parte.Fecha_Inicio || "").toString(),
+          Fecha_Objetivo: (Parte.Fecha_Objetivo || "").toString(),
           Estado: Planes_Estado_Calculado_Parte(Parte),
           Avance_Parcial: Number(
             Planes_Avance_Parte_Por_Origen(
@@ -57188,6 +57402,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Sub = Modelo.Subobjetivos[Planes_Partes_Subobjetivo_Id] ||
           Modelo.Subobjetivos[Parte?.Subobjetivo_Id];
         const Objetivo = Modelo.Objetivos[Sub?.Objetivo_Id];
+        const Rango_Limite =
+          Planes_Rango_Limite_Parte(Sub, Modelo);
         const Default_Unidad =
           Planes_Unidad_Default_Subobjetivo_Objetivo(Objetivo);
         const Titulo = document.getElementById("Planes_Parte_Titulo");
@@ -57219,6 +57435,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Parte.Id
             )?.Cantidad) || 0)
             : "0";
+        const Fecha_Inicio = document.getElementById(
+          "Planes_Parte_Fecha_Inicio"
+        );
+        const Fecha_Objetivo = document.getElementById(
+          "Planes_Parte_Fecha_Objetivo"
+        );
+        if (Fecha_Inicio) {
+          Planes_Aplicar_Limites_Input_Fecha(
+            Fecha_Inicio,
+            Rango_Limite
+          );
+          Fecha_Inicio.value =
+            Parte?.Fecha_Inicio || Rango_Limite?.Inicio || "";
+        }
+        if (Fecha_Objetivo) {
+          Planes_Aplicar_Limites_Input_Fecha(
+            Fecha_Objetivo,
+            Rango_Limite
+          );
+          Fecha_Objetivo.value =
+            Parte?.Fecha_Objetivo || Rango_Limite?.Fin || "";
+        }
         document.getElementById("Planes_Parte_Estado").value =
           Parte && Planes_Estado_Calculado_Parte(Parte) === "Realizada"
             ? "Realizada"
@@ -57325,10 +57563,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Aporte_Total: Aporte_Normalizado,
           Unidad,
           Unidad_Custom,
+          Fecha_Inicio: (
+            document.getElementById("Planes_Parte_Fecha_Inicio")
+              ?.value || ""
+          ).toString(),
+          Fecha_Objetivo: (
+            document.getElementById("Planes_Parte_Fecha_Objetivo")
+              ?.value || ""
+          ).toString(),
           Estado: Estado_Form === "Realizada"
             ? "Realizada"
             : "Pendiente"
         };
+        if (!Planes_Validar_Rango_Parte(Datos, Sub_Dueno, Modelo)) {
+          return;
+        }
         const Comparables_Antes = Parte
           ? Planes_Datos_Comparables_Parte(Parte)
           : null;
@@ -57669,6 +57918,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Subobjetivo_Padre_Id
           )
           .length;
+        const Rango_Limite =
+          Planes_Rango_Limite_Subobjetivo(Objetivo, Modelo);
         const Id = Crear_Id_Subobjetivo_Plan();
         Modelo.Subobjetivos[Id] = Normalizar_Subobjetivo_Plan({
           Id,
@@ -57679,6 +57930,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Aporte_Meta: Tiene_Metrica ? 1 : 0,
           Unidad: Objetivo?.Unidad || "Personalizado",
           Unidad_Custom: Objetivo?.Unidad_Custom || "",
+          Fecha_Inicio: Rango_Limite?.Inicio || "",
+          Fecha_Objetivo: Rango_Limite?.Fin || "",
           Orden
         }, Orden);
         if (Objetivo) {

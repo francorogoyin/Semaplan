@@ -160,6 +160,98 @@ async function Preparar(page) {
   });
 }
 
+test("Partes editan fechas dentro del rango del subobjetivo",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(async () => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Lecturas",
+      Target_Total: 10,
+      Unidad: "Horas",
+      Unidad_Subobjetivos_Default: "Horas"
+    });
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Libro"
+    );
+    Planes_Actualizar_Subobjetivo_Datos(Sub_Id, {
+      Target_Total: 10,
+      Unidad: "Horas",
+      Fecha_Inicio: "2026-03-01",
+      Fecha_Objetivo: "2026-05-31"
+    });
+    Abrir_Modal_Planes_Partes(Sub_Id);
+    Abrir_Modal_Planes_Parte_Nueva();
+    const Inicio = document.getElementById("Planes_Parte_Fecha_Inicio");
+    const Objetivo_Fecha = document.getElementById(
+      "Planes_Parte_Fecha_Objetivo"
+    );
+    const Limites = {
+      inicioMin: Inicio.min,
+      inicioMax: Inicio.max,
+      inicioValor: Inicio.value,
+      objetivoMin: Objetivo_Fecha.min,
+      objetivoMax: Objetivo_Fecha.max,
+      objetivoValor: Objetivo_Fecha.value
+    };
+    document.getElementById("Planes_Parte_Nombre").value =
+      "Capitulo";
+    document.getElementById("Planes_Parte_Aporte_Total").value = "1";
+    Inicio.value = "2026-03-10";
+    Objetivo_Fecha.value = "2026-06-01";
+    await Guardar_Modal_Planes_Parte();
+    const Tras_Fuera = Object.values(
+      Asegurar_Modelo_Planes().Partes || {}
+    )
+      .filter((Parte) => Parte.Subobjetivo_Id === Sub_Id)
+      .length;
+    Objetivo_Fecha.value = "2026-05-20";
+    await Guardar_Modal_Planes_Parte();
+    const Partes = Object.values(Asegurar_Modelo_Planes().Partes || {})
+      .filter((Parte) => Parte.Subobjetivo_Id === Sub_Id);
+    return {
+      Limites,
+      Tras_Fuera,
+      Partes: Partes.map((Parte) => ({
+        nombre: Parte.Nombre,
+        inicio: Parte.Fecha_Inicio,
+        objetivo: Parte.Fecha_Objetivo
+      }))
+    };
+  });
+
+  expect(Resultado.Limites).toEqual({
+    inicioMin: "2026-03-01",
+    inicioMax: "2026-05-31",
+    inicioValor: "2026-03-01",
+    objetivoMin: "2026-03-01",
+    objetivoMax: "2026-05-31",
+    objetivoValor: "2026-05-31"
+  });
+  expect(Resultado.Tras_Fuera).toBe(0);
+  expect(Resultado.Partes).toEqual([
+    {
+      nombre: "Capitulo",
+      inicio: "2026-03-10",
+      objetivo: "2026-05-20"
+    }
+  ]);
+  expect(errores).toEqual([]);
+});
+
 test("Partes registran, revierten e importan sin duplicar",
 async ({ page }) => {
   const errores = [];

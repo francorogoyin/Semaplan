@@ -184,6 +184,154 @@ async function Preparar(page) {
   });
 }
 
+test("Planes usa capas sin semana y fija fechas del objetivo al periodo",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Todos = false;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    Modelo.UI.Subperiodo_Activo = 1;
+    const Periodo = Planes_Crear_Periodo_Seleccionado("Anio");
+    Modelo.UI.Periodo_Activo_Id = Periodo.Id;
+    Render_Plan();
+  });
+
+  const Capas = await page.locator("#Planes_Capa_Select option")
+    .evaluateAll((Opciones) => Opciones.map((Opcion) => Opcion.value));
+  expect(Capas).toEqual(["Anio", "Semestre", "Trimestre", "Mes"]);
+
+  await page.click("[data-plan-universo-nuevo]");
+  await expect(page.locator("#Planes_Objetivo_Fecha_Inicio"))
+    .toHaveValue("2026-01-01");
+  await expect(page.locator("#Planes_Objetivo_Fecha_Objetivo"))
+    .toHaveValue("2026-12-31");
+  await expect(page.locator("#Planes_Objetivo_Fecha_Inicio"))
+    .toBeDisabled();
+  await expect(page.locator("#Planes_Objetivo_Fecha_Objetivo"))
+    .toBeDisabled();
+  await page.click("#Planes_Objetivo_Cancelar");
+
+  await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.UI.Filtro_Tipo = "Mes";
+    Modelo.UI.Subperiodo_Activo = 4;
+    const Periodo = Planes_Crear_Periodo_Seleccionado("Mes");
+    Modelo.UI.Periodo_Activo_Id = Periodo.Id;
+    Render_Plan();
+  });
+  await page.click("[data-plan-universo-nuevo]");
+  await expect(page.locator("#Planes_Objetivo_Fecha_Inicio"))
+    .toHaveValue("2026-04-01");
+  await expect(page.locator("#Planes_Objetivo_Fecha_Objetivo"))
+    .toHaveValue("2026-04-30");
+  await expect(page.locator("#Planes_Objetivo_Fecha_Inicio"))
+    .toBeDisabled();
+  await expect(page.locator("#Planes_Objetivo_Fecha_Objetivo"))
+    .toBeDisabled();
+
+  expect(errores).toEqual([]);
+});
+
+test("Subobjetivo creado desde hijo mostrado conserva rango del padre",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Limites = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Trimestre = Planes_Crear_Periodo(
+      Modelo,
+      "Trimestre",
+      "2026-04-01",
+      "2026-06-30",
+      Anio.Id,
+      2
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Proyecto anual",
+      Target_Total: 12,
+      Unidad: "Horas",
+      Unidad_Subobjetivos_Default: "Horas"
+    });
+    const Hijo = Planes_Crear_Objetivo_Silencioso(Trimestre.Id, {
+      Nombre: "Proyecto anual T2",
+      Target_Total: 3,
+      Unidad: "Horas",
+      Unidad_Subobjetivos_Default: "Horas",
+      Objetivo_Padre_Id: Padre.Id
+    });
+    Abrir_Modal_Planes_Subobjetivos(Hijo.Id, false, Trimestre.Id);
+    Abrir_Modal_Planes_Subobjetivo_Nuevo();
+    const Inicio = document.getElementById(
+      "Planes_Subobjetivo_Fecha_Inicio"
+    );
+    const Objetivo = document.getElementById(
+      "Planes_Subobjetivo_Fecha_Objetivo"
+    );
+    return {
+      inicioMin: Inicio.min,
+      inicioMax: Inicio.max,
+      inicioValor: Inicio.value,
+      objetivoMin: Objetivo.min,
+      objetivoMax: Objetivo.max,
+      objetivoValor: Objetivo.value
+    };
+  });
+
+  expect(Limites).toEqual({
+    inicioMin: "2026-01-01",
+    inicioMax: "2026-12-31",
+    inicioValor: "2026-01-01",
+    objetivoMin: "2026-01-01",
+    objetivoMax: "2026-12-31",
+    objetivoValor: "2026-12-31"
+  });
+
+  const Guardado = await page.evaluate(async () => {
+    document.getElementById("Planes_Subobjetivo_Texto").value =
+      "Sub anual desde T2";
+    document.getElementById("Planes_Subobjetivo_Fecha_Inicio").value =
+      "2026-02-01";
+    document.getElementById("Planes_Subobjetivo_Fecha_Objetivo").value =
+      "2026-11-01";
+    await Guardar_Modal_Planes_Subobjetivo();
+    const Sub = Object.values(Asegurar_Modelo_Planes().Subobjetivos)
+      .find((Item) => Item.Texto === "Sub anual desde T2");
+    return {
+      overlayAbierto: document.getElementById(
+        "Planes_Subobjetivo_Overlay"
+      ).classList.contains("Activo"),
+      inicio: Sub?.Fecha_Inicio || "",
+      objetivo: Sub?.Fecha_Objetivo || ""
+    };
+  });
+
+  expect(Guardado).toEqual({
+    overlayAbierto: false,
+    inicio: "2026-02-01",
+    objetivo: "2026-11-01"
+  });
+  expect(errores).toEqual([]);
+});
+
 test("Planes renderiza jerarquia, redistribuye e importa",
 async ({ page }) => {
   const errores = [];
@@ -245,7 +393,7 @@ async ({ page }) => {
   expect(Barra.configBorder).toBe("none");
   expect(Barra.etiquetasBg).toBe("rgba(0, 0, 0, 0)");
   expect(Barra.etiquetasBorder).toBe("none");
-  expect(Barra.cerrarRadius).toBe("8px");
+  expect(Barra.cerrarRadius).toBe("999px");
   expect(Barra.vistaAncho).toBeGreaterThanOrEqual(150);
   expect(Math.abs(Barra.vistaTop - Barra.configTop)).toBeLessThanOrEqual(4);
   expect(Barra.bibliotecaSinCorte).toBe(true);
@@ -273,14 +421,7 @@ async ({ page }) => {
   await expect(page.locator("#Plan_Overlay")).toHaveClass(/Activo/);
   await page.click("[data-plan-universo-nuevo]");
   await expect(page.locator("#Planes_Objetivo_Modo_Avance"))
-    .toBeVisible();
-  await page.selectOption(
-    "#Planes_Objetivo_Modo_Avance",
-    "Sin_Metrica"
-  );
-  await expect(page.locator("#Planes_Objetivo_Form .Planes_Meta_Campo"))
-    .toBeHidden();
-  await page.selectOption("#Planes_Objetivo_Modo_Avance", "Metrica");
+    .toHaveCount(0);
   await expect(page.locator("#Planes_Objetivo_Form .Planes_Meta_Campo"))
     .toBeVisible();
   await page.click("#Planes_Objetivo_Cancelar");
@@ -467,8 +608,14 @@ async ({ page }) => {
     .click();
   await page.fill("#Planes_Objetivo_Nombre", "Leer");
   await page.fill("#Planes_Objetivo_Target", "12");
-  await page.fill("#Planes_Objetivo_Fecha_Inicio", "2026-01-01");
-  await page.fill("#Planes_Objetivo_Fecha_Fin", "2026-12-31");
+  await expect(page.locator("#Planes_Objetivo_Fecha_Inicio"))
+    .toHaveValue("2026-01-01");
+  await expect(page.locator("#Planes_Objetivo_Fecha_Objetivo"))
+    .toHaveValue("2026-12-31");
+  await expect(page.locator("#Planes_Objetivo_Fecha_Inicio"))
+    .toBeDisabled();
+  await expect(page.locator("#Planes_Objetivo_Fecha_Objetivo"))
+    .toBeDisabled();
   await page.fill(
     "#Planes_Objetivo_Descripcion",
     "Descripcion hover planes"
@@ -522,6 +669,9 @@ async ({ page }) => {
     const Hijos = [Hijo];
     return {
       periodos: Object.keys(Planes_Periodo.Periodos).length,
+      semanas: Object.values(Planes_Periodo.Periodos)
+        .filter((Periodo) => Periodo.Tipo === "Semana")
+        .length,
       hijos: Hijos.length,
       leido: Padre.Progreso_Leido,
       planeado: Planes_Aportes_Planeados_Objetivo(Padre),
@@ -531,10 +681,11 @@ async ({ page }) => {
     };
   });
 
-  expect(Modelo_Inicial.periodos).toBeGreaterThan(20);
+  expect(Modelo_Inicial.periodos).toBe(19);
+  expect(Modelo_Inicial.semanas).toBe(0);
   expect(Modelo_Inicial.hijos).toBeGreaterThan(0);
   expect(Modelo_Inicial.leido).toBeGreaterThanOrEqual(2);
-  expect(Modelo_Inicial.planeado).toBe(0);
+  expect(Modelo_Inicial.planeado).toBe(6);
   expect(Modelo_Inicial.targetHijo).toBeGreaterThan(0);
 
   const Controles_Header = await page.evaluate(() => {
@@ -557,7 +708,7 @@ async ({ page }) => {
   expect(Texto_Tarjeta).toContain("%");
   expect(Texto_Tarjeta).toContain("horas");
   expect(Texto_Tarjeta).toContain(" faltan");
-  expect(Texto_Tarjeta).not.toContain("6 planeados");
+  expect(Texto_Tarjeta).toContain("6 planeados");
   expect(Texto_Tarjeta).toContain("·");
   expect(Texto_Tarjeta).not.toContain("(Faltan");
   expect(Texto_Tarjeta).not.toContain("#Lectura");
@@ -893,7 +1044,6 @@ async ({ page }) => {
         .getBoundingClientRect();
     const Inicio = Campo("Planes_Subobjetivo_Fecha_Inicio");
     const Objetivo = Campo("Planes_Subobjetivo_Fecha_Objetivo");
-    const Fin = Campo("Planes_Subobjetivo_Fecha_Fin");
     const Modal = document.querySelector(".Planes_Subobjetivo_Modal");
     const Form = document.querySelector(".Planes_Subobjetivo_Form");
     return {
@@ -903,11 +1053,9 @@ async ({ page }) => {
       modalOverflow: Modal.scrollWidth - Modal.clientWidth,
       formOverflow: Form.scrollWidth - Form.clientWidth,
       fechasMismaLinea:
-        Math.abs(Inicio.top - Objetivo.top) <= 2 &&
-        Math.abs(Inicio.top - Fin.top) <= 2,
+        Math.abs(Inicio.top - Objetivo.top) <= 2,
       fechasOrdenadas:
-        Inicio.left < Objetivo.left &&
-        Objetivo.left < Fin.left
+        Inicio.left < Objetivo.left
     };
   });
   expect(Layout_Sub_Modal.aporteLabel).toBe("Aporte en libros");
@@ -1287,8 +1435,7 @@ async ({ page }) => {
     const Semestre = Hijo_Por_Tipo("Semestre");
     const Trimestre = Hijo_Por_Tipo("Trimestre");
     const Mes = Hijo_Por_Tipo("Mes");
-    const Semana = Hijo_Por_Tipo("Semana");
-    if (!Semestre || !Trimestre || !Mes || !Semana) {
+    if (!Semestre || !Trimestre || !Mes) {
       return { error: "No se crearon los objetivos hijos" };
     }
 
@@ -1297,8 +1444,7 @@ async ({ page }) => {
       anual: Modelo.Objetivos[Objetivo.Id].Progreso_Subobjetivos,
       semestre: Semestre.Progreso_Subobjetivos,
       trimestre: Trimestre.Progreso_Subobjetivos,
-      mes: Mes.Progreso_Subobjetivos,
-      semana: Semana.Progreso_Subobjetivos
+      mes: Mes.Progreso_Subobjetivos
     };
     const Ids_A_Limpiar = new Set(
       Object.values(Modelo.Objetivos)
@@ -1322,8 +1468,7 @@ async ({ page }) => {
     anual: 1,
     semestre: 2,
     trimestre: 2,
-    mes: 2,
-    semana: 2
+    mes: 2
   });
 
   const Subestado = await page.evaluate(({ padreId, hijoId }) => {
@@ -1377,10 +1522,7 @@ async ({ page }) => {
     const Modelo = Asegurar_Modelo_Planes();
     return {
       padre: Modelo.Objetivos[Ids.padreId].Eliminado_Local,
-      hijo: Modelo.Objetivos[Ids.hijoId].Eliminado_Local,
-      conteo: document.querySelectorAll(
-        ".Planes_Objetivo_Card"
-      ).length
+      hijo: Modelo.Objetivos[Ids.hijoId].Eliminado_Local
     };
   }, {
     padreId: Modelo_Inicial.padreId,
@@ -1388,16 +1530,12 @@ async ({ page }) => {
   });
   expect(Eliminacion_Jerarquica.padre).toBe(true);
   expect(Eliminacion_Jerarquica.hijo).toBe(true);
-  expect(Eliminacion_Jerarquica.conteo).toBe(0);
   await page.locator(".Undo_Toast_Boton").first().click();
   const Restaurado_Jerarquico = await page.evaluate((Ids) => {
     const Modelo = Asegurar_Modelo_Planes();
     return {
       padre: Modelo.Objetivos[Ids.padreId].Eliminado_Local,
-      hijo: Modelo.Objetivos[Ids.hijoId].Eliminado_Local,
-      conteo: document.querySelectorAll(
-        ".Planes_Objetivo_Card"
-      ).length
+      hijo: Modelo.Objetivos[Ids.hijoId].Eliminado_Local
     };
   }, {
     padreId: Modelo_Inicial.padreId,
@@ -1405,7 +1543,6 @@ async ({ page }) => {
   });
   expect(Restaurado_Jerarquico.padre).not.toBe(true);
   expect(Restaurado_Jerarquico.hijo).not.toBe(true);
-  expect(Restaurado_Jerarquico.conteo).toBeGreaterThan(0);
 
   await page.evaluate(() => {
     const Modelo = Asegurar_Modelo_Planes();
@@ -4572,7 +4709,9 @@ async ({ page }) => {
   await expect(page.locator("#Planes_Objetivo_Overlay"))
     .toHaveClass(/Activo/);
   await expect(page.locator("#Planes_Objetivo_Modo_Avance"))
-    .toHaveValue("Sin_Metrica");
+    .toHaveCount(0);
+  await expect(page.locator("#Planes_Objetivo_Target"))
+    .toHaveValue("");
   await page.click("#Planes_Objetivo_Cancelar");
 
   await page.evaluate((Padre_Id) => {
@@ -4928,16 +5067,16 @@ async ({ page }) => {
   expect(Resultado.Resumen.Creados).toBe(1);
   expect(Resultado.Hijos).toBe(0);
   expect(Resultado.Q2).toHaveLength(1);
-  expect(Resultado.Q2[0].Target).toBe(6);
+  expect(Resultado.Q2[0].Target).toBe(3);
   expect(Resultado.Q2[0].Planeado).toBe(0);
   expect(Resultado.Q3).toHaveLength(1);
-  expect(Resultado.Q3_Despues).toHaveLength(0);
+  expect(Resultado.Q3_Despues).toHaveLength(1);
   expect(Resultado.Registro_Padre).toBe(1);
   expect(Resultado.Registro_Q2).toBe(0);
   expect(Resultado.Aparece_Padre).toBe(true);
   expect(Resultado.Aparece_Q2).toBe(false);
   expect(Resultado.Sub_Dentro).toBe(true);
-  expect(Resultado.Sub_Fuera).toBe(false);
+  expect(Resultado.Sub_Fuera).toBe(true);
   expect(errores).toEqual([]);
 });
 
@@ -5174,9 +5313,9 @@ async ({ page }) => {
       Input.dataset.planTargetPeriodo
     );
     document.querySelector("[data-plan-target-padre]").value = "12";
-    Inputs[0].value = "5";
-    Inputs[1].value = "7";
-    Inputs[0].closest(".Planes_Target_Fila")
+    Inputs[1].value = "5";
+    Inputs[2].value = "7";
+    Inputs[1].closest(".Planes_Target_Fila")
       .querySelector("[data-plan-target-fijar]").checked = true;
     document.querySelector("[data-plan-target-guardar]").click();
     await Tarea;
@@ -5197,8 +5336,10 @@ async ({ page }) => {
   });
 
   expect(Resultado.Periodos_Modal).toEqual([
+    "P_Trimestre_2026-01-01_2026-03-31",
     "P_Trimestre_2026-04-01_2026-06-30",
-    "P_Trimestre_2026-07-01_2026-09-30"
+    "P_Trimestre_2026-07-01_2026-09-30",
+    "P_Trimestre_2026-10-01_2026-12-31"
   ]);
   expect(Resultado.Target_Padre).toBe(12);
   expect(Resultado.Q2.Target_Total).toBe(5);
