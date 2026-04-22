@@ -88,6 +88,7 @@
       .Planes_Objetivo_Estado,
       .Planes_Subobjetivo_Emoji,
       .Planes_Subobjetivo_Estado,
+      .Planes_Parte_Emoji,
       .Subobjetivo_Emoji_Label {
         font-family:
           "Segoe UI Emoji",
@@ -5180,7 +5181,8 @@
       }
 
       .Planes_Objetivo_Card.Estado_Activo .Planes_Objetivo_Emoji,
-      .Planes_Subobjetivo.Estado_Activo .Planes_Subobjetivo_Emoji {
+      .Planes_Subobjetivo.Estado_Activo .Planes_Subobjetivo_Emoji,
+      .Planes_Parte.Estado_Activo .Planes_Parte_Emoji {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -5205,7 +5207,8 @@
 
       .Planes_Objetivo_Card.Estado_Cumplido .Planes_Objetivo_Emoji,
       .Planes_Objetivo_Card.Saldado .Planes_Objetivo_Emoji,
-      .Planes_Subobjetivo.Estado_Cumplido .Planes_Subobjetivo_Emoji {
+      .Planes_Subobjetivo.Estado_Cumplido .Planes_Subobjetivo_Emoji,
+      .Planes_Parte.Estado_Cumplido .Planes_Parte_Emoji {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -5226,7 +5229,8 @@
 
       .Planes_Objetivo_Card.Estado_Cumplido .Planes_Objetivo_Emoji,
       .Planes_Objetivo_Card.Saldado .Planes_Objetivo_Emoji,
-      .Planes_Subobjetivo.Estado_Cumplido .Planes_Subobjetivo_Emoji {
+      .Planes_Subobjetivo.Estado_Cumplido .Planes_Subobjetivo_Emoji,
+      .Planes_Parte.Estado_Cumplido .Planes_Parte_Emoji {
         flex-basis: 26px;
         width: 26px;
         height: 26px;
@@ -6891,6 +6895,24 @@
         justify-content: center;
         font-size: 18px;
         line-height: 1;
+      }
+
+      .Planes_Parte.Estado_Activo .Planes_Parte_Emoji,
+      .Planes_Parte.Estado_Cumplido .Planes_Parte_Emoji,
+      .Planes_Parte.Atrasado .Planes_Parte_Emoji {
+        flex: 0 0 26px;
+        width: 26px;
+        height: 26px;
+        font-size: 18px;
+      }
+
+      .Planes_Parte.Atrasado .Planes_Parte_Emoji {
+        border-radius: 999px;
+        background: #a63631;
+        color: #fff8f8;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.34),
+          0 1px 4px rgba(127, 29, 29, 0.18);
       }
 
       .Planes_Parte_Info {
@@ -45761,6 +45783,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return "Pendiente";
       }
 
+      function Planes_Parte_Atrasada(Parte, Modelo = null) {
+        if (!Parte || !(Parte.Fecha_Objetivo || "").toString()) {
+          return false;
+        }
+        if (Planes_Estado_Calculado_Parte(Parte, Modelo) ===
+            "Realizada") {
+          return false;
+        }
+        const Hoy = Formatear_Fecha_ISO(new Date());
+        return Parte.Fecha_Objetivo.toString() < Hoy;
+      }
+
       function Planes_Recalcular_Progreso_Parte(
         Parte,
         Modelo = null
@@ -58323,19 +58357,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Render_Planes_Parte_Item(Parte) {
         const Item = document.createElement("div");
         const Estado = Planes_Estado_Calculado_Parte(Parte);
+        const Atrasada = Planes_Parte_Atrasada(Parte);
         const Aporte = Number(Parte.Aporte_Total) || 0;
         const Total = Planes_Progreso_Total_Parte(Parte);
         const Porcentaje_Texto =
           Planes_Formatear_Porcentaje_Meta(Total, Aporte);
         Item.className = "Planes_Parte" +
+          (Estado === "Realizada" ? " Estado_Cumplido" : "") +
+          (
+            Estado !== "Realizada" && !Atrasada
+              ? " Estado_Activo"
+              : ""
+          ) +
+          (Atrasada ? " Atrasado" : "") +
           (Parte.Eliminado_Local ? " Eliminada" : "");
         Item.classList.add("Reordenable");
         Item.dataset.parteId = Parte.Id;
         Item.draggable = true;
         Item.innerHTML = `
-          <span class="Planes_Parte_Emoji Con_Fallback_Emoji">
-            ${Escape_Html(Parte.Emoji || "\u2022")}
-          </span>
+          <span class="Planes_Parte_Emoji Con_Fallback_Emoji"
+            data-plan-parte-emoji></span>
           <span class="Planes_Parte_Info">
             <span class="Planes_Parte_Nombre">
               ${Escape_Html(Parte.Nombre)}
@@ -58357,6 +58398,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             </button>
           </span>
         `;
+        Aplicar_Emoji_En_Elemento(
+          Item.querySelector("[data-plan-parte-emoji]"),
+          Parte.Emoji || "\u2022"
+        );
         Item.addEventListener("dragstart", (Ev) => {
           if (Ev.target.closest("[data-parte-menu]")) {
             Ev.preventDefault();
