@@ -213,7 +213,8 @@ test(
       );
     await expect(page.locator("#Meta_Aporte_Sugerencia_Texto"))
       .toContainText(
-        "Se sugieren para esta semana: 90 p\u00e1ginas."
+        "Se sugieren: 90 p\u00e1ginas/semana " +
+        "(16 p\u00e1ginas/d\u00eda)."
       );
     await expect(page.locator("#Meta_Aporte_Sugerencia_Texto"))
       .not.toContainText("Libros");
@@ -266,7 +267,8 @@ test(
       );
     await expect(page.locator("#Editor_Meta_Aporte_Sugerencia_Texto"))
       .toContainText(
-        "Se sugieren para esta semana: 90 p\u00e1ginas."
+        "Se sugieren: 90 p\u00e1ginas/semana " +
+        "(16 p\u00e1ginas/d\u00eda)."
       );
     await expect(page.locator("#Editor_Meta_Aporte_Sugerencia_Aceptar"))
       .toHaveCount(0);
@@ -314,6 +316,60 @@ test(
 
     const emoji = await page.inputValue("#Emoji_Objetivo");
     expect(emoji.length).toBeGreaterThan(0);
+  }
+);
+
+test(
+  "popup separa descripcion y sugerencia diaria solo si corresponde",
+  async ({ page }) => {
+    await preparar(page, estadoBase());
+
+    await page.evaluate(() => {
+      Mostrar_Popup_Descripcion(
+        "Casi puesta a punto\n" +
+        "Sugerencia de avance por dia: 1.73 features",
+        { X: 80, Y: 80 },
+        "Semaplan"
+      );
+    });
+
+    await expect(page.locator(".Evento_Abordaje_Popup_Titulo"))
+      .toContainText("Semaplan");
+    await expect(
+      page.locator(".Baul_Descripcion_Popup_Texto").first()
+    ).toHaveText("Casi puesta a punto");
+    const sugerencia = page.locator(
+      ".Baul_Descripcion_Popup_Sugerencia"
+    );
+    await expect(sugerencia).toHaveText(
+      "Sugerencia de avance por dia: 1.73 features"
+    );
+    await expect(sugerencia).toHaveCSS("font-size", "10px");
+    await expect(sugerencia).toHaveCSS(
+      "border-top-width",
+      "1px"
+    );
+    await expect(sugerencia).toHaveCSS("padding-top", "8px");
+
+    await page.evaluate(() => {
+      Cerrar_Popup_Descripcion();
+      Mostrar_Popup_Descripcion(
+        "Sugerencia de avance por dia: 1.73 features",
+        { X: 80, Y: 80 },
+        "Semaplan"
+      );
+    });
+
+    const sugerenciaSola = page.locator(
+      ".Baul_Descripcion_Popup_Sugerencia"
+    );
+    await expect(sugerenciaSola).toHaveCount(1);
+    await expect(sugerenciaSola).toHaveCSS("font-size", "10px");
+    await expect(sugerenciaSola).toHaveCSS(
+      "border-top-width",
+      "0px"
+    );
+    await expect(sugerenciaSola).toHaveCSS("padding-top", "0px");
   }
 );
 

@@ -12758,6 +12758,18 @@
         word-break: break-word;
       }
 
+      .Baul_Descripcion_Popup_Sugerencia {
+        color: var(--Texto_Suave);
+        font-size: 10px;
+        line-height: 1.35;
+      }
+
+      .Baul_Descripcion_Popup_Sugerencia.Con_Separador {
+        border-top: 1px solid var(--Borde);
+        margin-top: 2px;
+        padding-top: 8px;
+      }
+
       .Evento_Hecho {
         background: var(
           --Color-Estado-Completa, #1f6b4f
@@ -35576,6 +35588,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      function Es_Linea_Sugerencia_Diaria_Popup(Texto) {
+        const Normalizada = (Texto || "").toString().trim()
+          .toLowerCase();
+        return Normalizada.startsWith(
+          "sugerencia de avance por dia:"
+        ) || Normalizada.startsWith(
+          "daily progress suggestion:"
+        ) || Normalizada.startsWith(
+          "sugestao de avanco por dia:"
+        );
+      }
+
+      function Partes_Descripcion_Popup(Descripcion) {
+        const Lineas = (Descripcion || "").toString()
+          .split(/\r?\n/)
+          .map((Linea) => Linea.trim())
+          .filter(Boolean);
+        const Indice_Sugerencia = Lineas.findIndex(
+          Es_Linea_Sugerencia_Diaria_Popup
+        );
+        if (Indice_Sugerencia < 0) {
+          return {
+            Descripcion,
+            Sugerencia: ""
+          };
+        }
+        return {
+          Descripcion: Lineas.slice(0, Indice_Sugerencia)
+            .join("\n"),
+          Sugerencia: Lineas.slice(Indice_Sugerencia)
+            .join("\n")
+        };
+      }
+
       function Mostrar_Popup_Descripcion(
         Texto_Base,
         Cerca_De,
@@ -35597,10 +35643,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Pop.appendChild(Tit);
 
         if (Descripcion) {
-          const Texto = document.createElement("div");
-          Texto.className = "Baul_Descripcion_Popup_Texto";
-          Texto.textContent = Descripcion;
-          Pop.appendChild(Texto);
+          const Partes = Partes_Descripcion_Popup(Descripcion);
+          if (Partes.Descripcion) {
+            const Texto = document.createElement("div");
+            Texto.className = "Baul_Descripcion_Popup_Texto";
+            Texto.textContent = Partes.Descripcion;
+            Pop.appendChild(Texto);
+          }
+          if (Partes.Sugerencia) {
+            const Sugerencia = document.createElement("div");
+            Sugerencia.className =
+              "Baul_Descripcion_Popup_Texto " +
+              "Baul_Descripcion_Popup_Sugerencia";
+            if (Partes.Descripcion) {
+              Sugerencia.classList.add("Con_Separador");
+            }
+            Sugerencia.textContent = Partes.Sugerencia;
+            Pop.appendChild(Sugerencia);
+          }
         }
 
         document.body.appendChild(Pop);
