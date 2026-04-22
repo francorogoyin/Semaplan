@@ -9006,6 +9006,57 @@
         gap: 10px;
       }
 
+      .Config_Meta_Capas,
+      .Config_Meta_Festejos_Acciones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .Config_Meta_Festejos_Resumen {
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .Config_Meta_Festejos_Lista {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: min(420px, 56vh);
+        overflow: auto;
+        padding-right: 4px;
+      }
+
+      .Config_Meta_Festejo_Item {
+        display: grid;
+        grid-template-columns: 18px minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        border-bottom: 1px solid var(--Borde);
+        padding: 8px 0;
+      }
+
+      .Config_Meta_Festejo_Item:last-child {
+        border-bottom: none;
+      }
+
+      .Config_Meta_Festejo_Nombre {
+        color: var(--Texto);
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.25;
+      }
+
+      .Config_Meta_Festejo_Meta {
+        color: var(--Texto_Suave);
+        display: block;
+        font-size: 12px;
+        line-height: 1.3;
+        margin-top: 2px;
+      }
+
       .Config_Meta_Vacio {
         font-size: 12px;
         color: var(--Texto_Suave);
@@ -13442,15 +13493,6 @@
         opacity: 1;
       }
 
-      .Meta_Toast.Con_Link {
-        cursor: pointer;
-      }
-
-      .Meta_Toast.Con_Link:hover {
-        border-color: rgba(15, 95, 90, 0.34);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-      }
-
       .Meta_Toast_Icono {
         font-size: 22px;
         line-height: 1;
@@ -16238,6 +16280,67 @@
               </div>
               <p class="Config_Nota"
                 id="Cfg_Meta_Notificaciones_Preview"></p>
+              <div class="Config_Fila">
+                <span class="Config_Label"
+                  data-i18n="config.festejos_capas">
+                  Capas
+                </span>
+                <div class="Config_Meta_Capas">
+                  <div class="Config_Dia_Chip">
+                    <input type="checkbox"
+                      data-cfg-meta-capa="Anio"
+                      id="Cfg_Meta_Capa_Anio">
+                    <label for="Cfg_Meta_Capa_Anio"
+                      data-i18n="planner.tipo_anio">Año</label>
+                  </div>
+                  <div class="Config_Dia_Chip">
+                    <input type="checkbox"
+                      data-cfg-meta-capa="Semestre"
+                      id="Cfg_Meta_Capa_Semestre">
+                    <label for="Cfg_Meta_Capa_Semestre"
+                      data-i18n="planner.tipo_semestre">Semestre</label>
+                  </div>
+                  <div class="Config_Dia_Chip">
+                    <input type="checkbox"
+                      data-cfg-meta-capa="Trimestre"
+                      id="Cfg_Meta_Capa_Trimestre">
+                    <label for="Cfg_Meta_Capa_Trimestre"
+                      data-i18n="planner.tipo_trimestre">Trimestre</label>
+                  </div>
+                  <div class="Config_Dia_Chip">
+                    <input type="checkbox"
+                      data-cfg-meta-capa="Mes"
+                      id="Cfg_Meta_Capa_Mes">
+                    <label for="Cfg_Meta_Capa_Mes"
+                      data-i18n="planner.tipo_mes">Mes</label>
+                  </div>
+                </div>
+              </div>
+              <div class="Config_Fila">
+                <span class="Config_Label"
+                  data-i18n="config.festejos_objetivos">
+                  Objetivos
+                </span>
+                <select class="Config_Select"
+                  id="Cfg_Meta_Festejos_Modo">
+                  <option value="Todas"
+                    data-i18n="config.festejos_todas">
+                    Todas
+                  </option>
+                  <option value="Seleccionadas"
+                    data-i18n="config.festejos_seleccionadas">
+                    Seleccionadas
+                  </option>
+                </select>
+                <button type="button"
+                  class="Config_Dato_Btn"
+                  id="Cfg_Meta_Festejos_Elegir_Btn"
+                  data-i18n="config.festejos_elegir">
+                  Elegir metas
+                </button>
+              </div>
+              <p class="Config_Nota Config_Meta_Festejos_Resumen"
+                id="Cfg_Meta_Festejos_Resumen"></p>
             </div>
 
             <div class="Config_Seccion">
@@ -17778,6 +17881,54 @@
             <div class="Patron_Modal_Cuerpo Config_Meta_Cuerpo">
               <div class="Config_Meta_Lista"
                 id="Cfg_Cat_Metas_Lista"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="Patron_Modal_Overlay"
+          id="Cfg_Meta_Festejos_Overlay">
+          <div class="Patron_Modal_Panel Config_Meta_Panel">
+            <div class="Patron_Modal_Cabecera">
+              <span class="Patron_Modal_Titulo"
+                data-i18n="config.festejos_modal_titulo">
+                Metas a festejar
+              </span>
+              <button class="Config_Cerrar"
+                id="Cfg_Meta_Festejos_Cerrar"
+                type="button">&times;</button>
+            </div>
+            <div class="Patron_Modal_Cuerpo Config_Meta_Cuerpo">
+              <p class="Config_Nota"
+                data-i18n="config.festejos_modal_desc">
+                Elegí qué objetivos pueden disparar festejos al
+                cruzar hitos.
+              </p>
+              <div class="Config_Meta_Festejos_Acciones">
+                <button type="button"
+                  class="Config_Dato_Btn"
+                  id="Cfg_Meta_Festejos_Todos"
+                  data-i18n="config.festejos_todos">
+                  Seleccionar todos
+                </button>
+                <button type="button"
+                  class="Config_Dato_Btn"
+                  id="Cfg_Meta_Festejos_Ninguno"
+                  data-i18n="config.festejos_ninguno">
+                  Deseleccionar todos
+                </button>
+              </div>
+              <div class="Config_Meta_Festejos_Lista"
+                id="Cfg_Meta_Festejos_Lista"></div>
+              <div class="Archivero_Sub_Acciones">
+                <button type="button"
+                  class="Archivero_Sub_Btn"
+                  id="Cfg_Meta_Festejos_Cancelar"
+                  data-i18n="cancelar">Cancelar</button>
+                <button type="button"
+                  class="Archivero_Sub_Btn Primario"
+                  id="Cfg_Meta_Festejos_Guardar"
+                  data-i18n="guardar">Guardar</button>
+              </div>
             </div>
           </div>
         </div>
@@ -21820,6 +21971,33 @@
             "Solo al 100%",
           "config.hitos_preview":
             "Se festeja en: {valores}",
+          "config.festejos_capas":
+            "Capas",
+          "config.festejos_objetivos":
+            "Objetivos",
+          "config.festejos_todas":
+            "Todas",
+          "config.festejos_seleccionadas":
+            "Seleccionadas",
+          "config.festejos_elegir":
+            "Elegir metas",
+          "config.festejos_modal_titulo":
+            "Metas a festejar",
+          "config.festejos_modal_desc":
+            "Elegí qué objetivos pueden disparar festejos " +
+            "al cruzar hitos.",
+          "config.festejos_todos":
+            "Seleccionar todos",
+          "config.festejos_ninguno":
+            "Deseleccionar todos",
+          "config.festejos_resumen_todas":
+            "Se festejan todas las metas de las capas activas " +
+            "({total} disponibles).",
+          "config.festejos_resumen_sel":
+            "Se festejan {seleccionadas} de {total} metas " +
+            "disponibles.",
+          "config.festejos_sin_metas":
+            "No hay metas con métrica para festejar.",
           "config.dias_visibles":
             "Días visibles",
           "config.dias_hint":
@@ -25481,6 +25659,33 @@
             "Only at 100%",
           "config.hitos_preview":
             "Celebrates at: {valores}",
+          "config.festejos_capas":
+            "Layers",
+          "config.festejos_objetivos":
+            "Objectives",
+          "config.festejos_todas":
+            "All",
+          "config.festejos_seleccionadas":
+            "Selected",
+          "config.festejos_elegir":
+            "Choose goals",
+          "config.festejos_modal_titulo":
+            "Goals to celebrate",
+          "config.festejos_modal_desc":
+            "Choose which objectives can trigger celebrations " +
+            "when crossing milestones.",
+          "config.festejos_todos":
+            "Select all",
+          "config.festejos_ninguno":
+            "Select none",
+          "config.festejos_resumen_todas":
+            "All goals in active layers will celebrate " +
+            "({total} available).",
+          "config.festejos_resumen_sel":
+            "{seleccionadas} of {total} available goals " +
+            "will celebrate.",
+          "config.festejos_sin_metas":
+            "There are no metric goals to celebrate.",
           "config.dias_visibles":
             "Visible days",
           "config.dias_hint":
@@ -29111,6 +29316,33 @@
             "Somente em 100%",
           "config.hitos_preview":
             "Comemora em: {valores}",
+          "config.festejos_capas":
+            "Camadas",
+          "config.festejos_objetivos":
+            "Objetivos",
+          "config.festejos_todas":
+            "Todas",
+          "config.festejos_seleccionadas":
+            "Selecionadas",
+          "config.festejos_elegir":
+            "Escolher metas",
+          "config.festejos_modal_titulo":
+            "Metas a comemorar",
+          "config.festejos_modal_desc":
+            "Escolha quais objetivos podem disparar comemorações " +
+            "ao cruzar marcos.",
+          "config.festejos_todos":
+            "Selecionar todos",
+          "config.festejos_ninguno":
+            "Desmarcar todos",
+          "config.festejos_resumen_todas":
+            "Todas as metas das camadas ativas serão comemoradas " +
+            "({total} disponíveis).",
+          "config.festejos_resumen_sel":
+            "{seleccionadas} de {total} metas disponíveis " +
+            "serão comemoradas.",
+          "config.festejos_sin_metas":
+            "Não há metas com métrica para comemorar.",
           "config.dias_visibles":
             "Dias visíveis",
           "config.dias_hint":
@@ -32043,6 +32275,14 @@
         Meta_Notificaciones_Activas: true,
         Meta_Notificaciones_Cada_Cuanto: 25,
         Meta_Notificaciones_Hitos: [25, 50, 75, 100],
+        Meta_Festejos_Capas: [
+          "Anio",
+          "Semestre",
+          "Trimestre",
+          "Mes"
+        ],
+        Meta_Festejos_Modo: "Todas",
+        Meta_Festejos_Objetivos: [],
         Color_Sueno: "#ddd4f4",
         Color_Descanso: "#d4e9f4",
         Color_Badge: "#9b2040",
@@ -32613,6 +32853,7 @@
       let Meta_En_Edicion_Id = null;
       let Metas_Mensaje_Timer = null;
       let Meta_Toast_Contador_Id = 0;
+      let Cfg_Meta_Festejos_Seleccion_Borrador = [];
 
       const El_Lista_Emojis = document.getElementById("Barra_Emojis");
       const El_Resumen_Objetivo = document.getElementById("Resumen_Objetivo");
@@ -42165,6 +42406,229 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Meta_Festejos_Capas_Default() {
+        return ["Anio", "Semestre", "Trimestre", "Mes"];
+      }
+
+      function Normalizar_Meta_Festejos_Capas(Capas) {
+        const Permitidas = Meta_Festejos_Capas_Default();
+        if (!Array.isArray(Capas)) return [...Permitidas];
+        const Unicas = [];
+        Capas.forEach((Capa) => {
+          const Valor = (Capa || "").toString();
+          if (!Permitidas.includes(Valor)) return;
+          if (!Unicas.includes(Valor)) Unicas.push(Valor);
+        });
+        return Unicas;
+      }
+
+      function Normalizar_Meta_Festejos_Modo(Modo) {
+        return Modo === "Seleccionadas" ? "Seleccionadas" : "Todas";
+      }
+
+      function Normalizar_Meta_Festejos_Objetivos(Ids) {
+        if (!Array.isArray(Ids)) return [];
+        return Array.from(
+          new Set(
+            Ids.map((Id) => (Id || "").toString()).filter(Boolean)
+          )
+        );
+      }
+
+      function Normalizar_Config_Festejos_Meta() {
+        Config.Meta_Festejos_Capas =
+          Normalizar_Meta_Festejos_Capas(
+            Config.Meta_Festejos_Capas
+          );
+        Config.Meta_Festejos_Modo =
+          Normalizar_Meta_Festejos_Modo(
+            Config.Meta_Festejos_Modo
+          );
+        Config.Meta_Festejos_Objetivos =
+          Normalizar_Meta_Festejos_Objetivos(
+            Config.Meta_Festejos_Objetivos
+          );
+      }
+
+      function Meta_Festejo_Habilitado(Objetivo, Periodo) {
+        if (!Objetivo || !Periodo) return false;
+        Normalizar_Config_Festejos_Meta();
+        if (
+          !Config.Meta_Festejos_Capas.includes(
+            (Periodo.Tipo || "").toString()
+          )
+        ) {
+          return false;
+        }
+        if (Config.Meta_Festejos_Modo !== "Seleccionadas") {
+          return true;
+        }
+        return Config.Meta_Festejos_Objetivos.includes(
+          (Objetivo.Id || "").toString()
+        );
+      }
+
+      function Obtener_Objetivos_Festejables_Config() {
+        const Modelo = Asegurar_Modelo_Planes();
+        return Object.values(Modelo.Objetivos || {})
+          .map((Objetivo) => ({
+            Objetivo,
+            Periodo: Modelo.Periodos[Objetivo?.Periodo_Id]
+          }))
+          .filter(({ Objetivo, Periodo }) => {
+            if (!Objetivo || !Periodo) return false;
+            if (Objetivo.Eliminado_Local) return false;
+            if (Objetivo.Modo_Progreso === "Manual") return false;
+            return (Number(Objetivo.Target_Total) || 0) > 0;
+          })
+          .sort((A, B) => {
+            const Fecha = (A.Periodo.Inicio || "")
+              .localeCompare(B.Periodo.Inicio || "");
+            if (Fecha) return Fecha;
+            return (A.Objetivo.Nombre || "").localeCompare(
+              B.Objetivo.Nombre || "",
+              "es",
+              { sensitivity: "base", numeric: true }
+            );
+          });
+      }
+
+      function Actualizar_Config_Festejos_Resumen() {
+        const Resumen = document.getElementById(
+          "Cfg_Meta_Festejos_Resumen"
+        );
+        if (!Resumen) return;
+        const Modo = Normalizar_Meta_Festejos_Modo(
+          document.getElementById("Cfg_Meta_Festejos_Modo")?.value
+        );
+        const Capas_Activas = new Set(
+          Array.from(
+            document.querySelectorAll(
+              "[data-cfg-meta-capa]:checked"
+            )
+          ).map((Input) => Input.dataset.cfgMetaCapa)
+        );
+        const Items = Obtener_Objetivos_Festejables_Config()
+          .filter(({ Periodo }) => Capas_Activas.has(Periodo.Tipo));
+        const Total = Items.length;
+        const Ids_Disponibles = new Set(
+          Items.map(({ Objetivo }) => Objetivo.Id)
+        );
+        const Seleccionados =
+          Normalizar_Meta_Festejos_Objetivos(
+            Cfg_Meta_Festejos_Seleccion_Borrador
+          ).filter((Id) => Ids_Disponibles.has(Id)).length;
+        Resumen.textContent = Modo === "Seleccionadas"
+          ? t("config.festejos_resumen_sel", {
+            seleccionadas: Seleccionados,
+            total: Total
+          })
+          : t("config.festejos_resumen_todas", { total: Total });
+      }
+
+      function Actualizar_Config_Festejos_UI() {
+        const Activas = Boolean(
+          document.getElementById(
+            "Cfg_Meta_Notificaciones_Activas"
+          )?.checked
+        );
+        document
+          .querySelectorAll("[data-cfg-meta-capa]")
+          .forEach((Input) => {
+            Input.disabled = !Activas;
+          });
+        const Modo = document.getElementById(
+          "Cfg_Meta_Festejos_Modo"
+        );
+        const Boton = document.getElementById(
+          "Cfg_Meta_Festejos_Elegir_Btn"
+        );
+        if (Modo) Modo.disabled = !Activas;
+        if (Boton) Boton.disabled = !Activas;
+        Actualizar_Config_Festejos_Resumen();
+      }
+
+      function Render_Config_Meta_Festejos_Modal() {
+        const Lista = document.getElementById(
+          "Cfg_Meta_Festejos_Lista"
+        );
+        if (!Lista) return;
+        Lista.innerHTML = "";
+        const Items = Obtener_Objetivos_Festejables_Config();
+        const Seleccion = new Set(
+          Normalizar_Meta_Festejos_Objetivos(
+            Cfg_Meta_Festejos_Seleccion_Borrador
+          )
+        );
+        if (!Items.length) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Config_Meta_Vacio";
+          Vacio.textContent = t("config.festejos_sin_metas");
+          Lista.appendChild(Vacio);
+          return;
+        }
+        Items.forEach(({ Objetivo, Periodo }) => {
+          const Fila = document.createElement("label");
+          Fila.className = "Config_Meta_Festejo_Item";
+          const Check = document.createElement("input");
+          Check.type = "checkbox";
+          Check.value = Objetivo.Id;
+          Check.checked = Seleccion.has(Objetivo.Id);
+          const Texto = document.createElement("span");
+          const Nombre = document.createElement("span");
+          Nombre.className = "Config_Meta_Festejo_Nombre";
+          Nombre.textContent = Objetivo.Nombre || t("toast.sin_nombre");
+          const Meta = document.createElement("span");
+          Meta.className = "Config_Meta_Festejo_Meta";
+          Meta.textContent = [
+            Planes_Label_Tipo(Periodo.Tipo),
+            Planes_Titulo_Periodo(
+              Periodo.Tipo,
+              Periodo.Inicio,
+              Periodo.Fin
+            )
+          ].filter(Boolean).join(" · ");
+          Texto.appendChild(Nombre);
+          Texto.appendChild(Meta);
+          Fila.appendChild(Check);
+          Fila.appendChild(Texto);
+          Lista.appendChild(Fila);
+        });
+      }
+
+      function Abrir_Config_Meta_Festejos() {
+        Render_Config_Meta_Festejos_Modal();
+        document.getElementById("Cfg_Meta_Festejos_Overlay")
+          ?.classList.add("Activo");
+      }
+
+      function Cerrar_Config_Meta_Festejos() {
+        document.getElementById("Cfg_Meta_Festejos_Overlay")
+          ?.classList.remove("Activo");
+      }
+
+      function Seleccionar_Config_Meta_Festejos(Todos) {
+        document
+          .querySelectorAll("#Cfg_Meta_Festejos_Lista input")
+          .forEach((Input) => {
+            Input.checked = Boolean(Todos);
+          });
+      }
+
+      function Guardar_Config_Meta_Festejos_Modal() {
+        Cfg_Meta_Festejos_Seleccion_Borrador = Array.from(
+          document.querySelectorAll(
+            "#Cfg_Meta_Festejos_Lista input:checked"
+          )
+        ).map((Input) => Input.value);
+        const Modo = document.getElementById(
+          "Cfg_Meta_Festejos_Modo"
+        );
+        if (Modo) Modo.value = "Seleccionadas";
+        Cerrar_Config_Meta_Festejos();
+        Actualizar_Config_Festejos_Resumen();
+      }
+
       function Mostrar_Toast_Meta(Titulo, Subtitulo) {
         if (!El_Meta_Toast_Contenedor) return;
         const Id = ++Meta_Toast_Contador_Id;
@@ -42193,12 +42657,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Textos.appendChild(Sub);
         Toast.appendChild(Icono);
         Toast.appendChild(Textos);
-        Toast.classList.add("Con_Link");
-        Toast.title = t("config.metas");
-        Toast.addEventListener("click", (Ev) => {
-          if (Ev.target.closest(".Toast_Cerrar")) return;
-          Abrir_Config_Metas();
-        });
         Agregar_Boton_Cerrar_Toast(Toast, () => {
           if (Cerrado) return;
           Cerrado = true;
@@ -42266,6 +42724,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
             if (!Periodo || Evento.Fecha < Periodo.Inicio ||
                 Evento.Fecha > Periodo.Fin) {
+              return null;
+            }
+            if (!Meta_Festejo_Habilitado(Objetivo, Periodo)) {
               return null;
             }
             if (Objetivo.Modo_Progreso === "Manual") return null;
@@ -64953,6 +65414,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
           )
         );
+        Normalizar_Config_Festejos_Meta();
+        Cfg_Meta_Festejos_Seleccion_Borrador =
+          [...Config.Meta_Festejos_Objetivos];
+        document
+          .querySelectorAll("[data-cfg-meta-capa]")
+          .forEach((Input) => {
+            Input.checked = Config.Meta_Festejos_Capas
+              .includes(Input.dataset.cfgMetaCapa);
+          });
+        const Modo_Festejos = document.getElementById(
+          "Cfg_Meta_Festejos_Modo"
+        );
+        if (Modo_Festejos) {
+          Modo_Festejos.value = Config.Meta_Festejos_Modo;
+        }
         document.getElementById("Cfg_Color_Badge").value =
           Config.Color_Badge;
         document.getElementById("Cfg_Color_Completa").value =
@@ -65162,19 +65638,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Vp_Cal.style.overflow || "";
           Vp_Cal.style.overflow = "hidden";
         }
-      }
-
-      function Abrir_Config_Metas() {
-        Abrir_Config();
-        setTimeout(() => {
-          const Seccion = document.getElementById(
-            "Config_Seccion_Metas"
-          );
-          Seccion?.scrollIntoView({
-            block: "center",
-            behavior: "smooth"
-          });
-        }, 0);
       }
 
       function Render_Config_Tipos_Slot() {
@@ -70942,6 +71405,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Generar_Hitos_Notificacion_Meta(
             Config.Meta_Notificaciones_Cada_Cuanto
           );
+        Config.Meta_Festejos_Capas =
+          Normalizar_Meta_Festejos_Capas(
+            Array.from(
+              document.querySelectorAll(
+                "[data-cfg-meta-capa]:checked"
+              )
+            ).map((Input) => Input.dataset.cfgMetaCapa)
+          );
+        Config.Meta_Festejos_Modo =
+          Normalizar_Meta_Festejos_Modo(
+            document.getElementById(
+              "Cfg_Meta_Festejos_Modo"
+            )?.value
+          );
+        const Festejos_Disponibles = new Set(
+          Obtener_Objetivos_Festejables_Config()
+            .map(({ Objetivo }) => Objetivo.Id)
+        );
+        Config.Meta_Festejos_Objetivos =
+          Normalizar_Meta_Festejos_Objetivos(
+            Cfg_Meta_Festejos_Seleccion_Borrador
+          ).filter((Id) => Festejos_Disponibles.has(Id));
         Config.Color_Badge =
           document.getElementById("Cfg_Color_Badge")?.value
           || "#9b2040";
@@ -72354,6 +72839,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Input.style.opacity = Activas ? "1" : "0.55";
         }
         Actualizar_Preview_Notificaciones_Meta(Activas, Input);
+        Actualizar_Config_Festejos_UI();
       }
 
       function Formatear_Valor_Mes_Meta(Fecha) {
@@ -80277,6 +80763,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Config.Meta_Notificaciones_Cada_Cuanto,
             Meta_Notificaciones_Hitos:
               Config.Meta_Notificaciones_Hitos,
+            Meta_Festejos_Capas:
+              Config.Meta_Festejos_Capas,
+            Meta_Festejos_Modo:
+              Config.Meta_Festejos_Modo,
+            Meta_Festejos_Objetivos:
+              Config.Meta_Festejos_Objetivos,
             Color_Sueno: Config.Color_Sueno,
             Color_Descanso: Config.Color_Descanso,
             Color_Badge: Config.Color_Badge,
@@ -80540,6 +81032,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Config.Meta_Notificaciones_Hitos =
               Generar_Hitos_Notificacion_Meta(
                 Config.Meta_Notificaciones_Cada_Cuanto
+              );
+            Config.Meta_Festejos_Capas =
+              Normalizar_Meta_Festejos_Capas(
+                Extra.Meta_Festejos_Capas
+              );
+            Config.Meta_Festejos_Modo =
+              Normalizar_Meta_Festejos_Modo(
+                Extra.Meta_Festejos_Modo
+              );
+            Config.Meta_Festejos_Objetivos =
+              Normalizar_Meta_Festejos_Objetivos(
+                Extra.Meta_Festejos_Objetivos
               );
             if (Extra.Color_Sueno)
               Config.Color_Sueno = Extra.Color_Sueno;
@@ -80903,6 +81407,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Generar_Hitos_Notificacion_Meta(
             Config.Meta_Notificaciones_Cada_Cuanto
           );
+        Normalizar_Config_Festejos_Meta();
         Config.Menu_Botones_Visibles =
           Normalizar_Menu_Botones_Visibles(
             Config.Menu_Botones_Visibles
@@ -86229,6 +86734,38 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         "change",
         Actualizar_Config_Notificaciones_Meta
       );
+      document
+        .querySelectorAll("[data-cfg-meta-capa]")
+        .forEach((Input) => {
+          Input.addEventListener(
+            "change",
+            Actualizar_Config_Festejos_Resumen
+          );
+        });
+      document.getElementById("Cfg_Meta_Festejos_Modo")
+        ?.addEventListener("change", Actualizar_Config_Festejos_UI);
+      document.getElementById("Cfg_Meta_Festejos_Elegir_Btn")
+        ?.addEventListener("click", Abrir_Config_Meta_Festejos);
+      document.getElementById("Cfg_Meta_Festejos_Cerrar")
+        ?.addEventListener("click", Cerrar_Config_Meta_Festejos);
+      document.getElementById("Cfg_Meta_Festejos_Cancelar")
+        ?.addEventListener("click", Cerrar_Config_Meta_Festejos);
+      document.getElementById("Cfg_Meta_Festejos_Guardar")
+        ?.addEventListener("click", Guardar_Config_Meta_Festejos_Modal);
+      document.getElementById("Cfg_Meta_Festejos_Todos")
+        ?.addEventListener("click", () => {
+          Seleccionar_Config_Meta_Festejos(true);
+        });
+      document.getElementById("Cfg_Meta_Festejos_Ninguno")
+        ?.addEventListener("click", () => {
+          Seleccionar_Config_Meta_Festejos(false);
+        });
+      document.getElementById("Cfg_Meta_Festejos_Overlay")
+        ?.addEventListener("click", (Ev) => {
+          if (Ev.target.id === "Cfg_Meta_Festejos_Overlay") {
+            Ev.preventDefault();
+          }
+        });
 
       document.getElementById("Patron_Boton")
         .addEventListener("click", async () => {
