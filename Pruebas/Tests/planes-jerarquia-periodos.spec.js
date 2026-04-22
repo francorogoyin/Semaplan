@@ -4640,6 +4640,101 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Padre anual lista subobjetivos creados desde hijo",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    Modelo.UI.Vista = "Tarjetas";
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    Modelo.UI.Periodo_Activo_Id = Anio.Id;
+    const Trimestre = Planes_Crear_Periodo(
+      Modelo,
+      "Trimestre",
+      "2026-04-01",
+      "2026-06-30",
+      Anio.Id,
+      2
+    );
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Independencia financiera",
+        Emoji: "\uD83D\uDCB0",
+        Target_Total: 0,
+        Modo_Avance: "Sin_Metrica"
+      }
+    );
+    const Hijo = Planes_Crear_Objetivo_Silencioso(
+      Trimestre.Id,
+      {
+        Nombre: "Independencia financiera T2",
+        Emoji: "\uD83D\uDCB0",
+        Target_Total: 0,
+        Modo_Avance: "Sin_Metrica",
+        Objetivo_Padre_Id: Padre.Id
+      }
+    );
+    ["Fondo de emergencia", "Presupuesto", "Inversiones"]
+      .forEach((Texto) => {
+        const Sub_Id = Planes_Agregar_Subobjetivo(Hijo.Id, Texto);
+        const Modelo_Subs = Asegurar_Modelo_Planes();
+        Modelo_Subs.Subobjetivos[Sub_Id].Aporte_Meta = 1;
+      });
+    Planes_Actualizar_Progreso(Hijo);
+    Planes_Actualizar_Progreso(Padre);
+    const Contexto = Planes_Subobjetivos_Contexto_Objetivo(Padre);
+    const Aporte_Contexto = Contexto.Items.reduce((Total, Sub) => {
+      return Total + (Number(Sub.Aporte_Meta) || 0);
+    }, 0);
+
+    Planes_Subobjetivos_Filtro_Estado = "Todos";
+    Planes_Subobjetivos_Filtro_Periodo = "Periodo";
+    Planes_Subobjetivos_Filtro_Metadato = "";
+    Abrir_Modal_Planes_Subobjetivos(Padre.Id, false);
+    const Textos = Array.from(
+      document.querySelectorAll(".Planes_Subobjetivo_Nombre")
+    ).map((Nodo) => Nodo.textContent.trim());
+    const Vacio = document.querySelector(
+      "#Planes_Subobjetivos_Lista .Planes_Vacio"
+    )
+      ?.textContent || "";
+    return {
+      Cantidad_Contexto: Contexto.Items.length,
+      Aporte_Contexto,
+      Textos,
+      Vacio,
+      Filtro: document.getElementById(
+        "Planes_Subobjetivos_Filtro_Periodo"
+      )?.value || ""
+    };
+  });
+
+  expect(Resultado.Cantidad_Contexto).toBe(3);
+  expect(Resultado.Aporte_Contexto).toBe(3);
+  expect(Resultado.Textos).toEqual([
+    "Fondo de emergencia",
+    "Presupuesto",
+    "Inversiones"
+  ]);
+  expect(Resultado.Vacio).toBe("");
+  expect(Resultado.Filtro).toBe("Periodo");
+  expect(errores).toEqual([]);
+});
+
 test("Subobjetivos muestra meta limpia sin importado ni metadatos",
 async ({ page }) => {
   const errores = [];

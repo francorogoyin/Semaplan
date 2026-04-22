@@ -56158,8 +56158,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Filtro_Periodo === "Periodo") {
           const Modelo = Asegurar_Modelo_Planes();
-          const Periodo = Modelo.Periodos[Objetivo?.Periodo_Id];
-          return Planes_Subobjetivo_Interseca_Periodo(Sub, Periodo);
+          const Periodo = Planes_Periodo_Contexto_Objetivo(
+            Objetivo,
+            Modelo
+          );
+          return Planes_Subobjetivo_Visible_Contexto_Objetivo(
+            Sub,
+            Objetivo,
+            Periodo,
+            Modelo
+          );
         }
         return true;
       }
@@ -57491,7 +57499,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .filter((Info) =>
               Planes_Subobjetivo_Rama_Visible_Contexto(
                 Info.Sub,
-                Objetivo,
+                Objetivo_Contexto,
                 Contexto.Hijos_Por_Padre
               )
             )
