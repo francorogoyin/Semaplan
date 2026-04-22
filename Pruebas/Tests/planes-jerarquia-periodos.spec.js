@@ -4192,6 +4192,126 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Objetivo sin metrica administra subobjetivos embebidos",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Ids = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    Modelo.UI.Vista = "Tarjetas";
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    Modelo.UI.Periodo_Activo_Id = Anio.Id;
+    const Padre = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Id: "Obj_Padre_Sin_Metrica",
+        Nombre: "Independencia financiera",
+        Emoji: "\uD83D\uDCB0",
+        Target_Total: 0,
+        Modo_Avance: "Sin_Metrica"
+      }
+    );
+    const Mes = Planes_Crear_Periodo(
+      Modelo,
+      "Mes",
+      "2026-04-01",
+      "2026-04-30",
+      Anio.Id,
+      4
+    );
+    const Hijo = Planes_Crear_Objetivo_Silencioso(
+      Mes.Id,
+      {
+        Id: "Obj_Hijo_Sin_Metrica",
+        Nombre: "Finanzas abril",
+        Emoji: "\uD83D\uDCB0",
+        Target_Total: 0,
+        Modo_Avance: "Sin_Metrica",
+        Objetivo_Padre_Id: Padre.Id
+      }
+    );
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Hijo.Id,
+      "Armar presupuesto"
+    );
+    const Sub = Modelo.Subobjetivos[Sub_Id];
+    Sub.Target_Total = 0;
+    Sub.Aporte_Meta = 0;
+    Planes_Actualizar_Progreso(Padre);
+    Planes_Actualizar_Progreso(Hijo);
+    Render_Planes_Contenido();
+    return { Padre_Id: Padre.Id, Sub_Id };
+  });
+
+  await page.locator(
+    `[data-plan-objetivo-id="${Ids.Padre_Id}"]`
+  ).click({ button: "right" });
+  await expect(
+    page.locator('.Planes_Context_Menu [data-plan-accion="editar"]')
+  ).toBeVisible();
+  await page.locator(
+    '.Planes_Context_Menu [data-plan-accion="editar"]'
+  ).click();
+  await expect(page.locator("#Planes_Objetivo_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Objetivo_Modo_Avance"))
+    .toHaveValue("Sin_Metrica");
+  await page.click("#Planes_Objetivo_Cancelar");
+
+  await page.evaluate((Padre_Id) => {
+    Abrir_Modal_Planes_Subobjetivos(Padre_Id, false);
+  }, Ids.Padre_Id);
+  const Sub_Embebido = page.locator(
+    `[data-plan-subobjetivo-id="${Ids.Sub_Id}"]`
+  );
+  await expect(Sub_Embebido).toBeVisible();
+  await expect(Sub_Embebido).toHaveClass(/Embebido/);
+
+  await Sub_Embebido.click({ button: "right" });
+  await expect(
+    page.locator(
+      '.Planes_Context_Menu [data-plan-sub-accion="editar"]'
+    )
+  ).toBeVisible();
+  await page.locator(
+    '.Planes_Context_Menu [data-plan-sub-accion="editar"]'
+  ).click();
+  await expect(page.locator("#Planes_Subobjetivo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.fill(
+    "#Planes_Subobjetivo_Texto",
+    "Presupuesto editado"
+  );
+  await page.click("#Planes_Subobjetivo_Guardar");
+  await expect(
+    Sub_Embebido.locator(".Planes_Subobjetivo_Nombre")
+  ).toHaveText("Presupuesto editado");
+
+  await Sub_Embebido.click({ button: "right" });
+  await page.locator(
+    '.Planes_Context_Menu [data-plan-sub-accion="eliminar"]'
+  ).click();
+  await expect(Sub_Embebido).toHaveCount(0);
+  const Eliminado = await page.evaluate((Sub_Id) => {
+    return Asegurar_Modelo_Planes()
+      .Subobjetivos[Sub_Id]?.Eliminado_Local === true;
+  }, Ids.Sub_Id);
+  expect(Eliminado).toBe(true);
+  expect(errores).toEqual([]);
+});
+
 test("Subobjetivos muestra meta limpia sin importado ni metadatos",
 async ({ page }) => {
   const errores = [];
