@@ -6540,6 +6540,14 @@
         cursor: default;
       }
 
+      .Planes_Subobjetivo.Embebido.Reordenable {
+        cursor: grab;
+      }
+
+      .Planes_Subobjetivo.Embebido.Reordenable:active {
+        cursor: grabbing;
+      }
+
       .Planes_Subobjetivo.Vista_Lista {
         align-items: center;
         border-width: 0 0 1px;
@@ -55027,8 +55035,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ` Vista_${Vista}` +
           (Estado === "Activo" ? " Estado_Activo" : "") +
           (Estado === "Cumplido" ? " Estado_Cumplido" : "") +
-          (Opciones.Embebido ? " Embebido" : " Reordenable");
-        Item.draggable = !Opciones.Embebido;
+          (Opciones.Embebido ? " Embebido" : "") +
+          " Reordenable";
+        Item.draggable = true;
         Item.dataset.planSubobjetivoId = Sub.Id;
         Item.dataset.nivel = String(Nivel);
         Item.style.setProperty(
@@ -55063,48 +55072,50 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ${Planes_Emoji_Estado(Estado)}
           </span>
         `;
-        if (!Opciones.Embebido) {
-          Item.addEventListener("dragstart", (Ev) => {
-            Ev.dataTransfer.effectAllowed = "move";
-            Ev.dataTransfer.setData(
-              "application/x-planes-subobjetivo",
-              Sub.Id
-            );
-          });
-          Item.addEventListener("dragover", (Ev) => {
+        Item.addEventListener("dragstart", (Ev) => {
+          if (Ev.target.closest("button, input, select, textarea")) {
             Ev.preventDefault();
-            Ev.dataTransfer.dropEffect = "move";
-            const Rect = Item.getBoundingClientRect();
-            const Insertar_Despues =
-              Ev.clientY >= Rect.top + Rect.height / 2;
-            Item.classList.toggle("Drop_Antes", !Insertar_Despues);
-            Item.classList.toggle("Drop_Despues", Insertar_Despues);
-          });
-          Item.addEventListener("dragleave", () => {
-            Item.classList.remove("Drop_Antes");
-            Item.classList.remove("Drop_Despues");
-          });
-          Item.addEventListener("drop", (Ev) => {
-            Ev.preventDefault();
-            Item.classList.remove("Drop_Antes");
-            Item.classList.remove("Drop_Despues");
-            const Origen_Id = Ev.dataTransfer.getData(
-              "application/x-planes-subobjetivo"
-            );
-            const Rect = Item.getBoundingClientRect();
-            const Insertar_Despues =
-              Ev.clientY >= Rect.top + Rect.height / 2;
-            if (!Planes_Reordenar_Subobjetivo(
-              Objetivo.Id,
-              Origen_Id,
-              Sub.Id,
-              Insertar_Despues
-            )) {
-              return;
-            }
-            Render_Modal_Planes_Subobjetivos();
-          });
-        }
+            return;
+          }
+          Ev.dataTransfer.effectAllowed = "move";
+          Ev.dataTransfer.setData(
+            "application/x-planes-subobjetivo",
+            Sub.Id
+          );
+        });
+        Item.addEventListener("dragover", (Ev) => {
+          Ev.preventDefault();
+          Ev.dataTransfer.dropEffect = "move";
+          const Rect = Item.getBoundingClientRect();
+          const Insertar_Despues =
+            Ev.clientY >= Rect.top + Rect.height / 2;
+          Item.classList.toggle("Drop_Antes", !Insertar_Despues);
+          Item.classList.toggle("Drop_Despues", Insertar_Despues);
+        });
+        Item.addEventListener("dragleave", () => {
+          Item.classList.remove("Drop_Antes");
+          Item.classList.remove("Drop_Despues");
+        });
+        Item.addEventListener("drop", (Ev) => {
+          Ev.preventDefault();
+          Item.classList.remove("Drop_Antes");
+          Item.classList.remove("Drop_Despues");
+          const Origen_Id = Ev.dataTransfer.getData(
+            "application/x-planes-subobjetivo"
+          );
+          const Rect = Item.getBoundingClientRect();
+          const Insertar_Despues =
+            Ev.clientY >= Rect.top + Rect.height / 2;
+          if (!Planes_Reordenar_Subobjetivo(
+            Objetivo.Id,
+            Origen_Id,
+            Sub.Id,
+            Insertar_Despues
+          )) {
+            return;
+          }
+          Render_Modal_Planes_Subobjetivos();
+        });
         Item.addEventListener("contextmenu", (Ev) => {
           Ev.preventDefault();
           Planes_Abrir_Menu_Contextual_Subobjetivo(
@@ -55201,27 +55212,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Origen = Modelo.Subobjetivos[Origen_Id];
         const Destino = Modelo.Subobjetivos[Destino_Id];
         if (!Origen || !Destino) return false;
-        if (
-          Origen.Objetivo_Id !== Objetivo_Id ||
-          Destino.Objetivo_Id !== Objetivo_Id
-        ) {
-          return false;
+        const Objetivo_Contexto = Modelo.Objetivos[Objetivo_Id];
+        let Hermanos = [];
+        if (Objetivo_Contexto) {
+          const Contexto = Planes_Subobjetivos_Contexto_Objetivo(
+            Objetivo_Contexto
+          );
+          const Info_Origen = Contexto.Items_Por_Id.get(Origen.Id);
+          const Info_Destino = Contexto.Items_Por_Id.get(Destino.Id);
+          if (Info_Origen && Info_Destino) {
+            const Padre_Origen = (Info_Origen.Padre_Id || "")
+              .toString();
+            const Padre_Destino = (Info_Destino.Padre_Id || "")
+              .toString();
+            if (Padre_Origen !== Padre_Destino) {
+              Mostrar_Toast_Error(t("planes.reorden_mismo_nivel"));
+              return false;
+            }
+            Hermanos = (Contexto.Hijos_Por_Padre
+              .get(Padre_Origen) || [])
+              .map((Info) => Info.Sub)
+              .filter((Sub) => !Sub.Eliminado_Local);
+          }
         }
-        const Padre_Origen =
-          (Origen.Subobjetivo_Padre_Id || "").toString();
-        const Padre_Destino =
-          (Destino.Subobjetivo_Padre_Id || "").toString();
-        if (Padre_Origen !== Padre_Destino) {
-          Mostrar_Toast_Error(t("planes.reorden_mismo_nivel"));
-          return false;
+        if (!Hermanos.length) {
+          if (
+            Origen.Objetivo_Id !== Objetivo_Id ||
+            Destino.Objetivo_Id !== Objetivo_Id
+          ) {
+            return false;
+          }
+          const Padre_Origen =
+            (Origen.Subobjetivo_Padre_Id || "").toString();
+          const Padre_Destino =
+            (Destino.Subobjetivo_Padre_Id || "").toString();
+          if (Padre_Origen !== Padre_Destino) {
+            Mostrar_Toast_Error(t("planes.reorden_mismo_nivel"));
+            return false;
+          }
+          Hermanos = Planes_Subobjetivos_De_Objetivo(
+            Objetivo_Id
+          ).filter((Sub) => {
+            return !Sub.Eliminado_Local &&
+              (Sub.Subobjetivo_Padre_Id || "").toString() ===
+                Padre_Origen;
+          });
         }
-        const Hermanos = Planes_Subobjetivos_De_Objetivo(
-          Objetivo_Id
-        ).filter((Sub) => {
-          return !Sub.Eliminado_Local &&
-            (Sub.Subobjetivo_Padre_Id || "").toString() ===
-              Padre_Origen;
-        });
         const Sin_Origen = Hermanos.filter(
           (Sub) => Sub.Id !== Origen_Id
         );
@@ -55239,7 +55275,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sub.Orden = Indice;
           Sub.Actualizado_En = new Date().toISOString();
         });
-        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        const Objetivo = Objetivo_Contexto ||
+          Modelo.Objetivos[Origen.Objetivo_Id];
         if (Objetivo) {
           Planes_Recalcular_Desde(Objetivo);
         } else {

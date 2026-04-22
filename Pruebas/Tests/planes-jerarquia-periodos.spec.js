@@ -4166,7 +4166,7 @@ async ({ page }) => {
   expect(Resultado.Directos_Conteo).toBe(1);
   expect(Resultado.Embebido).toBe(true);
   expect(Resultado.Embebido_Clase).toBe(true);
-  expect(Resultado.Embebido_Draggable).toBe(false);
+  expect(Resultado.Embebido_Draggable).toBe(true);
   expect(Resultado.Meta).toContain("50%");
   expect(Resultado.Meta).toContain("2/4");
   expect(Resultado.Meta).toContain("+1 libros");
@@ -4246,13 +4246,21 @@ async ({ page }) => {
       Hijo.Id,
       "Armar presupuesto"
     );
-    const Sub = Modelo.Subobjetivos[Sub_Id];
+    const Sub_Dos_Id = Planes_Agregar_Subobjetivo(
+      Hijo.Id,
+      "Revisar inversiones"
+    );
+    const Modelo_Subs = Asegurar_Modelo_Planes();
+    const Sub = Modelo_Subs.Subobjetivos[Sub_Id];
     Sub.Target_Total = 0;
     Sub.Aporte_Meta = 0;
+    const Sub_Dos = Modelo_Subs.Subobjetivos[Sub_Dos_Id];
+    Sub_Dos.Target_Total = 0;
+    Sub_Dos.Aporte_Meta = 0;
     Planes_Actualizar_Progreso(Padre);
     Planes_Actualizar_Progreso(Hijo);
     Render_Planes_Contenido();
-    return { Padre_Id: Padre.Id, Sub_Id };
+    return { Padre_Id: Padre.Id, Sub_Id, Sub_Dos_Id };
   });
 
   await page.locator(
@@ -4278,6 +4286,24 @@ async ({ page }) => {
   );
   await expect(Sub_Embebido).toBeVisible();
   await expect(Sub_Embebido).toHaveClass(/Embebido/);
+  await expect(Sub_Embebido).toHaveAttribute("draggable", "true");
+
+  const Orden_Reordenado = await page.evaluate((Datos) => {
+    Planes_Reordenar_Subobjetivo(
+      Datos.Padre_Id,
+      Datos.Sub_Id,
+      Datos.Sub_Dos_Id,
+      true
+    );
+    Render_Modal_Planes_Subobjetivos();
+    return Array.from(
+      document.querySelectorAll(".Planes_Subobjetivo_Nombre")
+    ).map((Nodo) => Nodo.textContent.trim());
+  }, Ids);
+  expect(Orden_Reordenado.slice(0, 2)).toEqual([
+    "Revisar inversiones",
+    "Armar presupuesto"
+  ]);
 
   await Sub_Embebido.click({ button: "right" });
   await expect(
