@@ -5181,7 +5181,6 @@
       }
 
       .Planes_Objetivo_Card.Estado_Activo .Planes_Objetivo_Emoji,
-      .Planes_Subobjetivo.Estado_Activo .Planes_Subobjetivo_Emoji,
       .Planes_Parte.Estado_Activo .Planes_Parte_Emoji {
         display: inline-flex;
         align-items: center;
@@ -5207,7 +5206,6 @@
 
       .Planes_Objetivo_Card.Estado_Cumplido .Planes_Objetivo_Emoji,
       .Planes_Objetivo_Card.Saldado .Planes_Objetivo_Emoji,
-      .Planes_Subobjetivo.Estado_Cumplido .Planes_Subobjetivo_Emoji,
       .Planes_Parte.Estado_Cumplido .Planes_Parte_Emoji {
         display: inline-flex;
         align-items: center;
@@ -5229,7 +5227,6 @@
 
       .Planes_Objetivo_Card.Estado_Cumplido .Planes_Objetivo_Emoji,
       .Planes_Objetivo_Card.Saldado .Planes_Objetivo_Emoji,
-      .Planes_Subobjetivo.Estado_Cumplido .Planes_Subobjetivo_Emoji,
       .Planes_Parte.Estado_Cumplido .Planes_Parte_Emoji {
         flex-basis: 26px;
         width: 26px;
@@ -6808,20 +6805,14 @@
         padding: 2px 6px;
       }
 
-      .Planes_Subobjetivo_Estado {
-        display: inline-flex;
-        width: 24px;
-        height: 24px;
-        align-items: center;
-        justify-content: center;
-        border: 0;
-        border-radius: 999px;
-        background: transparent;
-        font-size: 12px;
+      .Planes_Subobjetivo_Acciones {
+        position: relative;
+        display: flex;
+        justify-content: flex-end;
       }
 
       .Planes_Subobjetivo.Vista_Biblioteca
-        .Planes_Subobjetivo_Estado {
+        .Planes_Subobjetivo_Acciones {
         position: absolute;
         right: 10px;
         top: 10px;
@@ -6921,22 +6912,25 @@
         justify-content: flex-end;
       }
 
+      .Planes_Subobjetivo_Menu_Btn,
       .Planes_Parte_Menu_Btn {
         width: 30px;
         height: 30px;
-        border: 1px solid var(--Borde);
+        border: 0;
         border-radius: 999px;
         background: transparent;
-        color: var(--Texto);
+        color: var(--Texto_Suave);
         cursor: pointer;
         display: grid;
         place-items: center;
         font: inherit;
-        font-size: 16px;
+        font-size: 20px;
         line-height: 1;
-        padding: 0 0 3px;
+        padding: 0;
       }
 
+      .Planes_Subobjetivo_Menu_Btn:hover,
+      .Planes_Subobjetivo_Menu_Btn:focus-visible,
       .Planes_Parte_Menu_Btn:hover,
       .Planes_Parte_Menu_Btn:focus-visible {
         background: var(--Acento_Suave);
@@ -51615,6 +51609,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ).forEach((Menu) => {
           Menu.classList.remove("Activo");
         });
+        document.querySelectorAll("[data-plan-sub-menu]")
+          .forEach((Btn) => {
+            Btn.setAttribute("aria-expanded", "false");
+          });
         document.querySelectorAll(".Planes_Context_Menu")
           .forEach((Menu) => Menu.remove());
       }
@@ -57736,26 +57734,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ))}
             </span>
           </span>
-          <span class="Planes_Subobjetivo_Estado Con_Fallback_Emoji"
-            data-plan-sub-estado
-            title="${Escape_Html(Estado_Label)}"
-            aria-label="${Escape_Html(Estado_Label)}"></span>
+          <span class="Planes_Subobjetivo_Acciones">
+            <button class="Planes_Subobjetivo_Menu_Btn" type="button"
+              data-plan-sub-menu
+              aria-expanded="false"
+              aria-label="${Escape_Html(Estado_Label)}"
+              title="${Escape_Html(Estado_Label)}">
+              &#8942;
+            </button>
+          </span>
         `;
         Aplicar_Emoji_En_Elemento(
           Item.querySelector("[data-plan-sub-emoji]"),
           Sub.Emoji || "\u2022"
         );
-        const Estado_Emoji = Item.querySelector(
-          "[data-plan-sub-estado]"
-        );
-        Aplicar_Emoji_En_Elemento(
-          Estado_Emoji,
-          Planes_Emoji_Estado(Estado)
-        );
-        if (Estado_Emoji) {
-          Estado_Emoji.title = Estado_Label;
-          Estado_Emoji.setAttribute("aria-label", Estado_Label);
-        }
         Item.addEventListener("dragstart", (Ev) => {
           if (Ev.target.closest("button, input, select, textarea")) {
             Ev.preventDefault();
@@ -57812,6 +57804,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         });
         Item.addEventListener("click", (Ev) => {
+          const Menu_Btn = Ev.target.closest("[data-plan-sub-menu]");
+          if (Menu_Btn) {
+            Ev.stopPropagation();
+            const Rect = Menu_Btn.getBoundingClientRect();
+            Menu_Btn.setAttribute("aria-expanded", "true");
+            Planes_Abrir_Menu_Contextual_Subobjetivo(
+              Objetivo.Id,
+              Sub.Id,
+              Rect.right,
+              Rect.bottom + 6,
+              Objetivo.Periodo_Id
+            );
+            return;
+          }
           if (Click_Arrastre) {
             Click_Arrastre = false;
             return;
@@ -58380,7 +58386,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               aria-expanded="false"
               aria-label="${Escape_Html(t("planes.parte_acciones"))}"
               title="${Escape_Html(t("planes.parte_acciones"))}">
-              ...
+              &#8942;
             </button>
           </span>
         `;
@@ -58882,7 +58888,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Resumen =
           Planes_Resumen_Aportes_Subobjetivos(Objetivo_Contexto);
         if (Titulo) {
-          Titulo.textContent = Info_Titulo.Titulo;
+          const Nombre_Objetivo = [
+            Objetivo.Emoji || "",
+            Objetivo.Nombre || ""
+          ].filter(Boolean).join(" ").trim();
+          Titulo.textContent = [
+            Nombre_Objetivo,
+            Info_Titulo.Titulo
+          ].filter(Boolean).join(" \u00B7 ");
         }
         if (Resumen_Aportes) {
           Resumen_Aportes.textContent = Info_Titulo.Anio
@@ -85058,7 +85071,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.addEventListener("click", (Ev) => {
         if (
           Ev.target.closest(".Planes_Context_Menu") ||
-          Ev.target.closest(".Planes_Objetivo_Acciones")
+          Ev.target.closest(".Planes_Objetivo_Acciones") ||
+          Ev.target.closest(".Planes_Subobjetivo_Acciones")
         ) {
           return;
         }
