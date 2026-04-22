@@ -5567,6 +5567,133 @@
         justify-content: flex-start;
       }
 
+      .Planes_Target_Periodos_Modal {
+        max-width: 760px;
+      }
+
+      .Planes_Target_Periodos_Cuerpo {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .Planes_Target_Encabezado {
+        align-items: center;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        display: grid;
+        gap: 10px;
+        grid-template-columns: minmax(0, 1fr) minmax(130px, 170px);
+        padding: 10px;
+      }
+
+      .Planes_Target_Encabezado_Texto {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .Planes_Target_Encabezado_Texto strong {
+        color: var(--Texto);
+        font-size: 14px;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+      }
+
+      .Planes_Target_Encabezado_Texto span {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        line-height: 1.3;
+      }
+
+      .Planes_Target_Input,
+      .Planes_Target_Periodo_Input {
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        color: var(--Texto);
+        font: inherit;
+        min-height: 34px;
+        min-width: 0;
+        padding: 7px 9px;
+        width: 100%;
+      }
+
+      .Planes_Target_Controles {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-start;
+      }
+
+      .Planes_Target_Lista {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: min(420px, 48vh);
+        overflow-y: auto;
+      }
+
+      .Planes_Target_Fila {
+        align-items: center;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        display: grid;
+        gap: 10px;
+        grid-template-columns: minmax(0, 1fr) minmax(110px, 140px) auto;
+        padding: 10px;
+      }
+
+      .Planes_Target_Fila_Texto {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .Planes_Target_Fila_Texto strong {
+        color: var(--Texto);
+        font-size: 13px;
+        line-height: 1.25;
+      }
+
+      .Planes_Target_Fila_Texto span {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        line-height: 1.3;
+      }
+
+      .Planes_Target_Fijar {
+        align-items: center;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        display: inline-flex;
+        font-size: 11px;
+        font-weight: 700;
+        gap: 6px;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      .Planes_Target_Vacio {
+        border: 1px dashed var(--Borde);
+        border-radius: 8px;
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        line-height: 1.35;
+        padding: 12px;
+      }
+
+      @media (max-width: 640px) {
+        .Planes_Target_Encabezado,
+        .Planes_Target_Fila {
+          grid-template-columns: 1fr;
+        }
+
+        .Planes_Target_Controles {
+          flex-direction: column;
+        }
+      }
+
       .Planes_Borrar_Importados_Lista {
         display: flex;
         flex-direction: column;
@@ -19113,6 +19240,27 @@
                   placeholder="Lecturas, ejercicios...">
               </span>
             </label>
+            <label class="Campo">
+              <span data-i18n="planes.sub_fecha_inicial">
+                Fecha inicial
+              </span>
+              <input id="Planes_Objetivo_Fecha_Inicio"
+                type="date">
+            </label>
+            <label class="Campo">
+              <span data-i18n="planes.sub_fecha_objetivo">
+                Fecha objetivo
+              </span>
+              <input id="Planes_Objetivo_Fecha_Objetivo"
+                type="date">
+            </label>
+            <label class="Campo">
+              <span data-i18n="planes.sub_fecha_final">
+                Fecha final
+              </span>
+              <input id="Planes_Objetivo_Fecha_Fin"
+                type="date">
+            </label>
             <label class="Campo Campo_Ancho">
               <span data-i18n="planes.descripcion">
                 Descripción
@@ -19181,7 +19329,7 @@
             <button class="Planes_Header_Btn"
               id="Planes_Subobjetivos_Importar"
               data-i18n-title="planes.importar_subs"
-              title="Importar subobjetivos"
+              title="Mostrar subobjetivos"
               type="button">&#11015;</button>
             <button class="Planes_Header_Btn"
               id="Planes_Subobjetivos_Avance"
@@ -20832,7 +20980,7 @@
           "planes.ui_help_resumen_alertas":
             "Señales de objetivos que necesitan revisión.",
           "planes.ui_help_importar_periodo":
-            "Trae objetivos desde períodos superiores compatibles.",
+            "Muestra objetivos fechados desde períodos superiores compatibles.",
           "planes.ui_help_avance_periodo":
             "Carga avance para objetivos de este período.",
           "planes.ui_help_agregar_objetivo":
@@ -20880,7 +21028,7 @@
           "planes.ui_help_detalle_avance":
             "Fuente conceptual del progreso mostrado.",
           "planes.ui_help_detalle_origen":
-            "Indica si el objetivo nació acá o fue importado.",
+            "Indica si el objetivo nació acá o se muestra desde otro período.",
           "planes.ui_help_detalle_realizado":
             "Avance acumulado hasta ahora.",
           "planes.ui_help_detalle_falta":
@@ -20892,7 +21040,7 @@
           "planes.ui_help_sub_agregar":
             "Crea un subobjetivo para este objetivo.",
           "planes.ui_help_sub_importar":
-            "Trae subobjetivos del objetivo padre importado.",
+            "Muestra subobjetivos fechados del objetivo padre.",
           "planes.ui_help_sub_avance":
             "Carga avance limitado a este objetivo y sus subobjetivos.",
           "planes.ui_help_sub_vista":
@@ -21032,6 +21180,19 @@
             "Usá fijar métrica cuando querés proteger este valor frente a cambios del objetivo padre o de otros períodos.",
           "planes.desfijar_help":
             "Al quitar la fijación, este objetivo vuelve a comportarse como una parte redistribuible de la meta.",
+          "planes.target_periodos_titulo":
+            "Editar metas por periodo",
+          "planes.target_periodos_padre": "Periodo base",
+          "planes.target_periodos_lista": "Periodos",
+          "planes.target_periodos_fijar": "Fijar",
+          "planes.target_periodos_redistribuir":
+            "Redistribuir",
+          "planes.target_periodos_sin_periodos":
+            "No hay periodos hijos con fechas para mostrar.",
+          "planes.target_periodos_error":
+            "Revisá las metas: deben ser números válidos.",
+          "planes.target_periodos_guardado":
+            "Metas actualizadas.",
           "planes.redis_on":
             "Desactivar redistribución automática",
           "planes.redis_off":
@@ -21048,15 +21209,15 @@
           "planes.modo_leido": "Solo detectado",
           "planes.modo_hibrido": "Manual + detectado",
           "planes.importar_padres":
-            "Importar desde período padre",
+            "Mostrar desde período padre",
           "planes.importar_padre_periodo":
-            "Importar desde el padre de este periodo",
+            "Mostrar desde el padre de este periodo",
           "planes.actualizar_periodos_capa":
             "Actualizar",
           "planes.actualizar_periodos_capa_title":
-            "Actualizar importados de toda la capa",
+            "Actualizar mostrados de toda la capa",
           "planes.actualizar_periodos_confirm":
-            "Vas a actualizar importados de toda esta capa. " +
+            "Vas a actualizar mostrados de toda esta capa. " +
             "Cambios observados: {Total} ({Objetivos} objetivo(s), " +
             "{Subobjetivos} subobjetivo(s)).",
           "planes.actualizar_periodos_confirmar":
@@ -21068,37 +21229,37 @@
           "planes.agregar_en_periodo":
             "Agregar objetivo en este periodo",
           "planes.borrar_importados_capa":
-            "Borrar importados de esta capa",
+            "Ocultar mostrados de esta capa",
           "planes.borrar_importados_titulo":
-            "Borrar importados",
+            "Ocultar mostrados",
           "planes.borrar_importados_desc":
-            "Seleccioná qué objetivos importados querés borrar de todos los períodos de esta capa.",
+            "Seleccioná qué objetivos mostrados querés ocultar de todos los períodos de esta capa.",
           "planes.borrar_importados_confirmar":
-            "Borrar importados",
+            "Ocultar mostrados",
           "planes.borrar_importados_item_desc":
-            "{n} importado(s): {periodos}",
+            "{n} mostrado(s): {periodos}",
           "planes.borrar_importados_help_titulo":
-            "Borra objetivos importados en toda la capa actual.",
+            "Oculta objetivos mostrados en toda la capa actual.",
           "planes.borrar_importados_help_intro":
-            "Cada opción agrupa el mismo objetivo importado en los períodos visibles de esta capa.",
+            "Cada opción agrupa el mismo objetivo mostrado en los períodos visibles de esta capa.",
           "planes.borrar_importados_help_todos":
-            "Marca todos los objetivos importados disponibles.",
+            "Marca todos los objetivos mostrados disponibles.",
           "planes.borrar_importados_help_ninguno":
             "Desmarca todo para elegir objetivos puntuales.",
           "planes.borrar_importados_help_item":
-            "Incluye o excluye este objetivo importado de la limpieza de la capa.",
+            "Incluye o excluye este objetivo mostrado de la limpieza de la capa.",
           "planes.borrar_importados_help_confirmar":
-            "Borra localmente los objetivos importados seleccionados.",
+            "Oculta localmente los objetivos mostrados seleccionados.",
           "planes.importados_borrar_vacio":
-            "No hay objetivos importados en esta capa.",
+            "No hay objetivos mostrados en esta capa.",
           "planes.importados_borrar_sin_seleccion":
-            "Seleccioná al menos un objetivo importado.",
+            "Seleccioná al menos un objetivo mostrado.",
           "planes.importados_borrar_sin_cambios":
-            "No hubo importados para borrar.",
+            "No hubo mostrados para ocultar.",
           "planes.importados_borrados_toast":
-            "Se borraron {n} objetivo(s) importado(s).",
+            "Se ocultaron {n} objetivo(s) mostrado(s).",
           "planes.actualizar_periodos_sin_importados":
-            "No hay objetivos importados para actualizar en esta capa.",
+            "No hay objetivos mostrados para actualizar en esta capa.",
           "planes.actualizar_periodos_sin_cambios":
             "No hubo cambios para actualizar.",
           "planes.actualizar_periodos_toast":
@@ -21106,9 +21267,9 @@
           "planes.periodo_anterior": "Periodo anterior",
           "planes.periodo_siguiente": "Periodo siguiente",
           "planes.importar_padres_confirm":
-            "Vas a importar objetivos del período padre. Se recuperarán los que falten y no se duplicarán los ya importados.",
+            "Vas a mostrar objetivos del período padre. Solo aparecerán los que tengan fechas dentro del período.",
           "planes.importar_padres_help":
-            "Trae al período actual la estructura del período padre para continuar la planificación con la misma jerarquía.",
+            "Muestra en el período actual objetivos del padre sin duplicar su estructura.",
           "planes.capa_vacia":
             "Esta capa todavia no tiene objetivos visibles.",
           "planes.bajar_a": "Bajar a",
@@ -21116,21 +21277,21 @@
           "planes.bajar_a_tipo": "Bajar a {tipo}",
           "planes.origen": "Origen",
           "planes.origen_directo": "Directo",
-          "planes.origen_importado": "Importado",
+          "planes.origen_importado": "Mostrado",
           "planes.origen_ajustado": "Ajustado",
           "planes.origen_revisar": "Revisar origen",
           "planes.toast_bajado": "Objetivo bajado.",
           "planes.importar_periodos_titulo":
-            "Importar desde padres",
+            "Mostrar desde padres",
           "planes.importar_periodos_desc":
-            "Elegí en qué períodos de esta capa crear objetivos desde capas superiores.",
+            "Elegí en qué períodos de esta capa mostrar objetivos con fechas de capas superiores.",
           "planes.importar_periodos_fijar":
             "Fijar cuota",
           "planes.importar_periodos_todos":
             "Seleccionar todos",
           "planes.importar_periodos_ninguno":
             "Deseleccionar todos",
-          "planes.importar_periodos_confirmar": "Importar",
+          "planes.importar_periodos_confirmar": "Mostrar",
           "planes.importar_periodo_padres":
             "{n} objetivo(s) desde padres",
           "planes.importar_modo_proporcional": "Proporcional",
@@ -21138,49 +21299,49 @@
           "planes.importar_modo_manual": "Manual",
           "planes.importar_modo_pendiente":
             "Redistribuir pendiente",
-          "planes.importar_modo_label": "Forma de importar",
+          "planes.importar_modo_label": "Forma de mostrar",
           "planes.importar_manual_valor": "Métrica",
           "planes.importar_manual_error":
             "Ingresá una métrica válida para cada objetivo seleccionado.",
           "planes.importar_sin_cambios":
-            "No hubo cambios para importar.",
+            "No hubo cambios para mostrar.",
           "planes.editar_distribucion": "Editar distribución",
           "planes.distribucion_editar_titulo":
-            "Elegí cómo distribuir este objetivo importado.",
+            "Elegí cómo distribuir este objetivo mostrado.",
           "planes.distribucion_sin_importado":
-            "Este objetivo no es un objetivo importado.",
+            "Este objetivo no es un objetivo mostrado.",
           "planes.distribucion_actualizada":
             "Distribución actualizada.",
           "planes.importar_help_titulo":
-            "Elegí qué períodos hijos reciben objetivos del período padre.",
+            "Elegí qué períodos hijos muestran objetivos del período padre.",
           "planes.importar_help_cerrar":
-            "Cerrar sin importar.",
+            "Cerrar sin mostrar.",
           "planes.importar_help_intro":
-            "Cada tarjeta representa un período hijo. Podés importar todos, algunos o ajustar valores manuales.",
+            "Cada tarjeta representa un período hijo. Podés mostrar todos, algunos o ajustar valores manuales.",
           "planes.importar_help_todos":
             "Marca todos los períodos y objetivos disponibles.",
           "planes.importar_help_ninguno":
             "Desmarca todo para empezar la selección desde cero.",
           "planes.importar_help_fijar":
-            "Fija las cuotas importadas para que no se recalculen automáticamente después.",
+            "Fija las cuotas mostradas para que no se recalculen automáticamente después.",
           "planes.importar_help_fijar_periodo":
-            "Fija las cuotas importadas de este período para que no se recalculen automáticamente después.",
+            "Fija las cuotas mostradas de este período para que no se recalculen automáticamente después.",
           "planes.importar_help_proporcional":
             "Divide la métrica del padre entre los períodos hijos seleccionados de la misma capa.",
           "planes.importar_help_completo":
             "Copia la métrica completa del padre en cada período elegido.",
           "planes.importar_help_manual":
-            "Permite escribir la métrica exacta que recibirá cada objetivo importado.",
+            "Permite escribir la métrica exacta que recibirá cada objetivo mostrado.",
           "planes.importar_help_pendiente":
             "Toma el avance real de períodos cerrados y reparte el resto entre los períodos que siguen abiertos.",
           "planes.importar_help_modo":
-            "Define cómo se calcula la métrica que recibirá cada objetivo importado.",
+            "Define cómo se calcula la métrica que recibirá cada objetivo mostrado.",
           "planes.importar_help_cancelar":
             "Cierra el modal sin aplicar cambios.",
           "planes.importar_help_confirmar":
-            "Crea o actualiza los objetivos seleccionados.",
+            "Muestra o actualiza los objetivos seleccionados.",
           "planes.importar_help_periodo":
-            "Período hijo donde se crearán o actualizarán objetivos importados.",
+            "Período hijo donde se mostrarán objetivos.",
           "planes.importar_help_periodo_check":
             "Marca o desmarca todos los objetivos de este período.",
           "planes.importar_help_objetivos":
@@ -21188,10 +21349,10 @@
           "planes.importar_help_conteo":
             "Cantidad de objetivos seleccionados sobre el total disponible.",
           "planes.importar_help_objetivo_check":
-            "Incluye o excluye este objetivo de la importación.",
+            "Incluye o excluye este objetivo de la vista.",
           "planes.importar_help_manual_campo":
             "Valor usado solo si elegís el modo Manual.",
-          "planes.importar_subs": "Importar subobjetivos",
+          "planes.importar_subs": "Mostrar subobjetivos",
           "planes.romper_vinculo":
             "Quitar vínculo con calendario",
           "planes.romper_vinculo_confirm":
@@ -21250,7 +21411,7 @@
           "planes.partes_importadas":
             "Se importaron {n} parte(s).",
           "planes.subobjetivos_help":
-            "Administrá los pasos del objetivo. Los importados vienen del padre; podés marcarlos, agregar nuevos o eliminarlos localmente.",
+            "Administrá los pasos del objetivo. Los mostrados vienen del padre; podés marcarlos, agregar nuevos o eliminarlos localmente.",
           "planes.eliminar_local": "Eliminar",
           "planes.recuperar": "Recuperar",
           "planes.estado_activo": "En proceso",
@@ -21264,7 +21425,7 @@
           "planes.sub_ph": "Subobjetivo",
           "planes.sin_subobjetivos":
             "Todavía no hay subobjetivos.",
-          "planes.importado": "Importado",
+          "planes.importado": "Mostrado",
           "planes.sin_vencidos":
             "No hay objetivos retrasados para traer.",
           "planes.custom_prompt":
@@ -21303,6 +21464,12 @@
             "El subobjetivo necesita nombre.",
           "planes.err_unidad_custom":
             "Indicá la unidad personalizada.",
+          "planes.err_sub_rango_padre_sin_fechas":
+            "El objetivo padre necesita fecha inicial, objetivo o final antes de fechar un subobjetivo.",
+          "planes.err_sub_rango_fuera_padre":
+            "La fecha del subobjetivo queda fuera del rango del objetivo padre.",
+          "planes.err_objetivo_rango_subs":
+            "Hay subobjetivos con fechas fuera del rango del objetivo. Ajustá primero esas fechas.",
           "planes.rango_al": "{desde} al {hasta}",
           "planes.rango_con_anio":
             "de {desde} a {hasta} de {anio}",
@@ -21311,9 +21478,9 @@
           "planes.warning_incumplible":
             "El target del padre quedó incumplible.",
           "planes.toast_objetivo": "Objetivo agregado.",
-          "planes.toast_importado": "Importado.",
+          "planes.toast_importado": "Mostrado.",
           "planes.toast_sin_padres":
-            "No hay elementos recuperables desde padres.",
+            "No hay elementos mostrables desde padres.",
           "planes.toast_vencidos":
             "Objetivos vencidos procesados.",
           "planes.padre": "Padre",
@@ -24442,7 +24609,7 @@
           "planes.ui_help_resumen_alertas":
             "Signals for objectives that need review.",
           "planes.ui_help_importar_periodo":
-            "Brings objectives from compatible parent periods.",
+            "Shows dated objectives from compatible parent periods.",
           "planes.ui_help_avance_periodo":
             "Logs progress for objectives in this period.",
           "planes.ui_help_agregar_objetivo":
@@ -24490,7 +24657,7 @@
           "planes.ui_help_detalle_avance":
             "Conceptual source of the displayed progress.",
           "planes.ui_help_detalle_origen":
-            "Shows whether the objective was created here or imported.",
+            "Shows whether the objective was created here or shown from another period.",
           "planes.ui_help_detalle_realizado":
             "Accumulated progress so far.",
           "planes.ui_help_detalle_falta":
@@ -24502,7 +24669,7 @@
           "planes.ui_help_sub_agregar":
             "Creates a subobjective for this objective.",
           "planes.ui_help_sub_importar":
-            "Brings subobjectives from the imported parent objective.",
+            "Shows dated subobjectives from the parent objective.",
           "planes.ui_help_sub_avance":
             "Logs progress limited to this objective and its subobjectives.",
           "planes.ui_help_sub_vista":
@@ -24640,6 +24807,19 @@
             "Use metric pinning when you want to protect this value from parent or sibling period changes.",
           "planes.desfijar_help":
             "After removing the pin, this objective becomes redistributable within the goal again.",
+          "planes.target_periodos_titulo":
+            "Edit period targets",
+          "planes.target_periodos_padre": "Base period",
+          "planes.target_periodos_lista": "Periods",
+          "planes.target_periodos_fijar": "Pin",
+          "planes.target_periodos_redistribuir":
+            "Redistribute",
+          "planes.target_periodos_sin_periodos":
+            "There are no dated child periods to show.",
+          "planes.target_periodos_error":
+            "Check the targets: they must be valid numbers.",
+          "planes.target_periodos_guardado":
+            "Targets updated.",
           "planes.redis_on":
             "Disable automatic redistribution",
           "planes.redis_off":
@@ -24656,15 +24836,15 @@
           "planes.modo_leido": "Detected only",
           "planes.modo_hibrido": "Manual + detected",
           "planes.importar_padres":
-            "Import from parent period",
+            "Show from parent period",
           "planes.importar_padre_periodo":
-            "Import from this period parent",
+            "Show from this period parent",
           "planes.actualizar_periodos_capa":
             "Refresh",
           "planes.actualizar_periodos_capa_title":
-            "Refresh imports across this layer",
+            "Refresh shown objectives across this layer",
           "planes.actualizar_periodos_confirm":
-            "You are about to refresh imports across this layer. " +
+            "You are about to refresh shown objectives across this layer. " +
             "Observed changes: {Total} ({Objetivos} objective(s), " +
             "{Subobjetivos} subobjective(s)).",
           "planes.actualizar_periodos_confirmar":
@@ -24676,37 +24856,37 @@
           "planes.agregar_en_periodo":
             "Add objective in this period",
           "planes.borrar_importados_capa":
-            "Delete imports from this layer",
+            "Hide shown objectives from this layer",
           "planes.borrar_importados_titulo":
-            "Delete imports",
+            "Hide shown objectives",
           "planes.borrar_importados_desc":
-            "Select which imported objectives you want to delete from every period in this layer.",
+            "Select which shown objectives you want to hide from every period in this layer.",
           "planes.borrar_importados_confirmar":
-            "Delete imports",
+            "Hide shown objectives",
           "planes.borrar_importados_item_desc":
-            "{n} imported: {periodos}",
+            "{n} shown: {periodos}",
           "planes.borrar_importados_help_titulo":
-            "Deletes imported objectives across the current layer.",
+            "Hides shown objectives across the current layer.",
           "planes.borrar_importados_help_intro":
-            "Each option groups the same imported objective across visible periods in this layer.",
+            "Each option groups the same shown objective across visible periods in this layer.",
           "planes.borrar_importados_help_todos":
-            "Selects every available imported objective.",
+            "Selects every available shown objective.",
           "planes.borrar_importados_help_ninguno":
             "Clears everything so you can choose specific objectives.",
           "planes.borrar_importados_help_item":
-            "Includes or excludes this imported objective from the layer cleanup.",
+            "Includes or excludes this shown objective from the layer cleanup.",
           "planes.borrar_importados_help_confirmar":
-            "Locally deletes the selected imported objectives.",
+            "Locally hides the selected shown objectives.",
           "planes.importados_borrar_vacio":
-            "There are no imported objectives in this layer.",
+            "There are no shown objectives in this layer.",
           "planes.importados_borrar_sin_seleccion":
-            "Select at least one imported objective.",
+            "Select at least one shown objective.",
           "planes.importados_borrar_sin_cambios":
-            "There were no imports to delete.",
+            "There were no shown objectives to hide.",
           "planes.importados_borrados_toast":
-            "{n} imported objective(s) deleted.",
+            "{n} shown objective(s) hidden.",
           "planes.actualizar_periodos_sin_importados":
-            "There are no imported objectives to refresh in this layer.",
+            "There are no shown objectives to refresh in this layer.",
           "planes.actualizar_periodos_sin_cambios":
             "There were no changes to refresh.",
           "planes.actualizar_periodos_toast":
@@ -24714,9 +24894,9 @@
           "planes.periodo_anterior": "Previous period",
           "planes.periodo_siguiente": "Next period",
           "planes.importar_padres_confirm":
-            "You are about to import objectives from the parent period. Missing items will be recovered and existing imports will not be duplicated.",
+            "You are about to show objectives from the parent period. Only objectives with dates inside the period will appear.",
           "planes.importar_padres_help":
-            "Brings the parent period structure into the current period so planning can continue with the same hierarchy.",
+            "Shows parent-period objectives here without duplicating their structure.",
           "planes.capa_vacia":
             "This layer has no visible objectives yet.",
           "planes.bajar_a": "Send down to",
@@ -24724,21 +24904,21 @@
           "planes.bajar_a_tipo": "Send down to {tipo}",
           "planes.origen": "Source",
           "planes.origen_directo": "Direct",
-          "planes.origen_importado": "Imported",
+          "planes.origen_importado": "Shown",
           "planes.origen_ajustado": "Adjusted",
           "planes.origen_revisar": "Review source",
           "planes.toast_bajado": "Objective sent down.",
           "planes.importar_periodos_titulo":
-            "Import from parents",
+            "Show from parents",
           "planes.importar_periodos_desc":
-            "Choose which periods in this layer should receive objectives from upper layers.",
+            "Choose which periods in this layer should show dated objectives from upper layers.",
           "planes.importar_periodos_fijar":
             "Pin quota",
           "planes.importar_periodos_todos":
             "Select all",
           "planes.importar_periodos_ninguno":
             "Deselect all",
-          "planes.importar_periodos_confirmar": "Import",
+          "planes.importar_periodos_confirmar": "Show",
           "planes.importar_periodo_padres":
             "{n} objective(s) from parents",
           "planes.importar_modo_proporcional": "Proportional",
@@ -24746,49 +24926,49 @@
           "planes.importar_modo_manual": "Manual",
           "planes.importar_modo_pendiente":
             "Redistribute pending",
-          "planes.importar_modo_label": "Import mode",
+          "planes.importar_modo_label": "Show mode",
           "planes.importar_manual_valor": "Metric",
           "planes.importar_manual_error":
             "Enter a valid metric for each selected objective.",
           "planes.importar_sin_cambios":
-            "There were no changes to import.",
+            "There were no changes to show.",
           "planes.editar_distribucion": "Edit distribution",
           "planes.distribucion_editar_titulo":
-            "Choose how to distribute this imported objective.",
+            "Choose how to distribute this shown objective.",
           "planes.distribucion_sin_importado":
-            "This objective is not an imported objective.",
+            "This objective is not a shown objective.",
           "planes.distribucion_actualizada":
             "Distribution updated.",
           "planes.importar_help_titulo":
-            "Choose which child periods receive objectives from the parent period.",
+            "Choose which child periods show objectives from the parent period.",
           "planes.importar_help_cerrar":
-            "Close without importing.",
+            "Close without showing.",
           "planes.importar_help_intro":
-            "Each card is a child period. You can import all, select some, or set manual values.",
+            "Each card is a child period. You can show all, select some, or set manual values.",
           "planes.importar_help_todos":
             "Selects every available period and objective.",
           "planes.importar_help_ninguno":
             "Clears everything so you can start selection from scratch.",
           "planes.importar_help_fijar":
-            "Pins imported quotas so they are not recalculated automatically later.",
+            "Pins shown quotas so they are not recalculated automatically later.",
           "planes.importar_help_fijar_periodo":
-            "Pins this period's imported quotas so they are not recalculated automatically later.",
+            "Pins this period's shown quotas so they are not recalculated automatically later.",
           "planes.importar_help_proporcional":
             "Divides the parent's metric across selected child periods in the same layer.",
           "planes.importar_help_completo":
             "Copies the parent's full metric into each selected period.",
           "planes.importar_help_manual":
-            "Lets you enter the exact metric each imported objective receives.",
+            "Lets you enter the exact metric each shown objective receives.",
           "planes.importar_help_pendiente":
             "Uses real progress from closed periods and distributes the rest across periods that remain open.",
           "planes.importar_help_modo":
-            "Defines how the metric assigned to each imported objective is calculated.",
+            "Defines how the metric assigned to each shown objective is calculated.",
           "planes.importar_help_cancelar":
             "Closes the modal without applying changes.",
           "planes.importar_help_confirmar":
-            "Creates or updates the selected objectives.",
+            "Shows or updates the selected objectives.",
           "planes.importar_help_periodo":
-            "Child period where imported objectives will be created or updated.",
+            "Child period where objectives will be shown.",
           "planes.importar_help_periodo_check":
             "Selects or clears every objective in this period.",
           "planes.importar_help_objetivos":
@@ -24796,10 +24976,10 @@
           "planes.importar_help_conteo":
             "Selected objectives over the available total.",
           "planes.importar_help_objetivo_check":
-            "Includes or excludes this objective from import.",
+            "Includes or excludes this objective from the view.",
           "planes.importar_help_manual_campo":
             "Value used only when Manual mode is selected.",
-          "planes.importar_subs": "Import subobjectives",
+          "planes.importar_subs": "Show subobjectives",
           "planes.romper_vinculo": "Remove calendar link",
           "planes.romper_vinculo_confirm":
             "You are about to remove the calendar link. Detected progress will stop being read automatically for this objective.",
@@ -24855,7 +25035,7 @@
           "planes.partes_importadas":
             "{n} part(s) imported.",
           "planes.subobjetivos_help":
-            "Manage the objective steps. Imported ones come from the parent; you can check them, add new ones, or delete them locally.",
+            "Manage the objective steps. Shown ones come from the parent; you can check them, add new ones, or delete them locally.",
           "planes.eliminar_local": "Delete",
           "planes.recuperar": "Recover",
           "planes.estado_activo": "In progress",
@@ -24869,7 +25049,7 @@
           "planes.sub_ph": "Subobjective",
           "planes.sin_subobjetivos":
             "There are no subobjectives yet.",
-          "planes.importado": "Imported",
+          "planes.importado": "Shown",
           "planes.sin_vencidos":
             "There are no delayed objectives to bring.",
           "planes.custom_prompt":
@@ -24908,6 +25088,12 @@
             "The subobjective needs a name.",
           "planes.err_unidad_custom":
             "Enter the custom unit.",
+          "planes.err_sub_rango_padre_sin_fechas":
+            "The parent objective needs an initial, target or final date before dating a subobjective.",
+          "planes.err_sub_rango_fuera_padre":
+            "The subobjective date is outside the parent objective range.",
+          "planes.err_objetivo_rango_subs":
+            "Some subobjectives have dates outside the objective range. Adjust those dates first.",
           "planes.rango_al": "{desde} to {hasta}",
           "planes.rango_con_anio":
             "from {desde} to {hasta}, {anio}",
@@ -24916,9 +25102,9 @@
           "planes.warning_incumplible":
             "The parent target became impossible.",
           "planes.toast_objetivo": "Objective added.",
-          "planes.toast_importado": "Imported.",
+          "planes.toast_importado": "Shown.",
           "planes.toast_sin_padres":
-            "There is nothing recoverable from parents.",
+            "There is nothing to show from parents.",
           "planes.toast_vencidos":
             "Overdue objectives processed.",
           "planes.padre": "Parent",
@@ -27999,7 +28185,7 @@
           "planes.ui_help_resumen_alertas":
             "Sinais de objetivos que precisam de revisão.",
           "planes.ui_help_importar_periodo":
-            "Traz objetivos de períodos superiores compatíveis.",
+            "Mostra objetivos datados de períodos superiores compatíveis.",
           "planes.ui_help_avance_periodo":
             "Registra avanço para objetivos deste período.",
           "planes.ui_help_agregar_objetivo":
@@ -28047,7 +28233,7 @@
           "planes.ui_help_detalle_avance":
             "Fonte conceitual do progresso mostrado.",
           "planes.ui_help_detalle_origen":
-            "Indica se o objetivo nasceu aqui ou foi importado.",
+            "Indica se o objetivo nasceu aqui ou é mostrado de outro período.",
           "planes.ui_help_detalle_realizado":
             "Avanço acumulado até agora.",
           "planes.ui_help_detalle_falta":
@@ -28059,7 +28245,7 @@
           "planes.ui_help_sub_agregar":
             "Cria um subobjetivo para este objetivo.",
           "planes.ui_help_sub_importar":
-            "Traz subobjetivos do objetivo pai importado.",
+            "Mostra subobjetivos datados do objetivo pai.",
           "planes.ui_help_sub_avance":
             "Registra avanço limitado a este objetivo e seus subobjetivos.",
           "planes.ui_help_sub_vista":
@@ -28199,6 +28385,19 @@
             "Use fixar métrica quando quiser proteger este valor de mudanças do objetivo pai ou de outros períodos.",
           "planes.desfijar_help":
             "Ao remover a fixação, este objetivo volta a ser redistribuível dentro da meta.",
+          "planes.target_periodos_titulo":
+            "Editar metas por período",
+          "planes.target_periodos_padre": "Período base",
+          "planes.target_periodos_lista": "Períodos",
+          "planes.target_periodos_fijar": "Fixar",
+          "planes.target_periodos_redistribuir":
+            "Redistribuir",
+          "planes.target_periodos_sin_periodos":
+            "Não há períodos filhos com datas para mostrar.",
+          "planes.target_periodos_error":
+            "Revise as metas: devem ser números válidos.",
+          "planes.target_periodos_guardado":
+            "Metas atualizadas.",
           "planes.redis_on":
             "Desativar redistribuição automática",
           "planes.redis_off":
@@ -28221,21 +28420,21 @@
           "planes.bajar_a_tipo": "Baixar para {tipo}",
           "planes.origen": "Origem",
           "planes.origen_directo": "Direto",
-          "planes.origen_importado": "Importado",
+          "planes.origen_importado": "Mostrado",
           "planes.origen_ajustado": "Ajustado",
           "planes.origen_revisar": "Revisar origem",
           "planes.toast_bajado": "Objetivo baixado.",
           "planes.importar_periodos_titulo":
-            "Importar dos pais",
+            "Mostrar dos pais",
           "planes.importar_periodos_desc":
-            "Escolha em quais períodos desta camada criar objetivos de camadas superiores.",
+            "Escolha em quais períodos desta camada mostrar objetivos com datas de camadas superiores.",
           "planes.importar_periodos_fijar":
             "Fixar cota",
           "planes.importar_periodos_todos":
             "Selecionar todos",
           "planes.importar_periodos_ninguno":
             "Desmarcar todos",
-          "planes.importar_periodos_confirmar": "Importar",
+          "planes.importar_periodos_confirmar": "Mostrar",
           "planes.importar_periodo_padres":
             "{n} objetivo(s) dos pais",
           "planes.importar_modo_proporcional": "Proporcional",
@@ -28243,49 +28442,49 @@
           "planes.importar_modo_manual": "Manual",
           "planes.importar_modo_pendiente":
             "Redistribuir pendente",
-          "planes.importar_modo_label": "Forma de importar",
+          "planes.importar_modo_label": "Forma de mostrar",
           "planes.importar_manual_valor": "Métrica",
           "planes.importar_manual_error":
             "Informe uma métrica válida para cada objetivo selecionado.",
           "planes.importar_sin_cambios":
-            "Não houve mudanças para importar.",
+            "Não houve mudanças para mostrar.",
           "planes.editar_distribucion": "Editar distribuição",
           "planes.distribucion_editar_titulo":
-            "Escolha como distribuir este objetivo importado.",
+            "Escolha como distribuir este objetivo mostrado.",
           "planes.distribucion_sin_importado":
-            "Este objetivo não é um objetivo importado.",
+            "Este objetivo não é um objetivo mostrado.",
           "planes.distribucion_actualizada":
             "Distribuição atualizada.",
           "planes.importar_help_titulo":
-            "Escolha quais períodos filhos recebem objetivos do período pai.",
+            "Escolha quais períodos filhos mostram objetivos do período pai.",
           "planes.importar_help_cerrar":
-            "Fechar sem importar.",
+            "Fechar sem mostrar.",
           "planes.importar_help_intro":
-            "Cada cartão é um período filho. Você pode importar todos, alguns ou ajustar valores manuais.",
+            "Cada cartão é um período filho. Você pode mostrar todos, alguns ou ajustar valores manuais.",
           "planes.importar_help_todos":
             "Marca todos os períodos e objetivos disponíveis.",
           "planes.importar_help_ninguno":
             "Desmarca tudo para começar a seleção do zero.",
           "planes.importar_help_fijar":
-            "Fixa as cotas importadas para não recalcular automaticamente depois.",
+            "Fixa as cotas mostradas para não recalcular automaticamente depois.",
           "planes.importar_help_fijar_periodo":
-            "Fixa as cotas importadas deste período para não recalcular automaticamente depois.",
+            "Fixa as cotas mostradas deste período para não recalcular automaticamente depois.",
           "planes.importar_help_proporcional":
             "Divide a métrica do pai entre períodos filhos selecionados da mesma camada.",
           "planes.importar_help_completo":
             "Copia a métrica completa do pai para cada período escolhido.",
           "planes.importar_help_manual":
-            "Permite escrever a métrica exata que cada objetivo importado receberá.",
+            "Permite escrever a métrica exata que cada objetivo mostrado receberá.",
           "planes.importar_help_pendiente":
             "Usa o avanço real dos períodos fechados e reparte o resto entre os períodos que continuam abertos.",
           "planes.importar_help_modo":
-            "Define como a métrica recebida por cada objetivo importado é calculada.",
+            "Define como a métrica recebida por cada objetivo mostrado é calculada.",
           "planes.importar_help_cancelar":
             "Fecha o modal sem aplicar mudanças.",
           "planes.importar_help_confirmar":
-            "Cria ou atualiza os objetivos selecionados.",
+            "Mostra ou atualiza os objetivos selecionados.",
           "planes.importar_help_periodo":
-            "Período filho onde objetivos importados serão criados ou atualizados.",
+            "Período filho onde objetivos serão mostrados.",
           "planes.importar_help_periodo_check":
             "Marca ou desmarca todos os objetivos deste período.",
           "planes.importar_help_objetivos":
@@ -28293,19 +28492,19 @@
           "planes.importar_help_conteo":
             "Objetivos selecionados sobre o total disponível.",
           "planes.importar_help_objetivo_check":
-            "Inclui ou exclui este objetivo da importação.",
+            "Inclui ou exclui este objetivo da vista.",
           "planes.importar_help_manual_campo":
             "Valor usado só quando o modo Manual está selecionado.",
           "planes.importar_padres":
-            "Importar do período pai",
+            "Mostrar do período pai",
           "planes.importar_padre_periodo":
-            "Importar do pai deste periodo",
+            "Mostrar do pai deste periodo",
           "planes.actualizar_periodos_capa":
             "Atualizar",
           "planes.actualizar_periodos_capa_title":
-            "Atualizar importados de toda esta camada",
+            "Atualizar mostrados de toda esta camada",
           "planes.actualizar_periodos_confirm":
-            "Voce vai atualizar importados de toda esta camada. " +
+            "Voce vai atualizar mostrados de toda esta camada. " +
             "Mudancas observadas: {Total} ({Objetivos} objetivo(s), " +
             "{Subobjetivos} subobjetivo(s)).",
           "planes.actualizar_periodos_confirmar":
@@ -28317,37 +28516,37 @@
           "planes.agregar_en_periodo":
             "Adicionar objetivo neste periodo",
           "planes.borrar_importados_capa":
-            "Excluir importados desta camada",
+            "Ocultar mostrados desta camada",
           "planes.borrar_importados_titulo":
-            "Excluir importados",
+            "Ocultar mostrados",
           "planes.borrar_importados_desc":
-            "Selecione quais objetivos importados quer excluir de todos os períodos desta camada.",
+            "Selecione quais objetivos mostrados quer ocultar de todos os períodos desta camada.",
           "planes.borrar_importados_confirmar":
-            "Excluir importados",
+            "Ocultar mostrados",
           "planes.borrar_importados_item_desc":
-            "{n} importado(s): {periodos}",
+            "{n} mostrado(s): {periodos}",
           "planes.borrar_importados_help_titulo":
-            "Exclui objetivos importados em toda a camada atual.",
+            "Oculta objetivos mostrados em toda a camada atual.",
           "planes.borrar_importados_help_intro":
-            "Cada opção agrupa o mesmo objetivo importado nos períodos visíveis desta camada.",
+            "Cada opção agrupa o mesmo objetivo mostrado nos períodos visíveis desta camada.",
           "planes.borrar_importados_help_todos":
-            "Marca todos os objetivos importados disponíveis.",
+            "Marca todos os objetivos mostrados disponíveis.",
           "planes.borrar_importados_help_ninguno":
             "Desmarca tudo para escolher objetivos específicos.",
           "planes.borrar_importados_help_item":
-            "Inclui ou exclui este objetivo importado da limpeza da camada.",
+            "Inclui ou exclui este objetivo mostrado da limpeza da camada.",
           "planes.borrar_importados_help_confirmar":
-            "Exclui localmente os objetivos importados selecionados.",
+            "Oculta localmente os objetivos mostrados selecionados.",
           "planes.importados_borrar_vacio":
-            "Não há objetivos importados nesta camada.",
+            "Não há objetivos mostrados nesta camada.",
           "planes.importados_borrar_sin_seleccion":
-            "Selecione pelo menos um objetivo importado.",
+            "Selecione pelo menos um objetivo mostrado.",
           "planes.importados_borrar_sin_cambios":
-            "Não houve importados para excluir.",
+            "Não houve mostrados para ocultar.",
           "planes.importados_borrados_toast":
-            "{n} objetivo(s) importado(s) excluído(s).",
+            "{n} objetivo(s) mostrado(s) ocultado(s).",
           "planes.actualizar_periodos_sin_importados":
-            "Não há objetivos importados para atualizar nesta camada.",
+            "Não há objetivos mostrados para atualizar nesta camada.",
           "planes.actualizar_periodos_sin_cambios":
             "Não houve mudanças para atualizar.",
           "planes.actualizar_periodos_toast":
@@ -28355,10 +28554,10 @@
           "planes.periodo_anterior": "Período anterior",
           "planes.periodo_siguiente": "Próximo período",
           "planes.importar_padres_confirm":
-            "Você vai importar objetivos do período pai. Os que faltarem serão recuperados e os já importados não serão duplicados.",
+            "Você vai mostrar objetivos do período pai. Só aparecem os que tenham datas dentro do período.",
           "planes.importar_padres_help":
-            "Traz ao período atual a estrutura do período pai para continuar o planejamento com a mesma hierarquia.",
-          "planes.importar_subs": "Importar subobjetivos",
+            "Mostra objetivos do pai neste período sem duplicar a estrutura.",
+          "planes.importar_subs": "Mostrar subobjetivos",
           "planes.romper_vinculo":
             "Remover vínculo com o calendário",
           "planes.romper_vinculo_confirm":
@@ -28417,7 +28616,7 @@
           "planes.partes_importadas":
             "{n} parte(s) importada(s).",
           "planes.subobjetivos_help":
-            "Administre os passos do objetivo. Os importados vêm do pai; você pode marcá-los, adicionar novos ou removê-los localmente.",
+            "Administre os passos do objetivo. Os mostrados vêm do pai; você pode marcá-los, adicionar novos ou removê-los localmente.",
           "planes.eliminar_local": "Eliminar",
           "planes.recuperar": "Recuperar",
           "planes.estado_activo": "Em andamento",
@@ -28431,7 +28630,7 @@
           "planes.sub_ph": "Subobjetivo",
           "planes.sin_subobjetivos":
             "Ainda não há subobjetivos.",
-          "planes.importado": "Importado",
+          "planes.importado": "Mostrado",
           "planes.sin_vencidos":
             "Não há objetivos atrasados para trazer.",
           "planes.custom_prompt":
@@ -28470,6 +28669,12 @@
             "O subobjetivo precisa de nome.",
           "planes.err_unidad_custom":
             "Informe a unidade personalizada.",
+          "planes.err_sub_rango_padre_sin_fechas":
+            "O objetivo pai precisa de data inicial, objetivo ou final antes de datar um subobjetivo.",
+          "planes.err_sub_rango_fuera_padre":
+            "A data do subobjetivo fica fora do intervalo do objetivo pai.",
+          "planes.err_objetivo_rango_subs":
+            "Há subobjetivos com datas fora do intervalo do objetivo. Ajuste essas datas primeiro.",
           "planes.rango_al": "{desde} a {hasta}",
           "planes.rango_con_anio":
             "de {desde} a {hasta} de {anio}",
@@ -28478,9 +28683,9 @@
           "planes.warning_incumplible":
             "O target do pai ficou impossível.",
           "planes.toast_objetivo": "Objetivo adicionado.",
-          "planes.toast_importado": "Importado.",
+          "planes.toast_importado": "Mostrado.",
           "planes.toast_sin_padres":
-            "Não há itens recuperáveis dos pais.",
+            "Não há itens para mostrar dos pais.",
           "planes.toast_vencidos":
             "Objetivos atrasados processados.",
           "planes.padre": "Pai",
@@ -31830,6 +32035,7 @@
       let Planes_Objetivo_En_Edicion_Id = null;
       let Planes_Objetivo_Metadatos_Borrador = [];
       let Planes_Subobjetivos_Objetivo_Id = null;
+      let Planes_Subobjetivos_Periodo_Contexto_Id = "";
       let Planes_Subobjetivo_En_Edicion_Id = null;
       let Planes_Subobjetivo_Nuevo_Borrador = null;
       let Planes_Subobjetivo_Metadatos_Borrador = {};
@@ -31837,6 +32043,7 @@
       let Planes_Parte_En_Edicion_Id = null;
       let Planes_Importar_Partes_Objetivo_Id = null;
       let Planes_Registro_Objetivo_Id = null;
+      let Planes_Registro_Periodo_Contexto_Id = "";
       let Planes_Subobjetivos_Filtro_Estado = "Abiertos";
       let Planes_Subobjetivos_Filtro_Metadato = "";
       let Planes_Subobjetivos_Filtro_Periodo = "Todos";
@@ -44275,6 +44482,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Resultado;
       }
 
+      function Normalizar_Ajuste_Periodo_Objetivo(Ajuste) {
+        if (!Ajuste || typeof Ajuste !== "object") return null;
+        const Target = Number(Ajuste.Target_Total);
+        const Target_Automatico = Number(Ajuste.Target_Automatico);
+        const Target_Fijado = Number(Ajuste.Target_Fijado);
+        const Regla_Raw = (Ajuste.Regla_Distribucion || "")
+          .toString();
+        const Regla_Distribucion =
+          Regla_Raw === "Reparto_Uniforme" ? "Uniforme" : Regla_Raw;
+        return {
+          Target_Total: Number.isFinite(Target) ? Target : 0,
+          Target_Automatico:
+            Number.isFinite(Target_Automatico)
+              ? Target_Automatico
+              : (Number.isFinite(Target) ? Target : 0),
+          Target_Fijado:
+            Number.isFinite(Target_Fijado) ? Target_Fijado : 0,
+          Fijado: Boolean(Ajuste.Fijado),
+          Target_Fijado_Por_Usuario:
+            Boolean(Ajuste.Target_Fijado_Por_Usuario) ||
+            Boolean(Ajuste.Fijado),
+          Auto_Redistribucion:
+            Ajuste.Auto_Redistribucion !== false,
+          Regla_Distribucion,
+          Progreso_Importado:
+            Number(Ajuste.Progreso_Importado) || 0,
+          Estado_Vinculo:
+            (Ajuste.Estado_Vinculo || "Vigente").toString(),
+          Eliminado_Local: Boolean(Ajuste.Eliminado_Local),
+          Actualizado_En:
+            (Ajuste.Actualizado_En || "").toString()
+        };
+      }
+
+      function Normalizar_Ajustes_Periodos_Objetivo(Ajustes) {
+        const Resultado = {};
+        if (!Ajustes || typeof Ajustes !== "object") return Resultado;
+        Object.entries(Ajustes).forEach(([Periodo_Id, Ajuste]) => {
+          const Id = (Periodo_Id || "").toString();
+          if (!Id) return;
+          const Normal = Normalizar_Ajuste_Periodo_Objetivo(Ajuste);
+          if (Normal) Resultado[Id] = Normal;
+        });
+        return Resultado;
+      }
+
       function Normalizar_Objetivo_Plan(Objetivo, Indice = 0) {
         if (!Objetivo || typeof Objetivo !== "object") return null;
         const Ahora = new Date().toISOString();
@@ -44386,8 +44639,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Number(Objetivo.Progreso_Subobjetivos) || 0,
           Progreso_Total: Number(Objetivo.Progreso_Total) || 0,
           Target_Pendiente: Number(Objetivo.Target_Pendiente) || 0,
+          Fecha_Inicio:
+            (Objetivo.Fecha_Inicio || "").toString(),
+          Fecha_Objetivo:
+            (Objetivo.Fecha_Objetivo || "").toString(),
           Fecha_Fin: (Objetivo.Fecha_Fin || "").toString(),
           Hora_Fin: (Objetivo.Hora_Fin || "").toString(),
+          Ajustes_Periodos:
+            Normalizar_Ajustes_Periodos_Objetivo(
+              Objetivo.Ajustes_Periodos ||
+              Objetivo.Ajustes_Periodo ||
+              Objetivo.Targets_Periodos
+            ),
           Fijado: Boolean(Objetivo.Fijado),
           Target_Fijado_Por_Usuario:
             Boolean(Objetivo.Target_Fijado_Por_Usuario) ||
@@ -44740,19 +45003,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           )[0] || null;
       }
 
-      function Planes_Subobjetivo_Rango_Temporal(Sub) {
-        if (!Sub) return null;
+      function Planes_Rango_Item_Fechado(Item) {
+        if (!Item) return null;
         const Inicio = Planes_Normalizar_Fecha_Comparacion(
-          Sub.Fecha_Inicio || ""
+          Item.Fecha_Inicio || ""
         );
         const Objetivo = Planes_Normalizar_Fecha_Comparacion(
-          Sub.Fecha_Objetivo || ""
+          Item.Fecha_Objetivo || ""
         );
         const Fin = Planes_Normalizar_Fecha_Comparacion(
-          Sub.Fecha_Fin || ""
+          Item.Fecha_Fin || ""
         );
-        const Desde = Inicio || Objetivo || Fin;
-        const Hasta = Fin || Objetivo || Inicio;
+        let Desde = "";
+        let Hasta = "";
+        if (Inicio && Fin) {
+          Desde = Inicio;
+          Hasta = Fin;
+        } else if (Inicio && Objetivo) {
+          Desde = Inicio;
+          Hasta = Objetivo;
+        } else if (Fin) {
+          Desde = Fin;
+          Hasta = Fin;
+        } else if (Objetivo) {
+          Desde = Objetivo;
+          Hasta = Objetivo;
+        } else if (Inicio) {
+          Desde = Inicio;
+          Hasta = Inicio;
+        }
         if (!Desde && !Hasta) return null;
         const A = Desde || Hasta;
         const B = Hasta || Desde;
@@ -44762,6 +45041,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Planes_Subobjetivo_Rango_Temporal(Sub) {
+        return Planes_Rango_Item_Fechado(Sub);
+      }
+
       function Planes_Periodo_Solapa_Rango(
         Periodo,
         Rango
@@ -44769,6 +45052,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Periodo || !Rango?.Inicio || !Rango?.Fin) return false;
         return Rango.Inicio <= Periodo.Fin &&
           Rango.Fin >= Periodo.Inicio;
+      }
+
+      function Planes_Item_Solapa_Periodo(Item, Periodo) {
+        return Planes_Periodo_Solapa_Rango(
+          Periodo,
+          Planes_Rango_Item_Fechado(Item)
+        );
+      }
+
+      function Planes_Fecha_Planeado_Item(Item) {
+        return Planes_Normalizar_Fecha_Comparacion(
+          Item?.Fecha_Fin ||
+          Item?.Fecha_Objetivo ||
+          ""
+        );
+      }
+
+      function Planes_Subobjetivo_Planeado_En_Periodo(Sub, Periodo) {
+        if (!Sub || Sub.Eliminado_Local || !Periodo) return false;
+        const Fecha = Planes_Fecha_Planeado_Item(Sub);
+        return Boolean(Fecha) &&
+          Planes_Periodo_Contiene_Fecha(Periodo, Fecha);
       }
 
       function Planes_Recalcular_Progreso_Subobjetivo(
@@ -46018,6 +46323,178 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Interno.Fin <= Periodo.Fin;
       }
 
+      function Planes_Periodo_Base_Objetivo(Objetivo, Modelo = null) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        return M.Periodos[Objetivo?.Periodo_Id] || null;
+      }
+
+      function Planes_Objetivo_Solapa_Periodo(Objetivo, Periodo) {
+        return Planes_Item_Solapa_Periodo(Objetivo, Periodo);
+      }
+
+      function Planes_Objetivo_Mostrable_En_Periodo(
+        Objetivo,
+        Periodo,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        if (!Objetivo || Objetivo.Eliminado_Local || !Periodo) {
+          return false;
+        }
+        if (Objetivo.Periodo_Id === Periodo.Id) return true;
+        if (Planes_Objetivo_Padre_Id(Objetivo)) return false;
+        const Periodo_Base = Planes_Periodo_Base_Objetivo(Objetivo, M);
+        if (!Planes_Periodo_Es_Padre_De(Periodo_Base, Periodo)) {
+          return false;
+        }
+        return Planes_Objetivo_Solapa_Periodo(Objetivo, Periodo);
+      }
+
+      function Planes_Ajustes_Periodos_Objetivo(Objetivo) {
+        if (!Objetivo) return {};
+        if (
+          !Objetivo.Ajustes_Periodos ||
+          typeof Objetivo.Ajustes_Periodos !== "object"
+        ) {
+          Objetivo.Ajustes_Periodos = {};
+        }
+        return Objetivo.Ajustes_Periodos;
+      }
+
+      function Planes_Asegurar_Ajuste_Periodo_Objetivo(
+        Objetivo,
+        Periodo_Id
+      ) {
+        const Ajustes = Planes_Ajustes_Periodos_Objetivo(Objetivo);
+        const Id = (Periodo_Id || "").toString();
+        if (!Id) return null;
+        if (!Ajustes[Id]) {
+          Ajustes[Id] = Normalizar_Ajuste_Periodo_Objetivo({});
+        }
+        return Ajustes[Id];
+      }
+
+      function Planes_Objetivo_Hijo_Legacy_Para_Periodo(
+        Objetivo,
+        Periodo
+      ) {
+        if (!Objetivo || !Periodo) return null;
+        const Hijo = Planes_Objetivo_Hijo_De(Objetivo.Id, Periodo.Id);
+        if (!Hijo || Hijo.Eliminado_Local) return null;
+        return Hijo;
+      }
+
+      function Planes_Periodos_Rango_Objetivo(
+        Objetivo,
+        Tipo,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Base = Planes_Periodo_Base_Objetivo(Objetivo, M);
+        if (!Base || !Tipo) return [];
+        return Object.values(M.Periodos || {})
+          .filter((Periodo) =>
+            Periodo.Tipo === Tipo &&
+            Planes_Periodo_Es_Padre_De(Base, Periodo) &&
+            Planes_Objetivo_Solapa_Periodo(Objetivo, Periodo)
+          )
+          .sort((A, B) =>
+            (A.Inicio || "").localeCompare(B.Inicio || "")
+          );
+      }
+
+      function Planes_Target_Automatico_Objetivo_Periodo(
+        Objetivo,
+        Periodo,
+        Regla = "Uniforme"
+      ) {
+        const Target = Number(Objetivo?.Target_Total) || 0;
+        if (!Objetivo || !Periodo || Target <= 0) return 0;
+        const Base = Planes_Periodo_Base_Objetivo(Objetivo);
+        if (!Base || Base.Id === Periodo.Id) return Target;
+        if (Regla === "Completo") return Target;
+        const Periodos = Planes_Periodos_Rango_Objetivo(
+          Objetivo,
+          Periodo.Tipo
+        );
+        const Divisor = Math.max(1, Periodos.length);
+        return Target / Divisor;
+      }
+
+      function Planes_Datos_Ajuste_Objetivo_Periodo(
+        Objetivo,
+        Periodo
+      ) {
+        if (!Objetivo || !Periodo) return null;
+        const Ajustes = Planes_Ajustes_Periodos_Objetivo(Objetivo);
+        const Ajuste = Ajustes[Periodo.Id] || null;
+        const Legacy =
+          Planes_Objetivo_Hijo_Legacy_Para_Periodo(Objetivo, Periodo);
+        const Fuente = Ajuste || Legacy || {};
+        const Regla = (
+          Fuente.Regla_Distribucion ||
+          Objetivo.Regla_Distribucion ||
+          "Uniforme"
+        ).toString();
+        const Bloqueado = Boolean(
+          Fuente.Fijado ||
+          Fuente.Target_Fijado_Por_Usuario ||
+          Fuente.Auto_Redistribucion === false ||
+          Regla === "Manual"
+        );
+        const Target_Base = Number(Fuente.Target_Total);
+        const Target = Bloqueado && Number.isFinite(Target_Base)
+          ? Target_Base
+          : Planes_Target_Automatico_Objetivo_Periodo(
+            Objetivo,
+            Periodo,
+            Regla
+          );
+        return {
+          Target_Total: Number.isFinite(Target) ? Target : 0,
+          Target_Automatico:
+            Number.isFinite(Number(Fuente.Target_Automatico))
+              ? Number(Fuente.Target_Automatico)
+              : (Number.isFinite(Target) ? Target : 0),
+          Target_Fijado: Number(Fuente.Target_Fijado) || 0,
+          Fijado: Boolean(Fuente.Fijado),
+          Target_Fijado_Por_Usuario:
+            Boolean(Fuente.Target_Fijado_Por_Usuario),
+          Auto_Redistribucion:
+            Fuente.Auto_Redistribucion !== false,
+          Regla_Distribucion: Regla,
+          Progreso_Importado:
+            Number(Fuente.Progreso_Importado) || 0
+        };
+      }
+
+      function Planes_Objetivo_Para_Periodo(Objetivo, Periodo) {
+        if (!Objetivo || !Periodo) return Objetivo;
+        if (Objetivo.Periodo_Id === Periodo.Id) return Objetivo;
+        const Ajuste =
+          Planes_Datos_Ajuste_Objetivo_Periodo(Objetivo, Periodo);
+        return {
+          ...Objetivo,
+          ...Ajuste,
+          Id: Objetivo.Id,
+          Periodo_Id: Periodo.Id,
+          __Objetivo_Canonico_Id: Objetivo.Id,
+          __Periodo_Contexto_Id: Periodo.Id,
+          __Plan_Proyectado: true
+        };
+      }
+
+      function Planes_Periodo_Contexto_Objetivo(
+        Objetivo,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        return M.Periodos[
+          Objetivo?.__Periodo_Contexto_Id ||
+          Objetivo?.Periodo_Id
+        ] || null;
+      }
+
       function Planes_Subobjetivo_Cuenta_En_Periodo(
         Sub,
         Periodo,
@@ -46086,8 +46563,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Objetivo_Plan,
         Periodo
       ) {
-        const Target_Objetivo = Number(Objetivo_Plan?.Target_Total) || 0;
-        if (Target_Objetivo <= 0) return [];
         if (!Periodo) return [];
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo_Ids =
@@ -46115,10 +46590,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Fecha_Avance_Plan(Avance) {
-        return (
+        const Valor = (
           Avance?.Fecha ||
           (Avance?.Fecha_Hora || "").toString().slice(0, 10)
         ).toString();
+        const Fecha = Planes_Normalizar_Fecha_Comparacion(Valor);
+        return /^\d{4}-\d{2}-\d{2}$/.test(Fecha) ? Fecha : "";
       }
 
       function Planes_Avances_Manuales_Objetivo_En_Periodo(
@@ -46515,6 +46992,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Modo_Progreso: Objetivo.Modo_Progreso,
           Progreso_Manual: 0,
           Progreso_Importado: 0,
+          Fecha_Inicio: Objetivo.Fecha_Inicio || "",
+          Fecha_Objetivo: Objetivo.Fecha_Objetivo || "",
+          Fecha_Fin: Objetivo.Fecha_Fin || "",
+          Hora_Fin: Objetivo.Hora_Fin || "",
           Etiquetas_Ids: [...(Objetivo.Etiquetas_Ids || [])],
           Tags: [...(Objetivo.Tags || [])],
           Metadatos_Campos:
@@ -46646,9 +47127,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Aportes_Planeados_Objetivo(Objetivo) {
+        const Periodo = Planes_Periodo_Contexto_Objetivo(Objetivo);
         return Planes_Subobjetivos_Contexto_Objetivo(Objetivo)
           .Items
           .reduce((Total, Sub) => {
+            if (
+              Periodo &&
+              !Planes_Subobjetivo_Planeado_En_Periodo(Sub, Periodo)
+            ) {
+              return Total;
+            }
             return Total + Math.max(
               0,
               Number(Sub?.Aporte_Meta) || 0
@@ -46660,22 +47148,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Objetivo,
         Opciones = {}
       ) {
+        const Target = Number(Objetivo.Target_Total) || 0;
+        const Planeado = Planes_Formatear_Numero(
+          Planes_Aportes_Planeados_Objetivo(Objetivo)
+        );
         if (
           Planes_Normalizar_Modo_Avance(Objetivo) === "Sin_Metrica" ||
-          (Number(Objetivo.Target_Total) || 0) <= 0
+          Target <= 0
         ) {
+          if (Opciones.Incluir_Faltante && Planeado > 0) {
+            return t("planes.meta_planeados", { Cantidad: Planeado });
+          }
           return "";
         }
         const Texto = `${Planes_Formatear_Numero(
-          Objetivo.Target_Total
+          Target
         )} ${Planes_Unidad_Label(Objetivo)
           .toLocaleLowerCase(Obtener_Locale_Actual())}`.trim();
         if (!Opciones.Incluir_Faltante) return Texto;
         const Faltante = Planes_Formatear_Numero(
           Planes_Target_Pendiente_Objetivo(Objetivo)
-        );
-        const Planeado = Planes_Formatear_Numero(
-          Planes_Aportes_Planeados_Objetivo(Objetivo)
         );
         return [
           Texto,
@@ -47290,6 +47782,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ["#Planes_Objetivo_Modo_Avance",
             "planes.ui_help_modo_avance"],
           ["#Planes_Objetivo_Target", "planes.ui_help_meta"],
+          ["#Planes_Objetivo_Fecha_Inicio",
+            "planes.ui_help_sub_inicio"],
+          ["#Planes_Objetivo_Fecha_Objetivo",
+            "planes.ui_help_sub_objetivo_fecha"],
+          ["#Planes_Objetivo_Fecha_Fin",
+            "planes.ui_help_sub_fin"],
           ["#Planes_Objetivo_Unidad", "planes.ui_help_unidad"],
           ["#Planes_Objetivo_Unidad_Custom",
             "planes.ui_help_unidad"],
@@ -47515,6 +48013,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Regla_Lectura: Padre.Regla_Lectura,
           Modo_Avance: Planes_Normalizar_Modo_Avance(Padre),
           Modo_Progreso: Padre.Modo_Progreso,
+          Fecha_Inicio: Padre.Fecha_Inicio || "",
+          Fecha_Objetivo: Padre.Fecha_Objetivo || "",
+          Fecha_Fin: Padre.Fecha_Fin || "",
+          Hora_Fin: Padre.Hora_Fin || "",
           Etiquetas_Ids: [...(Padre.Etiquetas_Ids || [])],
           Tags: [...(Padre.Tags || [])],
           Metadatos_Campos: Campos,
@@ -47562,6 +48064,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Modo_Progreso: (
             Objetivo.Modo_Progreso || "Hibrido"
           ).toString(),
+          Fecha_Inicio: (Objetivo.Fecha_Inicio || "").toString(),
+          Fecha_Objetivo: (Objetivo.Fecha_Objetivo || "").toString(),
+          Fecha_Fin: (Objetivo.Fecha_Fin || "").toString(),
+          Hora_Fin: (Objetivo.Hora_Fin || "").toString(),
           Etiquetas_Ids: [...(Objetivo.Etiquetas_Ids || [])],
           Tags: [...(Objetivo.Tags || [])],
           Metadatos_Campos: Campos,
@@ -47716,7 +48222,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .some((Padre) =>
             Planes_Periodo_Es_Padre_De(Padre, Periodo) &&
             Planes_Objetivos_De_Periodo(Padre.Id)
-              .some((Objetivo) => !Objetivo.Eliminado_Local)
+              .some((Objetivo) =>
+                !Objetivo.Eliminado_Local &&
+                Planes_Objetivo_Solapa_Periodo(Objetivo, Periodo)
+              )
           );
       }
 
@@ -47726,7 +48235,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .some((Periodo) =>
             Planes_Nivel_Tipo(Periodo.Tipo) < Planes_Nivel_Tipo(Tipo) &&
             Planes_Objetivos_De_Periodo(Periodo.Id)
-              .some((Objetivo) => !Objetivo.Eliminado_Local)
+              .some((Objetivo) =>
+                !Objetivo.Eliminado_Local &&
+                Planes_Rango_Item_Fechado(Objetivo)
+              )
           );
       }
 
@@ -48028,7 +48540,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Busqueda = Normalizar_Texto_Meta_Objetivo(
           Modelo.UI.Busqueda || ""
         );
-        return Planes_Objetivos_De_Periodo(Periodo.Id)
+        const Visibles = [];
+        const Padres_Proyectados = new Set();
+        Object.values(Modelo.Objetivos || {})
+          .filter((Objetivo) =>
+            !Objetivo.Eliminado_Local &&
+            !Planes_Objetivo_Padre_Id(Objetivo)
+          )
+          .forEach((Objetivo) => {
+            if (!Planes_Objetivo_Mostrable_En_Periodo(
+              Objetivo,
+              Periodo,
+              Modelo
+            )) {
+              return;
+            }
+            if (Objetivo.Periodo_Id !== Periodo.Id) {
+              Padres_Proyectados.add(Objetivo.Id);
+            }
+            Visibles.push(Planes_Objetivo_Para_Periodo(
+              Objetivo,
+              Periodo
+            ));
+          });
+        Planes_Objetivos_De_Periodo(Periodo.Id)
+          .filter((Objetivo) => {
+            const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
+            return Padre_Id && !Padres_Proyectados.has(Padre_Id);
+          })
+          .forEach((Objetivo) => Visibles.push(Objetivo));
+        return Visibles
+          .sort((A, B) => Number(A.Orden) - Number(B.Orden))
           .filter((Objetivo) => {
             if (Objetivo.Eliminado_Local) return false;
             if (Estado !== "Todos" && Objetivo.Estado !== Estado) {
@@ -48054,7 +48596,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Render_Planes_Resumen(Periodo) {
         const Objetivos_Periodo =
-          Planes_Objetivos_De_Periodo(Periodo.Id)
+          Planes_Filtrar_Objetivos(Periodo)
             .filter((Objetivo) => !Objetivo.Eliminado_Local);
         const Cumplidos = Objetivos_Periodo.filter(
           (Objetivo) => Objetivo.Estado === "Cumplido"
@@ -48749,7 +49291,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fecha,
           Hora,
           Fecha_Hora:
-            (Avance.Fecha_Hora || `${Fecha}T${Hora || "00:00"}`)
+            (
+              Avance.Fecha_Hora ||
+              (Fecha ? `${Fecha}T${Hora || "00:00"}` : "")
+            )
               .toString(),
           Nota: (Avance.Nota || "").toString(),
           Origen_Tipo: (Avance.Origen_Tipo || "").toString(),
@@ -49151,6 +49696,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Objetivo?.Modo_Progreso || "Hibrido"
           ).toString(),
           Descripcion: (Objetivo?.Descripcion || "").toString(),
+          Fecha_Inicio:
+            (Objetivo?.Fecha_Inicio || "").toString(),
+          Fecha_Objetivo:
+            (Objetivo?.Fecha_Objetivo || "").toString(),
+          Fecha_Fin:
+            (Objetivo?.Fecha_Fin || "").toString(),
           Etiquetas_Ids: [...Etiquetas_Ids]
             .map((Id) => String(Id || ""))
             .filter(Boolean)
@@ -49206,6 +49757,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Target = document.getElementById(
           "Planes_Objetivo_Target"
         );
+        const Fecha_Inicio = document.getElementById(
+          "Planes_Objetivo_Fecha_Inicio"
+        );
+        const Fecha_Objetivo = document.getElementById(
+          "Planes_Objetivo_Fecha_Objetivo"
+        );
+        const Fecha_Fin = document.getElementById(
+          "Planes_Objetivo_Fecha_Fin"
+        );
         const Modo_Avance = document.getElementById(
           "Planes_Objetivo_Modo_Avance"
         );
@@ -49230,6 +49790,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Emoji) Emoji.value = Objetivo?.Emoji || "\u2705";
         if (Nombre) Nombre.value = Objetivo?.Nombre || "";
         if (Target) Target.value = Objetivo?.Target_Total || "";
+        if (Fecha_Inicio) {
+          Fecha_Inicio.value = Objetivo?.Fecha_Inicio || "";
+        }
+        if (Fecha_Objetivo) {
+          Fecha_Objetivo.value = Objetivo?.Fecha_Objetivo || "";
+        }
+        if (Fecha_Fin) {
+          Fecha_Fin.value = Objetivo?.Fecha_Fin || "";
+        }
         Planes_Poblar_Select_Modo_Avance(
           Modo_Avance,
           Objetivo ? Planes_Normalizar_Modo_Avance(Objetivo) : "Metrica"
@@ -49397,6 +49966,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Descripcion: document.getElementById(
             "Planes_Objetivo_Descripcion"
           )?.value || "",
+          Fecha_Inicio: (
+            document.getElementById("Planes_Objetivo_Fecha_Inicio")
+              ?.value || ""
+          ).toString(),
+          Fecha_Objetivo: (
+            document.getElementById("Planes_Objetivo_Fecha_Objetivo")
+              ?.value || ""
+          ).toString(),
+          Fecha_Fin: (
+            document.getElementById("Planes_Objetivo_Fecha_Fin")
+              ?.value || ""
+          ).toString(),
           Etiquetas_Ids: Etiquetas_Seleccionadas,
           Tags: Obtener_Nombres_Etiquetas(Etiquetas_Seleccionadas),
           Metadatos_Campos,
@@ -49406,6 +49987,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Metadatos_Existentes.length > 0,
           ...Datos_Vinculo
         };
+        if (
+          Existente &&
+          Planes_Objetivo_Tiene_Subobjetivos_Fuera_Rango(
+            Existente.Id,
+            Datos
+          )
+        ) {
+          Mostrar_Toast_Error(t("planes.err_objetivo_rango_subs"));
+          return;
+        }
         if (Existente) {
           const Hay_Cambio = Hay_Cambio_Real_Guardado(
             Planes_Datos_Comparables_Objetivo(Existente),
@@ -49442,13 +50033,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Cerrar_Modal_Planes_Objetivo();
       }
 
-      function Planes_Toggle_Expansion_Objetivo(Objetivo_Id) {
+      function Planes_Toggle_Expansion_Objetivo(
+        Objetivo_Id,
+        Periodo_Id = ""
+      ) {
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
         if (!Objetivo) return;
         const Expandidos =
           Planes_Normalizar_Objetivos_Expandidos();
-        const Clave_Periodo = Objetivo.Periodo_Id || "";
+        const Clave_Periodo = Periodo_Id || Objetivo.Periodo_Id || "";
         Expandidos[Clave_Periodo] =
           Expandidos[Clave_Periodo] === Objetivo_Id ? "" : Objetivo_Id;
         Render_Planes_Contenido();
@@ -49563,7 +50157,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ) +
           (Expandido ? " Expandida" : "") +
           " Reordenable";
-        Card.draggable = true;
+        Card.draggable = !Objetivo.__Plan_Proyectado;
         Card.dataset.planObjetivoId = Objetivo.Id;
         const Estado_Label =
           t(`planes.estado_${Estado_Efectivo.toLowerCase()}`);
@@ -49647,10 +50241,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Abrir_Menu_Contextual_Objetivo(
             Objetivo.Id,
             Ev.clientX,
-            Ev.clientY
+            Ev.clientY,
+            Objetivo.Periodo_Id
           );
         });
         Card.addEventListener("dragstart", (Ev) => {
+          if (Objetivo.__Plan_Proyectado) {
+            Ev.preventDefault();
+            return;
+          }
           if (Ev.target.closest("button, input, select, textarea, a")) {
             Ev.preventDefault();
             return;
@@ -49678,6 +50277,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Ev.preventDefault();
           Card.classList.remove("Drop_Antes");
           Card.classList.remove("Drop_Despues");
+          if (Objetivo.__Plan_Proyectado) return;
           const Origen_Id = Ev.dataTransfer.getData(
             "application/x-planes-objetivo"
           );
@@ -49705,7 +50305,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Cerrar_Menus_Objetivo();
             await Planes_Ejecutar_Accion_Objetivo(
               Objetivo.Id,
-              Accion.dataset.planAccion
+              Accion.dataset.planAccion,
+              Objetivo.Periodo_Id
             );
             return;
           }
@@ -49725,7 +50326,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Multi_Seleccion.clear();
           }
           if (Es_Lista) return;
-          Planes_Toggle_Expansion_Objetivo(Objetivo.Id);
+          Planes_Toggle_Expansion_Objetivo(
+            Objetivo.Id,
+            Objetivo.Periodo_Id
+          );
         });
         return Card;
       }
@@ -49747,7 +50351,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Padre_Id = Planes_Objetivo_Padre_Id(Objetivo);
         const Padre = Modelo.Objetivos[Padre_Id];
-        const Es_Importado = Boolean(Padre_Id);
+        const Es_Importado = Boolean(Padre_Id) ||
+          Boolean(Objetivo.__Plan_Proyectado);
         const Padre_Cambio = Boolean(
           Padre &&
           Objetivo.Padre_Actualizado_Al_Importar &&
@@ -49755,7 +50360,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Padre.Actualizado_En !==
             Objetivo.Padre_Actualizado_Al_Importar
         );
-        const Label = Es_Importado
+        const Label = Objetivo.__Plan_Proyectado
+          ? t("planes.origen_importado")
+          : Es_Importado
           ? (Padre_Cambio
             ? t("planes.origen_revisar")
             : (
@@ -50168,22 +50775,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Planes_Ejecutar_Accion_Objetivo(
         Objetivo_Id,
-        Tipo
+        Tipo,
+        Periodo_Contexto_Id = ""
       ) {
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
         if (!Objetivo) return;
         if (Tipo === "editar") {
           Abrir_Modal_Planes_Objetivo(
-            Objetivo.Periodo_Id,
+            Periodo_Contexto_Id || Objetivo.Periodo_Id,
             Objetivo.Id
           );
         }
         if (Tipo === "agregar_sub") {
-          Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, true);
+          Abrir_Modal_Planes_Subobjetivos(
+            Objetivo.Id,
+            true,
+            Periodo_Contexto_Id
+          );
         }
         if (Tipo === "admin_subs") {
-          Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, false);
+          Abrir_Modal_Planes_Subobjetivos(
+            Objetivo.Id,
+            false,
+            Periodo_Contexto_Id
+          );
         }
         if (Tipo === "distribucion") {
           await Planes_Editar_Distribucion_Objetivo(Objetivo.Id);
@@ -50195,9 +50811,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         }
         if (Tipo === "registro") {
-          Abrir_Modal_Planes_Registro(Objetivo.Id);
+          Abrir_Modal_Planes_Registro(
+            Objetivo.Id,
+            Periodo_Contexto_Id
+          );
         }
-        if (Tipo === "target") Planes_Editar_Target(Objetivo.Id);
+        if (Tipo === "target") {
+          await Planes_Editar_Target(Objetivo.Id, Periodo_Contexto_Id);
+        }
         if (Tipo === "manual") await Planes_Editar_Manual(Objetivo.Id);
         if (Tipo === "modo") await Planes_Cambiar_Modo(Objetivo.Id);
         if (Tipo === "estado") await Planes_Cambiar_Estado(Objetivo.Id);
@@ -50241,7 +50862,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Abrir_Menu_Contextual_Objetivo(
         Objetivo_Id,
         X,
-        Y
+        Y,
+        Periodo_Contexto_Id = ""
       ) {
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
@@ -50261,7 +50883,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Accion) return;
           const Tipo = Accion.dataset.planAccion;
           Planes_Cerrar_Menus_Objetivo();
-          await Planes_Ejecutar_Accion_Objetivo(Objetivo_Id, Tipo);
+          await Planes_Ejecutar_Accion_Objetivo(
+            Objetivo_Id,
+            Tipo,
+            Periodo_Contexto_Id
+          );
         });
         document.body.appendChild(Menu);
         const Rect = Menu.getBoundingClientRect();
@@ -53080,6 +53706,64 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Planes_Subobjetivo_Tiene_Fechas(Datos) {
+        return Boolean(
+          Datos?.Fecha_Inicio ||
+          Datos?.Fecha_Objetivo ||
+          Datos?.Fecha_Fin
+        );
+      }
+
+      function Planes_Rango_Subobjetivo_Dentro_Objetivo(
+        Datos_Sub,
+        Datos_Objetivo
+      ) {
+        if (!Planes_Subobjetivo_Tiene_Fechas(Datos_Sub)) return true;
+        const Rango_Sub = Planes_Rango_Item_Fechado(Datos_Sub);
+        const Rango_Objetivo = Planes_Rango_Item_Fechado(Datos_Objetivo);
+        if (!Rango_Sub) return true;
+        if (!Rango_Objetivo) return false;
+        return Rango_Sub.Inicio >= Rango_Objetivo.Inicio &&
+          Rango_Sub.Fin <= Rango_Objetivo.Fin;
+      }
+
+      function Planes_Validar_Rango_Subobjetivo(
+        Datos_Sub,
+        Datos_Objetivo
+      ) {
+        if (!Planes_Subobjetivo_Tiene_Fechas(Datos_Sub)) return true;
+        const Rango_Objetivo = Planes_Rango_Item_Fechado(Datos_Objetivo);
+        if (!Rango_Objetivo) {
+          Mostrar_Toast_Error(t(
+            "planes.err_sub_rango_padre_sin_fechas"
+          ));
+          return false;
+        }
+        if (!Planes_Rango_Subobjetivo_Dentro_Objetivo(
+          Datos_Sub,
+          Datos_Objetivo
+        )) {
+          Mostrar_Toast_Error(t("planes.err_sub_rango_fuera_padre"));
+          return false;
+        }
+        return true;
+      }
+
+      function Planes_Objetivo_Tiene_Subobjetivos_Fuera_Rango(
+        Objetivo_Id,
+        Datos_Objetivo
+      ) {
+        return Planes_Subobjetivos_De_Objetivo(Objetivo_Id)
+          .some((Sub) =>
+            !Sub.Eliminado_Local &&
+            Planes_Subobjetivo_Tiene_Fechas(Sub) &&
+            !Planes_Rango_Subobjetivo_Dentro_Objetivo(
+              Sub,
+              Datos_Objetivo
+            )
+          );
+      }
+
       function Planes_Estructura_Compartida_Subobjetivo(Sub) {
         if (!Sub) return null;
         return {
@@ -53093,6 +53777,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .trim(),
           Fecha_Objetivo: (Sub.Fecha_Objetivo || "").toString(),
           Fecha_Inicio: (Sub.Fecha_Inicio || "").toString(),
+          Fecha_Fin: (Sub.Fecha_Fin || "").toString(),
+          Hora_Fin: (Sub.Hora_Fin || "").toString(),
           Metadatos: Normalizar_Metadatos_Subobjetivo_Plan(
             Sub.Metadatos
           )
@@ -53537,6 +54223,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Metadatos,
           Hecha: Boolean(Sub?.Hecha)
         };
+        const Objetivo_Datos =
+          Modelo.Objetivos[Datos.Objetivo_Id] || null;
+        if (!Planes_Validar_Rango_Subobjetivo(Datos, Objetivo_Datos)) {
+          return;
+        }
         const Fecha_Final_Cambio =
           Sub && (Sub.Fecha_Fin || "") !== Datos.Fecha_Fin;
         const Debe_Marcar_Realizado =
@@ -53783,9 +54474,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Modelo
       ) {
         if (!Avance || !Objetivo) return false;
-        if (Avance.Objetivo_Id === Objetivo.Id) return true;
         const Periodo = Modelo.Periodos[Objetivo.Periodo_Id];
         const Fecha = Planes_Fecha_Avance_Plan(Avance);
+        if (Avance.Objetivo_Id === Objetivo.Id) {
+          if (!Objetivo.__Plan_Proyectado) return true;
+          return Planes_Periodo_Contiene_Fecha(Periodo, Fecha);
+        }
         if (
           Avance.Fuente === "Manual" &&
           !Avance.Subobjetivo_Id &&
@@ -54009,20 +54703,41 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
-      function Abrir_Modal_Planes_Registro(Objetivo_Id) {
+      function Abrir_Modal_Planes_Registro(
+        Objetivo_Id,
+        Periodo_Contexto_Id = ""
+      ) {
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo = Modelo.Objetivos[Objetivo_Id];
         if (!Objetivo) return;
         Planes_Registro_Objetivo_Id = Objetivo.Id;
-        Render_Modal_Planes_Registro(Objetivo);
+        Planes_Registro_Periodo_Contexto_Id =
+          Periodo_Contexto_Id || "";
+        const Periodo_Contexto =
+          Modelo.Periodos[Planes_Registro_Periodo_Contexto_Id];
+        Render_Modal_Planes_Registro(
+          Periodo_Contexto
+            ? Planes_Objetivo_Para_Periodo(Objetivo, Periodo_Contexto)
+            : Objetivo
+        );
         document.getElementById("Planes_Registro_Overlay")
           ?.classList.add("Activo");
       }
 
       function Cerrar_Modal_Planes_Registro() {
         Planes_Registro_Objetivo_Id = null;
+        Planes_Registro_Periodo_Contexto_Id = "";
         document.getElementById("Planes_Registro_Overlay")
           ?.classList.remove("Activo");
+      }
+
+      function Planes_Objetivo_Contexto_Registro(Objetivo) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Periodo =
+          Modelo.Periodos[Planes_Registro_Periodo_Contexto_Id];
+        return Periodo
+          ? Planes_Objetivo_Para_Periodo(Objetivo, Periodo)
+          : Objetivo;
       }
 
       function Planes_Recalcular_Avance_Subobjetivo(Avance) {
@@ -54037,7 +54752,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Objetivo_Registro = Modelo.Objetivos[
             Planes_Registro_Objetivo_Id
           ];
-          Render_Modal_Planes_Registro(Objetivo_Registro || Objetivo);
+          Render_Modal_Planes_Registro(
+            Planes_Objetivo_Contexto_Registro(
+              Objetivo_Registro || Objetivo
+            )
+          );
         }
       }
 
@@ -54174,7 +54893,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Manual_Registrado_Objetivo(Objetivo.Id);
         Objetivo.Progreso_Manual = Manual_Registrado + Cantidad;
         Planes_Recalcular_Desde(Objetivo);
-        Render_Modal_Planes_Registro(Objetivo);
+        Render_Modal_Planes_Registro(
+          Planes_Objetivo_Contexto_Registro(Objetivo)
+        );
         Mostrar_Toast_Undo(t("planes.avance_actualizado"), Snap);
       }
 
@@ -54216,7 +54937,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Snap = Capturar_Snapshot_Undo();
         Objetivo.Progreso_Manual = Manual_Registrado;
         Planes_Recalcular_Desde(Objetivo);
-        Render_Modal_Planes_Registro(Objetivo);
+        Render_Modal_Planes_Registro(
+          Planes_Objetivo_Contexto_Registro(Objetivo)
+        );
         Mostrar_Toast_Undo(t("planes.avance_eliminado"), Snap);
       }
 
@@ -54228,17 +54951,353 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         await Planes_Eliminar_Avance_Registro(Avance_Id);
       }
 
-      function Planes_Editar_Target(Objetivo_Id) {
-        const Modelo = Asegurar_Modelo_Planes();
-        const Objetivo = Modelo.Objetivos[Objetivo_Id];
-        if (!Objetivo) return;
-        Abrir_Modal_Planes_Objetivo(
-          Objetivo.Periodo_Id,
-          Objetivo.Id
+      function Planes_Tipo_Target_Periodos_Objetivo(
+        Objetivo,
+        Periodo_Contexto = null,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Base = Planes_Periodo_Base_Objetivo(Objetivo, M);
+        if (!Base) return "";
+        if (
+          Periodo_Contexto &&
+          Periodo_Contexto.Id !== Base.Id &&
+          Planes_Tipos.includes(Periodo_Contexto.Tipo) &&
+          Periodo_Contexto.Tipo !== "Custom" &&
+          Planes_Periodo_Es_Padre_De(Base, Periodo_Contexto)
+        ) {
+          return Periodo_Contexto.Tipo;
+        }
+        const Tipo_UI = (M.UI?.Filtro_Tipo || "").toString();
+        if (
+          Tipo_UI &&
+          Planes_Tipos.includes(Tipo_UI) &&
+          Tipo_UI !== "Custom" &&
+          Tipo_UI !== Base.Tipo &&
+          Planes_Nivel_Tipo(Base.Tipo) < Planes_Nivel_Tipo(Tipo_UI)
+        ) {
+          return Tipo_UI;
+        }
+        return Planes_Tipo_Inferior_Default(Base.Tipo);
+      }
+
+      function Planes_Periodos_Target_Objetivo(
+        Objetivo,
+        Periodo_Contexto = null,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Base = Planes_Periodo_Base_Objetivo(Objetivo, M);
+        const Tipo = Planes_Tipo_Target_Periodos_Objetivo(
+          Objetivo,
+          Periodo_Contexto,
+          M
         );
-        setTimeout(() => {
-          document.getElementById("Planes_Objetivo_Target")?.focus();
-        }, 0);
+        if (!Base || !Tipo) return [];
+        Planes_Crear_Periodos_Distribucion(Base, Tipo);
+        return Planes_Periodos_Rango_Objetivo(Objetivo, Tipo, M);
+      }
+
+      function Planes_Parsear_Target_Periodo(Valor) {
+        const Texto = (Valor ?? "").toString().trim();
+        if (!Texto) return null;
+        const Numero = Number(Texto.replace(",", "."));
+        if (!Number.isFinite(Numero) || Numero < 0) return null;
+        return Numero;
+      }
+
+      function Planes_Mostrar_Dialogo_Target_Periodos(
+        Objetivo,
+        Periodo_Contexto
+      ) {
+        return new Promise((Resolver) => {
+          const Modelo = Asegurar_Modelo_Planes();
+          const Base = Planes_Periodo_Base_Objetivo(Objetivo, Modelo);
+          const Periodos = Planes_Periodos_Target_Objetivo(
+            Objetivo,
+            Periodo_Contexto,
+            Modelo
+          );
+          const Overlay = document.createElement("div");
+          Overlay.className = "Patron_Modal_Overlay Activo";
+          const Target_Padre = Planes_Formatear_Numero(
+            Number(Objetivo.Target_Total) || 0
+          );
+          const Titulo_Base = Base
+            ? Planes_Titulo_Periodo_Mostrable(Base)
+            : "";
+          const Filas = Periodos.map((Periodo) => {
+            const Datos = Planes_Datos_Ajuste_Objetivo_Periodo(
+              Objetivo,
+              Periodo
+            );
+            const Fijado = Boolean(
+              Datos?.Fijado ||
+              Datos?.Target_Fijado_Por_Usuario
+            );
+            return `
+              <div class="Planes_Target_Fila">
+                <div class="Planes_Target_Fila_Texto">
+                  <strong>
+                    ${Escape_Html(
+                      Planes_Titulo_Periodo_Mostrable(Periodo)
+                    )}
+                  </strong>
+                  <span>
+                    ${Escape_Html(
+                      Planes_Rango_Periodo_Resumen(Periodo)
+                    )}
+                  </span>
+                </div>
+                <input class="Planes_Target_Periodo_Input"
+                  type="number"
+                  min="0"
+                  step="0.25"
+                  value="${Escape_Html(String(
+                    Planes_Formatear_Numero(Datos?.Target_Total || 0)
+                  ))}"
+                  data-plan-target-periodo="${Escape_Html(Periodo.Id)}">
+                <label class="Planes_Target_Fijar">
+                  <input type="checkbox"
+                    data-plan-target-fijar="${Escape_Html(Periodo.Id)}"
+                    ${Fijado ? "checked" : ""}>
+                  <span>
+                    ${Escape_Html(t("planes.target_periodos_fijar"))}
+                  </span>
+                </label>
+              </div>
+            `;
+          }).join("");
+          Overlay.innerHTML = `
+            <div class="Patron_Modal_Panel
+              Planes_Target_Periodos_Modal">
+              <div class="Patron_Modal_Cabecera">
+                <span class="Patron_Modal_Titulo">
+                  ${Escape_Html(t("planes.target_periodos_titulo"))}
+                </span>
+                <button class="Config_Cerrar" type="button"
+                  data-plan-target-cerrar>&times;</button>
+              </div>
+              <div class="Patron_Modal_Cuerpo
+                Planes_Target_Periodos_Cuerpo">
+                <div class="Planes_Target_Encabezado">
+                  <div class="Planes_Target_Encabezado_Texto">
+                    <strong class="Con_Fallback_Emoji">
+                      ${Escape_Html(Objetivo.Emoji || "")}
+                      ${Escape_Html(Objetivo.Nombre || "")}
+                    </strong>
+                    <span>
+                      ${Escape_Html(t("planes.target_periodos_padre"))}:
+                      ${Escape_Html(Titulo_Base)}
+                    </span>
+                  </div>
+                  <input class="Planes_Target_Input" type="number"
+                    min="0"
+                    step="0.25"
+                    value="${Escape_Html(String(Target_Padre))}"
+                    data-plan-target-padre>
+                </div>
+                <div class="Planes_Target_Controles">
+                  <button class="Planes_Btn" type="button"
+                    data-plan-target-redistribuir
+                    ${Periodos.length ? "" : "disabled"}>
+                    ${Escape_Html(
+                      t("planes.target_periodos_redistribuir")
+                    )}
+                  </button>
+                </div>
+                <div class="Planes_Target_Lista"
+                  aria-label="${
+                    Escape_Html(t("planes.target_periodos_lista"))
+                  }">
+                  ${Filas || `
+                    <div class="Planes_Target_Vacio">
+                      ${Escape_Html(
+                        t("planes.target_periodos_sin_periodos")
+                      )}
+                    </div>
+                  `}
+                </div>
+              </div>
+              <div class="Patron_Modal_Acciones">
+                <button class="Config_Boton_Cancelar" type="button"
+                  data-plan-target-cancelar>
+                  ${Escape_Html(t("cancelar"))}
+                </button>
+                <button class="Config_Boton_Guardar" type="button"
+                  data-plan-target-guardar>
+                  ${Escape_Html(t("guardar"))}
+                </button>
+              </div>
+            </div>
+          `;
+
+          const Cerrar = (Valor) => {
+            Overlay.remove();
+            document.removeEventListener("keydown", Keydown);
+            Resolver(Valor);
+          };
+          const Keydown = (Ev) => {
+            if (Ev.key === "Escape") Cerrar(null);
+          };
+          const Leer = () => {
+            const Padre_Input = Overlay.querySelector(
+              "[data-plan-target-padre]"
+            );
+            const Target_Padre_Valor =
+              Planes_Parsear_Target_Periodo(Padre_Input?.value);
+            if (Target_Padre_Valor === null) {
+              Padre_Input?.focus();
+              return null;
+            }
+            const Items = [];
+            for (const Input of Overlay.querySelectorAll(
+              "[data-plan-target-periodo]"
+            )) {
+              const Valor = Planes_Parsear_Target_Periodo(Input.value);
+              if (Valor === null) {
+                Input.focus();
+                return null;
+              }
+              const Fila = Input.closest(".Planes_Target_Fila");
+              const Fijado = Boolean(
+                Fila?.querySelector("[data-plan-target-fijar]")?.checked
+              );
+              Items.push({
+                Periodo_Id: Input.dataset.planTargetPeriodo || "",
+                Target_Total: Valor,
+                Fijado
+              });
+            }
+            return {
+              Target_Padre: Target_Padre_Valor,
+              Items
+            };
+          };
+          const Redistribuir = () => {
+            const Datos = Leer();
+            if (!Datos) {
+              Mostrar_Toast_Error(t("planes.target_periodos_error"));
+              return;
+            }
+            const Inputs = Array.from(Overlay.querySelectorAll(
+              "[data-plan-target-periodo]"
+            ));
+            const Libres = [];
+            let Fijo_Total = 0;
+            Inputs.forEach((Input) => {
+              const Fila = Input.closest(".Planes_Target_Fila");
+              const Fijado = Boolean(
+                Fila?.querySelector("[data-plan-target-fijar]")?.checked
+              );
+              const Valor =
+                Planes_Parsear_Target_Periodo(Input.value) || 0;
+              if (Fijado) {
+                Fijo_Total += Valor;
+              } else {
+                Libres.push(Input);
+              }
+            });
+            const Pendiente = Math.max(0, Datos.Target_Padre - Fijo_Total);
+            const Cuota = Libres.length ? Pendiente / Libres.length : 0;
+            Libres.forEach((Input) => {
+              Input.value = String(Planes_Formatear_Numero(Cuota));
+            });
+          };
+
+          Overlay.querySelector("[data-plan-target-cerrar]")
+            ?.addEventListener("click", () => Cerrar(null));
+          Overlay.querySelector("[data-plan-target-cancelar]")
+            ?.addEventListener("click", () => Cerrar(null));
+          Overlay.querySelector("[data-plan-target-redistribuir]")
+            ?.addEventListener("click", Redistribuir);
+          Overlay.querySelector("[data-plan-target-guardar]")
+            ?.addEventListener("click", () => {
+              const Datos = Leer();
+              if (!Datos) {
+                Mostrar_Toast_Error(t("planes.target_periodos_error"));
+                return;
+              }
+              Cerrar(Datos);
+            });
+          document.addEventListener("keydown", Keydown);
+          document.body.appendChild(Overlay);
+          Overlay.querySelector("[data-plan-target-padre]")?.focus();
+        });
+      }
+
+      async function Planes_Editar_Target(
+        Objetivo_Id,
+        Periodo_Contexto_Id = ""
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[
+          Planes_Objetivo_Raiz_Id(Objetivo_Id)
+        ];
+        if (!Objetivo) return;
+        const Periodo_Contexto =
+          Modelo.Periodos[Periodo_Contexto_Id] ||
+          Modelo.Periodos[Objetivo.Periodo_Id] ||
+          null;
+        const Resultado =
+          await Planes_Mostrar_Dialogo_Target_Periodos(
+            Objetivo,
+            Periodo_Contexto
+          );
+        if (!Resultado) return;
+        const Target_Actual = Number(Objetivo.Target_Total) || 0;
+        let Hay_Cambios =
+          Math.abs(Target_Actual - Resultado.Target_Padre) > 0.0001;
+        Resultado.Items.forEach((Item) => {
+          const Periodo = Modelo.Periodos[Item.Periodo_Id];
+          const Datos = Planes_Datos_Ajuste_Objetivo_Periodo(
+            Objetivo,
+            Periodo
+          );
+          if (
+            Math.abs(
+              (Number(Datos?.Target_Total) || 0) -
+              Item.Target_Total
+            ) > 0.0001 ||
+            Boolean(
+              Datos?.Fijado ||
+              Datos?.Target_Fijado_Por_Usuario
+            ) !== Boolean(Item.Fijado)
+          ) {
+            Hay_Cambios = true;
+          }
+        });
+        if (!Hay_Cambios) return;
+        const Snap = Capturar_Snapshot_Undo();
+        Objetivo.Target_Total = Resultado.Target_Padre;
+        Objetivo.Target_Automatico = Resultado.Target_Padre;
+        if (Objetivo.Fijado) {
+          Objetivo.Target_Fijado = Resultado.Target_Padre;
+        }
+        Resultado.Items.forEach((Item) => {
+          const Ajuste = Planes_Asegurar_Ajuste_Periodo_Objetivo(
+            Objetivo,
+            Item.Periodo_Id
+          );
+          if (!Ajuste) return;
+          Ajuste.Target_Total = Item.Target_Total;
+          Ajuste.Target_Automatico = Item.Target_Total;
+          Ajuste.Target_Fijado = Item.Fijado
+            ? Item.Target_Total
+            : 0;
+          Ajuste.Fijado = Boolean(Item.Fijado);
+          Ajuste.Target_Fijado_Por_Usuario = Boolean(Item.Fijado);
+          Ajuste.Auto_Redistribucion = false;
+          Ajuste.Regla_Distribucion = "Manual";
+          Ajuste.Estado_Vinculo = "Vigente";
+          Ajuste.Eliminado_Local = false;
+          Ajuste.Actualizado_En = new Date().toISOString();
+        });
+        Planes_Recalcular_Desde(
+          Objetivo,
+          Snap,
+          t("planes.target_periodos_guardado")
+        );
       }
 
       async function Planes_Editar_Manual(Objetivo_Id) {
@@ -54533,9 +55592,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Abrir_Modal_Planes_Subobjetivos(
         Objetivo_Id,
-        Foco_Agregar = false
+        Foco_Agregar = false,
+        Periodo_Contexto_Id = ""
       ) {
         Planes_Subobjetivos_Objetivo_Id = Objetivo_Id;
+        Planes_Subobjetivos_Periodo_Contexto_Id =
+          Periodo_Contexto_Id || "";
         Planes_Cerrar_Menus_Objetivo();
         Render_Modal_Planes_Subobjetivos();
         document.getElementById("Planes_Subobjetivos_Overlay")
@@ -54547,6 +55609,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Cerrar_Modal_Planes_Subobjetivos() {
         Planes_Subobjetivos_Objetivo_Id = null;
+        Planes_Subobjetivos_Periodo_Contexto_Id = "";
         Planes_Cerrar_Menus_Objetivo();
         document.getElementById("Planes_Subobjetivos_Overlay")
           ?.classList.remove("Activo");
@@ -54667,8 +55730,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return "";
       }
 
+      function Planes_Subobjetivo_Visible_Contexto_Objetivo(
+        Sub,
+        Objetivo,
+        Periodo,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        if (!Sub || Sub.Eliminado_Local) return false;
+        if (!Periodo) return true;
+        const Rango = Planes_Rango_Item_Fechado(Sub);
+        if (Rango) return Planes_Periodo_Solapa_Rango(Periodo, Rango);
+        const Canonico = M.Objetivos[Objetivo?.Id];
+        return Canonico?.Periodo_Id === Periodo.Id;
+      }
+
       function Planes_Subobjetivos_Contexto_Objetivo(Objetivo) {
         const Modelo = Asegurar_Modelo_Planes();
+        const Periodo_Contexto =
+          Planes_Periodo_Contexto_Objetivo(Objetivo, Modelo);
         const Items = [];
         const Items_Por_Id = new Map();
         const Agregar = (Sub, Embebido, Padre_Id = "") => {
@@ -54684,6 +55764,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
         Planes_Subobjetivos_De_Objetivo(Objetivo?.Id)
           .filter((Sub) => !Sub.Eliminado_Local)
+          .filter((Sub) =>
+            Planes_Subobjetivo_Visible_Contexto_Objetivo(
+              Sub,
+              Objetivo,
+              Periodo_Contexto,
+              Modelo
+            )
+          )
           .forEach((Sub) => {
             const Padre_Id = (Sub.Subobjetivo_Padre_Id || "")
               .toString();
@@ -54696,6 +55784,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Object.values(Modelo.Subobjetivos || {})
           .filter((Sub) => Hijos_Ids.has(Sub.Objetivo_Id))
+          .filter((Sub) =>
+            Planes_Subobjetivo_Visible_Contexto_Objetivo(
+              Sub,
+              Objetivo,
+              Periodo_Contexto,
+              Modelo
+            )
+          )
           .filter((Sub) =>
             Planes_Subobjetivo_Embeber_En_Objetivo(
               Sub,
@@ -54812,16 +55908,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Subobjetivo_Interseca_Periodo(Sub, Periodo) {
-        if (!Periodo?.Inicio && !Periodo?.Fin) return false;
-        const Inicio_Periodo = Periodo.Inicio || Periodo.Fin || "";
-        const Fin_Periodo = Periodo.Fin || Periodo.Inicio || "";
-        const Fecha_Ref =
-          Sub.Fecha_Objetivo || Sub.Fecha_Fin || Sub.Fecha_Inicio || "";
-        const Inicio_Sub = Sub.Fecha_Inicio || Fecha_Ref;
-        const Fin_Sub = Sub.Fecha_Fin || Fecha_Ref;
-        if (!Inicio_Sub && !Fin_Sub) return false;
-        return (!Fin_Periodo || Inicio_Sub <= Fin_Periodo) &&
-          (!Inicio_Periodo || Fin_Sub >= Inicio_Periodo);
+        return Planes_Item_Solapa_Periodo(Sub, Periodo);
       }
 
       function Planes_Subobjetivo_Pasa_Filtros(Sub, Objetivo) {
@@ -54848,7 +55935,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         const Filtro_Periodo = Planes_Subobjetivos_Filtro_Periodo;
         if (Filtro_Periodo === "Sin_Fecha") {
-          return !Sub.Fecha_Inicio && !Sub.Fecha_Fin;
+          return !Planes_Subobjetivo_Tiene_Fechas(Sub);
         }
         if (Filtro_Periodo === "Vencidos") {
           const Hoy = Formatear_Fecha_ISO(new Date());
@@ -56156,6 +57243,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivo =
           Modelo.Objetivos[Planes_Subobjetivos_Objetivo_Id];
+        const Periodo_Contexto =
+          Modelo.Periodos[Planes_Subobjetivos_Periodo_Contexto_Id];
+        const Objetivo_Contexto = Periodo_Contexto
+          ? Planes_Objetivo_Para_Periodo(Objetivo, Periodo_Contexto)
+          : Objetivo;
         const Lista = document.getElementById(
           "Planes_Subobjetivos_Lista"
         );
@@ -56167,8 +57259,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Lista || !Objetivo) return;
         const Info_Titulo =
-          Planes_Info_Titulo_Modal_Subobjetivos(Objetivo);
-        const Resumen = Planes_Resumen_Aportes_Subobjetivos(Objetivo);
+          Planes_Info_Titulo_Modal_Subobjetivos(Objetivo_Contexto);
+        const Resumen =
+          Planes_Resumen_Aportes_Subobjetivos(Objetivo_Contexto);
         if (Titulo) {
           Titulo.textContent = Info_Titulo.Titulo;
         }
@@ -56179,7 +57272,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Planes_Sincronizar_Filtros_Subobjetivos();
         const Contexto =
-          Planes_Subobjetivos_Contexto_Objetivo(Objetivo);
+          Planes_Subobjetivos_Contexto_Objetivo(Objetivo_Contexto);
         const Subs = Planes_Ordenar_Subobjetivos_Para_Vista(
           (Contexto.Hijos_Por_Padre.get("") || [])
             .filter((Info) =>
@@ -56212,7 +57305,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Subs.forEach((Sub) => {
           Render_Planes_Subobjetivo_Rama(
-            Objetivo,
+            Objetivo_Contexto,
             Sub,
             Vista,
             0,
@@ -57589,7 +58682,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return `id:${Planes_Objetivo_Raiz_Id(Objetivo?.Id || "")}`;
       }
 
-      function Planes_Objetivos_Importables_De_Padres(Padre_Ids) {
+      function Planes_Objetivos_Importables_De_Padres(
+        Padre_Ids,
+        Periodo_Destino = null
+      ) {
         const Modelo = Asegurar_Modelo_Planes();
         const Mapa = new Map();
         Padre_Ids.forEach((Periodo_Padre_Id) => {
@@ -57597,6 +58693,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Nivel = Planes_Nivel_Tipo(Periodo_Padre?.Tipo);
           Planes_Objetivos_De_Periodo(Periodo_Padre_Id)
             .filter((Objetivo) => !Objetivo.Eliminado_Local)
+            .filter((Objetivo) =>
+              !Periodo_Destino ||
+              Planes_Objetivo_Solapa_Periodo(
+                Objetivo,
+                Periodo_Destino
+              )
+            )
             .forEach((Objetivo, Indice) => {
               const Orden_Valor = Number(Objetivo.Orden);
               const Orden = Number.isFinite(Orden_Valor)
@@ -58148,7 +59251,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Lista = Overlay.querySelector(".Planes_Importar_Lista");
           Candidatos.forEach((Item) => {
             const Objetivos =
-              Planes_Objetivos_Importables_De_Padres(Item.Padre_Ids);
+              Planes_Objetivos_Importables_De_Padres(
+                Item.Padre_Ids,
+                Item.Periodo
+              );
             const Periodo_Id = Escape_Html(Item.Periodo.Id);
             const Detalle_Abierto = Objetivos.length <= 4 ? "open" : "";
             const Objetivo_Check_Help = Titulo_Help(
@@ -58446,10 +59552,136 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Planes_Datos_Ajuste_Periodo_Comparables(Ajuste) {
+        return JSON.stringify(
+          Normalizar_Ajuste_Periodo_Objetivo(Ajuste || {})
+        );
+      }
+
+      function Planes_Mostrar_Objetivos_Padres_A_Periodos(
+        Items,
+        Opciones = {}
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Mapa_Padre_Periodos = new Map();
+        const Resumen = {
+          Creados: 0,
+          Restaurados: 0,
+          Actualizados: 0,
+          Subobjetivos: 0,
+          Total: 0
+        };
+        (Items || []).forEach((Item) => {
+          const Periodo = Modelo.Periodos[Item.Periodo_Id];
+          if (!Periodo) return;
+          (Item.Objetivo_Ids || []).forEach((Objetivo_Id) => {
+            const Padre = Modelo.Objetivos[Objetivo_Id];
+            if (!Padre || Padre.Eliminado_Local) return;
+            const Periodo_Padre = Modelo.Periodos[Padre.Periodo_Id];
+            if (!Planes_Periodo_Es_Padre_De(Periodo_Padre, Periodo)) {
+              return;
+            }
+            if (!Planes_Objetivo_Solapa_Periodo(Padre, Periodo)) {
+              return;
+            }
+            const Lista = Mapa_Padre_Periodos.get(Objetivo_Id) || [];
+            Lista.push(Periodo);
+            Mapa_Padre_Periodos.set(Objetivo_Id, Lista);
+          });
+        });
+        const Modo_Importacion = Opciones.Modo || "Proporcional";
+        Mapa_Padre_Periodos.forEach((Periodos_Destino, Padre_Id) => {
+          const Padre = Modelo.Objetivos[Padre_Id];
+          const Periodo_Padre = Modelo.Periodos[Padre?.Periodo_Id];
+          if (!Padre || !Periodo_Padre) return;
+          const Info_Pendiente =
+            Modo_Importacion === "Pendiente"
+              ? Planes_Info_Pendiente_Importacion(
+                Padre,
+                Periodo_Padre,
+                Periodos_Destino
+              )
+              : null;
+          Periodos_Destino.forEach((Periodo) => {
+            const Ajustes = Planes_Ajustes_Periodos_Objetivo(Padre);
+            const Existia = Boolean(Ajustes[Periodo.Id]);
+            const Ajuste =
+              Planes_Asegurar_Ajuste_Periodo_Objetivo(
+                Padre,
+                Periodo.Id
+              );
+            if (!Ajuste) return;
+            const Antes =
+              Planes_Datos_Ajuste_Periodo_Comparables(Ajuste);
+            Ajuste.Estado_Vinculo = "Vigente";
+            Ajuste.Regla_Distribucion =
+              Modo_Importacion === "Proporcional"
+                ? "Uniforme"
+                : Modo_Importacion;
+            Ajuste.Eliminado_Local = false;
+            let Cuota = 0;
+            if (Modo_Importacion === "Pendiente") {
+              Cuota =
+                Info_Pendiente?.Targets.get(Periodo.Id) ??
+                Planes_Target_Proporcional_Importacion(
+                  Padre,
+                  Periodo_Padre,
+                  Periodo
+                );
+              Ajuste.Progreso_Importado = Number(
+                Info_Pendiente?.Avances.get(Periodo.Id)
+              ) || 0;
+            } else {
+              Cuota = Planes_Target_Importacion(
+                Padre,
+                Periodo_Padre,
+                Periodo,
+                Modo_Importacion,
+                Opciones.Targets_Manuales || {}
+              );
+            }
+            if (
+              Modo_Importacion === "Manual" ||
+              !Ajuste.Fijado &&
+              Ajuste.Auto_Redistribucion !== false
+            ) {
+              Ajuste.Target_Total = Cuota;
+              Ajuste.Target_Automatico = Cuota;
+            }
+            const Periodos_Fijados = Opciones.Periodos_Fijados || {};
+            if (Opciones.Fijar || Periodos_Fijados[Periodo.Id]) {
+              Ajuste.Fijado = true;
+              Ajuste.Target_Fijado = Ajuste.Target_Total;
+              Ajuste.Target_Fijado_Por_Usuario = true;
+              Ajuste.Auto_Redistribucion = false;
+            }
+            Ajuste.Actualizado_En = new Date().toISOString();
+            const Despues =
+              Planes_Datos_Ajuste_Periodo_Comparables(Ajuste);
+            if (!Existia) {
+              Resumen.Creados += 1;
+            } else if (Antes !== Despues) {
+              Resumen.Actualizados += 1;
+            }
+          });
+          Planes_Actualizar_Progreso(Padre);
+        });
+        Resumen.Total =
+          Resumen.Creados +
+          Resumen.Restaurados +
+          Resumen.Actualizados +
+          Resumen.Subobjetivos;
+        return Resumen;
+      }
+
       function Planes_Importar_Objetivos_Padres_A_Periodos(
         Items,
         Opciones = {}
       ) {
+        return Planes_Mostrar_Objetivos_Padres_A_Periodos(
+          Items,
+          Opciones
+        );
         const Modelo = Asegurar_Modelo_Planes();
         const Mapa_Padre_Periodos = new Map();
         const Resumen = {

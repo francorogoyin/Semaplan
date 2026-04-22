@@ -467,6 +467,8 @@ async ({ page }) => {
     .click();
   await page.fill("#Planes_Objetivo_Nombre", "Leer");
   await page.fill("#Planes_Objetivo_Target", "12");
+  await page.fill("#Planes_Objetivo_Fecha_Inicio", "2026-01-01");
+  await page.fill("#Planes_Objetivo_Fecha_Fin", "2026-12-31");
   await page.fill(
     "#Planes_Objetivo_Descripcion",
     "Descripcion hover planes"
@@ -532,7 +534,7 @@ async ({ page }) => {
   expect(Modelo_Inicial.periodos).toBeGreaterThan(20);
   expect(Modelo_Inicial.hijos).toBeGreaterThan(0);
   expect(Modelo_Inicial.leido).toBeGreaterThanOrEqual(2);
-  expect(Modelo_Inicial.planeado).toBe(6);
+  expect(Modelo_Inicial.planeado).toBe(0);
   expect(Modelo_Inicial.targetHijo).toBeGreaterThan(0);
 
   const Controles_Header = await page.evaluate(() => {
@@ -555,7 +557,7 @@ async ({ page }) => {
   expect(Texto_Tarjeta).toContain("%");
   expect(Texto_Tarjeta).toContain("horas");
   expect(Texto_Tarjeta).toContain(" faltan");
-  expect(Texto_Tarjeta).toContain("6 planeados");
+  expect(Texto_Tarjeta).not.toContain("6 planeados");
   expect(Texto_Tarjeta).toContain("·");
   expect(Texto_Tarjeta).not.toContain("(Faltan");
   expect(Texto_Tarjeta).not.toContain("#Lectura");
@@ -1768,7 +1770,9 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Importar desde padres evita objetivos repetidos",
+// Legacy: estos casos validaban importacion por duplicacion.
+// El flujo activo ahora muestra el objetivo padre por rango.
+test.skip("Importar desde padres evita objetivos repetidos",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -1913,7 +1917,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Importar desde padres trae subobjetivos del periodo",
+test.skip("Importar desde padres trae subobjetivos del periodo",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -2041,7 +2045,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Actualizar periodos refresca importados de toda la capa",
+test.skip("Actualizar periodos refresca importados de toda la capa",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -2183,7 +2187,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Borrar importados limpia objetivos seleccionados de la capa",
+test.skip("Borrar importados limpia objetivos seleccionados de la capa",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -2294,7 +2298,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Importar pendiente redistribuye avance real del padre",
+test.skip("Importar pendiente redistribuye avance real del padre",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -2486,7 +2490,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Importar pendiente descuenta hijos importados legacy",
+test.skip("Importar pendiente descuenta hijos importados legacy",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -2581,7 +2585,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Importar pendiente descuenta subobjetivos realizados",
+test.skip("Importar pendiente descuenta subobjetivos realizados",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -2752,7 +2756,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Actualizar capa redistribuye fecha final nueva del padre",
+test.skip("Actualizar capa redistribuye fecha final nueva del padre",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -2867,7 +2871,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Importar pendiente recalcula importados borrados fijados",
+test.skip("Importar pendiente recalcula importados borrados fijados",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -3000,7 +3004,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Importar pendiente reusa importados con padre obsoleto",
+test.skip("Importar pendiente reusa importados con padre obsoleto",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -3115,7 +3119,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Importar pendiente desde selector aplica modo pendiente",
+test.skip("Importar pendiente desde selector aplica modo pendiente",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -3225,7 +3229,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Importar pendiente descuenta hijos indirectos",
+test.skip("Importar pendiente descuenta hijos indirectos",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -3428,7 +3432,7 @@ async ({ page }) => {
   expect(Layout.overflow).toBeLessThanOrEqual(8);
 });
 
-test("Importar pendiente respeta abiertos fijados",
+test.skip("Importar pendiente respeta abiertos fijados",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -3512,7 +3516,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Actualizar capa confirma y reubica subobjetivos por fecha",
+test.skip("Actualizar capa confirma y reubica subobjetivos por fecha",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -3645,7 +3649,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Actualizar capa reordena subobjetivos pendientes por rango",
+test.skip("Actualizar capa reordena subobjetivos pendientes por rango",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -3736,7 +3740,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Actualizar capa mueve subobjetivo directo al trimestre del rango",
+test.skip("Actualizar capa mueve subobjetivo directo al trimestre del rango",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -3835,7 +3839,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Objetivo permite editar distribucion importada",
+test.skip("Objetivo permite editar distribucion importada",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -3921,7 +3925,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Actualizar capa traslada avances de subobjetivos importados",
+test.skip("Actualizar capa traslada avances de subobjetivos importados",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -4714,6 +4718,273 @@ async ({ page }) => {
   expect(Resultado.Badge_Importado).toBe(false);
   expect(Resultado.Metadatos_Visibles).toBe(0);
   expect(Resultado.Texto).not.toContain("Importado");
+  expect(errores).toEqual([]);
+});
+
+test("Mostrar por rango no duplica objetivos y filtra avances",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Vista = "Tarjetas";
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Padre = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Libros",
+      Emoji: "\uD83D\uDCDA",
+      Target_Total: 12,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros",
+      Fecha_Inicio: "2026-04-10",
+      Fecha_Fin: "2026-08-20"
+    });
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Padre.Id,
+      "Libro de julio"
+    );
+    let Modelo_Actual = Asegurar_Modelo_Planes();
+    let Padre_Actual = Modelo_Actual.Objetivos[Padre.Id];
+    const Sub = Modelo_Actual.Subobjetivos[Sub_Id];
+    Sub.Fecha_Objetivo = "2026-07-15";
+    Sub.Aporte_Meta = 1;
+    const Resumen = Planes_Importar_Objetivos_Padres_A_Periodos([
+      { Periodo_Id: Trimestres[1].Id, Objetivo_Ids: [Padre_Actual.Id] }
+    ], { Modo: "Proporcional" });
+    Modelo_Actual = Asegurar_Modelo_Planes();
+    Padre_Actual = Modelo_Actual.Objetivos[Padre.Id];
+    const Q2 = Planes_Filtrar_Objetivos(Trimestres[1]);
+    const Q3 = Planes_Filtrar_Objetivos(Trimestres[2]);
+    const Hijos = Object.values(Modelo_Actual.Objetivos)
+      .filter((Objetivo) =>
+        Planes_Objetivo_Padre_Id(Objetivo) === Padre_Actual.Id
+      );
+    const Avance_Id = Crear_Id_Avance_Plan();
+    Modelo_Actual.Avances[Avance_Id] = Normalizar_Avance_Plan({
+      Id: Avance_Id,
+      Objetivo_Id: Padre_Actual.Id,
+      Fuente: "Manual",
+      Cantidad: 2,
+      Unidad: "libros"
+    });
+    const Registro_Padre = Planes_Registros_De_Objetivo(Padre_Actual);
+    const Registro_Q2 = Planes_Registros_De_Objetivo(Q2[0]);
+    const Sub_Fuera = {
+      Fecha_Objetivo: "2026-09-01"
+    };
+    const Sub_Dentro = {
+      Fecha_Objetivo: "2026-07-15"
+    };
+    const Sub_Dentro_Ok =
+      Planes_Rango_Subobjetivo_Dentro_Objetivo(Sub_Dentro, Padre_Actual);
+    const Sub_Fuera_Ok =
+      Planes_Rango_Subobjetivo_Dentro_Objetivo(Sub_Fuera, Padre_Actual);
+    Padre_Actual.Fecha_Fin = "2026-06-30";
+    const Q3_Despues = Planes_Filtrar_Objetivos(Trimestres[2]);
+    const Avance = Modelo_Actual.Avances[Avance_Id];
+    return {
+      Resumen,
+      Q2: Q2.map((Objetivo) => ({
+        Id: Objetivo.Id,
+        Target: Objetivo.Target_Total,
+        Planeado: Planes_Aportes_Planeados_Objetivo(Objetivo)
+      })),
+      Q3: Q3.map((Objetivo) => Objetivo.Id),
+      Q3_Despues: Q3_Despues.map((Objetivo) => ({
+        Id: Objetivo.Id,
+        Periodo_Id: Objetivo.Periodo_Id,
+        Proyectado: Boolean(Objetivo.__Plan_Proyectado),
+        Fecha_Inicio: Objetivo.Fecha_Inicio,
+        Fecha_Fin: Objetivo.Fecha_Fin
+      })),
+      Hijos: Hijos.length,
+      Registro_Padre: Registro_Padre.length,
+      Registro_Q2: Registro_Q2.length,
+      Aparece_Padre:
+        Planes_Avance_Aparece_En_Registro_Objetivo(
+          Avance,
+          Padre_Actual,
+          Modelo_Actual
+        ),
+      Aparece_Q2:
+        Planes_Avance_Aparece_En_Registro_Objetivo(
+          Avance,
+          Q2[0],
+          Modelo_Actual
+        ),
+      Sub_Dentro: Sub_Dentro_Ok,
+      Sub_Fuera: Sub_Fuera_Ok
+    };
+  });
+
+  expect(Resultado.Resumen.Creados).toBe(1);
+  expect(Resultado.Hijos).toBe(0);
+  expect(Resultado.Q2).toHaveLength(1);
+  expect(Resultado.Q2[0].Target).toBe(6);
+  expect(Resultado.Q2[0].Planeado).toBe(0);
+  expect(Resultado.Q3).toHaveLength(1);
+  expect(Resultado.Q3_Despues).toHaveLength(0);
+  expect(Resultado.Registro_Padre).toBe(1);
+  expect(Resultado.Registro_Q2).toBe(0);
+  expect(Resultado.Aparece_Padre).toBe(true);
+  expect(Resultado.Aparece_Q2).toBe(false);
+  expect(Resultado.Sub_Dentro).toBe(true);
+  expect(Resultado.Sub_Fuera).toBe(false);
+  expect(errores).toEqual([]);
+});
+
+test("Objetivo sin target muestra planeados fechados",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    Modelo.UI.Periodo_Activo_Id = Trimestres[2].Id;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Modelo.UI.Vista = "Tarjetas";
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(
+      Trimestres[2].Id,
+      {
+        Nombre: "Independencia financiera",
+        Emoji: "\uD83D\uDCB0",
+        Target_Total: 0,
+        Modo_Avance: "Sin_Metrica"
+      }
+    );
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Mascoter"
+    );
+    const Modelo_Actual = Asegurar_Modelo_Planes();
+    const Objetivo_Actual = Modelo_Actual.Objetivos[Objetivo.Id];
+    const Sub = Modelo_Actual.Subobjetivos[Sub_Id];
+    Sub.Fecha_Objetivo = "2026-07-20";
+    Sub.Aporte_Meta = 1;
+    const Texto = Planes_Formatear_Meta_Objetivo(
+      Objetivo_Actual,
+      { Incluir_Faltante: true }
+    );
+    const Contexto =
+      Planes_Subobjetivos_Contexto_Objetivo(Objetivo_Actual);
+    return {
+      Texto,
+      Aportes: Planes_Aportes_Planeados_Objetivo(Objetivo_Actual),
+      Periodo: Modelo_Actual.Periodos[Objetivo_Actual.Periodo_Id],
+      Items: Contexto.Items.map((Item) => ({
+        Texto: Item.Texto,
+        Fecha_Objetivo: Item.Fecha_Objetivo,
+        Aporte_Meta: Item.Aporte_Meta,
+        Planeado:
+          Planes_Subobjetivo_Planeado_En_Periodo(
+            Item,
+            Modelo_Actual.Periodos[Objetivo_Actual.Periodo_Id]
+          )
+      }))
+    };
+  });
+
+  expect(Resultado.Texto).toContain("1 planeados");
+  expect(Resultado.Aportes).toBe(1);
+  expect(errores).toEqual([]);
+});
+
+test("Editar target muestra todos los periodos relacionados",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(async () => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Padre = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Libros",
+      Target_Total: 12,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros",
+      Fecha_Inicio: "2026-04-10",
+      Fecha_Fin: "2026-08-20"
+    });
+    const Tarea = Planes_Editar_Target(
+      Padre.Id,
+      Trimestres[1].Id
+    );
+    await new Promise((Resolver) => setTimeout(Resolver, 0));
+    const Inputs = Array.from(document.querySelectorAll(
+      "[data-plan-target-periodo]"
+    ));
+    const Periodos_Modal = Inputs.map((Input) =>
+      Input.dataset.planTargetPeriodo
+    );
+    document.querySelector("[data-plan-target-padre]").value = "12";
+    Inputs[0].value = "5";
+    Inputs[1].value = "7";
+    Inputs[0].closest(".Planes_Target_Fila")
+      .querySelector("[data-plan-target-fijar]").checked = true;
+    document.querySelector("[data-plan-target-guardar]").click();
+    await Tarea;
+    const Modelo_Actual = Asegurar_Modelo_Planes();
+    const Padre_Actual = Modelo_Actual.Objetivos[Padre.Id];
+    const Ajustes = Padre_Actual.Ajustes_Periodos || {};
+    const Hijos = Object.values(Modelo_Actual.Objetivos)
+      .filter((Objetivo) =>
+        Planes_Objetivo_Padre_Id(Objetivo) === Padre.Id
+      );
+    return {
+      Periodos_Modal,
+      Target_Padre: Padre_Actual.Target_Total,
+      Q2: Ajustes[Trimestres[1].Id],
+      Q3: Ajustes[Trimestres[2].Id],
+      Hijos: Hijos.length
+    };
+  });
+
+  expect(Resultado.Periodos_Modal).toEqual([
+    "P_Trimestre_2026-04-01_2026-06-30",
+    "P_Trimestre_2026-07-01_2026-09-30"
+  ]);
+  expect(Resultado.Target_Padre).toBe(12);
+  expect(Resultado.Q2.Target_Total).toBe(5);
+  expect(Resultado.Q2.Fijado).toBe(true);
+  expect(Resultado.Q3.Target_Total).toBe(7);
+  expect(Resultado.Q3.Regla_Distribucion).toBe("Manual");
+  expect(Resultado.Hijos).toBe(0);
   expect(errores).toEqual([]);
 });
 
