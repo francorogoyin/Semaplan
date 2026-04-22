@@ -87,6 +87,7 @@
       .Planes_Objetivo_Emoji,
       .Planes_Objetivo_Estado,
       .Planes_Subobjetivo_Emoji,
+      .Planes_Subobjetivo_Estado,
       .Subobjetivo_Emoji_Label {
         font-family:
           "Segoe UI Emoji",
@@ -57690,9 +57691,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Item.setAttribute("aria-label", Sub.Texto);
         Item.innerHTML = `
-          <span class="Planes_Subobjetivo_Emoji Con_Fallback_Emoji">
-            ${Escape_Html(Sub.Emoji || "\u2022")}
-          </span>
+          <span class="Planes_Subobjetivo_Emoji Con_Fallback_Emoji"
+            data-plan-sub-emoji></span>
           <span class="Planes_Subobjetivo_Info">
             <span class="Planes_Subobjetivo_Nombre">
               ${Escape_Html(Sub.Texto)}
@@ -57711,11 +57711,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ${Escape_Html(t("planes.partes"))}
           </button>
           <span class="Planes_Subobjetivo_Estado Con_Fallback_Emoji"
+            data-plan-sub-estado
             title="${Escape_Html(Estado_Label)}"
-            aria-label="${Escape_Html(Estado_Label)}">
-            ${Planes_Emoji_Estado(Estado)}
-          </span>
+            aria-label="${Escape_Html(Estado_Label)}"></span>
         `;
+        Aplicar_Emoji_En_Elemento(
+          Item.querySelector("[data-plan-sub-emoji]"),
+          Sub.Emoji || "\u2022"
+        );
+        const Estado_Emoji = Item.querySelector(
+          "[data-plan-sub-estado]"
+        );
+        Aplicar_Emoji_En_Elemento(
+          Estado_Emoji,
+          Planes_Emoji_Estado(Estado)
+        );
+        if (Estado_Emoji) {
+          Estado_Emoji.title = Estado_Label;
+          Estado_Emoji.setAttribute("aria-label", Estado_Label);
+        }
         Item.addEventListener("dragstart", (Ev) => {
           if (Ev.target.closest("button, input, select, textarea")) {
             Ev.preventDefault();
