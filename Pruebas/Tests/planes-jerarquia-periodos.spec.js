@@ -3818,7 +3818,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Subobjetivo permite editar distribucion importada",
+test("Objetivo permite editar distribucion importada",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -3860,31 +3860,26 @@ async ({ page }) => {
     );
     const Abril = Planes_Objetivo_Hijo_De(Padre.Id, Meses[3].Id);
     const Mayo = Planes_Objetivo_Hijo_De(Padre.Id, Meses[4].Id);
-    const Sub_Id = Planes_Agregar_Subobjetivo(
-      Abril.Id,
-      "Ajustar cuota"
-    );
-    Abrir_Modal_Planes_Subobjetivos(Abril.Id, false);
-    Render_Modal_Planes_Subobjetivos();
+    Modelo.UI.Periodo_Activo_Id = Meses[3].Id;
+    Render_Plan();
     return {
-      Sub_Id,
       Abril_Id: Abril.Id,
       Mayo_Id: Mayo.Id
     };
   });
 
-  const Sub = page.locator(
-    `[data-plan-subobjetivo-id="${Datos.Sub_Id}"]`
+  const Objetivo = page.locator(
+    `[data-plan-objetivo-id="${Datos.Abril_Id}"]`
   );
-  await expect(Sub).toBeVisible();
-  await Sub.click({ button: "right" });
+  await expect(Objetivo).toBeVisible();
+  await Objetivo.click({ button: "right" });
   await expect(
     page.locator(
-      '.Planes_Context_Menu [data-plan-sub-accion="distribucion"]'
+      '.Planes_Context_Menu [data-plan-accion="distribucion"]'
     )
   ).toBeVisible();
   await page.locator(
-    '.Planes_Context_Menu [data-plan-sub-accion="distribucion"]'
+    '.Planes_Context_Menu [data-plan-accion="distribucion"]'
   ).click();
   await expect(page.locator("#Dialogo_Overlay"))
     .toHaveClass(/Activo/);
@@ -4596,7 +4591,7 @@ async ({ page }) => {
     page.locator(
       '.Planes_Context_Menu [data-plan-sub-accion="distribucion"]'
     )
-  ).toBeVisible();
+  ).toHaveCount(0);
   await page.locator(
     '.Planes_Context_Menu [data-plan-sub-accion="editar"]'
   ).click();

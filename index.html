@@ -21147,7 +21147,7 @@
           "planes.distribucion_editar_titulo":
             "Elegí cómo distribuir este objetivo importado.",
           "planes.distribucion_sin_importado":
-            "Este subobjetivo no pertenece a un objetivo importado.",
+            "Este objetivo no es un objetivo importado.",
           "planes.distribucion_actualizada":
             "Distribución actualizada.",
           "planes.importar_help_titulo":
@@ -24754,7 +24754,7 @@
           "planes.distribucion_editar_titulo":
             "Choose how to distribute this imported objective.",
           "planes.distribucion_sin_importado":
-            "This subobjective does not belong to an imported objective.",
+            "This objective is not an imported objective.",
           "planes.distribucion_actualizada":
             "Distribution updated.",
           "planes.importar_help_titulo":
@@ -28250,7 +28250,7 @@
           "planes.distribucion_editar_titulo":
             "Escolha como distribuir este objetivo importado.",
           "planes.distribucion_sin_importado":
-            "Este subobjetivo não pertence a um objetivo importado.",
+            "Este objetivo não é um objetivo importado.",
           "planes.distribucion_actualizada":
             "Distribuição atualizada.",
           "planes.importar_help_titulo":
@@ -50116,6 +50116,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Eliminar_Label = Objetivo.Eliminado_Local
           ? t("planes.recuperar")
           : t("planes.eliminar_local");
+        const Puede_Editar_Distribucion = Boolean(
+          Planes_Objetivo_Padre_Id(Objetivo)
+        );
         return `
             <button class="Planes_Btn" type="button"
               data-plan-accion="editar">
@@ -50125,6 +50128,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               data-plan-accion="admin_subs">
               ${t("planes.administrar_subobjetivos")}
             </button>
+            ${Puede_Editar_Distribucion ? `
+            <button class="Planes_Btn" type="button"
+              data-plan-accion="distribucion">
+              ${t("planes.editar_distribucion")}
+            </button>
+            ` : ""}
             <button class="Planes_Btn" type="button"
               data-plan-accion="registrar_avance">
               ${t("planes.registrar_avance")}
@@ -50156,6 +50165,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Tipo === "admin_subs") {
           Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, false);
+        }
+        if (Tipo === "distribucion") {
+          await Planes_Editar_Distribucion_Objetivo(Objetivo.Id);
         }
         if (Tipo === "registrar_avance") {
           Abrir_Modal_Planes_Avance(
@@ -56205,11 +56217,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Render_Planes_Subobjetivo_Acciones(Sub) {
-        const Modelo = Asegurar_Modelo_Planes();
-        const Objetivo = Modelo.Objetivos[Sub?.Objetivo_Id];
-        const Puede_Editar_Distribucion = Boolean(
-          Planes_Objetivo_Padre_Id(Objetivo)
-        );
         return `
           <button class="Planes_Btn" type="button"
             data-plan-sub-accion="editar">
@@ -56223,12 +56230,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             data-plan-sub-accion="partes">
             ${t("planes.administrar_partes")}
           </button>
-          ${Puede_Editar_Distribucion ? `
-          <button class="Planes_Btn" type="button"
-            data-plan-sub-accion="distribucion">
-            ${t("planes.editar_distribucion")}
-          </button>
-          ` : ""}
           <button class="Planes_Btn" type="button"
             data-plan-sub-accion="realizar"
             ${Sub.Hecha ? "disabled" : ""}>
@@ -56260,9 +56261,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Tipo === "partes") {
           Abrir_Modal_Planes_Partes(Sub_Id);
-        }
-        if (Tipo === "distribucion") {
-          await Planes_Editar_Distribucion_Objetivo(Sub.Objetivo_Id);
         }
         if (Tipo === "realizar") {
           await Planes_Marcar_Subobjetivo_Como_Realizado(Sub_Id);
