@@ -9034,15 +9034,24 @@
 
       .Config_Meta_Festejo_Item {
         display: grid;
-        grid-template-columns: 18px minmax(0, 1fr);
+        grid-template-columns: 18px 24px minmax(0, 1fr);
         gap: 10px;
-        align-items: start;
+        align-items: center;
         border-bottom: 1px solid var(--Borde);
         padding: 8px 0;
       }
 
       .Config_Meta_Festejo_Item:last-child {
         border-bottom: none;
+      }
+
+      .Config_Meta_Festejo_Emoji {
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        font-size: 16px;
+        line-height: 1;
       }
 
       .Config_Meta_Festejo_Nombre {
@@ -17896,7 +17905,7 @@
             <div class="Patron_Modal_Cuerpo Config_Meta_Cuerpo">
               <div class="Config_Meta_Festejos_Lista"
                 id="Cfg_Meta_Festejos_Lista"></div>
-              <div class="Config_Meta_Festejos_Acciones">
+              <div class="Archivero_Sub_Acciones">
                 <button type="button"
                   class="Config_Dato_Btn"
                   id="Cfg_Meta_Festejos_Todos"
@@ -17909,8 +17918,6 @@
                   data-i18n="config.festejos_ninguno">
                   Deseleccionar todos
                 </button>
-              </div>
-              <div class="Archivero_Sub_Acciones">
                 <button type="button"
                   class="Archivero_Sub_Btn"
                   id="Cfg_Meta_Festejos_Cancelar"
@@ -42571,12 +42578,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Check.type = "checkbox";
           Check.value = Id;
           Check.checked = Seleccion.has(Id);
+          const Emoji = document.createElement("span");
+          Emoji.className =
+            "Config_Meta_Festejo_Emoji Con_Fallback_Emoji";
+          Emoji.textContent = Objetivo.Emoji || "\u2022";
           const Texto = document.createElement("span");
           const Nombre = document.createElement("span");
           Nombre.className = "Config_Meta_Festejo_Nombre";
           Nombre.textContent = Objetivo.Nombre || t("toast.sin_nombre");
           Texto.appendChild(Nombre);
           Fila.appendChild(Check);
+          Fila.appendChild(Emoji);
           Fila.appendChild(Texto);
           Lista.appendChild(Fila);
         });
