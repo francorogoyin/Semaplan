@@ -24,6 +24,10 @@ olvidar la otra.
   sumar su selector al bloque CSS de fallback emoji.
 - El fallback debe incluir `"Segoe UI Emoji"`, `"Apple Color Emoji"`,
   `"Noto Color Emoji"` y `"Segoe UI Symbol"`.
+- Si el emoji se renderiza dinamicamente como icono, badge, marca de
+  plan o estado, usar `Aplicar_Emoji_En_Elemento()` en lugar de
+  `textContent` o `innerHTML` directo. Ese helper usa imagen/fallback y
+  evita cuadrados en navegadores con soporte incompleto.
 - Todo campo editable de emoji debe usar `Con_Selector_Emoji`.
 - Esos campos no deben permitir autocomplete, autocorrect,
   sugerencias ni spellcheck del navegador.
