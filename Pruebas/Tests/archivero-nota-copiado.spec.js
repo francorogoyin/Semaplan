@@ -224,4 +224,12 @@ test("copia solo el texto de la nota del archivero", async ({
 
   await expect(page.locator(".Undo_Toast_Texto").first())
     .toHaveText("Nota copiada");
+
+  const textoLote = await page.evaluate(() =>
+    Construir_Texto_Copia_Notas_Archivero([
+      { Texto: "Nota 1" },
+      { Texto: "Nota 2" }
+    ])
+  );
+  expect(textoLote).toBe("Nota 1\r\n\r\n\r\nNota 2");
 });
