@@ -540,7 +540,10 @@ async ({ page }) => {
     .innerText();
   expect(Texto_Tarjeta).toContain("%");
   expect(Texto_Tarjeta).toContain("horas");
-  expect(Texto_Tarjeta).toContain("Faltan");
+  expect(Texto_Tarjeta).toContain(" faltan");
+  expect(Texto_Tarjeta).toContain(" planeados");
+  expect(Texto_Tarjeta).toContain("·");
+  expect(Texto_Tarjeta).not.toContain("(Faltan");
   expect(Texto_Tarjeta).not.toContain("#Lectura");
   expect(Texto_Tarjeta).not.toContain("Horas");
   expect(Texto_Tarjeta).not.toContain("Mixto");

@@ -20760,7 +20760,8 @@
           "planes.registro_calendario": "Calendario",
           "planes.registro_subobjetivo": "Subobjetivo",
           "planes.registro_manual_previo": "Manual previo",
-          "planes.meta_faltan": "Faltan {Cantidad}",
+          "planes.meta_faltan": "{Cantidad} faltan",
+          "planes.meta_planeados": "{Cantidad} planeados",
           "planes.sub_aporte": "Aporte",
           "planes.sub_aporte_en": "Aporte en {Unidad}",
           "planes.sub_valor_objetivo": "Valor objetivo",
@@ -24369,7 +24370,8 @@
           "planes.registro_calendario": "Calendar",
           "planes.registro_subobjetivo": "Subobjective",
           "planes.registro_manual_previo": "Previous manual",
-          "planes.meta_faltan": "Remaining {Cantidad}",
+          "planes.meta_faltan": "{Cantidad} left",
+          "planes.meta_planeados": "{Cantidad} planned",
           "planes.sub_aporte": "Contribution",
           "planes.sub_aporte_en": "Contribution in {Unidad}",
           "planes.sub_valor_objetivo": "Target value",
@@ -27925,7 +27927,8 @@
           "planes.registro_calendario": "Calendário",
           "planes.registro_subobjetivo": "Subobjetivo",
           "planes.registro_manual_previo": "Manual anterior",
-          "planes.meta_faltan": "Faltam {Cantidad}",
+          "planes.meta_faltan": "{Cantidad} faltam",
+          "planes.meta_planeados": "{Cantidad} planejados",
           "planes.sub_aporte": "Aporte",
           "planes.sub_aporte_en": "Aporte em {Unidad}",
           "planes.sub_valor_objetivo": "Valor objetivo",
@@ -46642,6 +46645,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Math.max(0, Target - Progreso);
       }
 
+      function Planes_Target_Planeado_Objetivo(Objetivo) {
+        const Planeado_Raw = Objetivo?.Target_Automatico;
+        const Planeado = Planeado_Raw === undefined ||
+          Planeado_Raw === null
+            ? NaN
+            : Number(Planeado_Raw);
+        if (Number.isFinite(Planeado)) {
+          return Math.max(0, Planeado);
+        }
+        return Math.max(0, Number(Objetivo?.Target_Total) || 0);
+      }
+
       function Planes_Formatear_Meta_Objetivo(
         Objetivo,
         Opciones = {}
@@ -46660,9 +46675,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Faltante = Planes_Formatear_Numero(
           Planes_Target_Pendiente_Objetivo(Objetivo)
         );
-        return `${Texto} (${t("planes.meta_faltan", {
-          Cantidad: Faltante
-        })})`;
+        const Planeado = Planes_Formatear_Numero(
+          Planes_Target_Planeado_Objetivo(Objetivo)
+        );
+        return [
+          Texto,
+          t("planes.meta_faltan", { Cantidad: Faltante }),
+          t("planes.meta_planeados", { Cantidad: Planeado })
+        ].join(" \u00B7 ");
       }
 
       function Planes_Formatear_Meta_Subobjetivo(
