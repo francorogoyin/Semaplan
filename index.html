@@ -43109,9 +43109,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       // -------- UI: Modal Plan (único) --------
 
+      function Planes_Limpiar_Objetivos_Expandidos() {
+        const Modelo = Asegurar_Modelo_Planes();
+        Modelo.UI.Objetivos_Expandidos = {};
+      }
+
       function Abrir_Plan() {
         if (!Validar_Acceso_Premium("Metas")) return;
         if (!Planner_Fecha_Base) Planner_Fecha_Base = new Date();
+        Planes_Limpiar_Objetivos_Expandidos();
         Render_Plan();
         document.getElementById("Plan_Overlay")
           ?.classList.add("Activo");
@@ -43119,6 +43125,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Cerrar_Plan() {
         Cerrar_Modal_Planes_Ayuda_Conceptual();
+        Planes_Limpiar_Objetivos_Expandidos();
         document.getElementById("Plan_Overlay")
           ?.classList.remove("Activo", "Periodo_Cerrado");
       }
