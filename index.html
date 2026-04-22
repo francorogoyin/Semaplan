@@ -9053,14 +9053,6 @@
         line-height: 1.25;
       }
 
-      .Config_Meta_Festejo_Meta {
-        color: var(--Texto_Suave);
-        display: block;
-        font-size: 12px;
-        line-height: 1.3;
-        margin-top: 2px;
-      }
-
       .Config_Meta_Vacio {
         font-size: 12px;
         color: var(--Texto_Suave);
@@ -17902,11 +17894,8 @@
                 type="button">&times;</button>
             </div>
             <div class="Patron_Modal_Cuerpo Config_Meta_Cuerpo">
-              <p class="Config_Nota"
-                data-i18n="config.festejos_modal_desc">
-                Elegí qué objetivos pueden disparar festejos al
-                cruzar hitos.
-              </p>
+              <div class="Config_Meta_Festejos_Lista"
+                id="Cfg_Meta_Festejos_Lista"></div>
               <div class="Config_Meta_Festejos_Acciones">
                 <button type="button"
                   class="Config_Dato_Btn"
@@ -17921,8 +17910,6 @@
                   Deseleccionar todos
                 </button>
               </div>
-              <div class="Config_Meta_Festejos_Lista"
-                id="Cfg_Meta_Festejos_Lista"></div>
               <div class="Archivero_Sub_Acciones">
                 <button type="button"
                   class="Archivero_Sub_Btn"
@@ -21987,16 +21974,12 @@
             "Elegir metas",
           "config.festejos_modal_titulo":
             "Metas a festejar",
-          "config.festejos_modal_desc":
-            "Elegí qué objetivos pueden disparar festejos " +
-            "al cruzar hitos.",
           "config.festejos_todos":
             "Seleccionar todos",
           "config.festejos_ninguno":
             "Deseleccionar todos",
           "config.festejos_resumen_todas":
-            "Se festejan todas las metas de las capas activas " +
-            "({total} disponibles).",
+            "Se festejan todas las metas ({total} disponibles).",
           "config.festejos_resumen_sel":
             "Se festejan {seleccionadas} de {total} metas " +
             "disponibles.",
@@ -25675,16 +25658,12 @@
             "Choose goals",
           "config.festejos_modal_titulo":
             "Goals to celebrate",
-          "config.festejos_modal_desc":
-            "Choose which objectives can trigger celebrations " +
-            "when crossing milestones.",
           "config.festejos_todos":
             "Select all",
           "config.festejos_ninguno":
             "Select none",
           "config.festejos_resumen_todas":
-            "All goals in active layers will celebrate " +
-            "({total} available).",
+            "All goals will celebrate ({total} available).",
           "config.festejos_resumen_sel":
             "{seleccionadas} of {total} available goals " +
             "will celebrate.",
@@ -29332,15 +29311,12 @@
             "Escolher metas",
           "config.festejos_modal_titulo":
             "Metas a comemorar",
-          "config.festejos_modal_desc":
-            "Escolha quais objetivos podem disparar comemorações " +
-            "ao cruzar marcos.",
           "config.festejos_todos":
             "Selecionar todos",
           "config.festejos_ninguno":
             "Desmarcar todos",
           "config.festejos_resumen_todas":
-            "Todas as metas das camadas ativas serão comemoradas " +
+            "Todas as metas serão comemoradas " +
             "({total} disponíveis).",
           "config.festejos_resumen_sel":
             "{seleccionadas} de {total} metas disponíveis " +
@@ -42467,14 +42443,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Config.Meta_Festejos_Modo !== "Seleccionadas") {
           return true;
         }
-        return Config.Meta_Festejos_Objetivos.includes(
-          (Objetivo.Id || "").toString()
-        );
+        const Id = (Objetivo.Id || "").toString();
+        const Raiz_Id = Planes_Objetivo_Raiz_Id(Id);
+        return Config.Meta_Festejos_Objetivos.includes(Raiz_Id) ||
+          Config.Meta_Festejos_Objetivos.includes(Id);
+      }
+
+      function Objetivo_Festejo_Config_Id(Objetivo) {
+        const Id = (Objetivo?.Id || "").toString();
+        return Planes_Objetivo_Raiz_Id(Id) || Id;
+      }
+
+      function Meta_Festejos_Seleccion_Config_Ids(Ids) {
+        const Resultado = new Set();
+        Normalizar_Meta_Festejos_Objetivos(Ids).forEach((Id) => {
+          Resultado.add(Planes_Objetivo_Raiz_Id(Id) || Id);
+        });
+        return Array.from(Resultado);
       }
 
       function Obtener_Objetivos_Festejables_Config() {
         const Modelo = Asegurar_Modelo_Planes();
-        return Object.values(Modelo.Objetivos || {})
+        const Por_Raiz = new Map();
+        Object.values(Modelo.Objetivos || {})
           .map((Objetivo) => ({
             Objetivo,
             Periodo: Modelo.Periodos[Objetivo?.Periodo_Id]
@@ -42485,16 +42476,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (Objetivo.Modo_Progreso === "Manual") return false;
             return (Number(Objetivo.Target_Total) || 0) > 0;
           })
-          .sort((A, B) => {
-            const Fecha = (A.Periodo.Inicio || "")
-              .localeCompare(B.Periodo.Inicio || "");
-            if (Fecha) return Fecha;
-            return (A.Objetivo.Nombre || "").localeCompare(
+          .forEach((Item) => {
+            const Id = Objetivo_Festejo_Config_Id(Item.Objetivo);
+            const Objetivo_Raiz =
+              Modelo.Objetivos[Id] || Item.Objetivo;
+            if (!Por_Raiz.has(Id)) {
+              Por_Raiz.set(Id, {
+                Id,
+                Objetivo: Objetivo_Raiz,
+                Periodo: Item.Periodo
+              });
+            }
+          });
+        return Array.from(Por_Raiz.values())
+          .sort((A, B) =>
+            (A.Objetivo.Nombre || "").localeCompare(
               B.Objetivo.Nombre || "",
               "es",
               { sensitivity: "base", numeric: true }
-            );
-          });
+            )
+          );
       }
 
       function Actualizar_Config_Festejos_Resumen() {
@@ -42505,21 +42506,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modo = Normalizar_Meta_Festejos_Modo(
           document.getElementById("Cfg_Meta_Festejos_Modo")?.value
         );
-        const Capas_Activas = new Set(
-          Array.from(
-            document.querySelectorAll(
-              "[data-cfg-meta-capa]:checked"
-            )
-          ).map((Input) => Input.dataset.cfgMetaCapa)
-        );
-        const Items = Obtener_Objetivos_Festejables_Config()
-          .filter(({ Periodo }) => Capas_Activas.has(Periodo.Tipo));
+        const Items = Obtener_Objetivos_Festejables_Config();
         const Total = Items.length;
         const Ids_Disponibles = new Set(
-          Items.map(({ Objetivo }) => Objetivo.Id)
+          Items.map((Item) => Item.Id)
         );
         const Seleccionados =
-          Normalizar_Meta_Festejos_Objetivos(
+          Meta_Festejos_Seleccion_Config_Ids(
             Cfg_Meta_Festejos_Seleccion_Borrador
           ).filter((Id) => Ids_Disponibles.has(Id)).length;
         Resumen.textContent = Modo === "Seleccionadas"
@@ -42560,7 +42553,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Lista.innerHTML = "";
         const Items = Obtener_Objetivos_Festejables_Config();
         const Seleccion = new Set(
-          Normalizar_Meta_Festejos_Objetivos(
+          Meta_Festejos_Seleccion_Config_Ids(
             Cfg_Meta_Festejos_Seleccion_Borrador
           )
         );
@@ -42571,29 +42564,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Lista.appendChild(Vacio);
           return;
         }
-        Items.forEach(({ Objetivo, Periodo }) => {
+        Items.forEach(({ Id, Objetivo }) => {
           const Fila = document.createElement("label");
           Fila.className = "Config_Meta_Festejo_Item";
           const Check = document.createElement("input");
           Check.type = "checkbox";
-          Check.value = Objetivo.Id;
-          Check.checked = Seleccion.has(Objetivo.Id);
+          Check.value = Id;
+          Check.checked = Seleccion.has(Id);
           const Texto = document.createElement("span");
           const Nombre = document.createElement("span");
           Nombre.className = "Config_Meta_Festejo_Nombre";
           Nombre.textContent = Objetivo.Nombre || t("toast.sin_nombre");
-          const Meta = document.createElement("span");
-          Meta.className = "Config_Meta_Festejo_Meta";
-          Meta.textContent = [
-            Planes_Label_Tipo(Periodo.Tipo),
-            Planes_Titulo_Periodo(
-              Periodo.Tipo,
-              Periodo.Inicio,
-              Periodo.Fin
-            )
-          ].filter(Boolean).join(" · ");
           Texto.appendChild(Nombre);
-          Texto.appendChild(Meta);
           Fila.appendChild(Check);
           Fila.appendChild(Texto);
           Lista.appendChild(Fila);
@@ -71491,10 +71473,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         const Festejos_Disponibles = new Set(
           Obtener_Objetivos_Festejables_Config()
-            .map(({ Objetivo }) => Objetivo.Id)
+            .map((Item) => Item.Id)
         );
         Config.Meta_Festejos_Objetivos =
-          Normalizar_Meta_Festejos_Objetivos(
+          Meta_Festejos_Seleccion_Config_Ids(
             Cfg_Meta_Festejos_Seleccion_Borrador
           ).filter((Id) => Festejos_Disponibles.has(Id));
         Config.Color_Badge =
