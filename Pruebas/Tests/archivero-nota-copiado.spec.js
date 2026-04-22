@@ -231,5 +231,5 @@ test("copia solo el texto de la nota del archivero", async ({
       { Texto: "Nota 2" }
     ])
   );
-  expect(textoLote).toBe("Nota 1\r\n\r\n\r\nNota 2");
+  expect(textoLote).toBe("Nota 1\r\n\r\nNota 2");
 });
