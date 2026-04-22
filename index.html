@@ -52566,6 +52566,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Item = Meta_Aporte_Item_Subobjetivo(Objetivo);
         if (!Item?.Sub) return [];
         const Modelo = Asegurar_Modelo_Planes();
+        const Inicio_Semana = Clave_Semana;
+        const Fin_Semana = Formatear_Fecha_ISO(
+          Sumar_Dias(Parsear_Fecha_ISO(Clave_Semana), 6)
+        );
         const Ya_Importadas = new Set(
           Obtener_Subobjetivos_Semana(
             Objetivo,
@@ -52576,10 +52580,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Planes_Partes_De_Subobjetivo(
           Item.Sub.Id,
           Modelo
-        ).map((Parte) => ({
-          Parte,
-          Importada: Ya_Importadas.has(Parte.Id)
-        }));
+        )
+          .filter((Parte) => !Parte.Eliminado_Local)
+          .filter((Parte) =>
+            Planes_Estado_Calculado_Parte(Parte, Modelo) !==
+            "Realizada"
+          )
+          .filter((Parte) =>
+            Metas_Sugeridas_Parte_En_Semana(
+              Parte,
+              Inicio_Semana,
+              Fin_Semana
+            )
+          )
+          .map((Parte) => ({
+            Parte,
+            Importada: Ya_Importadas.has(Parte.Id)
+          }));
       }
 
       function Objetivo_Semanal_Tiene_Partes_Importables(Objetivo) {
@@ -52593,6 +52610,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Metas_Sugeridas_Clave_Semana() {
         return Formatear_Fecha_ISO(Metas_Sugeridas_Semana_Base());
+      }
+
+      function Metas_Sugeridas_Rango_Semana() {
+        const Inicio = Metas_Sugeridas_Clave_Semana();
+        const Fin = Formatear_Fecha_ISO(
+          Sumar_Dias(Metas_Sugeridas_Semana_Base(), 6)
+        );
+        return { Inicio, Fin };
+      }
+
+      function Metas_Sugeridas_Parte_En_Semana(
+        Parte,
+        Inicio_Semana,
+        Fin_Semana
+      ) {
+        const Inicio = Planes_Normalizar_Fecha_Comparacion(
+          Parte?.Fecha_Inicio || ""
+        );
+        const Objetivo = Planes_Normalizar_Fecha_Comparacion(
+          Parte?.Fecha_Objetivo || ""
+        );
+        if (Inicio && Objetivo) {
+          const Desde = Inicio <= Objetivo ? Inicio : Objetivo;
+          const Hasta = Inicio <= Objetivo ? Objetivo : Inicio;
+          return Metas_Sugeridas_Rangos_Cruzan(
+            Desde,
+            Hasta,
+            Inicio_Semana,
+            Fin_Semana
+          );
+        }
+        const Fecha = Objetivo || Inicio;
+        if (!Fecha) return false;
+        return Fecha >= Inicio_Semana && Fecha <= Fin_Semana;
       }
 
       function Metas_Sugeridas_Rango_Subobjetivo(
@@ -52692,20 +52743,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Metas_Sugeridas_Partes(Sub, Modelo) {
+        const Semana = Metas_Sugeridas_Rango_Semana();
         return Planes_Partes_De_Subobjetivo(Sub.Id, Modelo)
+          .filter((Parte) => !Parte.Eliminado_Local)
           .filter((Parte) =>
             Planes_Estado_Calculado_Parte(Parte, Modelo) !==
             "Realizada"
+          )
+          .filter((Parte) =>
+            Metas_Sugeridas_Parte_En_Semana(
+              Parte,
+              Semana.Inicio,
+              Semana.Fin
+            )
           );
       }
 
       function Metas_Sugeridas_Items() {
         const Modelo = Asegurar_Modelo_Planes();
-        const Base_Semana = Metas_Sugeridas_Semana_Base();
-        const Inicio_Semana = Metas_Sugeridas_Clave_Semana();
-        const Fin_Semana = Formatear_Fecha_ISO(
-          Sumar_Dias(Base_Semana, 6)
-        );
+        const Semana = Metas_Sugeridas_Rango_Semana();
         const Por_Raiz = new Map();
         Object.values(Modelo.Subobjetivos || {})
           .filter((Sub) => !Sub.Eliminado_Local && !Sub.Hecha)
@@ -52720,8 +52776,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (!Metas_Sugeridas_Rangos_Cruzan(
               Rango.Inicio,
               Rango.Fin,
-              Inicio_Semana,
-              Fin_Semana
+              Semana.Inicio,
+              Semana.Fin
             )) return;
             const Unidad = Planes_Unidad_Label_Subobjetivo(Sub);
             const Aporte = Metas_Sugeridas_Aporte(
