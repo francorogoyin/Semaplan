@@ -6655,7 +6655,7 @@
 
       .Planes_Subobjetivo {
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        grid-template-columns: auto minmax(0, 1fr) auto;
         gap: 8px;
         align-items: start;
         border: 1px solid var(--Borde);
@@ -6835,26 +6835,6 @@
         color: var(--Texto_Suave);
         font-size: 10px;
         padding: 2px 6px;
-      }
-
-      .Planes_Subobjetivo_Partes_Btn {
-        align-self: center;
-        border: none;
-        border-radius: 8px;
-        background: transparent;
-        color: var(--Texto);
-        cursor: pointer;
-        font: inherit;
-        font-size: 11px;
-        font-weight: 800;
-        padding: 5px 8px;
-        white-space: nowrap;
-      }
-
-      .Planes_Subobjetivo_Partes_Btn:hover,
-      .Planes_Subobjetivo_Partes_Btn:focus-visible {
-        background: var(--Acento_Suave);
-        color: var(--Acento);
       }
 
       .Planes_Parte {
@@ -57708,8 +57688,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Estado = Planes_Estado_Normalizado_Subobjetivo(Sub);
         const Estado_Label =
           t(`planes.estado_${Estado.toLowerCase()}`);
-        const Partes_Cant = Planes_Partes_De_Subobjetivo(Sub.Id)
-          .length;
+        let Click_Arrastre = false;
         Item.className = "Planes_Subobjetivo" +
           ` Vista_${Vista}` +
           (Estado === "Activo" ? " Estado_Activo" : "") +
@@ -57738,12 +57717,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ))}
             </span>
           </span>
-          <button class="Planes_Subobjetivo_Partes_Btn"
-            type="button"
-            data-plan-sub-accion-inline="partes"
-            title="${Escape_Html(t("planes.administrar_partes"))}">
-            ${Escape_Html(t("planes.partes"))}
-          </button>
           <span class="Planes_Subobjetivo_Estado Con_Fallback_Emoji"
             data-plan-sub-estado
             title="${Escape_Html(Estado_Label)}"
@@ -57769,6 +57742,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.preventDefault();
             return;
           }
+          Click_Arrastre = true;
           Ev.dataTransfer.effectAllowed = "move";
           Ev.dataTransfer.setData(
             "application/x-planes-subobjetivo",
@@ -57818,22 +57792,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Objetivo.Periodo_Id
           );
         });
-        Item.addEventListener("dblclick", (Ev) => {
+        Item.addEventListener("click", (Ev) => {
+          if (Click_Arrastre) {
+            Click_Arrastre = false;
+            return;
+          }
           if (Ev.target.closest("input, button, select, textarea")) {
             return;
           }
-          Abrir_Modal_Planes_Subobjetivo(Sub.Id);
-        });
-        Item.addEventListener("click", (Ev) => {
-          const Accion = Ev.target.closest(
-            "[data-plan-sub-accion-inline]"
-          );
-          if (!Accion) return;
-          Ev.preventDefault();
-          Ev.stopPropagation();
-          if (Accion.dataset.planSubAccionInline === "partes") {
-            Abrir_Modal_Planes_Partes(Sub.Id);
-          }
+          Abrir_Modal_Planes_Partes(Sub.Id);
         });
         return Item;
       }
