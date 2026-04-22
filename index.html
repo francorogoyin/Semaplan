@@ -607,6 +607,26 @@
         border-bottom: none;
       }
 
+      .Metas_Sugeridas_Partes_Ocultas {
+        border-top: 1px solid var(--Borde);
+        padding-top: 6px;
+      }
+
+      .Metas_Sugeridas_Partes_Ocultas summary {
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        list-style: revert;
+        padding: 4px 0;
+      }
+
+      .Metas_Sugeridas_Partes_Ocultas_Lista {
+        display: grid;
+        gap: 0;
+        padding-top: 4px;
+      }
+
       .Metas_Sugeridas_Partes_Nombre {
         color: var(--Texto);
         font-size: 13px;
@@ -20899,6 +20919,8 @@
             "Importa {n} parte(s)",
           "sidebar.metas_partes_importar_ninguna":
             "No importa partes",
+          "sidebar.metas_partes_ocultas":
+            "Realizadas o canceladas ({n})",
           "sidebar.tipo": "Tipo",
           "sidebar.bolsa_horas":
             "Bolsa de horas",
@@ -24600,6 +24622,8 @@
             "Imports {n} part(s)",
           "sidebar.metas_partes_importar_ninguna":
             "Imports no parts",
+          "sidebar.metas_partes_ocultas":
+            "Done or cancelled ({n})",
           "sidebar.tipo": "Type",
           "sidebar.bolsa_horas": "Hour pool",
           "sidebar.objetivo_normal":
@@ -28233,6 +28257,8 @@
             "Importa {n} parte(s)",
           "sidebar.metas_partes_importar_ninguna":
             "Nao importa partes",
+          "sidebar.metas_partes_ocultas":
+            "Realizadas ou canceladas ({n})",
           "sidebar.tipo": "Tipo",
           "sidebar.bolsa_horas":
             "Banco de horas",
@@ -53274,22 +53300,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Planes_Partes_De_Subobjetivo(
           Sub.Id,
           Modelo,
-          false,
+          true,
           true
         )
-          .filter((Parte) => !Parte.Eliminado_Local)
-          .filter((Parte) =>
-            Planes_Estado_Calculado_Parte(Parte, Modelo) !==
-            "Realizada"
-          )
-          .map((Parte) => ({
-            Parte,
-            Sugerida: Metas_Sugeridas_Parte_En_Semana(
+          .map((Parte) => {
+            const Oculta = Boolean(Parte.Eliminado_Local) ||
+              Planes_Estado_Calculado_Parte(Parte, Modelo) ===
+              "Realizada";
+            return {
               Parte,
-              Semana.Inicio,
-              Semana.Fin
-            )
-          }));
+              Oculta,
+              Sugerida: !Oculta && Metas_Sugeridas_Parte_En_Semana(
+                Parte,
+                Semana.Inicio,
+                Semana.Fin
+              )
+            };
+          });
       }
 
       function Metas_Sugeridas_Items() {
@@ -53701,9 +53728,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .split(",")
             .filter(Boolean)
         );
-        Lista.forEach((Info) => {
+        const Crear_Item = (Info) => {
           const Parte = Info?.Parte || Info;
-          if (!Parte) return;
+          if (!Parte) return null;
           const Item = document.createElement("div");
           Item.className = "Metas_Sugeridas_Partes_Item";
           const Check = document.createElement("input");
@@ -53719,8 +53746,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Item.appendChild(Emoji);
           Item.appendChild(Nombre);
           Item.appendChild(Check);
-          Cont.appendChild(Item);
+          return Item;
+        };
+        const Visibles = Lista.filter((Info) => !Info?.Oculta);
+        const Ocultas = Lista.filter((Info) => Info?.Oculta);
+        Visibles.forEach((Info) => {
+          const Item = Crear_Item(Info);
+          if (Item) Cont.appendChild(Item);
         });
+        if (Ocultas.length) {
+          const Grupo = document.createElement("details");
+          Grupo.className = "Metas_Sugeridas_Partes_Ocultas";
+          const Titulo = document.createElement("summary");
+          Titulo.textContent = t("sidebar.metas_partes_ocultas", {
+            n: Ocultas.length
+          });
+          const Lista_Oculta = document.createElement("div");
+          Lista_Oculta.className =
+            "Metas_Sugeridas_Partes_Ocultas_Lista";
+          Ocultas.forEach((Info) => {
+            const Item = Crear_Item(Info);
+            if (Item) Lista_Oculta.appendChild(Item);
+          });
+          Grupo.appendChild(Titulo);
+          Grupo.appendChild(Lista_Oculta);
+          Cont.appendChild(Grupo);
+        }
         const Resultado = await Mostrar_Dialogo(Cont, [
           {
             Etiqueta: t("guardar"),
@@ -53838,7 +53889,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Partes_Ids.forEach((Parte_Id) => {
             const Parte = Modelo.Partes?.[Parte_Id];
-            if (!Parte || Parte.Eliminado_Local) return;
+            if (!Parte) return;
             Subs.push({
               Id: Crear_Id_Subobjetivo(),
               Plantilla_Id: null,
