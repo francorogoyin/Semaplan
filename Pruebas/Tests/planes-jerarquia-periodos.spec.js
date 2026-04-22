@@ -504,12 +504,25 @@ async ({ page }) => {
         Tags: [...(Padre.Tags || [])]
       }
     );
-    Planes_Actualizar_Progreso(Padre);
+    const Sub_Uno_Id = Planes_Agregar_Subobjetivo(
+      Padre.Id,
+      "Libro planeado uno"
+    );
+    const Sub_Dos_Id = Planes_Agregar_Subobjetivo(
+      Padre.Id,
+      "Libro planeado dos"
+    );
+    const Modelo_Subs = Asegurar_Modelo_Planes();
+    Modelo_Subs.Subobjetivos[Sub_Uno_Id].Aporte_Meta = 4;
+    Modelo_Subs.Subobjetivos[Sub_Dos_Id].Aporte_Meta = 2;
+    Planes_Actualizar_Progreso(Modelo_Subs.Objetivos[Padre.Id]);
+    Render_Plan();
     const Hijos = [Hijo];
     return {
       periodos: Object.keys(Planes_Periodo.Periodos).length,
       hijos: Hijos.length,
       leido: Padre.Progreso_Leido,
+      planeado: Planes_Aportes_Planeados_Objetivo(Padre),
       targetHijo: Hijos[0]?.Target_Total || 0,
       padreId: Padre.Id,
       hijoId: Hijos[0]?.Id || null
@@ -519,6 +532,7 @@ async ({ page }) => {
   expect(Modelo_Inicial.periodos).toBeGreaterThan(20);
   expect(Modelo_Inicial.hijos).toBeGreaterThan(0);
   expect(Modelo_Inicial.leido).toBeGreaterThanOrEqual(2);
+  expect(Modelo_Inicial.planeado).toBe(6);
   expect(Modelo_Inicial.targetHijo).toBeGreaterThan(0);
 
   const Controles_Header = await page.evaluate(() => {
@@ -541,7 +555,7 @@ async ({ page }) => {
   expect(Texto_Tarjeta).toContain("%");
   expect(Texto_Tarjeta).toContain("horas");
   expect(Texto_Tarjeta).toContain(" faltan");
-  expect(Texto_Tarjeta).toContain(" planeados");
+  expect(Texto_Tarjeta).toContain("6 planeados");
   expect(Texto_Tarjeta).toContain("·");
   expect(Texto_Tarjeta).not.toContain("(Faltan");
   expect(Texto_Tarjeta).not.toContain("#Lectura");

@@ -46645,16 +46645,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Math.max(0, Target - Progreso);
       }
 
-      function Planes_Target_Planeado_Objetivo(Objetivo) {
-        const Planeado_Raw = Objetivo?.Target_Automatico;
-        const Planeado = Planeado_Raw === undefined ||
-          Planeado_Raw === null
-            ? NaN
-            : Number(Planeado_Raw);
-        if (Number.isFinite(Planeado)) {
-          return Math.max(0, Planeado);
-        }
-        return Math.max(0, Number(Objetivo?.Target_Total) || 0);
+      function Planes_Aportes_Planeados_Objetivo(Objetivo) {
+        return Planes_Subobjetivos_Contexto_Objetivo(Objetivo)
+          .Items
+          .reduce((Total, Sub) => {
+            return Total + Math.max(
+              0,
+              Number(Sub?.Aporte_Meta) || 0
+            );
+          }, 0);
       }
 
       function Planes_Formatear_Meta_Objetivo(
@@ -46676,7 +46675,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Target_Pendiente_Objetivo(Objetivo)
         );
         const Planeado = Planes_Formatear_Numero(
-          Planes_Target_Planeado_Objetivo(Objetivo)
+          Planes_Aportes_Planeados_Objetivo(Objetivo)
         );
         return [
           Texto,
