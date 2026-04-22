@@ -450,29 +450,22 @@
         background: #fff;
       }
 
-      .Metas_Sugeridas_Fila input[type="color"] {
-        appearance: none;
-        -webkit-appearance: none;
-        width: 44px;
-        height: 34px;
+      .Metas_Sugeridas_Color_Campo,
+      .Metas_Sugeridas_Color_Swatches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .Metas_Sugeridas_Color_Campo {
         min-height: 34px;
-        overflow: hidden;
-        padding: 0;
-        border-radius: 10px;
-        cursor: pointer;
+        padding: 4px 0;
       }
 
-      .Metas_Sugeridas_Fila input[type="color"]::-webkit-color-swatch,
-      .Metas_Sugeridas_Fila
-        input[type="color"]::-webkit-color-swatch-wrapper {
-        border: none;
-        border-radius: 10px;
-        padding: 0;
-      }
-
-      .Metas_Sugeridas_Fila input[type="color"]::-moz-color-swatch {
-        border: none;
-        border-radius: 10px;
+      .Metas_Sugeridas_Color_Swatches .Swatch {
+        width: 22px;
+        height: 22px;
       }
 
       .Metas_Sugeridas_Aporte {
@@ -587,6 +580,11 @@
       .Metas_Sugeridas_Partes_Modal {
         display: grid;
         gap: 10px;
+        max-height: min(62vh, 560px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-right: 8px;
+        scrollbar-gutter: stable;
       }
 
       .Metas_Sugeridas_Partes_Item {
@@ -603,7 +601,7 @@
         height: 16px;
       }
 
-      .Metas_Sugeridas_Partes_Item:last-child {
+      .Metas_Sugeridas_Partes_Item:last-of-type {
         border-bottom: none;
       }
 
@@ -13238,6 +13236,20 @@
       .Dialogo_Boton_Cancelar {
         background: rgba(0, 0, 0, 0.06);
         color: var(--Texto);
+      }
+
+      .Dialogo_Panel:has(.Metas_Sugeridas_Partes_Modal) {
+        max-height: calc(100vh - 40px);
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) auto;
+        overflow: hidden;
+      }
+
+      .Dialogo_Panel:has(.Metas_Sugeridas_Partes_Modal)
+        .Dialogo_Mensaje {
+        min-height: 0;
+        margin-bottom: 14px;
+        overflow: hidden;
       }
 
       /* --- Menú de acción sobre encabezado de día --- */
@@ -53428,6 +53440,41 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Poblar_Select_Categorias(Select, Valor || null);
       }
 
+      function Metas_Sugeridas_Color_Preset(Color) {
+        const Hex = Normalizar_Color_Hex(Color);
+        return Colores_Preset.includes(Hex)
+          ? Hex
+          : Obtener_Color_Default();
+      }
+
+      function Metas_Sugeridas_Render_Color_Swatches(
+        Contenedor,
+        Input
+      ) {
+        if (!Contenedor || !Input) return;
+        Input.value = Metas_Sugeridas_Color_Preset(Input.value);
+        Contenedor.innerHTML = "";
+        Colores_Preset.forEach((Color) => {
+          const Boton = document.createElement("button");
+          Boton.type = "button";
+          Boton.className = "Swatch";
+          if (Color === Input.value) {
+            Boton.classList.add("Activa");
+          }
+          Boton.style.background = Color;
+          Boton.title = Color;
+          Boton.setAttribute("aria-label", Color);
+          Boton.addEventListener("click", () => {
+            Input.value = Color;
+            Metas_Sugeridas_Render_Color_Swatches(
+              Contenedor,
+              Input
+            );
+          });
+          Contenedor.appendChild(Boton);
+        });
+      }
+
       function Metas_Sugeridas_Fijar_Input(Input) {
         if (!Input) return;
         Input.readOnly = true;
@@ -53597,9 +53644,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Metas_Sugeridas_Render_Select_Categorias(Categoria, "");
 
           const Color = document.createElement("input");
-          Color.type = "color";
+          Color.type = "hidden";
           Color.className = "Metas_Sugeridas_Color";
           Color.value = Obtener_Color_Default();
+          const Color_Campo = document.createElement("div");
+          Color_Campo.className = "Metas_Sugeridas_Color_Campo";
+          const Color_Swatches = document.createElement("div");
+          Color_Swatches.className =
+            "Metas_Sugeridas_Color_Swatches";
+          Color_Campo.appendChild(Color);
+          Color_Campo.appendChild(Color_Swatches);
+          Metas_Sugeridas_Render_Color_Swatches(
+            Color_Swatches,
+            Color
+          );
+          Categoria.addEventListener("change", () => {
+            const Color_Categoria = Obtener_Nombre_Categoria(
+              Categoria.value
+            )?.Color_Baul;
+            Color.value = Metas_Sugeridas_Color_Preset(
+              Color_Categoria
+            );
+            Metas_Sugeridas_Render_Color_Swatches(
+              Color_Swatches,
+              Color
+            );
+          });
 
           const Horas_Wrap = document.createElement("div");
           Horas_Wrap.className = "Metas_Sugeridas_Horas_Wrap";
@@ -53684,7 +53754,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ));
           Controles.appendChild(Metas_Sugeridas_Campo_Control(
             "sidebar.metas_col_color",
-            Color
+            Color_Campo
           ));
           Controles.appendChild(Metas_Sugeridas_Campo_Control(
             "sidebar.metas_col_horas",
