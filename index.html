@@ -19901,10 +19901,6 @@
             id="Planes_Subobjetivo_Cancelar"
             data-i18n="cancelar"
             type="button">Cancelar</button>
-          <button class="Config_Boton_Secundario"
-            id="Planes_Subobjetivo_Realizado"
-            data-i18n="planes.marcar_realizado"
-            type="button">Marcar como realizado</button>
           <button class="Config_Boton_Guardar"
             id="Planes_Subobjetivo_Guardar"
             data-i18n="guardar"
@@ -49174,8 +49170,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "planes.ui_help_sub_metadatos"],
           [".Planes_Subobjetivo_Metadato_Input",
             "planes.ui_help_sub_metadatos"],
-          ["#Planes_Subobjetivo_Realizado",
-            "planes.ui_help_sub_realizado"],
           ["#Planes_Avance_Item", "planes.ui_help_avance_item"],
           ["#Planes_Avance_Cantidad",
             "planes.ui_help_avance_cantidad"],
@@ -55824,6 +55818,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Rango_Limite =
           Planes_Rango_Limite_Subobjetivo(Objetivo, Modelo);
+        const Sub_Realizado =
+          Boolean(Planes_Subobjetivo_En_Edicion_Id) &&
+          Planes_Estado_Normalizado_Subobjetivo(Sub) === "Cumplido";
         if (Texto) Texto.value = Sub.Texto || "";
         if (Emoji) Emoji.value = Sub.Emoji || "\u2022";
         if (Target) {
@@ -55849,19 +55846,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fecha_Objetivo,
             Rango_Limite
           );
-          Fecha_Objetivo.value =
-            Sub.Fecha_Objetivo || Rango_Limite?.Fin || "";
+          Fecha_Objetivo.value = Sub_Realizado
+            ? (Sub.Fecha_Objetivo || "")
+            : (Sub.Fecha_Objetivo || Rango_Limite?.Fin || "");
+          Fecha_Objetivo.disabled = Sub_Realizado;
+          Fecha_Objetivo.readOnly = Sub_Realizado;
         }
         if (Inicio) {
           Planes_Aplicar_Limites_Input_Fecha(Inicio, Rango_Limite);
-          Inicio.value = Sub.Fecha_Inicio || Rango_Limite?.Inicio || "";
-        }
-        const Boton_Realizado = document.getElementById(
-          "Planes_Subobjetivo_Realizado"
-        );
-        if (Boton_Realizado) {
-          Boton_Realizado.hidden = !Planes_Subobjetivo_En_Edicion_Id;
-          Boton_Realizado.disabled = Boolean(Sub.Hecha);
+          Inicio.value = Sub_Realizado
+            ? (Sub.Fecha_Inicio || "")
+            : (Sub.Fecha_Inicio || Rango_Limite?.Inicio || "");
+          Inicio.disabled = Sub_Realizado;
+          Inicio.readOnly = Sub_Realizado;
         }
         Planes_Subobjetivo_Metadatos_Borrador = {};
         Planes_Definiciones_Metadatos_Objetivo(Objetivo)
@@ -56164,6 +56161,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Fecha_Final = Forzar_Realizado
           ? Actual.Fecha
           : Fecha_Final_Form;
+        const Sub_Realizado =
+          !Es_Nuevo &&
+          Planes_Estado_Normalizado_Subobjetivo(Sub) === "Cumplido";
         const Objetivo_Contexto_Real =
           Planes_Objetivo_Real_Avance(
             Planes_Subobjetivos_Objetivo_Id,
@@ -56200,15 +56200,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Number.isFinite(Aporte) && Aporte >= 0 ? Aporte : 0,
           Unidad: Unidad_Normalizada,
           Unidad_Custom,
-          Fecha_Objetivo: (
-            document.getElementById(
-              "Planes_Subobjetivo_Fecha_Objetivo"
-            )?.value || ""
-          ).toString(),
-          Fecha_Inicio: (
-            document.getElementById("Planes_Subobjetivo_Fecha_Inicio")
-              ?.value || ""
-          ).toString(),
+          Fecha_Objetivo: Sub_Realizado
+            ? (Sub?.Fecha_Objetivo || "").toString()
+            : (
+              document.getElementById(
+                "Planes_Subobjetivo_Fecha_Objetivo"
+              )?.value || ""
+            ).toString(),
+          Fecha_Inicio: Sub_Realizado
+            ? (Sub?.Fecha_Inicio || "").toString()
+            : (
+              document.getElementById(
+                "Planes_Subobjetivo_Fecha_Inicio"
+              )?.value || ""
+            ).toString(),
           Fecha_Fin: Fecha_Final,
           Metadatos,
           Hecha: Boolean(Sub?.Hecha)
@@ -59852,11 +59857,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             data-plan-sub-accion="partes">
             ${t("planes.administrar_partes")}
           </button>
-          <button class="Planes_Btn" type="button"
-            data-plan-sub-accion="realizar"
-            ${Sub.Hecha ? "disabled" : ""}>
-            ${t("planes.marcar_realizado")}
-          </button>
           <button class="Planes_Btn Peligro" type="button"
             data-plan-sub-accion="eliminar">
             ${t("planes.eliminar_local")}
@@ -59903,12 +59903,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Tipo === "partes") {
           Abrir_Modal_Planes_Partes(Sub_Id);
-        }
-        if (Tipo === "realizar") {
-          await Planes_Marcar_Subobjetivo_Como_Realizado(
-            Sub_Id,
-            Objetivo_Id
-          );
         }
         if (Tipo === "eliminar") {
           Planes_Eliminar_Subobjetivo(Sub_Id);
@@ -86165,12 +86159,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Planes_Subobjetivo_Guardar")
         ?.addEventListener("click", () => {
           void Guardar_Modal_Planes_Subobjetivo();
-        });
-      document.getElementById("Planes_Subobjetivo_Realizado")
-        ?.addEventListener("click", () => {
-          void Guardar_Modal_Planes_Subobjetivo({
-            Marcar_Realizado: true
-          });
         });
       document.getElementById("Planes_Subobjetivo_Form")
         ?.addEventListener("submit", (Ev) => {
