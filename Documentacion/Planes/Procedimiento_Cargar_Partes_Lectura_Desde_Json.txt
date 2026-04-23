@@ -28,6 +28,34 @@ Entrar a Semaplan.com con la cuenta indicada por el usuario.
 Para la cuenta principal de Patricio, usar
 patricioe.nogueroles@gmail.com.
 
+Modo operativo recomendado.
+
+Para cargas masivas o cambios mecanicos desde JSON, la forma mas
+rapida y controlada es leer estado_usuario.estado en Supabase con
+la cuenta indicada, modificar estado.Planes_Periodo con el mismo
+formato que usa la app y guardar con control de version.
+
+Usar este modo cuando el cambio sea deterministico y no requiera
+validar comportamiento visual. No usarlo para probar UI, resolver
+dudas de flujo o cambios que dependan de interacciones visuales;
+en esos casos, usar Semaplan.com con Playwright.
+
+Pasos minimos del modo directo por Supabase.
+
+- Iniciar sesion por Supabase Auth con la cuenta indicada.
+- Leer estado_usuario filtrando por user_id.
+- Trabajar sobre estado.Planes_Periodo.
+- Modificar solo Subobjetivos, Partes y Avances involucrados.
+- Preservar IDs, familias, proyecciones, orden, estados, avances
+  y datos no afectados.
+- Actualizar Actualizado_En de las entidades cambiadas.
+- Guardar con PATCH a estado_usuario usando user_id y version
+  actual como condicion, e incrementar version en uno.
+- Si PATCH no actualiza exactamente una fila, frenar por conflicto
+  y releer el estado remoto antes de intentar de nuevo.
+- No imprimir ni guardar blobs completos del estado; reportar solo
+  resumen operativo, cantidades y diferencias verificadas.
+
 Antes de operar, limpiar cache local viejo para forzar lectura
 remota desde Supabase.
 
