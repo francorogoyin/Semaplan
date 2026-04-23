@@ -6130,6 +6130,12 @@
         opacity: 0.45;
       }
 
+      .Planes_Context_Menu_Separador {
+        height: 1px;
+        margin: 4px 6px;
+        background: rgba(0, 0, 0, 0.08);
+      }
+
       .Planes_Objetivo_Menu_Btn {
         width: 30px;
         height: 30px;
@@ -22020,7 +22026,7 @@
             "Sin meta numérica para comparar aportes.",
           "planes.personalizado": "Personalizado",
           "planes.paginas": "Páginas",
-          "planes.editar": "Editar objetivo",
+          "planes.editar": "Editar",
           "planes.editar_metrica": "Editar métrica",
           "planes.editar_avance_manual": "Editar avance manual",
           "planes.editar_tipo_progreso":
@@ -22167,7 +22173,7 @@
           "planes.mover_confirm":
             "Vas a mover el objetivo y desplazar sus fechas proporcionalmente.",
           "planes.movido_toast": "Objetivo movido.",
-          "planes.copiar_objetivo": "Copiar objetivo",
+          "planes.copiar_objetivo": "Copiar",
           "planes.pegar_objetivo": "Pegar objetivo",
           "planes.copiado_toast": "Objetivo copiado.",
           "planes.pegado_toast": "Objetivo pegado.",
@@ -25812,7 +25818,7 @@
             "No numeric target to compare contributions.",
           "planes.personalizado": "Custom",
           "planes.paginas": "Pages",
-          "planes.editar": "Edit objective",
+          "planes.editar": "Edit",
           "planes.editar_metrica": "Edit metric",
           "planes.editar_avance_manual": "Edit manual progress",
           "planes.editar_tipo_progreso":
@@ -25956,7 +25962,7 @@
           "planes.mover_confirm":
             "The objective will move and its dates will shift proportionally.",
           "planes.movido_toast": "Objective moved.",
-          "planes.copiar_objetivo": "Copy objective",
+          "planes.copiar_objetivo": "Copy",
           "planes.pegar_objetivo": "Paste objective",
           "planes.copiado_toast": "Objective copied.",
           "planes.pegado_toast": "Objective pasted.",
@@ -29551,7 +29557,7 @@
             "Sem meta numérica para comparar aportes.",
           "planes.personalizado": "Personalizado",
           "planes.paginas": "Páginas",
-          "planes.editar": "Editar objetivo",
+          "planes.editar": "Editar",
           "planes.editar_metrica": "Editar métrica",
           "planes.editar_avance_manual": "Editar avanço manual",
           "planes.editar_tipo_progreso":
@@ -29780,7 +29786,7 @@
           "planes.mover_confirm":
             "O objetivo ser\u00e1 movido e suas datas ser\u00e3o deslocadas proporcionalmente.",
           "planes.movido_toast": "Objetivo movido.",
-          "planes.copiar_objetivo": "Copiar objetivo",
+          "planes.copiar_objetivo": "Copiar",
           "planes.pegar_objetivo": "Colar objetivo",
           "planes.copiado_toast": "Objetivo copiado.",
           "planes.pegado_toast": "Objetivo colado.",
@@ -54021,6 +54027,50 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      function Html_Planes_Objetivo_Accion(
+        Accion,
+        Etiqueta,
+        Clase_Extra = ""
+      ) {
+        const Clase = Clase_Extra ? ` ${Clase_Extra}` : "";
+        return `
+          <button class="Planes_Btn${Clase}" type="button"
+            data-plan-accion="${Escape_Html(Accion)}">
+            ${Escape_Html(Etiqueta)}
+          </button>
+        `;
+      }
+
+      function Construir_Planes_Menu_Por_Grupos(Grupos) {
+        return Grupos
+          .map((Grupo) =>
+            Array.isArray(Grupo)
+              ? Grupo.filter(Boolean).join("")
+              : ""
+          )
+          .filter(Boolean)
+          .join(
+            `<div class="Planes_Context_Menu_Separador"` +
+            ` role="separator"></div>`
+          );
+      }
+
+      function Planes_Posicionar_Menu_Contextual(Menu, X, Y) {
+        const Rect = Menu.getBoundingClientRect();
+        const Margen = 8;
+        const Izquierda = Math.min(
+          Math.max(Margen, X),
+          window.innerWidth - Rect.width - Margen
+        );
+        const Arriba = Math.min(
+          Math.max(Margen, Y),
+          window.innerHeight - Rect.height - Margen
+        );
+        Menu.style.left = `${Math.max(Margen, Izquierda)}px`;
+        Menu.style.top = `${Math.max(Margen, Arriba)}px`;
+        Menu.style.visibility = "";
+      }
+
       function Render_Planes_Objetivo_Acciones(
         Objetivo,
         Periodo_Contexto_Id = ""
@@ -54051,55 +54101,51 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Eliminar_Label = Objetivo.Eliminado_Local
           ? t("planes.recuperar")
           : t("planes.eliminar_local");
-        const Puede_Pegar = Boolean(
-          Planes_Objetivo_Copiado_Id &&
-          Modelo.Objetivos[Planes_Objetivo_Copiado_Id]
-        );
-        return `
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="editar">
-              ${t("planes.editar")}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="admin_subs">
-              ${t("planes.administrar_subobjetivos")}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="registrar_avance">
-              ${t("planes.registrar_avance")}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="estado">
-              ${t("planes.editar_estado")}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="${Pausar_Accion}">
-              ${Pausar_Label}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="trasladar">
-              ${t("planes.trasladar")}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="mover_periodo">
-              ${t("planes.mover")}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="copiar_objetivo">
-              ${t("planes.copiar_objetivo")}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="pegar_objetivo"
-              ${Puede_Pegar ? "" : "disabled"}>
-              ${t("planes.pegar_objetivo")}
-            </button>
-            <button class="Planes_Btn" type="button"
-              data-plan-accion="${Ocultar_Accion}">
-              ${Ocultar_Label}
-            </button>
-            <button class="Planes_Btn Peligro" type="button"
-              data-plan-accion="eliminar">${Eliminar_Label}</button>
-        `;
+        return Construir_Planes_Menu_Por_Grupos([
+          [
+            Html_Planes_Objetivo_Accion("editar", t("planes.editar")),
+            Html_Planes_Objetivo_Accion(
+              "copiar_objetivo",
+              t("planes.copiar_objetivo")
+            ),
+            Html_Planes_Objetivo_Accion(
+              "admin_subs",
+              t("planes.ver_subobjetivos")
+            )
+          ],
+          [
+            Html_Planes_Objetivo_Accion(
+              "registrar_avance",
+              t("planes.registrar_avance")
+            ),
+            Html_Planes_Objetivo_Accion(
+              "estado",
+              t("planes.editar_estado")
+            ),
+            Html_Planes_Objetivo_Accion(Pausar_Accion, Pausar_Label)
+          ],
+          [
+            Html_Planes_Objetivo_Accion(
+              "trasladar",
+              t("planes.trasladar")
+            ),
+            Html_Planes_Objetivo_Accion(
+              "mover_periodo",
+              t("planes.mover")
+            ),
+            Html_Planes_Objetivo_Accion(
+              Ocultar_Accion,
+              Ocultar_Label
+            )
+          ],
+          [
+            Html_Planes_Objetivo_Accion(
+              "eliminar",
+              Eliminar_Label,
+              "Peligro"
+            )
+          ]
+        ]);
       }
 
       async function Planes_Ejecutar_Accion_Objetivo(
@@ -54224,19 +54270,49 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         });
         document.body.appendChild(Menu);
-        const Rect = Menu.getBoundingClientRect();
-        const Margen = 8;
-        const Izquierda = Math.min(
-          Math.max(Margen, X),
-          window.innerWidth - Rect.width - Margen
+        Planes_Posicionar_Menu_Contextual(Menu, X, Y);
+      }
+
+      function Planes_Periodo_Contextual_Desde_Evento(Ev) {
+        const Tarjeta = Ev?.target?.closest?.("[data-plan-periodo-id]");
+        const Periodo_Tarjeta = Tarjeta?.dataset?.planPeriodoId || "";
+        if (Periodo_Tarjeta) return Periodo_Tarjeta;
+        return Planes_Periodo_Activo()?.Id || "";
+      }
+
+      function Planes_Abrir_Menu_Contextual_Capa(
+        X,
+        Y,
+        Periodo_Id
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Planes_Objetivo_Copiado_Id];
+        const Periodo = Modelo.Periodos[Periodo_Id || ""];
+        if (!Objetivo || !Periodo) return false;
+        Planes_Cerrar_Menus_Objetivo();
+        const Menu = document.createElement("div");
+        Menu.className = "Planes_Context_Menu";
+        Menu.style.left = "0";
+        Menu.style.top = "0";
+        Menu.style.visibility = "hidden";
+        Menu.innerHTML = Html_Planes_Objetivo_Accion(
+          "pegar_objetivo",
+          t("planes.pegar_objetivo")
         );
-        const Arriba = Math.min(
-          Math.max(Margen, Y),
-          window.innerHeight - Rect.height - Margen
-        );
-        Menu.style.left = `${Math.max(Margen, Izquierda)}px`;
-        Menu.style.top = `${Math.max(Margen, Arriba)}px`;
-        Menu.style.visibility = "";
+        Menu.addEventListener("contextmenu", (Ev) => {
+          Ev.preventDefault();
+        });
+        Menu.addEventListener("click", async (Ev) => {
+          const Accion = Ev.target.closest("[data-plan-accion]");
+          if (!Accion) return;
+          Planes_Cerrar_Menus_Objetivo();
+          if (Accion.dataset.planAccion === "pegar_objetivo") {
+            await Planes_Pegar_Objetivo_En_Periodo(Periodo.Id);
+          }
+        });
+        document.body.appendChild(Menu);
+        Planes_Posicionar_Menu_Contextual(Menu, X, Y);
+        return true;
       }
 
       function Planes_Cerrar_Menus_Objetivo() {
@@ -88939,6 +89015,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Ev.target.closest("[data-plan-subobjetivo-id]")
         ) {
           return;
+        }
+        const Plan_Overlay = document.getElementById("Plan_Overlay");
+        if (
+          Plan_Overlay?.classList.contains("Activo") &&
+          Plan_Overlay.contains(Ev.target) &&
+          !Ev.target.closest("button, input, select, textarea, a")
+        ) {
+          const Periodo_Id = Planes_Periodo_Contextual_Desde_Evento(Ev);
+          if (
+            Planes_Abrir_Menu_Contextual_Capa(
+              Ev.clientX,
+              Ev.clientY,
+              Periodo_Id
+            )
+          ) {
+            Ev.preventDefault();
+            return;
+          }
         }
         Planes_Cerrar_Menus_Objetivo();
       });
