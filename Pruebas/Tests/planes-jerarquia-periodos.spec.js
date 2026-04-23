@@ -7012,3 +7012,62 @@ async ({ page }) => {
   expect(Resultado.Sub_Bg).toBe("rgb(245, 158, 11)");
   expect(errores).toEqual([]);
 });
+
+test("Configuracion de Plan filtra capas visibles",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Trimestre";
+    Render_Plan();
+
+    Abrir_Modal_Planes_Config();
+    document.querySelectorAll(
+      "#Planes_Config_Capas_Visibles " +
+      "input[data-plan-config-capa]"
+    ).forEach((Input) => {
+      Input.checked = ["Anio", "Mes"].includes(
+        Input.dataset.planConfigCapa
+      );
+    });
+    Guardar_Modal_Planes_Config();
+
+    const Opciones = Array.from(
+      document.querySelectorAll("#Planes_Capa_Select option")
+    ).map((Opt) => Opt.value);
+    const Filtro = Modelo.UI.Filtro_Tipo;
+
+    Abrir_Modal_Planes_Config();
+    document.querySelectorAll(
+      "#Planes_Config_Capas_Visibles " +
+      "input[data-plan-config-capa]"
+    ).forEach((Input) => {
+      Input.checked = false;
+    });
+    Guardar_Modal_Planes_Config();
+    const Sigue_Abierto = document
+      .getElementById("Planes_Config_Overlay")
+      .classList.contains("Activo");
+    Cerrar_Modal_Planes_Config();
+
+    return {
+      Opciones,
+      Filtro,
+      Sigue_Abierto,
+      Capas: Modelo.UI.Capas_Visibles
+    };
+  });
+
+  expect(Resultado.Opciones).toEqual(["Anio", "Mes"]);
+  expect(Resultado.Filtro).toBe("Anio");
+  expect(Resultado.Sigue_Abierto).toBe(true);
+  expect(Resultado.Capas).toEqual(["Anio", "Mes"]);
+  expect(errores).toEqual([]);
+});
