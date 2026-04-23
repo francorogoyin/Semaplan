@@ -252,7 +252,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Partes sincronizan target cuando ya venia de partes",
+test("Partes sincronizan target por suma y piden confirmar exceso manual",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -260,7 +260,7 @@ async ({ page }) => {
   await Preparar(page);
   const Resultado = await page.evaluate(async () => {
     Abrir_Plan();
-    const Modelo = Asegurar_Jerarquia_Planes();
+    let Modelo = Asegurar_Jerarquia_Planes();
     Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
       Id: "p2026",
       Tipo: "Anio",
@@ -286,6 +286,7 @@ async ({ page }) => {
       Emoji: "\uD83D\uDCCC",
       Texto: "Semaplan",
       Target_Total: 3,
+      Target_Suma_Componentes: true,
       Unidad: "Personalizado",
       Unidad_Custom: "features",
       Orden: 0
@@ -317,10 +318,12 @@ async ({ page }) => {
     Abrir_Modal_Planes_Parte("parte_feature_2");
     document.getElementById("Planes_Parte_Aporte_Total").value = "4";
     await Guardar_Modal_Planes_Parte();
+    Modelo = Asegurar_Modelo_Planes();
     const Tras_Editar_Alineado =
       Modelo.Subobjetivos.sub_features.Target_Total;
 
     Modelo.Subobjetivos.sub_features.Target_Total = 10;
+    Modelo.Subobjetivos.sub_features.Target_Suma_Componentes = false;
     const Total_Antes_Manual =
       Planes_Total_Aporte_Partes_Subobjetivo(
         "sub_features",
@@ -335,11 +338,45 @@ async ({ page }) => {
     const Tras_Editar_Manual =
       Modelo.Subobjetivos.sub_features.Target_Total;
 
+    Modelo.Subobjetivos.sub_features.Target_Total = 5;
+    const Dialogos = [];
+    const Mostrar_Original = Mostrar_Dialogo;
+    Mostrar_Dialogo = async (Mensaje) => {
+      Dialogos.push(Mensaje);
+      return false;
+    };
+    Abrir_Modal_Planes_Parte("parte_feature_2");
+    document.getElementById("Planes_Parte_Aporte_Total").value = "6";
+    await Guardar_Modal_Planes_Parte();
+    Modelo = Asegurar_Modelo_Planes();
+    const Tras_Cancelar_Exceso = {
+      target: Modelo.Subobjetivos.sub_features.Target_Total,
+      aporte: Modelo.Partes.parte_feature_2.Aporte_Total,
+      input: document.getElementById(
+        "Planes_Parte_Aporte_Total"
+      ).value,
+      modal: document.getElementById("Planes_Parte_Overlay")
+        .classList.contains("Activo")
+    };
+    Mostrar_Dialogo = async (Mensaje) => {
+      Dialogos.push(Mensaje);
+      return true;
+    };
+    document.getElementById("Planes_Parte_Aporte_Total").value = "6";
+    await Guardar_Modal_Planes_Parte();
+    Mostrar_Dialogo = Mostrar_Original;
+    Modelo = Asegurar_Modelo_Planes();
+    const Tras_Aceptar_Exceso = {
+      target: Modelo.Subobjetivos.sub_features.Target_Total,
+      aporte: Modelo.Partes.parte_feature_2.Aporte_Total
+    };
+
     Modelo.Subobjetivos.sub_features.Target_Total =
       Planes_Total_Aporte_Partes_Subobjetivo(
         "sub_features",
         Modelo
       );
+    Modelo.Subobjetivos.sub_features.Target_Suma_Componentes = true;
     const Total_Antes_Eliminar =
       Planes_Total_Aporte_Partes_Subobjetivo(
         "sub_features",
@@ -355,6 +392,9 @@ async ({ page }) => {
     return {
       Tras_Editar_Alineado,
       Tras_Editar_Manual,
+      Tras_Cancelar_Exceso,
+      Tras_Aceptar_Exceso,
+      Dialogos,
       Tras_Eliminar_Alineado:
         Modelo.Subobjetivos.sub_features.Target_Total,
       Partes: Planes_Partes_De_Subobjetivo(
@@ -369,9 +409,20 @@ async ({ page }) => {
 
   expect(Resultado.Tras_Editar_Alineado).toBe(5);
   expect(Resultado.Tras_Editar_Manual).toBe(10);
-  expect(Resultado.Tras_Eliminar_Alineado).toBe(4);
+  expect(Resultado.Tras_Cancelar_Exceso).toEqual({
+    target: 5,
+    aporte: 4,
+    input: "4",
+    modal: true
+  });
+  expect(Resultado.Tras_Aceptar_Exceso).toEqual({
+    target: 8,
+    aporte: 6
+  });
+  expect(Resultado.Dialogos.join(" ")).toContain("excediendo");
+  expect(Resultado.Tras_Eliminar_Alineado).toBe(6);
   expect(Resultado.Partes).toEqual([
-    { nombre: "Feature dos", aporte: 4 }
+    { nombre: "Feature dos", aporte: 6 }
   ]);
   expect(errores).toEqual([]);
 });

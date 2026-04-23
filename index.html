@@ -6576,6 +6576,39 @@
         border-radius: 8px;
       }
 
+      .Planes_Registro_Filtros {
+        position: sticky;
+        top: 0;
+        z-index: 4;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(120px, 1fr));
+        gap: 8px;
+        margin: 0 0 10px;
+        padding: 0 0 10px;
+        background: var(--Panel);
+        border-bottom: 1px solid var(--Borde);
+      }
+
+      .Planes_Registro_Filtro {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 4px;
+        color: var(--Texto_Suave);
+        font-size: 11px;
+      }
+
+      .Planes_Registro_Filtro select {
+        min-width: 0;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--Texto);
+        font: inherit;
+        font-size: 12px;
+        padding: 7px 9px;
+      }
+
       .Planes_Registro_Tabla {
         width: 100%;
         border-collapse: collapse;
@@ -7126,6 +7159,36 @@
         display: none;
       }
 
+      .Planes_Target_Suma_Fila {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .Planes_Target_Suma_Opcion {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        min-height: 35px;
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+
+      .Planes_Target_Suma_Opcion input[type="checkbox"] {
+        width: 16px;
+        min-width: 16px;
+        height: 16px;
+        margin: 0;
+        padding: 0;
+      }
+
+      .Planes_Target_Suma_Fila input:disabled {
+        background: #f4f1ea;
+        color: var(--Texto_Suave);
+      }
+
       .Planes_Objetivo_Form label {
         color: var(--Texto_Suave);
         font-size: 11px;
@@ -7149,6 +7212,15 @@
         min-height: 94px;
         resize: vertical;
         line-height: 1.45;
+      }
+
+      .Planes_Objetivo_Form
+        .Planes_Target_Suma_Opcion input[type="checkbox"] {
+        width: 16px;
+        min-width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        padding: 0;
       }
 
       #Plan_Overlay.Periodo_Cerrado .Plan_Panel {
@@ -19683,15 +19755,25 @@
                 data-i18n-ph="planes.nuevo_titulo"
                 placeholder="Nuevo objetivo">
             </label>
-            <label class="Campo Planes_Meta_Campo">
-              <span data-i18n="planes.nuevo_target">
+            <div class="Campo Planes_Meta_Campo">
+              <label for="Planes_Objetivo_Target"
+                data-i18n="planes.nuevo_target">
                 Meta
+              </label>
+              <span class="Planes_Target_Suma_Fila">
+                <input id="Planes_Objetivo_Target"
+                  type="number"
+                  min="0"
+                  step="0.25">
+                <label class="Planes_Target_Suma_Opcion">
+                  <input id="Planes_Objetivo_Target_Suma"
+                    type="checkbox">
+                  <span data-i18n="planes.target_suma_componentes">
+                    Suma
+                  </span>
+                </label>
               </span>
-              <input id="Planes_Objetivo_Target"
-                type="number"
-                min="0"
-                step="0.25">
-            </label>
+            </div>
             <label class="Campo Planes_Unidad_Campo">
               <span data-i18n="planes.nuevo_unidad">
                 Unidad
@@ -19989,15 +20071,25 @@
                 data-i18n-ph="planes.unidad_custom_ph"
                 placeholder="Lecturas, ejercicios...">
             </label>
-            <label class="Campo Planes_Subobjetivo_Meta_Campo">
-              <span data-i18n="planes.sub_valor_objetivo">
+            <div class="Campo Planes_Subobjetivo_Meta_Campo">
+              <label for="Planes_Subobjetivo_Target"
+                data-i18n="planes.sub_valor_objetivo">
                 Valor objetivo
+              </label>
+              <span class="Planes_Target_Suma_Fila">
+                <input id="Planes_Subobjetivo_Target"
+                  type="number"
+                  min="0"
+                  step="0.25">
+                <label class="Planes_Target_Suma_Opcion">
+                  <input id="Planes_Subobjetivo_Target_Suma"
+                    type="checkbox">
+                  <span data-i18n="planes.target_suma_componentes">
+                    Suma
+                  </span>
+                </label>
               </span>
-              <input id="Planes_Subobjetivo_Target"
-                type="number"
-                min="0"
-                step="0.25">
-            </label>
+            </div>
             <label class="Campo Planes_Subobjetivo_Aporte_Campo">
               <span id="Planes_Subobjetivo_Aporte_Label"
                 data-i18n="planes.sub_aporte">
@@ -21338,6 +21430,7 @@
           "planes.nuevo_titulo": "Nuevo objetivo",
           "planes.editar_objetivo": "Editar objetivo",
           "planes.nuevo_target": "Meta",
+          "planes.target_suma_componentes": "Suma",
           "planes.nuevo_unidad": "Unidad",
           "planes.unidad_subobjetivos_default":
             "Unidad por defecto en subobjetivos",
@@ -21397,6 +21490,8 @@
             "Elegí una meta o subobjetivo.",
           "planes.avance_err_cantidad":
             "Ingresá una cantidad mayor a cero.",
+          "planes.avance_err_hora":
+            "Ingresa una hora valida.",
           "planes.avance_err_fecha":
             "Ingresá una fecha válida.",
           "planes.avance_err_sub_metrica":
@@ -21436,6 +21531,9 @@
           "planes.registro_fecha": "Fecha",
           "planes.registro_fuente": "Fuente",
           "planes.registro_item": "Item",
+          "planes.registro_parte": "Parte",
+          "planes.registro_filtro_vacio":
+            "No hay registros con esos filtros.",
           "planes.registro_cantidad": "Cantidad",
           "planes.registro_acciones": "Acciones",
           "planes.registro_eliminar_confirm":
@@ -21451,6 +21549,11 @@
           "planes.sub_aporte": "Aporte",
           "planes.sub_aporte_en": "Aporte en {Unidad}",
           "planes.sub_valor_objetivo": "Valor objetivo",
+          "planes.target_excede_padre_confirm":
+            "Estas excediendo el valor objetivo de {nombre}: " +
+            "de {actual} {unidad} a {nuevo} {unidad}. " +
+            "Queres que se edite el target del padre?",
+          "planes.editar_target_padre": "Editar target",
           "planes.sub_metrica": "Métrica",
           "planes.sub_unidad_custom":
             "Unidad propia",
@@ -21626,6 +21729,8 @@
             "Origen del avance: manual, calendario o subobjetivo.",
           "planes.ui_help_registro_item":
             "Objetivo o subobjetivo que recibió el avance.",
+          "planes.ui_help_registro_parte":
+            "Parte asociada al avance, si existe.",
           "planes.ui_help_registro_cantidad":
             "Cantidad y unidad registradas.",
           "planes.ui_help_registro_acciones":
@@ -21951,6 +22056,13 @@
           "planes.parte_subir": "Subir",
           "planes.parte_bajar": "Bajar",
           "planes.partes_resumen": "{n} parte(s)",
+          "planes.partes_aportes_cantidad": "{Total} parte(s)",
+          "planes.partes_aportes_resumen":
+            "{Aportes} {Unidad} asignadas, faltan {Falta} {Unidad}",
+          "planes.partes_aportes_excedente":
+            "{Aportes} {Unidad} asignadas, excede {Exceso} {Unidad}",
+          "planes.partes_aportes_sin_metrica":
+            "{Aportes} {Unidad} asignadas",
           "planes.sin_partes": "Todavia no hay partes.",
           "planes.err_parte": "La parte necesita nombre.",
           "planes.err_parte_aporte":
@@ -25048,6 +25160,7 @@
           "planes.nuevo_titulo": "New objective",
           "planes.editar_objetivo": "Edit objective",
           "planes.nuevo_target": "Goal",
+          "planes.target_suma_componentes": "Sum",
           "planes.nuevo_unidad": "Unit",
           "planes.unidad_subobjetivos_default":
             "Default unit for subobjectives",
@@ -25106,6 +25219,8 @@
             "Choose a goal or subobjective.",
           "planes.avance_err_cantidad":
             "Enter an amount greater than zero.",
+          "planes.avance_err_hora":
+            "Enter a valid time.",
           "planes.avance_err_fecha":
             "Enter a valid date.",
           "planes.avance_err_sub_metrica":
@@ -25143,6 +25258,9 @@
           "planes.registro_fecha": "Date",
           "planes.registro_fuente": "Source",
           "planes.registro_item": "Item",
+          "planes.registro_parte": "Part",
+          "planes.registro_filtro_vacio":
+            "No entries match those filters.",
           "planes.registro_cantidad": "Amount",
           "planes.registro_acciones": "Actions",
           "planes.registro_eliminar_confirm":
@@ -25158,6 +25276,11 @@
           "planes.sub_aporte": "Contribution",
           "planes.sub_aporte_en": "Contribution in {Unidad}",
           "planes.sub_valor_objetivo": "Target value",
+          "planes.target_excede_padre_confirm":
+            "You are exceeding the target value for {nombre}: " +
+            "from {actual} {unidad} to {nuevo} {unidad}. " +
+            "Update the parent target?",
+          "planes.editar_target_padre": "Update target",
           "planes.sub_metrica": "Metric",
           "planes.sub_unidad_custom":
             "Custom unit",
@@ -25333,6 +25456,8 @@
             "Progress source: manual, calendar, or subobjective.",
           "planes.ui_help_registro_item":
             "Objective or subobjective that received the progress.",
+          "planes.ui_help_registro_parte":
+            "Part associated with the progress entry, when present.",
           "planes.ui_help_registro_cantidad":
             "Recorded amount and unit.",
           "planes.ui_help_registro_acciones":
@@ -25655,6 +25780,13 @@
           "planes.parte_subir": "Move up",
           "planes.parte_bajar": "Move down",
           "planes.partes_resumen": "{n} part(s)",
+          "planes.partes_aportes_cantidad": "{Total} part(s)",
+          "planes.partes_aportes_resumen":
+            "{Aportes} {Unidad} assigned, {Falta} {Unidad} left",
+          "planes.partes_aportes_excedente":
+            "{Aportes} {Unidad} assigned, exceeds by {Exceso} {Unidad}",
+          "planes.partes_aportes_sin_metrica":
+            "{Aportes} {Unidad} assigned",
           "planes.sin_partes": "There are no parts yet.",
           "planes.err_parte": "The part needs a name.",
           "planes.err_parte_aporte":
@@ -28701,6 +28833,7 @@
           "planes.nuevo_titulo": "Novo objetivo",
           "planes.editar_objetivo": "Editar objetivo",
           "planes.nuevo_target": "Meta",
+          "planes.target_suma_componentes": "Soma",
           "planes.nuevo_unidad": "Unidade",
           "planes.unidad_subobjetivos_default":
             "Unidade padr\u00e3o nos subobjetivos",
@@ -28760,6 +28893,8 @@
             "Escolha uma meta ou subobjetivo.",
           "planes.avance_err_cantidad":
             "Informe uma quantidade maior que zero.",
+          "planes.avance_err_hora":
+            "Informe uma hora valida.",
           "planes.avance_err_fecha":
             "Informe uma data válida.",
           "planes.avance_err_sub_metrica":
@@ -28798,6 +28933,9 @@
           "planes.registro_fecha": "Data",
           "planes.registro_fuente": "Fonte",
           "planes.registro_item": "Item",
+          "planes.registro_parte": "Parte",
+          "planes.registro_filtro_vacio":
+            "Nao ha registros com esses filtros.",
           "planes.registro_cantidad": "Quantidade",
           "planes.registro_acciones": "Acoes",
           "planes.registro_eliminar_confirm":
@@ -28810,6 +28948,11 @@
           "planes.meta_asignados": "{Cantidad} atribuidos",
           "planes.meta_realizados": "{Cantidad} realizados",
           "planes.meta_planeados": "{Cantidad} planejados",
+          "planes.target_excede_padre_confirm":
+            "Voce esta excedendo o valor objetivo de {nombre}: " +
+            "de {actual} {unidad} para {nuevo} {unidad}. " +
+            "Atualizar o target pai?",
+          "planes.editar_target_padre": "Atualizar target",
           "planes.sub_aporte": "Aporte",
           "planes.sub_aporte_en": "Aporte em {Unidad}",
           "planes.sub_valor_objetivo": "Valor objetivo",
@@ -28988,6 +29131,8 @@
             "Origem do avanço: manual, calendário ou subobjetivo.",
           "planes.ui_help_registro_item":
             "Objetivo ou subobjetivo que recebeu o avanço.",
+          "planes.ui_help_registro_parte":
+            "Parte associada ao avanco, se existir.",
           "planes.ui_help_registro_cantidad":
             "Quantidade e unidade registradas.",
           "planes.ui_help_registro_acciones":
@@ -29313,6 +29458,13 @@
           "planes.parte_subir": "Subir",
           "planes.parte_bajar": "Baixar",
           "planes.partes_resumen": "{n} parte(s)",
+          "planes.partes_aportes_cantidad": "{Total} parte(s)",
+          "planes.partes_aportes_resumen":
+            "{Aportes} {Unidad} atribuidas, faltam {Falta} {Unidad}",
+          "planes.partes_aportes_excedente":
+            "{Aportes} {Unidad} atribuidas, excede {Exceso} {Unidad}",
+          "planes.partes_aportes_sin_metrica":
+            "{Aportes} {Unidad} atribuidas",
           "planes.sin_partes": "Ainda nao ha partes.",
           "planes.err_parte": "A parte precisa de nome.",
           "planes.err_parte_aporte":
@@ -32806,6 +32958,9 @@
       let Planes_Importar_Partes_Objetivo_Id = null;
       let Planes_Registro_Objetivo_Id = null;
       let Planes_Registro_Periodo_Contexto_Id = "";
+      let Planes_Registro_Filtro_Fuente = "Todas";
+      let Planes_Registro_Filtro_Item = "Todos";
+      let Planes_Registro_Filtro_Parte = "Todas";
       let Planes_Subobjetivos_Filtro_Estado = "Abiertos";
       let Planes_Subobjetivos_Filtro_Metadato = "";
       let Planes_Subobjetivos_Filtro_Periodo = "Todos";
@@ -45776,6 +45931,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             : Unidad,
           Modo_Avance,
           Modo_Progreso: Modo,
+          Target_Suma_Componentes:
+            Boolean(
+              Objetivo.Target_Suma_Componentes ||
+              Objetivo.Target_Por_Suma_Componentes
+            ),
           Progreso_Manual: Number(Objetivo.Progreso_Manual) || 0,
           Progreso_Importado:
             Number(Objetivo.Progreso_Importado) || 0,
@@ -45909,6 +46069,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Emoji: Normalizar_Emoji(Subobjetivo.Emoji || "\u2022"),
           Texto: (Subobjetivo.Texto || "").toString().trim(),
           Target_Total: Number.isFinite(Target) ? Target : 0,
+          Target_Suma_Componentes:
+            Boolean(
+              Subobjetivo.Target_Suma_Componentes ||
+              Subobjetivo.Target_Por_Suma_Componentes
+            ),
           Aporte_Meta:
             Number.isFinite(Aporte_Meta) && Aporte_Meta >= 0
               ? Aporte_Meta
@@ -46474,15 +46639,178 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
       }
 
+      function Planes_Target_Suma_Componentes_Activo(Item) {
+        const Valor = Item?.Target_Suma_Componentes;
+        return Valor === true || Valor === "true" || Valor === 1;
+      }
+
       function Planes_Total_Aporte_Partes_Subobjetivo(
         Sub_Id,
-        Modelo = null
+        Modelo = null,
+        Reemplazo = null
       ) {
         const M = Modelo || Asegurar_Modelo_Planes();
-        return Planes_Partes_De_Subobjetivo(Sub_Id, M)
-          .reduce((Total, Parte) => {
-            return Total + (Number(Parte.Aporte_Total) || 0);
+        const Id_Reemplazo = (Reemplazo?.Id || "").toString();
+        let Reemplazo_Usado = false;
+        const Total = Planes_Partes_De_Subobjetivo(Sub_Id, M)
+          .reduce((Suma, Parte) => {
+            if (Id_Reemplazo && Parte.Id === Id_Reemplazo) {
+              Reemplazo_Usado = true;
+              if (
+                Reemplazo.Eliminado_Local ||
+                Reemplazo.Subobjetivo_Id !== Sub_Id
+              ) {
+                return Suma;
+              }
+              return Suma + (Number(Reemplazo.Aporte_Total) || 0);
+            }
+            return Suma + (Number(Parte.Aporte_Total) || 0);
           }, 0);
+        if (
+          Reemplazo &&
+          !Reemplazo_Usado &&
+          Reemplazo.Subobjetivo_Id === Sub_Id &&
+          !Reemplazo.Eliminado_Local
+        ) {
+          return Total + (Number(Reemplazo.Aporte_Total) || 0);
+        }
+        return Total;
+      }
+
+      function Planes_Total_Aporte_Subobjetivos_Objetivo(
+        Objetivo,
+        Modelo = null,
+        Reemplazo = null
+      ) {
+        if (!Objetivo) return 0;
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Objetivo_Id = (
+          Objetivo.__Objetivo_Canonico_Id ||
+          Objetivo.Id ||
+          ""
+        ).toString();
+        if (!Objetivo_Id) return 0;
+        const Contexto =
+          Planes_Subobjetivos_Contexto_Objetivo(
+            M.Objetivos[Objetivo_Id] || Objetivo
+          );
+        const Id_Reemplazo = (Reemplazo?.Id || "").toString();
+        let Reemplazo_Usado = false;
+        const Total = Contexto.Items.reduce((Suma, Sub) => {
+          if (Id_Reemplazo && Sub.Id === Id_Reemplazo) {
+            Reemplazo_Usado = true;
+            if (
+              Reemplazo.Eliminado_Local ||
+              Reemplazo.Objetivo_Id !== Objetivo_Id
+            ) {
+              return Suma;
+            }
+            return Suma + (Number(Reemplazo.Aporte_Meta) || 0);
+          }
+          return Suma + (Number(Sub.Aporte_Meta) || 0);
+        }, 0);
+        if (
+          Reemplazo &&
+          !Reemplazo_Usado &&
+          Reemplazo.Objetivo_Id === Objetivo_Id &&
+          !Reemplazo.Eliminado_Local
+        ) {
+          return Total + (Number(Reemplazo.Aporte_Meta) || 0);
+        }
+        return Total;
+      }
+
+      function Planes_Aplicar_Target_Subobjetivo(
+        Sub,
+        Target_Total,
+        Opciones = {}
+      ) {
+        const Valor = Number(Target_Total);
+        if (!Sub || !Number.isFinite(Valor) || Valor < 0) {
+          return false;
+        }
+        if (Opciones.Target_Suma_Componentes !== undefined) {
+          Sub.Target_Suma_Componentes = Boolean(
+            Opciones.Target_Suma_Componentes
+          );
+        }
+        if (Math.abs((Number(Sub.Target_Total) || 0) - Valor) <= 0.0001) {
+          return false;
+        }
+        Sub.Target_Total = Valor;
+        Sub.Actualizado_En = new Date().toISOString();
+        return true;
+      }
+
+      function Planes_Aplicar_Target_Objetivo(
+        Objetivo,
+        Target_Total,
+        Opciones = {}
+      ) {
+        const Valor = Number(Target_Total);
+        if (!Objetivo || !Number.isFinite(Valor) || Valor < 0) {
+          return false;
+        }
+        if (Opciones.Target_Suma_Componentes !== undefined) {
+          Objetivo.Target_Suma_Componentes = Boolean(
+            Opciones.Target_Suma_Componentes
+          );
+        }
+        if (Math.abs((Number(Objetivo.Target_Total) || 0) - Valor) <=
+          0.0001) {
+          return false;
+        }
+        Objetivo.Target_Total = Valor;
+        Objetivo.Target_Actual = Valor;
+        Objetivo.Target_Automatico = Valor;
+        if (Objetivo.Fijado) {
+          Objetivo.Target_Fijado = Valor;
+        }
+        Objetivo.Actualizado_En = new Date().toISOString();
+        return true;
+      }
+
+      function Planes_Restaurar_Input_Original(Id) {
+        const Input = document.getElementById(Id);
+        if (!Input) return;
+        Input.value =
+          Input.dataset.valorOriginal !== undefined
+            ? Input.dataset.valorOriginal
+            : "";
+      }
+
+      async function Planes_Confirmar_Exceso_Target_Manual(
+        Padre,
+        Total_Nuevo,
+        Unidad
+      ) {
+        if (!Padre || Planes_Target_Suma_Componentes_Activo(Padre)) {
+          return true;
+        }
+        const Target_Actual = Number(Padre.Target_Total) || 0;
+        if (
+          Target_Actual <= 0 ||
+          (Number(Total_Nuevo) || 0) <= Target_Actual + 0.0001
+        ) {
+          return true;
+        }
+        const Confirmar = await Mostrar_Dialogo(
+          t("planes.target_excede_padre_confirm", {
+            nombre: Padre.Nombre || Padre.Texto || "",
+            actual: Planes_Formatear_Numero(Target_Actual),
+            nuevo: Planes_Formatear_Numero(Total_Nuevo),
+            unidad: Unidad || ""
+          }),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            {
+              Etiqueta: t("planes.editar_target_padre"),
+              Valor: true,
+              Tipo: "Primario"
+            }
+          ]
+        );
+        return Boolean(Confirmar);
       }
 
       function Planes_Sincronizar_Target_Subobjetivo_Desde_Partes(
@@ -46494,19 +46822,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Sub = M.Subobjetivos?.[Sub_Id];
         const Total_Anterior = Number(Total_Partes_Antes);
         if (!Sub || !Number.isFinite(Total_Anterior)) return false;
-        const Target_Actual = Number(Sub.Target_Total) || 0;
-        if (Math.abs(Target_Actual - Total_Anterior) > 0.0001) {
+        if (!Planes_Target_Suma_Componentes_Activo(Sub)) {
           return false;
         }
         const Total_Nuevo = Planes_Total_Aporte_Partes_Subobjetivo(
           Sub.Id,
           M
         );
-        if (Math.abs(Target_Actual - Total_Nuevo) <= 0.0001) {
+        if (!Planes_Aplicar_Target_Subobjetivo(Sub, Total_Nuevo)) {
           return false;
         }
-        Sub.Target_Total = Total_Nuevo;
-        Sub.Actualizado_En = new Date().toISOString();
         Planes_Propagar_Estructura_Familia_Subobjetivo(Sub.Id);
         Planes_Sincronizar_Estado_Familia_Subobjetivo(Sub.Id, M);
         return true;
@@ -49628,8 +49953,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           [".Planes_Registro_Tabla th:nth-child(3)",
             "planes.ui_help_registro_item"],
           [".Planes_Registro_Tabla th:nth-child(4)",
-            "planes.ui_help_registro_cantidad"],
+            "planes.ui_help_registro_parte"],
           [".Planes_Registro_Tabla th:nth-child(5)",
+            "planes.ui_help_registro_cantidad"],
+          [".Planes_Registro_Tabla th:nth-child(6)",
             "planes.ui_help_registro_acciones"]
         ];
         Ayudas.forEach(([Selector, Clave]) => {
@@ -51100,6 +51427,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Input.hidden = Select.value !== "Personalizado";
       }
 
+      function Planes_Sincronizar_Target_Suma_Objetivo_Form() {
+        const Input = document.getElementById("Planes_Objetivo_Target");
+        const Check = document.getElementById(
+          "Planes_Objetivo_Target_Suma"
+        );
+        if (!Input || !Check) return;
+        const Activo = Boolean(Check.checked);
+        if (Activo) {
+          const Modelo = Asegurar_Modelo_Planes();
+          const Objetivo = Planes_Objetivo_En_Edicion_Id
+            ? Modelo.Objetivos[Planes_Objetivo_En_Edicion_Id]
+            : null;
+          Input.value = String(
+            Planes_Total_Aporte_Subobjetivos_Objetivo(
+              Objetivo,
+              Modelo
+            )
+          );
+        }
+        Input.disabled = Activo;
+        Input.readOnly = Activo;
+      }
+
       function Planes_Unidad_Default_Subobjetivo_Objetivo(Objetivo) {
         if (!Objetivo) {
           return { Unidad: "Horas", Unidad_Custom: "" };
@@ -51380,6 +51730,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Emoji: Normalizar_Emoji(Objetivo?.Emoji || "\u2705"),
           Nombre: (Objetivo?.Nombre || "").toString().trim(),
           Target_Total: Number(Objetivo?.Target_Total) || 0,
+          Target_Suma_Componentes:
+            Boolean(Objetivo?.Target_Suma_Componentes),
           Unidad: (Objetivo?.Unidad || "Horas").toString(),
           Unidad_Custom: (
             Objetivo?.Unidad_Custom || ""
@@ -51485,6 +51837,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Target = document.getElementById(
           "Planes_Objetivo_Target"
         );
+        const Target_Suma = document.getElementById(
+          "Planes_Objetivo_Target_Suma"
+        );
         const Fecha_Inicio = document.getElementById(
           "Planes_Objetivo_Fecha_Inicio"
         );
@@ -51511,7 +51866,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (Emoji) Emoji.value = Objetivo?.Emoji || "\u2705";
         if (Nombre) Nombre.value = Objetivo?.Nombre || "";
-        if (Target) Target.value = Objetivo?.Target_Total || "";
+        if (Target) {
+          Target.value = Objetivo?.Target_Total || "";
+          Target.dataset.valorOriginal = Target.value;
+        }
+        if (Target_Suma) {
+          Target_Suma.checked = Boolean(
+            Objetivo?.Target_Suma_Componentes
+          );
+        }
         if (Fecha_Inicio) {
           Fecha_Inicio.value =
             Fechas_Periodo?.Fecha_Inicio ||
@@ -51556,6 +51919,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Metadatos_Modal_Objetivo();
         Actualizar_Campo_Unidad_Custom_Planes();
         Actualizar_Campo_Unidad_Subobjetivos_Custom_Planes();
+        Planes_Sincronizar_Target_Suma_Objetivo_Form();
         document.getElementById("Planes_Form_Subobjetivos")
           ?.classList.toggle("Activo", Boolean(Objetivo));
         Render_Redistribucion_Modal_Objetivo();
@@ -51613,10 +51977,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "Planes_Objetivo_Unidad_Subobjetivos_Custom"
           )?.value || ""
         ).trim();
-        const Target_Form = Number(
+        const Existente = Planes_Objetivo_En_Edicion_Id
+          ? Modelo.Objetivos[Planes_Objetivo_En_Edicion_Id]
+          : null;
+        const Target_Suma_Componentes = Boolean(
+          document.getElementById("Planes_Objetivo_Target_Suma")
+            ?.checked
+        );
+        const Target_Form_Manual = Number(
           document.getElementById("Planes_Objetivo_Target")
             ?.value
         ) || 0;
+        const Target_Form = Target_Suma_Componentes
+          ? Planes_Total_Aporte_Subobjetivos_Objetivo(
+            Existente,
+            Modelo
+          )
+          : Target_Form_Manual;
         const Modo_Avance_Form = Target_Form > 0
           ? "Metrica"
           : "Sin_Metrica";
@@ -51651,9 +52028,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Metadatos_Campos =
           Planes_Leer_Definiciones_Metadatos_Objetivo();
         if (Metadatos_Campos === null) return;
-        const Existente = Planes_Objetivo_En_Edicion_Id
-          ? Modelo.Objetivos[Planes_Objetivo_En_Edicion_Id]
-          : null;
         const Fechas_Periodo_Fijadas =
           Overlay?.dataset.fechasPeriodoFijadas === "1";
         const Periodo_Datos = Modelo.Periodos[
@@ -51703,6 +52077,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Unidad_Subobjetivos_Custom,
           Modo_Avance,
           Modo_Progreso,
+          Target_Suma_Componentes,
           Descripcion: document.getElementById(
             "Planes_Objetivo_Descripcion"
           )?.value || "",
@@ -55849,6 +56224,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sub.Target_Total =
             Number.isFinite(Target) && Target > 0 ? Target : 0;
         }
+        if (Datos.Target_Suma_Componentes !== undefined) {
+          Sub.Target_Suma_Componentes = Boolean(
+            Datos.Target_Suma_Componentes
+          );
+        }
         if (Datos.Aporte_Meta !== undefined) {
           const Aporte = Number(
             String(Datos.Aporte_Meta || "").replace(",", ".")
@@ -55925,6 +56305,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Oculto = Select.value !== "Personalizado";
         Input.hidden = Oculto;
         if (Campo) Campo.hidden = Oculto;
+      }
+
+      function Planes_Sincronizar_Target_Suma_Subobjetivo_Form() {
+        const Input = document.getElementById(
+          "Planes_Subobjetivo_Target"
+        );
+        const Check = document.getElementById(
+          "Planes_Subobjetivo_Target_Suma"
+        );
+        if (!Input || !Check) return;
+        const Activo = Boolean(Check.checked);
+        if (Activo) {
+          const Modelo = Asegurar_Modelo_Planes();
+          const Sub_Id = Planes_Subobjetivo_En_Edicion_Id || "";
+          Input.value = String(
+            Sub_Id
+              ? Planes_Total_Aporte_Partes_Subobjetivo(
+                Sub_Id,
+                Modelo
+              )
+              : 0
+          );
+        }
+        Input.disabled = Activo;
+        Input.readOnly = Activo;
       }
 
       function Planes_Metadatos_Borrador_A_Objeto() {
@@ -56070,6 +56475,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Emoji: Normalizar_Emoji(Sub?.Emoji || "\u2022"),
           Texto: (Sub?.Texto || "").toString().trim(),
           Target_Total: Number(Sub?.Target_Total) || 0,
+          Target_Suma_Componentes:
+            Boolean(Sub?.Target_Suma_Componentes),
           Aporte_Meta: Number(Sub?.Aporte_Meta) || 0,
           Unidad: (Sub?.Unidad || "Horas").toString(),
           Unidad_Custom: (Sub?.Unidad_Custom || "")
@@ -56325,6 +56732,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Target = document.getElementById(
           "Planes_Subobjetivo_Target"
         );
+        const Target_Suma = document.getElementById(
+          "Planes_Subobjetivo_Target_Suma"
+        );
         const Aporte = document.getElementById(
           "Planes_Subobjetivo_Aporte"
         );
@@ -56369,11 +56779,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Target.value = Number.isFinite(Number(Sub.Target_Total))
             ? String(Number(Sub.Target_Total))
             : "";
+          Target.dataset.valorOriginal = Target.value;
+        }
+        if (Target_Suma) {
+          Target_Suma.checked = Boolean(Sub.Target_Suma_Componentes);
         }
         if (Aporte) {
           Aporte.value = Number.isFinite(Number(Sub.Aporte_Meta))
             ? String(Number(Sub.Aporte_Meta))
             : "0";
+          Aporte.dataset.valorOriginal = Aporte.value;
         }
         Planes_Poblar_Select_Unidades(
           Unidad,
@@ -56422,6 +56837,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
         Render_Metadatos_Modal_Subobjetivo();
         Actualizar_Campo_Unidad_Custom_Subobjetivo();
+        Planes_Sincronizar_Target_Suma_Subobjetivo_Form();
         document.getElementById("Planes_Subobjetivo_Overlay")
           ?.classList.add("Activo");
         Planes_Aplicar_Contexto_Modal_Periodo(
@@ -56804,6 +57220,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ?.value || ""
           ).replace(",", ".")
         );
+        const Target_Suma_Componentes = Boolean(
+          document.getElementById("Planes_Subobjetivo_Target_Suma")
+            ?.checked
+        );
         const Aporte = Number(
           String(
             document.getElementById("Planes_Subobjetivo_Aporte")
@@ -56812,7 +57232,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Metadatos = Planes_Metadatos_Borrador_A_Objeto();
         if (Metadatos === null) return;
-        const Target_Normalizado =
+        let Target_Normalizado =
           Number.isFinite(Target) && Target > 0 ? Target : 0;
         const Sub_Realizado =
           !Es_Nuevo &&
@@ -56852,6 +57272,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ),
           Texto,
           Target_Total: Target_Normalizado,
+          Target_Suma_Componentes,
           Aporte_Meta:
             Number.isFinite(Aporte) && Aporte >= 0 ? Aporte : 0,
           Unidad: Unidad_Normalizada,
@@ -56879,12 +57300,67 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Metadatos,
           Hecha: Boolean(Sub?.Hecha)
         };
+        if (Target_Suma_Componentes) {
+          Target_Normalizado = Sub?.Id
+            ? Planes_Total_Aporte_Partes_Subobjetivo(
+              Sub.Id,
+              Modelo
+            )
+            : 0;
+          Datos.Target_Total = Target_Normalizado;
+        }
         const Objetivo_Datos =
           Modelo.Objetivos[Datos.Objetivo_Id] || null;
         if (!Planes_Validar_Rango_Subobjetivo(Datos, Objetivo_Datos)) {
           return;
         }
         const Debe_Marcar_Realizado = Forzar_Realizado;
+        if (
+          Sub &&
+          !Debe_Marcar_Realizado &&
+          !Hay_Cambio_Real_Guardado(
+            Planes_Datos_Comparables_Subobjetivo(Sub),
+            Planes_Datos_Comparables_Subobjetivo(Datos)
+          )
+        ) {
+          Cerrar_Modal_Planes_Subobjetivo();
+          return;
+        }
+        let Target_Objetivo_Ajustado = null;
+        if (Objetivo_Datos) {
+          const Total_Subobjetivos_Nuevo =
+            Planes_Total_Aporte_Subobjetivos_Objetivo(
+              Objetivo_Datos,
+              Modelo,
+              {
+                Id: Sub?.Id || "",
+                Objetivo_Id: Datos.Objetivo_Id,
+                Aporte_Meta: Datos.Aporte_Meta
+              }
+            );
+          if (Planes_Target_Suma_Componentes_Activo(Objetivo_Datos)) {
+            Target_Objetivo_Ajustado = Total_Subobjetivos_Nuevo;
+          } else {
+            const Confirmar_Exceso =
+              await Planes_Confirmar_Exceso_Target_Manual(
+                Objetivo_Datos,
+                Total_Subobjetivos_Nuevo,
+                Planes_Unidad_Label(Objetivo_Datos)
+              );
+            if (!Confirmar_Exceso) {
+              Planes_Restaurar_Input_Original(
+                "Planes_Subobjetivo_Aporte"
+              );
+              return;
+            }
+            if (
+              Total_Subobjetivos_Nuevo >
+              (Number(Objetivo_Datos.Target_Total) || 0) + 0.0001
+            ) {
+              Target_Objetivo_Ajustado = Total_Subobjetivos_Nuevo;
+            }
+          }
+        }
         const Hora_Final = Debe_Marcar_Realizado
           ? Actual.Hora
           : "";
@@ -56904,17 +57380,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               }
             );
           if (!Confirmar_Final) return;
-        }
-        if (
-          Sub &&
-          !Debe_Marcar_Realizado &&
-          !Hay_Cambio_Real_Guardado(
-            Planes_Datos_Comparables_Subobjetivo(Sub),
-            Planes_Datos_Comparables_Subobjetivo(Datos)
-          )
-        ) {
-          Cerrar_Modal_Planes_Subobjetivo();
-          return;
         }
         const Snap = Capturar_Snapshot_Undo();
         if (Es_Nuevo) {
@@ -56953,6 +57418,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Object.assign(Sub, Datos, {
             Actualizado_En: new Date().toISOString()
           });
+        }
+        if (Objetivo_Datos && Target_Objetivo_Ajustado !== null) {
+          Planes_Aplicar_Target_Objetivo(
+            Objetivo_Datos,
+            Target_Objetivo_Ajustado
+          );
         }
         Planes_Propagar_Estructura_Familia_Subobjetivo(Sub.Id);
         if (Debe_Marcar_Realizado) {
@@ -57122,6 +57593,89 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Planes_Periodo_Contiene_Fecha(Periodo, Fecha);
       }
 
+      function Planes_Partes_De_Avance_Registro(Avance, Modelo) {
+        const Ids = new Set();
+        if (Avance?.Parte_Id) Ids.add(Avance.Parte_Id);
+        if (Array.isArray(Avance?.Distribucion)) {
+          Avance.Distribucion.forEach((Item) => {
+            if (Item?.Parte_Id) Ids.add(Item.Parte_Id);
+          });
+        }
+        return Array.from(Ids)
+          .map((Id) => Modelo.Partes?.[Id])
+          .filter((Parte) => Parte && !Parte.Eliminado_Local);
+      }
+
+      function Planes_Opcion_Registro_Seleccionada(Valor, Actual) {
+        return Valor === Actual ? " selected" : "";
+      }
+
+      function Planes_Registro_Opciones(Registros, Campo, Todas_Key) {
+        const Mapa = new Map();
+        Registros.forEach((Registro) => {
+          const Valores = Array.isArray(Registro[`${Campo}_Ids`])
+            ? Registro[`${Campo}_Ids`]
+            : [Registro[`${Campo}_Id`] || ""];
+          Valores.forEach((Valor, Index) => {
+            const Id = (Valor || "").toString();
+            if (!Id) return;
+            const Labeles = Array.isArray(Registro[`${Campo}_Labels`])
+              ? Registro[`${Campo}_Labels`]
+              : [Registro[Campo] || ""];
+            Mapa.set(Id, Labeles[Index] || Registro[Campo] || Id);
+          });
+        });
+        const Actual =
+          Campo === "Fuente"
+            ? Planes_Registro_Filtro_Fuente
+            : Campo === "Item"
+              ? Planes_Registro_Filtro_Item
+              : Planes_Registro_Filtro_Parte;
+        const Opciones = [
+          `<option value="${Todas_Key}"${
+            Planes_Opcion_Registro_Seleccionada(Todas_Key, Actual)
+          }>${Escape_Html(t("todos"))}</option>`
+        ];
+        Array.from(Mapa.entries())
+          .sort((A, B) => A[1].localeCompare(
+            B[1],
+            undefined,
+            { sensitivity: "base", numeric: true }
+          ))
+          .forEach(([Id, Label]) => {
+            Opciones.push(
+              `<option value="${Escape_Html(Id)}"${
+                Planes_Opcion_Registro_Seleccionada(Id, Actual)
+              }>${Escape_Html(Label)}</option>`
+            );
+          });
+        return Opciones.join("");
+      }
+
+      function Planes_Registro_Pasa_Filtros(Registro) {
+        if (
+          Planes_Registro_Filtro_Fuente !== "Todas" &&
+          Registro.Fuente_Id !== Planes_Registro_Filtro_Fuente
+        ) {
+          return false;
+        }
+        if (
+          Planes_Registro_Filtro_Item !== "Todos" &&
+          Registro.Item_Id !== Planes_Registro_Filtro_Item
+        ) {
+          return false;
+        }
+        if (Planes_Registro_Filtro_Parte !== "Todas") {
+          const Partes = Array.isArray(Registro.Parte_Ids)
+            ? Registro.Parte_Ids
+            : [];
+          if (!Partes.includes(Planes_Registro_Filtro_Parte)) {
+            return false;
+          }
+        }
+        return true;
+      }
+
       function Planes_Registros_De_Objetivo(Objetivo) {
         const Modelo = Asegurar_Modelo_Planes();
         const Registros = [];
@@ -57148,6 +57702,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               : Avance.Fuente === "Calendario"
                 ? t("planes.registro_calendario")
                 : t("planes.registro_manual");
+            const Partes = Planes_Partes_De_Avance_Registro(
+              Avance,
+              Modelo
+            );
             const Unidad_Avance = Avance.Unidad
               ? Planes_Ajustar_Unidad_Por_Cantidad(
                 Avance.Unidad,
@@ -57169,9 +57727,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Avance.Fecha,
                 Avance.Hora
               ),
+              Fuente_Id: Avance.Fuente || "Manual",
               Fuente,
+              Item_Id: Sub?.Id || Objetivo_Avance?.Id || Objetivo.Id,
               Item: Sub?.Texto || Objetivo_Avance?.Nombre ||
                 Objetivo.Nombre,
+              Parte_Ids: Partes.map((Parte) => Parte.Id),
+              Parte_Labels: Partes.map((Parte) => Parte.Nombre),
+              Parte: Partes.map((Parte) => Parte.Nombre).join(", "),
               Cantidad: `${Planes_Formatear_Numero(
                 Avance.Cantidad
               )} ${Unidad_Avance}`
@@ -57204,8 +57767,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   Evento.Fecha,
                   Hora
                 ),
+                Fuente_Id: "Calendario",
                 Fuente: t("planes.registro_calendario"),
+                Item_Id: Obj_Sidebar?.Id || Objetivo.Id,
                 Item: Obj_Sidebar?.Nombre || Objetivo.Nombre,
+                Parte_Ids: [],
+                Parte_Labels: [],
+                Parte: "",
                 Cantidad: `${Planes_Formatear_Numero(Aporte)} ` +
                   Planes_Unidad_Label(Objetivo, Aporte)
               });
@@ -57222,8 +57790,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fecha: Planes_Formatear_Fecha_Hora_Registro(
               Objetivo.Actualizado_En || ""
             ),
+            Fuente_Id: "Manual_Previo",
             Fuente: t("planes.registro_manual_previo"),
+            Item_Id: Objetivo.Id,
             Item: Objetivo.Nombre,
+            Parte_Ids: [],
+            Parte_Labels: [],
+            Parte: "",
             Cantidad: `${Planes_Formatear_Numero(Manual_Previo)} ` +
               Planes_Unidad_Label(Objetivo, Manual_Previo)
           });
@@ -57249,8 +57822,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             nombre: Objetivo.Nombre
           });
         }
-        const Registros = Planes_Registros_De_Objetivo(Objetivo);
-        if (!Registros.length) {
+        const Registros_Todos = Planes_Registros_De_Objetivo(Objetivo);
+        if (!Registros_Todos.length) {
           Cuerpo.innerHTML = `
             <div class="Planes_Vacio">
               ${t("planes.registro_vacio")}
@@ -57258,7 +57831,48 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `;
           return;
         }
+        const Registros = Registros_Todos.filter(
+          Planes_Registro_Pasa_Filtros
+        );
         Cuerpo.innerHTML = `
+          <div class="Planes_Registro_Filtros">
+            <label class="Planes_Registro_Filtro">
+              <span>${t("planes.registro_fuente")}</span>
+              <select data-plan-registro-filtro="Fuente">
+                ${Planes_Registro_Opciones(
+                  Registros_Todos,
+                  "Fuente",
+                  "Todas"
+                )}
+              </select>
+            </label>
+            <label class="Planes_Registro_Filtro">
+              <span>${t("planes.registro_item")}</span>
+              <select data-plan-registro-filtro="Item">
+                ${Planes_Registro_Opciones(
+                  Registros_Todos,
+                  "Item",
+                  "Todos"
+                )}
+              </select>
+            </label>
+            <label class="Planes_Registro_Filtro">
+              <span>${t("planes.registro_parte")}</span>
+              <select data-plan-registro-filtro="Parte">
+                ${Planes_Registro_Opciones(
+                  Registros_Todos,
+                  "Parte",
+                  "Todas"
+                )}
+              </select>
+            </label>
+          </div>
+          ${Registros.length ? "" : `
+            <div class="Planes_Vacio">
+              ${t("planes.registro_filtro_vacio")}
+            </div>
+          `}
+          ${Registros.length ? `
           <div class="Planes_Registro_Tabla_Wrap">
             <table class="Planes_Registro_Tabla">
               <thead>
@@ -57266,6 +57880,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   <th>${t("planes.registro_fecha")}</th>
                   <th>${t("planes.registro_fuente")}</th>
                   <th>${t("planes.registro_item")}</th>
+                  <th>${t("planes.registro_parte")}</th>
                   <th>${t("planes.registro_cantidad")}</th>
                   <th>${t("planes.registro_acciones")}</th>
                 </tr>
@@ -57276,6 +57891,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     <td>${Escape_Html(Registro.Fecha)}</td>
                     <td>${Escape_Html(Registro.Fuente)}</td>
                     <td>${Escape_Html(Registro.Item)}</td>
+                    <td>${Escape_Html(Registro.Parte || "-")}</td>
                     <td>${Escape_Html(Registro.Cantidad)}</td>
                     <td class="Planes_Registro_Acciones_Celda">
                       ${Registro.Editable ? `
@@ -57309,7 +57925,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               </tbody>
             </table>
           </div>
+          ` : ""}
         `;
+        Cuerpo.querySelectorAll("[data-plan-registro-filtro]")
+          .forEach((Select) => {
+            Select.addEventListener("change", () => {
+              const Tipo = Select.dataset.planRegistroFiltro;
+              if (Tipo === "Fuente") {
+                Planes_Registro_Filtro_Fuente =
+                  Select.value || "Todas";
+              }
+              if (Tipo === "Item") {
+                Planes_Registro_Filtro_Item = Select.value || "Todos";
+              }
+              if (Tipo === "Parte") {
+                Planes_Registro_Filtro_Parte =
+                  Select.value || "Todas";
+              }
+              Render_Modal_Planes_Registro(Objetivo);
+            });
+          });
         Cuerpo.querySelectorAll("[data-plan-registro-editar]")
           .forEach((Btn) => {
             Btn.addEventListener("click", () => {
@@ -57343,6 +57978,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Planes_Registro_Objetivo_Id = Objetivo.Id;
         Planes_Registro_Periodo_Contexto_Id =
           Periodo_Contexto_Id || "";
+        Planes_Registro_Filtro_Fuente = "Todas";
+        Planes_Registro_Filtro_Item = "Todos";
+        Planes_Registro_Filtro_Parte = "Todas";
         const Periodo_Contexto =
           Modelo.Periodos[Planes_Registro_Periodo_Contexto_Id];
         Render_Modal_Planes_Registro(
@@ -57361,6 +57999,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Cerrar_Modal_Planes_Registro() {
         Planes_Registro_Objetivo_Id = null;
         Planes_Registro_Periodo_Contexto_Id = "";
+        Planes_Registro_Filtro_Fuente = "Todas";
+        Planes_Registro_Filtro_Item = "Todos";
+        Planes_Registro_Filtro_Parte = "Todas";
         document.getElementById("Planes_Registro_Overlay")
           ?.classList.remove("Activo", "Periodo_Cerrado");
       }
@@ -57464,6 +58105,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Campo_Fecha.value = Planes_Fecha_Avance_Plan(Avance);
           Grupo_Fecha.appendChild(Label_Fecha);
           Grupo_Fecha.appendChild(Campo_Fecha);
+          const Grupo_Hora = document.createElement("label");
+          Grupo_Hora.className = "Dialogo_Input_Grupo";
+          const Label_Hora = document.createElement("span");
+          Label_Hora.className = "Dialogo_Input_Etiqueta";
+          Label_Hora.textContent = t("planes.avance_hora");
+          const Campo_Hora = document.createElement("input");
+          Campo_Hora.className = "Dialogo_Input";
+          Campo_Hora.id = "Dialogo_Hora_Campo";
+          Campo_Hora.type = "time";
+          Campo_Hora.value = Planes_Hora_Avance_Plan(Avance);
+          Grupo_Hora.appendChild(Label_Hora);
+          Grupo_Hora.appendChild(Campo_Hora);
 
           const Limpiar_Controles = () => {
             El_Campo.removeEventListener(
@@ -57474,7 +58127,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               "keydown",
               On_Enter_Input
             );
+            Campo_Hora.removeEventListener(
+              "keydown",
+              On_Enter_Input
+            );
             Grupo_Fecha.remove();
+            Grupo_Hora.remove();
             El_Cont.style.display = "none";
             El_Cont.style.gap = "";
             El_Cont.classList.remove("Modo_Color");
@@ -57516,11 +58174,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Select.style.display = "none";
           El_Sugerencias.style.display = "none";
           El_Cont.appendChild(Grupo_Fecha);
+          El_Cont.appendChild(Grupo_Hora);
 
           const Confirmar = () => {
             Cerrar_Con({
               Cantidad: El_Campo.value,
-              Fecha: Campo_Fecha.value
+              Fecha: Campo_Fecha.value,
+              Hora: Campo_Hora.value
             });
           };
 
@@ -57557,6 +58217,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             On_Enter_Input
           );
           Campo_Fecha.addEventListener(
+            "keydown",
+            On_Enter_Input
+          );
+          Campo_Hora.addEventListener(
             "keydown",
             On_Enter_Input
           );
@@ -57600,11 +58264,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Mostrar_Toast_Error(t("planes.avance_err_fecha"));
           return;
         }
+        const Hora = (Valor.Hora || "").toString().slice(0, 5);
+        if (!/^\d{2}:\d{2}$/.test(Hora)) {
+          Mostrar_Toast_Error(t("planes.avance_err_hora"));
+          return;
+        }
         const Cantidad_Actual = Number(Avance.Cantidad) || 0;
         const Fecha_Actual = Planes_Fecha_Avance_Plan(Avance);
+        const Hora_Actual = Planes_Hora_Avance_Plan(Avance);
         if (
           Math.abs(Cantidad - Cantidad_Actual) < 0.0001 &&
-          Fecha === Fecha_Actual
+          Fecha === Fecha_Actual &&
+          Hora === Hora_Actual
         ) {
           return;
         }
@@ -57615,7 +58286,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Avance.Cantidad = Cantidad;
         Avance.Fecha = Fecha;
-        Avance.Hora = Planes_Hora_Avance_Plan(Avance);
+        Avance.Hora = Hora;
         Avance.Fecha_Hora = `${Fecha}T${Avance.Hora}`;
         Avance.Actualizado_En = new Date().toISOString();
         Planes_Recalcular_Avance_Subobjetivo(Avance);
@@ -59744,6 +60415,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         )}`;
       }
 
+      function Planes_Resumen_Aportes_Partes(Sub, Modelo = null) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Target = Number(Sub?.Target_Total) || 0;
+        const Total = Planes_Total_Aporte_Partes_Subobjetivo(
+          Sub?.Id || "",
+          M
+        );
+        const Partes = Planes_Partes_De_Subobjetivo(Sub?.Id || "", M);
+        const Unidad_Total =
+          Planes_Unidad_Label_Subobjetivo(Sub, Total) ||
+          t("planes.partes").toLowerCase();
+        const Base = t("planes.partes_aportes_cantidad", {
+          Total: Partes.length
+        });
+        if (Target <= 0) {
+          return `${Base} \u00B7 ${t("planes.partes_aportes_sin_metrica", {
+            Aportes: Planes_Formatear_Numero(Total),
+            Unidad: Unidad_Total
+          })}`;
+        }
+        if (Total > Target) {
+          const Exceso = Total - Target;
+          return `${Base} \u00B7 ${t("planes.partes_aportes_excedente", {
+            Aportes: Planes_Formatear_Numero(Total),
+            Exceso: Planes_Formatear_Numero(Exceso),
+            Unidad: Unidad_Total
+          })}`;
+        }
+        const Falta = Target - Total;
+        return `${Base} \u00B7 ${t("planes.partes_aportes_resumen", {
+          Aportes: Planes_Formatear_Numero(Total),
+          Falta: Planes_Formatear_Numero(Falta),
+          Unidad: Unidad_Total
+        })}`;
+      }
+
       function Planes_Partes_Orden_Campo_Actual() {
         const Opciones = [
           "Manual",
@@ -60146,12 +60853,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ].filter(Boolean).join(" \u00B7 ");
         }
         if (Resumen) {
-          const Total = Partes_Visibles.length;
-          const Unidad = Planes_Ajustar_Unidad_Por_Cantidad(
-            t("planes.partes").toLowerCase(),
-            Total
-          );
-          Resumen.textContent = `${Total} ${Unidad}`;
+          Resumen.textContent =
+            Planes_Resumen_Aportes_Partes(Sub, Modelo);
         }
         Planes_Sincronizar_Controles_Partes();
         Lista.innerHTML = "";
@@ -60228,8 +60931,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sub?.Unidad_Custom ||
           Default_Unidad.Unidad_Custom ||
           "";
-        document.getElementById("Planes_Parte_Aporte_Total").value =
-          Parte ? String(Number(Parte.Aporte_Total) || 0) : "";
+        const Aporte_Total_Input = document.getElementById(
+          "Planes_Parte_Aporte_Total"
+        );
+        if (Aporte_Total_Input) {
+          Aporte_Total_Input.value =
+            Parte ? String(Number(Parte.Aporte_Total) || 0) : "";
+          Aporte_Total_Input.dataset.valorOriginal =
+            Aporte_Total_Input.value;
+        }
         document.getElementById("Planes_Parte_Avance_Parcial").value =
           Parte
             ? String(Number(Planes_Avance_Parte_Por_Origen(
@@ -60435,6 +61145,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Planes_Validar_Rango_Parte(Datos, Sub_Dueno, Modelo)) {
           return;
         }
+        let Target_Sub_Manual_Ajustado = null;
+        const Total_Partes_Sub_Nuevo =
+          Planes_Total_Aporte_Partes_Subobjetivo(
+            Sub_Dueno.Id,
+            Modelo,
+            {
+              Id: Parte?.Id || "",
+              Subobjetivo_Id: Sub_Dueno.Id,
+              Aporte_Total: Datos.Aporte_Total
+            }
+          );
+        if (!Planes_Target_Suma_Componentes_Activo(Sub_Dueno)) {
+          const Confirmar_Exceso =
+            await Planes_Confirmar_Exceso_Target_Manual(
+              Sub_Dueno,
+              Total_Partes_Sub_Nuevo,
+              Planes_Unidad_Label_Subobjetivo(Sub_Dueno)
+            );
+          if (!Confirmar_Exceso) {
+            Planes_Restaurar_Input_Original(
+              "Planes_Parte_Aporte_Total"
+            );
+            return;
+          }
+          if (
+            Total_Partes_Sub_Nuevo >
+            (Number(Sub_Dueno.Target_Total) || 0) + 0.0001
+          ) {
+            Target_Sub_Manual_Ajustado = Total_Partes_Sub_Nuevo;
+          }
+        }
         const Comparables_Antes = Parte
           ? Planes_Datos_Comparables_Parte(Parte)
           : null;
@@ -60480,6 +61221,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Solo_Modelo: true
           }
         );
+        if (Target_Sub_Manual_Ajustado !== null) {
+          Planes_Aplicar_Target_Subobjetivo(
+            Sub_Dueno,
+            Target_Sub_Manual_Ajustado
+          );
+        }
         Planes_Sincronizar_Target_Subobjetivo_Desde_Partes(
           Sub_Dueno.Id,
           Total_Partes_Sub_Antes,
@@ -86881,6 +87628,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       document.getElementById("Planes_Objetivo_Target")
         ?.addEventListener("input", Render_Redistribucion_Modal_Objetivo);
+      document.getElementById("Planes_Objetivo_Target_Suma")
+        ?.addEventListener("change", () => {
+          Planes_Sincronizar_Target_Suma_Objetivo_Form();
+          Render_Redistribucion_Modal_Objetivo();
+        });
       document.getElementById("Planes_Objetivo_Unidad")
         ?.addEventListener("change", Actualizar_Campo_Unidad_Custom_Planes);
       document.getElementById("Planes_Objetivo_Unidad")
@@ -87012,6 +87764,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener(
           "change",
           Actualizar_Campo_Unidad_Custom_Subobjetivo
+        );
+      document.getElementById("Planes_Subobjetivo_Target_Suma")
+        ?.addEventListener(
+          "change",
+          Planes_Sincronizar_Target_Suma_Subobjetivo_Form
         );
       document.getElementById("Planes_Partes_Cerrar")
         ?.addEventListener("click", Cerrar_Modal_Planes_Partes);

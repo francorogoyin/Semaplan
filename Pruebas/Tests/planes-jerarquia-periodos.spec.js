@@ -2288,6 +2288,14 @@ async ({ page }) => {
     .toContainText("Manual");
   await expect(page.locator("#Planes_Registro_Cuerpo"))
     .toContainText("2 libros");
+  await expect(page.locator('[data-plan-registro-filtro="Fuente"]'))
+    .toBeVisible();
+  await expect(page.locator('[data-plan-registro-filtro="Item"]'))
+    .toBeVisible();
+  await expect(page.locator('[data-plan-registro-filtro="Parte"]'))
+    .toBeVisible();
+  await expect(page.locator(".Planes_Registro_Tabla th")
+    .filter({ hasText: "Parte" })).toBeVisible();
   await expect(page.locator(
     '[data-plan-registro-editar="Avance"]'
   )).toHaveCount(1);
@@ -2306,6 +2314,7 @@ async ({ page }) => {
     .click();
   await page.fill("#Dialogo_Input_Campo", "3");
   await page.fill("#Dialogo_Fecha_Campo", "2026-04-22");
+  await page.fill("#Dialogo_Hora_Campo", "16:45");
   await page.locator("#Dialogo_Botones button")
     .filter({ hasText: "Guardar" })
     .click();
@@ -2322,13 +2331,15 @@ async ({ page }) => {
       manual: Objetivo.Progreso_Manual,
       cantidad: Avance?.Cantidad || 0,
       fecha: Avance?.Fecha || "",
+      hora: Avance?.Hora || "",
       fechaHora: Avance?.Fecha_Hora || ""
     };
   }, Objetivo_Id);
   expect(Avance_Editado.manual).toBe(3);
   expect(Avance_Editado.cantidad).toBe(3);
   expect(Avance_Editado.fecha).toBe("2026-04-22");
-  expect(Avance_Editado.fechaHora).toBe("2026-04-22T15:34");
+  expect(Avance_Editado.hora).toBe("16:45");
+  expect(Avance_Editado.fechaHora).toBe("2026-04-22T16:45");
 
   await page.locator('[data-plan-registro-eliminar="Avance"]')
     .click();
@@ -2390,6 +2401,101 @@ async ({ page }) => {
     return Modelo.Objetivos[objetivoId].Progreso_Manual;
   }, Objetivo_Id);
   expect(Manual_Previo_Borrado).toBe(0);
+  expect(errores).toEqual([]);
+});
+
+test("Subobjetivos ajustan target padre segun modo suma o manual",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(async () => {
+    Abrir_Plan();
+    let Modelo = Asegurar_Jerarquia_Planes();
+    const Anio = Object.values(Modelo.Periodos)
+      .find((Periodo) => Periodo.Tipo === "Anio");
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Producto target",
+      Emoji: "\uD83D\uDCCC",
+      Target_Total: 2,
+      Unidad: "Personalizado",
+      Unidad_Custom: "features",
+      Unidad_Subobjetivos_Default: "Personalizado",
+      Unidad_Subobjetivos_Custom_Default: "features"
+    });
+    Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Feature uno"
+    );
+    Abrir_Modal_Planes_Subobjetivos(Objetivo.Id);
+    Abrir_Modal_Planes_Subobjetivo_Nuevo();
+    document.getElementById("Planes_Subobjetivo_Texto").value =
+      "Feature dos";
+    document.getElementById("Planes_Subobjetivo_Aporte").value = "2";
+    const Dialogos = [];
+    const Mostrar_Original = Mostrar_Dialogo;
+    Mostrar_Dialogo = async (Mensaje) => {
+      Dialogos.push(Mensaje);
+      return false;
+    };
+    await Guardar_Modal_Planes_Subobjetivo();
+    Modelo = Asegurar_Modelo_Planes();
+    const Tras_Cancelar = {
+      target: Modelo.Objetivos[Objetivo.Id].Target_Total,
+      input: document.getElementById(
+        "Planes_Subobjetivo_Aporte"
+      ).value,
+      modal: document.getElementById("Planes_Subobjetivo_Overlay")
+        .classList.contains("Activo"),
+      subs: Planes_Subobjetivos_De_Objetivo(Objetivo.Id).length
+    };
+    Mostrar_Dialogo = async (Mensaje) => {
+      Dialogos.push(Mensaje);
+      return true;
+    };
+    document.getElementById("Planes_Subobjetivo_Aporte").value = "2";
+    await Guardar_Modal_Planes_Subobjetivo();
+    Modelo = Asegurar_Modelo_Planes();
+    const Tras_Aceptar = {
+      target: Modelo.Objetivos[Objetivo.Id].Target_Total,
+      subs: Planes_Subobjetivos_De_Objetivo(Objetivo.Id).length
+    };
+    Modelo.Objetivos[Objetivo.Id].Target_Suma_Componentes = true;
+    Modelo.Objetivos[Objetivo.Id].Target_Total =
+      Planes_Total_Aporte_Subobjetivos_Objetivo(
+        Modelo.Objetivos[Objetivo.Id],
+        Modelo
+      );
+    Abrir_Modal_Planes_Subobjetivo_Nuevo();
+    document.getElementById("Planes_Subobjetivo_Texto").value =
+      "Feature tres";
+    document.getElementById("Planes_Subobjetivo_Aporte").value = "3";
+    await Guardar_Modal_Planes_Subobjetivo();
+    Mostrar_Dialogo = Mostrar_Original;
+    Modelo = Asegurar_Modelo_Planes();
+    return {
+      Tras_Cancelar,
+      Tras_Aceptar,
+      targetSuma: Modelo.Objetivos[Objetivo.Id].Target_Total,
+      subs: Planes_Subobjetivos_De_Objetivo(Objetivo.Id).length,
+      Dialogos
+    };
+  });
+
+  expect(Resultado.Tras_Cancelar).toEqual({
+    target: 2,
+    input: "1",
+    modal: true,
+    subs: 1
+  });
+  expect(Resultado.Tras_Aceptar).toEqual({
+    target: 3,
+    subs: 2
+  });
+  expect(Resultado.targetSuma).toBe(6);
+  expect(Resultado.subs).toBe(3);
+  expect(Resultado.Dialogos.join(" ")).toContain("excediendo");
   expect(errores).toEqual([]);
 });
 
