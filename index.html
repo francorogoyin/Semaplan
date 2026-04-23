@@ -5003,6 +5003,10 @@
         opacity: 0.58;
       }
 
+      .Planes_Objetivo_Card.Pausado {
+        opacity: 0.68;
+      }
+
       .Planes_Objetivo_Card.Reordenable {
         cursor: grab;
       }
@@ -5240,6 +5244,18 @@
           0 1px 4px rgba(31, 107, 79, 0.16);
       }
 
+      .Planes_Objetivo_Card.Pausado .Planes_Objetivo_Emoji {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: #a8a29a;
+        color: #f8f5ef;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.34),
+          0 1px 4px rgba(43, 38, 32, 0.12);
+      }
+
       .Planes_Objetivo_Card.Estado_Activo .Planes_Objetivo_Emoji {
         flex-basis: 26px;
         width: 26px;
@@ -5251,6 +5267,13 @@
       .Planes_Objetivo_Card.Saldado .Planes_Objetivo_Emoji,
       .Planes_Subobjetivo.Estado_Cumplido .Planes_Subobjetivo_Emoji,
       .Planes_Parte.Estado_Cumplido .Planes_Parte_Emoji {
+        flex-basis: 26px;
+        width: 26px;
+        height: 26px;
+        font-size: 18px;
+      }
+
+      .Planes_Objetivo_Card.Pausado .Planes_Objetivo_Emoji {
         flex-basis: 26px;
         width: 26px;
         height: 26px;
@@ -5271,6 +5294,14 @@
         .Planes_Objetivo_Emoji,
       .Planes_Subobjetivo.Vista_Biblioteca.Estado_Cumplido
         .Planes_Subobjetivo_Emoji {
+        flex-basis: 42px;
+        width: 42px;
+        height: 42px;
+        font-size: 27px;
+      }
+
+      .Planes_Objetivo_Card.Vista_Biblioteca.Pausado
+        .Planes_Objetivo_Emoji {
         flex-basis: 42px;
         width: 42px;
         height: 42px;
@@ -5890,9 +5921,33 @@
         visibility: hidden;
       }
 
+      .Planes_Objetivo_Card.Pausado .Planes_Objetivo_Cantidad {
+        color: #6f6a62;
+        font-weight: 700;
+      }
+
       .Planes_Objetivo_Porcentaje {
         color: var(--Texto);
         font-weight: 700;
+      }
+
+      .Planes_Objetivo_Ritmo {
+        display: inline-block;
+        flex: 0 0 auto;
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: #2f8d55;
+        box-shadow: 0 0 0 1px rgba(43, 38, 32, 0.12);
+        cursor: help;
+      }
+
+      .Planes_Objetivo_Ritmo.Atrasado {
+        background: #d97706;
+      }
+
+      .Planes_Objetivo_Ritmo.Pausado {
+        background: #8f8a82;
       }
 
       .Planes_Objetivo_Card.Expandida .Planes_Objetivo_Header {
@@ -22068,6 +22123,56 @@
             "Agregar objetivo en este periodo",
           "planes.ocultar_periodo": "Ocultar",
           "planes.mostrar_periodo": "Mostrar",
+          "planes.pausar": "Pausar",
+          "planes.reanudar": "Reanudar",
+          "planes.pausado": "Pausado",
+          "planes.pausar_confirm":
+            "Vas a pausar este objetivo. Queda oculto visualmente, " +
+            "con indicadores grises y sin resumen de m\u00e9trica.",
+          "planes.reanudar_confirm":
+            "Vas a reanudar este objetivo. Vuelve a mostrarse como " +
+            "objetivo activo.",
+          "planes.pausar_help":
+            "Pausar no borra avances ni subobjetivos; solo deja el " +
+            "objetivo fuera de la lectura activa.",
+          "planes.reanudar_help":
+            "Reanudar recupera los indicadores y el resumen normal.",
+          "planes.pausado_toast":
+            "Objetivo pausado y ocultado visualmente.",
+          "planes.reanudado_toast":
+            "Objetivo reanudado y visible nuevamente.",
+          "planes.ritmo_en_ritmo": "En ritmo",
+          "planes.ritmo_atrasado": "Atrasado",
+          "planes.ritmo_pausado": "Pausado",
+          "planes.ritmo_en_ritmo_help":
+            "Verde: el avance real acompa\u00f1a o supera el tiempo transcurrido.",
+          "planes.ritmo_atrasado_help":
+            "Naranja: el avance real est\u00e1 por debajo del tiempo transcurrido.",
+          "planes.ritmo_pausado_help":
+            "Gris: el objetivo est\u00e1 pausado.",
+          "planes.trasladar": "Trasladar",
+          "planes.trasladar_periodo_prompt":
+            "Eleg\u00ed el per\u00edodo destino para trasladar los pendientes.",
+          "planes.trasladar_partes_confirm":
+            "\u00bfQu\u00e9 hacemos con las partes realizadas?",
+          "planes.trasladar_borrar_realizadas":
+            "Borrar realizadas",
+          "planes.trasladar_conservar_realizadas":
+            "Conservarlas",
+          "planes.trasladado_toast":
+            "Objetivo trasladado con pendientes.",
+          "planes.mover": "Mover",
+          "planes.mover_periodo_prompt":
+            "Eleg\u00ed el per\u00edodo destino de la misma capa.",
+          "planes.mover_confirm":
+            "Vas a mover el objetivo y desplazar sus fechas proporcionalmente.",
+          "planes.movido_toast": "Objetivo movido.",
+          "planes.copiar_objetivo": "Copiar objetivo",
+          "planes.pegar_objetivo": "Pegar objetivo",
+          "planes.copiado_toast": "Objetivo copiado.",
+          "planes.pegado_toast": "Objetivo pegado.",
+          "planes.pegar_duplicado":
+            "No se puede pegar: ya hay un objetivo igual en esa capa o en hijos embebidos.",
           "planes.mostrar_ocultos": "Mostrar ocultos",
           "planes.ocultar_ocultos": "Ocultar ocultos",
           "planes.objetivo_oculto_periodo":
@@ -25808,6 +25913,55 @@
             "Add objective in this period",
           "planes.ocultar_periodo": "Hide",
           "planes.mostrar_periodo": "Show",
+          "planes.pausar": "Pause",
+          "planes.reanudar": "Resume",
+          "planes.pausado": "Paused",
+          "planes.pausar_confirm":
+            "This objective will be paused. It stays visually hidden, " +
+            "with gray indicators and no metric summary.",
+          "planes.reanudar_confirm":
+            "This objective will be resumed and shown as active again.",
+          "planes.pausar_help":
+            "Pause does not delete progress or subobjectives; it only " +
+            "removes the objective from the active reading.",
+          "planes.reanudar_help":
+            "Resume restores normal indicators and summary.",
+          "planes.pausado_toast":
+            "Objective paused and visually hidden.",
+          "planes.reanudado_toast":
+            "Objective resumed and visible again.",
+          "planes.ritmo_en_ritmo": "On track",
+          "planes.ritmo_atrasado": "Behind",
+          "planes.ritmo_pausado": "Paused",
+          "planes.ritmo_en_ritmo_help":
+            "Green: real progress matches or exceeds elapsed time.",
+          "planes.ritmo_atrasado_help":
+            "Orange: real progress is below elapsed time.",
+          "planes.ritmo_pausado_help":
+            "Gray: the objective is paused.",
+          "planes.trasladar": "Carry over",
+          "planes.trasladar_periodo_prompt":
+            "Choose the destination period for pending work.",
+          "planes.trasladar_partes_confirm":
+            "What should happen with completed parts?",
+          "planes.trasladar_borrar_realizadas":
+            "Remove completed",
+          "planes.trasladar_conservar_realizadas":
+            "Keep them",
+          "planes.trasladado_toast":
+            "Objective carried over with pending items.",
+          "planes.mover": "Move",
+          "planes.mover_periodo_prompt":
+            "Choose the destination period in the same layer.",
+          "planes.mover_confirm":
+            "The objective will move and its dates will shift proportionally.",
+          "planes.movido_toast": "Objective moved.",
+          "planes.copiar_objetivo": "Copy objective",
+          "planes.pegar_objetivo": "Paste objective",
+          "planes.copiado_toast": "Objective copied.",
+          "planes.pegado_toast": "Objective pasted.",
+          "planes.pegar_duplicado":
+            "Cannot paste: an equal objective already exists in that layer or embedded child periods.",
           "planes.mostrar_ocultos": "Show hidden",
           "planes.ocultar_ocultos": "Hide hidden",
           "planes.objetivo_oculto_periodo":
@@ -29582,6 +29736,56 @@
             "Adicionar objetivo neste periodo",
           "planes.ocultar_periodo": "Ocultar",
           "planes.mostrar_periodo": "Mostrar",
+          "planes.pausar": "Pausar",
+          "planes.reanudar": "Retomar",
+          "planes.pausado": "Pausado",
+          "planes.pausar_confirm":
+            "Voc\u00ea vai pausar este objetivo. Ele fica visualmente " +
+            "oculto, com indicadores cinza e sem resumo de m\u00e9trica.",
+          "planes.reanudar_confirm":
+            "Voc\u00ea vai retomar este objetivo. Ele volta a aparecer " +
+            "como objetivo ativo.",
+          "planes.pausar_help":
+            "Pausar n\u00e3o apaga avan\u00e7os nem subobjetivos; s\u00f3 tira " +
+            "o objetivo da leitura ativa.",
+          "planes.reanudar_help":
+            "Retomar recupera os indicadores e o resumo normal.",
+          "planes.pausado_toast":
+            "Objetivo pausado e oculto visualmente.",
+          "planes.reanudado_toast":
+            "Objetivo retomado e vis\u00edvel novamente.",
+          "planes.ritmo_en_ritmo": "No ritmo",
+          "planes.ritmo_atrasado": "Atrasado",
+          "planes.ritmo_pausado": "Pausado",
+          "planes.ritmo_en_ritmo_help":
+            "Verde: o avan\u00e7o real acompanha ou supera o tempo decorrido.",
+          "planes.ritmo_atrasado_help":
+            "Laranja: o avan\u00e7o real est\u00e1 abaixo do tempo decorrido.",
+          "planes.ritmo_pausado_help":
+            "Cinza: o objetivo est\u00e1 pausado.",
+          "planes.trasladar": "Transferir",
+          "planes.trasladar_periodo_prompt":
+            "Escolha o per\u00edodo destino para transferir pendentes.",
+          "planes.trasladar_partes_confirm":
+            "O que fazer com as partes realizadas?",
+          "planes.trasladar_borrar_realizadas":
+            "Remover realizadas",
+          "planes.trasladar_conservar_realizadas":
+            "Manter",
+          "planes.trasladado_toast":
+            "Objetivo transferido com pendentes.",
+          "planes.mover": "Mover",
+          "planes.mover_periodo_prompt":
+            "Escolha o per\u00edodo destino da mesma camada.",
+          "planes.mover_confirm":
+            "O objetivo ser\u00e1 movido e suas datas ser\u00e3o deslocadas proporcionalmente.",
+          "planes.movido_toast": "Objetivo movido.",
+          "planes.copiar_objetivo": "Copiar objetivo",
+          "planes.pegar_objetivo": "Colar objetivo",
+          "planes.copiado_toast": "Objetivo copiado.",
+          "planes.pegado_toast": "Objetivo colado.",
+          "planes.pegar_duplicado":
+            "N\u00e3o \u00e9 poss\u00edvel colar: j\u00e1 existe um objetivo igual nessa camada ou em filhos embutidos.",
           "planes.mostrar_ocultos": "Mostrar ocultos",
           "planes.ocultar_ocultos": "Ocultar ocultos",
           "planes.objetivo_oculto_periodo":
@@ -33183,6 +33387,7 @@
       let Planes_Vinculo_Subobjetivos_Expandidos = new Set();
       let Planes_Vinculo_Click_Global = false;
       let Planes_Multi_Seleccion = new Set();
+      let Planes_Objetivo_Copiado_Id = "";
       let Planes_Periodo_Expansion_Render_Id = null;
       let Planes_Etiquetas_Originales = null;
       // Modal único de Plan: pestaña activa.
@@ -46214,6 +46419,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Boolean(Objetivo.Fijado),
           Auto_Redistribucion:
             Objetivo.Auto_Redistribucion !== false,
+          Pausado: Boolean(Objetivo.Pausado),
           Eliminado_Local: Boolean(Objetivo.Eliminado_Local),
           Vinculo_Sidebar_Activo:
             Objetivo.Vinculo_Sidebar_Activo !== false,
@@ -49491,6 +49697,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Items_Resumen_Tarjeta_Objetivo(Objetivo) {
+        if (Objetivo?.Pausado) {
+          return [{
+            Clase: "Objetivo",
+            Texto: t("planes.pausado")
+          }];
+        }
         const Target = Number(Objetivo.Target_Total) || 0;
         const Periodo_Contexto =
           Planes_Periodo_Contexto_Objetivo(Objetivo);
@@ -49634,6 +49846,84 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Planes_Formatear_Porcentaje_Meta(Progreso, Target) {
         return `${Planes_Porcentaje_Meta(Progreso, Target)}%`;
+      }
+
+      function Planes_Rango_Ritmo_Objetivo(Objetivo, Modelo = null) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Periodo =
+          Planes_Periodo_Contexto_Objetivo(Objetivo, M) ||
+          Planes_Periodo_Base_Objetivo(Objetivo, M);
+        const Inicio = (
+          Objetivo?.Fecha_Inicio ||
+          Periodo?.Inicio ||
+          ""
+        ).toString();
+        const Fin = (
+          Objetivo?.Fecha_Objetivo ||
+          Periodo?.Fin ||
+          ""
+        ).toString();
+        const Fecha_Inicio = Parsear_Fecha_ISO(Inicio);
+        const Fecha_Fin = Parsear_Fecha_ISO(Fin);
+        if (!Fecha_Inicio || !Fecha_Fin) return null;
+        return { Inicio: Fecha_Inicio, Fin: Fecha_Fin };
+      }
+
+      function Planes_Ritmo_Objetivo(Objetivo, Modelo = null) {
+        if (!Objetivo) return null;
+        if (Objetivo.Pausado) {
+          return {
+            Clase: "Pausado",
+            Label: t("planes.ritmo_pausado"),
+            Help: t("planes.ritmo_pausado_help")
+          };
+        }
+        const Target = Number(Objetivo.Target_Total) || 0;
+        if (
+          Target <= 0 ||
+          Planes_Normalizar_Modo_Avance(Objetivo) === "Sin_Metrica"
+        ) {
+          return null;
+        }
+        const Rango = Planes_Rango_Ritmo_Objetivo(Objetivo, Modelo);
+        if (!Rango) return null;
+        const Inicio_Ms = Rango.Inicio.getTime();
+        const Fin_Ms = Rango.Fin.getTime();
+        if (Fin_Ms <= Inicio_Ms) return null;
+        const Hoy_Ms = Parsear_Fecha_ISO(
+          Formatear_Fecha_ISO(new Date())
+        ).getTime();
+        const Tiempo = Math.max(
+          0,
+          Math.min(1, (Hoy_Ms - Inicio_Ms) / (Fin_Ms - Inicio_Ms))
+        );
+        const Avance = Math.max(
+          0,
+          Math.min(1, (Number(Objetivo.Progreso_Total) || 0) / Target)
+        );
+        const En_Ritmo = Avance + 0.0001 >= Tiempo;
+        return {
+          Clase: En_Ritmo ? "En_Ritmo" : "Atrasado",
+          Label: En_Ritmo
+            ? t("planes.ritmo_en_ritmo")
+            : t("planes.ritmo_atrasado"),
+          Help: En_Ritmo
+            ? t("planes.ritmo_en_ritmo_help")
+            : t("planes.ritmo_atrasado_help")
+        };
+      }
+
+      function Planes_Render_Ritmo_Objetivo(Objetivo, Modelo = null) {
+        const Ritmo = Planes_Ritmo_Objetivo(Objetivo, Modelo);
+        if (!Ritmo) return "";
+        const Clase = Ritmo.Clase === "Atrasado"
+          ? " Atrasado"
+          : (Ritmo.Clase === "Pausado" ? " Pausado" : "");
+        return `
+          <span class="Planes_Objetivo_Ritmo${Clase}"
+            title="${Escape_Html(Ritmo.Help)}"
+            aria-label="${Escape_Html(Ritmo.Label)}"></span>
+        `;
       }
 
       function Planes_Emoji_Estado(Estado) {
@@ -50583,8 +50873,397 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )) {
               Cambios += 1;
             }
-          });
+        });
         return Cambios;
+      }
+
+      async function Planes_Cambiar_Pausa_Objetivo(
+        Objetivo_Id,
+        Pausar = true
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        if (!Objetivo || Boolean(Objetivo.Pausado) === Pausar) return;
+        const Confirmar = await Mostrar_Dialogo(
+          Pausar
+            ? t("planes.pausar_confirm")
+            : t("planes.reanudar_confirm"),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            {
+              Etiqueta: Pausar
+                ? t("planes.pausar")
+                : t("planes.reanudar"),
+              Valor: true,
+              Tipo: "Primario"
+            }
+          ],
+          {
+            Ayuda: Pausar
+              ? t("planes.pausar_help")
+              : t("planes.reanudar_help")
+          }
+        );
+        if (!Confirmar) return;
+        const Snap = Capturar_Snapshot_Undo();
+        Objetivo.Pausado = Pausar;
+        Objetivo.Actualizado_En = new Date().toISOString();
+        Render_Plan();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(
+          Pausar
+            ? t("planes.pausado_toast")
+            : t("planes.reanudado_toast"),
+          Snap
+        );
+      }
+
+      function Planes_Periodo_Siguiente_Misma_Capa(Periodo) {
+        if (!Periodo || !Periodo.Tipo || Periodo.Tipo === "Custom") {
+          return null;
+        }
+        const Periodos = Planes_Crear_Periodos_Capa_Visibles(
+          Periodo.Tipo
+        );
+        const Index = Periodos.findIndex((Item) =>
+          Item.Id === Periodo.Id
+        );
+        return Periodos[Index + 1] || null;
+      }
+
+      async function Planes_Elegir_Periodo_Destino(
+        Periodo_Origen,
+        Mensaje,
+        Preferido = null
+      ) {
+        const Periodos = Planes_Crear_Periodos_Capa_Visibles(
+          Periodo_Origen?.Tipo || "Anio"
+        ).filter((Periodo) => Periodo.Id !== Periodo_Origen?.Id);
+        if (!Periodos.length) return null;
+        const Opciones = Periodos.slice(0, 24).map((Periodo) => ({
+          Etiqueta: Planes_Titulo_Periodo_Mostrable(Periodo),
+          Valor: Periodo.Id,
+          Tipo: Periodo.Id === Preferido?.Id ? "Primario" : "Secundario"
+        }));
+        Opciones.push({
+          Etiqueta: t("cancelar"),
+          Valor: null,
+          Tipo: "Cancelar"
+        });
+        const Id = await Mostrar_Dialogo(Mensaje, Opciones);
+        return Id ? Asegurar_Modelo_Planes().Periodos[Id] || null : null;
+      }
+
+      function Planes_Firma_Objetivo_Duplicado(Objetivo) {
+        return Normalizar_Texto_Meta_Objetivo([
+          Objetivo?.Emoji || "",
+          Objetivo?.Nombre || ""
+        ].join(" "));
+      }
+
+      function Planes_Objetivo_Duplicado_En_Periodo(
+        Objetivo,
+        Periodo_Destino,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Firma = Planes_Firma_Objetivo_Duplicado(Objetivo);
+        if (!Firma || !Periodo_Destino) return null;
+        return Object.values(M.Objetivos || {}).find((Item) => {
+          if (!Item || Item.Eliminado_Local || Item.Id === Objetivo.Id) {
+            return false;
+          }
+          if (Planes_Firma_Objetivo_Duplicado(Item) !== Firma) {
+            return false;
+          }
+          const Periodo_Item = M.Periodos[Item.Periodo_Id];
+          if (!Periodo_Item) return false;
+          return Periodo_Item.Id === Periodo_Destino.Id ||
+            Planes_Periodo_Contiene_Periodo(Periodo_Destino, Periodo_Item);
+        }) || null;
+      }
+
+      function Planes_Clonar_Subobjetivos_A_Objetivo(
+        Objetivo_Origen_Id,
+        Objetivo_Destino_Id,
+        Opciones = {}
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Mapa = new Map();
+        let Creados = 0;
+        Planes_Subobjetivos_De_Objetivo(Objetivo_Origen_Id)
+          .filter((Sub) => {
+            if (Sub.Eliminado_Local) return false;
+            if (
+              Opciones.Solo_Pendientes &&
+              (Sub.Hecha || Sub.Estado === "Cumplido")
+            ) {
+              return false;
+            }
+            return true;
+          })
+          .forEach((Sub, Indice) => {
+            const Id = Crear_Id_Subobjetivo_Plan();
+            Mapa.set(Sub.Id, Id);
+            Modelo.Subobjetivos[Id] = Normalizar_Subobjetivo_Plan({
+              ...Sub,
+              Id,
+              Objetivo_Id: Objetivo_Destino_Id,
+              Parent_Subobjetivo_Id: "",
+              Subobjetivo_Padre_Id: "",
+              Fecha_Inicio: Opciones.Limpiar_Fechas
+                ? ""
+                : Sub.Fecha_Inicio,
+              Fecha_Objetivo: Opciones.Limpiar_Fechas
+                ? ""
+                : Sub.Fecha_Objetivo,
+              Fecha_Fin: "",
+              Hora_Fin: "",
+              Progreso_Manual: 0,
+              Progreso_Avances: 0,
+              Estado: "Activo",
+              Hecha: false,
+              Importado: false,
+              Eliminado_Local: false,
+              Orden: Indice
+            }, Indice);
+            Creados += 1;
+          });
+        Planes_Subobjetivos_De_Objetivo(Objetivo_Destino_Id)
+          .forEach((Sub) => {
+            const Origen = Planes_Subobjetivos_De_Objetivo(
+              Objetivo_Origen_Id
+            ).find((Item) => Mapa.get(Item.Id) === Sub.Id);
+            if (!Origen) return;
+            const Padre_Id = Mapa.get(Origen.Subobjetivo_Padre_Id || "");
+            if (Padre_Id) Sub.Subobjetivo_Padre_Id = Padre_Id;
+          });
+        Object.values(Modelo.Partes || {}).forEach((Parte) => {
+          const Sub_Destino_Id = Mapa.get(Parte.Subobjetivo_Id);
+          if (!Sub_Destino_Id || Parte.Eliminado_Local) return;
+          if (
+            Opciones.Omitir_Partes_Realizadas &&
+            (
+              Parte.Estado === "Realizada" ||
+              Planes_Estado_Calculado_Parte(Parte, Modelo) ===
+                "Realizada"
+            )
+          ) {
+            return;
+          }
+          const Id = Crear_Id_Parte_Meta();
+          const Orden = Planes_Partes_De_Subobjetivo(
+            Sub_Destino_Id,
+            Modelo
+          ).length;
+          Modelo.Partes[Id] = Normalizar_Parte_Meta({
+            ...Parte,
+            Id,
+            Objetivo_Id: Objetivo_Destino_Id,
+            Subobjetivo_Id: Sub_Destino_Id,
+            Fecha_Inicio: Opciones.Limpiar_Fechas
+              ? ""
+              : Parte.Fecha_Inicio,
+            Fecha_Objetivo: Opciones.Limpiar_Fechas
+              ? ""
+              : Parte.Fecha_Objetivo,
+            Fecha_Fin: "",
+            Hora_Fin: "",
+            Progreso_Avances: 0,
+            Progreso_Total: 0,
+            Estado: "Pendiente",
+            Eliminado_Local: false,
+            Orden
+          }, Orden);
+        });
+        return Creados;
+      }
+
+      function Planes_Copiar_Objetivo_A_Periodo(
+        Objetivo,
+        Periodo_Destino,
+        Opciones = {}
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        if (!Objetivo || !Periodo_Destino) return null;
+        if (Periodo_Destino.Id === Objetivo.Periodo_Id) {
+          Mostrar_Toast_Error(t("planes.pegar_duplicado"));
+          return null;
+        }
+        if (
+          Planes_Objetivo_Duplicado_En_Periodo(
+            Objetivo,
+            Periodo_Destino,
+            Modelo
+          )
+        ) {
+          Mostrar_Toast_Error(t("planes.pegar_duplicado"));
+          return null;
+        }
+        const Orden = Planes_Objetivos_De_Periodo(
+          Periodo_Destino.Id
+        ).length;
+        const Copia = Planes_Crear_Objetivo_Silencioso(
+          Periodo_Destino.Id,
+          Planes_Clonar_Datos_Objetivo(Objetivo, {
+            Objetivo_Padre_Id: "",
+            Periodo_Origen: "",
+            Estado_Vinculo: "Directo",
+            Pausado: false,
+            Progreso_Manual: 0,
+            Progreso_Importado: 0,
+            Progreso_Leido: 0,
+            Progreso_Subobjetivos: 0,
+            Progreso_Total: 0,
+            Fecha_Fin: "",
+            Hora_Fin: "",
+            Orden
+          })
+        );
+        Planes_Clonar_Subobjetivos_A_Objetivo(
+          Objetivo.Id,
+          Copia.Id,
+          Opciones
+        );
+        Planes_Actualizar_Progreso(Copia);
+        return Copia;
+      }
+
+      async function Planes_Trasladar_Objetivo(Objetivo_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        const Periodo = Modelo.Periodos[Objetivo?.Periodo_Id || ""];
+        if (!Objetivo || !Periodo) return;
+        const Siguiente = Planes_Periodo_Siguiente_Misma_Capa(Periodo);
+        const Destino = await Planes_Elegir_Periodo_Destino(
+          Periodo,
+          t("planes.trasladar_periodo_prompt"),
+          Siguiente
+        );
+        if (!Destino) return;
+        const Omitir_Realizadas = await Mostrar_Dialogo(
+          t("planes.trasladar_partes_confirm"),
+          [
+            {
+              Etiqueta: t("planes.trasladar_borrar_realizadas"),
+              Valor: true,
+              Tipo: "Primario"
+            },
+            {
+              Etiqueta: t("planes.trasladar_conservar_realizadas"),
+              Valor: false,
+              Tipo: "Secundario"
+            },
+            { Etiqueta: t("cancelar"), Valor: null, Tipo: "Cancelar" }
+          ]
+        );
+        if (Omitir_Realizadas === null) return;
+        const Snap = Capturar_Snapshot_Undo();
+        const Copia = Planes_Copiar_Objetivo_A_Periodo(
+          Objetivo,
+          Destino,
+          {
+            Solo_Pendientes: true,
+            Limpiar_Fechas: true,
+            Omitir_Partes_Realizadas: Omitir_Realizadas
+          }
+        );
+        if (!Copia) return;
+        Render_Plan();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(t("planes.trasladado_toast"), Snap);
+      }
+
+      function Planes_Desplazar_Fecha(Fecha, Dias) {
+        const Base = Parsear_Fecha_ISO((Fecha || "").toString());
+        return Base ? Formatear_Fecha_ISO(Sumar_Dias(Base, Dias)) : "";
+      }
+
+      async function Planes_Mover_Objetivo_Periodo(Objetivo_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        const Periodo = Modelo.Periodos[Objetivo?.Periodo_Id || ""];
+        if (!Objetivo || !Periodo) return;
+        const Destino = await Planes_Elegir_Periodo_Destino(
+          Periodo,
+          t("planes.mover_periodo_prompt")
+        );
+        if (!Destino) return;
+        if (Planes_Objetivo_Duplicado_En_Periodo(Objetivo, Destino, Modelo)) {
+          Mostrar_Toast_Error(t("planes.pegar_duplicado"));
+          return;
+        }
+        const Confirmar = await Mostrar_Dialogo(
+          t("planes.mover_confirm"),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            { Etiqueta: t("planes.mover"), Valor: true, Tipo: "Primario" }
+          ]
+        );
+        if (!Confirmar) return;
+        const Snap = Capturar_Snapshot_Undo();
+        const Dias = Math.round(
+          (Parsear_Fecha_ISO(Destino.Inicio) -
+            Parsear_Fecha_ISO(Periodo.Inicio)) / 86400000
+        );
+        Objetivo.Periodo_Id = Destino.Id;
+        Planes_Aplicar_Fechas_Periodo_Objetivo(Objetivo, Modelo);
+        Planes_Subobjetivos_De_Objetivo(Objetivo.Id).forEach((Sub) => {
+          Sub.Fecha_Inicio = Planes_Desplazar_Fecha(Sub.Fecha_Inicio, Dias);
+          Sub.Fecha_Objetivo =
+            Planes_Desplazar_Fecha(Sub.Fecha_Objetivo, Dias);
+          Sub.Fecha_Fin = Planes_Desplazar_Fecha(Sub.Fecha_Fin, Dias);
+          Sub.Actualizado_En = new Date().toISOString();
+        });
+        Object.values(Modelo.Partes || {}).forEach((Parte) => {
+          if (Parte.Objetivo_Id !== Objetivo.Id) return;
+          Parte.Fecha_Inicio =
+            Planes_Desplazar_Fecha(Parte.Fecha_Inicio, Dias);
+          Parte.Fecha_Objetivo =
+            Planes_Desplazar_Fecha(Parte.Fecha_Objetivo, Dias);
+          Parte.Fecha_Fin = Planes_Desplazar_Fecha(Parte.Fecha_Fin, Dias);
+          Parte.Actualizado_En = new Date().toISOString();
+        });
+        Object.values(Modelo.Avances || {}).forEach((Avance) => {
+          if (Avance.Objetivo_Id !== Objetivo.Id) return;
+          Avance.Fecha = Planes_Desplazar_Fecha(Avance.Fecha, Dias);
+          Avance.Actualizado_En = new Date().toISOString();
+        });
+        Objetivo.Actualizado_En = new Date().toISOString();
+        Planes_Actualizar_Progreso(Objetivo);
+        Render_Plan();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(t("planes.movido_toast"), Snap);
+      }
+
+      function Planes_Copiar_Objetivo_Buffer(Objetivo_Id) {
+        const Objetivo = Asegurar_Modelo_Planes().Objetivos[Objetivo_Id];
+        if (!Objetivo) return;
+        Planes_Objetivo_Copiado_Id = Objetivo.Id;
+        Mostrar_Toast_Info(t("planes.copiado_toast"), "\ud83d\udccb");
+      }
+
+      async function Planes_Pegar_Objetivo_En_Periodo(
+        Periodo_Destino_Id
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Objetivo = Modelo.Objetivos[Planes_Objetivo_Copiado_Id];
+        const Periodo = Modelo.Periodos[Periodo_Destino_Id || ""];
+        if (!Objetivo || !Periodo) return;
+        const Snap = Capturar_Snapshot_Undo();
+        const Copia = Planes_Copiar_Objetivo_A_Periodo(
+          Objetivo,
+          Periodo,
+          {
+            Solo_Pendientes: false,
+            Limpiar_Fechas: false,
+            Omitir_Partes_Realizadas: false
+          }
+        );
+        if (!Copia) return;
+        Render_Plan();
+        Guardar_Estado();
+        Mostrar_Toast_Undo(t("planes.pegado_toast"), Snap);
       }
 
       function Planes_Bajar_Objetivo_A_Capa(Objetivo_Id, Tipo_Destino) {
@@ -51109,7 +51788,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Objetivos_Periodo =
           Planes_Filtrar_Objetivos(Periodo)
-            .filter((Objetivo) => !Objetivo.Eliminado_Local);
+            .filter((Objetivo) =>
+              !Objetivo.Eliminado_Local &&
+              !Objetivo.Pausado
+            );
         const Cumplidos = Objetivos_Periodo.filter(
           (Objetivo) => Objetivo.Estado === "Cumplido"
         ).length;
@@ -52693,15 +53375,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Periodo_Contexto,
             Modelo
           );
+        const Pausado = Boolean(Objetivo.Pausado);
         const Card = document.createElement("article");
         Card.className = "Planes_Objetivo_Card" +
           (Objetivo.Eliminado_Local ? " Eliminado" : "") +
           (Oculto_Contextual ? " Oculto_Contextual" : "") +
+          (Pausado ? " Pausado" : "") +
           ((Objetivo.Warnings || []).length ? " Warning" : "") +
-          (Estado_Efectivo === "Activo" ? " Estado_Activo" : "") +
-          (Estado_Efectivo === "Cumplido" ? " Estado_Cumplido" : "") +
-          (Estado_Efectivo === "Vencido" ? " Atrasado" : "") +
-          (Estado_Efectivo === "Saldado" ? " Saldado" : "") +
+          (!Pausado && Estado_Efectivo === "Activo"
+            ? " Estado_Activo" : "") +
+          (!Pausado && Estado_Efectivo === "Cumplido"
+            ? " Estado_Cumplido" : "") +
+          (!Pausado && Estado_Efectivo === "Vencido"
+            ? " Atrasado" : "") +
+          (!Pausado && Estado_Efectivo === "Saldado"
+            ? " Saldado" : "") +
           (Es_Lista ? " Vista_Lista" : "") +
           (Es_Biblioteca ? " Vista_Biblioteca" : "") +
           (
@@ -52713,11 +53401,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           " Reordenable";
         Card.draggable = !Objetivo.__Plan_Proyectado;
         Card.dataset.planObjetivoId = Objetivo.Id;
-        const Estado_Label =
-          t(`planes.estado_${Estado_Efectivo.toLowerCase()}`);
+        const Estado_Label = Pausado
+          ? t("planes.pausado")
+          : t(`planes.estado_${Estado_Efectivo.toLowerCase()}`);
         const Porcentaje = Planes_Formatear_Porcentaje_Meta(
           Objetivo.Progreso_Total,
           Objetivo.Target_Total
+        );
+        const Ritmo_Html = Planes_Render_Ritmo_Objetivo(
+          Objetivo,
+          Modelo
         );
         const Meta_Objetivo_Html =
           Planes_Render_Resumen_Tarjeta_Objetivo(Objetivo);
@@ -52743,7 +53436,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             <span class="Planes_Objetivo_Estado"
               title="${Escape_Html(Estado_Label)}"
               aria-label="${Escape_Html(Estado_Label)}">
-              ${Planes_Emoji_Estado(Estado_Efectivo)}
+              ${Pausado ? "\u23f8\ufe0f" :
+                Planes_Emoji_Estado(Estado_Efectivo)}
             </span>
           </div>
           ${Expandido ? Render_Planes_Detalle_Objetivo(Objetivo) : ""}
@@ -52765,8 +53459,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 <span class="Planes_Objetivo_Estado"
                   title="${Escape_Html(Estado_Label)}"
                   aria-label="${Escape_Html(Estado_Label)}">
-                  ${Planes_Emoji_Estado(Estado_Efectivo)}
+                  ${Pausado ? "\u23f8\ufe0f" :
+                    Planes_Emoji_Estado(Estado_Efectivo)}
                 </span>
+                ${Ritmo_Html}
                 ${Es_Lista ? "" : Boton_Avance}
               </div>
             </div>
@@ -53199,8 +53895,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Render_Planes_Detalle_Objetivo(Objetivo) {
         const Estado_Efectivo =
           Planes_Estado_Efectivo_Objetivo(Objetivo);
-        const Estado_Label =
-          t(`planes.estado_${Estado_Efectivo.toLowerCase()}`);
+        const Estado_Label = Objetivo?.Pausado
+          ? t("planes.pausado")
+          : t(`planes.estado_${Estado_Efectivo.toLowerCase()}`);
         const Etiquetas = Planes_Etiquetas_Nombres(Objetivo);
         const Meta = Planes_Formatear_Meta_Objetivo(Objetivo);
         const Realizado = Planes_Formatear_Numero(
@@ -53347,9 +54044,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Ocultar_Label = Ocultamiento.Oculto
           ? t("planes.mostrar_periodo")
           : t("planes.ocultar_periodo");
+        const Pausar_Accion = Objetivo.Pausado ? "reanudar" : "pausar";
+        const Pausar_Label = Objetivo.Pausado
+          ? t("planes.reanudar")
+          : t("planes.pausar");
         const Eliminar_Label = Objetivo.Eliminado_Local
           ? t("planes.recuperar")
           : t("planes.eliminar_local");
+        const Puede_Pegar = Boolean(
+          Planes_Objetivo_Copiado_Id &&
+          Modelo.Objetivos[Planes_Objetivo_Copiado_Id]
+        );
         return `
             <button class="Planes_Btn" type="button"
               data-plan-accion="editar">
@@ -53366,6 +54071,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             <button class="Planes_Btn" type="button"
               data-plan-accion="estado">
               ${t("planes.editar_estado")}
+            </button>
+            <button class="Planes_Btn" type="button"
+              data-plan-accion="${Pausar_Accion}">
+              ${Pausar_Label}
+            </button>
+            <button class="Planes_Btn" type="button"
+              data-plan-accion="trasladar">
+              ${t("planes.trasladar")}
+            </button>
+            <button class="Planes_Btn" type="button"
+              data-plan-accion="mover_periodo">
+              ${t("planes.mover")}
+            </button>
+            <button class="Planes_Btn" type="button"
+              data-plan-accion="copiar_objetivo">
+              ${t("planes.copiar_objetivo")}
+            </button>
+            <button class="Planes_Btn" type="button"
+              data-plan-accion="pegar_objetivo"
+              ${Puede_Pegar ? "" : "disabled"}>
+              ${t("planes.pegar_objetivo")}
             </button>
             <button class="Planes_Btn" type="button"
               data-plan-accion="${Ocultar_Accion}">
@@ -53423,6 +54149,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Tipo === "manual") await Planes_Editar_Manual(Objetivo.Id);
         if (Tipo === "modo") await Planes_Cambiar_Modo(Objetivo.Id);
         if (Tipo === "estado") await Planes_Cambiar_Estado(Objetivo.Id);
+        if (Tipo === "pausar") {
+          await Planes_Cambiar_Pausa_Objetivo(Objetivo.Id, true);
+        }
+        if (Tipo === "reanudar") {
+          await Planes_Cambiar_Pausa_Objetivo(Objetivo.Id, false);
+        }
+        if (Tipo === "trasladar") {
+          await Planes_Trasladar_Objetivo(Objetivo.Id);
+        }
+        if (Tipo === "mover_periodo") {
+          await Planes_Mover_Objetivo_Periodo(Objetivo.Id);
+        }
+        if (Tipo === "copiar_objetivo") {
+          Planes_Copiar_Objetivo_Buffer(Objetivo.Id);
+        }
+        if (Tipo === "pegar_objetivo") {
+          await Planes_Pegar_Objetivo_En_Periodo(
+            Periodo_Contexto_Id || Objetivo.Periodo_Id
+          );
+        }
         if (Tipo === "vinculo") await Planes_Romper_Vinculo(Objetivo.Id);
         if (Tipo === "tags") Planes_Editar_Etiquetas(Objetivo.Id);
         if (Tipo === "ocultar_periodo") {
@@ -53738,12 +54484,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const A = Planes_Normalizar_Alcance_Avance(Alcance);
         if (A.Tipo === "Objetivo") {
           const Objetivo = Planes_Objetivo_Real_Avance(A.Id, M);
-          return Objetivo && !Objetivo.Eliminado_Local ? [Objetivo] : [];
+          return Objetivo && !Objetivo.Eliminado_Local &&
+            !Objetivo.Pausado
+            ? [Objetivo]
+            : [];
         }
         if (A.Tipo !== "Periodo") {
           return Object.values(M.Objetivos || {})
             .filter((Objetivo) =>
               !Objetivo.Eliminado_Local &&
+              !Objetivo.Pausado &&
               !Planes_Objetivo_Padre_Id(Objetivo)
             );
         }
@@ -53756,6 +54506,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Real || Real.Eliminado_Local || Agregados.has(Real.Id)) {
             return;
           }
+          if (Real.Pausado) return;
           Agregados.add(Real.Id);
           Visibles.push(Real);
         };

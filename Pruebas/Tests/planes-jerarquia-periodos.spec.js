@@ -1143,6 +1143,194 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Pausar objetivo cambia visual e indicador de ritmo",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(async () => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    Modelo.UI.Periodo_Activo_Id = Anio.Id;
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Independencia financiera",
+      Emoji: "\uD83D\uDCB0",
+      Target_Total: 100,
+      Unidad: "Personalizado",
+      Unidad_Custom: "proyectos"
+    });
+    Objetivo.Pausado = true;
+    Render_Planes_Contenido();
+    const Card = document.querySelector(
+      `[data-plan-objetivo-id="${Objetivo.Id}"]`
+    );
+    const Ritmo_Pausado = Planes_Ritmo_Objetivo(Objetivo);
+    Objetivo.Pausado = false;
+    Objetivo.Progreso_Manual = 10;
+    Objetivo.Modo_Progreso = "Manual";
+    Planes_Actualizar_Progreso(Objetivo);
+    const Ritmo_Activo = Planes_Ritmo_Objetivo(Objetivo);
+    return {
+      Clase_Pausada: Card?.classList.contains("Pausado") || false,
+      Texto_Pausado: Card?.textContent.includes("Pausado") || false,
+      Ritmo_Pausado: Ritmo_Pausado?.Clase || "",
+      Ritmo_Activo: Ritmo_Activo?.Clase || ""
+    };
+  });
+
+  expect(Resultado.Clase_Pausada).toBe(true);
+  expect(Resultado.Texto_Pausado).toBe(true);
+  expect(Resultado.Ritmo_Pausado).toBe("Pausado");
+  expect(["En_Ritmo", "Atrasado"]).toContain(Resultado.Ritmo_Activo);
+  expect(errores).toEqual([]);
+});
+
+test("Trasladar copia pendientes sin fechas y bloquea duplicados",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2027;
+    const Anio_2026 = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Anio_2027 = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2027-01-01",
+      "2027-12-31",
+      null,
+      2027
+    );
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio_2026.Id, {
+      Nombre: "Leer libros",
+      Emoji: "\uD83D\uDCD6",
+      Target_Total: 10,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros"
+    });
+    const Sub_Hecho_Id = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Libro terminado",
+      "\u2705"
+    );
+    const Sub_Hecho =
+      Asegurar_Modelo_Planes().Subobjetivos[Sub_Hecho_Id];
+    const Sub_Pendiente_Id = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Libro pendiente",
+      "\uD83D\uDCD8"
+    );
+    const Sub_Pendiente =
+      Asegurar_Modelo_Planes().Subobjetivos[Sub_Pendiente_Id];
+    Asegurar_Modelo_Planes().Subobjetivos[Sub_Hecho_Id].Hecha = true;
+    Asegurar_Modelo_Planes().Subobjetivos[Sub_Hecho_Id].Estado =
+      "Cumplido";
+    const Sub_Pendiente_Actual =
+      Asegurar_Modelo_Planes().Subobjetivos[Sub_Pendiente_Id];
+    Sub_Pendiente_Actual.Fecha_Inicio = "2026-04-01";
+    Sub_Pendiente_Actual.Fecha_Objetivo = "2026-05-01";
+    const Parte_Realizada_Id = Crear_Id_Parte_Meta();
+    Asegurar_Modelo_Planes().Partes[Parte_Realizada_Id] =
+      Normalizar_Parte_Meta({
+      Id: Parte_Realizada_Id,
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Pendiente_Id,
+      Nombre: "Parte realizada",
+      Aporte_Total: 1,
+      Estado: "Realizada"
+    });
+    const Parte_Pendiente_Id = Crear_Id_Parte_Meta();
+    Asegurar_Modelo_Planes().Partes[Parte_Pendiente_Id] =
+      Normalizar_Parte_Meta({
+      Id: Parte_Pendiente_Id,
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Pendiente_Id,
+      Nombre: "Parte pendiente",
+      Aporte_Total: 1,
+      Estado: "Pendiente",
+      Fecha_Inicio: "2026-04-16",
+      Fecha_Objetivo: "2026-04-30"
+    });
+    const Copia = Planes_Copiar_Objetivo_A_Periodo(
+      Objetivo,
+      Anio_2027,
+      {
+        Solo_Pendientes: true,
+        Limpiar_Fechas: true,
+        Omitir_Partes_Realizadas: true
+      }
+    );
+    const Duplicado = Planes_Copiar_Objetivo_A_Periodo(
+      Objetivo,
+      Anio_2027,
+      {
+        Solo_Pendientes: true,
+        Limpiar_Fechas: true,
+        Omitir_Partes_Realizadas: true
+      }
+    );
+    const Subs = Planes_Subobjetivos_De_Objetivo(Copia.Id);
+    const Partes = Object.values(Asegurar_Modelo_Planes().Partes)
+      .filter((Parte) => Parte.Objetivo_Id === Copia.Id);
+    return {
+      Copia_Periodo: Copia.Periodo_Id,
+      Duplicado_Nulo: Duplicado === null,
+      Subs: Subs.map((Sub) => ({
+        Texto: Sub.Texto,
+        Hecha: Sub.Hecha,
+        Fecha_Inicio: Sub.Fecha_Inicio,
+        Fecha_Objetivo: Sub.Fecha_Objetivo
+      })),
+      Partes: Partes.map((Parte) => ({
+        Nombre: Parte.Nombre,
+        Estado: Parte.Estado,
+        Fecha_Inicio: Parte.Fecha_Inicio,
+        Fecha_Objetivo: Parte.Fecha_Objetivo
+      }))
+    };
+  });
+
+  expect(Resultado.Copia_Periodo).toBe("P_Anio_2027-01-01_2027-12-31");
+  expect(Resultado.Duplicado_Nulo).toBe(true);
+  expect(Resultado.Subs).toEqual([{
+    Texto: "Libro pendiente",
+    Hecha: false,
+    Fecha_Inicio: "",
+    Fecha_Objetivo: ""
+  }]);
+  expect(Resultado.Partes).toEqual([{
+    Nombre: "Parte pendiente",
+    Estado: "Pendiente",
+    Fecha_Inicio: "",
+    Fecha_Objetivo: ""
+  }]);
+  expect(errores).toEqual([]);
+});
+
 test("Atajos de capa eligen periodo presente y año queda primero",
 async ({ page }) => {
   const errores = [];
