@@ -184,6 +184,88 @@ async function Preparar(page) {
   });
 }
 
+test("Formularios de target muestran suma en minuscula con ayuda",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Todos = false;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    Modelo.UI.Subperiodo_Activo = 1;
+    const Periodo = Planes_Crear_Periodo_Seleccionado("Anio");
+    Modelo.UI.Periodo_Activo_Id = Periodo.Id;
+    Render_Plan();
+  });
+
+  await page.click("[data-plan-universo-nuevo]");
+  const Objetivo = await page.evaluate(() => {
+    const Label = document.querySelector(".Planes_Meta_Campo > label");
+    const Suma = document.querySelector(
+      "#Planes_Objetivo_Target_Suma"
+    ).closest(".Planes_Target_Suma_Fila");
+    const Texto = Suma.querySelector("[data-i18n]");
+    const Ayuda = Suma.querySelector(".Planes_Target_Suma_Ayuda");
+    return {
+      labelTransform: getComputedStyle(Label).textTransform,
+      sumaTexto: Texto.textContent.trim(),
+      sumaTransform: getComputedStyle(Texto.parentElement).textTransform,
+      ayudaTexto: Ayuda.textContent.trim(),
+      ayudaTitulo: Ayuda.title
+    };
+  });
+  await page.click("#Planes_Objetivo_Cancelar");
+
+  const Subobjetivo = await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Periodo = Planes_Crear_Periodo_Seleccionado("Anio");
+    const Objetivo_Item = Normalizar_Objetivo_Plan({
+      Id: "obj_target_ayuda",
+      Periodo_Id: Periodo.Id,
+      Nombre: "Objetivo",
+      Target_Total: 10,
+      Orden: 0
+    });
+    Modelo.Objetivos[Objetivo_Item.Id] = Objetivo_Item;
+    Abrir_Modal_Planes_Subobjetivos(Objetivo_Item.Id);
+    Abrir_Modal_Planes_Subobjetivo_Nuevo();
+
+    const Label = document.querySelector(
+      ".Planes_Subobjetivo_Meta_Campo > label"
+    );
+    const Suma = document.querySelector(
+      "#Planes_Subobjetivo_Target_Suma"
+    ).closest(".Planes_Target_Suma_Fila");
+    const Texto = Suma.querySelector("[data-i18n]");
+    const Ayuda = Suma.querySelector(".Planes_Target_Suma_Ayuda");
+    return {
+      labelTexto: Label.textContent.trim(),
+      labelTransform: getComputedStyle(Label).textTransform,
+      sumaTexto: Texto.textContent.trim(),
+      sumaTransform: getComputedStyle(Texto.parentElement).textTransform,
+      ayudaTexto: Ayuda.textContent.trim(),
+      ayudaTitulo: Ayuda.title
+    };
+  });
+
+  expect(errores).toEqual([]);
+  expect(Objetivo.labelTransform).toBe("lowercase");
+  expect(Objetivo.sumaTexto).toBe("suma");
+  expect(Objetivo.sumaTransform).toBe("lowercase");
+  expect(Objetivo.ayudaTexto).toBe("?");
+  expect(Objetivo.ayudaTitulo).toContain("componentes");
+  expect(Subobjetivo.labelTexto).toBe("valor objetivo");
+  expect(Subobjetivo.labelTransform).toBe("lowercase");
+  expect(Subobjetivo.sumaTexto).toBe("suma");
+  expect(Subobjetivo.sumaTransform).toBe("lowercase");
+  expect(Subobjetivo.ayudaTexto).toBe("?");
+  expect(Subobjetivo.ayudaTitulo).toContain("componentes");
+});
+
 test("Planes usa capas sin semana y fija fechas del objetivo al periodo",
 async ({ page }) => {
   const errores = [];

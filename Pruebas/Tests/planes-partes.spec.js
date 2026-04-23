@@ -1264,3 +1264,73 @@ async ({ page }) => {
     partes: "sticky"
   });
 });
+
+test("Administrador de partes muestra unidades en minuscula",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
+      Id: "p2026",
+      Tipo: "Anio",
+      Inicio: "2026-01-01",
+      Fin: "2026-12-31",
+      Orden: 0
+    });
+    Modelo.Objetivos.obj_partes_minusculas = Normalizar_Objetivo_Plan({
+      Id: "obj_partes_minusculas",
+      Periodo_Id: "p2026",
+      Emoji: "\uD83D\uDCDA",
+      Nombre: "Libro",
+      Target_Total: 6,
+      Unidad: "Personalizado",
+      Unidad_Custom: "P\u00E1ginas",
+      Orden: 0
+    });
+    Modelo.Subobjetivos.sub_partes_minusculas =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_partes_minusculas",
+        Objetivo_Id: "obj_partes_minusculas",
+        Emoji: "\uD83D\uDCD6",
+        Texto: "Capitulo",
+        Target_Total: 6,
+        Unidad: "Personalizado",
+        Unidad_Custom: "P\u00E1ginas",
+        Orden: 0
+      });
+    Modelo.Partes.parte_minusculas = Normalizar_Parte_Meta({
+      Id: "parte_minusculas",
+      Objetivo_Id: "obj_partes_minusculas",
+      Subobjetivo_Id: "sub_partes_minusculas",
+      Emoji: "\uD83D\uDCD6",
+      Nombre: "Parte uno",
+      Aporte_Total: 6,
+      Unidad: "Personalizado",
+      Unidad_Custom: "P\u00E1ginas",
+      Orden: 0
+    });
+    Planes_Marcar_Parte_Realizada("parte_minusculas");
+
+    Planes_Partes_Filtro_Estado = "Todos";
+    Abrir_Modal_Planes_Partes("sub_partes_minusculas");
+
+    return {
+      resumen: document.getElementById("Planes_Partes_Resumen")
+        .textContent,
+      meta: document.querySelector("#Planes_Partes_Lista .Planes_Parte_Meta")
+        .textContent
+    };
+  });
+
+  expect(errores).toEqual([]);
+  expect(resultado.resumen).toContain("6 p\u00E1ginas asignadas");
+  expect(resultado.resumen).toContain("0 p\u00E1ginas");
+  expect(resultado.meta).toContain("6/6 p\u00E1ginas");
+  expect(resultado.resumen).not.toContain("P\u00E1ginas");
+  expect(resultado.meta).not.toContain("P\u00E1ginas");
+  expect(resultado.meta).not.toContain("Realizada");
+});

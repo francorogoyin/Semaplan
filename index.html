@@ -7161,7 +7161,7 @@
 
       .Planes_Target_Suma_Fila {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) auto auto;
         gap: 8px;
         align-items: center;
       }
@@ -7174,6 +7174,34 @@
         color: var(--Texto_Suave);
         font-size: 11px;
         white-space: nowrap;
+      }
+
+      .Planes_Meta_Campo > label,
+      .Planes_Subobjetivo_Meta_Campo > label,
+      .Planes_Target_Suma_Fila > .Planes_Target_Suma_Opcion {
+        text-transform: lowercase;
+        letter-spacing: 0;
+      }
+
+      .Planes_Target_Suma_Ayuda {
+        display: inline-grid;
+        place-items: center;
+        width: 18px;
+        height: 18px;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1;
+        cursor: help;
+        user-select: none;
+      }
+
+      .Planes_Target_Suma_Ayuda:focus-visible {
+        outline: 2px solid var(--Acento);
+        outline-offset: 2px;
       }
 
       .Planes_Target_Suma_Opcion input[type="checkbox"] {
@@ -19769,9 +19797,15 @@
                   <input id="Planes_Objetivo_Target_Suma"
                     type="checkbox">
                   <span data-i18n="planes.target_suma_componentes">
-                    Suma
+                    suma
                   </span>
                 </label>
+                <span class="Planes_Target_Suma_Ayuda"
+                  data-i18n-title="planes.target_suma_componentes_help"
+                  data-i18n-aria="planes.target_suma_componentes_help"
+                  title="Calcula este valor como suma de sus componentes."
+                  aria-label="Calcula este valor como suma de sus componentes."
+                  tabindex="0">?</span>
               </span>
             </div>
             <label class="Campo Planes_Unidad_Campo">
@@ -20085,9 +20119,15 @@
                   <input id="Planes_Subobjetivo_Target_Suma"
                     type="checkbox">
                   <span data-i18n="planes.target_suma_componentes">
-                    Suma
+                    suma
                   </span>
                 </label>
+                <span class="Planes_Target_Suma_Ayuda"
+                  data-i18n-title="planes.target_suma_componentes_help"
+                  data-i18n-aria="planes.target_suma_componentes_help"
+                  title="Calcula este valor como suma de sus componentes."
+                  aria-label="Calcula este valor como suma de sus componentes."
+                  tabindex="0">?</span>
               </span>
             </div>
             <label class="Campo Planes_Subobjetivo_Aporte_Campo">
@@ -21430,7 +21470,10 @@
           "planes.nuevo_titulo": "Nuevo objetivo",
           "planes.editar_objetivo": "Editar objetivo",
           "planes.nuevo_target": "Meta",
-          "planes.target_suma_componentes": "Suma",
+          "planes.target_suma_componentes": "suma",
+          "planes.target_suma_componentes_help":
+            "Calcula este valor como suma de sus componentes: " +
+            "subobjetivos en un objetivo, partes en un subobjetivo.",
           "planes.nuevo_unidad": "Unidad",
           "planes.unidad_subobjetivos_default":
             "Unidad por defecto en subobjetivos",
@@ -21548,7 +21591,7 @@
           "planes.meta_planeados": "{Cantidad} planeados",
           "planes.sub_aporte": "Aporte",
           "planes.sub_aporte_en": "Aporte en {Unidad}",
-          "planes.sub_valor_objetivo": "Valor objetivo",
+          "planes.sub_valor_objetivo": "valor objetivo",
           "planes.target_excede_padre_confirm":
             "Estas excediendo el valor objetivo de {nombre}: " +
             "de {actual} {unidad} a {nuevo} {unidad}. " +
@@ -25160,7 +25203,10 @@
           "planes.nuevo_titulo": "New objective",
           "planes.editar_objetivo": "Edit objective",
           "planes.nuevo_target": "Goal",
-          "planes.target_suma_componentes": "Sum",
+          "planes.target_suma_componentes": "sum",
+          "planes.target_suma_componentes_help":
+            "Calculates this value as the sum of its components: " +
+            "subobjectives in an objective, parts in a subobjective.",
           "planes.nuevo_unidad": "Unit",
           "planes.unidad_subobjetivos_default":
             "Default unit for subobjectives",
@@ -25275,7 +25321,7 @@
           "planes.meta_planeados": "{Cantidad} planned",
           "planes.sub_aporte": "Contribution",
           "planes.sub_aporte_en": "Contribution in {Unidad}",
-          "planes.sub_valor_objetivo": "Target value",
+          "planes.sub_valor_objetivo": "target value",
           "planes.target_excede_padre_confirm":
             "You are exceeding the target value for {nombre}: " +
             "from {actual} {unidad} to {nuevo} {unidad}. " +
@@ -28833,7 +28879,10 @@
           "planes.nuevo_titulo": "Novo objetivo",
           "planes.editar_objetivo": "Editar objetivo",
           "planes.nuevo_target": "Meta",
-          "planes.target_suma_componentes": "Soma",
+          "planes.target_suma_componentes": "soma",
+          "planes.target_suma_componentes_help":
+            "Calcula este valor como soma dos componentes: " +
+            "subobjetivos em um objetivo, partes em um subobjetivo.",
           "planes.nuevo_unidad": "Unidade",
           "planes.unidad_subobjetivos_default":
             "Unidade padr\u00e3o nos subobjetivos",
@@ -28955,7 +29004,7 @@
           "planes.editar_target_padre": "Atualizar target",
           "planes.sub_aporte": "Aporte",
           "planes.sub_aporte_en": "Aporte em {Unidad}",
-          "planes.sub_valor_objetivo": "Valor objetivo",
+          "planes.sub_valor_objetivo": "valor objetivo",
           "planes.sub_metrica": "Métrica",
           "planes.sub_unidad_custom":
             "Unidade própria",
@@ -46920,6 +46969,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           Unidad = t(`planes.${(Parte.Unidad || "").toLowerCase()}`);
         }
+        Unidad = Unidad.toLocaleLowerCase(Obtener_Locale_Actual());
         return Planes_Ajustar_Unidad_Por_Cantidad(Unidad, Cantidad);
       }
 
@@ -60422,6 +60472,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Unidad_Aporte
           : `${Meta_Aporte_Formatear(Total, Unidad_Total)} ` +
             Unidad_Total;
+        if (Estado === "Realizada") return Base;
         return `${Base} · ${t(
           `planes.parte_estado_${Estado.toLowerCase()}`
         )}`;
