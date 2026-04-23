@@ -184,7 +184,7 @@ async function Preparar(page) {
   });
 }
 
-test("Formularios de target muestran suma en minuscula con ayuda",
+test("Formularios de target muestran labels con mayuscula y ayuda",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -211,6 +211,7 @@ async ({ page }) => {
     const Texto = Suma.querySelector("[data-i18n]");
     const Ayuda = Suma.querySelector(".Planes_Target_Suma_Ayuda");
     return {
+      labelTexto: Label.textContent.trim(),
       labelTransform: getComputedStyle(Label).textTransform,
       sumaTexto: Texto.textContent.trim(),
       sumaTransform: getComputedStyle(Texto.parentElement).textTransform,
@@ -253,15 +254,16 @@ async ({ page }) => {
   });
 
   expect(errores).toEqual([]);
-  expect(Objetivo.labelTransform).toBe("lowercase");
-  expect(Objetivo.sumaTexto).toBe("suma");
-  expect(Objetivo.sumaTransform).toBe("lowercase");
+  expect(Objetivo.labelTexto).toBe("Valor objetivo");
+  expect(Objetivo.labelTransform).toBe("none");
+  expect(Objetivo.sumaTexto).toBe("Suma");
+  expect(Objetivo.sumaTransform).toBe("none");
   expect(Objetivo.ayudaTexto).toBe("?");
   expect(Objetivo.ayudaTitulo).toContain("componentes");
-  expect(Subobjetivo.labelTexto).toBe("valor objetivo");
-  expect(Subobjetivo.labelTransform).toBe("lowercase");
-  expect(Subobjetivo.sumaTexto).toBe("suma");
-  expect(Subobjetivo.sumaTransform).toBe("lowercase");
+  expect(Subobjetivo.labelTexto).toBe("Valor objetivo");
+  expect(Subobjetivo.labelTransform).toBe("none");
+  expect(Subobjetivo.sumaTexto).toBe("Suma");
+  expect(Subobjetivo.sumaTransform).toBe("none");
   expect(Subobjetivo.ayudaTexto).toBe("?");
   expect(Subobjetivo.ayudaTitulo).toContain("componentes");
 });
@@ -1029,7 +1031,7 @@ async ({ page }) => {
   await expect(page.locator("#Planes_Objetivo_Overlay"))
     .not.toContainText("Bajar a");
   await expect(page.locator(".Planes_Meta_Campo"))
-    .toContainText("Meta");
+    .toContainText("Valor objetivo");
   await expect(page.locator("#Planes_Objetivo_Overlay"))
     .not.toContainText("Métrica");
   const Layout_Meta_Unidad = await page.evaluate(() => {
@@ -1330,7 +1332,7 @@ async ({ page }) => {
   expect(Layout_Detalle.tablaAnchoCompleto).toBe(true);
   expect(Layout_Detalle.headers).toEqual([
     "Estado",
-    "Meta",
+    "Valor objetivo",
     "Realizado",
     "Falta"
   ]);
@@ -2512,6 +2514,195 @@ async ({ page }) => {
     return Modelo.Objetivos[objetivoId].Progreso_Manual;
   }, Objetivo_Id);
   expect(Manual_Previo_Borrado).toBe(0);
+  expect(errores).toEqual([]);
+});
+
+test("Registro de planes edita avances de subobjetivos realizados",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Datos = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    const Anio = Object.values(Modelo.Periodos)
+      .find((Periodo) => Periodo.Tipo === "Anio");
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Lecturas registro sub",
+      Emoji: "\uD83D\uDCDA",
+      Target_Total: 1,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros",
+      Modo_Progreso: "Subobjetivos"
+    });
+    const Sub_Id = "sub_registro_realizado";
+    Modelo.Subobjetivos[Sub_Id] = Normalizar_Subobjetivo_Plan({
+      Id: Sub_Id,
+      Objetivo_Id: Objetivo.Id,
+      Texto: "Capitulo realizado",
+      Emoji: "\uD83D\uDCD6",
+      Target_Total: 100,
+      Aporte_Meta: 1,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Fecha_Inicio: "2026-04-01",
+      Fecha_Objetivo: "2026-04-30"
+    });
+    const Sub = Modelo.Subobjetivos[Sub_Id];
+    Planes_Agregar_Avance_Final_Subobjetivo(
+      Sub,
+      Objetivo,
+      100,
+      "2026-04-19",
+      "15:34",
+      Modelo
+    );
+    Sub.Hecha = true;
+    Sub.Estado = "Cumplido";
+    Sub.Fecha_Fin = "2026-04-19";
+    Sub.Hora_Fin = "15:34";
+    Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+    Planes_Recalcular_Desde(Objetivo);
+    Abrir_Modal_Planes_Registro(Objetivo.Id);
+    return {
+      Objetivo_Id: Objetivo.Id,
+      Sub_Id
+    };
+  });
+
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("100 paginas");
+  await page.locator('[data-plan-registro-editar="Avance"]')
+    .click();
+  await page.fill("#Dialogo_Input_Campo", "80");
+  await page.fill("#Dialogo_Fecha_Campo", "2026-04-22");
+  await page.fill("#Dialogo_Hora_Campo", "16:45");
+  await page.locator("#Dialogo_Botones button")
+    .filter({ hasText: "Guardar" })
+    .click();
+
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("80 paginas");
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("22/04/2026");
+  const Editado = await page.evaluate((datos) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Sub = Modelo.Subobjetivos[datos.Sub_Id];
+    const Avance = Object.values(Modelo.Avances || {})
+      .find((Item) => Item.Subobjetivo_Id === datos.Sub_Id);
+    return {
+      avance: Avance?.Cantidad || 0,
+      fecha: Avance?.Fecha || "",
+      hora: Avance?.Hora || "",
+      progreso: Sub.Progreso_Avances,
+      hecha: Sub.Hecha,
+      fechaFin: Sub.Fecha_Fin || ""
+    };
+  }, Datos);
+  expect(Editado.avance).toBe(80);
+  expect(Editado.fecha).toBe("2026-04-22");
+  expect(Editado.hora).toBe("16:45");
+  expect(Editado.progreso).toBe(80);
+  expect(Editado.hecha).toBe(false);
+  expect(Editado.fechaFin).toBe("");
+  expect(errores).toEqual([]);
+});
+
+test("Registro de planes edita avances de partes realizadas",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Datos = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    const Anio = Object.values(Modelo.Periodos)
+      .find((Periodo) => Periodo.Tipo === "Anio");
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Lecturas registro parte",
+      Emoji: "\uD83D\uDCDA",
+      Target_Total: 1,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros",
+      Modo_Progreso: "Subobjetivos"
+    });
+    const Sub_Id = "sub_registro_parte";
+    const Parte_Id = "parte_registro_realizada";
+    Modelo.Subobjetivos[Sub_Id] = Normalizar_Subobjetivo_Plan({
+      Id: Sub_Id,
+      Objetivo_Id: Objetivo.Id,
+      Texto: "Libro con partes",
+      Emoji: "\uD83D\uDCD6",
+      Target_Total: 20,
+      Target_Suma_Componentes: true,
+      Aporte_Meta: 1,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    Modelo.Partes[Parte_Id] = Normalizar_Parte_Meta({
+      Id: Parte_Id,
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Id,
+      Emoji: "\uD83D\uDCD8",
+      Nombre: "Parte realizada",
+      Aporte_Total: 20,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    Planes_Marcar_Parte_Realizada(Parte_Id, {
+      Fecha: "2026-04-19",
+      Hora: "15:34",
+      Solo_Modelo: true
+    });
+    const Sub = Modelo.Subobjetivos[Sub_Id];
+    Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+    Planes_Recalcular_Desde(Objetivo);
+    Abrir_Modal_Planes_Registro(Objetivo.Id);
+    return {
+      Objetivo_Id: Objetivo.Id,
+      Sub_Id,
+      Parte_Id
+    };
+  });
+
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("20 paginas");
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("Parte realizada");
+  await page.locator('[data-plan-registro-editar="Avance"]')
+    .click();
+  await page.fill("#Dialogo_Input_Campo", "12");
+  await page.fill("#Dialogo_Fecha_Campo", "2026-04-23");
+  await page.fill("#Dialogo_Hora_Campo", "17:10");
+  await page.press("#Dialogo_Hora_Campo", "Enter");
+
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("12 paginas");
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("23/04/2026");
+  const Editado = await page.evaluate((datos) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Sub = Modelo.Subobjetivos[datos.Sub_Id];
+    const Parte = Modelo.Partes[datos.Parte_Id];
+    const Avance = Object.values(Modelo.Avances || {})
+      .find((Item) => Item.Parte_Id === datos.Parte_Id);
+    return {
+      avance: Avance?.Cantidad || 0,
+      fecha: Avance?.Fecha || "",
+      hora: Avance?.Hora || "",
+      subProgreso: Sub.Progreso_Avances,
+      parteProgreso: Parte.Progreso_Total,
+      parteEstado: Parte.Estado
+    };
+  }, Datos);
+  expect(Editado.avance).toBe(12);
+  expect(Editado.fecha).toBe("2026-04-23");
+  expect(Editado.hora).toBe("17:10");
+  expect(Editado.subProgreso).toBe(12);
+  expect(Editado.parteProgreso).toBe(12);
+  expect(Editado.parteEstado).toBe("Parcial");
   expect(errores).toEqual([]);
 });
 

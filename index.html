@@ -7179,7 +7179,7 @@
       .Planes_Meta_Campo > label,
       .Planes_Subobjetivo_Meta_Campo > label,
       .Planes_Target_Suma_Fila > .Planes_Target_Suma_Opcion {
-        text-transform: lowercase;
+        text-transform: none;
         letter-spacing: 0;
       }
 
@@ -19786,7 +19786,7 @@
             <div class="Campo Planes_Meta_Campo">
               <label for="Planes_Objetivo_Target"
                 data-i18n="planes.nuevo_target">
-                Meta
+                Valor objetivo
               </label>
               <span class="Planes_Target_Suma_Fila">
                 <input id="Planes_Objetivo_Target"
@@ -19797,7 +19797,7 @@
                   <input id="Planes_Objetivo_Target_Suma"
                     type="checkbox">
                   <span data-i18n="planes.target_suma_componentes">
-                    suma
+                    Suma
                   </span>
                 </label>
                 <span class="Planes_Target_Suma_Ayuda"
@@ -20119,7 +20119,7 @@
                   <input id="Planes_Subobjetivo_Target_Suma"
                     type="checkbox">
                   <span data-i18n="planes.target_suma_componentes">
-                    suma
+                    Suma
                   </span>
                 </label>
                 <span class="Planes_Target_Suma_Ayuda"
@@ -21469,8 +21469,8 @@
           "planes.editar_resumen": "Editar resumen",
           "planes.nuevo_titulo": "Nuevo objetivo",
           "planes.editar_objetivo": "Editar objetivo",
-          "planes.nuevo_target": "Meta",
-          "planes.target_suma_componentes": "suma",
+          "planes.nuevo_target": "Valor objetivo",
+          "planes.target_suma_componentes": "Suma",
           "planes.target_suma_componentes_help":
             "Calcula este valor como suma de sus componentes: " +
             "subobjetivos en un objetivo, partes en un subobjetivo.",
@@ -21487,7 +21487,7 @@
           "planes.sin_objetivos":
             "No hay objetivos visibles en este período.",
           "planes.estado": "Estado",
-          "planes.target": "Meta",
+          "planes.target": "Valor objetivo",
           "planes.realizado": "Realizado",
           "planes.falta": "Falta",
           "planes.etiqueta_label": "Etiqueta",
@@ -21591,7 +21591,7 @@
           "planes.meta_planeados": "{Cantidad} planeados",
           "planes.sub_aporte": "Aporte",
           "planes.sub_aporte_en": "Aporte en {Unidad}",
-          "planes.sub_valor_objetivo": "valor objetivo",
+          "planes.sub_valor_objetivo": "Valor objetivo",
           "planes.target_excede_padre_confirm":
             "Estas excediendo el valor objetivo de {nombre}: " +
             "de {actual} {unidad} a {nuevo} {unidad}. " +
@@ -25202,8 +25202,8 @@
           "planes.editar_resumen": "Edit summary",
           "planes.nuevo_titulo": "New objective",
           "planes.editar_objetivo": "Edit objective",
-          "planes.nuevo_target": "Goal",
-          "planes.target_suma_componentes": "sum",
+          "planes.nuevo_target": "Target value",
+          "planes.target_suma_componentes": "Sum",
           "planes.target_suma_componentes_help":
             "Calculates this value as the sum of its components: " +
             "subobjectives in an objective, parts in a subobjective.",
@@ -25220,7 +25220,7 @@
           "planes.sin_objetivos":
             "No visible objectives in this period.",
           "planes.estado": "Status",
-          "planes.target": "Goal",
+          "planes.target": "Target value",
           "planes.realizado": "Done",
           "planes.falta": "Left",
           "planes.etiqueta_label": "Tag",
@@ -25321,7 +25321,7 @@
           "planes.meta_planeados": "{Cantidad} planned",
           "planes.sub_aporte": "Contribution",
           "planes.sub_aporte_en": "Contribution in {Unidad}",
-          "planes.sub_valor_objetivo": "target value",
+          "planes.sub_valor_objetivo": "Target value",
           "planes.target_excede_padre_confirm":
             "You are exceeding the target value for {nombre}: " +
             "from {actual} {unidad} to {nuevo} {unidad}. " +
@@ -28878,8 +28878,8 @@
           "planes.editar_resumen": "Editar resumo",
           "planes.nuevo_titulo": "Novo objetivo",
           "planes.editar_objetivo": "Editar objetivo",
-          "planes.nuevo_target": "Meta",
-          "planes.target_suma_componentes": "soma",
+          "planes.nuevo_target": "Valor objetivo",
+          "planes.target_suma_componentes": "Soma",
           "planes.target_suma_componentes_help":
             "Calcula este valor como soma dos componentes: " +
             "subobjetivos em um objetivo, partes em um subobjetivo.",
@@ -28896,7 +28896,7 @@
           "planes.sin_objetivos":
             "Não há objetivos visíveis neste período.",
           "planes.estado": "Estado",
-          "planes.target": "Meta",
+          "planes.target": "Valor objetivo",
           "planes.realizado": "Realizado",
           "planes.falta": "Falta",
           "planes.etiqueta_label": "Etiqueta",
@@ -29004,7 +29004,7 @@
           "planes.editar_target_padre": "Atualizar target",
           "planes.sub_aporte": "Aporte",
           "planes.sub_aporte_en": "Aporte em {Unidad}",
-          "planes.sub_valor_objetivo": "valor objetivo",
+          "planes.sub_valor_objetivo": "Valor objetivo",
           "planes.sub_metrica": "Métrica",
           "planes.sub_unidad_custom":
             "Unidade própria",
@@ -58086,10 +58086,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : Objetivo;
       }
 
+      function Planes_Objetivo_Asociado_Avance(Avance, Modelo) {
+        const Sub = Modelo.Subobjetivos[Avance?.Subobjetivo_Id];
+        const Partes = Planes_Partes_De_Avance_Registro(
+          Avance,
+          Modelo
+        );
+        const Parte = Partes.find((Item) => Item?.Objetivo_Id);
+        return Modelo.Objetivos[Avance?.Objetivo_Id] ||
+          Modelo.Objetivos[Parte?.Objetivo_Id] ||
+          Modelo.Objetivos[Sub?.Objetivo_Id] ||
+          null;
+      }
+
       function Planes_Recalcular_Avance_Subobjetivo(Avance) {
         const Modelo = Asegurar_Modelo_Planes();
         const Sub = Modelo.Subobjetivos[Avance?.Subobjetivo_Id];
-        const Objetivo = Modelo.Objetivos[Avance?.Objetivo_Id];
+        const Partes = Planes_Partes_De_Avance_Registro(
+          Avance,
+          Modelo
+        );
+        const Objetivo = Planes_Objetivo_Asociado_Avance(
+          Avance,
+          Modelo
+        );
+        Partes.forEach((Parte) => {
+          Planes_Recalcular_Progreso_Parte(Parte, Modelo);
+        });
         if (Sub) {
           Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
         }
@@ -58103,7 +58126,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Objetivo_Registro || Objetivo
             )
           );
+          return;
         }
+        Render_Plan();
+        Guardar_Estado();
       }
 
       function Planes_Ajustar_Manual_Por_Avance(Avance, Delta) {
