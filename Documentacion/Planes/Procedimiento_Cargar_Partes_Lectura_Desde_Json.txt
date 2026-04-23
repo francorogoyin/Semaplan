@@ -1,0 +1,190 @@
+Procedimiento para cargar partes de lectura desde JSON.
+
+Fuente de datos.
+
+Leer los JSON ya armados desde esta carpeta.
+
+C:\Users\Patricio\Documents\Codigo\Semaplan\Documentacion\Planes\Lecturas_Json
+
+Cada archivo representa un libro y debe traer, como minimo,
+estos campos.
+
+- Titulo.
+- Autor.
+- Anio.
+- Fecha_Inicio.
+- Fecha_Fin.
+- Numero_Paginas_Total.
+- Partes.
+
+Preparacion.
+
+Entrar a Semaplan.com con la cuenta indicada por el usuario.
+Para la cuenta principal de Patricio, usar
+patricioe.nogueroles@gmail.com.
+
+Antes de operar, limpiar cache local viejo para forzar lectura
+remota desde Supabase.
+
+- Semaplan_Estado_V2.
+- Time_Blocking_Estado_V2.
+- Claves Semaplan_Sync_Local_Pendiente_V1.
+
+Esperar a que la inicializacion termine antes de editar.
+La referencia practica es Cargando_Inicial igual a false.
+
+Validacion del JSON.
+
+Sumar Numero_Paginas de todas las partes y comparar contra
+Numero_Paginas_Total.
+
+Si la suma no coincide, frenar y reportar la diferencia al
+usuario antes de cargar.
+
+Revisar titulos corruptos por encoding antes de crear partes.
+Un caso tipico es encontrar signos de pregunta donde deberia
+haber acentos.
+
+Ubicacion del subobjetivo.
+
+Buscar en Planes el subobjetivo cuyo texto coincida con Titulo.
+
+Identificar su raiz canonica con Planes_Subobjetivo_Raiz_Id.
+Identificar todas sus proyecciones con
+Planes_Subobjetivos_Familia_Ids.
+
+Puede haber una instancia anual, una trimestral y una mensual
+del mismo libro. La carga de partes debe hacerse sobre la raiz
+canonica, no duplicarse en cada proyeccion.
+
+Limpieza previa.
+
+Antes de crear partes nuevas, borrar las partes existentes
+asociadas a esa familia y sus avances relacionados.
+
+Si la lectura tenia Progreso_Manual legacy y se van a crear
+avances reales, limpiar ese progreso manual para que el avance
+quede explicado por las partes.
+
+Actualizacion de metadatos.
+
+Actualizar la familia del subobjetivo con los datos del JSON.
+
+- Target_Total igual a Numero_Paginas_Total.
+- Unidad igual a Personalizado.
+- Unidad_Custom igual a Paginas.
+- Fecha_Inicio igual a Fecha_Inicio, si existe.
+- Fecha_Fin igual a Fecha_Fin, si existe.
+- Metadato Autor igual a Autor.
+- Metadato Anio igual a Anio.
+
+Si Fecha_Inicio viene vacia o null, no inventar una fecha.
+
+Creacion de partes.
+
+Crear todas las partes sobre la raiz canonica.
+
+Cada parte debe usar estos datos.
+
+- Nombre igual al titulo normalizado.
+- Orden igual al orden del JSON.
+- Aporte_Total igual a Numero_Paginas.
+- Unidad igual a Personalizado.
+- Unidad_Custom igual a Paginas.
+- Emoji seguro, por ejemplo un libro abierto.
+
+Por defecto, las partes se crean pendientes.
+
+Marcado como realizadas.
+
+Crear partes y marcarlas realizadas son operaciones separadas.
+Solo marcar las partes como realizadas si el usuario lo pide
+explicitamente.
+
+Si el usuario no pide marcarlas realizadas, no crear avances de
+parte, no modificar el progreso como si estuvieran leidas y no
+cambiar el estado del subobjetivo por esta razon.
+
+Si el usuario pide marcarlas realizadas, entonces aplicar estos
+cambios.
+
+- Estado de cada parte igual a Realizada.
+- Hecha del subobjetivo igual a true.
+- Estado del subobjetivo igual a Cumplido.
+- Progreso_Manual igual a 0.
+- Progreso_Avances calculado desde los avances creados.
+
+Registros de avance.
+
+Los registros de avance solo se crean cuando el usuario pide
+marcar las partes como realizadas.
+
+Por cada parte realizada, crear un avance asociado con estos
+datos.
+
+- Fuente igual a Subobjetivo.
+- Origen_Tipo igual a Parte_Meta.
+- Origen_Id igual al Id de la parte.
+- Parte_Id igual al Id de la parte.
+- Cantidad igual a Numero_Paginas.
+- Unidad igual a Paginas.
+- Fecha igual a Fecha_Fin.
+- Fecha_Hora igual a Fecha_FinT00:00.
+- Automatico igual a true.
+
+Si el usuario pide otra fecha para los registros, usar esa fecha.
+Si no pide fecha y las partes se marcan realizadas, usar Fecha_Fin
+del JSON.
+
+Guardado y sincronizacion.
+
+Recalcular progreso de partes, subobjetivo y objetivos padre.
+Guardar estado.
+
+Esperar hasta que Sync_Estado sea Guardado y Hay_Sync_Pendiente
+sea false.
+
+Verificacion obligatoria.
+
+Despues de guardar, recargar limpiando cache local para confirmar
+desde Supabase.
+
+Verificar estos puntos.
+
+- Cuenta correcta.
+- Subobjetivo correcto.
+- Raiz canonica correcta.
+- Cantidad de partes esperada.
+- Suma de paginas igual a Numero_Paginas_Total.
+- Sin titulos corruptos.
+- Metadatos cargados.
+- Fecha_Inicio y Fecha_Fin correctas.
+- Sync en Guardado.
+
+Si el usuario pidio marcar partes realizadas, verificar tambien
+estos puntos.
+
+- Todas las partes en estado Realizada.
+- Cantidad de avances igual a cantidad de partes.
+- Suma de avances igual a Numero_Paginas_Total.
+- Registros con la fecha indicada.
+
+Notificacion al usuario.
+
+Al terminar, informar por libro estos datos.
+
+- Partes previas borradas.
+- Avances previos borrados.
+- Partes creadas.
+- Suma de paginas.
+- Si quedaron pendientes o realizadas.
+- Fecha usada en registros, si se crearon registros.
+- Metadatos aplicados.
+- Resultado de la verificacion remota.
+
+Regla de seguridad.
+
+No tocar otros subobjetivos ni otras lecturas.
+No crear partes en proyecciones duplicadas.
+No inventar fechas faltantes.
+No marcar como realizado si el usuario no lo pidio.
