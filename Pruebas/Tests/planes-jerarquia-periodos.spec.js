@@ -1178,7 +1178,7 @@ async ({ page }) => {
   expect(Texto_Tarjeta).toContain("%");
   expect(Texto_Tarjeta).toContain("horas");
   expect(Texto_Tarjeta).toContain(" faltan");
-  expect(Texto_Tarjeta).toContain("6 planeados");
+  expect(Texto_Tarjeta).toContain("6 asignados");
   expect(Texto_Tarjeta).toContain("·");
   expect(Texto_Tarjeta).not.toContain("(Faltan");
   expect(Texto_Tarjeta).not.toContain("#Lectura");
@@ -1459,7 +1459,7 @@ async ({ page }) => {
   await expect(page.locator(".Planes_Context_Menu"))
     .toContainText("Registrar avance");
   await expect(page.locator(".Planes_Context_Menu"))
-    .not.toContainText("Marcar como realizado");
+    .toContainText("Marcar como realizado");
   await expect(page.locator(".Planes_Context_Menu"))
     .not.toContainText("Agregar subobjetivo");
   await expect(page.locator(".Planes_Context_Menu"))
@@ -5949,6 +5949,114 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Avance parcial cuenta por fecha aunque el libro sea futuro",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    const Date_Real = Date;
+    class Date_Fija extends Date {
+      constructor(...Args) {
+        if (Args.length) {
+          super(...Args);
+        } else {
+          super("2026-04-23T12:00:00");
+        }
+      }
+
+      static now() {
+        return new Date_Real("2026-04-23T12:00:00").getTime();
+      }
+    }
+    Date_Fija.UTC = Date_Real.UTC;
+    Date_Fija.parse = Date_Real.parse;
+    window.Date = Date_Fija;
+    try {
+      Abrir_Plan();
+      const Modelo = Asegurar_Jerarquia_Planes();
+      Modelo.UI.Anio_Activo = 2026;
+      Modelo.UI.Filtro_Tipo = "Trimestre";
+      Modelo.UI.Subperiodo_Activo = 1;
+      const Anio = Planes_Crear_Periodo(
+        Modelo,
+        "Anio",
+        "2026-01-01",
+        "2026-12-31",
+        null,
+        2026
+      );
+      const Trimestres =
+        Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+      const Padre = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+        Nombre: "Libros",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 4,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros",
+        Redistribucion_Target: {
+          Tipo: "Trimestre",
+          Modo: "Deuda"
+        }
+      });
+      const Sub_Id = Planes_Agregar_Subobjetivo(
+        Padre.Id,
+        "Libro de mayo"
+      );
+      const Modelo_Actual = Asegurar_Modelo_Planes();
+      const Sub = Modelo_Actual.Subobjetivos[Sub_Id];
+      Sub.Fecha_Inicio = "2026-05-01";
+      Sub.Fecha_Objetivo = "2026-05-31";
+      Sub.Target_Total = 100;
+      Sub.Aporte_Meta = 1;
+      Sub.Unidad = "Personalizado";
+      Sub.Unidad_Custom = "paginas";
+      const Avance_Id = Crear_Id_Avance_Plan();
+      Modelo_Actual.Avances[Avance_Id] = Normalizar_Avance_Plan({
+        Id: Avance_Id,
+        Objetivo_Id: Padre.Id,
+        Subobjetivo_Id: Sub_Id,
+        Fuente: "Subobjetivo",
+        Cantidad: 50,
+        Unidad: "paginas",
+        Fecha: "2026-01-01",
+        Hora: "00:00"
+      });
+      Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo_Actual);
+      Planes_Actualizar_Progreso(Padre);
+      const T1 = Trimestres[0];
+      const T2 = Trimestres[1];
+      const Padre_T1 = Planes_Objetivo_Para_Periodo(Padre, T1);
+      Planes_Actualizar_Progreso(Padre_T1);
+      const Redistribucion =
+        Planes_Targets_Redistribucion_Contextual(Padre);
+      return {
+        Ubicado_T1:
+          Planes_Subobjetivo_Ubicado_En_Periodo(Sub, T1, Modelo_Actual),
+        Aporte_T1:
+          Planes_Aporte_Subobjetivo_En_Periodo(Sub, T1, Modelo_Actual),
+        Aporte_T2:
+          Planes_Aporte_Subobjetivo_En_Periodo(Sub, T2, Modelo_Actual),
+        Avance_T1:
+          Planes_Avance_Real_Objetivo_En_Periodo(Padre, T1),
+        Progreso_T1: Padre_T1.Progreso_Total,
+        Target_T2: Redistribucion.get(T2.Id)
+      };
+    } finally {
+      window.Date = Date_Real;
+    }
+  });
+
+  expect(Resultado.Ubicado_T1).toBe(false);
+  expect(Resultado.Aporte_T1).toBeCloseTo(0.5, 5);
+  expect(Resultado.Aporte_T2).toBe(0);
+  expect(Resultado.Avance_T1).toBeCloseTo(0.5, 5);
+  expect(Resultado.Progreso_T1).toBeCloseTo(0.5, 5);
+  expect(Resultado.Target_T2).toBeCloseTo(7 / 6, 5);
+  expect(errores).toEqual([]);
+});
+
 test("Asignados incluye aportes sin fecha en objetivo anual",
 async ({ page }) => {
   const errores = [];
@@ -6235,7 +6343,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Objetivo sin target muestra planeados fechados",
+test("Objetivo sin target muestra asignados fechados",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -6348,11 +6456,11 @@ async ({ page }) => {
     };
   });
 
-  expect(Resultado.Texto).toContain("1 planeados");
+  expect(Resultado.Texto).toContain("1 asignados");
   expect(Resultado.Pasado_Cerrado).toBe(true);
   expect(Resultado.Principal_Pasado).toBe(true);
   expect(Resultado.Modal_Pasado).toBe(false);
-  expect(Resultado.Texto_Pasado).not.toContain("planeados");
+  expect(Resultado.Texto_Pasado).not.toContain("asignados");
   expect(Resultado.Aportes).toBe(1);
   expect(errores).toEqual([]);
 });

@@ -48620,25 +48620,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Modelo
       ) {
         const M = Modelo || Asegurar_Modelo_Planes();
+        if (!Sub || Sub.Eliminado_Local || !Periodo) return 0;
+        const Aporte = Math.max(0, Number(Sub.Aporte_Meta) || 0);
+        if (Aporte <= 0) return 0;
+        const Target = Number(Sub.Target_Total) || 0;
+        const Avances = Target > 0
+          ? Planes_Avances_De_Subobjetivo(Sub.Id, M)
+          : [];
+        if (Avances.length > 0) {
+          const Progreso = Avances
+            .filter((Avance) =>
+              Planes_Periodo_Contiene_Fecha(
+                Periodo,
+                Planes_Fecha_Avance_Plan(Avance)
+              )
+            )
+            .reduce((Total, Avance) => {
+              return Total + (Number(Avance.Cantidad) || 0);
+            }, 0);
+          if (Progreso <= 0) return 0;
+          return Math.min(Aporte, Aporte * (Progreso / Target));
+        }
         if (!Planes_Subobjetivo_Ubicado_En_Periodo(
           Sub,
           Periodo,
           M
         )) return 0;
-        const Aporte = Math.max(0, Number(Sub.Aporte_Meta) || 0);
-        if (Aporte <= 0) return 0;
-        const Target = Number(Sub.Target_Total) || 0;
         if (Planes_Estado_Normalizado_Subobjetivo(Sub) === "Cumplido") {
           return Aporte;
         }
-        if (Target <= 0) return 0;
-        const Progreso = Planes_Total_Avances_Subobjetivo_En_Periodo(
-          Sub.Id,
-          Periodo,
-          M
-        );
-        if (Progreso <= 0) return 0;
-        return Math.min(Aporte, Aporte * (Progreso / Target));
+        return 0;
       }
 
       function Planes_Aportes_Subobjetivos_En_Periodo(Objetivo_Plan) {
