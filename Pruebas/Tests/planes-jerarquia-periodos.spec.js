@@ -726,6 +726,117 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Redistribucion permite fijar y anular periodos parciales",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(async () => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Meses = Planes_Crear_Periodos_Distribucion(Anio, "Mes");
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Fondo",
+      Emoji: "\uD83D\uDCB0",
+      Target_Total: 1,
+      Unidad: "Personalizado",
+      Unidad_Custom: "proyecto"
+    });
+    Abrir_Modal_Planes_Objetivo(Anio.Id, Objetivo.Id);
+    document.getElementById("Planes_Objetivo_Redistribucion").click();
+    await new Promise((Resolver) => setTimeout(Resolver, 0));
+    let Overlay = Array.from(
+      document.querySelectorAll(".Patron_Modal_Overlay.Activo")
+    ).find((Nodo) => Nodo.querySelector("[data-plan-redis-tipo]"));
+    const Tipo = Overlay.querySelector("[data-plan-redis-tipo]");
+    Tipo.value = "Mes";
+    Tipo.dispatchEvent(new Event("change"));
+    await new Promise((Resolver) => setTimeout(Resolver, 0));
+    Overlay = Array.from(
+      document.querySelectorAll(".Patron_Modal_Overlay.Activo")
+    ).find((Nodo) => Nodo.querySelector("[data-plan-redis-tipo]"));
+
+    const Enero = Meses[0].Id;
+    const Febrero = Meses[1].Id;
+    const Fijar_Enero = Overlay.querySelector(
+      `[data-plan-redis-fijar="${Enero}"]`
+    );
+    Fijar_Enero.checked = true;
+    Fijar_Enero.dispatchEvent(new Event("change"));
+    await new Promise((Resolver) => setTimeout(Resolver, 0));
+    Overlay = Array.from(
+      document.querySelectorAll(".Patron_Modal_Overlay.Activo")
+    ).find((Nodo) => Nodo.querySelector("[data-plan-redis-tipo]"));
+    const Input_Enero = Overlay.querySelector(
+      `[data-plan-redis-periodo="${Enero}"]`
+    );
+    Input_Enero.value = "0.25";
+    Input_Enero.dispatchEvent(new Event("input"));
+    const Anular_Febrero = Overlay.querySelector(
+      `[data-plan-redis-anular="${Febrero}"]`
+    );
+    Anular_Febrero.checked = true;
+    Anular_Febrero.dispatchEvent(new Event("change"));
+    await new Promise((Resolver) => setTimeout(Resolver, 0));
+    Overlay = Array.from(
+      document.querySelectorAll(".Patron_Modal_Overlay.Activo")
+    ).find((Nodo) => Nodo.querySelector("[data-plan-redis-tipo]"));
+    const Input_Marzo = Overlay.querySelector(
+      `[data-plan-redis-periodo="${Meses[2].Id}"]`
+    );
+    const Display_Marzo = Input_Marzo.value;
+    Overlay.querySelector("[data-plan-redis-guardar]").click();
+    await new Promise((Resolver) => setTimeout(Resolver, 0));
+    await Guardar_Modal_Planes_Objetivo();
+
+    const Guardado = Asegurar_Modelo_Planes().Objetivos[Objetivo.Id];
+    const Targets =
+      Planes_Targets_Redistribucion_Contextual(Guardado);
+    Modelo.UI.Mostrar_Ocultos_Periodo = false;
+    const Febrero_Visible = Planes_Filtrar_Objetivos(Meses[1]).length;
+    const Febrero_Oculto = Planes_Objetivo_Oculto_En_Periodo(
+      Guardado,
+      Meses[1],
+      Modelo
+    );
+
+    return {
+      Tipo: Guardado.Redistribucion_Target.Tipo,
+      Fijado_Enero: Guardado.Redistribucion_Target.Fijados[Enero],
+      Anulado_Febrero: Guardado.Redistribucion_Target.Anulados[Febrero],
+      Target_Enero: Targets.get(Enero),
+      Target_Febrero: Targets.get(Febrero),
+      Target_Marzo: Targets.get(Meses[2].Id),
+      Display_Marzo,
+      Febrero_Visible,
+      Febrero_Oculto
+    };
+  });
+
+  expect(Resultado.Tipo).toBe("Mes");
+  expect(Resultado.Fijado_Enero).toBe(true);
+  expect(Resultado.Anulado_Febrero).toBe(true);
+  expect(Resultado.Target_Enero).toBe(0.25);
+  expect(Resultado.Target_Febrero).toBe(0);
+  expect(Resultado.Target_Marzo).toBeCloseTo(0.075, 5);
+  expect(Resultado.Display_Marzo).toBe("0.08");
+  expect(Resultado.Febrero_Visible).toBe(0);
+  expect(Resultado.Febrero_Oculto).toBe(true);
+  expect(errores).toEqual([]);
+});
+
 test("Atajos de capa eligen periodo presente y año queda primero",
 async ({ page }) => {
   const errores = [];

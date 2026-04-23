@@ -5686,7 +5686,10 @@
         border-radius: 8px;
         display: grid;
         gap: 10px;
-        grid-template-columns: minmax(0, 1fr) minmax(110px, 140px) auto;
+        grid-template-columns:
+          minmax(0, 1fr)
+          minmax(130px, 170px)
+          minmax(112px, auto);
         padding: 10px;
       }
 
@@ -5719,6 +5722,13 @@
         gap: 6px;
         line-height: 1;
         white-space: nowrap;
+      }
+
+      .Planes_Target_Fila_Acciones {
+        align-items: center;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
       }
 
       .Planes_Target_Vacio {
@@ -21962,6 +21972,8 @@
           "planes.redistribucion_deuda":
             "Distribuci\u00f3n de deuda",
           "planes.redistribucion_manual": "Manual",
+          "planes.redistribucion_fijar": "Fijar",
+          "planes.redistribucion_anular": "Anular",
           "planes.redistribucion_sin_periodos":
             "Este periodo no tiene periodos hijos redistribuibles.",
           "planes.redistribucion_manual_suma_error":
@@ -25700,6 +25712,8 @@
           "planes.redistribucion_deuda":
             "Debt distribution",
           "planes.redistribucion_manual": "Manual",
+          "planes.redistribucion_fijar": "Pin",
+          "planes.redistribucion_anular": "Exclude",
           "planes.redistribucion_sin_periodos":
             "This period has no redistributable child periods.",
           "planes.redistribucion_manual_suma_error":
@@ -29390,6 +29404,8 @@
           "planes.redistribucion_deuda":
             "Distribui\u00e7\u00e3o de d\u00edvida",
           "planes.redistribucion_manual": "Manual",
+          "planes.redistribucion_fijar": "Fixar",
+          "planes.redistribucion_anular": "Anular",
           "planes.redistribucion_sin_periodos":
             "Este per\u00edodo n\u00e3o tem per\u00edodos filhos redistribu\u00edveis.",
           "planes.redistribucion_manual_suma_error":
@@ -45917,6 +45933,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tipo = Planes_Tipos.includes(Raw.Tipo)
           ? Raw.Tipo
           : "";
+        const Normalizar_Mapa_Booleano = (Mapa) => {
+          const Resultado = {};
+          Object.entries(Mapa || {}).forEach(([Periodo_Id, Activo]) => {
+            const Id = (Periodo_Id || "").toString();
+            if (!Id || Activo !== true) return;
+            Resultado[Id] = true;
+          });
+          return Resultado;
+        };
         const Valores = {};
         Object.entries(Raw.Valores || {}).forEach(([Periodo_Id, Numero]) => {
           const Id = (Periodo_Id || "").toString();
@@ -45927,7 +45952,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return {
           Tipo,
           Modo: Planes_Normalizar_Modo_Redistribucion_Target(Raw.Modo),
-          Valores
+          Valores,
+          Fijados: Normalizar_Mapa_Booleano(Raw.Fijados),
+          Anulados: Normalizar_Mapa_Booleano(Raw.Anulados)
         };
       }
 
@@ -48460,14 +48487,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Base?.Tipo || ""
         );
         if (!Tipos.length) {
-          return { Tipo: "", Modo: "Equitativa", Valores: {} };
+          return {
+            Tipo: "",
+            Modo: "Equitativa",
+            Valores: {},
+            Fijados: {},
+            Anulados: {}
+          };
         }
         return {
           Tipo: Tipos.includes(Normal.Tipo)
             ? Normal.Tipo
             : Planes_Tipo_Redistribucion_Default(Base),
           Modo: Normal.Modo,
-          Valores: Normal.Valores || {}
+          Valores: Normal.Valores || {},
+          Fijados: Normal.Fijados || {},
+          Anulados: Normal.Anulados || {}
         };
       }
 
@@ -48506,8 +48541,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Resultado = new Map();
         const Target = Number(Objetivo?.Target_Total) || 0;
         if (!Periodos.length || Target <= 0) return Resultado;
-        const Base = Target / Periodos.length;
-        if (Conf.Modo === "Manual") {
+        const Fijados = Conf.Fijados || {};
+        const Anulados = Conf.Anulados || {};
+        const Tiene_Fijados_Explicitos =
+          Object.values(Fijados).some((Activo) => Activo === true);
+        const Tiene_Anulados_Explicitos =
+          Object.values(Anulados).some((Activo) => Activo === true);
+        const Manual_Legacy =
+          Conf.Modo === "Manual" &&
+          !Tiene_Fijados_Explicitos &&
+          !Tiene_Anulados_Explicitos;
+        if (Manual_Legacy) {
           Periodos.forEach((Periodo) => {
             Resultado.set(
               Periodo.Id,
@@ -48516,8 +48560,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           return Resultado;
         }
+        const Periodos_Activos = Periodos.filter((Periodo) =>
+          Anulados[Periodo.Id] !== true
+        );
+        const Fijo_Total = Periodos_Activos.reduce((Total, Periodo) => {
+          if (Fijados[Periodo.Id] !== true) return Total;
+          return Total + Math.max(
+            0,
+            Number(Conf.Valores?.[Periodo.Id]) || 0
+          );
+        }, 0);
+        const Disponibles = Periodos_Activos.filter((Periodo) =>
+          Fijados[Periodo.Id] !== true
+        );
+        const Restante = Math.max(0, Target - Fijo_Total);
+        Periodos.forEach((Periodo) => {
+          if (Anulados[Periodo.Id] === true) {
+            Resultado.set(Periodo.Id, 0);
+          } else if (Fijados[Periodo.Id] === true) {
+            Resultado.set(
+              Periodo.Id,
+              Math.max(0, Number(Conf.Valores?.[Periodo.Id]) || 0)
+            );
+          }
+        });
+        if (!Disponibles.length) return Resultado;
+        const Base = Restante / Disponibles.length;
         if (Conf.Modo === "Deuda") {
-          const Infos = Periodos.map((Periodo) => {
+          const Infos = Disponibles.map((Periodo) => {
             const Cerrado = Planes_Periodo_Cerrado(Periodo);
             const Avance = Planes_Avance_Real_Objetivo_En_Periodo(
               Objetivo,
@@ -48544,7 +48614,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           return Resultado;
         }
-        Periodos.forEach((Periodo) => Resultado.set(Periodo.Id, Base));
+        Disponibles.forEach((Periodo) => Resultado.set(Periodo.Id, Base));
         return Resultado;
       }
 
@@ -50576,6 +50646,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Objetivo.Oculto_Periodos;
       }
 
+      function Planes_Redistribucion_Anula_Periodo(
+        Objetivo,
+        Periodo,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Canonico =
+          Planes_Objetivo_Canonico_Contextual(Objetivo, M);
+        if (!Canonico || !Periodo) return false;
+        const Config = Planes_Redistribucion_Target_Objetivo(
+          Canonico,
+          M
+        );
+        const Anulados = Config.Anulados || {};
+        return Object.keys(Anulados)
+          .filter((Periodo_Id) => Anulados[Periodo_Id] === true)
+          .map((Periodo_Id) => M.Periodos[Periodo_Id])
+          .filter(Boolean)
+          .some((Anulado) =>
+            Anulado.Id === Periodo.Id ||
+            Planes_Periodo_Es_Padre_De(Anulado, Periodo)
+          );
+      }
+
       function Planes_Ocultamiento_Objetivo_Periodo(
         Objetivo,
         Periodo,
@@ -50587,6 +50681,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Ocultos = Planes_Ocultos_Periodos_Objetivo(Canonico);
         if (!Canonico || !Periodo || !Ocultos) {
           return { Oculto: false, Periodo_Id: "" };
+        }
+        if (Planes_Redistribucion_Anula_Periodo(
+          Canonico,
+          Periodo,
+          M
+        )) {
+          return { Oculto: true, Periodo_Id: Periodo.Id };
         }
         const Fuentes = Object.keys(Ocultos)
           .filter((Periodo_Id) => Ocultos[Periodo_Id])
@@ -58748,6 +58849,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Numero;
       }
 
+      function Planes_Formatear_Target_Periodo_Input(Valor) {
+        const Numero = Number(Valor) || 0;
+        return String(Math.round(Numero * 100) / 100);
+      }
+
       function Planes_Objetivo_Borrador_Redistribucion_Modal() {
         const Modelo = Asegurar_Modelo_Planes();
         const Overlay = document.getElementById(
@@ -58897,6 +59003,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             : Planes_Tipo_Redistribucion_Default(Base);
           let Modo_Activo = Config_Base.Modo || "Equitativa";
           const Valores_Manual = { ...(Config_Base.Valores || {}) };
+          const Periodos_Fijados = { ...(Config_Base.Fijados || {}) };
+          const Periodos_Anulados = { ...(Config_Base.Anulados || {}) };
           const Overlay = document.createElement("div");
           Overlay.className =
             "Patron_Modal_Overlay Planes_Redistribucion_Overlay Activo";
@@ -58910,7 +59018,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Config = {
               Tipo: Tipo_Activo,
               Modo: Modo_Activo,
-              Valores: Valores_Manual
+              Valores: Valores_Manual,
+              Fijados: Periodos_Fijados,
+              Anulados: Periodos_Anulados
             };
             return Planes_Targets_Redistribucion_Contextual(
               Objetivo,
@@ -58926,15 +59036,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Modelo
             );
             const Valores = Calcular_Valores();
-            const Manual = Modo_Activo === "Manual";
+            const Tiene_Fijados = Object.values(Periodos_Fijados)
+              .some((Activo) => Activo === true);
             const Filas = Periodos.map((Periodo) => {
-              const Valor = Manual
+              const Anulado = Periodos_Anulados[Periodo.Id] === true;
+              const Fijado = Anulado
+                ? false
+                : (
+                  Periodos_Fijados[Periodo.Id] === true ||
+                  (
+                    Modo_Activo === "Manual" &&
+                    !Tiene_Fijados
+                  )
+                );
+              const Valor = Fijado
                 ? (
                   Valores_Manual[Periodo.Id] ??
-                  (Target_Total / Math.max(1, Periodos.length))
+                  (Valores.get(Periodo.Id) || 0)
                 )
                 : (Valores.get(Periodo.Id) || 0);
-              if (Manual && Valores_Manual[Periodo.Id] === undefined) {
+              if (Fijado && Valores_Manual[Periodo.Id] === undefined) {
                 Valores_Manual[Periodo.Id] = Valor;
               }
               return `
@@ -58955,9 +59076,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     type="number"
                     min="0"
                     step="0.25"
-                    ${Manual ? "" : "disabled"}
-                    value="${Escape_Html(String(Number(Valor) || 0))}"
+                    ${Fijado && !Anulado ? "" : "disabled"}
+                    value="${Escape_Html(
+                      Planes_Formatear_Target_Periodo_Input(Valor)
+                    )}"
                     data-plan-redis-periodo="${Escape_Html(Periodo.Id)}">
+                  <div class="Planes_Target_Fila_Acciones">
+                    <label class="Planes_Target_Fijar">
+                      <input type="checkbox"
+                        data-plan-redis-fijar="${Escape_Html(Periodo.Id)}"
+                        ${Fijado ? "checked" : ""}
+                        ${Anulado ? "disabled" : ""}>
+                      <span>${Escape_Html(
+                        t("planes.redistribucion_fijar")
+                      )}</span>
+                    </label>
+                    <label class="Planes_Target_Fijar">
+                      <input type="checkbox"
+                        data-plan-redis-anular="${Escape_Html(Periodo.Id)}"
+                        ${Anulado ? "checked" : ""}>
+                      <span>${Escape_Html(
+                        t("planes.redistribucion_anular")
+                      )}</span>
+                    </label>
+                  </div>
                 </div>
               `;
             }).join("");
@@ -59061,11 +59203,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Modo_Activo = Ev.target.value;
                 Render();
               });
+            Overlay.querySelectorAll("[data-plan-redis-fijar]")
+              .forEach((Input) => {
+                Input.addEventListener("change", () => {
+                  const Periodo_Id = Input.dataset.planRedisFijar;
+                  if (Input.checked) {
+                    Periodos_Fijados[Periodo_Id] = true;
+                  } else {
+                    delete Periodos_Fijados[Periodo_Id];
+                  }
+                  Render();
+                });
+              });
+            Overlay.querySelectorAll("[data-plan-redis-anular]")
+              .forEach((Input) => {
+                Input.addEventListener("change", () => {
+                  const Periodo_Id = Input.dataset.planRedisAnular;
+                  if (Input.checked) {
+                    Periodos_Anulados[Periodo_Id] = true;
+                    delete Periodos_Fijados[Periodo_Id];
+                  } else {
+                    delete Periodos_Anulados[Periodo_Id];
+                  }
+                  Render();
+                });
+              });
             Overlay.querySelectorAll("[data-plan-redis-periodo]")
               .forEach((Input) => {
                 Input.addEventListener("input", () => {
                   Valores_Manual[Input.dataset.planRedisPeriodo] =
-                    Planes_Parsear_Target_Periodo(Input.value) ?? 0;
+                    Math.round(
+                      (Planes_Parsear_Target_Periodo(Input.value) ?? 0) *
+                      100
+                    ) / 100;
                 });
               });
             Overlay.querySelector("[data-plan-redis-guardar]")
@@ -59087,7 +59257,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Modelo
             );
             const Valores = {};
+            const Fijados = {};
+            const Anulados = {};
             let Invalido = false;
+            Overlay.querySelectorAll("[data-plan-redis-fijar]")
+              .forEach((Input) => {
+                if (!Input.checked) return;
+                Fijados[Input.dataset.planRedisFijar] = true;
+              });
+            Overlay.querySelectorAll("[data-plan-redis-anular]")
+              .forEach((Input) => {
+                if (!Input.checked) return;
+                Anulados[Input.dataset.planRedisAnular] = true;
+              });
             Overlay.querySelectorAll("[data-plan-redis-periodo]")
               .forEach((Input) => {
                 const Valor = Planes_Parsear_Target_Periodo(Input.value);
@@ -59096,7 +59278,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   Input.focus();
                   return;
                 }
-                Valores[Input.dataset.planRedisPeriodo] = Valor;
+                Valores[Input.dataset.planRedisPeriodo] =
+                  Math.round(Valor * 100) / 100;
               });
             if (Invalido) {
               Mostrar_Toast_Error(t("planes.target_periodos_error"));
@@ -59105,18 +59288,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Config = {
               Tipo: Tipo_Activo,
               Modo: Modo_Activo,
-              Valores: Modo_Activo === "Manual" ? Valores : {}
+              Valores,
+              Fijados,
+              Anulados
             };
-            if (Modo_Activo === "Manual") {
-              const Suma = Periodos.reduce((Total, Periodo) =>
-                Total + (Number(Valores[Periodo.Id]) || 0), 0
+            const Targets = Planes_Targets_Redistribucion_Contextual(
+              Objetivo,
+              Config,
+              Modelo
+            );
+            const Suma = Periodos.reduce((Total, Periodo) =>
+              Total + (Number(Targets.get(Periodo.Id)) || 0), 0
+            );
+            if (Math.abs(Suma - Target_Total) >= 0.0001) {
+              Mostrar_Toast_Error(
+                t("planes.redistribucion_manual_suma_error")
               );
-              if (Math.abs(Suma - Target_Total) >= 0.0001) {
-                Mostrar_Toast_Error(
-                  t("planes.redistribucion_manual_suma_error")
-                );
-                return;
-              }
+              return;
             }
             Cerrar(Planes_Normalizar_Redistribucion_Target(Config));
           };
