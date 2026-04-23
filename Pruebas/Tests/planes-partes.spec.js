@@ -236,10 +236,10 @@ async ({ page }) => {
   expect(Resultado.Limites).toEqual({
     inicioMin: "2026-03-01",
     inicioMax: "2026-05-31",
-    inicioValor: "2026-03-01",
+    inicioValor: "",
     objetivoMin: "2026-03-01",
     objetivoMax: "2026-05-31",
-    objetivoValor: "2026-05-31"
+    objetivoValor: ""
   });
   expect(Resultado.Tras_Fuera).toBe(0);
   expect(Resultado.Partes).toEqual([
@@ -249,6 +249,108 @@ async ({ page }) => {
       objetivo: "2026-05-20"
     }
   ]);
+  expect(errores).toEqual([]);
+});
+
+test("Parte realizada muestra fecha final calculada y bloquea fechas",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Lecturas",
+      Target_Total: 10,
+      Unidad: "Horas",
+      Unidad_Subobjetivos_Default: "Horas"
+    });
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Libro"
+    );
+    const M = Asegurar_Modelo_Planes();
+    const Parte = Normalizar_Parte_Meta({
+      Id: "parte_fecha_final",
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Id,
+      Emoji: "\uD83D\uDCD6",
+      Nombre: "Capitulo",
+      Aporte_Total: 3,
+      Unidad: "Horas",
+      Fecha_Inicio: "2026-03-01",
+      Fecha_Objetivo: "2026-05-31"
+    });
+    M.Partes[Parte.Id] = Parte;
+    M.Avances.av_parte_fecha_final = Normalizar_Avance_Plan({
+      Id: "av_parte_fecha_final",
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Id,
+      Parte_Id: Parte.Id,
+      Fuente: "Subobjetivo",
+      Cantidad: 3,
+      Unidad: "Horas",
+      Fecha: "2026-04-20",
+      Hora: "11:15"
+    });
+    Planes_Recalcular_Progreso_Parte(Parte, M);
+    Planes_Partes_Subobjetivo_Id = Sub_Id;
+    Abrir_Modal_Planes_Parte(Parte.Id);
+    const Inicio = document.getElementById(
+      "Planes_Parte_Fecha_Inicio"
+    );
+    const Objetivo_Fecha = document.getElementById(
+      "Planes_Parte_Fecha_Objetivo"
+    );
+    const Final = document.getElementById("Planes_Parte_Fecha_Fin");
+    const Campo_Final = Final.closest(
+      ".Planes_Parte_Fecha_Fin_Campo"
+    );
+    const Realizada = {
+      inicioDisabled: Inicio.disabled,
+      objetivoDisabled: Objetivo_Fecha.disabled,
+      finalVisible: !Campo_Final.hidden,
+      finalValor: Final.value
+    };
+    Cerrar_Modal_Planes_Parte();
+    delete M.Avances.av_parte_fecha_final;
+    Planes_Recalcular_Progreso_Parte(Parte, M);
+    Abrir_Modal_Planes_Parte(Parte.Id);
+    const Abierta = {
+      inicioDisabled: Inicio.disabled,
+      objetivoDisabled: Objetivo_Fecha.disabled,
+      finalVisible: !Campo_Final.hidden,
+      finalValor: Final.value,
+      fechaFinModelo: Parte.Fecha_Fin || ""
+    };
+    return { Realizada, Abierta };
+  });
+
+  expect(Resultado).toEqual({
+    Realizada: {
+      inicioDisabled: true,
+      objetivoDisabled: true,
+      finalVisible: true,
+      finalValor: "2026-04-20"
+    },
+    Abierta: {
+      inicioDisabled: false,
+      objetivoDisabled: false,
+      finalVisible: false,
+      finalValor: "",
+      fechaFinModelo: ""
+    }
+  });
   expect(errores).toEqual([]);
 });
 

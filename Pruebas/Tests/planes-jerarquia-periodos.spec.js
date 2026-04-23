@@ -299,10 +299,10 @@ async ({ page }) => {
   expect(Limites).toEqual({
     inicioMin: "2026-01-01",
     inicioMax: "2026-12-31",
-    inicioValor: "2026-01-01",
+    inicioValor: "",
     objetivoMin: "2026-01-01",
     objetivoMax: "2026-12-31",
-    objetivoValor: "2026-12-31"
+    objetivoValor: ""
   });
 
   const Guardado = await page.evaluate(async () => {
@@ -328,6 +328,102 @@ async ({ page }) => {
     overlayAbierto: false,
     inicio: "2026-02-01",
     objetivo: "2026-11-01"
+  });
+  expect(errores).toEqual([]);
+});
+
+test("Subobjetivo realizado muestra fecha final calculada y bloquea fechas",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Lecturas",
+      Target_Total: 10,
+      Unidad: "Horas",
+      Unidad_Subobjetivos_Default: "Horas"
+    });
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Libro"
+    );
+    const M = Asegurar_Modelo_Planes();
+    const Sub = M.Subobjetivos[Sub_Id];
+    Object.assign(Sub, {
+      Target_Total: 5,
+      Fecha_Inicio: "2026-03-01",
+      Fecha_Objetivo: "2026-05-31"
+    });
+    M.Avances.av_sub_fecha_final = Normalizar_Avance_Plan({
+      Id: "av_sub_fecha_final",
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub.Id,
+      Fuente: "Subobjetivo",
+      Cantidad: 5,
+      Unidad: "Horas",
+      Fecha: "2026-04-15",
+      Hora: "10:30"
+    });
+    Planes_Recalcular_Progreso_Subobjetivo(Sub, M);
+    Abrir_Modal_Planes_Subobjetivo(Sub.Id);
+    const Inicio = document.getElementById(
+      "Planes_Subobjetivo_Fecha_Inicio"
+    );
+    const Objetivo_Fecha = document.getElementById(
+      "Planes_Subobjetivo_Fecha_Objetivo"
+    );
+    const Final = document.getElementById(
+      "Planes_Subobjetivo_Fecha_Fin"
+    );
+    const Campo_Final = Final.closest(
+      ".Planes_Subobjetivo_Fecha_Fin_Campo"
+    );
+    const Realizado = {
+      inicioDisabled: Inicio.disabled,
+      objetivoDisabled: Objetivo_Fecha.disabled,
+      finalVisible: !Campo_Final.hidden,
+      finalValor: Final.value
+    };
+    Cerrar_Modal_Planes_Subobjetivo();
+    delete M.Avances.av_sub_fecha_final;
+    Planes_Recalcular_Progreso_Subobjetivo(Sub, M);
+    Abrir_Modal_Planes_Subobjetivo(Sub.Id);
+    const Abierto = {
+      inicioDisabled: Inicio.disabled,
+      objetivoDisabled: Objetivo_Fecha.disabled,
+      finalVisible: !Campo_Final.hidden,
+      finalValor: Final.value,
+      fechaFinModelo: Sub.Fecha_Fin || ""
+    };
+    return { Realizado, Abierto };
+  });
+
+  expect(Resultado).toEqual({
+    Realizado: {
+      inicioDisabled: true,
+      objetivoDisabled: true,
+      finalVisible: true,
+      finalValor: "2026-04-15"
+    },
+    Abierto: {
+      inicioDisabled: false,
+      objetivoDisabled: false,
+      finalVisible: false,
+      finalValor: "",
+      fechaFinModelo: ""
+    }
   });
   expect(errores).toEqual([]);
 });
@@ -852,7 +948,15 @@ async ({ page }) => {
     );
     const Modelo_Subs = Asegurar_Modelo_Planes();
     Modelo_Subs.Subobjetivos[Sub_Uno_Id].Aporte_Meta = 4;
+    Modelo_Subs.Subobjetivos[Sub_Uno_Id].Fecha_Inicio =
+      "2026-01-01";
+    Modelo_Subs.Subobjetivos[Sub_Uno_Id].Fecha_Objetivo =
+      "2026-06-30";
     Modelo_Subs.Subobjetivos[Sub_Dos_Id].Aporte_Meta = 2;
+    Modelo_Subs.Subobjetivos[Sub_Dos_Id].Fecha_Inicio =
+      "2026-07-01";
+    Modelo_Subs.Subobjetivos[Sub_Dos_Id].Fecha_Objetivo =
+      "2026-12-31";
     Planes_Actualizar_Progreso(Modelo_Subs.Objetivos[Padre.Id]);
     Render_Plan();
     const Hijos = [Hijo];
@@ -946,12 +1050,6 @@ async ({ page }) => {
   await expect(
     Card_Objetivo.locator(".Planes_Objetivo_Detalle")
   ).toContainText("Estado");
-  await expect(
-    Card_Objetivo.locator(".Planes_Objetivo_Detalle")
-  ).toContainText("Avance");
-  await expect(
-    Card_Objetivo.locator(".Planes_Objetivo_Detalle")
-  ).toContainText("Mixto");
   await expect(
     Card_Objetivo.locator(".Planes_Objetivo_Detalle")
   ).toContainText("Realizado");
@@ -1055,8 +1153,6 @@ async ({ page }) => {
   expect(Layout_Detalle.tablaAnchoCompleto).toBe(true);
   expect(Layout_Detalle.headers).toEqual([
     "Estado",
-    "Avance",
-    "Origen",
     "Meta",
     "Realizado",
     "Falta"
@@ -1146,7 +1242,7 @@ async ({ page }) => {
   await expect(page.locator("#Planes_Subobjetivos_Overlay"))
     .toHaveClass(/Activo/);
   await expect(page.locator("#Planes_Subobjetivos_Titulo"))
-    .toHaveText("2026");
+    .toContainText("Leer");
   await expect(page.locator("#Planes_Subobjetivos_Resumen_Aportes"))
     .toContainText("Aportes totales");
   await expect(page.locator("#Planes_Subobjetivos_Form"))
@@ -1186,7 +1282,7 @@ async ({ page }) => {
   await expect(page.locator(".Planes_Context_Menu"))
     .toContainText("Registrar avance");
   await expect(page.locator(".Planes_Context_Menu"))
-    .toContainText("Marcar como realizado");
+    .not.toContainText("Marcar como realizado");
   await expect(page.locator(".Planes_Context_Menu"))
     .not.toContainText("Agregar subobjetivo");
   await expect(page.locator(".Planes_Context_Menu"))
@@ -1399,9 +1495,6 @@ async ({ page }) => {
   await expect(
     Card_Biblioteca.locator(".Planes_Objetivo_Detalle")
   ).toContainText("Estado");
-  await expect(
-    Card_Biblioteca.locator(".Planes_Objetivo_Detalle")
-  ).toContainText("Avance");
 
   const Vacio_Biblioteca = await page.evaluate(() => {
     const Modelo = Asegurar_Modelo_Planes();
@@ -1456,8 +1549,18 @@ async ({ page }) => {
       );
     Sub.Target_Total = 10;
     Sub.Unidad = "Veces";
-    Sub.Progreso_Manual = 5;
     Sub.Aporte_Meta = 0;
+    Modelo.Avances.av_capitulo_metricado = Normalizar_Avance_Plan({
+      Id: "av_capitulo_metricado",
+      Objetivo_Id: padreId,
+      Subobjetivo_Id: Sub.Id,
+      Fuente: "Subobjetivo",
+      Cantidad: 5,
+      Unidad: "Veces",
+      Fecha: "2026-04-12",
+      Hora: "10:00"
+    });
+    Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
     Planes_Actualizar_Progreso(Padre);
     return {
       progresoSub: Padre.Progreso_Subobjetivos,
@@ -1466,7 +1569,7 @@ async ({ page }) => {
     };
   }, Modelo_Inicial.padreId);
 
-  expect(Progreso_Submetrica.progresoSub).toBe(2);
+  expect(Progreso_Submetrica.progresoSub).toBe(0);
   expect(Progreso_Submetrica.progresoTotal)
     .toBeGreaterThanOrEqual(0);
   expect(Progreso_Submetrica.metaSub).toContain("5/10");
@@ -1539,12 +1642,12 @@ async ({ page }) => {
     metricaB: 0,
     aporteA: 1,
     aporteB: 1,
-    metaA: "+1 libros",
+    metaA: "+1 libro",
     legacyAporte: 1,
     aporteCero: 0,
-    progresoSub: 2,
-    progresoTotal: 2,
-    pendiente: 48,
+    progresoSub: 0,
+    progresoTotal: 0,
+    pendiente: 50,
     estado: "Activo"
   });
 
@@ -1576,10 +1679,19 @@ async ({ page }) => {
     if (!Sub_Anual) {
       return { error: "No se creo el subobjetivo anual" };
     }
-    Sub_Anual.Hecha = true;
-    Sub_Anual.Estado = "Cumplido";
-    Sub_Anual.Fecha_Fin = Fecha_Anual;
+    Sub_Anual.Target_Total = 1;
     Sub_Anual.Aporte_Meta = 1;
+    Modelo.Avances.av_libro_fecha_anual = Normalizar_Avance_Plan({
+      Id: "av_libro_fecha_anual",
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Anual.Id,
+      Fuente: "Subobjetivo",
+      Cantidad: 1,
+      Unidad: "libros",
+      Fecha: Fecha_Anual,
+      Hora: "10:00"
+    });
+    Planes_Recalcular_Progreso_Subobjetivo(Sub_Anual, Modelo);
     const Sub_Hijo_Id = Planes_Agregar_Subobjetivo(
       Objetivo.Id,
       "Libro hijo abril"
@@ -1589,10 +1701,19 @@ async ({ page }) => {
     if (!Sub_Hijo) {
       return { error: "No se creo el subobjetivo mensual" };
     }
-    Sub_Hijo.Hecha = true;
-    Sub_Hijo.Estado = "Cumplido";
-    Sub_Hijo.Fecha_Fin = Fecha_Hijo;
+    Sub_Hijo.Target_Total = 1;
     Sub_Hijo.Aporte_Meta = 1;
+    Modelo.Avances.av_libro_fecha_hijo = Normalizar_Avance_Plan({
+      Id: "av_libro_fecha_hijo",
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Hijo.Id,
+      Fuente: "Subobjetivo",
+      Cantidad: 1,
+      Unidad: "libros",
+      Fecha: Fecha_Hijo,
+      Hora: "10:00"
+    });
+    Planes_Recalcular_Progreso_Subobjetivo(Sub_Hijo, Modelo);
     Planes_Actualizar_Progreso(Objetivo);
 
     const Periodo_Por_Tipo = (Tipo, Fecha) => {
@@ -1667,7 +1788,26 @@ async ({ page }) => {
     const Sub_Hijo = Subs.find((Sub) =>
       Sub.Objetivo_Id === hijoId && Sub.Parent_Subobjetivo_Id
     );
-    Planes_Toggle_Subobjetivo(Sub_Hijo.Id, true);
+    Sub_Hijo.Target_Total = 1;
+    Planes_Periodo.Avances.av_subestado_hijo =
+      Normalizar_Avance_Plan({
+        Id: "av_subestado_hijo",
+        Objetivo_Id: hijoId,
+        Subobjetivo_Id: Sub_Hijo.Id,
+        Fuente: "Subobjetivo",
+        Cantidad: 1,
+        Unidad: "libros",
+        Fecha: "2026-04-12",
+        Hora: "10:00"
+      });
+    Planes_Recalcular_Progreso_Subobjetivo(
+      Sub_Hijo,
+      Planes_Periodo
+    );
+    Planes_Sincronizar_Estado_Familia_Subobjetivo(
+      Sub_Hijo.Parent_Subobjetivo_Id || Sub_Hijo.Id,
+      Planes_Periodo
+    );
     const Sub_Padre = Planes_Periodo
       .Subobjetivos[Sub_Hijo.Parent_Subobjetivo_Id];
     return {
@@ -1908,9 +2048,17 @@ async ({ page }) => {
     });
     Object.assign(Modelo.Subobjetivos[Sub_Terminado_Id], {
       Target_Total: 4,
-      Progreso_Inicial: 4,
-      Hecha: true,
-      Estado: "Cumplido"
+      Progreso_Inicial: 4
+    });
+    Modelo.Avances.av_sub_terminado = Normalizar_Avance_Plan({
+      Id: "av_sub_terminado",
+      Objetivo_Id: Pendiente.Id,
+      Subobjetivo_Id: Sub_Terminado_Id,
+      Fuente: "Subobjetivo",
+      Cantidad: 4,
+      Unidad: "Horas",
+      Fecha: "2026-04-20",
+      Hora: "10:00"
     });
     Planes_Recalcular_Progreso_Subobjetivo(
       Modelo.Subobjetivos[Sub_Pendiente_Id],
@@ -2015,11 +2163,14 @@ async ({ page }) => {
   await page.locator('[data-plan-registro-editar="Avance"]')
     .click();
   await page.fill("#Dialogo_Input_Campo", "3");
+  await page.fill("#Dialogo_Fecha_Campo", "2026-04-22");
   await page.locator("#Dialogo_Botones button")
     .filter({ hasText: "Guardar" })
     .click();
   await expect(page.locator("#Planes_Registro_Cuerpo"))
     .toContainText("3 libros");
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("22/04/2026");
   const Avance_Editado = await page.evaluate((objetivoId) => {
     const Modelo = Asegurar_Modelo_Planes();
     const Objetivo = Modelo.Objetivos[objetivoId];
@@ -2027,11 +2178,15 @@ async ({ page }) => {
       .find((Item) => Item.Objetivo_Id === objetivoId);
     return {
       manual: Objetivo.Progreso_Manual,
-      cantidad: Avance?.Cantidad || 0
+      cantidad: Avance?.Cantidad || 0,
+      fecha: Avance?.Fecha || "",
+      fechaHora: Avance?.Fecha_Hora || ""
     };
   }, Objetivo_Id);
   expect(Avance_Editado.manual).toBe(3);
   expect(Avance_Editado.cantidad).toBe(3);
+  expect(Avance_Editado.fecha).toBe("2026-04-22");
+  expect(Avance_Editado.fechaHora).toBe("2026-04-22T15:34");
 
   await page.locator('[data-plan-registro-eliminar="Avance"]')
     .click();
@@ -4650,9 +4805,24 @@ async ({ page }) => {
       "Libro anual directo"
     );
     let Modelo_Subs = Asegurar_Modelo_Planes();
-    Modelo_Subs.Subobjetivos[Directo_Id].Aporte_Meta = 0;
-    Modelo_Subs.Subobjetivos[Directo_Id].Hecha = true;
-    Modelo_Subs.Subobjetivos[Directo_Id].Estado = "Cumplido";
+    Object.assign(Modelo_Subs.Subobjetivos[Directo_Id], {
+      Aporte_Meta: 0,
+      Target_Total: 1
+    });
+    Modelo_Subs.Avances.av_directo_anual = Normalizar_Avance_Plan({
+      Id: "av_directo_anual",
+      Objetivo_Id: Padre.Id,
+      Subobjetivo_Id: Directo_Id,
+      Fuente: "Subobjetivo",
+      Cantidad: 1,
+      Unidad: "libros",
+      Fecha: "2026-04-10",
+      Hora: "09:00"
+    });
+    Planes_Recalcular_Progreso_Subobjetivo(
+      Modelo_Subs.Subobjetivos[Directo_Id],
+      Modelo_Subs
+    );
     Planes_Importar_Subs_En_Objetivo(Hijo);
 
     const Sub_Id = Planes_Agregar_Subobjetivo(
@@ -4726,8 +4896,8 @@ async ({ page }) => {
     Registrar("2026-04-20", "11:00");
     Registrar_Nieto("2026-04-24", "12:00");
     Registrar_Manual_Hijo("2026-04-25", "13:00");
-    Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
-    Planes_Recalcular_Progreso_Subobjetivo(Sub_Nieto, Modelo);
+    Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo_Subs);
+    Planes_Recalcular_Progreso_Subobjetivo(Sub_Nieto, Modelo_Subs);
     Planes_Actualizar_Progreso(Nieto);
     Planes_Actualizar_Progreso(Hijo);
     Planes_Actualizar_Progreso(Padre);
@@ -4792,13 +4962,13 @@ async ({ page }) => {
   expect(Resultado.Embebido_Draggable).toBe(true);
   expect(Resultado.Meta).toContain("50%");
   expect(Resultado.Meta).toContain("2/4");
-  expect(Resultado.Meta).toContain("+1 libros");
+  expect(Resultado.Meta).toContain("+1 libro");
   expect(Resultado.Nieto_Embebido).toBe(true);
   expect(Resultado.Nieto_Clase).toBe(true);
   expect(Resultado.Nieto_Meta).toContain("50%");
   expect(Resultado.Nieto_Meta).toContain("1/2");
   expect(Resultado.Nieto_Meta).toContain("+2 libros");
-  expect(Resultado.Registros).toHaveLength(4);
+  expect(Resultado.Registros).toHaveLength(5);
   expect(Resultado.Registros.filter((Registro) =>
     Registro.Item === "Cuentos de Melville"
   )).toHaveLength(2);
@@ -4809,7 +4979,13 @@ async ({ page }) => {
     Registro.Item === "Libros anual" &&
     Registro.Cantidad === "2 libros"
   )).toHaveLength(1);
-  expect(Resultado.Registros.every((Registro) =>
+  expect(Resultado.Registros.filter((Registro) =>
+    Registro.Item === "Libro anual directo" &&
+    Registro.Editable === true
+  )).toHaveLength(1);
+  expect(Resultado.Registros.filter((Registro) =>
+    Registro.Item !== "Libro anual directo"
+  ).every((Registro) =>
     Registro.Editable === false
   )).toBe(true);
   expect(errores).toEqual([]);
@@ -5280,7 +5456,7 @@ async ({ page }) => {
 
   expect(Resultado.Meta).toContain("100%");
   expect(Resultado.Meta).toContain("156/156");
-  expect(Resultado.Meta).toContain("+1 libros");
+  expect(Resultado.Meta).toContain("+1 libro");
   expect(Resultado.Meta).not.toContain("(");
   expect(Resultado.Badge_Importado).toBe(false);
   expect(Resultado.Metadatos_Visibles).toBe(0);
@@ -5929,21 +6105,31 @@ async ({ page }) => {
     const Modelo_Subs = Asegurar_Modelo_Planes();
     Object.assign(Modelo_Subs.Subobjetivos[Zeta], {
       Fecha_Inicio: "2026-05-02",
-      Fecha_Objetivo: "2026-06-01",
-      Fecha_Fin: "2026-06-05"
+      Fecha_Objetivo: "2026-06-01"
     });
     Object.assign(Modelo_Subs.Subobjetivos[Alfa], {
-      Estado: "Cumplido",
-      Hecha: true,
+      Target_Total: 1,
       Fecha_Inicio: "2026-04-01",
-      Fecha_Objetivo: "2026-04-20",
-      Fecha_Fin: "2026-04-25"
+      Fecha_Objetivo: "2026-04-20"
+    });
+    Modelo_Subs.Avances.av_alfa_final = Normalizar_Avance_Plan({
+      Id: "av_alfa_final",
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Alfa,
+      Fuente: "Subobjetivo",
+      Cantidad: 1,
+      Unidad: "libros",
+      Fecha: "2026-04-25",
+      Hora: "10:00"
     });
     Object.assign(Modelo_Subs.Subobjetivos[Beta], {
       Fecha_Inicio: "2026-03-15",
-      Fecha_Objetivo: "2026-05-10",
-      Fecha_Fin: "2026-05-20"
+      Fecha_Objetivo: "2026-05-10"
     });
+    Planes_Recalcular_Progreso_Subobjetivo(
+      Modelo_Subs.Subobjetivos[Alfa],
+      Modelo_Subs
+    );
     Planes_Actualizar_Progreso(Objetivo);
     Planes_Subobjetivos_Filtro_Estado = "Todos";
     Abrir_Modal_Planes_Subobjetivos(Objetivo.Id, false);
@@ -5979,10 +6165,10 @@ async ({ page }) => {
   expect(Resultado.Tiene_Direccion).toBe(true);
   expect(Resultado.Nombre_Asc).toEqual(["Alfa", "Beta", "Zeta"]);
   expect(Resultado.Nombre_Desc).toEqual(["Zeta", "Beta", "Alfa"]);
-  expect(Resultado.Estado_Asc).toEqual(["Zeta", "Alfa", "Beta"]);
+  expect(Resultado.Estado_Asc).toEqual(["Zeta", "Beta", "Alfa"]);
   expect(Resultado.Inicio_Asc).toEqual(["Beta", "Alfa", "Zeta"]);
   expect(Resultado.Objetivo_Asc).toEqual(["Alfa", "Beta", "Zeta"]);
-  expect(Resultado.Fin_Desc).toEqual(["Zeta", "Beta", "Alfa"]);
+  expect(Resultado.Fin_Desc).toEqual(["Alfa", "Zeta", "Beta"]);
   expect(errores).toEqual([]);
 });
 
