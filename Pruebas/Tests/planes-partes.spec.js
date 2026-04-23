@@ -860,3 +860,232 @@ async ({ page }) => {
     sub: 5
   });
 });
+
+test("Administradores restauran marcado realizado con partes",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const resultado = await page.evaluate(async () => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
+      Id: "p2026",
+      Tipo: "Anio",
+      Inicio: "2026-01-01",
+      Fin: "2026-12-31",
+      Orden: 0
+    });
+    Modelo.Objetivos.obj_menus = Normalizar_Objetivo_Plan({
+      Id: "obj_menus",
+      Periodo_Id: "p2026",
+      Emoji: "\uD83D\uDCDA",
+      Nombre: "Libros",
+      Target_Total: 105,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Orden: 0
+    });
+    Modelo.Subobjetivos.sub_parte = Normalizar_Subobjetivo_Plan({
+      Id: "sub_parte",
+      Objetivo_Id: "obj_menus",
+      Emoji: "\uD83D\uDCD6",
+      Texto: "Libro parcial",
+      Target_Total: 40,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Orden: 0
+    });
+    Modelo.Partes.parte_menu_1 = Normalizar_Parte_Meta({
+      Id: "parte_menu_1",
+      Objetivo_Id: "obj_menus",
+      Subobjetivo_Id: "sub_parte",
+      Emoji: "\uD83D\uDCD6",
+      Nombre: "Capitulo unico",
+      Aporte_Total: 40,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Orden: 0
+    });
+    Modelo.Partes.parte_menu_2 = Normalizar_Parte_Meta({
+      Id: "parte_menu_2",
+      Objetivo_Id: "obj_menus",
+      Subobjetivo_Id: "sub_parte",
+      Emoji: "\uD83D\uDCD6",
+      Nombre: "Capitulo pendiente",
+      Aporte_Total: 20,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Orden: 1
+    });
+    Modelo.Subobjetivos.sub_con_partes =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_con_partes",
+        Objetivo_Id: "obj_menus",
+        Emoji: "\uD83D\uDCD8",
+        Texto: "Libro con partes",
+        Target_Total: 65,
+        Unidad: "Personalizado",
+        Unidad_Custom: "paginas",
+        Orden: 1
+      });
+    Modelo.Subobjetivos.sub_menu_abierto =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_menu_abierto",
+        Objetivo_Id: "obj_menus",
+        Emoji: "\uD83D\uDCD9",
+        Texto: "Libro abierto",
+        Target_Total: 10,
+        Unidad: "Personalizado",
+        Unidad_Custom: "paginas",
+        Orden: 2
+      });
+    Modelo.Partes.parte_menu_3 = Normalizar_Parte_Meta({
+      Id: "parte_menu_3",
+      Objetivo_Id: "obj_menus",
+      Subobjetivo_Id: "sub_con_partes",
+      Emoji: "\uD83D\uDCD8",
+      Nombre: "Parte uno",
+      Aporte_Total: 30,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Orden: 0
+    });
+    Modelo.Partes.parte_menu_4 = Normalizar_Parte_Meta({
+      Id: "parte_menu_4",
+      Objetivo_Id: "obj_menus",
+      Subobjetivo_Id: "sub_con_partes",
+      Emoji: "\uD83D\uDCD8",
+      Nombre: "Parte dos",
+      Aporte_Total: 35,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Orden: 1
+    });
+
+    const Capturar_Dialogo = async (Accion) => {
+      const Original = Mostrar_Dialogo;
+      let Mensaje = "";
+      Mostrar_Dialogo = async (Texto) => {
+        Mensaje = Texto;
+        return true;
+      };
+      try {
+        const Ok = await Accion();
+        return { Ok, Mensaje };
+      } finally {
+        Mostrar_Dialogo = Original;
+      }
+    };
+
+    const Parte = await Capturar_Dialogo(() =>
+      Planes_Marcar_Parte_Como_Realizada("parte_menu_1")
+    );
+    const Sub = await Capturar_Dialogo(() =>
+      Planes_Marcar_Subobjetivo_Como_Realizado(
+        "sub_con_partes",
+        "obj_menus"
+      )
+    );
+
+    Abrir_Modal_Planes_Subobjetivos("obj_menus");
+    const Sticky_Subobjetivos = getComputedStyle(
+      document.querySelector(
+        "#Planes_Subobjetivos_Overlay " +
+        ".Planes_Subobjetivos_Filtros"
+      )
+    ).position;
+    Abrir_Modal_Planes_Partes("sub_parte");
+    const Sticky_Partes = getComputedStyle(
+      document.querySelector(
+        "#Planes_Partes_Overlay .Planes_Subobjetivos_Filtros"
+      )
+    ).position;
+    const Modelo_Final = Asegurar_Modelo_Planes();
+
+    return {
+      parte: {
+        ok: Parte.Ok,
+        mensaje: Parte.Mensaje,
+        progreso: Planes_Progreso_Total_Parte(
+          Modelo_Final.Partes.parte_menu_1,
+          Modelo_Final
+        ),
+        estado: Planes_Estado_Calculado_Parte(
+          Modelo_Final.Partes.parte_menu_1,
+          Modelo_Final
+        )
+      },
+      sub: {
+        ok: Sub.Ok,
+        mensaje: Sub.Mensaje,
+        progreso: Planes_Progreso_Total_Subobjetivo(
+          Modelo_Final.Subobjetivos.sub_con_partes,
+          Modelo_Final
+        ),
+        estado: Planes_Estado_Normalizado_Subobjetivo(
+          Modelo_Final.Subobjetivos.sub_con_partes
+        ),
+        partesRealizadas: [
+          Modelo_Final.Partes.parte_menu_3,
+          Modelo_Final.Partes.parte_menu_4
+        ].filter((Parte_Item) =>
+          Planes_Estado_Calculado_Parte(
+            Parte_Item,
+            Modelo_Final
+          ) === "Realizada"
+        ).length
+      },
+      sticky: {
+        subobjetivos: Sticky_Subobjetivos,
+        partes: Sticky_Partes
+      }
+    };
+  });
+
+  await expect(
+    page.locator("#Planes_Partes_Lista .Planes_Parte").first()
+  ).toBeVisible();
+  await page.locator(
+    "#Planes_Partes_Lista .Planes_Parte [data-parte-menu]"
+  ).first().click();
+  await expect(page.locator(
+    '.Planes_Parte_Menu_Flotante [data-parte-accion="realizar"]'
+  )).toBeVisible();
+  await expect(page.locator(
+    '.Planes_Parte_Menu_Flotante [data-parte-accion="subir"]'
+  )).toHaveCount(0);
+  await expect(page.locator(
+    '.Planes_Parte_Menu_Flotante [data-parte-accion="bajar"]'
+  )).toHaveCount(0);
+
+  await page.evaluate(() => {
+    Planes_Cerrar_Menus_Parte();
+    Cerrar_Modal_Planes_Partes();
+    Abrir_Modal_Planes_Subobjetivos("obj_menus");
+  });
+  await page.locator(
+    "#Planes_Subobjetivos_Lista .Planes_Subobjetivo " +
+    "[data-plan-sub-menu]"
+  ).first().click();
+  await expect(page.locator(
+    '.Planes_Context_Menu [data-plan-sub-accion="realizar"]'
+  )).toBeVisible();
+
+  expect(errores).toEqual([]);
+  expect(resultado.parte.ok).toBeTruthy();
+  expect(resultado.parte.mensaje).toContain("40 paginas");
+  expect(resultado.parte.estado).toBe("Realizada");
+  expect(resultado.parte.progreso).toBe(40);
+  expect(resultado.sub.ok).toBeTruthy();
+  expect(resultado.sub.mensaje).toContain("2 partes");
+  expect(resultado.sub.mensaje).toContain("65 paginas");
+  expect(resultado.sub.estado).toBe("Cumplido");
+  expect(resultado.sub.progreso).toBe(65);
+  expect(resultado.sub.partesRealizadas).toBe(2);
+  expect(resultado.sticky).toEqual({
+    subobjetivos: "sticky",
+    partes: "sticky"
+  });
+});

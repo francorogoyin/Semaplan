@@ -7345,6 +7345,26 @@
         max-width: 820px;
       }
 
+      .Planes_Subobjetivos_Modal > .Patron_Modal_Cuerpo,
+      .Planes_Partes_Modal > .Patron_Modal_Cuerpo {
+        padding-top: 0;
+      }
+
+      .Planes_Subobjetivos_Modal
+        > .Patron_Modal_Cuerpo
+        > .Planes_Subobjetivos_Filtros,
+      .Planes_Partes_Modal
+        > .Patron_Modal_Cuerpo
+        > .Planes_Subobjetivos_Filtros {
+        position: sticky;
+        top: 0;
+        z-index: 6;
+        margin: 0 -18px 12px;
+        padding: 16px 18px 12px;
+        background: var(--Panel);
+        border-bottom: 1px solid var(--Borde);
+      }
+
       .Planes_Parte_Modal {
         max-width: 760px;
       }
@@ -21341,9 +21361,17 @@
           "planes.avance_finaliza_confirm":
             "Esto finaliza \"{nombre}\". ¿Querés guardar?",
           "planes.marcar_realizado": "Marcar como realizado",
+          "planes.parte_realizar_confirm":
+            "Se agregará un avance para el {fecha} a las {hora} " +
+            "de {cantidad} {unidad}. La parte quedará realizada. " +
+            "¿Confirmar?",
           "planes.sub_realizar_confirm":
             "Se agregarán {cantidad} {unidad} a la fecha {fecha} " +
             "y la hora {hora}. ¿Confirmar?",
+          "planes.sub_realizar_partes_confirm":
+            "Se van a marcar como realizadas {partes} partes para " +
+            "el {fecha} a las {hora}, con un avance de {cantidad} " +
+            "{unidad}. ¿Confirmar?",
           "planes.sub_realizar_sin_avance_confirm":
             "No falta avance por registrar. Se marcará como " +
             "realizado con fecha final {fecha} y hora {hora}. " +
@@ -25041,9 +25069,16 @@
           "planes.avance_finaliza_confirm":
             "This completes \"{nombre}\". Save it?",
           "planes.marcar_realizado": "Mark as done",
+          "planes.parte_realizar_confirm":
+            "A progress entry for {cantidad} {unidad} will be added " +
+            "on {fecha} at {hora}. The part will be marked done. " +
+            "Confirm?",
           "planes.sub_realizar_confirm":
             "{cantidad} {unidad} will be added on {fecha} at " +
             "{hora}. Confirm?",
+          "planes.sub_realizar_partes_confirm":
+            "{partes} parts will be marked done on {fecha} at " +
+            "{hora}, with {cantidad} {unidad} of progress. Confirm?",
           "planes.sub_realizar_sin_avance_confirm":
             "There is no remaining progress to log. The subobjective " +
             "will be marked done with final date {fecha} at {hora}. " +
@@ -28687,9 +28722,16 @@
           "planes.avance_finaliza_confirm":
             "Isto finaliza \"{nombre}\". Quer salvar?",
           "planes.marcar_realizado": "Marcar como realizado",
+          "planes.parte_realizar_confirm":
+            "Será registrado um avanço de {cantidad} {unidad} em " +
+            "{fecha} às {hora}. A parte ficará realizada. Confirmar?",
           "planes.sub_realizar_confirm":
             "Serão adicionados {cantidad} {unidad} na data {fecha} " +
             "e hora {hora}. Confirmar?",
+          "planes.sub_realizar_partes_confirm":
+            "{partes} partes serão marcadas como realizadas em " +
+            "{fecha} às {hora}, com avanço de {cantidad} {unidad}. " +
+            "Confirmar?",
           "planes.sub_realizar_sin_avance_confirm":
             "Não falta avanço para registrar. O subobjetivo será " +
             "marcado como realizado com data final {fecha} e hora " +
@@ -46853,6 +46895,73 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      async function Planes_Confirmar_Realizado_Parte(
+        Parte,
+        Cantidad,
+        Fecha,
+        Hora
+      ) {
+        if (!Parte) return false;
+        return Boolean(await Mostrar_Dialogo(
+          t(
+            "planes.parte_realizar_confirm",
+            Planes_Datos_Confirmacion_Avance(
+              Cantidad,
+              Planes_Unidad_Label_Parte(Parte, Cantidad),
+              Fecha,
+              Hora
+            )
+          ),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            { Etiqueta: t("confirmar"), Valor: true, Tipo: "Primario" }
+          ]
+        ));
+      }
+
+      async function Planes_Marcar_Parte_Como_Realizada(Parte_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Parte = Modelo.Partes?.[Parte_Id];
+        if (!Parte) return false;
+        if (Planes_Estado_Calculado_Parte(Parte, Modelo) ===
+            "Realizada") {
+          return false;
+        }
+        const Actual = Planes_Fecha_Hora_Actual();
+        const Cantidad = Planes_Cantidad_Auto_Realizada_Parte(
+          Parte,
+          "Parte_Meta",
+          Parte.Id,
+          Modelo
+        );
+        const Confirmar = await Planes_Confirmar_Realizado_Parte(
+          Parte,
+          Cantidad,
+          Actual.Fecha,
+          Actual.Hora
+        );
+        if (!Confirmar) return false;
+        const Snap = Capturar_Snapshot_Undo();
+        const Ok = Planes_Marcar_Parte_Realizada(
+          Parte.Id,
+          {
+            Fecha: Actual.Fecha,
+            Hora: Actual.Hora,
+            Snapshot: Snap,
+            Toast: t("planes.avance_registrado")
+          }
+        );
+        if (!Ok) return false;
+        Render_Modal_Planes_Partes();
+        if (
+          document.getElementById("Planes_Subobjetivos_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Modal_Planes_Subobjetivos();
+        }
+        return true;
+      }
+
       function Planes_Desmarcar_Parte_Realizada(
         Parte_Id,
         Opciones = {}
@@ -56217,18 +56326,59 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Math.max(0, Target - Avances);
       }
 
+      function Planes_Partes_Pendientes_Subobjetivo(
+        Sub_Id,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        return Planes_Partes_De_Subobjetivo(Sub_Id, M)
+          .filter((Parte) =>
+            Planes_Estado_Calculado_Parte(Parte, M) !== "Realizada"
+          );
+      }
+
+      function Planes_Restante_Partes_Subobjetivo(
+        Partes,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        return (Array.isArray(Partes) ? Partes : [])
+          .reduce((Total, Parte) => {
+            return Total + Planes_Cantidad_Auto_Realizada_Parte(
+              Parte,
+              "Parte_Meta",
+              Parte.Id,
+              M
+            );
+          }, 0);
+      }
+
+      function Planes_Datos_Confirmacion_Avance(
+        Cantidad,
+        Unidad,
+        Fecha,
+        Hora
+      ) {
+        return {
+          cantidad: Planes_Formatear_Numero(Cantidad),
+          unidad: Unidad || "",
+          fecha: Planes_Formatear_Fecha_Confirmacion(Fecha),
+          hora: Hora || ""
+        };
+      }
+
       function Planes_Datos_Confirmacion_Realizado(
         Item,
         Cantidad,
         Fecha,
         Hora
       ) {
-        return {
-          cantidad: Planes_Formatear_Numero(Cantidad),
-          unidad: Planes_Unidad_Label_Subobjetivo(Item, Cantidad),
-          fecha: Planes_Formatear_Fecha_Confirmacion(Fecha),
-          hora: Hora || ""
-        };
+        return Planes_Datos_Confirmacion_Avance(
+          Cantidad,
+          Planes_Unidad_Label_Subobjetivo(Item, Cantidad),
+          Fecha,
+          Hora
+        );
       }
 
       async function Planes_Confirmar_Realizado_Subobjetivo(
@@ -56251,6 +56401,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Hora
             )
           ),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            { Etiqueta: t("confirmar"), Valor: true, Tipo: "Primario" }
+          ]
+        );
+        return Boolean(Confirmar);
+      }
+
+      async function Planes_Confirmar_Subobjetivo_Con_Partes(
+        Sub,
+        Partes,
+        Cantidad,
+        Fecha,
+        Hora
+      ) {
+        const Datos = {
+          ...Planes_Datos_Confirmacion_Realizado(
+            Sub,
+            Cantidad,
+            Fecha,
+            Hora
+          ),
+          partes: Array.isArray(Partes) ? Partes.length : 0
+        };
+        const Confirmar = await Mostrar_Dialogo(
+          t("planes.sub_realizar_partes_confirm", Datos),
           [
             { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
             { Etiqueta: t("confirmar"), Valor: true, Tipo: "Primario" }
@@ -56294,13 +56470,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Sub || !Objetivo) return false;
         if (Sub.Hecha) return false;
         const Actual = Planes_Fecha_Hora_Actual();
-        const Cantidad = Planes_Restante_Subobjetivo_Con_Datos(
+        const Partes_Pendientes = Planes_Partes_Pendientes_Subobjetivo(
+          Sub.Id,
+          Modelo
+        );
+        const Cantidad_Partes = Planes_Restante_Partes_Subobjetivo(
+          Partes_Pendientes,
+          Modelo
+        );
+        const Cantidad_Sub = Planes_Restante_Subobjetivo_Con_Datos(
           Sub,
           Sub,
           Modelo
         );
-        const Confirmar =
-          await Planes_Confirmar_Realizado_Subobjetivo(
+        const Cantidad = Partes_Pendientes.length > 0
+          ? Math.max(Cantidad_Partes, Cantidad_Sub)
+          : Cantidad_Sub;
+        const Confirmar = Partes_Pendientes.length > 0
+          ? await Planes_Confirmar_Subobjetivo_Con_Partes(
+            Sub,
+            Partes_Pendientes,
+            Cantidad,
+            Actual.Fecha,
+            Actual.Hora
+          )
+          : await Planes_Confirmar_Realizado_Subobjetivo(
             Sub,
             Cantidad,
             Actual.Fecha,
@@ -56324,14 +56518,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Objetivo = Modelo.Objetivos[Sub.Objetivo_Id] || Objetivo;
         }
-        Planes_Agregar_Avance_Final_Subobjetivo(
-          Sub,
-          Objetivo,
-          Cantidad,
-          Actual.Fecha,
-          Actual.Hora,
-          Modelo
-        );
+        if (Partes_Pendientes.length > 0) {
+          Partes_Pendientes.forEach((Parte) => {
+            Planes_Marcar_Parte_Realizada(
+              Parte.Id,
+              {
+                Fecha: Actual.Fecha,
+                Hora: Actual.Hora,
+                Solo_Modelo: true
+              }
+            );
+          });
+          const Restante_Final = Planes_Restante_Subobjetivo_Con_Datos(
+            Sub,
+            Sub,
+            Modelo
+          );
+          Planes_Agregar_Avance_Final_Subobjetivo(
+            Sub,
+            Objetivo,
+            Restante_Final,
+            Actual.Fecha,
+            Actual.Hora,
+            Modelo
+          );
+        } else {
+          Planes_Agregar_Avance_Final_Subobjetivo(
+            Sub,
+            Objetivo,
+            Cantidad,
+            Actual.Fecha,
+            Actual.Hora,
+            Modelo
+          );
+        }
         Sub.Hecha = true;
         Sub.Estado = "Cumplido";
         Sub.Fecha_Fin = Actual.Fecha;
@@ -59447,17 +59667,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Render_Planes_Parte_Acciones(Parte) {
+        const Puede_Marcar =
+          Planes_Estado_Calculado_Parte(Parte) !== "Realizada";
         return `
           <button class="Planes_Btn" type="button"
             data-parte-accion="editar">${Escape_Html(t("editar"))}</button>
-          <button class="Planes_Btn" type="button"
-            data-parte-accion="subir">
-            ${Escape_Html(t("planes.parte_subir"))}
-          </button>
-          <button class="Planes_Btn" type="button"
-            data-parte-accion="bajar">
-            ${Escape_Html(t("planes.parte_bajar"))}
-          </button>
+          ${Puede_Marcar ? `
+            <button class="Planes_Btn" type="button"
+              data-parte-accion="realizar">
+              ${Escape_Html(t("planes.marcar_realizado"))}
+            </button>
+          ` : ""}
           <button class="Planes_Btn Peligro" type="button"
             data-parte-accion="eliminar">
             ${Escape_Html(t("planes.eliminar_local"))}
@@ -59471,6 +59691,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Parte) return;
         if (Tipo === "editar") {
           Abrir_Modal_Planes_Parte(Parte.Id);
+        }
+        if (Tipo === "realizar") {
+          await Planes_Marcar_Parte_Como_Realizada(Parte.Id);
         }
         if (Tipo === "subir" || Tipo === "bajar") {
           const Snap = Capturar_Snapshot_Undo();
@@ -60235,11 +60458,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Render_Planes_Subobjetivo_Acciones(Sub) {
+        const Puede_Marcar =
+          Planes_Estado_Normalizado_Subobjetivo(Sub) !== "Cumplido";
         return `
           <button class="Planes_Btn" type="button"
             data-plan-sub-accion="editar">
             ${t("editar")}
           </button>
+          ${Puede_Marcar ? `
+            <button class="Planes_Btn" type="button"
+              data-plan-sub-accion="realizar">
+              ${t("planes.marcar_realizado")}
+            </button>
+          ` : ""}
           <button class="Planes_Btn" type="button"
             data-plan-sub-accion="avance">
             ${t("planes.registrar_avance")}
@@ -60281,6 +60512,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Tipo === "editar") {
           Abrir_Modal_Planes_Subobjetivo(Sub_Id);
+        }
+        if (Tipo === "realizar") {
+          await Planes_Marcar_Subobjetivo_Como_Realizado(
+            Sub_Id,
+            Objetivo_Id || Sub.Objetivo_Id
+          );
         }
         if (Tipo === "avance") {
           Abrir_Modal_Planes_Avance(
