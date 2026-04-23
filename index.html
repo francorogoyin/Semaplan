@@ -5727,8 +5727,43 @@
       .Planes_Target_Fila_Acciones {
         align-items: center;
         display: flex;
-        gap: 10px;
+        gap: 16px;
         justify-content: flex-end;
+        min-width: 112px;
+      }
+
+      .Planes_Target_Fila_Acciones .Planes_Target_Fijar {
+        justify-content: center;
+        width: 48px;
+      }
+
+      .Planes_Target_Lista_Cabecera {
+        align-items: end;
+        color: var(--Texto_Suave);
+        display: grid;
+        font-size: 10px;
+        font-weight: 800;
+        gap: 10px;
+        grid-template-columns:
+          minmax(0, 1fr)
+          minmax(130px, 170px)
+          minmax(112px, auto);
+        letter-spacing: 0;
+        line-height: 1;
+        padding: 0 10px 2px;
+        text-transform: uppercase;
+      }
+
+      .Planes_Target_Lista_Cabecera_Acciones {
+        display: flex;
+        gap: 16px;
+        justify-content: flex-end;
+        min-width: 112px;
+      }
+
+      .Planes_Target_Lista_Cabecera_Acciones span {
+        text-align: center;
+        width: 48px;
       }
 
       .Planes_Target_Vacio {
@@ -5742,12 +5777,21 @@
 
       @media (max-width: 640px) {
         .Planes_Target_Encabezado,
-        .Planes_Target_Fila {
+        .Planes_Target_Fila,
+        .Planes_Target_Lista_Cabecera {
           grid-template-columns: 1fr;
         }
 
         .Planes_Target_Controles {
           flex-direction: column;
+        }
+
+        .Planes_Target_Lista_Cabecera {
+          display: none;
+        }
+
+        .Planes_Target_Fila_Acciones {
+          justify-content: flex-start;
         }
       }
 
@@ -48570,8 +48614,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Number(Conf.Valores?.[Periodo.Id]) || 0
           );
         }, 0);
+        const Tiene_Ajuste_Manual =
+          Tiene_Fijados_Explicitos || Tiene_Anulados_Explicitos;
         const Disponibles = Periodos_Activos.filter((Periodo) =>
-          Fijados[Periodo.Id] !== true
+          Fijados[Periodo.Id] !== true &&
+          (
+            Conf.Modo !== "Deuda" ||
+            !Tiene_Ajuste_Manual ||
+            !Planes_Periodo_Cerrado(Periodo)
+          )
         );
         const Restante = Math.max(0, Target - Fijo_Total);
         Periodos.forEach((Periodo) => {
@@ -48582,6 +48633,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Periodo.Id,
               Math.max(0, Number(Conf.Valores?.[Periodo.Id]) || 0)
             );
+          } else if (
+            Conf.Modo === "Deuda" &&
+            Tiene_Ajuste_Manual &&
+            Planes_Periodo_Cerrado(Periodo)
+          ) {
+            Resultado.set(Periodo.Id, 0);
           }
         });
         if (!Disponibles.length) return Resultado;
@@ -59084,20 +59141,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   <div class="Planes_Target_Fila_Acciones">
                     <label class="Planes_Target_Fijar">
                       <input type="checkbox"
+                        title="${Escape_Html(
+                          t("planes.redistribucion_fijar")
+                        )}"
+                        aria-label="${Escape_Html(
+                          t("planes.redistribucion_fijar")
+                        )}"
                         data-plan-redis-fijar="${Escape_Html(Periodo.Id)}"
                         ${Fijado ? "checked" : ""}
                         ${Anulado ? "disabled" : ""}>
-                      <span>${Escape_Html(
-                        t("planes.redistribucion_fijar")
-                      )}</span>
                     </label>
                     <label class="Planes_Target_Fijar">
                       <input type="checkbox"
+                        title="${Escape_Html(
+                          t("planes.redistribucion_anular")
+                        )}"
+                        aria-label="${Escape_Html(
+                          t("planes.redistribucion_anular")
+                        )}"
                         data-plan-redis-anular="${Escape_Html(Periodo.Id)}"
                         ${Anulado ? "checked" : ""}>
-                      <span>${Escape_Html(
-                        t("planes.redistribucion_anular")
-                      )}</span>
                     </label>
                   </div>
                 </div>
@@ -59168,6 +59231,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     aria-label="${
                       Escape_Html(t("planes.target_periodos_lista"))
                     }">
+                    ${Filas ? `
+                      <div class="Planes_Target_Lista_Cabecera"
+                        aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                        <div class="Planes_Target_Lista_Cabecera_Acciones">
+                          <span>
+                            ${Escape_Html(
+                              t("planes.redistribucion_fijar")
+                            )}
+                          </span>
+                          <span>
+                            ${Escape_Html(
+                              t("planes.redistribucion_anular")
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    ` : ""}
                     ${Filas || `
                       <div class="Planes_Target_Vacio">
                         ${Escape_Html(
@@ -59203,6 +59285,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Modo_Activo = Ev.target.value;
                 Render();
               });
+            const Actualizar_Inputs_Calculados = () => {
+              const Valores_Actuales = Calcular_Valores();
+              Overlay.querySelectorAll("[data-plan-redis-periodo]")
+                .forEach((Input) => {
+                  const Periodo_Id = Input.dataset.planRedisPeriodo;
+                  const Fijado_Input = Overlay.querySelector(
+                    `[data-plan-redis-fijar="${Periodo_Id}"]`
+                  );
+                  const Anulado_Input = Overlay.querySelector(
+                    `[data-plan-redis-anular="${Periodo_Id}"]`
+                  );
+                  const Edita = Boolean(
+                    Fijado_Input?.checked && !Anulado_Input?.checked
+                  );
+                  if (Edita) return;
+                  Input.value = Planes_Formatear_Target_Periodo_Input(
+                    Valores_Actuales.get(Periodo_Id) || 0
+                  );
+                });
+            };
             Overlay.querySelectorAll("[data-plan-redis-fijar]")
               .forEach((Input) => {
                 Input.addEventListener("change", () => {
@@ -59236,6 +59338,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                       (Planes_Parsear_Target_Periodo(Input.value) ?? 0) *
                       100
                     ) / 100;
+                  Actualizar_Inputs_Calculados();
                 });
               });
             Overlay.querySelector("[data-plan-redis-guardar]")
