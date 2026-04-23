@@ -5114,20 +5114,13 @@
         line-height: 1.16;
       }
 
-      .Planes_Objetivo_Card.Vista_Biblioteca .Planes_Objetivo_Estado {
+      .Planes_Objetivo_Card.Vista_Biblioteca .Planes_Objetivo_Ritmo {
         position: absolute;
-        top: 10px;
-        right: 10px;
-        width: 24px;
-        height: 24px;
+        top: 14px;
+        right: 14px;
+        width: 10px;
+        height: 10px;
         border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        background: transparent;
-        border: 0;
-        box-shadow: none;
       }
 
       .Planes_Fuente_Badge {
@@ -22036,7 +22029,8 @@
             "Define si el progreso sale de cargas manuales, " +
             "avance detectado por calendario o subobjetivos, " +
             "o de ambas fuentes.",
-          "planes.editar_estado": "Editar estado",
+          "planes.editar_estado": "Cambiar estado",
+          "planes.ver_avances": "Ver avances",
           "planes.estado_label": "Estado",
           "planes.estado_help":
             "Cambia el estado visible del objetivo. El estado realizado puede recalcularse si la meta vuelve a quedar pendiente.",
@@ -22173,6 +22167,8 @@
           "planes.mover_confirm":
             "Vas a mover el objetivo y desplazar sus fechas proporcionalmente.",
           "planes.movido_toast": "Objetivo movido.",
+          "planes.sin_periodos_destino":
+            "No hay periodos destino disponibles en esa capa.",
           "planes.copiar_objetivo": "Copiar",
           "planes.pegar_objetivo": "Pegar objetivo",
           "planes.copiado_toast": "Objetivo copiado.",
@@ -25827,7 +25823,8 @@
           "planes.modo_help":
             "Defines whether progress comes from manual entries, " +
             "detected calendar or subobjective progress, or both.",
-          "planes.editar_estado": "Edit status",
+          "planes.editar_estado": "Change status",
+          "planes.ver_avances": "View progress",
           "planes.estado_label": "Status",
           "planes.estado_help":
             "Changes the visible status. Completed can be recalculated if the goal becomes pending again.",
@@ -25962,6 +25959,8 @@
           "planes.mover_confirm":
             "The objective will move and its dates will shift proportionally.",
           "planes.movido_toast": "Objective moved.",
+          "planes.sin_periodos_destino":
+            "No destination periods are available in that layer.",
           "planes.copiar_objetivo": "Copy",
           "planes.pegar_objetivo": "Paste objective",
           "planes.copiado_toast": "Objective copied.",
@@ -29567,7 +29566,8 @@
             "Define se o progresso vem só de cargas manuais, " +
             "de progresso detectado por calendário ou subobjetivos, " +
             "ou das duas fontes.",
-          "planes.editar_estado": "Editar status",
+          "planes.editar_estado": "Alterar status",
+          "planes.ver_avances": "Ver avan\u00e7os",
           "planes.estado_label": "Estado",
           "planes.estado_help":
             "Altera o estado visível do objetivo. O estado realizado pode ser recalculado se a meta voltar a ficar pendente.",
@@ -29786,6 +29786,8 @@
           "planes.mover_confirm":
             "O objetivo ser\u00e1 movido e suas datas ser\u00e3o deslocadas proporcionalmente.",
           "planes.movido_toast": "Objetivo movido.",
+          "planes.sin_periodos_destino":
+            "N\u00e3o h\u00e1 per\u00edodos de destino dispon\u00edveis nessa camada.",
           "planes.copiar_objetivo": "Copiar",
           "planes.pegar_objetivo": "Colar objetivo",
           "planes.copiado_toast": "Objetivo copiado.",
@@ -48212,6 +48214,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Planes_Crear_Periodo_Por_Capa(
+        Tipo,
+        Anio,
+        Subperiodo = 1
+      ) {
+        if (!Tipo || Tipo === "Custom") return null;
+        const Modelo = Asegurar_Modelo_Planes();
+        const [Inicio, Fin] =
+          Planes_Rango_Por_Tipo_Anio_Subperiodo(
+            Tipo,
+            Anio,
+            Subperiodo
+          );
+        const Id = Plan_Periodo_Id(Tipo, Inicio, Fin);
+        if (Modelo.Periodos[Id]) return Modelo.Periodos[Id];
+        return Planes_Crear_Periodo(
+          Modelo,
+          Tipo,
+          Inicio,
+          Fin,
+          null,
+          Number(Inicio.replaceAll("-", ""))
+        );
+      }
+
       function Planes_Subperiodo_De_Periodo(Periodo) {
         const Inicio = Parsear_Fecha_ISO(Periodo?.Inicio || "");
         if (!Periodo || !Inicio) return 1;
@@ -50928,13 +50955,60 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Periodo || !Periodo.Tipo || Periodo.Tipo === "Custom") {
           return null;
         }
-        const Periodos = Planes_Crear_Periodos_Capa_Visibles(
-          Periodo.Tipo
-        );
+        const Periodos = Planes_Periodos_Destino_Misma_Capa(Periodo);
         const Index = Periodos.findIndex((Item) =>
           Item.Id === Periodo.Id
         );
         return Periodos[Index + 1] || null;
+      }
+
+      function Planes_Periodos_Destino_Misma_Capa(Periodo_Origen) {
+        if (!Periodo_Origen?.Tipo) return [];
+        if (Periodo_Origen.Tipo === "Custom") {
+          return Planes_Periodos_Visibles_Capa("Custom");
+        }
+        const Tipo = Periodo_Origen.Tipo;
+        const Anio_Origen = Number(
+          (Periodo_Origen.Inicio || "").slice(0, 4)
+        );
+        if (!Number.isFinite(Anio_Origen)) return [];
+        const Por_Id = new Map();
+        const Agregar = (Periodo) => {
+          if (Periodo?.Id) Por_Id.set(Periodo.Id, Periodo);
+        };
+        Planes_Crear_Periodos_Capa_Visibles(Tipo)
+          .forEach(Agregar);
+        if (Tipo === "Anio") {
+          for (
+            let Anio = Anio_Origen - 2;
+            Anio <= Anio_Origen + 5;
+            Anio++
+          ) {
+            Agregar(Planes_Crear_Periodo_Por_Capa(Tipo, Anio, 1));
+          }
+        } else {
+          const Sub_Origen =
+            Planes_Subperiodo_De_Periodo(Periodo_Origen);
+          for (
+            let Anio = Anio_Origen - 1;
+            Anio <= Anio_Origen + 1;
+            Anio++
+          ) {
+            const Total = Planes_Cantidad_Subperiodos(Tipo, Anio);
+            const Desde = Tipo === "Semana"
+              ? Math.max(1, Sub_Origen - 8)
+              : 1;
+            const Hasta = Tipo === "Semana"
+              ? Math.min(Total, Sub_Origen + 8)
+              : Total;
+            for (let Sub = Desde; Sub <= Hasta; Sub++) {
+              Agregar(Planes_Crear_Periodo_Por_Capa(Tipo, Anio, Sub));
+            }
+          }
+        }
+        return Array.from(Por_Id.values()).sort((A, B) =>
+          (A.Inicio || "").localeCompare(B.Inicio || "")
+        );
       }
 
       async function Planes_Elegir_Periodo_Destino(
@@ -50942,11 +51016,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Mensaje,
         Preferido = null
       ) {
-        const Periodos = Planes_Crear_Periodos_Capa_Visibles(
-          Periodo_Origen?.Tipo || "Anio"
+        const Periodos = Planes_Periodos_Destino_Misma_Capa(
+          Periodo_Origen
         ).filter((Periodo) => Periodo.Id !== Periodo_Origen?.Id);
-        if (!Periodos.length) return null;
-        const Opciones = Periodos.slice(0, 24).map((Periodo) => ({
+        if (!Periodos.length) {
+          Mostrar_Toast_Error(t("planes.sin_periodos_destino"));
+          return null;
+        }
+        const Opciones = Periodos.map((Periodo) => ({
           Etiqueta: Planes_Titulo_Periodo_Mostrable(Periodo),
           Valor: Periodo.Id,
           Tipo: Periodo.Id === Preferido?.Id ? "Primario" : "Secundario"
@@ -53407,9 +53484,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           " Reordenable";
         Card.draggable = !Objetivo.__Plan_Proyectado;
         Card.dataset.planObjetivoId = Objetivo.Id;
-        const Estado_Label = Pausado
-          ? t("planes.pausado")
-          : t(`planes.estado_${Estado_Efectivo.toLowerCase()}`);
         const Porcentaje = Planes_Formatear_Porcentaje_Meta(
           Objetivo.Progreso_Total,
           Objetivo.Target_Total
@@ -53439,12 +53513,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ${Escape_Html(Objetivo.Nombre)}
               </span>
             </div>
-            <span class="Planes_Objetivo_Estado"
-              title="${Escape_Html(Estado_Label)}"
-              aria-label="${Escape_Html(Estado_Label)}">
-              ${Pausado ? "\u23f8\ufe0f" :
-                Planes_Emoji_Estado(Estado_Efectivo)}
-            </span>
+            ${Ritmo_Html}
           </div>
           ${Expandido ? Render_Planes_Detalle_Objetivo(Objetivo) : ""}
         ` : `
@@ -53462,12 +53531,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 <strong class="Planes_Objetivo_Porcentaje">
                   ${Escape_Html(Porcentaje)}
                 </strong>
-                <span class="Planes_Objetivo_Estado"
-                  title="${Escape_Html(Estado_Label)}"
-                  aria-label="${Escape_Html(Estado_Label)}">
-                  ${Pausado ? "\u23f8\ufe0f" :
-                    Planes_Emoji_Estado(Estado_Efectivo)}
-                </span>
                 ${Ritmo_Html}
                 ${Es_Lista ? "" : Boton_Avance}
               </div>
@@ -54104,13 +54167,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Construir_Planes_Menu_Por_Grupos([
           [
             Html_Planes_Objetivo_Accion("editar", t("planes.editar")),
+            Html_Planes_Objetivo_Accion(Pausar_Accion, Pausar_Label),
+            Html_Planes_Objetivo_Accion(
+              Ocultar_Accion,
+              Ocultar_Label
+            )
+          ],
+          [
             Html_Planes_Objetivo_Accion(
               "copiar_objetivo",
               t("planes.copiar_objetivo")
             ),
             Html_Planes_Objetivo_Accion(
+              "mover_periodo",
+              t("planes.mover")
+            ),
+            Html_Planes_Objetivo_Accion(
+              "trasladar",
+              t("planes.trasladar")
+            )
+          ],
+          [
+            Html_Planes_Objetivo_Accion(
               "admin_subs",
               t("planes.ver_subobjetivos")
+            ),
+            Html_Planes_Objetivo_Accion(
+              "registro",
+              t("planes.ver_avances")
             )
           ],
           [
@@ -54121,21 +54205,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Html_Planes_Objetivo_Accion(
               "estado",
               t("planes.editar_estado")
-            ),
-            Html_Planes_Objetivo_Accion(Pausar_Accion, Pausar_Label)
-          ],
-          [
-            Html_Planes_Objetivo_Accion(
-              "trasladar",
-              t("planes.trasladar")
-            ),
-            Html_Planes_Objetivo_Accion(
-              "mover_periodo",
-              t("planes.mover")
-            ),
-            Html_Planes_Objetivo_Accion(
-              Ocultar_Accion,
-              Ocultar_Label
             )
           ],
           [

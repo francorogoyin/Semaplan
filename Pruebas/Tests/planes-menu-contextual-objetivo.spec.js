@@ -193,14 +193,15 @@ async ({ page }) => {
 
   expect(Textos).toEqual([
     "Editar",
-    "Copiar",
-    "Ver subobjetivos",
-    "Registrar avance",
-    "Editar estado",
     "Pausar",
-    "Trasladar",
-    "Mover",
     "Ocultar",
+    "Copiar",
+    "Mover",
+    "Trasladar",
+    "Ver subobjetivos",
+    "Ver avances",
+    "Registrar avance",
+    "Cambiar estado",
     "Eliminar"
   ]);
   await expect(Menu.getByRole("button", { name: "Pegar objetivo" }))
@@ -213,7 +214,13 @@ async ({ page }) => {
     name: "Administrar subobjetivos"
   })).toHaveCount(0);
   await expect(Menu.locator(".Planes_Context_Menu_Separador"))
-    .toHaveCount(3);
+    .toHaveCount(4);
+
+  const Tarjeta = page.locator(".Planes_Objetivo_Card").first();
+  await expect(Tarjeta.locator(".Planes_Objetivo_Estado"))
+    .toHaveCount(0);
+  await expect(Tarjeta.locator(".Planes_Objetivo_Ritmo"))
+    .toHaveCount(1);
 
   await Menu.getByRole("button", { name: "Copiar" }).click();
   await page.locator("#Plan_Cuerpo").dispatchEvent("contextmenu", {
@@ -230,5 +237,105 @@ async ({ page }) => {
     .toHaveCount(0);
   await expect(Menu.locator(".Planes_Context_Menu_Separador"))
     .toHaveCount(0);
+
+  await page.locator(".Planes_Objetivo_Card").first()
+    .click({ button: "right" });
+  await Menu.getByRole("button", { name: "Ver avances" }).click();
+  await expect(page.locator("#Planes_Registro_Overlay"))
+    .toHaveClass(/Activo/);
+  expect(errores).toEqual([]);
+});
+
+test("mover y trasladar objetivos ofrecen destino aunque haya un solo anio",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    const Periodo = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    Modelo.UI.Periodo_Activo_Id = Periodo.Id;
+    Planes_Crear_Objetivo_Silencioso(Periodo.Id, {
+      Nombre: "Proyecto mover",
+      Target_Total: 10,
+      Unidad: "Horas"
+    });
+    Planes_Crear_Objetivo_Silencioso(Periodo.Id, {
+      Nombre: "Proyecto trasladar",
+      Target_Total: 10,
+      Unidad: "Horas"
+    });
+    Render_Plan();
+  });
+
+  await page.locator(".Planes_Objetivo_Card", {
+    hasText: "Proyecto mover"
+  }).click({ button: "right" });
+  await page.locator(".Planes_Context_Menu")
+    .getByRole("button", { name: "Mover" })
+    .click();
+  await page.locator("#Dialogo_Botones")
+    .getByRole("button", { name: "2027" })
+    .click();
+  await page.locator("#Dialogo_Botones")
+    .getByRole("button", { name: "Mover" })
+    .click();
+
+  await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.UI.Periodo_Activo_Id = Object.values(Modelo.Periodos)
+      .find((Periodo) => Periodo.Inicio === "2026-01-01")?.Id;
+    Render_Plan();
+  });
+
+  await page.locator(".Planes_Objetivo_Card", {
+    hasText: "Proyecto trasladar"
+  }).click({ button: "right" });
+  await page.locator(".Planes_Context_Menu")
+    .getByRole("button", { name: "Trasladar" })
+    .click();
+  await page.locator("#Dialogo_Botones")
+    .getByRole("button", { name: "2027" })
+    .click();
+  await page.locator("#Dialogo_Botones")
+    .getByRole("button", { name: "Borrar realizadas" })
+    .click();
+
+  const Resultado = await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Objetivos = Object.values(Modelo.Objetivos);
+    const Mover = Objetivos.find((Objetivo) =>
+      Objetivo.Nombre === "Proyecto mover"
+    );
+    const Trasladados = Objetivos.filter((Objetivo) =>
+      Objetivo.Nombre === "Proyecto trasladar"
+    );
+    const Periodo_Mover = Modelo.Periodos[Mover?.Periodo_Id || ""];
+    const Periodos_Trasladados = Trasladados.map((Objetivo) =>
+      Modelo.Periodos[Objetivo.Periodo_Id]?.Inicio
+    ).sort();
+    return {
+      moverInicio: Periodo_Mover?.Inicio || "",
+      trasladados: Periodos_Trasladados
+    };
+  });
+
+  expect(Resultado).toEqual({
+    moverInicio: "2027-01-01",
+    trasladados: ["2026-01-01", "2027-01-01"]
+  });
   expect(errores).toEqual([]);
 });
