@@ -5383,7 +5383,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Subobjetivos muestra meta limpia sin importado ni metadatos",
+test("Subobjetivos ignora progreso legacy sin avances reales",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -5434,6 +5434,7 @@ async ({ page }) => {
     Sub.Hecha = true;
     Sub.Estado = "Cumplido";
     Sub.Fecha_Fin = "2026-04-25";
+    Sub.Progreso_Manual = 156;
     Planes_Subobjetivos_Filtro_Estado = "Todos";
     Planes_Actualizar_Progreso(
       Modelo_Actual.Objetivos[Objetivo.Id]
@@ -5454,8 +5455,8 @@ async ({ page }) => {
     };
   });
 
-  expect(Resultado.Meta).toContain("100%");
-  expect(Resultado.Meta).toContain("156/156");
+  expect(Resultado.Meta).toMatch(/^0%/);
+  expect(Resultado.Meta).toContain("0/156");
   expect(Resultado.Meta).toContain("+1 libro");
   expect(Resultado.Meta).not.toContain("(");
   expect(Resultado.Badge_Importado).toBe(false);

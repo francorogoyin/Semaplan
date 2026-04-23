@@ -45285,8 +45285,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Asegurar_Progreso_Calculado(Modelo) {
-        if (!Modelo || Modelo.Progreso_Calculado_Version >= 2) return;
-        Modelo.Progreso_Calculado_Version = 2;
+        if (!Modelo || Modelo.Progreso_Calculado_Version >= 3) return;
+        Modelo.Progreso_Calculado_Version = 3;
         Object.values(Modelo.Partes || {})
           .forEach((Parte) => {
             Planes_Recalcular_Progreso_Parte(Parte, Modelo);
@@ -45964,7 +45964,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sub.Id,
           Modelo
         );
-        return Math.max(0, Avances, Number(Sub.Progreso_Manual) || 0);
+        return Math.max(0, Avances);
       }
 
       function Planes_Progreso_Subobjetivo_En_Contexto(
@@ -45984,8 +45984,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Sub.Id,
             Periodo,
             M
-          ),
-          Number(Sub.Progreso_Manual) || 0
+          )
         );
       }
 
@@ -46184,11 +46183,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Avances = Planes_Total_Avances_Subobjetivo(
           Sub.Id,
           Modelo
-        );
-        const Total = Math.max(
-          0,
-          Avances,
-          Number(Sub.Progreso_Manual) || 0
         );
         Sub.Progreso_Avances = Avances;
         const Target = Number(Sub.Target_Total) || 0;
@@ -48623,10 +48617,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Sub,
             Objetivo_Contexto
           );
-        const Progreso =
-          Planes_Estado_Normalizado_Subobjetivo(Sub) === "Cumplido"
-            ? Math.max(Progreso_Base, Target)
-            : Progreso_Base;
+        const Progreso = Progreso_Base;
         const Porcentaje = Planes_Formatear_Porcentaje_Meta(
           Progreso,
           Target
@@ -53411,9 +53402,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Base <= 0) return 0;
         const Progreso = Math.max(
           0,
-          Planes_Progreso_Total_Subobjetivo(Sub) ||
-          Number(Sub?.Progreso_Total) ||
-          Number(Sub?.Progreso_Manual) || 0
+          Planes_Progreso_Total_Subobjetivo(Sub)
         );
         const Pendiente = Math.max(0, Base - Progreso);
         const Semanas = Metas_Sugeridas_Semanas_Restantes(Fin);
@@ -53440,9 +53429,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Total <= 0) return 0;
         const Progreso = Math.max(
           0,
-          Planes_Progreso_Total_Subobjetivo(Sub) ||
-          Number(Sub?.Progreso_Total) ||
-          Number(Sub?.Progreso_Manual) || 0
+          Planes_Progreso_Total_Subobjetivo(Sub)
         );
         const Pendiente = Math.max(0, Total - Progreso);
         if (Pendiente <= 0) return 0;
@@ -55226,13 +55213,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return Planes_Progreso_Total_Parte(Item.Parte);
         }
         if (Item.Tipo === "Subobjetivo") {
-          const Avances = Planes_Total_Avances_Subobjetivo(
-            Item.Sub?.Id
-          );
-          return Math.max(
-            Avances,
-            Number(Item.Sub?.Progreso_Manual) || 0
-          );
+          return Planes_Progreso_Total_Subobjetivo(Item.Sub);
         }
         if (Item.Objetivo) {
           Planes_Actualizar_Progreso(Item.Objetivo);
