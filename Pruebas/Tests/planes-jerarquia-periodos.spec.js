@@ -390,11 +390,26 @@ async ({ page }) => {
     const Campo_Final = Final.closest(
       ".Planes_Subobjetivo_Fecha_Fin_Campo"
     );
+    const Campo_Inicio = Inicio.closest(
+      ".Planes_Subobjetivo_Fecha_Ini_Campo"
+    );
+    const Campo_Objetivo = Objetivo_Fecha.closest(
+      ".Planes_Subobjetivo_Fecha_Obj_Campo"
+    );
+    const Rect_Inicio = Campo_Inicio.getBoundingClientRect();
+    const Rect_Objetivo = Campo_Objetivo.getBoundingClientRect();
+    const Rect_Final = Campo_Final.getBoundingClientRect();
     const Realizado = {
       inicioDisabled: Inicio.disabled,
       objetivoDisabled: Objetivo_Fecha.disabled,
       finalVisible: !Campo_Final.hidden,
-      finalValor: Final.value
+      finalValor: Final.value,
+      formConFechaFinal: document
+        .getElementById("Planes_Subobjetivo_Form")
+        .classList.contains("Con_Fecha_Final"),
+      fechasMismaLinea:
+        Math.abs(Rect_Inicio.top - Rect_Objetivo.top) < 2 &&
+        Math.abs(Rect_Inicio.top - Rect_Final.top) < 2
     };
     Cerrar_Modal_Planes_Subobjetivo();
     delete M.Avances.av_sub_fecha_final;
@@ -405,7 +420,10 @@ async ({ page }) => {
       objetivoDisabled: Objetivo_Fecha.disabled,
       finalVisible: !Campo_Final.hidden,
       finalValor: Final.value,
-      fechaFinModelo: Sub.Fecha_Fin || ""
+      fechaFinModelo: Sub.Fecha_Fin || "",
+      formConFechaFinal: document
+        .getElementById("Planes_Subobjetivo_Form")
+        .classList.contains("Con_Fecha_Final")
     };
     return { Realizado, Abierto };
   });
@@ -415,16 +433,93 @@ async ({ page }) => {
       inicioDisabled: true,
       objetivoDisabled: true,
       finalVisible: true,
-      finalValor: "2026-04-15"
+      finalValor: "2026-04-15",
+      formConFechaFinal: true,
+      fechasMismaLinea: true
     },
     Abierto: {
       inicioDisabled: false,
       objetivoDisabled: false,
       finalVisible: false,
       finalValor: "",
-      fechaFinModelo: ""
+      fechaFinModelo: "",
+      formConFechaFinal: false
     }
   });
+  expect(errores).toEqual([]);
+});
+
+test("Tarjeta de objetivo resume avance con bolitas de estado",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Anio_Todos = false;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    Modelo.UI.Subperiodo_Activo = 1;
+    Modelo.UI.Vista = "Tarjetas";
+    const Periodo = Planes_Crear_Periodo_Seleccionado("Anio");
+    Modelo.UI.Periodo_Activo_Id = Periodo.Id;
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Periodo.Id, {
+      Nombre: "Independencia financiera",
+      Target_Total: 4,
+      Unidad: "Personalizado",
+      Unidad_Custom: "proyectos",
+      Progreso_Importado: 2
+    });
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Proyecto asignado"
+    );
+    Planes_Actualizar_Subobjetivo_Datos(Sub_Id, {
+      Target_Total: 2,
+      Aporte_Meta: 2,
+      Unidad: "Personalizado",
+      Unidad_Custom: "proyectos",
+      Fecha_Objetivo: "2026-06-01"
+    });
+    Planes_Actualizar_Progreso(Objetivo);
+    Render_Planes_Contenido();
+
+    const Resumen = document.querySelector(
+      `[data-plan-objetivo-id="${Objetivo.Id}"] ` +
+      ".Planes_Objetivo_Cantidad"
+    );
+    return {
+      items: Array.from(
+        Resumen.querySelectorAll(".Planes_Objetivo_Cantidad_Item")
+      ).map((Nodo) =>
+        Nodo.textContent.replace(/\s+/g, " ").trim()
+      ),
+      separadores: Resumen.querySelectorAll(
+        ".Planes_Objetivo_Cantidad_Sep"
+      ).length,
+      colores: Array.from(
+        Resumen.querySelectorAll(".Planes_Objetivo_Cantidad_Bolita")
+      ).map((Nodo) => getComputedStyle(Nodo).backgroundColor)
+    };
+  });
+
+  expect(Resultado.items).toEqual([
+    "4 proyectos",
+    "2 asignados",
+    "2 realizados",
+    "2 faltan"
+  ]);
+  expect(Resultado.separadores).toBe(3);
+  expect(Resultado.colores).toEqual([
+    "rgb(143, 138, 130)",
+    "rgb(63, 127, 194)",
+    "rgb(63, 143, 98)",
+    "rgb(186, 75, 67)"
+  ]);
   expect(errores).toEqual([]);
 });
 

@@ -5786,10 +5786,50 @@
       }
 
       .Planes_Objetivo_Cantidad {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
         color: var(--Texto_Suave);
         font-size: 12px;
         line-height: 1.35;
         margin-left: 30px;
+      }
+
+      .Planes_Objetivo_Cantidad_Item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+      }
+
+      .Planes_Objetivo_Cantidad_Sep {
+        margin: 0 6px;
+        color: rgba(43, 38, 32, 0.34);
+      }
+
+      .Planes_Objetivo_Cantidad_Bolita {
+        display: inline-block;
+        flex: 0 0 auto;
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        box-shadow: 0 0 0 1px rgba(43, 38, 32, 0.08);
+      }
+
+      .Planes_Objetivo_Cantidad_Bolita.Objetivo {
+        background: #8f8a82;
+      }
+
+      .Planes_Objetivo_Cantidad_Bolita.Asignados {
+        background: #3f7fc2;
+      }
+
+      .Planes_Objetivo_Cantidad_Bolita.Realizados {
+        background: #3f8f62;
+      }
+
+      .Planes_Objetivo_Cantidad_Bolita.Faltan {
+        background: #ba4b43;
       }
 
       .Planes_Objetivo_Cantidad.Vacia {
@@ -7437,6 +7477,22 @@
         order: 21;
       }
 
+      .Planes_Parte_Form.Con_Fecha_Final
+        .Planes_Parte_Fecha_Ini_Campo {
+        grid-column: 1 / span 4;
+      }
+
+      .Planes_Parte_Form.Con_Fecha_Final
+        .Planes_Parte_Fecha_Obj_Campo {
+        grid-column: 5 / span 4;
+      }
+
+      .Planes_Parte_Form.Con_Fecha_Final
+        .Planes_Parte_Fecha_Fin_Campo {
+        grid-column: 9 / span 4;
+        order: 20;
+      }
+
       .Planes_Subobjetivo_Aporte_Campo {
         grid-column: span 3;
       }
@@ -7451,6 +7507,21 @@
 
       .Planes_Subobjetivo_Fecha_Fin_Campo {
         grid-column: 1 / -1;
+      }
+
+      .Planes_Subobjetivo_Form.Con_Fecha_Final
+        .Planes_Subobjetivo_Fecha_Ini_Campo {
+        grid-column: 1 / span 4;
+      }
+
+      .Planes_Subobjetivo_Form.Con_Fecha_Final
+        .Planes_Subobjetivo_Fecha_Obj_Campo {
+        grid-column: 5 / span 4;
+      }
+
+      .Planes_Subobjetivo_Form.Con_Fecha_Final
+        .Planes_Subobjetivo_Fecha_Fin_Campo {
+        grid-column: 9 / span 4;
       }
 
       .Planes_Subobjetivo_Emoji_Campo {
@@ -21303,6 +21374,8 @@
           "planes.registro_subobjetivo": "Subobjetivo",
           "planes.registro_manual_previo": "Manual previo",
           "planes.meta_faltan": "{Cantidad} faltan",
+          "planes.meta_asignados": "{Cantidad} asignados",
+          "planes.meta_realizados": "{Cantidad} realizados",
           "planes.meta_planeados": "{Cantidad} planeados",
           "planes.sub_aporte": "Aporte",
           "planes.sub_aporte_en": "Aporte en {Unidad}",
@@ -25000,6 +25073,8 @@
           "planes.registro_subobjetivo": "Subobjective",
           "planes.registro_manual_previo": "Previous manual",
           "planes.meta_faltan": "{Cantidad} left",
+          "planes.meta_asignados": "{Cantidad} assigned",
+          "planes.meta_realizados": "{Cantidad} completed",
           "planes.meta_planeados": "{Cantidad} planned",
           "planes.sub_aporte": "Contribution",
           "planes.sub_aporte_en": "Contribution in {Unidad}",
@@ -28645,6 +28720,8 @@
           "planes.registro_subobjetivo": "Subobjetivo",
           "planes.registro_manual_previo": "Manual anterior",
           "planes.meta_faltan": "{Cantidad} faltam",
+          "planes.meta_asignados": "{Cantidad} atribuidos",
+          "planes.meta_realizados": "{Cantidad} realizados",
           "planes.meta_planeados": "{Cantidad} planejados",
           "planes.sub_aporte": "Aporte",
           "planes.sub_aporte_en": "Aporte em {Unidad}",
@@ -46743,6 +46820,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Campo_Fecha_Final) {
           Campo_Fecha_Final.hidden = !Realizada;
         }
+        document.getElementById("Planes_Parte_Form")
+          ?.classList.toggle("Con_Fecha_Final", Realizada);
       }
 
       function Planes_Marcar_Parte_Realizada(
@@ -48562,7 +48641,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Target <= 0
         ) {
           if (Opciones.Incluir_Faltante && Planeado_Valor > 0) {
-            return t("planes.meta_planeados", { Cantidad: Planeado });
+            return t("planes.meta_asignados", { Cantidad: Planeado });
           }
           return "";
         }
@@ -48579,9 +48658,91 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           t("planes.meta_faltan", { Cantidad: Faltante })
         ];
         if (Mostrar_Planeado && Planeado_Valor > 0) {
-          Partes.push(t("planes.meta_planeados", { Cantidad: Planeado }));
+          Partes.push(t("planes.meta_asignados", { Cantidad: Planeado }));
         }
         return Partes.join(" \u00B7 ");
+      }
+
+      function Planes_Items_Resumen_Tarjeta_Objetivo(Objetivo) {
+        const Target = Number(Objetivo.Target_Total) || 0;
+        const Periodo_Contexto =
+          Planes_Periodo_Contexto_Objetivo(Objetivo);
+        const Mostrar_Asignado =
+          !Periodo_Contexto ||
+          !Planes_Periodo_Cerrado(Periodo_Contexto);
+        const Asignado_Valor = Mostrar_Asignado
+          ? Planes_Aportes_Planeados_Objetivo(Objetivo)
+          : 0;
+        const Asignado = Planes_Formatear_Numero(Asignado_Valor);
+        if (
+          Planes_Normalizar_Modo_Avance(Objetivo) === "Sin_Metrica" ||
+          Target <= 0
+        ) {
+          return Asignado_Valor > 0
+            ? [{
+              Clase: "Asignados",
+              Texto: t("planes.meta_asignados", {
+                Cantidad: Asignado
+              })
+            }]
+            : [];
+        }
+        const Texto_Objetivo = Planes_Formatear_Meta_Objetivo(
+          Objetivo
+        );
+        const Realizado = Planes_Formatear_Numero(
+          Math.max(0, Number(Objetivo.Progreso_Total) || 0)
+        );
+        const Faltante = Planes_Formatear_Numero(
+          Planes_Target_Pendiente_Objetivo(Objetivo)
+        );
+        const Items = [
+          {
+            Clase: "Objetivo",
+            Texto: Texto_Objetivo
+          }
+        ];
+        if (Asignado_Valor > 0) {
+          Items.push({
+            Clase: "Asignados",
+            Texto: t("planes.meta_asignados", {
+              Cantidad: Asignado
+            })
+          });
+        }
+        Items.push(
+          {
+            Clase: "Realizados",
+            Texto: t("planes.meta_realizados", {
+              Cantidad: Realizado
+            })
+          },
+          {
+            Clase: "Faltan",
+            Texto: t("planes.meta_faltan", {
+              Cantidad: Faltante
+            })
+          }
+        );
+        return Items.filter((Item) => Item.Texto);
+      }
+
+      function Planes_Render_Resumen_Tarjeta_Objetivo(Objetivo) {
+        const Items = Planes_Items_Resumen_Tarjeta_Objetivo(Objetivo);
+        return Items.map((Item, Indice) => {
+          const Separador = Indice === 0
+            ? ""
+            : '<span class="Planes_Objetivo_Cantidad_Sep">' +
+              "\u00B7</span>";
+          return Separador + `
+            <span class="Planes_Objetivo_Cantidad_Item">
+              <span>${Escape_Html(Item.Texto)}</span>
+              <span class="Planes_Objetivo_Cantidad_Bolita ${
+                Escape_Html(Item.Clase)
+              }" aria-hidden="true"></span>
+            </span>
+          `;
+        }).join("");
       }
 
       function Planes_Formatear_Meta_Subobjetivo(
@@ -51589,11 +51750,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Objetivo.Progreso_Total,
           Objetivo.Target_Total
         );
-        const Meta_Objetivo_Texto =
-          Planes_Formatear_Meta_Objetivo(
-            Objetivo,
-            { Incluir_Faltante: true }
-          );
+        const Meta_Objetivo_Html =
+          Planes_Render_Resumen_Tarjeta_Objetivo(Objetivo);
         const Boton_Avance = `
           <button class="Planes_Btn Planes_Avance_Btn"
             type="button"
@@ -51645,10 +51803,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             </div>
             ${Es_Lista || Expandido ? "" : `
               <div class="Planes_Objetivo_Cantidad${
-                Meta_Objetivo_Texto ? "" : " Vacia"
-              }"${Meta_Objetivo_Texto ? "" : " aria-hidden=\"true\""}>
-                ${Meta_Objetivo_Texto
-                  ? Escape_Html(Meta_Objetivo_Texto)
+                Meta_Objetivo_Html ? "" : " Vacia"
+              }"${Meta_Objetivo_Html ? "" : " aria-hidden=\"true\""}>
+                ${Meta_Objetivo_Html
+                  ? Meta_Objetivo_Html
                   : "&nbsp;"}
               </div>
             `}
@@ -55949,6 +56107,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           if (Campo) Campo.hidden = !Sub_Realizado;
         }
+        document.getElementById("Planes_Subobjetivo_Form")
+          ?.classList.toggle("Con_Fecha_Final", Sub_Realizado);
         Planes_Subobjetivo_Metadatos_Borrador = {};
         Planes_Definiciones_Metadatos_Objetivo(Objetivo)
           .forEach((Campo) => {

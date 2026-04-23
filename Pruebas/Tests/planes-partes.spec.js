@@ -316,11 +316,26 @@ async ({ page }) => {
     const Campo_Final = Final.closest(
       ".Planes_Parte_Fecha_Fin_Campo"
     );
+    const Campo_Inicio = Inicio.closest(
+      ".Planes_Parte_Fecha_Ini_Campo"
+    );
+    const Campo_Objetivo = Objetivo_Fecha.closest(
+      ".Planes_Parte_Fecha_Obj_Campo"
+    );
+    const Rect_Inicio = Campo_Inicio.getBoundingClientRect();
+    const Rect_Objetivo = Campo_Objetivo.getBoundingClientRect();
+    const Rect_Final = Campo_Final.getBoundingClientRect();
     const Realizada = {
       inicioDisabled: Inicio.disabled,
       objetivoDisabled: Objetivo_Fecha.disabled,
       finalVisible: !Campo_Final.hidden,
-      finalValor: Final.value
+      finalValor: Final.value,
+      formConFechaFinal: document
+        .getElementById("Planes_Parte_Form")
+        .classList.contains("Con_Fecha_Final"),
+      fechasMismaLinea:
+        Math.abs(Rect_Inicio.top - Rect_Objetivo.top) < 2 &&
+        Math.abs(Rect_Inicio.top - Rect_Final.top) < 2
     };
     Cerrar_Modal_Planes_Parte();
     delete M.Avances.av_parte_fecha_final;
@@ -331,7 +346,10 @@ async ({ page }) => {
       objetivoDisabled: Objetivo_Fecha.disabled,
       finalVisible: !Campo_Final.hidden,
       finalValor: Final.value,
-      fechaFinModelo: Parte.Fecha_Fin || ""
+      fechaFinModelo: Parte.Fecha_Fin || "",
+      formConFechaFinal: document
+        .getElementById("Planes_Parte_Form")
+        .classList.contains("Con_Fecha_Final")
     };
     return { Realizada, Abierta };
   });
@@ -341,14 +359,17 @@ async ({ page }) => {
       inicioDisabled: true,
       objetivoDisabled: true,
       finalVisible: true,
-      finalValor: "2026-04-20"
+      finalValor: "2026-04-20",
+      formConFechaFinal: true,
+      fechasMismaLinea: true
     },
     Abierta: {
       inicioDisabled: false,
       objetivoDisabled: false,
       finalVisible: false,
       finalValor: "",
-      fechaFinModelo: ""
+      fechaFinModelo: "",
+      formConFechaFinal: false
     }
   });
   expect(errores).toEqual([]);
