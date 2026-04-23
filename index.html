@@ -49122,14 +49122,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Planes_Aportes_Planeados_Objetivo(Objetivo) {
+        const Modelo = Asegurar_Modelo_Planes();
         const Periodo = Planes_Periodo_Contexto_Objetivo(Objetivo);
+        const Objetivo_Canonico = Modelo.Objetivos[
+          Objetivo?.__Objetivo_Canonico_Id || Objetivo?.Id
+        ] || Objetivo;
+        const Periodo_Propio_Id =
+          (Objetivo_Canonico?.Periodo_Id || "").toString();
+        const Incluir_Sin_Fecha =
+          !Periodo || Periodo.Id === Periodo_Propio_Id;
         return Planes_Subobjetivos_Contexto_Objetivo(Objetivo)
           .Items
           .reduce((Total, Sub) => {
-            if (
-              Periodo &&
-              !Planes_Subobjetivo_Planeado_En_Periodo(Sub, Periodo)
-            ) {
+            const Fecha = Planes_Fecha_Planeado_Item(Sub);
+            if (Periodo && !Fecha && !Incluir_Sin_Fecha) {
+              return Total;
+            }
+            if (Periodo && Fecha &&
+                !Planes_Periodo_Contiene_Fecha(Periodo, Fecha)) {
               return Total;
             }
             return Total + Math.max(

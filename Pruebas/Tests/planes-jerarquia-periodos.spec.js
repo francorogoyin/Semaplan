@@ -5838,6 +5838,66 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Asignados incluye aportes sin fecha en objetivo anual",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Trimestres =
+      Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Libros",
+      Emoji: "\uD83D\uDCDA",
+      Target_Total: 40,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros"
+    });
+    const Con_Fecha = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Con fecha"
+    );
+    const Sin_Fecha = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Sin fecha"
+    );
+    const Modelo_Final = Asegurar_Modelo_Planes();
+    Modelo_Final.Subobjetivos[Con_Fecha].Aporte_Meta = 21;
+    Modelo_Final.Subobjetivos[Con_Fecha].Fecha_Objetivo = "2026-06-30";
+    Modelo_Final.Subobjetivos[Sin_Fecha].Aporte_Meta = 10;
+    Modelo_Final.Subobjetivos[Sin_Fecha].Fecha_Objetivo = "";
+    Modelo_Final.Subobjetivos[Sin_Fecha].Fecha_Fin = "";
+    Planes_Actualizar_Progreso(Objetivo);
+    const Objetivo_Q2 =
+      Planes_Objetivo_Para_Periodo(Objetivo, Trimestres[1]);
+
+    return {
+      asignados: Planes_Aportes_Planeados_Objetivo(Objetivo),
+      asignadosQ2: Planes_Aportes_Planeados_Objetivo(Objetivo_Q2),
+      resumen: Planes_Items_Resumen_Tarjeta_Objetivo(Objetivo)
+        .map((Item) => Item.Texto)
+    };
+  });
+
+  expect(Resultado.asignados).toBe(31);
+  expect(Resultado.asignadosQ2).toBe(21);
+  expect(Resultado.resumen.join(" ")).toContain("31 asignados");
+  expect(errores).toEqual([]);
+});
+
 test("Objetivo padre se ve en hijos sin Mostrar ni ocultamiento",
 async ({ page }) => {
   const errores = [];
