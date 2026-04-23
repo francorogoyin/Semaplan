@@ -41,6 +41,9 @@ Numero_Paginas_Total.
 Si la suma no coincide, frenar y reportar la diferencia al
 usuario antes de cargar.
 
+Si Numero_Paginas_Total viene vacio o null, usar la suma de las
+partes como total operativo e informar esa decision al usuario.
+
 Revisar titulos corruptos por encoding antes de crear partes.
 Un caso tipico es encontrar signos de pregunta donde deberia
 haber acentos.
@@ -68,17 +71,34 @@ quede explicado por las partes.
 
 Actualizacion de metadatos.
 
-Actualizar la familia del subobjetivo con los datos del JSON.
+Antes de aplicar los datos nuevos, borrar los metadatos previos
+del subobjetivo.
+
+Actualizar la familia del subobjetivo solo con los datos del JSON.
+Los valores previos de Semaplan no se conservan si el JSON trae
+otro valor o si el JSON trae el campo vacio.
 
 - Target_Total igual a Numero_Paginas_Total.
 - Unidad igual a Personalizado.
 - Unidad_Custom igual a Paginas.
-- Fecha_Inicio igual a Fecha_Inicio, si existe.
-- Fecha_Fin igual a Fecha_Fin, si existe.
+- Fecha_Inicio igual a Fecha_Inicio del JSON.
+- Fecha_Fin igual a Fecha_Fin del JSON.
 - Metadato Autor igual a Autor.
 - Metadato Anio igual a Anio.
 
-Si Fecha_Inicio viene vacia o null, no inventar una fecha.
+Si Fecha_Inicio viene vacia o null, borrar la fecha de inicio
+preexistente en Semaplan.
+
+Si Fecha_Fin viene vacia o null, borrar la fecha de fin
+preexistente en Semaplan.
+
+Si Numero_Paginas_Total viene con un numero distinto al que ya
+figura en Semaplan, usar el numero del JSON. Por ejemplo, si en
+el JSON dice 20 y en Semaplan dice 21, editar Semaplan para que
+quede 20.
+
+Si Numero_Paginas_Total viene vacio o null, usar la suma calculada
+de las partes y dejar ese numero como Target_Total.
 
 Creacion de partes.
 
