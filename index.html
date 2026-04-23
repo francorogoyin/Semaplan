@@ -46474,6 +46474,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
       }
 
+      function Planes_Total_Aporte_Partes_Subobjetivo(
+        Sub_Id,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        return Planes_Partes_De_Subobjetivo(Sub_Id, M)
+          .reduce((Total, Parte) => {
+            return Total + (Number(Parte.Aporte_Total) || 0);
+          }, 0);
+      }
+
+      function Planes_Sincronizar_Target_Subobjetivo_Desde_Partes(
+        Sub_Id,
+        Total_Partes_Antes,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Sub = M.Subobjetivos?.[Sub_Id];
+        const Total_Anterior = Number(Total_Partes_Antes);
+        if (!Sub || !Number.isFinite(Total_Anterior)) return false;
+        const Target_Actual = Number(Sub.Target_Total) || 0;
+        if (Math.abs(Target_Actual - Total_Anterior) > 0.0001) {
+          return false;
+        }
+        const Total_Nuevo = Planes_Total_Aporte_Partes_Subobjetivo(
+          Sub.Id,
+          M
+        );
+        if (Math.abs(Target_Actual - Total_Nuevo) <= 0.0001) {
+          return false;
+        }
+        Sub.Target_Total = Total_Nuevo;
+        Sub.Actualizado_En = new Date().toISOString();
+        Planes_Propagar_Estructura_Familia_Subobjetivo(Sub.Id);
+        Planes_Sincronizar_Estado_Familia_Subobjetivo(Sub.Id, M);
+        return true;
+      }
+
       function Planes_Subobjetivos_Familia_Con_Hijos_Ids(
         Sub_Id,
         Modelo = null
@@ -60288,6 +60326,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Sub_Dueno = Modelo.Subobjetivos[Sub_Dueno.Id] || Sub_Dueno;
         }
+        const Total_Partes_Sub_Antes =
+          Planes_Total_Aporte_Partes_Subobjetivo(
+            Sub_Dueno.Id,
+            Modelo
+          );
         const Nombre = (
           document.getElementById("Planes_Parte_Nombre")?.value || ""
         ).trim();
@@ -60437,6 +60480,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Solo_Modelo: true
           }
         );
+        Planes_Sincronizar_Target_Subobjetivo_Desde_Partes(
+          Sub_Dueno.Id,
+          Total_Partes_Sub_Antes,
+          Modelo
+        );
         const Comparables_Despues =
           Planes_Datos_Comparables_Parte(Parte);
         if (
@@ -60486,6 +60534,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Parte = Modelo.Partes?.[Parte_Id];
         if (!Parte) return;
+        const Total_Partes_Sub_Antes =
+          Planes_Total_Aporte_Partes_Subobjetivo(
+            Parte.Subobjetivo_Id,
+            Modelo
+          );
         const Tiene_Avances =
           Planes_Avances_De_Parte(Parte.Id, Modelo).length > 0;
         const Tiene_Vinculos =
@@ -60507,6 +60560,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           delete Modelo.Partes[Parte.Id];
         }
+        Planes_Sincronizar_Target_Subobjetivo_Desde_Partes(
+          Parte.Subobjetivo_Id,
+          Total_Partes_Sub_Antes,
+          Modelo
+        );
         const Sub = Modelo.Subobjetivos[Parte.Subobjetivo_Id];
         if (Sub) Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
         const Objetivo = Modelo.Objetivos[Parte.Objetivo_Id];

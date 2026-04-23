@@ -252,6 +252,130 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Partes sincronizan target cuando ya venia de partes",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(async () => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
+      Id: "p2026",
+      Tipo: "Anio",
+      Inicio: "2026-01-01",
+      Fin: "2026-12-31",
+      Orden: 0
+    });
+    Modelo.Objetivos.obj_features = Normalizar_Objetivo_Plan({
+      Id: "obj_features",
+      Periodo_Id: "p2026",
+      Emoji: "\uD83D\uDCCC",
+      Nombre: "Producto",
+      Target_Total: 10,
+      Unidad: "Personalizado",
+      Unidad_Custom: "features",
+      Unidad_Subobjetivos_Default: "Personalizado",
+      Unidad_Subobjetivos_Custom_Default: "features",
+      Orden: 0
+    });
+    Modelo.Subobjetivos.sub_features = Normalizar_Subobjetivo_Plan({
+      Id: "sub_features",
+      Objetivo_Id: "obj_features",
+      Emoji: "\uD83D\uDCCC",
+      Texto: "Semaplan",
+      Target_Total: 3,
+      Unidad: "Personalizado",
+      Unidad_Custom: "features",
+      Orden: 0
+    });
+    Modelo.Partes.parte_feature_1 = Normalizar_Parte_Meta({
+      Id: "parte_feature_1",
+      Objetivo_Id: "obj_features",
+      Subobjetivo_Id: "sub_features",
+      Emoji: "\uD83D\uDCCC",
+      Nombre: "Feature uno",
+      Aporte_Total: 1,
+      Unidad: "Personalizado",
+      Unidad_Custom: "features",
+      Orden: 0
+    });
+    Modelo.Partes.parte_feature_2 = Normalizar_Parte_Meta({
+      Id: "parte_feature_2",
+      Objetivo_Id: "obj_features",
+      Subobjetivo_Id: "sub_features",
+      Emoji: "\uD83D\uDCCC",
+      Nombre: "Feature dos",
+      Aporte_Total: 2,
+      Unidad: "Personalizado",
+      Unidad_Custom: "features",
+      Orden: 1
+    });
+
+    Abrir_Modal_Planes_Partes("sub_features");
+    Abrir_Modal_Planes_Parte("parte_feature_2");
+    document.getElementById("Planes_Parte_Aporte_Total").value = "4";
+    await Guardar_Modal_Planes_Parte();
+    const Tras_Editar_Alineado =
+      Modelo.Subobjetivos.sub_features.Target_Total;
+
+    Modelo.Subobjetivos.sub_features.Target_Total = 10;
+    const Total_Antes_Manual =
+      Planes_Total_Aporte_Partes_Subobjetivo(
+        "sub_features",
+        Modelo
+      );
+    Modelo.Partes.parte_feature_1.Aporte_Total = 2;
+    Planes_Sincronizar_Target_Subobjetivo_Desde_Partes(
+      "sub_features",
+      Total_Antes_Manual,
+      Modelo
+    );
+    const Tras_Editar_Manual =
+      Modelo.Subobjetivos.sub_features.Target_Total;
+
+    Modelo.Subobjetivos.sub_features.Target_Total =
+      Planes_Total_Aporte_Partes_Subobjetivo(
+        "sub_features",
+        Modelo
+      );
+    const Total_Antes_Eliminar =
+      Planes_Total_Aporte_Partes_Subobjetivo(
+        "sub_features",
+        Modelo
+      );
+    delete Modelo.Partes.parte_feature_1;
+    Planes_Sincronizar_Target_Subobjetivo_Desde_Partes(
+      "sub_features",
+      Total_Antes_Eliminar,
+      Modelo
+    );
+
+    return {
+      Tras_Editar_Alineado,
+      Tras_Editar_Manual,
+      Tras_Eliminar_Alineado:
+        Modelo.Subobjetivos.sub_features.Target_Total,
+      Partes: Planes_Partes_De_Subobjetivo(
+        "sub_features",
+        Modelo
+      ).map((Parte) => ({
+        nombre: Parte.Nombre,
+        aporte: Parte.Aporte_Total
+      }))
+    };
+  });
+
+  expect(Resultado.Tras_Editar_Alineado).toBe(5);
+  expect(Resultado.Tras_Editar_Manual).toBe(10);
+  expect(Resultado.Tras_Eliminar_Alineado).toBe(4);
+  expect(Resultado.Partes).toEqual([
+    { nombre: "Feature dos", aporte: 4 }
+  ]);
+  expect(errores).toEqual([]);
+});
+
 test("Parte realizada muestra fecha final calculada y bloquea fechas",
 async ({ page }) => {
   const errores = [];
