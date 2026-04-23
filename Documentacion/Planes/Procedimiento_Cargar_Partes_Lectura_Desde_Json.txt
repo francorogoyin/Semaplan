@@ -113,20 +113,27 @@ Cada parte debe usar estos datos.
 - Unidad_Custom igual a Paginas.
 - Emoji seguro, por ejemplo un libro abierto.
 
-Por defecto, las partes se crean pendientes.
+Si Fecha_Fin del JSON viene vacia o null, las partes se crean
+pendientes por defecto.
+
+Si Fecha_Fin del JSON trae una fecha, las partes se crean y se
+marcan todas como realizadas con esa fecha.
 
 Marcado como realizadas.
 
 Crear partes y marcarlas realizadas son operaciones separadas.
-Solo marcar las partes como realizadas si el usuario lo pide
-explicitamente.
+Marcar las partes como realizadas si se cumple alguna de estas
+condiciones.
 
-Si el usuario no pide marcarlas realizadas, no crear avances de
-parte, no modificar el progreso como si estuvieran leidas y no
-cambiar el estado del subobjetivo por esta razon.
+- El usuario lo pide explicitamente.
+- Fecha_Fin del JSON trae una fecha.
 
-Si el usuario pide marcarlas realizadas, entonces aplicar estos
-cambios.
+Si el usuario no pide marcarlas realizadas y Fecha_Fin del JSON
+viene vacia o null, no crear avances de parte, no modificar el
+progreso como si estuvieran leidas y no cambiar el estado del
+subobjetivo por esta razon.
+
+Si corresponde marcarlas realizadas, aplicar estos cambios.
 
 - Estado de cada parte igual a Realizada.
 - Hecha del subobjetivo igual a true.
@@ -136,8 +143,8 @@ cambios.
 
 Registros de avance.
 
-Los registros de avance solo se crean cuando el usuario pide
-marcar las partes como realizadas.
+Los registros de avance solo se crean cuando corresponde marcar
+las partes como realizadas.
 
 Por cada parte realizada, crear un avance asociado con estos
 datos.
@@ -153,8 +160,8 @@ datos.
 - Automatico igual a true.
 
 Si el usuario pide otra fecha para los registros, usar esa fecha.
-Si no pide fecha y las partes se marcan realizadas, usar Fecha_Fin
-del JSON.
+Si no pide otra fecha y Fecha_Fin del JSON trae una fecha, usar
+Fecha_Fin del JSON.
 
 Guardado y sincronizacion.
 
