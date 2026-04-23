@@ -48614,15 +48614,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Number(Conf.Valores?.[Periodo.Id]) || 0
           );
         }, 0);
-        const Tiene_Ajuste_Manual =
-          Tiene_Fijados_Explicitos || Tiene_Anulados_Explicitos;
         const Disponibles = Periodos_Activos.filter((Periodo) =>
-          Fijados[Periodo.Id] !== true &&
-          (
-            Conf.Modo !== "Deuda" ||
-            !Tiene_Ajuste_Manual ||
-            !Planes_Periodo_Cerrado(Periodo)
-          )
+          Fijados[Periodo.Id] !== true
         );
         const Restante = Math.max(0, Target - Fijo_Total);
         Periodos.forEach((Periodo) => {
@@ -48633,44 +48626,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Periodo.Id,
               Math.max(0, Number(Conf.Valores?.[Periodo.Id]) || 0)
             );
-          } else if (
-            Conf.Modo === "Deuda" &&
-            Tiene_Ajuste_Manual &&
-            Planes_Periodo_Cerrado(Periodo)
-          ) {
-            Resultado.set(Periodo.Id, 0);
           }
         });
         if (!Disponibles.length) return Resultado;
-        const Base = Restante / Disponibles.length;
         if (Conf.Modo === "Deuda") {
-          const Infos = Disponibles.map((Periodo) => {
-            const Cerrado = Planes_Periodo_Cerrado(Periodo);
+          const Base_Equitativa = Target / Periodos.length;
+          const Cerrados = Disponibles.filter(Planes_Periodo_Cerrado);
+          Cerrados.forEach((Periodo) => {
+            Resultado.set(Periodo.Id, Base_Equitativa);
+          });
+          const Ajuste_Cerrados = Cerrados.reduce((Total, Periodo) => {
             const Avance = Planes_Avance_Real_Objetivo_En_Periodo(
               Objetivo,
               Periodo
             );
-            return {
-              Periodo,
-              Cerrado,
-              Deuda: Cerrado ? Math.max(0, Base - Avance) : 0
-            };
-          });
-          const Deuda_Total = Infos.reduce((Total, Info) =>
-            Total + Info.Deuda, 0
+            return Total + (Base_Equitativa - Avance);
+          }, 0);
+          const Abiertos = Disponibles.filter((Periodo) =>
+            !Planes_Periodo_Cerrado(Periodo)
           );
-          const Abiertos = Infos.filter((Info) => !Info.Cerrado);
-          const Extra = Abiertos.length
-            ? Deuda_Total / Abiertos.length
+          const Cerrado_Total = Cerrados.reduce(
+            (Total, Periodo) => Total + (Resultado.get(Periodo.Id) || 0),
+            0
+          );
+          const Saldo_Ajustado = Math.max(
+            0,
+            Restante - Cerrado_Total + Ajuste_Cerrados
+          );
+          const Cuota = Abiertos.length
+            ? Saldo_Ajustado / Abiertos.length
             : 0;
-          Infos.forEach((Info) => {
-            Resultado.set(
-              Info.Periodo.Id,
-              Info.Cerrado ? Base : Base + Extra
-            );
+          Abiertos.forEach((Periodo) => {
+            Resultado.set(Periodo.Id, Cuota);
           });
           return Resultado;
         }
+        const Base = Restante / Disponibles.length;
         Disponibles.forEach((Periodo) => Resultado.set(Periodo.Id, Base));
         return Resultado;
       }
@@ -59403,7 +59394,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Suma = Periodos.reduce((Total, Periodo) =>
               Total + (Number(Targets.get(Periodo.Id)) || 0), 0
             );
-            if (Math.abs(Suma - Target_Total) >= 0.0001) {
+            if (
+              Modo_Activo !== "Deuda" &&
+              Math.abs(Suma - Target_Total) >= 0.0001
+            ) {
               Mostrar_Toast_Error(
                 t("planes.redistribucion_manual_suma_error")
               );

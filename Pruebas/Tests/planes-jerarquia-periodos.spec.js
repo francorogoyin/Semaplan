@@ -945,11 +945,95 @@ async ({ page }) => {
     }
   });
 
-  expect(Resultado.Display).toEqual(["0", "80", "20", "20"]);
-  expect(Resultado.T1).toBe(0);
+  expect(Resultado.Display).toEqual(["30", "80", "20", "20"]);
+  expect(Resultado.T1).toBe(30);
   expect(Resultado.T2).toBe(80);
   expect(Resultado.T3).toBe(20);
   expect(Resultado.T4).toBe(20);
+  expect(errores).toEqual([]);
+});
+
+test("Redistribucion de deuda contempla excedente en cerrado",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    const Date_Real = window.Date;
+    class Date_Fija extends Date_Real {
+      constructor(...Args) {
+        if (Args.length) {
+          super(...Args);
+          return;
+        }
+        super("2026-04-23T12:00:00");
+      }
+      static now() {
+        return new Date_Real("2026-04-23T12:00:00").getTime();
+      }
+    }
+    Date_Fija.UTC = Date_Real.UTC;
+    Date_Fija.parse = Date_Real.parse;
+    window.Date = Date_Fija;
+    try {
+      Abrir_Plan();
+      const Modelo = Asegurar_Jerarquia_Planes();
+      Modelo.UI.Anio_Desde = 2026;
+      Modelo.UI.Anio_Hasta = 2026;
+      Modelo.UI.Anio_Activo = 2026;
+      const Anio = Planes_Crear_Periodo(
+        Modelo,
+        "Anio",
+        "2026-01-01",
+        "2026-12-31",
+        null,
+        2026
+      );
+      const Trimestres =
+        Planes_Crear_Periodos_Distribucion(Anio, "Trimestre");
+      const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+        Nombre: "Independencia financiera",
+        Emoji: "\uD83D\uDCB0",
+        Target_Total: 120,
+        Unidad: "Personalizado",
+        Unidad_Custom: "proyectos",
+        Redistribucion_Target: {
+          Tipo: "Trimestre",
+          Modo: "Deuda",
+          Valores: {},
+          Fijados: {},
+          Anulados: {}
+        }
+      });
+      const Avance_Id = Crear_Id_Avance_Plan();
+      Modelo.Avances[Avance_Id] = Normalizar_Avance_Plan({
+        Id: Avance_Id,
+        Objetivo_Id: Objetivo.Id,
+        Fuente: "Manual",
+        Cantidad: 50,
+        Unidad: "proyectos",
+        Fecha: "2026-02-01",
+        Hora: "10:00"
+      });
+      Planes_Actualizar_Progreso(Objetivo);
+      const Targets =
+        Planes_Targets_Redistribucion_Contextual(Objetivo);
+      return {
+        T1: Targets.get(Trimestres[0].Id),
+        T2: Targets.get(Trimestres[1].Id),
+        T3: Targets.get(Trimestres[2].Id),
+        T4: Targets.get(Trimestres[3].Id)
+      };
+    } finally {
+      window.Date = Date_Real;
+    }
+  });
+
+  expect(Resultado.T1).toBe(30);
+  expect(Resultado.T2).toBeCloseTo(23.333333, 5);
+  expect(Resultado.T3).toBeCloseTo(23.333333, 5);
+  expect(Resultado.T4).toBeCloseTo(23.333333, 5);
   expect(errores).toEqual([]);
 });
 
@@ -1051,8 +1135,8 @@ async ({ page }) => {
     }
   });
 
-  expect(Resultado.Display).toEqual(["0", "0", "60", "60"]);
-  expect(Resultado.T1).toBe(0);
+  expect(Resultado.Display).toEqual(["30", "0", "60", "60"]);
+  expect(Resultado.T1).toBe(30);
   expect(Resultado.T2).toBe(0);
   expect(Resultado.T3).toBe(60);
   expect(Resultado.T4).toBe(60);
