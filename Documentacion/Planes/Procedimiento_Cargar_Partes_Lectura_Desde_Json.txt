@@ -53,6 +53,9 @@ Pasos minimos del modo directo por Supabase.
   actual como condicion, e incrementar version en uno.
 - Si PATCH no actualiza exactamente una fila, frenar por conflicto
   y releer el estado remoto antes de intentar de nuevo.
+- No dejar datos duplicados, paralelos, tombstones o claves viejas.
+  Si un trigger remoto preserva claves anidadas, usar SQL
+  transaccional solo para reemplazar esos objetos de forma exacta.
 - No imprimir ni guardar blobs completos del estado; reportar solo
   resumen operativo, cantidades y diferencias verificadas.
 
@@ -87,6 +90,13 @@ acentos, mojibake o caracteres de reemplazo, corregir el archivo
 JSON local y volver a validar la suma de paginas antes de operar
 en Semaplan.
 
+La revision local debe escanear todo el archivo JSON, no solo los
+titulos. Esto incluye Titulo, Autor, Genero, Anio, nombres de
+partes, notas, unidades, metadatos y cualquier string anidado.
+No alcanza con mirar el output de PowerShell, porque puede falsear
+acentos. Validar caracteres reales y frenar si aparece ?, caracter
+de reemplazo o mojibake.
+
 Ubicacion del subobjetivo.
 
 Buscar en Planes el subobjetivo cuyo texto coincida con Titulo.
@@ -119,12 +129,12 @@ otro valor o si el JSON trae el campo vacio.
 
 - Target_Total igual a Numero_Paginas_Total.
 - Unidad igual a Personalizado.
-- Unidad_Custom igual a Paginas.
+- Unidad_Custom igual a Páginas.
 - Fecha_Inicio igual a Fecha_Inicio del JSON.
 - Fecha_Fin igual a Fecha_Fin del JSON.
 - Metadato Autor igual a Autor.
-- Metadato Anio igual a Anio.
-- Metadato Genero igual a Genero.
+- Metadato Año igual a Anio.
+- Metadato Género igual a Genero.
 
 Si Fecha_Inicio viene vacia o null, borrar la fecha de inicio
 preexistente en Semaplan.
@@ -150,7 +160,7 @@ Cada parte debe usar estos datos.
 - Orden igual al orden del JSON.
 - Aporte_Total igual a Numero_Paginas.
 - Unidad igual a Personalizado.
-- Unidad_Custom igual a Paginas.
+- Unidad_Custom igual a Páginas.
 - Emoji tematico y pertinente para esa parte.
 
 No usar siempre el mismo emoji para todas las partes. Elegir
@@ -198,7 +208,7 @@ datos.
 - Origen_Id igual al Id de la parte.
 - Parte_Id igual al Id de la parte.
 - Cantidad igual a Numero_Paginas.
-- Unidad igual a Paginas.
+- Unidad igual a Páginas.
 - Fecha igual a Fecha_Fin.
 - Fecha_Hora igual a Fecha_FinT00:00.
 - Automatico igual a true.
@@ -228,7 +238,12 @@ Verificar estos puntos.
 - Cantidad de partes esperada.
 - Suma de paginas igual a Numero_Paginas_Total.
 - Sin titulos corruptos.
-- Metadatos cargados.
+- Sin unidades corruptas. Verificar que Subobjetivos, Partes y
+  Avances usen Páginas y no P?ginas.
+- Metadatos cargados con claves exactas Autor, Año y Género.
+- Sin metadatos duplicados o corruptos, como A?o, G?nero o valores
+  tipo Pol?tica. Verificar el estado remoto crudo, no solo la vista
+  ya normalizada por la app.
 - Fecha_Inicio y Fecha_Fin correctas.
 - Sync en Guardado.
 
