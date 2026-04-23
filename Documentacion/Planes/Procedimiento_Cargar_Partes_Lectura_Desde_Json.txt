@@ -6,6 +6,10 @@ Leer los JSON ya armados desde esta carpeta.
 
 C:\Users\Patricio\Documents\Codigo\Semaplan\Documentacion\Planes\Lecturas_Json
 
+Si el JSON de un libro no existe, crearlo antes de operar en
+Semaplan a partir del PDF del libro, siguiendo la seccion
+Creacion de JSON desde PDF de este procedimiento.
+
 Cada archivo representa un libro y debe traer, como minimo,
 estos campos.
 
@@ -21,6 +25,57 @@ estos campos.
 El campo Genero debe usar el nombre de la carpeta de primer nivel
 mas pertinente dentro de Readlist. Si el archivo exacto no aparece,
 inferirlo por autor, tipo de obra y tema dominante.
+
+Creacion de JSON desde PDF.
+
+Usar esta seccion solo si no existe un JSON local para el libro.
+
+Buscar el PDF en esta carpeta y sus subcarpetas.
+
+C:\Users\Patricio\Documents\Biblioteca\Libros\
+
+Si el libro figura con otro titulo editorial, usar el PDF correcto
+pero mantener como Titulo del JSON el nombre del subobjetivo destino
+en Semaplan, salvo que el usuario indique renombrarlo.
+
+Leer el PDF y detectar las partes principales de lectura.
+
+- Incluir cuentos, capitulos o secciones principales.
+- Incluir introduccion, prologo, agradecimientos, prefacio, nota
+  editorial, nota al texto, advertencia, estudio preliminar u otro
+  material inicial o editorial cuando forme parte de la lectura.
+- Incluir anexos y apendices cuando tengan contenido sustantivo de
+  lectura, interpretacion, documentacion o desarrollo del libro.
+- Excluir bibliografia, sobre el autor, notas finales, notas al pie
+  separadas como seccion autonoma, laminas, graficos, cronologia,
+  indices, anexos tecnicos instrumentales, catalogos, tablas no
+  narrativas y material claramente no lectivo.
+- No crear partes para portada, portadilla, pagina legal, paginas de
+  cortesia ni paginas en blanco iniciales. Esas paginas se adosan a
+  la primera seccion lectiva y se suman a su rango.
+- Calcular paginas por rango, desde la pagina inicial de cada parte
+  hasta la pagina anterior a la siguiente parte principal.
+- Si el PDF esta escaneado de a dos paginas o usa una paginacion
+  impresa distinta de la pagina fisica del PDF, usar el criterio que
+  coincida con el total de paginas del libro o del subobjetivo
+  existente, y dejarlo reflejado en los rangos del JSON.
+
+Antes de crear el JSON, armar una tabla fuente con estos datos.
+
+- Nombre exacto normalizado.
+- Pagina inicial.
+- Pagina final.
+- Numero de paginas.
+- Emoji propuesto.
+
+Guardar el JSON definitivo en Lecturas_Json como UTF-8 real y con
+nombre Pascal_Snake_Case. No pasar acentos, enes, dieresis, comillas
+o emojis por argumentos de consola si existe una alternativa con
+archivo UTF-8.
+
+El JSON creado desde PDF debe traer los mismos campos minimos que
+los demas JSON. Puede incluir Emoji dentro de cada parte si ya fue
+elegido durante la lectura del PDF.
 
 Preparacion.
 
@@ -97,9 +152,18 @@ No alcanza con mirar el output de PowerShell, porque puede falsear
 acentos. Validar caracteres reales y frenar si aparece ?, caracter
 de reemplazo o mojibake.
 
+No confundir signos de pregunta legitimos de una frase interrogativa
+con signos de pregunta que reemplazan acentos o letras. Un titulo
+como ¿Quién eres? puede ser valido; un valor como Pol?tica no lo es.
+
 Ubicacion del subobjetivo.
 
 Buscar en Planes el subobjetivo cuyo texto coincida con Titulo.
+
+Si no existe un subobjetivo para el libro, crearlo dentro del
+objetivo anual Libros antes de crear partes. Usar como texto el
+Titulo del JSON, respetar la unidad y los metadatos definidos por el
+JSON, y registrar en la notificacion que el subobjetivo fue creado.
 
 Identificar su raiz canonica con Planes_Subobjetivo_Raiz_Id.
 Identificar todas sus proyecciones con
@@ -109,10 +173,34 @@ Puede haber una instancia anual, una trimestral y una mensual
 del mismo libro. La carga de partes debe hacerse sobre la raiz
 canonica, no duplicarse en cada proyeccion.
 
-Limpieza previa.
+Carga diferencial e idempotente.
 
-Antes de crear partes nuevas, borrar las partes existentes
-asociadas a esa familia y sus avances relacionados.
+Antes de modificar Semaplan, comparar el JSON con el estado remoto
+crudo.
+
+Si el subobjetivo ya tiene metadatos, Suma, partes, paginas,
+estados y avances correctos, no reemplazar nada. Notificar al
+usuario que ese libro ya estaba bien.
+
+Si el subobjetivo esta a medio cargar, corregir solo lo que falta o
+esta mal.
+
+- Conservar partes correctas.
+- Crear partes faltantes.
+- Actualizar partes con titulo, paginas, unidad, emoji, orden o
+  estado incorrecto.
+- Borrar partes duplicadas, sobrantes, viejas o asociadas a otra
+  estructura que ya no corresponda.
+- Conservar avances correctos.
+- Crear avances faltantes cuando corresponda marcar realizado.
+- Actualizar avances con cantidad, unidad, fecha u origen incorrecto.
+- Borrar avances duplicados, viejos o colgados de partes eliminadas.
+- Si los metadatos ya son exactos, no tocarlos.
+- Si los metadatos son incorrectos o estan incompletos, reemplazarlos
+  por los del JSON sin dejar claves viejas.
+
+No dejar datos duplicados, paralelos, tombstones, partes viejas ni
+claves antiguas.
 
 Si la lectura tenia Progreso_Manual legacy y se van a crear
 avances reales, limpiar ese progreso manual para que el avance
@@ -120,8 +208,10 @@ quede explicado por las partes.
 
 Actualizacion de metadatos.
 
-Antes de aplicar los datos nuevos, borrar los metadatos previos
-del subobjetivo.
+Si los datos ya coinciden exactamente con el JSON, conservarlos.
+
+Si hay diferencias, antes de aplicar los datos nuevos borrar los
+metadatos previos del subobjetivo.
 
 Actualizar la familia del subobjetivo solo con los datos del JSON.
 Los valores previos de Semaplan no se conservan si el JSON trae
@@ -154,7 +244,7 @@ de las partes y dejar ese numero como Target_Total.
 
 Creacion de partes.
 
-Crear todas las partes sobre la raiz canonica.
+Crear o corregir las partes sobre la raiz canonica.
 
 Cada parte debe usar estos datos.
 
@@ -262,9 +352,16 @@ Notificacion al usuario.
 
 Al terminar, informar por libro estos datos.
 
-- Partes previas borradas.
-- Avances previos borrados.
+- Si ya estaba correcto, sin cambios aplicados.
+- Si el subobjetivo fue creado.
+- Partes conservadas.
 - Partes creadas.
+- Partes actualizadas.
+- Partes borradas.
+- Avances conservados.
+- Avances creados.
+- Avances actualizados.
+- Avances borrados.
 - Suma de paginas.
 - Si quedaron pendientes o realizadas.
 - Fecha usada en registros, si se crearon registros.
