@@ -2175,6 +2175,7 @@ async ({ page }) => {
       document.querySelectorAll("#Planes_Avance_Item option")
     ).map((Opt) => Opt.textContent.trim());
     return {
+      Pendiente_Id: Pendiente.Id,
       Opciones,
       Terminado_Valido: Boolean(Planes_Item_Avance_Por_Valor(
         `Objetivo|${Terminado.Id}`,
@@ -2189,6 +2190,52 @@ async ({ page }) => {
 
   await expect(page.locator("#Planes_Avance_Overlay"))
     .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Avance_Hasta_Final"))
+    .toBeEnabled();
+  await page.locator(".Planes_Avance_Boton").click();
+  await expect(page.locator(".Planes_Avance_Menu")).toBeVisible();
+  const Menu_Estilos = await page.locator(
+    ".Planes_Avance_Menu"
+  ).evaluate((Menu) => {
+    const Item = Menu.querySelector(".Planes_Avance_Item");
+    const Estilos_Menu = getComputedStyle(Menu);
+    const Estilos_Item = Item ? getComputedStyle(Item) : null;
+    return {
+      position: Estilos_Menu.position,
+      fontSize: Estilos_Item?.fontSize || "",
+      maxHeight: Estilos_Menu.maxHeight
+    };
+  });
+  expect(Menu_Estilos.position).toBe("fixed");
+  expect(parseFloat(Menu_Estilos.fontSize)).toBeLessThanOrEqual(12);
+  expect(parseFloat(Menu_Estilos.maxHeight)).toBeGreaterThan(150);
+  await page.mouse.click(20, 20);
+  await page.locator("#Planes_Avance_Hasta_Final").check();
+  await expect(page.locator("#Planes_Avance_Cantidad"))
+    .toHaveValue("6");
+  await expect(page.locator("#Planes_Avance_Cantidad"))
+    .toBeDisabled();
+  await page.locator("#Planes_Avance_Hasta_Final").uncheck();
+  await expect(page.locator("#Planes_Avance_Cantidad"))
+    .toBeEnabled();
+  await page.locator("#Planes_Avance_Hasta_Final").check();
+  await page.locator("#Planes_Avance_Guardar").click();
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .not.toHaveClass(/Activo/);
+  const Finalizado = await page.evaluate((Objetivo_Id) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Objetivo = Modelo.Objetivos[Objetivo_Id];
+    return {
+      estado: Planes_Estado_Efectivo_Objetivo(Objetivo),
+      manual: Number(Objetivo.Progreso_Manual) || 0,
+      progreso: Number(Objetivo.Progreso_Total) || 0
+    };
+  }, Resultado.Pendiente_Id);
+  expect(Finalizado).toEqual({
+    estado: "Cumplido",
+    manual: 9,
+    progreso: 10
+  });
   expect(Resultado.Opciones.join(" ")).toContain("Libros pendientes");
   expect(Resultado.Opciones.join(" ")).toContain("Sub pendiente");
   expect(Resultado.Opciones.join(" ")).not.toContain("Libros terminados");

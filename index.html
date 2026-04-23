@@ -6343,7 +6343,7 @@
       .Planes_Avance_Form {
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 14px;
       }
 
       .Planes_Avance_Form .Campo {
@@ -6351,7 +6351,7 @@
       }
 
       .Planes_Avance_Form select,
-      .Planes_Avance_Form input {
+      .Planes_Avance_Form input:not([type="checkbox"]) {
         min-height: 52px;
       }
 
@@ -6366,7 +6366,7 @@
 
       .Planes_Avance_Boton {
         width: 100%;
-        min-height: 52px;
+        min-height: 48px;
         border: 1px solid var(--Borde);
         border-radius: 8px;
         background: #fff;
@@ -6376,7 +6376,9 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        padding: 8px 12px;
+        font-size: 13px;
+        line-height: 1.25;
+        padding: 7px 12px;
         text-align: left;
       }
 
@@ -6393,18 +6395,20 @@
 
       .Planes_Avance_Menu {
         display: none;
-        position: absolute;
+        position: fixed;
         z-index: 12020;
-        top: calc(100% + 4px);
+        top: 0;
         left: 0;
-        right: 0;
-        max-height: min(420px, 56vh);
+        width: 320px;
+        max-height: min(520px, calc(100vh - 24px));
         overflow: auto;
+        overscroll-behavior: contain;
         border: 1px solid var(--Borde);
         border-radius: 8px;
         background: #fff;
         box-shadow: 0 12px 28px rgba(35, 28, 20, 0.18);
-        padding: 6px;
+        font-size: 12px;
+        padding: 5px;
       }
 
       .Planes_Avance_Custom.Abierto .Planes_Avance_Menu {
@@ -6415,9 +6419,9 @@
 
       .Planes_Avance_Grupo_Titulo {
         color: var(--Texto_Suave);
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 800;
-        padding: 8px 8px 3px;
+        padding: 6px 7px 2px;
         text-transform: uppercase;
       }
 
@@ -6429,7 +6433,9 @@
         color: var(--Texto);
         cursor: pointer;
         font: inherit;
-        padding: 8px 10px;
+        font-size: 12px;
+        line-height: 1.25;
+        padding: 6px 8px;
         text-align: left;
       }
 
@@ -6440,11 +6446,35 @@
       }
 
       .Planes_Avance_Item.Subobjetivo {
-        padding-left: 22px;
+        padding-left: 20px;
       }
 
       .Planes_Avance_Item.Parte {
-        padding-left: 38px;
+        padding-left: 34px;
+      }
+
+      .Planes_Avance_Finalizar_Campo {
+        align-items: center;
+        color: var(--Texto);
+        cursor: pointer;
+        display: flex;
+        font-size: 13px;
+        font-weight: 700;
+        gap: 9px;
+        line-height: 1.25;
+        width: max-content;
+        max-width: 100%;
+      }
+
+      .Planes_Avance_Finalizar_Campo input {
+        accent-color: var(--Acento);
+        flex: 0 0 auto;
+        height: 16px;
+        width: 16px;
+      }
+
+      .Planes_Avance_Finalizar_Campo input:disabled + span {
+        color: var(--Texto_Suave);
       }
 
       .Planes_Avance_Fila {
@@ -6465,6 +6495,11 @@
       .Planes_Avance_Cantidad_Fila input {
         border-bottom-right-radius: 0;
         border-top-right-radius: 0;
+      }
+
+      .Planes_Avance_Cantidad_Fila input:disabled {
+        background: #f6f1e9;
+        color: var(--Texto_Suave);
       }
 
       .Planes_Avance_Unidad_Fija {
@@ -20272,6 +20307,13 @@
               <select id="Planes_Avance_Item"
                 class="Con_Fallback_Emoji"></select>
             </label>
+            <label class="Planes_Avance_Finalizar_Campo">
+              <input id="Planes_Avance_Hasta_Final"
+                type="checkbox">
+              <span data-i18n="planes.avance_hasta_final">
+                Realizado hasta el final
+              </span>
+            </label>
             <div class="Planes_Avance_Fila">
               <label class="Campo">
                 <span data-i18n="planes.avance_cantidad">
@@ -21341,6 +21383,7 @@
           "planes.avance": "Avance",
           "planes.avance_item": "Objetivo o subobjetivo",
           "planes.avance_cantidad": "Cantidad de avance",
+          "planes.avance_hasta_final": "Realizado hasta el final",
           "planes.avance_fecha": "Fecha",
           "planes.avance_hora": "Hora",
           "planes.avance_registrado": "Avance registrado.",
@@ -25049,6 +25092,7 @@
           "planes.avance": "Progress",
           "planes.avance_item": "Goal or subobjective",
           "planes.avance_cantidad": "Progress amount",
+          "planes.avance_hasta_final": "Done through the end",
           "planes.avance_fecha": "Date",
           "planes.avance_hora": "Time",
           "planes.avance_registrado": "Progress logged.",
@@ -28702,6 +28746,7 @@
           "planes.avance": "Avanço",
           "planes.avance_item": "Meta ou subobjetivo",
           "planes.avance_cantidad": "Quantidade de avanço",
+          "planes.avance_hasta_final": "Realizado até o final",
           "planes.avance_fecha": "Data",
           "planes.avance_hora": "Hora",
           "planes.avance_registrado": "Avanço registrado.",
@@ -55320,6 +55365,56 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Wrap;
       }
 
+      function Planes_Posicionar_Menu_Avance(Select) {
+        if (!Select) return;
+        const Wrap = Planes_Asegurar_Select_Avance_Custom(Select);
+        if (!Wrap.classList.contains("Abierto")) return;
+        const Btn = Wrap.querySelector(".Planes_Avance_Boton");
+        const Menu = Wrap.querySelector(".Planes_Avance_Menu");
+        if (!Btn || !Menu) return;
+        const Rect = Btn.getBoundingClientRect();
+        const Margen = 12;
+        const Ancho = Math.min(
+          Math.max(Rect.width, 260),
+          window.innerWidth - Margen * 2
+        );
+        const Izquierda = Math.min(
+          Math.max(Margen, Rect.left),
+          window.innerWidth - Ancho - Margen
+        );
+        const Debajo = window.innerHeight - Rect.bottom - Margen;
+        const Arriba = Rect.top - Margen;
+        const Abrir_Arriba = Debajo < 220 && Arriba > Debajo;
+        const Espacio = Math.max(
+          160,
+          (Abrir_Arriba ? Arriba : Debajo) - 6
+        );
+        const Alto_Max = Math.min(520, Espacio);
+        Menu.style.width = `${Ancho}px`;
+        Menu.style.maxHeight = `${Alto_Max}px`;
+        Menu.style.left = `${Izquierda}px`;
+        if (Abrir_Arriba) {
+          const Alto_Menu = Math.min(Menu.scrollHeight, Alto_Max);
+          Menu.style.top = `${Math.max(
+            Margen,
+            Rect.top - Alto_Menu - 4
+          )}px`;
+        } else {
+          Menu.style.top = `${Math.min(
+            Rect.bottom + 4,
+            window.innerHeight - Alto_Max - Margen
+          )}px`;
+        }
+      }
+
+      function Planes_Posicionar_Menus_Avance_Abiertos() {
+        document.querySelectorAll(".Planes_Avance_Custom.Abierto")
+          .forEach((Wrap) => {
+            const Select = Wrap.previousElementSibling;
+            Planes_Posicionar_Menu_Avance(Select);
+          });
+      }
+
       function Planes_Render_Select_Avance_Custom(Select, Items = null) {
         if (!Select) return;
         const Lista = Items || Planes_Items_Avance_Disponibles(
@@ -55401,6 +55496,47 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           });
         }
+        if (Wrap.classList.contains("Abierto")) {
+          requestAnimationFrame(() =>
+            Planes_Posicionar_Menu_Avance(Select)
+          );
+        }
+      }
+
+      function Planes_Cantidad_Restante_Item_Avance(Item) {
+        const Target = Planes_Target_Item_Avance(Item);
+        if (Target <= 0) return 0;
+        return Math.max(
+          0,
+          Target - Planes_Progreso_Item_Avance(Item)
+        );
+      }
+
+      function Planes_Sincronizar_Final_Modal_Avance() {
+        const Select = document.getElementById("Planes_Avance_Item");
+        const Input = document.getElementById("Planes_Avance_Cantidad");
+        const Check = document.getElementById(
+          "Planes_Avance_Hasta_Final"
+        );
+        if (!Select || !Input || !Check) return;
+        const Item = Planes_Item_Avance_Por_Valor(
+          Select.value,
+          Planes_Avance_Alcance
+        );
+        const Restante = Planes_Cantidad_Restante_Item_Avance(Item);
+        const Puede_Finalizar = Boolean(Item && Restante > 0);
+        Check.disabled = !Puede_Finalizar;
+        if (!Puede_Finalizar) {
+          Check.checked = false;
+        }
+        if (Check.checked) {
+          Input.value = String(Planes_Formatear_Numero(Restante));
+          Input.disabled = true;
+          Input.readOnly = true;
+        } else {
+          Input.disabled = false;
+          Input.readOnly = false;
+        }
       }
 
       function Actualizar_Unidad_Modal_Planes_Avance() {
@@ -55413,6 +55549,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Unidad.textContent = Planes_Unidad_Item_Avance(Item);
         Planes_Render_Select_Avance_Custom(Select);
+        Planes_Sincronizar_Final_Modal_Avance();
       }
 
       function Abrir_Modal_Planes_Avance(
@@ -55435,9 +55572,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Fecha = document.getElementById("Planes_Avance_Fecha");
         const Hora = document.getElementById("Planes_Avance_Hora");
-        if (Cantidad) Cantidad.value = "1";
+        const Hasta_Final = document.getElementById(
+          "Planes_Avance_Hasta_Final"
+        );
+        if (Hasta_Final) Hasta_Final.checked = false;
+        if (Cantidad) {
+          Cantidad.disabled = false;
+          Cantidad.readOnly = false;
+          Cantidad.value = "1";
+        }
         if (Fecha) Fecha.value = Actual.Fecha;
         if (Hora) Hora.value = Actual.Hora;
+        Planes_Sincronizar_Final_Modal_Avance();
         document.getElementById("Planes_Avance_Overlay")
           ?.classList.add("Activo");
         Planes_Aplicar_Contexto_Modal_Periodo(
@@ -55461,6 +55607,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
         document.getElementById("Planes_Avance_Overlay")
           ?.classList.remove("Activo", "Periodo_Cerrado");
+        document.querySelectorAll(".Planes_Avance_Custom.Abierto")
+          .forEach((Item) => Item.classList.remove("Abierto"));
       }
 
       function Planes_Target_Item_Avance(Item) {
@@ -55542,6 +55690,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Hora_Input = document.getElementById(
           "Planes_Avance_Hora"
         );
+        const Hasta_Final = document.getElementById(
+          "Planes_Avance_Hasta_Final"
+        );
         const Item = Planes_Item_Avance_Por_Valor(
           Select?.value || "",
           Planes_Avance_Alcance
@@ -55567,8 +55718,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Actual = Planes_Fecha_Hora_Actual();
         const Fecha = Fecha_Input?.value || Actual.Fecha;
         const Hora = Hora_Input?.value || Actual.Hora;
-        const Finaliza = Planes_Avance_Finaliza_Item(Item, Cantidad);
-        if (Finaliza) {
+        const Forzar_Final = Hasta_Final?.checked === true;
+        const Finaliza = Forzar_Final ||
+          Planes_Avance_Finaliza_Item(Item, Cantidad);
+        if (Finaliza && !Forzar_Final) {
           const Confirmar =
             await Planes_Confirmar_Finalizacion_Avance(Item);
           if (!Confirmar) return;
@@ -86902,6 +87055,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "change",
           Actualizar_Unidad_Modal_Planes_Avance
         );
+      document.getElementById("Planes_Avance_Hasta_Final")
+        ?.addEventListener(
+          "change",
+          Planes_Sincronizar_Final_Modal_Avance
+        );
       {
         const Select_Avance = document.getElementById(
           "Planes_Avance_Item"
@@ -86927,6 +87085,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Ev.stopPropagation();
           Wrap_Avance.classList.toggle("Abierto");
           Planes_Render_Select_Avance_Custom(Select_Avance);
+          Planes_Posicionar_Menu_Avance(Select_Avance);
         });
         Menu_Avance?.addEventListener("click", (Ev) => {
           Ev.stopPropagation();
@@ -86947,6 +87106,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Select_Avance.dispatchEvent(new Event("change"));
           Wrap_Avance?.classList.remove("Abierto");
         });
+        window.addEventListener(
+          "resize",
+          Planes_Posicionar_Menus_Avance_Abiertos
+        );
+        document.addEventListener(
+          "scroll",
+          Planes_Posicionar_Menus_Avance_Abiertos,
+          true
+        );
       }
       document.getElementById("Planes_Registro_Cerrar")
         ?.addEventListener("click", Cerrar_Modal_Planes_Registro);
