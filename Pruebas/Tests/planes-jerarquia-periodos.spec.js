@@ -2341,6 +2341,35 @@ async ({ page }) => {
   expect(Avance_Editado.hora).toBe("16:45");
   expect(Avance_Editado.fechaHora).toBe("2026-04-22T16:45");
 
+  await page.locator('[data-plan-registro-editar="Avance"]')
+    .click();
+  await page.fill("#Dialogo_Input_Campo", "4");
+  await page.fill("#Dialogo_Fecha_Campo", "2026-04-23");
+  await page.fill("#Dialogo_Hora_Campo", "17:10");
+  await page.press("#Dialogo_Hora_Campo", "Enter");
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("4 libros");
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("23/04/2026");
+  const Avance_Editado_Enter = await page.evaluate((objetivoId) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Objetivo = Modelo.Objetivos[objetivoId];
+    const Avance = Object.values(Modelo.Avances || {})
+      .find((Item) => Item.Objetivo_Id === objetivoId);
+    return {
+      manual: Objetivo.Progreso_Manual,
+      cantidad: Avance?.Cantidad || 0,
+      fecha: Avance?.Fecha || "",
+      hora: Avance?.Hora || "",
+      fechaHora: Avance?.Fecha_Hora || ""
+    };
+  }, Objetivo_Id);
+  expect(Avance_Editado_Enter.manual).toBe(4);
+  expect(Avance_Editado_Enter.cantidad).toBe(4);
+  expect(Avance_Editado_Enter.fecha).toBe("2026-04-23");
+  expect(Avance_Editado_Enter.hora).toBe("17:10");
+  expect(Avance_Editado_Enter.fechaHora).toBe("2026-04-23T17:10");
+
   await page.locator('[data-plan-registro-eliminar="Avance"]')
     .click();
   await page.locator("#Dialogo_Botones button")
