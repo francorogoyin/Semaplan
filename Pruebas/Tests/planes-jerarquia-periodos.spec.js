@@ -2900,6 +2900,16 @@ async ({ page }) => {
       Hecha: false,
       Estado: "Activo"
     });
+    Modelo.Partes.parte_pendiente = Normalizar_Parte_Meta({
+      Id: "parte_pendiente",
+      Objetivo_Id: Pendiente.Id,
+      Subobjetivo_Id: Sub_Pendiente_Id,
+      Emoji: "\uD83D\uDCD8",
+      Nombre: "Capitulo corto",
+      Aporte_Total: 3,
+      Unidad: "Horas",
+      Orden: 0
+    });
     Object.assign(Modelo.Subobjetivos[Sub_Terminado_Id], {
       Target_Total: 4,
       Progreso_Inicial: 4
@@ -2935,6 +2945,7 @@ async ({ page }) => {
     ).map((Opt) => Opt.textContent.trim());
     return {
       Pendiente_Id: Pendiente.Id,
+      Sub_Pendiente_Id,
       Opciones,
       Terminado_Valido: Boolean(Planes_Item_Avance_Por_Valor(
         `Objetivo|${Terminado.Id}`,
@@ -2953,6 +2964,22 @@ async ({ page }) => {
     .toBeEnabled();
   await page.locator(".Planes_Avance_Boton").click();
   await expect(page.locator(".Planes_Avance_Menu")).toBeVisible();
+  await page.locator(
+    `.Planes_Avance_Item[data-toggle-sub="${Resultado.Sub_Pendiente_Id}"]`
+  ).click();
+  const Items_Menu = await page.locator(
+    ".Planes_Avance_Menu .Planes_Avance_Item"
+  ).evaluateAll((Items) =>
+    Items.map((Item) => Item.textContent.trim())
+  );
+  expect(Items_Menu.join(" ")).toContain("Sub pendiente");
+  expect(Items_Menu.join(" ")).toContain("Capitulo corto");
+  expect(
+    Items_Menu.some((Item) =>
+      Item.includes("Libros pendientes") &&
+      Item.includes("Capitulo corto")
+    )
+  ).toBe(false);
   const Menu_Estilos = await page.locator(
     ".Planes_Avance_Menu"
   ).evaluate((Menu) => {
@@ -2997,6 +3024,13 @@ async ({ page }) => {
   });
   expect(Resultado.Opciones.join(" ")).toContain("Libros pendientes");
   expect(Resultado.Opciones.join(" ")).toContain("Sub pendiente");
+  expect(Resultado.Opciones.join(" ")).toContain("Capitulo corto");
+  expect(
+    Resultado.Opciones.some((Item) =>
+      Item.includes("Libros pendientes") &&
+      Item.includes("Capitulo corto")
+    )
+  ).toBe(false);
   expect(Resultado.Opciones.join(" ")).not.toContain("Libros terminados");
   expect(Resultado.Opciones.join(" ")).not.toContain("Sub terminado");
   expect(Resultado.Terminado_Valido).toBe(false);

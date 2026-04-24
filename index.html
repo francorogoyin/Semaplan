@@ -57606,6 +57606,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return `${Obj.Emoji || ""} ${Obj.Nombre || ""}`.trim();
       }
 
+      function Planes_Label_Item_Avance_Menu(Item) {
+        if (!Item) return "";
+        if (Item.Tipo === "Parte") {
+          return (
+            `${Item.Parte?.Emoji || "\u2022"} ` +
+            `${Item.Parte?.Nombre || ""}`
+          ).trim();
+        }
+        if (Item.Tipo === "Subobjetivo") {
+          return (
+            `${Item.Sub?.Emoji || "\u2022"} ${Item.Sub?.Texto || ""}`
+          ).trim();
+        }
+        return Planes_Label_Item_Avance(Item);
+      }
+
       function Meta_Aporte_Numero(Valor) {
         const Numero = Number(
           String(Valor ?? "").replace(",", ".")
@@ -59944,7 +59960,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Items.forEach((Item) => {
           const Opt = document.createElement("option");
           Opt.value = Planes_Valor_Item_Avance(Item);
-          Opt.textContent = Planes_Label_Item_Avance(Item);
+          Opt.textContent = Planes_Label_Item_Avance_Menu(Item);
           Select.appendChild(Opt);
         });
         if (!Items.length) return false;
@@ -60039,8 +60055,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Valor_Actual,
           Planes_Avance_Alcance
         );
-        Btn.textContent = Planes_Label_Item_Avance(Item_Actual) ||
+        Btn.textContent = Planes_Label_Item_Avance_Menu(Item_Actual) ||
           t("planes.avance_item");
+        Btn.title = Planes_Label_Item_Avance(Item_Actual) || "";
         Menu.innerHTML = "";
 
         const Agregar_Titulo = (Texto) => {
@@ -60056,7 +60073,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Boton.className = "Planes_Avance_Item" +
             (Clase ? ` ${Clase}` : "") +
             (Valor === Valor_Actual ? " Activo" : "");
-          Boton.textContent = Planes_Label_Item_Avance(Item);
+          Boton.textContent = Planes_Label_Item_Avance_Menu(Item);
+          Boton.title = Planes_Label_Item_Avance(Item);
           Boton.dataset.valor = Valor;
           Menu.appendChild(Boton);
           return Boton;
