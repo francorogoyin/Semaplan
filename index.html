@@ -664,29 +664,24 @@
 
       .Metas_Sugeridas_Acciones {
         display: flex;
+        gap: 10px;
         justify-content: flex-end;
+        align-items: center;
       }
 
-      .Metas_Sugeridas_Acciones .Boton_Principal {
+      .Metas_Sugeridas_Acciones .Boton_Principal,
+      .Metas_Sugeridas_Acciones .Boton_Secundario {
         width: auto;
         min-width: 132px;
         padding-inline: 22px;
       }
 
       .Metas_Sugeridas_Extras_Btn {
-        width: 100%;
-        border: 1px solid var(--Borde);
-        background: rgba(255, 255, 255, 0.5);
-        color: var(--Texto);
-        border-radius: 8px;
-        padding: 10px 12px;
         font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
       }
 
       .Metas_Sugeridas_Extras_Btn:hover {
-        background: rgba(255, 255, 255, 0.72);
+        background: rgba(0, 0, 0, 0.1);
       }
 
       .Metas_Sugeridas_Vacio {
@@ -753,6 +748,15 @@
         .Metas_Sugeridas_Campo {
           min-width: min(100%, 220px);
           flex: 1 1 100%;
+        }
+
+        .Metas_Sugeridas_Acciones {
+          flex-wrap: wrap;
+        }
+
+        .Metas_Sugeridas_Acciones .Boton_Principal,
+        .Metas_Sugeridas_Acciones .Boton_Secundario {
+          flex: 1 1 132px;
         }
       }
 
@@ -17811,6 +17815,14 @@
             <div class="Metas_Sugeridas_Tabla"
               id="Metas_Sugeridas_Tabla"></div>
             <div class="Metas_Sugeridas_Acciones">
+              <button
+                class="Boton_Secundario Metas_Sugeridas_Extras_Btn"
+                id="Metas_Sugeridas_Extras"
+                type="button"
+                data-i18n="sidebar.metas_sugeridas_mostrar_extra"
+                hidden>
+                Mostrar tareas extra
+              </button>
               <button
                 class="Boton_Principal"
                 id="Metas_Sugeridas_Importar"
@@ -36220,6 +36232,9 @@
       );
       const El_Metas_Sugeridas_Importar = document.getElementById(
         "Metas_Sugeridas_Importar"
+      );
+      const El_Metas_Sugeridas_Extras = document.getElementById(
+        "Metas_Sugeridas_Extras"
       );
       const El_Metas_Sugeridas_Cerrar = document.getElementById(
         "Metas_Sugeridas_Cerrar"
@@ -58702,6 +58717,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Items = Metas_Sugeridas_Items(
           Metas_Sugeridas_Mostrar_Extras
         );
+        if (El_Metas_Sugeridas_Extras) {
+          El_Metas_Sugeridas_Extras.hidden = !Hay_Extras;
+          El_Metas_Sugeridas_Extras.textContent =
+            Metas_Sugeridas_Mostrar_Extras
+              ? t("sidebar.metas_sugeridas_ocultar_extra")
+              : t("sidebar.metas_sugeridas_mostrar_extra");
+        }
         El_Metas_Sugeridas_Tabla.innerHTML = "";
         if (!Items.length) {
           const Vacio = document.createElement("div");
@@ -58959,20 +58981,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           El_Metas_Sugeridas_Tabla.appendChild(Fila);
         });
-        if (Hay_Extras) {
-          const Btn_Extras = document.createElement("button");
-          Btn_Extras.type = "button";
-          Btn_Extras.className = "Metas_Sugeridas_Extras_Btn";
-          Btn_Extras.textContent = Metas_Sugeridas_Mostrar_Extras
-            ? t("sidebar.metas_sugeridas_ocultar_extra")
-            : t("sidebar.metas_sugeridas_mostrar_extra");
-          Btn_Extras.addEventListener("click", () => {
-            Metas_Sugeridas_Mostrar_Extras =
-              !Metas_Sugeridas_Mostrar_Extras;
-            Render_Metas_Sugeridas();
-          });
-          El_Metas_Sugeridas_Tabla.appendChild(Btn_Extras);
-        }
       }
 
       async function Metas_Sugeridas_Mostrar_Partes(Partes, Boton) {
@@ -97867,6 +97875,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       El_Metas_Sugeridas_Importar?.addEventListener("click", () => {
         Importar_Metas_Sugeridas();
+      });
+
+      El_Metas_Sugeridas_Extras?.addEventListener("click", () => {
+        Metas_Sugeridas_Mostrar_Extras =
+          !Metas_Sugeridas_Mostrar_Extras;
+        Render_Metas_Sugeridas();
       });
 
       El_Metas_Sugeridas_Cerrar?.addEventListener("click", () => {

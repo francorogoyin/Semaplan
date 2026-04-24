@@ -261,8 +261,24 @@ async ({ page }) => {
   await expect(
     page.locator(".Metas_Sugeridas_Fila", { hasText: "Otra semana" })
   ).toHaveCount(0);
+  await expect(
+    page.locator(
+      ".Metas_Sugeridas_Acciones .Metas_Sugeridas_Extras_Btn"
+    )
+  ).toBeVisible();
   await expect(page.locator(".Metas_Sugeridas_Extras_Btn"))
     .toHaveText("Mostrar tareas extra");
+  const Extras_Estilo = await page.locator(
+    ".Metas_Sugeridas_Extras_Btn"
+  ).evaluate((Boton) => {
+    const Estilos = getComputedStyle(Boton);
+    return {
+      acciones: Boolean(Boton.closest(".Metas_Sugeridas_Acciones")),
+      background: Estilos.backgroundColor
+    };
+  });
+  expect(Extras_Estilo.acciones).toBe(true);
+  expect(Extras_Estilo.background).toBe("rgba(0, 0, 0, 0.06)");
   await page.locator(".Metas_Sugeridas_Extras_Btn").click();
   await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(3);
   await expect(page.locator(".Metas_Sugeridas_Extras_Btn"))
