@@ -705,6 +705,7 @@ test("sidebar de habitos rotula y separa semanales de diarios", async ({
     const Label = Root.querySelector(".Sidebar_Habitos_Label");
     const Habito = Root.querySelector(".Sidebar_Habito");
     const Indicador = Root.querySelector(".Sidebar_Habito_Indicador");
+    const Fila = Root.querySelector(".Sidebar_Habitos_Fila");
     return {
       oculto: Root.classList.contains("Oculto"),
       titulo: Root.querySelector(".Sidebar_Habitos_Titulo")
@@ -726,8 +727,10 @@ test("sidebar de habitos rotula y separa semanales de diarios", async ({
       margenIzquierdo: getComputedStyle(Root).marginLeft,
       fondoRoot: getComputedStyle(Root).backgroundColor,
       labelPeso: getComputedStyle(Label).fontWeight,
+      filaGap: getComputedStyle(Fila).gap,
       habitoAncho: getComputedStyle(Habito).width,
       habitoAlto: getComputedStyle(Habito).height,
+      habitoFondo: getComputedStyle(Habito).backgroundColor,
       indicadorAlto: getComputedStyle(Indicador).height
     };
   });
@@ -745,8 +748,10 @@ test("sidebar de habitos rotula y separa semanales de diarios", async ({
     margenIzquierdo: "-14px",
     fondoRoot: "rgba(54, 47, 39, 0.06)",
     labelPeso: "400",
+    filaGap: "10px",
     habitoAncho: "20px",
     habitoAlto: "20px",
+    habitoFondo: "rgb(201, 194, 184)",
     indicadorAlto: "6px"
   });
 });
