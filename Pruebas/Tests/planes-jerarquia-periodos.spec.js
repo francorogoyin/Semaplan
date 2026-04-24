@@ -642,7 +642,9 @@ async ({ page }) => {
     Object.assign(Modelo_Actual.Subobjetivos[Sub_A], {
       Target_Total: 2,
       Unidad: "Personalizado",
-      Unidad_Custom: "libros"
+      Unidad_Custom: "libros",
+      Tiempo_Valor: 30,
+      Tiempo_Modo: "Minutos_Por_Unidad"
     });
     Object.assign(Modelo_Actual.Subobjetivos[Sub_B], {
       Target_Total: 3,
@@ -652,11 +654,45 @@ async ({ page }) => {
     Planes_Actualizar_Progreso(Objetivo);
     const Host = document.createElement("div");
     Host.innerHTML = Render_Planes_Detalle_Objetivo(Objetivo);
+    const Objetivo_Incompleto = Planes_Crear_Objetivo_Silencioso(
+      Periodo.Id,
+      {
+        Nombre: "Detalle sin tiempo",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 2,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Sub_C = Planes_Agregar_Subobjetivo(
+      Objetivo_Incompleto.Id,
+      "Libro C"
+    );
+    const Sub_D = Planes_Agregar_Subobjetivo(
+      Objetivo_Incompleto.Id,
+      "Libro D"
+    );
+    const Sub_C_Item = Modelo_Actual.Subobjetivos[Sub_C] || Sub_C;
+    const Sub_D_Item = Modelo_Actual.Subobjetivos[Sub_D] || Sub_D;
+    Sub_C_Item.Target_Total = 1;
+    Sub_D_Item.Target_Total = 1;
+    Planes_Actualizar_Progreso(Objetivo_Incompleto);
+    const Host_Incompleto = document.createElement("div");
+    Host_Incompleto.innerHTML =
+      Render_Planes_Detalle_Objetivo(Objetivo_Incompleto);
     return {
       headers: Array.from(Host.querySelectorAll("th"))
         .map((Th) => Th.textContent.trim()),
       celdas: Array.from(Host.querySelectorAll("td"))
-        .map((Td) => Td.textContent.trim())
+        .map((Td) => Td.textContent.replace(/\s+/g, " ").trim()),
+      avisoTiempo: Host.querySelector(".Planes_Tiempo_Warning")
+        ?.getAttribute("title") || "",
+      sinTiempoTexto: Array.from(
+        Host_Incompleto.querySelectorAll("td")
+      ).pop()?.textContent.replace(/\s+/g, " ").trim() || "",
+      sinTiempoAviso: Host_Incompleto
+        .querySelector(".Planes_Tiempo_Warning")
+        ?.getAttribute("title") || ""
     };
   });
 
@@ -666,14 +702,21 @@ async ({ page }) => {
     "Realizado",
     "Falta",
     "Total de unidades",
-    "Unidades faltantes",
-    "Unidades realizadas"
+    "Faltantes",
+    "Realizadas",
+    "Tiempo aprox."
   ]);
-  expect(Detalle_Unidades.celdas.slice(-3)).toEqual([
+  expect(Detalle_Unidades.celdas.slice(-4)).toEqual([
     "5 libros",
-    "5 libros",
-    "0 libros"
+    "5",
+    "0",
+    "1 h aprox. !"
   ]);
+  expect(Detalle_Unidades.avisoTiempo)
+    .toContain("No están todas las unidades hijas");
+  expect(Detalle_Unidades.sinTiempoTexto).toBe("!");
+  expect(Detalle_Unidades.sinTiempoAviso)
+    .toContain("No están todas las unidades hijas");
   expect(errores).toEqual([]);
 });
 
@@ -1922,7 +1965,7 @@ async ({ page }) => {
     const Tabla = Detalle.querySelector(".Planes_Progreso_Tabla");
     const Pct = Card.querySelector(".Planes_Objetivo_Porcentaje");
     const Avance = Card.querySelector(".Planes_Avance_Btn");
-    const Estado = Card.querySelector(".Planes_Objetivo_Estado");
+    const Ritmo = Card.querySelector(".Planes_Objetivo_Ritmo");
     const Emoji = Card.querySelector(".Planes_Objetivo_Emoji");
     const Cantidad = Card.querySelector(".Planes_Objetivo_Cantidad");
     const Headers = Array.from(Tabla.querySelectorAll("th"))
@@ -1934,7 +1977,7 @@ async ({ page }) => {
     const Columnas_Rect = Columnas.getBoundingClientRect();
     const Pct_Rect = Pct.getBoundingClientRect();
     const Avance_Rect = Avance.getBoundingClientRect();
-    const Estado_Rect = Estado.getBoundingClientRect();
+    const Ritmo_Rect = Ritmo.getBoundingClientRect();
     const Emoji_Rect = Emoji.getBoundingClientRect();
     const Etiquetas = Card.querySelector(
       ".Planes_Objetivo_Detalle_Etiquetas"
@@ -1963,13 +2006,13 @@ async ({ page }) => {
       pctVerde: getComputedStyle(Pct).backgroundColor,
       avanceAlLado: Math.abs(Pct_Rect.top - Avance_Rect.top) <= 8,
       avanceALaDerecha:
-        Avance_Rect.left > Estado_Rect.right &&
-        Estado_Rect.left > Pct_Rect.right,
-      avanceSeparado: Avance_Rect.left - Estado_Rect.right >= 8,
-      estadoVisible:
-        getComputedStyle(Estado).display !== "none" &&
-        Math.round(Estado_Rect.width) === 28 &&
-        Math.round(Estado_Rect.height) === 28,
+        Avance_Rect.left > Ritmo_Rect.right &&
+        Ritmo_Rect.left > Pct_Rect.right,
+      avanceSeparado: Avance_Rect.left - Ritmo_Rect.right >= 8,
+      ritmoVisible:
+        getComputedStyle(Ritmo).display !== "none" &&
+        Math.round(Ritmo_Rect.width) >= 9 &&
+        Math.round(Ritmo_Rect.height) >= 9,
       avanceCircular:
         Math.round(Avance_Rect.width) === 24 &&
         Math.round(Avance_Rect.height) === 24,
@@ -2009,7 +2052,8 @@ async ({ page }) => {
     "Estado",
     "Valor objetivo",
     "Realizado",
-    "Falta"
+    "Falta",
+    "Tiempo aprox."
   ]);
   expect(Layout_Detalle.headersCentrados).toBe(true);
   expect(Layout_Detalle.celdasCentradas).toBe(true);
@@ -2020,7 +2064,7 @@ async ({ page }) => {
   expect(Layout_Detalle.avanceAlLado).toBe(true);
   expect(Layout_Detalle.avanceALaDerecha).toBe(true);
   expect(Layout_Detalle.avanceSeparado).toBe(true);
-  expect(Layout_Detalle.estadoVisible).toBe(true);
+  expect(Layout_Detalle.ritmoVisible).toBe(true);
   expect(Layout_Detalle.avanceCircular).toBe(true);
   expect(Layout_Detalle.avanceFlechaPesada).toBe(true);
   expect(Layout_Detalle.avanceTitle).toBe("Avance");
@@ -2197,7 +2241,7 @@ async ({ page }) => {
         Inicio.left < Objetivo.left
     };
   });
-  expect(Layout_Sub_Modal.aporteLabel).toBe("Aporte en libros");
+  expect(Layout_Sub_Modal.aporteLabel).toBe("Aporte");
   expect(Layout_Sub_Modal.modalOverflow).toBeLessThanOrEqual(1);
   expect(Layout_Sub_Modal.formOverflow).toBeLessThanOrEqual(1);
   expect(Layout_Sub_Modal.fechasMismaLinea).toBe(true);
@@ -2323,7 +2367,7 @@ async ({ page }) => {
   const Card_Biblioteca = page.locator(
     ".Planes_Objetivo_Card.Vista_Biblioteca"
   ).first();
-  await expect(Card_Biblioteca.locator(".Planes_Objetivo_Estado"))
+  await expect(Card_Biblioteca.locator(".Planes_Objetivo_Ritmo"))
     .toBeVisible();
   await expect(Card_Biblioteca.locator(".Planes_Avance_Btn"))
     .toHaveCount(0);
@@ -4820,12 +4864,12 @@ async ({ page }) => {
     const Porcentaje = Card.querySelector(
       ".Planes_Objetivo_Porcentaje"
     );
-    const Estado = Card.querySelector(".Planes_Objetivo_Estado");
+    const Ritmo = Card.querySelector(".Planes_Objetivo_Ritmo");
     return {
       porcentajeColor: getComputedStyle(Porcentaje).color,
       porcentajeFondo: getComputedStyle(Porcentaje).backgroundColor,
-      estadoFondo: getComputedStyle(Estado).backgroundColor,
-      estadoSombra: getComputedStyle(Estado).boxShadow
+      estadoFondo: getComputedStyle(Ritmo).backgroundColor,
+      estadoSombra: getComputedStyle(Ritmo).boxShadow
     };
   });
   expect(Estilo_Cerrado.porcentajeColor).toBe("rgb(166, 54, 49)");

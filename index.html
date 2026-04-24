@@ -6102,6 +6102,27 @@
         background: #8f8a82;
       }
 
+      .Planes_Tiempo_Aprox {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+      }
+
+      .Planes_Tiempo_Warning {
+        display: inline-grid;
+        place-items: center;
+        width: 15px;
+        height: 15px;
+        border-radius: 999px;
+        background: #f3c66b;
+        color: #4c3210;
+        cursor: help;
+        font-size: 10px;
+        font-weight: 900;
+        line-height: 1;
+      }
+
       .Planes_Objetivo_Card.Expandida .Planes_Objetivo_Header {
         gap: 0;
         margin-bottom: 20px;
@@ -23789,6 +23810,11 @@
           "planes.tiempo_horas_unidad": "Horas por unidad",
           "planes.tiempo_unidades_minuto": "Unidades por minuto",
           "planes.tiempo_unidades_hora": "Unidades por hora",
+          "planes.tiempo_aprox": "{tiempo} aprox.",
+          "planes.tiempo_aprox_col": "Tiempo aprox.",
+          "planes.tiempo_incompleto":
+            "No est\u00e1n todas las unidades hijas con tiempo cargado; " +
+            "la estimaci\u00f3n puede ser incorrecta.",
           "planes.sub_valor_objetivo": "Valor objetivo",
           "planes.target_excede_padre_confirm":
             "Est\u00e1s excediendo el valor objetivo de {nombre}: " +
@@ -24010,8 +24036,8 @@
           "planes.progreso_manual": "Manual",
           "planes.progreso_total": "Total",
           "planes.total_unidades": "Total de unidades",
-          "planes.unidades_faltantes": "Unidades faltantes",
-          "planes.unidades_realizadas": "Unidades realizadas",
+          "planes.unidades_faltantes": "Faltantes",
+          "planes.unidades_realizadas": "Realizadas",
           "planes.fijado": "Fijado",
           "planes.modo_avance": "Modo de avance",
           "planes.modo_avance_metrica": "Con métrica",
@@ -27868,6 +27894,11 @@
           "planes.tiempo_horas_unidad": "Hours per unit",
           "planes.tiempo_unidades_minuto": "Units per minute",
           "planes.tiempo_unidades_hora": "Units per hour",
+          "planes.tiempo_aprox": "{tiempo} approx.",
+          "planes.tiempo_aprox_col": "Approx. time",
+          "planes.tiempo_incompleto":
+            "Not every child unit has time filled in; " +
+            "the estimate may be inaccurate.",
           "planes.sub_valor_objetivo": "Target value",
           "planes.target_excede_padre_confirm":
             "You are exceeding the target value for {nombre}: " +
@@ -28089,8 +28120,8 @@
           "planes.progreso_manual": "Manual",
           "planes.progreso_total": "Total",
           "planes.total_unidades": "Total units",
-          "planes.unidades_faltantes": "Units left",
-          "planes.unidades_realizadas": "Units done",
+          "planes.unidades_faltantes": "Left",
+          "planes.unidades_realizadas": "Done",
           "planes.fijado": "Fixed",
           "planes.modo_avance": "Progress mode",
           "planes.modo_avance_metrica": "With metric",
@@ -31905,6 +31936,11 @@
           "planes.tiempo_horas_unidad": "Horas por unidade",
           "planes.tiempo_unidades_minuto": "Unidades por minuto",
           "planes.tiempo_unidades_hora": "Unidades por hora",
+          "planes.tiempo_aprox": "{tiempo} aprox.",
+          "planes.tiempo_aprox_col": "Tempo aprox.",
+          "planes.tiempo_incompleto":
+            "Nem todas as unidades filhas t\u00eam tempo preenchido; " +
+            "a estimativa pode estar incorreta.",
           "planes.sub_valor_objetivo": "Valor objetivo",
           "planes.sub_metrica": "Métrica",
           "planes.sub_unidad_custom":
@@ -32121,8 +32157,8 @@
           "planes.progreso_manual": "Manual",
           "planes.progreso_total": "Total",
           "planes.total_unidades": "Total de unidades",
-          "planes.unidades_faltantes": "Unidades faltantes",
-          "planes.unidades_realizadas": "Unidades realizadas",
+          "planes.unidades_faltantes": "Faltantes",
+          "planes.unidades_realizadas": "Realizadas",
           "planes.fijado": "Fixado",
           "planes.modo_avance": "Modo de avanço",
           "planes.modo_avance_metrica": "Com métrica",
@@ -48609,6 +48645,165 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Valor;
       }
 
+      function Planes_Tiene_Tiempo_Propio(Item) {
+        return Planes_Normalizar_Tiempo_Valor(Item) > 0;
+      }
+
+      function Planes_Tiempo_Minutos_Por_Unidad_Parte(
+        Parte,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        return Planes_Tiempo_Minutos_Por_Unidad(Parte) ||
+          Planes_Tiempo_Minutos_Por_Unidad(
+            M.Subobjetivos?.[Parte?.Subobjetivo_Id]
+          ) ||
+          Planes_Tiempo_Minutos_Por_Unidad(
+            M.Objetivos?.[Parte?.Objetivo_Id]
+          );
+      }
+
+      function Planes_Tiempo_Minutos_Por_Unidad_Subobjetivo(
+        Sub,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        return Planes_Tiempo_Minutos_Por_Unidad(Sub) ||
+          Planes_Tiempo_Minutos_Por_Unidad(
+            M.Objetivos?.[Sub?.Objetivo_Id]
+          );
+      }
+
+      function Planes_Estimar_Tiempo_Parte(Parte, Modelo = null) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Minutos_Unidad =
+          Planes_Tiempo_Minutos_Por_Unidad_Parte(Parte, M);
+        const Cantidad = Number(Parte?.Aporte_Total) || 0;
+        return {
+          Minutos: Minutos_Unidad && Cantidad > 0
+            ? Minutos_Unidad * Cantidad
+            : 0,
+          Incompleto: !Planes_Tiene_Tiempo_Propio(Parte)
+        };
+      }
+
+      function Planes_Estimar_Tiempo_Subobjetivo(
+        Sub,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Partes = Planes_Partes_De_Subobjetivo(Sub?.Id || "", M)
+          .filter((Parte) => !Parte.Eliminado_Local);
+        if (Partes.length) {
+          return Partes.reduce((Total, Parte) => {
+            const Est = Planes_Estimar_Tiempo_Parte(Parte, M);
+            return {
+              Minutos: Total.Minutos + Est.Minutos,
+              Incompleto: Total.Incompleto || Est.Incompleto
+            };
+          }, { Minutos: 0, Incompleto: false });
+        }
+        const Minutos_Unidad =
+          Planes_Tiempo_Minutos_Por_Unidad_Subobjetivo(Sub, M);
+        const Cantidad = Number(Sub?.Target_Total) || 0;
+        return {
+          Minutos: Minutos_Unidad && Cantidad > 0
+            ? Minutos_Unidad * Cantidad
+            : 0,
+          Incompleto: !Planes_Tiene_Tiempo_Propio(Sub)
+        };
+      }
+
+      function Planes_Estimar_Tiempo_Objetivo(
+        Objetivo,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Subs = Planes_Subobjetivos_Contexto_Objetivo(Objetivo)
+          .Items
+          .filter((Sub) => !Sub.Eliminado_Local);
+        if (Subs.length) {
+          return Subs.reduce((Total, Sub) => {
+            const Est = Planes_Estimar_Tiempo_Subobjetivo(Sub, M);
+            return {
+              Minutos: Total.Minutos + Est.Minutos,
+              Incompleto: Total.Incompleto || Est.Incompleto
+            };
+          }, { Minutos: 0, Incompleto: false });
+        }
+        const Minutos_Unidad = Planes_Tiempo_Minutos_Por_Unidad(
+          Objetivo
+        );
+        const Cantidad = Number(Objetivo?.Target_Total) || 0;
+        return {
+          Minutos: Minutos_Unidad && Cantidad > 0
+            ? Minutos_Unidad * Cantidad
+            : 0,
+          Incompleto: !Planes_Tiene_Tiempo_Propio(Objetivo)
+        };
+      }
+
+      function Planes_Estimar_Tiempo_Cantidad_Item(
+        Tipo,
+        Item,
+        Cantidad,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Cant = Number(Cantidad) || 0;
+        if (Cant <= 0) return { Minutos: 0, Incompleto: false };
+        if (Tipo === "Parte") {
+          const Minutos_Unidad =
+            Planes_Tiempo_Minutos_Por_Unidad_Parte(Item, M);
+          return {
+            Minutos: Minutos_Unidad ? Minutos_Unidad * Cant : 0,
+            Incompleto: !Planes_Tiene_Tiempo_Propio(Item)
+          };
+        }
+        if (Tipo === "Subobjetivo") {
+          const Minutos_Unidad =
+            Planes_Tiempo_Minutos_Por_Unidad_Subobjetivo(Item, M);
+          return {
+            Minutos: Minutos_Unidad ? Minutos_Unidad * Cant : 0,
+            Incompleto: !Planes_Tiene_Tiempo_Propio(Item)
+          };
+        }
+        const Minutos_Unidad = Planes_Tiempo_Minutos_Por_Unidad(Item);
+        return {
+          Minutos: Minutos_Unidad ? Minutos_Unidad * Cant : 0,
+          Incompleto: !Planes_Tiene_Tiempo_Propio(Item)
+        };
+      }
+
+      function Planes_Formatear_Tiempo_Aprox_Minutos(Minutos) {
+        const Total = Number(Minutos) || 0;
+        if (Total <= 0) return "";
+        if (Total < 60) {
+          return `${Math.max(1, Math.round(Total))} min`;
+        }
+        const Horas = Math.round((Total / 60) * 10) / 10;
+        return `${Planes_Formatear_Numero(Horas)} h`;
+      }
+
+      function Planes_Render_Tiempo_Aprox(Estimacion) {
+        const Texto_Base = Planes_Formatear_Tiempo_Aprox_Minutos(
+          Estimacion?.Minutos
+        );
+        const Warning = Estimacion?.Incompleto
+          ? `<span class="Planes_Tiempo_Warning"
+              title="${Escape_Html(t("planes.tiempo_incompleto"))}"
+              aria-label="${Escape_Html(t("planes.tiempo_incompleto"))}">
+              !
+            </span>`
+          : "";
+        if (!Texto_Base) return Warning;
+        const Texto = t("planes.tiempo_aprox", {
+          tiempo: Texto_Base
+        });
+        return `<span class="Planes_Tiempo_Aprox">` +
+          `${Escape_Html(Texto)}${Warning}</span>`;
+      }
+
       function Planes_Poblar_Tiempo_Form(Prefijo, Item) {
         const Input = document.getElementById(`${Prefijo}_Tiempo`);
         const Select = document.getElementById(
@@ -52874,6 +53069,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Aporte_Txt_Limpio;
       }
 
+      function Planes_Render_Meta_Subobjetivo(
+        Sub,
+        Objetivo_Contexto = null
+      ) {
+        const Meta = Planes_Formatear_Meta_Subobjetivo(
+          Sub,
+          Objetivo_Contexto
+        );
+        const Tiempo = Planes_Render_Tiempo_Aprox(
+          Planes_Estimar_Tiempo_Subobjetivo(Sub)
+        );
+        const Separador = Meta && Tiempo ? " \u00B7 " : "";
+        return `${Escape_Html(Meta)}${Separador}${Tiempo}`;
+      }
+
       function Planes_Porcentaje_Meta(Progreso, Target) {
         const Total = Number(Target) || 0;
         if (Total <= 0) return 0;
@@ -57094,10 +57304,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Realizadas,
           Texto: `${Planes_Formatear_Numero(Total)} ` +
             `${Planes_Unidad_Label_Subobjetivo(Base, Total)}`,
-          Faltantes_Texto: `${Planes_Formatear_Numero(Faltantes)} ` +
-            `${Planes_Unidad_Label_Subobjetivo(Base, Faltantes)}`,
-          Realizadas_Texto: `${Planes_Formatear_Numero(Realizadas)} ` +
-            `${Planes_Unidad_Label_Subobjetivo(Base, Realizadas)}`
+          Faltantes_Texto: String(Planes_Formatear_Numero(Faltantes)),
+          Realizadas_Texto: String(Planes_Formatear_Numero(Realizadas))
         };
       }
 
@@ -57117,6 +57325,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Total_Unidades =
           Planes_Total_Unidades_Subobjetivos_Uniforme(Objetivo);
+        const Tiempo_Aprox =
+          Planes_Estimar_Tiempo_Objetivo(Objetivo);
         const Estado_Clase =
           Estado_Efectivo === "Activo"
             ? " Planes_Dato_Valor_Activo"
@@ -57166,6 +57376,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                           ${t("planes.unidades_realizadas")}
                         </th>
                       ` : ""}
+                      <th class="Numero">
+                        ${t("planes.tiempo_aprox_col")}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -57189,6 +57402,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                           ${Escape_Html(Total_Unidades.Realizadas_Texto)}
                         </td>
                       ` : ""}
+                      <td class="Numero">
+                        ${Planes_Render_Tiempo_Aprox(Tiempo_Aprox) ||
+                          "&ndash;"}
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -65601,10 +65818,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ${Escape_Html(Sub.Texto)}
             </span>
             <span class="Planes_Subobjetivo_Meta">
-              ${Escape_Html(Planes_Formatear_Meta_Subobjetivo(
+              ${Planes_Render_Meta_Subobjetivo(
                 Sub,
                 Opciones.Objetivo_Contexto || Objetivo
-              ))}
+              )}
             </span>
           </span>
           <span class="Planes_Subobjetivo_Acciones">
@@ -66266,6 +66483,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Total = Planes_Progreso_Total_Parte(Parte);
         const Porcentaje_Texto =
           Planes_Formatear_Porcentaje_Meta(Total, Aporte);
+        const Tiempo_Aprox = Planes_Render_Tiempo_Aprox(
+          Planes_Estimar_Tiempo_Parte(Parte)
+        );
         Item.className = "Planes_Parte" +
           (Estado === "Realizada" ? " Estado_Cumplido" : "") +
           (
@@ -66288,6 +66508,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             <span class="Planes_Parte_Meta">
               ${Escape_Html(Planes_Formatear_Parte(Parte))}
             </span>
+            ${Tiempo_Aprox ? `
+              <span class="Planes_Parte_Meta">
+                ${Tiempo_Aprox}
+              </span>
+            ` : ""}
             <span class="Planes_Parte_Meta">
               ${Escape_Html(Porcentaje_Texto)}
             </span>
@@ -78572,11 +78797,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           Vistas.add(Item.Parte_Id);
         });
+        const Item_Aporte = Meta_Aporte_Item_Objetivo(Objetivo);
         const Borrador = {
           Activo: true,
-          Meta: Meta_Aporte_Label_Item(
-            Meta_Aporte_Item_Objetivo(Objetivo)
-          ),
+          Meta: Meta_Aporte_Label_Item(Item_Aporte),
+          Item_Tipo: Item_Aporte?.Tipo || "",
+          Item_Id: Item_Aporte?.Id || "",
           Unidad,
           Cantidad,
           Original_Cantidad: Cantidad,
@@ -78672,6 +78898,56 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Meta_Aporte_Tiempo_Aprox_Borrador(Borrador) {
+        if (!Borrador) return { Minutos: 0, Incompleto: false };
+        const Modelo = Asegurar_Modelo_Planes();
+        const Partes = (Borrador.Partes || [])
+          .filter((Parte) =>
+            Parte.Seleccionada && (Number(Parte.Cantidad) || 0) > 0
+          );
+        if (Partes.length) {
+          return Partes.reduce((Total, Parte_Borrador) => {
+            const Parte = Modelo.Partes?.[Parte_Borrador.Parte_Id];
+            const Est = Planes_Estimar_Tiempo_Cantidad_Item(
+              "Parte",
+              Parte,
+              Parte_Borrador.Cantidad,
+              Modelo
+            );
+            return {
+              Minutos: Total.Minutos + Est.Minutos,
+              Incompleto: Total.Incompleto || Est.Incompleto
+            };
+          }, { Minutos: 0, Incompleto: false });
+        }
+        if (Borrador.Item_Tipo === "Subobjetivo") {
+          return Planes_Estimar_Tiempo_Cantidad_Item(
+            "Subobjetivo",
+            Modelo.Subobjetivos?.[Borrador.Item_Id],
+            Borrador.Cantidad,
+            Modelo
+          );
+        }
+        return Planes_Estimar_Tiempo_Cantidad_Item(
+          "Objetivo",
+          Modelo.Objetivos?.[Borrador.Item_Id],
+          Borrador.Cantidad,
+          Modelo
+        );
+      }
+
+      function Meta_Aporte_Render_Tiempo_Aprox_Borrador(Borrador) {
+        return Planes_Render_Tiempo_Aprox(
+          Meta_Aporte_Tiempo_Aprox_Borrador(Borrador)
+        );
+      }
+
+      function Meta_Aporte_Actualizar_Tiempo_Nodo(Borrador, Nodo) {
+        if (!Nodo) return;
+        Nodo.innerHTML =
+          Meta_Aporte_Render_Tiempo_Aprox_Borrador(Borrador);
+      }
+
       function Render_Aporte_Meta_Destinos(
         Wrap,
         Borrador,
@@ -78748,6 +79024,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             } else {
               Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
             }
+            Opciones.Al_Tiempo_Cambiar?.();
             await Opciones.Al_Cambiar?.();
           });
 
@@ -78760,6 +79037,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fila.classList.toggle("Activo", Parte.Seleccionada);
             Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
             Actualizar_General();
+            Opciones.Al_Tiempo_Cambiar?.();
           });
 
           Input.addEventListener("blur", async () => {
@@ -78869,6 +79147,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Input.value
           );
           Check.classList.toggle("Activo", Borrador.Tildado);
+          Meta_Aporte_Actualizar_Tiempo_Nodo(Borrador, Tiempo);
         });
         Input.addEventListener("change", () => {
           Render_Modal_Abordaje();
@@ -78877,14 +79156,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Unidad = document.createElement("span");
         Unidad.className = "Aporte_Meta_Unidad";
         Unidad.textContent = Borrador.Unidad;
+        const Tiempo = document.createElement("span");
+        Tiempo.className = "Aporte_Meta_Unidad";
+        Meta_Aporte_Actualizar_Tiempo_Nodo(Borrador, Tiempo);
 
         Row.appendChild(Check);
         Row.appendChild(Acciones);
         Row.appendChild(Input);
         Row.appendChild(Unidad);
+        Row.appendChild(Tiempo);
         Wrap.appendChild(Row);
         Render_Aporte_Meta_Destinos(Wrap, Borrador, {
-          Al_Cambiar: () => Render_Modal_Abordaje()
+          Al_Cambiar: () => Render_Modal_Abordaje(),
+          Al_Tiempo_Cambiar: () =>
+            Meta_Aporte_Actualizar_Tiempo_Nodo(Borrador, Tiempo)
         });
         Cuerpo.appendChild(Wrap);
       }
@@ -102859,6 +103144,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Input.value
           );
           Check.classList.toggle("Activo", Borrador.Tildado);
+          Meta_Aporte_Actualizar_Tiempo_Nodo(Borrador, Tiempo);
         });
         Input.addEventListener("keydown", async (Ev) => {
           if (Ev.key !== "Enter") return;
@@ -102880,15 +103166,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Unidad = document.createElement("span");
         Unidad.className = "Aporte_Meta_Unidad";
         Unidad.textContent = Borrador.Unidad;
+        const Tiempo = document.createElement("span");
+        Tiempo.className = "Aporte_Meta_Unidad";
+        Meta_Aporte_Actualizar_Tiempo_Nodo(Borrador, Tiempo);
         Row.appendChild(Check);
         Row.appendChild(Acciones);
         Row.appendChild(Input);
         Row.appendChild(Unidad);
+        Row.appendChild(Tiempo);
         Row.appendChild(Btn_Confirmar);
         Wrap.appendChild(Row);
         Render_Aporte_Meta_Destinos(Wrap, Borrador, {
           Al_Cambiar: Guardar_Aporte_Focus,
-          Al_Error: () => Render_Focus_Mode()
+          Al_Error: () => Render_Focus_Mode(),
+          Al_Tiempo_Cambiar: () =>
+            Meta_Aporte_Actualizar_Tiempo_Nodo(Borrador, Tiempo)
         });
         Cuerpo.appendChild(Wrap);
       }
