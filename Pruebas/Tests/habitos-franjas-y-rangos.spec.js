@@ -245,6 +245,139 @@ test("explica que los patrones se filtran por tipo de slot", async ({
     .toContainText("tipo de slot");
 });
 
+test("vincula habitos desde items de patrones de slot", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Link_Patron",
+        Nombre: "Lectura patron",
+        Tipo: "Hacer",
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 5,
+          Unidad: "paginas"
+        }
+      })
+    ];
+    Habitos_Registros = [];
+    Planes_Slot = {};
+    Patrones = [
+      {
+        Id: "Patron_Link_Items",
+        Nombre: "Patron con links",
+        Emoji: "\u2726",
+        Tipo: "Slot",
+        Aplica_A: "Slot_Vacio",
+        Aplica_A_Lista: ["Slot_Vacio"],
+        Items: [
+          {
+            Id: "Item_Linkable",
+            Emoji: "\u2022",
+            Texto: "Leer capitulo",
+            Estado: "Realizado",
+            Tipo: "Texto",
+            Habitos_Vinculos: [
+              {
+                Habito_Id: "Habito_Link_Patron",
+                Cantidad_Modo: "Fija",
+                Cantidad: 3,
+                Activo: true
+              }
+            ]
+          }
+        ]
+      }
+    ];
+    Abrir_Modal_Patron("Patron_Link_Items");
+  });
+
+  await page.click('[data-patron-item-habitos="Item_Linkable"]');
+  await expect(page.locator(".Patron_Modal_Item_Vinculos"))
+    .toBeVisible();
+  await expect(page.locator(".Patron_Modal_Item_Vinculos"))
+    .toContainText("Lectura patron");
+  await expect(page.locator(".Habitos_Vinculo_Fila"))
+    .toHaveCount(1);
+
+  const resultado = await page.evaluate(() => {
+    const Patron = Patrones.find((Item) =>
+      Item.Id === "Patron_Link_Items"
+    );
+    Normalizar_Patron(Patron);
+    const Items = Clonar_Items_Plan_Slot(Patron.Items);
+    const Item = Items[0];
+    Planes_Slot = {
+      "2026-04-24_09": {
+        Items
+      }
+    };
+    Habitos_Registros = [
+      Normalizar_Habito_Registro({
+        Habito_Id: "Habito_Link_Patron",
+        Fecha: "2026-04-24",
+        Hora: "09:00",
+        Fecha_Hora: "2026-04-24T09:00",
+        Periodo_Clave: "2026-04-24",
+        Fuente: "Plan_Slot_Item",
+        Fuente_Id: Item.Id,
+        Cantidad: 99,
+        Unidad: "paginas"
+      })
+    ];
+
+    Habito_Sincronizar_Items_Plan_Slot(
+      "2026-04-24",
+      [],
+      Items,
+      "Plan_Slot_Item",
+      9
+    );
+
+    return {
+      PatronLinks: Patron.Items[0].Habitos_Vinculos.length,
+      ClonLinks: Item.Habitos_Vinculos.length,
+      Registros: Habitos_Registros.map((Registro) => ({
+        Habito_Id: Registro.Habito_Id,
+        Cantidad: Registro.Cantidad,
+        Unidad: Registro.Unidad,
+        Fuente: Registro.Fuente,
+        Fuente_Id: Registro.Fuente_Id,
+        Hora: Registro.Hora
+      })),
+      Usos: Habito_Contar_Usos("Habito_Link_Patron"),
+      Vinculaciones: Habitos_Obtener_Vinculaciones()
+        .filter((Vinculo) =>
+          Vinculo.Habito_Id === "Habito_Link_Patron"
+        ).map((Vinculo) => Vinculo.Tipo)
+    };
+  });
+
+  expect(resultado.PatronLinks).toBe(1);
+  expect(resultado.ClonLinks).toBe(1);
+  expect(resultado.Registros).toEqual([
+    {
+      Habito_Id: "Habito_Link_Patron",
+      Cantidad: 3,
+      Unidad: "paginas",
+      Fuente: "Plan_Slot_Item",
+      Fuente_Id: expect.any(String),
+      Hora: "09:00"
+    }
+  ]);
+  expect(resultado.Usos).toEqual({
+    planes: 1,
+    patrones: 1,
+    fuentes: 0
+  });
+  expect(resultado.Vinculaciones.length).toBeGreaterThanOrEqual(2);
+});
+
 test("panel de habitos registra avances manuales desde la lista", async ({
   page
 }) => {

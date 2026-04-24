@@ -9025,6 +9025,27 @@
         flex-wrap: wrap;
       }
 
+      .Patron_Modal_Item_Wrap {
+        border-radius: 9px;
+        margin-bottom: 5px;
+      }
+
+      .Patron_Modal_Item_Wrap > .Patron_Modal_Franja {
+        margin-bottom: 0;
+      }
+
+      .Patron_Modal_Item_Vinculos {
+        border: 1px solid rgba(143, 124, 98, 0.18);
+        border-top: 0;
+        border-radius: 0 0 9px 9px;
+        background: rgba(255, 255, 255, 0.64);
+        padding: 9px;
+      }
+
+      .Patron_Modal_Item_Vinculos .Habitos_Vinculos_Barra {
+        margin-bottom: 8px;
+      }
+
       .Patron_Modal_Franja.Reordenable {
         cursor: grab;
       }
@@ -35288,6 +35309,7 @@
       let Patron_En_Edicion = null;
       let Patron_En_Edicion_Snapshot = null;
       let Patron_Modal_Dia_Activo = "0";
+      let Patron_Items_Habitos_Abiertos = new Set();
       let Habito_En_Edicion_Id = null;
       let Habito_Editor_Borrador = null;
       let Habito_Post_Guardado = null;
@@ -72101,6 +72123,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Patron_En_Edicion_Snapshot = JSON.stringify(
           Patron_En_Edicion
         );
+        Patron_Items_Habitos_Abiertos = new Set();
           Patron_Modal_Dia_Activo = String(
             Obtener_Dias_Visibles_Base()[0] ?? 0
           );
@@ -72138,6 +72161,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Patron_En_Edicion = null;
         Patron_En_Edicion_Snapshot = null;
+        Patron_Items_Habitos_Abiertos = new Set();
         document.getElementById("Patron_Modal_Overlay")
           .classList.remove("Activo");
       }
@@ -72413,6 +72437,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Contenedor || !Array.isArray(Items_Arr)) return;
         Contenedor.innerHTML = "";
         Items_Arr.forEach((Item, Idx) => {
+          Item.Habitos_Vinculos = Habito_Asegurar_Vinculos_Fuente(Item);
+          const Item_Wrap = document.createElement("div");
+          Item_Wrap.className = "Patron_Modal_Item_Wrap";
           const Fila = document.createElement("div");
           Fila.className = "Patron_Modal_Franja";
           Fila.classList.add("Reordenable");
@@ -72458,6 +72485,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado.value = Item.Estado || "Planeado";
           Estado.addEventListener("change", () => {
             Item.Estado = Estado.value;
+          });
+
+          const Btn_Vinculos = document.createElement("button");
+          Btn_Vinculos.type = "button";
+          Btn_Vinculos.className = "Config_Patron_Btn";
+          const Cantidad_Vinculos = Item.Habitos_Vinculos.length;
+          Btn_Vinculos.textContent = Cantidad_Vinculos
+            ? `🔗${Cantidad_Vinculos}`
+            : "🔗";
+          Btn_Vinculos.title = t("habitos.card_vinculos");
+          Btn_Vinculos.dataset.patronItemHabitos = String(Item.Id || "");
+          Btn_Vinculos.addEventListener("click", () => {
+            const Clave = String(Item.Id || "").trim();
+            if (Patron_Items_Habitos_Abiertos.has(Clave)) {
+              Patron_Items_Habitos_Abiertos.delete(Clave);
+            } else {
+              Patron_Items_Habitos_Abiertos.add(Clave);
+            }
+            Render_Modal_Patron();
           });
 
           const Borrar = document.createElement("button");
@@ -72529,8 +72575,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fila.appendChild(Badge);
           }
           Fila.appendChild(Estado);
+          Fila.appendChild(Btn_Vinculos);
           Fila.appendChild(Borrar);
-          Contenedor.appendChild(Fila);
+          Item_Wrap.appendChild(Fila);
+          if (Patron_Items_Habitos_Abiertos.has(String(Item.Id || ""))) {
+            const Vinculos = document.createElement("div");
+            Vinculos.className = "Patron_Modal_Item_Vinculos";
+            Vinculos.id = `Patron_Item_Habitos_${Idx}_${
+              String(Item.Id || "").replace(/[^a-zA-Z0-9_-]/g, "_")
+            }`;
+            Item_Wrap.appendChild(Vinculos);
+          }
+          Contenedor.appendChild(Item_Wrap);
+          const Vinculos_El = Item_Wrap.querySelector(
+            ".Patron_Modal_Item_Vinculos"
+          );
+          if (Vinculos_El) {
+            Render_Vinculos_Habitos_Editor(
+              Vinculos_El.id,
+              Item.Habitos_Vinculos,
+              "Plan_Slot_Item"
+            );
+          }
         });
 
         const Btn_Add = document.createElement("button");
@@ -72797,11 +72863,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Patron_En_Edicion.Items = [];
           }
           const Cont = document.createElement("div");
+          Cuerpo.appendChild(Cont);
           Render_Modal_Items_Patron_Slot(
             Cont,
             Patron_En_Edicion.Items
           );
-          Cuerpo.appendChild(Cont);
         }
 
         // Poner foco en el nombre si está vacío.
@@ -72857,7 +72923,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Texto: (Item.Texto || "").trim(),
               Estado: Item.Estado || "Planeado",
               Tipo: Item?.Tipo || "Texto",
-              Habito_Id: String(Item?.Habito_Id || "").trim()
+              Habito_Id: String(Item?.Habito_Id || "").trim(),
+              Habitos_Vinculos: Normalizar_Vinculos_Habito_Fuente(
+                Item?.Habitos_Vinculos || []
+              )
             }))
             .filter((Item) => Item.Texto);
           Patron.Franjas = [];
@@ -74490,25 +74559,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
         Object.entries(Planes_Slot || {}).forEach(([Clave, Plan]) => {
           (Plan?.Items || []).forEach((Item) => {
-            if (Item?.Tipo !== "Habito") return;
-            Habitos_Agregar_Vinculacion(
-              Lista,
-              Item.Habito_Id,
-              t("habitos.fuente_plan_slot"),
-              Item.Texto || "",
-              Clave
-            );
+            if (Item?.Tipo === "Habito") {
+              Habitos_Agregar_Vinculacion(
+                Lista,
+                Item.Habito_Id,
+                t("habitos.fuente_plan_slot"),
+                Item.Texto || "",
+                Clave
+              );
+            }
+            Habito_Asegurar_Vinculos_Fuente(Item).forEach((Vinculo) => {
+              Habitos_Agregar_Vinculacion(
+                Lista,
+                Vinculo.Habito_Id,
+                t("habitos.fuente_plan_slot"),
+                Item.Texto || "",
+                Clave
+              );
+            });
           });
         });
         (Array.isArray(Patrones) ? Patrones : []).forEach((Patron) => {
           (Patron?.Items || []).forEach((Item) => {
-            if (Item?.Tipo !== "Habito") return;
-            Habitos_Agregar_Vinculacion(
-              Lista,
-              Item.Habito_Id,
-              t("habitos.fuente_patron"),
-              Item.Texto || Patron.Nombre || ""
-            );
+            if (Item?.Tipo === "Habito") {
+              Habitos_Agregar_Vinculacion(
+                Lista,
+                Item.Habito_Id,
+                t("habitos.fuente_patron"),
+                Item.Texto || Patron.Nombre || ""
+              );
+            }
+            Habito_Asegurar_Vinculos_Fuente(Item).forEach((Vinculo) => {
+              Habitos_Agregar_Vinculacion(
+                Lista,
+                Vinculo.Habito_Id,
+                t("habitos.fuente_patron"),
+                Item.Texto || Patron.Nombre || ""
+              );
+            });
           });
         });
         return Lista;
@@ -84708,6 +84796,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Unidad_Habito === Unidad_Fuente;
       }
 
+      function Habito_Fuente_Puede_Usar_Cantidad(Fuente_Tipo) {
+        return ["Plan_Parte", "Plan_Subobjetivo"]
+          .includes(Fuente_Tipo);
+      }
+
       function Habito_Cantidad_Desde_Vinculo(
         Habito,
         Vinculo,
@@ -84838,6 +84931,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (Item?.Tipo === "Habito" && Item.Habito_Id === Habito_Id) {
               Conteo.planes += 1;
             }
+            Conteo.planes += Normalizar_Vinculos_Habito_Fuente(
+              Item?.Habitos_Vinculos || []
+            ).filter((Vinculo) =>
+              Vinculo.Habito_Id === Habito_Id
+            ).length;
           });
         });
         (Array.isArray(Patrones) ? Patrones : []).forEach((Patron) => {
@@ -84845,6 +84943,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (Item?.Tipo === "Habito" && Item.Habito_Id === Habito_Id) {
               Conteo.patrones += 1;
             }
+            Conteo.patrones += Normalizar_Vinculos_Habito_Fuente(
+              Item?.Habitos_Vinculos || []
+            ).filter((Vinculo) =>
+              Vinculo.Habito_Id === Habito_Id
+            ).length;
           });
         });
         Object.values(Asegurar_Modelo_Planes().Objetivos || {}).forEach((Objetivo) => {
@@ -84884,20 +84987,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Object.values(Planes_Slot || {}).forEach((Plan) => {
           Plan.Items = (Plan?.Items || [])
             .map((Item) => {
-              if (Item?.Tipo !== "Habito" || Item.Habito_Id !== Habito_Id) {
-                return Item;
+              let Item_Final = Item;
+              if (Item?.Tipo === "Habito" && Item.Habito_Id === Habito_Id) {
+                Item_Final = Convertir
+                  ? Convertir_Item_Habito_A_Texto(Item)
+                  : null;
               }
-              return Convertir ? Convertir_Item_Habito_A_Texto(Item) : null;
+              if (!Item_Final) return null;
+              const Vinculos = Normalizar_Vinculos_Habito_Fuente(
+                Item_Final?.Habitos_Vinculos || []
+              ).filter((Vinculo) => Vinculo.Habito_Id !== Habito_Id);
+              if (Vinculos.length) {
+                Item_Final.Habitos_Vinculos = Vinculos;
+              } else {
+                delete Item_Final.Habitos_Vinculos;
+              }
+              return Item_Final;
             })
             .filter(Boolean);
         });
         (Array.isArray(Patrones) ? Patrones : []).forEach((Patron) => {
           Patron.Items = (Patron?.Items || [])
             .map((Item) => {
-              if (Item?.Tipo !== "Habito" || Item.Habito_Id !== Habito_Id) {
-                return Item;
+              let Item_Final = Item;
+              if (Item?.Tipo === "Habito" && Item.Habito_Id === Habito_Id) {
+                Item_Final = Convertir
+                  ? Convertir_Item_Habito_A_Texto(Item)
+                  : null;
               }
-              return Convertir ? Convertir_Item_Habito_A_Texto(Item) : null;
+              if (!Item_Final) return null;
+              const Vinculos = Normalizar_Vinculos_Habito_Fuente(
+                Item_Final?.Habitos_Vinculos || []
+              ).filter((Vinculo) => Vinculo.Habito_Id !== Habito_Id);
+              if (Vinculos.length) {
+                Item_Final.Habitos_Vinculos = Vinculos;
+              } else {
+                delete Item_Final.Habitos_Vinculos;
+              }
+              return Item_Final;
             })
             .filter(Boolean);
         });
@@ -84923,6 +85050,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Item?.Estado === "Realizado";
       }
 
+      function Habito_Item_Plan_Slot_Tiene_Vinculos(Item) {
+        return Normalizar_Vinculos_Habito_Fuente(
+          Item?.Habitos_Vinculos || []
+        ).length > 0;
+      }
+
+      function Habito_Item_Plan_Slot_Tiene_Sync(Item) {
+        return Habito_Item_Plan_Slot_Completado(Item) ||
+          Habito_Item_Plan_Slot_Tiene_Vinculos(Item);
+      }
+
       function Habito_Cantidad_Plan_Slot(Habito) {
         if (Habito_Modo_Visible(Habito) !== "Tiempo") return 1;
         const Horas = Number(Config?.Duracion_Default) || 1;
@@ -84938,11 +85076,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Fuente = "Plan_Slot_Item",
         Hora = ""
       ) {
+        const Hora_Fuente = Hora !== "" && Hora !== null
+          ? Planes_Formatear_Hora_Numero(Number(Hora) || 0)
+          : "";
         (Array.isArray(Items_Anteriores) ? Items_Anteriores : [])
-          .filter((Item) =>
-            Item?.Tipo === "Habito" &&
-            String(Item?.Habito_Id || "").trim()
-          )
+          .filter(Habito_Item_Plan_Slot_Tiene_Sync)
           .forEach((Item) => {
             Habito_Quitar_Registros_Segun((Registro) =>
               Registro.Fuente === Fuente &&
@@ -84950,21 +85088,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           });
         (Array.isArray(Items_Nuevos) ? Items_Nuevos : [])
-          .filter(Habito_Item_Plan_Slot_Completado)
+          .filter((Item) => Item?.Estado === "Realizado")
           .forEach((Item) => {
-            const Habito = Habito_Por_Id(Item.Habito_Id);
-            if (!Habito) return;
-            Habito_Registrar_Fuente({
-              Habito_Id: Habito.Id,
-              Fecha,
-              Fuente,
-              Fuente_Id: String(Item.Id || "").trim(),
-              Cantidad: Habito_Cantidad_Plan_Slot(Habito),
-              Unidad: Habito_Unidad(Habito),
-              Hora: Hora !== "" && Hora !== null
-                ? Planes_Formatear_Hora_Numero(Number(Hora) || 0)
-                : ""
-            });
+            const Fuente_Id = String(Item.Id || "").trim();
+            if (!Fuente_Id) return;
+            if (Habito_Item_Plan_Slot_Tiene_Vinculos(Item)) {
+              Habito_Recalcular_Fuente(
+                "Plan_Slot_Item",
+                Item,
+                Fecha,
+                true,
+                {
+                  Fuente,
+                  Fuente_Id,
+                  Hora: Hora_Fuente
+                }
+              );
+            }
+            if (Habito_Item_Plan_Slot_Completado(Item)) {
+              const Habito = Habito_Por_Id(Item.Habito_Id);
+              if (!Habito) return;
+              Habito_Registrar_Fuente({
+                Habito_Id: Habito.Id,
+                Fecha,
+                Fuente,
+                Fuente_Id,
+                Cantidad: Habito_Cantidad_Plan_Slot(Habito),
+                Unidad: Habito_Unidad(Habito),
+                Hora: Hora_Fuente
+              });
+            }
           });
       }
 
@@ -85138,7 +85291,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Vinculo.Cantidad_Modo = "Usar_Duracion";
             } else if (
               Habito_Modo_Visible(Habito) === "Cantidad" &&
-              Fuente_Tipo !== "Objetivo"
+              Habito_Fuente_Puede_Usar_Cantidad(Fuente_Tipo)
             ) {
               Vinculo.Cantidad_Modo = "Usar_Fuente";
             } else {
@@ -85159,7 +85312,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Es_Cantidad = Habito_Modo_Visible(Habito) === "Cantidad";
             [
               { Valor: "Fija", Texto: t("habitos.modo_fijo") },
-              ...(Es_Cantidad && Fuente_Tipo !== "Objetivo"
+              ...(Es_Cantidad && Habito_Fuente_Puede_Usar_Cantidad(Fuente_Tipo)
                 ? [{ Valor: "Usar_Fuente", Texto: t("habitos.usar_fuente") }]
                 : [])
             ].forEach((Opcion) => {
@@ -85277,7 +85430,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto: Item?.Texto || "",
           Estado: Item?.Estado || "Planeado",
           Tipo: Item?.Tipo || "Texto",
-          Habito_Id: String(Item?.Habito_Id || "").trim()
+          Habito_Id: String(Item?.Habito_Id || "").trim(),
+          Habitos_Vinculos: Normalizar_Vinculos_Habito_Fuente(
+            Item?.Habitos_Vinculos || []
+          )
         }));
       }
 
@@ -85291,7 +85447,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto: Item?.Texto || "",
           Estado: Item?.Estado || "Planeado",
           Tipo: Item?.Tipo || "Texto",
-          Habito_Id: String(Item?.Habito_Id || "").trim()
+          Habito_Id: String(Item?.Habito_Id || "").trim(),
+          Habitos_Vinculos: Normalizar_Vinculos_Habito_Fuente(
+            Item?.Habitos_Vinculos || []
+          )
         }));
       }
 
@@ -85307,7 +85466,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto: String(Item?.Texto || "").trim(),
           Estado: Item?.Estado || "Planeado",
           Tipo: Item?.Tipo || "Texto",
-          Habito_Id: String(Item?.Habito_Id || "").trim()
+          Habito_Id: String(Item?.Habito_Id || "").trim(),
+          Habitos_Vinculos: Normalizar_Vinculos_Habito_Fuente(
+            Item?.Habitos_Vinculos || []
+          )
         })).filter((Item) => Item.Texto);
       }
 
