@@ -3038,6 +3038,91 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Registrar avance ordena por fecha objetivo en todos los niveles",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Secuencia = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.Periodos.p_orden_avance = Normalizar_Periodo_Plan({
+      Id: "p_orden_avance",
+      Tipo: "Mes",
+      Inicio: "2026-04-01",
+      Fin: "2026-04-30",
+      Orden: 0
+    });
+    Modelo.Objetivos.obj_orden_avance = Normalizar_Objetivo_Plan({
+      Id: "obj_orden_avance",
+      Periodo_Id: "p_orden_avance",
+      Emoji: "\uD83D\uDCD7",
+      Nombre: "Lectura ordenada",
+      Target_Total: 30,
+      Unidad: "Paginas",
+      Orden: 0
+    });
+    Modelo.Subobjetivos.sub_avance_tarde =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_avance_tarde",
+        Objetivo_Id: "obj_orden_avance",
+        Emoji: "\uD83D\uDCD8",
+        Texto: "Sub tarde",
+        Target_Total: 10,
+        Unidad: "Paginas",
+        Fecha_Objetivo: "2026-04-25",
+        Orden: 0
+      });
+    Modelo.Subobjetivos.sub_avance_temprano =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_avance_temprano",
+        Objetivo_Id: "obj_orden_avance",
+        Emoji: "\uD83D\uDCD9",
+        Texto: "Sub temprano",
+        Target_Total: 10,
+        Unidad: "Paginas",
+        Fecha_Objetivo: "2026-04-10",
+        Orden: 1
+      });
+    Modelo.Partes.parte_avance_tardia = Normalizar_Parte_Meta({
+      Id: "parte_avance_tardia",
+      Objetivo_Id: "obj_orden_avance",
+      Subobjetivo_Id: "sub_avance_temprano",
+      Emoji: "\uD83D\uDCD6",
+      Nombre: "Parte tardia",
+      Aporte_Total: 4,
+      Unidad: "Paginas",
+      Fecha_Objetivo: "2026-04-20",
+      Orden: 0
+    });
+    Modelo.Partes.parte_avance_temprana = Normalizar_Parte_Meta({
+      Id: "parte_avance_temprana",
+      Objetivo_Id: "obj_orden_avance",
+      Subobjetivo_Id: "sub_avance_temprano",
+      Emoji: "\uD83D\uDCD5",
+      Nombre: "Parte temprana",
+      Aporte_Total: 4,
+      Unidad: "Paginas",
+      Fecha_Objetivo: "2026-04-12",
+      Orden: 1
+    });
+    return Planes_Items_Avance_Disponibles({
+      Tipo: "Periodo",
+      Id: "p_orden_avance"
+    }).map((Item) => `${Item.Tipo}:${Item.Id}`);
+  });
+
+  expect(Secuencia).toEqual([
+    "Objetivo:obj_orden_avance",
+    "Subobjetivo:sub_avance_temprano",
+    "Parte:parte_avance_temprana",
+    "Parte:parte_avance_tardia",
+    "Subobjetivo:sub_avance_tarde"
+  ]);
+  expect(errores).toEqual([]);
+});
+
 test("Registrar avance pregunta antes de superar limite manual",
 async ({ page }) => {
   const errores = [];

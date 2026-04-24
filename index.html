@@ -57467,9 +57467,68 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           !Planes_Item_Avance_Terminado(Item);
       }
 
+      function Planes_Fecha_Objetivo_Item_Avance(
+        Item,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Fecha_Item = (Entidad) =>
+          Planes_Normalizar_Fecha_Comparacion(
+            Entidad?.Fecha_Objetivo || Entidad?.Fecha_Fin || ""
+          );
+        const Fecha_Objetivo =
+          Fecha_Item(Item?.Objetivo) ||
+          Planes_Rango_Objetivo(Item?.Objetivo, M)?.Fin ||
+          "";
+        if (Item?.Tipo === "Parte") {
+          return Fecha_Item(Item?.Parte) ||
+            Fecha_Item(Item?.Sub) ||
+            Fecha_Objetivo;
+        }
+        if (Item?.Tipo === "Subobjetivo") {
+          return Fecha_Item(Item?.Sub) || Fecha_Objetivo;
+        }
+        return Fecha_Objetivo;
+      }
+
+      function Planes_Comparar_Items_Avance_Fecha(
+        A,
+        B,
+        Modelo = null
+      ) {
+        const Fecha_A = Planes_Fecha_Objetivo_Item_Avance(A, Modelo);
+        const Fecha_B = Planes_Fecha_Objetivo_Item_Avance(B, Modelo);
+        if (Fecha_A && Fecha_B && Fecha_A !== Fecha_B) {
+          return Fecha_A.localeCompare(Fecha_B);
+        }
+        if (Fecha_A !== Fecha_B) return Fecha_A ? -1 : 1;
+        const Orden_A = Number(
+          A?.Parte?.Orden ?? A?.Sub?.Orden ?? A?.Objetivo?.Orden ?? 0
+        ) || 0;
+        const Orden_B = Number(
+          B?.Parte?.Orden ?? B?.Sub?.Orden ?? B?.Objetivo?.Orden ?? 0
+        ) || 0;
+        if (Orden_A !== Orden_B) return Orden_A - Orden_B;
+        const Nombre_A = (
+          A?.Parte?.Nombre ||
+          A?.Sub?.Texto ||
+          A?.Objetivo?.Nombre ||
+          ""
+        ).toString();
+        const Nombre_B = (
+          B?.Parte?.Nombre ||
+          B?.Sub?.Texto ||
+          B?.Objetivo?.Nombre ||
+          ""
+        ).toString();
+        return Nombre_A.localeCompare(Nombre_B, "es", {
+          sensitivity: "base",
+          numeric: true
+        });
+      }
+
       function Planes_Items_Avance_Disponibles(Alcance = null) {
         const Modelo = Asegurar_Modelo_Planes();
-        const Periodos = Modelo.Periodos || {};
         const Alcance_Normalizado =
           Planes_Normalizar_Alcance_Avance(Alcance);
         const Periodo_Contexto =
@@ -57488,16 +57547,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Alcance_Normalizado
             )
           )
-          .sort((A, B) => {
-            const PA = Periodos[A.Periodo_Id];
-            const PB = Periodos[B.Periodo_Id];
-            const Fecha_A = PA?.Inicio || "";
-            const Fecha_B = PB?.Inicio || "";
-            if (Fecha_A !== Fecha_B) {
-              return Fecha_A.localeCompare(Fecha_B);
-            }
-            return Number(A.Orden) - Number(B.Orden);
-          });
+          .sort((A, B) =>
+            Planes_Comparar_Items_Avance_Fecha(
+              { Tipo: "Objetivo", Id: A.Id, Objetivo: A },
+              { Tipo: "Objetivo", Id: B.Id, Objetivo: B },
+              Modelo
+            )
+          );
         const Objetivos_Unicos = [];
         const Familias = new Set();
         Objetivos_Ordenados.forEach((Objetivo) => {
@@ -57533,6 +57589,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Alcance_Normalizado
               )
             )
+            .sort((A, B) =>
+              Planes_Comparar_Items_Avance_Fecha(
+                { Tipo: "Subobjetivo", Id: A.Id, Objetivo, Sub: A },
+                { Tipo: "Subobjetivo", Id: B.Id, Objetivo, Sub: B },
+                Modelo
+              )
+            )
             .forEach((Sub) => {
               const Item_Sub = {
                 Tipo: "Subobjetivo",
@@ -57552,6 +57615,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                       Parte
                     },
                     Alcance_Normalizado
+                  )
+                )
+                .sort((A, B) =>
+                  Planes_Comparar_Items_Avance_Fecha(
+                    {
+                      Tipo: "Parte",
+                      Id: A.Id,
+                      Objetivo,
+                      Sub,
+                      Parte: A
+                    },
+                    {
+                      Tipo: "Parte",
+                      Id: B.Id,
+                      Objetivo,
+                      Sub,
+                      Parte: B
+                    },
+                    Modelo
                   )
                 )
                 .forEach((Parte) => {
@@ -58408,15 +58490,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Items = Incluir_Extras
           ? Items_Extras
           : Array.from(Por_Raiz.values());
-        return Items
-          .sort((A, B) =>
-            Number(Boolean(A.Es_Extra)) - Number(Boolean(B.Es_Extra)) ||
-            (A.Objetivo.Nombre || "").localeCompare(
-              B.Objetivo.Nombre || "",
-              "es",
-              { sensitivity: "base", numeric: true }
-            )
-          );
+        return Items.sort(Metas_Sugeridas_Comparar_Items_Fecha);
+      }
+
+      function Metas_Sugeridas_Fecha_Objetivo_Item(Item) {
+        return Planes_Normalizar_Fecha_Comparacion(
+          Item?.Sub?.Fecha_Objetivo || Item?.Sub?.Fecha_Fin || ""
+        ) || Planes_Normalizar_Fecha_Comparacion(
+          Item?.Rango?.Fin || ""
+        ) || "";
+      }
+
+      function Metas_Sugeridas_Comparar_Items_Fecha(A, B) {
+        const Fecha_A = Metas_Sugeridas_Fecha_Objetivo_Item(A);
+        const Fecha_B = Metas_Sugeridas_Fecha_Objetivo_Item(B);
+        if (Fecha_A && Fecha_B && Fecha_A !== Fecha_B) {
+          return Fecha_A.localeCompare(Fecha_B);
+        }
+        if (Fecha_A !== Fecha_B) return Fecha_A ? -1 : 1;
+        const Extra_A = Number(Boolean(A?.Es_Extra));
+        const Extra_B = Number(Boolean(B?.Es_Extra));
+        if (Extra_A !== Extra_B) return Extra_A - Extra_B;
+        const Objetivo_A = (A?.Objetivo?.Nombre || "").toString();
+        const Objetivo_B = (B?.Objetivo?.Nombre || "").toString();
+        const Comparacion_Objetivo = Objetivo_A.localeCompare(
+          Objetivo_B,
+          "es",
+          { sensitivity: "base", numeric: true }
+        );
+        if (Comparacion_Objetivo) return Comparacion_Objetivo;
+        return (A?.Sub?.Texto || "").localeCompare(
+          B?.Sub?.Texto || "",
+          "es",
+          { sensitivity: "base", numeric: true }
+        );
       }
 
       function Metas_Sugeridas_Tipo_Periodo_Rango(Item) {
@@ -58554,10 +58661,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Metas_Sugeridas_Texto_Fecha(Item) {
-        const Fecha = Item?.Rango?.Fin ||
-          Item?.Sub?.Fecha_Objetivo ||
-          Item?.Sub?.Fecha_Fin ||
-          "";
+        const Fecha = Metas_Sugeridas_Fecha_Objetivo_Item(Item);
         if (!Fecha) return t("sidebar.metas_sugeridas_sin_fecha");
         return t("sidebar.metas_sugeridas_fecha_objetivo", {
           fecha: Planes_Formatear_Fecha_Larga(Fecha)

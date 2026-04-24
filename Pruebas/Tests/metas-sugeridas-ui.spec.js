@@ -294,12 +294,12 @@ async ({ page }) => {
       diarioCorto: true
     }),
     expect.objectContaining({
-      id: "sub_sin_fecha",
+      id: "sub_otra_semana",
       diario: "0",
       diarioCorto: false
     }),
     expect.objectContaining({
-      id: "sub_otra_semana",
+      id: "sub_sin_fecha",
       diario: "0",
       diarioCorto: false
     })
