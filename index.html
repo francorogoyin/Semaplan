@@ -23623,6 +23623,16 @@
           "planes.avance_distribucion_excede":
             "La cantidad supera el avance pendiente de sus componentes.",
           "planes.marcar_realizado": "Marcar como realizado",
+          "planes.cancelar_realizacion": "Cancelar realizacion",
+          "planes.parte_cancelar_realizacion_confirm":
+            "Se van a eliminar {n} registros de avance de esta " +
+            "parte. El avance volvera a 0. Confirmar?",
+          "planes.sub_cancelar_realizacion_confirm":
+            "Se van a eliminar {n} registros de avance del " +
+            "subobjetivo y sus partes. El avance volvera a 0. " +
+            "Confirmar?",
+          "planes.realizacion_cancelada":
+            "Realizacion cancelada.",
           "planes.parte_realizar_confirm":
             "Se agregará un avance para el {fecha} a las {hora} " +
             "de {cantidad} {unidad}. La parte quedará realizada. " +
@@ -27688,6 +27698,15 @@
           "planes.avance_distribucion_excede":
             "The amount exceeds the pending progress of its components.",
           "planes.marcar_realizado": "Mark as done",
+          "planes.cancelar_realizacion": "Cancel done state",
+          "planes.parte_cancelar_realizacion_confirm":
+            "{n} progress records for this part will be deleted. " +
+            "Progress will go back to 0. Confirm?",
+          "planes.sub_cancelar_realizacion_confirm":
+            "{n} progress records for the subobjective and its " +
+            "parts will be deleted. Progress will go back to 0. " +
+            "Confirm?",
+          "planes.realizacion_cancelada": "Done state cancelled.",
           "planes.parte_realizar_confirm":
             "A progress entry for {cantidad} {unidad} will be added " +
             "on {fecha} at {hora}. The part will be marked done. " +
@@ -31702,6 +31721,16 @@
           "planes.avance_distribucion_excede":
             "A quantidade supera o avanco pendente dos componentes.",
           "planes.marcar_realizado": "Marcar como realizado",
+          "planes.cancelar_realizacion": "Cancelar realizacao",
+          "planes.parte_cancelar_realizacion_confirm":
+            "{n} registros de avanco desta parte serao eliminados. " +
+            "O avanco voltara a 0. Confirmar?",
+          "planes.sub_cancelar_realizacion_confirm":
+            "{n} registros de avanco do subobjetivo e de suas " +
+            "partes serao eliminados. O avanco voltara a 0. " +
+            "Confirmar?",
+          "planes.realizacion_cancelada":
+            "Realizacao cancelada.",
           "planes.parte_realizar_confirm":
             "Será registrado um avanço de {cantidad} {unidad} em " +
             "{fecha} às {hora}. A parte ficará realizada. Confirmar?",
@@ -50459,6 +50488,167 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Ok;
       }
 
+      function Planes_Avances_De_Subobjetivo_Y_Partes(
+        Sub_Id,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Parte_Ids = new Set(
+          Planes_Partes_De_Subobjetivo(Sub_Id, M)
+            .map((Parte) => Parte.Id)
+        );
+        return Object.values(M.Avances || {})
+          .filter((Avance) =>
+            Avance?.Subobjetivo_Id === Sub_Id ||
+            Parte_Ids.has(Avance?.Parte_Id)
+          );
+      }
+
+      function Planes_Eliminar_Avances_Cancelacion(
+        Avances,
+        Modelo
+      ) {
+        const Eliminados = new Set();
+        (Array.isArray(Avances) ? Avances : []).forEach((Avance) => {
+          if (!Avance?.Id || Eliminados.has(Avance.Id)) return;
+          Eliminados.add(Avance.Id);
+          delete Modelo.Avances[Avance.Id];
+          Planes_Sincronizar_Habitos_Avance_Registro(Avance, false);
+        });
+      }
+
+      function Planes_Refrescar_Tras_Cancelar_Realizacion(
+        Objetivo,
+        Snapshot
+      ) {
+        Normalizar_Habitos_Registros();
+        Render_Emojis();
+        if (
+          document.getElementById("Habitos_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Modal_Habitos();
+        }
+        if (Objetivo) {
+          Planes_Recalcular_Desde(Objetivo);
+        } else {
+          Render_Plan();
+          Guardar_Estado();
+        }
+        Render_Modal_Planes_Partes();
+        if (
+          document.getElementById("Planes_Subobjetivos_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Modal_Planes_Subobjetivos();
+        }
+        Mostrar_Toast_Undo(
+          t("planes.realizacion_cancelada"),
+          Snapshot,
+          30000
+        );
+      }
+
+      async function Planes_Cancelar_Realizacion_Parte(Parte_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Parte = Modelo.Partes?.[Parte_Id];
+        if (!Parte) return false;
+        const Avances = Planes_Avances_De_Parte(Parte.Id, Modelo);
+        const Confirmar = await Mostrar_Dialogo(
+          t("planes.parte_cancelar_realizacion_confirm", {
+            n: Avances.length
+          }),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            { Etiqueta: t("confirmar"), Valor: true, Tipo: "Peligro" }
+          ]
+        );
+        if (!Confirmar) return false;
+        const Snapshot = Capturar_Snapshot_Undo();
+        const Fecha =
+          Parte.Fecha_Fin ||
+          Planes_Fecha_Avance_Plan(Avances[0]) ||
+          Planes_Fecha_Hora_Actual().Fecha;
+        Parte.Estado = "Pendiente";
+        Parte.Fecha_Fin = "";
+        Parte.Hora_Fin = "";
+        Planes_Eliminar_Avances_Cancelacion(Avances, Modelo);
+        Habito_Recalcular_Fuente(
+          "Plan_Parte",
+          Parte,
+          Fecha,
+          false,
+          { Hora: Parte.Hora_Fin || "" }
+        );
+        Planes_Recalcular_Progreso_Parte(Parte, Modelo);
+        const Sub = Modelo.Subobjetivos[Parte.Subobjetivo_Id];
+        if (Sub) {
+          Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+        }
+        const Objetivo =
+          Modelo.Objetivos[Parte.Objetivo_Id || Sub?.Objetivo_Id];
+        Planes_Refrescar_Tras_Cancelar_Realizacion(Objetivo, Snapshot);
+        return true;
+      }
+
+      async function Planes_Cancelar_Realizacion_Subobjetivo(Sub_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Sub = Modelo.Subobjetivos[Sub_Id];
+        if (!Sub) return false;
+        const Partes = Planes_Partes_De_Subobjetivo(Sub.Id, Modelo);
+        const Avances = Planes_Avances_De_Subobjetivo_Y_Partes(
+          Sub.Id,
+          Modelo
+        );
+        const Confirmar = await Mostrar_Dialogo(
+          t("planes.sub_cancelar_realizacion_confirm", {
+            n: Avances.length
+          }),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            { Etiqueta: t("confirmar"), Valor: true, Tipo: "Peligro" }
+          ]
+        );
+        if (!Confirmar) return false;
+        const Snapshot = Capturar_Snapshot_Undo();
+        const Fecha =
+          Sub.Fecha_Fin ||
+          Planes_Fecha_Avance_Plan(Avances[0]) ||
+          Planes_Fecha_Hora_Actual().Fecha;
+        Sub.Hecha = false;
+        Sub.Estado = "Pendiente";
+        Sub.Fecha_Fin = "";
+        Sub.Hora_Fin = "";
+        Partes.forEach((Parte) => {
+          Parte.Estado = "Pendiente";
+          Parte.Fecha_Fin = "";
+          Parte.Hora_Fin = "";
+        });
+        Planes_Eliminar_Avances_Cancelacion(Avances, Modelo);
+        Partes.forEach((Parte) => {
+          Habito_Recalcular_Fuente(
+            "Plan_Parte",
+            Parte,
+            Fecha,
+            false,
+            { Hora: Parte.Hora_Fin || "" }
+          );
+          Planes_Recalcular_Progreso_Parte(Parte, Modelo);
+        });
+        Habito_Recalcular_Fuente(
+          "Plan_Subobjetivo",
+          Sub,
+          Fecha,
+          false,
+          { Hora: Sub.Hora_Fin || "" }
+        );
+        Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+        Planes_Sincronizar_Estado_Familia_Subobjetivo(Sub.Id, Modelo);
+        const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
+        Planes_Refrescar_Tras_Cancelar_Realizacion(Objetivo, Snapshot);
+        return true;
+      }
+
       function Planes_ISO(Fecha) {
         return Fecha_ISO_Sin_Hora(Fecha);
       }
@@ -65601,7 +65791,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               data-parte-accion="realizar">
               ${Escape_Html(t("planes.marcar_realizado"))}
             </button>
-          ` : ""}
+          ` : `
+            <button class="Planes_Btn" type="button"
+              data-parte-accion="cancelar-realizacion">
+              ${Escape_Html(t("planes.cancelar_realizacion"))}
+            </button>
+          `}
           <button class="Planes_Btn Peligro" type="button"
             data-parte-accion="eliminar">
             ${Escape_Html(t("planes.eliminar_local"))}
@@ -65618,6 +65813,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Tipo === "realizar") {
           await Planes_Marcar_Parte_Como_Realizada(Parte.Id);
+        }
+        if (Tipo === "cancelar-realizacion") {
+          await Planes_Cancelar_Realizacion_Parte(Parte.Id);
         }
         if (Tipo === "subir" || Tipo === "bajar") {
           if (Planes_Mover_Parte(Parte.Id, Tipo === "bajar")) {
@@ -66410,7 +66608,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               data-plan-sub-accion="realizar">
               ${t("planes.marcar_realizado")}
             </button>
-          ` : ""}
+          ` : `
+            <button class="Planes_Btn" type="button"
+              data-plan-sub-accion="cancelar-realizacion">
+              ${t("planes.cancelar_realizacion")}
+            </button>
+          `}
           <button class="Planes_Btn" type="button"
             data-plan-sub-accion="avance">
             ${t("planes.registrar_avance")}
@@ -66458,6 +66661,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Sub_Id,
             Objetivo_Id || Sub.Objetivo_Id
           );
+        }
+        if (Tipo === "cancelar-realizacion") {
+          await Planes_Cancelar_Realizacion_Subobjetivo(Sub_Id);
         }
         if (Tipo === "avance") {
           Abrir_Modal_Planes_Avance(
@@ -69490,7 +69696,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
-      function Mostrar_Toast_Undo(Mensaje, Snapshot) {
+      function Mostrar_Toast_Undo(
+        Mensaje,
+        Snapshot,
+        Duracion_Ms = Undo_Duracion_Ms
+      ) {
         const Id = ++Undo_Contador_Id;
         const Contenedor = document.getElementById("Undo_Contenedor");
         const Inicio_Ms = Date.now();
@@ -69509,7 +69719,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const El_Seg = document.createElement("span");
         El_Seg.className = "Undo_Toast_Segundos";
-        El_Seg.textContent = "15";
+        El_Seg.textContent = String(Math.ceil(Duracion_Ms / 1000));
 
         const El_Boton = document.createElement("button");
         El_Boton.className = "Undo_Toast_Boton";
@@ -69540,7 +69750,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           requestAnimationFrame(() => {
             El_Toast.classList.add("Activo");
             El_Barra.style.transition =
-              `width ${Undo_Duracion_Ms}ms linear`;
+              `width ${Duracion_Ms}ms linear`;
             El_Barra.style.width = "0%";
           });
         });
@@ -69550,7 +69760,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Restante = Math.max(
             0,
             Math.ceil(
-              (Undo_Duracion_Ms - (Date.now() - Inicio_Ms)) / 1000
+              (Duracion_Ms - (Date.now() - Inicio_Ms)) / 1000
             )
           );
           El_Seg.textContent = Restante.toString();
@@ -69559,7 +69769,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // Expiración automática.
         const Timer_Id = setTimeout(
           () => Eliminar_Toast_Undo(Id),
-          Undo_Duracion_Ms
+          Duracion_Ms
         );
 
         Undo_Activos.set(Id, {

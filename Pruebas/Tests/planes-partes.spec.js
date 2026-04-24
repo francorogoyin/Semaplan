@@ -1418,3 +1418,283 @@ async ({ page }) => {
   ]);
   expect(resultado.toasts.join(" ")).not.toContain("Parte actualizada");
 });
+
+test("Cancelar realizacion de parte borra avances y habitos",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+  await Preparar(page);
+
+  const resultado = await page.evaluate(async () => {
+    Planes_Periodo = Planes_Modelo_Base();
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Cancel_Parte",
+        Nombre: "Leer parte",
+        Emoji: "\uD83D\uDCD6",
+        Activo: true,
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 10,
+          Unidad: "paginas"
+        }
+      })
+    ];
+    Habitos_Registros = [];
+    Config.Mostrar_Habitos_Sidebar = true;
+    Config.Mostrar_Globitos_Habitos = true;
+
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
+      Id: "p2026",
+      Tipo: "Anio",
+      Inicio: "2026-01-01",
+      Fin: "2026-12-31",
+      Orden: 0
+    });
+    Modelo.Objetivos.obj_cancel_parte = Normalizar_Objetivo_Plan({
+      Id: "obj_cancel_parte",
+      Periodo_Id: "p2026",
+      Nombre: "Lectura cancelable",
+      Target_Total: 10,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    Modelo.Subobjetivos.sub_cancel_parte =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_cancel_parte",
+        Objetivo_Id: "obj_cancel_parte",
+        Texto: "Libro cancelable",
+        Target_Total: 10,
+        Unidad: "Personalizado",
+        Unidad_Custom: "paginas"
+      });
+    Modelo.Partes.parte_cancelable = Normalizar_Parte_Meta({
+      Id: "parte_cancelable",
+      Objetivo_Id: "obj_cancel_parte",
+      Subobjetivo_Id: "sub_cancel_parte",
+      Nombre: "Capitulo cancelable",
+      Aporte_Total: 10,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Habitos_Vinculos: [
+        {
+          Habito_Id: "Habito_Cancel_Parte",
+          Cantidad_Modo: "Usar_Fuente",
+          Cantidad: 1,
+          Activo: true
+        }
+      ]
+    });
+
+    Abrir_Modal_Planes_Partes("sub_cancel_parte");
+    const Dialogo_Original = Mostrar_Dialogo;
+    const Mensajes = [];
+    Mostrar_Dialogo = async (Texto) => {
+      Mensajes.push(
+        typeof Texto === "string" ? Texto : Texto?.textContent || ""
+      );
+      return true;
+    };
+    try {
+      await Planes_Marcar_Parte_Como_Realizada("parte_cancelable");
+      const Acciones_Realizada =
+        Render_Planes_Parte_Acciones(Modelo.Partes.parte_cancelable);
+      const Registros_Antes = Habitos_Registros.length;
+      const Ok = await Planes_Cancelar_Realizacion_Parte(
+        "parte_cancelable"
+      );
+      const Modelo_Final = Asegurar_Modelo_Planes();
+      const Parte = Modelo_Final.Partes.parte_cancelable;
+      const Sidebar = document.querySelector(
+        '[data-sidebar-habito-id="Habito_Cancel_Parte"]'
+      );
+      return {
+        ok: Ok,
+        mensajes: Mensajes,
+        accionesRealizada: Acciones_Realizada,
+        registrosAntes: Registros_Antes,
+        registrosDespues: Habitos_Registros.length,
+        avancesDespues: Object.keys(Modelo_Final.Avances).length,
+        progreso: Planes_Progreso_Total_Parte(Parte, Modelo_Final),
+        estado: Planes_Estado_Calculado_Parte(Parte, Modelo_Final),
+        sidebarClase: Sidebar?.className || "",
+        sidebarIndicador: Sidebar
+          ?.querySelector(".Sidebar_Habito_Indicador")
+          ?.textContent || "",
+        toastSegundos: document.querySelector(".Undo_Toast_Segundos")
+          ?.textContent || "",
+        toastTexto: document.querySelector(".Undo_Toast_Texto")
+          ?.textContent || ""
+      };
+    } finally {
+      Mostrar_Dialogo = Dialogo_Original;
+    }
+  });
+
+  expect(errores).toEqual([]);
+  expect(resultado.accionesRealizada).toContain(
+    'data-parte-accion="cancelar-realizacion"'
+  );
+  expect(resultado.ok).toBeTruthy();
+  expect(resultado.mensajes.at(-1)).toContain("1 registro");
+  expect(resultado.registrosAntes).toBe(1);
+  expect(resultado.registrosDespues).toBe(0);
+  expect(resultado.avancesDespues).toBe(0);
+  expect(resultado.progreso).toBe(0);
+  expect(resultado.estado).toBe("Pendiente");
+  expect(resultado.sidebarClase).toContain("Pendiente");
+  expect(resultado.sidebarIndicador).toBe("0/10 paginas");
+  expect(resultado.toastSegundos).toBe("30");
+  expect(resultado.toastTexto).toContain("Realizacion cancelada");
+});
+
+test("Cancelar realizacion de subobjetivo borra avances de sus partes",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+  await Preparar(page);
+
+  const resultado = await page.evaluate(async () => {
+    Planes_Periodo = Planes_Modelo_Base();
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Cancel_Sub",
+        Nombre: "Leer sub",
+        Emoji: "\uD83D\uDCD6",
+        Activo: true,
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 20,
+          Unidad: "paginas"
+        }
+      })
+    ];
+    Habitos_Registros = [];
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
+      Id: "p2026",
+      Tipo: "Anio",
+      Inicio: "2026-01-01",
+      Fin: "2026-12-31",
+      Orden: 0
+    });
+    Modelo.Objetivos.obj_cancel_sub = Normalizar_Objetivo_Plan({
+      Id: "obj_cancel_sub",
+      Periodo_Id: "p2026",
+      Nombre: "Objetivo sub cancelable",
+      Target_Total: 20,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    Modelo.Subobjetivos.sub_cancelable =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_cancelable",
+        Objetivo_Id: "obj_cancel_sub",
+        Texto: "Sub cancelable",
+        Target_Total: 20,
+        Unidad: "Personalizado",
+        Unidad_Custom: "paginas",
+        Habitos_Vinculos: [
+          {
+            Habito_Id: "Habito_Cancel_Sub",
+            Cantidad_Modo: "Usar_Fuente",
+            Cantidad: 1,
+            Activo: true
+          }
+        ]
+      });
+    ["a", "b"].forEach((Sufijo, Indice) => {
+      Modelo.Partes[`parte_cancel_sub_${Sufijo}`] =
+        Normalizar_Parte_Meta({
+          Id: `parte_cancel_sub_${Sufijo}`,
+          Objetivo_Id: "obj_cancel_sub",
+          Subobjetivo_Id: "sub_cancelable",
+          Nombre: `Parte ${Sufijo}`,
+          Aporte_Total: 10,
+          Unidad: "Personalizado",
+          Unidad_Custom: "paginas",
+          Orden: Indice,
+          Habitos_Vinculos: [
+            {
+              Habito_Id: "Habito_Cancel_Sub",
+              Cantidad_Modo: "Usar_Fuente",
+              Cantidad: 1,
+              Activo: true
+            }
+          ]
+        });
+    });
+
+    const Dialogo_Original = Mostrar_Dialogo;
+    const Mensajes = [];
+    Mostrar_Dialogo = async (Texto) => {
+      Mensajes.push(
+        typeof Texto === "string" ? Texto : Texto?.textContent || ""
+      );
+      return true;
+    };
+    try {
+      await Planes_Marcar_Subobjetivo_Como_Realizado(
+        "sub_cancelable",
+        "obj_cancel_sub"
+      );
+      const Acciones_Realizado =
+        Render_Planes_Subobjetivo_Acciones(
+          Modelo.Subobjetivos.sub_cancelable
+        );
+      const Registros_Antes = Habitos_Registros.length;
+      const Ok = await Planes_Cancelar_Realizacion_Subobjetivo(
+        "sub_cancelable"
+      );
+      const Modelo_Final = Asegurar_Modelo_Planes();
+      const Sub = Modelo_Final.Subobjetivos.sub_cancelable;
+      const Partes = Planes_Partes_De_Subobjetivo(
+        "sub_cancelable",
+        Modelo_Final
+      );
+      return {
+        ok: Ok,
+        mensajes: Mensajes,
+        accionesRealizado: Acciones_Realizado,
+        registrosAntes: Registros_Antes,
+        registrosDespues: Habitos_Registros.length,
+        avancesDespues: Object.keys(Modelo_Final.Avances).length,
+        progresoSub: Planes_Progreso_Total_Subobjetivo(
+          Sub,
+          Modelo_Final
+        ),
+        estadoSub: Planes_Estado_Normalizado_Subobjetivo(Sub),
+        progresosPartes: Partes.map((Parte) =>
+          Planes_Progreso_Total_Parte(Parte, Modelo_Final)
+        ),
+        estadosPartes: Partes.map((Parte) =>
+          Planes_Estado_Calculado_Parte(Parte, Modelo_Final)
+        ),
+        toastSegundos: document.querySelector(".Undo_Toast_Segundos")
+          ?.textContent || ""
+      };
+    } finally {
+      Mostrar_Dialogo = Dialogo_Original;
+    }
+  });
+
+  expect(errores).toEqual([]);
+  expect(resultado.accionesRealizado).toContain(
+    'data-plan-sub-accion="cancelar-realizacion"'
+  );
+  expect(resultado.ok).toBeTruthy();
+  expect(resultado.mensajes.at(-1)).toContain("2 registros");
+  expect(resultado.registrosAntes).toBe(3);
+  expect(resultado.registrosDespues).toBe(0);
+  expect(resultado.avancesDespues).toBe(0);
+  expect(resultado.progresoSub).toBe(0);
+  expect(resultado.estadoSub).toBe("Activo");
+  expect(resultado.progresosPartes).toEqual([0, 0]);
+  expect(resultado.estadosPartes).toEqual(["Pendiente", "Pendiente"]);
+  expect(resultado.toastSegundos).toBe("30");
+});
