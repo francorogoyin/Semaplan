@@ -984,8 +984,8 @@
 
       .Sidebar_Habitos {
         display: flex;
-        gap: 7px;
-        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 8px;
         margin: 8px 0 0;
         padding-top: 8px;
         border-top: 1px solid rgba(0, 0, 0, 0.07);
@@ -993,6 +993,38 @@
 
       .Sidebar_Habitos.Oculto {
         display: none;
+      }
+
+      .Sidebar_Habitos_Titulo {
+        color: var(--Texto);
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      .Sidebar_Habitos_Grupo {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .Sidebar_Habitos_Label {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .Sidebar_Habitos_Fila {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+        padding-bottom: 7px;
+      }
+
+      .Sidebar_Habitos_Divisor {
+        height: 1px;
+        background: rgba(0, 0, 0, 0.08);
       }
 
       .Sidebar_Habito {
@@ -22687,6 +22719,9 @@
           "sidebar.mostrar_realizados": "Mostrar realizados",
           "sidebar.mostrar_habitos": "Mostrar habitos",
           "sidebar.ocultar_habitos": "Ocultar habitos",
+          "sidebar.habitos_titulo": "H\u00e1bitos",
+          "sidebar.habitos_semanales": "Semanales",
+          "sidebar.habitos_diarios": "Diarios",
           "sidebar.help_nombre":
             "Nombre visible del objetivo semanal o de la bolsa.",
           "sidebar.help_descripcion_corta":
@@ -26693,6 +26728,9 @@
           "sidebar.mostrar_realizados": "Show completed",
           "sidebar.mostrar_habitos": "Show habits",
           "sidebar.ocultar_habitos": "Hide habits",
+          "sidebar.habitos_titulo": "Habits",
+          "sidebar.habitos_semanales": "Weekly",
+          "sidebar.habitos_diarios": "Daily",
           "sidebar.help_nombre":
             "Visible name for the weekly objective or hour pool.",
           "sidebar.help_descripcion_corta":
@@ -30627,6 +30665,9 @@
           "sidebar.mostrar_realizados": "Mostrar realizados",
           "sidebar.mostrar_habitos": "Mostrar habitos",
           "sidebar.ocultar_habitos": "Ocultar habitos",
+          "sidebar.habitos_titulo": "H\u00e1bitos",
+          "sidebar.habitos_semanales": "Semanais",
+          "sidebar.habitos_diarios": "Di\u00e1rios",
           "sidebar.help_nombre":
             "Nome visível do objetivo semanal ou do banco de horas.",
           "sidebar.help_descripcion_corta":
@@ -92676,11 +92717,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Render_Habitos_Sidebar() {
         if (!El_Sidebar_Habitos) return;
         El_Sidebar_Habitos.innerHTML = "";
-        El_Sidebar_Habitos.classList.toggle(
-          "Oculto",
-          !Config.Mostrar_Habitos_Sidebar
-        );
-        if (!Config.Mostrar_Habitos_Sidebar) return;
+        if (!Config.Mostrar_Habitos_Sidebar) {
+          El_Sidebar_Habitos.classList.add("Oculto");
+          return;
+        }
         const Fecha = Habitos_Fecha_Referencia();
         const Activos = (Array.isArray(Habitos) ? Habitos : [])
           .filter((Habito) =>
@@ -92690,10 +92730,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .sort((A, B) =>
             (Number(A.Orden) || 0) - (Number(B.Orden) || 0)
           );
-        Activos.forEach((Habito) => {
+        El_Sidebar_Habitos.classList.toggle(
+          "Oculto",
+          Activos.length === 0
+        );
+        if (!Activos.length) return;
+
+        const Semanales = Activos.filter((Habito) =>
+          Habito?.Meta?.Periodo === "Semana"
+        );
+        const Diarios = Activos.filter((Habito) =>
+          Habito?.Meta?.Periodo !== "Semana"
+        );
+
+        const Titulo = document.createElement("div");
+        Titulo.className = "Sidebar_Habitos_Titulo";
+        Titulo.textContent = t("sidebar.habitos_titulo");
+        El_Sidebar_Habitos.appendChild(Titulo);
+
+        const Crear_Boton = (Habito) => {
           const Btn = document.createElement("button");
           Btn.type = "button";
           Btn.className = "Sidebar_Habito Con_Fallback_Emoji";
+          Btn.dataset.sidebarHabitoId = Habito.Id || "";
           Btn.classList.toggle(
             "Realizado",
             Habito_Esta_Completo(Habito, Fecha)
@@ -92713,8 +92772,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Btn.addEventListener("click", () => {
             Abrir_Modal_Habitos(Habito.Id, { Retorno: "Panel" });
           });
-          El_Sidebar_Habitos.appendChild(Btn);
-        });
+          return Btn;
+        };
+
+        const Render_Grupo = (Clave, Lista) => {
+          if (!Lista.length) return;
+          const Grupo = document.createElement("div");
+          Grupo.className = "Sidebar_Habitos_Grupo";
+          const Label = document.createElement("div");
+          Label.className = "Sidebar_Habitos_Label";
+          Label.textContent = t(Clave);
+          const Fila = document.createElement("div");
+          Fila.className = "Sidebar_Habitos_Fila";
+          Lista.forEach((Habito) => {
+            Fila.appendChild(Crear_Boton(Habito));
+          });
+          Grupo.appendChild(Label);
+          Grupo.appendChild(Fila);
+          El_Sidebar_Habitos.appendChild(Grupo);
+        };
+
+        Render_Grupo("sidebar.habitos_semanales", Semanales);
+        if (Semanales.length && Diarios.length) {
+          const Divisor = document.createElement("div");
+          Divisor.className = "Sidebar_Habitos_Divisor";
+          El_Sidebar_Habitos.appendChild(Divisor);
+        }
+        Render_Grupo("sidebar.habitos_diarios", Diarios);
       }
 
       function Calcular_Unidades_Subobjetivos_Objetivo(Objetivo) {

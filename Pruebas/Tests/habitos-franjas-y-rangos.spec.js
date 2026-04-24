@@ -378,6 +378,77 @@ test("vincula habitos desde items de patrones de slot", async ({
   expect(resultado.Vinculaciones.length).toBeGreaterThanOrEqual(2);
 });
 
+test("sidebar de habitos rotula y separa semanales de diarios", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  const estructura = await page.evaluate(() => {
+    Config.Mostrar_Habitos_Sidebar = true;
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Diario_Sidebar",
+        Nombre: "Agua",
+        Emoji: "\u{1f4a7}",
+        Activo: true,
+        Orden: 1,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 1
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Semanal_Sidebar",
+        Nombre: "Revision semanal",
+        Emoji: "\u2713",
+        Activo: true,
+        Orden: 2,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Semana",
+          Cantidad: 1
+        }
+      })
+    ];
+    Habitos_Registros = [];
+    Render_Habitos_Sidebar();
+
+    const Root = document.getElementById("Sidebar_Habitos");
+    return {
+      oculto: Root.classList.contains("Oculto"),
+      titulo: Root.querySelector(".Sidebar_Habitos_Titulo")
+        ?.textContent,
+      labels: Array.from(
+        Root.querySelectorAll(".Sidebar_Habitos_Label")
+      ).map((Nodo) => Nodo.textContent),
+      divisores: Root.querySelectorAll(
+        ".Sidebar_Habitos_Divisor"
+      ).length,
+      grupos: Array.from(
+        Root.querySelectorAll(".Sidebar_Habitos_Grupo")
+      ).map((Grupo) =>
+        Array.from(
+          Grupo.querySelectorAll("[data-sidebar-habito-id]")
+        ).map((Btn) => Btn.dataset.sidebarHabitoId)
+      )
+    };
+  });
+
+  expect(estructura).toEqual({
+    oculto: false,
+    titulo: "H\u00e1bitos",
+    labels: ["Semanales", "Diarios"],
+    divisores: 1,
+    grupos: [
+      ["Habito_Semanal_Sidebar"],
+      ["Habito_Diario_Sidebar"]
+    ]
+  });
+});
+
 test("panel de habitos registra avances manuales desde la lista", async ({
   page
 }) => {
