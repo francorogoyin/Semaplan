@@ -51762,7 +51762,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .sort((A, B) => A.Nombre.localeCompare(B.Nombre));
       }
 
-      function Render_Plan() {
+      function Render_Planner_Periodos() {
         const Modelo = Asegurar_Jerarquia_Planes();
         if (Planes_Anio_Todos_Activo()) {
           Planes_Crear_Periodos_Capa_Visibles(
@@ -72100,45 +72100,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Modal_Patron();
         });
         Contenedor.appendChild(Btn_Add);
-        const Btn_Habito = document.createElement("button");
-        Btn_Habito.className = "Patron_Modal_Agregar_Franja";
-        Btn_Habito.type = "button";
-        Btn_Habito.textContent = t("habitos.agregar");
-        Btn_Habito.addEventListener("click", async () => {
-          const Opciones = Habito_Compatibles_Para_Fuente(
-            "Plan_Parte"
-          );
-          if (!Opciones.length) {
-            await Mostrar_Dialogo(
-              t("habitos.sin_habitos"),
-              [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
-            );
-            return;
-          }
-          const Habito_Id = await Mostrar_Dialogo(
-            t("habitos.agregar_desde_slot"),
-            [
-              ...Opciones.map((Habito) => ({
-                Etiqueta: `${Habito.Emoji} ${Habito.Nombre}`,
-                Valor: Habito.Id,
-                Tipo: "Secundario"
-              })),
-              {
-                Etiqueta: t("cancelar"),
-                Valor: null,
-                Tipo: "Cancelar"
-              }
-            ]
-          );
-          if (!Habito_Id) return;
-          const Item = Crear_Item_Habito_Plan_Slot(
-            Habito_Por_Id(Habito_Id)
-          );
-          if (!Item) return;
-          Items_Arr.push(Item);
-          Render_Modal_Patron();
-        });
-        Contenedor.appendChild(Btn_Habito);
       }
 
       function Obtener_Estados_Plan_Slot_UI() {
@@ -72303,6 +72264,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Modal_Patron();
         });
         Contenedor.appendChild(Btn_Add);
+        const Btn_Habito = document.createElement("button");
+        Btn_Habito.className = "Patron_Modal_Agregar_Franja";
+        Btn_Habito.type = "button";
+        Btn_Habito.textContent = t("habitos.agregar");
+        Btn_Habito.addEventListener("click", async () => {
+          const Opciones = (Array.isArray(Habitos) ? Habitos : [])
+            .filter((Habito) => Habito?.Activo);
+          if (!Opciones.length) {
+            await Mostrar_Dialogo(
+              t("habitos.sin_habitos"),
+              [{ Etiqueta: t("ok"), Valor: true, Tipo: "Primario" }]
+            );
+            return;
+          }
+          const Habito_Id = await Mostrar_Dialogo(
+            t("habitos.agregar_desde_slot"),
+            [
+              ...Opciones.map((Habito) => ({
+                Etiqueta: `${Habito.Emoji} ${Habito.Nombre}`,
+                Valor: Habito.Id,
+                Tipo: "Secundario"
+              })),
+              {
+                Etiqueta: t("cancelar"),
+                Valor: null,
+                Tipo: "Cancelar"
+              }
+            ]
+          );
+          if (!Habito_Id) return;
+          const Item = Crear_Item_Habito_Plan_Slot(
+            Habito_Por_Id(Habito_Id)
+          );
+          if (!Item) return;
+          Items_Arr.push(Item);
+          Render_Modal_Patron();
+        });
+        Contenedor.appendChild(Btn_Habito);
       }
 
       function Obtener_Todos_Aplicas_Patron_Slot() {
@@ -72980,6 +72979,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Patron_En_Edicion_Snapshot = null;
         Cerrar_Modal_Patron(true);
         Render_Config_Patrones();
+        Guardar_Estado();
       }
 
       function Habitos_Fecha_Referencia() {
@@ -74727,7 +74727,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               </label>
               <label class="Habitos_Modal_Campo" data-span="4"
                 id="Habito_Dia_Desde_Bloque">
-                <span class="Habitos_Modal_Label">${t("habitos.desde")}</span>
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_dias"))}">
+                  ${t("habitos.desde")}
+                </span>
                 <select class="Habitos_Modal_Select"
                   id="Habito_Dia_Desde">
                   ${Habitos_Opciones_Dias(Dias_Rango.Desde)}
@@ -74735,7 +74738,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               </label>
               <label class="Habitos_Modal_Campo" data-span="4"
                 id="Habito_Dia_Hasta_Bloque">
-                <span class="Habitos_Modal_Label">${t("habitos.hasta")}</span>
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_dias"))}">
+                  ${t("habitos.hasta")}
+                </span>
                 <select class="Habitos_Modal_Select"
                   id="Habito_Dia_Hasta">
                   ${Habitos_Opciones_Dias(Dias_Rango.Hasta)}
@@ -74743,7 +74749,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               </label>
               <label class="Habitos_Modal_Campo" data-span="4"
                 id="Habito_Desde_Inline">
-                <span class="Habitos_Modal_Label">${t("habitos.desde")}</span>
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_horas"))}">
+                  ${t("habitos.desde")}
+                </span>
                 <input class="Habitos_Modal_Input"
                   id="Habito_Programacion_Desde"
                   type="time"
@@ -74757,7 +74766,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               </label>
               <label class="Habitos_Modal_Campo" data-span="4"
                 id="Habito_Hasta_Bloque">
-                <span class="Habitos_Modal_Label">${t("habitos.hasta")}</span>
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_horas"))}">
+                  ${t("habitos.hasta")}
+                </span>
                 <input class="Habitos_Modal_Input"
                   id="Habito_Programacion_Hasta"
                   type="time"
@@ -74771,7 +74783,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               </label>
               <label class="Habitos_Modal_Campo" data-span="4"
                 id="Habito_Horas_Puntual">
-                <span class="Habitos_Modal_Label">
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_horas"))}">
                   ${t("dialog.hora_corta")}
                 </span>
                 <select class="Habitos_Modal_Select"
@@ -74783,7 +74796,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               </label>
               <label class="Habitos_Modal_Campo" data-span="8"
                 id="Habito_Horas_Personalizado">
-                <span class="Habitos_Modal_Label">
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_horas"))}">
                   ${t("habitos.programacion_horas_label")}
                 </span>
                 <input class="Habitos_Modal_Input"

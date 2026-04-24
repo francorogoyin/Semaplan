@@ -64,6 +64,15 @@ Cada ejecucion completa debe producir:
   registro en `Documentacion/Registros/Registro_Avance.txt`, commit y
   push.
 
+## Pasadas ejecutadas.
+
+- `Documentacion/Auditorias/Flujo_Habitos_2026_04_23_Profunda/`:
+  auditoria profunda con habitos reales, vinculos, partes, avances,
+  slots, persistencia y limpieza final.
+- `Documentacion/Auditorias/Flujo_Habitos_2026_04_23_Segunda_Pasada/`:
+  auditoria complementaria de mobile, combinaciones condicionales,
+  patrones, slots, cierre de semana, historial y resumen semanal.
+
 ## Formato de hallazgo
 
 Usar este formato en el reporte:
