@@ -673,6 +673,22 @@
         padding-inline: 22px;
       }
 
+      .Metas_Sugeridas_Extras_Btn {
+        width: 100%;
+        border: 1px solid var(--Borde);
+        background: rgba(255, 255, 255, 0.5);
+        color: var(--Texto);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .Metas_Sugeridas_Extras_Btn:hover {
+        background: rgba(255, 255, 255, 0.72);
+      }
+
       .Metas_Sugeridas_Vacio {
         padding: 10px;
         color: var(--Texto_Suave);
@@ -23010,6 +23026,14 @@
           "sidebar.metas_sugeridas_importar": "Importar",
           "sidebar.metas_sugeridas_vacio":
             "No hay subobjetivos sugeridos para esta semana.",
+          "sidebar.metas_sugeridas_mostrar_extra":
+            "Mostrar tareas extra",
+          "sidebar.metas_sugeridas_ocultar_extra":
+            "Ocultar tareas extra",
+          "sidebar.metas_sugeridas_fecha_objetivo":
+            "Fecha objetivo: {fecha}",
+          "sidebar.metas_sugeridas_sin_fecha":
+            "Sin fecha objetivo",
           "sidebar.metas_sugeridas_sin_importar":
             "No hay sugerencias validas para importar.",
           "sidebar.metas_sugeridas_importadas":
@@ -27062,6 +27086,14 @@
           "sidebar.metas_sugeridas_importar": "Import",
           "sidebar.metas_sugeridas_vacio":
             "There are no suggested subobjectives for this week.",
+          "sidebar.metas_sugeridas_mostrar_extra":
+            "Show extra tasks",
+          "sidebar.metas_sugeridas_ocultar_extra":
+            "Hide extra tasks",
+          "sidebar.metas_sugeridas_fecha_objetivo":
+            "Target date: {fecha}",
+          "sidebar.metas_sugeridas_sin_fecha":
+            "No target date",
           "sidebar.metas_sugeridas_sin_importar":
             "There are no valid suggestions to import.",
           "sidebar.metas_sugeridas_importadas":
@@ -31040,6 +31072,14 @@
           "sidebar.metas_sugeridas_importar": "Importar",
           "sidebar.metas_sugeridas_vacio":
             "Nao ha subobjetivos sugeridos para esta semana.",
+          "sidebar.metas_sugeridas_mostrar_extra":
+            "Mostrar tarefas extras",
+          "sidebar.metas_sugeridas_ocultar_extra":
+            "Ocultar tarefas extras",
+          "sidebar.metas_sugeridas_fecha_objetivo":
+            "Data-alvo: {fecha}",
+          "sidebar.metas_sugeridas_sin_fecha":
+            "Sem data-alvo",
           "sidebar.metas_sugeridas_sin_importar":
             "Nao ha sugestoes validas para importar.",
           "sidebar.metas_sugeridas_importadas":
@@ -36163,6 +36203,7 @@
       const El_Metas_Sugeridas_Cerrar = document.getElementById(
         "Metas_Sugeridas_Cerrar"
       );
+      let Metas_Sugeridas_Mostrar_Extras = false;
       const El_Semana_Label = document.getElementById("Semana_Label");
       const El_Semana_Principal_Fila = document.getElementById("Semana_Principal_Fila");
       const El_Semana_Rango = document.getElementById("Semana_Rango");
@@ -58202,6 +58243,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Meta_Aporte_Redondear(Pendiente / Dias, Unidad);
       }
 
+      function Metas_Sugeridas_Aporte_Extra(Sub, Unidad) {
+        const Target = Number(Sub?.Target_Total) || 0;
+        const Aporte = Number(Sub?.Aporte_Meta) || 0;
+        const Total = Target > 0 ? Target : Aporte;
+        if (Total <= 0) return 1;
+        const Progreso = Math.max(
+          0,
+          Planes_Progreso_Total_Subobjetivo(Sub)
+        );
+        const Pendiente = Math.max(0, Total - Progreso);
+        return Math.max(1, Meta_Aporte_Redondear(Pendiente, Unidad));
+      }
+
       function Metas_Sugeridas_Objetivo_Existente(Sub_Id) {
         const Clave = Metas_Sugeridas_Clave_Semana();
         const Modelo = Asegurar_Modelo_Planes();
@@ -58241,10 +58295,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
       }
 
-      function Metas_Sugeridas_Items() {
+      function Metas_Sugeridas_Items(Incluir_Extras = false) {
         const Modelo = Asegurar_Modelo_Planes();
         const Semana = Metas_Sugeridas_Rango_Semana();
         const Por_Raiz = new Map();
+        const Items_Extras = [];
         Object.values(Modelo.Subobjetivos || {})
           .filter((Sub) => !Sub.Eliminado_Local && !Sub.Hecha)
           .forEach((Sub) => {
@@ -58266,13 +58321,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Tiene_Parte_Semanal = Partes.some(
               (Info) => Info.Sugerida
             );
-            if (!Rango_Cruza && !Tiene_Parte_Semanal) return;
+            const Es_Sugerida = Rango_Cruza || Tiene_Parte_Semanal;
+            if (!Incluir_Extras && !Es_Sugerida) return;
             const Unidad = Planes_Unidad_Label_Subobjetivo(Sub);
-            const Aporte = Metas_Sugeridas_Aporte(
-              Sub,
-              Rango.Fin,
-              Unidad
-            );
+            const Aporte = Es_Sugerida
+              ? Metas_Sugeridas_Aporte(Sub, Rango.Fin, Unidad)
+              : Metas_Sugeridas_Aporte_Extra(Sub, Unidad);
             if (Aporte <= 0) return;
             if (Metas_Sugeridas_Objetivo_Existente(Sub.Id)) {
               return;
@@ -58282,14 +58336,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Objetivo,
               Unidad,
               Aporte,
-              Diario: Metas_Sugeridas_Aporte_Diario(
-                Sub,
-                Rango,
-                Unidad
-              ),
+              Diario: Es_Sugerida
+                ? Metas_Sugeridas_Aporte_Diario(Sub, Rango, Unidad)
+                : 0,
+              Es_Extra: !Es_Sugerida,
               Rango,
               Partes
             };
+            if (Incluir_Extras) {
+              Items_Extras.push(Item);
+              return;
+            }
             const Raiz_Id = Planes_Subobjetivo_Raiz_Con_Hijos_Id(
               Sub.Id,
               Modelo
@@ -58305,8 +58362,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Por_Raiz.set(Raiz_Id, Item);
             }
           });
-        return Array.from(Por_Raiz.values())
+        const Items = Incluir_Extras
+          ? Items_Extras
+          : Array.from(Por_Raiz.values());
+        return Items
           .sort((A, B) =>
+            Number(Boolean(A.Es_Extra)) - Number(Boolean(B.Es_Extra)) ||
             (A.Objetivo.Nombre || "").localeCompare(
               B.Objetivo.Nombre || "",
               "es",
@@ -58449,6 +58510,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Partes.join("\n");
       }
 
+      function Metas_Sugeridas_Texto_Fecha(Item) {
+        const Fecha = Item?.Rango?.Fin ||
+          Item?.Sub?.Fecha_Objetivo ||
+          Item?.Sub?.Fecha_Fin ||
+          "";
+        if (!Fecha) return t("sidebar.metas_sugeridas_sin_fecha");
+        return t("sidebar.metas_sugeridas_fecha_objetivo", {
+          fecha: Planes_Formatear_Fecha_Larga(Fecha)
+        });
+      }
+
+      function Metas_Sugeridas_Texto_Vinculo(Item) {
+        const Objetivo = String(Item?.Objetivo?.Nombre || "").trim();
+        const Sub = String(Item?.Sub?.Texto || "").trim();
+        return [Objetivo, Sub].filter(Boolean).join(" > ");
+      }
+
       function Metas_Sugeridas_Campo_Control(Label_Key, Control) {
         const Campo = document.createElement("div");
         Campo.className = "Metas_Sugeridas_Campo";
@@ -58472,14 +58550,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Render_Metas_Sugeridas() {
         if (!El_Metas_Sugeridas_Tabla) return;
-        const Items = Metas_Sugeridas_Items();
+        const Items_Todos = Metas_Sugeridas_Items(true);
+        const Hay_Extras = Items_Todos.some((Item) => Item.Es_Extra);
+        const Items = Metas_Sugeridas_Items(
+          Metas_Sugeridas_Mostrar_Extras
+        );
         El_Metas_Sugeridas_Tabla.innerHTML = "";
         if (!Items.length) {
           const Vacio = document.createElement("div");
           Vacio.className = "Metas_Sugeridas_Vacio";
           Vacio.textContent = t("sidebar.metas_sugeridas_vacio");
           El_Metas_Sugeridas_Tabla.appendChild(Vacio);
-          return;
+          if (!Hay_Extras) return;
         }
         Items.forEach((Item) => {
           const Fila = document.createElement("div");
@@ -58516,9 +58598,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Vinculo = document.createElement("div");
           Vinculo.className =
             "Metas_Sugeridas_Vinculo Metas_Sugeridas_Detalle";
-          Vinculo.textContent =
-            `${Item.Sub.Emoji || "\u2022"} ${Item.Sub.Texto || ""}`
-              .trim();
+          Vinculo.textContent = Metas_Sugeridas_Texto_Fecha(Item);
           Textos.appendChild(Nombre);
           Textos.appendChild(Vinculo);
           Principal.appendChild(Emoji_Box);
@@ -58671,6 +58751,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "sidebar.metas_col_horas",
             Horas_Wrap
           ));
+          const Vinculo_Expandido = document.createElement("div");
+          Vinculo_Expandido.className =
+            "Metas_Sugeridas_Vinculo Metas_Sugeridas_Detalle";
+          Vinculo_Expandido.textContent =
+            Metas_Sugeridas_Texto_Vinculo(Item);
+          Controles.appendChild(Metas_Sugeridas_Campo_Control(
+            "sidebar.metas_col_vinculacion",
+            Vinculo_Expandido
+          ));
           const Campo_Descripcion = Metas_Sugeridas_Campo_Control(
             "sidebar.metas_col_descripcion",
             Descripcion
@@ -58723,6 +58812,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           El_Metas_Sugeridas_Tabla.appendChild(Fila);
         });
+        if (Hay_Extras) {
+          const Btn_Extras = document.createElement("button");
+          Btn_Extras.type = "button";
+          Btn_Extras.className = "Metas_Sugeridas_Extras_Btn";
+          Btn_Extras.textContent = Metas_Sugeridas_Mostrar_Extras
+            ? t("sidebar.metas_sugeridas_ocultar_extra")
+            : t("sidebar.metas_sugeridas_mostrar_extra");
+          Btn_Extras.addEventListener("click", () => {
+            Metas_Sugeridas_Mostrar_Extras =
+              !Metas_Sugeridas_Mostrar_Extras;
+            Render_Metas_Sugeridas();
+          });
+          El_Metas_Sugeridas_Tabla.appendChild(Btn_Extras);
+        }
       }
 
       async function Metas_Sugeridas_Mostrar_Partes(Partes, Boton) {
@@ -58803,6 +58906,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Abrir_Metas_Sugeridas() {
         if (!El_Metas_Sugeridas_Overlay) return;
+        Metas_Sugeridas_Mostrar_Extras = false;
         Render_Metas_Sugeridas();
         El_Metas_Sugeridas_Overlay.classList.add("Activo");
       }

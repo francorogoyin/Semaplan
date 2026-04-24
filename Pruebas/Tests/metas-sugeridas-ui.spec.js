@@ -243,10 +243,69 @@ async ({ page }) => {
   await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(1);
   await expect(page.locator(".Metas_Sugeridas_Fila"))
     .toContainText("SEO");
-  await expect(page.locator(".Metas_Sugeridas_Fila"))
-    .not.toContainText("Sin fecha semanal");
-  await expect(page.locator(".Metas_Sugeridas_Fila"))
-    .not.toContainText("Otra semana");
+  await expect(
+    page.locator(".Metas_Sugeridas_Fila")
+      .locator(".Metas_Sugeridas_Vinculo")
+      .first()
+  ).toContainText("Fecha objetivo:");
+  await expect(
+    page.locator(".Metas_Sugeridas_Fila")
+      .locator(".Metas_Sugeridas_Vinculo")
+      .first()
+  ).not.toHaveText(/SEO/);
+  await expect(
+    page.locator(".Metas_Sugeridas_Fila", {
+      hasText: "Sin fecha semanal"
+    })
+  ).toHaveCount(0);
+  await expect(
+    page.locator(".Metas_Sugeridas_Fila", { hasText: "Otra semana" })
+  ).toHaveCount(0);
+  await expect(page.locator(".Metas_Sugeridas_Extras_Btn"))
+    .toHaveText("Mostrar tareas extra");
+  await page.locator(".Metas_Sugeridas_Extras_Btn").click();
+  await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(3);
+  await expect(page.locator(".Metas_Sugeridas_Extras_Btn"))
+    .toHaveText("Ocultar tareas extra");
+  await expect(
+    page.locator(".Metas_Sugeridas_Fila", {
+      hasText: "Sin fecha semanal"
+    })
+  ).toHaveCount(1);
+  await expect(
+    page.locator(".Metas_Sugeridas_Fila", { hasText: "Otra semana" })
+  ).toHaveCount(1);
+  const Extras = await page.evaluate(() => {
+    return Array.from(
+      document.querySelectorAll(".Metas_Sugeridas_Fila")
+    ).map((Fila) => ({
+      id: Fila.dataset.subobjetivoId,
+      diario: Fila.dataset.diario || "",
+      diarioCorto: Boolean(
+        Fila.querySelector(".Metas_Sugeridas_Diario_Corto")
+      ),
+      vinculo: Fila.querySelector(".Metas_Sugeridas_Vinculo")
+        ?.textContent || ""
+    }));
+  });
+  expect(Extras).toEqual([
+    expect.objectContaining({
+      id: "sub_seo",
+      diarioCorto: true
+    }),
+    expect.objectContaining({
+      id: "sub_sin_fecha",
+      diario: "0",
+      diarioCorto: false
+    }),
+    expect.objectContaining({
+      id: "sub_otra_semana",
+      diario: "0",
+      diarioCorto: false
+    })
+  ]);
+  await page.locator(".Metas_Sugeridas_Extras_Btn").click();
+  await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(1);
   const Z_Index = await page.evaluate(() => ({
     metas: Number(
       getComputedStyle(
@@ -264,6 +323,10 @@ async ({ page }) => {
     document.querySelector(".Metas_Sugeridas_Fila")
       ?.classList.add("Abierta");
   });
+  await expect(
+    page.locator(".Metas_Sugeridas_Expandido")
+      .locator(".Metas_Sugeridas_Vinculo")
+  ).toContainText("Plan > SEO");
   await expect(page.locator(".Metas_Sugeridas_Descripcion_Toggle"))
     .toHaveText("Comprimir");
   const Descripcion_Toggle = await page.evaluate(() => {
