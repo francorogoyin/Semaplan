@@ -1634,6 +1634,7 @@ test("panel de habitos mantiene orden y alterna realizados", async ({
     .toContainText("Ocultar realizados");
   await expect(page.locator("#Habitos_Cancelar"))
     .toContainText("Cerrar");
+  await expect(page.locator(".Habitos_Lista_Titulo")).toHaveCount(0);
   expect(await orden()).toEqual([
     "Habito_Primero",
     "Habito_Segundo",

@@ -470,3 +470,83 @@ async ({ page }) => {
     .not.toHaveClass(/Activo/);
   expect(errores).toEqual([]);
 });
+
+test("metas sugeridas calcula horas desde tiempo y partes importadas",
+async ({ page }) => {
+  await Preparar(page);
+  await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
+      Id: "p2026",
+      Tipo: "Anio",
+      Inicio: "2026-01-01",
+      Fin: "2026-12-31",
+      Orden: 0
+    });
+    Modelo.Objetivos.obj_lectura = Normalizar_Objetivo_Plan({
+      Id: "obj_lectura",
+      Periodo_Id: "p2026",
+      Emoji: "L",
+      Nombre: "Lectura",
+      Target_Total: 30,
+      Unidad: "Unidades",
+      Orden: 0
+    });
+    Modelo.Subobjetivos.sub_libro = Normalizar_Subobjetivo_Plan({
+      Id: "sub_libro",
+      Objetivo_Id: "obj_lectura",
+      Emoji: "B",
+      Texto: "Libro",
+      Target_Total: 6,
+      Target_Suma_Componentes: true,
+      Unidad: "Unidades",
+      Fecha_Inicio: "2026-04-20",
+      Fecha_Objetivo: "2026-04-26",
+      Orden: 0
+    });
+    Modelo.Partes.parte_uno = Normalizar_Parte_Meta({
+      Id: "parte_uno",
+      Objetivo_Id: "obj_lectura",
+      Subobjetivo_Id: "sub_libro",
+      Emoji: "1",
+      Nombre: "Parte uno",
+      Aporte_Total: 4,
+      Unidad: "Unidades",
+      Tiempo_Valor: 30,
+      Tiempo_Modo: "Minutos_Por_Unidad",
+      Fecha_Inicio: "2026-04-20",
+      Fecha_Objetivo: "2026-04-22",
+      Orden: 0
+    });
+    Modelo.Partes.parte_dos = Normalizar_Parte_Meta({
+      Id: "parte_dos",
+      Objetivo_Id: "obj_lectura",
+      Subobjetivo_Id: "sub_libro",
+      Emoji: "2",
+      Nombre: "Parte dos",
+      Aporte_Total: 2,
+      Unidad: "Unidades",
+      Tiempo_Valor: 1,
+      Tiempo_Modo: "Horas_Por_Unidad",
+      Fecha_Inicio: "2026-04-23",
+      Fecha_Objetivo: "2026-04-26",
+      Orden: 1
+    });
+    Abrir_Metas_Sugeridas();
+  });
+
+  await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(1);
+  await expect(page.locator(".Metas_Sugeridas_Horas_Input"))
+    .toHaveValue("4");
+
+  await page.evaluate(() => {
+    const Boton = document.querySelector(".Metas_Sugeridas_Partes");
+    Boton.dataset.partesSeleccionadas = "parte_uno";
+    Boton.dispatchEvent(new CustomEvent(
+      "metas-sugeridas-partes-cambio",
+      { bubbles: true }
+    ));
+  });
+  await expect(page.locator(".Metas_Sugeridas_Horas_Input"))
+    .toHaveValue("2");
+});
