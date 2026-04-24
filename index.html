@@ -9394,8 +9394,7 @@
         white-space: nowrap;
       }
 
-      .Habitos_Panel_Modo,
-      .Habitos_Panel_Ver_Todos {
+      .Habitos_Panel_Modo {
         display: inline-flex;
         align-items: center;
         gap: 4px;
@@ -9405,12 +9404,7 @@
         padding: 3px;
       }
 
-      .Habitos_Panel_Ver_Todos {
-        padding: 0;
-      }
-
-      .Habitos_Panel_Modo_Btn,
-      .Habitos_Panel_Ver_Todos_Btn {
+      .Habitos_Panel_Modo_Btn {
         border: 0;
         border-radius: 6px;
         background: transparent;
@@ -9423,8 +9417,7 @@
         padding: 0 10px;
       }
 
-      .Habitos_Panel_Modo_Btn.Activo,
-      .Habitos_Panel_Ver_Todos_Btn.Activo {
+      .Habitos_Panel_Modo_Btn.Activo {
         background: #157a58;
         color: #fff;
       }
@@ -9782,12 +9775,6 @@
         font-weight: 700;
         line-height: 1.35;
         overflow-wrap: anywhere;
-      }
-
-      .Habitos_Card_Ultimo {
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid rgba(143, 124, 98, 0.14);
       }
 
       .Habitos_Card_Acciones {
@@ -23269,7 +23256,6 @@
           "habitos.filtro_en_proceso": "En proceso",
           "habitos.vista_diaria": "Diaria",
           "habitos.vista_semanal": "Semanal",
-          "habitos.ver_todos": "Ver todos los h\u00e1bitos",
           "habitos.seccion_diarios": "Diarios",
           "habitos.seccion_semanales": "Semanales",
           "habitos.seccion_quincenales": "Quincenales",
@@ -27340,7 +27326,6 @@
           "habitos.filtro_en_proceso": "In progress",
           "habitos.vista_diaria": "Daily",
           "habitos.vista_semanal": "Weekly",
-          "habitos.ver_todos": "Show all habits",
           "habitos.seccion_diarios": "Daily",
           "habitos.seccion_semanales": "Weekly",
           "habitos.seccion_quincenales": "Biweekly",
@@ -31350,7 +31335,6 @@
           "habitos.filtro_en_proceso": "Em processo",
           "habitos.vista_diaria": "Diaria",
           "habitos.vista_semanal": "Semanal",
-          "habitos.ver_todos": "Ver todos os habitos",
           "habitos.seccion_diarios": "Diarios",
           "habitos.seccion_semanales": "Semanais",
           "habitos.seccion_quincenales": "Quinzenais",
@@ -35934,7 +35918,7 @@
       let Habitos_Panel_Abiertos = new Set();
       let Habitos_Panel_Modo = "Dia";
       let Habitos_Panel_Fecha = "";
-      let Habitos_Panel_Ver_Todos = false;
+      let Habitos_Registro_Filtro_Habito_Id = "";
       let Habitos_Drag_Id = null;
       let Habitos_Sidebar_Drag_Id = null;
       let Habitos_Filtro_Dia_Modo = "Todo";
@@ -75139,7 +75123,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Habitos_Navegar(Vista) {
         Habitos_Filtros_Modal_Abierto = false;
         Habitos_Filtros_Borrador = null;
+        if (Vista === "Registro") {
+          Habitos_Registro_Filtro_Habito_Id = "";
+        }
         Habitos_Modal_Vista = Vista || "Panel";
+        Render_Modal_Habitos();
+      }
+
+      function Habitos_Abrir_Registro_Habito(Habito_Id) {
+        Habitos_Filtros_Modal_Abierto = false;
+        Habitos_Filtros_Borrador = null;
+        Habitos_Registro_Filtro_Habito_Id = String(Habito_Id || "");
+        Habitos_Modal_Vista = "Registro";
         Render_Modal_Habitos();
       }
 
@@ -75152,6 +75147,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Habitos_Modal_Vista === "Registro" ||
           Habitos_Modal_Vista === "Vinculaciones"
         ) {
+          Habitos_Registro_Filtro_Habito_Id = "";
           Habitos_Navegar("Panel");
           return;
         }
@@ -75393,7 +75389,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Fecha = Habitos_Fecha_Referencia();
         return (Array.isArray(Habitos) ? Habitos : [])
           .filter((Habito) =>
-            Habitos_Panel_Ver_Todos ||
             Habitos_Habito_Visible_Principal(Habito, Fecha)
           )
           .filter((Habito) => Habitos_Pasa_Contexto_Panel(Habito, Fecha))
@@ -75432,18 +75427,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Periodo = Habito_Periodo_Label(Habito_Periodo(Habito));
         if (Modo === "Check") return `${Cantidad} - ${Periodo}`;
         return `${Cantidad}${Unidad ? ` ${Unidad}` : ""} - ${Periodo}`;
-      }
-
-      function Habitos_Ultimo_Registro(Habito_Id) {
-        return (Array.isArray(Habitos_Registros)
-          ? Habitos_Registros
-          : [])
-          .filter((Registro) => Registro.Habito_Id === Habito_Id)
-          .sort((A, B) =>
-            (B.Fecha_Hora || B.Fecha || "").localeCompare(
-              A.Fecha_Hora || A.Fecha || ""
-            )
-          )[0] || null;
       }
 
       function Habitos_Formatear_Fecha_Hora(Registro) {
@@ -75765,51 +75748,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Activos = Items.filter((Habito) =>
           Habitos_Habito_Visible_Principal(Habito, Fecha)
         );
-        const Pospuestos = Items.filter((Habito) =>
-          Habitos_Habito_Pospuesto(Habito, Fecha) &&
-          Habito?.Archivado !== true
-        ).sort(Habitos_Comparar_Orden_Base);
-        const Archivados = Items.filter((Habito) =>
-          Habito?.Archivado === true
-        ).sort(Habitos_Comparar_Orden_Base);
-        const Cancelados = Activos.filter((Habito) =>
-          Habito_Cancelado_En_Periodo(Habito, Fecha)
-        );
-        const Principales = Habitos_Panel_Ver_Todos
-          ? Activos.filter((Habito) =>
-            !Habito_Cancelado_En_Periodo(Habito, Fecha)
-          )
-          : Activos;
         Cuerpo.innerHTML = `
           <div class="Habitos_Panel Habitos_Panel_Principal">
             ${Habitos_Render_Barra_Panel(Fecha)}
             <div class="Habitos_Lista">
-              ${Principales.length ? Habitos_Render_Secciones_Panel(
-                Principales,
+              ${Activos.length ? Habitos_Render_Secciones_Panel(
+                Activos,
                 Fecha
               ) : `
                 <div class="Planes_Vacio">
                   ${t("habitos.lista_vacia")}
                 </div>
               `}
-              ${Habitos_Panel_Ver_Todos
-                ? Habitos_Render_Seccion_Extra(
-                  t("habitos.seccion_cancelados"),
-                  Cancelados,
-                  Fecha,
-                  "Cancelados"
-                ) + Habitos_Render_Seccion_Extra(
-                  t("habitos.seccion_pospuestos"),
-                  Pospuestos,
-                  Fecha,
-                  "Pospuestos"
-                ) + Habitos_Render_Seccion_Extra(
-                  t("habitos.seccion_archivados"),
-                  Archivados,
-                  Fecha,
-                  "Archivados"
-                )
-                : ""}
             </div>
           </div>
           ${Habitos_Render_Filtros_Modal()}
@@ -75848,13 +75798,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Modo === "Semana" ? " Activo" : ""
               }" type="button" data-habitos-panel-modo="Semana">
                 ${t("habitos.vista_semanal")}
-              </button>
-            </div>
-            <div class="Habitos_Panel_Ver_Todos">
-              <button class="Habitos_Panel_Ver_Todos_Btn${
-                Habitos_Panel_Ver_Todos ? " Activo" : ""
-              }" type="button" data-habitos-ver-todos="1">
-                ${t("habitos.ver_todos")}
               </button>
             </div>
           </div>
@@ -76299,7 +76242,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Habitos_Render_Card(Habito, Fecha = Habitos_Fecha_Referencia()) {
         const Estado = Habitos_Estado(Habito, Fecha);
         const Abierta = Habitos_Panel_Abiertos.has(Habito.Id);
-        const Ultimo = Habitos_Ultimo_Registro(Habito.Id);
         const Vinculos = Habitos_Contar_Vinculos(Habito.Id);
         const Cancelado = Habito_Cancelado_En_Periodo(Habito, Fecha);
         const Progreso = Habito_Formatear_Progreso_Contextual(
@@ -76362,16 +76304,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   <span>${t("habitos.card_vinculos")}</span>
                   <strong>${Vinculos}</strong>
                 </div>
-              </div>
-              ${Ultimo ? `
-                <div class="Habitos_Card_Dato Habitos_Card_Ultimo">
+                <div class="Habitos_Card_Dato">
                   <span>${t("habitos.panel_registro")}</span>
-                  <strong>${Escape_Html(
-                    `${Habitos_Formatear_Avance(Ultimo)} - ` +
-                    `${Habitos_Formatear_Fecha_Hora(Ultimo)}`
-                  )}</strong>
+                  <strong>
+                    <button class="Habitos_Accion_Icono" type="button"
+                      data-habitos-registro-habito="${
+                        Escape_Html(Habito.Id)
+                      }"
+                      title="${Escape_Html(t("habitos.panel_registro"))}"
+                      aria-label="${Escape_Html(
+                        t("habitos.panel_registro")
+                      )}">
+                      &#8801;
+                    </button>
+                  </strong>
                 </div>
-              ` : ""}
+              </div>
             </div>
           </div>
         `;
@@ -76408,13 +76356,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Habitos_Navegar_Fecha(Number(Btn.dataset.habitosNavFecha));
             });
           });
-        document.querySelectorAll("[data-habitos-ver-todos]")
-          .forEach((Btn) => {
-            Btn.addEventListener("click", () => {
-              Habitos_Panel_Ver_Todos = !Habitos_Panel_Ver_Todos;
-              Render_Modal_Habitos();
-            });
-          });
         document.querySelectorAll("[data-habitos-toggle]")
           .forEach((Btn) => {
             Btn.addEventListener("click", () => {
@@ -76433,6 +76374,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Ev.stopPropagation();
               Habitos_Registrar_Rapido_Desde_Panel(
                 Btn.dataset.habitosRegistroRapido
+              );
+            });
+          });
+        document.querySelectorAll("[data-habitos-registro-habito]")
+          .forEach((Btn) => {
+            Btn.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              Habitos_Abrir_Registro_Habito(
+                Btn.dataset.habitosRegistroHabito
               );
             });
           });
@@ -76572,8 +76522,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Cuerpo = document.getElementById("Habitos_Cuerpo");
         if (!Cuerpo) return;
         Normalizar_Habitos_Registros();
+        const Habito_Filtro = Habito_Por_Id(
+          Habitos_Registro_Filtro_Habito_Id
+        );
         Habitos_Set_Cabecera(
-          t("habitos.registro_titulo"),
+          Habito_Filtro
+            ? `${t("habitos.registro_titulo")} - ${Habito_Filtro.Nombre}`
+            : t("habitos.registro_titulo"),
           t("habitos.registro_subtitulo"),
           "R"
         );
@@ -76586,7 +76541,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? Habitos_Registros
           : [])
           .map(Normalizar_Habito_Registro)
-          .filter((Registro) => Habito_Por_Id(Registro.Habito_Id))
+          .filter((Registro) =>
+            Habito_Por_Id(Registro.Habito_Id) &&
+            (
+              !Habito_Filtro ||
+              Registro.Habito_Id === Habito_Filtro.Id
+            )
+          )
           .sort((A, B) =>
             (B.Fecha_Hora || B.Fecha || "").localeCompare(
               A.Fecha_Hora || A.Fecha || ""

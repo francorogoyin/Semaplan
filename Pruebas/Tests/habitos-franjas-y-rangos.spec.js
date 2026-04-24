@@ -401,6 +401,85 @@ test("oculta origen tecnico en el log de habitos", async ({ page }) => {
     .toContainText("Manual_Habito_Visible_No");
 });
 
+test("tarjeta de habito abre registro filtrado", async ({ page }) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Filtro_Registro",
+        Nombre: "Lectura filtrada",
+        Tipo: "Hacer",
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 5,
+          Unidad: "paginas"
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Otro_Registro",
+        Nombre: "Otro habito",
+        Tipo: "Hacer",
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 5,
+          Unidad: "paginas"
+        }
+      })
+    ];
+    Habitos_Registros = [
+      Normalizar_Habito_Registro({
+        Id: "Registro_Filtrado",
+        Habito_Id: "Habito_Filtro_Registro",
+        Fecha: "2026-04-24",
+        Hora: "09:00",
+        Fecha_Hora: "2026-04-24T09:00",
+        Periodo_Clave: "2026-04-24",
+        Fuente: "Manual",
+        Fuente_Id: "Manual_Filtrado",
+        Cantidad: 5,
+        Unidad: "paginas"
+      }),
+      Normalizar_Habito_Registro({
+        Id: "Registro_Otro",
+        Habito_Id: "Habito_Otro_Registro",
+        Fecha: "2026-04-24",
+        Hora: "10:00",
+        Fecha_Hora: "2026-04-24T10:00",
+        Periodo_Clave: "2026-04-24",
+        Fuente: "Manual",
+        Fuente_Id: "Manual_Otro",
+        Cantidad: 3,
+        Unidad: "paginas"
+      })
+    ];
+    Abrir_Panel_Habitos();
+  });
+
+  await expect(page.locator("[data-habitos-ver-todos]"))
+    .toHaveCount(0);
+  await page.locator('[data-habitos-toggle="Habito_Filtro_Registro"]')
+    .click();
+  await expect(page.locator(".Habitos_Card_Ultimo")).toHaveCount(0);
+  await expect(
+    page.locator('[data-habitos-registro-habito="Habito_Filtro_Registro"]')
+  ).toBeVisible();
+  await page.locator(
+    '[data-habitos-registro-habito="Habito_Filtro_Registro"]'
+  ).click();
+
+  await expect(page.locator("#Habitos_Titulo"))
+    .toContainText("Lectura filtrada");
+  await expect(page.locator(".Habitos_Tabla"))
+    .toContainText("Lectura filtrada");
+  await expect(page.locator(".Habitos_Tabla"))
+    .not.toContainText("Otro habito");
+});
+
 test("explica que los patrones se filtran por tipo de slot", async ({
   page
 }) => {
