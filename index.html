@@ -10377,6 +10377,12 @@
         gap: 8px;
       }
 
+      .Habitos_Vinculo_Fila.Evento {
+        grid-template-columns:
+          minmax(180px, 1.4fr) minmax(150px, 0.9fr)
+          minmax(76px, 0.45fr) 30px;
+      }
+
       .Habitos_Vinculo_Fila > .Config_Nota {
         margin: 0;
         font-size: 12px;
@@ -23482,6 +23488,9 @@
           "habitos.modo_fijo": "Cantidad fija",
           "habitos.usar_fuente": "Usar fuente",
           "habitos.usar_duracion": "Usar duraci\u00f3n del bloque",
+          "habitos.check_por_bloque": "1 check por bloque",
+          "habitos.cantidad_por_bloque":
+            "Cantidades realizadas por bloque tildado",
           "habitos.color": "Color",
           "habitos.fecha_inicio": "Fecha de comienzo",
           "habitos.help_fecha_inicio":
@@ -27575,6 +27584,9 @@
           "habitos.modo_fijo": "Fixed amount",
           "habitos.usar_fuente": "Use source",
           "habitos.usar_duracion": "Use block duration",
+          "habitos.check_por_bloque": "1 check per completed block",
+          "habitos.cantidad_por_bloque":
+            "Amounts completed per checked block",
           "habitos.color": "Color",
           "habitos.fecha_inicio": "Start date",
           "habitos.help_fecha_inicio":
@@ -31608,6 +31620,9 @@
           "habitos.modo_fijo": "Quantidade fixa",
           "habitos.usar_fuente": "Usar fonte",
           "habitos.usar_duracion": "Usar duracao do bloco",
+          "habitos.check_por_bloque": "1 check por bloco concluido",
+          "habitos.cantidad_por_bloque":
+            "Quantidades realizadas por bloco marcado",
           "habitos.color": "Cor",
           "habitos.fecha_inicio": "Data de inicio",
           "habitos.help_fecha_inicio":
@@ -58623,10 +58638,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Item) return "";
         const Obj = Item.Objetivo;
         if (Item.Tipo === "Subobjetivo") {
-          return (
-            `${Obj.Emoji || ""} ${Obj.Nombre || ""} · ` +
-            `${Item.Sub.Emoji || "\u2022"} ${Item.Sub.Texto || ""}`
-          ).trim();
+          return `${Item.Sub.Emoji || "\u2022"} ${
+            Item.Sub.Texto || ""
+          }`.trim();
         }
         return `${Obj.Emoji || ""} ${Obj.Nombre || ""}`.trim();
       }
@@ -88427,6 +88441,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? Duracion
             : Duracion * 60;
         }
+        if (Fuente_Tipo === "Evento") {
+          return Modo === "Check"
+            ? 1
+            : Number(Vinculo?.Cantidad) || 1;
+        }
         if (Modo === "Check") {
           return Number(Vinculo?.Cantidad) || 1;
         }
@@ -88517,24 +88536,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Habito_Compatibles_Para_Fuente(Fuente_Tipo) {
         return (Array.isArray(Habitos) ? Habitos : [])
-          .filter((Habito) => Habito?.Activo)
-          .filter((Habito) => {
-            const Modo = Habito_Modo_Visible(Habito);
-            if (Fuente_Tipo === "Evento") return Modo === "Tiempo";
-            return true;
-          });
+          .filter((Habito) => Habito?.Activo);
       }
 
       function Habito_Vinculo_Default(Fuente_Tipo, Habito_Id = "") {
         const Habito = Habito_Por_Id(Habito_Id);
+        const Modo = Habito_Modo_Visible(Habito);
         const Puede_Usar_Fuente =
           Habito &&
-          Habito_Modo_Visible(Habito) === "Cantidad" &&
+          Modo === "Cantidad" &&
           Habito_Fuente_Puede_Usar_Cantidad(Fuente_Tipo);
         return {
           Habito_Id: "",
           Cantidad_Modo: Fuente_Tipo === "Evento"
-            ? "Usar_Duracion"
+            ? (Modo === "Tiempo" ? "Usar_Duracion" : "Fija")
             : (Puede_Usar_Fuente ? "Usar_Fuente" : "Fija"),
           Cantidad: 1,
           Activo: true
@@ -88840,7 +88855,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return Habito_Coincide_Con_Slot(
             Habito,
             Evento_Activo.Fecha,
-            Number(Evento_Activo.Hora) || 0
+            Number(Evento_Activo.Inicio) || Number(Evento_Activo.Hora) || 0
           );
         });
         const Barra = document.createElement("div");
@@ -88917,6 +88932,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Fila = document.createElement("div");
           Fila.className =
             "Planes_Subobjetivo_Metadato_Fila Habitos_Vinculo_Fila";
+          if (Fuente_Tipo === "Evento") {
+            Fila.classList.add("Evento");
+          }
           const Select = document.createElement("select");
           Select.className = "Config_Select";
           Select.style.flex = "1";
@@ -88936,7 +88954,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Habito = Habito_Por_Id(Vinculo.Habito_Id);
             if (!Habito) return;
             if (Fuente_Tipo === "Evento") {
-              Vinculo.Cantidad_Modo = "Usar_Duracion";
+              Vinculo.Cantidad_Modo =
+                Habito_Modo_Visible(Habito) === "Tiempo"
+                  ? "Usar_Duracion"
+                  : "Fija";
             } else if (
               Habito_Modo_Visible(Habito) === "Cantidad" &&
               Habito_Fuente_Puede_Usar_Cantidad(Fuente_Tipo)
@@ -88954,10 +88975,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fila.appendChild(Select);
 
           const Habito = Habito_Por_Id(Vinculo.Habito_Id);
+          const Modo_Habito = Habito_Modo_Visible(Habito);
           if (Fuente_Tipo !== "Evento") {
             const Modo = document.createElement("select");
             Modo.className = "Config_Select";
-            const Es_Cantidad = Habito_Modo_Visible(Habito) === "Cantidad";
+            const Es_Cantidad = Modo_Habito === "Cantidad";
             [
               { Valor: "Fija", Texto: t("habitos.modo_fijo") },
               ...(Es_Cantidad && Habito_Fuente_Puede_Usar_Cantidad(Fuente_Tipo)
@@ -88977,7 +88999,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           } else {
             const Badge = document.createElement("span");
             Badge.className = "Config_Nota";
-            Badge.textContent = t("habitos.usar_duracion");
+            Badge.textContent = Modo_Habito === "Tiempo"
+              ? t("habitos.usar_duracion")
+              : (
+                Modo_Habito === "Cantidad"
+                  ? t("habitos.cantidad_por_bloque")
+                  : t("habitos.check_por_bloque")
+              );
             Fila.appendChild(Badge);
           }
 
@@ -88987,8 +89015,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Input.step = "0.25";
           Input.className = "Config_Input";
           Input.value = String(Number(Vinculo.Cantidad) || 1);
-          Input.hidden = Fuente_Tipo === "Evento" ||
-            Vinculo.Cantidad_Modo === "Usar_Fuente";
+          Input.hidden = (
+            Fuente_Tipo === "Evento" && Modo_Habito !== "Cantidad"
+          ) || (
+            Fuente_Tipo !== "Evento" &&
+            Vinculo.Cantidad_Modo === "Usar_Fuente"
+          );
           Input.addEventListener("input", () => {
             Vinculo.Cantidad = Number(Input.value) || 1;
           });

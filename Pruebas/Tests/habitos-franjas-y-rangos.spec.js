@@ -727,6 +727,178 @@ test("vincula habitos desde items de patrones de slot", async ({
   expect(resultado.Vinculaciones.length).toBeGreaterThanOrEqual(2);
 });
 
+test("vinculos de bloque aceptan tiempo check y cantidad", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  const resultado = await page.evaluate(async () => {
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Tiempo_Bloque",
+        Nombre: "Foco",
+        Emoji: "\u23f1\ufe0f",
+        Tipo: "Hacer",
+        Activo: true,
+        Meta: {
+          Modo: "Tiempo",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 90,
+          Unidad: "Minutos"
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Check_Bloque",
+        Nombre: "Sentarse",
+        Emoji: "\u2705",
+        Tipo: "Hacer",
+        Activo: true,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 1
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Cantidad_Bloque",
+        Nombre: "Lectura",
+        Emoji: "\uD83D\uDCD6",
+        Tipo: "Hacer",
+        Activo: true,
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 12,
+          Unidad: "paginas"
+        }
+      })
+    ];
+    Habitos_Registros = [];
+    Objetivos = [
+      {
+        Id: "Obj_Bloque_Habitos",
+        Nombre: "Estudiar",
+        Emoji: "\uD83C\uDF93",
+        Horas_Semanales: 2,
+        Restante: 2
+      }
+    ];
+    Eventos = [
+      {
+        Id: "Evento_Bloque_Habitos",
+        Objetivo_Id: "Obj_Bloque_Habitos",
+        Fecha: "2026-04-24",
+        Inicio: 9,
+        Duracion: 1.5,
+        Hecho: false,
+        Habitos_Vinculos: [
+          {
+            Habito_Id: "Habito_Tiempo_Bloque",
+            Cantidad_Modo: "Usar_Duracion",
+            Cantidad: 1,
+            Activo: true
+          },
+          {
+            Habito_Id: "Habito_Check_Bloque",
+            Cantidad_Modo: "Fija",
+            Cantidad: 9,
+            Activo: true
+          },
+          {
+            Habito_Id: "Habito_Cantidad_Bloque",
+            Cantidad_Modo: "Fija",
+            Cantidad: 4,
+            Activo: true
+          }
+        ]
+      }
+    ];
+
+    Abrir_Habitos_Evento("Evento_Bloque_Habitos");
+    const Texto_Modal =
+      document.getElementById("Habitos_Evento_Cuerpo")?.innerText || "";
+    const Opciones = Array.from(
+      document.querySelectorAll("#Habitos_Evento_Cuerpo option")
+    ).map((Opcion) => Opcion.textContent || "");
+    Guardar_Habitos_Evento_Modal();
+
+    await Meta_Aporte_Cambiar_Hecho_Evento(Eventos[0], true);
+
+    return {
+      textoModal: Texto_Modal,
+      opciones: Opciones,
+      registros: Habitos_Registros
+        .map((Registro) => ({
+          Habito_Id: Registro.Habito_Id,
+          Cantidad: Registro.Cantidad,
+          Unidad: Registro.Unidad,
+          Fuente: Registro.Fuente,
+          Fuente_Id: Registro.Fuente_Id,
+          Hora: Registro.Hora
+        }))
+        .sort((A, B) => A.Habito_Id.localeCompare(B.Habito_Id))
+    };
+  });
+
+  expect(resultado.opciones.join(" ")).toContain("Foco");
+  expect(resultado.opciones.join(" ")).toContain("Sentarse");
+  expect(resultado.opciones.join(" ")).toContain("Lectura");
+  expect(resultado.textoModal).toContain(
+    "Cantidades realizadas por bloque tildado"
+  );
+  expect(resultado.registros).toEqual([
+    {
+      Habito_Id: "Habito_Cantidad_Bloque",
+      Cantidad: 4,
+      Unidad: "paginas",
+      Fuente: "Evento",
+      Fuente_Id: "Evento_Bloque_Habitos",
+      Hora: "09:00"
+    },
+    {
+      Habito_Id: "Habito_Check_Bloque",
+      Cantidad: 1,
+      Unidad: "",
+      Fuente: "Evento",
+      Fuente_Id: "Evento_Bloque_Habitos",
+      Hora: "09:00"
+    },
+    {
+      Habito_Id: "Habito_Tiempo_Bloque",
+      Cantidad: 90,
+      Unidad: "min",
+      Fuente: "Evento",
+      Fuente_Id: "Evento_Bloque_Habitos",
+      Hora: "09:00"
+    }
+  ]);
+});
+
+test("vinculo semanal con meta muestra solo el nombre propio", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  const etiqueta = await page.evaluate(() =>
+    Meta_Aporte_Label_Item({
+      Tipo: "Subobjetivo",
+      Objetivo: {
+        Emoji: "\uD83D\uDCD8",
+        Nombre: "Lecturas"
+      },
+      Sub: {
+        Emoji: "\u2696\ufe0f",
+        Texto: "Kant"
+      }
+    })
+  );
+
+  expect(etiqueta).toBe("\u2696\ufe0f Kant");
+});
+
 test("vinculos de planes registran habitos al finalizar avances", async ({
   page
 }) => {
