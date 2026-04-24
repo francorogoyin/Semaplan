@@ -131,6 +131,103 @@ test("normaliza regla Entre sin maximo menor que minimo", async ({
   expect(meta.Cantidad_Maxima).toBe(10);
 });
 
+test("calcula periodos quincenales y mensuales de habitos", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  const resultado = await page.evaluate(() => {
+    const Quincenal = Normalizar_Habito({
+      Id: "Habito_Quincenal",
+      Nombre: "Quincenal",
+      Meta: {
+        Modo: "Cantidad",
+        Regla: "Al_Menos",
+        Periodo: "Quincena",
+        Cantidad: 30,
+        Unidad: "paginas"
+      }
+    });
+    const Mensual = Normalizar_Habito({
+      Id: "Habito_Mensual",
+      Nombre: "Mensual",
+      Meta: {
+        Modo: "Cantidad",
+        Regla: "Al_Menos",
+        Periodo: "Mes",
+        Cantidad: 100,
+        Unidad: "paginas"
+      }
+    });
+    Habitos = [Quincenal, Mensual];
+    Habitos_Registros = [];
+    Habito_Registrar_Fuente({
+      Habito_Id: "Habito_Quincenal",
+      Fecha: "2026-04-10",
+      Fuente: "Manual",
+      Fuente_Id: "q1",
+      Cantidad: 10,
+      Unidad: "paginas"
+    });
+    Habito_Registrar_Fuente({
+      Habito_Id: "Habito_Quincenal",
+      Fecha: "2026-04-20",
+      Fuente: "Manual",
+      Fuente_Id: "q2",
+      Cantidad: 20,
+      Unidad: "paginas"
+    });
+    Habito_Registrar_Fuente({
+      Habito_Id: "Habito_Mensual",
+      Fecha: "2026-04-10",
+      Fuente: "Manual",
+      Fuente_Id: "m1",
+      Cantidad: 40,
+      Unidad: "paginas"
+    });
+    Habito_Registrar_Fuente({
+      Habito_Id: "Habito_Mensual",
+      Fecha: "2026-04-20",
+      Fuente: "Manual",
+      Fuente_Id: "m2",
+      Cantidad: 50,
+      Unidad: "paginas"
+    });
+    Abrir_Modal_Habitos();
+    return {
+      q10: Habito_Clave_Periodo(Quincenal, "2026-04-10"),
+      q20: Habito_Clave_Periodo(Quincenal, "2026-04-20"),
+      mes: Habito_Clave_Periodo(Mensual, "2026-04-20"),
+      progresoQ10: Habito_Progreso_Actual(Quincenal, "2026-04-10"),
+      progresoQ20: Habito_Progreso_Actual(Quincenal, "2026-04-20"),
+      progresoMes: Habito_Progreso_Actual(Mensual, "2026-04-24"),
+      metaQ: Habitos_Texto_Meta(Quincenal),
+      metaM: Habitos_Texto_Meta(Mensual),
+      tieneQuincena: Boolean(
+        document.querySelector(
+          '#Habito_Meta_Periodo option[value="Quincena"]'
+        )
+      ),
+      tieneMes: Boolean(
+        document.querySelector('#Habito_Meta_Periodo option[value="Mes"]')
+      )
+    };
+  });
+
+  expect(resultado).toEqual({
+    q10: "2026-04-Q1",
+    q20: "2026-04-Q2",
+    mes: "2026-04",
+    progresoQ10: 10,
+    progresoQ20: 20,
+    progresoMes: 90,
+    metaQ: "30 paginas - Por quincena",
+    metaM: "100 paginas - Por mes",
+    tieneQuincena: true,
+    tieneMes: true
+  });
+});
+
 test("permite cero caidas en habitos de evitar", async ({ page }) => {
   await Preparar(page);
 
@@ -950,6 +1047,32 @@ test("sidebar de habitos rotula y separa semanales de diarios", async ({
           Periodo: "Semana",
           Cantidad: 1
         }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Quincenal_Sidebar",
+        Nombre: "Revision quincenal",
+        Emoji: "\u25D0",
+        Activo: true,
+        Orden: 3,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Quincena",
+          Cantidad: 1
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Mensual_Sidebar",
+        Nombre: "Revision mensual",
+        Emoji: "\u{1f5d3}\uFE0F",
+        Activo: true,
+        Orden: 4,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Mes",
+          Cantidad: 1
+        }
       })
     ];
     Habitos_Registros = [];
@@ -992,10 +1115,17 @@ test("sidebar de habitos rotula y separa semanales de diarios", async ({
   expect(estructura).toEqual({
     oculto: false,
     titulo: "H\u00e1bitos",
-    labels: ["\u{1F4C5} SEMANALES", "\u2713 DIARIOS"],
+    labels: [
+      "\u{1F4C5} SEMANALES",
+      "\u25D0 QUINCENALES",
+      "\u{1F5D3}\uFE0F MENSUALES",
+      "\u2713 DIARIOS"
+    ],
     divisores: 0,
     grupos: [
       ["Habito_Semanal_Sidebar"],
+      ["Habito_Quincenal_Sidebar"],
+      ["Habito_Mensual_Sidebar"],
       ["Habito_Diario_Sidebar"]
     ],
     bordeRoot: "0px",

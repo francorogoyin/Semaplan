@@ -23100,6 +23100,8 @@
           "sidebar.ocultar_habitos": "Ocultar habitos",
           "sidebar.habitos_titulo": "H\u00e1bitos",
           "sidebar.habitos_semanales": "Semanales",
+          "sidebar.habitos_quincenales": "Quincenales",
+          "sidebar.habitos_mensuales": "Mensuales",
           "sidebar.habitos_diarios": "Diarios",
           "sidebar.help_nombre":
             "Nombre visible del objetivo semanal o de la bolsa.",
@@ -23270,6 +23272,8 @@
           "habitos.ver_todos": "Ver todos los h\u00e1bitos",
           "habitos.seccion_diarios": "Diarios",
           "habitos.seccion_semanales": "Semanales",
+          "habitos.seccion_quincenales": "Quincenales",
+          "habitos.seccion_mensuales": "Mensuales",
           "habitos.seccion_cancelados": "Cancelados",
           "habitos.seccion_pospuestos": "Pospuestos",
           "habitos.seccion_archivados": "Archivados",
@@ -23378,6 +23382,8 @@
           "habitos.periodo": "Per\u00edodo",
           "habitos.periodo_dia": "Por d\u00eda",
           "habitos.periodo_semana": "Por semana",
+          "habitos.periodo_quincena": "Por quincena",
+          "habitos.periodo_mes": "Por mes",
           "habitos.meta_cantidad": "Meta",
           "habitos.meta_maxima": "Máximo",
           "habitos.unidad": "Unidad",
@@ -23440,6 +23446,8 @@
           "habitos.card_promedio": "Promedio",
           "habitos.unidad_dias": "d\u00eda(s)",
           "habitos.unidad_semanas": "semana(s)",
+          "habitos.unidad_quincenas": "quincena(s)",
+          "habitos.unidad_meses": "mes(es)",
           "habitos.borrar_confirm":
             "Este h\u00e1bito aparece en {planes} plan(es), {patrones} patr\u00f3n(es) y {fuentes} fuente(s).",
           "habitos.borrar": "Borrar h\u00e1bito",
@@ -27169,6 +27177,8 @@
           "sidebar.ocultar_habitos": "Hide habits",
           "sidebar.habitos_titulo": "Habits",
           "sidebar.habitos_semanales": "Weekly",
+          "sidebar.habitos_quincenales": "Biweekly",
+          "sidebar.habitos_mensuales": "Monthly",
           "sidebar.habitos_diarios": "Daily",
           "sidebar.help_nombre":
             "Visible name for the weekly objective or hour pool.",
@@ -27333,6 +27343,8 @@
           "habitos.ver_todos": "Show all habits",
           "habitos.seccion_diarios": "Daily",
           "habitos.seccion_semanales": "Weekly",
+          "habitos.seccion_quincenales": "Biweekly",
+          "habitos.seccion_mensuales": "Monthly",
           "habitos.seccion_cancelados": "Cancelled",
           "habitos.seccion_pospuestos": "Postponed",
           "habitos.seccion_archivados": "Archived",
@@ -27440,6 +27452,8 @@
           "habitos.periodo": "Period",
           "habitos.periodo_dia": "Per day",
           "habitos.periodo_semana": "Per week",
+          "habitos.periodo_quincena": "Per half-month",
+          "habitos.periodo_mes": "Per month",
           "habitos.meta_cantidad": "Target",
           "habitos.meta_maxima": "Maximum",
           "habitos.unidad": "Unit",
@@ -27500,6 +27514,8 @@
           "habitos.card_promedio": "Average",
           "habitos.unidad_dias": "day(s)",
           "habitos.unidad_semanas": "week(s)",
+          "habitos.unidad_quincenas": "half-month(s)",
+          "habitos.unidad_meses": "month(s)",
           "habitos.borrar_confirm":
             "This habit appears in {planes} plan(s), {patrones} pattern(s) and {fuentes} source(s).",
           "habitos.borrar": "Delete habit",
@@ -31165,6 +31181,8 @@
           "sidebar.ocultar_habitos": "Ocultar habitos",
           "sidebar.habitos_titulo": "H\u00e1bitos",
           "sidebar.habitos_semanales": "Semanais",
+          "sidebar.habitos_quincenales": "Quinzenais",
+          "sidebar.habitos_mensuales": "Mensais",
           "sidebar.habitos_diarios": "Di\u00e1rios",
           "sidebar.help_nombre":
             "Nome visível do objetivo semanal ou do banco de horas.",
@@ -31335,6 +31353,8 @@
           "habitos.ver_todos": "Ver todos os habitos",
           "habitos.seccion_diarios": "Diarios",
           "habitos.seccion_semanales": "Semanais",
+          "habitos.seccion_quincenales": "Quinzenais",
+          "habitos.seccion_mensuales": "Mensais",
           "habitos.seccion_cancelados": "Cancelados",
           "habitos.seccion_pospuestos": "Adiados",
           "habitos.seccion_archivados": "Arquivados",
@@ -31443,6 +31463,8 @@
           "habitos.periodo": "Periodo",
           "habitos.periodo_dia": "Por dia",
           "habitos.periodo_semana": "Por semana",
+          "habitos.periodo_quincena": "Por quinzena",
+          "habitos.periodo_mes": "Por mes",
           "habitos.meta_cantidad": "Meta",
           "habitos.meta_maxima": "Máximo",
           "habitos.unidad": "Unidade",
@@ -31505,6 +31527,8 @@
           "habitos.card_promedio": "Media",
           "habitos.unidad_dias": "dia(s)",
           "habitos.unidad_semanas": "semana(s)",
+          "habitos.unidad_quincenas": "quinzena(s)",
+          "habitos.unidad_meses": "mes(es)",
           "habitos.borrar_confirm":
             "Este habito aparece em {planes} plano(s), {patrones} padrao(es) e {fuentes} fonte(s).",
           "habitos.borrar": "Excluir habito",
@@ -74818,6 +74842,78 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Habitos_Rango_Quincena(Fecha) {
+        const Base = Parsear_Fecha_ISO(Fecha) || new Date();
+        const Anio = Base.getFullYear();
+        const Mes = Base.getMonth();
+        const Es_Primera = Base.getDate() <= 15;
+        const Inicio = new Date(Anio, Mes, Es_Primera ? 1 : 16);
+        const Fin = Es_Primera
+          ? new Date(Anio, Mes, 15)
+          : Ultimo_Dia_Mes(Anio, Mes);
+        return {
+          Inicio: Formatear_Fecha_ISO(Inicio),
+          Fin: Formatear_Fecha_ISO(Fin)
+        };
+      }
+
+      function Habitos_Rango_Mes(Fecha) {
+        const Base = Parsear_Fecha_ISO(Fecha) || new Date();
+        const Anio = Base.getFullYear();
+        const Mes = Base.getMonth();
+        return {
+          Inicio: Formatear_Fecha_ISO(new Date(Anio, Mes, 1)),
+          Fin: Formatear_Fecha_ISO(Ultimo_Dia_Mes(Anio, Mes))
+        };
+      }
+
+      function Habito_Periodo(Habito) {
+        const Periodo = Habito?.Meta?.Periodo;
+        return ["Dia", "Semana", "Quincena", "Mes"].includes(Periodo)
+          ? Periodo
+          : "Dia";
+      }
+
+      function Habito_Periodo_Label(Periodo) {
+        if (Periodo === "Semana") return t("habitos.periodo_semana");
+        if (Periodo === "Quincena") {
+          return t("habitos.periodo_quincena");
+        }
+        if (Periodo === "Mes") return t("habitos.periodo_mes");
+        return t("habitos.periodo_dia");
+      }
+
+      function Habito_Unidad_Racha(Periodo) {
+        if (Periodo === "Semana") return t("habitos.unidad_semanas");
+        if (Periodo === "Quincena") {
+          return t("habitos.unidad_quincenas");
+        }
+        if (Periodo === "Mes") return t("habitos.unidad_meses");
+        return t("habitos.unidad_dias");
+      }
+
+      function Habito_Fecha_Periodo_Anterior(Habito, Fecha) {
+        const Periodo = Habito_Periodo(Habito);
+        const Base = Parsear_Fecha_ISO(Fecha) || new Date();
+        if (Periodo === "Semana") {
+          return Formatear_Fecha_ISO(Sumar_Dias(Base, -7));
+        }
+        if (Periodo === "Quincena") {
+          const Anio = Base.getFullYear();
+          const Mes = Base.getMonth();
+          const Anterior = Base.getDate() <= 15
+            ? new Date(Anio, Mes - 1, 16)
+            : new Date(Anio, Mes, 1);
+          return Formatear_Fecha_ISO(Anterior);
+        }
+        if (Periodo === "Mes") {
+          return Formatear_Fecha_ISO(
+            new Date(Base.getFullYear(), Base.getMonth() - 1, 1)
+          );
+        }
+        return Formatear_Fecha_ISO(Sumar_Dias(Base, -1));
+      }
+
       function Habitos_Formatear_Dia_Titulo(Fecha) {
         const Fecha_Obj = Parsear_Fecha_ISO(Fecha);
         if (!Fecha_Obj) return Fecha || "";
@@ -75333,9 +75429,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Habito_Objetivo_Total(Habito)
         );
         const Unidad = Habito_Unidad(Habito);
-        const Periodo = Habito?.Meta?.Periodo === "Semana"
-          ? t("habitos.periodo_semana")
-          : t("habitos.periodo_dia");
+        const Periodo = Habito_Periodo_Label(Habito_Periodo(Habito));
         if (Modo === "Check") return `${Cantidad} - ${Periodo}`;
         return `${Cantidad}${Unidad ? ` ${Unidad}` : ""} - ${Periodo}`;
       }
@@ -75774,10 +75868,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ).join("");
         }
         const Diarios = Items.filter((Habito) =>
-          Habito?.Meta?.Periodo !== "Semana"
+          Habito_Periodo(Habito) === "Dia"
         );
         const Semanales = Items.filter((Habito) =>
-          Habito?.Meta?.Periodo === "Semana"
+          Habito_Periodo(Habito) === "Semana"
+        );
+        const Quincenales = Items.filter((Habito) =>
+          Habito_Periodo(Habito) === "Quincena"
+        );
+        const Mensuales = Items.filter((Habito) =>
+          Habito_Periodo(Habito) === "Mes"
         );
         return Habitos_Render_Seccion_Extra(
           t("habitos.seccion_diarios"),
@@ -75791,6 +75891,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fecha,
           "Semanales",
           Diarios.length > 0
+        ) + Habitos_Render_Seccion_Extra(
+          t("habitos.seccion_quincenales"),
+          Quincenales,
+          Fecha,
+          "Quincenales",
+          Diarios.length > 0 || Semanales.length > 0
+        ) + Habitos_Render_Seccion_Extra(
+          t("habitos.seccion_mensuales"),
+          Mensuales,
+          Fecha,
+          "Mensuales",
+          Diarios.length > 0 ||
+            Semanales.length > 0 ||
+            Quincenales.length > 0
         );
       }
 
@@ -76123,9 +76237,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : "0";
         return {
           Racha: `${Habitos_Calcular_Racha(Habito, Fecha)} ` +
-            `${Habito?.Meta?.Periodo === "Semana"
-              ? t("habitos.unidad_semanas")
-              : t("habitos.unidad_dias")}`,
+            `${Habito_Unidad_Racha(Habito_Periodo(Habito))}`,
           Exitos: String(Exitos),
           Promedio: Unidad
             ? `${Promedio} ${Unidad}`
@@ -76134,15 +76246,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Habitos_Calcular_Racha(Habito, Fecha) {
-        const Paso = Habito?.Meta?.Periodo === "Semana" ? 7 : 1;
-        let Cursor = Parsear_Fecha_ISO(Fecha) || new Date();
+        let Cursor = Formatear_Fecha_ISO(
+          Parsear_Fecha_ISO(Fecha) || new Date()
+        );
         let Racha = 0;
         for (let I = 0; I < 370; I++) {
-          const Clave_Fecha = Formatear_Fecha_ISO(Cursor);
-          if (Habito_Cancelado_En_Periodo(Habito, Clave_Fecha)) break;
-          if (!Habito_Esta_Completo(Habito, Clave_Fecha)) break;
+          if (Habito_Cancelado_En_Periodo(Habito, Cursor)) break;
+          if (!Habito_Esta_Completo(Habito, Cursor)) break;
           Racha += 1;
-          Cursor = Sumar_Dias(Cursor, -Paso);
+          Cursor = Habito_Fecha_Periodo_Anterior(Habito, Cursor);
         }
         return Racha;
       }
@@ -77509,6 +77621,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 <select class="Habitos_Modal_Select" id="Habito_Meta_Periodo">
                   <option value="Dia">${t("habitos.periodo_dia")}</option>
                   <option value="Semana">${t("habitos.periodo_semana")}</option>
+                  <option value="Quincena">${t("habitos.periodo_quincena")}</option>
+                  <option value="Mes">${t("habitos.periodo_mes")}</option>
                 </select>
               </label>
               <label class="Habitos_Modal_Campo"
@@ -86783,8 +86897,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ].includes(Programacion_Base.Tipo)
           ? Programacion_Base.Tipo
           : "Libre";
-        const Periodo = Meta_Base.Periodo === "Semana"
-          ? "Semana"
+        const Periodo = ["Dia", "Semana", "Quincena", "Mes"].includes(
+          Meta_Base.Periodo
+        )
+          ? Meta_Base.Periodo
           : "Dia";
         const Regla_Base = [
           "Al_Menos",
@@ -86945,8 +87061,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Habito_Clave_Periodo(Habito, Fecha) {
         const Fecha_Normalizada = String(Fecha || "").trim();
         if (!Fecha_Normalizada) return "";
-        if (Habito?.Meta?.Periodo === "Semana") {
+        const Periodo = Habito_Periodo(Habito);
+        if (Periodo === "Semana") {
           return Normalizar_Clave_Semana_Desde_Fecha(Fecha_Normalizada);
+        }
+        const Fecha_Obj = Parsear_Fecha_ISO(Fecha_Normalizada);
+        if (!Fecha_Obj) return Fecha_Normalizada;
+        const Anio = Fecha_Obj.getFullYear();
+        const Mes = String(Fecha_Obj.getMonth() + 1).padStart(2, "0");
+        if (Periodo === "Quincena") {
+          return `${Anio}-${Mes}-Q${Fecha_Obj.getDate() <= 15 ? "1" : "2"}`;
+        }
+        if (Periodo === "Mes") {
+          return `${Anio}-${Mes}`;
         }
         return Fecha_Normalizada;
       }
@@ -86985,8 +87112,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Habito_Progreso_Contextual(Habito, Fecha, Modo = "Dia") {
+        const Periodo = Habito_Periodo(Habito);
         if (Habito?.Tipo === "Evitar") {
-          if (Modo === "Semana" && Habito?.Meta?.Periodo !== "Semana") {
+          if (Modo === "Semana" && Periodo === "Dia") {
             return Habitos_Fechas_Semana(Fecha).filter((Dia) =>
               Habitos_Evitar_Confirmado_En_Periodo(Habito, Dia)
             ).length;
@@ -86995,7 +87123,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? 1
             : 0;
         }
-        if (Modo !== "Semana" || Habito?.Meta?.Periodo === "Semana") {
+        if (Modo !== "Semana" || Periodo !== "Dia") {
           return Habito_Progreso_Actual(Habito, Fecha);
         }
         const Fechas = Habitos_Fechas_Semana(Fecha);
@@ -87018,13 +87146,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Modo = "Dia"
       ) {
         const Base = Habito_Objetivo_Total(Habito);
+        const Periodo = Habito_Periodo(Habito);
         if (Habito?.Tipo === "Evitar") {
-          if (Modo === "Semana" && Habito?.Meta?.Periodo !== "Semana") {
+          if (Modo === "Semana" && Periodo === "Dia") {
             return 7;
           }
           return 1;
         }
-        if (Modo === "Semana" && Habito?.Meta?.Periodo !== "Semana") {
+        if (Modo === "Semana" && Periodo === "Dia") {
           return Base * 7;
         }
         return Base;
@@ -87105,7 +87234,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return t("habitos.estado_cancelado");
         }
         if (Habito?.Tipo === "Evitar") {
-          if (Modo === "Semana" && Habito?.Meta?.Periodo !== "Semana") {
+          if (Modo === "Semana" && Habito_Periodo(Habito) === "Dia") {
             const Actual_Evitar = Actual_Param === null
               ? Habito_Progreso_Contextual(Habito, Fecha, Modo)
               : Actual_Param;
@@ -95263,10 +95392,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Sidebar_Habitos.title = t("sidebar.habitos_titulo");
 
         const Semanales = Activos.filter((Habito) =>
-          Habito?.Meta?.Periodo === "Semana"
+          Habito_Periodo(Habito) === "Semana"
+        );
+        const Quincenales = Activos.filter((Habito) =>
+          Habito_Periodo(Habito) === "Quincena"
+        );
+        const Mensuales = Activos.filter((Habito) =>
+          Habito_Periodo(Habito) === "Mes"
         );
         const Diarios = Activos.filter((Habito) =>
-          Habito?.Meta?.Periodo !== "Semana"
+          Habito_Periodo(Habito) === "Dia"
         );
 
         const Titulo = document.createElement("div");
@@ -95329,7 +95464,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Origen = Habito_Por_Id(Habitos_Sidebar_Drag_Id);
             if (
               Origen &&
-              Origen?.Meta?.Periodo === Habito?.Meta?.Periodo
+              Habito_Periodo(Origen) === Habito_Periodo(Habito)
             ) {
               Habitos_Reordenar(Habitos_Sidebar_Drag_Id, Habito.Id);
             }
@@ -95346,9 +95481,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Label.className = "Sidebar_Habitos_Label";
           const Texto_Label = String(t(Clave) || "")
             .toLocaleUpperCase();
-          Label.textContent = Clave === "sidebar.habitos_semanales"
-            ? `\u{1F4C5} ${Texto_Label}`
-            : `\u2713 ${Texto_Label}`;
+          const Iconos = {
+            "sidebar.habitos_semanales": "\u{1F4C5}",
+            "sidebar.habitos_quincenales": "\u25D0",
+            "sidebar.habitos_mensuales": "\u{1F5D3}\uFE0F",
+            "sidebar.habitos_diarios": "\u2713"
+          };
+          Label.textContent = `${Iconos[Clave] || "\u2713"} ${Texto_Label}`;
           const Fila = document.createElement("div");
           Fila.className = "Sidebar_Habitos_Fila";
           Lista.forEach((Habito) => {
@@ -95360,6 +95499,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
 
         Render_Grupo("sidebar.habitos_semanales", Semanales);
+        Render_Grupo("sidebar.habitos_quincenales", Quincenales);
+        Render_Grupo("sidebar.habitos_mensuales", Mensuales);
         Render_Grupo("sidebar.habitos_diarios", Diarios);
       }
 
