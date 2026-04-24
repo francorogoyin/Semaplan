@@ -583,12 +583,72 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
         }
       ]
     });
+    Modelo.Subobjetivos.sub_parcial_habitos =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_parcial_habitos",
+        Objetivo_Id: "obj_habitos",
+        Texto: "Libro largo",
+        Target_Total: 28,
+        Unidad: "Personalizado",
+        Unidad_Custom: "p\u00e1ginas"
+      });
+    Modelo.Partes.parte_parcial_habitos = Normalizar_Parte_Meta({
+      Id: "parte_parcial_habitos",
+      Objetivo_Id: "obj_habitos",
+      Subobjetivo_Id: "sub_parcial_habitos",
+      Nombre: "Capitulo largo",
+      Aporte_Total: 28,
+      Unidad: "Personalizado",
+      Unidad_Custom: "p\u00e1ginas",
+      Habitos_Vinculos: [
+        {
+          Habito_Id: "Habito_Leer_Planes",
+          Cantidad_Modo: "Fija",
+          Cantidad: 1,
+          Activo: true
+        }
+      ]
+    });
+    Modelo.Partes.parte_click_habitos = Normalizar_Parte_Meta({
+      Id: "parte_click_habitos",
+      Objetivo_Id: "obj_habitos",
+      Subobjetivo_Id: "sub_habitos",
+      Nombre: "Capitulo click",
+      Aporte_Total: 5,
+      Unidad: "Personalizado",
+      Unidad_Custom: "p\u00e1ginas",
+      Habitos_Vinculos: [
+        {
+          Habito_Id: "Habito_Leer_Planes",
+          Cantidad_Modo: "Fija",
+          Cantidad: 1,
+          Activo: true
+        }
+      ]
+    });
     Modelo.Subobjetivos.sub_directo_habitos =
       Normalizar_Subobjetivo_Plan({
         Id: "sub_directo_habitos",
         Objetivo_Id: "obj_habitos",
         Texto: "Apunte",
         Target_Total: 7,
+        Unidad: "Personalizado",
+        Unidad_Custom: "p\u00e1ginas",
+        Habitos_Vinculos: [
+          {
+            Habito_Id: "Habito_Leer_Planes",
+            Cantidad_Modo: "Fija",
+            Cantidad: 1,
+            Activo: true
+          }
+        ]
+      });
+    Modelo.Subobjetivos.sub_click_habitos =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_click_habitos",
+        Objetivo_Id: "obj_habitos",
+        Texto: "Resumen",
+        Target_Total: 4,
         Unidad: "Personalizado",
         Unidad_Custom: "p\u00e1ginas",
         Habitos_Vinculos: [
@@ -622,6 +682,21 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
     document.getElementById("Planes_Avance_Hasta_Final").checked = true;
     await Guardar_Modal_Planes_Avance();
 
+    Abrir_Modal_Planes_Avance("Parte|parte_parcial_habitos");
+    document.getElementById("Planes_Avance_Cantidad").value = "1";
+    document.getElementById("Planes_Avance_Fecha").value =
+      "2026-04-24";
+    document.getElementById("Planes_Avance_Hora").value = "12:00";
+    await Guardar_Modal_Planes_Avance();
+
+    const Dialogo_Original = Mostrar_Dialogo;
+    Mostrar_Dialogo = async () => true;
+    await Planes_Marcar_Parte_Como_Realizada("parte_click_habitos");
+    await Planes_Marcar_Subobjetivo_Como_Realizado(
+      "sub_click_habitos"
+    );
+    Mostrar_Dialogo = Dialogo_Original;
+
     return {
       defaultModo: Default_Parte.Cantidad_Modo,
       registros: Habitos_Registros
@@ -636,31 +711,46 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
           Fecha: Registro.Fecha,
           Hora: Registro.Hora
         }))
-        .sort((A, B) => A.Fuente_Id.localeCompare(B.Fuente_Id))
+        .sort((A, B) => A.Hora.localeCompare(B.Hora))
     };
   });
 
-  expect(resultado).toEqual({
-    defaultModo: "Usar_Fuente",
-    registros: [
-      {
-        Fuente: "Plan_Parte",
-        Fuente_Id: "parte_habitos",
-        Cantidad: 7,
-        Unidad: "paginas",
-        Fecha: "2026-04-24",
-        Hora: "10:00"
-      },
-      {
-        Fuente: "Plan_Subobjetivo",
-        Fuente_Id: "sub_directo_habitos",
-        Cantidad: 7,
-        Unidad: "paginas",
-        Fecha: "2026-04-24",
-        Hora: "11:00"
-      }
-    ]
-  });
+  expect(resultado.defaultModo).toBe("Usar_Fuente");
+  expect(resultado.registros).toEqual(expect.arrayContaining([
+    expect.objectContaining({
+      Fuente: "Plan_Parte",
+      Cantidad: 7,
+      Unidad: "paginas",
+      Fecha: "2026-04-24",
+      Hora: "10:00"
+    }),
+    expect.objectContaining({
+      Fuente: "Plan_Subobjetivo",
+      Cantidad: 7,
+      Unidad: "paginas",
+      Fecha: "2026-04-24",
+      Hora: "11:00"
+    }),
+    expect.objectContaining({
+      Fuente: "Plan_Parte",
+      Cantidad: 1,
+      Unidad: "paginas",
+      Fecha: "2026-04-24",
+      Hora: "12:00"
+    }),
+    expect.objectContaining({
+      Fuente: "Plan_Parte",
+      Fuente_Id: "parte_click_habitos",
+      Cantidad: 5,
+      Unidad: "paginas"
+    }),
+    expect.objectContaining({
+      Fuente: "Plan_Subobjetivo",
+      Fuente_Id: "sub_click_habitos",
+      Cantidad: 4,
+      Unidad: "paginas"
+    })
+  ]));
 });
 
 test("sidebar de habitos rotula y separa semanales de diarios", async ({

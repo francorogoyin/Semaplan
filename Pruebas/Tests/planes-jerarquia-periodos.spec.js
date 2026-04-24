@@ -3038,6 +3038,81 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Registrar avance pregunta antes de superar limite manual",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(async () => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Id: "obj_limite_avance",
+      Nombre: "Lectura limite",
+      Emoji: "\uD83D\uDCD7",
+      Target_Total: 20,
+      Unidad: "Personalizado",
+      Unidad_Custom: "p\u00e1ginas"
+    });
+    const Sub_Id = "sub_limite_avance";
+    Modelo.Subobjetivos[Sub_Id] = Normalizar_Subobjetivo_Plan({
+      Id: Sub_Id,
+      Objetivo_Id: Objetivo.Id,
+      Texto: "Libro limite",
+      Target_Total: 5,
+      Unidad: "Personalizado",
+      Unidad_Custom: "p\u00e1ginas"
+    });
+    Modelo.UI.Periodo_Activo_Id = Anio.Id;
+    Render_Plan();
+    const Dialogos = [];
+    const Mostrar_Original = Mostrar_Dialogo;
+    Mostrar_Dialogo = async (Mensaje) => {
+      Dialogos.push(String(Mensaje || ""));
+      return true;
+    };
+    Abrir_Modal_Planes_Avance(`Subobjetivo|${Sub_Id}`, {
+      Tipo: "Periodo",
+      Id: Anio.Id
+    });
+    document.getElementById("Planes_Avance_Cantidad").value = "7";
+    document.getElementById("Planes_Avance_Fecha").value =
+      "2026-04-24";
+    document.getElementById("Planes_Avance_Hora").value = "09:30";
+    await Guardar_Modal_Planes_Avance();
+    Mostrar_Dialogo = Mostrar_Original;
+    const Sub = Modelo.Subobjetivos[Sub_Id];
+    return {
+      dialogos: Dialogos,
+      aporte: Sub.Target_Total,
+      progreso: Sub.Progreso_Avances,
+      estado: Sub.Estado,
+      avances: Object.values(Modelo.Avances || {})
+        .filter((Avance) => Avance.Subobjetivo_Id === Sub.Id)
+        .map((Avance) => Number(Avance.Cantidad) || 0)
+    };
+  });
+
+  expect(Resultado.dialogos).toHaveLength(1);
+  expect(Resultado.dialogos[0]).toContain("faltan");
+  expect(Resultado.aporte).toBe(7);
+  expect(Resultado.progreso).toBe(7);
+  expect(Resultado.estado).toBe("Cumplido");
+  expect(Resultado.avances).toEqual([7]);
+  expect(errores).toEqual([]);
+});
+
 test("Registro de planes permite editar y borrar avances",
 async ({ page }) => {
   const errores = [];

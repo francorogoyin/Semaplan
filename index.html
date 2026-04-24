@@ -23601,6 +23601,13 @@
             "Definí una métrica para el subobjetivo antes de avanzar.",
           "planes.avance_finaliza_confirm":
             "Esto finaliza \"{nombre}\". ¿Querés guardar?",
+          "planes.avance_aumentar_limite_confirm":
+            "Estás por registrar {cantidad} {unidad} en " +
+            "\"{nombre}\", pero faltan {restante} {unidad}. " +
+            "¿Querés aumentar el valor objetivo de {actual} a " +
+            "{nuevo} {unidad}?",
+          "planes.avance_aumentar_limite":
+            "Aumentar valor objetivo",
           "planes.marcar_realizado": "Marcar como realizado",
           "planes.parte_realizar_confirm":
             "Se agregará un avance para el {fecha} a las {hora} " +
@@ -27650,6 +27657,13 @@
             "Define a metric for the subobjective before logging progress.",
           "planes.avance_finaliza_confirm":
             "This completes \"{nombre}\". Save it?",
+          "planes.avance_aumentar_limite_confirm":
+            "You are about to log {cantidad} {unidad} for " +
+            "\"{nombre}\", but only {restante} {unidad} are left. " +
+            "Update the target value from {actual} to {nuevo} " +
+            "{unidad}?",
+          "planes.avance_aumentar_limite":
+            "Update target value",
           "planes.marcar_realizado": "Mark as done",
           "planes.parte_realizar_confirm":
             "A progress entry for {cantidad} {unidad} will be added " +
@@ -31648,6 +31662,13 @@
             "Defina uma métrica para o subobjetivo antes de avançar.",
           "planes.avance_finaliza_confirm":
             "Isto finaliza \"{nombre}\". Quer salvar?",
+          "planes.avance_aumentar_limite_confirm":
+            "Voce esta prestes a registrar {cantidad} {unidad} em " +
+            "\"{nombre}\", mas faltam {restante} {unidad}. " +
+            "Atualizar o valor objetivo de {actual} para {nuevo} " +
+            "{unidad}?",
+          "planes.avance_aumentar_limite":
+            "Atualizar valor objetivo",
           "planes.marcar_realizado": "Marcar como realizado",
           "planes.parte_realizar_confirm":
             "Será registrado um avanço de {cantidad} {unidad} em " +
@@ -50284,6 +50305,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           {
             ...Opciones,
             Automatico: true,
+            Cantidad_Fuente: Cantidad,
+            Unidad_Fuente: Planes_Unidad_Label_Parte(Parte, Cantidad),
             Nota: t("planes.parte_nota_realizada", {
               parte: Parte.Nombre || ""
             })
@@ -50295,7 +50318,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Parte,
             Opciones.Fecha || Parte.Fecha_Fin || Formatear_Fecha_ISO(new Date()),
             true,
-            { Hora: Opciones.Hora || Parte.Hora_Fin || "" }
+            {
+              Hora: Opciones.Hora || Parte.Hora_Fin || "",
+              Cantidad_Fuente: Cantidad,
+              Unidad_Fuente: Planes_Unidad_Label_Parte(Parte, Cantidad)
+            }
           );
         }
         return Ok;
@@ -60269,6 +60296,91 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Actual < Target && Actual + Cantidad >= Target;
       }
 
+      function Planes_Item_Avance_Tiene_Limite_Manual(Item) {
+        if (!Item) return false;
+        if (Item.Tipo === "Parte") return true;
+        if (Item.Tipo === "Subobjetivo") {
+          return !Planes_Target_Suma_Componentes_Activo(Item.Sub);
+        }
+        if (Item.Tipo === "Objetivo") {
+          return !Planes_Target_Suma_Componentes_Activo(Item.Objetivo);
+        }
+        return false;
+      }
+
+      function Planes_Nuevo_Limite_Avance(Item, Cantidad) {
+        if (!Planes_Item_Avance_Tiene_Limite_Manual(Item)) return 0;
+        const Target = Planes_Target_Item_Avance(Item);
+        if (Target <= 0) return 0;
+        const Progreso = Planes_Progreso_Item_Avance(Item);
+        const Nuevo = Progreso + (Number(Cantidad) || 0);
+        return Nuevo > Target + 0.0001 ? Nuevo : 0;
+      }
+
+      async function Planes_Confirmar_Aumentar_Limite_Avance(
+        Item,
+        Cantidad,
+        Nuevo_Limite
+      ) {
+        const Target = Planes_Target_Item_Avance(Item);
+        const Restante = Math.max(
+          0,
+          Target - Planes_Progreso_Item_Avance(Item)
+        );
+        const Unidad = Planes_Unidad_Item_Avance(Item);
+        const Confirmar = await Mostrar_Dialogo(
+          t("planes.avance_aumentar_limite_confirm", {
+            nombre: Planes_Label_Item_Avance(Item),
+            cantidad: Planes_Formatear_Numero(Cantidad),
+            restante: Planes_Formatear_Numero(Restante),
+            actual: Planes_Formatear_Numero(Target),
+            nuevo: Planes_Formatear_Numero(Nuevo_Limite),
+            unidad: Unidad || ""
+          }),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            {
+              Etiqueta: t("planes.avance_aumentar_limite"),
+              Valor: true,
+              Tipo: "Primario"
+            }
+          ]
+        );
+        return Boolean(Confirmar);
+      }
+
+      function Planes_Aumentar_Limite_Avance(Item, Nuevo_Limite) {
+        if (!Item || !(Nuevo_Limite > 0)) return false;
+        if (Item.Tipo === "Parte" && Item.Parte) {
+          const Modelo = Asegurar_Modelo_Planes();
+          const Total_Antes = Planes_Total_Aporte_Partes_Subobjetivo(
+            Item.Parte.Subobjetivo_Id,
+            Modelo
+          );
+          Item.Parte.Aporte_Total = Nuevo_Limite;
+          Item.Parte.Actualizado_En = new Date().toISOString();
+          Planes_Sincronizar_Target_Subobjetivo_Desde_Partes(
+            Item.Parte.Subobjetivo_Id,
+            Total_Antes,
+            Modelo
+          );
+          return true;
+        }
+        if (Item.Tipo === "Subobjetivo" && Item.Sub) {
+          return Planes_Aplicar_Target_Subobjetivo(
+            Item.Sub,
+            Nuevo_Limite
+          );
+        }
+        if (Item.Tipo === "Objetivo" && Item.Objetivo) {
+          return Planes_Aplicar_Target_Objetivo(
+            Item.Objetivo,
+            Nuevo_Limite
+          );
+        }
+        return false;
+      }
+
       function Planes_Aplicar_Finalizacion_Avance(Item, Fecha, Hora) {
         if (!Item) return;
         const Ahora = new Date().toISOString();
@@ -60302,6 +60414,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
             { Etiqueta: t("guardar"), Valor: true, Tipo: "Primario" }
           ]
+        );
+      }
+
+      function Planes_Sincronizar_Habitos_Avance_Registro(
+        Avance,
+        Activo = true
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        if (!Avance?.Id) return;
+        let Fuente_Tipo = "";
+        let Fuente = null;
+        if (Avance.Parte_Id) {
+          Fuente_Tipo = "Plan_Parte";
+          Fuente = Modelo.Partes?.[Avance.Parte_Id];
+        } else if (Avance.Subobjetivo_Id) {
+          Fuente_Tipo = "Plan_Subobjetivo";
+          Fuente = Modelo.Subobjetivos?.[Avance.Subobjetivo_Id];
+        } else if (Avance.Objetivo_Id) {
+          Fuente_Tipo = "Objetivo";
+          Fuente = Modelo.Objetivos?.[Avance.Objetivo_Id];
+        }
+        if (!Fuente_Tipo || !Fuente) return;
+        Habito_Recalcular_Fuente(
+          Fuente_Tipo,
+          Fuente,
+          Planes_Fecha_Avance_Plan(Avance),
+          Activo,
+          {
+            Fuente: Fuente_Tipo,
+            Fuente_Id: Avance.Id,
+            Hora: Planes_Hora_Avance_Plan(Avance),
+            Cantidad_Fuente: Number(Avance.Cantidad) || 0,
+            Unidad_Fuente: Avance.Unidad || ""
+          }
         );
       }
 
@@ -60345,9 +60491,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Fecha = Fecha_Input?.value || Actual.Fecha;
         const Hora = Hora_Input?.value || Actual.Hora;
         const Forzar_Final = Hasta_Final?.checked === true;
+        const Nuevo_Limite = Forzar_Final
+          ? 0
+          : Planes_Nuevo_Limite_Avance(Item, Cantidad);
+        const Aumento_Limite = Nuevo_Limite > 0;
+        if (Aumento_Limite) {
+          const Confirmar_Limite =
+            await Planes_Confirmar_Aumentar_Limite_Avance(
+              Item,
+              Cantidad,
+              Nuevo_Limite
+            );
+          if (!Confirmar_Limite) return;
+          Planes_Aumentar_Limite_Avance(Item, Nuevo_Limite);
+        }
         const Finaliza = Forzar_Final ||
           Planes_Avance_Finaliza_Item(Item, Cantidad);
-        if (Finaliza && !Forzar_Final) {
+        if (Finaliza && !Forzar_Final && !Aumento_Limite) {
           const Confirmar =
             await Planes_Confirmar_Finalizacion_Avance(Item);
           if (!Confirmar) return;
@@ -60369,7 +60529,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         }
         const Id = Crear_Id_Avance_Plan();
-        Modelo.Avances[Id] = Normalizar_Avance_Plan({
+        const Avance = Normalizar_Avance_Plan({
           Id,
           Objetivo_Id: Item.Objetivo.Id,
           Subobjetivo_Id:
@@ -60387,6 +60547,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Hora,
           Fecha_Hora: `${Fecha}T${Hora || "00:00"}`
         });
+        Modelo.Avances[Id] = Avance;
         if (Item.Tipo === "Parte") {
           Planes_Recalcular_Progreso_Parte(Item.Parte, Modelo);
           Planes_Recalcular_Progreso_Subobjetivo(Item.Sub, Modelo);
@@ -60405,40 +60566,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Aplicar_Finalizacion_Avance(Item, Fecha, Hora);
           }
         }
-        if (Item.Tipo === "Parte") {
-          Habito_Recalcular_Fuente(
-            "Plan_Parte",
-            Item.Parte,
-            Fecha,
-            Planes_Estado_Calculado_Parte(
-              Item.Parte,
-              Modelo
-            ) === "Realizada",
-            { Hora }
-          );
-        } else if (Item.Tipo === "Subobjetivo") {
-          Habito_Recalcular_Fuente(
-            "Plan_Subobjetivo",
-            Item.Sub,
-            Fecha,
-            Planes_Estado_Normalizado_Subobjetivo(Item.Sub) ===
-              "Cumplido",
-            { Hora }
-          );
-        } else if (Item.Objetivo) {
-          Habito_Recalcular_Fuente(
-            "Objetivo",
-            Item.Objetivo,
-            Fecha,
-            Planes_Estado_Efectivo_Objetivo(Item.Objetivo) ===
-              "Cumplido",
-            {
-              Fuente: "Objetivo",
-              Fuente_Id: Item.Objetivo.Id,
-              Hora
-            }
-          );
-        }
+        Planes_Sincronizar_Habitos_Avance_Registro(Avance, true);
         Cerrar_Modal_Planes_Avance();
         if (
           document.getElementById("Planes_Subobjetivos_Overlay")
@@ -61482,7 +61610,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sub,
           Actual.Fecha,
           true,
-          { Hora: Actual.Hora }
+          {
+            Hora: Actual.Hora,
+            Cantidad_Fuente: Cantidad,
+            Unidad_Fuente: Planes_Unidad_Label_Subobjetivo(Sub, Cantidad)
+          }
         );
         Planes_Recalcular_Desde(
           Objetivo,
@@ -61776,7 +61908,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sub,
           Sub.Fecha_Fin || Actual?.Fecha || Formatear_Fecha_ISO(new Date()),
           Boolean(Sub.Hecha),
-          { Hora: Sub.Hora_Fin || Actual?.Hora || "" }
+          {
+            Hora: Sub.Hora_Fin || Actual?.Hora || "",
+            Cantidad_Fuente: Cantidad_Final,
+            Unidad_Fuente: Planes_Unidad_Label_Subobjetivo(
+              Sub,
+              Cantidad_Final
+            )
+          }
         );
         Cerrar_Modal_Planes_Subobjetivo();
         const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
@@ -62649,6 +62788,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Avance.Fecha_Hora = `${Fecha}T${Avance.Hora}`;
         Avance.Actualizado_En = new Date().toISOString();
         Planes_Recalcular_Avance_Subobjetivo(Avance);
+        Planes_Sincronizar_Habitos_Avance_Registro(Avance, true);
         Mostrar_Toast_Undo(t("planes.avance_actualizado"), Snap);
       }
 
@@ -62677,6 +62817,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Avance,
           -(Number(Avance.Cantidad) || 0)
         );
+        Planes_Sincronizar_Habitos_Avance_Registro(Avance, false);
         delete Modelo.Avances[Avance_Id];
         Planes_Recalcular_Avance_Subobjetivo(Avance);
         Mostrar_Toast_Undo(t("planes.avance_eliminado"), Snap);
@@ -66059,12 +66200,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
         const Marcada = Boolean(Hecha);
         const Actual = Planes_Fecha_Hora_Actual();
+        const Cantidad = Marcada && Objetivo
+          ? Planes_Restante_Subobjetivo_Con_Datos(Sub, Sub, Modelo)
+          : 0;
         if (Marcada && Objetivo) {
-          const Cantidad = Planes_Restante_Subobjetivo_Con_Datos(
-            Sub,
-            Sub,
-            Modelo
-          );
           Planes_Agregar_Avance_Final_Subobjetivo(
             Sub,
             Objetivo,
@@ -66093,7 +66232,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Item,
               Item.Fecha_Fin || Actual.Fecha,
               Marcada,
-              { Hora: Item.Hora_Fin || Actual.Hora }
+              {
+                Hora: Item.Hora_Fin || Actual.Hora,
+                Cantidad_Fuente: Id === Sub.Id ? Cantidad : 0,
+                Unidad_Fuente: Planes_Unidad_Label_Subobjetivo(
+                  Item,
+                  Cantidad
+                )
+              }
             );
           });
         Planes_Sincronizar_Estado_Familia_Subobjetivo(
@@ -86754,7 +86900,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Habito_Fuente_Puede_Usar_Cantidad(Fuente_Tipo) {
-        return ["Plan_Parte", "Plan_Subobjetivo"]
+        return ["Objetivo", "Plan_Parte", "Plan_Subobjetivo"]
           .includes(Fuente_Tipo);
       }
 
@@ -86762,7 +86908,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Habito,
         Vinculo,
         Fuente_Tipo,
-        Fuente
+        Fuente,
+        Opciones = {}
       ) {
         const Modo = Habito_Modo_Visible(Habito);
         if (Modo === "Tiempo") {
@@ -86783,24 +86930,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Vinculo?.Cantidad_Modo === "Fija" &&
             Number(Vinculo?.Cantidad) === 1
           );
+        const Cantidad_Fuente = Number(Opciones.Cantidad_Fuente);
+        const Unidad_Fuente = String(
+          Opciones.Unidad_Fuente ||
+          Fuente?.Unidad_Custom ||
+          Fuente?.Unidad ||
+          ""
+        );
         if (
           Usa_Cantidad_Fuente &&
-          Fuente_Tipo === "Plan_Parte" &&
+          ["Objetivo", "Plan_Parte", "Plan_Subobjetivo"]
+            .includes(Fuente_Tipo) &&
           Habito_Unidad_Fuente_Compatible(
             Habito,
-            Fuente?.Unidad_Custom || Fuente?.Unidad
+            Unidad_Fuente
           )
         ) {
-          return Number(Fuente?.Aporte_Total) || 0;
-        }
-        if (
-          Usa_Cantidad_Fuente &&
-          Fuente_Tipo === "Plan_Subobjetivo" &&
-          Habito_Unidad_Fuente_Compatible(
-            Habito,
-            Fuente?.Unidad_Custom || Fuente?.Unidad
-          )
-        ) {
+          if (Number.isFinite(Cantidad_Fuente) && Cantidad_Fuente > 0) {
+            return Cantidad_Fuente;
+          }
+          if (Fuente_Tipo === "Plan_Parte") {
+            return Number(Fuente?.Aporte_Total) || 0;
+          }
           return Number(Fuente?.Target_Total) || 0;
         }
         return Number(Vinculo?.Cantidad) || 1;
@@ -86837,7 +86988,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Habito,
             Vinculo,
             Fuente_Tipo,
-            Fuente
+            Fuente,
+            Opciones
           );
           const Hora_Fuente = Opciones.Hora ||
             (Fuente_Tipo === "Evento"
@@ -86863,7 +87015,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .filter((Habito) => {
             const Modo = Habito_Modo_Visible(Habito);
             if (Fuente_Tipo === "Evento") return Modo === "Tiempo";
-            if (Fuente_Tipo === "Objetivo") return Modo === "Tiempo";
             return true;
           });
       }
