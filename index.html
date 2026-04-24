@@ -95101,10 +95101,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
-      function Habitos_Cantidad_Marcar_Realizado(Habito) {
+      function Habitos_Cantidad_Marcar_Realizado(
+        Habito,
+        Fecha = Habitos_Fecha_Hoy()
+      ) {
         if (Habito?.Tipo === "Evitar") return 0;
-        if (Habito_Modo_Visible(Habito) === "Tiempo") {
-          return Math.max(1, Number(Habito_Objetivo_Total(Habito)) || 1);
+        const Modo = Habito_Modo_Visible(Habito);
+        if (Modo === "Cantidad" || Modo === "Tiempo") {
+          const Objetivo = Math.max(
+            1,
+            Number(Habito_Objetivo_Total(Habito)) || 1
+          );
+          const Actual = Math.max(
+            0,
+            Number(Habito_Progreso_Actual(Habito, Fecha)) || 0
+          );
+          return Math.max(0, Objetivo - Actual);
         }
         return 1;
       }
@@ -95123,11 +95135,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Mostrar_Toast_Info(t("habitos.ya_registrado_periodo"), "\u2713");
           return;
         }
-        Habitos_Refrescar_Tras_Registro(
+        const Cantidad = Habitos_Cantidad_Marcar_Realizado(
           Habito,
-          Fecha,
-          Habitos_Cantidad_Marcar_Realizado(Habito)
+          Fecha
         );
+        if (Cantidad <= 0 && Habito.Tipo !== "Evitar") {
+          Mostrar_Toast_Info(t("habitos.ya_registrado_periodo"), "\u2713");
+          return;
+        }
+        Habitos_Refrescar_Tras_Registro(Habito, Fecha, Cantidad);
       }
 
       async function Habitos_Registrar_Avance_Desde_Sidebar(Habito) {
@@ -95176,12 +95192,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Fecha = Habitos_Fecha_Hoy();
         const Registrado = Habito_Puede_Destildar_Rapido(Habito) &&
           Habito_Tiene_Registro_En_Periodo(Habito, Fecha);
-        const Grupo = [
-          Html_Menu_Dia_Accion(
-            "habito-marcar-realizado",
-            Registrado ? t("habitos.destildar") : t("planes.marcar_realizado")
-          )
-        ];
+        const Grupo = [];
         const Modo = Habito_Modo_Visible(Habito);
         if (
           Habito.Tipo !== "Evitar" &&
@@ -95194,6 +95205,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
           );
         }
+        Grupo.push(
+          Html_Menu_Dia_Accion(
+            "habito-marcar-realizado",
+            Registrado
+              ? t("habitos.destildar")
+              : t("planes.marcar_realizado")
+          )
+        );
         Menu.innerHTML = Construir_Menu_Dia_Por_Grupos([Grupo]);
         Menu.style.left = `${X}px`;
         Menu.style.top = `${Y}px`;
@@ -95227,6 +95246,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Menu = document.getElementById("Dia_Accion_Menu");
         if (!Menu || !Habito) return;
         const Grupo = [
+          Html_Menu_Dia_Accion("habito-editar", t("habitos.editar")),
           Html_Menu_Dia_Accion(
             "habito-cancelar",
             Habito_Cancelado_En_Periodo(
@@ -95236,7 +95256,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ? t("habitos.restaurar_periodo")
               : t("habitos.cancelar_periodo")
           ),
-          Html_Menu_Dia_Accion("habito-editar", t("habitos.editar")),
           Html_Menu_Dia_Accion(
             "habito-archivar",
             Habito.Archivado

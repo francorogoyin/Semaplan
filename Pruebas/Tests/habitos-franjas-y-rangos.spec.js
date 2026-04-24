@@ -927,6 +927,15 @@ test("sidebar de habitos oculta globitos y registra desde menu", async ({
     .toContainText("Marcar como realizado");
   await expect(page.locator("#Dia_Accion_Menu"))
     .toContainText("Registrar avance");
+  const Orden_Menu_Sidebar = await page.locator(
+    "#Dia_Accion_Menu [data-acc]"
+  ).evaluateAll((Items) =>
+    Items.map((Item) => Item.dataset.acc)
+  );
+  expect(Orden_Menu_Sidebar).toEqual([
+    "habito-registrar-avance",
+    "habito-marcar-realizado"
+  ]);
   await page.click(
     '#Dia_Accion_Menu [data-acc="habito-registrar-avance"]'
   );
@@ -987,7 +996,7 @@ test("sidebar de habitos oculta globitos y registra desde menu", async ({
 
   expect(resumen).toEqual({
     Check: 1,
-    Cantidad: 4,
+    Cantidad: 5,
     EvitarConfirmado: true,
     EvitarCantidad: 0
   });
@@ -1080,6 +1089,16 @@ test("panel de habitos registra avances manuales desde la lista", async ({
 
   await page.locator('[data-habitos-card="Habito_Check_Rapido"]')
     .click({ button: "right" });
+  const Orden_Menu_Panel = await page.locator(
+    "#Dia_Accion_Menu [data-acc]"
+  ).evaluateAll((Items) =>
+    Items.map((Item) => Item.dataset.acc)
+  );
+  expect(Orden_Menu_Panel).toEqual([
+    "habito-editar",
+    "habito-cancelar",
+    "habito-archivar"
+  ]);
   await expect(page.locator(
     '#Dia_Accion_Menu [data-acc="habito-cancelar"]'
   )).toContainText(/Cancelar este per/);
