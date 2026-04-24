@@ -1,271 +1,445 @@
-# Verificacion de usuario del flujo de habitos
+# Protocolo de verificacion de usuario del flujo de habitos
 
-Este checklist sirve para revisar manualmente cada pantalla del flujo.
-La numeracion coincide con el inventario de modales usado en la
-revision. Marcar cada item despues de comprobarlo en la interfaz.
+Este documento define como auditar el flujo de habitos con navegador,
+capturas y cuenta real. No es solo una lista de pantallas: es una guia
+para probar la app como la usarian varios usuarios humanos, con
+distintos niveles de exigencia visual, funcional y conceptual.
+
+La auditoria debe ejecutarse en `Semaplan.com` con la cuenta
+`tomashodel@gmail.com`, siguiendo las reglas operativas de Playwright
+del repo. Si durante la auditoria aparecen errores corregibles, el
+agente debe intentar corregirlos al terminar la pasada, sin pedir OK
+previo, salvo que la correccion sea destructiva, ambigua o implique una
+decision de producto no deducible.
+
+## Objetivo
+
+Detectar y corregir problemas del flujo de habitos desde tres miradas:
+
+- Visual: incoherencias de UI, cortes, solapamientos, jerarquias raras,
+  errores de texto, microcopy confuso, estados vacios pobres,
+  responsive roto, modales incomodos.
+- Funcional: crear, editar, guardar, cancelar, borrar, filtrar,
+  vincular, registrar avances, recargar y comprobar persistencia.
+- Humana: evaluar si una persona entiende que hacer, para que sirve
+  cada control y si el resultado coincide con la intencion del usuario.
+
+## Perfiles de revision
+
+En cada pantalla, alternar mentalmente entre estos perfiles:
+
+- Usuario apurado: quiere completar la accion sin leer demasiado.
+- Usuario puntilloso visual: nota alineacion, cortes, espaciado,
+  inconsistencias, estados hover y textos raros.
+- Usuario nuevo: no conoce el dominio y necesita que los labels,
+  tooltips y estados expliquen lo suficiente.
+- Usuario avanzado: prueba combinaciones, atajos, recarga, cambios de
+  estado y efectos cruzados.
+- Usuario desconfiado: cancela, cierra, vuelve atras, guarda sin
+  cambios, prueba datos invalidos y espera no perder informacion.
+
+## Artefactos obligatorios
+
+Cada ejecucion completa debe producir:
+
+- Carpeta de screenshots:
+  `Documentacion/Auditorias/Flujo_Habitos_YYYY_MM_DD/`
+- Reporte de resultados:
+  `Documentacion/Auditorias/Flujo_Habitos_YYYY_MM_DD/Reporte.md`
+- Si se corrigen errores: cambios en codigo, pruebas ejecutadas,
+  registro en `Documentacion/Registros/Registro_Avance.txt`, commit y
+  push.
+
+## Formato de hallazgo
+
+Usar este formato en el reporte:
+
+```md
+### 2.VIS.03 - Campo visible fuera de contexto
+
+Estado: Falla
+Tipo: Visual / Funcional / UX / Texto / Persistencia
+Pantalla: 2 - Nuevo / editar habito
+Viewport: Desktop 1366x900
+Screenshot: 02-editor-cantidad-entre-desktop.png
+Pasos:
+1. Abrir Habitos.
+2. Crear habito.
+3. Elegir modo Check.
+Resultado observado:
+El campo Maximo sigue visible.
+Resultado esperado:
+En modo Check no deben mostrarse Meta, Maximo ni Unidad.
+Impacto:
+El usuario cree que Check requiere configuracion numerica.
+Severidad: P1
+Accion:
+Corregir visibilidad condicional y reprobar.
+```
+
+## Severidad
+
+- P0: rompe el flujo, pierde datos o impide guardar.
+- P1: impide entender o completar una accion principal.
+- P2: error visual, funcional o conceptual molesto pero sorteable.
+- P3: pulido, copy, alineacion, hover, consistencia menor.
+
+## Viewports minimos
+
+Probar como minimo:
+
+- Desktop: 1366 x 900.
+- Mobile: 390 x 844.
+
+Cuando una pantalla sea densa o modal, agregar si hace falta:
+
+- Desktop bajo: 1280 x 720.
+- Mobile chico: 360 x 740.
+
+## Flujo general de ejecucion
+
+1. Verificar estado git y remoto antes de empezar.
+2. Entrar a `Semaplan.com` con `tomashodel@gmail.com`.
+3. Preparar datos de prueba controlados.
+4. Ejecutar cada pantalla en desktop.
+5. Sacar screenshot de cada estado relevante.
+6. Repetir estados criticos en mobile.
+7. Registrar hallazgos visuales, funcionales y de comprension.
+8. Recargar despues de acciones persistentes y confirmar que los datos
+   siguen.
+9. Corregir errores encontrados que sean corregibles sin decision de
+   producto.
+10. Reprobar los errores corregidos.
+11. Actualizar reporte, registro de avance, commit y push.
 
 ## Datos base sugeridos
 
-- Habito de prueba: `Lectura diaria`, emoji de libro, color verde,
+- Habito de accion: `Lectura diaria`, emoji de libro, color verde,
   tipo `Hacer`, modo `Cantidad`, regla `Al menos`, meta `20 paginas`.
+- Habito de tiempo: `Meditacion`, emoji tranquilo, color azul, tipo
+  `Hacer`, modo `Tiempo`, meta `15 minutos`.
 - Habito de evitar: `No redes de noche`, emoji de bloqueo, color rojo,
-  tipo `Evitar`, periodo `Por dia`, maximo permitido `0` o `1`.
+  tipo `Evitar`, periodo `Por dia`, maximo permitido `1`.
 - Objetivo semanal: `Leer ensayo`, con subobjetivos y al menos una
   parte vinculada a un habito.
 - Slot de prueba: un slot vacio futuro y un slot muerto futuro.
 
+## Reglas visuales por pantalla
+
+En cada pantalla sacar screenshot y revisar:
+
+- No hay textos cortados, superpuestos, corruptos o sin traducir.
+- Los botones principales se distinguen de acciones secundarias.
+- Los controles condicionales aparecen solo cuando tienen sentido.
+- Los estados vacios ocupan el espacio correcto y explican que hacer.
+- La cruz de cierre y acciones de cancelar/guardar son consistentes.
+- El scroll del modal no tapa acciones ni deja contenido inaccesible.
+- Emoji, color, checkbox, selects e inputs usan patrones coherentes.
+- Hover, disabled, activo, seleccionado y error se entienden.
+- En mobile no hay columnas imposibles, botones cortados ni texto que
+  rebalse.
+
+## Reglas funcionales por pantalla
+
+En cada pantalla probar, cuando aplique:
+
+- Crear con datos minimos.
+- Crear con datos completos.
+- Editar un campo simple.
+- Editar varios campos.
+- Cancelar con cambios.
+- Guardar sin cambios.
+- Guardar con cambios.
+- Cerrar con cruz, `Esc` y backdrop si corresponde.
+- Borrar o desvincular.
+- Recargar y comprobar persistencia.
+- Probar datos invalidos.
+- Verificar que el resultado aparezca en pantallas relacionadas.
+
+## Matriz central de habitos
+
+La pantalla 2 debe probar combinaciones cruzadas. No hace falta probar
+el producto cartesiano completo si ya hay equivalencias, pero si cubrir
+estas familias:
+
+- Tipo: `Hacer`, `Evitar`, `Limite`.
+- Modo: `Check`, `Cantidad`, `Tiempo`.
+- Regla: `Al menos`, `Exactamente`, `Como maximo`, `Entre`.
+- Periodo: `Por dia`, `Por semana`.
+- Dias: `Todos`, `Rango especifico`, `Personalizado`.
+- Horas: `Todos`, `Rango especifico`, `Puntual`, `Personalizado`.
+- Estado: activo, inactivo.
+- Vinculo: sin vinculo, objetivo, subobjetivo, parte, evento, slot.
+- Fuente de avance: bloque hecho, slot, parte/subobjetivo, registro
+  manual si existe.
+
 ## 1 - Panel de habitos
 
-- [ ] Abrir el panel desde el menu y verificar que la cabecera muestre
-  el simbolo de habitos, no una letra generica.
-- [ ] Crear al menos dos habitos y verificar que las tarjetas muestren
-  emoji, nombre, meta, programacion, tipo y cantidad de vinculos.
-- [ ] Probar filtros de dia, hora y estado; confirmar que la lista se
-  actualiza sin cerrar el panel.
-- [ ] Aplicar una combinacion de filtros sin resultados y verificar que
-  el mensaje vacio ocupa todo el ancho.
-- [ ] Abrir una tarjeta y entrar a editar; confirmar que vuelve al panel
-  al guardar o cancelar.
+- [ ] Screenshot desktop con lista vacia.
+- [ ] Screenshot desktop con varios habitos.
+- [ ] Screenshot mobile con varios habitos.
+- [ ] Verificar que cabecera, icono y acciones principales se entienden.
+- [ ] Crear al menos dos habitos y verificar tarjeta: emoji, nombre,
+  meta, programacion, tipo, estado y vinculos.
+- [ ] Probar filtros de dia, hora y estado en combinaciones con y sin
+  resultados.
+- [ ] Verificar que el estado vacio ocupa el ancho correcto.
+- [ ] Abrir tarjeta, editar, volver al panel y confirmar que no se
+  pierde contexto.
 
 ## 2 - Nuevo / editar habito
 
-- [ ] Crear un habito con nombre, emoji, color, tipo `Hacer` y activo.
-  Guardar y verificar que esos datos aparecen iguales en la tarjeta.
-- [ ] Editar el habito y cambiar nombre, emoji y color; guardar y
-  confirmar que los cambios persisten al cerrar y reabrir el panel.
-- [ ] Pasar el mouse por los labels principales y verificar que cada
-  tooltip explique el campo correspondiente.
-- [ ] Probar modo `Check`; confirmar que no aparece campo `Meta` ni
+- [ ] Screenshot desktop de modo `Check`.
+- [ ] Screenshot desktop de modo `Cantidad` con regla `Entre`.
+- [ ] Screenshot desktop de modo `Tiempo`.
+- [ ] Screenshot desktop de tipo `Evitar`.
+- [ ] Screenshot mobile de editor completo.
+- [ ] Crear habito con nombre, emoji, color, tipo y activo; verificar
+  tarjeta resultante.
+- [ ] Editar nombre, emoji y color; guardar, cerrar, reabrir y recargar.
+- [ ] Probar todos los tooltips principales y evaluar si explican lo
+  suficiente para un usuario nuevo.
+- [ ] Probar modo `Check`; confirmar que no aparecen meta, maximo ni
   unidad.
-- [ ] Probar modo `Tiempo`; confirmar que aparece meta mas unidad
-  `Minutos`/`Horas`, y que se guarda la unidad elegida.
-- [ ] Probar modo `Cantidad`; confirmar que aparece unidad de texto
-  personalizada y que se guarda junto con la meta.
-- [ ] Probar regla `Entre`; confirmar que aparece el campo `Maximo` y
-  que desaparece al elegir otra regla.
-- [ ] Probar tipo `Evitar`; confirmar que la meta se comporta como
-  maximo permitido y no muestra controles innecesarios.
-- [ ] Probar dias `Todos`, `Rango especifico` y `Personalizado`;
-  verificar que solo aparecen los campos condicionales esperados.
-- [ ] Probar horas `Todos`, `Rango especifico`, `Puntual` y
-  `Personalizado`; verificar que cada opcion muestra su control propio.
-- [ ] Guardar, recargar la app y confirmar que el habito mantiene
-  nombre, emoji, color, tipo, activo, meta, unidad, dias y horas.
+- [ ] Probar modo `Tiempo`; confirmar meta mas unidad `Minutos`/`Horas`.
+- [ ] Probar modo `Cantidad`; confirmar unidad personalizada.
+- [ ] Probar regla `Entre`; confirmar minimo y maximo.
+- [ ] Probar tipo `Evitar`; confirmar que se lee como maximo permitido.
+- [ ] Probar dias `Todos`, `Rango especifico`, `Personalizado`.
+- [ ] Probar horas `Todos`, `Rango especifico`, `Puntual`,
+  `Personalizado`.
+- [ ] Guardar sin cambios y verificar que no genera ruido visual.
+- [ ] Cancelar con cambios y verificar que no se pierden datos sin
+  advertencia si corresponde.
 
 ## 3 - Registro de habitos
 
-- [ ] Generar avance desde un bloque, slot o plan y abrir `Registro`.
-- [ ] Verificar fecha, hora, habito, avance, procedencia y origen.
-- [ ] Editar la cantidad de un registro y confirmar que cambia en la
-  tabla y en el progreso del habito.
-- [ ] Eliminar un registro y verificar que desaparece y recalcula el
-  progreso.
+- [ ] Screenshot con registros.
+- [ ] Screenshot sin registros.
+- [ ] Generar avance desde bloque, slot o plan y verificar fecha, hora,
+  habito, avance, procedencia y origen.
+- [ ] Editar cantidad y confirmar recalculo de progreso.
+- [ ] Eliminar registro y confirmar que desaparece y recalcula.
+- [ ] Recargar y verificar persistencia.
 
 ## 4 - Vinculaciones de habitos
 
-- [ ] Crear vinculos desde objetivo, subobjetivo, parte, evento y slot
-  cuando sea posible.
-- [ ] Abrir `Vinculaciones` y verificar que cada habito agrupa sus
-  fuentes correctamente.
-- [ ] Confirmar que los nombres de fuentes se entienden y no aparecen
-  ids tecnicos salvo que falte el objeto.
+- [ ] Screenshot con habitos vinculados a varias fuentes.
+- [ ] Screenshot sin vinculos.
+- [ ] Crear vinculos desde objetivo, subobjetivo, parte, evento y slot.
+- [ ] Verificar que cada habito agrupa fuentes correctamente.
+- [ ] Evaluar si los nombres de origen son comprensibles para usuario
+  humano y no ids tecnicos.
 
 ## 5 - Habitos del bloque
 
-- [ ] Abrir un bloque del calendario y entrar a `Habitos del bloque`.
-- [ ] Agregar un habito al bloque y guardar.
-- [ ] Reabrir el bloque y confirmar que el vinculo sigue visible.
-- [ ] Marcar el bloque como hecho y verificar que se registra avance del
-  habito vinculado.
+- [ ] Screenshot del modal con y sin vinculos.
+- [ ] Agregar habito al bloque y guardar.
+- [ ] Reabrir y confirmar persistencia.
+- [ ] Marcar bloque como hecho y confirmar avance del habito.
+- [ ] Desmarcar o anular bloque si aplica y confirmar recalculo.
 
 ## 6 - Plan de tarea / abordaje de bloque semanal
 
-- [ ] Abrir una tarea futura y entrar al modal de abordaje.
+- [ ] Screenshot de bloque futuro.
+- [ ] Screenshot de bloque pasado o vencido si existe.
 - [ ] Agregar items, subobjetivos y habitos vinculados.
-- [ ] Guardar, reabrir y verificar que el plan conserva orden, textos y
-  estados.
-- [ ] Marcar items como hechos y confirmar impacto en habitos y metas
-  vinculadas.
+- [ ] Guardar, reabrir y verificar orden, textos, estados y vinculos.
+- [ ] Marcar items como hechos y confirmar impacto en habitos y metas.
 
 ## 7 - Plan de slot vacio o slot muerto
 
-- [ ] Abrir un slot vacio futuro y crear un plan con items.
-- [ ] Agregar un item de habito y guardar.
-- [ ] Reabrir el slot y confirmar que los items y habitos siguen.
-- [ ] Repetir sobre un slot muerto futuro y verificar el mismo flujo.
+- [ ] Screenshot de slot vacio con plan.
+- [ ] Screenshot de slot muerto con plan.
+- [ ] Crear item de tarea y item de habito.
+- [ ] Guardar, reabrir y recargar.
+- [ ] Verificar que completar items registra avance cuando corresponde.
 
 ## 8 - Nuevo / editar patron semanal o patron de slots
 
-- [ ] Crear un patron con nombre, emoji, tipo y franjas.
+- [ ] Screenshot de patron nuevo.
+- [ ] Screenshot de patron editado con varias franjas.
+- [ ] Crear patron con nombre, emoji, tipo y franjas.
 - [ ] Agregar franjas bloqueadas y franjas con objetivo.
-- [ ] Guardar y aplicar el patron a la semana.
-- [ ] Editar el patron y confirmar que cambios de horario, tipo y
-  objetivo se reflejan al reaplicar.
+- [ ] Guardar, aplicar a semana y verificar calendario.
+- [ ] Editar y reaplicar para confirmar cambios.
 
 ## 9 - Resumen semanal
 
-- [ ] Abrir el resumen semanal con habitos y bloques cargados.
-- [ ] Cambiar filtros disponibles y confirmar que el resumen se
-  actualiza.
-- [ ] Verificar que slots muertos, vacios, tareas y objetivos semanales
-  se leen sin solapamientos visuales.
+- [ ] Screenshot desktop.
+- [ ] Screenshot mobile.
+- [ ] Verificar que tareas, slots muertos, slots vacios, objetivos
+  semanales y avances se leen sin solapamientos.
+- [ ] Cambiar filtros y confirmar actualizacion.
+- [ ] Evaluar si el resumen sirve para entender la semana.
 
 ## 10 - Modal central de objetivo semanal
 
-- [ ] Abrir un objetivo semanal desde la semana.
-- [ ] Verificar nombre, emoji, color, progreso, subobjetivos y acciones.
-- [ ] Editar datos del objetivo y confirmar que se reflejan en la semana.
-- [ ] Probar cerrar el modal con `Esc`, cruz y click permitido.
+- [ ] Screenshot con objetivo simple.
+- [ ] Screenshot con subobjetivos.
+- [ ] Verificar nombre, emoji, color, progreso, acciones y estados.
+- [ ] Editar datos y confirmar reflejo en la semana.
+- [ ] Cerrar con cruz, `Esc` y click permitido.
 
 ## 11 - Plan de la semana
 
-- [ ] Abrir `Plan de la semana` y verificar secciones de semana,
-  cierre e historial cuando correspondan.
-- [ ] Confirmar que los objetivos visibles coinciden con la semana
-  actual.
-- [ ] Navegar semanas y verificar que el contenido cambia sin mezclar
-  datos.
+- [ ] Screenshot de semana con objetivos.
+- [ ] Screenshot de semana vacia o casi vacia.
+- [ ] Confirmar que secciones visibles corresponden a semana actual.
+- [ ] Navegar semanas y verificar que no se mezclan datos.
+- [ ] Evaluar si un usuario entiende que hacer desde esta pantalla.
 
 ## 12 - Cerrar semana
 
-- [ ] Abrir cierre de semana con objetivos pendientes y realizados.
+- [ ] Screenshot con pendientes y realizados.
 - [ ] Verificar totales, pendientes y acciones sugeridas.
-- [ ] Ejecutar un cierre de prueba y confirmar que el historial refleja
-  la semana cerrada.
+- [ ] Ejecutar cierre de prueba si el estado lo permite.
+- [ ] Confirmar que historial refleja la semana cerrada.
 
 ## 13 - Historial de planes
 
-- [ ] Abrir historial y revisar semanas cerradas.
-- [ ] Verificar que cada entrada muestra fecha, resumen y objetivos
-  principales.
-- [ ] Abrir una semana del historial y confirmar que no modifica la
-  semana actual.
+- [ ] Screenshot con semanas cerradas.
+- [ ] Verificar fecha, resumen y objetivos principales.
+- [ ] Abrir semana historica y confirmar que no modifica semana actual.
 
 ## 14 - Metas / Plan principal
 
-- [ ] Abrir Plan y revisar que filtros de anio, tipo, subperiodo,
-  estado y etiqueta funcionen.
-- [ ] Crear un objetivo desde la pantalla principal y confirmar que
-  aparece en la capa correcta.
-- [ ] Cambiar vista de tarjetas/lista/biblioteca y verificar que los
-  datos visibles se mantienen.
+- [ ] Screenshot desktop de Plan.
+- [ ] Screenshot mobile de Plan.
+- [ ] Probar filtros de anio, tipo, subperiodo, estado y etiqueta.
+- [ ] Crear objetivo y verificar capa correcta.
+- [ ] Cambiar vista tarjetas/lista/biblioteca y confirmar datos.
 
 ## 15 - Como pensar las metas
 
-- [ ] Abrir ayuda conceptual desde Plan.
-- [ ] Verificar que el contenido se lee completo en desktop y mobile.
-- [ ] Cerrar con cruz, `Esc` y backdrop si corresponde.
+- [ ] Screenshot desktop.
+- [ ] Screenshot mobile.
+- [ ] Verificar legibilidad completa.
+- [ ] Evaluar si ayuda a entender el modelo mental de metas.
 
 ## 16 - Configuracion de Plan
 
-- [ ] Abrir configuracion y cambiar rango de anios visibles.
-- [ ] Guardar y verificar que el selector de anio respeta el rango.
-- [ ] Activar/desactivar capas visibles y confirmar que queda al menos
-  una disponible.
+- [ ] Screenshot de configuracion.
+- [ ] Cambiar rango de anios y guardar.
+- [ ] Activar/desactivar capas visibles.
+- [ ] Confirmar que queda al menos una capa disponible.
 
 ## 17 - Nuevo / editar objetivo de Plan
 
-- [ ] Crear objetivo con emoji, nombre, valor objetivo, unidad, fechas,
+- [ ] Screenshot de objetivo nuevo.
+- [ ] Screenshot de objetivo con vinculo de habito.
+- [ ] Crear objetivo con emoji, nombre, valor, unidad, fechas,
   descripcion y etiquetas.
-- [ ] Agregar vinculo con un habito y guardar.
-- [ ] Reabrir el objetivo y verificar que todos los datos persisten.
-- [ ] Editar el objetivo y confirmar que el cambio recalcula progreso si
-  corresponde.
+- [ ] Agregar vinculo con habito y guardar.
+- [ ] Reabrir y confirmar persistencia.
+- [ ] Editar y verificar recalculo de progreso.
 
 ## 18 - Redistribucion de objetivo
 
-- [ ] Abrir redistribucion desde un objetivo con metrica.
-- [ ] Probar granularidad y modo equitativo, deuda y manual.
-- [ ] Fijar y anular periodos; verificar que los valores recalculan.
-- [ ] Guardar y comprobar que el resumen de redistribucion se actualiza.
+- [ ] Screenshot de redistribucion equitativa.
+- [ ] Screenshot de modo manual con valores fijados.
+- [ ] Probar granularidad y modos equitativo, deuda y manual.
+- [ ] Fijar/anular periodos y confirmar recalculo.
+- [ ] Guardar y verificar resumen.
 
 ## 19 - Ajustar valores por periodos
 
-- [ ] Abrir ajuste de valores por periodos.
-- [ ] Cambiar valor padre y valores hijos.
-- [ ] Usar redistribuir y verificar que respeta periodos fijados.
-- [ ] Guardar y confirmar que los objetivos de periodos hijos cambian.
+- [ ] Screenshot con periodos hijos.
+- [ ] Cambiar valor padre e hijos.
+- [ ] Redistribuir respetando fijados.
+- [ ] Guardar y confirmar cambios en periodos hijos.
 
 ## 20 - Subobjetivos de un objetivo
 
-- [ ] Abrir subobjetivos de un objetivo.
+- [ ] Screenshot en vista tarjetas.
+- [ ] Screenshot en vista lista o biblioteca.
 - [ ] Probar filtros de estado, periodo, metadato, vista y orden.
-- [ ] Agregar un subobjetivo desde el boton superior.
-- [ ] Verificar que el resumen de aportes se actualiza.
+- [ ] Agregar subobjetivo y verificar resumen de aportes.
 
 ## 21 - Nuevo / editar subobjetivo
 
+- [ ] Screenshot de formulario completo.
 - [ ] Crear subobjetivo con emoji, texto, unidad, aporte, fechas y
   metadatos.
 - [ ] Agregar vinculo con habito.
-- [ ] Guardar y verificar que aparece en el listado del objetivo.
-- [ ] Marcarlo realizado y confirmar impacto en avance y habitos.
+- [ ] Guardar y verificar listado.
+- [ ] Marcar realizado y confirmar avance y habitos.
 
 ## 22 - Partes de un subobjetivo
 
-- [ ] Abrir partes desde un subobjetivo.
+- [ ] Screenshot con partes.
+- [ ] Screenshot vacio.
 - [ ] Probar filtros y orden.
-- [ ] Agregar parte y verificar que aparece en la lista.
-- [ ] Confirmar que el resumen de partes refleja pendientes y realizadas.
+- [ ] Agregar parte y verificar resumen.
 
 ## 23 - Nueva / editar parte
 
+- [ ] Screenshot de formulario completo.
 - [ ] Crear parte con emoji, nombre, unidad, aporte total, avance
   parcial, fechas y estado.
 - [ ] Agregar vinculo con habito.
-- [ ] Guardar y reabrir para verificar persistencia.
-- [ ] Cambiar estado a realizada y confirmar impacto en progreso.
+- [ ] Guardar, reabrir y verificar persistencia.
+- [ ] Cambiar estado a realizada y confirmar impacto.
 
 ## 24 - Importar partes de la meta
 
-- [ ] Abrir importar partes desde una meta con partes disponibles.
-- [ ] Seleccionar una o varias partes.
-- [ ] Confirmar importacion y verificar que aparecen como subobjetivos o
-  partes vinculadas segun el flujo.
-- [ ] Repetir sin seleccionar nada y verificar que no genera cambios.
+- [ ] Screenshot con partes disponibles.
+- [ ] Screenshot sin partes disponibles si se puede.
+- [ ] Seleccionar una o varias partes e importar.
+- [ ] Repetir sin seleccion y verificar que no genera cambios.
 
 ## 25 - Registrar avance
 
-- [ ] Abrir registrar avance.
+- [ ] Screenshot de formulario.
 - [ ] Elegir objetivo o subobjetivo, cantidad, fecha y hora.
-- [ ] Guardar y confirmar que el avance se refleja en tarjetas y
-  registros.
-- [ ] Probar `Realizado hasta el final` y verificar que calcula la
-  cantidad esperada.
+- [ ] Guardar y confirmar impacto en tarjetas y registros.
+- [ ] Probar `Realizado hasta el final`.
 
 ## 26 - Registro de avances
 
-- [ ] Abrir registro de avances de un objetivo.
+- [ ] Screenshot con avances.
 - [ ] Verificar fecha, hora, cantidad, origen y total acumulado.
-- [ ] Editar un avance y confirmar recalculo.
-- [ ] Eliminar un avance y confirmar que desaparece y recalcula.
+- [ ] Editar avance y confirmar recalculo.
+- [ ] Eliminar avance y confirmar recalculo.
 
 ## 27 - Objetivos vencidos
 
-- [ ] Abrir objetivos vencidos con al menos un objetivo atrasado.
+- [ ] Screenshot con vencidos.
 - [ ] Seleccionar objetivos y probar mover al actual.
 - [ ] Repetir con clonar al actual.
-- [ ] Confirmar que el objetivo original y el nuevo quedan en el estado
-  correcto.
+- [ ] Confirmar estado de original y nuevo.
 
 ## 28 - Gestionar etiquetas del Plan
 
-- [ ] Crear etiqueta nueva.
-- [ ] Asignarla a un objetivo y confirmar que aparece en filtros.
-- [ ] Editar o eliminar etiqueta y verificar que el cambio no deja
-  etiquetas rotas.
+- [ ] Screenshot de gestion de etiquetas.
+- [ ] Crear etiqueta.
+- [ ] Asignarla a objetivo y confirmar filtro.
+- [ ] Editar o eliminar y verificar que no quedan etiquetas rotas.
 
 ## 29 - Metas simples / legacy
 
-- [ ] Abrir Metas simples si la pantalla sigue disponible.
-- [ ] Crear meta simple con nombre, horas objetivo, periodo y fuente.
-- [ ] Verificar que aparece en lista y que los filtros funcionan.
-- [ ] Editar, archivar y borrar una meta simple.
+- [ ] Screenshot si la pantalla sigue disponible.
+- [ ] Crear meta simple con nombre, horas, periodo y fuente.
+- [ ] Verificar lista y filtros.
+- [ ] Editar, archivar y borrar.
 
 ## 30 - Nueva / editar meta simple
 
-- [ ] Crear meta simple semanal.
-- [ ] Crear meta simple mensual.
-- [ ] Crear meta simple personalizada con fechas desde/hasta.
+- [ ] Screenshot de meta semanal.
+- [ ] Screenshot de meta mensual.
+- [ ] Screenshot de meta personalizada.
 - [ ] Verificar fuentes por categoria, etiqueta y objetivo.
-- [ ] Guardar, reabrir y confirmar que todos los campos persisten.
+- [ ] Guardar, reabrir y confirmar persistencia.
+
+## Cierre de auditoria
+
+Al terminar una pasada:
+
+1. Clasificar hallazgos por severidad.
+2. Corregir automaticamente los problemas claros y acotados.
+3. Reprobar los casos corregidos.
+4. Dejar sin corregir solo decisiones de producto ambiguas o cambios
+   peligrosos, explicando por que.
+5. Actualizar el reporte de auditoria.
+6. Registrar avance.
+7. Commit y push de cada funcionalidad o tanda coherente.
