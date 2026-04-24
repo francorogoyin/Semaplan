@@ -24,6 +24,20 @@ Detectar y corregir problemas del flujo de habitos desde tres miradas:
 - Humana: evaluar si una persona entiende que hacer, para que sirve
   cada control y si el resultado coincide con la intencion del usuario.
 
+## Checklist vivo
+
+Este checklist es editable durante la auditoria. Si el agente detecta
+que conviene agregar campos, opciones, botones, estados, mensajes,
+validaciones o pantallas intermedias, debe actualizar tambien esta guia
+para que la nueva UI quede cubierta por verificaciones. Si decide
+borrar, mover, fusionar o renombrar controles, debe eliminar o ajustar
+los items correspondientes para que el checklist siga representando el
+flujo real y no una version vieja.
+
+La regla practica es: cada cambio de estructura o comportamiento visible
+debe dejar una verificacion asociada. Si una parte deja de existir, su
+verificacion tambien debe desaparecer o migrar al nuevo lugar.
+
 ## Perfiles de revision
 
 En cada pantalla, alternar mentalmente entre estos perfiles:
