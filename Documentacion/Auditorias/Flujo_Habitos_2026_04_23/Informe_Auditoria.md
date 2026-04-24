@@ -50,8 +50,10 @@ Resultado funcional:
 - Cambios condicionales del editor correctos para Check, Cantidad, Tiempo y Evitar.
 - Registro, Vinculaciones, Resumen semanal, Metas y Plan principal abren sin errores de consola durante esta pasada.
 
-Pendiente para una auditoria mas profunda:
+Estado posterior:
 
-- Crear, guardar, recargar y borrar habitos reales de prueba para validar persistencia completa en Supabase.
-- Probar combinaciones cruzadas con datos reales vinculados a objetivos, subobjetivos, partes y bloques semanales ya existentes.
-- Revisar todos los modales secundarios del plan, partes y avances con datos densos, no solo apertura visual.
+La auditoria profunda pendiente se ejecuto en
+`Documentacion/Auditorias/Flujo_Habitos_2026_04_23_Profunda/Reporte.md`.
+Incluye creacion, guardado, recarga, borrado real, vinculos con
+objetivos, subobjetivos, partes, eventos y slots, y reprobrado de las
+correcciones aplicadas.
