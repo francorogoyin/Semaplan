@@ -62,6 +62,9 @@ async function Preparar(page) {
   );
   await page.evaluate(() => {
     document.getElementById("Auth_Overlay")?.classList.remove("Activo");
+    if (!Semana_Actual) {
+      Semana_Actual = Obtener_Lunes(new Date());
+    }
   });
 }
 
@@ -132,7 +135,7 @@ test("permite cero caidas en habitos de evitar", async ({ page }) => {
   await Preparar(page);
 
   const meta = await page.evaluate(() => {
-    return Normalizar_Habito({
+    const Habito = Normalizar_Habito({
       Nombre: "Sin caidas",
       Tipo: "Evitar",
       Meta: {
@@ -142,13 +145,18 @@ test("permite cero caidas en habitos de evitar", async ({ page }) => {
         Cantidad_Maxima: 0,
         Unidad: "caidas"
       }
-    }).Meta;
+    });
+    return {
+      Meta: Habito.Meta,
+      Objetivo: Habito_Objetivo_Total(Habito)
+    };
   });
 
-  expect(meta.Modo).toBe("Cantidad");
-  expect(meta.Regla).toBe("Como_Maximo");
-  expect(meta.Cantidad).toBe(0);
-  expect(meta.Cantidad_Maxima).toBe(0);
+  expect(meta.Meta.Modo).toBe("Cantidad");
+  expect(meta.Meta.Regla).toBe("Como_Maximo");
+  expect(meta.Meta.Cantidad).toBe(0);
+  expect(meta.Meta.Cantidad_Maxima).toBe(0);
+  expect(meta.Objetivo).toBe(0);
 });
 
 test("advierte antes de cerrar habito con cambios sin guardar", async ({
@@ -235,4 +243,109 @@ test("explica que los patrones se filtran por tipo de slot", async ({
     .toContainText("compatibles");
   await expect(page.locator("#Dialogo_Mensaje"))
     .toContainText("tipo de slot");
+});
+
+test("panel de habitos registra avances manuales desde la lista", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Check_Rapido",
+        Nombre: "Check rapido",
+        Tipo: "Hacer",
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 1
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Cantidad_Rapida",
+        Nombre: "Lectura rapida",
+        Tipo: "Hacer",
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 5,
+          Unidad: "paginas"
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Evitar_Rapido",
+        Nombre: "Evitar rapido",
+        Tipo: "Evitar",
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Como_Maximo",
+          Periodo: "Dia",
+          Cantidad: 0,
+          Unidad: "caidas"
+        }
+      })
+    ];
+    Habitos_Registros = [];
+    Abrir_Panel_Habitos();
+  });
+
+  await expect(page.locator("#Habitos_Header_Acciones button"))
+    .toHaveCount(3);
+
+  const filtrosDebajo = await page.evaluate(() => {
+    const Lista = document.querySelector(".Habitos_Lista");
+    return Lista?.nextElementSibling?.classList
+      .contains("Habitos_Panel_Filtros");
+  });
+  expect(filtrosDebajo).toBe(true);
+
+  await page.click(
+    '[data-habitos-registro-rapido="Habito_Check_Rapido"]'
+  );
+  await expect(page.locator(".Undo_Toast").first())
+    .toContainText("Hábito realizado");
+
+  await page.fill(
+    '[data-habitos-registro-input="Habito_Cantidad_Rapida"]',
+    "2"
+  );
+  await page.click(
+    '[data-habitos-registro-rapido="Habito_Cantidad_Rapida"]'
+  );
+
+  await page.click(
+    '[data-habitos-registro-rapido="Habito_Evitar_Rapido"]'
+  );
+  await expect(page.locator(
+    '[data-habitos-registro-rapido="Habito_Evitar_Rapido"]'
+  )).toBeDisabled();
+
+  const resumen = await page.evaluate(() => ({
+    Total: Habitos_Registros.length,
+    Check: Habito_Progreso_Actual(
+      Habito_Por_Id("Habito_Check_Rapido"),
+      Habitos_Fecha_Referencia()
+    ),
+    Cantidad: Habito_Progreso_Actual(
+      Habito_Por_Id("Habito_Cantidad_Rapida"),
+      Habitos_Fecha_Referencia()
+    ),
+    EvitarCantidad: Habitos_Registros.find((Registro) =>
+      Registro.Habito_Id === "Habito_Evitar_Rapido"
+    )?.Cantidad,
+    EvitarEstado: Habitos_Estado(
+      Habito_Por_Id("Habito_Evitar_Rapido")
+    ).Clave
+  }));
+
+  expect(resumen).toEqual({
+    Total: 3,
+    Check: 1,
+    Cantidad: 2,
+    EvitarCantidad: 0,
+    EvitarEstado: "Realizado"
+  });
 });

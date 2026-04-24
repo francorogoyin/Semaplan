@@ -9161,6 +9161,41 @@
         line-height: 1.45;
       }
 
+      .Habitos_Header_Acciones {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding-top: 2px;
+        flex: 0 0 auto;
+      }
+
+      .Habitos_Header_Acciones[hidden] {
+        display: none;
+      }
+
+      .Habitos_Header_Btn {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--Texto);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        font-family: "Segoe UI Symbol", "Arial Black", sans-serif;
+        font-size: 20px;
+        font-weight: 900;
+        line-height: 1;
+        padding: 0;
+        text-shadow: 0 0 0 currentColor;
+      }
+
+      .Habitos_Header_Btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--Acento);
+      }
+
       .Habitos_Modal_Cuerpo {
         padding: 28px 30px 22px;
         display: flex;
@@ -9211,41 +9246,6 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
-      }
-
-      .Habitos_Panel_Accesos {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
-      }
-
-      .Habitos_Panel_Link {
-        border: 1px solid rgba(143, 124, 98, 0.22);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.78);
-        color: var(--Texto);
-        min-height: 58px;
-        padding: 12px 14px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        cursor: pointer;
-        font: inherit;
-        text-align: left;
-      }
-
-      .Habitos_Panel_Link strong {
-        display: block;
-        color: var(--Texto);
-        font-size: 14px;
-        line-height: 1.2;
-      }
-
-      .Habitos_Panel_Link span {
-        color: var(--Texto_Suave);
-        font-size: 12px;
-        line-height: 1.25;
       }
 
       .Habitos_Panel_Filtros {
@@ -9377,11 +9377,25 @@
         border: 0;
         background: transparent;
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) auto;
         gap: 12px;
         align-items: center;
         padding: 13px 14px;
         color: var(--Texto);
+        font: inherit;
+        text-align: left;
+      }
+
+      .Habitos_Card_Toggle {
+        min-width: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        padding: 0;
         font: inherit;
         text-align: left;
         cursor: pointer;
@@ -9435,6 +9449,53 @@
       .Habitos_Card_Estado.Inactivo {
         background: rgba(73, 73, 73, 0.1);
         color: #606060;
+      }
+
+      .Habitos_Card_Registro {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        justify-content: flex-end;
+      }
+
+      .Habitos_Card_Registro_Input {
+        width: 104px;
+        height: 32px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.86);
+        color: var(--Texto);
+        padding: 0 9px;
+        font: inherit;
+        font-size: 13px;
+      }
+
+      .Habitos_Card_Registro_Btn {
+        width: 32px;
+        height: 32px;
+        border: 1px solid rgba(21, 122, 88, 0.32);
+        border-radius: 8px;
+        background: #157a58;
+        color: #fff;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font: inherit;
+        font-size: 18px;
+        font-weight: 900;
+        line-height: 1;
+        padding: 0;
+      }
+
+      .Habitos_Card_Registro_Btn:hover {
+        background: #12684c;
+      }
+
+      .Habitos_Card_Registro_Btn:disabled {
+        cursor: default;
+        opacity: 0.42;
+        background: rgba(21, 122, 88, 0.22);
+        color: #125a42;
       }
 
       .Habitos_Card_Detalle {
@@ -9986,7 +10047,6 @@
           grid-column: span 3;
         }
 
-        .Habitos_Panel_Accesos,
         .Habitos_Panel_Filtros,
         .Habitos_Lista {
           grid-template-columns: 1fr;
@@ -10050,6 +10110,21 @@
         .Habitos_Panel_Rango,
         .Habitos_Card_MetaGrid {
           grid-template-columns: 1fr;
+        }
+
+        .Habitos_Card_Resumen {
+          grid-template-columns: 1fr;
+          align-items: stretch;
+        }
+
+        .Habitos_Card_Registro {
+          justify-content: flex-start;
+        }
+
+        .Habitos_Card_Registro_Input {
+          flex: 1 1 auto;
+          width: auto;
+          min-width: 0;
         }
 
         .Habitos_Panel_Horas {
@@ -22298,6 +22373,9 @@
               </p>
             </div>
           </div>
+          <div class="Habitos_Header_Acciones"
+            id="Habitos_Header_Acciones"
+            hidden></div>
           <button class="Config_Cerrar"
             id="Habitos_Cerrar"
             type="button">&times;</button>
@@ -22759,6 +22837,13 @@
           "habitos.card_tipo": "Tipo",
           "habitos.card_vinculos": "V\u00ednculos",
           "habitos.editar": "Editar",
+          "habitos.marcar_hecho": "Marcar h\u00e1bito como hecho",
+          "habitos.registrar_avance": "Registrar avance",
+          "habitos.realizado_toast": "H\u00e1bito realizado.",
+          "habitos.avance_registrado_toast": "Avance registrado.",
+          "habitos.cantidad_invalida_toast": "Ingres\u00e1 una cantidad v\u00e1lida.",
+          "habitos.ya_registrado_periodo":
+            "Este h\u00e1bito ya fue marcado en este per\u00edodo.",
           "habitos.estado_pendiente": "Pendiente",
           "habitos.estado_realizado": "Realizado",
           "habitos.estado_en_proceso": "En proceso",
@@ -22791,6 +22876,7 @@
           "habitos.fuente_plan_parte": "Parte de plan",
           "habitos.fuente_objetivo": "Objetivo",
           "habitos.fuente_patron": "Patr\u00f3n",
+          "habitos.fuente_manual": "Manual",
           "habitos.fuente_desconocida": "Origen no disponible",
           "habitos.modal_nuevo_titulo": "Nuevo h\u00e1bito",
           "habitos.modal_editar_titulo": "Editar h\u00e1bito",
@@ -26752,6 +26838,13 @@
           "habitos.card_tipo": "Type",
           "habitos.card_vinculos": "Links",
           "habitos.editar": "Edit",
+          "habitos.marcar_hecho": "Mark habit as done",
+          "habitos.registrar_avance": "Log progress",
+          "habitos.realizado_toast": "Habit done.",
+          "habitos.avance_registrado_toast": "Progress logged.",
+          "habitos.cantidad_invalida_toast": "Enter a valid amount.",
+          "habitos.ya_registrado_periodo":
+            "This habit was already marked in this period.",
           "habitos.estado_pendiente": "Pending",
           "habitos.estado_realizado": "Done",
           "habitos.estado_en_proceso": "In progress",
@@ -26783,6 +26876,7 @@
           "habitos.fuente_plan_parte": "Plan part",
           "habitos.fuente_objetivo": "Goal",
           "habitos.fuente_patron": "Pattern",
+          "habitos.fuente_manual": "Manual",
           "habitos.fuente_desconocida": "Origin unavailable",
           "habitos.modal_nuevo_titulo": "New habit",
           "habitos.modal_editar_titulo": "Edit habit",
@@ -30683,6 +30777,13 @@
           "habitos.card_tipo": "Tipo",
           "habitos.card_vinculos": "Vinculos",
           "habitos.editar": "Editar",
+          "habitos.marcar_hecho": "Marcar habito como feito",
+          "habitos.registrar_avance": "Registrar avanco",
+          "habitos.realizado_toast": "Habito realizado.",
+          "habitos.avance_registrado_toast": "Avanco registrado.",
+          "habitos.cantidad_invalida_toast": "Insira uma quantidade valida.",
+          "habitos.ya_registrado_periodo":
+            "Este habito ja foi marcado neste periodo.",
           "habitos.estado_pendiente": "Pendente",
           "habitos.estado_realizado": "Realizado",
           "habitos.estado_en_proceso": "Em processo",
@@ -30715,6 +30816,7 @@
           "habitos.fuente_plan_parte": "Parte de plano",
           "habitos.fuente_objetivo": "Objetivo",
           "habitos.fuente_patron": "Padrao",
+          "habitos.fuente_manual": "Manual",
           "habitos.fuente_desconocida": "Origem indisponivel",
           "habitos.modal_nuevo_titulo": "Novo habito",
           "habitos.modal_editar_titulo": "Editar habito",
@@ -73179,6 +73281,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const El_Icono = document.querySelector(
           "#Habitos_Overlay .Habitos_Modal_Icono"
         );
+        const El_Acciones = document.getElementById(
+          "Habitos_Header_Acciones"
+        );
+        if (El_Acciones) {
+          El_Acciones.hidden = true;
+          El_Acciones.innerHTML = "";
+        }
         if (El_Titulo) {
           El_Titulo.textContent = Titulo;
           delete El_Titulo.dataset.i18n;
@@ -73195,6 +73304,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             El_Icono.textContent = Icono;
           }
         }
+      }
+
+      function Habitos_Configurar_Header_Panel() {
+        const El_Acciones = document.getElementById(
+          "Habitos_Header_Acciones"
+        );
+        if (!El_Acciones) return;
+        El_Acciones.hidden = false;
+        El_Acciones.innerHTML = `
+          <button class="Habitos_Header_Btn" type="button"
+            data-habitos-nav="Editor"
+            title="${Escape_Html(t("habitos.nuevo"))}"
+            aria-label="${Escape_Html(t("habitos.nuevo"))}">
+            +
+          </button>
+          <button class="Habitos_Header_Btn" type="button"
+            data-habitos-nav="Vinculaciones"
+            title="${Escape_Html(t("habitos.panel_vinculaciones"))}"
+            aria-label="${Escape_Html(t("habitos.panel_vinculaciones"))}">
+            ↔
+          </button>
+          <button class="Habitos_Header_Btn" type="button"
+            data-habitos-nav="Registro"
+            title="${Escape_Html(t("habitos.panel_registro"))}"
+            aria-label="${Escape_Html(t("habitos.panel_registro"))}">
+            ≡
+          </button>
+        `;
       }
 
       function Habitos_Configurar_Acciones(
@@ -73391,22 +73528,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Actual = Habito_Progreso_Actual(Habito, Fecha);
         const Regla = Habito_Regla_Objetivo(Habito);
         const Objetivo = Habito_Objetivo_Total(Habito);
+        if (Regla === "Como_Maximo") {
+          if (Actual > Objetivo) {
+            return {
+              Clave: "Pendiente",
+              Label: t("habitos.estado_pendiente")
+            };
+          }
+          if (
+            Habito?.Tipo === "Evitar" &&
+            Habitos_Evitar_Confirmado_En_Periodo(Habito, Fecha)
+          ) {
+            return {
+              Clave: "Realizado",
+              Label: t("habitos.estado_realizado")
+            };
+          }
+          return {
+            Clave: Actual > 0 ? "En_Proceso" : "Pendiente",
+            Label: Actual > 0
+              ? t("habitos.estado_en_proceso")
+              : t("habitos.estado_pendiente")
+          };
+        }
         if (Actual <= 0) {
           return {
             Clave: "Pendiente",
             Label: t("habitos.estado_pendiente")
           };
-        }
-        if (Regla === "Como_Maximo") {
-          return Actual > Objetivo
-            ? {
-              Clave: "Pendiente",
-              Label: t("habitos.estado_pendiente")
-            }
-            : {
-              Clave: "En_Proceso",
-              Label: t("habitos.estado_en_proceso")
-            };
         }
         if (Habito_Esta_Completo(Habito, Fecha)) {
           return {
@@ -73508,7 +73657,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Plan_Subobjetivo: "habitos.fuente_plan_subobjetivo",
           Plan_Parte: "habitos.fuente_plan_parte",
           Objetivo: "habitos.fuente_objetivo",
-          Patron: "habitos.fuente_patron"
+          Patron: "habitos.fuente_patron",
+          Manual: "habitos.fuente_manual"
         };
         return t(Mapa[Fuente] || "habitos.fuente_desconocida");
       }
@@ -73688,39 +73838,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           t("habitos.panel_subtitulo"),
           "\u2705"
         );
+        Habitos_Configurar_Header_Panel();
         Habitos_Configurar_Acciones(
           t("habitos.nuevo"),
           t("cerrar"),
-          true
+          false
         );
         const Items = Habitos_Filtrados();
         Cuerpo.innerHTML = `
           <div class="Habitos_Panel">
-            <div class="Habitos_Panel_Accesos">
-              <button class="Habitos_Panel_Link" type="button"
-                data-habitos-nav="Editor">
-                <span>
-                  <strong>${t("habitos.nuevo")}</strong>
-                  <span>${t("habitos.panel_nuevo_desc")}</span>
-                </span>
-                <b>+</b>
-              </button>
-              <button class="Habitos_Panel_Link" type="button"
-                data-habitos-nav="Registro">
-                <span>
-                  <strong>${t("habitos.panel_registro")}</strong>
-                  <span>${t("habitos.panel_registro_desc")}</span>
-                </span>
-                <b>&rsaquo;</b>
-              </button>
-              <button class="Habitos_Panel_Link" type="button"
-                data-habitos-nav="Vinculaciones">
-                <span>
-                  <strong>${t("habitos.panel_vinculaciones")}</strong>
-                  <span>${t("habitos.panel_vinculaciones_desc")}</span>
-                </span>
-                <b>&rsaquo;</b>
-              </button>
+            <div class="Habitos_Lista">
+              ${Items.length ? Items.map((Habito) =>
+                Habitos_Render_Card(Habito)
+              ).join("") : `
+                <div class="Planes_Vacio">
+                  ${t("habitos.lista_vacia")}
+                </div>
+              `}
             </div>
             <div class="Habitos_Panel_Filtros">
               <div class="Habitos_Panel_Filtro">
@@ -73783,15 +73917,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 </select>
               </div>
             </div>
-            <div class="Habitos_Lista">
-              ${Items.length ? Items.map((Habito) =>
-                Habitos_Render_Card(Habito)
-              ).join("") : `
-                <div class="Planes_Vacio">
-                  ${t("habitos.lista_vacia")}
-                </div>
-              `}
-            </div>
           </div>
         `;
         document.getElementById("Habitos_Filtro_Dia").value =
@@ -73803,6 +73928,170 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Habitos_Conectar_Panel();
       }
 
+      function Habitos_Manual_Fuente_Id(Habito, Fecha, Fijo = false) {
+        const Periodo_Clave = Habito_Clave_Periodo(Habito, Fecha);
+        if (Fijo) {
+          return `Manual_Evitar_${Habito.Id}_${Periodo_Clave}`;
+        }
+        return `Manual_${Habito.Id}_${Date.now()}_${Math.floor(
+          Math.random() * 1000
+        )}`;
+      }
+
+      function Habitos_Evitar_Confirmado_En_Periodo(Habito, Fecha) {
+        if (Habito?.Tipo !== "Evitar") return false;
+        const Periodo_Clave = Habito_Clave_Periodo(Habito, Fecha);
+        const Fuente_Id = Habitos_Manual_Fuente_Id(
+          Habito,
+          Fecha,
+          true
+        );
+        return (Array.isArray(Habitos_Registros)
+          ? Habitos_Registros
+          : []
+        ).some((Registro) =>
+          Registro.Habito_Id === Habito.Id &&
+          Registro.Periodo_Clave === Periodo_Clave &&
+          Registro.Fuente === "Manual" &&
+          Registro.Fuente_Id === Fuente_Id
+        );
+      }
+
+      function Habitos_Evitar_Bloqueado_Para_Accion(Habito, Fecha) {
+        return Habito?.Tipo === "Evitar" &&
+          Habito?.Meta?.Periodo === "Dia" &&
+          Habitos_Evitar_Confirmado_En_Periodo(Habito, Fecha);
+      }
+
+      function Habitos_Registrar_Manual(Habito, Cantidad, Fecha) {
+        const Fijo = Habito?.Tipo === "Evitar";
+        const Fuente_Id = Habitos_Manual_Fuente_Id(Habito, Fecha, Fijo);
+        const Hora = new Date().toTimeString().slice(0, 5);
+        if (Fijo) {
+          Habito_Quitar_Registros_Fuente(
+            Habito.Id,
+            "Manual",
+            Fuente_Id,
+            Fecha
+          );
+        }
+        if (Cantidad > 0) {
+          Habito_Registrar_Fuente({
+            Habito_Id: Habito.Id,
+            Fecha,
+            Hora,
+            Fuente: "Manual",
+            Fuente_Id,
+            Cantidad,
+            Unidad: Habito_Unidad(Habito)
+          });
+          return;
+        }
+        const Periodo_Clave = Habito_Clave_Periodo(Habito, Fecha);
+        Habitos_Registros.push(Normalizar_Habito_Registro({
+          Habito_Id: Habito.Id,
+          Fecha,
+          Hora,
+          Fecha_Hora: `${Fecha}T${Hora || "00:00"}`,
+          Periodo_Clave,
+          Fuente: "Manual",
+          Fuente_Id,
+          Cantidad: 0,
+          Unidad: Habito_Unidad(Habito)
+        }));
+      }
+
+      function Habitos_Render_Accion_Rapida(Habito, Fecha) {
+        if (!Habito?.Activo) return "";
+        const Modo = Habito_Modo_Visible(Habito);
+        const Es_Evitar = Habito.Tipo === "Evitar";
+        const Bloqueado = Habitos_Evitar_Bloqueado_Para_Accion(
+          Habito,
+          Fecha
+        );
+        const Titulo = Bloqueado
+          ? t("habitos.ya_registrado_periodo")
+          : t("habitos.marcar_hecho");
+        if (Modo === "Check" || Es_Evitar) {
+          return `
+            <div class="Habitos_Card_Registro">
+              <button class="Habitos_Card_Registro_Btn" type="button"
+                data-habitos-registro-rapido="${Escape_Html(Habito.Id)}"
+                title="${Escape_Html(Titulo)}"
+                aria-label="${Escape_Html(Titulo)}"
+                ${Bloqueado ? "disabled" : ""}>
+                ✓
+              </button>
+            </div>
+          `;
+        }
+        const Unidad = Habito_Unidad(Habito);
+        const Objetivo = Planes_Formatear_Numero(
+          Habito_Objetivo_Total(Habito)
+        );
+        const Placeholder = Unidad
+          ? `${Objetivo} ${Unidad}`
+          : Objetivo;
+        return `
+          <div class="Habitos_Card_Registro">
+            <input class="Habitos_Card_Registro_Input"
+              type="number"
+              min="0.01"
+              step="0.25"
+              inputmode="decimal"
+              data-habitos-registro-input="${Escape_Html(Habito.Id)}"
+              placeholder="${Escape_Html(Placeholder)}"
+              aria-label="${Escape_Html(t("habitos.registro_avance"))}">
+            <button class="Habitos_Card_Registro_Btn" type="button"
+              data-habitos-registro-rapido="${Escape_Html(Habito.Id)}"
+              title="${Escape_Html(t("habitos.registrar_avance"))}"
+              aria-label="${Escape_Html(t("habitos.registrar_avance"))}">
+              ✓
+            </button>
+          </div>
+        `;
+      }
+
+      function Habitos_Registrar_Rapido_Desde_Panel(Habito_Id) {
+        const Habito = Habito_Por_Id(Habito_Id);
+        if (!Habito || !Habito.Activo) return;
+        const Fecha = Habitos_Fecha_Referencia();
+        if (Habitos_Evitar_Bloqueado_Para_Accion(Habito, Fecha)) {
+          Mostrar_Toast_Info(t("habitos.ya_registrado_periodo"), "✓");
+          return;
+        }
+        let Cantidad = 1;
+        const Modo = Habito_Modo_Visible(Habito);
+        if (Modo !== "Check" && Habito.Tipo !== "Evitar") {
+          const Input = Array.from(document.querySelectorAll(
+            "[data-habitos-registro-input]"
+          )).find((El) =>
+            El.dataset.habitosRegistroInput === Habito.Id
+          );
+          const Valor = String(Input?.value || "").replace(",", ".");
+          Cantidad = Number(Valor);
+          if (!Number.isFinite(Cantidad) || Cantidad <= 0) {
+            Input?.focus();
+            Mostrar_Toast_Info(t("habitos.cantidad_invalida_toast"), "⚠️");
+            return;
+          }
+        } else if (Habito.Tipo === "Evitar") {
+          Cantidad = 0;
+        }
+        Habitos_Registrar_Manual(Habito, Cantidad, Fecha);
+        Normalizar_Habitos_Registros();
+        Guardar_Estado();
+        const Completo = Habito.Tipo === "Evitar" ||
+          Habito_Esta_Completo(Habito, Fecha);
+        Render_Modal_Habitos();
+        Mostrar_Toast_Info(
+          Completo
+            ? t("habitos.realizado_toast")
+            : t("habitos.avance_registrado_toast"),
+          Completo ? "✅" : "✓"
+        );
+      }
+
       function Habitos_Render_Card(Habito) {
         const Estado = Habitos_Estado(Habito);
         const Abierta = Habitos_Panel_Abiertos.has(Habito.Id);
@@ -73812,24 +74101,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return `
           <div class="Habitos_Card${Abierta ? " Abierta" : ""}"
             data-habitos-card="${Escape_Html(Habito.Id)}">
-            <button class="Habitos_Card_Resumen" type="button"
-              data-habitos-toggle="${Escape_Html(Habito.Id)}">
-              <span class="Habitos_Card_Emoji"
-                style="background:${Escape_Html(Habito.Color)}">
-                ${Escape_Html(Habito.Emoji || "\u2022")}
-              </span>
-              <span>
-                <span class="Habitos_Card_Nombre">
-                  ${Escape_Html(Habito.Nombre)}
+            <div class="Habitos_Card_Resumen">
+              <button class="Habitos_Card_Toggle" type="button"
+                data-habitos-toggle="${Escape_Html(Habito.Id)}">
+                <span class="Habitos_Card_Emoji"
+                  style="background:${Escape_Html(Habito.Color)}">
+                  ${Escape_Html(Habito.Emoji || "\u2022")}
                 </span>
-                <span class="Habitos_Card_Meta">
-                  ${Escape_Html(Habito_Formatear_Progreso(Habito, Fecha))}
+                <span>
+                  <span class="Habitos_Card_Nombre">
+                    ${Escape_Html(Habito.Nombre)}
+                  </span>
+                  <span class="Habitos_Card_Meta">
+                    ${Escape_Html(Habito_Formatear_Progreso(Habito, Fecha))}
+                  </span>
                 </span>
-              </span>
-              <span class="Habitos_Card_Estado ${Estado.Clave}">
-                ${Escape_Html(Estado.Label)}
-              </span>
-            </button>
+                <span class="Habitos_Card_Estado ${Estado.Clave}">
+                  ${Escape_Html(Estado.Label)}
+                </span>
+              </button>
+              ${Habitos_Render_Accion_Rapida(Habito, Fecha)}
+            </div>
             <div class="Habitos_Card_Detalle">
               <div class="Habitos_Card_MetaGrid">
                 <div class="Habitos_Card_Dato">
@@ -73901,6 +74193,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Ev.stopPropagation();
               Habitos_Abrir_Editor_Desde_Panel(
                 Btn.dataset.habitosEditar
+              );
+            });
+          });
+        document.querySelectorAll("[data-habitos-registro-rapido]")
+          .forEach((Btn) => {
+            Btn.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              Habitos_Registrar_Rapido_Desde_Panel(
+                Btn.dataset.habitosRegistroRapido
+              );
+            });
+          });
+        document.querySelectorAll("[data-habitos-registro-input]")
+          .forEach((Input) => {
+            Input.addEventListener("keydown", (Ev) => {
+              if (Ev.key !== "Enter") return;
+              Ev.preventDefault();
+              Habitos_Registrar_Rapido_Desde_Panel(
+                Input.dataset.habitosRegistroInput
               );
             });
           });
@@ -84171,7 +84482,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Habito_Objetivo_Total(Habito) {
-        return Number(Habito?.Meta?.Cantidad) || 1;
+        const Cantidad = Number(Habito?.Meta?.Cantidad);
+        if (Number.isFinite(Cantidad)) return Cantidad;
+        return Habito?.Tipo === "Evitar" ? 0 : 1;
       }
 
       function Habito_Regla_Objetivo(Habito) {
