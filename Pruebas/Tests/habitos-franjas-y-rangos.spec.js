@@ -877,13 +877,13 @@ test("vinculos de bloque aceptan tiempo check y cantidad", async ({
   ]);
 });
 
-test("vinculo semanal con meta muestra solo el nombre propio", async ({
+test("vinculo semanal con meta indenta subobjetivos", async ({
   page
 }) => {
   await Preparar(page);
 
-  const etiqueta = await page.evaluate(() =>
-    Meta_Aporte_Label_Item({
+  const etiquetas = await page.evaluate(() => {
+    const Item = {
       Tipo: "Subobjetivo",
       Objetivo: {
         Emoji: "\uD83D\uDCD8",
@@ -893,10 +893,15 @@ test("vinculo semanal con meta muestra solo el nombre propio", async ({
         Emoji: "\u2696\ufe0f",
         Texto: "Kant"
       }
-    })
-  );
+    };
+    return {
+      normal: Meta_Aporte_Label_Item(Item),
+      select: Meta_Aporte_Label_Select_Item(Item)
+    };
+  });
 
-  expect(etiqueta).toBe("\u2696\ufe0f Kant");
+  expect(etiquetas.normal).toBe("\u2696\ufe0f Kant");
+  expect(etiquetas.select).toBe("\u00a0\u00a0\u00a0\u00a0\u2696\ufe0f Kant");
 });
 
 test("vinculos de planes registran habitos al finalizar avances", async ({

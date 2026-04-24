@@ -58645,6 +58645,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return `${Obj.Emoji || ""} ${Obj.Nombre || ""}`.trim();
       }
 
+      function Meta_Aporte_Label_Select_Item(Item) {
+        if (!Item) return "";
+        const Label = Meta_Aporte_Label_Item(Item);
+        return Item.Tipo === "Subobjetivo"
+          ? `\u00a0\u00a0\u00a0\u00a0${Label}`
+          : Label;
+      }
+
       function Meta_Aporte_Nombre_Sugerencia_Item(Item) {
         if (!Item) return "";
         if (Item.Tipo === "Subobjetivo") {
@@ -58665,7 +58673,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Meta_Aporte_Items_Semana().forEach((Item) => {
           const Opt = document.createElement("option");
           Opt.value = Meta_Vinculo_Valor(Item.Tipo, Item.Id);
-          Opt.textContent = Meta_Aporte_Label_Item(Item);
+          Opt.textContent = Meta_Aporte_Label_Select_Item(Item);
           Select.appendChild(Opt);
         });
         const Valores = new Set(
