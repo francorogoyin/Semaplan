@@ -227,6 +227,50 @@ test("advierte al cambiar unidad con registros previos", async ({
     .toContainText("ya tiene registros");
 });
 
+test("oculta origen tecnico en el log de habitos", async ({ page }) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Log_Origen",
+        Nombre: "Leer",
+        Tipo: "Hacer",
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 5,
+          Unidad: "paginas"
+        }
+      })
+    ];
+    Habitos_Registros = [
+      Normalizar_Habito_Registro({
+        Id: "Registro_Log_Origen",
+        Habito_Id: "Habito_Log_Origen",
+        Fecha: "2026-04-24",
+        Hora: "14:14",
+        Fecha_Hora: "2026-04-24T14:14",
+        Periodo_Clave: "2026-04-24",
+        Fuente: "Manual",
+        Fuente_Id: "Manual_Habito_Visible_No",
+        Cantidad: 1,
+        Unidad: "paginas"
+      })
+    ];
+    Abrir_Modal_Habitos();
+    Habitos_Navegar("Registro");
+  });
+
+  const tabla = page.locator(".Habitos_Tabla");
+  await expect(tabla).toBeVisible();
+  await expect(tabla.locator("thead th")).toHaveCount(5);
+  await expect(tabla.locator("thead")).not.toContainText("Origin");
+  await expect(tabla.locator("tbody")).not
+    .toContainText("Manual_Habito_Visible_No");
+});
+
 test("explica que los patrones se filtran por tipo de slot", async ({
   page
 }) => {
