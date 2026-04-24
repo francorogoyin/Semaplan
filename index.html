@@ -986,10 +986,9 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
-        margin: 34px -8px 0;
-        padding: 18px 8px 12px;
+        margin: 30px -14px -16px;
+        padding: 16px 14px 16px;
         border-top: 1px solid rgba(0, 0, 0, 0.11);
-        border-radius: 8px;
         background: rgba(54, 47, 39, 0.06);
       }
 
@@ -1010,17 +1009,16 @@
       .Sidebar_Habitos_Label {
         color: var(--Texto_Suave);
         font-size: 11px;
-        font-weight: 900;
+        font-weight: 400;
         line-height: 1.2;
         letter-spacing: 0;
-        text-transform: uppercase;
       }
 
       .Sidebar_Habitos_Fila {
         display: flex;
-        gap: 9px;
+        gap: 7px;
         flex-wrap: wrap;
-        padding-bottom: 9px;
+        padding-bottom: 7px;
       }
 
       .Sidebar_Habitos.Sin_Globitos .Sidebar_Habitos_Fila {
@@ -1029,13 +1027,13 @@
 
       .Sidebar_Habitos_Divisor {
         height: 1px;
-        margin: 4px 0 2px;
+        margin: 3px -14px 2px;
         background: rgba(0, 0, 0, 0.12);
       }
 
       .Sidebar_Habito {
-        width: 38px;
-        height: 38px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
         border: 1px solid rgba(0, 0, 0, 0.08);
         background: #9a9389;
@@ -1045,7 +1043,7 @@
         padding: 0;
         position: relative;
         cursor: pointer;
-        font-size: 18px;
+        font-size: 10px;
         overflow: hidden;
       }
 
@@ -1080,15 +1078,15 @@
         left: 0;
         right: 0;
         bottom: 0;
-        height: 11px;
-        padding: 0 2px;
+        height: 6px;
+        padding: 0 1px;
         border-radius: 0;
         background: rgba(0, 0, 0, 0.18);
         border: 0;
         color: rgba(255, 255, 255, 0.92);
-        font-size: 8px;
+        font-size: 5px;
         font-weight: 700;
-        line-height: 11px;
+        line-height: 6px;
         white-space: nowrap;
         max-width: none;
         overflow: hidden;
@@ -3244,7 +3242,7 @@
       }
 
       #Archivero_Nota_Overlay {
-        z-index: 10400;
+        z-index: 12120;
       }
 
       /* --- Paleta de comandos (Ctrl+K) --- */
@@ -23834,6 +23832,8 @@
           "planes.progreso_manual": "Manual",
           "planes.progreso_total": "Total",
           "planes.total_unidades": "Total de unidades",
+          "planes.unidades_faltantes": "Unidades faltantes",
+          "planes.unidades_realizadas": "Unidades realizadas",
           "planes.fijado": "Fijado",
           "planes.modo_avance": "Modo de avance",
           "planes.modo_avance_metrica": "Con métrica",
@@ -27871,6 +27871,8 @@
           "planes.progreso_manual": "Manual",
           "planes.progreso_total": "Total",
           "planes.total_unidades": "Total units",
+          "planes.unidades_faltantes": "Units left",
+          "planes.unidades_realizadas": "Units done",
           "planes.fijado": "Fixed",
           "planes.modo_avance": "Progress mode",
           "planes.modo_avance_metrica": "With metric",
@@ -31860,6 +31862,8 @@
           "planes.progreso_manual": "Manual",
           "planes.progreso_total": "Total",
           "planes.total_unidades": "Total de unidades",
+          "planes.unidades_faltantes": "Unidades faltantes",
+          "planes.unidades_realizadas": "Unidades realizadas",
           "planes.fijado": "Fixado",
           "planes.modo_avance": "Modo de avanço",
           "planes.modo_avance_metrica": "Com métrica",
@@ -56558,11 +56562,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Total = Subs.reduce((Suma, Sub) =>
           Suma + (Number(Sub.Target_Total) || 0), 0
         );
+        const Realizadas = Subs.reduce((Suma, Sub) =>
+          Suma + Math.max(0, Planes_Progreso_Total_Subobjetivo(Sub)),
+          0
+        );
+        const Faltantes = Math.max(0, Total - Realizadas);
         const Base = Subs[0];
         return {
           Total,
+          Faltantes,
+          Realizadas,
           Texto: `${Planes_Formatear_Numero(Total)} ` +
-            `${Planes_Unidad_Label_Subobjetivo(Base, Total)}`
+            `${Planes_Unidad_Label_Subobjetivo(Base, Total)}`,
+          Faltantes_Texto: `${Planes_Formatear_Numero(Faltantes)} ` +
+            `${Planes_Unidad_Label_Subobjetivo(Base, Faltantes)}`,
+          Realizadas_Texto: `${Planes_Formatear_Numero(Realizadas)} ` +
+            `${Planes_Unidad_Label_Subobjetivo(Base, Realizadas)}`
         };
       }
 
@@ -56618,13 +56633,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     <tr>
                       <th>${t("planes.estado")}</th>
                       <th class="Numero">${t("planes.target")}</th>
+                      <th class="Numero">${t("planes.realizado")}</th>
+                      <th class="Numero">${t("planes.falta")}</th>
                       ${Total_Unidades ? `
                         <th class="Numero">
                           ${t("planes.total_unidades")}
                         </th>
+                        <th class="Numero">
+                          ${t("planes.unidades_faltantes")}
+                        </th>
+                        <th class="Numero">
+                          ${t("planes.unidades_realizadas")}
+                        </th>
                       ` : ""}
-                      <th class="Numero">${t("planes.realizado")}</th>
-                      <th class="Numero">${t("planes.falta")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -56635,13 +56656,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                         </span>
                       </td>
                       <td class="Numero">${Escape_Html(Meta)}</td>
+                      <td class="Numero">${Realizado}</td>
+                      <td class="Numero">${Falta}</td>
                       ${Total_Unidades ? `
                         <td class="Numero">
                           ${Escape_Html(Total_Unidades.Texto)}
                         </td>
+                        <td class="Numero">
+                          ${Escape_Html(Total_Unidades.Faltantes_Texto)}
+                        </td>
+                        <td class="Numero">
+                          ${Escape_Html(Total_Unidades.Realizadas_Texto)}
+                        </td>
                       ` : ""}
-                      <td class="Numero">${Realizado}</td>
-                      <td class="Numero">${Falta}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -57983,6 +58010,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Hoy;
       }
 
+      function Metas_Sugeridas_Tiene_Fecha_Explicita(Item) {
+        return Boolean(
+          Planes_Normalizar_Fecha_Comparacion(
+            Item?.Fecha_Inicio || ""
+          ) ||
+          Planes_Normalizar_Fecha_Comparacion(
+            Item?.Fecha_Objetivo || Item?.Fecha_Fin || ""
+          )
+        );
+      }
+
       function Metas_Sugeridas_Dias_Restantes_Objetivo(
         Fin,
         Referencia = Metas_Sugeridas_Fecha_Referencia()
@@ -58055,7 +58093,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Fin_Semana
             );
           }
-          return true;
+          return false;
         }
         return Fecha >= Inicio_Semana && Fecha <= Fin_Semana;
       }
@@ -58066,6 +58104,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Modelo
       ) {
         const Periodo = Modelo.Periodos[Objetivo?.Periodo_Id];
+        const Tiene_Fecha =
+          Metas_Sugeridas_Tiene_Fecha_Explicita(Sub);
         const Inicio =
           Planes_Normalizar_Fecha_Comparacion(Sub?.Fecha_Inicio) ||
           Periodo?.Inicio || "";
@@ -58073,7 +58113,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Normalizar_Fecha_Comparacion(
             Sub?.Fecha_Objetivo || Sub?.Fecha_Fin
           ) || Periodo?.Fin || "";
-        return { Inicio, Fin, Periodo };
+        return { Inicio, Fin, Periodo, Tiene_Fecha };
       }
 
       function Metas_Sugeridas_Rangos_Cruzan(
@@ -58178,7 +58218,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Sugerida: !Oculta && Metas_Sugeridas_Parte_En_Semana(
                 Parte,
                 Semana.Inicio,
-                Semana.Fin
+                Semana.Fin,
+                Sub
               )
             };
           });
@@ -58199,12 +58240,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Modelo
             );
             const Partes = Metas_Sugeridas_Partes(Sub, Modelo);
-            const Rango_Cruza = Metas_Sugeridas_Rangos_Cruzan(
-              Rango.Inicio,
-              Rango.Fin,
-              Semana.Inicio,
-              Semana.Fin
-            );
+            const Rango_Cruza = Rango.Tiene_Fecha &&
+              Metas_Sugeridas_Rangos_Cruzan(
+                Rango.Inicio,
+                Rango.Fin,
+                Semana.Inicio,
+                Semana.Fin
+              );
             const Tiene_Parte_Semanal = Partes.some(
               (Info) => Info.Sugerida
             );

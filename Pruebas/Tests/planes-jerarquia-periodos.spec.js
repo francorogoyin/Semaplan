@@ -607,6 +607,76 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Detalle de objetivo muestra columnas finales de unidades",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Detalle_Unidades = await page.evaluate(() => {
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+    Modelo.UI.Filtro_Tipo = "Anio";
+    const Periodo = Planes_Crear_Periodo_Seleccionado("Anio");
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(
+      Periodo.Id,
+      {
+        Nombre: "Detalle con unidades",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 6,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Sub_A = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Libro A"
+    );
+    const Sub_B = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Libro B"
+    );
+    const Modelo_Actual = Asegurar_Modelo_Planes();
+    Object.assign(Modelo_Actual.Subobjetivos[Sub_A], {
+      Target_Total: 2,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros"
+    });
+    Object.assign(Modelo_Actual.Subobjetivos[Sub_B], {
+      Target_Total: 3,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros"
+    });
+    Planes_Actualizar_Progreso(Objetivo);
+    const Host = document.createElement("div");
+    Host.innerHTML = Render_Planes_Detalle_Objetivo(Objetivo);
+    return {
+      headers: Array.from(Host.querySelectorAll("th"))
+        .map((Th) => Th.textContent.trim()),
+      celdas: Array.from(Host.querySelectorAll("td"))
+        .map((Td) => Td.textContent.trim())
+    };
+  });
+
+  expect(Detalle_Unidades.headers).toEqual([
+    "Estado",
+    "Valor objetivo",
+    "Realizado",
+    "Falta",
+    "Total de unidades",
+    "Unidades faltantes",
+    "Unidades realizadas"
+  ]);
+  expect(Detalle_Unidades.celdas.slice(-3)).toEqual([
+    "5 libros",
+    "5 libros",
+    "0 libros"
+  ]);
+  expect(errores).toEqual([]);
+});
+
 test("Redistribucion mensual edita el objetivo real y se ve en hijos",
 async ({ page }) => {
   const errores = [];

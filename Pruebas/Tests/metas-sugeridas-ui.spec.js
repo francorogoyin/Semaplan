@@ -217,10 +217,49 @@ async ({ page }) => {
       Fecha_Objetivo: "2026-04-26",
       Orden: 0
     });
+    Modelo.Subobjetivos.sub_sin_fecha = Normalizar_Subobjetivo_Plan({
+      Id: "sub_sin_fecha",
+      Objetivo_Id: "obj_plan",
+      Emoji: "N",
+      Texto: "Sin fecha semanal",
+      Target_Total: 8,
+      Unidad: "Horas",
+      Orden: 1
+    });
+    Modelo.Subobjetivos.sub_otra_semana = Normalizar_Subobjetivo_Plan({
+      Id: "sub_otra_semana",
+      Objetivo_Id: "obj_plan",
+      Emoji: "O",
+      Texto: "Otra semana",
+      Target_Total: 6,
+      Unidad: "Horas",
+      Fecha_Inicio: "2026-05-04",
+      Fecha_Objetivo: "2026-05-10",
+      Orden: 2
+    });
     Abrir_Metas_Sugeridas();
   });
 
   await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(1);
+  await expect(page.locator(".Metas_Sugeridas_Fila"))
+    .toContainText("SEO");
+  await expect(page.locator(".Metas_Sugeridas_Fila"))
+    .not.toContainText("Sin fecha semanal");
+  await expect(page.locator(".Metas_Sugeridas_Fila"))
+    .not.toContainText("Otra semana");
+  const Z_Index = await page.evaluate(() => ({
+    metas: Number(
+      getComputedStyle(
+        document.getElementById("Metas_Sugeridas_Overlay")
+      ).zIndex
+    ),
+    nota: Number(
+      getComputedStyle(
+        document.getElementById("Archivero_Nota_Overlay")
+      ).zIndex
+    )
+  }));
+  expect(Z_Index.nota).toBeGreaterThan(Z_Index.metas);
   await page.evaluate(() => {
     document.querySelector(".Metas_Sugeridas_Fila")
       ?.classList.add("Abierta");
