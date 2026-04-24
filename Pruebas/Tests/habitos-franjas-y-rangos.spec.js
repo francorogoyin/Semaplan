@@ -665,6 +665,21 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
       "Plan_Parte",
       "Habito_Leer_Planes"
     );
+    Config.Mostrar_Habitos_Sidebar = true;
+    Config.Mostrar_Globitos_Habitos = true;
+    Render_Emojis();
+    const Estado_Sidebar = () => {
+      const Btn = document.querySelector(
+        '[data-sidebar-habito-id="Habito_Leer_Planes"]'
+      );
+      return {
+        clase: Btn?.className || "",
+        titulo: Btn?.title || "",
+        indicador: Btn?.querySelector(".Sidebar_Habito_Indicador")
+          ?.textContent || ""
+      };
+    };
+    const Sidebar_Antes = Estado_Sidebar();
 
     Abrir_Modal_Planes_Avance("Parte|parte_habitos");
     document.getElementById("Planes_Avance_Cantidad").value = "7";
@@ -673,6 +688,7 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
     document.getElementById("Planes_Avance_Hora").value = "10:00";
     document.getElementById("Planes_Avance_Hasta_Final").checked = true;
     await Guardar_Modal_Planes_Avance();
+    const Sidebar_Tras_Avance = Estado_Sidebar();
 
     Abrir_Modal_Planes_Avance("Subobjetivo|sub_directo_habitos");
     document.getElementById("Planes_Avance_Cantidad").value = "7";
@@ -699,6 +715,8 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
 
     return {
       defaultModo: Default_Parte.Cantidad_Modo,
+      sidebarAntes: Sidebar_Antes,
+      sidebarTrasAvance: Sidebar_Tras_Avance,
       registros: Habitos_Registros
         .filter((Registro) =>
           Registro.Habito_Id === "Habito_Leer_Planes"
@@ -716,6 +734,10 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
   });
 
   expect(resultado.defaultModo).toBe("Usar_Fuente");
+  expect(resultado.sidebarAntes.clase).toContain("Pendiente");
+  expect(resultado.sidebarAntes.indicador).toBe("0/20 paginas");
+  expect(resultado.sidebarTrasAvance.clase).toContain("En_Proceso");
+  expect(resultado.sidebarTrasAvance.indicador).toBe("7/20 paginas");
   expect(resultado.registros).toEqual(expect.arrayContaining([
     expect.objectContaining({
       Fuente: "Plan_Parte",
