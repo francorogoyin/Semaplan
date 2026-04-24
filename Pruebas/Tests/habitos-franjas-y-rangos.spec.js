@@ -449,6 +449,153 @@ test("sidebar de habitos rotula y separa semanales de diarios", async ({
   });
 });
 
+test("sidebar de habitos oculta globitos y registra desde menu", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Config.Mostrar_Habitos_Sidebar = true;
+    Config.Mostrar_Globitos_Habitos = false;
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Check_Menu",
+        Nombre: "Check menu",
+        Emoji: "\u2713",
+        Activo: true,
+        Orden: 1,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 1
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Cantidad_Menu",
+        Nombre: "Paginas menu",
+        Emoji: "\u{1f4d6}",
+        Activo: true,
+        Orden: 2,
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 5,
+          Unidad: "paginas"
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Evitar_Menu",
+        Nombre: "Evitar menu",
+        Emoji: "\u26d4",
+        Tipo: "Evitar",
+        Activo: true,
+        Orden: 3,
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Como_Maximo",
+          Periodo: "Dia",
+          Cantidad: 0,
+          Unidad: "caidas"
+        }
+      })
+    ];
+    Habitos_Registros = [];
+    Render_Habitos_Sidebar();
+  });
+
+  await expect(page.locator("#Sidebar_Habitos"))
+    .toHaveClass(/Sin_Globitos/);
+  await expect(page.locator(".Sidebar_Habito_Indicador"))
+    .toHaveCount(0);
+
+  await page.evaluate(() => Abrir_Config());
+  await expect(page.locator("#Cfg_Globito_Habitos_Activo"))
+    .toBeVisible();
+  await expect(page.locator("#Cfg_Globito_Habitos_Activo"))
+    .not.toBeChecked();
+  await page.check("#Cfg_Globito_Habitos_Activo");
+  await page.click("#Config_Guardar_Btn");
+  await expect(page.locator("#Config_Overlay"))
+    .not.toHaveClass(/Activo/);
+  await expect(page.locator(".Sidebar_Habito_Indicador"))
+    .toHaveCount(3);
+
+  await page.click(
+    '[data-sidebar-habito-id="Habito_Check_Menu"]',
+    { button: "right" }
+  );
+  await expect(page.locator("#Dia_Accion_Menu"))
+    .toContainText("Marcar como realizado");
+  await expect(page.locator("#Dia_Accion_Menu"))
+    .toContainText("Registrar avance");
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="habito-registrar-avance"]'
+  );
+
+  await page.click(
+    '[data-sidebar-habito-id="Habito_Cantidad_Menu"]',
+    { button: "right" }
+  );
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="habito-registrar-avance"]'
+  );
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Dialogo_Input_Campo"))
+    .toHaveValue("1");
+  await page.fill("#Dialogo_Input_Campo", "3");
+  await page.click("#Dialogo_Botones .Dialogo_Boton_Primario");
+
+  await page.click(
+    '[data-sidebar-habito-id="Habito_Cantidad_Menu"]',
+    { button: "right" }
+  );
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="habito-marcar-realizado"]'
+  );
+
+  await page.click(
+    '[data-sidebar-habito-id="Habito_Evitar_Menu"]',
+    { button: "right" }
+  );
+  await expect(page.locator(
+    '#Dia_Accion_Menu [data-acc="habito-registrar-avance"]'
+  )).toHaveCount(0);
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="habito-marcar-realizado"]'
+  );
+
+  const resumen = await page.evaluate(() => {
+    const Fecha = Habitos_Fecha_Referencia();
+    return {
+      Check: Habito_Progreso_Actual(
+        Habito_Por_Id("Habito_Check_Menu"),
+        Fecha
+      ),
+      Cantidad: Habito_Progreso_Actual(
+        Habito_Por_Id("Habito_Cantidad_Menu"),
+        Fecha
+      ),
+      EvitarConfirmado: Habitos_Evitar_Confirmado_En_Periodo(
+        Habito_Por_Id("Habito_Evitar_Menu"),
+        Fecha
+      ),
+      EvitarCantidad: Habitos_Registros.find((Registro) =>
+        Registro.Habito_Id === "Habito_Evitar_Menu"
+      )?.Cantidad
+    };
+  });
+
+  expect(resumen).toEqual({
+    Check: 1,
+    Cantidad: 4,
+    EvitarConfirmado: true,
+    EvitarCantidad: 0
+  });
+});
+
 test("panel de habitos registra avances manuales desde la lista", async ({
   page
 }) => {

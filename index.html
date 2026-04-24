@@ -1022,6 +1022,10 @@
         padding-bottom: 7px;
       }
 
+      .Sidebar_Habitos.Sin_Globitos .Sidebar_Habitos_Fila {
+        padding-bottom: 0;
+      }
+
       .Sidebar_Habitos_Divisor {
         height: 1px;
         background: rgba(0, 0, 0, 0.08);
@@ -17825,6 +17829,13 @@
                   data-i18n="config.mostrar_globitos"
                   >Mostrar globitos</label>
               </div>
+              <div class="Config_Fila_Check">
+                <input type="checkbox"
+                  id="Cfg_Globito_Habitos_Activo">
+                <label for="Cfg_Globito_Habitos_Activo"
+                  data-i18n="config.mostrar_globitos_habitos"
+                  >Mostrar globitos en hÃ¡bitos</label>
+              </div>
               <div class="Config_Fila">
                 <span class="Config_Label"
                   data-i18n="config.mostrar_en_globito"
@@ -24039,6 +24050,8 @@
             "objetivo en la semana.",
           "config.mostrar_globitos":
             "Mostrar globitos",
+          "config.mostrar_globitos_habitos":
+            "Mostrar globitos en h\u00e1bitos",
           "config.mostrar_en_globito":
             "Mostrar en el globito",
           "config.horas_pendientes":
@@ -28026,6 +28039,8 @@
             "objective this week.",
           "config.mostrar_globitos":
             "Show badges",
+          "config.mostrar_globitos_habitos":
+            "Show badges on habits",
           "config.mostrar_en_globito":
             "Show in badge",
           "config.horas_pendientes":
@@ -31986,6 +32001,8 @@
             "na semana.",
           "config.mostrar_globitos":
             "Mostrar balões",
+          "config.mostrar_globitos_habitos":
+            "Mostrar bal\u00f5es em h\u00e1bitos",
           "config.mostrar_en_globito":
             "Mostrar no balão",
           "config.horas_pendientes":
@@ -35000,6 +35017,7 @@
         Mostrar_Archivadas: false,
         Ocultar_Realizados_Sidebar: false,
         Mostrar_Habitos_Sidebar: false,
+        Mostrar_Globitos_Habitos: true,
         Focus_Auto: false,
         // Estilo del menú de la barra superior:
         // "Iconos" (default) muestra todos los botones inline.
@@ -70854,6 +70872,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Config.Agrupar_Por_Categorias;
         document.getElementById("Cfg_Globito_Activo").checked =
           Config.Globito_Activo !== false;
+        document.getElementById(
+          "Cfg_Globito_Habitos_Activo"
+        ).checked = Config.Mostrar_Globitos_Habitos !== false;
         document.getElementById("Cfg_Globito_Modo").value =
           Config.Globito_Modo;
         document.getElementById("Cfg_Globito_Posicion").value =
@@ -79632,6 +79653,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Config.Globito_Activo = Boolean(
           document.getElementById("Cfg_Globito_Activo")?.checked
+        );
+        Config.Mostrar_Globitos_Habitos = Boolean(
+          document.getElementById("Cfg_Globito_Habitos_Activo")
+            ?.checked
         );
         Config.Globito_Modo =
           document.getElementById("Cfg_Globito_Modo")?.value || "Horas";
@@ -90192,6 +90217,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Slots_Muertos_Default: Config.Slots_Muertos_Default,
             Agrupar_Por_Categorias: Config.Agrupar_Por_Categorias,
             Globito_Activo: Config.Globito_Activo,
+            Mostrar_Globitos_Habitos:
+              Config.Mostrar_Globitos_Habitos,
             Globito_Modo: Config.Globito_Modo,
             Globito_Posicion: Config.Globito_Posicion,
             Meta_Notificaciones_Activas:
@@ -90441,6 +90468,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Config.Agrupar_Por_Categorias = Extra.Agrupar_Por_Categorias;
             if (typeof Extra.Globito_Activo === "boolean")
               Config.Globito_Activo = Extra.Globito_Activo;
+            if (
+              typeof Extra.Mostrar_Globitos_Habitos === "boolean"
+            ) {
+              Config.Mostrar_Globitos_Habitos =
+                Extra.Mostrar_Globitos_Habitos;
+            }
             if (Extra.Globito_Modo)
               Config.Globito_Modo =
                 Extra.Globito_Modo === "Subtareas"
@@ -90847,6 +90880,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Normalizar_Habitos_Registros();
         Config.Globito_Activo =
           Config.Globito_Activo !== false;
+        Config.Mostrar_Globitos_Habitos =
+          Config.Mostrar_Globitos_Habitos !== false;
         if (Config.Globito_Modo === "Subtareas") {
           Config.Globito_Modo = "Subobjetivos";
         }
@@ -92735,6 +92770,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Activos.length === 0
         );
         if (!Activos.length) return;
+        const Mostrar_Globitos =
+          Config.Mostrar_Globitos_Habitos !== false;
+        El_Sidebar_Habitos.classList.toggle(
+          "Sin_Globitos",
+          !Mostrar_Globitos
+        );
 
         const Semanales = Activos.filter((Habito) =>
           Habito?.Meta?.Periodo === "Semana"
@@ -92764,13 +92805,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Btn,
             Habito.Emoji || "\u2022"
           );
-          const Indicador = document.createElement("span");
-          Indicador.className = "Sidebar_Habito_Indicador";
-          Indicador.textContent =
-            Habito_Formatear_Progreso(Habito, Fecha);
-          Btn.appendChild(Indicador);
+          if (Mostrar_Globitos) {
+            const Indicador = document.createElement("span");
+            Indicador.className = "Sidebar_Habito_Indicador";
+            Indicador.textContent =
+              Habito_Formatear_Progreso(Habito, Fecha);
+            Btn.appendChild(Indicador);
+          }
           Btn.addEventListener("click", () => {
             Abrir_Modal_Habitos(Habito.Id, { Retorno: "Panel" });
+          });
+          Btn.addEventListener("contextmenu", (Ev) => {
+            Ev.preventDefault();
+            Ev.stopPropagation();
+            Mostrar_Menu_Habito_Sidebar(
+              Habito,
+              Ev.clientX,
+              Ev.clientY
+            );
           });
           return Btn;
         };
@@ -92799,6 +92851,118 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Sidebar_Habitos.appendChild(Divisor);
         }
         Render_Grupo("sidebar.habitos_diarios", Diarios);
+      }
+
+      function Habitos_Refrescar_Tras_Registro(
+        Habito,
+        Fecha,
+        Cantidad
+      ) {
+        Habitos_Registrar_Manual(Habito, Cantidad, Fecha);
+        Normalizar_Habitos_Registros();
+        Guardar_Estado();
+        Render_Emojis();
+        if (
+          document.getElementById("Habitos_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Modal_Habitos();
+        }
+        const Completo = Habito.Tipo === "Evitar" ||
+          Habito_Esta_Completo(Habito, Fecha);
+        Mostrar_Toast_Info(
+          Completo
+            ? t("habitos.realizado_toast")
+            : t("habitos.avance_registrado_toast"),
+          Completo ? "\u2705" : "\u2713"
+        );
+      }
+
+      function Habitos_Cantidad_Marcar_Realizado(Habito) {
+        if (Habito?.Tipo === "Evitar") return 0;
+        if (Habito_Modo_Visible(Habito) === "Tiempo") {
+          return Math.max(1, Number(Habito_Objetivo_Total(Habito)) || 1);
+        }
+        return 1;
+      }
+
+      function Habitos_Marcar_Realizado_Desde_Sidebar(Habito) {
+        if (!Habito || !Habito.Activo) return;
+        const Fecha = Habitos_Fecha_Referencia();
+        if (Habitos_Evitar_Bloqueado_Para_Accion(Habito, Fecha)) {
+          Mostrar_Toast_Info(t("habitos.ya_registrado_periodo"), "\u2713");
+          return;
+        }
+        Habitos_Refrescar_Tras_Registro(
+          Habito,
+          Fecha,
+          Habitos_Cantidad_Marcar_Realizado(Habito)
+        );
+      }
+
+      async function Habitos_Registrar_Avance_Desde_Sidebar(Habito) {
+        if (!Habito || !Habito.Activo) return;
+        const Fecha = Habitos_Fecha_Referencia();
+        let Cantidad = 1;
+        if (Habito_Modo_Visible(Habito) === "Cantidad") {
+          const Valor = await Mostrar_Dialogo_Con_Numero(
+            t("habitos.registrar_avance"),
+            1,
+            1
+          );
+          if (Valor === null) return;
+          Cantidad = Valor;
+        }
+        Habitos_Refrescar_Tras_Registro(Habito, Fecha, Cantidad);
+      }
+
+      function Mostrar_Menu_Habito_Sidebar(Habito, X, Y) {
+        const Menu = document.getElementById("Dia_Accion_Menu");
+        if (!Menu || !Habito) return;
+        const Grupo = [
+          Html_Menu_Dia_Accion(
+            "habito-marcar-realizado",
+            t("planes.marcar_realizado")
+          )
+        ];
+        const Modo = Habito_Modo_Visible(Habito);
+        if (
+          Habito.Tipo !== "Evitar" &&
+          (Modo === "Cantidad" || Modo === "Check")
+        ) {
+          Grupo.push(
+            Html_Menu_Dia_Accion(
+              "habito-registrar-avance",
+              t("habitos.registrar_avance")
+            )
+          );
+        }
+        Menu.innerHTML = Construir_Menu_Dia_Por_Grupos([Grupo]);
+        Menu.style.left = `${X}px`;
+        Menu.style.top = `${Y}px`;
+        Menu.classList.add("Activo");
+        Reposicionar_Menu_Dia_En_Pantalla(Menu);
+
+        Menu.querySelector(`[data-acc="habito-marcar-realizado"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Habitos_Marcar_Realizado_Desde_Sidebar(Habito);
+          });
+        Menu.querySelector(`[data-acc="habito-registrar-avance"]`)
+          ?.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Habitos_Registrar_Avance_Desde_Sidebar(Habito);
+          });
+        if (Fn_Cierre_Menu) {
+          document.removeEventListener("click", Fn_Cierre_Menu);
+          Fn_Cierre_Menu = null;
+        }
+        Fn_Cierre_Menu = (Ev) => {
+          if (!Menu.contains(Ev.target)) Cerrar_Menu_Dia();
+        };
+        document.addEventListener("click", Fn_Cierre_Menu);
       }
 
       function Calcular_Unidades_Subobjetivos_Objetivo(Objetivo) {
