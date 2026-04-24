@@ -1,0 +1,1332 @@
+{
+  "runId": "1777007280380",
+  "family": "QA Casos Habitos 1777007280380",
+  "baseUrl": "http://127.0.0.1:4181",
+  "cases": [
+    {
+      "number": 1,
+      "title": "Lectura diaria de dias de semana",
+      "checks": [
+        {
+          "label": "El habito conserva nombre, emoji, color, unidad y meta",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Quedan tres subobjetivos vinculados al mismo habito",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El progreso manual 3+2 queda completo",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Sabado y domingo quedan fuera de disponibilidad",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": "02_editor_habito_cantidad_desktop.png"
+    },
+    {
+      "number": 2,
+      "title": "Meditacion diaria por tiempo",
+      "checks": [
+        {
+          "label": "El modo tiempo conserva unidad minutos",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Un evento de 15 minutos registra 15 minutos",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El item de slot genera registro de tiempo al marcarse realizado",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "En planes de slot se puede registrar un habito de tiempo, pero el selector de compatibilidad general prioriza eventos para tiempo; conviene revisar si eso es intencional."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": null
+    },
+    {
+      "number": 3,
+      "title": "Entrenamiento semanal",
+      "checks": [
+        {
+          "label": "El modo Check puede guardar una cantidad interna mayor a 1",
+          "ok": true,
+          "detail": "La UI oculta meta en Check, por eso para usuario real conviene usar Cantidad/veces.",
+          "critical": false
+        },
+        {
+          "label": "La alternativa cantidad/veces completa 3 ocurrencias semanales",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Los tres bloques semanales generan registros separados",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "Para el usuario, `Check` semanal no expresa bien tres ocurrencias. La salida entendible hoy es `Cantidad + veces`."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": null
+    },
+    {
+      "number": 4,
+      "title": "Agua diaria con avances parciales",
+      "checks": [
+        {
+          "label": "El panel deberia poder mostrar 0/8 vasos antes de registrar",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Los registros parciales suman 8",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Editar un registro recalcula de 8 a 7",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Borrar un registro recalcula de 7 a 4",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": "05_registros_habitos.png"
+    },
+    {
+      "number": 5,
+      "title": "Cafe como limite diario",
+      "checks": [
+        {
+          "label": "Limite 2 acepta 1 cafe como dentro del limite",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Limite 2 acepta 2 cafes como dentro del limite",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Limite 2 marca 3 cafes como incumplido",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Cambiar el limite a 1 recalcula como incumplido",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "Como usuario puntilloso, ver un limite como `completo` con 0 o 1 consumos puede sentirse raro: semanticamente es `dentro del limite`, no `cumplido`."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": null
+    },
+    {
+      "number": 6,
+      "title": "Evitar redes de noche",
+      "checks": [
+        {
+          "label": "El tipo Evitar fuerza regla como maximo",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "La manana queda fuera del rango nocturno",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Las 23:00 quedan dentro del rango nocturno",
+          "ok": false,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Registrar una caida deja el habito dentro/fuera segun maximo permitido",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "El modelo no permite meta 0: la normalizacion convierte 0 en 1. Para `evitar`, eso impide expresar `no tolero ninguna caida` sin una convencion rara."
+      ],
+      "findings": [],
+      "status": "Falla",
+      "screenshot": "03_editor_habito_evitar_nocturno.png"
+    },
+    {
+      "number": 7,
+      "title": "Medicacion exacta",
+      "checks": [
+        {
+          "label": "Aparece en 09:00 y 21:00",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "No aparece fuera de horas puntuales",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Una toma es incompleta",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Dos tomas cumple exacto",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Tres tomas queda excedido/incumplido",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": null
+    },
+    {
+      "number": 8,
+      "title": "Escritura semanal con subobjetivos",
+      "checks": [
+        {
+          "label": "Tres subobjetivos quedan vinculados",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "La suma semanal acumula fuentes y manuales",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El progreso no se reinicia al dia siguiente dentro de la semana",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": null
+    },
+    {
+      "number": 9,
+      "title": "Idioma de lunes a viernes",
+      "checks": [
+        {
+          "label": "Disponible de lunes a viernes",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "No molesta sabado",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El evento de 30 minutos registra avance",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": null
+    },
+    {
+      "number": 10,
+      "title": "Caminata con rango saludable",
+      "checks": [
+        {
+          "label": "La regla Entre conserva minimo y maximo",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "20 minutos queda incompleto",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "40 minutos queda correcto",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "75 minutos queda fuera del rango",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": null
+    },
+    {
+      "number": 11,
+      "title": "Orden de rutina matinal",
+      "checks": [
+        {
+          "label": "El patron contiene tres habitos",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Aplicar el patron al slot crea tres items independientes",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Reordenar y marcar registra avances",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": "06_plan_de_slot_rutina.png"
+    },
+    {
+      "number": 12,
+      "title": "Slot muerto de comida con habito",
+      "checks": [
+        {
+          "label": "El slot muerto Comida queda creado",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El plan del slot contiene el habito",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Marcarlo realizado registra cumplimiento",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "Para esta intencion, `Hacer: comer sin pantalla` se entiende mejor que `Evitar: pantalla`, porque la accion positiva encaja mejor con completar una comida."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": null
+    },
+    {
+      "number": 13,
+      "title": "Lectura dentro de partes",
+      "checks": [
+        {
+          "label": "Cada parte conserva vinculo y cantidad propia",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Marcar dos partes suma 18 paginas",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Desmarcar una parte recalcula a 10 paginas",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": null
+    },
+    {
+      "number": 14,
+      "title": "Proyecto con habitos mixtos",
+      "checks": [
+        {
+          "label": "El objetivo mantiene tres vinculos mixtos",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El subobjetivo mantiene lectura y escritura sin mezclar foco",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El slot registra el tercer habito",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": "04_vinculaciones_habitos.png"
+    },
+    {
+      "number": 15,
+      "title": "Habito creado desde un objetivo",
+      "checks": [
+        {
+          "label": "El objetivo conserva campos despues de agregar un vinculo",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El habito nuevo queda disponible en el sistema",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "La persistencia de campos se valido sobre el modelo. Falta una pasada manual de microinteraccion si se quiere verificar perdida de foco/caracteres exactos en el formulario abierto."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": null
+    },
+    {
+      "number": 16,
+      "title": "Habito creado desde una parte",
+      "checks": [
+        {
+          "label": "La parte conserva datos y vinculo",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El habito creado queda disponible",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "Validacion de modelo correcta; el recorrido exacto de abrir parte, crear habito y volver al formulario necesita inspeccion visual/click puntual."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": null
+    },
+    {
+      "number": 17,
+      "title": "Panel con muchos habitos",
+      "checks": [
+        {
+          "label": "Hay al menos 30 habitos QA para probar densidad",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El filtro de disponibilidad puede dejar lista vacia sin romper modelo",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Editar un habito del medio conserva identidad",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": "01_panel_habitos_desktop_denso.png"
+    },
+    {
+      "number": 18,
+      "title": "Nombres largos y emojis raros",
+      "checks": [
+        {
+          "label": "El nombre largo se guarda completo",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "La unidad larga se conserva",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El emoji compuesto no impide guardar",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": "12_editor_habito_largo_mobile.png"
+    },
+    {
+      "number": 19,
+      "title": "Dos habitos con el mismo nombre",
+      "checks": [
+        {
+          "label": "Dos habitos con mismo nombre tienen ids distintos",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Registros no se mezclan",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Emoji/periodo permiten distinguirlos parcialmente",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "En selectores, dos nombres iguales siguen necesitando mas contexto visible que solo nombre/emoji para evitar errores."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": null
+    },
+    {
+      "number": 20,
+      "title": "Cambio de modo con registros previos",
+      "checks": [
+        {
+          "label": "Los registros historicos quedan presentes",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El cambio a Check no borra progreso",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El progreso formateado no muestra unidad vieja",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "No aparece una advertencia especifica antes de cambiar el significado de un habito usado. Para usuario cuidadoso, esto es riesgoso."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": null
+    },
+    {
+      "number": 21,
+      "title": "Cambio de unidad con registros previos",
+      "checks": [
+        {
+          "label": "El registro viejo conserva su unidad original",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El habito nuevo muestra la unidad actual",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "Aunque el dato viejo conserva unidad, el usuario no recibe advertencia clara de cambio semantico."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": null
+    },
+    {
+      "number": 22,
+      "title": "Borrado de habito sin vinculos",
+      "checks": [
+        {
+          "label": "El habito desaparece",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Sus registros desaparecen",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": null
+    },
+    {
+      "number": 23,
+      "title": "Borrado de habito con muchos vinculos",
+      "checks": [
+        {
+          "label": "Eliminar referencias limpia objetivo/sub/parte/slot/patron",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Convertir referencias deja texto humano sin Habito_Id",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": null
+    },
+    {
+      "number": 24,
+      "title": "Desactivar sin borrar",
+      "checks": [
+        {
+          "label": "El habito inactivo no aparece como disponible nuevo",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El item ya vinculado sigue visible en su slot",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Los registros historicos siguen presentes",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": null
+    },
+    {
+      "number": 25,
+      "title": "Patron reutilizable de foco",
+      "checks": [
+        {
+          "label": "El patron existe luego de guardarlo",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Insertarlo en otro slot clona ids",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Marcar avances en copia genera registros",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": "07_patron_de_slot_foco.png"
+    },
+    {
+      "number": 26,
+      "title": "Patron no aplicable",
+      "checks": [
+        {
+          "label": "El patron de comida aparece en slot Comida",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El patron de comida no aparece en slot vacio",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El patron de slot vacio aparece en slot vacio",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "Cuando hay pocos patrones, el dialogo deberia explicar el filtro aplicado para que el usuario no piense que se perdieron."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": null
+    },
+    {
+      "number": 27,
+      "title": "Cierre de semana con habitos incompletos",
+      "checks": [
+        {
+          "label": "La semana queda fijada con plan base",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Hay un bloque hecho y otro pendiente para evaluar cierre",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "El cierre muestra bloques, pero no resume de forma dedicada los habitos incompletos; hay que inferirlo desde eventos/bloques."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": "08_cierre_semana_con_habitos.png"
+    },
+    {
+      "number": 28,
+      "title": "Historial de semana cerrada",
+      "checks": [
+        {
+          "label": "La semana cerrada queda en Planes_Semana",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Conserva nota inicial y nota de cierre",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El plan base conserva eventos historicos",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": "09_historial_semana_cerrada.png"
+    },
+    {
+      "number": 29,
+      "title": "Resumen semanal con datos densos",
+      "checks": [
+        {
+          "label": "Hay al menos 10 habitos y 5 objetivos para resumen denso",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Hay al menos 20 registros para estresar resumen",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "En densidad alta, la utilidad depende de que limite/evitar no se lean como habitos positivos completados."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": "10_resumen_semanal_desktop.png"
+    },
+    {
+      "number": 30,
+      "title": "Mobile de punta a punta",
+      "checks": [
+        {
+          "label": "El habito mobile queda creado",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Queda vinculado a una fuente",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El avance mobile queda registrado",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [],
+      "status": "OK",
+      "screenshot": "11_panel_habitos_mobile.png"
+    },
+    {
+      "number": 31,
+      "title": "Usuario nuevo sin entender metas",
+      "checks": [
+        {
+          "label": "El camino minimo crea y registra sin plan",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "El sistema tiene ayudas hover para conceptos clave",
+          "ok": true,
+          "detail": "Se verifica visualmente en la captura del editor.",
+          "critical": false
+        }
+      ],
+      "observations": [
+        "Terminos como tipo, modo, periodo, regla y meta siguen siendo tecnicos; los hovers ayudan, pero no reemplazan buenos defaults y ejemplos."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": "02_editor_habito_cantidad_desktop.png"
+    },
+    {
+      "number": 32,
+      "title": "Usuario obsesivo con cancelar",
+      "checks": [
+        {
+          "label": "Cancelar sin guardar no persiste cambios",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Guardar sin cambios no duplica habitos",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "El modal de habitos puede cerrarse sin advertencia de cambios no guardados. Para un usuario obsesivo con cancelar, falta una defensa explicita contra perdida silenciosa."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": null
+    },
+    {
+      "number": 33,
+      "title": "Datos invalidos y bordes numericos",
+      "checks": [
+        {
+          "label": "Meta cero no queda como cero corrupto",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Meta negativa no queda como negativa",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Decimal valido se conserva",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Rango Entre no permite maximo menor que minimo",
+          "ok": false,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Hora personalizada mal escrita se ignora en normalizacion",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [
+        "La normalizacion permite guardar `Entre` con maximo menor que minimo; eso crea un objetivo imposible."
+      ],
+      "status": "Falla",
+      "screenshot": null
+    },
+    {
+      "number": 34,
+      "title": "Disponibilidad que cruza medianoche",
+      "checks": [
+        {
+          "label": "El rango 22:00 a 02:00 conserva desde y hasta",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Disponible a las 23:00",
+          "ok": false,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Disponible a la 01:00",
+          "ok": false,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "No disponible al mediodia",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [],
+      "findings": [
+        "El rango horario que cruza medianoche no se evalua correctamente."
+      ],
+      "status": "Falla",
+      "screenshot": "03_editor_habito_evitar_nocturno.png"
+    },
+    {
+      "number": 35,
+      "title": "Importacion o restauracion con vinculos",
+      "checks": [
+        {
+          "label": "La exportacion no destructiva conserva habitos",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Los vinculos exportados resuelven a nombres humanos",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Los registros exportados conservan Habito_Id resoluble",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "No se ejecuto una restauracion destructiva sobre la cuenta real; se valido snapshot no destructivo de exportacion/restauracion en memoria. Para importar de verdad conviene usar una cuenta vacia o entorno staging."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": null
+    },
+    {
+      "number": 36,
+      "title": "Caso de maxima densidad",
+      "checks": [
+        {
+          "label": "Hay 30+ habitos, objetivos, registros, patrones y slots",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        },
+        {
+          "label": "Vinculaciones, registros y slots siguen referenciando ids existentes",
+          "ok": true,
+          "detail": "",
+          "critical": true
+        }
+      ],
+      "observations": [
+        "A maxima densidad se entiende el flujo si uno ya sabe que busca; para exploracion casual faltan jerarquia y filtros mas explicitos."
+      ],
+      "findings": [],
+      "status": "Observacion",
+      "screenshot": "10_resumen_semanal_desktop.png"
+    }
+  ],
+  "summary": {
+    "ok": 17,
+    "obs": 16,
+    "fail": 3
+  },
+  "screenshots": [
+    {
+      "name": "Panel habitos desktop denso",
+      "file": "01_panel_habitos_desktop_denso.png",
+      "note": "Panel con muchos habitos y filtros.",
+      "layout": {
+        "overflow": [],
+        "clipped": [],
+        "viewport": {
+          "width": 1440,
+          "height": 980
+        }
+      }
+    },
+    {
+      "name": "Editor habito cantidad desktop",
+      "file": "02_editor_habito_cantidad_desktop.png",
+      "note": "Editor con identidad, meta, disponibilidad y hovers.",
+      "layout": {
+        "overflow": [],
+        "clipped": [],
+        "viewport": {
+          "width": 1440,
+          "height": 980
+        }
+      }
+    },
+    {
+      "name": "Editor habito evitar nocturno",
+      "file": "03_editor_habito_evitar_nocturno.png",
+      "note": "Editor de tipo Evitar con rango nocturno.",
+      "layout": {
+        "overflow": [],
+        "clipped": [],
+        "viewport": {
+          "width": 1440,
+          "height": 980
+        }
+      }
+    },
+    {
+      "name": "Vinculaciones habitos",
+      "file": "04_vinculaciones_habitos.png",
+      "note": "Agrupacion de habitos vinculados a objetivos, subobjetivos, partes y slots.",
+      "layout": {
+        "overflow": [],
+        "clipped": [],
+        "viewport": {
+          "width": 1440,
+          "height": 980
+        }
+      }
+    },
+    {
+      "name": "Registros habitos",
+      "file": "05_registros_habitos.png",
+      "note": "Registros manuales y automaticos generados desde fuentes distintas.",
+      "layout": {
+        "overflow": [],
+        "clipped": [],
+        "viewport": {
+          "width": 1440,
+          "height": 980
+        }
+      }
+    },
+    {
+      "name": "Plan de slot rutina",
+      "file": "06_plan_de_slot_rutina.png",
+      "note": "Slot con patron de rutina y habitos marcados.",
+      "layout": {
+        "overflow": [],
+        "clipped": [],
+        "viewport": {
+          "width": 1440,
+          "height": 980
+        }
+      }
+    },
+    {
+      "name": "Patron de slot foco",
+      "file": "07_patron_de_slot_foco.png",
+      "note": "Patron reutilizable con tarea manual y habitos.",
+      "layout": {
+        "overflow": [],
+        "clipped": [
+          {
+            "tag": "INPUT",
+            "className": "Patron_Modal_Nombre_Input",
+            "text": "QA Casos Habitos 1777007280380 - Foco reutilizable"
+          },
+          {
+            "tag": "INPUT",
+            "className": "Patron_Modal_Nombre_Input",
+            "text": "QA Casos Habitos 1777007280380 - Preparar entorno"
+          },
+          {
+            "tag": "INPUT",
+            "className": "Patron_Modal_Nombre_Input",
+            "text": "QA Casos Habitos 1777007280380 - Foco profundo"
+          },
+          {
+            "tag": "INPUT",
+            "className": "Patron_Modal_Nombre_Input",
+            "text": "QA Casos Habitos 1777007280380 - Cerrar distracciones"
+          }
+        ],
+        "viewport": {
+          "width": 1440,
+          "height": 980
+        }
+      }
+    },
+    {
+      "name": "Cierre semana con habitos",
+      "file": "08_cierre_semana_con_habitos.png",
+      "note": "Cierre de semana con bloques hechos y pendientes.",
+      "layout": {
+        "overflow": [],
+        "clipped": [],
+        "viewport": {
+          "width": 1440,
+          "height": 980
+        }
+      }
+    },
+    {
+      "name": "Historial semana cerrada",
+      "file": "09_historial_semana_cerrada.png",
+      "note": "Historial de semana cerrada con nota inicial/cierre y plan base.",
+      "layout": {
+        "overflow": [],
+        "clipped": [],
+        "viewport": {
+          "width": 1440,
+          "height": 980
+        }
+      }
+    },
+    {
+      "name": "Resumen semanal desktop",
+      "file": "10_resumen_semanal_desktop.png",
+      "note": "Resumen semanal con datos densos.",
+      "layout": {
+        "overflow": [],
+        "clipped": [],
+        "viewport": {
+          "width": 1440,
+          "height": 980
+        }
+      }
+    },
+    {
+      "name": "Panel habitos mobile",
+      "file": "11_panel_habitos_mobile.png",
+      "note": "Panel de habitos en mobile.",
+      "layout": {
+        "overflow": [],
+        "clipped": [],
+        "viewport": {
+          "width": 390,
+          "height": 844
+        }
+      }
+    },
+    {
+      "name": "Editor habito largo mobile",
+      "file": "12_editor_habito_largo_mobile.png",
+      "note": "Nombre, emoji y unidad larga en mobile.",
+      "layout": {
+        "overflow": [],
+        "clipped": [],
+        "viewport": {
+          "width": 390,
+          "height": 844
+        }
+      }
+    },
+    {
+      "name": "Resumen semanal mobile",
+      "file": "13_resumen_semanal_mobile.png",
+      "note": "Resumen semanal denso en mobile.",
+      "layout": {
+        "overflow": [],
+        "clipped": [],
+        "viewport": {
+          "width": 390,
+          "height": 844
+        }
+      }
+    }
+  ],
+  "persistence": {
+    "ok": false,
+    "before": {
+      "habits": 60,
+      "records": 58,
+      "planSlots": 12,
+      "patterns": 5,
+      "modelObjectives": 12,
+      "modelSubs": 10,
+      "modelParts": 5,
+      "legacyObjectives": 1
+    },
+    "after": {
+      "habits": 60,
+      "records": 58,
+      "planSlots": 12,
+      "patterns": 5,
+      "modelObjectives": 6,
+      "modelSubs": 10,
+      "modelParts": 5,
+      "legacyObjectives": 1
+    }
+  },
+  "cleanup": {
+    "ok": true,
+    "remaining": {
+      "habitos": 0,
+      "registros": 0,
+      "patrones": 0,
+      "slots": 0,
+      "objetivosPlan": 0,
+      "subobjetivosPlan": 0,
+      "partesPlan": 0,
+      "objetivosSemana": 0
+    }
+  },
+  "transversal": [
+    "Patron de slot foco: 4 textos/controles con posible recorte."
+  ],
+  "consoleIssues": [],
+  "postCorreccion": {
+    "fallasIniciales": 3,
+    "fallasAbiertas": 0,
+    "repruebaArchivo": "Reprueba_Correcciones.md",
+    "repruebaJson": "reprueba_correcciones.json",
+    "resultado": {
+      "family": "QA Reprueba Habitos 1777007427588",
+      "maxCorregido": true,
+      "franja": {
+        "a23": true,
+        "a01": true,
+        "a12": false,
+        "texto23": true,
+        "texto01": true
+      },
+      "persistence": {
+        "ok": true,
+        "before": {
+          "habitos": 1,
+          "objetivos": 3,
+          "subobjetivos": 1,
+          "partes": 1,
+          "periodos": 1,
+          "slots": 1
+        },
+        "after": {
+          "habitos": 1,
+          "objetivos": 3,
+          "subobjetivos": 1,
+          "partes": 1,
+          "periodos": 1,
+          "slots": 1
+        }
+      },
+      "cleanup": {
+        "habitos": 0,
+        "objetivos": 0,
+        "periodos": 0
+      },
+      "ok": true
+    }
+  }
+}

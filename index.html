@@ -244,7 +244,7 @@
         position: fixed;
         left: 22px;
         bottom: 22px;
-        z-index: 9000;
+        z-index: 5200;
         width: 64px;
         height: 64px;
         display: grid;
@@ -83853,6 +83853,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ? Meta_Base.Regla
           : "Al_Menos";
         const Cantidad_Maxima = Number(Meta_Base.Cantidad_Maxima);
+        const Cantidad_Normalizada =
+          Number.isFinite(Cantidad) && Cantidad > 0
+            ? Cantidad
+            : 1;
+        let Cantidad_Maxima_Normalizada =
+          Number.isFinite(Cantidad_Maxima) && Cantidad_Maxima > 0
+            ? Cantidad_Maxima
+            : Cantidad_Normalizada;
+        if (
+          Regla === "Entre" &&
+          Cantidad_Maxima_Normalizada < Cantidad_Normalizada
+        ) {
+          Cantidad_Maxima_Normalizada = Cantidad_Normalizada;
+        }
         const Unidad_Tiempo = Meta_Base.Unidad === "Horas"
           ? "Horas"
           : "Minutos";
@@ -83876,17 +83890,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Modo,
             Regla,
             Periodo,
-            Cantidad: Number.isFinite(Cantidad) && Cantidad > 0
-              ? Cantidad
-              : 1,
-            Cantidad_Maxima:
-              Number.isFinite(Cantidad_Maxima) && Cantidad_Maxima > 0
-                ? Cantidad_Maxima
-                : (
-                  Number.isFinite(Cantidad) && Cantidad > 0
-                    ? Cantidad
-                    : 1
-                ),
+            Cantidad: Cantidad_Normalizada,
+            Cantidad_Maxima: Cantidad_Maxima_Normalizada,
             Unidad: Modo === "Tiempo"
               ? Unidad_Tiempo
               : String(Meta_Base.Unidad || "").trim()
@@ -84081,7 +84086,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Habito || !Habito.Activo) return false;
         if (!Habito_Coincide_Con_Dia(Habito, Fecha)) return false;
         const Tipo = Habito?.Programacion?.Tipo || "Libre";
-        const Hora_Num = Number(Hora) || 0;
+        const Hora_Num_Base = Number(Hora);
+        const Hora_Parseada = Number.isFinite(Hora_Num_Base)
+          ? Hora_Num_Base
+          : Parsear_Hora_Input_Calendario(Hora);
+        const Hora_Num = Number.isFinite(Hora_Parseada)
+          ? Hora_Parseada
+          : 0;
         if (Tipo === "Libre" || Tipo === "Dias") return true;
         if (Tipo === "Horas") {
           const Horas = Habito?.Programacion?.Horas || [];
@@ -84094,7 +84105,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Number.isFinite(Desde) || !Number.isFinite(Hasta)) {
             return true;
           }
-          return Hora_Num >= Desde && Hora_Num < Hasta;
+          if (Math.abs(Desde - Hasta) < 0.001) return true;
+          if (Desde < Hasta) {
+            return Hora_Num >= Desde && Hora_Num < Hasta;
+          }
+          return Hora_Num >= Desde || Hora_Num < Hasta;
         }
         return true;
       }
