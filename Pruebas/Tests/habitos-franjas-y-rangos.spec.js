@@ -688,18 +688,39 @@ test("panel de habitos registra avances manuales desde la lista", async ({
   });
 
   await expect(page.locator("#Habitos_Header_Acciones button"))
-    .toHaveCount(3);
+    .toHaveCount(4);
 
-  const filtrosDebajo = await page.evaluate(() => {
+  const layout = await page.evaluate(() => {
     const Lista = document.querySelector(".Habitos_Lista");
-    return Lista?.nextElementSibling?.classList
-      .contains("Habitos_Panel_Filtros");
+    const Estado = document.querySelector(".Habitos_Card_Estado");
+    return {
+      Columnas: getComputedStyle(Lista).gridTemplateColumns
+        .split(" ")
+        .filter(Boolean).length,
+      Tiene_Filtros_Visibles: Boolean(
+        document.querySelector(
+          ".Habitos_Panel_Principal > .Habitos_Panel_Filtros"
+        )
+      ),
+      Estado_Texto: Estado?.textContent.trim() || "",
+      Estado_Color: getComputedStyle(Estado).backgroundColor
+    };
   });
-  expect(filtrosDebajo).toBe(true);
+  expect(layout.Columnas).toBe(1);
+  expect(layout.Tiene_Filtros_Visibles).toBe(false);
+  expect(layout.Estado_Texto).toBe("");
+  expect(layout.Estado_Color).toBe("rgb(184, 178, 170)");
 
   await page.click(
     '[data-habitos-registro-rapido="Habito_Check_Rapido"]'
   );
+  await expect(page.locator(
+    '[data-habitos-registro-rapido="Habito_Check_Rapido"]'
+  )).toHaveClass(/Confirmado/);
+  await page.waitForTimeout(1050);
+  await expect(page.locator(
+    '[data-habitos-registro-rapido="Habito_Check_Rapido"]'
+  )).not.toHaveClass(/Confirmado/);
   await expect(page.locator(".Undo_Toast").first())
     .toContainText("Hábito realizado");
 
@@ -743,4 +764,14 @@ test("panel de habitos registra avances manuales desde la lista", async ({
     EvitarCantidad: 0,
     EvitarEstado: "Realizado"
   });
+
+  await page.click('[data-habitos-filtros="abrir"]');
+  await expect(page.locator("#Habitos_Filtros_Overlay"))
+    .toBeVisible();
+  await expect(page.locator("#Habitos_Filtros_Overlay select"))
+    .toHaveCount(3);
+  await page.selectOption("#Habitos_Filtro_Estado", "Realizado");
+  await expect(page.locator(".Habitos_Card")).toHaveCount(3);
+  await page.click("#Habitos_Filtros_Aceptar");
+  await expect(page.locator(".Habitos_Card")).toHaveCount(2);
 });
