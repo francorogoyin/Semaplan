@@ -749,10 +749,10 @@ test("sidebar de habitos rotula y separa semanales de diarios", async ({
     fondoRoot: "rgba(54, 47, 39, 0.06)",
     labelPeso: "400",
     filaGap: "10px",
-    habitoAncho: "20px",
-    habitoAlto: "20px",
-    habitoFondo: "rgb(201, 194, 184)",
-    indicadorAlto: "6px"
+    habitoAncho: "25px",
+    habitoAlto: "25px",
+    habitoFondo: "rgb(255, 255, 255)",
+    indicadorAlto: "7px"
   });
 });
 
