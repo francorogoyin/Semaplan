@@ -240,6 +240,12 @@ async ({ page }) => {
     Abrir_Metas_Sugeridas();
   });
 
+  await expect(page.locator("#Metas_Sugeridas_Titulo"))
+    .toHaveText("Avances sugeridos para esta semana");
+  await expect(page.locator(".Metas_Sugeridas_Subtitulo"))
+    .toHaveText(
+      "Importar metas globales a las actividades semanales."
+    );
   await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(1);
   await expect(page.locator(".Metas_Sugeridas_Fila"))
     .toContainText("SEO");
@@ -549,4 +555,64 @@ async ({ page }) => {
   });
   await expect(page.locator(".Metas_Sugeridas_Horas_Input"))
     .toHaveValue("2");
+});
+
+test("metas sugeridas calcula horas sobre el aporte semanal",
+async ({ page }) => {
+  await Preparar(page);
+  await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
+      Id: "p2026",
+      Tipo: "Anio",
+      Inicio: "2026-01-01",
+      Fin: "2026-12-31",
+      Orden: 0
+    });
+    Modelo.Objetivos.obj_kant = Normalizar_Objetivo_Plan({
+      Id: "obj_kant",
+      Periodo_Id: "p2026",
+      Emoji: "K",
+      Nombre: "Lecturas",
+      Target_Total: 300,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Orden: 0
+    });
+    Modelo.Subobjetivos.sub_kant = Normalizar_Subobjetivo_Plan({
+      Id: "sub_kant",
+      Objetivo_Id: "obj_kant",
+      Emoji: "K",
+      Texto: "Libro de Kant",
+      Target_Total: 30,
+      Target_Suma_Componentes: true,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Fecha_Inicio: "2026-04-20",
+      Fecha_Objetivo: "2026-04-26",
+      Tiempo_Valor: 10,
+      Tiempo_Modo: "Unidades_Por_Hora",
+      Orden: 0
+    });
+    Modelo.Partes.parte_kant = Normalizar_Parte_Meta({
+      Id: "parte_kant",
+      Objetivo_Id: "obj_kant",
+      Subobjetivo_Id: "sub_kant",
+      Emoji: "P",
+      Nombre: "Libro completo",
+      Aporte_Total: 100,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Fecha_Inicio: "2026-04-20",
+      Fecha_Objetivo: "2026-04-26",
+      Orden: 0
+    });
+    Abrir_Metas_Sugeridas();
+  });
+
+  await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(1);
+  await expect(page.locator(".Metas_Sugeridas_Aporte_Input"))
+    .toHaveValue("30");
+  await expect(page.locator(".Metas_Sugeridas_Horas_Input"))
+    .toHaveValue("3");
 });

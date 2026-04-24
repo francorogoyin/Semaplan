@@ -2147,7 +2147,7 @@ async ({ page }) => {
     .toBeHidden();
   await expect(page.locator(
     "#Planes_Subobjetivos_Filtro_Vista option"
-  )).toHaveCount(3);
+  )).toHaveCount(2);
   await page.click("#Planes_Subobjetivos_Agregar");
   await expect(page.locator("#Planes_Subobjetivo_Overlay"))
     .toHaveClass(/Activo/);
@@ -2312,7 +2312,7 @@ async ({ page }) => {
     .first()
     .click({ button: "right" });
   await expect(page.locator(".Planes_Context_Menu"))
-    .toContainText("Administrar subobjetivos");
+    .toContainText("Ver subobjetivos");
   await expect(page.locator(".Planes_Context_Menu"))
     .not.toContainText("Agregar subobjetivo");
   await page.click(

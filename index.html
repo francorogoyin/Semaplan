@@ -303,6 +303,13 @@
         font-weight: 800;
       }
 
+      .Metas_Sugeridas_Subtitulo {
+        margin-top: 3px;
+        color: var(--Texto_Suave);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
       .Metas_Sugeridas_Cerrar {
         width: 32px;
         height: 32px;
@@ -17817,7 +17824,7 @@
           id="Metas_Sugeridas_Abrir"
           type="button"
           data-i18n-title="sidebar.metas_sugeridas"
-          title="Sugerencias de metas">
+          title="Avances sugeridos">
           &#128161;
         </button>
         <div class="Metas_Sugeridas_Overlay"
@@ -17827,10 +17834,16 @@
             aria-modal="true"
             aria-labelledby="Metas_Sugeridas_Titulo">
             <div class="Metas_Sugeridas_Header">
-              <div class="Metas_Sugeridas_Titulo"
-                id="Metas_Sugeridas_Titulo"
-                data-i18n="sidebar.metas_sugeridas_titulo">
-                Metas sugeridas para esta semana
+              <div>
+                <div class="Metas_Sugeridas_Titulo"
+                  id="Metas_Sugeridas_Titulo"
+                  data-i18n="sidebar.metas_sugeridas_titulo">
+                  Avances sugeridos para esta semana
+                </div>
+                <div class="Metas_Sugeridas_Subtitulo"
+                  data-i18n="sidebar.metas_sugeridas_subtitulo">
+                  Importar metas globales a las actividades semanales.
+                </div>
               </div>
               <button
                 class="Config_Cerrar"
@@ -21806,10 +21819,6 @@
                 Vista
               </span>
               <select id="Planes_Subobjetivos_Filtro_Vista">
-                <option value="Tarjetas"
-                  data-i18n="planes.vista_tarjetas">
-                  Tarjetas
-                </option>
                 <option value="Lista" data-i18n="planes.vista_lista">
                   Lista
                 </option>
@@ -23146,9 +23155,11 @@
             "{meta} termina el {fecha}. Quedan {dias} dias.\n" +
             "Se sugieren: {cantidad} {unidad}/semana " +
             "({diario} {unidad}/día).",
-          "sidebar.metas_sugeridas": "Sugerencias de metas",
+          "sidebar.metas_sugeridas": "Avances sugeridos",
           "sidebar.metas_sugeridas_titulo":
-            "Metas sugeridas para esta semana",
+            "Avances sugeridos para esta semana",
+          "sidebar.metas_sugeridas_subtitulo":
+            "Importar metas globales a las actividades semanales.",
           "sidebar.metas_sugeridas_importar": "Importar",
           "sidebar.metas_sugeridas_vacio":
             "No hay subobjetivos sugeridos para esta semana.",
@@ -27244,9 +27255,11 @@
             "{meta} ends on {fecha}. {dias} days left.\n" +
             "Suggested: {cantidad} {unidad}/week " +
             "({diario} {unidad}/day).",
-          "sidebar.metas_sugeridas": "Goal suggestions",
+          "sidebar.metas_sugeridas": "Suggested progress",
           "sidebar.metas_sugeridas_titulo":
-            "Suggested goals for this week",
+            "Suggested progress for this week",
+          "sidebar.metas_sugeridas_subtitulo":
+            "Import global goals into weekly activities.",
           "sidebar.metas_sugeridas_importar": "Import",
           "sidebar.metas_sugeridas_vacio":
             "There are no suggested subobjectives for this week.",
@@ -31267,9 +31280,11 @@
             "{meta} termina em {fecha}. Faltam {dias} dias.\n" +
             "Sugerido: {cantidad} {unidad}/semana " +
             "({diario} {unidad}/dia).",
-          "sidebar.metas_sugeridas": "Sugestoes de metas",
+          "sidebar.metas_sugeridas": "Avanços sugeridos",
           "sidebar.metas_sugeridas_titulo":
-            "Metas sugeridas para esta semana",
+            "Avanços sugeridos para esta semana",
+          "sidebar.metas_sugeridas_subtitulo":
+            "Importar metas globais para as atividades semanais.",
           "sidebar.metas_sugeridas_importar": "Importar",
           "sidebar.metas_sugeridas_vacio":
             "Nao ha subobjetivos sugeridos para esta semana.",
@@ -48862,7 +48877,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Filtro_Estado: "Todos",
             Filtro_Etiqueta: "Todas",
             Vista: "Tarjetas",
-            Subobjetivos_Vista: "Tarjetas",
+            Subobjetivos_Vista: "Lista",
             Anio_Desde: new Date().getFullYear(),
             Anio_Hasta: new Date().getFullYear(),
             Anio_Activo: new Date().getFullYear(),
@@ -48986,10 +49001,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Modelo.UI.Vista = "Tarjetas";
         }
         if (
-          !["Tarjetas", "Lista", "Biblioteca"]
+          !["Lista", "Biblioteca"]
             .includes(Modelo.UI.Subobjetivos_Vista)
         ) {
-          Modelo.UI.Subobjetivos_Vista = "Tarjetas";
+          Modelo.UI.Subobjetivos_Vista = "Lista";
         }
         const Anio_Actual = new Date().getFullYear();
         const Anio_Desde = Number(Modelo.UI.Anio_Desde);
@@ -59335,21 +59350,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
       }
 
+      function Metas_Sugeridas_Minutos_Partes_Seleccionadas(
+        Item,
+        Ids,
+        Aporte
+      ) {
+        const Partes = Metas_Sugeridas_Info_Partes_Seleccionadas(
+          Item,
+          Ids
+        );
+        const Limite = Number(Aporte ?? Item?.Aporte) || 0;
+        let Restante = Limite > 0 ? Limite : Infinity;
+        return Partes.reduce((Total, Info) => {
+          if (Restante <= 0) return Total;
+          const Parte = Info.Parte;
+          const Tiempo = Metas_Sugeridas_Minutos_Por_Unidad_Parte(
+            Item,
+            Parte
+          );
+          if (!Tiempo) return Total;
+          const Cantidad_Parte = Number(Parte.Aporte_Total) || 0;
+          const Cantidad = Math.min(Cantidad_Parte, Restante);
+          Restante -= Cantidad;
+          return Total + (Cantidad * Tiempo);
+        }, 0);
+      }
+
       function Metas_Sugeridas_Horas_Default(Item, Ids, Aporte) {
         if (Planes_Target_Suma_Componentes_Activo(Item?.Sub)) {
-          const Partes = Metas_Sugeridas_Info_Partes_Seleccionadas(
+          const Minutos = Metas_Sugeridas_Minutos_Partes_Seleccionadas(
             Item,
-            Ids
+            Ids,
+            Aporte
           );
-          const Minutos = Partes.reduce((Total, Info) => {
-            const Parte = Info.Parte;
-            const Tiempo = Metas_Sugeridas_Minutos_Por_Unidad_Parte(
-              Item,
-              Parte
-            );
-            if (!Tiempo) return Total;
-            return Total + ((Number(Parte.Aporte_Total) || 0) * Tiempo);
-          }, 0);
           return Minutos > 0 ? Minutos / 60 : null;
         }
         const Tiempo = Metas_Sugeridas_Minutos_Por_Unidad(Item);
@@ -65226,8 +65259,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Planes_Subobjetivos_Vista_Actual() {
         const Modelo = Asegurar_Modelo_Planes();
         const Vista = Modelo.UI.Subobjetivos_Vista;
-        if (!["Tarjetas", "Lista", "Biblioteca"].includes(Vista)) {
-          Modelo.UI.Subobjetivos_Vista = "Tarjetas";
+        if (Vista === "Tarjetas") {
+          Modelo.UI.Subobjetivos_Vista = "Lista";
+        }
+        if (!["Lista", "Biblioteca"].includes(
+          Modelo.UI.Subobjetivos_Vista
+        )) {
+          Modelo.UI.Subobjetivos_Vista = "Lista";
         }
         return Modelo.UI.Subobjetivos_Vista;
       }
@@ -99496,12 +99534,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Modelo = Asegurar_Modelo_Planes();
           const Vista = (Ev.target.value || "").toString();
           Modelo.UI.Subobjetivos_Vista = [
-            "Tarjetas",
             "Lista",
             "Biblioteca"
           ].includes(Vista)
             ? Vista
-            : "Tarjetas";
+            : "Lista";
           Render_Modal_Planes_Subobjetivos();
         });
       document.getElementById("Planes_Subobjetivos_Orden_Campo")
