@@ -1025,12 +1025,6 @@
         padding-bottom: 0;
       }
 
-      .Sidebar_Habitos_Divisor {
-        height: 1px;
-        margin: 3px -14px 2px;
-        background: rgba(0, 0, 0, 0.12);
-      }
-
       .Sidebar_Habito {
         width: 20px;
         height: 20px;
@@ -94623,9 +94617,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Grupo.className = "Sidebar_Habitos_Grupo";
           const Label = document.createElement("div");
           Label.className = "Sidebar_Habitos_Label";
+          const Texto_Label = String(t(Clave) || "")
+            .toLocaleUpperCase();
           Label.textContent = Clave === "sidebar.habitos_semanales"
-            ? `\u{1F4C5} ${t(Clave)}`
-            : `\u2713 ${t(Clave)}`;
+            ? `\u{1F4C5} ${Texto_Label}`
+            : `\u2713 ${Texto_Label}`;
           const Fila = document.createElement("div");
           Fila.className = "Sidebar_Habitos_Fila";
           Lista.forEach((Habito) => {
@@ -94637,11 +94633,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
 
         Render_Grupo("sidebar.habitos_semanales", Semanales);
-        if (Semanales.length && Diarios.length) {
-          const Divisor = document.createElement("div");
-          Divisor.className = "Sidebar_Habitos_Divisor";
-          El_Sidebar_Habitos.appendChild(Divisor);
-        }
         Render_Grupo("sidebar.habitos_diarios", Diarios);
       }
 
