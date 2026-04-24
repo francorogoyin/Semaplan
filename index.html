@@ -9276,6 +9276,10 @@
         gap: 12px;
       }
 
+      .Habitos_Lista > .Planes_Vacio {
+        grid-column: 1 / -1;
+      }
+
       .Habitos_Card {
         border: 1px solid rgba(143, 124, 98, 0.2);
         border-radius: 8px;
@@ -9497,12 +9501,31 @@
         gap: 12px;
       }
 
+      .Habitos_Modal_Fila.Identidad {
+        grid-template-columns:
+          54px minmax(170px, 1.6fr) minmax(116px, 1fr)
+          minmax(108px, 0.9fr) 46px;
+        align-items: end;
+      }
+
+      .Habitos_Modal_Fila.Meta {
+        grid-template-columns:
+          minmax(98px, 1fr) minmax(112px, 1fr)
+          minmax(112px, 1fr) minmax(92px, 0.8fr)
+          minmax(112px, 1fr);
+        align-items: end;
+      }
+
       .Habitos_Modal_Campo {
         grid-column: span 12;
         display: flex;
         flex-direction: column;
         gap: 10px;
         min-width: 0;
+      }
+
+      .Habitos_Modal_Campo[hidden] {
+        display: none;
       }
 
       .Habitos_Modal_Campo[data-span="2"] {
@@ -9537,11 +9560,22 @@
         grid-column: span 12;
       }
 
+      .Habitos_Modal_Fila.Identidad .Habitos_Modal_Campo,
+      .Habitos_Modal_Fila.Meta .Habitos_Modal_Campo {
+        grid-column: auto;
+      }
+
       .Habitos_Modal_Label {
         color: var(--Texto);
         font-size: 13px;
         font-weight: 800;
         line-height: 1.2;
+      }
+
+      .Habitos_Modal_Label[title] {
+        cursor: help;
+        text-decoration: underline dotted rgba(51, 45, 37, 0.35);
+        text-underline-offset: 3px;
       }
 
       .Habitos_Modal_Control,
@@ -9570,14 +9604,23 @@
       }
 
       .Habitos_Modal_Emoji_Input {
-        text-align: left;
-        font-size: 24px;
+        width: 44px;
+        height: 44px;
+        min-height: 44px;
+        border-radius: 999px;
+        padding: 0;
+        text-align: center;
+        font-size: 23px;
         line-height: 1;
-        padding-right: 34px;
+        cursor: pointer;
+        background: #fff;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+          0 5px 12px rgba(62, 45, 25, 0.08);
       }
 
       .Habitos_Modal_Emoji_Wrap {
-        position: relative;
+        display: inline-flex;
       }
 
       .Habitos_Modal_Emoji_Wrap::after {
@@ -9605,14 +9648,14 @@
       .Habitos_Modal_Colores {
         display: flex;
         align-items: center;
-        gap: 14px;
-        flex-wrap: wrap;
+        gap: 7px;
+        flex-wrap: nowrap;
         min-height: 38px;
       }
 
       .Habitos_Modal_Color_Btn {
-        width: 26px;
-        height: 26px;
+        width: 22px;
+        height: 22px;
         border-radius: 999px;
         border: none;
         padding: 0;
@@ -9677,10 +9720,15 @@
 
       .Habitos_Modal_Bloque {
         border: 1px solid rgba(143, 124, 98, 0.18);
-        border-radius: 18px;
+        border-radius: 12px;
         background: rgba(246, 243, 238, 0.62);
         box-shadow: none;
-        padding: 18px 16px;
+        padding: 14px;
+      }
+
+      .Habitos_Modal_Bloque.Evitar {
+        border-color: rgba(140, 47, 47, 0.24);
+        background: rgba(140, 47, 47, 0.06);
       }
 
       .Habitos_Modal_Dias {
@@ -9743,9 +9791,13 @@
       }
 
       #Habitos_Overlay .Habitos_Modal_Emoji_Wrap::after {
-        content: "\2304";
+        content: none;
         right: 12px;
         font-size: 18px;
+      }
+
+      #Habitos_Overlay .Habitos_Modal_Emoji_Wrap::after {
+        display: none;
       }
 
       .Habitos_Vinculos_Barra {
@@ -9816,6 +9868,16 @@
           grid-template-columns: repeat(6, minmax(0, 1fr));
         }
 
+        .Habitos_Modal_Fila.Identidad,
+        .Habitos_Modal_Fila.Meta {
+          grid-template-columns: repeat(6, minmax(0, 1fr));
+        }
+
+        .Habitos_Modal_Fila.Identidad .Habitos_Modal_Campo,
+        .Habitos_Modal_Fila.Meta .Habitos_Modal_Campo {
+          grid-column: span 3;
+        }
+
         .Habitos_Panel_Accesos,
         .Habitos_Panel_Filtros,
         .Habitos_Lista {
@@ -9861,6 +9923,16 @@
         .Habitos_Modal_Fila {
           grid-template-columns: 1fr;
           gap: 16px;
+        }
+
+        .Habitos_Modal_Fila.Identidad,
+        .Habitos_Modal_Fila.Meta {
+          grid-template-columns: 1fr;
+        }
+
+        .Habitos_Modal_Fila.Identidad .Habitos_Modal_Campo,
+        .Habitos_Modal_Fila.Meta .Habitos_Modal_Campo {
+          grid-column: span 1;
         }
 
         .Habitos_Modal_Rango {
@@ -22576,7 +22648,7 @@
           "habitos.filtro_dias_semana": "Dias de la semana",
           "habitos.filtro_dias_laborales": "Dias laborales",
           "habitos.filtro_fin_semana": "Fin de semana",
-          "habitos.filtro_cada_dia": "Cada dia",
+          "habitos.filtro_cada_dia": "Todos los dias",
           "habitos.filtro_rango": "Rango",
           "habitos.filtro_momentos": "Momentos del dia",
           "habitos.filtro_horas_dia": "Horas del dia",
@@ -22661,10 +22733,12 @@
           "habitos.regla_al_menos": "Al menos",
           "habitos.regla_exactamente": "Exactamente",
           "habitos.regla_como_maximo": "Como maximo",
+          "habitos.regla_entre": "Entre",
           "habitos.periodo": "Periodo",
           "habitos.periodo_dia": "Por dia",
           "habitos.periodo_semana": "Por semana",
           "habitos.meta_cantidad": "Meta",
+          "habitos.meta_maxima": "Maximo",
           "habitos.unidad": "Unidad",
           "habitos.nombre_ph": "Ej: Leer 20 paginas",
           "habitos.unidad_ph": "Ej: vasos, paginas, etc.",
@@ -22676,7 +22750,7 @@
           "habitos.programacion_dias": "Dias",
           "habitos.programacion_horas": "Horas",
           "habitos.programacion_franjas": "Franjas",
-          "habitos.programacion_horas_label": "Horas puntuales",
+          "habitos.programacion_horas_label": "Horas",
           "habitos.programacion_horas_ph": "Ej: 8, 20",
           "habitos.disponibilidad_dias": "Dias disponibles",
           "habitos.disponibilidad_horas": "Horas disponibles",
@@ -22687,6 +22761,34 @@
           "habitos.rango_a": "a",
           "habitos.desde": "Desde",
           "habitos.hasta": "Hasta",
+          "habitos.help_emoji": "Icono visual del habito.",
+          "habitos.help_nombre": "Nombre breve y reconocible del habito.",
+          "habitos.help_color": "Color usado para identificar el habito.",
+          "habitos.help_tipo":
+            "Hacer suma progreso. Evitar mide un maximo permitido. " +
+            "Limite sirve para controlar una practica.",
+          "habitos.help_activo":
+            "Si esta desactivado, el habito no se sugiere ni se mide.",
+          "habitos.help_modo":
+            "Check cuenta realizaciones. Cantidad mide unidades " +
+            "personalizadas. Tiempo mide minutos u horas.",
+          "habitos.help_periodo":
+            "Define si la meta se evalua por dia o por semana.",
+          "habitos.help_regla":
+            "Define como se compara el avance con la meta.",
+          "habitos.help_meta":
+            "Cantidad objetivo del periodo. En Evitar es el maximo " +
+            "permitido.",
+          "habitos.help_meta_maxima":
+            "Limite superior cuando la regla usa un rango.",
+          "habitos.help_unidad":
+            "Unidad personalizada para metas de cantidad.",
+          "habitos.help_tiempo_unidad":
+            "Unidad temporal usada para leer la meta.",
+          "habitos.help_dias":
+            "Dias en los que el habito puede aparecer.",
+          "habitos.help_horas":
+            "Horas o rangos horarios en los que el habito aplica.",
           "habitos.borrar_confirm":
             "Este habito aparece en {planes} plan(es), {patrones} patron(es) y {fuentes} fuente(s).",
           "habitos.borrar": "Borrar habito",
@@ -26510,7 +26612,7 @@
           "habitos.filtro_dias_semana": "Weekdays",
           "habitos.filtro_dias_laborales": "Workdays",
           "habitos.filtro_fin_semana": "Weekend",
-          "habitos.filtro_cada_dia": "Every day",
+          "habitos.filtro_cada_dia": "All days",
           "habitos.filtro_rango": "Range",
           "habitos.filtro_momentos": "Times of day",
           "habitos.filtro_horas_dia": "Day hours",
@@ -26594,10 +26696,12 @@
           "habitos.regla_al_menos": "At least",
           "habitos.regla_exactamente": "Exactly",
           "habitos.regla_como_maximo": "At most",
+          "habitos.regla_entre": "Between",
           "habitos.periodo": "Period",
           "habitos.periodo_dia": "Per day",
           "habitos.periodo_semana": "Per week",
           "habitos.meta_cantidad": "Target",
+          "habitos.meta_maxima": "Maximum",
           "habitos.unidad": "Unit",
           "habitos.nombre_ph": "Eg: Read 20 pages",
           "habitos.unidad_ph": "Eg: glasses, pages, etc.",
@@ -26609,7 +26713,7 @@
           "habitos.programacion_dias": "Days",
           "habitos.programacion_horas": "Hours",
           "habitos.programacion_franjas": "Ranges",
-          "habitos.programacion_horas_label": "Specific hours",
+          "habitos.programacion_horas_label": "Hours",
           "habitos.programacion_horas_ph": "Eg: 8, 20",
           "habitos.disponibilidad_dias": "Available days",
           "habitos.disponibilidad_horas": "Available hours",
@@ -26620,6 +26724,32 @@
           "habitos.rango_a": "to",
           "habitos.desde": "From",
           "habitos.hasta": "To",
+          "habitos.help_emoji": "Visual icon for the habit.",
+          "habitos.help_nombre": "Short recognizable habit name.",
+          "habitos.help_color": "Color used to identify the habit.",
+          "habitos.help_tipo":
+            "Do adds progress. Avoid measures an allowed maximum. " +
+            "Limit controls a practice.",
+          "habitos.help_activo":
+            "When inactive, the habit is not suggested or measured.",
+          "habitos.help_modo":
+            "Check counts completions. Amount tracks custom units. " +
+            "Time tracks minutes or hours.",
+          "habitos.help_periodo":
+            "Defines whether the target is evaluated daily or weekly.",
+          "habitos.help_regla":
+            "Defines how progress is compared with the target.",
+          "habitos.help_meta":
+            "Target amount for the period. In Avoid it is the allowed " +
+            "maximum.",
+          "habitos.help_meta_maxima":
+            "Upper limit when the rule uses a range.",
+          "habitos.help_unidad": "Custom unit for amount targets.",
+          "habitos.help_tiempo_unidad":
+            "Time unit used to read the target.",
+          "habitos.help_dias": "Days when the habit can appear.",
+          "habitos.help_horas":
+            "Hours or time ranges when the habit applies.",
           "habitos.borrar_confirm":
             "This habit appears in {planes} plan(s), {patrones} pattern(s) and {fuentes} source(s).",
           "habitos.borrar": "Delete habit",
@@ -30384,7 +30514,7 @@
           "habitos.filtro_dias_semana": "Dias da semana",
           "habitos.filtro_dias_laborales": "Dias uteis",
           "habitos.filtro_fin_semana": "Fim de semana",
-          "habitos.filtro_cada_dia": "Cada dia",
+          "habitos.filtro_cada_dia": "Todos os dias",
           "habitos.filtro_rango": "Faixa",
           "habitos.filtro_momentos": "Momentos do dia",
           "habitos.filtro_horas_dia": "Horas do dia",
@@ -30469,10 +30599,12 @@
           "habitos.regla_al_menos": "Pelo menos",
           "habitos.regla_exactamente": "Exatamente",
           "habitos.regla_como_maximo": "No maximo",
+          "habitos.regla_entre": "Entre",
           "habitos.periodo": "Periodo",
           "habitos.periodo_dia": "Por dia",
           "habitos.periodo_semana": "Por semana",
           "habitos.meta_cantidad": "Meta",
+          "habitos.meta_maxima": "Maximo",
           "habitos.unidad": "Unidade",
           "habitos.nombre_ph": "Ex: Ler 20 paginas",
           "habitos.unidad_ph": "Ex: copos, paginas, etc.",
@@ -30484,7 +30616,7 @@
           "habitos.programacion_dias": "Dias",
           "habitos.programacion_horas": "Horas",
           "habitos.programacion_franjas": "Faixas",
-          "habitos.programacion_horas_label": "Horas especificas",
+          "habitos.programacion_horas_label": "Horas",
           "habitos.programacion_horas_ph": "Ex: 8, 20",
           "habitos.disponibilidad_dias": "Dias disponiveis",
           "habitos.disponibilidad_horas": "Horas disponiveis",
@@ -30495,6 +30627,34 @@
           "habitos.rango_a": "a",
           "habitos.desde": "De",
           "habitos.hasta": "Ate",
+          "habitos.help_emoji": "Icone visual do habito.",
+          "habitos.help_nombre": "Nome breve e reconhecivel do habito.",
+          "habitos.help_color": "Cor usada para identificar o habito.",
+          "habitos.help_tipo":
+            "Fazer soma progresso. Evitar mede um maximo permitido. " +
+            "Limite controla uma pratica.",
+          "habitos.help_activo":
+            "Quando inativo, o habito nao e sugerido nem medido.",
+          "habitos.help_modo":
+            "Check conta realizacoes. Quantidade mede unidades " +
+            "personalizadas. Tempo mede minutos ou horas.",
+          "habitos.help_periodo":
+            "Define se a meta e avaliada por dia ou por semana.",
+          "habitos.help_regla":
+            "Define como o avanco e comparado com a meta.",
+          "habitos.help_meta":
+            "Quantidade objetivo do periodo. Em Evitar e o maximo " +
+            "permitido.",
+          "habitos.help_meta_maxima":
+            "Limite superior quando a regra usa uma faixa.",
+          "habitos.help_unidad":
+            "Unidade personalizada para metas de quantidade.",
+          "habitos.help_tiempo_unidad":
+            "Unidade temporal usada para ler a meta.",
+          "habitos.help_dias":
+            "Dias em que o habito pode aparecer.",
+          "habitos.help_horas":
+            "Horas ou faixas horarias em que o habito se aplica.",
           "habitos.borrar_confirm":
             "Este habito aparece em {planes} plano(s), {patrones} padrao(es) e {fuentes} fonte(s).",
           "habitos.borrar": "Excluir habito",
@@ -72829,7 +72989,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           delete El_Subtitulo.dataset.i18n;
         }
         if (El_Icono) {
-          El_Icono.textContent = Icono;
+          El_Icono.classList.add("Con_Fallback_Emoji");
+          if (typeof Aplicar_Emoji_En_Elemento === "function") {
+            Aplicar_Emoji_En_Elemento(El_Icono, Icono);
+          } else {
+            El_Icono.textContent = Icono;
+          }
         }
       }
 
@@ -73320,7 +73485,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Habitos_Set_Cabecera(
           t("habitos.panel_titulo"),
           t("habitos.panel_subtitulo"),
-          "H"
+          "\u2705"
         );
         Habitos_Configurar_Acciones(
           t("habitos.nuevo"),
@@ -73956,6 +74121,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Valor,
         Respaldo = 0
       ) {
+        const Numero = Number(String(Valor || "").replace(",", "."));
+        if (Number.isFinite(Numero) && Numero >= 0 && Numero < 24) {
+          return Numero;
+        }
         const Hora = Parsear_Hora_Input_Calendario(
           Valor
         );
@@ -73969,6 +74138,60 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Habito_En_Edicion_Id
           ? t("habitos.modal_editar_titulo")
           : t("habitos.modal_nuevo_titulo");
+      }
+
+      function Habito_Options_Horas_Select(Valor_Actual) {
+        let Html = "";
+        for (let H = 0; H < 24; H++) {
+          const Valor = String(H);
+          const Etiqueta = `${Valor.padStart(2, "0")}:00`;
+          const Sel = Number(Valor_Actual) === H ? " selected" : "";
+          Html += `<option value="${Valor}"${Sel}>${Etiqueta}</option>`;
+        }
+        return Html;
+      }
+
+      function Habito_Dias_Desde_Rango(Desde, Hasta) {
+        const Inicio = Number(Desde) || 0;
+        const Fin = Number(Hasta) || 0;
+        return [0, 1, 2, 3, 4, 5, 6].filter((Dia) =>
+          Habitos_Rango_Dia_Incluye(Dia, Inicio, Fin)
+        );
+      }
+
+      function Habito_Dias_Son_Rango(Dias) {
+        if (!Array.isArray(Dias) || !Dias.length || Dias.length >= 7) {
+          return false;
+        }
+        const Ordenados = [...new Set(Dias)].sort((A, B) => A - B);
+        for (let Inicio = 0; Inicio < 7; Inicio++) {
+          for (let Fin = 0; Fin < 7; Fin++) {
+            const Rango = Habito_Dias_Desde_Rango(Inicio, Fin);
+            if (Rango.length !== Ordenados.length) continue;
+            if (Rango.every((Dia, I) => Dia === Ordenados[I])) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      function Habito_Rango_Desde_Dias(Dias) {
+        const Ordenados = [...new Set(Dias || [])].sort((A, B) => A - B);
+        if (!Ordenados.length) return { Desde: 0, Hasta: 6 };
+        for (let Inicio = 0; Inicio < 7; Inicio++) {
+          for (let Fin = 0; Fin < 7; Fin++) {
+            const Rango = Habito_Dias_Desde_Rango(Inicio, Fin);
+            if (Rango.length !== Ordenados.length) continue;
+            if (Rango.every((Dia, I) => Dia === Ordenados[I])) {
+              return { Desde: Inicio, Hasta: Fin };
+            }
+          }
+        }
+        return {
+          Desde: Ordenados[0],
+          Hasta: Ordenados[Ordenados.length - 1]
+        };
       }
 
       function Habito_Actualizar_Disponibilidad_UI() {
@@ -73989,11 +74212,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Habito_Horas_Personalizado",
           Horas_Modo === "Personalizado"
         );
+        Toggle("Habito_Dia_Desde_Bloque", Dias_Modo === "Rango");
+        Toggle("Habito_Dia_Hasta_Bloque", Dias_Modo === "Rango");
+        Toggle("Habito_Dias_Personalizado", Dias_Modo === "Personalizado");
         const Dias = document.getElementById("Habito_Dias_Lista");
         if (Dias) {
-          Dias.classList.toggle("Inactivo", Dias_Modo === "Todos");
+          Dias.classList.toggle("Inactivo", Dias_Modo !== "Personalizado");
           Dias.querySelectorAll("[data-habito-dia]").forEach((El) => {
-            El.disabled = Dias_Modo === "Todos";
+            El.disabled = Dias_Modo !== "Personalizado";
           });
         }
       }
@@ -74002,6 +74228,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modo = document.getElementById(
           "Habito_Meta_Modo"
         )?.value || "Check";
+        const Tipo = document.getElementById("Habito_Tipo")?.value ||
+          "Hacer";
+        const Es_Evitar = Tipo === "Evitar";
+        const Modo_Final = Es_Evitar ? "Cantidad" : Modo;
         const Unidad = document.getElementById(
           "Habito_Meta_Unidad_Campo"
         );
@@ -74009,11 +74239,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Habito_Meta_Tiempo_Unidad_Campo"
         );
         const Regla = document.getElementById(
-          "Habito_Meta_Regla_Fila"
+          "Habito_Meta_Regla_Campo"
         );
-        if (Unidad) Unidad.hidden = Modo !== "Cantidad";
-        if (Tiempo) Tiempo.hidden = Modo !== "Tiempo";
-        if (Regla) Regla.hidden = Modo === "Check";
+        const Meta = document.getElementById(
+          "Habito_Meta_Cantidad_Campo"
+        );
+        const Max = document.getElementById(
+          "Habito_Meta_Maxima_Campo"
+        );
+        const Bloque = document.getElementById("Habito_Meta_Bloque");
+        if (Unidad) Unidad.hidden = Modo_Final !== "Cantidad" || Es_Evitar;
+        if (Tiempo) Tiempo.hidden = Modo_Final !== "Tiempo";
+        if (Regla) Regla.hidden = Modo_Final === "Check" || Es_Evitar;
+        if (Meta) Meta.hidden = Modo_Final === "Check";
+        if (Max) {
+          Max.hidden = Modo_Final === "Check" ||
+            Es_Evitar ||
+            document.getElementById("Habito_Meta_Regla")?.value !== "Entre";
+        }
+        if (Bloque) Bloque.classList.toggle("Evitar", Es_Evitar);
+        if (Es_Evitar) {
+          const Modo_Input = document.getElementById("Habito_Meta_Modo");
+          const Regla_Input = document.getElementById("Habito_Meta_Regla");
+          if (Modo_Input) Modo_Input.value = "Cantidad";
+          if (Regla_Input) Regla_Input.value = "Como_Maximo";
+        }
       }
 
       function Habito_Leer_Borrador_Desde_DOM() {
@@ -74033,13 +74283,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Borrador.Programacion.Tipo =
           Campo("Habito_Horas_Modo")?.value || "Todos";
         const Dias_Modo = Campo("Habito_Dias_Modo")?.value || "Todos";
-        Borrador.Programacion.Dias = Dias_Modo === "Personalizado"
-          ? Array.from(
+        if (Dias_Modo === "Personalizado") {
+          Borrador.Programacion.Dias = Array.from(
             document.querySelectorAll("[data-habito-dia]")
           ).filter((El) => El.checked)
             .map((El) => Number(El.dataset.habitoDia))
-            .filter((Dia) => Number.isInteger(Dia))
-          : [];
+            .filter((Dia) => Number.isInteger(Dia));
+        } else if (Dias_Modo === "Rango") {
+          Borrador.Programacion.Dias = Habito_Dias_Desde_Rango(
+            Campo("Habito_Dia_Desde")?.value,
+            Campo("Habito_Dia_Hasta")?.value
+          );
+        } else {
+          Borrador.Programacion.Dias = [];
+        }
         const Hora_Puntual = Habito_Leer_Hora_Input(
           Campo("Habito_Hora_Puntual")?.value,
           8
@@ -74086,11 +74343,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Borrador.Meta.Modo = Campo("Habito_Meta_Modo")?.value || "Check";
         Borrador.Meta.Regla = Campo("Habito_Meta_Regla")?.value ||
           "Al_Menos";
+        if (Borrador.Tipo === "Evitar") {
+          Borrador.Meta.Modo = "Cantidad";
+          Borrador.Meta.Regla = "Como_Maximo";
+        }
         Borrador.Meta.Periodo =
           Campo("Habito_Meta_Periodo")?.value || "Dia";
         Borrador.Meta.Cantidad = Number(
           Campo("Habito_Meta_Cantidad")?.value
         ) || 1;
+        Borrador.Meta.Cantidad_Maxima = Number(
+          Campo("Habito_Meta_Maxima")?.value
+        ) || Borrador.Meta.Cantidad;
         if (Borrador.Meta.Modo === "Tiempo") {
           Borrador.Meta.Unidad =
             Campo("Habito_Meta_Tiempo_Unidad")?.value || "Minutos";
@@ -74221,10 +74485,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Dias = t("dias_iniciales")
           .split(",")
           .map((Dia) => Dia.trim());
-        const Dias_Modo =
-          (B.Programacion.Dias || []).length
-            ? "Personalizado"
-            : "Todos";
+        const Dias_Actuales = B.Programacion.Dias || [];
+        const Dias_Modo = !Dias_Actuales.length
+          ? "Todos"
+          : (
+            Habito_Dias_Son_Rango(Dias_Actuales)
+              ? "Rango"
+              : "Personalizado"
+          );
+        const Dias_Rango = Habito_Rango_Desde_Dias(Dias_Actuales);
         const Horas_Modo =
           B.Programacion.Tipo === "Franjas"
             ? "Rango"
@@ -74242,9 +74511,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "#8b95a3"
         ];
         Form.innerHTML = `
-          <div class="Habitos_Modal_Fila">
-            <label class="Habitos_Modal_Campo" data-span="4">
-              <span class="Habitos_Modal_Label">${t("sidebar.emoji")}</span>
+          <div class="Habitos_Modal_Fila Identidad">
+            <label class="Habitos_Modal_Campo">
+              <span class="Habitos_Modal_Label"
+                title="${Escape_Html(t("habitos.help_emoji"))}">
+                ${t("sidebar.emoji")}
+              </span>
               <span class="Habitos_Modal_Emoji_Wrap">
                 <input class="Con_Selector_Emoji Habitos_Modal_Input
                   Habitos_Modal_Emoji_Input"
@@ -74253,32 +74525,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   value="${Escape_Html(B.Emoji || "\u2713")}">
               </span>
             </label>
-            <label class="Habitos_Modal_Campo" data-span="8">
-              <span class="Habitos_Modal_Label">${t("sidebar.nombre")}</span>
+            <label class="Habitos_Modal_Campo">
+              <span class="Habitos_Modal_Label"
+                title="${Escape_Html(t("habitos.help_nombre"))}">
+                ${t("sidebar.nombre")}
+              </span>
               <input class="Habitos_Modal_Input"
                 id="Habito_Nombre"
                 placeholder="${Escape_Html(t("habitos.nombre_ph"))}"
                 value="${Escape_Html(B.Nombre || "")}">
             </label>
-          </div>
-          <div class="Habitos_Modal_Fila">
-            <label class="Habitos_Modal_Campo" data-span="6">
-              <span class="Habitos_Modal_Label">${t("habitos.color")}</span>
+            <label class="Habitos_Modal_Campo">
+              <span class="Habitos_Modal_Label"
+                title="${Escape_Html(t("habitos.help_color"))}">
+                ${t("habitos.color")}
+              </span>
               <input id="Habito_Color" type="hidden"
                 value="${Escape_Html(B.Color)}">
               <div class="Habitos_Modal_Colores"
                 id="Habito_Color_Paleta"></div>
             </label>
-            <label class="Habitos_Modal_Campo" data-span="4">
-              <span class="Habitos_Modal_Label">${t("habitos.tipo")}</span>
+            <label class="Habitos_Modal_Campo">
+              <span class="Habitos_Modal_Label"
+                title="${Escape_Html(t("habitos.help_tipo"))}">
+                ${t("habitos.tipo")}
+              </span>
               <select class="Habitos_Modal_Select" id="Habito_Tipo">
                 <option value="Hacer">${t("habitos.tipo_hacer")}</option>
                 <option value="Evitar">${t("habitos.tipo_evitar")}</option>
                 <option value="Limite">${t("habitos.tipo_limite")}</option>
               </select>
             </label>
-            <label class="Habitos_Modal_Campo" data-span="2">
-              <span class="Habitos_Modal_Label">${t("habitos.activo")}</span>
+            <label class="Habitos_Modal_Campo">
+              <span class="Habitos_Modal_Label"
+                title="${Escape_Html(t("habitos.help_activo"))}">
+                ${t("habitos.activo")}
+              </span>
               <span class="Habitos_Modal_Activo">
                 <label class="Habitos_Modal_Check">
                   <input id="Habito_Activo"
@@ -74289,25 +74571,48 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               </span>
             </label>
           </div>
-          <div class="Habitos_Modal_Bloque">
-            <div class="Habitos_Modal_Fila">
-              <label class="Habitos_Modal_Campo" data-span="4">
-                <span class="Habitos_Modal_Label">${t("habitos.meta_modo")}</span>
+          <div class="Habitos_Modal_Bloque" id="Habito_Meta_Bloque">
+            <div class="Habitos_Modal_Fila Meta">
+              <label class="Habitos_Modal_Campo">
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_modo"))}">
+                  ${t("habitos.meta_modo")}
+                </span>
                 <select class="Habitos_Modal_Select" id="Habito_Meta_Modo">
                   <option value="Check">${t("habitos.modo_check")}</option>
                   <option value="Cantidad">${t("habitos.modo_cantidad")}</option>
                   <option value="Tiempo">${t("habitos.modo_tiempo")}</option>
                 </select>
               </label>
-              <label class="Habitos_Modal_Campo" data-span="4">
-                <span class="Habitos_Modal_Label">${t("habitos.periodo")}</span>
+              <label class="Habitos_Modal_Campo">
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_periodo"))}">
+                  ${t("habitos.periodo")}
+                </span>
                 <select class="Habitos_Modal_Select" id="Habito_Meta_Periodo">
                   <option value="Dia">${t("habitos.periodo_dia")}</option>
                   <option value="Semana">${t("habitos.periodo_semana")}</option>
                 </select>
               </label>
-              <label class="Habitos_Modal_Campo" data-span="4">
-                <span class="Habitos_Modal_Label">${t("habitos.meta_cantidad")}</span>
+              <label class="Habitos_Modal_Campo"
+                id="Habito_Meta_Regla_Campo">
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_regla"))}">
+                  ${t("habitos.meta_regla")}
+                </span>
+                <select class="Habitos_Modal_Select" id="Habito_Meta_Regla">
+                  <option value="Al_Menos">${t("habitos.regla_al_menos")}</option>
+                  <option value="Exactamente">${t("habitos.regla_exactamente")}</option>
+                  <option value="Como_Maximo">${t("habitos.regla_como_maximo")}</option>
+                  <option value="Entre">${t("habitos.regla_entre")}</option>
+                </select>
+              </label>
+              <label class="Habitos_Modal_Campo"
+                id="Habito_Meta_Cantidad_Campo">
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_meta"))}">
+                  ${t("habitos.meta_cantidad")}
+                </span>
                 <input class="Habitos_Modal_Input"
                   id="Habito_Meta_Cantidad"
                   type="number"
@@ -74315,22 +74620,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   step="0.25"
                   value="${Escape_Html(String(B.Meta.Cantidad || 1))}">
               </label>
-            </div>
-            <div class="Habitos_Modal_Fila" id="Habito_Meta_Regla_Fila">
-              <label class="Habitos_Modal_Campo" data-span="6">
-                <span class="Habitos_Modal_Label">${t("habitos.meta_regla")}</span>
-                <select class="Habitos_Modal_Select" id="Habito_Meta_Regla">
-                  <option value="Al_Menos">${t("habitos.regla_al_menos")}</option>
-                  <option value="Exactamente">${t("habitos.regla_exactamente")}</option>
-                  <option value="Como_Maximo">${t("habitos.regla_como_maximo")}</option>
-                </select>
+              <label class="Habitos_Modal_Campo"
+                id="Habito_Meta_Maxima_Campo">
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_meta_maxima"))}">
+                  ${t("habitos.meta_maxima")}
+                </span>
+                <input class="Habitos_Modal_Input"
+                  id="Habito_Meta_Maxima"
+                  type="number"
+                  min="0.25"
+                  step="0.25"
+                  value="${Escape_Html(String(
+                    B.Meta.Cantidad_Maxima || B.Meta.Cantidad || 1
+                  ))}">
               </label>
-            </div>
-          </div>
-          <div class="Habitos_Modal_Fila">
-            <label class="Habitos_Modal_Campo" data-span="5"
+              <label class="Habitos_Modal_Campo"
               id="Habito_Meta_Unidad_Campo">
-              <span class="Habitos_Modal_Label">${t("habitos.unidad")}</span>
+              <span class="Habitos_Modal_Label"
+                title="${Escape_Html(t("habitos.help_unidad"))}">
+                ${t("habitos.unidad")}
+              </span>
               <input class="Habitos_Modal_Input"
                 id="Habito_Meta_Unidad"
                 placeholder="${Escape_Html(t("habitos.unidad_ph"))}"
@@ -74340,34 +74650,61 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     : ""
                 )}">
             </label>
-            <label class="Habitos_Modal_Campo" data-span="7"
+            <label class="Habitos_Modal_Campo"
               id="Habito_Meta_Tiempo_Unidad_Campo">
-              <span class="Habitos_Modal_Label">${t("habitos.tiempo_unidad")}</span>
+              <span class="Habitos_Modal_Label"
+                title="${Escape_Html(t("habitos.help_tiempo_unidad"))}">
+                ${t("habitos.tiempo_unidad")}
+              </span>
               <select class="Habitos_Modal_Select"
                 id="Habito_Meta_Tiempo_Unidad">
                 <option value="Minutos">${t("habitos.unidad_minutos")}</option>
                 <option value="Horas">${t("habitos.unidad_horas")}</option>
               </select>
             </label>
+            </div>
           </div>
           <div class="Habitos_Modal_Bloque">
             <div class="Habitos_Modal_Fila">
               <label class="Habitos_Modal_Campo" data-span="4">
-                <span class="Habitos_Modal_Label">${t("habitos.programacion")}</span>
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_dias"))}">
+                  ${t("habitos.disponibilidad_dias")}
+                </span>
                 <select class="Habitos_Modal_Select"
                   id="Habito_Dias_Modo">
                   <option value="Todos">${t("habitos.disponibilidad_todos")}</option>
+                  <option value="Rango">${t("habitos.disponibilidad_rango")}</option>
                   <option value="Personalizado">${t("habitos.disponibilidad_personalizado")}</option>
                 </select>
               </label>
               <label class="Habitos_Modal_Campo" data-span="4">
-                <span class="Habitos_Modal_Label">${t("habitos.programacion_horas_label")}</span>
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_horas"))}">
+                  ${t("habitos.programacion_horas_label")}
+                </span>
                 <select class="Habitos_Modal_Select"
                   id="Habito_Horas_Modo">
                   <option value="Todos">${t("habitos.disponibilidad_todos")}</option>
                   <option value="Rango">${t("habitos.disponibilidad_rango")}</option>
                   <option value="Puntual">${t("habitos.disponibilidad_puntual")}</option>
                   <option value="Personalizado">${t("habitos.disponibilidad_personalizado")}</option>
+                </select>
+              </label>
+              <label class="Habitos_Modal_Campo" data-span="4"
+                id="Habito_Dia_Desde_Bloque">
+                <span class="Habitos_Modal_Label">${t("habitos.desde")}</span>
+                <select class="Habitos_Modal_Select"
+                  id="Habito_Dia_Desde">
+                  ${Habitos_Opciones_Dias(Dias_Rango.Desde)}
+                </select>
+              </label>
+              <label class="Habitos_Modal_Campo" data-span="4"
+                id="Habito_Dia_Hasta_Bloque">
+                <span class="Habitos_Modal_Label">${t("habitos.hasta")}</span>
+                <select class="Habitos_Modal_Select"
+                  id="Habito_Dia_Hasta">
+                  ${Habitos_Opciones_Dias(Dias_Rango.Hasta)}
                 </select>
               </label>
               <label class="Habitos_Modal_Campo" data-span="4"
@@ -74400,21 +74737,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               </label>
               <label class="Habitos_Modal_Campo" data-span="4"
                 id="Habito_Horas_Puntual">
-                <span class="Habitos_Modal_Label">${t("dialog.hora_corta")}</span>
-                <input class="Habitos_Modal_Input"
-                  id="Habito_Hora_Puntual"
-                  type="time"
-                  step="900"
-                  value="${Escape_Html(
-                    Habito_Formatear_Hora_Input(
-                      (B.Programacion.Horas || [8])[0],
-                      "08:00"
-                    )
-                  )}">
+                <span class="Habitos_Modal_Label">
+                  ${t("dialog.hora_corta")}
+                </span>
+                <select class="Habitos_Modal_Select"
+                  id="Habito_Hora_Puntual">
+                  ${Habito_Options_Horas_Select(
+                    (B.Programacion.Horas || [8])[0]
+                  )}
+                </select>
               </label>
               <label class="Habitos_Modal_Campo" data-span="8"
                 id="Habito_Horas_Personalizado">
-                <span class="Habitos_Modal_Label">${t("habitos.programacion_horas_label")}</span>
+                <span class="Habitos_Modal_Label">
+                  ${t("habitos.programacion_horas_label")}
+                </span>
                 <input class="Habitos_Modal_Input"
                   id="Habito_Horas_Personalizadas"
                   value="${Escape_Html(
@@ -74484,6 +74821,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           B.Meta.Regla || "Al_Menos";
         document.getElementById("Habito_Meta_Periodo").value =
           B.Meta.Periodo || "Dia";
+        document.getElementById("Habito_Meta_Maxima").value =
+          B.Meta.Cantidad_Maxima || B.Meta.Cantidad || 1;
         document.getElementById("Habito_Meta_Tiempo_Unidad").value =
           B.Meta.Unidad === "Horas" ? "Horas" : "Minutos";
         document.getElementById("Habito_Dias_Modo").value = Dias_Modo;
@@ -74492,7 +74831,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.addEventListener("change", Habito_Actualizar_Disponibilidad_UI);
         document.getElementById("Habito_Horas_Modo")
           ?.addEventListener("change", Habito_Actualizar_Disponibilidad_UI);
+        document.getElementById("Habito_Tipo")
+          ?.addEventListener("change", Habito_Actualizar_Meta_UI);
         document.getElementById("Habito_Meta_Modo")
+          ?.addEventListener("change", Habito_Actualizar_Meta_UI);
+        document.getElementById("Habito_Meta_Regla")
           ?.addEventListener("change", Habito_Actualizar_Meta_UI);
         Habito_Actualizar_Disponibilidad_UI();
         Habito_Actualizar_Meta_UI();
@@ -83097,10 +83440,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Regla = [
           "Al_Menos",
           "Exactamente",
-          "Como_Maximo"
+          "Como_Maximo",
+          "Entre"
         ].includes(Meta_Base.Regla)
           ? Meta_Base.Regla
           : "Al_Menos";
+        const Cantidad_Maxima = Number(Meta_Base.Cantidad_Maxima);
         const Unidad_Tiempo = Meta_Base.Unidad === "Horas"
           ? "Horas"
           : "Minutos";
@@ -83127,6 +83472,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Cantidad: Number.isFinite(Cantidad) && Cantidad > 0
               ? Cantidad
               : 1,
+            Cantidad_Maxima:
+              Number.isFinite(Cantidad_Maxima) && Cantidad_Maxima > 0
+                ? Cantidad_Maxima
+                : (
+                  Number.isFinite(Cantidad) && Cantidad > 0
+                    ? Cantidad
+                    : 1
+                ),
             Unidad: Modo === "Tiempo"
               ? Unidad_Tiempo
               : String(Meta_Base.Unidad || "").trim()
@@ -83244,7 +83597,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return [
           "Al_Menos",
           "Exactamente",
-          "Como_Maximo"
+          "Como_Maximo",
+          "Entre"
         ].includes(Habito?.Meta?.Regla)
           ? Habito.Meta.Regla
           : "Al_Menos";
@@ -83273,6 +83627,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Regla === "Como_Maximo") {
           return Actual <= Objetivo;
         }
+        if (Regla === "Entre") {
+          const Maximo = Number(Habito?.Meta?.Cantidad_Maxima) || Objetivo;
+          return Actual >= Objetivo && Actual <= Maximo;
+        }
         if (Regla === "Exactamente") {
           return Math.abs(Actual - Objetivo) < 0.0001;
         }
@@ -83293,7 +83651,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             : `${Planes_Formatear_Numero(Actual)}/${Planes_Formatear_Numero(Objetivo)}`;
         }
         const Unidad = Habito_Unidad(Habito);
-        const Progreso = `${Planes_Formatear_Numero(Actual)}/${Planes_Formatear_Numero(Objetivo)}`;
+        const Objetivo_Txt = Regla === "Entre"
+          ? `${Planes_Formatear_Numero(Objetivo)}-${Planes_Formatear_Numero(
+            Number(Habito?.Meta?.Cantidad_Maxima) || Objetivo
+          )}`
+          : Planes_Formatear_Numero(Objetivo);
+        const Progreso = `${Planes_Formatear_Numero(Actual)}/${Objetivo_Txt}`;
         return Unidad ? `${Progreso} ${Unidad}` : Progreso;
       }
 
