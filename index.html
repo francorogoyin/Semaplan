@@ -9746,7 +9746,7 @@
 
       .Habitos_Card_MetaGrid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 12px;
       }
 
@@ -23260,6 +23260,8 @@
           "habitos.filtro_en_proceso": "En proceso",
           "habitos.vista_diaria": "Diaria",
           "habitos.vista_semanal": "Semanal",
+          "habitos.vista_quincenal": "Quincenal",
+          "habitos.vista_mensual": "Mensual",
           "habitos.seccion_diarios": "Diarios",
           "habitos.seccion_semanales": "Semanales",
           "habitos.seccion_quincenales": "Quincenales",
@@ -27340,6 +27342,8 @@
           "habitos.filtro_en_proceso": "In progress",
           "habitos.vista_diaria": "Daily",
           "habitos.vista_semanal": "Weekly",
+          "habitos.vista_quincenal": "Biweekly",
+          "habitos.vista_mensual": "Monthly",
           "habitos.seccion_diarios": "Daily",
           "habitos.seccion_semanales": "Weekly",
           "habitos.seccion_quincenales": "Biweekly",
@@ -31358,6 +31362,8 @@
           "habitos.filtro_en_proceso": "Em processo",
           "habitos.vista_diaria": "Diaria",
           "habitos.vista_semanal": "Semanal",
+          "habitos.vista_quincenal": "Quinzenal",
+          "habitos.vista_mensual": "Mensal",
           "habitos.seccion_diarios": "Diarios",
           "habitos.seccion_semanales": "Semanais",
           "habitos.seccion_quincenales": "Quinzenais",
@@ -75126,17 +75132,81 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Habitos_Formatear_Periodo_Titulo(Fecha) {
-        if (Habitos_Panel_Modo !== "Semana") {
+        if (Habitos_Panel_Modo === "Dia") {
           return Habitos_Formatear_Dia_Titulo(Fecha);
         }
-        const Rango = Habitos_Rango_Semana(Fecha);
+        if (Habitos_Panel_Modo === "Mes") {
+          const Fecha_Obj = Parsear_Fecha_ISO(Fecha);
+          if (!Fecha_Obj) return Fecha || "";
+          const Locale = Obtener_Locale_Actual();
+          const Mes = new Intl.DateTimeFormat(Locale, {
+            month: "long"
+          }).format(Fecha_Obj);
+          return `${Mes.charAt(0).toUpperCase()}${Mes.slice(1)} ` +
+            `${Fecha_Obj.getFullYear()}`;
+        }
+        const Rango = Habitos_Panel_Modo === "Quincena"
+          ? Habitos_Rango_Quincena(Fecha)
+          : Habitos_Rango_Semana(Fecha);
         return `${Habitos_Formatear_Fecha_DDMMYYYY(Rango.Inicio)} - ` +
           `${Habitos_Formatear_Fecha_DDMMYYYY(Rango.Fin)}`;
+      }
+
+      function Habitos_Rango_Quincena(Fecha) {
+        const Fecha_Obj = Parsear_Fecha_ISO(Fecha) || new Date();
+        const Anio = Fecha_Obj.getFullYear();
+        const Mes = Fecha_Obj.getMonth();
+        const Inicio_Dia = Fecha_Obj.getDate() <= 15 ? 1 : 16;
+        const Fin_Dia = Inicio_Dia === 1
+          ? 15
+          : new Date(Anio, Mes + 1, 0).getDate();
+        return {
+          Inicio: Formatear_Fecha_ISO(new Date(Anio, Mes, Inicio_Dia)),
+          Fin: Formatear_Fecha_ISO(new Date(Anio, Mes, Fin_Dia))
+        };
+      }
+
+      function Habitos_Navegar_Quincena(Fecha, Direccion) {
+        const Fecha_Obj = Parsear_Fecha_ISO(Fecha) || new Date();
+        const Anio = Fecha_Obj.getFullYear();
+        const Mes = Fecha_Obj.getMonth();
+        const Dia = Fecha_Obj.getDate();
+        if (Direccion > 0) {
+          return Formatear_Fecha_ISO(
+            Dia <= 15
+              ? new Date(Anio, Mes, 16)
+              : new Date(Anio, Mes + 1, 1)
+          );
+        }
+        return Formatear_Fecha_ISO(
+          Dia <= 15
+            ? new Date(Anio, Mes - 1, 16)
+            : new Date(Anio, Mes, 1)
+        );
       }
 
       function Habitos_Navegar_Fecha(Direccion) {
         const Fecha = Parsear_Fecha_ISO(Habitos_Fecha_Referencia()) ||
           new Date();
+        if (Habitos_Panel_Modo === "Quincena") {
+          Habitos_Panel_Fecha = Habitos_Navegar_Quincena(
+            Habitos_Fecha_Referencia(),
+            Direccion
+          );
+          Render_Modal_Habitos();
+          return;
+        }
+        if (Habitos_Panel_Modo === "Mes") {
+          Habitos_Panel_Fecha = Formatear_Fecha_ISO(
+            new Date(
+              Fecha.getFullYear(),
+              Fecha.getMonth() + Direccion,
+              1
+            )
+          );
+          Render_Modal_Habitos();
+          return;
+        }
         const Delta = Habitos_Panel_Modo === "Semana"
           ? 7 * Direccion
           : Direccion;
@@ -75601,8 +75671,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Habitos_Pasa_Contexto_Panel(Habito, Fecha) {
-        if (Habitos_Panel_Modo === "Semana") return true;
-        return Habito_Coincide_Con_Dia(Habito, Fecha);
+        const Periodo = Habito_Periodo(Habito);
+        if (Habitos_Panel_Modo === "Dia") {
+          return Periodo === "Dia" && Habito_Coincide_Con_Dia(
+            Habito,
+            Fecha
+          );
+        }
+        if (Habitos_Panel_Modo === "Semana") return Periodo === "Semana";
+        if (Habitos_Panel_Modo === "Quincena") {
+          return Periodo === "Quincena";
+        }
+        if (Habitos_Panel_Modo === "Mes") return Periodo === "Mes";
+        return true;
       }
 
       function Habitos_Filtrados() {
@@ -76029,13 +76110,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               }" type="button" data-habitos-panel-modo="Semana">
                 ${t("habitos.vista_semanal")}
               </button>
+              <button class="Habitos_Panel_Modo_Btn${
+                Modo === "Quincena" ? " Activo" : ""
+              }" type="button" data-habitos-panel-modo="Quincena">
+                ${t("habitos.vista_quincenal")}
+              </button>
+              <button class="Habitos_Panel_Modo_Btn${
+                Modo === "Mes" ? " Activo" : ""
+              }" type="button" data-habitos-panel-modo="Mes">
+                ${t("habitos.vista_mensual")}
+              </button>
             </div>
           </div>
         `;
       }
 
       function Habitos_Render_Secciones_Panel(Items, Fecha) {
-        if (Habitos_Panel_Modo === "Semana") {
+        if (Habitos_Panel_Modo !== "Dia") {
           return Items.map((Habito) =>
             Habitos_Render_Card(Habito, Fecha)
           ).join("");

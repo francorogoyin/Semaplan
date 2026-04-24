@@ -1581,6 +1581,39 @@ test("panel de habitos mantiene orden y alterna realizados", async ({
           Periodo: "Dia",
           Cantidad: 1
         }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Semanal_Vista",
+        Nombre: "Semanal vista",
+        Orden: 3,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Semana",
+          Cantidad: 1
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Quincenal_Vista",
+        Nombre: "Quincenal vista",
+        Orden: 4,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Quincena",
+          Cantidad: 1
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Mensual_Vista",
+        Nombre: "Mensual vista",
+        Orden: 5,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Mes",
+          Cantidad: 1
+        }
       })
     ];
     Habitos_Registros = [];
@@ -1595,6 +1628,8 @@ test("panel de habitos mantiene orden y alterna realizados", async ({
 
   await expect(page.locator("#Habitos_Toggle_Realizados"))
     .toBeVisible();
+  await expect(page.locator("[data-habitos-panel-modo]"))
+    .toHaveCount(4);
   await expect(page.locator("#Habitos_Toggle_Realizados"))
     .toContainText("Ocultar realizados");
   await expect(page.locator("#Habitos_Cancelar"))
@@ -1604,6 +1639,16 @@ test("panel de habitos mantiene orden y alterna realizados", async ({
     "Habito_Segundo",
     "Habito_Tercero"
   ]);
+
+  await page.click('[data-habitos-toggle="Habito_Primero"]');
+  const columnas = await page.locator(
+    '[data-habitos-card="Habito_Primero"] .Habitos_Card_MetaGrid'
+  ).evaluate((Grid) =>
+    getComputedStyle(Grid).gridTemplateColumns
+      .split(" ")
+      .filter(Boolean).length
+  );
+  expect(columnas).toBe(5);
 
   await page.click(
     '[data-habitos-registro-rapido="Habito_Primero"]'
@@ -1630,4 +1675,11 @@ test("panel de habitos mantiene orden y alterna realizados", async ({
     "Habito_Segundo",
     "Habito_Tercero"
   ]);
+
+  await page.click('[data-habitos-panel-modo="Semana"]');
+  expect(await orden()).toEqual(["Habito_Semanal_Vista"]);
+  await page.click('[data-habitos-panel-modo="Quincena"]');
+  expect(await orden()).toEqual(["Habito_Quincenal_Vista"]);
+  await page.click('[data-habitos-panel-modo="Mes"]');
+  expect(await orden()).toEqual(["Habito_Mensual_Vista"]);
 });
