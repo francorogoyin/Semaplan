@@ -986,9 +986,11 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
-        margin: 8px 0 0;
-        padding-top: 8px;
-        border-top: 1px solid rgba(0, 0, 0, 0.07);
+        margin: 26px -8px 0;
+        padding: 14px 8px 10px;
+        border-top: 1px solid rgba(0, 0, 0, 0.11);
+        border-radius: 8px;
+        background: rgba(54, 47, 39, 0.06);
       }
 
       .Sidebar_Habitos.Oculto {
@@ -996,10 +998,7 @@
       }
 
       .Sidebar_Habitos_Titulo {
-        color: var(--Texto);
-        font-size: 12px;
-        font-weight: 800;
-        line-height: 1.2;
+        display: none;
       }
 
       .Sidebar_Habitos_Grupo {
@@ -1009,10 +1008,12 @@
       }
 
       .Sidebar_Habitos_Label {
-        color: var(--Texto_Suave);
+        color: var(--Texto);
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 900;
         line-height: 1.2;
+        letter-spacing: 0;
+        text-transform: uppercase;
       }
 
       .Sidebar_Habitos_Fila {
@@ -1047,6 +1048,30 @@
 
       .Sidebar_Habito.Realizado {
         box-shadow: inset 0 0 0 2px var(--Color-Estado-Completa, #1f6b4f);
+      }
+
+      .Sidebar_Habito.En_Proceso {
+        box-shadow: inset 0 0 0 2px #d88424;
+      }
+
+      .Sidebar_Habito.Pendiente {
+        box-shadow: inset 0 0 0 2px #9a9389;
+      }
+
+      .Sidebar_Habito.Cancelado {
+        box-shadow: inset 0 0 0 2px #b84a4a;
+      }
+
+      .Sidebar_Habito.Drop_Antes {
+        box-shadow:
+          inset 0 0 0 2px currentColor,
+          -4px 0 0 #157a58;
+      }
+
+      .Sidebar_Habito.Drop_Despues {
+        box-shadow:
+          inset 0 0 0 2px currentColor,
+          4px 0 0 #157a58;
       }
 
       .Sidebar_Habito_Indicador {
@@ -9305,6 +9330,90 @@
         gap: 16px;
       }
 
+      .Habitos_Panel_Barra {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .Habitos_Panel_Navegacion {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .Habitos_Panel_Nav_Btn,
+      .Habitos_Card_Drag,
+      .Habitos_Card_Registro_Btn.Cancelar {
+        width: 28px;
+        height: 28px;
+        border: 1px solid rgba(143, 124, 98, 0.28);
+        border-radius: 7px;
+        background: #f3f0ea;
+        color: #5d574f;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font: inherit;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1;
+        padding: 0;
+      }
+
+      .Habitos_Panel_Nav_Btn:hover,
+      .Habitos_Card_Drag:hover,
+      .Habitos_Card_Registro_Btn.Cancelar:hover {
+        background: #e6e1d8;
+        color: var(--Texto);
+      }
+
+      .Habitos_Panel_Fecha {
+        color: var(--Texto);
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1.2;
+        white-space: nowrap;
+      }
+
+      .Habitos_Panel_Modo,
+      .Habitos_Panel_Ver_Todos {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border: 1px solid rgba(143, 124, 98, 0.22);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.78);
+        padding: 3px;
+      }
+
+      .Habitos_Panel_Ver_Todos {
+        padding: 0;
+      }
+
+      .Habitos_Panel_Modo_Btn,
+      .Habitos_Panel_Ver_Todos_Btn {
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 900;
+        min-height: 28px;
+        padding: 0 10px;
+      }
+
+      .Habitos_Panel_Modo_Btn.Activo,
+      .Habitos_Panel_Ver_Todos_Btn.Activo {
+        background: #157a58;
+        color: #fff;
+      }
+
       .Habitos_Panel_Principal {
         padding: 0 clamp(44px, 8vw, 88px);
       }
@@ -9422,6 +9531,27 @@
         gap: 10px;
       }
 
+      .Habitos_Lista_Seccion {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+      }
+
+      .Habitos_Lista_Titulo {
+        margin: 6px 0 0;
+        color: var(--Texto);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .Habitos_Lista_Divisor {
+        height: 1px;
+        margin: 8px 0 4px;
+        background: rgba(143, 124, 98, 0.24);
+      }
+
       .Habitos_Lista > .Planes_Vacio {
         grid-column: 1 / -1;
       }
@@ -9433,18 +9563,45 @@
         overflow: hidden;
       }
 
+      .Habitos_Card.Cancelado {
+        border-color: rgba(177, 55, 55, 0.38);
+        background: rgba(255, 241, 241, 0.92);
+      }
+
+      .Habitos_Card.Archivado,
+      .Habitos_Card.Pospuesto {
+        opacity: 0.78;
+      }
+
+      .Habitos_Card.Drop_Antes {
+        box-shadow: inset 0 3px 0 #157a58;
+      }
+
+      .Habitos_Card.Drop_Despues {
+        box-shadow: inset 0 -3px 0 #157a58;
+      }
+
       .Habitos_Card_Resumen {
         width: 100%;
         border: 0;
         background: transparent;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: auto minmax(0, 1fr) auto;
         gap: 10px;
         align-items: center;
         padding: 10px 12px;
         color: var(--Texto);
         font: inherit;
         text-align: left;
+      }
+
+      .Habitos_Card_Drag {
+        cursor: grab;
+        color: #7f766c;
+      }
+
+      .Habitos_Card_Drag:active {
+        cursor: grabbing;
       }
 
       .Habitos_Card_Toggle {
@@ -9510,6 +9667,11 @@
         box-shadow: 0 0 0 3px rgba(115, 110, 103, 0.1);
       }
 
+      .Habitos_Card_Estado.Cancelado {
+        background: #b84a4a;
+        box-shadow: 0 0 0 3px rgba(184, 74, 74, 0.16);
+      }
+
       .Habitos_Card_Registro {
         display: inline-flex;
         align-items: center;
@@ -9565,6 +9727,18 @@
       .Habitos_Card_Registro_Btn.Confirmado {
         background: #15845f;
         border-color: #15845f;
+        color: #fff;
+      }
+
+      .Habitos_Card_Registro_Btn.Cancelar {
+        background: #f5e4e1;
+        border-color: rgba(177, 55, 55, 0.22);
+        color: #9b3030;
+      }
+
+      .Habitos_Card_Registro_Btn.Cancelar.Activo {
+        background: #b84a4a;
+        border-color: #b84a4a;
         color: #fff;
       }
 
@@ -22829,6 +23003,8 @@
             "Semana anterior",
           "nav.semana_siguiente":
             "Semana siguiente",
+          "nav.anterior": "Anterior",
+          "nav.siguiente": "Siguiente",
           "nav.ir_hoy": "Ir a hoy",
           "nav.hoy": "Hoy",
           "sync.estado":
@@ -22962,6 +23138,14 @@
           "habitos.filtro_pendientes": "Pendientes",
           "habitos.filtro_realizados": "Realizados",
           "habitos.filtro_en_proceso": "En proceso",
+          "habitos.vista_diaria": "Diaria",
+          "habitos.vista_semanal": "Semanal",
+          "habitos.ver_todos": "Ver todos los h\u00e1bitos",
+          "habitos.seccion_diarios": "Diarios",
+          "habitos.seccion_semanales": "Semanales",
+          "habitos.seccion_cancelados": "Cancelados",
+          "habitos.seccion_pospuestos": "Pospuestos",
+          "habitos.seccion_archivados": "Archivados",
           "habitos.momento_manana": "Ma\u00f1ana",
           "habitos.momento_tarde": "Tarde",
           "habitos.momento_noche": "Noche",
@@ -22986,6 +23170,9 @@
           "habitos.estado_realizado": "Realizado",
           "habitos.estado_en_proceso": "En proceso",
           "habitos.estado_inactivo": "Inactivo",
+          "habitos.estado_cancelado": "Cancelado",
+          "habitos.estado_pospuesto": "Pospuesto",
+          "habitos.estado_archivado": "Archivado",
           "habitos.registro_titulo": "Registro de h\u00e1bitos",
           "habitos.registro_subtitulo":
             "Avances generados por bloques, slots, metas y planes.",
@@ -22999,6 +23186,9 @@
           "habitos.registro_editar_cantidad": "Editar avance del h\u00e1bito",
           "habitos.registro_eliminar_confirm":
             "\u00bfEliminar este registro de avance?",
+          "habitos.registro_eliminar_confirm_origen":
+            "Eliminar este registro tambi\u00e9n va a desmarcar " +
+            "el \u00edtem o bloque que lo gener\u00f3. \u00bfContinuar?",
           "habitos.registro_actualizado": "Registro actualizado.",
           "habitos.registro_eliminado": "Registro eliminado.",
           "habitos.vinculaciones_titulo": "Vinculaciones de h\u00e1bitos",
@@ -23035,6 +23225,9 @@
           "habitos.usar_fuente": "Usar fuente",
           "habitos.usar_duracion": "Usar duraci\u00f3n del bloque",
           "habitos.color": "Color",
+          "habitos.fecha_inicio": "Fecha de comienzo",
+          "habitos.help_fecha_inicio":
+            "Si se completa, el h\u00e1bito queda pospuesto hasta esa fecha.",
           "habitos.tipo": "Tipo",
           "habitos.tipo_hacer": "Hacer",
           "habitos.tipo_evitar": "Evitar",
@@ -23106,6 +23299,14 @@
             "D\u00edas en los que el h\u00e1bito puede aparecer.",
           "habitos.help_horas":
             "Horas o rangos horarios en los que el h\u00e1bito aplica.",
+          "habitos.cancelar_periodo": "Cancelar este per\u00edodo",
+          "habitos.archivar": "Archivar",
+          "habitos.desarchivar": "Desarchivar",
+          "habitos.card_racha": "Racha",
+          "habitos.card_exitos": "\u00c9xitos",
+          "habitos.card_promedio": "Promedio",
+          "habitos.unidad_dias": "d\u00eda(s)",
+          "habitos.unidad_semanas": "semana(s)",
           "habitos.borrar_confirm":
             "Este h\u00e1bito aparece en {planes} plan(es), {patrones} patr\u00f3n(es) y {fuentes} fuente(s).",
           "habitos.borrar": "Borrar h\u00e1bito",
@@ -23335,9 +23536,9 @@
           "planes.sub_aporte_en": "Aporte en {Unidad}",
           "planes.sub_valor_objetivo": "Valor objetivo",
           "planes.target_excede_padre_confirm":
-            "Estas excediendo el valor objetivo de {nombre}: " +
+            "Est\u00e1s excediendo el valor objetivo de {nombre}: " +
             "de {actual} {unidad} a {nuevo} {unidad}. " +
-            "Queres que se edite el target del padre?",
+            "\u00bfQuer\u00e9s que se edite el target del padre?",
           "planes.editar_target_padre": "Editar target",
           "planes.sub_metrica": "Métrica",
           "planes.sub_unidad_custom":
@@ -26393,10 +26594,6 @@
             "Subobjetivo \"{texto}\" eliminada",
           "toast.subobjetivo_actualizada":
             "Subobjetivo actualizado",
-          "toast.subobjetivo_reordenada":
-            "Subobjetivo reordenado",
-          "toast.objetivos_reordenados":
-            "Objetivo reordenado",
           "toast.subobjetivos_trasladadas":
             "Se trasladaron {n} subobjetivos",
           "toast.objetivo_copiada": "Objetivo copiado",
@@ -26842,6 +27039,8 @@
           "nav.semana_anterior":
             "Previous week",
           "nav.semana_siguiente": "Next week",
+          "nav.anterior": "Previous",
+          "nav.siguiente": "Next",
           "nav.ir_hoy": "Go to today",
           "nav.hoy": "Today",
           "sync.estado": "Sync status",
@@ -26971,6 +27170,14 @@
           "habitos.filtro_pendientes": "Pending",
           "habitos.filtro_realizados": "Done",
           "habitos.filtro_en_proceso": "In progress",
+          "habitos.vista_diaria": "Daily",
+          "habitos.vista_semanal": "Weekly",
+          "habitos.ver_todos": "Show all habits",
+          "habitos.seccion_diarios": "Daily",
+          "habitos.seccion_semanales": "Weekly",
+          "habitos.seccion_cancelados": "Cancelled",
+          "habitos.seccion_pospuestos": "Postponed",
+          "habitos.seccion_archivados": "Archived",
           "habitos.momento_manana": "Morning",
           "habitos.momento_tarde": "Afternoon",
           "habitos.momento_noche": "Night",
@@ -26995,6 +27202,9 @@
           "habitos.estado_realizado": "Done",
           "habitos.estado_en_proceso": "In progress",
           "habitos.estado_inactivo": "Inactive",
+          "habitos.estado_cancelado": "Cancelled",
+          "habitos.estado_pospuesto": "Postponed",
+          "habitos.estado_archivado": "Archived",
           "habitos.registro_titulo": "Habit log",
           "habitos.registro_subtitulo":
             "Progress generated by blocks, slots, goals and plans.",
@@ -27008,6 +27218,9 @@
           "habitos.registro_editar_cantidad": "Edit habit progress",
           "habitos.registro_eliminar_confirm":
             "Delete this progress record?",
+          "habitos.registro_eliminar_confirm_origen":
+            "Deleting this record will also uncheck the item or " +
+            "block that created it. Continue?",
           "habitos.registro_actualizado": "Record updated.",
           "habitos.registro_eliminado": "Record deleted.",
           "habitos.vinculaciones_titulo": "Habit links",
@@ -27043,6 +27256,9 @@
           "habitos.usar_fuente": "Use source",
           "habitos.usar_duracion": "Use block duration",
           "habitos.color": "Color",
+          "habitos.fecha_inicio": "Start date",
+          "habitos.help_fecha_inicio":
+            "When set, the habit stays postponed until that date.",
           "habitos.tipo": "Type",
           "habitos.tipo_hacer": "Do",
           "habitos.tipo_evitar": "Avoid",
@@ -27112,6 +27328,14 @@
           "habitos.help_dias": "Days when the habit can appear.",
           "habitos.help_horas":
             "Hours or time ranges when the habit applies.",
+          "habitos.cancelar_periodo": "Cancel this period",
+          "habitos.archivar": "Archive",
+          "habitos.desarchivar": "Unarchive",
+          "habitos.card_racha": "Streak",
+          "habitos.card_exitos": "Successes",
+          "habitos.card_promedio": "Average",
+          "habitos.unidad_dias": "day(s)",
+          "habitos.unidad_semanas": "week(s)",
           "habitos.borrar_confirm":
             "This habit appears in {planes} plan(s), {patrones} pattern(s) and {fuentes} source(s).",
           "habitos.borrar": "Delete habit",
@@ -30326,10 +30550,6 @@
             "Subobjective \"{texto}\" deleted",
           "toast.subobjetivo_actualizada":
             "Subobjective updated",
-          "toast.subobjetivo_reordenada":
-            "Subobjective reordered",
-          "toast.objetivos_reordenados":
-            "Objective reordered",
           "toast.subobjetivos_trasladadas":
             "{n} subobjectives moved",
           "toast.objetivo_copiada": "Objective copied",
@@ -30786,6 +31006,8 @@
             "Semana anterior",
           "nav.semana_siguiente":
             "Próxima semana",
+          "nav.anterior": "Anterior",
+          "nav.siguiente": "Seguinte",
           "nav.ir_hoy": "Ir para hoje",
           "nav.hoy": "Hoje",
           "sync.estado":
@@ -30919,6 +31141,14 @@
           "habitos.filtro_pendientes": "Pendentes",
           "habitos.filtro_realizados": "Realizados",
           "habitos.filtro_en_proceso": "Em processo",
+          "habitos.vista_diaria": "Diaria",
+          "habitos.vista_semanal": "Semanal",
+          "habitos.ver_todos": "Ver todos os habitos",
+          "habitos.seccion_diarios": "Diarios",
+          "habitos.seccion_semanales": "Semanais",
+          "habitos.seccion_cancelados": "Cancelados",
+          "habitos.seccion_pospuestos": "Adiados",
+          "habitos.seccion_archivados": "Arquivados",
           "habitos.momento_manana": "Manha",
           "habitos.momento_tarde": "Tarde",
           "habitos.momento_noche": "Noite",
@@ -30943,6 +31173,9 @@
           "habitos.estado_realizado": "Realizado",
           "habitos.estado_en_proceso": "Em processo",
           "habitos.estado_inactivo": "Inativo",
+          "habitos.estado_cancelado": "Cancelado",
+          "habitos.estado_pospuesto": "Adiado",
+          "habitos.estado_archivado": "Arquivado",
           "habitos.registro_titulo": "Registro de habitos",
           "habitos.registro_subtitulo":
             "Avancos gerados por blocos, slots, metas e planos.",
@@ -30956,6 +31189,9 @@
           "habitos.registro_editar_cantidad": "Editar avanco do habito",
           "habitos.registro_eliminar_confirm":
             "Excluir este registro de avanco?",
+          "habitos.registro_eliminar_confirm_origen":
+            "Excluir este registro tambem vai desmarcar o item ou " +
+            "bloco que o gerou. Continuar?",
           "habitos.registro_actualizado": "Registro atualizado.",
           "habitos.registro_eliminado": "Registro excluido.",
           "habitos.vinculaciones_titulo": "Vinculacoes de habitos",
@@ -30992,6 +31228,9 @@
           "habitos.usar_fuente": "Usar fonte",
           "habitos.usar_duracion": "Usar duracao do bloco",
           "habitos.color": "Cor",
+          "habitos.fecha_inicio": "Data de inicio",
+          "habitos.help_fecha_inicio":
+            "Quando preenchida, o habito fica adiado ate essa data.",
           "habitos.tipo": "Tipo",
           "habitos.tipo_hacer": "Fazer",
           "habitos.tipo_evitar": "Evitar",
@@ -31063,6 +31302,14 @@
             "Dias em que o habito pode aparecer.",
           "habitos.help_horas":
             "Horas ou faixas horarias em que o habito se aplica.",
+          "habitos.cancelar_periodo": "Cancelar este periodo",
+          "habitos.archivar": "Arquivar",
+          "habitos.desarchivar": "Desarquivar",
+          "habitos.card_racha": "Sequencia",
+          "habitos.card_exitos": "Sucessos",
+          "habitos.card_promedio": "Media",
+          "habitos.unidad_dias": "dia(s)",
+          "habitos.unidad_semanas": "semana(s)",
           "habitos.borrar_confirm":
             "Este habito aparece em {planes} plano(s), {patrones} padrao(es) e {fuentes} fonte(s).",
           "habitos.borrar": "Excluir habito",
@@ -34374,10 +34621,6 @@
             "Subobjetivo \"{texto}\" removida",
           "toast.subobjetivo_actualizada":
             "Subobjetivo atualizado",
-          "toast.subobjetivo_reordenada":
-            "Subobjetivo reordenado",
-          "toast.objetivos_reordenados":
-            "Objetivo reordenado",
           "toast.subobjetivos_trasladadas":
             "Foram movidos {n} subobjetivos",
           "toast.objetivo_copiada": "Objetivo copiado",
@@ -35453,6 +35696,11 @@
       let Habitos_Modal_Vista = "Panel";
       let Habitos_Retorno_Editor = "";
       let Habitos_Panel_Abiertos = new Set();
+      let Habitos_Panel_Modo = "Dia";
+      let Habitos_Panel_Fecha = "";
+      let Habitos_Panel_Ver_Todos = false;
+      let Habitos_Drag_Id = null;
+      let Habitos_Sidebar_Drag_Id = null;
       let Habitos_Filtro_Dia_Modo = "Todo";
       let Habitos_Filtro_Dias = [];
       let Habitos_Filtro_Dia_Desde = 0;
@@ -57439,7 +57687,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Sugerida: Metas_Sugeridas_Parte_En_Semana(
               Parte,
               Inicio_Semana,
-              Fin_Semana
+              Fin_Semana,
+              Item.Sub
             )
           }));
       }
@@ -57500,7 +57749,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Metas_Sugeridas_Parte_En_Semana(
         Parte,
         Inicio_Semana,
-        Fin_Semana
+        Fin_Semana,
+        Sub = null
       ) {
         const Inicio = Planes_Normalizar_Fecha_Comparacion(
           Parte?.Fecha_Inicio || ""
@@ -57523,7 +57773,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         }
         const Fecha = Objetivo || Inicio || Fin;
-        if (!Fecha) return false;
+        if (!Fecha) {
+          const Sub_Inicio = Planes_Normalizar_Fecha_Comparacion(
+            Sub?.Fecha_Inicio || ""
+          );
+          const Sub_Fin = Planes_Normalizar_Fecha_Comparacion(
+            Sub?.Fecha_Objetivo || Sub?.Fecha_Fin || ""
+          );
+          if (Sub_Inicio || Sub_Fin) {
+            const Desde =
+              !Sub_Inicio || !Sub_Fin || Sub_Inicio <= Sub_Fin
+                ? (Sub_Inicio || Sub_Fin)
+                : Sub_Fin;
+            const Hasta =
+              !Sub_Inicio || !Sub_Fin || Sub_Inicio <= Sub_Fin
+                ? (Sub_Fin || Sub_Inicio)
+                : Sub_Inicio;
+            return Metas_Sugeridas_Rangos_Cruzan(
+              Desde,
+              Hasta,
+              Inicio_Semana,
+              Fin_Semana
+            );
+          }
+          return true;
+        }
         return Fecha >= Inicio_Semana && Fecha <= Fin_Semana;
       }
 
@@ -73477,7 +73751,92 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Habitos_Fecha_Referencia() {
+        if (!Habitos_Panel_Fecha) {
+          Habitos_Panel_Fecha = Formatear_Fecha_ISO(new Date());
+        }
+        return Habitos_Panel_Fecha;
+      }
+
+      function Habitos_Fecha_Hoy() {
         return Formatear_Fecha_ISO(new Date());
+      }
+
+      function Habitos_Dia_Index_Fecha(Fecha) {
+        const Fecha_Obj = Parsear_Fecha_ISO(Fecha);
+        if (!Fecha_Obj) return 0;
+        const Dia_JS = Fecha_Obj.getDay();
+        return Dia_JS === 0 ? 6 : Dia_JS - 1;
+      }
+
+      function Habitos_Rango_Semana(Fecha) {
+        const Base = Parsear_Fecha_ISO(Fecha) || new Date();
+        const Inicio = Obtener_Lunes(Base);
+        return {
+          Inicio: Formatear_Fecha_ISO(Inicio),
+          Fin: Formatear_Fecha_ISO(Sumar_Dias(Inicio, 6))
+        };
+      }
+
+      function Habitos_Fechas_Semana(Fecha) {
+        const Rango = Habitos_Rango_Semana(Fecha);
+        const Inicio = Parsear_Fecha_ISO(Rango.Inicio);
+        return Array.from({ length: 7 }, (_, I) =>
+          Formatear_Fecha_ISO(Sumar_Dias(Inicio, I))
+        );
+      }
+
+      function Habitos_Formatear_Dia_Titulo(Fecha) {
+        const Fecha_Obj = Parsear_Fecha_ISO(Fecha);
+        if (!Fecha_Obj) return Fecha || "";
+        const Locale = Obtener_Locale_Actual();
+        const Dia = new Intl.DateTimeFormat(Locale, {
+          weekday: "long"
+        }).format(Fecha_Obj);
+        const Mes = new Intl.DateTimeFormat(Locale, {
+          month: "short"
+        }).format(Fecha_Obj);
+        return `${Dia.charAt(0).toUpperCase()}${Dia.slice(1)} ` +
+          `(${Fecha_Obj.getDate()} ${Mes} ${Fecha_Obj.getFullYear()})`;
+      }
+
+      function Habitos_Formatear_Fecha_DDMMYYYY(Fecha) {
+        const Fecha_Obj = Parsear_Fecha_ISO(Fecha);
+        if (!Fecha_Obj) return Fecha || "";
+        return `${String(Fecha_Obj.getDate()).padStart(2, "0")}/` +
+          `${String(Fecha_Obj.getMonth() + 1).padStart(2, "0")}/` +
+          `${Fecha_Obj.getFullYear()}`;
+      }
+
+      function Habitos_Formatear_Periodo_Titulo(Fecha) {
+        if (Habitos_Panel_Modo !== "Semana") {
+          return Habitos_Formatear_Dia_Titulo(Fecha);
+        }
+        const Rango = Habitos_Rango_Semana(Fecha);
+        return `${Habitos_Formatear_Fecha_DDMMYYYY(Rango.Inicio)} - ` +
+          `${Habitos_Formatear_Fecha_DDMMYYYY(Rango.Fin)}`;
+      }
+
+      function Habitos_Navegar_Fecha(Direccion) {
+        const Fecha = Parsear_Fecha_ISO(Habitos_Fecha_Referencia()) ||
+          new Date();
+        const Delta = Habitos_Panel_Modo === "Semana"
+          ? 7 * Direccion
+          : Direccion;
+        Habitos_Panel_Fecha = Formatear_Fecha_ISO(
+          Sumar_Dias(Fecha, Delta)
+        );
+        Render_Modal_Habitos();
+      }
+
+      function Habitos_Habito_Pospuesto(Habito, Fecha) {
+        const Inicio = String(Habito?.Fecha_Inicio || "").trim();
+        return Boolean(Inicio && Inicio > Fecha);
+      }
+
+      function Habitos_Habito_Visible_Principal(Habito, Fecha) {
+        return Habito?.Activo !== false &&
+          Habito?.Archivado !== true &&
+          !Habitos_Habito_Pospuesto(Habito, Fecha);
       }
 
       function Habitos_Labels_Dias(Completos = false) {
@@ -73799,14 +74158,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Horas.some((Hora) => Habitos_Hora_Coincide(Habito, Hora));
       }
 
-      function Habitos_Estado(Habito) {
+      function Habitos_Estado(Habito, Fecha = Habitos_Fecha_Referencia()) {
+        if (Habito?.Archivado) {
+          return {
+            Clave: "Inactivo",
+            Label: t("habitos.estado_archivado")
+          };
+        }
+        if (Habitos_Habito_Pospuesto(Habito, Fecha)) {
+          return {
+            Clave: "Inactivo",
+            Label: t("habitos.estado_pospuesto")
+          };
+        }
+        if (Habito_Cancelado_En_Periodo(Habito, Fecha)) {
+          return {
+            Clave: "Cancelado",
+            Label: t("habitos.estado_cancelado")
+          };
+        }
         if (!Habito?.Activo) {
           return {
             Clave: "Inactivo",
             Label: t("habitos.estado_inactivo")
           };
         }
-        const Fecha = Habitos_Fecha_Referencia();
         const Actual = Habito_Progreso_Actual(Habito, Fecha);
         const Regla = Habito_Regla_Objetivo(Habito);
         const Objetivo = Habito_Objetivo_Total(Habito);
@@ -73856,15 +74232,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Habitos_Estado(Habito).Clave === Habitos_Filtro_Estado;
       }
 
-      function Habitos_Filtrados() {
-        return (Array.isArray(Habitos) ? Habitos : [])
+      function Habitos_Comparar_Orden_Base(A, B) {
+        return (Number(A.Orden) || 0) - (Number(B.Orden) || 0) ||
+          (A.Nombre || "").localeCompare(B.Nombre || "");
+      }
+
+      function Habitos_Comparar_Orden_Visible(A, B) {
+        const Fecha = Habitos_Fecha_Referencia();
+        const A_Cancelado = Habito_Cancelado_En_Periodo(A, Fecha) ? 1 : 0;
+        const B_Cancelado = Habito_Cancelado_En_Periodo(B, Fecha) ? 1 : 0;
+        if (A_Cancelado !== B_Cancelado) return A_Cancelado - B_Cancelado;
+        const A_Completo = Habito_Esta_Completo(A, Fecha) ? 1 : 0;
+        const B_Completo = Habito_Esta_Completo(B, Fecha) ? 1 : 0;
+        if (A_Completo !== B_Completo) return A_Completo - B_Completo;
+        return Habitos_Comparar_Orden_Base(A, B);
+      }
+
+      function Habitos_Aplicar_Filtros_Lista(Lista) {
+        return (Array.isArray(Lista) ? Lista : [])
           .filter(Habitos_Pasa_Filtro_Dia)
           .filter(Habitos_Pasa_Filtro_Hora)
-          .filter(Habitos_Pasa_Filtro_Estado)
-          .sort((A, B) =>
-            (Number(A.Orden) || 0) - (Number(B.Orden) || 0) ||
-            (A.Nombre || "").localeCompare(B.Nombre || "")
-          );
+          .filter(Habitos_Pasa_Filtro_Estado);
+      }
+
+      function Habitos_Pasa_Contexto_Panel(Habito, Fecha) {
+        if (Habitos_Panel_Modo === "Semana") return true;
+        return Habito_Coincide_Con_Dia(Habito, Fecha);
+      }
+
+      function Habitos_Filtrados() {
+        const Fecha = Habitos_Fecha_Referencia();
+        return (Array.isArray(Habitos) ? Habitos : [])
+          .filter((Habito) =>
+            Habitos_Panel_Ver_Todos ||
+            Habitos_Habito_Visible_Principal(Habito, Fecha)
+          )
+          .filter((Habito) => Habitos_Pasa_Contexto_Panel(Habito, Fecha))
+          .filter((Habito) => Habitos_Aplicar_Filtros_Lista([Habito]).length)
+          .sort(Habitos_Comparar_Orden_Visible);
       }
 
       function Habitos_Texto_Programacion(Habito) {
@@ -73915,11 +74320,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Habitos_Formatear_Fecha_Hora(Registro) {
-        return Planes_Formatear_Fecha_Hora_Registro(
-          Registro?.Fecha_Hora,
-          Registro?.Fecha,
-          Registro?.Hora
-        );
+        const Fecha = Habitos_Formatear_Fecha_DDMMYYYY(Registro?.Fecha);
+        const Hora = String(
+          Registro?.Hora ||
+          (Registro?.Fecha_Hora || "").toString().slice(11, 16)
+        ).slice(0, 5);
+        return [Fecha, Hora].filter(Boolean).join(" ");
       }
 
       function Habitos_Formatear_Avance(Registro) {
@@ -74216,6 +74622,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Render_Habitos_Panel() {
         const Cuerpo = document.getElementById("Habitos_Cuerpo");
         if (!Cuerpo) return;
+        const Fecha = Habitos_Fecha_Referencia();
         Habitos_Set_Cabecera(
           t("habitos.panel_titulo"),
           t("habitos.panel_subtitulo"),
@@ -74228,21 +74635,149 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           false
         );
         const Items = Habitos_Filtrados();
+        const Activos = Items.filter((Habito) =>
+          Habitos_Habito_Visible_Principal(Habito, Fecha)
+        );
+        const Pospuestos = Items.filter((Habito) =>
+          Habitos_Habito_Pospuesto(Habito, Fecha) &&
+          Habito?.Archivado !== true
+        ).sort(Habitos_Comparar_Orden_Base);
+        const Archivados = Items.filter((Habito) =>
+          Habito?.Archivado === true
+        ).sort(Habitos_Comparar_Orden_Base);
+        const Cancelados = Activos.filter((Habito) =>
+          Habito_Cancelado_En_Periodo(Habito, Fecha)
+        );
+        const Principales = Habitos_Panel_Ver_Todos
+          ? Activos.filter((Habito) =>
+            !Habito_Cancelado_En_Periodo(Habito, Fecha)
+          )
+          : Activos;
         Cuerpo.innerHTML = `
           <div class="Habitos_Panel Habitos_Panel_Principal">
+            ${Habitos_Render_Barra_Panel(Fecha)}
             <div class="Habitos_Lista">
-              ${Items.length ? Items.map((Habito) =>
-                Habitos_Render_Card(Habito)
-              ).join("") : `
+              ${Principales.length ? Habitos_Render_Secciones_Panel(
+                Principales,
+                Fecha
+              ) : `
                 <div class="Planes_Vacio">
                   ${t("habitos.lista_vacia")}
                 </div>
               `}
+              ${Habitos_Panel_Ver_Todos
+                ? Habitos_Render_Seccion_Extra(
+                  t("habitos.seccion_cancelados"),
+                  Cancelados,
+                  Fecha,
+                  "Cancelados"
+                ) + Habitos_Render_Seccion_Extra(
+                  t("habitos.seccion_pospuestos"),
+                  Pospuestos,
+                  Fecha,
+                  "Pospuestos"
+                ) + Habitos_Render_Seccion_Extra(
+                  t("habitos.seccion_archivados"),
+                  Archivados,
+                  Fecha,
+                  "Archivados"
+                )
+                : ""}
             </div>
           </div>
           ${Habitos_Render_Filtros_Modal()}
         `;
         Habitos_Conectar_Panel();
+      }
+
+      function Habitos_Render_Barra_Panel(Fecha) {
+        const Modo = Habitos_Panel_Modo;
+        return `
+          <div class="Habitos_Panel_Barra">
+            <div class="Habitos_Panel_Navegacion">
+              <button class="Habitos_Panel_Nav_Btn" type="button"
+                data-habitos-nav-fecha="-1"
+                title="${Escape_Html(t("nav.anterior"))}"
+                aria-label="${Escape_Html(t("nav.anterior"))}">
+                &#8249;
+              </button>
+              <span class="Habitos_Panel_Fecha">
+                ${Escape_Html(Habitos_Formatear_Periodo_Titulo(Fecha))}
+              </span>
+              <button class="Habitos_Panel_Nav_Btn" type="button"
+                data-habitos-nav-fecha="1"
+                title="${Escape_Html(t("nav.siguiente"))}"
+                aria-label="${Escape_Html(t("nav.siguiente"))}">
+                &#8250;
+              </button>
+            </div>
+            <div class="Habitos_Panel_Modo">
+              <button class="Habitos_Panel_Modo_Btn${
+                Modo === "Dia" ? " Activo" : ""
+              }" type="button" data-habitos-panel-modo="Dia">
+                ${t("habitos.vista_diaria")}
+              </button>
+              <button class="Habitos_Panel_Modo_Btn${
+                Modo === "Semana" ? " Activo" : ""
+              }" type="button" data-habitos-panel-modo="Semana">
+                ${t("habitos.vista_semanal")}
+              </button>
+            </div>
+            <div class="Habitos_Panel_Ver_Todos">
+              <button class="Habitos_Panel_Ver_Todos_Btn${
+                Habitos_Panel_Ver_Todos ? " Activo" : ""
+              }" type="button" data-habitos-ver-todos="1">
+                ${t("habitos.ver_todos")}
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      function Habitos_Render_Secciones_Panel(Items, Fecha) {
+        if (Habitos_Panel_Modo === "Semana") {
+          return Items.map((Habito) =>
+            Habitos_Render_Card(Habito, Fecha)
+          ).join("");
+        }
+        const Diarios = Items.filter((Habito) =>
+          Habito?.Meta?.Periodo !== "Semana"
+        );
+        const Semanales = Items.filter((Habito) =>
+          Habito?.Meta?.Periodo === "Semana"
+        );
+        return Habitos_Render_Seccion_Extra(
+          t("habitos.seccion_diarios"),
+          Diarios,
+          Fecha,
+          "Diarios",
+          false
+        ) + Habitos_Render_Seccion_Extra(
+          t("habitos.seccion_semanales"),
+          Semanales,
+          Fecha,
+          "Semanales",
+          Diarios.length > 0
+        );
+      }
+
+      function Habitos_Render_Seccion_Extra(
+        Titulo,
+        Items,
+        Fecha,
+        Clase = "",
+        Con_Divisor = true
+      ) {
+        if (!Items.length) return "";
+        return `
+          ${Con_Divisor ? `<div class="Habitos_Lista_Divisor"></div>` : ""}
+          <div class="Habitos_Lista_Seccion ${Escape_Html(Clase)}">
+            <div class="Habitos_Lista_Titulo">${Escape_Html(Titulo)}</div>
+            ${Items.map((Habito) =>
+              Habitos_Render_Card(Habito, Fecha)
+            ).join("")}
+          </div>
+        `;
       }
 
       function Habitos_Manual_Fuente_Id(Habito, Fecha, Fijo = false) {
@@ -74319,13 +74854,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Habitos_Render_Accion_Rapida(Habito, Fecha) {
-        if (!Habito?.Activo) return "";
+        if (
+          !Habito?.Activo ||
+          Habito?.Archivado ||
+          Habitos_Habito_Pospuesto(Habito, Fecha)
+        ) {
+          return "";
+        }
         const Modo = Habito_Modo_Visible(Habito);
         const Es_Evitar = Habito.Tipo === "Evitar";
+        const Cancelado = Habito_Cancelado_En_Periodo(Habito, Fecha);
         const Bloqueado = Habitos_Evitar_Bloqueado_Para_Accion(
           Habito,
           Fecha
         );
+        const Btn_Cancelar = `
+          <button class="Habitos_Card_Registro_Btn Cancelar${
+            Cancelado ? " Activo" : ""
+          }" type="button"
+            data-habitos-cancelar="${Escape_Html(Habito.Id)}"
+            title="${Escape_Html(t("habitos.cancelar_periodo"))}"
+            aria-label="${Escape_Html(t("habitos.cancelar_periodo"))}">
+            &times;
+          </button>
+        `;
+        if (Cancelado) {
+          return `<div class="Habitos_Card_Registro">${Btn_Cancelar}</div>`;
+        }
         const Titulo = Bloqueado
           ? t("habitos.ya_registrado_periodo")
           : t("habitos.marcar_hecho");
@@ -74339,6 +74894,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ${Bloqueado ? "disabled" : ""}>
                 &#10003;
               </button>
+              ${Btn_Cancelar}
             </div>
           `;
         }
@@ -74365,6 +74921,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               aria-label="${Escape_Html(t("habitos.registrar_avance"))}">
               &#10003;
             </button>
+            ${Btn_Cancelar}
           </div>
         `;
       }
@@ -74411,6 +74968,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Habitos_Registrar_Manual(Habito, Cantidad, Fecha);
         Normalizar_Habitos_Registros();
         Guardar_Estado();
+        Render_Emojis();
         const Completo = Habito.Tipo === "Evitar" ||
           Habito_Esta_Completo(Habito, Fecha);
         Render_Modal_Habitos();
@@ -74423,16 +74981,160 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Habitos_Mostrar_Feedback_Registro(Habito.Id);
       }
 
-      function Habitos_Render_Card(Habito) {
-        const Estado = Habitos_Estado(Habito);
+      function Habitos_Alternar_Cancelado(Habito_Id) {
+        const Habito = Habito_Por_Id(Habito_Id);
+        if (!Habito) return;
+        const Fecha = Habitos_Fecha_Referencia();
+        const Periodo_Clave = Habito_Clave_Periodo(Habito, Fecha);
+        if (!Periodo_Clave) return;
+        const Ya_Cancelado = Habito_Cancelado_En_Periodo(Habito, Fecha);
+        Habitos_Registros = (Array.isArray(Habitos_Registros)
+          ? Habitos_Registros
+          : []
+        ).filter((Registro) => !(
+          Registro.Habito_Id === Habito.Id &&
+          Registro.Periodo_Clave === Periodo_Clave &&
+          Registro.Skip === true
+        ));
+        if (!Ya_Cancelado) {
+          Habito_Quitar_Registros_Segun((Registro) =>
+            Registro.Habito_Id === Habito.Id &&
+            Registro.Periodo_Clave === Periodo_Clave
+          );
+          const Hora = new Date().toTimeString().slice(0, 5);
+          Habitos_Registros.push(Normalizar_Habito_Registro({
+            Habito_Id: Habito.Id,
+            Fecha,
+            Hora,
+            Fecha_Hora: `${Fecha}T${Hora || "00:00"}`,
+            Periodo_Clave,
+            Fuente: "Manual",
+            Fuente_Id: `Cancelado_${Habito.Id}_${Periodo_Clave}`,
+            Cantidad: 0,
+            Unidad: Habito_Unidad(Habito),
+            Skip: true
+          }));
+        }
+        Normalizar_Habitos_Registros();
+        Guardar_Estado();
+        Render_Modal_Habitos();
+        Render_Emojis();
+      }
+
+      function Habitos_Estadisticas(Habito, Fecha) {
+        const Registros = (Array.isArray(Habitos_Registros)
+          ? Habitos_Registros
+          : []
+        ).filter((Registro) =>
+          Registro.Habito_Id === Habito.Id &&
+          Registro.Skip !== true &&
+          (Number(Registro.Cantidad) || 0) > 0
+        );
+        const Periodos = new Set(Registros.map((Registro) =>
+          Registro.Periodo_Clave
+        ).filter(Boolean));
+        const Unidad = Habito_Unidad(Habito);
+        const Total = Registros.reduce((Suma, Registro) =>
+          Suma + (Number(Registro.Cantidad) || 0), 0
+        );
+        const Exitos = Periodos.size;
+        const Promedio = Exitos > 0
+          ? Planes_Formatear_Numero(Total / Exitos)
+          : "0";
+        return {
+          Racha: `${Habitos_Calcular_Racha(Habito, Fecha)} ` +
+            `${Habito?.Meta?.Periodo === "Semana"
+              ? t("habitos.unidad_semanas")
+              : t("habitos.unidad_dias")}`,
+          Exitos: String(Exitos),
+          Promedio: Unidad
+            ? `${Promedio} ${Unidad}`
+            : Promedio
+        };
+      }
+
+      function Habitos_Calcular_Racha(Habito, Fecha) {
+        const Paso = Habito?.Meta?.Periodo === "Semana" ? 7 : 1;
+        let Cursor = Parsear_Fecha_ISO(Fecha) || new Date();
+        let Racha = 0;
+        for (let I = 0; I < 370; I++) {
+          const Clave_Fecha = Formatear_Fecha_ISO(Cursor);
+          if (Habito_Cancelado_En_Periodo(Habito, Clave_Fecha)) break;
+          if (!Habito_Esta_Completo(Habito, Clave_Fecha)) break;
+          Racha += 1;
+          Cursor = Sumar_Dias(Cursor, -Paso);
+        }
+        return Racha;
+      }
+
+      function Habitos_Reordenar(Origen_Id, Destino_Id) {
+        if (!Origen_Id || !Destino_Id || Origen_Id === Destino_Id) {
+          return false;
+        }
+        const Ordenados = [...(Array.isArray(Habitos) ? Habitos : [])]
+          .sort(Habitos_Comparar_Orden_Base);
+        const Index_Origen = Ordenados.findIndex((Habito) =>
+          Habito.Id === Origen_Id
+        );
+        const Index_Destino = Ordenados.findIndex((Habito) =>
+          Habito.Id === Destino_Id
+        );
+        if (Index_Origen < 0 || Index_Destino < 0) return false;
+        const [Movido] = Ordenados.splice(Index_Origen, 1);
+        const Index_Nuevo = Ordenados.findIndex((Habito) =>
+          Habito.Id === Destino_Id
+        );
+        Ordenados.splice(Index_Nuevo, 0, Movido);
+        Ordenados.forEach((Habito, Indice) => {
+          const Real = Habito_Por_Id(Habito.Id);
+          if (Real) Real.Orden = Indice;
+        });
+        Guardar_Estado();
+        Render_Modal_Habitos();
+        Render_Emojis();
+        return true;
+      }
+
+      function Habitos_Archivar(Habito_Id, Archivado = true) {
+        const Habito = Habito_Por_Id(Habito_Id);
+        if (!Habito) return;
+        Habito.Archivado = Archivado;
+        Guardar_Estado();
+        Render_Modal_Habitos();
+        Render_Emojis();
+      }
+
+      function Habitos_Render_Card(Habito, Fecha = Habitos_Fecha_Referencia()) {
+        const Estado = Habitos_Estado(Habito, Fecha);
         const Abierta = Habitos_Panel_Abiertos.has(Habito.Id);
         const Ultimo = Habitos_Ultimo_Registro(Habito.Id);
         const Vinculos = Habitos_Contar_Vinculos(Habito.Id);
-        const Fecha = Habitos_Fecha_Referencia();
+        const Cancelado = Habito_Cancelado_En_Periodo(Habito, Fecha);
+        const Progreso = Habito_Formatear_Progreso_Contextual(
+          Habito,
+          Fecha,
+          Habitos_Panel_Modo
+        );
+        const Stats = Habitos_Estadisticas(Habito, Fecha);
+        const Clases = [
+          "Habitos_Card",
+          Abierta ? "Abierta" : "",
+          Cancelado ? "Cancelado" : "",
+          Habito?.Archivado ? "Archivado" : "",
+          Habitos_Habito_Pospuesto(Habito, Fecha) ? "Pospuesto" : ""
+        ].filter(Boolean).join(" ");
         return `
-          <div class="Habitos_Card${Abierta ? " Abierta" : ""}"
-            data-habitos-card="${Escape_Html(Habito.Id)}">
+          <div class="${Clases}"
+            data-habitos-card="${Escape_Html(Habito.Id)}"
+            draggable="true">
             <div class="Habitos_Card_Resumen">
+              <button class="Habitos_Card_Drag" type="button"
+                draggable="true"
+                data-habitos-drag="${Escape_Html(Habito.Id)}"
+                title="${Escape_Html(t("focus.drag_reordenar"))}"
+                aria-label="${Escape_Html(t("focus.drag_reordenar"))}">
+                &#8942;
+              </button>
               <button class="Habitos_Card_Toggle" type="button"
                 data-habitos-toggle="${Escape_Html(Habito.Id)}">
                 <span class="Habitos_Card_Emoji"
@@ -74444,7 +75146,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     ${Escape_Html(Habito.Nombre)}
                   </span>
                   <span class="Habitos_Card_Meta">
-                    ${Escape_Html(Habito_Formatear_Progreso(Habito, Fecha))}
+                    ${Cancelado ? "" : Escape_Html(Progreso)}
                   </span>
                 </span>
                 <span class="Habitos_Card_Estado ${Estado.Clave}"
@@ -74457,18 +75159,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             <div class="Habitos_Card_Detalle">
               <div class="Habitos_Card_MetaGrid">
                 <div class="Habitos_Card_Dato">
-                  <span>${t("habitos.card_progreso")}</span>
-                  <strong>${Escape_Html(Habitos_Texto_Meta(Habito))}</strong>
+                  <span>${t("habitos.card_racha")}</span>
+                  <strong>${Escape_Html(Stats.Racha)}</strong>
                 </div>
                 <div class="Habitos_Card_Dato">
-                  <span>${t("habitos.card_programacion")}</span>
-                  <strong>
-                    ${Escape_Html(Habitos_Texto_Programacion(Habito))}
-                  </strong>
+                  <span>${t("habitos.card_exitos")}</span>
+                  <strong>${Escape_Html(Stats.Exitos)}</strong>
                 </div>
                 <div class="Habitos_Card_Dato">
-                  <span>${t("habitos.card_tipo")}</span>
-                  <strong>${Escape_Html(Habito.Tipo || "")}</strong>
+                  <span>${t("habitos.card_promedio")}</span>
+                  <strong>${Escape_Html(Stats.Promedio)}</strong>
                 </div>
                 <div class="Habitos_Card_Dato">
                   <span>${t("habitos.card_vinculos")}</span>
@@ -74484,12 +75184,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   )}</strong>
                 </div>
               ` : ""}
-              <div class="Habitos_Card_Acciones">
-                <button class="Config_Boton" type="button"
-                  data-habitos-editar="${Escape_Html(Habito.Id)}">
-                  ${t("habitos.editar")}
-                </button>
-              </div>
             </div>
           </div>
         `;
@@ -74513,6 +75207,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Habitos_Abrir_Filtros();
             });
           });
+        document.querySelectorAll("[data-habitos-panel-modo]")
+          .forEach((Btn) => {
+            Btn.addEventListener("click", () => {
+              Habitos_Panel_Modo = Btn.dataset.habitosPanelModo || "Dia";
+              Render_Modal_Habitos();
+            });
+          });
+        document.querySelectorAll("[data-habitos-nav-fecha]")
+          .forEach((Btn) => {
+            Btn.addEventListener("click", () => {
+              Habitos_Navegar_Fecha(Number(Btn.dataset.habitosNavFecha));
+            });
+          });
+        document.querySelectorAll("[data-habitos-ver-todos]")
+          .forEach((Btn) => {
+            Btn.addEventListener("click", () => {
+              Habitos_Panel_Ver_Todos = !Habitos_Panel_Ver_Todos;
+              Render_Modal_Habitos();
+            });
+          });
         document.querySelectorAll("[data-habitos-toggle]")
           .forEach((Btn) => {
             Btn.addEventListener("click", () => {
@@ -74525,15 +75239,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Render_Modal_Habitos();
             });
           });
-        document.querySelectorAll("[data-habitos-editar]")
-          .forEach((Btn) => {
-            Btn.addEventListener("click", (Ev) => {
-              Ev.stopPropagation();
-              Habitos_Abrir_Editor_Desde_Panel(
-                Btn.dataset.habitosEditar
-              );
-            });
-          });
         document.querySelectorAll("[data-habitos-registro-rapido]")
           .forEach((Btn) => {
             Btn.addEventListener("click", (Ev) => {
@@ -74541,6 +75246,49 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Habitos_Registrar_Rapido_Desde_Panel(
                 Btn.dataset.habitosRegistroRapido
               );
+            });
+          });
+        document.querySelectorAll("[data-habitos-cancelar]")
+          .forEach((Btn) => {
+            Btn.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              Habitos_Alternar_Cancelado(Btn.dataset.habitosCancelar);
+            });
+          });
+        document.querySelectorAll("[data-habitos-card]")
+          .forEach((Card) => {
+            Card.addEventListener("contextmenu", (Ev) => {
+              Ev.preventDefault();
+              Ev.stopPropagation();
+              Mostrar_Menu_Habito_Panel(
+                Card.dataset.habitosCard,
+                Ev.clientX,
+                Ev.clientY
+              );
+            });
+            Card.addEventListener("dragstart", (Ev) => {
+              Habitos_Drag_Id = Card.dataset.habitosCard;
+              Ev.dataTransfer?.setData(
+                "text/plain",
+                Habitos_Drag_Id || ""
+              );
+            });
+            Card.addEventListener("dragover", (Ev) => {
+              Ev.preventDefault();
+              const Rect = Card.getBoundingClientRect();
+              const Despues = Ev.clientY >= Rect.top + Rect.height / 2;
+              Card.classList.toggle("Drop_Antes", !Despues);
+              Card.classList.toggle("Drop_Despues", Despues);
+            });
+            Card.addEventListener("dragleave", () => {
+              Card.classList.remove("Drop_Antes", "Drop_Despues");
+            });
+            Card.addEventListener("drop", (Ev) => {
+              Ev.preventDefault();
+              Card.classList.remove("Drop_Antes", "Drop_Despues");
+              const Destino = Card.dataset.habitosCard;
+              Habitos_Reordenar(Habitos_Drag_Id, Destino);
+              Habitos_Drag_Id = null;
             });
           });
         document.querySelectorAll("[data-habitos-registro-input]")
@@ -74761,20 +75509,115 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       async function Habitos_Eliminar_Registro(Registro_Id) {
+        const Registro = Habitos_Registros.find((Item) =>
+          Item?.Id === Registro_Id
+        );
+        if (!Registro) return;
+        const Tiene_Origen = Habitos_Registro_Tiene_Origen_Reversible(
+          Registro
+        );
         const Ok = await Mostrar_Dialogo(
-          t("habitos.registro_eliminar_confirm"),
+          Tiene_Origen
+            ? t("habitos.registro_eliminar_confirm_origen")
+            : t("habitos.registro_eliminar_confirm"),
           [
             { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
             { Etiqueta: t("eliminar"), Valor: true, Tipo: "Peligro" }
           ]
         );
         if (!Ok) return;
+        const Snap = Capturar_Snapshot_Undo();
+        Habitos_Revertir_Origen_Registro(Registro);
         Habitos_Registros = Habitos_Registros.filter((Registro) =>
           Registro?.Id !== Registro_Id
         );
         Guardar_Estado();
         Render_Modal_Habitos();
-        Mostrar_Toast_Info(t("habitos.registro_eliminado"));
+        Render_Plan();
+        Render_Eventos();
+        Render_Emojis();
+        Mostrar_Toast_Undo(t("habitos.registro_eliminado"), Snap);
+      }
+
+      function Habitos_Registro_Tiene_Origen_Reversible(Registro) {
+        return [
+          "Plan_Slot_Item",
+          "Abordaje_Habito",
+          "Evento",
+          "Objetivo_Evento",
+          "Plan_Subobjetivo",
+          "Plan_Parte"
+        ].includes(String(Registro?.Fuente || ""));
+      }
+
+      function Habitos_Revertir_Origen_Registro(Registro) {
+        const Fuente = String(Registro?.Fuente || "");
+        const Fuente_Id = String(Registro?.Fuente_Id || "");
+        if (Fuente === "Plan_Slot_Item") {
+          const Info = Habitos_Buscar_Item_Slot(Fuente_Id);
+          if (Info?.Item) {
+            Info.Item.Estado = "Planeado";
+            delete Info.Item.Habito_Cantidad;
+          }
+          return;
+        }
+        if (Fuente === "Abordaje_Habito") {
+          const [Evento_Id, Item_Id] = Fuente_Id.split("|");
+          const Evento = Evento_Por_Id(Evento_Id);
+          if (Evento?.Abordaje) {
+            Evento.Abordaje = Evento.Abordaje
+              .map((Item) => {
+                if (String(Item?.Id || "") !== Item_Id) return Item;
+                if (Item.Planeada) {
+                  const Copia = { ...Item };
+                  delete Copia.Estado;
+                  delete Copia.Habito_Cantidad;
+                  return Copia;
+                }
+                return null;
+              })
+              .filter(Boolean);
+            if (!Evento.Abordaje.length) delete Evento.Abordaje;
+          }
+          return;
+        }
+        if (Fuente === "Evento") {
+          const Evento = Evento_Por_Id(Fuente_Id);
+          if (Evento) {
+            Evento.Hecho = false;
+            Meta_Aporte_Eliminar_Avance_Evento(Evento);
+          }
+          return;
+        }
+        if (Fuente === "Objetivo_Evento") {
+          const Evento_Id = Fuente_Id.split("|")[1];
+          const Evento = Evento_Por_Id(Evento_Id);
+          if (Evento) {
+            Evento.Hecho = false;
+            Meta_Aporte_Eliminar_Avance_Evento(Evento);
+          }
+          return;
+        }
+        const Modelo = Asegurar_Modelo_Planes();
+        if (Fuente === "Plan_Parte") {
+          const Parte = Modelo.Partes?.[Fuente_Id];
+          if (Parte) {
+            Planes_Desmarcar_Parte_Realizada(Parte.Id, {
+              Solo_Modelo: true
+            });
+          }
+          return;
+        }
+        if (Fuente === "Plan_Subobjetivo") {
+          const Sub = Modelo.Subobjetivos?.[Fuente_Id];
+          if (Sub) {
+            Sub.Hecha = false;
+            Sub.Estado = "Pendiente";
+            Sub.Fecha_Fin = "";
+            Sub.Hora_Fin = "";
+            Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo);
+          }
+        }
       }
 
       function Habitos_Agregar_Vinculacion(
@@ -75232,6 +76075,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Campo("Habito_Color")?.value || Borrador.Color
         );
         Borrador.Activo = Campo("Habito_Activo")?.checked !== false;
+        Borrador.Fecha_Inicio = String(
+          Campo("Habito_Fecha_Inicio")?.value || ""
+        ).trim();
         Borrador.Tipo = Campo("Habito_Tipo")?.value || "Hacer";
         Borrador.Programacion.Tipo =
           Campo("Habito_Horas_Modo")?.value || "Todos";
@@ -75571,6 +76417,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   <span>&#10003;</span>
                 </label>
               </span>
+            </label>
+          </div>
+          <div class="Habitos_Modal_Fila">
+            <label class="Habitos_Modal_Campo" data-span="4">
+              <span class="Habitos_Modal_Label"
+                title="${Escape_Html(t("habitos.help_fecha_inicio"))}">
+                ${t("habitos.fecha_inicio")}
+              </span>
+              <input class="Habitos_Modal_Input"
+                id="Habito_Fecha_Inicio"
+                type="date"
+                value="${Escape_Html(B.Fecha_Inicio || "")}">
             </label>
           </div>
           <div class="Habitos_Modal_Bloque" id="Habito_Meta_Bloque">
@@ -76515,8 +77373,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Id: I.Id || Crear_Id_Abordaje(),
             Plantilla_Id: null,
             Sub_Id_Local: null,
-            Habito_Id: String(I.Habito_Id || "").trim(),
-            Texto: I.Texto || "",
+          Habito_Id: String(I.Habito_Id || "").trim(),
+          Habito_Cantidad: Number(I.Habito_Cantidad) > 0
+            ? Number(I.Habito_Cantidad)
+            : null,
+          Texto: I.Texto || "",
             Emoji: I.Emoji || "•",
             Marcado: I_Tiene_Trabajo,
             Estado: I_Tiene_Trabajo ? I.Estado : "Abordado",
@@ -77076,9 +77937,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Chk.title = t("abordaje.hecha_externa_title");
         }
         if (!Bloqueada) {
-          Chk.addEventListener("change", () => {
+          Chk.addEventListener("change", async () => {
             Item.Marcado = Chk.checked;
             if (Chk.checked) {
+              if (Item.Habito_Id) {
+                const Habito = Habito_Por_Id(Item.Habito_Id);
+                const Cantidad = Habito
+                  ? await Habitos_Pedir_Cantidad_Item(
+                    Habito,
+                    Item.Habito_Cantidad || 1
+                  )
+                  : 1;
+                if (Cantidad === null) {
+                  Item.Marcado = false;
+                  Chk.checked = false;
+                  return;
+                }
+                Item.Habito_Cantidad = Cantidad;
+              }
               Item.Estado = "Completado";
             }
             Render_Modal_Abordaje();
@@ -77138,7 +78014,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : t("abordaje.completado_title");
         Btn_C.disabled = Bloqueada;
         if (!Bloqueada) {
-          Btn_C.addEventListener("click", () => {
+          Btn_C.addEventListener("click", async () => {
             // Si ya estaba marcado como Completado, destilda
             // todo. Si no, lo marca como Completado.
             if (
@@ -77146,6 +78022,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ) {
               Item.Marcado = false;
             } else {
+              if (Item.Habito_Id) {
+                const Habito = Habito_Por_Id(Item.Habito_Id);
+                const Cantidad = Habito
+                  ? await Habitos_Pedir_Cantidad_Item(
+                    Habito,
+                    Item.Habito_Cantidad || 1
+                  )
+                  : 1;
+                if (Cantidad === null) return;
+                Item.Habito_Cantidad = Cantidad;
+              }
               Item.Marcado = true;
               Item.Estado = "Completado";
             }
@@ -77162,11 +78049,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         Btn_A.textContent = "•";
         Btn_A.title = t("abordaje.abordado_title");
-        Btn_A.addEventListener("click", () => {
+        Btn_A.addEventListener("click", async () => {
           // Si ya estaba marcado como Abordado, destilda todo.
           if (Item.Marcado && Item.Estado === "Abordado") {
             Item.Marcado = false;
           } else {
+            if (Item.Habito_Id) {
+              const Habito = Habito_Por_Id(Item.Habito_Id);
+              const Cantidad = Habito
+                ? await Habitos_Pedir_Cantidad_Item(
+                  Habito,
+                  Item.Habito_Cantidad || 1
+                )
+                : 1;
+              if (Cantidad === null) return;
+              Item.Habito_Cantidad = Cantidad;
+            }
             Item.Marcado = true;
             Item.Estado = "Abordado";
           }
@@ -77295,8 +78193,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Id: I.Id,
               Plantilla_Id: I.Plantilla_Id,
               Parte_Meta_Id: I.Parte_Meta_Id || null,
-              Habito_Id: String(I.Habito_Id || "").trim(),
-              Texto: I.Texto,
+            Habito_Id: String(I.Habito_Id || "").trim(),
+            Habito_Cantidad: Number(I.Habito_Cantidad) > 0
+              ? Number(I.Habito_Cantidad)
+              : null,
+            Texto: I.Texto,
               Emoji: I.Emoji || "•",
               Suelta: Boolean(I.Suelta)
             };
@@ -77461,10 +78362,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Estado === "Realizado" ? " Activo" : "");
         Btn_C.textContent = "\u2713";
         Btn_C.title = t("abordaje.completado_title");
-        Btn_C.addEventListener("click", () => {
-          Item.Estado = Estado === "Realizado"
-            ? "Planeado"
-            : "Realizado";
+        Btn_C.addEventListener("click", async () => {
+          if (Estado === "Realizado") {
+            Item.Estado = "Planeado";
+          } else {
+            if (Item.Tipo === "Habito" && Item.Habito_Id) {
+              const Habito = Habito_Por_Id(Item.Habito_Id);
+              const Cantidad = Habito
+                ? await Habitos_Pedir_Cantidad_Item(
+                  Habito,
+                  Item.Habito_Cantidad || 1
+                )
+                : 1;
+              if (Cantidad === null) return;
+              Item.Habito_Cantidad = Cantidad;
+            }
+            Item.Estado = "Realizado";
+          }
           Render_Modal_Plan_Slot();
         });
 
@@ -77474,10 +78388,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Estado === "Abordado" ? " Activo" : "");
         Btn_A.textContent = "\u2022";
         Btn_A.title = t("abordaje.abordado_title");
-        Btn_A.addEventListener("click", () => {
-          Item.Estado = Estado === "Abordado"
-            ? "Planeado"
-            : "Abordado";
+        Btn_A.addEventListener("click", async () => {
+          if (Estado === "Abordado") {
+            Item.Estado = "Planeado";
+          } else {
+            if (Item.Tipo === "Habito" && Item.Habito_Id) {
+              const Habito = Habito_Por_Id(Item.Habito_Id);
+              const Cantidad = Habito
+                ? await Habitos_Pedir_Cantidad_Item(
+                  Habito,
+                  Item.Habito_Cantidad || 1
+                )
+                : 1;
+              if (Cantidad === null) return;
+              Item.Habito_Cantidad = Cantidad;
+            }
+            Item.Estado = "Abordado";
+          }
           Render_Modal_Plan_Slot();
         });
 
@@ -84730,6 +85657,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Emoji: Normalizar_Emoji(Base.Emoji || "•"),
           Color: Normalizar_Color_Hex(Base.Color),
           Activo: Base.Activo !== false,
+          Archivado: Base.Archivado === true,
+          Fecha_Inicio: String(Base.Fecha_Inicio || "").trim(),
           Tipo,
           Programacion: {
             Tipo: Tipo_Programacion,
@@ -84886,6 +85815,49 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }, 0);
       }
 
+      function Habito_Progreso_Contextual(Habito, Fecha, Modo = "Dia") {
+        if (Modo !== "Semana" || Habito?.Meta?.Periodo === "Semana") {
+          return Habito_Progreso_Actual(Habito, Fecha);
+        }
+        const Fechas = Habitos_Fechas_Semana(Fecha);
+        const Set_Fechas = new Set(Fechas);
+        return (Array.isArray(Habitos_Registros)
+          ? Habitos_Registros
+          : [])
+          .filter((Registro) =>
+            Registro.Habito_Id === Habito.Id &&
+            Set_Fechas.has(Registro.Fecha) &&
+            Registro.Skip !== true
+          )
+          .reduce((Total, Registro) =>
+            Total + (Number(Registro.Cantidad) || 0), 0
+          );
+      }
+
+      function Habito_Objetivo_Total_Contextual(
+        Habito,
+        Modo = "Dia"
+      ) {
+        const Base = Habito_Objetivo_Total(Habito);
+        if (Modo === "Semana" && Habito?.Meta?.Periodo !== "Semana") {
+          return Base * 7;
+        }
+        return Base;
+      }
+
+      function Habito_Cancelado_En_Periodo(Habito, Fecha) {
+        const Periodo_Clave = Habito_Clave_Periodo(Habito, Fecha);
+        if (!Periodo_Clave || !Habito?.Id) return false;
+        return (Array.isArray(Habitos_Registros)
+          ? Habitos_Registros
+          : []
+        ).some((Registro) =>
+          Registro.Habito_Id === Habito.Id &&
+          Registro.Periodo_Clave === Periodo_Clave &&
+          Registro.Skip === true
+        );
+      }
+
       function Habito_Esta_Completo(Habito, Fecha) {
         const Actual = Habito_Progreso_Actual(Habito, Fecha);
         const Objetivo = Habito_Objetivo_Total(Habito);
@@ -84906,6 +85878,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Habito_Formatear_Progreso(Habito, Fecha) {
         const Actual = Habito_Progreso_Actual(Habito, Fecha);
         const Objetivo = Habito_Objetivo_Total(Habito);
+        return Habito_Formatear_Progreso_Contextual(
+          Habito,
+          Fecha,
+          "Dia",
+          Actual,
+          Objetivo
+        );
+      }
+
+      function Habito_Formatear_Progreso_Contextual(
+        Habito,
+        Fecha,
+        Modo = "Dia",
+        Actual_Param = null,
+        Objetivo_Param = null
+      ) {
+        if (Habito_Cancelado_En_Periodo(Habito, Fecha)) {
+          return t("habitos.estado_cancelado");
+        }
+        const Actual = Actual_Param === null
+          ? Habito_Progreso_Contextual(Habito, Fecha, Modo)
+          : Actual_Param;
+        const Objetivo = Objetivo_Param === null
+          ? Habito_Objetivo_Total_Contextual(Habito, Modo)
+          : Objetivo_Param;
         const Regla = Habito_Regla_Objetivo(Habito);
         if (Habito_Modo_Visible(Habito) === "Check") {
           return Objetivo <= 1
@@ -84937,7 +85934,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Habito_Coincide_Con_Slot(Habito, Fecha, Hora) {
-        if (!Habito || !Habito.Activo) return false;
+        if (
+          !Habito ||
+          !Habito.Activo ||
+          Habito.Archivado ||
+          Habitos_Habito_Pospuesto(Habito, Fecha)
+        ) {
+          return false;
+        }
         if (!Habito_Coincide_Con_Dia(Habito, Fecha)) return false;
         const Tipo = Habito?.Programacion?.Tipo || "Libre";
         const Hora_Num_Base = Number(Hora);
@@ -85093,7 +86097,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         const Modo = Habito_Modo_Visible(Habito);
         if (Modo === "Tiempo") {
-          if (Fuente_Tipo !== "Evento") return 0;
+          if (Fuente_Tipo !== "Evento") {
+            return Number(Vinculo?.Cantidad) || 0;
+          }
           const Duracion = Number(Fuente?.Duracion) || 0;
           return Habito?.Meta?.Unidad === "Horas"
             ? Duracion
@@ -85176,7 +86182,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .filter((Habito) => {
             const Modo = Habito_Modo_Visible(Habito);
             if (Fuente_Tipo === "Evento") return Modo === "Tiempo";
-            return Modo !== "Tiempo";
+            if (Fuente_Tipo === "Objetivo") return Modo === "Tiempo";
+            return true;
           });
       }
 
@@ -85345,7 +86352,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Habito_Item_Plan_Slot_Tiene_Vinculos(Item);
       }
 
-      function Habito_Cantidad_Plan_Slot(Habito) {
+      function Habito_Cantidad_Plan_Slot(Habito, Item = null) {
+        const Cantidad_Item = Number(Item?.Habito_Cantidad);
+        if (Number.isFinite(Cantidad_Item) && Cantidad_Item > 0) {
+          return Cantidad_Item;
+        }
         if (Habito_Modo_Visible(Habito) !== "Tiempo") return 1;
         const Horas = Number(Config?.Duracion_Default) || 1;
         return Habito?.Meta?.Unidad === "Minutos"
@@ -85372,7 +86383,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           });
         (Array.isArray(Items_Nuevos) ? Items_Nuevos : [])
-          .filter((Item) => Item?.Estado === "Realizado")
+          .filter((Item) =>
+            Item?.Estado === "Realizado" ||
+            (Item?.Tipo === "Habito" && Item?.Estado === "Abordado")
+          )
           .forEach((Item) => {
             const Fuente_Id = String(Item.Id || "").trim();
             if (!Fuente_Id) return;
@@ -85397,7 +86411,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Fecha,
                 Fuente,
                 Fuente_Id,
-                Cantidad: Habito_Cantidad_Plan_Slot(Habito),
+                Cantidad: Habito_Cantidad_Plan_Slot(Habito, Item),
                 Unidad: Habito_Unidad(Habito),
                 Hora: Hora_Fuente
               });
@@ -85412,6 +86426,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Plantilla_Id: null,
           Sub_Id_Local: null,
           Habito_Id: Habito.Id,
+          Habito_Cantidad: null,
           Texto: Habito.Nombre || "",
           Emoji: Habito.Emoji || "\u2022",
           Marcado: false,
@@ -85456,7 +86471,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 `${String(Evento?.Id || "").trim()}|${String(
                   Item?.Id || ""
                 ).trim()}`,
-              Cantidad: 1,
+              Cantidad: Habito_Cantidad_Plan_Slot(Habito, Item),
               Unidad: Habito_Unidad(Habito),
               Hora: Planes_Formatear_Hora_Numero(
                 Number(Evento?.Inicio) || 0
@@ -85715,6 +86730,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado: Item?.Estado || "Planeado",
           Tipo: Item?.Tipo || "Texto",
           Habito_Id: String(Item?.Habito_Id || "").trim(),
+          Habito_Cantidad: Number(Item?.Habito_Cantidad) > 0
+            ? Number(Item.Habito_Cantidad)
+            : null,
           Habitos_Vinculos: Normalizar_Vinculos_Habito_Fuente(
             Item?.Habitos_Vinculos || []
           )
@@ -85732,6 +86750,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado: Item?.Estado || "Planeado",
           Tipo: Item?.Tipo || "Texto",
           Habito_Id: String(Item?.Habito_Id || "").trim(),
+          Habito_Cantidad: Number(Item?.Habito_Cantidad) > 0
+            ? Number(Item.Habito_Cantidad)
+            : null,
           Habitos_Vinculos: Normalizar_Vinculos_Habito_Fuente(
             Item?.Habitos_Vinculos || []
           )
@@ -85751,6 +86772,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado: Item?.Estado || "Planeado",
           Tipo: Item?.Tipo || "Texto",
           Habito_Id: String(Item?.Habito_Id || "").trim(),
+          Habito_Cantidad: Number(Item?.Habito_Cantidad) > 0
+            ? Number(Item.Habito_Cantidad)
+            : null,
           Habitos_Vinculos: Normalizar_Vinculos_Habito_Fuente(
             Item?.Habitos_Vinculos || []
           )
@@ -92974,15 +93998,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Sidebar_Habitos.classList.add("Oculto");
           return;
         }
-        const Fecha = Habitos_Fecha_Referencia();
+        const Fecha = Habitos_Fecha_Hoy();
         const Activos = (Array.isArray(Habitos) ? Habitos : [])
           .filter((Habito) =>
             Habito?.Activo !== false &&
+            Habito?.Archivado !== true &&
+            !Habitos_Habito_Pospuesto(Habito, Fecha) &&
             Habito_Coincide_Con_Dia(Habito, Fecha)
           )
-          .sort((A, B) =>
-            (Number(A.Orden) || 0) - (Number(B.Orden) || 0)
-          );
+          .sort(Habitos_Comparar_Orden_Base);
         El_Sidebar_Habitos.classList.toggle(
           "Oculto",
           Activos.length === 0
@@ -92994,6 +94018,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Sin_Globitos",
           !Mostrar_Globitos
         );
+        El_Sidebar_Habitos.title = t("sidebar.habitos_titulo");
 
         const Semanales = Activos.filter((Habito) =>
           Habito?.Meta?.Periodo === "Semana"
@@ -93012,10 +94037,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Btn.type = "button";
           Btn.className = "Sidebar_Habito Con_Fallback_Emoji";
           Btn.dataset.sidebarHabitoId = Habito.Id || "";
-          Btn.classList.toggle(
-            "Realizado",
-            Habito_Esta_Completo(Habito, Fecha)
-          );
+          Btn.draggable = true;
+          const Estado = Habitos_Estado(Habito, Fecha).Clave;
+          Btn.classList.add(Estado);
+          Btn.classList.toggle("Realizado", Estado === "Realizado");
           Btn.title = `${Habito.Nombre || ""} - ${
             Habito_Formatear_Progreso(Habito, Fecha)
           }`;
@@ -93042,6 +94067,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Ev.clientY
             );
           });
+          Btn.addEventListener("dragstart", (Ev) => {
+            Habitos_Sidebar_Drag_Id = Habito.Id || "";
+            Ev.dataTransfer?.setData("text/plain", Habitos_Sidebar_Drag_Id);
+          });
+          Btn.addEventListener("dragover", (Ev) => {
+            Ev.preventDefault();
+            const Rect = Btn.getBoundingClientRect();
+            const Despues = Ev.clientX >= Rect.left + Rect.width / 2;
+            Btn.classList.toggle("Drop_Antes", !Despues);
+            Btn.classList.toggle("Drop_Despues", Despues);
+          });
+          Btn.addEventListener("dragleave", () => {
+            Btn.classList.remove("Drop_Antes", "Drop_Despues");
+          });
+          Btn.addEventListener("drop", (Ev) => {
+            Ev.preventDefault();
+            Btn.classList.remove("Drop_Antes", "Drop_Despues");
+            const Origen = Habito_Por_Id(Habitos_Sidebar_Drag_Id);
+            if (
+              Origen &&
+              Origen?.Meta?.Periodo === Habito?.Meta?.Periodo
+            ) {
+              Habitos_Reordenar(Habitos_Sidebar_Drag_Id, Habito.Id);
+            }
+            Habitos_Sidebar_Drag_Id = null;
+          });
           return Btn;
         };
 
@@ -93051,7 +94102,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Grupo.className = "Sidebar_Habitos_Grupo";
           const Label = document.createElement("div");
           Label.className = "Sidebar_Habitos_Label";
-          Label.textContent = t(Clave);
+          Label.textContent = Clave === "sidebar.habitos_semanales"
+            ? `\u{1F4C5} ${t(Clave)}`
+            : `\u2713 ${t(Clave)}`;
           const Fila = document.createElement("div");
           Fila.className = "Sidebar_Habitos_Fila";
           Lista.forEach((Habito) => {
@@ -93106,7 +94159,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Habitos_Marcar_Realizado_Desde_Sidebar(Habito) {
         if (!Habito || !Habito.Activo) return;
-        const Fecha = Habitos_Fecha_Referencia();
+        const Fecha = Habitos_Fecha_Hoy();
         if (Habitos_Evitar_Bloqueado_Para_Accion(Habito, Fecha)) {
           Mostrar_Toast_Info(t("habitos.ya_registrado_periodo"), "\u2713");
           return;
@@ -93120,7 +94173,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Habitos_Registrar_Avance_Desde_Sidebar(Habito) {
         if (!Habito || !Habito.Activo) return;
-        const Fecha = Habitos_Fecha_Referencia();
+        const Fecha = Habitos_Fecha_Hoy();
         let Cantidad = 1;
         if (Habito_Modo_Visible(Habito) === "Cantidad") {
           const Valor = await Mostrar_Dialogo_Con_Numero(
@@ -93132,6 +94185,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cantidad = Valor;
         }
         Habitos_Refrescar_Tras_Registro(Habito, Fecha, Cantidad);
+      }
+
+      async function Habitos_Pedir_Cantidad_Item(Habito, Actual = 1) {
+        const Modo = Habito_Modo_Visible(Habito);
+        if (Modo !== "Cantidad" && Modo !== "Tiempo") {
+          return Number(Actual) || 1;
+        }
+        const Es_Tiempo = Modo === "Tiempo";
+        const Actual_Prompt = Es_Tiempo && Habito?.Meta?.Unidad === "Horas"
+          ? Math.round((Number(Actual) || 0.25) * 60)
+          : Number(Actual) || 1;
+        const Valor = await Mostrar_Dialogo_Con_Numero(
+          t("habitos.registrar_avance"),
+          Actual_Prompt,
+          1
+        );
+        if (Valor === null) return null;
+        const Cantidad = Number(Valor);
+        if (!Number.isFinite(Cantidad) || Cantidad <= 0) return null;
+        if (!Es_Tiempo) return Cantidad;
+        const Minutos = Math.min(60, Cantidad);
+        return Habito?.Meta?.Unidad === "Horas"
+          ? Minutos / 60
+          : Minutos;
       }
 
       function Mostrar_Menu_Habito_Sidebar(Habito, X, Y) {
@@ -93172,6 +94249,46 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             await Habitos_Registrar_Avance_Desde_Sidebar(Habito);
+          });
+        if (Fn_Cierre_Menu) {
+          document.removeEventListener("click", Fn_Cierre_Menu);
+          Fn_Cierre_Menu = null;
+        }
+        Fn_Cierre_Menu = (Ev) => {
+          if (!Menu.contains(Ev.target)) Cerrar_Menu_Dia();
+        };
+        document.addEventListener("click", Fn_Cierre_Menu);
+      }
+
+      function Mostrar_Menu_Habito_Panel(Habito_Id, X, Y) {
+        const Habito = Habito_Por_Id(Habito_Id);
+        const Menu = document.getElementById("Dia_Accion_Menu");
+        if (!Menu || !Habito) return;
+        const Grupo = [
+          Html_Menu_Dia_Accion("habito-editar", t("habitos.editar")),
+          Html_Menu_Dia_Accion(
+            "habito-archivar",
+            Habito.Archivado
+              ? t("habitos.desarchivar")
+              : t("habitos.archivar")
+          )
+        ];
+        Menu.innerHTML = Construir_Menu_Dia_Por_Grupos([Grupo]);
+        Menu.style.left = `${X}px`;
+        Menu.style.top = `${Y}px`;
+        Menu.classList.add("Activo");
+        Reposicionar_Menu_Dia_En_Pantalla(Menu);
+        Menu.querySelector(`[data-acc="habito-editar"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Habitos_Abrir_Editor_Desde_Panel(Habito.Id);
+          });
+        Menu.querySelector(`[data-acc="habito-archivar"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Habitos_Archivar(Habito.Id, !Habito.Archivado);
           });
         if (Fn_Cierre_Menu) {
           document.removeEventListener("click", Fn_Cierre_Menu);
@@ -102737,6 +103854,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return;
         }
 
+        const Habitos_Activo = document
+          .getElementById("Habitos_Overlay")
+          ?.classList.contains("Activo");
+        if (
+          Habitos_Activo &&
+          Habitos_Modal_Vista === "Panel" &&
+          !Ev.ctrlKey &&
+          !Ev.metaKey &&
+          !Ev.altKey &&
+          !Ev.shiftKey &&
+          (Ev.key === "ArrowLeft" || Ev.key === "ArrowRight")
+        ) {
+          Habitos_Navegar_Fecha(Ev.key === "ArrowLeft" ? -1 : 1);
+          Ev.preventDefault();
+          return;
+        }
+
         // No atajos si hay modal/dialogo abierto. El Focus mode
         // tiene su propio handler de teclado, así que cuando está
         // abierto bloqueamos los atajos globales para que no se
@@ -102759,6 +103893,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Subobjetivos_Activo ||
           Planes_Objetivo_Activo ||
           Planes_Activo ||
+          Habitos_Activo ||
           Baul_Nuevo_Abierto ||
           Baul_Abierto ||
           Baul_Semanas_Abierto ||

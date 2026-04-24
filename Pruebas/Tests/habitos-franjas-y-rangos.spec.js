@@ -484,7 +484,7 @@ test("sidebar de habitos rotula y separa semanales de diarios", async ({
   expect(estructura).toEqual({
     oculto: false,
     titulo: "H\u00e1bitos",
-    labels: ["Semanales", "Diarios"],
+    labels: ["\u{1F4C5} Semanales", "\u2713 Diarios"],
     divisores: 1,
     grupos: [
       ["Habito_Semanal_Sidebar"],
