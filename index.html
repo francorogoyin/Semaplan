@@ -69439,6 +69439,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Objetivos: JSON.parse(JSON.stringify(Objetivos)),
           Eventos: JSON.parse(JSON.stringify(Eventos)),
           Metas: JSON.parse(JSON.stringify(Metas)),
+          Habitos: JSON.parse(JSON.stringify(Habitos)),
+          Habitos_Registros: JSON.parse(
+            JSON.stringify(Habitos_Registros)
+          ),
           Baul_Objetivos: JSON.parse(
             JSON.stringify(Baul_Objetivos)
           ),
@@ -69728,6 +69732,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Array.isArray(Snap.Metas)) {
           Metas = Snap.Metas;
         }
+        if (Array.isArray(Snap.Habitos)) {
+          Habitos = Snap.Habitos;
+          Normalizar_Habitos();
+        }
+        if (Array.isArray(Snap.Habitos_Registros)) {
+          Habitos_Registros = Snap.Habitos_Registros;
+          Normalizar_Habitos_Registros();
+        }
         if (Array.isArray(Snap.Baul_Objetivos)) {
           Baul_Objetivos = Snap.Baul_Objetivos;
         }
@@ -69822,6 +69834,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Render_Calendario();
         Render_Emojis();
+        Render_Habitos_Sidebar();
+        if (
+          document.getElementById("Habitos_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Modal_Habitos();
+        }
         Render_Resumen_Objetivo();
         Render_Editor();
         if (Baul_Abierto()) {

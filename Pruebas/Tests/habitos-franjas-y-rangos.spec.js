@@ -808,6 +808,115 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
   ]));
 });
 
+test("deshacer avance de planes revierte habitos vinculados", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  const resultado = await page.evaluate(async () => {
+    Planes_Periodo = Planes_Modelo_Base();
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Undo_Planes",
+        Nombre: "Leer undo",
+        Emoji: "\uD83D\uDCD6",
+        Tipo: "Hacer",
+        Activo: true,
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 20,
+          Unidad: "paginas"
+        }
+      })
+    ];
+    Habitos_Registros = [];
+    Config.Mostrar_Habitos_Sidebar = true;
+    Config.Mostrar_Globitos_Habitos = true;
+
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.Objetivos.obj_undo_habitos = Normalizar_Objetivo_Plan({
+      Id: "obj_undo_habitos",
+      Nombre: "Lecturas undo",
+      Target_Total: 7,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    Modelo.Subobjetivos.sub_undo_habitos =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_undo_habitos",
+        Objetivo_Id: "obj_undo_habitos",
+        Texto: "Libro undo",
+        Target_Total: 7,
+        Unidad: "Personalizado",
+        Unidad_Custom: "paginas"
+      });
+    Modelo.Partes.parte_undo_habitos = Normalizar_Parte_Meta({
+      Id: "parte_undo_habitos",
+      Objetivo_Id: "obj_undo_habitos",
+      Subobjetivo_Id: "sub_undo_habitos",
+      Nombre: "Capitulo undo",
+      Aporte_Total: 7,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Habitos_Vinculos: [
+        {
+          Habito_Id: "Habito_Undo_Planes",
+          Cantidad_Modo: "Usar_Fuente",
+          Cantidad: 1,
+          Activo: true
+        }
+      ]
+    });
+
+    const Estado_Sidebar = () => {
+      const Btn = document.querySelector(
+        '[data-sidebar-habito-id="Habito_Undo_Planes"]'
+      );
+      return {
+        clase: Btn?.className || "",
+        indicador: Btn?.querySelector(".Sidebar_Habito_Indicador")
+          ?.textContent || ""
+      };
+    };
+
+    Render_Habitos_Sidebar();
+    const Antes = Estado_Sidebar();
+    Abrir_Modal_Planes_Avance("Parte|parte_undo_habitos");
+    document.getElementById("Planes_Avance_Cantidad").value = "7";
+    document.getElementById("Planes_Avance_Fecha").value =
+      "2026-04-24";
+    document.getElementById("Planes_Avance_Hora").value = "10:00";
+    document.getElementById("Planes_Avance_Hasta_Final").checked = true;
+    await Guardar_Modal_Planes_Avance();
+    const Despues_Avance = Estado_Sidebar();
+    const Registros_Tras_Avance = Habitos_Registros.length;
+
+    Ejecutar_Ultimo_Undo();
+    const Despues_Undo = Estado_Sidebar();
+    const Modelo_Restaurado = Asegurar_Modelo_Planes();
+    return {
+      Antes,
+      Despues_Avance,
+      Registros_Tras_Avance,
+      Despues_Undo,
+      Registros_Tras_Undo: Habitos_Registros.length,
+      Avances_Tras_Undo: Object.keys(Modelo_Restaurado.Avances).length
+    };
+  });
+
+  expect(resultado.Antes.clase).toContain("Pendiente");
+  expect(resultado.Antes.indicador).toBe("0/20 paginas");
+  expect(resultado.Despues_Avance.clase).toContain("En_Proceso");
+  expect(resultado.Despues_Avance.indicador).toBe("7/20 paginas");
+  expect(resultado.Registros_Tras_Avance).toBe(1);
+  expect(resultado.Despues_Undo.clase).toContain("Pendiente");
+  expect(resultado.Despues_Undo.indicador).toBe("0/20 paginas");
+  expect(resultado.Registros_Tras_Undo).toBe(0);
+  expect(resultado.Avances_Tras_Undo).toBe(0);
+});
+
 test("sidebar de habitos rotula y separa semanales de diarios", async ({
   page
 }) => {
