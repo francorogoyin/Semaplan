@@ -289,6 +289,102 @@ test("explica que los patrones se filtran por tipo de slot", async ({
     .toContainText("tipo de slot");
 });
 
+test("elige patrones de slot desde un desplegable", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Patrones = [
+      {
+        Id: "Patron_Slot_Drop",
+        Nombre: "Base lectura",
+        Emoji: "\uD83E\uDDE9",
+        Tipo: "Slot",
+        Aplica_A: "Slot_Vacio",
+        Aplica_A_Lista: ["Slot_Vacio"],
+        Items: [
+          {
+            Id: "Item_Base_Lectura",
+            Emoji: "\u2022",
+            Texto: "Leer",
+            Estado: "Planeado"
+          }
+        ]
+      }
+    ];
+    window.__Items_Patron_Drop =
+      Resolver_Items_Patron_Slot([], "Slot_Vacio");
+  });
+
+  const Select = page.locator("#Dialogo_Mensaje select.Config_Select");
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(Select).toBeVisible();
+  await expect(Select).toContainText("Base lectura");
+  await page.selectOption("#Dialogo_Mensaje select.Config_Select", {
+    value: "Patron_Slot_Drop"
+  });
+  await page.click("#Dialogo_Botones .Dialogo_Boton_Primario");
+
+  const Items = await page.evaluate(() => window.__Items_Patron_Drop);
+  expect(Items).toHaveLength(1);
+  expect(Items[0].Texto).toBe("Leer");
+});
+
+test("agrega habitos a patrones de slot desde un desplegable", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Patron_Drop",
+        Nombre: "Lectura desplegable",
+        Emoji: "\uD83D\uDCD6",
+        Tipo: "Hacer",
+        Activo: true,
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 5,
+          Unidad: "paginas"
+        }
+      })
+    ];
+    Patrones = [
+      {
+        Id: "Patron_Add_Habito_Drop",
+        Nombre: "Patron habito",
+        Emoji: "\uD83E\uDDE9",
+        Tipo: "Slot",
+        Aplica_A: "Slot_Vacio",
+        Aplica_A_Lista: ["Slot_Vacio"],
+        Items: []
+      }
+    ];
+    Abrir_Modal_Patron("Patron_Add_Habito_Drop");
+  });
+
+  await page.locator(".Patron_Modal_Agregar_Franja").last().click();
+  const Select = page.locator("#Dialogo_Mensaje select.Config_Select");
+  await expect(Select).toBeVisible();
+  await expect(Select).toContainText("Lectura desplegable");
+  await page.selectOption("#Dialogo_Mensaje select.Config_Select", {
+    value: "Habito_Patron_Drop"
+  });
+  await page.click("#Dialogo_Botones .Dialogo_Boton_Primario");
+
+  const Item = await page.evaluate(() => Patron_En_Edicion.Items[0]);
+  expect(Item).toMatchObject({
+    Tipo: "Habito",
+    Habito_Id: "Habito_Patron_Drop",
+    Texto: "Lectura desplegable"
+  });
+});
+
 test("vincula habitos desde items de patrones de slot", async ({
   page
 }) => {

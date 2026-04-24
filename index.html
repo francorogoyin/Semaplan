@@ -10283,6 +10283,28 @@
         min-width: 82px;
       }
 
+      .Plan_Slot_Select_Row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        width: 100%;
+      }
+
+      .Plan_Slot_Select_Row.Dialogo {
+        margin-top: 10px;
+      }
+
+      .Plan_Slot_Select_Row select {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .Plan_Slot_Select_Row .Config_Boton,
+      .Plan_Slot_Select_Row .Archivero_Sub_Btn {
+        white-space: nowrap;
+      }
+
       .Habitos_Vinculos_Nuevo {
         width: 34px;
         height: 34px;
@@ -73373,20 +73395,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
             return;
           }
-          const Habito_Id = await Mostrar_Dialogo(
-            t("habitos.agregar_desde_slot"),
-            [
-              ...Opciones.map((Habito) => ({
-                Etiqueta: `${Habito.Emoji} ${Habito.Nombre}`,
-                Valor: Habito.Id,
-                Tipo: "Secundario"
-              })),
-              {
-                Etiqueta: t("cancelar"),
-                Valor: null,
-                Tipo: "Cancelar"
-              }
-            ]
+          const Habito_Id = await Pedir_Habito_Plan_Slot_Desde_Select(
+            Opciones
           );
           if (!Habito_Id) return;
           const Item = Crear_Item_Habito_Plan_Slot(
@@ -79021,6 +79031,74 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
       }
 
+      function Crear_Select_Habitos_Plan_Slot(
+        Opciones,
+        Placeholder = t("habitos.seleccionar")
+      ) {
+        const Select = document.createElement("select");
+        Select.className = "Config_Select";
+        const Opt_Vacio = document.createElement("option");
+        Opt_Vacio.value = "";
+        Opt_Vacio.textContent = Placeholder;
+        Select.appendChild(Opt_Vacio);
+        (Array.isArray(Opciones) ? Opciones : []).forEach((Habito) => {
+          const Opt = document.createElement("option");
+          Opt.value = Habito.Id;
+          Opt.textContent =
+            `${Habito.Emoji || "\u2022"} ${Habito.Nombre || ""}`.trim();
+          Select.appendChild(Opt);
+        });
+        return Select;
+      }
+
+      function Crear_Fila_Select_Habito_Plan_Slot(
+        Opciones,
+        On_Agregar,
+        Config_Fila = {}
+      ) {
+        const Fila = document.createElement("div");
+        Fila.className = "Plan_Slot_Select_Row" +
+          (Config_Fila.Dialogo ? " Dialogo" : "");
+        const Select = Crear_Select_Habitos_Plan_Slot(
+          Opciones,
+          Config_Fila.Placeholder || t("habitos.seleccionar")
+        );
+        const Btn = document.createElement("button");
+        Btn.type = "button";
+        Btn.className = Config_Fila.Clase_Boton ||
+          "Archivero_Sub_Btn Compacto";
+        Btn.textContent = Config_Fila.Texto_Boton || t("agregar");
+        Btn.addEventListener("click", () => {
+          if (!Select.value) {
+            Select.focus();
+            return;
+          }
+          On_Agregar?.(Select.value);
+        });
+        Fila.appendChild(Select);
+        Fila.appendChild(Btn);
+        return { Fila, Select, Btn };
+      }
+
+      async function Pedir_Habito_Plan_Slot_Desde_Select(Opciones) {
+        const Cont = document.createElement("div");
+        const Texto = document.createElement("div");
+        Texto.className = "Config_Nota";
+        Texto.textContent = t("habitos.agregar_desde_slot");
+        const Control = Crear_Select_Habitos_Plan_Slot(Opciones);
+        const Fila = document.createElement("div");
+        Fila.className = "Plan_Slot_Select_Row Dialogo";
+        Fila.appendChild(Control);
+        Cont.appendChild(Texto);
+        Cont.appendChild(Fila);
+        const Resultado = await Mostrar_Dialogo(Cont, [
+          { Etiqueta: t("agregar"), Valor: "Agregar", Tipo: "Primario" },
+          { Etiqueta: t("cancelar"), Valor: null, Tipo: "Cancelar" }
+        ]);
+        if (Resultado !== "Agregar") return "";
+        return Control.value || "";
+      }
+
       function Agregar_Habito_A_Plan_Slot(Habito_Id) {
         const Habito = Habito_Por_Id(Habito_Id);
         if (!Habito) return false;
@@ -79048,16 +79126,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           return false;
         }
-        const Elegido = await Mostrar_Dialogo(
-          t("habitos.agregar_desde_slot"),
-          [
-            ...Opciones.map((Habito) => ({
-              Etiqueta: `${Habito.Emoji} ${Habito.Nombre}`,
-              Valor: Habito.Id,
-              Tipo: "Secundario"
-            })),
-            { Etiqueta: t("cancelar"), Valor: null, Tipo: "Cancelar" }
-          ]
+        const Elegido = await Pedir_Habito_Plan_Slot_Desde_Select(
+          Opciones
         );
         if (!Elegido) return false;
         return Agregar_Habito_A_Plan_Slot(Elegido);
@@ -79189,21 +79259,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Titulo.className = "Planes_Form_Seccion_Titulo";
           Titulo.textContent = t("habitos.sugeridos");
           Seccion.appendChild(Titulo);
-          const Lista = document.createElement("div");
-          Lista.style.display = "flex";
-          Lista.style.flexWrap = "wrap";
-          Lista.style.gap = "8px";
-          Habitos_Sugeridos.forEach((Habito) => {
-            const Boton = document.createElement("button");
-            Boton.type = "button";
-            Boton.className = "Archivero_Sub_Btn Compacto";
-            Boton.textContent = `${Habito.Emoji || "•"} ${Habito.Nombre}`;
-            Boton.addEventListener("click", () => {
-              Agregar_Habito_A_Plan_Slot(Habito.Id);
-            });
-            Lista.appendChild(Boton);
-          });
-          Seccion.appendChild(Lista);
+          const Control_Sugeridos =
+            Crear_Fila_Select_Habito_Plan_Slot(
+              Habitos_Sugeridos,
+              (Habito_Id) =>
+                Agregar_Habito_A_Plan_Slot(Habito_Id),
+              { Texto_Boton: t("agregar") }
+            );
+          Seccion.appendChild(Control_Sugeridos.Fila);
           Cuerpo.appendChild(Seccion);
         }
 
@@ -79712,6 +79775,56 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
       }
 
+      function Crear_Select_Patrones_Slot(
+        Opciones,
+        Placeholder = t("slot.elegir_patron")
+      ) {
+        const Select = document.createElement("select");
+        Select.className = "Config_Select";
+        const Opt_Vacio = document.createElement("option");
+        Opt_Vacio.value = "";
+        Opt_Vacio.textContent = Placeholder;
+        Select.appendChild(Opt_Vacio);
+        (Array.isArray(Opciones) ? Opciones : []).forEach((Patron) => {
+          const Opt = document.createElement("option");
+          Opt.value = Patron.Id;
+          Opt.textContent =
+            `${Patron.Emoji || "\uD83E\uDDE9"} ${Patron.Nombre || ""}`
+              .trim();
+          Select.appendChild(Opt);
+        });
+        return Select;
+      }
+
+      async function Pedir_Patron_Slot_Desde_Select(
+        Opciones,
+        Tipo_Label,
+        Mensaje_Filtro
+      ) {
+        const Cont = document.createElement("div");
+        const Texto = document.createElement("div");
+        Texto.className = "Config_Nota";
+        Texto.textContent = `${t("slot.elegir_patron_para", {
+          tipo: Tipo_Label
+        })} ${Mensaje_Filtro}`;
+        const Control = Crear_Select_Patrones_Slot(Opciones);
+        const Fila = document.createElement("div");
+        Fila.className = "Plan_Slot_Select_Row Dialogo";
+        Fila.appendChild(Control);
+        Cont.appendChild(Texto);
+        Cont.appendChild(Fila);
+        const Resultado = await Mostrar_Dialogo(Cont, [
+          {
+            Etiqueta: t("slot.insertar_patron"),
+            Valor: "Insertar",
+            Tipo: "Primario"
+          },
+          { Etiqueta: t("cancelar"), Valor: null, Tipo: "Cancelar" }
+        ]);
+        if (Resultado !== "Insertar") return "";
+        return Control.value || "";
+      }
+
       async function Resolver_Items_Patron_Slot(
         Items_Actuales = [],
         Aplica_A = "Slot_Vacio"
@@ -79732,18 +79845,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           return null;
         }
-        const Patron_Id = await Mostrar_Dialogo(
-          `${t("slot.elegir_patron_para", {
-            tipo: Tipo_Label
-          })} ${Mensaje_Filtro}`,
-          [
-            ...Patrones_Slot.map((P) => ({
-              Etiqueta: `${P.Emoji || "🧩"} ${P.Nombre}`,
-              Valor: P.Id,
-              Tipo: "Secundario"
-            })),
-            { Etiqueta: t("cancelar"), Valor: null, Tipo: "Cancelar" }
-          ]
+        const Patron_Id = await Pedir_Patron_Slot_Desde_Select(
+          Patrones_Slot,
+          Tipo_Label,
+          Mensaje_Filtro
         );
         if (!Patron_Id) return null;
         const Patron = Patrones_Slot.find((P) => P.Id === Patron_Id);
@@ -101816,7 +101921,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Baul_Multi_Acciones.style.display = "";
       }
 
-      function Focus_Cambiar_Estado_Item_Slot(
+      async function Focus_Cambiar_Estado_Item_Slot(
         Bloque,
         Item,
         Estado
@@ -101824,6 +101929,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Items_Anteriores = Normalizar_Items_Plan_Slot(
           JSON.parse(JSON.stringify(Bloque?.Slot?.Plan?.Items || []))
         );
+        if (
+          Estado !== (Item.Estado || "Planeado") &&
+          (Estado === "Realizado" || Estado === "Abordado") &&
+          Item?.Tipo === "Habito" &&
+          Item?.Habito_Id
+        ) {
+          const Habito = Habito_Por_Id(Item.Habito_Id);
+          const Cantidad = Habito
+            ? await Habitos_Pedir_Cantidad_Item(
+              Habito,
+              Item.Habito_Cantidad || 1
+            )
+            : 1;
+          if (Cantidad === null) return false;
+          Item.Habito_Cantidad = Cantidad;
+        }
         Item.Estado = Estado;
         Habito_Sincronizar_Items_Plan_Slot(
           Bloque?.Slot?.Fecha || "",
@@ -101834,6 +101955,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Focus_Guardar_Slot(Bloque);
         Render_Focus_Mode();
+        return true;
       }
 
       function Focus_Crear_Fila_Slot(Bloque, Item) {
@@ -101867,8 +101989,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Btn_P.title = Estado === "Planeado"
           ? t("slot.estado_planeado")
           : t("abordaje.plan_poner_title");
-        Btn_P.addEventListener("click", () => {
-          Focus_Cambiar_Estado_Item_Slot(
+        Btn_P.addEventListener("click", async () => {
+          await Focus_Cambiar_Estado_Item_Slot(
             Bloque,
             Item,
             "Planeado"
@@ -101884,8 +102006,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Estado === "Realizado" ? " Activo" : "");
         Btn_C.textContent = "✓";
         Btn_C.title = t("abordaje.completado_title");
-        Btn_C.addEventListener("click", () => {
-          Focus_Cambiar_Estado_Item_Slot(
+        Btn_C.addEventListener("click", async () => {
+          await Focus_Cambiar_Estado_Item_Slot(
             Bloque,
             Item,
             Estado === "Realizado"
@@ -101900,8 +102022,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Estado === "Abordado" ? " Activo" : "");
         Btn_A.textContent = "•";
         Btn_A.title = t("abordaje.abordado_title");
-        Btn_A.addEventListener("click", () => {
-          Focus_Cambiar_Estado_Item_Slot(
+        Btn_A.addEventListener("click", async () => {
+          await Focus_Cambiar_Estado_Item_Slot(
             Bloque,
             Item,
             Estado === "Abordado"

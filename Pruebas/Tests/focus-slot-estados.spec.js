@@ -20,6 +20,14 @@ test("usa botones de estado en focus para slots", async ({
             Emoji: "🧪",
             Texto: "Repasar slot",
             Estado: "Planeado"
+          },
+          {
+            Id: "I2",
+            Tipo: "Habito",
+            Habito_Id: "Habito_Focus_Cantidad",
+            Emoji: "\uD83D\uDCD6",
+            Texto: "Leer paginas",
+            Estado: "Planeado"
           }
         ]
       }
@@ -96,6 +104,23 @@ test("usa botones de estado en focus para slots", async ({
     Tipos_Slot_Inicializados: false,
     Slots_Muertos_Tipos: {},
     Slots_Muertos_Nombres: {},
+    Habitos: [
+      {
+        Id: "Habito_Focus_Cantidad",
+        Nombre: "Leer paginas",
+        Emoji: "\uD83D\uDCD6",
+        Tipo: "Hacer",
+        Activo: true,
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 10,
+          Unidad: "paginas"
+        }
+      }
+    ],
+    Habitos_Registros: [],
     Abordajes_Migrados_V1: true,
     Semanas_Con_Defaults: [],
     Planes_Semana: {}
@@ -197,6 +222,25 @@ test("usa botones de estado en focus para slots", async ({
     return Planes_Slot[`${Fecha}|${Hora}`].Items[0].Estado;
   }, { Fecha, Hora });
   expect(Estado).toBe("Realizado");
+
+  const Fila_Habito = page.locator(".Focus_Sub_Item").nth(1);
+  await Fila_Habito.locator(".Abordaje_Toggle_Btn").nth(0).click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.fill("#Dialogo_Input_Campo", "7");
+  await page.click("#Dialogo_Botones .Dialogo_Boton_Primario");
+
+  const Habito_Item = await page.evaluate(({ Fecha, Hora }) => {
+    const Item = Planes_Slot[`${Fecha}|${Hora}`].Items[1];
+    return {
+      Estado: Item.Estado,
+      Habito_Cantidad: Item.Habito_Cantidad
+    };
+  }, { Fecha, Hora });
+  expect(Habito_Item).toEqual({
+    Estado: "Realizado",
+    Habito_Cantidad: 7
+  });
 });
 
 test("congela countdown del slot vencido y pinta cierre", async ({
