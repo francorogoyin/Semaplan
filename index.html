@@ -9510,9 +9510,9 @@
 
       .Habitos_Modal_Fila.Meta {
         grid-template-columns:
-          minmax(98px, 1fr) minmax(112px, 1fr)
-          minmax(112px, 1fr) minmax(92px, 0.8fr)
-          minmax(112px, 1fr);
+          minmax(96px, 1fr) minmax(104px, 1fr)
+          minmax(104px, 1fr) minmax(78px, 0.72fr)
+          minmax(86px, 0.78fr) minmax(112px, 1fr);
         align-items: end;
       }
 
@@ -22732,13 +22732,13 @@
           "habitos.meta_regla": "Regla",
           "habitos.regla_al_menos": "Al menos",
           "habitos.regla_exactamente": "Exactamente",
-          "habitos.regla_como_maximo": "Como maximo",
+          "habitos.regla_como_maximo": "Como máximo",
           "habitos.regla_entre": "Entre",
           "habitos.periodo": "Periodo",
           "habitos.periodo_dia": "Por dia",
           "habitos.periodo_semana": "Por semana",
           "habitos.meta_cantidad": "Meta",
-          "habitos.meta_maxima": "Maximo",
+          "habitos.meta_maxima": "Máximo",
           "habitos.unidad": "Unidad",
           "habitos.nombre_ph": "Ej: Leer 20 paginas",
           "habitos.unidad_ph": "Ej: vasos, paginas, etc.",
@@ -22752,10 +22752,10 @@
           "habitos.programacion_franjas": "Franjas",
           "habitos.programacion_horas_label": "Horas",
           "habitos.programacion_horas_ph": "Ej: 8, 20",
-          "habitos.disponibilidad_dias": "Dias disponibles",
+          "habitos.disponibilidad_dias": "Días disponibles",
           "habitos.disponibilidad_horas": "Horas disponibles",
           "habitos.disponibilidad_todos": "Todos",
-          "habitos.disponibilidad_rango": "Rango especifico",
+          "habitos.disponibilidad_rango": "Rango específico",
           "habitos.disponibilidad_puntual": "Puntual",
           "habitos.disponibilidad_personalizado": "Personalizado",
           "habitos.rango_a": "a",
@@ -30598,13 +30598,13 @@
           "habitos.meta_regla": "Regra",
           "habitos.regla_al_menos": "Pelo menos",
           "habitos.regla_exactamente": "Exatamente",
-          "habitos.regla_como_maximo": "No maximo",
+          "habitos.regla_como_maximo": "No máximo",
           "habitos.regla_entre": "Entre",
           "habitos.periodo": "Periodo",
           "habitos.periodo_dia": "Por dia",
           "habitos.periodo_semana": "Por semana",
           "habitos.meta_cantidad": "Meta",
-          "habitos.meta_maxima": "Maximo",
+          "habitos.meta_maxima": "Máximo",
           "habitos.unidad": "Unidade",
           "habitos.nombre_ph": "Ex: Ler 20 paginas",
           "habitos.unidad_ph": "Ex: copos, paginas, etc.",
@@ -30618,10 +30618,10 @@
           "habitos.programacion_franjas": "Faixas",
           "habitos.programacion_horas_label": "Horas",
           "habitos.programacion_horas_ph": "Ex: 8, 20",
-          "habitos.disponibilidad_dias": "Dias disponiveis",
+          "habitos.disponibilidad_dias": "Dias disponíveis",
           "habitos.disponibilidad_horas": "Horas disponiveis",
           "habitos.disponibilidad_todos": "Todos",
-          "habitos.disponibilidad_rango": "Faixa especifica",
+          "habitos.disponibilidad_rango": "Faixa específica",
           "habitos.disponibilidad_puntual": "Pontual",
           "habitos.disponibilidad_personalizado": "Personalizado",
           "habitos.rango_a": "a",
@@ -74235,6 +74235,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Unidad = document.getElementById(
           "Habito_Meta_Unidad_Campo"
         );
+        const Modo_Campo = document.getElementById(
+          "Habito_Meta_Modo_Campo"
+        );
         const Tiempo = document.getElementById(
           "Habito_Meta_Tiempo_Unidad_Campo"
         );
@@ -74247,7 +74250,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Max = document.getElementById(
           "Habito_Meta_Maxima_Campo"
         );
+        const Meta_Label = document.getElementById(
+          "Habito_Meta_Cantidad_Label"
+        );
         const Bloque = document.getElementById("Habito_Meta_Bloque");
+        if (Modo_Campo) Modo_Campo.hidden = Es_Evitar;
         if (Unidad) Unidad.hidden = Modo_Final !== "Cantidad" || Es_Evitar;
         if (Tiempo) Tiempo.hidden = Modo_Final !== "Tiempo";
         if (Regla) Regla.hidden = Modo_Final === "Check" || Es_Evitar;
@@ -74257,13 +74264,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Es_Evitar ||
             document.getElementById("Habito_Meta_Regla")?.value !== "Entre";
         }
+        if (Meta_Label) {
+          Meta_Label.textContent = Es_Evitar
+            ? t("habitos.regla_como_maximo")
+            : t("habitos.meta_cantidad");
+        }
         if (Bloque) Bloque.classList.toggle("Evitar", Es_Evitar);
+        const Modo_Input = document.getElementById("Habito_Meta_Modo");
+        const Regla_Input = document.getElementById("Habito_Meta_Regla");
         if (Es_Evitar) {
-          const Modo_Input = document.getElementById("Habito_Meta_Modo");
-          const Regla_Input = document.getElementById("Habito_Meta_Regla");
           if (Modo_Input) Modo_Input.value = "Cantidad";
           if (Regla_Input) Regla_Input.value = "Como_Maximo";
         }
+        if (Modo_Input) Modo_Input.disabled = Es_Evitar;
+        if (Regla_Input) Regla_Input.disabled = Es_Evitar;
       }
 
       function Habito_Leer_Borrador_Desde_DOM() {
@@ -74573,7 +74587,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           </div>
           <div class="Habitos_Modal_Bloque" id="Habito_Meta_Bloque">
             <div class="Habitos_Modal_Fila Meta">
-              <label class="Habitos_Modal_Campo">
+              <label class="Habitos_Modal_Campo"
+                id="Habito_Meta_Modo_Campo">
                 <span class="Habitos_Modal_Label"
                   title="${Escape_Html(t("habitos.help_modo"))}">
                   ${t("habitos.meta_modo")}
@@ -74610,6 +74625,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               <label class="Habitos_Modal_Campo"
                 id="Habito_Meta_Cantidad_Campo">
                 <span class="Habitos_Modal_Label"
+                  id="Habito_Meta_Cantidad_Label"
                   title="${Escape_Html(t("habitos.help_meta"))}">
                   ${t("habitos.meta_cantidad")}
                 </span>
