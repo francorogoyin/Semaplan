@@ -3123,6 +3123,183 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Registrar avance distribuye padres con suma en hijos pendientes",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(async () => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    Modelo.Objetivos.obj_principito = Normalizar_Objetivo_Plan({
+      Id: "obj_principito",
+      Periodo_Id: Anio.Id,
+      Nombre: "Biblioteca",
+      Target_Total: 30,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    Modelo.Subobjetivos.sub_principito =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_principito",
+        Objetivo_Id: "obj_principito",
+        Texto: "El principito",
+        Target_Total: 30,
+        Target_Suma_Componentes: true,
+        Unidad: "Personalizado",
+        Unidad_Custom: "paginas"
+      });
+    ["1", "2", "3"].forEach((Numero, Indice) => {
+      Modelo.Partes[`parte_cap_${Numero}`] = Normalizar_Parte_Meta({
+        Id: `parte_cap_${Numero}`,
+        Objetivo_Id: "obj_principito",
+        Subobjetivo_Id: "sub_principito",
+        Nombre: `Capitulo ${Numero}`,
+        Aporte_Total: 10,
+        Unidad: "Personalizado",
+        Unidad_Custom: "paginas",
+        Orden: Indice
+      });
+    });
+    Modelo.Avances.av_cap_1_previo = Normalizar_Avance_Plan({
+      Id: "av_cap_1_previo",
+      Objetivo_Id: "obj_principito",
+      Subobjetivo_Id: "sub_principito",
+      Parte_Id: "parte_cap_1",
+      Fuente: "Subobjetivo",
+      Cantidad: 4,
+      Unidad: "paginas",
+      Fecha: "2026-04-20",
+      Hora: "09:00"
+    });
+    Planes_Recalcular_Progreso_Parte(Modelo.Partes.parte_cap_1);
+
+    Modelo.Objetivos.obj_suma = Normalizar_Objetivo_Plan({
+      Id: "obj_suma",
+      Periodo_Id: Anio.Id,
+      Nombre: "Objetivo suma",
+      Target_Total: 30,
+      Target_Suma_Componentes: true,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    ["1", "2", "3"].forEach((Numero, Indice) => {
+      Modelo.Subobjetivos[`sub_obj_${Numero}`] =
+        Normalizar_Subobjetivo_Plan({
+          Id: `sub_obj_${Numero}`,
+          Objetivo_Id: "obj_suma",
+          Texto: `Sub ${Numero}`,
+          Target_Total: 10,
+          Aporte_Meta: 10,
+          Unidad: "Personalizado",
+          Unidad_Custom: "paginas",
+          Orden: Indice
+        });
+    });
+    Modelo.Avances.av_sub_1_previo = Normalizar_Avance_Plan({
+      Id: "av_sub_1_previo",
+      Objetivo_Id: "obj_suma",
+      Subobjetivo_Id: "sub_obj_1",
+      Fuente: "Subobjetivo",
+      Cantidad: 4,
+      Unidad: "paginas",
+      Fecha: "2026-04-20",
+      Hora: "09:00"
+    });
+    Planes_Recalcular_Progreso_Subobjetivo(
+      Modelo.Subobjetivos.sub_obj_1
+    );
+
+    const Dialogos = [];
+    const Mostrar_Original = Mostrar_Dialogo;
+    Mostrar_Dialogo = async (Mensaje) => {
+      Dialogos.push(Mensaje?.textContent || String(Mensaje || ""));
+      return true;
+    };
+
+    Abrir_Modal_Planes_Avance("Subobjetivo|sub_principito");
+    document.getElementById("Planes_Avance_Cantidad").value = "10";
+    document.getElementById("Planes_Avance_Fecha").value =
+      "2026-04-24";
+    document.getElementById("Planes_Avance_Hora").value = "10:00";
+    await Guardar_Modal_Planes_Avance();
+
+    Abrir_Modal_Planes_Avance("Objetivo|obj_suma");
+    document.getElementById("Planes_Avance_Cantidad").value = "10";
+    document.getElementById("Planes_Avance_Fecha").value =
+      "2026-04-24";
+    document.getElementById("Planes_Avance_Hora").value = "11:00";
+    await Guardar_Modal_Planes_Avance();
+    Mostrar_Dialogo = Mostrar_Original;
+
+    const Modelo_Final = Asegurar_Modelo_Planes();
+    const Avances = Object.values(Modelo_Final.Avances || {});
+    const Suma_Parte = (Parte_Id) => Avances
+      .filter((Avance) => Avance.Parte_Id === Parte_Id)
+      .reduce((Total, Avance) => Total + Number(Avance.Cantidad), 0);
+    const Suma_Sub = (Sub_Id) => Avances
+      .filter((Avance) =>
+        Avance.Subobjetivo_Id === Sub_Id && !Avance.Parte_Id
+      )
+      .reduce((Total, Avance) => Total + Number(Avance.Cantidad), 0);
+    return {
+      dialogos: Dialogos,
+      partes: {
+        cap1: Suma_Parte("parte_cap_1"),
+        cap2: Suma_Parte("parte_cap_2"),
+        cap3: Suma_Parte("parte_cap_3")
+      },
+      subs: {
+        sub1: Suma_Sub("sub_obj_1"),
+        sub2: Suma_Sub("sub_obj_2"),
+        sub3: Suma_Sub("sub_obj_3")
+      },
+      avancesPadre: Avances.filter((Avance) =>
+        (
+          Avance.Subobjetivo_Id === "sub_principito" &&
+          !Avance.Parte_Id
+        ) || (
+          Avance.Objetivo_Id === "obj_suma" &&
+          !Avance.Subobjetivo_Id
+        )
+      ).length
+    };
+  });
+
+  expect(Resultado.dialogos).toHaveLength(2);
+  expect(Resultado.dialogos[0]).toContain("Se avanzara");
+  expect(Resultado.dialogos[0]).toContain("Capitulo 1 -> 6 paginas");
+  expect(Resultado.dialogos[0]).toContain("Capitulo 2 -> 4 paginas");
+  expect(Resultado.dialogos[0]).not.toContain("El principito");
+  expect(Resultado.dialogos[0]).not.toContain("Biblioteca");
+  expect(Resultado.dialogos[1]).toContain("Sub 1 -> 6 paginas");
+  expect(Resultado.dialogos[1]).toContain("Sub 2 -> 4 paginas");
+  expect(Resultado.dialogos[1]).not.toContain("Objetivo suma");
+  expect(Resultado.partes).toEqual({
+    cap1: 10,
+    cap2: 4,
+    cap3: 0
+  });
+  expect(Resultado.subs).toEqual({
+    sub1: 10,
+    sub2: 4,
+    sub3: 0
+  });
+  expect(Resultado.avancesPadre).toBe(0);
+  expect(errores).toEqual([]);
+});
+
 test("Registrar avance pregunta antes de superar limite manual",
 async ({ page }) => {
   const errores = [];
@@ -3191,6 +3368,8 @@ async ({ page }) => {
 
   expect(Resultado.dialogos).toHaveLength(1);
   expect(Resultado.dialogos[0]).toContain("faltan");
+  expect(Resultado.dialogos[0]).toContain("Libro limite");
+  expect(Resultado.dialogos[0]).not.toContain("Lectura limite");
   expect(Resultado.aporte).toBe(7);
   expect(Resultado.progreso).toBe(7);
   expect(Resultado.estado).toBe("Cumplido");

@@ -6784,6 +6784,12 @@
         white-space: nowrap;
       }
 
+      .Planes_Avance_Distribucion_Mensaje,
+      .Planes_Avance_Distribucion_Titulo,
+      .Planes_Avance_Distribucion_Fila {
+        display: block;
+      }
+
       @media (max-width: 720px) {
         .Planes_Avance_Fila {
           grid-template-columns: 1fr;
@@ -23620,6 +23626,10 @@
             "{nuevo} {unidad}?",
           "planes.avance_aumentar_limite":
             "Aumentar valor objetivo",
+          "planes.avance_distribucion_confirm":
+            "Se avanzara",
+          "planes.avance_distribucion_excede":
+            "La cantidad supera el avance pendiente de sus componentes.",
           "planes.marcar_realizado": "Marcar como realizado",
           "planes.parte_realizar_confirm":
             "Se agregará un avance para el {fecha} a las {hora} " +
@@ -27676,6 +27686,10 @@
             "{unidad}?",
           "planes.avance_aumentar_limite":
             "Update target value",
+          "planes.avance_distribucion_confirm":
+            "Progress will be logged",
+          "planes.avance_distribucion_excede":
+            "The amount exceeds the pending progress of its components.",
           "planes.marcar_realizado": "Mark as done",
           "planes.parte_realizar_confirm":
             "A progress entry for {cantidad} {unidad} will be added " +
@@ -31681,6 +31695,10 @@
             "{unidad}?",
           "planes.avance_aumentar_limite":
             "Atualizar valor objetivo",
+          "planes.avance_distribucion_confirm":
+            "O avanco sera registrado",
+          "planes.avance_distribucion_excede":
+            "A quantidade supera o avanco pendente dos componentes.",
           "planes.marcar_realizado": "Marcar como realizado",
           "planes.parte_realizar_confirm":
             "Será registrado um avanço de {cantidad} {unidad} em " +
@@ -57746,6 +57764,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Planes_Label_Item_Avance(Item);
       }
 
+      function Planes_Nombre_Item_Avance_Simple(Item) {
+        if (!Item) return "";
+        if (Item.Tipo === "Parte") {
+          return (Item.Parte?.Nombre || "").toString().trim();
+        }
+        if (Item.Tipo === "Subobjetivo") {
+          return (Item.Sub?.Texto || "").toString().trim();
+        }
+        return (Item.Objetivo?.Nombre || "").toString().trim();
+      }
+
       function Meta_Aporte_Numero(Valor) {
         const Numero = Number(
           String(Valor ?? "").replace(",", ".")
@@ -60442,7 +60471,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Unidad = Planes_Unidad_Item_Avance(Item);
         const Confirmar = await Mostrar_Dialogo(
           t("planes.avance_aumentar_limite_confirm", {
-            nombre: Planes_Label_Item_Avance(Item),
+            nombre: Planes_Nombre_Item_Avance_Simple(Item),
             cantidad: Planes_Formatear_Numero(Cantidad),
             restante: Planes_Formatear_Numero(Restante),
             actual: Planes_Formatear_Numero(Target),
@@ -60520,13 +60549,222 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Planes_Confirmar_Finalizacion_Avance(Item) {
         return await Mostrar_Dialogo(
           t("planes.avance_finaliza_confirm", {
-            nombre: Planes_Label_Item_Avance(Item)
+            nombre: Planes_Nombre_Item_Avance_Simple(Item)
           }),
           [
             { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
             { Etiqueta: t("guardar"), Valor: true, Tipo: "Primario" }
           ]
         );
+      }
+
+      function Planes_Hijos_Distribucion_Avance(Item, Modelo = null) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        if (
+          Item?.Tipo === "Subobjetivo" &&
+          Planes_Target_Suma_Componentes_Activo(Item.Sub)
+        ) {
+          return Planes_Partes_De_Subobjetivo(Item.Sub.Id, M)
+            .map((Parte) => {
+              const Target = Number(Parte.Aporte_Total) || 0;
+              const Progreso = Planes_Progreso_Total_Parte(Parte, M);
+              const Pendiente = Math.max(0, Target - Progreso);
+              return {
+                Item: {
+                  Tipo: "Parte",
+                  Id: Parte.Id,
+                  Objetivo: Item.Objetivo,
+                  Sub: Item.Sub,
+                  Parte
+                },
+                Pendiente,
+                Factor_Cantidad: 1
+              };
+            })
+            .filter((Hijo) => Hijo.Pendiente > 0.0001);
+        }
+        if (
+          Item?.Tipo === "Objetivo" &&
+          Planes_Target_Suma_Componentes_Activo(Item.Objetivo)
+        ) {
+          return Planes_Subobjetivos_De_Objetivo(Item.Objetivo.Id)
+            .filter((Sub) => !Sub.Eliminado_Local)
+            .map((Sub) => {
+              const Aporte = Number(Sub.Aporte_Meta) || 0;
+              const Target = Number(Sub.Target_Total) || 0;
+              const Progreso = Planes_Progreso_Total_Subobjetivo(Sub, M);
+              const Aporte_Actual = Target > 0
+                ? Math.min(Aporte, Aporte * (Progreso / Target))
+                : 0;
+              const Pendiente = Math.max(0, Aporte - Aporte_Actual);
+              return {
+                Item: {
+                  Tipo: "Subobjetivo",
+                  Id: Sub.Id,
+                  Objetivo: Item.Objetivo,
+                  Sub
+                },
+                Pendiente,
+                Factor_Cantidad: Aporte > 0 && Target > 0
+                  ? Target / Aporte
+                  : 1
+              };
+            })
+            .filter((Hijo) => Hijo.Pendiente > 0.0001);
+        }
+        return [];
+      }
+
+      function Planes_Item_Avance_Distribuye_Suma(Item) {
+        return (
+          Item?.Tipo === "Subobjetivo" &&
+          Planes_Target_Suma_Componentes_Activo(Item.Sub)
+        ) || (
+          Item?.Tipo === "Objetivo" &&
+          Planes_Target_Suma_Componentes_Activo(Item.Objetivo)
+        );
+      }
+
+      function Planes_Distribucion_Avance_Suma(
+        Item,
+        Cantidad,
+        Modelo = null
+      ) {
+        const Hijos = Planes_Hijos_Distribucion_Avance(Item, Modelo);
+        const Distribucion = [];
+        let Restante = Math.max(0, Number(Cantidad) || 0);
+        Hijos.forEach((Hijo) => {
+          if (Restante <= 0.0001) return;
+          const Cantidad_Padre = Math.min(Restante, Hijo.Pendiente);
+          const Cantidad_Hijo = Cantidad_Padre * Hijo.Factor_Cantidad;
+          if (Cantidad_Hijo <= 0.0001) return;
+          Distribucion.push({
+            Item: Hijo.Item,
+            Cantidad: Cantidad_Hijo
+          });
+          Restante -= Cantidad_Padre;
+        });
+        return {
+          Items: Distribucion,
+          Excedente: Math.max(0, Restante)
+        };
+      }
+
+      function Planes_Mensaje_Distribucion_Avance(Distribucion) {
+        const Cont = document.createElement("span");
+        Cont.className = "Planes_Avance_Distribucion_Mensaje";
+        const Titulo = document.createElement("span");
+        Titulo.className = "Planes_Avance_Distribucion_Titulo";
+        Titulo.textContent = t("planes.avance_distribucion_confirm");
+        Cont.appendChild(Titulo);
+        const Lista = document.createElement("span");
+        Distribucion.forEach((Linea) => {
+          const Fila = document.createElement("span");
+          Fila.className = "Planes_Avance_Distribucion_Fila";
+          const Unidad = Planes_Unidad_Item_Avance(Linea.Item);
+          Fila.textContent = `${Planes_Nombre_Item_Avance_Simple(
+            Linea.Item
+          )} -> ${Planes_Formatear_Numero(Linea.Cantidad)}` +
+            `${Unidad ? ` ${Unidad}` : ""}`;
+          Lista.appendChild(Fila);
+        });
+        Cont.appendChild(Lista);
+        return Cont;
+      }
+
+      async function Planes_Confirmar_Distribucion_Avance(
+        Distribucion
+      ) {
+        return await Mostrar_Dialogo(
+          Planes_Mensaje_Distribucion_Avance(Distribucion),
+          [
+            { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+            { Etiqueta: t("guardar"), Valor: true, Tipo: "Primario" }
+          ]
+        );
+      }
+
+      function Planes_Registrar_Avance_Item_Hijo(
+        Item,
+        Cantidad,
+        Fecha,
+        Hora,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Id = Crear_Id_Avance_Plan();
+        const Avance = Normalizar_Avance_Plan({
+          Id,
+          Objetivo_Id: Item.Objetivo.Id,
+          Subobjetivo_Id:
+            ["Subobjetivo", "Parte"].includes(Item.Tipo)
+              ? Item.Sub.Id
+              : "",
+          Parte_Id: Item.Tipo === "Parte" ? Item.Parte.Id : "",
+          Fuente:
+            ["Subobjetivo", "Parte"].includes(Item.Tipo)
+              ? "Subobjetivo"
+              : "Manual",
+          Cantidad,
+          Unidad: Planes_Unidad_Item_Avance(Item),
+          Fecha,
+          Hora,
+          Fecha_Hora: `${Fecha}T${Hora || "00:00"}`
+        });
+        M.Avances[Id] = Avance;
+        if (Item.Tipo === "Parte") {
+          Planes_Recalcular_Progreso_Parte(Item.Parte, M);
+          Planes_Recalcular_Progreso_Subobjetivo(Item.Sub, M);
+        } else if (Item.Tipo === "Subobjetivo") {
+          Planes_Recalcular_Progreso_Subobjetivo(Item.Sub, M);
+        } else if (Item.Objetivo) {
+          Item.Objetivo.Progreso_Manual =
+            (Number(Item.Objetivo.Progreso_Manual) || 0) + Cantidad;
+        }
+        Planes_Sincronizar_Habitos_Avance_Registro(Avance, true);
+        return Avance;
+      }
+
+      async function Planes_Aplicar_Distribucion_Avance_Suma(
+        Item,
+        Cantidad,
+        Fecha,
+        Hora,
+        Snapshot
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Distribucion = Planes_Distribucion_Avance_Suma(
+          Item,
+          Cantidad,
+          Modelo
+        );
+        if (Distribucion.Excedente > 0.0001) {
+          Mostrar_Toast_Error(t("planes.avance_distribucion_excede"));
+          return false;
+        }
+        if (!Distribucion.Items.length) {
+          Mostrar_Toast_Error(t("planes.avance_sin_items"));
+          return false;
+        }
+        const Confirmar = await Planes_Confirmar_Distribucion_Avance(
+          Distribucion.Items
+        );
+        if (!Confirmar) return false;
+        Distribucion.Items.forEach((Linea) => {
+          Planes_Registrar_Avance_Item_Hijo(
+            Linea.Item,
+            Linea.Cantidad,
+            Fecha,
+            Hora,
+            Modelo
+          );
+        });
+        Planes_Recalcular_Desde(
+          Item.Objetivo,
+          Snapshot,
+          t("planes.avance_registrado")
+        );
+        return true;
       }
 
       function Planes_Sincronizar_Habitos_Avance_Registro(
@@ -60625,9 +60863,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Confirmar_Limite) return;
           Planes_Aumentar_Limite_Avance(Item, Nuevo_Limite);
         }
+        const Distribuye_Suma =
+          Planes_Item_Avance_Distribuye_Suma(Item);
         const Finaliza = Forzar_Final ||
           Planes_Avance_Finaliza_Item(Item, Cantidad);
-        if (Finaliza && !Forzar_Final && !Aumento_Limite) {
+        if (
+          !Distribuye_Suma &&
+          Finaliza &&
+          !Forzar_Final &&
+          !Aumento_Limite
+        ) {
           const Confirmar =
             await Planes_Confirmar_Finalizacion_Avance(Item);
           if (!Confirmar) return;
@@ -60647,6 +60892,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Item.Objetivo.Id,
             Modelo
           );
+        }
+        if (Distribuye_Suma) {
+          const Ok_Distribucion =
+            await Planes_Aplicar_Distribucion_Avance_Suma(
+              Item,
+              Cantidad,
+              Fecha,
+              Hora,
+              Snap
+            );
+          if (!Ok_Distribucion) return;
+          Cerrar_Modal_Planes_Avance();
+          if (
+            document.getElementById("Planes_Subobjetivos_Overlay")
+              ?.classList.contains("Activo")
+          ) {
+            Render_Modal_Planes_Subobjetivos();
+          }
+          return;
         }
         const Id = Crear_Id_Avance_Plan();
         const Avance = Normalizar_Avance_Plan({
