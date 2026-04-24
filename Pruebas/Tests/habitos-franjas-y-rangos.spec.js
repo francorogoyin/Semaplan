@@ -518,6 +518,151 @@ test("vincula habitos desde items de patrones de slot", async ({
   expect(resultado.Vinculaciones.length).toBeGreaterThanOrEqual(2);
 });
 
+test("vinculos de planes registran habitos al finalizar avances", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  const resultado = await page.evaluate(async () => {
+    Planes_Periodo = Planes_Modelo_Base();
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Leer_Planes",
+        Nombre: "Leer",
+        Emoji: "\uD83D\uDCD6",
+        Tipo: "Hacer",
+        Activo: true,
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 20,
+          Unidad: "paginas"
+        }
+      })
+    ];
+    Habitos_Registros = [];
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.Objetivos.obj_habitos = Normalizar_Objetivo_Plan({
+      Id: "obj_habitos",
+      Nombre: "Lecturas",
+      Target_Total: 14,
+      Unidad: "Personalizado",
+      Unidad_Custom: "p\u00e1ginas"
+    });
+    Modelo.Subobjetivos.sub_habitos = Normalizar_Subobjetivo_Plan({
+      Id: "sub_habitos",
+      Objetivo_Id: "obj_habitos",
+      Texto: "Libro",
+      Target_Total: 7,
+      Unidad: "Personalizado",
+      Unidad_Custom: "p\u00e1ginas",
+      Habitos_Vinculos: [
+        {
+          Habito_Id: "Habito_Leer_Planes",
+          Cantidad_Modo: "Fija",
+          Cantidad: 1,
+          Activo: true
+        }
+      ]
+    });
+    Modelo.Partes.parte_habitos = Normalizar_Parte_Meta({
+      Id: "parte_habitos",
+      Objetivo_Id: "obj_habitos",
+      Subobjetivo_Id: "sub_habitos",
+      Nombre: "Capitulo",
+      Aporte_Total: 7,
+      Unidad: "Personalizado",
+      Unidad_Custom: "p\u00e1ginas",
+      Habitos_Vinculos: [
+        {
+          Habito_Id: "Habito_Leer_Planes",
+          Cantidad_Modo: "Fija",
+          Cantidad: 1,
+          Activo: true
+        }
+      ]
+    });
+    Modelo.Subobjetivos.sub_directo_habitos =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_directo_habitos",
+        Objetivo_Id: "obj_habitos",
+        Texto: "Apunte",
+        Target_Total: 7,
+        Unidad: "Personalizado",
+        Unidad_Custom: "p\u00e1ginas",
+        Habitos_Vinculos: [
+          {
+            Habito_Id: "Habito_Leer_Planes",
+            Cantidad_Modo: "Fija",
+            Cantidad: 1,
+            Activo: true
+          }
+        ]
+      });
+
+    const Default_Parte = Habito_Vinculo_Default(
+      "Plan_Parte",
+      "Habito_Leer_Planes"
+    );
+
+    Abrir_Modal_Planes_Avance("Parte|parte_habitos");
+    document.getElementById("Planes_Avance_Cantidad").value = "7";
+    document.getElementById("Planes_Avance_Fecha").value =
+      "2026-04-24";
+    document.getElementById("Planes_Avance_Hora").value = "10:00";
+    document.getElementById("Planes_Avance_Hasta_Final").checked = true;
+    await Guardar_Modal_Planes_Avance();
+
+    Abrir_Modal_Planes_Avance("Subobjetivo|sub_directo_habitos");
+    document.getElementById("Planes_Avance_Cantidad").value = "7";
+    document.getElementById("Planes_Avance_Fecha").value =
+      "2026-04-24";
+    document.getElementById("Planes_Avance_Hora").value = "11:00";
+    document.getElementById("Planes_Avance_Hasta_Final").checked = true;
+    await Guardar_Modal_Planes_Avance();
+
+    return {
+      defaultModo: Default_Parte.Cantidad_Modo,
+      registros: Habitos_Registros
+        .filter((Registro) =>
+          Registro.Habito_Id === "Habito_Leer_Planes"
+        )
+        .map((Registro) => ({
+          Fuente: Registro.Fuente,
+          Fuente_Id: Registro.Fuente_Id,
+          Cantidad: Registro.Cantidad,
+          Unidad: Registro.Unidad,
+          Fecha: Registro.Fecha,
+          Hora: Registro.Hora
+        }))
+        .sort((A, B) => A.Fuente_Id.localeCompare(B.Fuente_Id))
+    };
+  });
+
+  expect(resultado).toEqual({
+    defaultModo: "Usar_Fuente",
+    registros: [
+      {
+        Fuente: "Plan_Parte",
+        Fuente_Id: "parte_habitos",
+        Cantidad: 7,
+        Unidad: "paginas",
+        Fecha: "2026-04-24",
+        Hora: "10:00"
+      },
+      {
+        Fuente: "Plan_Subobjetivo",
+        Fuente_Id: "sub_directo_habitos",
+        Cantidad: 7,
+        Unidad: "paginas",
+        Fecha: "2026-04-24",
+        Hora: "11:00"
+      }
+    ]
+  });
+});
+
 test("sidebar de habitos rotula y separa semanales de diarios", async ({
   page
 }) => {

@@ -60283,6 +60283,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Planes_Aplicar_Finalizacion_Avance(Item, Fecha, Hora);
           }
         }
+        if (Item.Tipo === "Parte") {
+          Habito_Recalcular_Fuente(
+            "Plan_Parte",
+            Item.Parte,
+            Fecha,
+            Planes_Estado_Calculado_Parte(
+              Item.Parte,
+              Modelo
+            ) === "Realizada",
+            { Hora }
+          );
+        } else if (Item.Tipo === "Subobjetivo") {
+          Habito_Recalcular_Fuente(
+            "Plan_Subobjetivo",
+            Item.Sub,
+            Fecha,
+            Planes_Estado_Normalizado_Subobjetivo(Item.Sub) ===
+              "Cumplido",
+            { Hora }
+          );
+        } else if (Item.Objetivo) {
+          Habito_Recalcular_Fuente(
+            "Objetivo",
+            Item.Objetivo,
+            Fecha,
+            Planes_Estado_Efectivo_Objetivo(Item.Objetivo) ===
+              "Cumplido",
+            {
+              Fuente: "Objetivo",
+              Fuente_Id: Item.Objetivo.Id,
+              Hora
+            }
+          );
+        }
         Cerrar_Modal_Planes_Avance();
         if (
           document.getElementById("Planes_Subobjetivos_Overlay")
@@ -86589,12 +86623,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Habito_Unidad_Fuente_Compatible(Habito, Unidad) {
-        const Unidad_Habito = String(Habito?.Meta?.Unidad || "")
-          .trim()
-          .toLowerCase();
-        const Unidad_Fuente = String(Unidad || "")
-          .trim()
-          .toLowerCase();
+        const Unidad_Habito = Normalizar_Texto_Archivero(
+          Habito?.Meta?.Unidad || ""
+        );
+        const Unidad_Fuente = Normalizar_Texto_Archivero(Unidad || "");
         if (!Unidad_Habito || !Unidad_Fuente) return false;
         return Unidad_Habito === Unidad_Fuente;
       }
@@ -86623,17 +86655,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Modo === "Check") {
           return Number(Vinculo?.Cantidad) || 1;
         }
+        const Usa_Cantidad_Fuente =
+          Vinculo?.Cantidad_Modo === "Usar_Fuente" ||
+          (
+            Vinculo?.Cantidad_Modo === "Fija" &&
+            Number(Vinculo?.Cantidad) === 1
+          );
         if (
-          Vinculo?.Cantidad_Modo === "Usar_Fuente" &&
+          Usa_Cantidad_Fuente &&
           Fuente_Tipo === "Plan_Parte" &&
-          Habito_Unidad_Fuente_Compatible(Habito, Fuente?.Unidad_Custom || Fuente?.Unidad)
+          Habito_Unidad_Fuente_Compatible(
+            Habito,
+            Fuente?.Unidad_Custom || Fuente?.Unidad
+          )
         ) {
           return Number(Fuente?.Aporte_Total) || 0;
         }
         if (
-          Vinculo?.Cantidad_Modo === "Usar_Fuente" &&
+          Usa_Cantidad_Fuente &&
           Fuente_Tipo === "Plan_Subobjetivo" &&
-          Habito_Unidad_Fuente_Compatible(Habito, Fuente?.Unidad_Custom || Fuente?.Unidad)
+          Habito_Unidad_Fuente_Compatible(
+            Habito,
+            Fuente?.Unidad_Custom || Fuente?.Unidad
+          )
         ) {
           return Number(Fuente?.Target_Total) || 0;
         }
@@ -86702,12 +86746,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
       }
 
-      function Habito_Vinculo_Default(Fuente_Tipo) {
+      function Habito_Vinculo_Default(Fuente_Tipo, Habito_Id = "") {
+        const Habito = Habito_Por_Id(Habito_Id);
+        const Puede_Usar_Fuente =
+          Habito &&
+          Habito_Modo_Visible(Habito) === "Cantidad" &&
+          Habito_Fuente_Puede_Usar_Cantidad(Fuente_Tipo);
         return {
           Habito_Id: "",
           Cantidad_Modo: Fuente_Tipo === "Evento"
             ? "Usar_Duracion"
-            : "Fija",
+            : (Puede_Usar_Fuente ? "Usar_Fuente" : "Fija"),
           Cantidad: 1,
           Activo: true
         };
@@ -87035,7 +87084,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
         Select_Agregar.addEventListener("change", () => {
           if (!Select_Agregar.value) return;
-          const Nuevo = Habito_Vinculo_Default(Fuente_Tipo);
+          const Nuevo = Habito_Vinculo_Default(
+            Fuente_Tipo,
+            Select_Agregar.value
+          );
           Nuevo.Habito_Id = Select_Agregar.value;
           Vinculos.push(Nuevo);
           Render_Vinculos_Habitos_Editor(
@@ -87058,7 +87110,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Vinculo.Habito_Id === Habito.Id
               )
             ) {
-              const Nuevo = Habito_Vinculo_Default(Fuente_Tipo);
+              const Nuevo = Habito_Vinculo_Default(
+                Fuente_Tipo,
+                Habito.Id
+              );
               Nuevo.Habito_Id = Habito.Id;
               Vinculos.push(Nuevo);
             }
