@@ -159,6 +159,39 @@ test("permite cero caidas en habitos de evitar", async ({ page }) => {
   expect(meta.Objetivo).toBe(0);
 });
 
+test("migra y oculta el tipo Limite de habitos", async ({ page }) => {
+  await Preparar(page);
+
+  const resultado = await page.evaluate(() => {
+    const Habito = Normalizar_Habito({
+      Nombre: "Limite viejo",
+      Tipo: "Limite",
+      Meta: {
+        Modo: "Check",
+        Regla: "Al_Menos",
+        Cantidad: 5,
+        Unidad: "paginas"
+      }
+    });
+    Abrir_Modal_Habitos();
+    return {
+      Tipo: Habito.Tipo,
+      Modo: Habito.Meta.Modo,
+      Regla: Habito.Meta.Regla,
+      Tiene_Option: Boolean(
+        document.querySelector('#Habito_Tipo option[value="Limite"]')
+      )
+    };
+  });
+
+  expect(resultado).toEqual({
+    Tipo: "Hacer",
+    Modo: "Cantidad",
+    Regla: "Como_Maximo",
+    Tiene_Option: false
+  });
+});
+
 test("advierte antes de cerrar habito con cambios sin guardar", async ({
   page
 }) => {

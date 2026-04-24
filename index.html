@@ -23365,7 +23365,6 @@
           "habitos.tipo": "Tipo",
           "habitos.tipo_hacer": "Hacer",
           "habitos.tipo_evitar": "Evitar",
-          "habitos.tipo_limite": "L\u00edmite",
           "habitos.activo": "Activo",
           "habitos.meta_modo": "Modo",
           "habitos.modo_check": "Check",
@@ -23407,8 +23406,7 @@
           "habitos.help_nombre": "Nombre breve y reconocible del h\u00e1bito.",
           "habitos.help_color": "Color usado para identificar el h\u00e1bito.",
           "habitos.help_tipo":
-            "Hacer suma progreso. Evitar mide un m\u00e1ximo permitido. " +
-            "L\u00edmite sirve para controlar una pr\u00e1ctica.",
+            "Hacer suma progreso. Evitar mide un m\u00e1ximo permitido.",
           "habitos.help_activo":
             "Si est\u00e1 desactivado, el h\u00e1bito no se sugiere ni se mide.",
           "habitos.help_modo":
@@ -27429,7 +27427,6 @@
           "habitos.tipo": "Type",
           "habitos.tipo_hacer": "Do",
           "habitos.tipo_evitar": "Avoid",
-          "habitos.tipo_limite": "Limit",
           "habitos.activo": "Active",
           "habitos.meta_modo": "Mode",
           "habitos.modo_check": "Check",
@@ -27471,8 +27468,7 @@
           "habitos.help_nombre": "Short recognizable habit name.",
           "habitos.help_color": "Color used to identify the habit.",
           "habitos.help_tipo":
-            "Do adds progress. Avoid measures an allowed maximum. " +
-            "Limit controls a practice.",
+            "Do adds progress. Avoid measures an allowed maximum.",
           "habitos.help_activo":
             "When inactive, the habit is not suggested or measured.",
           "habitos.help_modo":
@@ -31434,7 +31430,6 @@
           "habitos.tipo": "Tipo",
           "habitos.tipo_hacer": "Fazer",
           "habitos.tipo_evitar": "Evitar",
-          "habitos.tipo_limite": "Limite",
           "habitos.activo": "Ativo",
           "habitos.meta_modo": "Modo",
           "habitos.modo_check": "Check",
@@ -31476,8 +31471,7 @@
           "habitos.help_nombre": "Nome breve e reconhecivel do habito.",
           "habitos.help_color": "Cor usada para identificar o habito.",
           "habitos.help_tipo":
-            "Fazer soma progresso. Evitar mede um maximo permitido. " +
-            "Limite controla uma pratica.",
+            "Fazer soma progresso. Evitar mede um maximo permitido.",
           "habitos.help_activo":
             "Quando inativo, o habito nao e sugerido nem medido.",
           "habitos.help_modo":
@@ -77457,7 +77451,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               <select class="Habitos_Modal_Select" id="Habito_Tipo">
                 <option value="Hacer">${t("habitos.tipo_hacer")}</option>
                 <option value="Evitar">${t("habitos.tipo_evitar")}</option>
-                <option value="Limite">${t("habitos.tipo_limite")}</option>
               </select>
             </label>
             <label class="Habitos_Modal_Campo">
@@ -86741,15 +86734,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           typeof Base.Programacion === "object"
             ? Base.Programacion
             : {};
-        const Tipo = ["Hacer", "Evitar", "Limite"].includes(Base.Tipo)
-          ? Base.Tipo
-          : "Hacer";
+        const Es_Limite_Legado = Base.Tipo === "Limite";
+        const Tipo = Base.Tipo === "Evitar" ? "Evitar" : "Hacer";
         const Modo_Base = ["Check", "Cantidad", "Tiempo"].includes(
           Meta_Base.Modo
         )
           ? Meta_Base.Modo
           : "Check";
-        const Modo = Tipo === "Evitar" ? "Cantidad" : Modo_Base;
+        const Modo = Tipo === "Evitar" || Es_Limite_Legado
+          ? "Cantidad"
+          : Modo_Base;
         const Cantidad = Number(Meta_Base.Cantidad);
         const Dias = Array.isArray(Programacion_Base.Dias)
           ? Programacion_Base.Dias
@@ -86781,7 +86775,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ].includes(Meta_Base.Regla)
           ? Meta_Base.Regla
           : "Al_Menos";
-        const Regla = Tipo === "Evitar" ? "Como_Maximo" : Regla_Base;
+        const Regla = Tipo === "Evitar" || Es_Limite_Legado
+          ? "Como_Maximo"
+          : Regla_Base;
         const Cantidad_Maxima = Number(Meta_Base.Cantidad_Maxima);
         const Permite_Cero = Tipo === "Evitar";
         const Cantidad_Normalizada =
