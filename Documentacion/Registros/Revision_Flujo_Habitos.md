@@ -63,3 +63,26 @@ una opcion adicional de dias puntuales separada de esas dos variantes.
 2.11. Tanto en dias como en horas, el estado por defecto deberia ser
 `Todos` y no deberia mostrar campos adicionales. Los campos secundarios
 deben aparecer solo cuando la opcion seleccionada los necesita.
+
+2.12. El selector de emoji del habito tiene una presentacion visual
+demasiado pesada y poco pulida. Deberia adoptar el patron usado en
+otros modales, donde el emoji se muestra como un boton circular compacto
+y el selector se abre al hacer click.
+
+2.13. La fila inicial del formulario deberia integrar en una misma linea
+el emoji, el nombre, el color, el tipo y el checkbox de activo. Esa
+agrupacion permitiria leer de una vez la identidad principal del habito.
+
+2.14. Los campos `Tipo`, `Activo` y el resto de opciones conceptuales
+del formulario deberian tener ayuda contextual por hover. Hoy no queda
+claro que significa cada control ni que impacto tiene sobre el habito.
+
+2.15. Las reglas actuales de meta (`Al menos`, `Exactamente` y `Como
+maximo`) parecen insuficientes para cubrir todos los casos de uso. Antes
+de implementar UI nueva, conviene revisar si falta una regla adicional o
+si alguna regla existente esta mezclando comportamientos distintos.
+
+2.16. El tipo de habito `Evitar` no deberia exponer automaticamente la
+misma configuracion que un habito positivo. Ese tipo necesita una
+definicion funcional especifica, porque sus reglas, metas y estados
+probablemente deberian comportarse distinto.
