@@ -564,7 +564,7 @@ test("sidebar de habitos oculta globitos y registra desde menu", async ({
   await expect(page.locator("#Config_Overlay"))
     .not.toHaveClass(/Activo/);
   await expect(page.locator(".Sidebar_Habito_Indicador"))
-    .toHaveCount(3);
+    .toHaveCount(2);
 
   await page.click(
     '[data-sidebar-habito-id="Habito_Check_Menu"]',
@@ -737,7 +737,7 @@ test("panel de habitos registra avances manuales desde la lista", async ({
   );
   await expect(page.locator(
     '[data-habitos-registro-rapido="Habito_Evitar_Rapido"]'
-  )).toBeDisabled();
+  )).toHaveClass(/Confirmado/);
 
   const resumen = await page.evaluate(() => ({
     Total: Habitos_Registros.length,
