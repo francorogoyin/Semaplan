@@ -1541,3 +1541,93 @@ test("panel de habitos registra avances manuales desde la lista", async ({
   await page.click("#Habitos_Filtros_Aceptar");
   await expect(page.locator(".Habitos_Card")).toHaveCount(2);
 });
+
+test("panel de habitos mantiene orden y alterna realizados", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Primero",
+        Nombre: "Primero",
+        Orden: 0,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 1
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Segundo",
+        Nombre: "Segundo",
+        Orden: 1,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 1
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Tercero",
+        Nombre: "Tercero",
+        Orden: 2,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 1
+        }
+      })
+    ];
+    Habitos_Registros = [];
+    Habitos_Ocultar_Realizados = false;
+    Abrir_Panel_Habitos();
+  });
+
+  const orden = () => page.locator("[data-habitos-card]")
+    .evaluateAll((Cards) =>
+      Cards.map((Card) => Card.getAttribute("data-habitos-card"))
+    );
+
+  await expect(page.locator("#Habitos_Toggle_Realizados"))
+    .toBeVisible();
+  await expect(page.locator("#Habitos_Toggle_Realizados"))
+    .toContainText("Ocultar realizados");
+  await expect(page.locator("#Habitos_Cancelar"))
+    .toContainText("Cerrar");
+  expect(await orden()).toEqual([
+    "Habito_Primero",
+    "Habito_Segundo",
+    "Habito_Tercero"
+  ]);
+
+  await page.click(
+    '[data-habitos-registro-rapido="Habito_Primero"]'
+  );
+  expect(await orden()).toEqual([
+    "Habito_Primero",
+    "Habito_Segundo",
+    "Habito_Tercero"
+  ]);
+
+  await page.click("#Habitos_Toggle_Realizados");
+  await expect(page.locator("#Habitos_Toggle_Realizados"))
+    .toContainText("Mostrar realizados");
+  expect(await orden()).toEqual([
+    "Habito_Segundo",
+    "Habito_Tercero"
+  ]);
+
+  await page.click("#Habitos_Toggle_Realizados");
+  await expect(page.locator("#Habitos_Toggle_Realizados"))
+    .toContainText("Ocultar realizados");
+  expect(await orden()).toEqual([
+    "Habito_Primero",
+    "Habito_Segundo",
+    "Habito_Tercero"
+  ]);
+});

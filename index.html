@@ -22800,6 +22800,10 @@
             type="button"
             hidden>Borrar h&aacute;bito</button>
           <button class="Config_Boton_Cancelar"
+            id="Habitos_Toggle_Realizados"
+            type="button"
+            hidden>Ocultar realizados</button>
+          <button class="Config_Boton_Cancelar"
             id="Habitos_Cancelar"
             data-i18n="cancelar"
             type="button">Cancelar</button>
@@ -35960,6 +35964,7 @@
       let Habitos_Filtro_Hora_Desde = 7;
       let Habitos_Filtro_Hora_Hasta = 20;
       let Habitos_Filtro_Estado = "Todos";
+      let Habitos_Ocultar_Realizados = false;
       let Habitos_Filtros_Modal_Abierto = false;
       let Habitos_Filtros_Borrador = null;
       let Habito_Evento_En_Edicion_Id = null;
@@ -75229,11 +75234,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Mostrar_Principal = true
       ) {
         const Btn_Borrar = document.getElementById("Habitos_Borrar");
+        const Btn_Toggle_Realizados = document.getElementById(
+          "Habitos_Toggle_Realizados"
+        );
         const Btn_Cancelar = document.getElementById("Habitos_Cancelar");
         const Btn_Principal = document.getElementById("Habitos_Nuevo");
         if (Btn_Borrar) {
           Btn_Borrar.hidden = true;
           Btn_Borrar.onclick = null;
+        }
+        if (Btn_Toggle_Realizados) {
+          Btn_Toggle_Realizados.hidden = true;
+          Btn_Toggle_Realizados.onclick = null;
         }
         if (Btn_Cancelar) {
           Btn_Cancelar.textContent = Cancelar;
@@ -75291,6 +75303,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Habitos_Abrir_Filtros() {
         Habitos_Filtros_Borrador = Habitos_Filtros_Actuales();
         Habitos_Filtros_Modal_Abierto = true;
+        Render_Modal_Habitos();
+      }
+
+      function Habitos_Toggle_Realizados_Panel() {
+        if (Habitos_Modal_Vista !== "Panel") return;
+        Habitos_Ocultar_Realizados = !Habitos_Ocultar_Realizados;
         Render_Modal_Habitos();
       }
 
@@ -75557,6 +75575,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Habitos_Estado(Habito).Clave === Habitos_Filtro_Estado;
       }
 
+      function Habitos_Pasa_Filtro_Realizados(Habito, Fecha) {
+        if (!Habitos_Ocultar_Realizados) return true;
+        return !Habito_Esta_Completo(Habito, Fecha);
+      }
+
       function Habitos_Comparar_Orden_Base(A, B) {
         return (Number(A.Orden) || 0) - (Number(B.Orden) || 0) ||
           (A.Nombre || "").localeCompare(B.Nombre || "");
@@ -75567,9 +75590,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const A_Cancelado = Habito_Cancelado_En_Periodo(A, Fecha) ? 1 : 0;
         const B_Cancelado = Habito_Cancelado_En_Periodo(B, Fecha) ? 1 : 0;
         if (A_Cancelado !== B_Cancelado) return A_Cancelado - B_Cancelado;
-        const A_Completo = Habito_Esta_Completo(A, Fecha) ? 1 : 0;
-        const B_Completo = Habito_Esta_Completo(B, Fecha) ? 1 : 0;
-        if (A_Completo !== B_Completo) return A_Completo - B_Completo;
         return Habitos_Comparar_Orden_Base(A, B);
       }
 
@@ -75592,6 +75612,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Habitos_Habito_Visible_Principal(Habito, Fecha)
           )
           .filter((Habito) => Habitos_Pasa_Contexto_Panel(Habito, Fecha))
+          .filter((Habito) => Habitos_Pasa_Filtro_Realizados(Habito, Fecha))
           .filter((Habito) => Habitos_Aplicar_Filtros_Lista([Habito]).length)
           .sort(Habitos_Comparar_Orden_Visible);
       }
@@ -75944,6 +75965,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           t("cerrar"),
           false
         );
+        const Btn_Toggle_Realizados = document.getElementById(
+          "Habitos_Toggle_Realizados"
+        );
+        if (Btn_Toggle_Realizados) {
+          Btn_Toggle_Realizados.hidden = false;
+          Btn_Toggle_Realizados.textContent = Habitos_Ocultar_Realizados
+            ? t("sidebar.mostrar_realizados")
+            : t("sidebar.ocultar_realizados");
+        }
         const Items = Habitos_Filtrados();
         const Activos = Items.filter((Habito) =>
           Habitos_Habito_Visible_Principal(Habito, Fecha)
@@ -99773,6 +99803,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", () => {
           void Habitos_Cancelar_Modal();
         });
+      document.getElementById("Habitos_Toggle_Realizados")
+        ?.addEventListener("click", Habitos_Toggle_Realizados_Panel);
       document.getElementById("Habitos_Nuevo")
         ?.addEventListener("click", Habitos_Accion_Principal);
       document.getElementById("Habitos_Evento_Cerrar")
