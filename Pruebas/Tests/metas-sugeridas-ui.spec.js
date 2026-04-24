@@ -225,6 +225,36 @@ async ({ page }) => {
     document.querySelector(".Metas_Sugeridas_Fila")
       ?.classList.add("Abierta");
   });
+  await expect(page.locator(".Metas_Sugeridas_Descripcion_Toggle"))
+    .toHaveText("Comprimir");
+  const Descripcion_Toggle = await page.evaluate(() => {
+    const Campo = document.querySelector(
+      ".Metas_Sugeridas_Campo.Descripcion"
+    );
+    const Boton = Campo?.querySelector(
+      ".Metas_Sugeridas_Descripcion_Toggle"
+    );
+    const Textarea = Campo?.querySelector("textarea");
+    Boton?.click();
+    const Comprimida = Campo?.classList.contains("Comprimida");
+    const Texto_Comprimido = Boton?.textContent || "";
+    const Alto_Comprimido = getComputedStyle(Textarea).height;
+    Boton?.click();
+    return {
+      comprimida: Comprimida,
+      textoComprimido: Texto_Comprimido,
+      altoComprimido: Alto_Comprimido,
+      expandida: !Campo?.classList.contains("Comprimida"),
+      textoExpandido: Boton?.textContent || ""
+    };
+  });
+  expect(Descripcion_Toggle).toEqual({
+    comprimida: true,
+    textoComprimido: "Descomprimir",
+    altoComprimido: "34px",
+    expandida: true,
+    textoExpandido: "Comprimir"
+  });
 
   const Color_Inicial = await page.evaluate(() => {
     const Campo = document.querySelector(".Metas_Sugeridas_Color");

@@ -434,6 +434,36 @@
         resize: vertical;
       }
 
+      .Metas_Sugeridas_Campo_Header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .Metas_Sugeridas_Descripcion_Toggle {
+        border: none;
+        background: transparent;
+        color: var(--Acento);
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 0;
+      }
+
+      .Metas_Sugeridas_Descripcion_Toggle:hover {
+        color: #0f5f5a;
+      }
+
+      .Metas_Sugeridas_Campo.Descripcion.Comprimida
+        textarea {
+        height: 34px;
+        min-height: 34px;
+        overflow: hidden;
+        resize: none;
+      }
+
       .Metas_Sugeridas_Fila input[readonly] {
         border-color: transparent;
         background: transparent;
@@ -5105,20 +5135,19 @@
       .Planes_Objetivo_Card.Vista_Biblioteca {
         min-height: 126px;
         padding: 14px 12px 13px;
-        border: 1px solid var(--Borde);
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: transparent;
+        box-shadow: none;
         cursor: pointer;
         overflow: hidden;
         transition:
           transform 140ms ease,
-          border-color 140ms ease,
-          background 140ms ease;
+          color 140ms ease;
       }
 
       .Planes_Objetivo_Card.Vista_Biblioteca:hover {
-        transform: translateY(-3px);
-        border-color: #d4c3ab;
+        transform: translateY(-2px);
       }
 
       .Planes_Objetivo_Card.Vista_Biblioteca.Expandida {
@@ -5128,13 +5157,13 @@
       }
 
       .Planes_Objetivo_Card.Vista_Biblioteca.Multi_Activa {
-        border-color: var(--Acento);
-        box-shadow: 0 0 0 2px rgba(15, 95, 90, 0.1);
+        border-color: transparent;
+        box-shadow: none;
       }
 
       .Planes_Objetivo_Card.Vista_Biblioteca.Warning {
-        border-color: rgba(180, 120, 0, 0.45);
-        background: rgba(255, 255, 255, 0.96);
+        border-color: transparent;
+        background: transparent;
       }
 
       .Planes_Objetivo_Card.Expandida.Warning {
@@ -7005,8 +7034,10 @@
         min-height: 112px;
         align-items: center;
         justify-content: center;
-        border: 1px solid var(--Borde);
+        border: 1px solid transparent;
         border-radius: 8px;
+        background: transparent;
+        box-shadow: none;
         margin-left: 0;
         padding: 10px;
         text-align: center;
@@ -7474,13 +7505,17 @@
       }
 
       #Plan_Overlay.Periodo_Cerrado .Planes_Periodo_Tarjeta,
-      #Plan_Overlay.Periodo_Cerrado
-        .Planes_Objetivo_Card.Vista_Biblioteca,
       #Plan_Overlay.Periodo_Cerrado .Planes_Vacio,
       #Plan_Overlay.Periodo_Cerrado .Planes_Resumen_Texto_Fila,
       #Plan_Overlay.Periodo_Cerrado
         .Planes_Periodo_Tarjeta_Metrica {
         background: #f4f5f6;
+      }
+
+      #Plan_Overlay.Periodo_Cerrado
+        .Planes_Objetivo_Card.Vista_Biblioteca {
+        border-color: transparent;
+        background: transparent;
       }
 
       #Plan_Overlay.Periodo_Cerrado .Planes_Header_Icono,
@@ -7765,11 +7800,8 @@
       }
 
       .Planes_Parte_Meta_Campo,
-      .Planes_Parte_Avance_Campo,
-      .Planes_Parte_Parcial_Campo,
       .Planes_Parte_Unidad_Campo,
-      .Planes_Parte_Unidad_Custom_Campo,
-      .Planes_Parte_Estado_Campo {
+      .Planes_Parte_Unidad_Custom_Campo {
         grid-column: span 3;
       }
 
@@ -7979,11 +8011,8 @@
         .Planes_Subobjetivo_Fecha_Ini_Campo,
         .Planes_Subobjetivo_Fecha_Fin_Campo,
         .Planes_Parte_Meta_Campo,
-        .Planes_Parte_Avance_Campo,
-        .Planes_Parte_Parcial_Campo,
         .Planes_Parte_Unidad_Campo,
         .Planes_Parte_Unidad_Custom_Campo,
-        .Planes_Parte_Estado_Campo,
         .Planes_Parte_Nombre_Campo,
         .Planes_Parte_Emoji_Campo,
         .Planes_Parte_Fecha_Obj_Campo,
@@ -21563,15 +21592,6 @@
                 min="0"
                 step="0.25">
             </label>
-            <label class="Campo Planes_Parte_Parcial_Campo">
-              <span data-i18n="planes.parte_avance_parcial">
-                Avance parcial
-              </span>
-              <input id="Planes_Parte_Avance_Parcial"
-                type="number"
-                min="0"
-                step="0.25">
-            </label>
             <label class="Campo Planes_Parte_Fecha_Ini_Campo">
               <span data-i18n="planes.sub_fecha_inicial">
                 Fecha inicial
@@ -21595,19 +21615,6 @@
                 type="date"
                 disabled
                 readonly>
-            </label>
-            <label class="Campo Planes_Parte_Estado_Campo">
-              <span data-i18n="planes.estado_label">Estado</span>
-              <select id="Planes_Parte_Estado">
-                <option value="Pendiente"
-                  data-i18n="planes.parte_estado_pendiente">
-                  Pendiente
-                </option>
-                <option value="Realizada"
-                  data-i18n="planes.parte_estado_realizada">
-                  Realizada
-                </option>
-              </select>
             </label>
             <div class="Campo Campo_Ancho">
               <span class="Planes_Form_Seccion_Titulo"
@@ -22547,6 +22554,8 @@
           "sidebar.metas_col_color": "Color",
           "sidebar.metas_col_horas": "Horas",
           "sidebar.metas_col_descripcion": "Descripcion",
+          "sidebar.metas_descripcion_comprimir": "Comprimir",
+          "sidebar.metas_descripcion_descomprimir": "Descomprimir",
           "sidebar.metas_col_partes": "Partes vinculadas",
           "sidebar.metas_col_importar": "Importar",
           "sidebar.metas_sugeridas_diario_corto":
@@ -23668,6 +23677,8 @@
           "planes.err_parte": "La parte necesita nombre.",
           "planes.err_parte_aporte":
             "La parte necesita un aporte total mayor a cero.",
+          "planes.err_parte_aporte_menor_avance":
+            "El aporte total no puede ser menor que el avance ya registrado.",
           "planes.parte_err_excede":
             "No quedan suficientes {unidad}. Podes registrar como maximo {maximo} {unidad}.",
           "planes.parte_nota_realizada":
@@ -23751,6 +23762,8 @@
             "El objetivo padre necesita fecha inicial, objetivo o final antes de fechar un subobjetivo.",
           "planes.err_sub_rango_fuera_padre":
             "La fecha del subobjetivo queda fuera del rango del objetivo padre.",
+          "planes.err_fecha_inicio_despues_objetivo":
+            "La fecha inicial tiene que ser igual o anterior a la fecha objetivo.",
           "planes.err_objetivo_rango_subs":
             "Hay subobjetivos con fechas fuera del rango del objetivo. Ajustá primero esas fechas.",
           "planes.rango_al": "{desde} al {hasta}",
@@ -26528,6 +26541,8 @@
           "sidebar.metas_col_color": "Color",
           "sidebar.metas_col_horas": "Hours",
           "sidebar.metas_col_descripcion": "Description",
+          "sidebar.metas_descripcion_comprimir": "Collapse",
+          "sidebar.metas_descripcion_descomprimir": "Expand",
           "sidebar.metas_col_partes": "Linked parts",
           "sidebar.metas_col_importar": "Import",
           "sidebar.metas_sugeridas_diario_corto":
@@ -27633,6 +27648,8 @@
           "planes.err_parte": "The part needs a name.",
           "planes.err_parte_aporte":
             "The part needs a total contribution above zero.",
+          "planes.err_parte_aporte_menor_avance":
+            "The total contribution cannot be lower than the progress already registered.",
           "planes.parte_err_excede":
             "There is not enough {unidad} left. You can log at most {maximo} {unidad}.",
           "planes.parte_nota_realizada": "Part done: {parte}",
@@ -27714,6 +27731,8 @@
             "The parent objective needs an initial, target or final date before dating a subobjective.",
           "planes.err_sub_rango_fuera_padre":
             "The subobjective date is outside the parent objective range.",
+          "planes.err_fecha_inicio_despues_objetivo":
+            "The initial date must be equal to or earlier than the target date.",
           "planes.err_objetivo_rango_subs":
             "Some subobjectives have dates outside the objective range. Adjust those dates first.",
           "planes.rango_al": "{desde} to {hasta}",
@@ -30436,6 +30455,8 @@
           "sidebar.metas_col_color": "Cor",
           "sidebar.metas_col_horas": "Horas",
           "sidebar.metas_col_descripcion": "Descricao",
+          "sidebar.metas_descripcion_comprimir": "Comprimir",
+          "sidebar.metas_descripcion_descomprimir": "Expandir",
           "sidebar.metas_col_partes": "Partes vinculadas",
           "sidebar.metas_col_importar": "Importar",
           "sidebar.metas_sugeridas_diario_corto":
@@ -31557,6 +31578,8 @@
           "planes.err_parte": "A parte precisa de nome.",
           "planes.err_parte_aporte":
             "A parte precisa de um aporte total maior que zero.",
+          "planes.err_parte_aporte_menor_avance":
+            "O aporte total nao pode ser menor que o progresso ja registrado.",
           "planes.parte_err_excede":
             "Nao ha {unidad} suficiente. Voce pode registrar no maximo {maximo} {unidad}.",
           "planes.parte_nota_realizada":
@@ -31640,6 +31663,8 @@
             "O objetivo pai precisa de data inicial, objetivo ou final antes de datar um subobjetivo.",
           "planes.err_sub_rango_fuera_padre":
             "A data do subobjetivo fica fora do intervalo do objetivo pai.",
+          "planes.err_fecha_inicio_despues_objetivo":
+            "A data inicial precisa ser igual ou anterior a data objetivo.",
           "planes.err_objetivo_rango_subs":
             "Há subobjetivos com datas fora do intervalo do objetivo. Ajuste essas datas primeiro.",
           "planes.rango_al": "{desde} a {hasta}",
@@ -49432,33 +49457,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
-      function Planes_Sincronizar_Form_Estado_Parte() {
-        const Estado = document.getElementById("Planes_Parte_Estado");
-        const Aporte = document.getElementById(
-          "Planes_Parte_Aporte_Total"
-        );
-        const Parcial = document.getElementById(
-          "Planes_Parte_Avance_Parcial"
-        );
-        const Fecha_Final = document.getElementById(
-          "Planes_Parte_Fecha_Fin"
-        );
-        if (!Estado || !Aporte || !Parcial) return;
-        const Realizada = Estado.value === "Realizada";
-        if (Realizada) {
-          Parcial.value = Aporte.value || "0";
-        }
-        Parcial.disabled = Realizada;
-        const Campo_Fecha_Final = Fecha_Final?.closest(
-          ".Planes_Parte_Fecha_Fin_Campo"
-        );
-        if (Campo_Fecha_Final) {
-          Campo_Fecha_Final.hidden = !Realizada;
-        }
-        document.getElementById("Planes_Parte_Form")
-          ?.classList.toggle("Con_Fecha_Final", Realizada);
-      }
-
       function Planes_Marcar_Parte_Realizada(
         Parte_Id,
         Opciones = {}
@@ -55050,6 +55048,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ),
           ...Datos_Vinculo
         };
+        if (!Planes_Validar_Orden_Fechas_Item(Datos)) return;
         const Objetivo_Para_Redistribucion = {
           ...(Existente || {}),
           Periodo_Id: Existente?.Periodo_Id || Periodo_Id,
@@ -57790,6 +57789,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Descripcion
           );
           Campo_Descripcion.classList.add("Descripcion");
+          const Label_Descripcion =
+            Campo_Descripcion.querySelector("label");
+          if (Label_Descripcion) {
+            const Header_Descripcion =
+              document.createElement("div");
+            Header_Descripcion.className =
+              "Metas_Sugeridas_Campo_Header";
+            const Toggle_Descripcion =
+              document.createElement("button");
+            Toggle_Descripcion.type = "button";
+            Toggle_Descripcion.className =
+              "Metas_Sugeridas_Descripcion_Toggle";
+            Toggle_Descripcion.textContent =
+              t("sidebar.metas_descripcion_comprimir");
+            Toggle_Descripcion.addEventListener("click", (Ev) => {
+              Ev.stopPropagation();
+              const Comprimida =
+                Campo_Descripcion.classList.toggle("Comprimida");
+              Toggle_Descripcion.textContent = Comprimida
+                ? t("sidebar.metas_descripcion_descomprimir")
+                : t("sidebar.metas_descripcion_comprimir");
+            });
+            Label_Descripcion.replaceWith(Header_Descripcion);
+            Header_Descripcion.appendChild(Label_Descripcion);
+            Header_Descripcion.appendChild(Toggle_Descripcion);
+          }
           Controles.appendChild(Campo_Descripcion);
           const Campo_Partes = Metas_Sugeridas_Campo_Control(
             "sidebar.metas_col_partes",
@@ -59691,6 +59716,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Planes_Validar_Orden_Fechas_Item(Datos) {
+        const Inicio = Planes_Normalizar_Fecha_Comparacion(
+          Datos?.Fecha_Inicio || ""
+        );
+        const Objetivo = Planes_Normalizar_Fecha_Comparacion(
+          Datos?.Fecha_Objetivo || ""
+        );
+        if (!Inicio || !Objetivo) return true;
+        if (Inicio <= Objetivo) return true;
+        Mostrar_Toast_Error(
+          t("planes.err_fecha_inicio_despues_objetivo")
+        );
+        return false;
+      }
+
       function Planes_Rango_Subobjetivo_Dentro_Objetivo(
         Datos_Sub,
         Datos_Objetivo
@@ -59710,6 +59750,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Datos_Objetivo
       ) {
         if (!Planes_Subobjetivo_Tiene_Fechas(Datos_Sub)) return true;
+        if (!Planes_Validar_Orden_Fechas_Item(Datos_Sub)) return false;
         const Rango_Objetivo =
           Planes_Rango_Limite_Subobjetivo(Datos_Objetivo);
         if (!Rango_Objetivo) {
@@ -59809,6 +59850,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Modelo = null
       ) {
         if (!Planes_Parte_Tiene_Fechas(Datos_Parte)) return true;
+        if (!Planes_Validar_Orden_Fechas_Item(Datos_Parte)) return false;
         const Rango_Sub = Planes_Rango_Limite_Parte(Sub, Modelo);
         if (!Rango_Sub) {
           Mostrar_Toast_Error(t(
@@ -64330,14 +64372,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Aporte_Total_Input.dataset.valorOriginal =
             Aporte_Total_Input.value;
         }
-        document.getElementById("Planes_Parte_Avance_Parcial").value =
-          Parte
-            ? String(Number(Planes_Avance_Parte_Por_Origen(
-              Parte.Id,
-              "Parte_Meta_Manual",
-              Parte.Id
-            )?.Cantidad) || 0)
-            : "0";
         const Fecha_Inicio = document.getElementById(
           "Planes_Parte_Fecha_Inicio"
         );
@@ -64377,10 +64411,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           if (Campo) Campo.hidden = !Parte_Realizada;
         }
-        document.getElementById("Planes_Parte_Estado").value =
-          Parte_Realizada
-            ? "Realizada"
-            : "Pendiente";
+        document.getElementById("Planes_Parte_Form")
+          ?.classList.toggle("Con_Fecha_Final", Boolean(Parte_Realizada));
         Planes_Parte_Habitos_Borrador = JSON.parse(JSON.stringify(
           Habito_Asegurar_Vinculos_Fuente(Parte || {})
         ));
@@ -64390,7 +64422,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Plan_Parte"
         );
         Actualizar_Campo_Unidad_Custom_Parte();
-        Planes_Sincronizar_Form_Estado_Parte();
         Aplicar_Ayudas_Contextuales_Planes(
           document.getElementById("Planes_Parte_Overlay")
         );
@@ -64462,24 +64493,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Aporte_Total = Planes_Leer_Numero_Input(
           "Planes_Parte_Aporte_Total"
         );
-        const Avance_Parcial = Planes_Leer_Numero_Input(
-          "Planes_Parte_Avance_Parcial"
-        );
-        const Estado_Form =
-          document.getElementById("Planes_Parte_Estado")?.value ||
-          "Pendiente";
         const Aporte_Normalizado =
           Number.isFinite(Aporte_Total) && Aporte_Total > 0
             ? Aporte_Total
             : 0;
-        const Parcial_Base =
-          Number.isFinite(Avance_Parcial) && Avance_Parcial > 0
-            ? Avance_Parcial
-            : 0;
-        const Parcial_Normalizado =
-          Estado_Form === "Realizada"
-            ? Aporte_Normalizado
-            : Parcial_Base;
         const Habitos_Vinculos = Normalizar_Vinculos_Habito_Fuente(
           Planes_Parte_Habitos_Borrador
         );
@@ -64487,27 +64504,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Mostrar_Toast_Error(t("planes.err_parte_aporte"));
           return;
         }
-        const Otros_Avances = Parte
-          ? Planes_Avances_De_Parte(Parte.Id, Modelo)
-            .filter((Avance) =>
-              ![
-                "Parte_Meta",
-                "Parte_Meta_Manual"
-              ].includes(Avance.Origen_Tipo)
-            )
-            .reduce((Total, Avance) =>
-              Total + (Number(Avance.Cantidad) || 0), 0)
+        const Avance_Registrado = Parte
+          ? Planes_Progreso_Total_Parte(Parte, Modelo)
           : 0;
-        if (
-          Parcial_Normalizado + Otros_Avances > Aporte_Normalizado
-        ) {
-          Mostrar_Toast_Error(t("planes.parte_err_excede", {
-            maximo: Meta_Aporte_Formatear(
-              Math.max(0, Aporte_Normalizado - Otros_Avances),
-              Unidad_Custom || t(`planes.${Unidad.toLowerCase()}`)
-            ),
-            unidad: Unidad_Custom || t(`planes.${Unidad.toLowerCase()}`)
-          }));
+        if (Avance_Registrado > Aporte_Normalizado + 0.0001) {
+          Mostrar_Toast_Error(
+            t("planes.err_parte_aporte_menor_avance")
+          );
           return;
         }
         const Datos = {
@@ -64540,9 +64543,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? (Parte.Hora_Fin || "").toString()
             : "",
           Habitos_Vinculos,
-          Estado: Estado_Form === "Realizada"
-            ? "Realizada"
-            : "Pendiente"
+          Estado: Parte?.Estado || "Pendiente"
         };
         if (!Planes_Validar_Rango_Parte(Datos, Sub_Dueno, Modelo)) {
           return;
@@ -64599,30 +64600,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Actualizado_En: new Date().toISOString()
           });
         }
-        if (Estado_Form !== "Realizada") {
-          Planes_Upsert_Avance_Parte(
-            Parte,
-            0,
-            "Parte_Meta",
-            Parte.Id,
-            { Solo_Modelo: true }
-          );
-        } else {
-          Planes_Quitar_Avance_Auto_Parte(Parte, Modelo);
-        }
-        Planes_Upsert_Avance_Parte(
-          Parte,
-          Parcial_Normalizado,
-          "Parte_Meta_Manual",
-          Parte.Id,
-          {
-            Automatico: false,
-            Nota: t("planes.parte_nota_manual", {
-              parte: Parte.Nombre || ""
-            }),
-            Solo_Modelo: true
-          }
-        );
         if (Target_Sub_Manual_Ajustado !== null) {
           Planes_Aplicar_Target_Subobjetivo(
             Sub_Dueno,
@@ -77891,37 +77868,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Crear_Tarea_Rapida_Desde_Slot(Fecha, Hora) {
         if (!Slot_Esta_Vacio(Fecha, Hora)) return false;
-        const Nombre = await Mostrar_Dialogo_Con_Texto(
-          t("slot.tarea_rapida_nombre"),
-          {
-            Tipo: "text",
-            Placeholder: t("sidebar.nombre_ph"),
-            Default: "",
-            Etiqueta_Confirmar: t("dialog.confirmar_btn"),
-            Etiqueta_Cancelar: t("cancelar")
-          }
-        );
-        if (Nombre === null) return false;
-        const Nombre_Limpio = String(Nombre || "").trim();
-        if (!Nombre_Limpio) return false;
-        const Emoji = await Mostrar_Dialogo_Con_Texto(
-          t("slot.tarea_rapida_emoji"),
-          {
-            Tipo: "text",
-            Placeholder: "\u2022",
-            Default: "\u2022",
-            Etiqueta_Confirmar: t("dialog.confirmar_btn"),
-            Etiqueta_Cancelar: t("cancelar")
-          }
-        );
-        if (Emoji === null) return false;
+        const Datos_Tarea = await Pedir_Datos_Tarea_Rapida();
+        if (!Datos_Tarea) return false;
         const Semana_Clave =
           Normalizar_Clave_Semana_Desde_Fecha(Fecha) ||
           Clave_Semana_Actual();
         const Objetivo = Crear_Objetivo_Semanal_Con_Datos({
-          Nombre: Nombre_Limpio,
+          Nombre: Datos_Tarea.Nombre,
           Descripcion_Corta: "",
-          Emoji: Normalizar_Emoji(Emoji || "\u2022") || "\u2022",
+          Emoji: Datos_Tarea.Emoji,
           Color: Color_Tarea_Suelta_Default,
           Es_Bolsa: false,
           Horas_Semanales: 0,
@@ -77950,6 +77905,68 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Editor();
         Guardar_Estado();
         return true;
+      }
+
+      async function Pedir_Datos_Tarea_Rapida() {
+        const Cont = document.createElement("div");
+        Cont.className = "Dialogo_Inputs_Dobles";
+
+        const Titulo = document.createElement("div");
+        Titulo.textContent = t("slot.tarea_rapida");
+        Cont.appendChild(Titulo);
+
+        const Grupo_Emoji = document.createElement("label");
+        Grupo_Emoji.className = "Dialogo_Input_Grupo";
+        const Label_Emoji = document.createElement("span");
+        Label_Emoji.className = "Dialogo_Input_Etiqueta";
+        Label_Emoji.textContent = t("slot.tarea_rapida_emoji");
+        const Input_Emoji = document.createElement("input");
+        Input_Emoji.className =
+          "Dialogo_Input Con_Selector_Emoji Permite_Tipeo_Emoji";
+        Input_Emoji.type = "text";
+        Input_Emoji.maxLength = 4;
+        Input_Emoji.value = "\u2022";
+        Input_Emoji.placeholder = "\u2022";
+        Grupo_Emoji.appendChild(Label_Emoji);
+        Grupo_Emoji.appendChild(Input_Emoji);
+
+        const Grupo_Nombre = document.createElement("label");
+        Grupo_Nombre.className = "Dialogo_Input_Grupo";
+        const Label_Nombre = document.createElement("span");
+        Label_Nombre.className = "Dialogo_Input_Etiqueta";
+        Label_Nombre.textContent = t("slot.tarea_rapida_nombre");
+        const Input_Nombre = document.createElement("input");
+        Input_Nombre.className = "Dialogo_Input";
+        Input_Nombre.type = "text";
+        Input_Nombre.placeholder = t("sidebar.nombre_ph");
+        Grupo_Nombre.appendChild(Label_Nombre);
+        Grupo_Nombre.appendChild(Input_Nombre);
+
+        Cont.appendChild(Grupo_Emoji);
+        Cont.appendChild(Grupo_Nombre);
+        Preparar_Input_Emoji(Input_Emoji);
+        const Dialogo_Tarea_Rapida = Mostrar_Dialogo(Cont, [
+          {
+            Etiqueta: t("cancelar"),
+            Valor: null,
+            Tipo: "Cancelar"
+          },
+          {
+            Etiqueta: t("dialog.confirmar_btn"),
+            Valor: "Guardar",
+            Tipo: "Primario"
+          }
+        ]);
+        setTimeout(() => Input_Nombre.focus(), 20);
+        const Resultado = await Dialogo_Tarea_Rapida;
+        if (Resultado !== "Guardar") return null;
+        const Nombre = String(Input_Nombre.value || "").trim();
+        if (!Nombre) return null;
+        return {
+          Nombre,
+          Emoji: Normalizar_Emoji(Input_Emoji.value || "\u2022") ||
+            "\u2022"
+        };
       }
 
       function Mostrar_Menu_Slot(Fecha, Hora, X, Y) {
@@ -84552,12 +84569,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Opcion.textContent = `${Habito.Emoji || "\u2022"} ${Habito.Nombre}`;
           Select_Agregar.appendChild(Opcion);
         });
-        Barra.appendChild(Select_Agregar);
-        const Btn_Agregar = document.createElement("button");
-        Btn_Agregar.type = "button";
-        Btn_Agregar.className = "Config_Boton";
-        Btn_Agregar.textContent = t("agregar");
-        Btn_Agregar.addEventListener("click", () => {
+        Select_Agregar.addEventListener("change", () => {
           if (!Select_Agregar.value) return;
           const Nuevo = Habito_Vinculo_Default(Fuente_Tipo);
           Nuevo.Habito_Id = Select_Agregar.value;
@@ -84568,7 +84580,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fuente_Tipo
           );
         });
-        Barra.appendChild(Btn_Agregar);
+        Barra.appendChild(Select_Agregar);
         const Btn_Nuevo = document.createElement("button");
         Btn_Nuevo.type = "button";
         Btn_Nuevo.className = "Habitos_Vinculos_Nuevo";
@@ -95082,16 +95094,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener(
           "change",
           Actualizar_Campo_Unidad_Custom_Parte
-        );
-      document.getElementById("Planes_Parte_Estado")
-        ?.addEventListener(
-          "change",
-          Planes_Sincronizar_Form_Estado_Parte
-        );
-      document.getElementById("Planes_Parte_Aporte_Total")
-        ?.addEventListener(
-          "input",
-          Planes_Sincronizar_Form_Estado_Parte
         );
       document.getElementById("Planes_Importar_Partes_Cerrar")
         ?.addEventListener("click", Cerrar_Modal_Importar_Partes);

@@ -205,11 +205,25 @@ async ({ page }) => {
       inicioValor: Inicio.value,
       objetivoMin: Objetivo_Fecha.min,
       objetivoMax: Objetivo_Fecha.max,
-      objetivoValor: Objetivo_Fecha.value
+      objetivoValor: Objetivo_Fecha.value,
+      tieneAvanceParcial: Boolean(
+        document.getElementById("Planes_Parte_Avance_Parcial")
+      ),
+      tieneEstado: Boolean(
+        document.getElementById("Planes_Parte_Estado")
+      )
     };
     document.getElementById("Planes_Parte_Nombre").value =
       "Capitulo";
     document.getElementById("Planes_Parte_Aporte_Total").value = "1";
+    Inicio.value = "2026-05-25";
+    Objetivo_Fecha.value = "2026-05-20";
+    await Guardar_Modal_Planes_Parte();
+    const Tras_Invertida = Object.values(
+      Asegurar_Modelo_Planes().Partes || {}
+    )
+      .filter((Parte) => Parte.Subobjetivo_Id === Sub_Id)
+      .length;
     Inicio.value = "2026-03-10";
     Objetivo_Fecha.value = "2026-06-01";
     await Guardar_Modal_Planes_Parte();
@@ -224,6 +238,7 @@ async ({ page }) => {
       .filter((Parte) => Parte.Subobjetivo_Id === Sub_Id);
     return {
       Limites,
+      Tras_Invertida,
       Tras_Fuera,
       Partes: Partes.map((Parte) => ({
         nombre: Parte.Nombre,
@@ -239,8 +254,11 @@ async ({ page }) => {
     inicioValor: "",
     objetivoMin: "2026-03-01",
     objetivoMax: "2026-05-31",
-    objetivoValor: ""
+    objetivoValor: "",
+    tieneAvanceParcial: false,
+    tieneEstado: false
   });
+  expect(Resultado.Tras_Invertida).toBe(0);
   expect(Resultado.Tras_Fuera).toBe(0);
   expect(Resultado.Partes).toEqual([
     {

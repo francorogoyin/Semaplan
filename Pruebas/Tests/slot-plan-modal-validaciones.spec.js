@@ -1038,13 +1038,19 @@ test("modal de bloque valida texto y emoji nuevo", async ({
     Abrir_Modal_Abordaje("ev_nuevo_plan");
   });
 
-  await page.click(".Abordaje_Nuevo_Btn");
+  await page.locator(
+    "#Abordaje_Modal_Overlay .Abordaje_Nuevo_Cont " +
+    ".Abordaje_Nuevo_Btn"
+  ).first().click();
   await expect(
     page.locator(".Undo_Toast_Texto", { hasText: "Falta texto" })
   ).toBeVisible();
 
   await page.fill("#Abordaje_Nuevo_Input", "Pensar enfoque");
-  await page.click(".Abordaje_Nuevo_Btn");
+  await page.locator(
+    "#Abordaje_Modal_Overlay .Abordaje_Nuevo_Cont " +
+    ".Abordaje_Nuevo_Btn"
+  ).first().click();
   await expect(
     page.locator(".Undo_Toast_Texto", { hasText: "Falta emoji" })
   ).toBeVisible();
@@ -1091,16 +1097,30 @@ test("modal de bloque agrega subtarea o item suelto", async ({
   await expect(page.locator("#Abordaje_Modal_Overlay"))
     .toHaveClass(/Activo/);
 
-  await page.fill("#Abordaje_Nuevo_Emoji", "*");
-  await page.fill("#Abordaje_Nuevo_Input", "Nueva subtarea");
-  await page.click(".Abordaje_Nuevo_Btn");
+  await page.evaluate(() => {
+    document.getElementById("Abordaje_Nuevo_Emoji").value =
+      "\uD83D\uDCDD";
+    document.getElementById("Abordaje_Nuevo_Input").value =
+      "Nueva subtarea";
+  });
+  await page.locator(
+    "#Abordaje_Modal_Overlay .Abordaje_Nuevo_Cont " +
+    ".Abordaje_Nuevo_Btn"
+  ).first().click();
   await expect(page.locator("#Dialogo_Overlay"))
     .toHaveClass(/Activo/);
   await page.getByRole("button", { name: "Subtarea" }).click();
 
-  await page.fill("#Abordaje_Nuevo_Emoji", "*");
-  await page.fill("#Abordaje_Nuevo_Input", "Idea suelta");
-  await page.click(".Abordaje_Nuevo_Btn");
+  await page.evaluate(() => {
+    document.getElementById("Abordaje_Nuevo_Emoji").value =
+      "\uD83D\uDCA1";
+    document.getElementById("Abordaje_Nuevo_Input").value =
+      "Idea suelta";
+  });
+  await page.locator(
+    "#Abordaje_Modal_Overlay .Abordaje_Nuevo_Cont " +
+    ".Abordaje_Nuevo_Btn"
+  ).first().click();
   await expect(page.locator("#Dialogo_Overlay"))
     .toHaveClass(/Activo/);
   await page.getByRole("button", { name: "Ítem suelto" })
@@ -1136,13 +1156,106 @@ test("modal de bloque agrega subtarea o item suelto", async ({
     Item.Texto === "Idea suelta"
   );
 
-  expect(Sub?.Emoji).toBe("*");
+  expect(Sub?.Emoji).toBe("\uD83D\uDCDD");
   expect(Plan_Sub?.Planeada).toBeTruthy();
   expect(Plan_Sub?.Suelta).toBeFalsy();
   expect(Plan_Sub?.Estado || "").toBe("");
   expect(Plan_Suelto?.Planeada).toBeTruthy();
   expect(Plan_Suelto?.Suelta).toBeTruthy();
   expect(Plan_Suelto?.Estado || "").toBe("");
+});
+
+test("tarea rapida pide emoji y nombre en un solo modal", async ({
+  page
+}) => {
+  await Preparar(page, Estado_Base());
+
+  await page.evaluate(() => {
+    window.__Tarea_Rapida_Promise =
+      Crear_Tarea_Rapida_Desde_Slot("2026-04-13", 9);
+  });
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator(".Dialogo_Inputs_Dobles .Dialogo_Input"))
+    .toHaveCount(2);
+  await expect(
+    page.locator(".Dialogo_Inputs_Dobles .Con_Selector_Emoji")
+  ).toHaveCount(1);
+
+  const Config_Emoji = await page.evaluate(() => {
+    const Input = document.querySelector(
+      ".Dialogo_Inputs_Dobles .Con_Selector_Emoji"
+    );
+    return {
+      autocomplete: Input?.getAttribute("autocomplete"),
+      autocorrect: Input?.getAttribute("autocorrect"),
+      spellcheck: Input?.getAttribute("spellcheck"),
+      inputmode: Input?.getAttribute("inputmode")
+    };
+  });
+  expect(Config_Emoji).toEqual({
+    autocomplete: "off",
+    autocorrect: "off",
+    spellcheck: "false",
+    inputmode: "none"
+  });
+
+  await page.locator(
+    ".Dialogo_Inputs_Dobles .Con_Selector_Emoji"
+  ).click();
+  await page.locator(".Selector_Emojis_Btn").first().click();
+  const Emoji_Elegido = await page.locator(
+    ".Dialogo_Inputs_Dobles .Con_Selector_Emoji"
+  ).inputValue();
+  await page.fill(
+    ".Dialogo_Inputs_Dobles .Dialogo_Input:not(.Con_Selector_Emoji)",
+    "Ensayo rapido"
+  );
+  await page.locator(".Dialogo_Boton_Primario").click();
+
+  const Resultado = await page.evaluate(async () => {
+    await window.__Tarea_Rapida_Promise;
+    const Estado = JSON.parse(
+      localStorage.getItem("Semaplan_Estado_V2")
+    );
+    const Objetivo = Estado.Objetivos.find((Item) =>
+      Item.Nombre === "Ensayo rapido"
+    );
+    const Evento = Estado.Eventos.find((Item) =>
+      Item.Objetivo_Id === Objetivo?.Id
+    );
+    return {
+      objetivo: Objetivo
+        ? {
+          nombre: Objetivo.Nombre,
+          emoji: Objetivo.Emoji,
+          color: Objetivo.Color,
+          categoria: Objetivo.Categoria_Id ?? null,
+          bolsa: Boolean(Objetivo.Es_Bolsa)
+        }
+        : null,
+      evento: Evento
+        ? {
+          fecha: Evento.Fecha,
+          inicio: Evento.Inicio
+        }
+        : null
+    };
+  });
+
+  expect(Resultado).toEqual({
+    objetivo: {
+      nombre: "Ensayo rapido",
+      emoji: Emoji_Elegido,
+      color: "#7f8b7a",
+      categoria: null,
+      bolsa: false
+    },
+    evento: {
+      fecha: "2026-04-13",
+      inicio: 9
+    }
+  });
 });
 
 test("atajo de nueva nota cierra el menu contextual abierto", async ({
