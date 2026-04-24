@@ -9346,9 +9346,7 @@
         min-width: 0;
       }
 
-      .Habitos_Panel_Nav_Btn,
-      .Habitos_Card_Drag,
-      .Habitos_Card_Registro_Btn.Cancelar {
+      .Habitos_Panel_Nav_Btn {
         width: 28px;
         height: 28px;
         border: 1px solid rgba(143, 124, 98, 0.28);
@@ -9365,9 +9363,7 @@
         padding: 0;
       }
 
-      .Habitos_Panel_Nav_Btn:hover,
-      .Habitos_Card_Drag:hover,
-      .Habitos_Card_Registro_Btn.Cancelar:hover {
+      .Habitos_Panel_Nav_Btn:hover {
         background: #e6e1d8;
         color: var(--Texto);
       }
@@ -9562,6 +9558,25 @@
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.82);
         overflow: hidden;
+        transition:
+          background 0.16s ease,
+          border-color 0.16s ease,
+          box-shadow 0.16s ease;
+      }
+
+      .Habitos_Card.Realizado {
+        border-color: rgba(31, 107, 79, 0.2);
+        background: rgba(231, 244, 237, 0.82);
+      }
+
+      .Habitos_Card.En_Proceso {
+        border-color: rgba(216, 132, 36, 0.22);
+        background: rgba(255, 244, 228, 0.86);
+      }
+
+      .Habitos_Card.Pendiente {
+        border-color: rgba(154, 147, 137, 0.2);
+        background: rgba(246, 243, 238, 0.78);
       }
 
       .Habitos_Card.Cancelado {
@@ -9587,22 +9602,14 @@
         border: 0;
         background: transparent;
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) auto;
         gap: 10px;
         align-items: center;
         padding: 10px 12px;
         color: var(--Texto);
         font: inherit;
         text-align: left;
-      }
-
-      .Habitos_Card_Drag {
         cursor: grab;
-        color: #7f766c;
-      }
-
-      .Habitos_Card_Drag:active {
-        cursor: grabbing;
       }
 
       .Habitos_Card_Toggle {
@@ -9611,7 +9618,7 @@
         background: transparent;
         color: inherit;
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-columns: auto minmax(0, 1fr);
         gap: 10px;
         align-items: center;
         padding: 0;
@@ -9643,34 +9650,6 @@
         font-size: 12px;
         line-height: 1.25;
         margin-top: 2px;
-      }
-
-      .Habitos_Card_Estado {
-        border-radius: 999px;
-        width: 12px;
-        height: 12px;
-        background: #15845f;
-        box-shadow: 0 0 0 3px rgba(21, 132, 95, 0.12);
-      }
-
-      .Habitos_Card_Estado.Pendiente {
-        background: #b8b2aa;
-        box-shadow: 0 0 0 3px rgba(184, 178, 170, 0.2);
-      }
-
-      .Habitos_Card_Estado.En_Proceso {
-        background: #d88424;
-        box-shadow: 0 0 0 3px rgba(216, 132, 36, 0.16);
-      }
-
-      .Habitos_Card_Estado.Inactivo {
-        background: #d2cec8;
-        box-shadow: 0 0 0 3px rgba(115, 110, 103, 0.1);
-      }
-
-      .Habitos_Card_Estado.Cancelado {
-        background: #b84a4a;
-        box-shadow: 0 0 0 3px rgba(184, 74, 74, 0.16);
       }
 
       .Habitos_Card_Registro {
@@ -23399,6 +23378,7 @@
           "habitos.help_horas":
             "Horas o rangos horarios en los que el h\u00e1bito aplica.",
           "habitos.cancelar_periodo": "Cancelar este per\u00edodo",
+          "habitos.restaurar_periodo": "Restaurar este per\u00edodo",
           "habitos.archivar": "Archivar",
           "habitos.desarchivar": "Desarchivar",
           "habitos.card_racha": "Racha",
@@ -27439,6 +27419,7 @@
           "habitos.help_horas":
             "Hours or time ranges when the habit applies.",
           "habitos.cancelar_periodo": "Cancel this period",
+          "habitos.restaurar_periodo": "Restore this period",
           "habitos.archivar": "Archive",
           "habitos.desarchivar": "Unarchive",
           "habitos.card_racha": "Streak",
@@ -31424,6 +31405,7 @@
           "habitos.help_horas":
             "Horas ou faixas horarias em que o habito se aplica.",
           "habitos.cancelar_periodo": "Cancelar este periodo",
+          "habitos.restaurar_periodo": "Restaurar este periodo",
           "habitos.archivar": "Arquivar",
           "habitos.desarchivar": "Desarquivar",
           "habitos.card_racha": "Sequencia",
@@ -75178,18 +75160,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Habito,
           Fecha
         );
-        const Btn_Cancelar = `
-          <button class="Habitos_Card_Registro_Btn Cancelar${
-            Cancelado ? " Activo" : ""
-          }" type="button"
-            data-habitos-cancelar="${Escape_Html(Habito.Id)}"
-            title="${Escape_Html(t("habitos.cancelar_periodo"))}"
-            aria-label="${Escape_Html(t("habitos.cancelar_periodo"))}">
-            &times;
-          </button>
-        `;
         if (Cancelado) {
-          return `<div class="Habitos_Card_Registro">${Btn_Cancelar}</div>`;
+          return "";
         }
         const Titulo = Bloqueado
           ? t("habitos.ya_registrado_periodo")
@@ -75210,7 +75182,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ${Bloqueado && !Registrado ? "disabled" : ""}>
                 &#10003;
               </button>
-              ${Btn_Cancelar}
             </div>
           `;
         }
@@ -75237,7 +75208,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               aria-label="${Escape_Html(t("habitos.registrar_avance"))}">
               &#10003;
             </button>
-            ${Btn_Cancelar}
           </div>
         `;
       }
@@ -75480,9 +75450,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fecha,
           Habitos_Panel_Modo
         );
+        const Progreso_Card = (
+          Habito_Modo_Visible(Habito) === "Check" &&
+          Habito_Objetivo_Total_Contextual(Habito, Habitos_Panel_Modo) <= 1
+        )
+          ? ""
+          : Progreso;
         const Stats = Habitos_Estadisticas(Habito, Fecha);
         const Clases = [
           "Habitos_Card",
+          Estado.Clave,
           Abierta ? "Abierta" : "",
           Cancelado ? "Cancelado" : "",
           Habito?.Archivado ? "Archivado" : "",
@@ -75493,13 +75470,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             data-habitos-card="${Escape_Html(Habito.Id)}"
             draggable="true">
             <div class="Habitos_Card_Resumen">
-              <button class="Habitos_Card_Drag" type="button"
-                draggable="true"
-                data-habitos-drag="${Escape_Html(Habito.Id)}"
-                title="${Escape_Html(t("focus.drag_reordenar"))}"
-                aria-label="${Escape_Html(t("focus.drag_reordenar"))}">
-                &#8942;
-              </button>
               <button class="Habitos_Card_Toggle" type="button"
                 data-habitos-toggle="${Escape_Html(Habito.Id)}">
                 <span class="Habitos_Card_Emoji"
@@ -75511,12 +75481,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     ${Escape_Html(Habito.Nombre)}
                   </span>
                   <span class="Habitos_Card_Meta">
-                    ${Cancelado ? "" : Escape_Html(Progreso)}
+                    ${Cancelado ? "" : Escape_Html(Progreso_Card)}
                   </span>
-                </span>
-                <span class="Habitos_Card_Estado ${Estado.Clave}"
-                  title="${Escape_Html(Estado.Label)}"
-                  aria-label="${Escape_Html(Estado.Label)}">
                 </span>
               </button>
               ${Habitos_Render_Accion_Rapida(Habito, Fecha)}
@@ -75611,13 +75577,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Habitos_Registrar_Rapido_Desde_Panel(
                 Btn.dataset.habitosRegistroRapido
               );
-            });
-          });
-        document.querySelectorAll("[data-habitos-cancelar]")
-          .forEach((Btn) => {
-            Btn.addEventListener("click", (Ev) => {
-              Ev.stopPropagation();
-              Habitos_Alternar_Cancelado(Btn.dataset.habitosCancelar);
             });
           });
         document.querySelectorAll("[data-habitos-card]")
@@ -94690,6 +94649,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Menu = document.getElementById("Dia_Accion_Menu");
         if (!Menu || !Habito) return;
         const Grupo = [
+          Html_Menu_Dia_Accion(
+            "habito-cancelar",
+            Habito_Cancelado_En_Periodo(
+              Habito,
+              Habitos_Fecha_Referencia()
+            )
+              ? t("habitos.restaurar_periodo")
+              : t("habitos.cancelar_periodo")
+          ),
           Html_Menu_Dia_Accion("habito-editar", t("habitos.editar")),
           Html_Menu_Dia_Accion(
             "habito-archivar",
@@ -94708,6 +94676,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Habitos_Abrir_Editor_Desde_Panel(Habito.Id);
+          });
+        Menu.querySelector(`[data-acc="habito-cancelar"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Habitos_Alternar_Cancelado(Habito.Id);
           });
         Menu.querySelector(`[data-acc="habito-archivar"]`)
           ?.addEventListener("click", (Ev) => {

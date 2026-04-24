@@ -692,7 +692,9 @@ test("panel de habitos registra avances manuales desde la lista", async ({
 
   const layout = await page.evaluate(() => {
     const Lista = document.querySelector(".Habitos_Lista");
-    const Estado = document.querySelector(".Habitos_Card_Estado");
+    const Card = document.querySelector(
+      '[data-habitos-card="Habito_Check_Rapido"]'
+    );
     return {
       Columnas: getComputedStyle(Lista).gridTemplateColumns
         .split(" ")
@@ -702,14 +704,33 @@ test("panel de habitos registra avances manuales desde la lista", async ({
           ".Habitos_Panel_Principal > .Habitos_Panel_Filtros"
         )
       ),
-      Estado_Texto: Estado?.textContent.trim() || "",
-      Estado_Color: getComputedStyle(Estado).backgroundColor
+      Tiene_Estado_Visible: Boolean(
+        document.querySelector(".Habitos_Card_Estado")
+      ),
+      Tiene_Drag_Visible: Boolean(
+        document.querySelector(".Habitos_Card_Drag")
+      ),
+      Tiene_Cancelar_Visible: Boolean(
+        document.querySelector("[data-habitos-cancelar]")
+      ),
+      Card_Clases: Card?.className || "",
+      Card_Color: Card ? getComputedStyle(Card).backgroundColor : ""
     };
   });
   expect(layout.Columnas).toBe(1);
   expect(layout.Tiene_Filtros_Visibles).toBe(false);
-  expect(layout.Estado_Texto).toBe("");
-  expect(layout.Estado_Color).toBe("rgb(184, 178, 170)");
+  expect(layout.Tiene_Estado_Visible).toBe(false);
+  expect(layout.Tiene_Drag_Visible).toBe(false);
+  expect(layout.Tiene_Cancelar_Visible).toBe(false);
+  expect(layout.Card_Clases).toContain("Pendiente");
+  expect(layout.Card_Color).toBe("rgba(246, 243, 238, 0.78)");
+
+  await page.locator('[data-habitos-card="Habito_Check_Rapido"]')
+    .click({ button: "right" });
+  await expect(page.locator(
+    '#Dia_Accion_Menu [data-acc="habito-cancelar"]'
+  )).toContainText(/Cancelar este per/);
+  await page.mouse.click(10, 10);
 
   await page.click(
     '[data-habitos-registro-rapido="Habito_Check_Rapido"]'
