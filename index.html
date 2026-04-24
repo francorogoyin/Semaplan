@@ -952,6 +952,58 @@
         margin: 14px 0 8px;
       }
 
+      .Sidebar_Habitos {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+        margin: 8px 0 0;
+        padding-top: 8px;
+        border-top: 1px solid rgba(0, 0, 0, 0.07);
+      }
+
+      .Sidebar_Habitos.Oculto {
+        display: none;
+      }
+
+      .Sidebar_Habito {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 1px solid var(--Borde);
+        background: #fff;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        position: relative;
+        cursor: pointer;
+        font-size: 18px;
+      }
+
+      .Sidebar_Habito.Realizado {
+        box-shadow: inset 0 0 0 2px var(--Color-Estado-Completa, #1f6b4f);
+      }
+
+      .Sidebar_Habito_Indicador {
+        position: absolute;
+        right: -7px;
+        bottom: -6px;
+        min-width: 20px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: var(--Panel);
+        border: 1px solid var(--Borde);
+        color: var(--Texto);
+        font-size: 9px;
+        font-weight: 700;
+        line-height: 16px;
+        white-space: nowrap;
+        max-width: 44px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
+      }
+
       .Emoji_Item {
         width: 38px;
         height: 38px;
@@ -17132,6 +17184,13 @@
               Horas semanales
             </label>
             <input id="Horas_Semanales" type="number" min="0" step="1" data-i18n-ph="sidebar.horas_ph" placeholder="6" />
+            <label class="Config_Check_Inline"
+              for="Sin_Horas_Definidas">
+              <input id="Sin_Horas_Definidas" type="checkbox" />
+              <span data-i18n="sidebar.sin_horas_definidas">
+                Sin horas definidas
+              </span>
+            </label>
           </div>
           <div class="Campo">
             <label for="Es_Bolsa"
@@ -17225,6 +17284,8 @@
           <div class="Aviso" data-i18n="sidebar.aviso">Arrastra un emoji al calendario para crear un bloque.</div>
 
           <div class="Barra_Emojis" id="Barra_Emojis"></div>
+          <div class="Sidebar_Habitos Oculto"
+            id="Sidebar_Habitos"></div>
         </div>
       </section>
 
@@ -22001,6 +22062,14 @@
                 data-i18n="sidebar.horas_semanales"
                 >Horas semanales</label>
               <input id="Editor_Horas_Input" type="number" min="0" step="1" />
+              <label class="Config_Check_Inline"
+                for="Editor_Sin_Horas_Definidas">
+                <input id="Editor_Sin_Horas_Definidas"
+                  type="checkbox" />
+                <span data-i18n="sidebar.sin_horas_definidas">
+                  Sin horas definidas
+                </span>
+              </label>
             </div>
             <div class="Campo">
               <label for="Editor_Tipo_Input"
@@ -22448,6 +22517,8 @@
           "sidebar.color": "Color",
           "sidebar.horas_semanales":
             "Horas semanales",
+          "sidebar.sin_horas_definidas":
+            "Sin horas definidas",
           "sidebar.horas_ph": "6",
           "sidebar.vinculo_meta": "Vínculo con meta",
           "sidebar.vinculo_meta_sin": "Sin vínculo",
@@ -22455,7 +22526,7 @@
           "sidebar.aporte_por_hora": "Aporte por hora",
           "sidebar.aporte_aceptar": "Aceptar sugerencia",
           "sidebar.aporte_sugerencia":
-            "{meta} termina el {fecha}. Quedan {semanas} semanas.\n" +
+            "{meta} termina el {fecha}. Quedan {dias} dias.\n" +
             "Se sugieren: {cantidad} {unidad}/semana " +
             "({diario} {unidad}/día).",
           "sidebar.metas_sugeridas": "Sugerencias de metas",
@@ -22506,6 +22577,8 @@
           "sidebar.ocultar": "Ocultar",
           "sidebar.ocultar_realizados": "Ocultar realizados",
           "sidebar.mostrar_realizados": "Mostrar realizados",
+          "sidebar.mostrar_habitos": "Mostrar habitos",
+          "sidebar.ocultar_habitos": "Ocultar habitos",
           "sidebar.help_nombre":
             "Nombre visible del objetivo semanal o de la bolsa.",
           "sidebar.help_descripcion_corta":
@@ -26155,6 +26228,9 @@
           "slot.agregar_objetivo": "+ Objetivo",
           "slot.insertar_plan": "Insertar plan",
           "slot.editar_plan": "Editar plan",
+          "slot.tarea_rapida": "Tarea rapida",
+          "slot.tarea_rapida_nombre": "Nombre de la tarea",
+          "slot.tarea_rapida_emoji": "Emoji de la tarea",
           "slot.insertar_patron": "Insertar patrón",
           "slot.guardar_como_patron":
             "Guardar como patrón",
@@ -26272,6 +26348,11 @@
           "resumen.card_tipo": "Tipo",
           "resumen.card_tipo_normal": "Normal",
           "resumen.card_de": "{a} de {b}",
+          "resumen.card_unidades": "Unidades",
+          "resumen.card_restante": "Restante",
+          "resumen.card_unidad_sin_nombre": "Sin unidad",
+          "resumen.card_unidades_detalle":
+            "{realizadas} realizadas - {restantes} restantes",
           "objetivo.sin_nombre": "Sin nombre"
         },
         en: {
@@ -26417,6 +26498,8 @@
           "sidebar.color": "Color",
           "sidebar.horas_semanales":
             "Weekly hours",
+          "sidebar.sin_horas_definidas":
+            "No defined hours",
           "sidebar.horas_ph": "6",
           "sidebar.vinculo_meta": "Goal link",
           "sidebar.vinculo_meta_sin": "No link",
@@ -26424,7 +26507,7 @@
           "sidebar.aporte_por_hora": "Contribution per hour",
           "sidebar.aporte_aceptar": "Accept suggestion",
           "sidebar.aporte_sugerencia":
-            "{meta} ends on {fecha}. {semanas} weeks left.\n" +
+            "{meta} ends on {fecha}. {dias} days left.\n" +
             "Suggested: {cantidad} {unidad}/week " +
             "({diario} {unidad}/day).",
           "sidebar.metas_sugeridas": "Goal suggestions",
@@ -26475,6 +26558,8 @@
           "sidebar.ocultar": "Hide",
           "sidebar.ocultar_realizados": "Hide completed",
           "sidebar.mostrar_realizados": "Show completed",
+          "sidebar.mostrar_habitos": "Show habits",
+          "sidebar.ocultar_habitos": "Hide habits",
           "sidebar.help_nombre":
             "Visible name for the weekly objective or hour pool.",
           "sidebar.help_descripcion_corta":
@@ -30044,6 +30129,9 @@
           "slot.agregar_objetivo": "+ Objective",
           "slot.insertar_plan": "Insert plan",
           "slot.editar_plan": "Edit plan",
+          "slot.tarea_rapida": "Quick task",
+          "slot.tarea_rapida_nombre": "Task name",
+          "slot.tarea_rapida_emoji": "Task emoji",
           "slot.insertar_patron": "Insert pattern",
           "slot.guardar_como_patron":
             "Save as pattern",
@@ -30162,6 +30250,11 @@
           "resumen.card_tipo": "Type",
           "resumen.card_tipo_normal": "Normal",
           "resumen.card_de": "{a} of {b}",
+          "resumen.card_unidades": "Units",
+          "resumen.card_restante": "Left",
+          "resumen.card_unidad_sin_nombre": "No unit",
+          "resumen.card_unidades_detalle":
+            "{realizadas} done - {restantes} left",
           "objetivo.sin_nombre": "Untitled"
         },
         pt: {
@@ -30313,6 +30406,8 @@
           "sidebar.color": "Cor",
           "sidebar.horas_semanales":
             "Horas semanais",
+          "sidebar.sin_horas_definidas":
+            "Sem horas definidas",
           "sidebar.horas_ph": "6",
           "sidebar.vinculo_meta": "Vínculo com meta",
           "sidebar.vinculo_meta_sin": "Sem vínculo",
@@ -30320,7 +30415,7 @@
           "sidebar.aporte_por_hora": "Aporte por hora",
           "sidebar.aporte_aceptar": "Aceitar sugestão",
           "sidebar.aporte_sugerencia":
-            "{meta} termina em {fecha}. Faltam {semanas} semanas.\n" +
+            "{meta} termina em {fecha}. Faltam {dias} dias.\n" +
             "Sugerido: {cantidad} {unidad}/semana " +
             "({diario} {unidad}/dia).",
           "sidebar.metas_sugeridas": "Sugestoes de metas",
@@ -30372,6 +30467,8 @@
           "sidebar.ocultar": "Ocultar",
           "sidebar.ocultar_realizados": "Ocultar realizados",
           "sidebar.mostrar_realizados": "Mostrar realizados",
+          "sidebar.mostrar_habitos": "Mostrar habitos",
+          "sidebar.ocultar_habitos": "Ocultar habitos",
           "sidebar.help_nombre":
             "Nome visível do objetivo semanal ou do banco de horas.",
           "sidebar.help_descripcion_corta":
@@ -34045,6 +34142,9 @@
           "slot.agregar_objetivo": "+ Objetivo",
           "slot.insertar_plan": "Inserir plano",
           "slot.editar_plan": "Editar plano",
+          "slot.tarea_rapida": "Tarefa rapida",
+          "slot.tarea_rapida_nombre": "Nome da tarefa",
+          "slot.tarea_rapida_emoji": "Emoji da tarefa",
           "slot.insertar_patron": "Inserir padrão",
           "slot.guardar_como_patron":
             "Salvar como padrão",
@@ -34162,6 +34262,11 @@
           "resumen.card_tipo": "Tipo",
           "resumen.card_tipo_normal": "Normal",
           "resumen.card_de": "{a} de {b}",
+          "resumen.card_unidades": "Unidades",
+          "resumen.card_restante": "Restante",
+          "resumen.card_unidad_sin_nombre": "Sem unidade",
+          "resumen.card_unidades_detalle":
+            "{realizadas} realizadas - {restantes} restantes",
           "objetivo.sin_nombre": "Sem nome"
         }
       };
@@ -34672,6 +34777,7 @@
         Notas_Hover: false,
         Mostrar_Archivadas: false,
         Ocultar_Realizados_Sidebar: false,
+        Mostrar_Habitos_Sidebar: false,
         Focus_Auto: false,
         // Estilo del menú de la barra superior:
         // "Iconos" (default) muestra todos los botones inline.
@@ -34739,6 +34845,7 @@
         "Dic"
       ];
       const Colores_Preset = ["#f1b77e", "#a6c8e5", "#c1d7ae", "#e4b3d4", "#f2a4a0", "#f2e08b", "#b8c7e0", "#c7b7ef"];
+      const Color_Tarea_Suelta_Default = "#7f8b7a";
       function Detectar_Entorno_App_Id() {
         try {
           const Params = new URLSearchParams(
@@ -35263,6 +35370,7 @@
       let Cfg_Meta_Festejos_Seleccion_Borrador = [];
 
       const El_Lista_Emojis = document.getElementById("Barra_Emojis");
+      const El_Sidebar_Habitos = document.getElementById("Sidebar_Habitos");
       const El_Resumen_Objetivo = document.getElementById("Resumen_Objetivo");
       const El_Resumen_Nombre = document.getElementById("Resumen_Nombre");
       const El_Resumen_Subtitulo = document.getElementById("Resumen_Subtitulo");
@@ -35318,6 +35426,9 @@
       const El_Emoji_Objetivo = document.getElementById("Emoji_Objetivo");
       const El_Color_Objetivo = document.getElementById("Color_Objetivo");
       const El_Horas_Semanales = document.getElementById("Horas_Semanales");
+      const El_Sin_Horas_Definidas = document.getElementById(
+        "Sin_Horas_Definidas"
+      );
       const El_Es_Bolsa = document.getElementById("Es_Bolsa");
       const El_Periodicidad_Objetivo = document.getElementById("Periodicidad_Objetivo");
       const El_Meta_Vinculo_Objetivo = document.getElementById(
@@ -35372,6 +35483,9 @@
       const El_Editor_Emoji_Input = document.getElementById("Editor_Emoji_Input");
       const El_Editor_Color_Input = document.getElementById("Editor_Color_Input");
       const El_Editor_Horas_Input = document.getElementById("Editor_Horas_Input");
+      const El_Editor_Sin_Horas_Definidas = document.getElementById(
+        "Editor_Sin_Horas_Definidas"
+      );
       const El_Editor_Tipo_Input = document.getElementById("Editor_Tipo_Input");
       const El_Editor_Periodicidad_Input = document.getElementById("Editor_Periodicidad_Input");
       const El_Editor_Meta_Vinculo_Input = document.getElementById(
@@ -36394,13 +36508,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Crear_Objetivo_Semanal_Con_Datos(Datos, Semana_Clave) {
         const Id = Crear_Id();
-        const Horas = Datos.Es_Bolsa
+        const Sin_Horas = Boolean(
+          Datos.Es_Bolsa && Datos.Sin_Horas_Definidas
+        );
+        const Horas = Datos.Es_Bolsa && !Sin_Horas
           ? Normalizar_Duracion(Datos.Horas_Semanales)
           : 0;
         const Objetivo = {
           Id,
           Familia_Id: Id,
           Fracasos_Semanales: {},
+          Realizadas_Manuales_Semanales: {},
           Subobjetivos_Semanales: {},
           Subobjetivos_Contraidas_Semanales: {},
           Subobjetivos_Excluidos_Semanales: {},
@@ -36413,6 +36531,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Horas_Semanales: Horas,
           Restante: Horas,
           Es_Bolsa: Boolean(Datos.Es_Bolsa),
+          Sin_Horas_Definidas: Sin_Horas,
           Es_Fija: false,
           Semana_Base: Semana_Clave,
           Semana_Inicio: null,
@@ -42581,7 +42700,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       async function Solicitar_Horas_Baul(Objetivo) {
-        if (!Objetivo.Es_Bolsa) return 0;
+        if (!Objetivo_Tiene_Horas_Definidas(Objetivo)) return 0;
         return await Mostrar_Dialogo_Con_Numero(
           t("baul.dialog_horas_semanales", {
             nombre: Objetivo.Nombre
@@ -42877,7 +42996,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
             const Dur_Max = Franja.Hasta - Franja.Desde;
             let Dur_Evento;
-            if (Objetivo.Es_Bolsa) {
+            if (Objetivo_Tiene_Horas_Definidas(Objetivo)) {
               const Horas_Disp = Calcular_Horas_Restantes(Objetivo);
               if (Horas_Disp <= 0) return;
               Dur_Evento = Math.min(Dur_Max, Horas_Disp);
@@ -42977,7 +43096,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               (T) =>
                 (T.Nombre || "").trim().toLowerCase() === Nombre_B
             );
-            if (!Objetivo?.Es_Bolsa) return;
+            if (!Objetivo_Tiene_Horas_Definidas(Objetivo)) return;
             const Dur_Max = Franja.Hasta - Franja.Desde;
             if (Calcular_Horas_Restantes(Objetivo) < Dur_Max) {
               Advertencias.add(Objetivo.Nombre);
@@ -43804,7 +43923,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Objetivo =
               Objetivo_Por_Id(Plantilla.Objetivo_Id);
             if (!Objetivo) return;
-            if (Objetivo.Es_Bolsa) {
+            if (Objetivo_Tiene_Horas_Definidas(Objetivo)) {
               const Restantes =
                 Calcular_Horas_Restantes(Objetivo);
               if (Restantes < Plantilla.Duracion) return;
@@ -44372,7 +44491,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Motivo_Conflicto) return;
           const Objetivo = Objetivo_Por_Id(Plantilla.Objetivo_Id);
           if (!Objetivo) return;
-          if (Objetivo.Es_Bolsa) {
+          if (Objetivo_Tiene_Horas_Definidas(Objetivo)) {
             const Restantes = Calcular_Horas_Restantes(Objetivo);
             if (Restantes < Plantilla.Duracion) return;
           }
@@ -56846,9 +56965,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Meta_Aporte_Sugerencia_Item(Item) {
         const Fecha = Meta_Aporte_Fecha_Objetivo_Item(Item);
         const Fecha_Fin = Parsear_Fecha_ISO(Fecha);
-        const Semana = Parsear_Fecha_ISO(Clave_Semana_Actual());
-        if (!Item || !Fecha_Fin || !Semana) return null;
-        if (Fecha_Fin < Semana) return null;
+        const Referencia = Metas_Sugeridas_Fecha_Referencia();
+        if (!Item || !Fecha_Fin || !Referencia) return null;
+        if (Fecha_Fin < Referencia) return null;
         const Target = Meta_Aporte_Target_Item(Item);
         if (Target <= 0) return null;
         const Pendiente = Math.max(
@@ -56856,17 +56975,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Target - Meta_Aporte_Progreso_Item(Item)
         );
         if (Pendiente <= 0) return null;
-        const Dias = Math.max(
-          1,
-          Math.ceil(
-            (Fecha_Fin.getTime() - Semana.getTime()) /
-            (24 * 60 * 60 * 1000)
-          ) + 1
+        const Dias = Metas_Sugeridas_Dias_Restantes_Objetivo(
+          Fecha,
+          Referencia
         );
+        const Dias_Semana =
+          Metas_Sugeridas_Dias_Restantes_Semana(Referencia);
+        if (Dias <= 0 || Dias_Semana <= 0) return null;
+        const Dias_Aplicables = Math.min(Dias, Dias_Semana);
         const Semanas = Math.max(1, Math.ceil(Dias / 7));
         const Unidad = Meta_Aporte_Unidad_Item(Item);
         const Cantidad = Meta_Aporte_Redondear(
-          Pendiente / Semanas,
+          (Pendiente / Dias) * Dias_Aplicables,
           Unidad
         );
         const Diario = Meta_Aporte_Redondear(
@@ -56890,10 +57010,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Input = Refs.Input;
         const Item = Meta_Aporte_Item_Por_Valor(Select?.value || "");
         const Tiene_Item = Boolean(Item);
+        const Tiene_Horas_Definidas =
+          Refs.Tipo?.value === "Si" && !Refs.Sin_Horas?.checked;
         Refs.Campo?.classList.toggle("Oculto", !Tiene_Item);
         Refs.Campo_Hora?.classList.toggle(
           "Oculto",
-          !Tiene_Item || Refs.Tipo?.value !== "Si"
+          !Tiene_Item || !Tiene_Horas_Definidas
         );
         if (!Tiene_Item) {
           if (Input) Input.value = "0";
@@ -56914,7 +57036,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Horas = Math.max(0, Number(Refs.Horas?.value) || 0);
         if (Refs.Hora) {
           const Por_Hora =
-            Refs.Tipo?.value === "Si" && Horas > 0
+            Tiene_Horas_Definidas && Horas > 0
               ? Aporte / Horas
               : 0;
           Refs.Hora.value = Meta_Aporte_Formatear(
@@ -56931,6 +57053,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 fecha: Planes_Formatear_Fecha_Larga(
                   Sugerencia.Fecha
                 ),
+                dias: Sugerencia.Dias,
                 semanas: Sugerencia.Semanas,
                 cantidad: Sugerencia.Cantidad,
                 diario: Sugerencia.Diario,
@@ -57047,6 +57170,38 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return { Inicio, Fin };
       }
 
+      function Metas_Sugeridas_Fecha_Referencia() {
+        const Hoy = Parsear_Fecha_ISO(
+          Formatear_Fecha_ISO(new Date())
+        );
+        const Inicio = Metas_Sugeridas_Semana_Base();
+        if (!Hoy || !Inicio) return Hoy || Inicio || null;
+        if (Hoy < Inicio) return Inicio;
+        return Hoy;
+      }
+
+      function Metas_Sugeridas_Dias_Restantes_Objetivo(
+        Fin,
+        Referencia = Metas_Sugeridas_Fecha_Referencia()
+      ) {
+        const Fin_Fecha = Parsear_Fecha_ISO(Fin);
+        if (!Fin_Fecha || !Referencia || Fin_Fecha < Referencia) {
+          return 0;
+        }
+        return Math.max(1, Dias_Entre(Referencia, Fin_Fecha) + 1);
+      }
+
+      function Metas_Sugeridas_Dias_Restantes_Semana(
+        Referencia = Metas_Sugeridas_Fecha_Referencia()
+      ) {
+        const Inicio = Metas_Sugeridas_Semana_Base();
+        if (!Inicio || !Referencia) return 0;
+        const Fin = Sumar_Dias(Inicio, 6);
+        if (Referencia > Fin) return 0;
+        const Desde = Referencia < Inicio ? Inicio : Referencia;
+        return Math.max(0, Dias_Entre(Desde, Fin) + 1);
+      }
+
       function Metas_Sugeridas_Parte_En_Semana(
         Parte,
         Inicio_Semana,
@@ -57124,24 +57279,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Progreso_Total_Subobjetivo(Sub)
         );
         const Pendiente = Math.max(0, Base - Progreso);
-        const Semanas = Metas_Sugeridas_Semanas_Restantes(Fin);
-        return Meta_Aporte_Redondear(Pendiente / Semanas, Unidad);
+        const Referencia = Metas_Sugeridas_Fecha_Referencia();
+        const Dias = Metas_Sugeridas_Dias_Restantes_Objetivo(
+          Fin,
+          Referencia
+        );
+        const Dias_Semana =
+          Metas_Sugeridas_Dias_Restantes_Semana(Referencia);
+        if (Dias <= 0 || Dias_Semana <= 0) return 0;
+        const Dias_Aplicables = Math.min(Dias, Dias_Semana);
+        return Meta_Aporte_Redondear(
+          (Pendiente / Dias) * Dias_Aplicables,
+          Unidad
+        );
       }
 
       function Metas_Sugeridas_Aporte_Diario(Sub, Rango, Unidad) {
-        const Inicio_Explicito =
-          Planes_Normalizar_Fecha_Comparacion(Sub?.Fecha_Inicio);
         const Fin_Explicito =
           Planes_Normalizar_Fecha_Comparacion(
             Sub?.Fecha_Objetivo || Sub?.Fecha_Fin
-          );
-        if (!Inicio_Explicito || !Fin_Explicito) return 0;
-        const Inicio = Parsear_Fecha_ISO(Inicio_Explicito);
-        const Fin = Parsear_Fecha_ISO(Fin_Explicito);
-        const Base = Metas_Sugeridas_Semana_Base();
-        if (!Inicio || !Fin || Fin < Base) return 0;
-        const Desde = Inicio > Base ? Inicio : Base;
-        const Dias = Math.max(1, Dias_Entre(Desde, Fin) + 1);
+          ) || Rango?.Fin;
+        const Referencia = Metas_Sugeridas_Fecha_Referencia();
+        const Dias = Metas_Sugeridas_Dias_Restantes_Objetivo(
+          Fin_Explicito,
+          Referencia
+        );
+        if (Dias <= 0) return 0;
         const Target = Number(Sub?.Target_Total) || 0;
         const Aporte = Number(Sub?.Aporte_Meta) || 0;
         const Total = Target > 0 ? Target : Aporte;
@@ -58090,7 +58253,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Number.isFinite(Manual) && Manual >= 0) {
           return Meta_Aporte_Redondear(Manual, Unidad);
         }
-        if (Objetivo.Es_Bolsa) {
+        if (Objetivo_Tiene_Horas_Definidas(Objetivo)) {
           const Horas = Math.max(
             0,
             Number(Objetivo.Horas_Semanales) || 0
@@ -58508,19 +58671,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Total, Evento) => Total + (Number(Evento.Duracion) || 0),
           0
         );
-        const Horas_Pendientes = Objetivo.Es_Bolsa
+        const Usa_Horas = Objetivo_Tiene_Horas_Definidas(Objetivo);
+        const Horas_Pendientes = Usa_Horas
           ? Math.max(
             0,
             (Number(Objetivo.Horas_Semanales) || 0) -
               Horas_Colocadas
           )
           : 0;
-        const Capacidad = Objetivo.Es_Bolsa
+        const Capacidad = Usa_Horas
           ? Futuros.reduce((Total, Evento) => {
             return Total + (Number(Evento.Duracion) || 0);
           }, 0) + Horas_Pendientes
           : Futuros.length;
-        if (!Objetivo.Es_Bolsa && !Futuros.length) return true;
+        if (!Usa_Horas && !Futuros.length) return true;
         if (Pendiente > 0 && Capacidad <= 0) {
           Mostrar_Toast_Info(t("meta_aporte.sin_capacidad"));
           return false;
@@ -58532,10 +58696,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           let Cantidad;
           if (
             Es_Ultimo &&
-            (!Objetivo.Es_Bolsa || Horas_Pendientes <= 0)
+            (!Usa_Horas || Horas_Pendientes <= 0)
           ) {
             Cantidad = Restante;
-          } else if (Objetivo.Es_Bolsa) {
+          } else if (Usa_Horas) {
             Cantidad = Pendiente *
               ((Number(Evento.Duracion) || 0) / Capacidad);
           } else {
@@ -68390,7 +68554,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Limpiar_Planes_Slot_Evento(Evento_Data) {
         Obtener_Claves_Plan_Slot_Evento(Evento_Data)
           .forEach((Clave) => {
-            Limpiar_Plan_Slot_Por_Clave(Clave);
+            Limpiar_Items_Plan_Slot_Por_Clave(Clave);
           });
       }
 
@@ -68897,7 +69061,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ) return;
 
           // Omitir si la bolsa no tiene horas suficientes.
-          if (Objetivo?.Es_Bolsa) {
+          if (Objetivo_Tiene_Horas_Definidas(Objetivo)) {
             const Restantes = Calcular_Horas_Restantes(Objetivo);
             if (Restantes < Evento_Origen.Duracion) return;
           }
@@ -69023,9 +69187,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Objetivo.Descripcion_Corta || "",
           Emoji: Objetivo.Emoji,
           Color: Objetivo.Color,
-          Horas_Semanales: Objetivo.Horas_Semanales,
-          Restante: Objetivo.Horas_Semanales,
+          Horas_Semanales: Objetivo_Sin_Horas_Definidas(Objetivo)
+            ? 0
+            : Objetivo.Horas_Semanales,
+          Restante: Objetivo_Sin_Horas_Definidas(Objetivo)
+            ? 0
+            : Objetivo.Horas_Semanales,
           Es_Bolsa: Objetivo.Es_Bolsa,
+          Sin_Horas_Definidas:
+            Objetivo_Sin_Horas_Definidas(Objetivo),
+          Realizadas_Manuales_Semanales: {},
           Es_Fija: Es_Fija_Copia,
           Categoria_Id: Objetivo.Categoria_Id || null,
           Etiquetas_Ids: Normalizar_Etiquetas_Ids(
@@ -74438,6 +74609,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Habito_Editor_Borrador = Habito_Crear_Borrador_Nuevo();
         }
         Render_Modal_Habitos();
+        Render_Habitos_Sidebar();
         Guardar_Estado();
       }
 
@@ -74472,6 +74644,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           Render_Modal_Habitos();
         }
+        Render_Habitos_Sidebar();
         Guardar_Estado();
       }
 
@@ -77114,7 +77287,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Items_Anteriores = Normalizar_Items_Plan_Slot(
           JSON.parse(JSON.stringify(Plan_Anterior?.Items || []))
         );
-        Planes_Slot[Clave] = { Items };
+        Guardar_Plan_Slot_Clave(Clave, Items);
         Habito_Sincronizar_Items_Plan_Slot(
           Modal_Plan_Slot_Fecha,
           Items_Anteriores,
@@ -77247,9 +77420,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Aplicar_Plan_Multi_A_Slots(Contexto, Items) {
         (Contexto.Claves || []).forEach((Clave) => {
-          Planes_Slot[Clave] = {
-            Items: Clonar_Items_Plan_Slot(Items)
-          };
+          Guardar_Plan_Slot_Clave(
+            Clave,
+            Clonar_Items_Plan_Slot(Items)
+          );
         });
       }
 
@@ -77499,7 +77673,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Obtener_Aplica_A_Slot(Fecha, Hora)
         );
         if (!Items) return;
-        Planes_Slot[Clave] = { Items };
+        Guardar_Plan_Slot_Clave(Clave, Items);
         Render_Calendario();
         Guardar_Estado();
       }
@@ -77597,12 +77771,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Base = Modo === "Agregar"
           ? JSON.parse(JSON.stringify(Actual?.Items || []))
           : [];
-        Planes_Slot[Clave] = {
-          Items: [
-            ...Base,
-            ...Clonar_Items_Plan_Slot(Items_Copiados)
-          ]
-        };
+        Guardar_Plan_Slot_Clave(Clave, [
+          ...Base,
+          ...Clonar_Items_Plan_Slot(Items_Copiados)
+        ]);
         Eventos_Multi_Seleccion.clear();
         Slots_Multi_Seleccion.clear();
         Render_Calendario();
@@ -77716,11 +77888,77 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Calendario();
         Guardar_Estado();
       }
+
+      async function Crear_Tarea_Rapida_Desde_Slot(Fecha, Hora) {
+        if (!Slot_Esta_Vacio(Fecha, Hora)) return false;
+        const Nombre = await Mostrar_Dialogo_Con_Texto(
+          t("slot.tarea_rapida_nombre"),
+          {
+            Tipo: "text",
+            Placeholder: t("sidebar.nombre_ph"),
+            Default: "",
+            Etiqueta_Confirmar: t("dialog.confirmar_btn"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (Nombre === null) return false;
+        const Nombre_Limpio = String(Nombre || "").trim();
+        if (!Nombre_Limpio) return false;
+        const Emoji = await Mostrar_Dialogo_Con_Texto(
+          t("slot.tarea_rapida_emoji"),
+          {
+            Tipo: "text",
+            Placeholder: "\u2022",
+            Default: "\u2022",
+            Etiqueta_Confirmar: t("dialog.confirmar_btn"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (Emoji === null) return false;
+        const Semana_Clave =
+          Normalizar_Clave_Semana_Desde_Fecha(Fecha) ||
+          Clave_Semana_Actual();
+        const Objetivo = Crear_Objetivo_Semanal_Con_Datos({
+          Nombre: Nombre_Limpio,
+          Descripcion_Corta: "",
+          Emoji: Normalizar_Emoji(Emoji || "\u2022") || "\u2022",
+          Color: Color_Tarea_Suelta_Default,
+          Es_Bolsa: false,
+          Horas_Semanales: 0,
+          Sin_Horas_Definidas: false,
+          Categoria_Id: null,
+          Etiquetas_Ids: []
+        }, Semana_Clave);
+        const Creado = await Crear_Evento_Desde_Objetivo(
+          Objetivo,
+          Fecha,
+          Hora,
+          1
+        );
+        if (!Creado) {
+          Objetivos = Objetivos.filter((Item) =>
+            Item.Id !== Objetivo.Id
+          );
+          Render_Emojis();
+          Guardar_Estado();
+          return false;
+        }
+        Objetivo_Seleccionada_Id = Objetivo.Id;
+        Modo_Editor_Abierto = false;
+        Render_Emojis();
+        Render_Resumen_Objetivo();
+        Render_Editor();
+        Guardar_Estado();
+        return true;
+      }
+
       function Mostrar_Menu_Slot(Fecha, Hora, X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
+        const Es_Slot_Vacio = Slot_Esta_Vacio(Fecha, Hora);
         const Tiene_Plan = Contar_Items_Plan_Slot(Fecha, Hora) > 0;
+        const Tiene_Nota = Boolean(Obtener_Nota_Slot(Fecha, Hora));
         const Puede_Pegar_Bloques =
-          Slot_Esta_Vacio(Fecha, Hora) &&
+          Es_Slot_Vacio &&
           Array.isArray(Portapapeles_Eventos_Multi?.Items) &&
           Portapapeles_Eventos_Multi.Items.length > 0;
         const Puede_Pegar_Plan =
@@ -77755,6 +77993,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               )
             );
           }
+        }
+
+        const Grupo_Rapido = [];
+        if (Es_Slot_Vacio) {
+          Grupo_Rapido.push(
+            Html_Menu_Dia_Accion(
+              "tarea-rapida-slot",
+              t("slot.tarea_rapida")
+            )
+          );
+        }
+
+        const Grupo_Nota = [
+          Html_Menu_Dia_Accion(
+            "nota-slot",
+            Tiene_Nota
+              ? t("contexto.editar_nota")
+              : t("contexto.agregar_nota")
+          )
+        ];
+        if (Tiene_Nota) {
+          Grupo_Nota.push(
+            Html_Menu_Dia_Accion(
+              "borrar-nota-slot",
+              t("contexto.borrar_nota")
+            )
+          );
         }
 
         const Grupo_Plan = [];
@@ -77835,6 +78100,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Menu.innerHTML = Construir_Menu_Dia_Por_Grupos([
           Grupo_Identidad,
+          Grupo_Rapido,
+          Grupo_Nota,
           Grupo_Plan,
           Grupo_Patron,
           Grupo_Calendario,
@@ -77900,6 +78167,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Abrir_Modal_Plan_Slot(Fecha, Hora);
+          });
+        Menu.querySelector(`[data-acc="tarea-rapida-slot"]`)
+          ?.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Crear_Tarea_Rapida_Desde_Slot(Fecha, Hora);
+          });
+        Menu.querySelector(`[data-acc="nota-slot"]`)
+          ?.addEventListener("click", async (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            await Editar_Nota_Slot(Fecha, Hora);
+          });
+        Menu.querySelector(`[data-acc="borrar-nota-slot"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Borrar_Nota_Slot(Fecha, Hora);
+            Render_Calendario();
+            Guardar_Estado();
           });
         Menu.querySelector(`[data-acc="pegar-bloques-slot"]`)
           ?.addEventListener("click", async (Ev) => {
@@ -81367,7 +81654,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
 
         if (
-          Objetivo.Es_Bolsa &&
+          Objetivo_Tiene_Horas_Definidas(Objetivo) &&
           Calcular_Horas_Restantes(Objetivo) < Duracion_Final
         ) {
           const Agrego_Hora =
@@ -82853,6 +83140,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Boolean(Objetivo.Fracasos_Semanales[Clave_Semana]);
       }
 
+      function Objetivo_Sin_Horas_Definidas(Objetivo) {
+        return Boolean(Objetivo?.Es_Bolsa && Objetivo.Sin_Horas_Definidas);
+      }
+
+      function Objetivo_Tiene_Horas_Definidas(Objetivo) {
+        return Boolean(Objetivo?.Es_Bolsa) &&
+          !Objetivo_Sin_Horas_Definidas(Objetivo);
+      }
+
+      function Objetivo_Esta_Realizada_Manual(
+        Objetivo,
+        Clave_Semana = Clave_Semana_Actual()
+      ) {
+        if (!Objetivo?.Realizadas_Manuales_Semanales) return false;
+        return Boolean(
+          Objetivo.Realizadas_Manuales_Semanales[Clave_Semana]
+        );
+      }
+
+      function Alternar_Realizada_Manual_Objetivo(Objetivo) {
+        if (!Objetivo_Sin_Horas_Definidas(Objetivo)) return false;
+        if (
+          !Objetivo.Realizadas_Manuales_Semanales ||
+          typeof Objetivo.Realizadas_Manuales_Semanales !== "object"
+        ) {
+          Objetivo.Realizadas_Manuales_Semanales = {};
+        }
+        const Clave = Clave_Semana_Actual();
+        const Queda_Realizada =
+          !Boolean(Objetivo.Realizadas_Manuales_Semanales[Clave]);
+        Objetivo.Realizadas_Manuales_Semanales[Clave] =
+          Queda_Realizada;
+        if (!Queda_Realizada) {
+          delete Objetivo.Realizadas_Manuales_Semanales[Clave];
+        }
+        return true;
+      }
+
       function Alternar_Fracasada_Semana_Objetivo(Objetivo) {
         if (!Objetivo) return;
         if (!Objetivo.Fracasos_Semanales || typeof Objetivo.Fracasos_Semanales !== "object") {
@@ -82866,6 +83191,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Objetivo_Esta_Completa(Objetivo) {
         if (Objetivo_Esta_Fracasada(Objetivo)) return false;
+        if (Objetivo_Sin_Horas_Definidas(Objetivo)) {
+          return Objetivo_Esta_Realizada_Manual(Objetivo);
+        }
         const Eventos_Objetivo = Obtener_Eventos_Objetivo(Objetivo);
         const Todos_Hechos = Eventos_Objetivo.length > 0 && Eventos_Objetivo.every((Evento) => Evento.Hecho);
         if (!Todos_Hechos) return false;
@@ -82875,7 +83203,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Calcular_Horas_Restantes(Objetivo) {
-        if (!Objetivo.Es_Bolsa) return 0;
+        if (!Objetivo_Tiene_Horas_Definidas(Objetivo)) return 0;
         return Math.max(0, Objetivo.Horas_Semanales - Calcular_Horas_Asignadas(Objetivo));
       }
 
@@ -82889,7 +83217,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Calcular_Horas_Restantes_Por_Tildes(Objetivo) {
-        if (!Objetivo?.Es_Bolsa) return 0;
+        if (!Objetivo_Tiene_Horas_Definidas(Objetivo)) return 0;
         const Horas_Hechas = Obtener_Eventos_Objetivo(Objetivo)
           .filter((Evento) => Boolean(Evento.Hecho))
           .reduce((Acumulado, Evento) => Acumulado + Normalizar_Duracion(Evento.Duracion), 0);
@@ -82897,6 +83225,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Obtener_Datos_Objetivo(Objetivo) {
+        const Es_Bolsa = Boolean(Objetivo?.Es_Bolsa);
+        const Sin_Horas_Definidas = Boolean(
+          Es_Bolsa && Objetivo?.Sin_Horas_Definidas
+        );
         return {
           Nombre: Objetivo?.Nombre || "Sin nombre",
           Descripcion_Corta: Normalizar_Descripcion_Baul(
@@ -82905,8 +83237,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ),
           Emoji: Normalizar_Emoji(Objetivo?.Emoji),
           Color: Objetivo?.Color || Obtener_Color_Default(),
-          Es_Bolsa: Boolean(Objetivo?.Es_Bolsa),
-          Horas_Semanales: Boolean(Objetivo?.Es_Bolsa)
+          Es_Bolsa,
+          Sin_Horas_Definidas,
+          Horas_Semanales: Es_Bolsa && !Sin_Horas_Definidas
             ? Normalizar_Duracion(Objetivo?.Horas_Semanales)
             : 0,
           Es_Fija: Boolean(Objetivo?.Es_Fija),
@@ -82927,6 +83260,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Obtener_Datos_Editor() {
         const Es_Bolsa = El_Editor_Tipo_Input.value === "Si";
+        const Sin_Horas_Definidas = Boolean(
+          Es_Bolsa && El_Editor_Sin_Horas_Definidas?.checked
+        );
         return {
           Nombre: El_Editor_Nombre_Input.value.trim() || "Sin nombre",
           Descripcion_Corta: Normalizar_Descripcion_Baul(
@@ -82935,7 +83271,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Emoji: Normalizar_Emoji(El_Editor_Emoji_Input.value),
           Color: El_Editor_Color_Input.value || Obtener_Color_Default(),
           Es_Bolsa,
-          Horas_Semanales: Es_Bolsa
+          Sin_Horas_Definidas,
+          Horas_Semanales: Es_Bolsa && !Sin_Horas_Definidas
             ? Normalizar_Duracion(El_Editor_Horas_Input.value)
             : 0,
           Es_Fija: El_Editor_Periodicidad_Input.value === "Fija",
@@ -82970,6 +83307,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Id: Crear_Id(),
           Familia_Id,
           Fracasos_Semanales: {},
+          Realizadas_Manuales_Semanales: {},
           Subobjetivos_Semanales: {},
           Subobjetivos_Contraidas_Semanales: {},
           Subobjetivos_Excluidos_Semanales: {},
@@ -82983,6 +83321,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Emoji: Base_Objetivo.Emoji,
           Color: Base_Objetivo.Color,
           Es_Bolsa: Base_Objetivo.Es_Bolsa,
+          Sin_Horas_Definidas:
+            Boolean(Base_Objetivo.Sin_Horas_Definidas),
           Horas_Semanales: Base_Objetivo.Horas_Semanales,
           Restante: Base_Objetivo.Horas_Semanales,
           Categoria_Id: Base_Objetivo.Categoria_Id || null,
@@ -83009,6 +83349,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Id: Crear_Id(),
           Familia_Id,
           Fracasos_Semanales: {},
+          Realizadas_Manuales_Semanales: {},
           Subobjetivos_Semanales: {},
           Subobjetivos_Contraidas_Semanales: {},
           Subobjetivos_Excluidos_Semanales: {},
@@ -83022,6 +83363,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Emoji: Datos.Emoji,
           Color: Datos.Color,
           Es_Bolsa: Datos.Es_Bolsa,
+          Sin_Horas_Definidas:
+            Boolean(Datos.Es_Bolsa && Datos.Sin_Horas_Definidas),
           Horas_Semanales: Datos.Horas_Semanales,
           Restante: Datos.Horas_Semanales,
           Categoria_Id: Datos.Categoria_Id || null,
@@ -83045,6 +83388,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Objetivo.Emoji = Datos.Emoji;
         Objetivo.Color = Datos.Color;
         Objetivo.Es_Bolsa = Datos.Es_Bolsa;
+        Objetivo.Sin_Horas_Definidas =
+          Boolean(Datos.Es_Bolsa && Datos.Sin_Horas_Definidas);
         Objetivo.Horas_Semanales = Datos.Horas_Semanales;
         Objetivo.Restante = Datos.Horas_Semanales;
         Objetivo.Categoria_Id = Datos.Categoria_Id || null;
@@ -84457,6 +84802,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         })).filter((Item) => Item.Texto);
       }
 
+      function Normalizar_Nota_Slot(Valor) {
+        return String(Valor || "").trim();
+      }
+
+      function Plan_Slot_Tiene_Contenido(Plan) {
+        return Boolean(
+          (Array.isArray(Plan?.Items) && Plan.Items.length > 0) ||
+          Normalizar_Nota_Slot(Plan?.Nota)
+        );
+      }
+
+      function Guardar_Plan_Slot_Clave(Clave, Items_Base = []) {
+        if (!Clave) return null;
+        const Items = Normalizar_Items_Plan_Slot(Items_Base);
+        const Nota = Normalizar_Nota_Slot(
+          Planes_Slot?.[Clave]?.Nota
+        );
+        if (!Items.length && !Nota) {
+          delete Planes_Slot[Clave];
+          return null;
+        }
+        const Plan = { Items };
+        if (Nota) Plan.Nota = Nota;
+        Planes_Slot[Clave] = Plan;
+        return Plan;
+      }
+
+      function Limpiar_Items_Plan_Slot_Por_Clave(Clave) {
+        return Guardar_Plan_Slot_Clave(Clave, []);
+      }
+
       function Normalizar_Planes_Slot() {
         Normalizar_Slots_Muertos();
         const Resultado = {};
@@ -84472,6 +84848,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               const [Fecha, Hora_Base] =
                 Clave.split("|");
               const Hora = Number(Hora_Base);
+              const Nota = Normalizar_Nota_Slot(Plan?.Nota);
+              const Items = Normalizar_Items_Plan_Slot(
+                Plan?.Items || []
+              );
               if (
                 !Slot_Es_Muerto(Fecha, Hora) &&
                 Slot_Tiene_Evento(Fecha, Hora)
@@ -84489,16 +84869,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ) {
                   Transferir_Items_Plan_Slot_A_Evento(
                     Evento_Slot,
-                    Plan?.Items || []
+                    Items
                   );
+                }
+                if (Nota) {
+                  Resultado[Clave] = { Items: [], Nota };
                 }
                 return;
               }
-              const Items = Normalizar_Items_Plan_Slot(
-                Plan?.Items || []
-              );
-              if (Items.length === 0) return;
+              if (Items.length === 0 && !Nota) return;
               Resultado[Clave] = { Items };
+              if (Nota) Resultado[Clave].Nota = Nota;
             }
           );
         }
@@ -84529,6 +84910,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (!Array.isArray(Planes_Slot[Clave].Items)) {
           Planes_Slot[Clave].Items = [];
+        }
+        if (Planes_Slot[Clave].Nota !== undefined) {
+          const Nota = Normalizar_Nota_Slot(
+            Planes_Slot[Clave].Nota
+          );
+          if (Nota) {
+            Planes_Slot[Clave].Nota = Nota;
+          } else {
+            delete Planes_Slot[Clave].Nota;
+          }
         }
         return Planes_Slot[Clave];
       }
@@ -84587,7 +84978,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Plan_Firma: Obtener_Firma_Plan_Slot(
             Fecha,
             Hora
-          )
+          ),
+          Nota: Obtener_Nota_Slot(Fecha, Hora)
         };
       }
 
@@ -84611,7 +85003,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Perfil_A.Visible === Perfil_B.Visible &&
           Perfil_A.Nombre_Auto ===
             Perfil_B.Nombre_Auto &&
-          Perfil_A.Plan_Firma === Perfil_B.Plan_Firma;
+          Perfil_A.Plan_Firma === Perfil_B.Plan_Firma &&
+          Perfil_A.Nota === Perfil_B.Nota;
       }
 
       function Slot_Muerto_Es_Misma_Franja(
@@ -84722,7 +85115,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Plan_Items: Duplicar_Items_Plan_Slot(
             Plan?.Items || [],
             false
-          )
+          ),
+          Nota: Normalizar_Nota_Slot(Plan?.Nota)
         };
       }
 
@@ -84814,9 +85208,51 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      function Obtener_Nota_Slot(Fecha, Hora) {
+        const Plan = Obtener_Plan_Slot(Fecha, Hora, false);
+        return Normalizar_Nota_Slot(Plan?.Nota);
+      }
+
+      function Guardar_Nota_Slot(Fecha, Hora, Texto) {
+        const Clave = Clave_Slot(Fecha, Hora);
+        const Plan = Obtener_Plan_Slot(Fecha, Hora, true);
+        const Nota = Normalizar_Nota_Slot(Texto);
+        if (Nota) {
+          Plan.Nota = Nota;
+        } else {
+          delete Plan.Nota;
+        }
+        if (!Plan_Slot_Tiene_Contenido(Plan)) {
+          Limpiar_Plan_Slot_Por_Clave(Clave);
+        }
+        Marcar_Sync_Critico_Inmediato_Pendiente();
+        return Nota;
+      }
+
+      function Borrar_Nota_Slot(Fecha, Hora) {
+        return Guardar_Nota_Slot(Fecha, Hora, "");
+      }
+
+      async function Editar_Nota_Slot(Fecha, Hora) {
+        const Texto = await Mostrar_Dialogo_Con_Texto(
+          t("evento.nota_dialog"),
+          {
+            Tipo: "text",
+            Placeholder: t("evento.nota_ph"),
+            Default: Obtener_Nota_Slot(Fecha, Hora),
+            Etiqueta_Confirmar: t("dialog.confirmar_btn"),
+            Etiqueta_Cancelar: t("cancelar")
+          }
+        );
+        if (Texto === null) return;
+        Guardar_Nota_Slot(Fecha, Hora, Texto);
+        Render_Calendario();
+        Guardar_Estado();
+      }
+
       function Limpiar_Contenido_Slot_Muerto_Clave(Clave) {
         Limpiar_Metadata_Slot_Muerto(Clave);
-        Limpiar_Plan_Slot_Por_Clave(Clave);
+        Limpiar_Items_Plan_Slot_Por_Clave(Clave);
       }
 
       function Guardar_Nombre_Slot_Muerto(
@@ -85485,14 +85921,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Array.isArray(Datos?.Plan_Items) &&
           Datos.Plan_Items.length > 0
         ) {
-          Planes_Slot[Clave] = {
-            Items: Duplicar_Items_Plan_Slot(
+          Guardar_Plan_Slot_Clave(
+            Clave,
+            Duplicar_Items_Plan_Slot(
               Datos.Plan_Items,
               Regenerar_Ids_Plan
             )
-          };
+          );
         } else {
           Limpiar_Plan_Slot_Por_Clave(Clave);
+        }
+        if (Object.prototype.hasOwnProperty.call(
+          Datos || {},
+          "Nota"
+        )) {
+          Guardar_Nota_Slot(Fecha, Hora, Datos.Nota);
         }
         return Clave;
       }
@@ -86567,7 +87010,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Slot_Es_Muerto(Fecha, Hora) ||
           Boolean(Slots_Muertos_Tipos[Clave]) ||
           Boolean(Obtener_Nombre_Slot_Por_Clave(Clave)) ||
-          Contar_Items_Plan_Slot(Fecha, Hora) > 0;
+          Contar_Items_Plan_Slot(Fecha, Hora) > 0 ||
+          Boolean(Obtener_Nota_Slot(Fecha, Hora));
       }
 
       function Limpiar_Evento_En_Calendario_Silencioso(
@@ -87573,7 +88017,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             return;
           }
           const Objetivo = Objetivo_Por_Id(Item.Objetivo_Id);
-          if (Objetivo?.Es_Bolsa) {
+          if (Objetivo_Tiene_Horas_Definidas(Objetivo)) {
             const Restantes = Calcular_Horas_Restantes(Objetivo);
             if (Restantes < Item.Duracion) {
               Avisar_Sin_Horas_Bolsa = true;
@@ -87650,7 +88094,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Nuevos_Ids = [];
         Propuesta_Eventos.forEach((Item) => {
           const Objetivo = Objetivo_Por_Id(Item.Objetivo_Id);
-          if (Objetivo?.Es_Bolsa) {
+          if (Objetivo_Tiene_Horas_Definidas(Objetivo)) {
             const Restantes = Calcular_Horas_Restantes(Objetivo);
             if (Restantes < Item.Duracion) {
               Avisar_Sin_Horas_Bolsa = true;
@@ -89061,6 +89505,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Mostrar_Archivadas: Config.Mostrar_Archivadas,
             Ocultar_Realizados_Sidebar:
               Config.Ocultar_Realizados_Sidebar,
+            Mostrar_Habitos_Sidebar:
+              Config.Mostrar_Habitos_Sidebar,
             Focus_Auto: Config.Focus_Auto,
             Menu_Estilo: Config.Menu_Estilo,
             Menu_Botones_Visibles:
@@ -89350,6 +89796,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ) {
               Config.Ocultar_Realizados_Sidebar =
                 Extra.Ocultar_Realizados_Sidebar;
+            }
+            if (
+              typeof Extra.Mostrar_Habitos_Sidebar === "boolean"
+            ) {
+              Config.Mostrar_Habitos_Sidebar =
+                Extra.Mostrar_Habitos_Sidebar;
             }
             if (typeof Extra.Focus_Auto === "boolean")
               Config.Focus_Auto = Extra.Focus_Auto;
@@ -89752,8 +90204,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Objetivos = Objetivos.map((Objetivo) => {
           const Es_Bolsa = Boolean(Objetivo.Es_Bolsa);
+          const Sin_Horas_Definidas = Boolean(
+            Es_Bolsa && Objetivo.Sin_Horas_Definidas
+          );
           const Es_Fija = Boolean(Objetivo.Es_Fija);
-          const Horas_Semanales = Es_Bolsa ? Normalizar_Duracion(Objetivo.Horas_Semanales) : 0;
+          const Horas_Semanales = Es_Bolsa && !Sin_Horas_Definidas
+            ? Normalizar_Duracion(Objetivo.Horas_Semanales)
+            : 0;
           const Semana_Base = Formatear_Fecha_ISO(
             Obtener_Lunes(Parsear_Fecha_ISO(Objetivo.Semana_Base) || Semana_Actual)
           );
@@ -89766,6 +90223,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Familia_Id = Objetivo.Familia_Id || Objetivo.Id;
           const Fracasos_Semanales = (Objetivo.Fracasos_Semanales && typeof Objetivo.Fracasos_Semanales === "object")
             ? { ...Objetivo.Fracasos_Semanales }
+            : {};
+          const Realizadas_Manuales_Semanales = (
+            Objetivo.Realizadas_Manuales_Semanales &&
+            typeof Objetivo.Realizadas_Manuales_Semanales === "object"
+          )
+            ? { ...Objetivo.Realizadas_Manuales_Semanales }
             : {};
           const Subobjetivos_Semanales = (Objetivo.Subobjetivos_Semanales && typeof Objetivo.Subobjetivos_Semanales === "object")
             || (Objetivo.Subtareas_Semanales && typeof Objetivo.Subtareas_Semanales === "object")
@@ -89844,6 +90307,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ...Objetivo,
             Familia_Id,
             Fracasos_Semanales,
+            Realizadas_Manuales_Semanales,
             Subobjetivos_Semanales,
             Subobjetivos_Contraidas_Semanales,
             Subobjetivos_Excluidos_Semanales,
@@ -89854,6 +90318,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Horas_Semanales,
             Restante: Horas_Semanales,
             Es_Bolsa,
+            Sin_Horas_Definidas,
             Es_Fija,
             Etiquetas_Ids: Normalizar_Etiquetas_Ids(
               Objetivo.Etiquetas_Ids
@@ -90031,7 +90496,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (
           Config.Globito_Activo !== false &&
-          Objetivo.Es_Bolsa &&
+          Objetivo_Tiene_Horas_Definidas(Objetivo) &&
           !Fracasada &&
           !Completa
         ) {
@@ -90358,6 +90823,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Config.Ocultar_Realizados_Sidebar
               ? t("sidebar.mostrar_realizados")
               : t("sidebar.ocultar_realizados")
+          ),
+          Html_Menu_Dia_Accion(
+            "toggle-habitos-sidebar",
+            Config.Mostrar_Habitos_Sidebar
+              ? t("sidebar.ocultar_habitos")
+              : t("sidebar.mostrar_habitos")
           )
         ];
         if (Tiene_Portapapeles_Objetivos_Multi()) {
@@ -90378,6 +90849,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Alternar_Realizados_Sidebar();
+          });
+        Menu.querySelector(`[data-acc="toggle-habitos-sidebar"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Alternar_Habitos_Sidebar();
           });
         Menu.querySelector(`[data-acc="pegar-objetivos"]`)
           ?.addEventListener("click", (Ev) => {
@@ -90434,11 +90911,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             t("contexto.editar_objetivo")
           )
         ];
-        if (Objetivo.Es_Bolsa) {
+        if (Objetivo_Tiene_Horas_Definidas(Objetivo)) {
           Grupo.push(
             Html_Menu_Dia_Accion(
               "editar-horas",
               t("contexto.editar_horas")
+            )
+          );
+        }
+        if (Objetivo_Sin_Horas_Definidas(Objetivo)) {
+          Grupo.push(
+            Html_Menu_Dia_Accion(
+              "toggle-realizada-manual",
+              Objetivo_Esta_Realizada_Manual(Objetivo)
+                ? t("multi.desmarcar")
+                : t("planes.marcar_realizado")
             )
           );
         }
@@ -90478,6 +90965,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Grupo.push(
           Html_Menu_Dia_Accion(
+            "toggle-habitos-sidebar",
+            Config.Mostrar_Habitos_Sidebar
+              ? t("sidebar.ocultar_habitos")
+              : t("sidebar.mostrar_habitos")
+          )
+        );
+        Grupo.push(
+          Html_Menu_Dia_Accion(
             "borrar-objetivo",
             t("borrar"),
             "Peligro"
@@ -90500,6 +90995,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             await Pedir_Editar_Horas_Objetivo(Objetivo);
+          });
+        Menu.querySelector(`[data-acc="toggle-realizada-manual"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            if (!Alternar_Realizada_Manual_Objetivo(Objetivo)) return;
+            Render_Emojis();
+            Render_Resumen_Objetivo();
+            Render_Editor();
+            Guardar_Estado();
           });
         Menu.querySelector(`[data-acc="copiar-objetivo"]`)
           ?.addEventListener("click", (Ev) => {
@@ -90540,6 +91045,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Alternar_Realizados_Sidebar();
+          });
+        Menu.querySelector(`[data-acc="toggle-habitos-sidebar"]`)
+          ?.addEventListener("click", (Ev) => {
+            Ev.stopPropagation();
+            Cerrar_Menu_Dia();
+            Alternar_Habitos_Sidebar();
           });
         Menu.querySelector(`[data-acc="borrar-objetivo"]`)
           ?.addEventListener("click", async (Ev) => {
@@ -91491,8 +92002,83 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
 
+      function Render_Habitos_Sidebar() {
+        if (!El_Sidebar_Habitos) return;
+        El_Sidebar_Habitos.innerHTML = "";
+        El_Sidebar_Habitos.classList.toggle(
+          "Oculto",
+          !Config.Mostrar_Habitos_Sidebar
+        );
+        if (!Config.Mostrar_Habitos_Sidebar) return;
+        const Fecha = Habitos_Fecha_Referencia();
+        const Activos = (Array.isArray(Habitos) ? Habitos : [])
+          .filter((Habito) =>
+            Habito?.Activo !== false &&
+            Habito_Coincide_Con_Dia(Habito, Fecha)
+          )
+          .sort((A, B) =>
+            (Number(A.Orden) || 0) - (Number(B.Orden) || 0)
+          );
+        Activos.forEach((Habito) => {
+          const Btn = document.createElement("button");
+          Btn.type = "button";
+          Btn.className = "Sidebar_Habito Con_Fallback_Emoji";
+          Btn.classList.toggle(
+            "Realizado",
+            Habito_Esta_Completo(Habito, Fecha)
+          );
+          Btn.title = `${Habito.Nombre || ""} - ${
+            Habito_Formatear_Progreso(Habito, Fecha)
+          }`;
+          Aplicar_Emoji_En_Elemento(
+            Btn,
+            Habito.Emoji || "\u2022"
+          );
+          const Indicador = document.createElement("span");
+          Indicador.className = "Sidebar_Habito_Indicador";
+          Indicador.textContent =
+            Habito_Formatear_Progreso(Habito, Fecha);
+          Btn.appendChild(Indicador);
+          Btn.addEventListener("click", () => {
+            Abrir_Modal_Habitos(Habito.Id, { Retorno: "Panel" });
+          });
+          El_Sidebar_Habitos.appendChild(Btn);
+        });
+      }
+
+      function Calcular_Unidades_Subobjetivos_Objetivo(Objetivo) {
+        const Mapa = new Map();
+        Obtener_Subobjetivos_Semana(Objetivo)
+          .forEach((Sub) => {
+            const Total = Number(Sub?.Aporte_Total) || 0;
+            if (Total <= 0) return;
+            const Unidad = String(
+              Sub?.Unidad_Custom ||
+              Sub?.Unidad ||
+              Objetivo?.Meta_Aporte_Unidad ||
+              ""
+            ).trim();
+            const Clave = Unidad || "__sin_unidad__";
+            const Actual = Mapa.get(Clave) || {
+              Unidad,
+              Total: 0,
+              Realizadas: 0
+            };
+            Actual.Total += Total;
+            if (Sub?.Hecha) {
+              Actual.Realizadas += Total;
+            }
+            Mapa.set(Clave, Actual);
+          });
+        return Array.from(Mapa.values()).map((Item) => ({
+          ...Item,
+          Restantes: Math.max(0, Item.Total - Item.Realizadas)
+        }));
+      }
+
       function Render_Emojis() {
         El_Lista_Emojis.innerHTML = "";
+        Render_Habitos_Sidebar();
         const Visibles = Obtener_Objetivos_Visibles();
 
         if (!Config.Agrupar_Por_Categorias || Categorias.length === 0) {
@@ -91599,7 +92185,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
 
         // Card 1: Horas.
-        if (Objetivo.Es_Bolsa) {
+        if (Objetivo_Sin_Horas_Definidas(Objetivo)) {
+          Cont.appendChild(
+            Crear_Card(
+              t("resumen.card_tipo"),
+              t("sidebar.sin_horas_definidas"),
+              Objetivo_Esta_Realizada_Manual(Objetivo)
+                ? t("resumen.realizado")
+                : "",
+              null,
+              Color_T
+            )
+          );
+        } else if (Objetivo.Es_Bolsa) {
           const Pct_H = Total_Horas > 0
             ? Math.min(100,
                 Math.round((Horas_Hechas / Total_Horas) * 100))
@@ -91656,6 +92254,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
           );
         }
+
+        const Formatear_Unidad = (Cantidad, Unidad) => {
+          const Numero = Planes_Formatear_Numero(Cantidad);
+          return Unidad ? `${Numero} ${Unidad}` : Numero;
+        };
+        Calcular_Unidades_Subobjetivos_Objetivo(Objetivo)
+          .forEach((Item) => {
+            const Unidad_Label = Item.Unidad ||
+              t("resumen.card_unidad_sin_nombre");
+            const Pct_U = Item.Total > 0
+              ? Math.min(
+                100,
+                Math.round((Item.Realizadas / Item.Total) * 100)
+              )
+              : 0;
+            Cont.appendChild(
+              Crear_Card(
+                `${t("resumen.card_unidades")} - ${Unidad_Label}`,
+                Formatear_Unidad(Item.Total, Item.Unidad),
+                t("resumen.card_unidades_detalle", {
+                  realizadas: Formatear_Unidad(
+                    Item.Realizadas,
+                    Item.Unidad
+                  ),
+                  restantes: Formatear_Unidad(
+                    Item.Restantes,
+                    Item.Unidad
+                  )
+                }),
+                Pct_U,
+                Color_T
+              )
+            );
+          });
       }
 
       function Render_Resumen_Objetivo() {
@@ -91727,9 +92359,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         El_Resumen_Libres.textContent = "";
         El_Resumen_Total.textContent = "";
-        const Porcentaje = Objetivo.Es_Bolsa && Objetivo.Horas_Semanales > 0
+        const Porcentaje = Objetivo_Tiene_Horas_Definidas(Objetivo) &&
+          Objetivo.Horas_Semanales > 0
           ? (Horas_Restantes / Objetivo.Horas_Semanales) * 100
-          : 100;
+          : (Objetivo_Esta_Completa(Objetivo) ? 100 : 0);
         El_Resumen_Barra.style.width = `${Math.max(0, Math.min(100, Porcentaje))}%`;
         El_Resumen_Barra.style.background = Objetivo.Color || Obtener_Color_Default();
         Render_Subobjetivos_Resumen(Objetivo);
@@ -91923,6 +92556,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Editor_Color_Input.value = Datos.Color || Obtener_Color_Default();
         El_Editor_Horas_Input.value = Datos.Horas_Semanales ?? 0;
         El_Editor_Tipo_Input.value = Datos.Es_Bolsa ? "Si" : "No";
+        if (El_Editor_Sin_Horas_Definidas) {
+          El_Editor_Sin_Horas_Definidas.checked =
+            Boolean(Datos.Sin_Horas_Definidas);
+        }
         El_Editor_Periodicidad_Input.value = Datos.Es_Fija ? "Fija" : "Semana";
         Poblar_Select_Categorias(
           El_Editor_Categoria_Input, Datos.Categoria_Id
@@ -91964,15 +92601,47 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Fuente = Datos || Obtener_Datos_Objetivo(Objetivo);
         const Horas_Asignadas = Objetivo ? Calcular_Horas_Asignadas(Objetivo) : 0;
         const Horas_Restantes = Fuente.Es_Bolsa
+          && !Fuente.Sin_Horas_Definidas
           ? Math.max(0, Fuente.Horas_Semanales - Horas_Asignadas)
           : 0;
         El_Editor_Nombre.textContent = Fuente.Nombre || "Sin nombre";
-        El_Editor_Estado.textContent = Fuente.Es_Bolsa ? `${Formatear_Horas(Horas_Restantes)} libres` : "Objetivo semanal";
+        El_Editor_Estado.textContent = Fuente.Sin_Horas_Definidas
+          ? t("sidebar.sin_horas_definidas")
+          : (Fuente.Es_Bolsa
+            ? `${Formatear_Horas(Horas_Restantes)} libres`
+            : "Objetivo semanal");
         Aplicar_Emoji_En_Elemento(
           El_Editor_Emoji,
           Fuente.Emoji || "\u2022"
         );
-        El_Editor_Horas_Input.disabled = !Fuente.Es_Bolsa;
+        Sincronizar_Campos_Sin_Horas_Editor();
+      }
+
+      function Sincronizar_Campos_Sin_Horas_Creador() {
+        const Es_Bolsa = El_Es_Bolsa?.value === "Si";
+        if (El_Sin_Horas_Definidas) {
+          El_Sin_Horas_Definidas.disabled = !Es_Bolsa;
+          if (!Es_Bolsa) El_Sin_Horas_Definidas.checked = false;
+        }
+        if (El_Horas_Semanales) {
+          El_Horas_Semanales.disabled =
+            !Es_Bolsa || Boolean(El_Sin_Horas_Definidas?.checked);
+        }
+      }
+
+      function Sincronizar_Campos_Sin_Horas_Editor() {
+        const Es_Bolsa = El_Editor_Tipo_Input?.value === "Si";
+        if (El_Editor_Sin_Horas_Definidas) {
+          El_Editor_Sin_Horas_Definidas.disabled = !Es_Bolsa;
+          if (!Es_Bolsa) {
+            El_Editor_Sin_Horas_Definidas.checked = false;
+          }
+        }
+        if (El_Editor_Horas_Input) {
+          El_Editor_Horas_Input.disabled =
+            !Es_Bolsa ||
+            Boolean(El_Editor_Sin_Horas_Definidas?.checked);
+        }
       }
 
       function Render_Creador_Colores() {
@@ -91998,7 +92667,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sugerencia: El_Meta_Aporte_Sugerencia,
           Sugerencia_Texto: El_Meta_Aporte_Sugerencia_Texto,
           Horas: El_Horas_Semanales,
-          Tipo: El_Es_Bolsa
+          Tipo: El_Es_Bolsa,
+          Sin_Horas: El_Sin_Horas_Definidas
         });
       }
 
@@ -92014,7 +92684,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sugerencia: El_Editor_Meta_Aporte_Sugerencia,
           Sugerencia_Texto: El_Editor_Meta_Aporte_Sugerencia_Texto,
           Horas: El_Editor_Horas_Input,
-          Tipo: El_Editor_Tipo_Input
+          Tipo: El_Editor_Tipo_Input,
+          Sin_Horas: El_Editor_Sin_Horas_Definidas
         });
       }
 
@@ -92154,6 +92825,45 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               "\u{1F5C2}\uFE0F"
             );
             Slot.appendChild(Marca_Plan);
+          }
+          const Nota_Slot = Obtener_Nota_Slot(Fecha_ISO, Hora);
+          if (
+            Nota_Slot &&
+            (
+              Slot_Es_Muerto(Fecha_ISO, Hora) ||
+              Slot_Esta_Vacio(Fecha_ISO, Hora)
+            )
+          ) {
+            const Marca_Nota = document.createElement("div");
+            Marca_Nota.className =
+              "Evento_Nota_Marca Con_Fallback_Emoji";
+            if (Conteo_Plan_Slot > 0) {
+              Marca_Nota.style.right = "28px";
+            }
+            Marca_Nota.title = t("evento.tiene_nota_title");
+            Aplicar_Emoji_En_Elemento(
+              Marca_Nota,
+              "\u{1F4DD}"
+            );
+            Marca_Nota.addEventListener("mousedown", (Ev) => {
+              Ev.stopPropagation();
+            });
+            const Mostrar_Nota_Slot = (Ev) => {
+              Ev.stopPropagation();
+              Mostrar_Popup_Nota({ Nota: Nota_Slot }, Marca_Nota);
+            };
+            if (Config.Notas_Hover) {
+              Marca_Nota.addEventListener(
+                "mouseenter",
+                Mostrar_Nota_Slot
+              );
+              Marca_Nota.addEventListener(
+                "mouseleave",
+                Cerrar_Popup_Nota
+              );
+            }
+            Marca_Nota.addEventListener("click", Mostrar_Nota_Slot);
+            Slot.appendChild(Marca_Nota);
           }
           let Hover_Plan_Slot_Timer_Id = null;
           if (Conteo_Plan_Slot > 0) {
@@ -92859,7 +93569,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         // 3) Bolsa de horas: limitar por horas disponibles.
         // Horas disponibles = restantes + lo que ya ocupa este bloque.
-        if (Objetivo?.Es_Bolsa) {
+        if (Objetivo_Tiene_Horas_Definidas(Objetivo)) {
           const Restantes = Calcular_Horas_Restantes(Objetivo);
           const Disponible = Restantes + Duracion_Inicial;
           if (Disponible < Max_Dur) Max_Dur = Disponible;
@@ -93857,7 +94567,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Nombre) return;
 
         const Es_Bolsa = El_Es_Bolsa.value === "Si";
-        const Horas = Es_Bolsa ? Normalizar_Duracion(El_Horas_Semanales.value) : 0;
+        const Sin_Horas_Definidas = Boolean(
+          Es_Bolsa && El_Sin_Horas_Definidas?.checked
+        );
+        const Horas = Es_Bolsa && !Sin_Horas_Definidas
+          ? Normalizar_Duracion(El_Horas_Semanales.value)
+          : 0;
         const Es_Fija = El_Periodicidad_Objetivo.value === "Fija";
         const Datos_Meta = Meta_Aporte_Leer_Datos_Form(
           El_Meta_Vinculo_Objetivo,
@@ -93868,6 +94583,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Id,
           Familia_Id: Id,
           Fracasos_Semanales: {},
+          Realizadas_Manuales_Semanales: {},
           Subobjetivos_Semanales: {},
           Subobjetivos_Contraidas_Semanales: {},
           Subobjetivos_Excluidos_Semanales: {},
@@ -93880,6 +94596,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Horas_Semanales: Horas,
           Restante: Horas,
           Es_Bolsa,
+          Sin_Horas_Definidas,
           Es_Fija,
           Semana_Base: Es_Fija ? null : Clave_Semana_Actual(),
           Semana_Inicio: Es_Fija ? Clave_Semana_Actual() : null,
@@ -93898,6 +94615,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Descripcion_Corta_Objetivo.value = "";
         El_Emoji_Objetivo.value = "";
         El_Horas_Semanales.value = "";
+        if (El_Sin_Horas_Definidas) {
+          El_Sin_Horas_Definidas.checked = false;
+        }
         El_Meta_Vinculo_Objetivo.value = "";
         El_Meta_Aporte_Semanal.value = "0";
         Render_Selector_Etiquetas(El_Etiquetas_Objetivo);
@@ -93954,9 +94674,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       );
 
       El_Es_Bolsa.addEventListener("change", () => {
-        El_Horas_Semanales.disabled = El_Es_Bolsa.value !== "Si";
+        Sincronizar_Campos_Sin_Horas_Creador();
         Actualizar_Form_Creador_Meta_Aporte();
       });
+
+      El_Sin_Horas_Definidas?.addEventListener("change", () => {
+        Sincronizar_Campos_Sin_Horas_Creador();
+        Actualizar_Form_Creador_Meta_Aporte();
+      });
+      Sincronizar_Campos_Sin_Horas_Creador();
 
       El_Meta_Vinculo_Objetivo?.addEventListener(
         "change",
@@ -95364,6 +96090,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Ev.stopPropagation();
         Mostrar_Menu_Sidebar(Ev.clientX, Ev.clientY);
       });
+      El_Sidebar_Habitos?.addEventListener("contextmenu", (Ev) => {
+        Ev.preventDefault();
+        Ev.stopPropagation();
+        Mostrar_Menu_Sidebar(Ev.clientX, Ev.clientY);
+      });
 
       El_Semana_Anterior.addEventListener("click", () => {
         Objetivo_Seleccionada_Id = null;
@@ -95410,7 +96141,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       El_Editor_Color_Input.addEventListener("input", Actualizar_Borrador_Editor);
       El_Editor_Horas_Input.addEventListener("input", Actualizar_Borrador_Editor);
       El_Editor_Tipo_Input.addEventListener("change", () => {
-        El_Editor_Horas_Input.disabled = El_Editor_Tipo_Input.value !== "Si";
+        Sincronizar_Campos_Sin_Horas_Editor();
+        Actualizar_Borrador_Editor();
+      });
+      El_Editor_Sin_Horas_Definidas?.addEventListener("change", () => {
+        Sincronizar_Campos_Sin_Horas_Editor();
         Actualizar_Borrador_Editor();
       });
       El_Editor_Meta_Vinculo_Input?.addEventListener("change", () => {
@@ -98260,10 +98995,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Focus_Guardar_Slot(Bloque) {
         if (!Bloque?.Slot?.Clave) return;
-        Planes_Slot[Bloque.Slot.Clave] = {
-          Items: Bloque.Slot.Plan.Items
-        };
+        Guardar_Plan_Slot_Clave(
+          Bloque.Slot.Clave,
+          Bloque.Slot.Plan.Items
+        );
         Render_Calendario();
+        Guardar_Estado();
+      }
+
+      function Alternar_Habitos_Sidebar() {
+        Config.Mostrar_Habitos_Sidebar =
+          !Config.Mostrar_Habitos_Sidebar;
+        Render_Habitos_Sidebar();
         Guardar_Estado();
       }
 
