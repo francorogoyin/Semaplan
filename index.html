@@ -65620,17 +65620,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           await Planes_Marcar_Parte_Como_Realizada(Parte.Id);
         }
         if (Tipo === "subir" || Tipo === "bajar") {
-          const Snap = Capturar_Snapshot_Undo();
           if (Planes_Mover_Parte(Parte.Id, Tipo === "bajar")) {
             const Sub = Modelo.Subobjetivos[Parte.Subobjetivo_Id];
             const Objetivo = Modelo.Objetivos[Sub?.Objetivo_Id];
             Render_Modal_Planes_Partes();
             if (Objetivo) {
-              Planes_Recalcular_Desde(
-                Objetivo,
-                Snap,
-                t("planes.parte_actualizada")
-              );
+              Planes_Recalcular_Desde(Objetivo);
             } else {
               Guardar_Estado();
             }
@@ -65814,7 +65809,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Rect = Item.getBoundingClientRect();
           const Insertar_Despues =
             Ev.clientY > Rect.top + Rect.height / 2;
-          const Snap = Capturar_Snapshot_Undo();
           if (!Planes_Reordenar_Parte(
             Origen_Id,
             Parte.Id,
@@ -65828,11 +65822,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .Objetivos[Sub?.Objetivo_Id];
           Render_Modal_Planes_Partes();
           if (Objetivo) {
-            Planes_Recalcular_Desde(
-              Objetivo,
-              Snap,
-              t("planes.parte_actualizada")
-            );
+            Planes_Recalcular_Desde(Objetivo);
           } else {
             Guardar_Estado();
           }

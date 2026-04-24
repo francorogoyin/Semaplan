@@ -1352,3 +1352,69 @@ async ({ page }) => {
   expect(resultado.meta).not.toContain("P\u00E1ginas");
   expect(resultado.meta).not.toContain("Realizada");
 });
+
+test("Reordenar partes no muestra toast de parte actualizada",
+async ({ page }) => {
+  await Preparar(page);
+
+  const resultado = await page.evaluate(async () => {
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
+      Id: "p2026",
+      Tipo: "Anio",
+      Inicio: "2026-01-01",
+      Fin: "2026-12-31",
+      Orden: 0
+    });
+    Modelo.Objetivos.obj_reorden_partes = Normalizar_Objetivo_Plan({
+      Id: "obj_reorden_partes",
+      Periodo_Id: "p2026",
+      Nombre: "Objetivo partes",
+      Target_Total: 10,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    Modelo.Subobjetivos.sub_reorden_partes =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_reorden_partes",
+        Objetivo_Id: "obj_reorden_partes",
+        Texto: "Sub partes",
+        Target_Total: 10,
+        Unidad: "Personalizado",
+        Unidad_Custom: "paginas"
+      });
+    Modelo.Partes.parte_reorden_a = Normalizar_Parte_Meta({
+      Id: "parte_reorden_a",
+      Objetivo_Id: "obj_reorden_partes",
+      Subobjetivo_Id: "sub_reorden_partes",
+      Nombre: "Parte A",
+      Aporte_Total: 5,
+      Orden: 0
+    });
+    Modelo.Partes.parte_reorden_b = Normalizar_Parte_Meta({
+      Id: "parte_reorden_b",
+      Objetivo_Id: "obj_reorden_partes",
+      Subobjetivo_Id: "sub_reorden_partes",
+      Nombre: "Parte B",
+      Aporte_Total: 5,
+      Orden: 1
+    });
+
+    Abrir_Modal_Planes_Partes("sub_reorden_partes");
+    await Planes_Ejecutar_Accion_Parte("parte_reorden_b", "subir");
+    return {
+      orden: Planes_Partes_De_Subobjetivo(
+        "sub_reorden_partes",
+        Modelo
+      ).map((Parte) => Parte.Id),
+      toasts: Array.from(document.querySelectorAll(".Undo_Toast_Texto"))
+        .map((Nodo) => Nodo.textContent)
+    };
+  });
+
+  expect(resultado.orden).toEqual([
+    "parte_reorden_b",
+    "parte_reorden_a"
+  ]);
+  expect(resultado.toasts.join(" ")).not.toContain("Parte actualizada");
+});

@@ -8,5 +8,3 @@
    todas sus partes y se borran todos los registros.
    Ambos van a generar un toast de deshacer de 30 segundos. Por las
    dudas.
-2. En Partes, si reordeno, sigue poniendome el toast de
-   "Parte actualizada". Sacalo.
