@@ -60,6 +60,9 @@ async function Preparar(page) {
     typeof Normalizar_Habito === "function" &&
     typeof Habito_Coincide_Con_Slot === "function"
   );
+  await page.evaluate(() => {
+    document.getElementById("Auth_Overlay")?.classList.remove("Activo");
+  });
 }
 
 test("evalua rangos horarios de habitos que cruzan medianoche", async ({
@@ -123,4 +126,113 @@ test("normaliza regla Entre sin maximo menor que minimo", async ({
 
   expect(meta.Cantidad).toBe(10);
   expect(meta.Cantidad_Maxima).toBe(10);
+});
+
+test("permite cero caidas en habitos de evitar", async ({ page }) => {
+  await Preparar(page);
+
+  const meta = await page.evaluate(() => {
+    return Normalizar_Habito({
+      Nombre: "Sin caidas",
+      Tipo: "Evitar",
+      Meta: {
+        Modo: "Cantidad",
+        Regla: "Como_Maximo",
+        Cantidad: 0,
+        Cantidad_Maxima: 0,
+        Unidad: "caidas"
+      }
+    }).Meta;
+  });
+
+  expect(meta.Modo).toBe("Cantidad");
+  expect(meta.Regla).toBe("Como_Maximo");
+  expect(meta.Cantidad).toBe(0);
+  expect(meta.Cantidad_Maxima).toBe(0);
+});
+
+test("advierte antes de cerrar habito con cambios sin guardar", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Habitos = [];
+    Abrir_Modal_Habitos();
+  });
+  await page.fill("#Habito_Nombre", "Habito sin guardar");
+  await page.click("#Habitos_Cerrar");
+
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Dialogo_Mensaje"))
+    .toContainText("cambios sin guardar");
+
+  await page.locator("#Dialogo_Botones .Dialogo_Boton_Cancelar").click();
+  await expect(page.locator("#Habitos_Overlay"))
+    .toHaveClass(/Activo/);
+});
+
+test("advierte al cambiar unidad con registros previos", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Test_Registros",
+        Nombre: "Lectura",
+        Tipo: "Hacer",
+        Programacion: { Tipo: "Libre" },
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 5,
+          Unidad: "paginas"
+        }
+      })
+    ];
+    Habitos_Registros = [
+      Normalizar_Habito_Registro({
+        Id: "Registro_Test",
+        Habito_Id: "Habito_Test_Registros",
+        Fecha: "2026-04-24",
+        Hora: "09:00",
+        Fecha_Hora: "2026-04-24T09:00",
+        Periodo_Clave: "2026-04-24",
+        Fuente: "Manual",
+        Fuente_Id: "Manual_Test",
+        Cantidad: 5
+      })
+    ];
+    Abrir_Modal_Habitos("Habito_Test_Registros");
+  });
+
+  await page.fill("#Habito_Meta_Unidad", "hojas");
+  await page.click("#Habitos_Nuevo");
+
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Dialogo_Mensaje"))
+    .toContainText("ya tiene registros");
+});
+
+test("explica que los patrones se filtran por tipo de slot", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Patrones = [];
+    void Resolver_Items_Patron_Slot([], "Sueno");
+  });
+
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Dialogo_Mensaje"))
+    .toContainText("compatibles");
+  await expect(page.locator("#Dialogo_Mensaje"))
+    .toContainText("tipo de slot");
 });

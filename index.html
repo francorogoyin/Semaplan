@@ -22870,6 +22870,8 @@
           "habitos.help_meta":
             "Cantidad objetivo del per\u00edodo. En Evitar es el m\u00e1ximo " +
             "permitido.",
+          "habitos.evitar_cero_hint":
+            "En Evitar, 0 significa que no se permite ninguna ca\u00edda.",
           "habitos.help_meta_maxima":
             "L\u00edmite superior cuando la regla usa un rango.",
           "habitos.help_unidad":
@@ -22885,6 +22887,10 @@
           "habitos.borrar": "Borrar h\u00e1bito",
           "habitos.borrar_eliminar": "Eliminar referencias",
           "habitos.borrar_convertir": "Convertir en tarea",
+          "habitos.cambio_meta_registros_confirm":
+            "Este h\u00e1bito ya tiene registros. Cambiar modo o unidad " +
+            "modifica c\u00f3mo se leen los avances anteriores.",
+          "habitos.cambio_meta_registros_guardar": "Guardar igual",
           "planes_modal.titulo": "Metas",
           "planes_modal.sidebar_titulo": "Metas",
           "planes_modal.sidebar_texto":
@@ -26288,8 +26294,13 @@
           "Faltan objetivos",
         "slot.sin_patrones_para":
           "No hay patrones para {tipo}.",
+          "slot.patrones_filtrados_info":
+            "Solo aparecen patrones compatibles con este tipo de slot " +
+            "o con slot vac\u00edo.",
           "slot.elegir_patron":
             "¿Qué patrón querés insertar?",
+          "slot.elegir_patron_para":
+            "\u00bfQu\u00e9 patr\u00f3n quer\u00e9s insertar para {tipo}?",
           "slot.insertar_modo":
             "¿Cómo insertar el patrón en el slot?",
           "slot.marca_title": "Plan del slot",
@@ -26851,6 +26862,8 @@
           "habitos.help_meta":
             "Target amount for the period. In Avoid it is the allowed " +
             "maximum.",
+          "habitos.evitar_cero_hint":
+            "In Avoid, 0 means no slip is allowed.",
           "habitos.help_meta_maxima":
             "Upper limit when the rule uses a range.",
           "habitos.help_unidad": "Custom unit for amount targets.",
@@ -26864,6 +26877,10 @@
           "habitos.borrar": "Delete habit",
           "habitos.borrar_eliminar": "Remove references",
           "habitos.borrar_convertir": "Convert to task",
+          "habitos.cambio_meta_registros_confirm":
+            "This habit already has records. Changing mode or unit " +
+            "changes how previous progress is read.",
+          "habitos.cambio_meta_registros_guardar": "Save anyway",
           "planes_modal.titulo": "Goals",
           "planes_modal.sidebar_titulo": "Goals",
           "planes_modal.sidebar_texto":
@@ -30195,8 +30212,13 @@
           "Missing objectives",
         "slot.sin_patrones_para":
           "There are no patterns for {tipo}.",
+          "slot.patrones_filtrados_info":
+            "Only patterns compatible with this slot type or empty " +
+            "slots are shown.",
           "slot.elegir_patron":
             "Which pattern do you want to insert?",
+          "slot.elegir_patron_para":
+            "Which pattern do you want to insert for {tipo}?",
           "slot.insertar_modo":
             "How do you want to insert the pattern into the slot?",
           "slot.marca_title": "Slot plan",
@@ -30772,6 +30794,8 @@
           "habitos.help_meta":
             "Quantidade objetivo do periodo. Em Evitar e o maximo " +
             "permitido.",
+          "habitos.evitar_cero_hint":
+            "Em Evitar, 0 significa que nenhuma queda e permitida.",
           "habitos.help_meta_maxima":
             "Limite superior quando a regra usa uma faixa.",
           "habitos.help_unidad":
@@ -30787,6 +30811,10 @@
           "habitos.borrar": "Excluir habito",
           "habitos.borrar_eliminar": "Remover referencias",
           "habitos.borrar_convertir": "Converter em tarefa",
+          "habitos.cambio_meta_registros_confirm":
+            "Este habito ja tem registros. Alterar modo ou unidade " +
+            "muda como os avancos anteriores sao lidos.",
+          "habitos.cambio_meta_registros_guardar": "Salvar mesmo assim",
           "planes_modal.titulo": "Metas",
           "planes_modal.sidebar_titulo": "Metas",
           "planes_modal.sidebar_texto":
@@ -34214,8 +34242,13 @@
           "Faltam objetivos",
         "slot.sin_patrones_para":
           "Não há padrões para {tipo}.",
+          "slot.patrones_filtrados_info":
+            "Somente aparecem padroes compativeis com este tipo de " +
+            "slot ou com slot vazio.",
           "slot.elegir_patron":
             "Qual padrão você quer inserir?",
+          "slot.elegir_patron_para":
+            "Qual padrao voce quer inserir para {tipo}?",
           "slot.insertar_modo":
             "Como inserir o padrão no slot?",
           "slot.marca_title": "Plano do slot",
@@ -73207,7 +73240,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Modal_Habitos();
       }
 
-      function Habitos_Cancelar_Modal() {
+      async function Habitos_Cancelar_Modal() {
         if (
           Habitos_Modal_Vista === "Registro" ||
           Habitos_Modal_Vista === "Vinculaciones"
@@ -73216,6 +73249,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return;
         }
         if (Habitos_Modal_Vista === "Editor" && Habitos_Retorno_Editor) {
+          const Puede_Cerrar = await Habitos_Confirmar_Cierre_Editor();
+          if (!Puede_Cerrar) return;
           Habitos_Modal_Vista = Habitos_Retorno_Editor;
           Habitos_Retorno_Editor = "";
           Habito_En_Edicion_Id = null;
@@ -73223,12 +73258,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Modal_Habitos();
           return;
         }
-        Cerrar_Modal_Habitos();
+        await Cerrar_Modal_Habitos();
       }
 
       function Habitos_Accion_Principal() {
         if (Habitos_Modal_Vista === "Editor") {
-          Guardar_Habito_Desde_Modal();
+          void Guardar_Habito_Desde_Modal();
           return;
         }
         Habitos_Abrir_Editor_Desde_Panel();
@@ -74260,7 +74295,50 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.classList.add("Activo");
       }
 
-      function Cerrar_Modal_Habitos() {
+      function Habitos_Serializar_Editor(Habito) {
+        return JSON.stringify(Normalizar_Habito(Habito || {}));
+      }
+
+      function Habitos_Editor_Tiene_Cambios_Sin_Guardar() {
+        if (
+          Habitos_Modal_Vista !== "Editor" ||
+          !Habito_Editor_Borrador ||
+          !document.getElementById("Habito_Nombre")
+        ) {
+          return false;
+        }
+        const Actual = Habito_Leer_Borrador_Desde_DOM();
+        return Habitos_Serializar_Editor(Actual) !==
+          Habitos_Serializar_Editor(Habito_Editor_Borrador);
+      }
+
+      async function Habitos_Confirmar_Cierre_Editor() {
+        if (!Habitos_Editor_Tiene_Cambios_Sin_Guardar()) {
+          return true;
+        }
+        const Descartar = await Mostrar_Dialogo(
+          t("dialog.cambios_sin_guardar"),
+          [
+            {
+              Etiqueta: t("dialog.descartar"),
+              Valor: true,
+              Tipo: "Peligro"
+            },
+            {
+              Etiqueta: t("dialog.seguir_editando"),
+              Valor: false,
+              Tipo: "Cancelar"
+            }
+          ]
+        );
+        return Descartar === true;
+      }
+
+      async function Cerrar_Modal_Habitos(Forzar = false) {
+        if (!Forzar) {
+          const Puede_Cerrar = await Habitos_Confirmar_Cierre_Editor();
+          if (!Puede_Cerrar) return false;
+        }
         Habitos_Modal_Vista = "Panel";
         Habitos_Retorno_Editor = "";
         Habito_En_Edicion_Id = null;
@@ -74268,6 +74346,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Habito_Post_Guardado = null;
         document.getElementById("Habitos_Overlay")
           ?.classList.remove("Activo");
+        return true;
       }
 
       function Habito_Formatear_Hora_Input(
@@ -74419,6 +74498,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Meta_Label = document.getElementById(
           "Habito_Meta_Cantidad_Label"
         );
+        const Meta_Input = document.getElementById("Habito_Meta_Cantidad");
+        const Hint_Evitar = document.getElementById(
+          "Habito_Meta_Evitar_Hint"
+        );
         const Bloque = document.getElementById("Habito_Meta_Bloque");
         if (Modo_Campo) Modo_Campo.hidden = Es_Evitar;
         if (Unidad) Unidad.hidden = Modo_Final !== "Cantidad" || Es_Evitar;
@@ -74435,6 +74518,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? t("habitos.regla_como_maximo")
             : t("habitos.meta_cantidad");
         }
+        if (Meta_Input) {
+          Meta_Input.min = Es_Evitar ? "0" : "0.25";
+          Meta_Input.step = Es_Evitar ? "1" : "0.25";
+          const Valor = Number(Meta_Input.value);
+          if (Es_Evitar && Number.isFinite(Valor) && Valor < 0) {
+            Meta_Input.value = "0";
+          } else if (!Es_Evitar && Number.isFinite(Valor) && Valor <= 0) {
+            Meta_Input.value = "1";
+          }
+        }
+        if (Hint_Evitar) Hint_Evitar.hidden = !Es_Evitar;
         if (Bloque) Bloque.classList.toggle("Evitar", Es_Evitar);
         const Modo_Input = document.getElementById("Habito_Meta_Modo");
         const Regla_Input = document.getElementById("Habito_Meta_Regla");
@@ -74529,12 +74623,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Borrador.Meta.Periodo =
           Campo("Habito_Meta_Periodo")?.value || "Dia";
-        Borrador.Meta.Cantidad = Number(
-          Campo("Habito_Meta_Cantidad")?.value
-        ) || 1;
-        Borrador.Meta.Cantidad_Maxima = Number(
-          Campo("Habito_Meta_Maxima")?.value
-        ) || Borrador.Meta.Cantidad;
+        const Valor_Cantidad = String(
+          Campo("Habito_Meta_Cantidad")?.value ?? ""
+        ).trim();
+        const Cantidad = Number(Valor_Cantidad);
+        Borrador.Meta.Cantidad =
+          Valor_Cantidad !== "" && Number.isFinite(Cantidad)
+            ? Cantidad
+            : (Borrador.Tipo === "Evitar" ? 0 : 1);
+        const Valor_Maximo = String(
+          Campo("Habito_Meta_Maxima")?.value ?? ""
+        ).trim();
+        const Cantidad_Maxima = Number(Valor_Maximo);
+        Borrador.Meta.Cantidad_Maxima =
+          Valor_Maximo !== "" && Number.isFinite(Cantidad_Maxima)
+            ? Cantidad_Maxima
+            : Borrador.Meta.Cantidad;
         if (Borrador.Meta.Modo === "Tiempo") {
           Borrador.Meta.Unidad =
             Campo("Habito_Meta_Tiempo_Unidad")?.value || "Minutos";
@@ -74590,7 +74694,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
-      function Guardar_Habito_Desde_Modal() {
+      function Habito_Tiene_Registros(Habito_Id) {
+        return (Array.isArray(Habitos_Registros) ? Habitos_Registros : [])
+          .some((Registro) => Registro?.Habito_Id === Habito_Id);
+      }
+
+      function Habito_Cambia_Modo_O_Unidad(Original, Borrador) {
+        if (!Original || !Borrador) return false;
+        const Meta_Original = Normalizar_Habito(Original).Meta;
+        const Meta_Nueva = Normalizar_Habito(Borrador).Meta;
+        return Meta_Original.Modo !== Meta_Nueva.Modo ||
+          String(Meta_Original.Unidad || "") !==
+          String(Meta_Nueva.Unidad || "");
+      }
+
+      async function Guardar_Habito_Desde_Modal() {
         const Borrador = Habito_Leer_Borrador_Desde_DOM();
         if (!Borrador.Nombre) {
           document.getElementById("Habito_Nombre")?.focus();
@@ -74600,6 +74718,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Habito.Id === Borrador.Id
         );
         const Es_Nuevo = Indice < 0;
+        const Original = Indice >= 0 ? Habitos[Indice] : null;
+        if (
+          Original &&
+          Habito_Tiene_Registros(Borrador.Id) &&
+          Habito_Cambia_Modo_O_Unidad(Original, Borrador)
+        ) {
+          const Confirmar = await Mostrar_Dialogo(
+            t("habitos.cambio_meta_registros_confirm"),
+            [
+              {
+                Etiqueta: t("habitos.cambio_meta_registros_guardar"),
+                Valor: true,
+                Tipo: "Peligro"
+              },
+              {
+                Etiqueta: t("dialog.seguir_editando"),
+                Valor: false,
+                Tipo: "Cancelar"
+              }
+            ]
+          );
+          if (Confirmar !== true) return;
+        }
         if (Indice >= 0) {
           Habitos[Indice] = Borrador;
         } else {
@@ -74611,7 +74752,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (typeof Habito_Post_Guardado === "function") {
           Habito_Post_Guardado(Borrador, { Es_Nuevo });
           Habito_Post_Guardado = null;
-          Cerrar_Modal_Habitos();
+          void Cerrar_Modal_Habitos(true);
         } else if (Habitos_Retorno_Editor) {
           Habitos_Modal_Vista = Habitos_Retorno_Editor;
           Habitos_Retorno_Editor = "";
@@ -74800,9 +74941,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 <input class="Habitos_Modal_Input"
                   id="Habito_Meta_Cantidad"
                   type="number"
-                  min="0.25"
-                  step="0.25"
-                  value="${Escape_Html(String(B.Meta.Cantidad || 1))}">
+                  min="${B.Tipo === "Evitar" ? "0" : "0.25"}"
+                  step="${B.Tipo === "Evitar" ? "1" : "0.25"}"
+                  value="${Escape_Html(String(
+                    Number.isFinite(Number(B.Meta.Cantidad))
+                      ? B.Meta.Cantidad
+                      : 1
+                  ))}">
               </label>
               <label class="Habitos_Modal_Campo"
                 id="Habito_Meta_Maxima_Campo">
@@ -74816,7 +74961,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   min="0.25"
                   step="0.25"
                   value="${Escape_Html(String(
-                    B.Meta.Cantidad_Maxima || B.Meta.Cantidad || 1
+                    Number.isFinite(Number(B.Meta.Cantidad_Maxima))
+                      ? B.Meta.Cantidad_Maxima
+                      : (
+                        Number.isFinite(Number(B.Meta.Cantidad))
+                          ? B.Meta.Cantidad
+                          : 1
+                      )
                   ))}">
               </label>
               <label class="Habitos_Modal_Campo"
@@ -74847,6 +74998,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               </select>
             </label>
             </div>
+            <p class="Config_Nota" id="Habito_Meta_Evitar_Hint" hidden>
+              ${t("habitos.evitar_cero_hint")}
+            </p>
           </div>
           <div class="Habitos_Modal_Bloque">
             <div class="Habitos_Modal_Fila">
@@ -75020,7 +75174,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         document.getElementById("Habito_Meta_Periodo").value =
           B.Meta.Periodo || "Dia";
         document.getElementById("Habito_Meta_Maxima").value =
-          B.Meta.Cantidad_Maxima || B.Meta.Cantidad || 1;
+          Number.isFinite(Number(B.Meta.Cantidad_Maxima))
+            ? B.Meta.Cantidad_Maxima
+            : (
+              Number.isFinite(Number(B.Meta.Cantidad))
+                ? B.Meta.Cantidad
+                : 1
+            );
         document.getElementById("Habito_Meta_Tiempo_Unidad").value =
           B.Meta.Unidad === "Horas" ? "Horas" : "Minutos";
         document.getElementById("Habito_Dias_Modo").value = Dias_Modo;
@@ -77584,22 +77744,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Items_Actuales = [],
         Aplica_A = "Slot_Vacio"
       ) {
+        const Tipo_Label = Obtener_Label_Aplica_Patron_Slot(Aplica_A);
+        const Mensaje_Filtro = t("slot.patrones_filtrados_info", {
+          tipo: Tipo_Label
+        });
         const Patrones_Slot = Obtener_Patrones_Slot(
           Aplica_A
         );
         if (!Patrones_Slot.length) {
           await Mostrar_Dialogo(
-            t("slot.sin_patrones_para", {
-              tipo: Obtener_Label_Aplica_Patron_Slot(
-                Aplica_A
-              )
-            }),
+            `${t("slot.sin_patrones_para", {
+              tipo: Tipo_Label
+            })} ${Mensaje_Filtro}`,
             [{ Etiqueta: t("entendido"), Valor: null, Tipo: "Primario" }]
           );
           return null;
         }
         const Patron_Id = await Mostrar_Dialogo(
-          t("slot.elegir_patron"),
+          `${t("slot.elegir_patron_para", {
+            tipo: Tipo_Label
+          })} ${Mensaje_Filtro}`,
           [
             ...Patrones_Slot.map((P) => ({
               Etiqueta: `${P.Emoji || "🧩"} ${P.Nombre}`,
@@ -83816,11 +83980,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           typeof Base.Programacion === "object"
             ? Base.Programacion
             : {};
-        const Modo = ["Check", "Cantidad", "Tiempo"].includes(
+        const Tipo = ["Hacer", "Evitar", "Limite"].includes(Base.Tipo)
+          ? Base.Tipo
+          : "Hacer";
+        const Modo_Base = ["Check", "Cantidad", "Tiempo"].includes(
           Meta_Base.Modo
         )
           ? Meta_Base.Modo
           : "Check";
+        const Modo = Tipo === "Evitar" ? "Cantidad" : Modo_Base;
         const Cantidad = Number(Meta_Base.Cantidad);
         const Dias = Array.isArray(Programacion_Base.Dias)
           ? Programacion_Base.Dias
@@ -83844,7 +84012,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Periodo = Meta_Base.Periodo === "Semana"
           ? "Semana"
           : "Dia";
-        const Regla = [
+        const Regla_Base = [
           "Al_Menos",
           "Exactamente",
           "Como_Maximo",
@@ -83852,11 +84020,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ].includes(Meta_Base.Regla)
           ? Meta_Base.Regla
           : "Al_Menos";
+        const Regla = Tipo === "Evitar" ? "Como_Maximo" : Regla_Base;
         const Cantidad_Maxima = Number(Meta_Base.Cantidad_Maxima);
+        const Permite_Cero = Tipo === "Evitar";
         const Cantidad_Normalizada =
-          Number.isFinite(Cantidad) && Cantidad > 0
+          Number.isFinite(Cantidad) &&
+          (Permite_Cero ? Cantidad >= 0 : Cantidad > 0)
             ? Cantidad
-            : 1;
+            : (Permite_Cero ? 0 : 1);
         let Cantidad_Maxima_Normalizada =
           Number.isFinite(Cantidad_Maxima) && Cantidad_Maxima > 0
             ? Cantidad_Maxima
@@ -83876,9 +84047,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Emoji: Normalizar_Emoji(Base.Emoji || "•"),
           Color: Normalizar_Color_Hex(Base.Color),
           Activo: Base.Activo !== false,
-          Tipo: ["Hacer", "Evitar", "Limite"].includes(Base.Tipo)
-            ? Base.Tipo
-            : "Hacer",
+          Tipo,
           Programacion: {
             Tipo: Tipo_Programacion,
             Dias,
@@ -95948,9 +96117,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Abrir_Panel_Habitos();
         });
       document.getElementById("Habitos_Cerrar")
-        ?.addEventListener("click", Cerrar_Modal_Habitos);
+        ?.addEventListener("click", () => {
+          void Cerrar_Modal_Habitos();
+        });
       document.getElementById("Habitos_Cancelar")
-        ?.addEventListener("click", Habitos_Cancelar_Modal);
+        ?.addEventListener("click", () => {
+          void Habitos_Cancelar_Modal();
+        });
       document.getElementById("Habitos_Nuevo")
         ?.addEventListener("click", Habitos_Accion_Principal);
       document.getElementById("Habitos_Evento_Cerrar")
