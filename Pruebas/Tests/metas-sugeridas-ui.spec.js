@@ -557,7 +557,7 @@ async ({ page }) => {
     .toHaveValue("2");
 });
 
-test("metas sugeridas calcula horas sobre el aporte semanal",
+test("metas sugeridas calcula horas por partes seleccionadas",
 async ({ page }) => {
   await Preparar(page);
   await page.evaluate(() => {
@@ -607,12 +607,89 @@ async ({ page }) => {
       Fecha_Objetivo: "2026-04-26",
       Orden: 0
     });
+    Modelo.Partes.parte_fuera = Normalizar_Parte_Meta({
+      Id: "parte_fuera",
+      Objetivo_Id: "obj_kant",
+      Subobjetivo_Id: "sub_kant",
+      Emoji: "F",
+      Nombre: "Parte fuera",
+      Aporte_Total: 10,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Fecha_Inicio: "2026-05-01",
+      Fecha_Objetivo: "2026-05-03",
+      Orden: 1
+    });
     Abrir_Metas_Sugeridas();
   });
 
   await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(1);
   await expect(page.locator(".Metas_Sugeridas_Aporte_Input"))
     .toHaveValue("30");
+  await expect(page.locator(".Metas_Sugeridas_Partes"))
+    .toContainText("Importa 1");
   await expect(page.locator(".Metas_Sugeridas_Horas_Input"))
-    .toHaveValue("3");
+    .toHaveValue("10");
+});
+
+test("metas sugeridas completa partes hasta cubrir el avance",
+async ({ page }) => {
+  await Preparar(page);
+  await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
+      Id: "p2026",
+      Tipo: "Anio",
+      Inicio: "2026-01-01",
+      Fin: "2026-12-31",
+      Orden: 0
+    });
+    Modelo.Objetivos.obj_paginas = Normalizar_Objetivo_Plan({
+      Id: "obj_paginas",
+      Periodo_Id: "p2026",
+      Emoji: "P",
+      Nombre: "Lectura",
+      Target_Total: 30,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Orden: 0
+    });
+    Modelo.Subobjetivos.sub_paginas = Normalizar_Subobjetivo_Plan({
+      Id: "sub_paginas",
+      Objetivo_Id: "obj_paginas",
+      Emoji: "P",
+      Texto: "Libro por partes",
+      Target_Total: 30,
+      Target_Suma_Componentes: true,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Fecha_Inicio: "2026-04-20",
+      Fecha_Objetivo: "2026-04-26",
+      Tiempo_Valor: 10,
+      Tiempo_Modo: "Unidades_Por_Hora",
+      Orden: 0
+    });
+    [10, 10, 15, 20].forEach((Aporte, Indice) => {
+      Modelo.Partes[`parte_auto_${Indice}`] = Normalizar_Parte_Meta({
+        Id: `parte_auto_${Indice}`,
+        Objetivo_Id: "obj_paginas",
+        Subobjetivo_Id: "sub_paginas",
+        Emoji: String(Indice + 1),
+        Nombre: `Parte ${Indice + 1}`,
+        Aporte_Total: Aporte,
+        Unidad: "Personalizado",
+        Unidad_Custom: "paginas",
+        Orden: Indice
+      });
+    });
+    Abrir_Metas_Sugeridas();
+  });
+
+  await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(1);
+  await expect(page.locator(".Metas_Sugeridas_Aporte_Input"))
+    .toHaveValue("30");
+  await expect(page.locator(".Metas_Sugeridas_Partes"))
+    .toContainText("Importa 3");
+  await expect(page.locator(".Metas_Sugeridas_Horas_Input"))
+    .toHaveValue("3.5");
 });

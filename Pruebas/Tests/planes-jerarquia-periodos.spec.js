@@ -680,6 +680,63 @@ async ({ page }) => {
     const Host_Incompleto = document.createElement("div");
     Host_Incompleto.innerHTML =
       Render_Planes_Detalle_Objetivo(Objetivo_Incompleto);
+    const Objetivo_Padre_Tiempo = Planes_Crear_Objetivo_Silencioso(
+      Periodo.Id,
+      {
+        Nombre: "Detalle con tiempo padre",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 5,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros",
+        Tiempo_Valor: 30,
+        Tiempo_Modo: "Minutos_Por_Unidad"
+      }
+    );
+    Modelo_Actual.Subobjetivos.sub_padre_tiempo_e =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_padre_tiempo_e",
+        Objetivo_Id: Objetivo_Padre_Tiempo.Id,
+        Texto: "Libro E",
+        Target_Total: 2
+      });
+    Modelo_Actual.Subobjetivos.sub_padre_tiempo_f =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_padre_tiempo_f",
+        Objetivo_Id: Objetivo_Padre_Tiempo.Id,
+        Texto: "Libro F",
+        Target_Total: 3
+      });
+    Planes_Actualizar_Progreso(Objetivo_Padre_Tiempo);
+    const Host_Padre_Tiempo = document.createElement("div");
+    Host_Padre_Tiempo.innerHTML =
+      Render_Planes_Detalle_Objetivo(Objetivo_Padre_Tiempo);
+    const Sub_Padre_Tiempo = Normalizar_Subobjetivo_Plan({
+      Id: "sub_con_tiempo",
+      Objetivo_Id: Objetivo.Id,
+      Texto: "Sub con tiempo",
+      Target_Total: 20,
+      Target_Suma_Componentes: true,
+      Tiempo_Valor: 10,
+      Tiempo_Modo: "Minutos_Por_Unidad"
+    });
+    Modelo_Actual.Subobjetivos[Sub_Padre_Tiempo.Id] =
+      Sub_Padre_Tiempo;
+    Modelo_Actual.Partes.parte_sub_tiempo_a = Normalizar_Parte_Meta({
+      Id: "parte_sub_tiempo_a",
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Padre_Tiempo.Id,
+      Nombre: "Parte A",
+      Aporte_Total: 10
+    });
+    Modelo_Actual.Partes.parte_sub_tiempo_b = Normalizar_Parte_Meta({
+      Id: "parte_sub_tiempo_b",
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Padre_Tiempo.Id,
+      Nombre: "Parte B",
+      Aporte_Total: 10
+    });
+    const Sub_Padre_Estimacion =
+      Planes_Estimar_Tiempo_Subobjetivo(Sub_Padre_Tiempo);
     return {
       headers: Array.from(Host.querySelectorAll("th"))
         .map((Th) => Th.textContent.trim()),
@@ -687,12 +744,20 @@ async ({ page }) => {
         .map((Td) => Td.textContent.replace(/\s+/g, " ").trim()),
       avisoTiempo: Host.querySelector(".Planes_Tiempo_Warning")
         ?.getAttribute("title") || "",
-      sinTiempoTexto: Array.from(
-        Host_Incompleto.querySelectorAll("td")
-      ).pop()?.textContent.replace(/\s+/g, " ").trim() || "",
+      headersSinTiempo: Array.from(
+        Host_Incompleto.querySelectorAll("th")
+      ).map((Th) => Th.textContent.trim()),
       sinTiempoAviso: Host_Incompleto
         .querySelector(".Planes_Tiempo_Warning")
-        ?.getAttribute("title") || ""
+        ?.getAttribute("title") || "",
+      padreTiempoTexto: Array.from(
+        Host_Padre_Tiempo.querySelectorAll("td")
+      ).pop()?.textContent.replace(/\s+/g, " ").trim() || "",
+      padreTiempoAviso: Host_Padre_Tiempo
+        .querySelector(".Planes_Tiempo_Warning")
+        ?.getAttribute("title") || "",
+      subPadreTieneTiempo: Sub_Padre_Estimacion.Tiene_Tiempo,
+      subPadreIncompleto: Sub_Padre_Estimacion.Incompleto
     };
   });
 
@@ -714,9 +779,16 @@ async ({ page }) => {
   ]);
   expect(Detalle_Unidades.avisoTiempo)
     .toContain("No están todas las unidades hijas");
-  expect(Detalle_Unidades.sinTiempoTexto).toBe("!");
-  expect(Detalle_Unidades.sinTiempoAviso)
-    .toContain("No están todas las unidades hijas");
+  expect(Detalle_Unidades.headersSinTiempo)
+    .not.toContain("Tiempo aprox.");
+  expect(Detalle_Unidades.sinTiempoAviso).toBe("");
+  expect(Detalle_Unidades.padreTiempoTexto)
+    .toContain("h aprox.");
+  expect(Detalle_Unidades.padreTiempoTexto)
+    .not.toContain("!");
+  expect(Detalle_Unidades.padreTiempoAviso).toBe("");
+  expect(Detalle_Unidades.subPadreTieneTiempo).toBe(true);
+  expect(Detalle_Unidades.subPadreIncompleto).toBe(false);
   expect(errores).toEqual([]);
 });
 
@@ -2052,8 +2124,7 @@ async ({ page }) => {
     "Estado",
     "Valor objetivo",
     "Realizado",
-    "Falta",
-    "Tiempo aprox."
+    "Falta"
   ]);
   expect(Layout_Detalle.headersCentrados).toBe(true);
   expect(Layout_Detalle.celdasCentradas).toBe(true);

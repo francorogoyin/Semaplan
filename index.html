@@ -48664,6 +48664,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Planes_Normalizar_Tiempo_Valor(Item) > 0;
       }
 
+      function Planes_Estimar_Tiempo_Resultado(
+        Minutos,
+        Tiene_Tiempo,
+        Sin_Tiempo = false
+      ) {
+        const Hay_Tiempo = Boolean(Tiene_Tiempo);
+        const Falta_Tiempo = Boolean(Sin_Tiempo);
+        return {
+          Minutos: Number(Minutos) || 0,
+          Tiene_Tiempo: Hay_Tiempo,
+          Sin_Tiempo: Falta_Tiempo,
+          Incompleto: Hay_Tiempo && Falta_Tiempo
+        };
+      }
+
+      function Planes_Combinar_Tiempo_Estimado(A, B) {
+        const Tiene_Tiempo =
+          Boolean(A?.Tiene_Tiempo) || Boolean(B?.Tiene_Tiempo);
+        const Sin_Tiempo =
+          Boolean(A?.Sin_Tiempo) || Boolean(B?.Sin_Tiempo);
+        return Planes_Estimar_Tiempo_Resultado(
+          (Number(A?.Minutos) || 0) + (Number(B?.Minutos) || 0),
+          Tiene_Tiempo,
+          Sin_Tiempo
+        );
+      }
+
       function Planes_Tiempo_Minutos_Por_Unidad_Parte(
         Parte,
         Modelo = null
@@ -48698,7 +48725,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Minutos: Minutos_Unidad && Cantidad > 0
             ? Minutos_Unidad * Cantidad
             : 0,
-          Incompleto: !Planes_Tiene_Tiempo_Propio(Parte)
+          Tiene_Tiempo: Boolean(Minutos_Unidad),
+          Sin_Tiempo: !Minutos_Unidad,
+          Incompleto: false
         };
       }
 
@@ -48712,21 +48741,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Partes.length) {
           return Partes.reduce((Total, Parte) => {
             const Est = Planes_Estimar_Tiempo_Parte(Parte, M);
-            return {
-              Minutos: Total.Minutos + Est.Minutos,
-              Incompleto: Total.Incompleto || Est.Incompleto
-            };
-          }, { Minutos: 0, Incompleto: false });
+            return Planes_Combinar_Tiempo_Estimado(Total, Est);
+          }, Planes_Estimar_Tiempo_Resultado(0, false, false));
         }
         const Minutos_Unidad =
           Planes_Tiempo_Minutos_Por_Unidad_Subobjetivo(Sub, M);
         const Cantidad = Number(Sub?.Target_Total) || 0;
-        return {
-          Minutos: Minutos_Unidad && Cantidad > 0
+        return Planes_Estimar_Tiempo_Resultado(
+          Minutos_Unidad && Cantidad > 0
             ? Minutos_Unidad * Cantidad
             : 0,
-          Incompleto: !Planes_Tiene_Tiempo_Propio(Sub)
-        };
+          Boolean(Minutos_Unidad),
+          !Minutos_Unidad
+        );
       }
 
       function Planes_Estimar_Tiempo_Objetivo(
@@ -48740,22 +48767,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Subs.length) {
           return Subs.reduce((Total, Sub) => {
             const Est = Planes_Estimar_Tiempo_Subobjetivo(Sub, M);
-            return {
-              Minutos: Total.Minutos + Est.Minutos,
-              Incompleto: Total.Incompleto || Est.Incompleto
-            };
-          }, { Minutos: 0, Incompleto: false });
+            return Planes_Combinar_Tiempo_Estimado(Total, Est);
+          }, Planes_Estimar_Tiempo_Resultado(0, false, false));
         }
         const Minutos_Unidad = Planes_Tiempo_Minutos_Por_Unidad(
           Objetivo
         );
         const Cantidad = Number(Objetivo?.Target_Total) || 0;
-        return {
-          Minutos: Minutos_Unidad && Cantidad > 0
+        return Planes_Estimar_Tiempo_Resultado(
+          Minutos_Unidad && Cantidad > 0
             ? Minutos_Unidad * Cantidad
             : 0,
-          Incompleto: !Planes_Tiene_Tiempo_Propio(Objetivo)
-        };
+          Boolean(Minutos_Unidad),
+          !Minutos_Unidad
+        );
       }
 
       function Planes_Estimar_Tiempo_Cantidad_Item(
@@ -48766,28 +48791,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         const M = Modelo || Asegurar_Modelo_Planes();
         const Cant = Number(Cantidad) || 0;
-        if (Cant <= 0) return { Minutos: 0, Incompleto: false };
+        if (Cant <= 0) {
+          return Planes_Estimar_Tiempo_Resultado(0, false, false);
+        }
         if (Tipo === "Parte") {
           const Minutos_Unidad =
             Planes_Tiempo_Minutos_Por_Unidad_Parte(Item, M);
-          return {
-            Minutos: Minutos_Unidad ? Minutos_Unidad * Cant : 0,
-            Incompleto: !Planes_Tiene_Tiempo_Propio(Item)
-          };
+          return Planes_Estimar_Tiempo_Resultado(
+            Minutos_Unidad ? Minutos_Unidad * Cant : 0,
+            Boolean(Minutos_Unidad),
+            !Minutos_Unidad
+          );
         }
         if (Tipo === "Subobjetivo") {
           const Minutos_Unidad =
             Planes_Tiempo_Minutos_Por_Unidad_Subobjetivo(Item, M);
-          return {
-            Minutos: Minutos_Unidad ? Minutos_Unidad * Cant : 0,
-            Incompleto: !Planes_Tiene_Tiempo_Propio(Item)
-          };
+          return Planes_Estimar_Tiempo_Resultado(
+            Minutos_Unidad ? Minutos_Unidad * Cant : 0,
+            Boolean(Minutos_Unidad),
+            !Minutos_Unidad
+          );
         }
         const Minutos_Unidad = Planes_Tiempo_Minutos_Por_Unidad(Item);
-        return {
-          Minutos: Minutos_Unidad ? Minutos_Unidad * Cant : 0,
-          Incompleto: !Planes_Tiene_Tiempo_Propio(Item)
-        };
+        return Planes_Estimar_Tiempo_Resultado(
+          Minutos_Unidad ? Minutos_Unidad * Cant : 0,
+          Boolean(Minutos_Unidad),
+          !Minutos_Unidad
+        );
       }
 
       function Planes_Formatear_Tiempo_Aprox_Minutos(Minutos) {
@@ -48804,6 +48834,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Texto_Base = Planes_Formatear_Tiempo_Aprox_Minutos(
           Estimacion?.Minutos
         );
+        if (!Estimacion?.Tiene_Tiempo || !Texto_Base) return "";
         const Warning = Estimacion?.Incompleto
           ? `<span class="Planes_Tiempo_Warning"
               title="${Escape_Html(t("planes.tiempo_incompleto"))}"
@@ -48811,7 +48842,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               !
             </span>`
           : "";
-        if (!Texto_Base) return Warning;
         const Texto = t("planes.tiempo_aprox", {
           tiempo: Texto_Base
         });
@@ -57342,6 +57372,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Total_Unidades_Subobjetivos_Uniforme(Objetivo);
         const Tiempo_Aprox =
           Planes_Estimar_Tiempo_Objetivo(Objetivo);
+        const Mostrar_Tiempo_Aprox =
+          Boolean(Tiempo_Aprox?.Tiene_Tiempo);
         const Estado_Clase =
           Estado_Efectivo === "Activo"
             ? " Planes_Dato_Valor_Activo"
@@ -57391,9 +57423,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                           ${t("planes.unidades_realizadas")}
                         </th>
                       ` : ""}
-                      <th class="Numero">
-                        ${t("planes.tiempo_aprox_col")}
-                      </th>
+                      ${Mostrar_Tiempo_Aprox ? `
+                        <th class="Numero">
+                          ${t("planes.tiempo_aprox_col")}
+                        </th>
+                      ` : ""}
                     </tr>
                   </thead>
                   <tbody>
@@ -57417,10 +57451,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                           ${Escape_Html(Total_Unidades.Realizadas_Texto)}
                         </td>
                       ` : ""}
-                      <td class="Numero">
-                        ${Planes_Render_Tiempo_Aprox(Tiempo_Aprox) ||
-                          "&ndash;"}
-                      </td>
+                      ${Mostrar_Tiempo_Aprox ? `
+                        <td class="Numero">
+                          ${Planes_Render_Tiempo_Aprox(Tiempo_Aprox)}
+                        </td>
+                      ` : ""}
                     </tr>
                   </tbody>
                 </table>
@@ -59086,17 +59121,84 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Oculta = Boolean(Parte.Eliminado_Local) ||
               Planes_Estado_Calculado_Parte(Parte, Modelo) ===
               "Realizada";
+            const Fecha_Propia =
+              Metas_Sugeridas_Tiene_Fecha_Explicita(Parte);
             return {
               Parte,
               Oculta,
-              Sugerida: !Oculta && Metas_Sugeridas_Parte_En_Semana(
-                Parte,
-                Semana.Inicio,
-                Semana.Fin,
-                Sub
-              )
+              Fecha_Propia,
+              Pendiente: Math.max(
+                0,
+                (Number(Parte.Aporte_Total) || 0) -
+                  Planes_Progreso_Total_Parte(Parte, Modelo)
+              ),
+              Sugerida: !Oculta &&
+                Metas_Sugeridas_Parte_En_Semana(
+                  Parte,
+                  Semana.Inicio,
+                  Semana.Fin,
+                  Sub
+                )
             };
           });
+      }
+
+      function Metas_Sugeridas_Fecha_Parte(Info) {
+        const Parte = Info?.Parte || Info;
+        return Planes_Normalizar_Fecha_Comparacion(
+          Parte?.Fecha_Objetivo || Parte?.Fecha_Fin || ""
+        ) || Planes_Normalizar_Fecha_Comparacion(
+          Parte?.Fecha_Inicio || ""
+        ) || "";
+      }
+
+      function Metas_Sugeridas_Comparar_Partes_Auto(A, B) {
+        const Fecha_A = Metas_Sugeridas_Fecha_Parte(A);
+        const Fecha_B = Metas_Sugeridas_Fecha_Parte(B);
+        if (Fecha_A && Fecha_B && Fecha_A !== Fecha_B) {
+          return Fecha_A.localeCompare(Fecha_B);
+        }
+        if (Fecha_A !== Fecha_B) return Fecha_A ? -1 : 1;
+        const Orden_A = Number(A?.Parte?.Orden ?? A?.Orden ?? 0);
+        const Orden_B = Number(B?.Parte?.Orden ?? B?.Orden ?? 0);
+        if (Orden_A !== Orden_B) return Orden_A - Orden_B;
+        return (A?.Parte?.Nombre || "").localeCompare(
+          B?.Parte?.Nombre || "",
+          "es",
+          { sensitivity: "base", numeric: true }
+        );
+      }
+
+      function Metas_Sugeridas_Partes_Auto_Seleccionadas(Item) {
+        const Partes = (Item?.Partes || [])
+          .filter((Info) =>
+            Info?.Parte?.Id &&
+            !Info.Oculta &&
+            (Number(Info.Pendiente) || 0) > 0
+          )
+          .sort(Metas_Sugeridas_Comparar_Partes_Auto);
+        const Seleccionadas = [];
+        const Usadas = new Set();
+        let Total = 0;
+        Partes
+          .filter((Info) => Info.Sugerida && Info.Fecha_Propia)
+          .forEach((Info) => {
+            Seleccionadas.push(Info.Parte.Id);
+            Usadas.add(Info.Parte.Id);
+            Total += Number(Info.Pendiente) || 0;
+          });
+        const Aporte = Number(Item?.Aporte) || 0;
+        if (Aporte > 0 && Total < Aporte) {
+          Partes
+            .filter((Info) => !Usadas.has(Info.Parte.Id))
+            .forEach((Info) => {
+              if (Total >= Aporte) return;
+              Seleccionadas.push(Info.Parte.Id);
+              Usadas.add(Info.Parte.Id);
+              Total += Number(Info.Pendiente) || 0;
+            });
+        }
+        return Seleccionadas;
       }
 
       function Metas_Sugeridas_Items(Incluir_Extras = false) {
@@ -59352,17 +59454,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Metas_Sugeridas_Minutos_Partes_Seleccionadas(
         Item,
-        Ids,
-        Aporte
+        Ids
       ) {
         const Partes = Metas_Sugeridas_Info_Partes_Seleccionadas(
           Item,
           Ids
         );
-        const Limite = Number(Aporte ?? Item?.Aporte) || 0;
-        let Restante = Limite > 0 ? Limite : Infinity;
         return Partes.reduce((Total, Info) => {
-          if (Restante <= 0) return Total;
           const Parte = Info.Parte;
           const Tiempo = Metas_Sugeridas_Minutos_Por_Unidad_Parte(
             Item,
@@ -59370,9 +59468,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           if (!Tiempo) return Total;
           const Cantidad_Parte = Number(Parte.Aporte_Total) || 0;
-          const Cantidad = Math.min(Cantidad_Parte, Restante);
-          Restante -= Cantidad;
-          return Total + (Cantidad * Tiempo);
+          return Total + (Cantidad_Parte * Tiempo);
         }, 0);
       }
 
@@ -59380,8 +59476,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Planes_Target_Suma_Componentes_Activo(Item?.Sub)) {
           const Minutos = Metas_Sugeridas_Minutos_Partes_Seleccionadas(
             Item,
-            Ids,
-            Aporte
+            Ids
           );
           return Minutos > 0 ? Minutos / 60 : null;
         }
@@ -59569,10 +59664,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Partes_Ids = Item.Partes
             .map((Info) => Info.Parte?.Id || "")
             .filter(Boolean);
-          const Partes_Seleccionadas = Item.Partes
-            .filter((Info) => Info.Sugerida)
-            .map((Info) => Info.Parte?.Id || "")
-            .filter(Boolean);
+          const Partes_Seleccionadas =
+            Metas_Sugeridas_Partes_Auto_Seleccionadas(Item);
           const Horas_Wrap = document.createElement("div");
           Horas_Wrap.className = "Metas_Sugeridas_Horas_Wrap";
           const Horas_Input = document.createElement("input");
@@ -78937,7 +79030,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Meta_Aporte_Tiempo_Aprox_Borrador(Borrador) {
-        if (!Borrador) return { Minutos: 0, Incompleto: false };
+        if (!Borrador) {
+          return Planes_Estimar_Tiempo_Resultado(0, false, false);
+        }
         const Modelo = Asegurar_Modelo_Planes();
         const Partes = (Borrador.Partes || [])
           .filter((Parte) =>
@@ -78952,11 +79047,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Parte_Borrador.Cantidad,
               Modelo
             );
-            return {
-              Minutos: Total.Minutos + Est.Minutos,
-              Incompleto: Total.Incompleto || Est.Incompleto
-            };
-          }, { Minutos: 0, Incompleto: false });
+            return Planes_Combinar_Tiempo_Estimado(Total, Est);
+          }, Planes_Estimar_Tiempo_Resultado(0, false, false));
         }
         if (Borrador.Item_Tipo === "Subobjetivo") {
           return Planes_Estimar_Tiempo_Cantidad_Item(
