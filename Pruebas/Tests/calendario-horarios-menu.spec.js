@@ -360,6 +360,17 @@ test("mostrar horario respeta alcance semanal", async ({ page }) => {
       ))
     };
 
+    Fijar_Bloques_Horarios_Visibles_Manual(["Tarde"]);
+    const Semana_Actual_Manual = {
+      bloques: Obtener_Bloques_Horarios_Visibles_Efectivos(),
+      hora0: Boolean(document.querySelector(
+        '.Hora_Item[data-hora="0"]'
+      )),
+      hora13: Boolean(document.querySelector(
+        '.Hora_Item[data-hora="13"]'
+      ))
+    };
+
     Cambiar_Semana_Actual(
       Sumar_Dias(Obtener_Lunes(new Date()), 7)
     );
@@ -399,6 +410,7 @@ test("mostrar horario respeta alcance semanal", async ({ page }) => {
 
     return {
       semanaActualAuto: Semana_Actual_Auto,
+      semanaActualManual: Semana_Actual_Manual,
       semanaFuturaAuto: Semana_Futura_Auto,
       semanaFuturaManual: Semana_Futura_Manual,
       semanaActualAlVolver: Semana_Actual_Al_Volver,
@@ -411,6 +423,9 @@ test("mostrar horario respeta alcance semanal", async ({ page }) => {
   ]);
   expect(resultado.semanaActualAuto.hora0).toBe(true);
   expect(resultado.semanaActualAuto.hora8).toBe(false);
+  expect(resultado.semanaActualManual.bloques).toEqual(["Tarde"]);
+  expect(resultado.semanaActualManual.hora0).toBe(false);
+  expect(resultado.semanaActualManual.hora13).toBe(true);
   expect(resultado.semanaFuturaAuto.bloques).toEqual([
     "Madrugada",
     "Manana",

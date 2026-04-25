@@ -65,3 +65,16 @@ la seleccion sin abrir modales ni menus. Un click derecho fuera de esa
 barra, incluso sobre otro elemento seleccionable, debe limpiar la
 seleccion y no abrir menu contextual. El click izquierdo sobre otro
 elemento seleccionable conserva su accion normal.
+
+## Filtros del calendario
+
+Los filtros manuales del encabezado del calendario tienen prioridad
+sobre cualquier filtro automatico de Configuracion. Esto aplica tanto
+a dias visibles como a horas o bloques horarios visibles.
+
+El filtro automatico solo debe actuar en la semana real actual. En
+semanas pasadas o futuras se muestran todos los dias y horarios salvo
+que el usuario aplique un filtro manual desde el encabezado.
+
+El filtro manual se limita a la semana visible donde se aplica y no
+debe modificar la configuracion automatica persistida.

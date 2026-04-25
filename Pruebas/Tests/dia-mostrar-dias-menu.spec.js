@@ -190,7 +190,7 @@ test("el menu del encabezado alterna dias visibles", async ({
       )
     );
 
-    const Estado_Con_Martes = [...Config.Dias_Visibles];
+    const Estado_Con_Martes = Obtener_Dias_Visibles_Efectivos();
     const Tiene_Header_Martes = Boolean(
       document.querySelector('.Dia_Header[data-dia="1"]')
     );
@@ -211,7 +211,7 @@ test("el menu del encabezado alterna dias visibles", async ({
     );
     const Texto_Viernes = Btn_Viernes?.textContent || "";
     Btn_Viernes?.click();
-    const Estado_Sin_Viernes = [...Config.Dias_Visibles];
+    const Estado_Sin_Viernes = Obtener_Dias_Visibles_Efectivos();
     const Tiene_Header_Viernes = Boolean(
       document.querySelector('.Dia_Header[data-dia="4"]')
     );
@@ -245,7 +245,7 @@ test("el menu del encabezado alterna dias visibles", async ({
       textoViernes: Texto_Viernes,
       diasSinViernes: Estado_Sin_Viernes,
       tieneHeaderViernes: Tiene_Header_Viernes,
-      diasSoloHoy: [...Config.Dias_Visibles],
+      diasSoloHoy: Obtener_Dias_Visibles_Efectivos(),
       diaHoy: Obtener_Dia_Hoy_Index(),
       tieneHeaderSoloHoy: Boolean(
         document.querySelector(
@@ -288,6 +288,52 @@ test("el menu del encabezado alterna dias visibles", async ({
   expect(resultado.diasSoloHoy).toEqual([resultado.diaHoy]);
   expect(resultado.tieneHeaderSoloHoy).toBe(true);
   expect(resultado.tieneHeaderLunesSoloHoy).toBe(resultado.diaHoy === 0);
+});
+
+test("el filtro manual de dias prevalece sobre el automatico", async ({
+  page
+}) => {
+  await preparar(page, crearEstado());
+
+  const resultado = await page.evaluate(() => {
+    Config.Dias_Visibles = [0, 1, 2, 3, 4, 5, 6];
+    Config.Ocultar_Dias_Automatico = "Ambos";
+    Cambiar_Semana_Actual(new Date());
+    Render_Calendario();
+
+    const Automatico = {
+      dias: Obtener_Dias_Visibles_Efectivos(),
+      diaHoy: Obtener_Dia_Hoy_Index()
+    };
+
+    Fijar_Dias_Visibles_Manual([0, 1]);
+    const Manual = {
+      dias: Obtener_Dias_Visibles_Efectivos(),
+      tieneLunes: Boolean(
+        document.querySelector('.Dia_Header[data-dia="0"]')
+      ),
+      tieneMartes: Boolean(
+        document.querySelector('.Dia_Header[data-dia="1"]')
+      ),
+      tieneHoy: Boolean(
+        document.querySelector(
+          `.Dia_Header[data-dia="${Obtener_Dia_Hoy_Index()}"]`
+        )
+      )
+    };
+
+    return { automatico: Automatico, manual: Manual };
+  });
+
+  expect(resultado.automatico.dias).toEqual([
+    resultado.automatico.diaHoy
+  ]);
+  expect(resultado.manual.dias).toEqual([0, 1]);
+  expect(resultado.manual.tieneLunes).toBe(true);
+  expect(resultado.manual.tieneMartes).toBe(true);
+  expect(resultado.manual.tieneHoy).toBe(
+    [0, 1].includes(resultado.automatico.diaHoy)
+  );
 });
 
 test("el encabezado permite limpiar un dia con confirmacion", async ({
