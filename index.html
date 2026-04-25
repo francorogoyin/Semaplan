@@ -24599,6 +24599,9 @@
           "planes.sub_fecha_objetivo": "Fecha objetivo",
           "planes.sub_fecha_inicial": "Fecha inicial",
           "planes.sub_fecha_final": "Fecha final",
+          "planes.sub_rango_fechas": "Del {inicio} a {fin}",
+          "planes.sub_desde_fecha": "Desde {inicio}",
+          "planes.sub_hasta_fecha": "Hasta {fin}",
           "planes.sub_inicio": "Inicio",
           "planes.sub_fin":
             "Fecha estimada de finalización",
@@ -28742,6 +28745,9 @@
           "planes.sub_fecha_objetivo": "Target date",
           "planes.sub_fecha_inicial": "Initial date",
           "planes.sub_fecha_final": "Final date",
+          "planes.sub_rango_fechas": "From {inicio} to {fin}",
+          "planes.sub_desde_fecha": "From {inicio}",
+          "planes.sub_hasta_fecha": "Until {fin}",
           "planes.sub_inicio": "Start",
           "planes.sub_fin":
             "Estimated completion date",
@@ -32841,6 +32847,9 @@
           "planes.sub_fecha_objetivo": "Data objetivo",
           "planes.sub_fecha_inicial": "Data inicial",
           "planes.sub_fecha_final": "Data final",
+          "planes.sub_rango_fechas": "De {inicio} a {fin}",
+          "planes.sub_desde_fecha": "Desde {inicio}",
+          "planes.sub_hasta_fecha": "At\u00e9 {fin}",
           "planes.sub_inicio": "Início",
           "planes.sub_fin":
             "Data estimada de conclusÃ£o",
@@ -54265,23 +54274,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return `${Escape_Html(Meta)}${Separador}${Tiempo}`;
       }
 
+      function Planes_Formatear_Fecha_Corta_Subtitulo(Fecha_ISO) {
+        const Fecha = Parsear_Fecha_ISO(Fecha_ISO);
+        if (!Fecha) return Fecha_ISO || "";
+        const Locale = Obtener_Locale_Actual();
+        const Texto = new Intl.DateTimeFormat(Locale, {
+          day: "numeric",
+          month: "short",
+          year: "numeric"
+        })
+          .format(Fecha)
+          .replace(/\./g, "")
+          .replace(/,/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+        if (Locale.toLowerCase().startsWith("es")) {
+          return Texto.replace(/\sde\s/g, " ");
+        }
+        return Texto;
+      }
+
+      function Planes_Formatear_Rango_Fechas_Subobjetivo(Sub) {
+        const Inicio = Planes_Formatear_Fecha_Corta_Subtitulo(
+          Sub?.Fecha_Inicio || ""
+        );
+        const Fin = Planes_Formatear_Fecha_Corta_Subtitulo(
+          Sub?.Fecha_Fin || Sub?.Fecha_Objetivo || ""
+        );
+        if (Inicio && Fin) {
+          return t("planes.sub_rango_fechas", {
+            inicio: Inicio,
+            fin: Fin
+          });
+        }
+        if (Inicio) {
+          return t("planes.sub_desde_fecha", { inicio: Inicio });
+        }
+        if (Fin) {
+          return t("planes.sub_hasta_fecha", { fin: Fin });
+        }
+        return "";
+      }
+
       function Planes_Render_Detalle_Subobjetivo(Sub) {
-        const Estado = Planes_Estado_Normalizado_Subobjetivo(Sub);
-        const Partes = [
-          t(`planes.estado_${Estado.toLowerCase()}`)
-        ];
-        if (Sub?.Fecha_Inicio) {
-          Partes.push(`${t("planes.sub_fecha_inicial")}: ` +
-            Planes_Formatear_Fecha_Larga(Sub.Fecha_Inicio));
-        }
-        if (Sub?.Fecha_Objetivo) {
-          Partes.push(`${t("planes.sub_fecha_objetivo")}: ` +
-            Planes_Formatear_Fecha_Larga(Sub.Fecha_Objetivo));
-        }
-        if (Sub?.Fecha_Fin) {
-          Partes.push(`${t("planes.sub_fecha_final")}: ` +
-            Planes_Formatear_Fecha_Larga(Sub.Fecha_Fin));
-        }
+        const Partes = [];
+        const Rango_Fechas = Planes_Formatear_Rango_Fechas_Subobjetivo(Sub);
+        if (Rango_Fechas) Partes.push(Rango_Fechas);
         const Texto = Partes.filter(Boolean)
           .map((Parte) => Escape_Html(Parte))
           .join(" \u00B7 ");

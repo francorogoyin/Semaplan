@@ -1088,6 +1088,8 @@ async ({ page }) => {
       Target_Total: 40,
       Unidad: "Personalizado",
       Unidad_Custom: "paginas",
+      Fecha_Inicio: "2026-04-01",
+      Fecha_Objetivo: "2026-06-15",
       Orden: 0
     });
     Modelo.Partes.parte_menu_1 = Normalizar_Parte_Meta({
@@ -1132,6 +1134,8 @@ async ({ page }) => {
         Target_Total: 10,
         Unidad: "Personalizado",
         Unidad_Custom: "paginas",
+        Fecha_Inicio: "2026-04-01",
+        Fecha_Objetivo: "2026-06-15",
         Orden: 2
       });
     Modelo.Partes.parte_menu_3 = Normalizar_Parte_Meta({
@@ -1192,6 +1196,11 @@ async ({ page }) => {
       "#Planes_Subobjetivos_Lista .Planes_Subobjetivo:first-child " +
       ".Planes_Subobjetivo_Meta"
     ).length;
+    const Detalle_Subobjetivo = Array.from(document.querySelectorAll(
+      "#Planes_Subobjetivos_Lista " +
+      '[data-plan-subobjetivo-id="sub_menu_abierto"] ' +
+      ".Planes_Subobjetivo_Meta"
+    ))[1]?.textContent.trim() || "";
     const Sticky_Subobjetivos = getComputedStyle(
       document.querySelector(
         "#Planes_Subobjetivos_Overlay " +
@@ -1304,6 +1313,7 @@ async ({ page }) => {
         partes: Alto_Partes
       },
       subtitulosSubobjetivo: Subtitulos_Subobjetivo,
+      detalleSubobjetivo: Detalle_Subobjetivo,
       layout: {
         subobjetivo: Layout_Subobjetivo,
         parte: Layout_Parte
@@ -1363,6 +1373,11 @@ async ({ page }) => {
   });
   expect(resultado.altos.subobjetivos).toBe(resultado.altos.partes);
   expect(resultado.subtitulosSubobjetivo).toBe(2);
+  expect(resultado.detalleSubobjetivo).toContain("Del ");
+  expect(resultado.detalleSubobjetivo).toContain(" a ");
+  expect(resultado.detalleSubobjetivo).not.toContain("Fecha inicial");
+  expect(resultado.detalleSubobjetivo).not.toContain("Fecha objetivo");
+  expect(resultado.detalleSubobjetivo).not.toContain("En proceso");
   expect(resultado.layout.subobjetivo).toEqual(
     resultado.layout.parte
   );
