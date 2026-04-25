@@ -15828,6 +15828,12 @@
         color: var(--Acento);
       }
 
+      .Dia_Accion_Submenu_Item.Activa {
+        background: var(--Acento_Suave);
+        color: var(--Acento);
+        font-weight: 700;
+      }
+
       .Dia_Accion_Submenu_Item.Deshabilitado {
         opacity: 0.45;
         cursor: not-allowed;
@@ -37032,8 +37038,10 @@
       let Semana_Actual = null;
       let Calendario_Dias_Visibles_Manual_Semana = "";
       let Calendario_Dias_Visibles_Manual = null;
+      let Calendario_Dias_Visibles_Manual_Tipo = "";
       let Calendario_Bloques_Horarios_Manual_Semana = "";
       let Calendario_Bloques_Horarios_Manual = null;
+      let Calendario_Bloques_Horarios_Manual_Tipo = "";
       let Datos_Editor_Borrador = null;
       let Objetivo_Habitos_Bloques_Borrador = [];
       let Editor_Habitos_Bloques_Borrador = [];
@@ -45186,63 +45194,123 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
-      function Construir_Submenu_Dias_Visibles() {
-        const Dias_Base = Obtener_Dias_Visibles_Efectivos();
+      function Listas_Calendario_Iguales(A, B) {
+        if (!Array.isArray(A) || !Array.isArray(B)) return false;
+        if (A.length !== B.length) return false;
+        for (let I = 0; I < A.length; I++) {
+          if (String(A[I]) !== String(B[I])) return false;
+        }
+        return true;
+      }
+
+      function Icono_Estado_Filtro_Manual(Activo) {
+        return Activo ? "&#10003;" : "&#10005;";
+      }
+
+      function Clases_Item_Filtro_Manual(Activo) {
+        return "Dia_Accion_Submenu_Item" +
+          (Activo ? " Activa" : "");
+      }
+
+      function Obtener_Atajos_Dias_Visibles_Menu() {
+        const Atajos = [
+          "todos-dias",
+          "ocultar-fin-semana",
+          "ocultar-dias-semana"
+        ];
+        if (Semana_Visible_Es_Actual()) Atajos.push("solo-hoy");
+        Atajos.push("ocultar-anteriores", "ocultar-posteriores");
+        return Atajos;
+      }
+
+      function Label_Atajo_Dias_Visibles(Atajo) {
+        if (Atajo === "solo-hoy") return t("dia.atajo_solo_hoy");
+        if (Atajo === "todos-dias")
+          return t("dia.atajo_todos_dias");
+        if (Atajo === "ocultar-fin-semana")
+          return t("dia.atajo_ocultar_fin_semana");
+        if (Atajo === "ocultar-dias-semana")
+          return t("dia.atajo_ocultar_dias_semana");
+        if (Atajo === "ocultar-anteriores")
+          return t("dia.atajo_ocultar_anteriores");
+        if (Atajo === "ocultar-posteriores")
+          return t("dia.atajo_ocultar_posteriores");
+        return "";
+      }
+
+      function Obtener_Dias_De_Atajo_Visible(
+        Atajo,
+        Dia_Referencia
+      ) {
+        const Ref = Resolver_Dia_Referencia_Atajo(
+          Dia_Referencia
+        );
+        if (Atajo === "solo-hoy") return [Ref];
+        if (Atajo === "todos-dias") return [0, 1, 2, 3, 4, 5, 6];
+        if (Atajo === "ocultar-fin-semana") return [0, 1, 2, 3, 4];
+        if (Atajo === "ocultar-dias-semana") return [5, 6];
+        if (Atajo === "ocultar-anteriores") {
+          return Construir_Rango_Dias_Atajo(Ref, 6);
+        }
+        if (Atajo === "ocultar-posteriores") {
+          return Construir_Rango_Dias_Atajo(0, Ref);
+        }
+        return null;
+      }
+
+      function Obtener_Tipo_Dias_Visibles_Manual_Menu(
+        Dia_Referencia
+      ) {
+        const Manual = Obtener_Dias_Visibles_Manual();
+        if (!Manual) return "";
+        if (Calendario_Dias_Visibles_Manual_Tipo) {
+          return Calendario_Dias_Visibles_Manual_Tipo;
+        }
+        for (const Atajo of Obtener_Atajos_Dias_Visibles_Menu()) {
+          const Dias_Atajo = Obtener_Dias_De_Atajo_Visible(
+            Atajo,
+            Dia_Referencia
+          );
+          if (Listas_Calendario_Iguales(Manual, Dias_Atajo)) {
+            return Atajo;
+          }
+        }
+        return "personalizado";
+      }
+
+      function Construir_Boton_Filtro_Manual_Dia(
+        Tipo_Activo,
+        Atajo,
+        Label
+      ) {
+        const Activo = Tipo_Activo === Atajo;
+        return (
+          `<button class="${Clases_Item_Filtro_Manual(Activo)}"` +
+          ` type="button" data-dia-atajo="${Atajo}"` +
+          ` data-filtro-activo="${Activo ? "1" : "0"}"` +
+          ` aria-pressed="${Activo ? "true" : "false"}">` +
+          `<span>${Escape_Html(Label)}</span>` +
+          `<span class="Dia_Accion_Submenu_Estado">` +
+          `${Icono_Estado_Filtro_Manual(Activo)}</span>` +
+          `</button>`
+        );
+      }
+
+      function Construir_Items_Dias_Personalizados(Dias_Base) {
         const Dias_Largos = t("dias_completos")
           .split(",")
           .map((Texto) => Texto.trim());
-        const Html_Solo_Hoy = Semana_Visible_Es_Actual()
-          ? (
-            `<button class="Dia_Accion_Submenu_Item" type="button"` +
-            ` data-dia-atajo="solo-hoy">` +
-            `<span>${t("dia.atajo_solo_hoy")}</span>` +
-            `<span class="Dia_Accion_Submenu_Estado"></span>` +
-            `</button>`
-          )
-          : "";
-        const Html_Atajos =
-          `<div class="Dia_Accion_Submenu_Titulo">` +
-          `${t("dia.atajos")}</div>` +
-          `<button class="Dia_Accion_Submenu_Item" type="button"` +
-          ` data-dia-atajo="todos-dias">` +
-          `<span>${t("dia.atajo_todos_dias")}</span>` +
-          `<span class="Dia_Accion_Submenu_Estado"></span>` +
-          `</button>` +
-          `<button class="Dia_Accion_Submenu_Item" type="button"` +
-          ` data-dia-atajo="ocultar-fin-semana">` +
-          `<span>${t("dia.atajo_ocultar_fin_semana")}</span>` +
-          `<span class="Dia_Accion_Submenu_Estado"></span>` +
-          `</button>` +
-          `<button class="Dia_Accion_Submenu_Item" type="button"` +
-          ` data-dia-atajo="ocultar-dias-semana">` +
-          `<span>${t("dia.atajo_ocultar_dias_semana")}</span>` +
-          `<span class="Dia_Accion_Submenu_Estado"></span>` +
-          `</button>` +
-          Html_Solo_Hoy +
-          `<button class="Dia_Accion_Submenu_Item" type="button"` +
-          ` data-dia-atajo="ocultar-anteriores">` +
-          `<span>${t("dia.atajo_ocultar_anteriores")}</span>` +
-          `<span class="Dia_Accion_Submenu_Estado"></span>` +
-          `</button>` +
-          `<button class="Dia_Accion_Submenu_Item" type="button"` +
-          ` data-dia-atajo="ocultar-posteriores">` +
-          `<span>${t("dia.atajo_ocultar_posteriores")}</span>` +
-          `<span class="Dia_Accion_Submenu_Estado"></span>` +
-          `</button>` +
-          `<div class="Dia_Accion_Separador"` +
-          ` role="separator"></div>`;
-        const Html_Dias = [0, 1, 2, 3, 4, 5, 6].map((Dia) => {
+        return [0, 1, 2, 3, 4, 5, 6].map((Dia) => {
           const Visible = Dias_Base.includes(Dia);
           const Es_Ultimo =
             Visible && Dias_Base.length <= 1;
           const Clases =
             "Dia_Accion_Submenu_Item" +
             (Es_Ultimo ? " Deshabilitado" : "");
-          const Estado = Visible ? "✓" : "✕";
           const Nombre =
             Dias_Largos[Dia] ||
             Dias[Dia] ||
-            `Día ${Dia + 1}`;
+            `Dia ${Dia + 1}`;
           return (
             `<button class="${Clases}" type="button"` +
             ` data-dia-toggle="${Dia}"` +
@@ -45250,11 +45318,46 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ">" +
             `<span>${Escape_Html(Nombre)}</span>` +
             `<span class="Dia_Accion_Submenu_Estado">` +
-            `${Estado}</span>` +
+            `${Icono_Estado_Filtro_Manual(Visible)}</span>` +
             "</button>"
           );
         }).join("");
-        return Html_Atajos + Html_Dias;
+      }
+
+      function Construir_Submenu_Dias_Visibles(
+        Dia_Referencia = ""
+      ) {
+        {
+          const Dias_Base = Obtener_Dias_Visibles_Efectivos();
+          const Tipo_Activo =
+            Obtener_Tipo_Dias_Visibles_Manual_Menu(
+              Dia_Referencia
+            );
+          const Html_Atajos =
+            `<div class="Dia_Accion_Submenu_Titulo">` +
+            `${t("dia.atajos")}</div>` +
+            Obtener_Atajos_Dias_Visibles_Menu().map((Atajo) =>
+              Construir_Boton_Filtro_Manual_Dia(
+                Tipo_Activo,
+                Atajo,
+                Label_Atajo_Dias_Visibles(Atajo)
+              )
+            ).join("");
+          const Html_Personalizado =
+            Construir_Boton_Filtro_Manual_Dia(
+              Tipo_Activo,
+              "personalizado",
+              t("config.personalizado")
+            );
+          const Html_Dias = Tipo_Activo === "personalizado"
+            ? (
+              `<div class="Dia_Accion_Separador"` +
+              ` role="separator"></div>` +
+              Construir_Items_Dias_Personalizados(Dias_Base)
+            )
+            : "";
+          return Html_Atajos + Html_Personalizado + Html_Dias;
+        }
       }
 
       function Alternar_Dia_Visible_Desde_Menu(
@@ -45265,12 +45368,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Dias_Base.length <= 1) return false;
           return Fijar_Dias_Visibles_Manual(Dias_Base.filter(
             (Dia) => Dia !== Dia_Index
-          ));
+          ), "personalizado");
         }
         return Fijar_Dias_Visibles_Manual([
           ...Dias_Base,
           Dia_Index
-        ]);
+        ], "personalizado");
       }
 
       function Resolver_Dia_Referencia_Atajo(
@@ -45303,27 +45406,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Atajo,
         Dia_Referencia
       ) {
-        const Ref = Resolver_Dia_Referencia_Atajo(
-          Dia_Referencia
-        );
-        let Nuevo = null;
-        if (Atajo === "solo-hoy") {
-          Nuevo = [Ref];
-        } else if (Atajo === "todos-dias") {
-          Nuevo = [0, 1, 2, 3, 4, 5, 6];
-        } else if (Atajo === "ocultar-fin-semana") {
-          Nuevo = [0, 1, 2, 3, 4];
-        } else if (Atajo === "ocultar-dias-semana") {
-          Nuevo = [5, 6];
-        } else if (Atajo === "ocultar-anteriores") {
-          Nuevo = Construir_Rango_Dias_Atajo(Ref, 6);
-        } else if (Atajo === "ocultar-posteriores") {
-          Nuevo = Construir_Rango_Dias_Atajo(0, Ref);
+        {
+          const Tipo_Activo =
+            Obtener_Tipo_Dias_Visibles_Manual_Menu(
+              Dia_Referencia
+            );
+          if (Tipo_Activo === Atajo) {
+            Limpiar_Dias_Visibles_Manual();
+            Render_Calendario();
+            return true;
+          }
+          if (Atajo === "personalizado") {
+            return Fijar_Dias_Visibles_Manual(
+              Obtener_Dias_Visibles_Efectivos(),
+              "personalizado"
+            );
+          }
+          const Nuevo = Obtener_Dias_De_Atajo_Visible(
+            Atajo,
+            Dia_Referencia
+          );
+          if (!Array.isArray(Nuevo) || !Nuevo.length) {
+            return false;
+          }
+          return Fijar_Dias_Visibles_Manual(Nuevo, Atajo);
         }
-        if (!Array.isArray(Nuevo) || !Nuevo.length) {
-          return false;
-        }
-        return Fijar_Dias_Visibles_Manual(Nuevo);
       }
 
       function Refrescar_Submenu_Dias_Visibles(Menu) {
@@ -45337,7 +45444,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ".Dia_Accion_Submenu"
         );
         if (!Sub) return false;
-        Sub.innerHTML = Construir_Submenu_Dias_Visibles();
+        Sub.innerHTML = Construir_Submenu_Dias_Visibles(
+          Menu?.dataset.diaRef || ""
+        );
         return true;
       }
 
@@ -45435,61 +45544,128 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return String(Bloque_Id || "");
       }
 
+      function Obtener_Atajos_Bloques_Horarios_Menu() {
+        return [
+          "todo-dia",
+          "solo-madrugada",
+          "solo-manana",
+          "solo-tarde",
+          "solo-noche"
+        ];
+      }
+
+      function Label_Atajo_Bloques_Horarios(Atajo) {
+        if (Atajo === "todo-dia") return t("hora.atajo_todo_dia");
+        if (Atajo === "solo-madrugada")
+          return t("hora.atajo_solo_madrugada");
+        if (Atajo === "solo-manana")
+          return t("hora.atajo_solo_manana");
+        if (Atajo === "solo-tarde")
+          return t("hora.atajo_solo_tarde");
+        if (Atajo === "solo-noche")
+          return t("hora.atajo_solo_noche");
+        return "";
+      }
+
+      function Obtener_Bloques_De_Atajo_Horario(Atajo) {
+        if (Atajo === "todo-dia") {
+          return Obtener_Ids_Bloques_Horarios();
+        }
+        const Bloque = Resolver_Bloque_Atajo_Horario(Atajo);
+        return Bloque ? [Bloque] : null;
+      }
+
+      function Obtener_Tipo_Bloques_Horarios_Manual_Menu() {
+        const Manual = Obtener_Bloques_Horarios_Visibles_Manual();
+        if (!Manual) return "";
+        if (Calendario_Bloques_Horarios_Manual_Tipo) {
+          return Calendario_Bloques_Horarios_Manual_Tipo;
+        }
+        for (const Atajo of Obtener_Atajos_Bloques_Horarios_Menu()) {
+          const Bloques_Atajo =
+            Obtener_Bloques_De_Atajo_Horario(Atajo);
+          if (Listas_Calendario_Iguales(Manual, Bloques_Atajo)) {
+            return Atajo;
+          }
+        }
+        return "personalizado";
+      }
+
+      function Construir_Boton_Filtro_Manual_Hora(
+        Tipo_Activo,
+        Atajo,
+        Label
+      ) {
+        const Activo = Tipo_Activo === Atajo;
+        return (
+          `<button class="${Clases_Item_Filtro_Manual(Activo)}"` +
+          ` type="button" data-hora-atajo="${Atajo}"` +
+          ` data-filtro-activo="${Activo ? "1" : "0"}"` +
+          ` aria-pressed="${Activo ? "true" : "false"}">` +
+          `<span>${Escape_Html(Label)}</span>` +
+          `<span class="Dia_Accion_Submenu_Estado">` +
+          `${Icono_Estado_Filtro_Manual(Activo)}</span>` +
+          `</button>`
+        );
+      }
+
+      function Construir_Items_Bloques_Horarios_Personalizados(
+        Visibles
+      ) {
+        return Obtener_Ids_Bloques_Horarios().map((Bloque_Id) => {
+          const Visible = Visibles.includes(Bloque_Id);
+          const Es_Ultimo =
+            Visible && Visibles.length <= 1;
+          const Clases =
+            "Dia_Accion_Submenu_Item" +
+            (Es_Ultimo ? " Deshabilitado" : "");
+          const Nombre = Nombre_Bloque_Horario(Bloque_Id);
+          return (
+            `<button class="${Clases}" type="button"` +
+            ` data-hora-bloque="${Bloque_Id}"` +
+            (Es_Ultimo ? " disabled" : "") +
+            ">" +
+            `<span>${Escape_Html(Nombre)}</span>` +
+            `<span class="Dia_Accion_Submenu_Estado">` +
+            `${Icono_Estado_Filtro_Manual(Visible)}</span>` +
+            "</button>"
+          );
+        }).join("");
+      }
+
       function Construir_Submenu_Bloques_Horarios_Visibles() {
-        const Visibles =
-          Obtener_Bloques_Horarios_Visibles_Efectivos();
-        const Html_Atajos =
-          `<div class="Dia_Accion_Submenu_Titulo">` +
-          `${t("hora.atajos")}</div>` +
-          `<button class="Dia_Accion_Submenu_Item" type="button"` +
-          ` data-hora-atajo="todo-dia">` +
-          `<span>${t("hora.atajo_todo_dia")}</span>` +
-          `<span class="Dia_Accion_Submenu_Estado"></span>` +
-          `</button>` +
-          `<button class="Dia_Accion_Submenu_Item" type="button"` +
-          ` data-hora-atajo="solo-madrugada">` +
-          `<span>${t("hora.atajo_solo_madrugada")}</span>` +
-          `<span class="Dia_Accion_Submenu_Estado"></span>` +
-          `</button>` +
-          `<button class="Dia_Accion_Submenu_Item" type="button"` +
-          ` data-hora-atajo="solo-manana">` +
-          `<span>${t("hora.atajo_solo_manana")}</span>` +
-          `<span class="Dia_Accion_Submenu_Estado"></span>` +
-          `</button>` +
-          `<button class="Dia_Accion_Submenu_Item" type="button"` +
-          ` data-hora-atajo="solo-tarde">` +
-          `<span>${t("hora.atajo_solo_tarde")}</span>` +
-          `<span class="Dia_Accion_Submenu_Estado"></span>` +
-          `</button>` +
-          `<button class="Dia_Accion_Submenu_Item" type="button"` +
-          ` data-hora-atajo="solo-noche">` +
-          `<span>${t("hora.atajo_solo_noche")}</span>` +
-          `<span class="Dia_Accion_Submenu_Estado"></span>` +
-          `</button>` +
-          `<div class="Dia_Accion_Separador"` +
-          ` role="separator"></div>`;
-        const Html_Bloques =
-          Obtener_Ids_Bloques_Horarios().map((Bloque_Id) => {
-            const Visible = Visibles.includes(Bloque_Id);
-            const Es_Ultimo =
-              Visible && Visibles.length <= 1;
-            const Clases =
-              "Dia_Accion_Submenu_Item" +
-              (Es_Ultimo ? " Deshabilitado" : "");
-            const Estado = Visible ? "✓" : "✖";
-            const Nombre = Nombre_Bloque_Horario(Bloque_Id);
-            return (
-              `<button class="${Clases}" type="button"` +
-              ` data-hora-bloque="${Bloque_Id}"` +
-              (Es_Ultimo ? " disabled" : "") +
-              ">" +
-              `<span>${Escape_Html(Nombre)}</span>` +
-              `<span class="Dia_Accion_Submenu_Estado">` +
-              `${Estado}</span>` +
-              "</button>"
+        {
+          const Visibles =
+            Obtener_Bloques_Horarios_Visibles_Efectivos();
+          const Tipo_Activo =
+            Obtener_Tipo_Bloques_Horarios_Manual_Menu();
+          const Html_Atajos =
+            `<div class="Dia_Accion_Submenu_Titulo">` +
+            `${t("hora.atajos")}</div>` +
+            Obtener_Atajos_Bloques_Horarios_Menu().map((Atajo) =>
+              Construir_Boton_Filtro_Manual_Hora(
+                Tipo_Activo,
+                Atajo,
+                Label_Atajo_Bloques_Horarios(Atajo)
+              )
+            ).join("");
+          const Html_Personalizado =
+            Construir_Boton_Filtro_Manual_Hora(
+              Tipo_Activo,
+              "personalizado",
+              t("config.personalizado")
             );
-          }).join("");
-        return Html_Atajos + Html_Bloques;
+          const Html_Bloques = Tipo_Activo === "personalizado"
+            ? (
+              `<div class="Dia_Accion_Separador"` +
+              ` role="separator"></div>` +
+              Construir_Items_Bloques_Horarios_Personalizados(
+                Visibles
+              )
+            )
+            : "";
+          return Html_Atajos + Html_Personalizado + Html_Bloques;
+        }
       }
 
       function Resolver_Bloque_Atajo_Horario(Atajo) {
@@ -45516,19 +45692,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Obtener_Ids_Bloques_Horarios().filter((Id) =>
             Set_Nuevo.has(Id)
           );
-        return Fijar_Bloques_Horarios_Visibles_Manual(Nuevo);
+        return Fijar_Bloques_Horarios_Visibles_Manual(
+          Nuevo,
+          "personalizado"
+        );
       }
 
       function Aplicar_Atajo_Bloques_Horarios_Visibles(Atajo) {
-        if (Atajo === "todo-dia") {
+        {
+          const Tipo_Activo =
+            Obtener_Tipo_Bloques_Horarios_Manual_Menu();
+          if (Tipo_Activo === Atajo) {
+            Limpiar_Bloques_Horarios_Visibles_Manual();
+            Render_Calendario();
+            return true;
+          }
+          if (Atajo === "personalizado") {
+            return Fijar_Bloques_Horarios_Visibles_Manual(
+              Obtener_Bloques_Horarios_Visibles_Efectivos(),
+              "personalizado"
+            );
+          }
+          const Nuevo = Obtener_Bloques_De_Atajo_Horario(Atajo);
+          if (!Array.isArray(Nuevo) || !Nuevo.length) {
+            return false;
+          }
           return Fijar_Bloques_Horarios_Visibles_Manual(
-            Obtener_Ids_Bloques_Horarios()
+            Nuevo,
+            Atajo
           );
         }
-        const Bloque =
-          Resolver_Bloque_Atajo_Horario(Atajo);
-        if (!Bloque) return false;
-        return Fijar_Bloques_Horarios_Visibles_Manual([Bloque]);
       }
 
       function Refrescar_Submenu_Bloques_Horarios_Visibles(Menu) {
@@ -46027,7 +46220,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `<span class="Dia_Accion_Submenu_Chevron">▾</span>` +
           `</button>` +
           `<div class="Dia_Accion_Submenu">` +
-          `${Construir_Submenu_Dias_Visibles()}` +
+          `${Construir_Submenu_Dias_Visibles(Dia_Index)}` +
           `</div>` +
           `</div>`;
 
@@ -86105,14 +86298,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Limpiar_Dias_Visibles_Manual() {
         Calendario_Dias_Visibles_Manual_Semana = "";
         Calendario_Dias_Visibles_Manual = null;
+        Calendario_Dias_Visibles_Manual_Tipo = "";
       }
 
-      function Fijar_Dias_Visibles_Manual(Dias_Nuevos) {
+      function Fijar_Dias_Visibles_Manual(
+        Dias_Nuevos,
+        Tipo = "personalizado"
+      ) {
         const Nuevo = Normalizar_Dias_Visibles(Dias_Nuevos, []);
         if (!Nuevo.length) return false;
         Calendario_Dias_Visibles_Manual_Semana =
           Clave_Semana_Visible();
         Calendario_Dias_Visibles_Manual = Nuevo;
+        Calendario_Dias_Visibles_Manual_Tipo =
+          String(Tipo || "personalizado");
         Render_Calendario();
         return true;
       }
@@ -86245,10 +86444,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Limpiar_Bloques_Horarios_Visibles_Manual() {
         Calendario_Bloques_Horarios_Manual_Semana = "";
         Calendario_Bloques_Horarios_Manual = null;
+        Calendario_Bloques_Horarios_Manual_Tipo = "";
       }
 
       function Fijar_Bloques_Horarios_Visibles_Manual(
-        Bloques_Nuevos
+        Bloques_Nuevos,
+        Tipo = "personalizado"
       ) {
         const Nuevo = Normalizar_Bloques_Horarios_Visibles(
           Bloques_Nuevos
@@ -86257,6 +86458,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Calendario_Bloques_Horarios_Manual_Semana =
           Clave_Semana_Visible();
         Calendario_Bloques_Horarios_Manual = Nuevo;
+        Calendario_Bloques_Horarios_Manual_Tipo =
+          String(Tipo || "personalizado");
         Render_Calendario();
         return true;
       }

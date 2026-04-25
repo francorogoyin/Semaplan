@@ -177,6 +177,21 @@ test("el menu del encabezado alterna dias visibles", async ({
     const Atajos = Array.from(
       Menu.querySelectorAll("[data-dia-atajo]")
     ).map((Btn) => Btn.dataset.diaAtajo || "");
+    const Toggles_Antes_Personalizado =
+      Menu.querySelectorAll("[data-dia-toggle]").length;
+    const Btn_Personalizado = Menu.querySelector(
+      '[data-dia-atajo="personalizado"]'
+    );
+    const Personalizado_Inicial_Activo =
+      Btn_Personalizado?.dataset.filtroActivo || "";
+    Btn_Personalizado?.click();
+    const Personalizado_Tras_Click = Menu.querySelector(
+      '[data-dia-atajo="personalizado"]'
+    );
+    const Personalizado_Activo =
+      Personalizado_Tras_Click?.dataset.filtroActivo || "";
+    const Toggles_Tras_Personalizado =
+      Menu.querySelectorAll("[data-dia-toggle]").length;
     const Btn_Martes = Menu.querySelector(
       '[data-dia-toggle="1"]'
     );
@@ -230,6 +245,21 @@ test("el menu del encabezado alterna dias visibles", async ({
     document
       .querySelector('#Dia_Accion_Menu [data-dia-atajo="solo-hoy"]')
       ?.click();
+    const Dias_Solo_Hoy = Obtener_Dias_Visibles_Efectivos();
+    const Tiene_Header_Solo_Hoy = Boolean(
+      document.querySelector(
+        `.Dia_Header[data-dia="${Obtener_Dia_Hoy_Index()}"]`
+      )
+    );
+    const Tiene_Header_Lunes_Solo_Hoy = Boolean(
+      document.querySelector('.Dia_Header[data-dia="0"]')
+    );
+    const Solo_Hoy_Activo = document
+      .querySelector('#Dia_Accion_Menu [data-dia-atajo="solo-hoy"]')
+      ?.dataset.filtroActivo || "";
+    document
+      .querySelector('#Dia_Accion_Menu [data-dia-atajo="solo-hoy"]')
+      ?.click();
 
     return {
       textoMenu: Texto_Menu,
@@ -237,6 +267,10 @@ test("el menu del encabezado alterna dias visibles", async ({
       tituloAtajos: Titulo_Atajos,
       textosAtajos: Textos_Atajos,
       atajos: Atajos,
+      togglesAntesPersonalizado: Toggles_Antes_Personalizado,
+      personalizadoInicialActivo: Personalizado_Inicial_Activo,
+      personalizadoActivo: Personalizado_Activo,
+      togglesTrasPersonalizado: Toggles_Tras_Personalizado,
       textoMartes: Texto_Martes,
       menuActivoTrasMartes: Menu_Activo_Tras_Martes,
       submenuTrasMartes: Submenu_Tras_Martes,
@@ -245,22 +279,19 @@ test("el menu del encabezado alterna dias visibles", async ({
       textoViernes: Texto_Viernes,
       diasSinViernes: Estado_Sin_Viernes,
       tieneHeaderViernes: Tiene_Header_Viernes,
-      diasSoloHoy: Obtener_Dias_Visibles_Efectivos(),
+      diasSoloHoy: Dias_Solo_Hoy,
       diaHoy: Obtener_Dia_Hoy_Index(),
-      tieneHeaderSoloHoy: Boolean(
-        document.querySelector(
-          `.Dia_Header[data-dia="${Obtener_Dia_Hoy_Index()}"]`
-        )
-      ),
-      tieneHeaderLunesSoloHoy: Boolean(
-        document.querySelector('.Dia_Header[data-dia="0"]')
-      )
+      tieneHeaderSoloHoy: Tiene_Header_Solo_Hoy,
+      soloHoyActivo: Solo_Hoy_Activo,
+      diasTrasDestildarSoloHoy: Obtener_Dias_Visibles_Efectivos(),
+      tieneHeaderLunesSoloHoy: Tiene_Header_Lunes_Solo_Hoy
     };
   });
 
   expect(resultado.textoMenu).toContain("Mostrar días");
   expect(resultado.submenuAbierto).toBeTruthy();
   expect(resultado.tituloAtajos).toContain("Atajos");
+  expect(resultado.atajos).toContain("personalizado");
   expect(resultado.textosAtajos.join(" ")).toContain(
     "Ocultar todos menos hoy"
   );
@@ -275,6 +306,10 @@ test("el menu del encabezado alterna dias visibles", async ({
   expect(resultado.textosAtajos.join(" ")).toContain(
     "Ocultar días posteriores"
   );
+  expect(resultado.togglesAntesPersonalizado).toBe(0);
+  expect(resultado.personalizadoInicialActivo).toBe("0");
+  expect(resultado.personalizadoActivo).toBe("1");
+  expect(resultado.togglesTrasPersonalizado).toBe(7);
   expect(resultado.textoMartes).toContain("Martes");
   expect(resultado.textoMartes).toContain("✕");
   expect(resultado.menuActivoTrasMartes).toBeTruthy();
@@ -286,6 +321,8 @@ test("el menu del encabezado alterna dias visibles", async ({
   expect(resultado.diasSinViernes).toEqual([0, 1, 2]);
   expect(resultado.tieneHeaderViernes).toBe(false);
   expect(resultado.diasSoloHoy).toEqual([resultado.diaHoy]);
+  expect(resultado.soloHoyActivo).toBe("1");
+  expect(resultado.diasTrasDestildarSoloHoy).toEqual([0, 2, 4]);
   expect(resultado.tieneHeaderSoloHoy).toBe(true);
   expect(resultado.tieneHeaderLunesSoloHoy).toBe(resultado.diaHoy === 0);
 });

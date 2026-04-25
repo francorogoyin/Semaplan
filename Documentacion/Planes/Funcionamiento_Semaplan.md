@@ -79,6 +79,13 @@ que el usuario aplique un filtro manual desde el encabezado.
 El filtro manual se limita a la semana visible donde se aplica y no
 debe modificar la configuracion automatica persistida.
 
+Los filtros manuales de dias y horas existen solo mientras haya una
+opcion manual activada en el menu del encabezado. Si el usuario vuelve
+a tocar la opcion activa, se limpia el filtro manual de esa semana y
+vuelve a regir la configuracion automatica correspondiente. La opcion
+Personalizado muestra los items individuales y, al desactivarse,
+tambien vuelve al automatico.
+
 El modo automatico de horarios "Enfocar alrededor de ahora" muestra
 la hora actual mas el margen configurado hacia atras y hacia adelante.
 Tambien queda limitado a la semana real actual y queda por debajo del
