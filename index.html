@@ -597,14 +597,15 @@
       }
 
       .Metas_Sugeridas_Campo.Descripcion {
-        flex: 1 1 100%;
+        grid-column: 1 / -1;
       }
 
       .Metas_Sugeridas_Horas_Wrap {
         display: grid;
-        grid-template-columns: minmax(64px, 90px) minmax(0, 1fr);
+        grid-template-columns: minmax(76px, 0.34fr) minmax(0, 1fr);
         gap: 8px;
         align-items: center;
+        width: 100%;
       }
 
       .Metas_Sugeridas_Por_Hora {
@@ -640,16 +641,21 @@
       }
 
       .Metas_Sugeridas_Controles {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 14px;
-        padding: 0 14px 14px 66px;
+        display: grid;
+        grid-template-columns:
+          minmax(210px, 1.05fr)
+          minmax(260px, 1.35fr)
+          minmax(260px, 1.2fr);
+        column-gap: 18px;
+        row-gap: 18px;
+        padding: 21px 14px 14px 66px;
       }
 
       .Metas_Sugeridas_Campo {
         display: grid;
         gap: 6px;
-        min-width: 180px;
+        min-width: 0;
+        width: 100%;
       }
 
       .Metas_Sugeridas_Campo label {
@@ -659,8 +665,9 @@
         text-transform: uppercase;
       }
 
+      .Metas_Sugeridas_Campo.Vinculacion,
       .Metas_Sugeridas_Campo.Partes {
-        flex: 1 1 220px;
+        grid-column: 1 / -1;
       }
 
       .Metas_Sugeridas_Partes_Modal {
@@ -798,12 +805,12 @@
         }
 
         .Metas_Sugeridas_Controles {
-          padding: 0 14px 14px;
+          grid-template-columns: 1fr;
+          padding: 18px 14px 14px;
         }
 
         .Metas_Sugeridas_Campo {
-          min-width: min(100%, 220px);
-          flex: 1 1 100%;
+          min-width: 0;
         }
 
         .Metas_Sugeridas_Acciones {
@@ -60204,7 +60211,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Metas_Sugeridas_Formatear_Horas_Default(Horas) {
         const Numero = Number(Horas) || 0;
         if (Numero <= 0) return "1";
-        const Redondeado = Math.max(0.25, Math.round(Numero * 4) / 4);
+        const Redondeado = Math.max(
+          0.25,
+          Math.ceil((Numero - Number.EPSILON) * 4) / 4
+        );
         return String(Number(Redondeado.toFixed(2)));
       }
 
@@ -60480,27 +60490,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "Metas_Sugeridas_Expandido_Interior";
           const Controles = document.createElement("div");
           Controles.className = "Metas_Sugeridas_Controles";
-          Controles.appendChild(Metas_Sugeridas_Campo_Control(
+          const Campo_Categoria = Metas_Sugeridas_Campo_Control(
             "sidebar.metas_col_categoria",
             Categoria
-          ));
-          Controles.appendChild(Metas_Sugeridas_Campo_Control(
+          );
+          Campo_Categoria.classList.add("Categoria");
+          Controles.appendChild(Campo_Categoria);
+          const Campo_Color = Metas_Sugeridas_Campo_Control(
             "sidebar.metas_col_color",
             Color_Campo
-          ));
-          Controles.appendChild(Metas_Sugeridas_Campo_Control(
+          );
+          Campo_Color.classList.add("Color");
+          Controles.appendChild(Campo_Color);
+          const Campo_Horas = Metas_Sugeridas_Campo_Control(
             "sidebar.metas_col_horas",
             Horas_Wrap
-          ));
+          );
+          Campo_Horas.classList.add("Horas");
+          Controles.appendChild(Campo_Horas);
           const Vinculo_Expandido = document.createElement("div");
           Vinculo_Expandido.className =
             "Metas_Sugeridas_Vinculo Metas_Sugeridas_Detalle";
           Vinculo_Expandido.textContent =
             Metas_Sugeridas_Texto_Vinculo(Item);
-          Controles.appendChild(Metas_Sugeridas_Campo_Control(
+          const Campo_Vinculacion = Metas_Sugeridas_Campo_Control(
             "sidebar.metas_col_vinculacion",
             Vinculo_Expandido
-          ));
+          );
+          Campo_Vinculacion.classList.add("Vinculacion");
+          Controles.appendChild(Campo_Vinculacion);
           const Campo_Descripcion = Metas_Sugeridas_Campo_Control(
             "sidebar.metas_col_descripcion",
             Descripcion
