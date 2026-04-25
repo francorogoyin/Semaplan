@@ -62,13 +62,17 @@ async function Preparar(page, estadoInicial) {
   await page.waitForFunction(() =>
     typeof window.Inicializar === "function"
   );
-  await page.evaluate(() => {
+  await page.evaluate((Inicio_Semana) => {
     document.getElementById("Auth_Overlay")
       ?.classList.remove("Activo");
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
-  });
+    if (Inicio_Semana) {
+      Semana_Actual = Parsear_Fecha_ISO(Inicio_Semana);
+      Render_Calendario();
+    }
+  }, estadoInicial.Inicio_Semana);
 }
 
 function Estado_Base() {
@@ -637,6 +641,9 @@ test("menu de bloque distingue insertar y editar plan", async ({
         "#Dia_Accion_Menu .Dia_Accion_Item"
       )
     ).map((item) => item.getAttribute("data-acc"));
+    const reemplazarContenido = document.querySelector(
+      '#Dia_Accion_Menu [data-acc="pegar-plan-evento"]'
+    )?.textContent?.trim() || "";
     const copiaContenidoOk = Copiar_Plan_Evento(
       Evento_Contenido
     );
@@ -673,6 +680,7 @@ test("menu de bloque distingue insertar y editar plan", async ({
       accionesSinPlan,
       conContenido,
       accionesContenido,
+      reemplazarContenido,
       copiaContenidoOk,
       copiaContenido,
       conPlan,
@@ -690,7 +698,9 @@ test("menu de bloque distingue insertar y editar plan", async ({
   expect(etiquetas.accionesContenido)
     .toContain("borrar-plan-evento");
   expect(etiquetas.accionesContenido)
-    .not.toContain("pegar-plan-evento");
+    .toContain("pegar-plan-evento");
+  expect(etiquetas.reemplazarContenido)
+    .toBe("Reemplazar plan");
   expect(etiquetas.copiaContenidoOk).toBeTruthy();
   expect(etiquetas.copiaContenido.texto).toBe("Ya tocado");
   expect(etiquetas.copiaContenido.planeada).toBeTruthy();
@@ -817,6 +827,174 @@ test("menu de bloque copia pega y borra plan", async ({ page }) => {
 
   expect(borrado.total).toBe(0);
   expect(borrado.tiene_plan).toBeFalsy();
+});
+
+test("menu de bloque reemplaza plan con confirmacion", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Eventos = [
+    {
+      Id: "ev_plan_origen",
+      Objetivo_Id: null,
+      Fecha: "2026-04-13",
+      Inicio: 9,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: "",
+      Abordaje: [
+        {
+          Id: "ab_origen",
+          Texto: "Plan nuevo",
+          Emoji: "*",
+          Suelta: true,
+          Estado: "Planeado"
+        }
+      ]
+    },
+    {
+      Id: "ev_plan_destino",
+      Objetivo_Id: null,
+      Fecha: "2026-04-13",
+      Inicio: 11,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: "",
+      Abordaje: [
+        {
+          Id: "ab_viejo",
+          Texto: "Plan viejo",
+          Emoji: "*",
+          Suelta: true,
+          Planeada: true
+        }
+      ]
+    }
+  ];
+  await Preparar(page, estado);
+
+  await page.locator('.Evento[data-id="ev_plan_origen"]')
+    .click({ button: "right" });
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="copiar-plan-evento"]'
+  );
+
+  await page.locator('.Evento[data-id="ev_plan_destino"]')
+    .click({ button: "right" });
+  const accion = page.locator(
+    '#Dia_Accion_Menu [data-acc="pegar-plan-evento"]'
+  );
+  await expect(accion).toHaveText("Reemplazar plan");
+  await accion.click();
+
+  await expect(page.locator("#Dialogo_Mensaje"))
+    .toContainText("Este bloque ya tiene un plan");
+  await expect(
+    page.getByRole("button", { name: "Agregar" })
+  ).toHaveCount(0);
+  await page.getByRole("button", {
+    name: "Reemplazar plan"
+  }).click();
+
+  const resultado = await page.evaluate(() => {
+    const Evento = Eventos.find((Ev) =>
+      Ev.Id === "ev_plan_destino"
+    );
+    return (Evento?.Abordaje || []).map((Item) => ({
+      texto: Item.Texto,
+      planeada: Boolean(Item.Planeada)
+    }));
+  });
+
+  expect(resultado).toEqual([
+    { texto: "Plan nuevo", planeada: true }
+  ]);
+});
+
+test("slot vacio pega solo planes copiados desde slots", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Eventos = [
+    {
+      Id: "ev_plan_bloque",
+      Objetivo_Id: null,
+      Fecha: "2026-04-13",
+      Inicio: 10,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: "",
+      Abordaje: [
+        {
+          Id: "ab_bloque",
+          Texto: "Plan de bloque",
+          Emoji: "*",
+          Suelta: true,
+          Estado: "Planeado"
+        }
+      ]
+    }
+  ];
+  estado.Planes_Slot = {
+    "2026-04-13|9": {
+      Items: [
+        {
+          Id: "ps_origen",
+          Texto: "Plan portable",
+          Emoji: "*",
+          Estado: "Planeado"
+        }
+      ]
+    }
+  };
+
+  await Preparar(page, estado);
+
+  const resultado = await page.evaluate(async () => {
+    Copiar_Plan_Evento(Eventos[0]);
+    Mostrar_Menu_Slot("2026-04-13", 11, 10, 10);
+    const bloqueEnSlot = Boolean(document.querySelector(
+      '#Dia_Accion_Menu [data-acc="pegar-plan-slot"]'
+    ));
+    const pegadoBloque = await Pegar_Plan_En_Slot(
+      "2026-04-13",
+      11
+    );
+    Cerrar_Menu_Dia();
+
+    Copiar_Plan_Slot("2026-04-13", 9);
+    Mostrar_Menu_Slot("2026-04-13", 11, 10, 10);
+    const accionSlot = document.querySelector(
+      '#Dia_Accion_Menu [data-acc="pegar-plan-slot"]'
+    )?.textContent?.trim() || "";
+    Cerrar_Menu_Dia();
+    const pegadoSlot = await Pegar_Plan_En_Slot(
+      "2026-04-13",
+      11
+    );
+
+    return {
+      bloqueEnSlot,
+      pegadoBloque,
+      accionSlot,
+      pegadoSlot,
+      destino: Planes_Slot["2026-04-13|11"]?.Items?.map(
+        (Item) => Item.Texto
+      ) || []
+    };
+  });
+
+  expect(resultado.bloqueEnSlot).toBeFalsy();
+  expect(resultado.pegadoBloque).toBeFalsy();
+  expect(resultado.accionSlot).toBe("Pegar plan");
+  expect(resultado.pegadoSlot).toBeTruthy();
+  expect(resultado.destino).toEqual(["Plan portable"]);
 });
 
 test("menu de bloque reconoce plan heredado del slot", async ({

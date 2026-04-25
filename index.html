@@ -27785,6 +27785,13 @@
             "¿Cómo pegar el plan en este bloque?",
           "slot.copiar_plan": "Copiar plan",
           "slot.pegar_plan": "Pegar plan",
+          "slot.reemplazar_plan": "Reemplazar plan",
+          "slot.reemplazar_plan_evento_confirm":
+            "Este bloque ya tiene un plan. Si continu\u00e1s, " +
+            "se reemplazar\u00e1 por el plan copiado.",
+          "slot.reemplazar_plan_slot_confirm":
+            "Este slot ya tiene un plan. Si continu\u00e1s, " +
+            "se reemplazar\u00e1 por el plan copiado.",
           "slot.eliminar_slot": "Eliminar slot",
           "slot.eliminar_slot_confirm":
             "¿Eliminar este slot muerto y su plan " +
@@ -31863,6 +31870,13 @@
             "How do you want to paste the plan into this block?",
           "slot.copiar_plan": "Copy plan",
           "slot.pegar_plan": "Paste plan",
+          "slot.reemplazar_plan": "Replace plan",
+          "slot.reemplazar_plan_evento_confirm":
+            "This block already has a plan. If you continue, " +
+            "it will be replaced by the copied plan.",
+          "slot.reemplazar_plan_slot_confirm":
+            "This slot already has a plan. If you continue, " +
+            "it will be replaced by the copied plan.",
           "slot.eliminar_slot": "Delete slot",
           "slot.eliminar_slot_confirm":
             "Delete this dead slot and its plan " +
@@ -36058,6 +36072,13 @@
             "Como colar o plano neste bloco?",
           "slot.copiar_plan": "Copiar plano",
           "slot.pegar_plan": "Colar plano",
+          "slot.reemplazar_plan": "Substituir plano",
+          "slot.reemplazar_plan_evento_confirm":
+            "Este bloco ja tem um plano. Se voce continuar, " +
+            "ele sera substituido pelo plano copiado.",
+          "slot.reemplazar_plan_slot_confirm":
+            "Este slot ja tem um plano. Se voce continuar, " +
+            "ele sera substituido pelo plano copiado.",
           "slot.eliminar_slot": "Excluir slot",
           "slot.eliminar_slot_confirm":
             "Excluir este slot morto e seu plano " +
@@ -72501,13 +72522,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tiene_Slot = Array.isArray(
           Portapapeles_Plan_Slot?.Items
         ) && Portapapeles_Plan_Slot.Items.length > 0;
-
         if (
           Portapapeles_Calendario_Modo === "Plan_Slot" &&
           Tiene_Slot
         ) {
           return {
             Tipo: "Slot",
+            Origen_Tipo:
+              Portapapeles_Plan_Slot.Origen_Tipo || "Slot",
             Objetivo_Id: null,
             Items: Portapapeles_Plan_Slot.Items
           };
@@ -72518,25 +72540,38 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) {
           return {
             Tipo: "Evento",
+            Origen_Tipo:
+              Portapapeles_Plan_Evento.Origen_Tipo || "Evento",
             Objetivo_Id: Portapapeles_Plan_Evento.Objetivo_Id,
             Items: Portapapeles_Plan_Evento.Items
-          };
-        }
-        if (Tiene_Evento) {
-          return {
-            Tipo: "Evento",
-            Objetivo_Id: Portapapeles_Plan_Evento.Objetivo_Id,
-            Items: Portapapeles_Plan_Evento.Items
-          };
-        }
-        if (Tiene_Slot) {
-          return {
-            Tipo: "Slot",
-            Objetivo_Id: null,
-            Items: Portapapeles_Plan_Slot.Items
           };
         }
         return null;
+      }
+
+      function Obtener_Portapapeles_Plan_Para_Slot() {
+        const Tiene_Slot = Array.isArray(
+          Portapapeles_Plan_Slot?.Items
+        ) && Portapapeles_Plan_Slot.Items.length > 0;
+        if (
+          Portapapeles_Calendario_Modo !== "Plan_Slot" ||
+          !Tiene_Slot
+        ) {
+          return null;
+        }
+        const Origen_Tipo =
+          Portapapeles_Plan_Slot.Origen_Tipo || "Slot";
+        if (
+          Origen_Tipo === "Evento" ||
+          Origen_Tipo === "Bloque"
+        ) {
+          return null;
+        }
+        return {
+          Tipo: "Slot",
+          Origen_Tipo,
+          Items: Portapapeles_Plan_Slot.Items
+        };
       }
 
       function Clonar_Items_Plan_Evento(
@@ -72661,12 +72696,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Items.length) return false;
         Portapapeles_Plan_Evento = {
           Evento_Id: Evento_Data.Id,
+          Origen_Tipo: "Evento",
           Objetivo_Id: Evento_Data.Objetivo_Id || null,
           Items
         };
         Portapapeles_Plan_Slot = {
           Fecha: Evento_Data.Fecha,
           Hora: Evento_Data.Inicio,
+          Origen_Tipo: "Evento",
           Items: Items.map((Item) => ({
             Id: Item.Id || Crear_Id_Plan_Slot_Item(),
             Emoji: Item.Emoji || "\u2022",
@@ -72686,29 +72723,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Clip || !Evento_Data) return false;
         const Actuales =
           Obtener_Abordaje_Con_Plan_Slot(Evento_Data);
-        let Modo = "Reemplazar";
-        if (Evento_Tiene_Plan_Abordaje(Evento_Data)) {
-          Modo = await Mostrar_Dialogo(
-            t("abordaje.insertar_modo"),
+        const Tiene_Plan =
+          Evento_Tiene_Contenido_Plan(Evento_Data);
+        if (Tiene_Plan) {
+          const Confirmar = await Mostrar_Dialogo(
+            t("slot.reemplazar_plan_evento_confirm"),
             [
               {
-                Etiqueta: t("dialog.reemplazar_todo"),
-                Valor: "Reemplazar",
-                Tipo: "Primario"
-              },
-              {
-                Etiqueta: t("agregar"),
-                Valor: "Agregar",
-                Tipo: "Secundario"
-              },
-              {
                 Etiqueta: t("cancelar"),
-                Valor: null,
+                Valor: false,
                 Tipo: "Cancelar"
+              },
+              {
+                Etiqueta: t("slot.reemplazar_plan"),
+                Valor: true,
+                Tipo: "Primario"
               }
             ]
           );
-          if (!Modo) return false;
+          if (!Confirmar) return false;
         }
 
         const Mantener_Referencia =
@@ -72720,9 +72753,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Requiere_Planeada: Clip.Tipo === "Evento"
         });
         if (!Nuevos.length) return false;
-        const Base = Modo === "Agregar"
-          ? Actuales.map((Item) => ({ ...Item }))
-          : Quitar_Plan_De_Items_Abordaje(Actuales);
+        const Base = Quitar_Plan_De_Items_Abordaje(Actuales);
         Evento_Data.Abordaje = Fusionar_Plan_En_Abordaje(
           Base,
           Nuevos
@@ -72784,9 +72815,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Tiene_Plan =
           Evento_Tiene_Contenido_Plan(Evento_Data);
-        const Puede_Pegar_Plan = Boolean(
-          Obtener_Portapapeles_Plan_Para_Evento()
-        );
+        const Puede_Pegar_Plan =
+          Boolean(Obtener_Portapapeles_Plan_Para_Evento());
 
         const Grupo_Plan = [];
         const Grupo_Nota = [];
@@ -72813,11 +72843,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               )
             );
           }
-          if (!Tiene_Plan && Puede_Pegar_Plan) {
+          if (Puede_Pegar_Plan) {
             Grupo_Plan.push(
               Html_Menu_Dia_Accion(
                 "pegar-plan-evento",
-                t("slot.pegar_plan")
+                Tiene_Plan
+                  ? t("slot.reemplazar_plan")
+                  : t("slot.pegar_plan")
               )
             );
           }
@@ -83315,6 +83347,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Portapapeles_Plan_Slot = {
           Fecha,
           Hora,
+          Origen_Tipo: Slot_Es_Muerto(Fecha, Hora)
+            ? "Slot_Muerto"
+            : "Slot_Vacio",
           Items
         };
         Portapapeles_Calendario_Modo = "Plan_Slot";
@@ -83323,47 +83358,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       async function Pegar_Plan_En_Slot(Fecha, Hora) {
-        if (!Slot_Es_Muerto(Fecha, Hora)) return false;
-        const Items_Copiados =
-          Portapapeles_Plan_Slot?.Items;
-        if (!Array.isArray(Items_Copiados) ||
-          !Items_Copiados.length) {
+        if (!Slot_Admite_Pegado_Plan(Fecha, Hora)) {
           return false;
         }
+        const Clip = Obtener_Portapapeles_Plan_Para_Slot();
+        if (!Clip) return false;
         const Clave = Clave_Slot(Fecha, Hora);
         const Actual = Obtener_Plan_Slot(Fecha, Hora, false);
-        let Modo = "Reemplazar";
         if (Array.isArray(Actual?.Items) &&
           Actual.Items.length > 0) {
-          Modo = await Mostrar_Dialogo(
-            t("slot.insertar_modo"),
+          const Confirmar = await Mostrar_Dialogo(
+            t("slot.reemplazar_plan_slot_confirm"),
             [
               {
-                Etiqueta: t("dialog.reemplazar_todo"),
-                Valor: "Reemplazar",
-                Tipo: "Primario"
-              },
-              {
-                Etiqueta: t("agregar"),
-                Valor: "Agregar",
-                Tipo: "Secundario"
-              },
-              {
                 Etiqueta: t("cancelar"),
-                Valor: null,
+                Valor: false,
                 Tipo: "Cancelar"
+              },
+              {
+                Etiqueta: t("slot.reemplazar_plan"),
+                Valor: true,
+                Tipo: "Primario"
               }
             ]
           );
-          if (!Modo) return false;
+          if (!Confirmar) return false;
         }
-        const Base = Modo === "Agregar"
-          ? JSON.parse(JSON.stringify(Actual?.Items || []))
-          : [];
-        Guardar_Plan_Slot_Clave(Clave, [
-          ...Base,
-          ...Clonar_Items_Plan_Slot(Items_Copiados)
-        ]);
+        Guardar_Plan_Slot_Clave(
+          Clave,
+          Clonar_Items_Plan_Slot(Clip.Items)
+        );
         Eventos_Multi_Seleccion.clear();
         Slots_Multi_Seleccion.clear();
         Render_Calendario();
@@ -83591,9 +83615,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Array.isArray(Portapapeles_Eventos_Multi?.Items) &&
           Portapapeles_Eventos_Multi.Items.length > 0;
         const Puede_Pegar_Plan =
-          Slot_Es_Muerto(Fecha, Hora) &&
-          Array.isArray(Portapapeles_Plan_Slot?.Items) &&
-          Portapapeles_Plan_Slot.Items.length > 0;
+          Slot_Admite_Pegado_Plan(Fecha, Hora) &&
+          Boolean(Obtener_Portapapeles_Plan_Para_Slot());
         const Es_Slot_Muerto = Slot_Es_Muerto(Fecha, Hora);
         const Tiene_Titulo = Slot_Muerto_Tiene_Titulo(
           Fecha,
@@ -83676,11 +83699,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
           );
         }
-        if (!Tiene_Plan && Puede_Pegar_Plan) {
+        if (Puede_Pegar_Plan) {
           Grupo_Plan.push(
             Html_Menu_Dia_Accion(
               "pegar-plan-slot",
-              t("slot.pegar_plan")
+              Tiene_Plan
+                ? t("slot.reemplazar_plan")
+                : t("slot.pegar_plan")
             )
           );
         }
@@ -93595,6 +93620,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           !Slot_Tiene_Evento(Fecha, Hora);
       }
 
+      function Slot_Admite_Pegado_Plan(Fecha, Hora) {
+        return Slot_Es_Muerto(Fecha, Hora) ||
+          Slot_Esta_Vacio(Fecha, Hora);
+      }
+
       function Slot_Muerto_Es_Arrastrable(
         Fecha,
         Hora
@@ -96857,7 +96887,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         }
         if (Portapapeles_Calendario_Modo === "Plan_Slot") {
-          if (!Slot_Es_Muerto(Fecha, Hora)) {
+          if (!Slot_Admite_Pegado_Plan(Fecha, Hora)) {
+            return false;
+          }
+          if (!Obtener_Portapapeles_Plan_Para_Slot()) {
             return false;
           }
           Pegar_Plan_En_Slot(Fecha, Hora);

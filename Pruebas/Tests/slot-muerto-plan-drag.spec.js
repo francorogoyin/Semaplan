@@ -723,6 +723,7 @@ test("el menu de slot muerto agrupa identidad, plan y patron", async ({
   expect(acciones).toEqual([
     "editar-nombre-slot",
     "quitar-titulo-slot",
+    "nota-slot",
     "plan-slot",
     "copiar-plan-slot",
     "borrar-plan-slot",
@@ -737,7 +738,7 @@ test("el menu de slot muerto agrupa identidad, plan y patron", async ({
   expect(seleccion.barra_activa).toBeFalsy();
   await expect(
     page.locator("#Dia_Accion_Menu .Dia_Accion_Separador")
-  ).toHaveCount(4);
+  ).toHaveCount(5);
 });
 
 test("el menu de slot vacio agrupa plan, patron y pegar bloques", async ({
