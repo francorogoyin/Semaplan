@@ -15477,6 +15477,15 @@
         color: #fff;
       }
 
+      .Emoji_Item,
+      .Emoji_Item.Activa,
+      .Emoji_Item.Multi_Activa,
+      .Emoji_Item.Completa,
+      .Emoji_Item.Fracasada,
+      .Emoji_Item.Sin_Horas {
+        border-color: var(--Borde) !important;
+      }
+
       /* --- Diálogo genérico (posición fija, modal total) --- */
       .Dialogo_Overlay {
         display: none;
@@ -16155,16 +16164,18 @@
          está activo. */
       .Menu_Hamburguesa_Popup {
         display: none;
-        position: absolute;
-        top: calc(var(--Calendario_Top_Altura) - 4px);
-        right: 12px;
+        position: fixed;
+        top: 0;
+        left: 0;
         background: var(--Panel);
         border: 1px solid var(--Borde);
         border-radius: 12px;
         box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
         padding: 6px;
-        z-index: 9000;
+        z-index: 13000;
         min-width: 200px;
+        max-height: calc(100vh - 24px);
+        overflow-y: auto;
         flex-direction: column;
         gap: 2px;
       }
@@ -83789,6 +83800,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.classList.remove("Activo");
       }
 
+      function Posicionar_Menu_Hamburguesa(Pop) {
+        const Boton = document.getElementById(
+          "Menu_Hamburguesa_Boton"
+        );
+        if (!Pop || !Boton) return;
+        const Margen = 12;
+        const Rect_Boton = Boton.getBoundingClientRect();
+        const Ancho = Pop.offsetWidth;
+        const Alto = Pop.offsetHeight;
+        const Izquierda_Max = Math.max(
+          Margen,
+          window.innerWidth - Ancho - Margen
+        );
+        const Arriba_Max = Math.max(
+          Margen,
+          window.innerHeight - Alto - Margen
+        );
+        const Izquierda = Math.min(
+          Math.max(Margen, Rect_Boton.right - Ancho),
+          Izquierda_Max
+        );
+        const Arriba = Math.min(
+          Math.max(Margen, Rect_Boton.bottom + 8),
+          Arriba_Max
+        );
+        Pop.style.left = `${Izquierda}px`;
+        Pop.style.top = `${Arriba}px`;
+      }
+
       function Mostrar_Menu_Hamburguesa() {
         // Construye el popover del ☰ con los botones que NO son
         // visibles inline. En modo Iconos = los desmarcados.
@@ -83800,6 +83840,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Pop) return;
         Pop.innerHTML = "";
+        if (Pop.parentElement !== document.body) {
+          document.body.appendChild(Pop);
+        }
 
         const Estilo = Config.Menu_Estilo === "Hamburguesa"
           ? "Hamburguesa" : "Iconos";
@@ -83873,6 +83916,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Agregar_Item_Otras_Apps_Menu_Hamburguesa(Pop);
 
         Pop.classList.add("Activo");
+        Posicionar_Menu_Hamburguesa(Pop);
 
         // Cerrar al click fuera (con un pequeño delay para no
         // chocar con el click que abrió el popover).

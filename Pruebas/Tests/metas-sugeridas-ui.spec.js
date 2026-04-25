@@ -249,6 +249,7 @@ async ({ page }) => {
       Boton.type = "button";
       Boton.className = `Emoji_Item ${Clase}`;
       Boton.textContent = "x";
+      Boton.style.borderColor = "#444";
       Contenedor.appendChild(Boton);
       const Estilo = getComputedStyle(Boton);
       return {
@@ -283,17 +284,19 @@ async ({ page }) => {
       ".Calendario_Contenedor"
     );
     const Pop = document.getElementById("Menu_Hamburguesa_Popup");
-    const Rect_Contenedor = Contenedor.getBoundingClientRect();
     const Rect_Pop = Pop.getBoundingClientRect();
     const X = Rect_Pop.left + 20;
-    const Y = Rect_Contenedor.bottom + 4;
+    const Y = Math.min(Rect_Pop.bottom - 5, window.innerHeight - 5);
     const Elemento = document.elementFromPoint(X, Y);
     return {
       Activo: Pop.classList.contains("Activo"),
-      Overflow: getComputedStyle(Contenedor).overflow,
+      Parent: Pop.parentElement?.tagName,
+      Position: getComputedStyle(Pop).position,
       Z_Index: Number(getComputedStyle(Pop).zIndex),
       Pop_Bottom: Rect_Pop.bottom,
-      Contenedor_Bottom: Rect_Contenedor.bottom,
+      Viewport_Bottom: window.innerHeight,
+      Contenedor_Bottom:
+        Contenedor.getBoundingClientRect().bottom,
       Punto_En_Menu: Boolean(
         Elemento?.closest(".Menu_Hamburguesa_Popup")
       )
@@ -301,10 +304,11 @@ async ({ page }) => {
   });
 
   expect(Datos.Activo).toBe(true);
-  expect(Datos.Overflow).toBe("visible");
+  expect(Datos.Parent).toBe("BODY");
+  expect(Datos.Position).toBe("fixed");
   expect(Datos.Z_Index).toBeGreaterThan(30);
-  expect(Datos.Pop_Bottom).toBeGreaterThan(
-    Datos.Contenedor_Bottom
+  expect(Datos.Pop_Bottom).toBeLessThanOrEqual(
+    Datos.Viewport_Bottom
   );
   expect(Datos.Punto_En_Menu).toBe(true);
 });
