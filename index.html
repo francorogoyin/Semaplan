@@ -1520,6 +1520,10 @@
         display: flex;
       }
 
+      .Subobjetivos_Lista.Oculto + .Subobjetivos_Pie {
+        display: none;
+      }
+
       .Subobjetivos_Toggle {
         width: 22px;
         height: 22px;
@@ -2366,6 +2370,10 @@
         color: var(--Texto);
         margin-top: 2px;
         font-variant-numeric: tabular-nums;
+      }
+
+      .Objetivo_Stat_Card_Valor:empty {
+        display: none;
       }
 
       .Objetivo_Stat_Card_Sub {
@@ -27886,7 +27894,7 @@
 
           "resumen.card_horas": "Horas",
           "resumen.card_subobjetivos": "Subobjetivos",
-          "resumen.card_tipo": "Tipo",
+          "resumen.card_tipo": "Tipo de objetivo",
           "resumen.card_tipo_normal": "Normal",
           "resumen.card_de": "{a} de {b}",
           "resumen.card_unidades": "Unidades",
@@ -27896,6 +27904,9 @@
             "{realizadas} realizadas - {restantes} restantes",
           "resumen.card_unidades_detalle_simple":
             "{realizadas} realizadas - {restantes} restantes",
+          "resumen.card_unidades_detalle_completo":
+            "{total} totales \u00b7 {realizadas} realizadas \u00b7 " +
+            "{restantes} restantes",
           "objetivo.sin_nombre": "Sin nombre"
         },
         en: {
@@ -31951,7 +31962,7 @@
 
           "resumen.card_horas": "Hours",
           "resumen.card_subobjetivos": "Subobjectives",
-          "resumen.card_tipo": "Type",
+          "resumen.card_tipo": "Objective type",
           "resumen.card_tipo_normal": "Normal",
           "resumen.card_de": "{a} of {b}",
           "resumen.card_unidades": "Units",
@@ -31961,6 +31972,9 @@
             "{realizadas} done - {restantes} left",
           "resumen.card_unidades_detalle_simple":
             "{realizadas} done - {restantes} left",
+          "resumen.card_unidades_detalle_completo":
+            "{total} total \u00b7 {realizadas} done \u00b7 " +
+            "{restantes} left",
           "objetivo.sin_nombre": "Untitled"
         },
         pt: {
@@ -36131,7 +36145,7 @@
 
           "resumen.card_horas": "Horas",
           "resumen.card_subobjetivos": "Subobjetivos",
-          "resumen.card_tipo": "Tipo",
+          "resumen.card_tipo": "Tipo de objetivo",
           "resumen.card_tipo_normal": "Normal",
           "resumen.card_de": "{a} de {b}",
           "resumen.card_unidades": "Unidades",
@@ -36141,6 +36155,9 @@
             "{realizadas} realizadas - {restantes} restantes",
           "resumen.card_unidades_detalle_simple":
             "{realizadas} realizadas - {restantes} restantes",
+          "resumen.card_unidades_detalle_completo":
+            "{total} totais \u00b7 {realizadas} realizadas \u00b7 " +
+            "{restantes} restantes",
           "objetivo.sin_nombre": "Sem nome"
         }
       };
@@ -100586,7 +100603,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cont.appendChild(
             Crear_Card(
               t("resumen.card_tipo"),
-              t("sidebar.sin_horas_definidas"),
+              "-",
               Objetivo_Esta_Realizada_Manual(Objetivo)
                 ? t("resumen.realizado")
                 : "",
@@ -100652,14 +100669,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         }
 
-        const Formatear_Unidad = (Cantidad, Unidad) => {
-          const Numero = Planes_Formatear_Numero(Cantidad);
-          return Unidad ? `${Numero} ${Unidad}` : Numero;
-        };
         const Formatear_Cantidad = (Cantidad) =>
           Planes_Formatear_Numero(Cantidad);
         Calcular_Unidades_Subobjetivos_Objetivo(Objetivo)
           .forEach((Item) => {
+            const Unidad_Label = Item.Unidad ||
+              t("resumen.card_unidad_sin_nombre");
             const Pct_U = Item.Total > 0
               ? Math.min(
                 100,
@@ -100668,9 +100683,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               : 0;
             Cont.appendChild(
               Crear_Card(
+                Unidad_Label,
                 "",
-                Formatear_Unidad(Item.Total, Item.Unidad),
-                t("resumen.card_unidades_detalle_simple", {
+                t("resumen.card_unidades_detalle_completo", {
+                  total: Formatear_Cantidad(Item.Total),
                   realizadas: Formatear_Cantidad(Item.Realizadas),
                   restantes: Formatear_Cantidad(Item.Restantes)
                 }),
