@@ -10628,6 +10628,21 @@
         padding: 0 clamp(44px, 8vw, 88px);
       }
 
+      .Tareas_Panel_Barra {
+        justify-content: center;
+      }
+
+      .Tareas_Panel_Barra .Habitos_Panel_Modo {
+        margin-inline: auto;
+      }
+
+      .Tareas_Panel_Principal .Habitos_Panel_Filtro > span {
+        color: var(--Texto);
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
       .Tareas_Lista {
         display: grid;
         grid-template-columns: minmax(0, 1fr);
@@ -10681,6 +10696,14 @@
 
       .Tareas_Card_Acciones .Habitos_Card_Registro_Btn {
         font-size: 13px;
+      }
+
+      .Tareas_Card_Acciones .Tareas_Enviar_Btn {
+        color: #157a58;
+      }
+
+      .Tareas_Card_Acciones .Tareas_Enviar_Btn:disabled {
+        color: #8a847b;
       }
 
       .Tareas_Cajones_Admin {
@@ -10750,6 +10773,14 @@
 
       .Tareas_Vacio {
         width: 100%;
+        padding: 22px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.35;
+        color: var(--Texto_Suave);
+        display: grid;
+        place-items: center;
+        text-align: center;
       }
 
       .Habitos_Modal_Borrar {
@@ -88722,6 +88753,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Tarea.Estado === "cancelada" &&
             Tareas_Vista !== "Canceladas"
           ) return false;
+          if (
+            Tarea.Estado === "pospuesta" &&
+            Tareas_Vista !== "Pospuestas"
+          ) return false;
           if (Tareas_Vista === "Inbox") {
             return !Tarea.Fecha && Tarea.Cajon === "Inbox";
           }
@@ -88744,6 +88779,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (Tareas_Vista === "Canceladas") {
             return Tarea.Estado === "cancelada";
+          }
+          if (Tareas_Vista === "Pospuestas") {
+            return Tarea.Estado === "pospuesta";
           }
           if (Tareas_Vista === "Cajon") {
             return Tarea.Cajon === Tareas_Cajon_Activo;
@@ -88776,6 +88814,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Tarea?.Estado === "completada"
           ? "Realizado"
           : "Planeado";
+      }
+
+      function Tarea_Esta_Colocada_En_Plan(Tarea) {
+        return Boolean(Tarea_Obtener_Item_Plan(Tarea).Item);
+      }
+
+      function Tarea_Puede_Enviarse_A_Plan(Tarea) {
+        return Boolean(
+          Tarea &&
+          Tarea_Esta_Pendiente(Tarea) &&
+          Tarea.Fecha &&
+          Tarea.Hora &&
+          !Tarea_Esta_Colocada_En_Plan(Tarea)
+        );
       }
 
       function Tarea_Obtener_Item_Plan(Tarea) {
@@ -88904,6 +88956,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Tarea.Fecha_Completado = new Date().toISOString();
             }
             return;
+          }
+          if (Tarea.Plan_Clave || Tarea.Plan_Item_Id) {
+            Tarea.Planeada = false;
+            Tarea.Plan_Clave = "";
+            Tarea.Plan_Item_Id = "";
           }
           if (!Tarea.Evento_Id || !Tarea.Abordaje_Id) return;
           const Evento = Evento_Por_Id(Tarea.Evento_Id);
@@ -89348,7 +89405,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Tareas_Set_Cabecera(
         Titulo = "Tareas",
-        Subtitulo = "Pendientes simples, planificables en el calendario.",
+        Subtitulo = "",
         Icono = "\u2611"
       ) {
         const El_Titulo = document.getElementById("Tareas_Titulo");
@@ -89364,7 +89421,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Acciones.innerHTML = "";
         }
         if (El_Titulo) El_Titulo.textContent = Titulo;
-        if (El_Subtitulo) El_Subtitulo.textContent = Subtitulo;
+        if (El_Subtitulo) {
+          El_Subtitulo.textContent = Subtitulo;
+          El_Subtitulo.hidden = !Subtitulo;
+        }
         if (El_Icono) {
           El_Icono.classList.add("Con_Fallback_Emoji");
           if (typeof Aplicar_Emoji_En_Elemento === "function") {
@@ -89553,12 +89613,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ["Vencidas", "Vencidas"]
         ];
         return `
-          <div class="Habitos_Panel_Barra">
-            <div class="Habitos_Panel_Navegacion">
-              <span class="Habitos_Panel_Fecha">
-                ${Escape_Html(Tareas_Titulo_Vista())}
-              </span>
-            </div>
+          <div class="Habitos_Panel_Barra Tareas_Panel_Barra">
             <div class="Habitos_Panel_Modo">
               ${Modos.map(([Valor, Label]) => `
                 <button class="Habitos_Panel_Modo_Btn${
@@ -89598,6 +89653,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 <option value="Canceladas"${
                   Tareas_Vista === "Canceladas" ? " selected" : ""
                 }>Canceladas</option>
+                <option value="Pospuestas"${
+                  Tareas_Vista === "Pospuestas" ? " selected" : ""
+                }>Pospuestas</option>
               </select>
             </label>
             <label class="Habitos_Panel_Filtro">
@@ -89618,6 +89676,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Tareas_Render_Card(Tarea) {
         const Estado = Normalizar_Estado_Tarea(Tarea.Estado);
         const Clase = Estado[0]?.toUpperCase() + Estado.slice(1);
+        const Colocada = Tarea_Esta_Colocada_En_Plan(Tarea);
+        const Puede_Enviar = Tarea_Puede_Enviarse_A_Plan(Tarea);
+        const Enviar_Titulo = Tarea.Estado === "completada"
+          ? "Tarea realizada"
+          : (
+            Colocada
+              ? "Ya esta enviada al plan"
+              : (
+                Tarea.Fecha && Tarea.Hora
+                  ? "Enviar al plan"
+                  : "Defini fecha y hora para enviar"
+              )
+          );
         const Fecha = Tarea.Fecha
           ? `${Tarea.Fecha}${Tarea.Hora ? " " + Tarea.Hora : ""}`
           : "Sin fecha";
@@ -89651,9 +89722,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 }" type="button" data-tareas-check="${Escape_Html(Tarea.Id)}"
                   title="Completar">${Tarea.Estado === "completada"
                     ? "&#10003;" : ""}</button>
-                <button class="Habitos_Card_Registro_Btn" type="button"
-                  data-tareas-planificar="${Escape_Html(Tarea.Id)}"
-                  title="Planificar">&#128197;</button>
+                <button class="Habitos_Card_Registro_Btn Tareas_Enviar_Btn"
+                  type="button"
+                  data-tareas-enviar="${Escape_Html(Tarea.Id)}"
+                  title="${Escape_Html(Enviar_Titulo)}"
+                  aria-label="${Escape_Html(Enviar_Titulo)}"
+                  ${Puede_Enviar ? "" : "disabled"}>&#10148;</button>
               </span>
             </div>
           </div>
@@ -89729,9 +89803,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Render_Eventos();
             Guardar_Estado();
           }));
-        document.querySelectorAll("[data-tareas-planificar]")
+        document.querySelectorAll("[data-tareas-enviar]")
           .forEach((Btn) => Btn.addEventListener("click", () => {
-            Abrir_Modal_Tarea(Btn.dataset.tareasPlanificar);
+            const Tarea = Tarea_Por_Id(Btn.dataset.tareasEnviar);
+            if (!Tarea || !Tarea_Puede_Enviarse_A_Plan(Tarea)) return;
+            Planificar_Tarea(Tarea);
+            Render_Tareas();
+            Render_Tareas_Contador();
+            Render_Eventos();
+            Guardar_Estado();
           }));
         document.querySelectorAll("[data-tareas-nav]")
           .forEach((Btn) => Btn.addEventListener("click", () => {
