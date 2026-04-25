@@ -205,6 +205,26 @@ corresponde según el pedido del usuario.
    repetibles. El navegador integrado local queda como validacion
    principal cuando la mejora depende de percepcion visual o uso real.
 
+### Validacion funcional con navegador integrado
+
+1. Para cualquier cambio funcional u operativo con efecto observable
+   en la app, probar en el navegador integrado local el flujo minimo
+   de usuario que demuestre el cambio. Esto aplica aunque el cambio
+   parezca interno, por ejemplo vinculos entre habitos y tareas,
+   sincronizacion, filtros, reglas de guardado, edicion o borrado.
+2. La prueba debe incluir la accion principal y al menos una variante
+   vecina razonable cuando exista: editar, desvincular, borrar,
+   completar, recargar, cambiar de vista o revisar el efecto inverso.
+3. Si el cambio toca datos persistidos, esperar a que la app quede en
+   estado `Guardado` y recargar para confirmar persistencia real.
+4. Playwright se usa para automatizar regresiones repetibles o cubrir
+   matrices de casos, pero no reemplaza la prueba tipo usuario en
+   navegador integrado cuando hay efecto observable en la app.
+5. Si el cambio es tecnico interno puro y no tiene efecto observable
+   directo en la app, alcanza con una verificacion tecnica adecuada,
+   como tests unitarios, pruebas de script o inspeccion del resultado
+   generado.
+
 ### Procedimiento 1: próximas objetivos
 
 Usar este procedimiento cuando el pedido sea leer próximas objetivos,
@@ -241,10 +261,13 @@ de Semaplan con Playwright/Codex o navegador integrado.
 1. Ejecutar la prueba pedida con la herramienta adecuada: navegador
    integrado local para pruebas tipo usuario y Playwright para
    regresiones automatizables.
-2. Validar el resultado en la UI y, si el cambio es visual, tomar y
-   revisar una captura del estado afectado.
-3. Si corresponde, validar también tras
-   recargar para confirmar persistencia real.
+2. Para cambios funcionales u operativos, validar el flujo minimo de
+   usuario en navegador integrado y una variante vecina razonable
+   cuando exista.
+3. Si el cambio es visual, tomar y revisar una captura del estado
+   afectado.
+4. Si el cambio toca datos persistidos, validar tambien tras recargar
+   para confirmar persistencia real.
 
 ### Registro de avance de mejoras
 
@@ -280,23 +303,29 @@ criterios de consistencia entre flujos.
 ### Git después de cada cambio
 
 1. Antes de cerrar un cambio funcional, validarlo con navegador
-   integrado local o Playwright sobre el flujo afectado, sea cambio,
-   agregado, edición o borrado.
-2. Si el cambio es visual de frontend, la validacion debe incluir
+   integrado local sobre el flujo de usuario afectado, sea cambio,
+   agregado, edicion, borrado, vinculo, desvinculo o sincronizacion.
+2. La validacion funcional debe cubrir la accion principal, una
+   variante vecina razonable cuando exista y recarga si toca datos
+   persistidos.
+3. Si el cambio es visual de frontend, la validacion debe incluir
    captura revisada del estado afectado en navegador integrado local.
-3. Después de cada cambio funcional o cambio de instrucciones ya
+4. Playwright puede complementar esa validacion como red automatizada,
+   pero no reemplazarla cuando el cambio tenga efecto observable en la
+   app.
+5. Después de cada cambio funcional o cambio de instrucciones ya
    resuelto en esta sesión, commitear y pushear sin esperar al final
    de la sesión ni a que el usuario lo pida explícitamente.
-4. Regla operativa de git: cada `commit` debe ir seguido en ese mismo
+6. Regla operativa de git: cada `commit` debe ir seguido en ese mismo
    flujo por su `push`. No dejar commits locales pendientes salvo que
    el usuario lo pida explícitamente.
-5. Regla permanente: no cortar el flujo en `commit` dejando el
+7. Regla permanente: no cortar el flujo en `commit` dejando el
    `push` para después.
-6. Si en una misma sesión se resuelven varias funcionalidades
+8. Si en una misma sesión se resuelven varias funcionalidades
    independientes, hacer un `commit` y `push` separado por cada
    funcionalidad. No agrupar varias funcionalidades resueltas en un
    solo commit.
-7. Si `git add`, `git commit` o acciones sobre `.git` fallan por
+9. Si `git add`, `git commit` o acciones sobre `.git` fallan por
    sandbox, permisos o `index.lock`, escalar de inmediato y no seguir
    probando la misma operación dentro del sandbox.
 
