@@ -2213,9 +2213,10 @@ test("panel de habitos registra avances manuales desde la lista", async ({
   await expect(page.locator(".Habitos_Card")).toHaveCount(2);
 });
 
-test("panel de habitos mantiene orden y alterna realizados", async ({
+test("panel de habitos mantiene orden, alto y alterna realizados", async ({
   page
 }) => {
+  await page.setViewportSize({ width: 1250, height: 850 });
   await Preparar(page);
 
   await page.evaluate(() => {
@@ -2296,6 +2297,11 @@ test("panel de habitos mantiene orden y alterna realizados", async ({
     .evaluateAll((Cards) =>
       Cards.map((Card) => Card.getAttribute("data-habitos-card"))
     );
+  const altoPanel = () => page
+    .locator("#Habitos_Overlay .Habitos_Modal_Panel")
+    .evaluate((Panel) => Math.round(
+      Panel.getBoundingClientRect().height
+    ));
 
   await expect(page.locator("#Habitos_Toggle_Realizados"))
     .toBeVisible();
@@ -2311,6 +2317,8 @@ test("panel de habitos mantiene orden y alterna realizados", async ({
     "Habito_Segundo",
     "Habito_Tercero"
   ]);
+  const Alto_Diaria = await altoPanel();
+  expect(Alto_Diaria).toBeGreaterThanOrEqual(810);
 
   await page.click('[data-habitos-toggle="Habito_Primero"]');
   const columnas = await page.locator(
@@ -2363,8 +2371,11 @@ test("panel de habitos mantiene orden y alterna realizados", async ({
 
   await page.click('[data-habitos-panel-modo="Semana"]');
   expect(await orden()).toEqual(["Habito_Semanal_Vista"]);
+  expect(await altoPanel()).toBe(Alto_Diaria);
   await page.click('[data-habitos-panel-modo="Quincena"]');
   expect(await orden()).toEqual(["Habito_Quincenal_Vista"]);
+  expect(await altoPanel()).toBe(Alto_Diaria);
   await page.click('[data-habitos-panel-modo="Mes"]');
   expect(await orden()).toEqual(["Habito_Mensual_Vista"]);
+  expect(await altoPanel()).toBe(Alto_Diaria);
 });
