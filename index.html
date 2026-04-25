@@ -10422,8 +10422,12 @@
       #Objetivo_Habitos_Bloques_Lista .Habitos_Vinculo_Fila,
       #Editor_Habitos_Bloques_Lista .Habitos_Vinculo_Fila {
         grid-template-columns:
-          minmax(0, 1fr) minmax(76px, 96px)
-          minmax(50px, 64px) 30px;
+          minmax(0, 1fr) minmax(76px, 96px) 34px;
+      }
+
+      #Objetivo_Habitos_Bloques_Lista .Habitos_Vinculo_Fila.Sin_Cantidad,
+      #Editor_Habitos_Bloques_Lista .Habitos_Vinculo_Fila.Sin_Cantidad {
+        grid-template-columns: minmax(0, 1fr) 34px;
       }
 
       #Objetivo_Habitos_Bloques_Lista .Habitos_Vinculo_Fila > *,
@@ -10539,11 +10543,39 @@
         text-align: center;
       }
 
+      .Habitos_Vinculo_Resumen {
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--Texto);
+        font-size: 15px;
+        line-height: 1.25;
+      }
+
+      .Habitos_Vinculo_Emoji {
+        width: 24px;
+        height: 24px;
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        font-size: 17px;
+        line-height: 1;
+      }
+
+      .Habitos_Vinculo_Nombre {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
       .Habitos_Vinculo_Fila.Evento > .Config_Nota {
         white-space: nowrap;
       }
 
-      .Habitos_Vinculo_Fila.Evento > .Config_Input[hidden] {
+      .Habitos_Vinculo_Fila.Evento:not(.Sin_Cantidad)
+        > .Config_Input[hidden] {
         display: block;
         visibility: hidden;
         min-width: 0;
@@ -10553,6 +10585,21 @@
 
       .Habitos_Vinculo_Fila .Abordaje_Item_Borrar {
         justify-self: end;
+      }
+
+      .Habitos_Vinculo_Quitar {
+        width: 30px;
+        height: 30px;
+        border-radius: 999px;
+        background: #ece9e4;
+        color: #67615a;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .Habitos_Vinculo_Quitar:hover {
+        background: #dfdbd3;
+        color: var(--Texto);
       }
 
       .Habitos_Modal_Acciones {
@@ -91113,6 +91160,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Contenedor = document.getElementById(Contenedor_Id);
         if (!Contenedor) return;
         Contenedor.innerHTML = "";
+        const Es_Vinculo_Bloque_Objetivo = Fuente_Tipo === "Evento" &&
+          [
+            "Objetivo_Habitos_Bloques_Lista",
+            "Editor_Habitos_Bloques_Lista"
+          ].includes(Contenedor_Id);
         const Compatibles = Habito_Compatibles_Para_Fuente(Fuente_Tipo);
         const Evento_Activo = Fuente_Tipo === "Evento"
           ? Evento_Por_Id(Habito_Evento_En_Edicion_Id)
@@ -91207,59 +91259,85 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Fila = document.createElement("div");
           Fila.className =
             "Planes_Subobjetivo_Metadato_Fila Habitos_Vinculo_Fila";
+          const Habito = Habito_Por_Id(Vinculo.Habito_Id);
+          const Modo_Habito = Habito_Modo_Visible(Habito);
           if (Fuente_Tipo === "Evento") {
             Fila.classList.add("Evento");
           }
-          const Select = document.createElement("select");
-          Select.className = "Config_Select";
-          Select.style.flex = "1";
-          const Opt_Vacio = document.createElement("option");
-          Opt_Vacio.value = "";
-          Opt_Vacio.textContent = t("habitos.seleccionar");
-          Select.appendChild(Opt_Vacio);
-          Compatibles.forEach((Habito) => {
-            const Opt = document.createElement("option");
-            Opt.value = Habito.Id;
-            Opt.textContent = `${Habito.Emoji || "\u2022"} ${Habito.Nombre}`;
-            Select.appendChild(Opt);
-          });
-          Select.value = Vinculo.Habito_Id || "";
-          Select.addEventListener("change", () => {
-            Vinculo.Habito_Id = Select.value;
-            const Habito = Habito_Por_Id(Vinculo.Habito_Id);
-            if (!Habito) {
+          if (
+            Habito &&
+            Fuente_Tipo === "Evento" &&
+            Modo_Habito !== "Cantidad"
+          ) {
+            Fila.classList.add("Sin_Cantidad");
+          }
+          if (Es_Vinculo_Bloque_Objetivo && Habito) {
+            const Resumen = document.createElement("span");
+            Resumen.className = "Habitos_Vinculo_Resumen";
+            const Emoji = document.createElement("span");
+            Emoji.className =
+              "Habitos_Vinculo_Emoji Con_Fallback_Emoji";
+            if (typeof Aplicar_Emoji_En_Elemento === "function") {
+              Aplicar_Emoji_En_Elemento(Emoji, Habito.Emoji || "\u2022");
+            } else {
+              Emoji.textContent = Habito.Emoji || "\u2022";
+            }
+            const Nombre = document.createElement("span");
+            Nombre.className = "Habitos_Vinculo_Nombre";
+            Nombre.textContent = Habito.Nombre || "";
+            Resumen.appendChild(Emoji);
+            Resumen.appendChild(Nombre);
+            Fila.appendChild(Resumen);
+          } else {
+            const Select = document.createElement("select");
+            Select.className = "Config_Select";
+            Select.style.flex = "1";
+            const Opt_Vacio = document.createElement("option");
+            Opt_Vacio.value = "";
+            Opt_Vacio.textContent = t("habitos.seleccionar");
+            Select.appendChild(Opt_Vacio);
+            Compatibles.forEach((Habito_Opt) => {
+              const Opt = document.createElement("option");
+              Opt.value = Habito_Opt.Id;
+              Opt.textContent =
+                `${Habito_Opt.Emoji || "\u2022"} ${Habito_Opt.Nombre}`;
+              Select.appendChild(Opt);
+            });
+            Select.value = Vinculo.Habito_Id || "";
+            Select.addEventListener("change", () => {
+              Vinculo.Habito_Id = Select.value;
+              const Habito_Nuevo = Habito_Por_Id(Vinculo.Habito_Id);
+              if (!Habito_Nuevo) {
+                if (typeof On_Cambio === "function") {
+                  On_Cambio();
+                }
+                return;
+              }
+              if (Fuente_Tipo === "Evento") {
+                Vinculo.Cantidad_Modo =
+                  Habito_Modo_Visible(Habito_Nuevo) === "Tiempo"
+                    ? "Usar_Duracion"
+                    : "Fija";
+              } else if (
+                Habito_Modo_Visible(Habito_Nuevo) === "Cantidad" &&
+                Habito_Fuente_Puede_Usar_Cantidad(Fuente_Tipo)
+              ) {
+                Vinculo.Cantidad_Modo = "Usar_Fuente";
+              } else {
+                Vinculo.Cantidad_Modo = "Fija";
+              }
               if (typeof On_Cambio === "function") {
                 On_Cambio();
               }
-              return;
-            }
-            if (Fuente_Tipo === "Evento") {
-              Vinculo.Cantidad_Modo =
-                Habito_Modo_Visible(Habito) === "Tiempo"
-                  ? "Usar_Duracion"
-                  : "Fija";
-            } else if (
-              Habito_Modo_Visible(Habito) === "Cantidad" &&
-              Habito_Fuente_Puede_Usar_Cantidad(Fuente_Tipo)
-            ) {
-              Vinculo.Cantidad_Modo = "Usar_Fuente";
-            } else {
-              Vinculo.Cantidad_Modo = "Fija";
-            }
-            if (typeof On_Cambio === "function") {
-              On_Cambio();
-            }
-            Render_Vinculos_Habitos_Editor(
-              Contenedor_Id,
-              Vinculos,
-              Fuente_Tipo,
-              On_Cambio
-            );
-          });
-          Fila.appendChild(Select);
-
-          const Habito = Habito_Por_Id(Vinculo.Habito_Id);
-          const Modo_Habito = Habito_Modo_Visible(Habito);
+              Render_Vinculos_Habitos_Editor(
+                Contenedor_Id,
+                Vinculos,
+                Fuente_Tipo,
+                On_Cambio
+              );
+            });
+            Fila.appendChild(Select);
+          }
           if (Fuente_Tipo !== "Evento") {
             const Modo = document.createElement("select");
             Modo.className = "Config_Select";
@@ -91294,7 +91372,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Input.hidden =
             (
               Fuente_Tipo === "Evento" &&
-              Modo_Habito === "Tiempo"
+              Modo_Habito !== "Cantidad"
             ) ||
             (
               Fuente_Tipo !== "Evento" &&
@@ -91310,7 +91388,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           const Quitar = document.createElement("button");
           Quitar.type = "button";
-          Quitar.className = "Abordaje_Item_Borrar";
+          Quitar.className =
+            "Abordaje_Item_Borrar Habitos_Vinculo_Quitar";
           Quitar.textContent = "\u00d7";
           Quitar.addEventListener("click", () => {
             Vinculos.splice(Indice, 1);

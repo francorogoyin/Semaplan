@@ -927,11 +927,61 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
       })
     ];
     Habitos_Registros = [];
+    const Estado_Vinculos = (Selector) =>
+      [...document.querySelectorAll(`${Selector} .Habitos_Vinculo_Fila`)]
+        .map((Fila) => {
+          const Input = Fila.querySelector(":scope > input");
+          const Estilo_Input = Input ? getComputedStyle(Input) : null;
+          return {
+            texto:
+              Fila.querySelector(".Habitos_Vinculo_Nombre")?.textContent ||
+              "",
+            tieneResumen: Boolean(
+              Fila.querySelector(":scope > .Habitos_Vinculo_Resumen")
+            ),
+            tieneSelectDirecto: Boolean(Fila.querySelector(":scope > select")),
+            sinCantidad: Fila.classList.contains("Sin_Cantidad"),
+            inputVisible: Boolean(
+              Input &&
+              !Input.hidden &&
+              Estilo_Input?.display !== "none" &&
+              Estilo_Input?.visibility !== "hidden"
+            )
+          };
+        });
     Mostrar_Creador();
     const Creador_Tiene_Vinculos = Boolean(
       document.querySelector(
         "#Objetivo_Habitos_Bloques_Lista .Habitos_Vinculos_Barra"
       )
+    );
+    Objetivo_Habitos_Bloques_Borrador = [
+      {
+        Habito_Id: "Habito_Tiempo_Objetivo",
+        Cantidad_Modo: "Usar_Duracion",
+        Cantidad: 1,
+        Activo: true
+      },
+      {
+        Habito_Id: "Habito_Check_Objetivo",
+        Cantidad_Modo: "Fija",
+        Cantidad: 8,
+        Activo: true
+      },
+      {
+        Habito_Id: "Habito_Cantidad_Objetivo",
+        Cantidad_Modo: "Fija",
+        Cantidad: 5,
+        Activo: true
+      }
+    ];
+    Render_Vinculos_Habitos_Editor(
+      "Objetivo_Habitos_Bloques_Lista",
+      Objetivo_Habitos_Bloques_Borrador,
+      "Evento"
+    );
+    const Estado_Vinculos_Creador = Estado_Vinculos(
+      "#Objetivo_Habitos_Bloques_Lista"
     );
     Ocultar_Creador();
     Objetivos = [
@@ -992,6 +1042,16 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
     });
     Cerrar_Habitos_Evento();
 
+    Objetivo_Seleccionada_Id = "Obj_Habitos_Default";
+    Modo_Editor_Abierto = true;
+    Datos_Editor_Borrador = null;
+    Render_Editor();
+    const Estado_Vinculos_Editor = Estado_Vinculos(
+      "#Editor_Habitos_Bloques_Lista"
+    );
+    Modo_Editor_Abierto = false;
+    Render_Editor();
+
     await Meta_Aporte_Cambiar_Hecho_Evento(Eventos[0], true);
     const Registros_Creados = Habitos_Registros
       .filter((Registro) => Registro.Fuente === "Objetivo_Bloque")
@@ -1041,6 +1101,8 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
       creadorTieneVinculos: Creador_Tiene_Vinculos,
       modalMaxWidth: Modal_Max_Width,
       modalSinDesborde: Modal_Sin_Desborde,
+      estadoVinculosCreador: Estado_Vinculos_Creador,
+      estadoVinculosEditor: Estado_Vinculos_Editor,
       registrosCreados: Registros_Creados,
       registrosTrasQuitar: Registros_Tras_Quitar,
       textoMenuObjetivo: Texto_Menu_Objetivo,
@@ -1056,8 +1118,33 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
   expect(resultado.menu).toBe("Vincular hábitos");
   expect(resultado.titulo).toBe("Hábitos del bloque");
   expect(resultado.creadorTieneVinculos).toBe(true);
-  expect(resultado.modalMaxWidth).toContain("820");
+  expect(resultado.modalMaxWidth).toContain("760");
   expect(resultado.modalSinDesborde).toBe(true);
+  const estadoVinculosEsperado = [
+    {
+      texto: "Foco objetivo",
+      tieneResumen: true,
+      tieneSelectDirecto: false,
+      sinCantidad: true,
+      inputVisible: false
+    },
+    {
+      texto: "Bloques hechos",
+      tieneResumen: true,
+      tieneSelectDirecto: false,
+      sinCantidad: true,
+      inputVisible: false
+    },
+    {
+      texto: "Paginas objetivo",
+      tieneResumen: true,
+      tieneSelectDirecto: false,
+      sinCantidad: false,
+      inputVisible: true
+    }
+  ];
+  expect(resultado.estadoVinculosCreador).toEqual(estadoVinculosEsperado);
+  expect(resultado.estadoVinculosEditor).toEqual(estadoVinculosEsperado);
   expect(resultado.registrosCreados).toEqual([
     {
       Habito_Id: "Habito_Cantidad_Objetivo",
