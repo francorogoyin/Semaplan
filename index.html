@@ -189,7 +189,7 @@
         left: 50%;
         top: 50%;
         z-index: 11000;
-        width: min(680px, calc(100vw - 28px));
+        width: min(540px, calc(100vw - 28px));
         max-height: calc(100vh - 40px);
         overflow: auto;
         transform: translate(-50%, -50%);
@@ -231,7 +231,7 @@
 
       .Horas_Semanales_Campo {
         display: grid;
-        grid-template-columns: minmax(96px, 150px) minmax(0, 1fr);
+        grid-template-columns: minmax(92px, 124px) minmax(0, 1fr);
         align-items: end;
         column-gap: 10px;
       }
@@ -247,6 +247,7 @@
       .Horas_Semanales_Campo .Config_Check_Inline {
         margin: 0 0 2px;
         align-self: center;
+        justify-self: start;
       }
 
       .Meta_Aporte_Campo.Oculto,
@@ -970,10 +971,15 @@
       }
 
       .Creador_Acciones {
+        position: sticky;
+        bottom: -18px;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
         margin-top: 4px;
+        padding: 12px 0 0;
+        background: var(--Panel);
+        box-shadow: 0 -10px 18px rgba(250, 247, 241, 0.92);
       }
 
       .Creador_Acciones .Boton_Principal,
@@ -7462,7 +7468,7 @@
       }
 
       .Planes_Objetivo_Modal {
-        max-width: 720px;
+        max-width: 600px;
       }
 
       .Planes_Objetivo_Form {
@@ -10429,21 +10435,23 @@
       }
 
       .Habitos_Vinculo_Fila {
+        display: grid !important;
         grid-template-columns:
-          minmax(180px, 1.4fr) minmax(128px, 0.8fr)
-          minmax(76px, 0.45fr) 30px;
+          minmax(150px, 1fr) minmax(108px, 0.62fr)
+          minmax(58px, 68px) 30px;
         gap: 8px;
+        align-items: center;
       }
 
       .Habitos_Vinculo_Fila.Evento {
         grid-template-columns:
-          minmax(180px, 1fr) auto minmax(72px, 92px) 30px;
+          minmax(150px, 1fr) minmax(58px, 68px) 30px;
         align-items: center;
       }
 
       #Habitos_Evento_Overlay .Patron_Modal_Panel {
-        width: min(820px, calc(100vw - 32px));
-        max-width: min(820px, calc(100vw - 32px));
+        width: min(760px, calc(100vw - 32px));
+        max-width: min(760px, calc(100vw - 32px));
       }
 
       #Habitos_Evento_Overlay .Patron_Modal_Cuerpo {
@@ -10452,13 +10460,18 @@
 
       #Habitos_Evento_Cuerpo .Habitos_Vinculo_Fila.Evento {
         grid-template-columns:
-          minmax(220px, 1fr) auto minmax(82px, 102px) 30px;
+          minmax(180px, 1fr) minmax(58px, 68px) 30px;
       }
 
       .Habitos_Vinculo_Fila > .Config_Nota {
         margin: 0;
         font-size: 12px;
         line-height: 1.25;
+      }
+
+      .Habitos_Vinculo_Fila > .Config_Input {
+        min-width: 0;
+        text-align: center;
       }
 
       .Habitos_Vinculo_Fila.Evento > .Config_Nota {
@@ -11212,6 +11225,7 @@
         gap: 6px;
         font-size: 12px;
         color: var(--Texto_Suave);
+        white-space: nowrap;
       }
 
       .Config_Cat_Fila:last-child {
@@ -90229,17 +90243,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               }
             });
             Fila.appendChild(Modo);
-          } else {
-            const Badge = document.createElement("span");
-            Badge.className = "Config_Nota";
-            Badge.textContent = Modo_Habito === "Tiempo"
-              ? t("habitos.usar_duracion")
-              : (
-                Modo_Habito === "Cantidad"
-                  ? t("habitos.cantidad_por_bloque")
-                  : t("habitos.check_por_bloque")
-              );
-            Fila.appendChild(Badge);
           }
 
           const Input = document.createElement("input");
@@ -90249,8 +90252,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Input.className = "Config_Input";
           Input.value = String(Number(Vinculo.Cantidad) || 1);
           Input.hidden = (
-            Fuente_Tipo === "Evento" && Modo_Habito !== "Cantidad"
-          ) || (
             Fuente_Tipo !== "Evento" &&
             Vinculo.Cantidad_Modo === "Usar_Fuente"
           );
@@ -100596,6 +100597,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       El_Ocultar_Creador.addEventListener("click", () => {
         Ocultar_Creador();
       });
+      document.addEventListener("keydown", (Ev) => {
+        if (Ev.key !== "Escape") return;
+        if (El_Creador_Contenido?.classList.contains("Oculto")) return;
+        if (Selector_Emojis_Esta_Abierto()) return;
+        Ocultar_Creador();
+        Ev.preventDefault();
+      }, true);
 
       El_Metas_Sugeridas_Abrir?.addEventListener("click", () => {
         Abrir_Metas_Sugeridas();
@@ -107494,6 +107502,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (Tareas_Rapida_Activo) {
             Cerrar_Tarea_Rapida();
+            Ev.preventDefault();
+            return;
+          }
+          if (
+            !El_Creador_Contenido?.classList.contains("Oculto")
+          ) {
+            Ocultar_Creador();
+            Ev.preventDefault();
+            return;
+          }
+          if (
+            document
+              .getElementById("Habitos_Evento_Overlay")
+              ?.classList.contains("Activo")
+          ) {
+            Cerrar_Habitos_Evento();
             Ev.preventDefault();
             return;
           }
