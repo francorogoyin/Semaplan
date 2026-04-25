@@ -877,6 +877,176 @@ test("vinculos de bloque aceptan tiempo check y cantidad", async ({
   ]);
 });
 
+test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  const resultado = await page.evaluate(async () => {
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Tiempo_Objetivo",
+        Nombre: "Foco objetivo",
+        Emoji: "\u23f1\ufe0f",
+        Tipo: "Hacer",
+        Activo: true,
+        Meta: {
+          Modo: "Tiempo",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 90,
+          Unidad: "Minutos"
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Check_Objetivo",
+        Nombre: "Bloques hechos",
+        Emoji: "\u2705",
+        Tipo: "Hacer",
+        Activo: true,
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 1
+        }
+      }),
+      Normalizar_Habito({
+        Id: "Habito_Cantidad_Objetivo",
+        Nombre: "Paginas objetivo",
+        Emoji: "\uD83D\uDCD6",
+        Tipo: "Hacer",
+        Activo: true,
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 10,
+          Unidad: "paginas"
+        }
+      })
+    ];
+    Habitos_Registros = [];
+    Mostrar_Creador();
+    const Creador_Tiene_Vinculos = Boolean(
+      document.querySelector(
+        "#Objetivo_Habitos_Bloques_Lista .Habitos_Vinculos_Barra"
+      )
+    );
+    Ocultar_Creador();
+    Objetivos = [
+      {
+        Id: "Obj_Habitos_Default",
+        Nombre: "Lectura semanal",
+        Emoji: "\uD83D\uDCD8",
+        Horas_Semanales: 2,
+        Restante: 2,
+        Habitos_Vinculos_Bloques: [
+          {
+            Habito_Id: "Habito_Tiempo_Objetivo",
+            Cantidad_Modo: "Usar_Duracion",
+            Cantidad: 1,
+            Activo: true
+          },
+          {
+            Habito_Id: "Habito_Check_Objetivo",
+            Cantidad_Modo: "Fija",
+            Cantidad: 8,
+            Activo: true
+          },
+          {
+            Habito_Id: "Habito_Cantidad_Objetivo",
+            Cantidad_Modo: "Fija",
+            Cantidad: 5,
+            Activo: true
+          }
+        ]
+      }
+    ];
+    Eventos = [
+      {
+        Id: "Evento_Default_Habitos",
+        Objetivo_Id: "Obj_Habitos_Default",
+        Fecha: "2026-04-24",
+        Inicio: 18,
+        Duracion: 1.5,
+        Hecho: false
+      }
+    ];
+
+    Abrir_Habitos_Evento("Evento_Default_Habitos");
+    const Modal_Max_Width = getComputedStyle(
+      document.querySelector("#Habitos_Evento_Overlay .Patron_Modal_Panel")
+    ).maxWidth;
+    Cerrar_Habitos_Evento();
+
+    await Meta_Aporte_Cambiar_Hecho_Evento(Eventos[0], true);
+    const Registros_Creados = Habitos_Registros
+      .filter((Registro) => Registro.Fuente === "Objetivo_Bloque")
+      .map((Registro) => ({
+        Habito_Id: Registro.Habito_Id,
+        Cantidad: Registro.Cantidad,
+        Unidad: Registro.Unidad,
+        Fuente: Registro.Fuente,
+        Fuente_Id: Registro.Fuente_Id,
+        Hora: Registro.Hora
+      }))
+      .sort((A, B) => A.Habito_Id.localeCompare(B.Habito_Id));
+
+    Objetivos[0].Habitos_Vinculos_Bloques = [];
+    Habito_Recalcular_Bloques_Objetivo(Objetivos[0]);
+    const Registros_Tras_Quitar = Habitos_Registros.filter(
+      (Registro) => Registro.Fuente === "Objetivo_Bloque"
+    ).length;
+
+    return {
+      menu: t("habitos.evento_menu"),
+      titulo: t("habitos.evento_titulo"),
+      creadorTieneVinculos: Creador_Tiene_Vinculos,
+      modalMaxWidth: Modal_Max_Width,
+      registrosCreados: Registros_Creados,
+      registrosTrasQuitar: Registros_Tras_Quitar,
+      vinculaciones: Habitos_Obtener_Vinculaciones()
+        .filter((Vinculo) =>
+          Vinculo.Habito_Id === "Habito_Cantidad_Objetivo"
+        ).length
+    };
+  });
+
+  expect(resultado.menu).toBe("Vincular hábitos");
+  expect(resultado.titulo).toBe("Hábitos del bloque");
+  expect(resultado.creadorTieneVinculos).toBe(true);
+  expect(resultado.modalMaxWidth).toContain("820");
+  expect(resultado.registrosCreados).toEqual([
+    {
+      Habito_Id: "Habito_Cantidad_Objetivo",
+      Cantidad: 5,
+      Unidad: "paginas",
+      Fuente: "Objetivo_Bloque",
+      Fuente_Id: "Evento_Default_Habitos",
+      Hora: "18:00"
+    },
+    {
+      Habito_Id: "Habito_Check_Objetivo",
+      Cantidad: 1,
+      Unidad: "",
+      Fuente: "Objetivo_Bloque",
+      Fuente_Id: "Evento_Default_Habitos",
+      Hora: "18:00"
+    },
+    {
+      Habito_Id: "Habito_Tiempo_Objetivo",
+      Cantidad: 90,
+      Unidad: "min",
+      Fuente: "Objetivo_Bloque",
+      Fuente_Id: "Evento_Default_Habitos",
+      Hora: "18:00"
+    }
+  ]);
+  expect(resultado.registrosTrasQuitar).toBe(0);
+  expect(resultado.vinculaciones).toBe(0);
+});
+
 test("vinculo semanal con meta indenta subobjetivos", async ({
   page
 }) => {
