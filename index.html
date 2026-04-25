@@ -1693,6 +1693,7 @@
       }
 
       .Subobjetivo_Borrar,
+      .Subobjetivo_Duplicar,
       .Subobjetivo_Transferir {
         flex: 0 0 24px;
         width: 24px;
@@ -1708,6 +1709,7 @@
       }
 
       .Subobjetivo_Borrar:hover,
+      .Subobjetivo_Duplicar:hover,
       .Subobjetivo_Transferir:hover {
         background: var(--Acento_Suave);
         color: var(--Acento);
@@ -26255,6 +26257,8 @@
           "resumen_objetivo.editar": "Editar",
           "resumen_objetivo.copiar":
             "Copiar",
+          "resumen_objetivo.duplicar_subobjetivo":
+            "Duplicar subobjetivo",
           "resumen_objetivo.subobjetivo_agregar":
             "Agregar subobjetivo",
           "resumen_objetivo.subobjetivos_toggle_title":
@@ -27709,6 +27713,8 @@
             "Subobjetivo \"{texto}\" eliminada",
           "toast.subobjetivo_actualizada":
             "Subobjetivo actualizado",
+          "toast.subobjetivo_duplicada":
+            "Subobjetivo \"{texto}\" duplicado",
           "toast.subobjetivos_trasladadas":
             "Se trasladaron {n} subobjetivos",
           "toast.objetivo_copiada": "Objetivo copiado",
@@ -30356,6 +30362,8 @@
           "resumen_objetivo.editar": "Edit",
           "resumen_objetivo.copiar":
             "Copy",
+          "resumen_objetivo.duplicar_subobjetivo":
+            "Duplicate subobjective",
           "resumen_objetivo.subobjetivo_agregar":
             "Add subobjective",
           "resumen_objetivo.subobjetivos_toggle_title":
@@ -31776,6 +31784,8 @@
             "Subobjective \"{texto}\" deleted",
           "toast.subobjetivo_actualizada":
             "Subobjective updated",
+          "toast.subobjetivo_duplicada":
+            "Subobjective \"{texto}\" duplicated",
           "toast.subobjetivos_trasladadas":
             "{n} subobjectives moved",
           "toast.objetivo_copiada": "Objective copied",
@@ -34504,6 +34514,8 @@
           "resumen_objetivo.editar": "Editar",
           "resumen_objetivo.copiar":
             "Copiar",
+          "resumen_objetivo.duplicar_subobjetivo":
+            "Duplicar subobjetivo",
           "resumen_objetivo.subobjetivo_agregar":
             "Adicionar subobjetivo",
           "resumen_objetivo.subobjetivos_toggle_title":
@@ -35962,6 +35974,8 @@
             "Subobjetivo \"{texto}\" removida",
           "toast.subobjetivo_actualizada":
             "Subobjetivo atualizado",
+          "toast.subobjetivo_duplicada":
+            "Subobjetivo \"{texto}\" duplicado",
           "toast.subobjetivos_trasladadas":
             "Foram movidos {n} subobjetivos",
           "toast.objetivo_copiada": "Objetivo copiado",
@@ -88600,6 +88614,55 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Instancia.Id;
       }
 
+      function Crear_Copia_Subobjetivo_Semana(Subobjetivo) {
+        const Copia = {
+          Id: Crear_Id_Subobjetivo(),
+          Plantilla_Id: null,
+          Origen_Plantilla_Id: null,
+          Emoji: Normalizar_Emoji(Subobjetivo?.Emoji || "\u2022"),
+          Texto: (Subobjetivo?.Texto || "").toString(),
+          Hecha: false
+        };
+        if (Subobjetivo?.Aporte_Total !== undefined) {
+          Copia.Aporte_Total = Number(Subobjetivo.Aporte_Total) || 0;
+        }
+        if (Subobjetivo?.Unidad !== undefined) {
+          Copia.Unidad = (Subobjetivo.Unidad || "").toString();
+        }
+        if (Subobjetivo?.Unidad_Custom !== undefined) {
+          Copia.Unidad_Custom =
+            (Subobjetivo.Unidad_Custom || "").toString();
+        }
+        if (
+          Subobjetivo?.Tiempo_Valor !== undefined ||
+          Subobjetivo?.Tiempo !== undefined
+        ) {
+          Copia.Tiempo_Valor =
+            Planes_Normalizar_Tiempo_Valor(Subobjetivo);
+        }
+        if (Subobjetivo?.Tiempo_Modo !== undefined) {
+          Copia.Tiempo_Modo =
+            Planes_Normalizar_Tiempo_Modo(Subobjetivo.Tiempo_Modo);
+        }
+        if (Subobjetivo?.Parte_Meta_Id) {
+          Copia.Sincronizacion_Parte = "Manual";
+        }
+        return Copia;
+      }
+
+      function Duplicar_Subobjetivo_Semana(Objetivo, Subobjetivo_Id) {
+        const Subobjetivos = Obtener_Subobjetivos_Semana(Objetivo, true);
+        const Index = Subobjetivos.findIndex(
+          (Subobjetivo) => Subobjetivo.Id === Subobjetivo_Id
+        );
+        if (Index < 0) return null;
+        const Copia = Crear_Copia_Subobjetivo_Semana(
+          Subobjetivos[Index]
+        );
+        Subobjetivos.splice(Index + 1, 0, Copia);
+        return Copia;
+      }
+
       function Borrar_Subobjetivo_Semana(Objetivo, Subobjetivo_Id) {
         const Subobjetivos = Obtener_Subobjetivos_Semana(Objetivo, true);
         const Index = Subobjetivos.findIndex((Subobjetivo) => Subobjetivo.Id === Subobjetivo_Id);
@@ -101136,6 +101199,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Borrar.dataset.rol = "borrar";
           Borrar.textContent = "×";
 
+          const Duplicar = document.createElement("button");
+          Duplicar.type = "button";
+          Duplicar.className = "Subobjetivo_Duplicar";
+          Duplicar.dataset.rol = "duplicar";
+          Duplicar.title =
+            t("resumen_objetivo.duplicar_subobjetivo");
+          Duplicar.setAttribute(
+            "aria-label",
+            t("resumen_objetivo.duplicar_subobjetivo")
+          );
+          Duplicar.textContent = "\u29c9";
+
           const Transferir = document.createElement("button");
           Transferir.type = "button";
           Transferir.className = "Subobjetivo_Transferir";
@@ -101192,6 +101267,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Item.appendChild(Info);
           Item.appendChild(Estado);
           Acciones.appendChild(Transferir);
+          Acciones.appendChild(Duplicar);
           Acciones.appendChild(Borrar);
           Item.appendChild(Acciones);
           El_Subobjetivos_Lista.appendChild(Item);
@@ -105116,7 +105192,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Evento.ctrlKey || Evento.metaKey) {
           // Solo si no clickeó sobre un botón con acción.
           if (
-            Rol === "borrar" || Rol === "transferir" ||
+            Rol === "borrar" || Rol === "duplicar" ||
+            Rol === "transferir" ||
             Rol === "editar" || Rol === "check"
           ) {
             // Permitir multi-select aunque sea sobre el check.
@@ -105153,6 +105230,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Guardar_Estado();
           Mostrar_Toast_Undo(
             t("toast.subobjetivo_eliminada", {
+              texto: Subobjetivo.Texto || t("toast.sin_nombre")
+            }),
+            Snap_Undo_Sub
+          );
+          return;
+        }
+        if (Rol === "duplicar") {
+          const Subobjetivos = Obtener_Subobjetivos_Semana(Objetivo, true);
+          const Subobjetivo = Subobjetivos.find(
+            (Entrada) => Entrada.Id === Item.dataset.subobjetivoId
+          );
+          if (!Subobjetivo) return;
+          const Snap_Undo_Sub = Capturar_Snapshot_Undo();
+          const Copia = Duplicar_Subobjetivo_Semana(
+            Objetivo,
+            Subobjetivo.Id
+          );
+          if (!Copia) return;
+          Subobjetivo_En_Edicion_Id = Copia.Id;
+          Render_Emojis();
+          Render_Resumen_Objetivo();
+          Guardar_Estado();
+          Mostrar_Toast_Undo(
+            t("toast.subobjetivo_duplicada", {
               texto: Subobjetivo.Texto || t("toast.sin_nombre")
             }),
             Snap_Undo_Sub
