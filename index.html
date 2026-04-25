@@ -18440,9 +18440,10 @@
                 <div class="Metas_Sugeridas_Titulo"
                   id="Metas_Sugeridas_Titulo"
                   data-i18n="sidebar.metas_sugeridas_titulo">
-                  Avances sugeridos para esta semana
+                  Avances sugeridos
                 </div>
                 <div class="Metas_Sugeridas_Subtitulo"
+                  id="Metas_Sugeridas_Subtitulo"
                   data-i18n="sidebar.metas_sugeridas_subtitulo">
                   Importar metas globales a las actividades semanales.
                 </div>
@@ -23891,12 +23892,26 @@
             "({diario} {unidad}/día).",
           "sidebar.metas_sugeridas": "Avances sugeridos",
           "sidebar.metas_sugeridas_titulo":
-            "Avances sugeridos para esta semana",
+            "Avances sugeridos",
+          "sidebar.metas_sugeridas_titulo_contexto":
+            "Avances sugeridos para {contexto}",
           "sidebar.metas_sugeridas_subtitulo":
             "Importar metas globales a las actividades semanales.",
+          "sidebar.metas_sugeridas_subtitulo_contexto":
+            "Rango visible: {rango}",
+          "sidebar.metas_sugeridas_contexto_actual":
+            "esta semana",
+          "sidebar.metas_sugeridas_contexto_proxima":
+            "la semana proxima",
+          "sidebar.metas_sugeridas_contexto_anterior":
+            "la semana anterior",
+          "sidebar.metas_sugeridas_contexto_rango":
+            "la semana del {rango}",
           "sidebar.metas_sugeridas_importar": "Importar",
           "sidebar.metas_sugeridas_vacio":
             "No hay subobjetivos sugeridos para esta semana.",
+          "sidebar.metas_sugeridas_vacio_contexto":
+            "No hay subobjetivos sugeridos para {contexto}.",
           "sidebar.metas_sugeridas_mostrar_extra":
             "Mostrar tareas extra",
           "sidebar.metas_sugeridas_ocultar_extra":
@@ -28022,12 +28037,26 @@
             "({diario} {unidad}/day).",
           "sidebar.metas_sugeridas": "Suggested progress",
           "sidebar.metas_sugeridas_titulo":
-            "Suggested progress for this week",
+            "Suggested progress",
+          "sidebar.metas_sugeridas_titulo_contexto":
+            "Suggested progress for {contexto}",
           "sidebar.metas_sugeridas_subtitulo":
             "Import global goals into weekly activities.",
+          "sidebar.metas_sugeridas_subtitulo_contexto":
+            "Visible range: {rango}",
+          "sidebar.metas_sugeridas_contexto_actual":
+            "this week",
+          "sidebar.metas_sugeridas_contexto_proxima":
+            "next week",
+          "sidebar.metas_sugeridas_contexto_anterior":
+            "last week",
+          "sidebar.metas_sugeridas_contexto_rango":
+            "the week of {rango}",
           "sidebar.metas_sugeridas_importar": "Import",
           "sidebar.metas_sugeridas_vacio":
             "There are no suggested subobjectives for this week.",
+          "sidebar.metas_sugeridas_vacio_contexto":
+            "There are no suggested subobjectives for {contexto}.",
           "sidebar.metas_sugeridas_mostrar_extra":
             "Show extra tasks",
           "sidebar.metas_sugeridas_ocultar_extra":
@@ -32079,12 +32108,26 @@
             "({diario} {unidad}/dia).",
           "sidebar.metas_sugeridas": "Avanços sugeridos",
           "sidebar.metas_sugeridas_titulo":
-            "Avanços sugeridos para esta semana",
+            "Avanços sugeridos",
+          "sidebar.metas_sugeridas_titulo_contexto":
+            "Avanços sugeridos para {contexto}",
           "sidebar.metas_sugeridas_subtitulo":
             "Importar metas globais para as atividades semanais.",
+          "sidebar.metas_sugeridas_subtitulo_contexto":
+            "Intervalo visivel: {rango}",
+          "sidebar.metas_sugeridas_contexto_actual":
+            "esta semana",
+          "sidebar.metas_sugeridas_contexto_proxima":
+            "a proxima semana",
+          "sidebar.metas_sugeridas_contexto_anterior":
+            "a semana anterior",
+          "sidebar.metas_sugeridas_contexto_rango":
+            "a semana de {rango}",
           "sidebar.metas_sugeridas_importar": "Importar",
           "sidebar.metas_sugeridas_vacio":
             "Nao ha subobjetivos sugeridos para esta semana.",
+          "sidebar.metas_sugeridas_vacio_contexto":
+            "Nao ha subobjetivos sugeridos para {contexto}.",
           "sidebar.metas_sugeridas_mostrar_extra":
             "Mostrar tarefas extras",
           "sidebar.metas_sugeridas_ocultar_extra":
@@ -37293,6 +37336,12 @@
       );
       const El_Metas_Sugeridas_Overlay = document.getElementById(
         "Metas_Sugeridas_Overlay"
+      );
+      const El_Metas_Sugeridas_Titulo = document.getElementById(
+        "Metas_Sugeridas_Titulo"
+      );
+      const El_Metas_Sugeridas_Subtitulo = document.getElementById(
+        "Metas_Sugeridas_Subtitulo"
       );
       const El_Metas_Sugeridas_Tabla = document.getElementById(
         "Metas_Sugeridas_Tabla"
@@ -59908,8 +59957,59 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Semana_Actual || Obtener_Lunes(new Date());
       }
 
+      function Metas_Sugeridas_Desfase_Semanas() {
+        return Semanas_Entre(
+          Obtener_Lunes(new Date()),
+          Metas_Sugeridas_Semana_Base()
+        );
+      }
+
       function Metas_Sugeridas_Clave_Semana() {
         return Formatear_Fecha_ISO(Metas_Sugeridas_Semana_Base());
+      }
+
+      function Metas_Sugeridas_Texto_Rango_Semana() {
+        const Inicio = Metas_Sugeridas_Semana_Base();
+        if (!Inicio) return "";
+        const Fin = Sumar_Dias(Inicio, 6);
+        const Texto = (Fecha) =>
+          `${Fecha.getDate().toString().padStart(2, "0")}/${(
+            Fecha.getMonth() + 1
+          ).toString().padStart(2, "0")}`;
+        return `${Texto(Inicio)} - ${Texto(Fin)}`;
+      }
+
+      function Metas_Sugeridas_Texto_Contexto_Semana() {
+        const Desfase = Metas_Sugeridas_Desfase_Semanas();
+        if (Desfase === 0) {
+          return t("sidebar.metas_sugeridas_contexto_actual");
+        }
+        if (Desfase === 1) {
+          return t("sidebar.metas_sugeridas_contexto_proxima");
+        }
+        if (Desfase === -1) {
+          return t("sidebar.metas_sugeridas_contexto_anterior");
+        }
+        return t("sidebar.metas_sugeridas_contexto_rango", {
+          rango: Metas_Sugeridas_Texto_Rango_Semana()
+        });
+      }
+
+      function Metas_Sugeridas_Actualizar_Cartel() {
+        if (El_Metas_Sugeridas_Titulo) {
+          El_Metas_Sugeridas_Titulo.textContent = t(
+            "sidebar.metas_sugeridas_titulo_contexto",
+            {
+              contexto: Metas_Sugeridas_Texto_Contexto_Semana()
+            }
+          );
+        }
+        if (El_Metas_Sugeridas_Subtitulo) {
+          El_Metas_Sugeridas_Subtitulo.textContent = t(
+            "sidebar.metas_sugeridas_subtitulo_contexto",
+            { rango: Metas_Sugeridas_Texto_Rango_Semana() }
+          );
+        }
       }
 
       function Metas_Sugeridas_Rango_Semana() {
@@ -60569,6 +60669,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Render_Metas_Sugeridas() {
         if (!El_Metas_Sugeridas_Tabla) return;
+        Metas_Sugeridas_Actualizar_Cartel();
         const Items_Todos = Metas_Sugeridas_Items(true);
         const Hay_Extras = Items_Todos.some((Item) => Item.Es_Extra);
         const Items = Metas_Sugeridas_Items(
@@ -60585,7 +60686,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Items.length) {
           const Vacio = document.createElement("div");
           Vacio.className = "Metas_Sugeridas_Vacio";
-          Vacio.textContent = t("sidebar.metas_sugeridas_vacio");
+          Vacio.textContent = t(
+            "sidebar.metas_sugeridas_vacio_contexto",
+            {
+              contexto: Metas_Sugeridas_Texto_Contexto_Semana()
+            }
+          );
           El_Metas_Sugeridas_Tabla.appendChild(Vacio);
           if (!Hay_Extras) return;
         }

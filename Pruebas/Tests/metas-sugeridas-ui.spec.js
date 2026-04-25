@@ -4,6 +4,37 @@ test.use({
   viewport: { width: 820, height: 620 }
 });
 
+function Sumar_Dias_Local(Fecha, Dias) {
+  const Copia = new Date(Fecha);
+  Copia.setDate(Copia.getDate() + Dias);
+  return Copia;
+}
+
+function Obtener_Lunes_Local(Fecha = new Date()) {
+  const Base = new Date(Fecha);
+  Base.setHours(0, 0, 0, 0);
+  const Dia = Base.getDay();
+  const Delta = Dia === 0 ? -6 : 1 - Dia;
+  Base.setDate(Base.getDate() + Delta);
+  return Base;
+}
+
+function Formatear_Fecha_ISO_Local(Fecha) {
+  const Ano = Fecha.getFullYear();
+  const Mes = String(Fecha.getMonth() + 1).padStart(2, "0");
+  const Dia = String(Fecha.getDate()).padStart(2, "0");
+  return `${Ano}-${Mes}-${Dia}`;
+}
+
+function Formatear_Rango_Semana_Local(Inicio) {
+  const Fin = Sumar_Dias_Local(Inicio, 6);
+  const Texto = (Fecha) =>
+    `${String(Fecha.getDate()).padStart(2, "0")}/${String(
+      Fecha.getMonth() + 1
+    ).padStart(2, "0")}`;
+  return `${Texto(Inicio)} - ${Texto(Fin)}`;
+}
+
 function Crear_Estado_Base() {
   return {
     Objetivos: [],
@@ -386,7 +417,11 @@ async ({ page }) => {
   page.on("pageerror", (error) => errores.push(error.message));
 
   await Preparar(page);
-  await page.evaluate(() => {
+  const Semana_Actual = Obtener_Lunes_Local();
+  const Semana_Proxima = Sumar_Dias_Local(Semana_Actual, 7);
+  const Semana_Otra = Sumar_Dias_Local(Semana_Actual, 14);
+
+  await page.evaluate(({ Semana_Seo, Semana_Otra }) => {
     Categorias = [
       {
         Id: "cat_trabajo",
@@ -427,8 +462,8 @@ async ({ page }) => {
       Texto: "SEO",
       Target_Total: 10,
       Unidad: "Horas",
-      Fecha_Inicio: "2026-04-20",
-      Fecha_Objetivo: "2026-04-26",
+      Fecha_Inicio: Semana_Seo.Inicio,
+      Fecha_Objetivo: Semana_Seo.Fin,
       Orden: 0
     });
     Modelo.Subobjetivos.sub_sin_fecha = Normalizar_Subobjetivo_Plan({
@@ -447,19 +482,54 @@ async ({ page }) => {
       Texto: "Otra semana",
       Target_Total: 6,
       Unidad: "Horas",
-      Fecha_Inicio: "2026-05-04",
-      Fecha_Objetivo: "2026-05-10",
+      Fecha_Inicio: Semana_Otra.Inicio,
+      Fecha_Objetivo: Semana_Otra.Fin,
       Orden: 2
     });
     Abrir_Metas_Sugeridas();
+  }, {
+    Semana_Seo: {
+      Inicio: Formatear_Fecha_ISO_Local(Semana_Actual),
+      Fin: Formatear_Fecha_ISO_Local(
+        Sumar_Dias_Local(Semana_Actual, 6)
+      )
+    },
+    Semana_Otra: {
+      Inicio: Formatear_Fecha_ISO_Local(Semana_Otra),
+      Fin: Formatear_Fecha_ISO_Local(
+        Sumar_Dias_Local(Semana_Otra, 6)
+      )
+    }
   });
 
   await expect(page.locator("#Metas_Sugeridas_Titulo"))
     .toHaveText("Avances sugeridos para esta semana");
   await expect(page.locator(".Metas_Sugeridas_Subtitulo"))
     .toHaveText(
-      "Importar metas globales a las actividades semanales."
+      `Rango visible: ${Formatear_Rango_Semana_Local(
+        Semana_Actual
+      )}`
     );
+  await page.evaluate(() => {
+    Cambiar_Semana_Actual(Sumar_Dias(Obtener_Lunes(new Date()), 7));
+    Render_Metas_Sugeridas();
+  });
+  await expect(page.locator("#Metas_Sugeridas_Titulo"))
+    .toHaveText("Avances sugeridos para la semana proxima");
+  await expect(page.locator(".Metas_Sugeridas_Subtitulo"))
+    .toHaveText(
+      `Rango visible: ${Formatear_Rango_Semana_Local(
+        Semana_Proxima
+      )}`
+    );
+  await expect(page.locator(".Metas_Sugeridas_Vacio"))
+    .toHaveText(
+      "No hay subobjetivos sugeridos para la semana proxima."
+    );
+  await page.evaluate(() => {
+    Cambiar_Semana_Actual(Obtener_Lunes(new Date()));
+    Render_Metas_Sugeridas();
+  });
   await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(1);
   await expect(page.locator(".Metas_Sugeridas_Fila"))
     .toContainText("SEO");
