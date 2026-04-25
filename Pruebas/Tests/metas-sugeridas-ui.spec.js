@@ -226,6 +226,89 @@ async ({ page }) => {
     .toBe(Borde_Activo.Meta_Color);
 });
 
+test("los estados de objetivos conservan el borde de metas",
+async ({ page }) => {
+  await Preparar(page);
+
+  const Bordes = await page.evaluate(() => {
+    const Boton_Meta = document.querySelector(
+      ".Metas_Sugeridas_Flotante"
+    );
+    const Meta_Color = getComputedStyle(Boton_Meta)
+      .borderTopColor;
+    const Contenedor = document.createElement("div");
+    Contenedor.style.position = "fixed";
+    Contenedor.style.left = "120px";
+    Contenedor.style.bottom = "20px";
+    Contenedor.style.display = "flex";
+    Contenedor.style.gap = "8px";
+    document.body.appendChild(Contenedor);
+
+    return ["Completa", "Fracasada", "Sin_Horas"].map((Clase) => {
+      const Boton = document.createElement("button");
+      Boton.type = "button";
+      Boton.className = `Emoji_Item ${Clase}`;
+      Boton.textContent = "x";
+      Contenedor.appendChild(Boton);
+      const Estilo = getComputedStyle(Boton);
+      return {
+        Clase,
+        Meta_Color,
+        Color: Estilo.borderTopColor,
+        Ancho: Estilo.borderTopWidth,
+        Estilo: Estilo.borderTopStyle
+      };
+    });
+  });
+
+  Bordes.forEach((Borde) => {
+    expect(Borde.Color).toBe(Borde.Meta_Color);
+    expect(Borde.Ancho).toBe("1px");
+    expect(Borde.Estilo).toBe("solid");
+  });
+});
+
+test("el menu hamburguesa queda por encima del calendario",
+async ({ page }) => {
+  await page.setViewportSize({ width: 1536, height: 540 });
+  await Preparar(page);
+  await page.evaluate(() => {
+    Config.Menu_Estilo = "Hamburguesa";
+    Aplicar_Estilo_Menu();
+    Mostrar_Menu_Hamburguesa();
+  });
+
+  const Datos = await page.evaluate(() => {
+    const Contenedor = document.querySelector(
+      ".Calendario_Contenedor"
+    );
+    const Pop = document.getElementById("Menu_Hamburguesa_Popup");
+    const Rect_Contenedor = Contenedor.getBoundingClientRect();
+    const Rect_Pop = Pop.getBoundingClientRect();
+    const X = Rect_Pop.left + 20;
+    const Y = Rect_Contenedor.bottom + 4;
+    const Elemento = document.elementFromPoint(X, Y);
+    return {
+      Activo: Pop.classList.contains("Activo"),
+      Overflow: getComputedStyle(Contenedor).overflow,
+      Z_Index: Number(getComputedStyle(Pop).zIndex),
+      Pop_Bottom: Rect_Pop.bottom,
+      Contenedor_Bottom: Rect_Contenedor.bottom,
+      Punto_En_Menu: Boolean(
+        Elemento?.closest(".Menu_Hamburguesa_Popup")
+      )
+    };
+  });
+
+  expect(Datos.Activo).toBe(true);
+  expect(Datos.Overflow).toBe("visible");
+  expect(Datos.Z_Index).toBeGreaterThan(30);
+  expect(Datos.Pop_Bottom).toBeGreaterThan(
+    Datos.Contenedor_Bottom
+  );
+  expect(Datos.Punto_En_Menu).toBe(true);
+});
+
 test("metas sugeridas restringe colores y scrollea partes",
 async ({ page }) => {
   const errores = [];
