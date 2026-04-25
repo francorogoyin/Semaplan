@@ -68548,6 +68548,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             data-plan-sub-accion="partes">
             ${t("planes.administrar_partes")}
           </button>
+          <button class="Planes_Btn" type="button"
+            data-plan-sub-accion="duplicar">
+            ${t("resumen_objetivo.duplicar_subobjetivo")}
+          </button>
           <button class="Planes_Btn Peligro" type="button"
             data-plan-sub-accion="eliminar">
             ${t("planes.eliminar_local")}
@@ -68603,6 +68607,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Tipo === "partes") {
           Abrir_Modal_Planes_Partes(Sub_Id);
+        }
+        if (Tipo === "duplicar") {
+          const Snap = Capturar_Snapshot_Undo();
+          const Copia = Planes_Duplicar_Subobjetivo(
+            Sub_Id,
+            Objetivo_Real?.Id || Objetivo_Id || Sub.Objetivo_Id
+          );
+          if (!Copia) return;
+          const Objetivo = Modelo.Objetivos[Copia.Objetivo_Id];
+          if (Objetivo) {
+            Planes_Recalcular_Desde(
+              Objetivo,
+              Snap,
+              t("toast.subobjetivo_duplicada", {
+                texto: Sub.Texto || t("toast.sin_nombre")
+              })
+            );
+          } else {
+            Render_Plan();
+            Guardar_Estado();
+          }
+          Render_Modal_Planes_Subobjetivos();
         }
         if (Tipo === "eliminar") {
           Planes_Eliminar_Subobjetivo(Sub_Id);
@@ -68699,6 +68725,146 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Guardar_Estado();
         }
         return Id;
+      }
+
+      function Planes_Clonar_Subobjetivo_Pendiente(
+        Sub,
+        Nuevo_Id,
+        Objetivo_Id,
+        Padre_Id,
+        Orden
+      ) {
+        return Normalizar_Subobjetivo_Plan({
+          ...JSON.parse(JSON.stringify(Sub || {})),
+          Id: Nuevo_Id,
+          Objetivo_Id,
+          Subobjetivo_Padre_Id: Padre_Id || "",
+          Parent_Subobjetivo_Id: "",
+          Hecha: false,
+          Estado: "Activo",
+          Progreso_Manual: 0,
+          Progreso_Avances: 0,
+          Fecha_Fin: "",
+          Hora_Fin: "",
+          Eliminado_Local: false,
+          Orden
+        }, Orden);
+      }
+
+      function Planes_Clonar_Parte_Pendiente(
+        Parte,
+        Nuevo_Id,
+        Objetivo_Id,
+        Subobjetivo_Id,
+        Orden
+      ) {
+        return Normalizar_Parte_Meta({
+          ...JSON.parse(JSON.stringify(Parte || {})),
+          Id: Nuevo_Id,
+          Objetivo_Id,
+          Subobjetivo_Id,
+          Progreso_Avances: 0,
+          Progreso_Total: 0,
+          Fecha_Fin: "",
+          Hora_Fin: "",
+          Estado: "Pendiente",
+          Eliminado_Local: false,
+          Orden,
+          Creado_En: new Date().toISOString(),
+          Actualizado_En: new Date().toISOString()
+        }, Orden);
+      }
+
+      function Planes_Reordenar_Hermanos_Subobjetivo(
+        Objetivo_Id,
+        Padre_Id,
+        Id_Insertado,
+        Id_Referencia
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Hermanos = Planes_Subobjetivos_De_Objetivo(Objetivo_Id)
+          .filter((Sub) =>
+            !Sub.Eliminado_Local &&
+            (Sub.Subobjetivo_Padre_Id || "").toString() ===
+              (Padre_Id || "").toString()
+          )
+          .filter((Sub) => Sub.Id !== Id_Insertado);
+        const Index_Referencia = Hermanos.findIndex(
+          (Sub) => Sub.Id === Id_Referencia
+        );
+        const Index_Insertar = Index_Referencia >= 0
+          ? Index_Referencia + 1
+          : Hermanos.length;
+        const Insertado = Modelo.Subobjetivos[Id_Insertado];
+        if (Insertado) {
+          Hermanos.splice(Index_Insertar, 0, Insertado);
+        }
+        Hermanos.forEach((Sub, Indice) => {
+          Sub.Orden = Indice;
+          Sub.Actualizado_En = new Date().toISOString();
+        });
+      }
+
+      function Planes_Duplicar_Subobjetivo(
+        Sub_Id,
+        Objetivo_Destino_Id = ""
+      ) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Sub = Modelo.Subobjetivos[Sub_Id];
+        if (!Sub || Sub.Eliminado_Local) return null;
+        const Objetivo_Id = Objetivo_Destino_Id || Sub.Objetivo_Id;
+        const Objetivo = Modelo.Objetivos[Objetivo_Id];
+        if (!Objetivo) return null;
+        const Padre_Origen_Id =
+          (Sub.Subobjetivo_Padre_Id || "").toString();
+        const Padre_Valido =
+          Padre_Origen_Id &&
+          Modelo.Subobjetivos[Padre_Origen_Id]?.Objetivo_Id ===
+            Objetivo_Id;
+        const Padre_Destino_Id = Padre_Valido ? Padre_Origen_Id : "";
+
+        const Duplicar_Rama = (Original, Padre_Nuevo_Id) => {
+          if (!Original || Original.Eliminado_Local) return null;
+          const Nuevo_Id = Crear_Id_Subobjetivo_Plan();
+          const Orden = Planes_Subobjetivos_De_Objetivo(Objetivo_Id)
+            .filter((Item) =>
+              !Item.Eliminado_Local &&
+              (Item.Subobjetivo_Padre_Id || "").toString() ===
+                (Padre_Nuevo_Id || "").toString()
+            ).length;
+          const Copia = Planes_Clonar_Subobjetivo_Pendiente(
+            Original,
+            Nuevo_Id,
+            Objetivo_Id,
+            Padre_Nuevo_Id,
+            Orden
+          );
+          Modelo.Subobjetivos[Nuevo_Id] = Copia;
+          Planes_Partes_De_Subobjetivo(Original.Id, Modelo)
+            .forEach((Parte, Indice) => {
+              const Parte_Id = Crear_Id_Parte_Meta();
+              Modelo.Partes[Parte_Id] = Planes_Clonar_Parte_Pendiente(
+                Parte,
+                Parte_Id,
+                Objetivo_Id,
+                Nuevo_Id,
+                Indice
+              );
+            });
+          Planes_Subobjetivos_Hijos(Original.Id)
+            .forEach((Hijo) => Duplicar_Rama(Hijo, Nuevo_Id));
+          return Copia;
+        };
+
+        const Copia_Raiz = Duplicar_Rama(Sub, Padre_Destino_Id);
+        if (!Copia_Raiz) return null;
+        Planes_Reordenar_Hermanos_Subobjetivo(
+          Objetivo_Id,
+          Padre_Destino_Id,
+          Copia_Raiz.Id,
+          Sub.Id
+        );
+        return Copia_Raiz;
       }
 
       function Planes_Toggle_Subobjetivo(Sub_Id, Hecha) {
