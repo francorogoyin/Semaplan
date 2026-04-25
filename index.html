@@ -36929,6 +36929,8 @@
       let Semana_Actual = null;
       let Calendario_Dias_Visibles_Manual_Semana = "";
       let Calendario_Dias_Visibles_Manual = null;
+      let Calendario_Bloques_Horarios_Manual_Semana = "";
+      let Calendario_Bloques_Horarios_Manual = null;
       let Datos_Editor_Borrador = null;
       let Objetivo_Habitos_Bloques_Borrador = [];
       let Editor_Habitos_Bloques_Borrador = [];
@@ -45332,9 +45334,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Construir_Submenu_Bloques_Horarios_Visibles() {
         const Visibles =
-          Normalizar_Bloques_Horarios_Visibles(
-            Config.Bloques_Horarios_Visibles
-          );
+          Obtener_Bloques_Horarios_Visibles_Efectivos();
         const Html_Atajos =
           `<div class="Dia_Accion_Submenu_Titulo">` +
           `${t("hora.atajos")}</div>` +
@@ -45401,9 +45401,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Bloque_Id
       ) {
         const Visibles =
-          Normalizar_Bloques_Horarios_Visibles(
-            Config.Bloques_Horarios_Visibles
-          );
+          Obtener_Bloques_Horarios_Visibles_Efectivos();
         const Set_Nuevo = new Set(Visibles);
         if (Set_Nuevo.has(Bloque_Id)) {
           if (Visibles.length <= 1) return false;
@@ -45411,34 +45409,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           Set_Nuevo.add(Bloque_Id);
         }
-        Config.Bloques_Horarios_Visibles =
+        const Nuevo =
           Obtener_Ids_Bloques_Horarios().filter((Id) =>
             Set_Nuevo.has(Id)
           );
-        Config.Bloques_Horarios_Visibles =
-          Normalizar_Bloques_Horarios_Visibles(
-            Config.Bloques_Horarios_Visibles
-          );
-        Render_Calendario();
-        Guardar_Estado();
-        return true;
+        return Fijar_Bloques_Horarios_Visibles_Manual(Nuevo);
       }
 
       function Aplicar_Atajo_Bloques_Horarios_Visibles(Atajo) {
         if (Atajo === "todo-dia") {
-          Config.Bloques_Horarios_Visibles =
-            Obtener_Ids_Bloques_Horarios();
-          Render_Calendario();
-          Guardar_Estado();
-          return true;
+          return Fijar_Bloques_Horarios_Visibles_Manual(
+            Obtener_Ids_Bloques_Horarios()
+          );
         }
         const Bloque =
           Resolver_Bloque_Atajo_Horario(Atajo);
         if (!Bloque) return false;
-        Config.Bloques_Horarios_Visibles = [Bloque];
-        Render_Calendario();
-        Guardar_Estado();
-        return true;
+        return Fijar_Bloques_Horarios_Visibles_Manual([Bloque]);
       }
 
       function Refrescar_Submenu_Bloques_Horarios_Visibles(Menu) {
@@ -83994,6 +83981,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Config.Dias_Visibles = Dias_Elegidos;
         Config.Ocultar_Dias_Automatico = Ocultar_Dias_Automatico;
         Limpiar_Dias_Visibles_Manual();
+        Limpiar_Bloques_Horarios_Visibles_Manual();
         Config.Contador_Semanas_Activo = Contador_Semanas_Activo;
         Config.Contador_Semanas_Modo = Contador_Semanas_Modo;
         Config.Contador_Semanas_Fecha_Ref =
@@ -85944,6 +85932,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Semana_Actual = Nueva;
         if (Anterior && Anterior !== Formatear_Fecha_ISO(Nueva)) {
           Limpiar_Dias_Visibles_Manual();
+          Limpiar_Bloques_Horarios_Visibles_Manual();
         }
       }
 
@@ -86026,11 +86015,53 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Obtener_Bloques_Horarios_Visibles_Manual() {
+        if (
+          !Calendario_Bloques_Horarios_Manual_Semana ||
+          Calendario_Bloques_Horarios_Manual_Semana !==
+            Clave_Semana_Visible() ||
+          !Array.isArray(Calendario_Bloques_Horarios_Manual)
+        ) {
+          return null;
+        }
+        const Manual = Normalizar_Bloques_Horarios_Visibles(
+          Calendario_Bloques_Horarios_Manual
+        );
+        return Manual.length ? Manual : null;
+      }
+
+      function Limpiar_Bloques_Horarios_Visibles_Manual() {
+        Calendario_Bloques_Horarios_Manual_Semana = "";
+        Calendario_Bloques_Horarios_Manual = null;
+      }
+
+      function Fijar_Bloques_Horarios_Visibles_Manual(
+        Bloques_Nuevos
+      ) {
+        const Nuevo = Normalizar_Bloques_Horarios_Visibles(
+          Bloques_Nuevos
+        );
+        if (!Nuevo.length) return false;
+        Calendario_Bloques_Horarios_Manual_Semana =
+          Clave_Semana_Visible();
+        Calendario_Bloques_Horarios_Manual = Nuevo;
+        Render_Calendario();
+        return true;
+      }
+
+      function Obtener_Bloques_Horarios_Visibles_Efectivos() {
+        const Manual = Obtener_Bloques_Horarios_Visibles_Manual();
+        if (Manual) return Manual;
+        return Semana_Visible_Es_Actual()
+          ? Obtener_Bloques_Horarios_Visibles_Base()
+          : Obtener_Ids_Bloques_Horarios();
+      }
+
       function Obtener_Segmentos_Horarios_Visibles() {
         const Bloques = Normalizar_Bloques_Horarios(
           Config.Bloques_Horarios
         );
-        const Visibles = Obtener_Bloques_Horarios_Visibles_Base();
+        const Visibles = Obtener_Bloques_Horarios_Visibles_Efectivos();
         const Segmentos = [];
         Visibles.forEach((Id) => {
           const Bloque = Bloques[Id];

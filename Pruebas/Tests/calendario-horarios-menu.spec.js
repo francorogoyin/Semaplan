@@ -245,10 +245,20 @@ test(
   await expect(page.locator('.Hora_Item[data-hora="20"]'))
     .toHaveCount(0);
 
-  const bloquesVisibles = await page.evaluate(() => (
-    [...Config.Bloques_Horarios_Visibles]
-  ));
-  expect(bloquesVisibles).toEqual(["Madrugada", "Tarde"]);
+  const bloquesVisibles = await page.evaluate(() => ({
+    efectivos: Obtener_Bloques_Horarios_Visibles_Efectivos(),
+    config: [...Config.Bloques_Horarios_Visibles]
+  }));
+  expect(bloquesVisibles.efectivos).toEqual([
+    "Madrugada",
+    "Tarde"
+  ]);
+  expect(bloquesVisibles.config).toEqual([
+    "Madrugada",
+    "Manana",
+    "Tarde",
+    "Noche"
+  ]);
 
   await page.click('#Dia_Accion_Menu [data-hora-atajo="todo-dia"]');
   await expect(page.locator('.Hora_Item[data-hora="8"]'))
@@ -256,10 +266,17 @@ test(
   await expect(page.locator('.Hora_Item[data-hora="20"]'))
     .toHaveCount(1);
 
-  const todosLosBloques = await page.evaluate(() => (
-    [...Config.Bloques_Horarios_Visibles]
-  ));
-  expect(todosLosBloques).toEqual([
+  const todosLosBloques = await page.evaluate(() => ({
+    efectivos: Obtener_Bloques_Horarios_Visibles_Efectivos(),
+    config: [...Config.Bloques_Horarios_Visibles]
+  }));
+  expect(todosLosBloques.efectivos).toEqual([
+    "Madrugada",
+    "Manana",
+    "Tarde",
+    "Noche"
+  ]);
+  expect(todosLosBloques.config).toEqual([
     "Madrugada",
     "Manana",
     "Tarde",
@@ -324,6 +341,94 @@ test(
   expect(resultadoPegado.tieneSlotDestino).toBe(true);
   }
 );
+
+test("mostrar horario respeta alcance semanal", async ({ page }) => {
+  await preparar(page, crearEstado());
+
+  const resultado = await page.evaluate(() => {
+    Config.Bloques_Horarios_Visibles = ["Madrugada"];
+
+    Cambiar_Semana_Actual(new Date());
+    Render_Calendario();
+    const Semana_Actual_Auto = {
+      bloques: Obtener_Bloques_Horarios_Visibles_Efectivos(),
+      hora0: Boolean(document.querySelector(
+        '.Hora_Item[data-hora="0"]'
+      )),
+      hora8: Boolean(document.querySelector(
+        '.Hora_Item[data-hora="8"]'
+      ))
+    };
+
+    Cambiar_Semana_Actual(
+      Sumar_Dias(Obtener_Lunes(new Date()), 7)
+    );
+    Render_Calendario();
+    const Semana_Futura_Auto = {
+      bloques: Obtener_Bloques_Horarios_Visibles_Efectivos(),
+      hora8: Boolean(document.querySelector(
+        '.Hora_Item[data-hora="8"]'
+      )),
+      hora13: Boolean(document.querySelector(
+        '.Hora_Item[data-hora="13"]'
+      ))
+    };
+
+    Fijar_Bloques_Horarios_Visibles_Manual(["Tarde"]);
+    const Semana_Futura_Manual = {
+      bloques: Obtener_Bloques_Horarios_Visibles_Efectivos(),
+      hora8: Boolean(document.querySelector(
+        '.Hora_Item[data-hora="8"]'
+      )),
+      hora13: Boolean(document.querySelector(
+        '.Hora_Item[data-hora="13"]'
+      ))
+    };
+
+    Cambiar_Semana_Actual(new Date());
+    Render_Calendario();
+    const Semana_Actual_Al_Volver = {
+      bloques: Obtener_Bloques_Horarios_Visibles_Efectivos(),
+      hora0: Boolean(document.querySelector(
+        '.Hora_Item[data-hora="0"]'
+      )),
+      hora13: Boolean(document.querySelector(
+        '.Hora_Item[data-hora="13"]'
+      ))
+    };
+
+    return {
+      semanaActualAuto: Semana_Actual_Auto,
+      semanaFuturaAuto: Semana_Futura_Auto,
+      semanaFuturaManual: Semana_Futura_Manual,
+      semanaActualAlVolver: Semana_Actual_Al_Volver,
+      config: [...Config.Bloques_Horarios_Visibles]
+    };
+  });
+
+  expect(resultado.semanaActualAuto.bloques).toEqual([
+    "Madrugada"
+  ]);
+  expect(resultado.semanaActualAuto.hora0).toBe(true);
+  expect(resultado.semanaActualAuto.hora8).toBe(false);
+  expect(resultado.semanaFuturaAuto.bloques).toEqual([
+    "Madrugada",
+    "Manana",
+    "Tarde",
+    "Noche"
+  ]);
+  expect(resultado.semanaFuturaAuto.hora8).toBe(true);
+  expect(resultado.semanaFuturaAuto.hora13).toBe(true);
+  expect(resultado.semanaFuturaManual.bloques).toEqual(["Tarde"]);
+  expect(resultado.semanaFuturaManual.hora8).toBe(false);
+  expect(resultado.semanaFuturaManual.hora13).toBe(true);
+  expect(resultado.semanaActualAlVolver.bloques).toEqual([
+    "Madrugada"
+  ]);
+  expect(resultado.semanaActualAlVolver.hora0).toBe(true);
+  expect(resultado.semanaActualAlVolver.hora13).toBe(false);
+  expect(resultado.config).toEqual(["Madrugada"]);
+});
 
 test("config permite ajustar bloques horarios", async ({ page }) => {
   await preparar(page, crearEstado());
