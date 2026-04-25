@@ -6947,6 +6947,30 @@
         display: block;
       }
 
+      .Planes_Avance_Distribucion_Mensaje {
+        margin: 0 auto;
+        max-width: 430px;
+        text-align: center;
+      }
+
+      .Planes_Avance_Distribucion_Titulo {
+        font-size: 16px;
+        font-weight: 800;
+        margin-bottom: 10px;
+      }
+
+      .Planes_Avance_Distribucion_Lista {
+        display: grid;
+        gap: 6px;
+      }
+
+      .Planes_Avance_Distribucion_Fila {
+        color: var(--Texto);
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.35;
+      }
+
       @media (max-width: 720px) {
         .Planes_Avance_Fila {
           grid-template-columns: 1fr;
@@ -24513,8 +24537,14 @@
             "{nuevo} {unidad}?",
           "planes.avance_aumentar_limite":
             "Aumentar valor objetivo",
-          "planes.avance_distribucion_confirm":
-            "Se avanzara",
+          "planes.avance_distribucion_partes_confirm":
+            "Se avanzar\u00e1 parcialmente en las siguientes partes:",
+          "planes.avance_distribucion_subobjetivos_confirm":
+            "Se avanzar\u00e1 parcialmente en los siguientes " +
+            "subobjetivos:",
+          "planes.avance_distribucion_componentes_confirm":
+            "Se avanzar\u00e1 parcialmente en los siguientes " +
+            "componentes:",
           "planes.avance_distribucion_excede":
             "La cantidad supera el avance pendiente de sus componentes.",
           "planes.marcar_realizado": "Marcar como realizado",
@@ -28669,8 +28699,14 @@
             "{unidad}?",
           "planes.avance_aumentar_limite":
             "Update target value",
-          "planes.avance_distribucion_confirm":
-            "Progress will be logged",
+          "planes.avance_distribucion_partes_confirm":
+            "Progress will be partially logged in the following parts:",
+          "planes.avance_distribucion_subobjetivos_confirm":
+            "Progress will be partially logged in the following " +
+            "subobjectives:",
+          "planes.avance_distribucion_componentes_confirm":
+            "Progress will be partially logged in the following " +
+            "components:",
           "planes.avance_distribucion_excede":
             "The amount exceeds the pending progress of its components.",
           "planes.marcar_realizado": "Mark as done",
@@ -32776,8 +32812,15 @@
             "{unidad}?",
           "planes.avance_aumentar_limite":
             "Atualizar valor objetivo",
-          "planes.avance_distribucion_confirm":
-            "O avanco sera registrado",
+          "planes.avance_distribucion_partes_confirm":
+            "O avan\u00e7o ser\u00e1 registrado parcialmente nas " +
+            "seguintes partes:",
+          "planes.avance_distribucion_subobjetivos_confirm":
+            "O avan\u00e7o ser\u00e1 registrado parcialmente nos " +
+            "seguintes subobjetivos:",
+          "planes.avance_distribucion_componentes_confirm":
+            "O avan\u00e7o ser\u00e1 registrado parcialmente nos " +
+            "seguintes componentes:",
           "planes.avance_distribucion_excede":
             "A quantidade supera o avanco pendente dos componentes.",
           "planes.marcar_realizado": "Marcar como realizado",
@@ -54018,6 +54061,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Math.round(Numero * 100) / 100;
       }
 
+      function Planes_Formatear_Numero_Texto(Valor) {
+        const Numero = Planes_Formatear_Numero(Valor);
+        return new Intl.NumberFormat(Obtener_Locale_Actual(), {
+          maximumFractionDigits: 2
+        }).format(Numero);
+      }
+
       function Planes_Unidad_Label(Objetivo, Cantidad = null) {
         if (!Objetivo) return "";
         const Unidad = (Objetivo.Unidad || "Horas").toString();
@@ -62801,17 +62851,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Cont.className = "Planes_Avance_Distribucion_Mensaje";
         const Titulo = document.createElement("span");
         Titulo.className = "Planes_Avance_Distribucion_Titulo";
-        Titulo.textContent = t("planes.avance_distribucion_confirm");
+        const Tipos = new Set(
+          (Distribucion || []).map((Linea) =>
+            Linea?.Item?.Tipo || ""
+          )
+        );
+        const Titulo_Key = Tipos.size === 1 && Tipos.has("Parte")
+          ? "planes.avance_distribucion_partes_confirm"
+          : Tipos.size === 1 && Tipos.has("Subobjetivo")
+            ? "planes.avance_distribucion_subobjetivos_confirm"
+            : "planes.avance_distribucion_componentes_confirm";
+        Titulo.textContent = t(Titulo_Key);
         Cont.appendChild(Titulo);
         const Lista = document.createElement("span");
-        Distribucion.forEach((Linea) => {
+        Lista.className = "Planes_Avance_Distribucion_Lista";
+        Distribucion.forEach((Linea, Indice) => {
           const Fila = document.createElement("span");
           Fila.className = "Planes_Avance_Distribucion_Fila";
           const Unidad = Planes_Unidad_Item_Avance(Linea.Item);
-          Fila.textContent = `${Planes_Nombre_Item_Avance_Simple(
+          const Nombre = Planes_Nombre_Item_Avance_Simple(
             Linea.Item
-          )} -> ${Planes_Formatear_Numero(Linea.Cantidad)}` +
-            `${Unidad ? ` ${Unidad}` : ""}`;
+          );
+          const Cantidad = Planes_Formatear_Numero_Texto(
+            Linea.Cantidad
+          );
+          Fila.textContent = `${Indice + 1}. ${Nombre} ` +
+            `\u2192 ${Cantidad}${Unidad ? ` ${Unidad}` : ""}`;
           Lista.appendChild(Fila);
         });
         Cont.appendChild(Lista);

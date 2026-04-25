@@ -3382,6 +3382,20 @@ async ({ page }) => {
         sub2: Suma_Sub("sub_obj_2"),
         sub3: Suma_Sub("sub_obj_3")
       },
+      decimal: (() => {
+        const Mensaje = Planes_Mensaje_Distribucion_Avance([{
+          Item: {
+            Tipo: "Parte",
+            Objetivo: Modelo_Final.Objetivos.obj_principito,
+            Sub: Modelo_Final.Subobjetivos.sub_principito,
+            Parte: Modelo_Final.Partes.parte_cap_2
+          },
+          Cantidad: 1.25
+        }]);
+        return Array.from(Mensaje.querySelectorAll(
+          ".Planes_Avance_Distribucion_Fila"
+        )).map((Fila) => Fila.textContent.trim()).join("\n");
+      })(),
       avancesPadre: Avances.filter((Avance) =>
         (
           Avance.Subobjetivo_Id === "sub_principito" &&
@@ -3395,14 +3409,20 @@ async ({ page }) => {
   });
 
   expect(Resultado.dialogos).toHaveLength(2);
-  expect(Resultado.dialogos[0]).toContain("Se avanzara");
-  expect(Resultado.dialogos[0]).toContain("Capitulo 1 -> 6 paginas");
-  expect(Resultado.dialogos[0]).toContain("Capitulo 2 -> 4 paginas");
+  expect(Resultado.dialogos[0]).toContain(
+    "Se avanzará parcialmente en las siguientes partes:"
+  );
+  expect(Resultado.dialogos[0]).toContain("1. Capitulo 1 → 6 paginas");
+  expect(Resultado.dialogos[0]).toContain("2. Capitulo 2 → 4 paginas");
   expect(Resultado.dialogos[0]).not.toContain("El principito");
   expect(Resultado.dialogos[0]).not.toContain("Biblioteca");
-  expect(Resultado.dialogos[1]).toContain("Sub 1 -> 6 paginas");
-  expect(Resultado.dialogos[1]).toContain("Sub 2 -> 4 paginas");
+  expect(Resultado.dialogos[1]).toContain(
+    "Se avanzará parcialmente en los siguientes subobjetivos:"
+  );
+  expect(Resultado.dialogos[1]).toContain("1. Sub 1 → 6 paginas");
+  expect(Resultado.dialogos[1]).toContain("2. Sub 2 → 4 paginas");
   expect(Resultado.dialogos[1]).not.toContain("Objetivo suma");
+  expect(Resultado.decimal).toContain("1. Capitulo 2 → 1,25 paginas");
   expect(Resultado.partes).toEqual({
     cap1: 10,
     cap2: 4,
