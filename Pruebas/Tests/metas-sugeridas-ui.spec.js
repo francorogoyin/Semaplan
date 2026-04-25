@@ -166,6 +166,66 @@ async function Preparar(page) {
   });
 }
 
+test("los circulos de objetivos igualan el borde de metas",
+async ({ page }) => {
+  await Preparar(page);
+  await page.evaluate(() => {
+    Crear_Objetivo_Semanal_Con_Datos(
+      {
+        Nombre: "Objetivo reloj",
+        Emoji: "\u23F3",
+        Color: "#f2bd79",
+        Es_Bolsa: false
+      },
+      Clave_Semana_Actual()
+    );
+    Render_Emojis();
+  });
+
+  const Bordes = await page.evaluate(() => {
+    const Boton_Meta = document.querySelector(
+      ".Metas_Sugeridas_Flotante"
+    );
+    const Boton_Objetivo = document.querySelector(
+      "#Barra_Emojis .Emoji_Item"
+    );
+    const Meta = getComputedStyle(Boton_Meta);
+    const Objetivo = getComputedStyle(Boton_Objetivo);
+    return {
+      Meta_Color: Meta.borderTopColor,
+      Objetivo_Color: Objetivo.borderTopColor,
+      Objetivo_Ancho: Objetivo.borderTopWidth,
+      Objetivo_Estilo: Objetivo.borderTopStyle
+    };
+  });
+
+  expect(Bordes.Objetivo_Color).toBe(Bordes.Meta_Color);
+  expect(Bordes.Objetivo_Ancho).toBe("1px");
+  expect(Bordes.Objetivo_Estilo).toBe("solid");
+
+  await page.evaluate(() => {
+    Objetivo_Seleccionada_Id = Objetivos[0]?.Id || null;
+    Render_Emojis();
+  });
+
+  const Borde_Activo = await page.evaluate(() => {
+    const Boton_Meta = document.querySelector(
+      ".Metas_Sugeridas_Flotante"
+    );
+    const Boton_Objetivo = document.querySelector(
+      "#Barra_Emojis .Emoji_Item.Activa"
+    );
+    return {
+      Meta_Color: getComputedStyle(Boton_Meta).borderTopColor,
+      Objetivo_Color:
+        getComputedStyle(Boton_Objetivo).borderTopColor
+    };
+  });
+
+  expect(Borde_Activo.Objetivo_Color)
+    .toBe(Borde_Activo.Meta_Color);
+});
+
 test("metas sugeridas restringe colores y scrollea partes",
 async ({ page }) => {
   const errores = [];
