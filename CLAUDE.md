@@ -187,6 +187,24 @@ corresponde según el pedido del usuario.
     `Disciplina I. Los cuerpos dóciles`, para que `I`, `II` o `III`
     no queden ambiguos.
 
+### Validacion visual con navegador integrado
+
+1. Para cambios visuales de frontend, usar el navegador integrado en
+   local como chequeo tipo usuario antes de cerrar el cambio. La cuenta
+   preferida para estas pruebas es `tomashodel@gmail.com`, porque suele
+   tener datos, configuracion y estados reales que exponen problemas de
+   layout, z-index, cache o controles condicionales.
+2. En todo cambio visual, tomar una captura del estado afectado y
+   revisarla explicitamente antes de registrar, commitear y pushear.
+   No alcanza con que Playwright pase si la captura muestra una
+   diferencia visual razonable.
+3. La captura debe cubrir el estado que activa el problema: menu
+   abierto, tarea pendiente, modal, scroll, panel lateral, estado vacio,
+   estado cargado o cualquier configuracion que cambie la UI.
+4. Playwright queda como red de regresion automatizada para casos
+   repetibles. El navegador integrado local queda como validacion
+   principal cuando la mejora depende de percepcion visual o uso real.
+
 ### Procedimiento 1: próximas objetivos
 
 Usar este procedimiento cuando el pedido sea leer próximas objetivos,
@@ -218,10 +236,14 @@ realizadas.
 ### Procedimiento 2: test de funciones
 
 Usar este procedimiento cuando el pedido sea probar o testear funciones
-de Semaplan con Playwright/Codex.
+de Semaplan con Playwright/Codex o navegador integrado.
 
-1. Ejecutar la prueba pedida con Playwright/Codex.
-2. Validar el resultado en la UI y, si corresponde, también tras
+1. Ejecutar la prueba pedida con la herramienta adecuada: navegador
+   integrado local para pruebas tipo usuario y Playwright para
+   regresiones automatizables.
+2. Validar el resultado en la UI y, si el cambio es visual, tomar y
+   revisar una captura del estado afectado.
+3. Si corresponde, validar también tras
    recargar para confirmar persistencia real.
 
 ### Registro de avance de mejoras
@@ -257,21 +279,24 @@ criterios de consistencia entre flujos.
 
 ### Git después de cada cambio
 
-1. Antes de cerrar un cambio funcional, validarlo con Playwright sobre
-   el flujo afectado, sea cambio, agregado, edición o borrado.
-2. Después de cada cambio funcional o cambio de instrucciones ya
+1. Antes de cerrar un cambio funcional, validarlo con navegador
+   integrado local o Playwright sobre el flujo afectado, sea cambio,
+   agregado, edición o borrado.
+2. Si el cambio es visual de frontend, la validacion debe incluir
+   captura revisada del estado afectado en navegador integrado local.
+3. Después de cada cambio funcional o cambio de instrucciones ya
    resuelto en esta sesión, commitear y pushear sin esperar al final
    de la sesión ni a que el usuario lo pida explícitamente.
-3. Regla operativa de git: cada `commit` debe ir seguido en ese mismo
+4. Regla operativa de git: cada `commit` debe ir seguido en ese mismo
    flujo por su `push`. No dejar commits locales pendientes salvo que
    el usuario lo pida explícitamente.
-4. Regla permanente: no cortar el flujo en `commit` dejando el
+5. Regla permanente: no cortar el flujo en `commit` dejando el
    `push` para después.
-5. Si en una misma sesión se resuelven varias funcionalidades
+6. Si en una misma sesión se resuelven varias funcionalidades
    independientes, hacer un `commit` y `push` separado por cada
    funcionalidad. No agrupar varias funcionalidades resueltas en un
    solo commit.
-6. Si `git add`, `git commit` o acciones sobre `.git` fallan por
+7. Si `git add`, `git commit` o acciones sobre `.git` fallan por
    sandbox, permisos o `index.lock`, escalar de inmediato y no seguir
    probando la misma operación dentro del sandbox.
 
