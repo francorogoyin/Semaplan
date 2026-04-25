@@ -24618,8 +24618,8 @@
           "planes.meta_asignados": "{Cantidad} asignados",
           "planes.meta_realizados": "{Cantidad} realizados",
           "planes.meta_planeados": "{Cantidad} planeados",
-          "planes.sub_aporte": "Aporte",
-          "planes.sub_aporte_en": "Aporte",
+          "planes.sub_aporte": "Aporte a la meta",
+          "planes.sub_aporte_en": "Aporte a la meta ({Unidad})",
           "planes.tiempo": "Tiempo",
           "planes.tiempo_minutos_unidad": "Minutos por unidad",
           "planes.tiempo_horas_unidad": "Horas por unidad",
@@ -28758,8 +28758,8 @@
           "planes.meta_asignados": "{Cantidad} assigned",
           "planes.meta_realizados": "{Cantidad} completed",
           "planes.meta_planeados": "{Cantidad} planned",
-          "planes.sub_aporte": "Contribution",
-          "planes.sub_aporte_en": "Contribution",
+          "planes.sub_aporte": "Goal contribution",
+          "planes.sub_aporte_en": "Goal contribution ({Unidad})",
           "planes.tiempo": "Time",
           "planes.tiempo_minutos_unidad": "Minutes per unit",
           "planes.tiempo_horas_unidad": "Hours per unit",
@@ -32859,8 +32859,8 @@
             "de {actual} {unidad} para {nuevo} {unidad}. " +
             "Atualizar o target pai?",
           "planes.editar_target_padre": "Atualizar target",
-          "planes.sub_aporte": "Aporte",
-          "planes.sub_aporte_en": "Aporte",
+          "planes.sub_aporte": "Aporte à meta",
+          "planes.sub_aporte_en": "Aporte à meta ({Unidad})",
           "planes.tiempo": "Tempo",
           "planes.tiempo_minutos_unidad": "Minutos por unidade",
           "planes.tiempo_horas_unidad": "Horas por unidade",
@@ -51455,6 +51455,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Objetivo.Target_Total = Valor;
         Objetivo.Target_Actual = Valor;
         Objetivo.Target_Automatico = Valor;
+        if (Objetivo.Modo_Avance !== "Manual") {
+          Objetivo.Modo_Avance = Valor > 0 ? "Metrica" : "Sin_Metrica";
+        }
         if (Objetivo.Fijado) {
           Objetivo.Target_Fijado = Valor;
         }
@@ -63629,12 +63632,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Planes_Subobjetivo_Aporte"
         );
         const Objetivo = Modelo.Objetivos[Sub.Objetivo_Id];
-        const Tiene_Metrica =
-          (Number(Objetivo?.Target_Total) || 0) > 0;
         const Aporte_Campo = Aporte?.closest(
           ".Planes_Subobjetivo_Aporte_Campo"
         );
-        if (Aporte_Campo) Aporte_Campo.hidden = !Tiene_Metrica;
+        if (Aporte_Campo) Aporte_Campo.hidden = false;
         const Aporte_Label = document.getElementById(
           "Planes_Subobjetivo_Aporte_Label"
         );
