@@ -3813,6 +3813,10 @@
         min-width: 0;
       }
 
+      .Focus_Titulo.Sin_Titulo .Focus_Rango {
+        margin-top: 0;
+      }
+
       .Focus_Nombre {
         font-size: 26px;
         font-weight: 700;
@@ -106298,7 +106302,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? Obtener_Label_Aplica_Patron_Slot(
               Slot.Aplica_A
             )
-            : t("focus.slot_vacio"));
+            : "");
         const Emoji = Slot.Es_Muerto ? "🧱" : "🧩";
         const Color = Slot.Es_Muerto
           ? Obtener_Color_Tipo_Slot(Slot.Aplica_A)
@@ -106337,11 +106341,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Cabecera.appendChild(El_Emoji);
 
         const El_Titulo = document.createElement("div");
-        El_Titulo.className = "Focus_Titulo";
-        const El_Nombre = document.createElement("h2");
-        El_Nombre.className = "Focus_Nombre";
-        El_Nombre.textContent = Nombre;
-        El_Titulo.appendChild(El_Nombre);
+        El_Titulo.className = "Focus_Titulo" +
+          (Nombre ? "" : " Sin_Titulo");
+        if (Nombre) {
+          const El_Nombre = document.createElement("h2");
+          El_Nombre.className = "Focus_Nombre";
+          El_Nombre.textContent = Nombre;
+          El_Titulo.appendChild(El_Nombre);
+        }
         const El_Rango = document.createElement("div");
         El_Rango.className = "Focus_Rango";
         El_Rango.textContent = Focus_Texto_Rango_Slot(Slot);
