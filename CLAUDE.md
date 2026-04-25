@@ -100,6 +100,16 @@ actuar sin pedir confirmación previa. Solo corresponde frenar para
 preguntar cuando haya ambigüedad material, impacto destructivo o un
 riesgo no obvio que pueda cambiar la decisión.
 
+En pedidos de cambios operativos o visuales, si el pedido es vago o
+admite varias interpretaciones razonables, hacer preguntas breves de
+aclaracion antes de editar. Las preguntas deben apuntar a decisiones
+que cambian la implementacion o la validacion, por ejemplo estado
+esperado, flujo afectado, cuenta de prueba, persistencia, alcance
+desktop/mobile o variante visual. Si el pedido es puntual, obvio o se
+puede resolver revisando el contexto local sin riesgo, avanzar sin
+preguntar para no enlentecer. Si hay una ambigüedad menor y una
+suposicion conservadora alcanza, explicitar la suposicion y seguir.
+
 Si el usuario pide actualizar `AGENTS.md` o `CLAUDE.md`, actualizar
 siempre ambos archivos aunque solo nombre uno de los dos.
 
