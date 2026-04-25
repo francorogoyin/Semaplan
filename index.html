@@ -10634,10 +10634,17 @@
 
       .Tareas_Panel_Barra {
         justify-content: center;
+        width: 100%;
       }
 
       .Tareas_Panel_Barra .Habitos_Panel_Modo {
-        margin-inline: auto;
+        width: 100%;
+        margin-inline: 0;
+        justify-content: space-between;
+      }
+
+      .Tareas_Panel_Barra .Habitos_Panel_Modo_Btn {
+        flex: 1 1 0;
       }
 
       .Tareas_Panel_Principal .Habitos_Panel_Filtro > span {
@@ -10708,6 +10715,21 @@
 
       .Tareas_Card_Acciones .Tareas_Enviar_Btn:disabled {
         color: #8a847b;
+      }
+
+      .Tareas_Acciones_Editor {
+        justify-content: flex-end;
+      }
+
+      .Tareas_Acciones_Editor .Tareas_Boton_Borrar {
+        margin-right: 0;
+        border-color: rgba(159, 52, 47, 0.38);
+        background: rgba(159, 52, 47, 0.12);
+        color: #8c2f2f;
+      }
+
+      .Tareas_Acciones_Editor .Tareas_Boton_Borrar:hover {
+        background: rgba(159, 52, 47, 0.18);
       }
 
       .Tareas_Cajones_Admin {
@@ -22819,7 +22841,8 @@
         </div>
         <div class="Patron_Modal_Cuerpo Habitos_Modal_Cuerpo"
           id="Tareas_Cuerpo"></div>
-        <div class="Patron_Modal_Acciones Habitos_Modal_Acciones">
+        <div class="Patron_Modal_Acciones Habitos_Modal_Acciones"
+          id="Tareas_Acciones">
           <button class="Config_Boton_Cancelar"
             id="Tareas_Toggle_Realizadas"
             type="button">Ocultar realizadas</button>
@@ -89462,17 +89485,75 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Tareas_Configurar_Acciones(Mostrar_Toggle = true) {
-        const Btn_Toggle = document.getElementById(
-          "Tareas_Toggle_Realizadas"
-        );
-        const Btn_Cancelar = document.getElementById("Tareas_Cancelar");
-        if (Btn_Toggle) {
-          Btn_Toggle.hidden = !Mostrar_Toggle;
-          Btn_Toggle.textContent = Tareas_Ocultar_Realizadas
+        const Acciones = document.getElementById("Tareas_Acciones");
+        if (!Acciones) return;
+        Acciones.classList.remove("Tareas_Acciones_Editor");
+        Acciones.innerHTML = "";
+        if (Mostrar_Toggle) {
+          const Toggle = document.createElement("button");
+          Toggle.className = "Config_Boton_Cancelar";
+          Toggle.id = "Tareas_Toggle_Realizadas";
+          Toggle.type = "button";
+          Toggle.textContent = Tareas_Ocultar_Realizadas
             ? "Mostrar realizadas"
             : "Ocultar realizadas";
+          Toggle.addEventListener("click", () => {
+            Tareas_Ocultar_Realizadas = !Tareas_Ocultar_Realizadas;
+            Render_Tareas();
+          });
+          Acciones.appendChild(Toggle);
         }
-        if (Btn_Cancelar) Btn_Cancelar.textContent = "Cerrar";
+        const Cancelar = document.createElement("button");
+        Cancelar.className = "Config_Boton_Cancelar";
+        Cancelar.id = "Tareas_Cancelar";
+        Cancelar.type = "button";
+        Cancelar.textContent = "Cancelar";
+        Cancelar.addEventListener("click", Cerrar_Tareas);
+        Acciones.appendChild(Cancelar);
+      }
+
+      function Tareas_Configurar_Acciones_Editor(Tarea) {
+        const Acciones = document.getElementById("Tareas_Acciones");
+        if (!Acciones) return;
+        Acciones.classList.add("Tareas_Acciones_Editor");
+        Acciones.innerHTML = "";
+        const Guardar = document.createElement("button");
+        Guardar.className = "Config_Boton_Guardar";
+        Guardar.id = "Tareas_Editor_Guardar";
+        Guardar.type = "button";
+        Guardar.textContent = "Guardar";
+        Guardar.addEventListener("click", () =>
+          Guardar_Tarea_Desde_Form("Tareas", Tarea?.Id || "")
+        );
+        Acciones.appendChild(Guardar);
+
+        const Cancelar = document.createElement("button");
+        Cancelar.className = "Config_Boton_Cancelar";
+        Cancelar.id = "Tareas_Cancelar";
+        Cancelar.type = "button";
+        Cancelar.textContent = "Cancelar";
+        Cancelar.addEventListener("click", Cerrar_Tareas);
+        Acciones.appendChild(Cancelar);
+
+        if (Tarea) {
+          const Borrar = document.createElement("button");
+          Borrar.className =
+            "Config_Boton_Cancelar Habitos_Modal_Borrar " +
+            "Tareas_Boton_Borrar";
+          Borrar.id = "Tareas_Editor_Borrar";
+          Borrar.type = "button";
+          Borrar.textContent = "Borrar";
+          Borrar.addEventListener("click", () => {
+            Desplanificar_Tarea(Tarea);
+            Tareas = Tareas.filter((Entrada) => Entrada.Id !== Tarea.Id);
+            Tareas_Modal_Vista = "Panel";
+            Render_Tareas();
+            Render_Tareas_Contador();
+            Render_Eventos();
+            Guardar_Estado();
+          });
+          Acciones.appendChild(Borrar);
+        }
       }
 
       function Crear_Form_Tarea(Prefijo = "Tareas", Tarea = null) {
@@ -89869,72 +89950,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Defini nombre, cajon, prioridad y fecha si corresponde.",
           "\u2611"
         );
-        Tareas_Configurar_Acciones(false);
+        Tareas_Configurar_Acciones_Editor(Tarea);
         Cuerpo.innerHTML = "";
         Cuerpo.appendChild(Crear_Form_Tarea("Tareas", Tarea));
-        const Acciones = document.createElement("div");
-        Acciones.className = "Habitos_Card_Acciones";
-        Acciones.innerHTML = `
-          ${Tarea ? `
-            <button class="Config_Boton_Cancelar Habitos_Modal_Borrar"
-              id="Tareas_Editor_Borrar" type="button">Borrar</button>
-            <button class="Config_Boton_Cancelar"
-              id="Tareas_Editor_Posponer" type="button">Posponer</button>
-            <button class="Config_Boton_Cancelar"
-              id="Tareas_Editor_Cancelar_Tarea" type="button">
-              ${Tarea.Estado === "cancelada" ? "Restaurar" : "Cancelar"}
-            </button>
-          ` : ""}
-          <button class="Config_Boton_Cancelar"
-            id="Tareas_Editor_Volver" type="button">Volver</button>
-          <button class="Config_Boton_Guardar"
-            id="Tareas_Editor_Guardar" type="button">Guardar</button>
-        `;
-        Cuerpo.appendChild(Acciones);
-        document.getElementById("Tareas_Editor_Guardar")
-          ?.addEventListener("click", () =>
-            Guardar_Tarea_Desde_Form("Tareas", Tarea?.Id || "")
-          );
-        document.getElementById("Tareas_Editor_Volver")
-          ?.addEventListener("click", () => {
-            Tareas_Modal_Vista = "Panel";
-            Tareas_En_Edicion_Id = "";
-            Render_Tareas();
-          });
-        document.getElementById("Tareas_Editor_Posponer")
-          ?.addEventListener("click", () => {
-            if (!Tarea) return;
-            Cambiar_Estado_Tarea(Tarea, "pospuesta");
-            Tareas_Modal_Vista = "Panel";
-            Render_Tareas();
-            Render_Tareas_Contador();
-            Render_Eventos();
-            Guardar_Estado();
-          });
-        document.getElementById("Tareas_Editor_Cancelar_Tarea")
-          ?.addEventListener("click", () => {
-            if (!Tarea) return;
-            Cambiar_Estado_Tarea(
-              Tarea,
-              Tarea.Estado === "cancelada" ? "pendiente" : "cancelada"
-            );
-            Tareas_Modal_Vista = "Panel";
-            Render_Tareas();
-            Render_Tareas_Contador();
-            Render_Eventos();
-            Guardar_Estado();
-          });
-        document.getElementById("Tareas_Editor_Borrar")
-          ?.addEventListener("click", () => {
-            if (!Tarea) return;
-            Desplanificar_Tarea(Tarea);
-            Tareas = Tareas.filter((Entrada) => Entrada.Id !== Tarea.Id);
-            Tareas_Modal_Vista = "Panel";
-            Render_Tareas();
-            Render_Tareas_Contador();
-            Render_Eventos();
-            Guardar_Estado();
-          });
         setTimeout(() => {
           document.getElementById("Tareas_Nombre")?.focus();
         }, 0);
