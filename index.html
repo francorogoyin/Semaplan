@@ -10662,6 +10662,45 @@
         font-size: 13px;
       }
 
+      .Tareas_Cajones_Admin {
+        display: grid;
+        gap: 12px;
+      }
+
+      .Tareas_Cajon_Nuevo,
+      .Tareas_Cajon_Fila {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: end;
+      }
+
+      .Tareas_Cajon_Fila {
+        align-items: center;
+        border: 1px solid rgba(143, 124, 98, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.82);
+        padding: 10px 12px;
+      }
+
+      .Tareas_Cajon_Datos {
+        min-width: 0;
+        display: grid;
+        gap: 5px;
+      }
+
+      .Tareas_Cajon_Meta {
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        line-height: 1.25;
+      }
+
+      .Tareas_Cajon_Acciones {
+        display: inline-flex;
+        gap: 6px;
+        justify-content: flex-end;
+      }
+
       .Tareas_Contador_Flotante {
         position: fixed;
         left: 96px;
@@ -36551,6 +36590,7 @@
       let Habitos_Filtro_Estado = "Todos";
       let Habitos_Ocultar_Realizados = false;
       let Tareas = [];
+      let Tareas_Cajones_Definidos = ["Inbox"];
       let Tareas_Modal_Vista = "Panel";
       let Tareas_En_Edicion_Id = "";
       let Tareas_Vista = "Inbox";
@@ -88510,6 +88550,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : "baja";
       }
 
+      function Normalizar_Nombre_Cajon_Tarea(Valor) {
+        return String(Valor || "").trim() || "Inbox";
+      }
+
+      function Ordenar_Cajones_Tareas(Lista) {
+        const Unicos = new Map();
+        (Array.isArray(Lista) ? Lista : []).forEach((Valor) => {
+          const Nombre = Normalizar_Nombre_Cajon_Tarea(Valor);
+          const Clave = Nombre.toLocaleLowerCase("es");
+          if (!Unicos.has(Clave)) Unicos.set(Clave, Nombre);
+        });
+        Unicos.set("inbox", "Inbox");
+        return Array.from(Unicos.values()).sort((A, B) => {
+          if (A === "Inbox") return -1;
+          if (B === "Inbox") return 1;
+          return A.localeCompare(B, "es");
+        });
+      }
+
+      function Normalizar_Tareas_Cajones_Definidos() {
+        const Cajones = Array.isArray(Tareas_Cajones_Definidos)
+          ? [...Tareas_Cajones_Definidos]
+          : [];
+        (Array.isArray(Tareas) ? Tareas : []).forEach((Tarea) => {
+          if (Tarea?.Cajon) Cajones.push(Tarea.Cajon);
+        });
+        Tareas_Cajones_Definidos = Ordenar_Cajones_Tareas(Cajones);
+        return Tareas_Cajones_Definidos;
+      }
+
       function Es_Dato_Tarea_Suelta(Base) {
         if (!Base || typeof Base !== "object") return false;
         if (Base.Tipo_Dato === "Tarea" || Base.Origen === "Tareas") {
@@ -88549,7 +88619,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Id: Base.Id || Crear_Id_Tarea(),
           Emoji: Normalizar_Emoji(Base.Emoji || "\u2022"),
           Nombre: String(Base.Nombre || Base.Texto || "").trim(),
-          Cajon: String(Base.Cajon || "Inbox").trim() || "Inbox",
+          Cajon: Normalizar_Nombre_Cajon_Tarea(Base.Cajon),
           Prioridad: Normalizar_Prioridad_Tarea(
             Base.Prioridad || Base.prioridad
           ),
@@ -88584,6 +88654,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Tarea.Abordaje_Id = "";
           }
         });
+        Normalizar_Tareas_Cajones_Definidos();
       }
 
       function Tarea_Esta_Pendiente(Tarea) {
@@ -88613,13 +88684,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Tareas_Cajones() {
-        const Cajones = new Set(["Inbox"]);
-        Tareas.forEach((Tarea) => {
-          if (Tarea.Cajon) Cajones.add(Tarea.Cajon);
-        });
-        return Array.from(Cajones).sort((A, B) =>
-          A.localeCompare(B, "es")
-        );
+        return Normalizar_Tareas_Cajones_Definidos();
       }
 
       function Tareas_Filtradas() {
@@ -89217,6 +89282,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             data-tareas-nav="Editor" title="Nueva tarea"
             aria-label="Nueva tarea">+</button>
           <button class="Habitos_Header_Btn" type="button"
+            data-tareas-nav="Cajones" title="Cajones"
+            aria-label="Cajones">&#128450;</button>
+          <button class="Habitos_Header_Btn" type="button"
             data-tareas-nav="Registro" title="Registro"
             aria-label="Registro">&#8801;</button>
           <button class="Habitos_Header_Btn" type="button"
@@ -89347,6 +89415,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Tareas_Modal_Vista === "Registro") {
           Render_Tareas_Registro();
+          return;
+        }
+        if (Tareas_Modal_Vista === "Cajones") {
+          Render_Tareas_Cajones();
           return;
         }
         Render_Tareas_Panel();
@@ -89561,6 +89633,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .forEach((Btn) => Btn.addEventListener("click", () => {
             if (Btn.dataset.tareasNav === "Editor") {
               Abrir_Modal_Tarea();
+            } else if (Btn.dataset.tareasNav === "Cajones") {
+              Tareas_Modal_Vista = "Cajones";
+              Render_Tareas();
             } else if (Btn.dataset.tareasNav === "Registro") {
               Tareas_Modal_Vista = "Registro";
               Render_Tareas();
@@ -89675,6 +89750,188 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         setTimeout(() => {
           document.getElementById("Tareas_Nombre")?.focus();
         }, 0);
+      }
+
+      function Tareas_Conteo_Cajon(Cajon) {
+        const Items = (Array.isArray(Tareas) ? Tareas : [])
+          .filter((Tarea) => Tarea?.Cajon === Cajon);
+        return {
+          Total: Items.length,
+          Pendientes: Items.filter(Tarea_Esta_Pendiente).length
+        };
+      }
+
+      function Tareas_Cajon_Existe(Nombre, Omitir = "") {
+        const Clave = Normalizar_Nombre_Cajon_Tarea(Nombre)
+          .toLocaleLowerCase("es");
+        const Clave_Omitir = Normalizar_Nombre_Cajon_Tarea(Omitir)
+          .toLocaleLowerCase("es");
+        return Tareas_Cajones().some((Cajon) => {
+          const Clave_Cajon = Cajon.toLocaleLowerCase("es");
+          return Clave_Cajon === Clave && Clave_Cajon !== Clave_Omitir;
+        });
+      }
+
+      function Tareas_Crear_Cajon() {
+        const Input = document.getElementById("Tareas_Cajon_Nuevo");
+        const Nombre = Normalizar_Nombre_Cajon_Tarea(Input?.value);
+        if (!Nombre || Nombre === "Inbox") {
+          Mostrar_Toast_Info("El cajon necesita otro nombre.", "\u26a0\ufe0f");
+          return;
+        }
+        if (Tareas_Cajon_Existe(Nombre)) {
+          Mostrar_Toast_Info("Ese cajon ya existe.", "\u26a0\ufe0f");
+          return;
+        }
+        Tareas_Cajones_Definidos.push(Nombre);
+        Tareas_Cajones_Definidos = Ordenar_Cajones_Tareas(
+          Tareas_Cajones_Definidos
+        );
+        Tareas_Ultimo_Cajon = Nombre;
+        Guardar_Estado();
+        Render_Tareas();
+      }
+
+      function Tareas_Renombrar_Cajon(Cajon_Anterior, Nombre_Nuevo) {
+        const Anterior = Normalizar_Nombre_Cajon_Tarea(Cajon_Anterior);
+        const Nuevo = Normalizar_Nombre_Cajon_Tarea(Nombre_Nuevo);
+        if (Anterior === "Inbox") return;
+        if (!Nuevo || Nuevo === "Inbox") {
+          Mostrar_Toast_Info("El cajon necesita otro nombre.", "\u26a0\ufe0f");
+          return;
+        }
+        if (Anterior === Nuevo) return;
+        if (Tareas_Cajon_Existe(Nuevo, Anterior)) {
+          Mostrar_Toast_Info("Ese cajon ya existe.", "\u26a0\ufe0f");
+          return;
+        }
+        Tareas_Cajones_Definidos = Tareas_Cajones_Definidos
+          .map((Cajon) => Cajon === Anterior ? Nuevo : Cajon);
+        Tareas.forEach((Tarea) => {
+          if (Tarea?.Cajon === Anterior) Tarea.Cajon = Nuevo;
+        });
+        if (Tareas_Cajon_Activo === Anterior) Tareas_Cajon_Activo = Nuevo;
+        if (Tareas_Ultimo_Cajon === Anterior) Tareas_Ultimo_Cajon = Nuevo;
+        Normalizar_Tareas_Cajones_Definidos();
+        Guardar_Estado();
+        Render_Tareas();
+      }
+
+      async function Tareas_Eliminar_Cajon(Cajon_Eliminar) {
+        const Cajon = Normalizar_Nombre_Cajon_Tarea(Cajon_Eliminar);
+        if (Cajon === "Inbox") return;
+        const Asociadas = (Array.isArray(Tareas) ? Tareas : [])
+          .filter((Tarea) => Tarea?.Cajon === Cajon);
+        if (Asociadas.length) {
+          const Confirmar = await Mostrar_Dialogo(
+            `Este cajon tiene ${Asociadas.length} tareas asociadas. ` +
+            "Si lo eliminas, esas tareas se moveran a Inbox.",
+            [
+              { Etiqueta: "Cancelar", Valor: false },
+              {
+                Etiqueta: "Mover a Inbox y eliminar",
+                Valor: true,
+                Tipo: "Primario"
+              }
+            ]
+          );
+          if (!Confirmar) return;
+          Asociadas.forEach((Tarea) => {
+            Tarea.Cajon = "Inbox";
+          });
+        }
+        Tareas_Cajones_Definidos = Tareas_Cajones_Definidos
+          .filter((Item) => Item !== Cajon);
+        if (Tareas_Cajon_Activo === Cajon) {
+          Tareas_Vista = "Inbox";
+          Tareas_Cajon_Activo = "Inbox";
+        }
+        if (Tareas_Ultimo_Cajon === Cajon) Tareas_Ultimo_Cajon = "Inbox";
+        Normalizar_Tareas_Cajones_Definidos();
+        Guardar_Estado();
+        Render_Tareas();
+        Render_Tareas_Contador();
+      }
+
+      function Render_Tareas_Cajones() {
+        const Cuerpo = document.getElementById("Tareas_Cuerpo");
+        if (!Cuerpo) return;
+        const Cajones = Tareas_Cajones();
+        Tareas_Set_Cabecera(
+          "Cajones",
+          "Organiza las listas donde caen tus tareas.",
+          "\ud83d\uddc2\ufe0f"
+        );
+        Tareas_Configurar_Acciones(false);
+        Cuerpo.innerHTML = `
+          <div class="Habitos_Panel Tareas_Panel_Principal
+            Tareas_Cajones_Admin">
+            <div class="Tareas_Cajon_Nuevo">
+              <label class="Habitos_Modal_Campo">
+                <span class="Habitos_Modal_Label">Nuevo caj&oacute;n</span>
+                <input class="Habitos_Modal_Input"
+                  id="Tareas_Cajon_Nuevo"
+                  placeholder="Nombre del cajon">
+              </label>
+              <button class="Config_Boton_Guardar"
+                id="Tareas_Cajon_Crear"
+                type="button">Crear</button>
+            </div>
+            <div class="Tareas_Lista">
+              ${Cajones.map((Cajon, Indice) => {
+                const Conteo = Tareas_Conteo_Cajon(Cajon);
+                const Fijo = Cajon === "Inbox";
+                return `
+                  <div class="Tareas_Cajon_Fila">
+                    <div class="Tareas_Cajon_Datos">
+                      <input class="Habitos_Modal_Input"
+                        data-tareas-cajon-input="${Indice}"
+                        value="${Escape_Html(Cajon)}"
+                        ${Fijo ? "disabled" : ""}>
+                      <span class="Tareas_Cajon_Meta">
+                        ${Conteo.Total} tareas &middot;
+                        ${Conteo.Pendientes} pendientes
+                      </span>
+                    </div>
+                    <span class="Tareas_Cajon_Acciones">
+                      <button class="Habitos_Card_Registro_Btn"
+                        type="button"
+                        data-tareas-cajon-guardar="${Indice}"
+                        data-cajon="${Escape_Html(Cajon)}"
+                        ${Fijo ? "disabled" : ""}
+                        title="Renombrar">&#10003;</button>
+                      <button class="Habitos_Card_Registro_Btn Cancelar"
+                        type="button"
+                        data-tareas-cajon-borrar="${Escape_Html(Cajon)}"
+                        ${Fijo ? "disabled" : ""}
+                        title="Eliminar">&times;</button>
+                    </span>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `;
+        document.getElementById("Tareas_Cajon_Crear")
+          ?.addEventListener("click", Tareas_Crear_Cajon);
+        document.getElementById("Tareas_Cajon_Nuevo")
+          ?.addEventListener("keydown", (Ev) => {
+            if (Ev.key !== "Enter") return;
+            Ev.preventDefault();
+            Tareas_Crear_Cajon();
+          });
+        document.querySelectorAll("[data-tareas-cajon-guardar]")
+          .forEach((Btn) => Btn.addEventListener("click", () => {
+            const Indice = Btn.dataset.tareasCajonGuardar;
+            const Input = document.querySelector(
+              `[data-tareas-cajon-input="${Indice}"]`
+            );
+            Tareas_Renombrar_Cajon(Btn.dataset.cajon, Input?.value);
+          }));
+        document.querySelectorAll("[data-tareas-cajon-borrar]")
+          .forEach((Btn) => Btn.addEventListener("click", () => {
+            Tareas_Eliminar_Cajon(Btn.dataset.tareasCajonBorrar);
+          }));
       }
 
       function Render_Tareas_Registro() {
@@ -95616,6 +95873,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Construir_Estado_Completo() {
         // Construye el blob de estado completo para serializar.
         Sincronizar_Tareas_Desde_Abordajes();
+        Normalizar_Tareas_Cajones_Definidos();
         Normalizar_Planes_Slot();
         Planes_Periodo = Normalizar_Modelo_Planes(Planes_Periodo);
         return {
@@ -95636,6 +95894,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Habitos,
           Habitos_Registros,
           Tareas,
+          Tareas_Cajones_Definidos,
           Contador_Eventos,
           Objetivo_Seleccionada_Id: null,
           Modo_Editor_Abierto: false,
@@ -96303,6 +96562,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Tareas = Array.isArray(Estado.Tareas)
             ? Estado.Tareas
             : [];
+          Tareas_Cajones_Definidos = Array.isArray(
+            Estado.Tareas_Cajones_Definidos
+          )
+            ? Estado.Tareas_Cajones_Definidos
+            : ["Inbox"];
           if (Array.isArray(Estado.Semanas_Con_Defaults)) {
             Semanas_Con_Defaults = new Set(Estado.Semanas_Con_Defaults);
           }
