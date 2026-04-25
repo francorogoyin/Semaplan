@@ -1120,7 +1120,7 @@
         width: 25px;
         height: 25px;
         border-radius: 50%;
-        border: 1px solid rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--Borde);
         background: #fff;
         color: var(--Texto);
         display: grid;
@@ -10062,11 +10062,12 @@
       }
 
       .Habitos_Modal_Fila.Meta {
-        grid-template-columns:
-          minmax(96px, 1fr) minmax(104px, 1fr)
-          minmax(104px, 1fr) minmax(78px, 0.72fr)
-          minmax(86px, 0.78fr) minmax(112px, 1fr);
+        display: flex;
         align-items: end;
+      }
+
+      .Habitos_Modal_Fila.Meta .Habitos_Modal_Campo {
+        flex: 1 1 0;
       }
 
       .Habitos_Modal_Campo {
@@ -10315,39 +10316,13 @@
       }
 
       .Habitos_Modal_Bloque.Programacion
-        .Habitos_Modal_Campo:nth-child(1) {
+        .Habitos_Modal_Campo[data-span="4"] {
         grid-column: span 4;
-        order: 1;
       }
 
       .Habitos_Modal_Bloque.Programacion
-        .Habitos_Modal_Campo:nth-child(3),
-      .Habitos_Modal_Bloque.Programacion
-        .Habitos_Modal_Campo:nth-child(4) {
-        grid-column: span 4;
-        order: 2;
-      }
-
-      .Habitos_Modal_Bloque.Programacion
-        .Habitos_Modal_Campo:nth-child(2) {
-        grid-column: span 4;
-        order: 3;
-      }
-
-      .Habitos_Modal_Bloque.Programacion
-        .Habitos_Modal_Campo:nth-child(5),
-      .Habitos_Modal_Bloque.Programacion
-        .Habitos_Modal_Campo:nth-child(6),
-      .Habitos_Modal_Bloque.Programacion
-        .Habitos_Modal_Campo:nth-child(7) {
-        grid-column: span 4;
-        order: 4;
-      }
-
-      .Habitos_Modal_Bloque.Programacion
-        .Habitos_Modal_Campo:nth-child(8) {
+        .Habitos_Modal_Campo[data-span="8"] {
         grid-column: span 8;
-        order: 4;
       }
 
       .Habitos_Modal_Dia {
@@ -10717,44 +10692,34 @@
       }
 
       .Tareas_Modal_Panel {
-        width: min(840px, calc(100vw - 32px));
-        max-width: min(840px, calc(100vw - 32px));
+        width: min(1180px, calc(100vw - 32px));
+        max-width: min(1180px, calc(100vw - 32px));
         max-height: min(920px, calc(100vh - 32px));
         padding: 0;
       }
 
       .Tareas_Rapida_Modal {
-        width: min(840px, calc(100vw - 28px));
-        max-width: min(840px, calc(100vw - 28px));
+        width: min(1180px, calc(100vw - 28px));
+        max-width: min(1180px, calc(100vw - 28px));
         padding: 0;
       }
 
       .Tareas_Form {
         display: grid;
-        grid-template-columns: repeat(12, minmax(0, 1fr));
+        grid-template-columns:
+          minmax(220px, 1.2fr) 54px
+          repeat(4, minmax(108px, 1fr));
+        align-items: start;
         gap: 14px;
       }
 
-      .Tareas_Form .Habitos_Modal_Campo {
-        grid-column: span 4;
-      }
-
+      .Tareas_Form .Habitos_Modal_Campo,
       .Tareas_Form .Habitos_Modal_Campo.Ancho {
-        grid-column: 1 / -1;
+        grid-column: auto;
       }
 
       .Tareas_Form .Habitos_Modal_Campo.Emoji {
-        grid-column: span 2;
-      }
-
-      .Tareas_Form .Habitos_Modal_Campo.Cajon,
-      .Tareas_Form .Habitos_Modal_Campo.Prioridad {
-        grid-column: span 3;
-      }
-
-      .Tareas_Form .Habitos_Modal_Campo.Fecha,
-      .Tareas_Form .Habitos_Modal_Campo.Hora {
-        grid-column: span 2;
+        width: 54px;
       }
 
       .Tareas_Panel_Principal {
@@ -10977,6 +10942,7 @@
 
         .Habitos_Modal_Fila.Identidad,
         .Habitos_Modal_Fila.Meta {
+          display: grid;
           grid-template-columns: repeat(6, minmax(0, 1fr));
         }
 
@@ -11034,6 +11000,7 @@
 
         .Habitos_Modal_Fila.Identidad,
         .Habitos_Modal_Fila.Meta {
+          display: grid;
           grid-template-columns: 1fr;
         }
 
@@ -79417,19 +79384,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   <option value="Personalizado">${t("habitos.disponibilidad_personalizado")}</option>
                 </select>
               </label>
-              <label class="Habitos_Modal_Campo" data-span="4">
-                <span class="Habitos_Modal_Label"
-                  title="${Escape_Html(t("habitos.help_horas"))}">
-                  ${t("habitos.programacion_horas_label")}
-                </span>
-                <select class="Habitos_Modal_Select"
-                  id="Habito_Horas_Modo">
-                  <option value="Todos">${t("habitos.disponibilidad_todos")}</option>
-                  <option value="Rango">${t("habitos.disponibilidad_rango")}</option>
-                  <option value="Puntual">${t("habitos.disponibilidad_puntual")}</option>
-                  <option value="Personalizado">${t("habitos.disponibilidad_personalizado")}</option>
-                </select>
-              </label>
               <label class="Habitos_Modal_Campo" data-span="4"
                 id="Habito_Dia_Desde_Bloque">
                 <span class="Habitos_Modal_Label"
@@ -79450,6 +79404,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 <select class="Habitos_Modal_Select"
                   id="Habito_Dia_Hasta">
                   ${Habitos_Opciones_Dias(Dias_Rango.Hasta)}
+                </select>
+              </label>
+              <div class="Habitos_Modal_Campo" data-span="8"
+                id="Habito_Dias_Personalizado">
+                <div class="Habitos_Modal_Dias"
+                  id="Habito_Dias_Lista"></div>
+              </div>
+            </div>
+            <div class="Habitos_Modal_Fila">
+              <label class="Habitos_Modal_Campo" data-span="4">
+                <span class="Habitos_Modal_Label"
+                  title="${Escape_Html(t("habitos.help_horas"))}">
+                  ${t("habitos.programacion_horas_label")}
+                </span>
+                <select class="Habitos_Modal_Select"
+                  id="Habito_Horas_Modo">
+                  <option value="Todos">${t("habitos.disponibilidad_todos")}</option>
+                  <option value="Rango">${t("habitos.disponibilidad_rango")}</option>
+                  <option value="Puntual">${t("habitos.disponibilidad_puntual")}</option>
+                  <option value="Personalizado">${t("habitos.disponibilidad_personalizado")}</option>
                 </select>
               </label>
               <label class="Habitos_Modal_Campo" data-span="4"
@@ -79516,13 +79490,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     t("habitos.programacion_horas_ph")
                   )}">
               </label>
-            </div>
-          </div>
-          <div class="Habitos_Modal_Fila">
-            <div class="Habitos_Modal_Campo" data-span="12"
-              id="Habito_Dias_Personalizado">
-              <div class="Habitos_Modal_Dias"
-                id="Habito_Dias_Lista"></div>
             </div>
           </div>
           <div class="Habitos_Modal_Fila">
@@ -99412,10 +99379,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Sidebar_Habitos.appendChild(Grupo);
         };
 
+        Render_Grupo("sidebar.habitos_diarios", Diarios);
         Render_Grupo("sidebar.habitos_semanales", Semanales);
         Render_Grupo("sidebar.habitos_quincenales", Quincenales);
         Render_Grupo("sidebar.habitos_mensuales", Mensuales);
-        Render_Grupo("sidebar.habitos_diarios", Diarios);
       }
 
       function Habitos_Refrescar_Tras_Registro(
