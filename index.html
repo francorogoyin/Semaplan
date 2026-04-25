@@ -10449,6 +10449,27 @@
         white-space: nowrap;
       }
 
+      .Plan_Slot_Acciones {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+      }
+
+      .Plan_Slot_Acciones .Config_Boton {
+        width: auto;
+        min-width: 0;
+        height: 40px;
+        flex: 1 1 150px;
+        border-radius: 999px;
+        padding: 0 14px;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.15;
+        white-space: normal;
+        text-align: center;
+      }
+
       .Habitos_Vinculos_Nuevo {
         width: 34px;
         height: 34px;
@@ -81455,15 +81476,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
         }
         const Acciones = document.createElement("div");
-        Acciones.style.display = "flex";
-        Acciones.style.gap = "8px";
-        Acciones.style.marginTop = "8px";
+        Acciones.className = "Plan_Slot_Acciones";
 
         const Btn_Agregar = document.createElement("button");
         Btn_Agregar.type = "button";
         Btn_Agregar.className = "Config_Boton";
         Btn_Agregar.textContent = t("slot.agregar_objetivo");
-        Btn_Agregar.style.flex = "1";
         Btn_Agregar.addEventListener("click", () => {
           if (!Plan_Slot_Mostrando_Nuevo) {
             Plan_Slot_Mostrando_Nuevo = true;
@@ -81483,7 +81501,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Btn_Habito.type = "button";
         Btn_Habito.className = "Config_Boton";
         Btn_Habito.textContent = t("habitos.agregar");
-        Btn_Habito.style.flex = "1";
         Btn_Habito.addEventListener("click", () => {
           void Elegir_Y_Agregar_Habito_Plan_Slot();
         });
@@ -81495,7 +81512,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Btn_Insertar_Patron.className = "Config_Boton";
         Btn_Insertar_Patron.textContent =
           t("slot.insertar_patron");
-        Btn_Insertar_Patron.style.flex = "1";
         Btn_Insertar_Patron.addEventListener(
           "click",
           async () => {
@@ -81523,7 +81539,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Btn_Guardar_Patron.className = "Config_Boton";
           Btn_Guardar_Patron.textContent =
             t("slot.guardar_como_patron");
-          Btn_Guardar_Patron.style.flex = "1";
           Btn_Guardar_Patron.addEventListener(
             "click",
             () => {
@@ -88630,6 +88645,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planeada: Boolean(Base.Planeada),
           Evento_Id: String(Base.Evento_Id || "").trim(),
           Abordaje_Id: String(Base.Abordaje_Id || "").trim(),
+          Plan_Clave: String(Base.Plan_Clave || "").trim(),
+          Plan_Item_Id: String(Base.Plan_Item_Id || "").trim(),
           Fecha_Creacion: String(
             Base.Fecha_Creacion || new Date().toISOString()
           ),
@@ -88645,14 +88662,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .map(Normalizar_Tarea)
           .filter((Tarea) => Tarea && Tarea.Nombre);
         Tareas.forEach((Tarea) => {
+          if (Tarea_Evento_Automatico_Legacy(Tarea)) {
+            Planificar_Tarea(Tarea);
+          }
           if (Tarea.Fecha && Tarea.Hora) {
             Tarea.Planeada = Boolean(
+              Tarea_Obtener_Item_Plan(Tarea).Item ||
               Evento_Por_Id(Tarea.Evento_Id)
             );
           } else {
             Tarea.Planeada = false;
             Tarea.Evento_Id = "";
             Tarea.Abordaje_Id = "";
+            Tarea.Plan_Clave = "";
+            Tarea.Plan_Item_Id = "";
           }
         });
         Normalizar_Tareas_Cajones_Definidos();
@@ -88742,83 +88765,146 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ).length;
       }
 
-      function Buscar_Evento_Tarea(Fecha, Hora) {
-        const Inicio = Number(String(Hora || "0").split(":")[0]);
-        return Eventos.find((Evento) =>
-          Evento.Fecha === Fecha &&
-          Number(Evento.Inicio) === Inicio
-        ) || null;
+      function Tarea_Hora_Slot(Tarea) {
+        const Hora = Number(String(Tarea?.Hora || "0").split(":")[0]);
+        return Number.isFinite(Hora)
+          ? Math.max(0, Math.min(23, Math.floor(Hora)))
+          : 0;
       }
 
-      function Crear_Evento_Automatico_Tarea(Tarea) {
-        const Inicio = Number(String(Tarea.Hora || "0").split(":")[0]);
-        const Evento = {
-          Id: `Evento_${Contador_Eventos++}`,
-          Objetivo_Id: null,
-          Fecha: Tarea.Fecha,
-          Inicio,
-          Duracion: 1,
-          Nombre: Tarea.Emoji || "\u2022",
+      function Tarea_Estado_A_Plan(Tarea) {
+        return Tarea?.Estado === "completada"
+          ? "Realizado"
+          : "Planeado";
+      }
+
+      function Tarea_Obtener_Item_Plan(Tarea) {
+        const Resultado = { Clave: "", Plan: null, Item: null };
+        if (!Tarea) return Resultado;
+        const Claves = [];
+        if (Tarea.Plan_Clave) Claves.push(Tarea.Plan_Clave);
+        if (Tarea.Fecha && Tarea.Hora) {
+          Claves.push(Clave_Slot(Tarea.Fecha, Tarea_Hora_Slot(Tarea)));
+        }
+        Object.keys(Planes_Slot || {}).forEach((Clave) => {
+          if (!Claves.includes(Clave)) Claves.push(Clave);
+        });
+        for (const Clave of Claves) {
+          const Plan = Planes_Slot?.[Clave];
+          if (!Array.isArray(Plan?.Items)) continue;
+          const Item = Plan.Items.find((Entrada) =>
+            (
+              Tarea.Plan_Item_Id &&
+              Entrada.Id === Tarea.Plan_Item_Id
+            ) ||
+            Entrada.Tarea_Id === Tarea.Id
+          );
+          if (Item) {
+            return { Clave, Plan, Item };
+          }
+        }
+        return Resultado;
+      }
+
+      function Tarea_Crear_Item_Plan(Tarea) {
+        return {
+          Id: Tarea.Plan_Item_Id || Crear_Id_Plan_Slot_Item(),
           Emoji: Tarea.Emoji || "\u2022",
-          Color: "#157a58",
-          Origen: "tarea",
-          Abordaje: []
+          Texto: Tarea.Nombre || "",
+          Estado: Tarea_Estado_A_Plan(Tarea),
+          Tipo: "Texto",
+          Tarea_Id: Tarea.Id
         };
-        Eventos.push(Evento);
-        return Evento;
+      }
+
+      function Tarea_Evento_Automatico_Legacy(Tarea) {
+        if (!Tarea?.Evento_Id || !Tarea?.Abordaje_Id) return false;
+        const Evento = Evento_Por_Id(Tarea.Evento_Id);
+        return Evento?.Origen === "tarea" &&
+          Array.isArray(Evento.Abordaje) &&
+          Evento.Abordaje.some((Item) =>
+            Item.Id === Tarea.Abordaje_Id ||
+            Item.Tarea_Id === Tarea.Id
+          );
       }
 
       function Planificar_Tarea(Tarea) {
         if (!Tarea?.Fecha || !Tarea?.Hora) return false;
         Desplanificar_Tarea(Tarea);
-        let Evento = Buscar_Evento_Tarea(Tarea.Fecha, Tarea.Hora);
-        if (!Evento) Evento = Crear_Evento_Automatico_Tarea(Tarea);
-        if (!Array.isArray(Evento.Abordaje)) Evento.Abordaje = [];
-        const Item = {
-          Id: Crear_Id_Abordaje(),
-          Plantilla_Id: null,
-          Texto: Tarea.Nombre,
-          Emoji: Tarea.Emoji || "\u2022",
-          Suelta: true,
-          Planeada: true,
-          Tarea_Id: Tarea.Id
-        };
-        if (Tarea.Estado === "completada") {
-          Item.Estado = "Completado";
-        }
-        Evento.Abordaje.push(Item);
+        const Clave = Clave_Slot(Tarea.Fecha, Tarea_Hora_Slot(Tarea));
+        const Plan = Obtener_Plan_Slot(
+          Tarea.Fecha,
+          Tarea_Hora_Slot(Tarea),
+          true
+        );
+        const Item = Tarea_Crear_Item_Plan(Tarea);
+        Plan.Items = (Array.isArray(Plan.Items) ? Plan.Items : [])
+          .filter((Entrada) => Entrada.Tarea_Id !== Tarea.Id);
+        Plan.Items.push(Item);
+        Guardar_Plan_Slot_Clave(Clave, Plan.Items);
         Tarea.Planeada = true;
-        Tarea.Evento_Id = Evento.Id;
-        Tarea.Abordaje_Id = Item.Id;
+        Tarea.Evento_Id = "";
+        Tarea.Abordaje_Id = "";
+        Tarea.Plan_Clave = Clave;
+        Tarea.Plan_Item_Id = Item.Id;
         return true;
       }
 
       function Desplanificar_Tarea(Tarea) {
-        if (!Tarea?.Evento_Id || !Tarea?.Abordaje_Id) return false;
-        const Evento = Evento_Por_Id(Tarea.Evento_Id);
-        if (!Evento || !Array.isArray(Evento.Abordaje)) {
-          Tarea.Planeada = false;
-          Tarea.Evento_Id = "";
-          Tarea.Abordaje_Id = "";
-          return false;
+        if (!Tarea) return false;
+        let Cambio = false;
+        const Datos_Plan = Tarea_Obtener_Item_Plan(Tarea);
+        if (Datos_Plan.Clave && Datos_Plan.Plan) {
+          Datos_Plan.Plan.Items = (Datos_Plan.Plan.Items || [])
+            .filter((Item) =>
+              Item.Id !== Datos_Plan.Item?.Id &&
+              Item.Tarea_Id !== Tarea.Id
+            );
+          Guardar_Plan_Slot_Clave(
+            Datos_Plan.Clave,
+            Datos_Plan.Plan.Items
+          );
+          Cambio = true;
         }
-        Evento.Abordaje = Evento.Abordaje.filter((Item) =>
-          Item.Id !== Tarea.Abordaje_Id
-        );
-        if (
-          Evento.Origen === "tarea" &&
-          Evento.Abordaje.length === 0
-        ) {
-          Eventos = Eventos.filter((Item) => Item.Id !== Evento.Id);
+        if (Tarea.Evento_Id && Tarea.Abordaje_Id) {
+          const Evento = Evento_Por_Id(Tarea.Evento_Id);
+          if (Evento && Array.isArray(Evento.Abordaje)) {
+            Evento.Abordaje = Evento.Abordaje.filter((Item) =>
+              Item.Id !== Tarea.Abordaje_Id
+            );
+            if (
+              Evento.Origen === "tarea" &&
+              Evento.Abordaje.length === 0
+            ) {
+              Eventos = Eventos.filter((Item) => Item.Id !== Evento.Id);
+            }
+            Cambio = true;
+          }
         }
         Tarea.Planeada = false;
         Tarea.Evento_Id = "";
         Tarea.Abordaje_Id = "";
-        return true;
+        Tarea.Plan_Clave = "";
+        Tarea.Plan_Item_Id = "";
+        return Cambio;
       }
 
       function Sincronizar_Tareas_Desde_Abordajes() {
         Tareas.forEach((Tarea) => {
+          const Datos_Plan = Tarea_Obtener_Item_Plan(Tarea);
+          if (Datos_Plan.Item) {
+            Tarea.Planeada = true;
+            Tarea.Plan_Clave = Datos_Plan.Clave;
+            Tarea.Plan_Item_Id = Datos_Plan.Item.Id;
+            if (
+              Datos_Plan.Item.Estado === "Realizado" &&
+              Tarea.Estado !== "completada"
+            ) {
+              Tarea.Estado = "completada";
+              Tarea.Fecha_Completado = new Date().toISOString();
+            }
+            return;
+          }
           if (!Tarea.Evento_Id || !Tarea.Abordaje_Id) return;
           const Evento = Evento_Por_Id(Tarea.Evento_Id);
           const Item = (Evento?.Abordaje || []).find((Entrada) =>
@@ -88844,13 +88930,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Tarea.Fecha_Actualizacion = new Date().toISOString();
         if (Estado === "completada") {
           Tarea.Fecha_Completado = new Date().toISOString();
-          const Evento = Evento_Por_Id(Tarea.Evento_Id);
-          const Item = (Evento?.Abordaje || []).find((Entrada) =>
-            Entrada.Id === Tarea.Abordaje_Id
-          );
-          if (Item) Item.Estado = "Completado";
+          const Datos_Plan = Tarea_Obtener_Item_Plan(Tarea);
+          if (Datos_Plan.Item) {
+            Datos_Plan.Item.Estado = "Realizado";
+            Guardar_Plan_Slot_Clave(
+              Datos_Plan.Clave,
+              Datos_Plan.Plan.Items
+            );
+          } else {
+            const Evento = Evento_Por_Id(Tarea.Evento_Id);
+            const Item = (Evento?.Abordaje || []).find((Entrada) =>
+              Entrada.Id === Tarea.Abordaje_Id
+            );
+            if (Item) Item.Estado = "Completado";
+          }
         } else {
           Tarea.Fecha_Completado = "";
+          const Datos_Plan = Tarea_Obtener_Item_Plan(Tarea);
+          if (Datos_Plan.Item) {
+            Datos_Plan.Item.Estado = "Planeado";
+            Guardar_Plan_Slot_Clave(
+              Datos_Plan.Clave,
+              Datos_Plan.Plan.Items
+            );
+          }
         }
         if (Estado === "pospuesta") {
           Desplanificar_Tarea(Tarea);
@@ -91185,6 +91288,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto: Item?.Texto || "",
           Estado: Item?.Estado || "Planeado",
           Tipo: Item?.Tipo || "Texto",
+          Tarea_Id: String(Item?.Tarea_Id || "").trim(),
           Habito_Id: String(Item?.Habito_Id || "").trim(),
           Habito_Cantidad: Number(Item?.Habito_Cantidad) > 0
             ? Number(Item.Habito_Cantidad)
@@ -91205,6 +91309,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto: Item?.Texto || "",
           Estado: Item?.Estado || "Planeado",
           Tipo: Item?.Tipo || "Texto",
+          Tarea_Id: String(Item?.Tarea_Id || "").trim(),
           Habito_Id: String(Item?.Habito_Id || "").trim(),
           Habito_Cantidad: Number(Item?.Habito_Cantidad) > 0
             ? Number(Item.Habito_Cantidad)
@@ -91227,6 +91332,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto: String(Item?.Texto || "").trim(),
           Estado: Item?.Estado || "Planeado",
           Tipo: Item?.Tipo || "Texto",
+          Tarea_Id: String(Item?.Tarea_Id || "").trim(),
           Habito_Id: String(Item?.Habito_Id || "").trim(),
           Habito_Cantidad: Number(Item?.Habito_Cantidad) > 0
             ? Number(Item.Habito_Cantidad)
@@ -91287,6 +91393,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               const Items = Normalizar_Items_Plan_Slot(
                 Plan?.Items || []
               );
+              const Items_Transferibles = Items.filter(
+                (Item) => !Item.Tarea_Id
+              );
+              const Items_Tareas = Items.filter(
+                (Item) => Item.Tarea_Id
+              );
               if (
                 !Slot_Es_Muerto(Fecha, Hora) &&
                 Slot_Tiene_Evento(Fecha, Hora)
@@ -91300,15 +91412,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   Evento_Slot &&
                   Obtener_Items_Plan_Explicito_Evento(
                     Evento_Slot
-                  ).length === 0
+                  ).length === 0 &&
+                  Items_Transferibles.length > 0
                 ) {
                   Transferir_Items_Plan_Slot_A_Evento(
                     Evento_Slot,
-                    Items
+                    Items_Transferibles
                   );
                 }
-                if (Nota) {
-                  Resultado[Clave] = { Items: [], Nota };
+                if (Items_Tareas.length || Nota) {
+                  Resultado[Clave] = { Items: Items_Tareas };
+                  if (Nota) Resultado[Clave].Nota = Nota;
                 }
                 return;
               }
