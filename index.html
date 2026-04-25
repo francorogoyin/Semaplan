@@ -10419,20 +10419,60 @@
         overflow: visible;
       }
 
+      #Objetivo_Habitos_Bloques_Lista .Habitos_Vinculos_Grupo,
+      #Editor_Habitos_Bloques_Lista .Habitos_Vinculos_Grupo {
+        border: 1px solid var(--Borde);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.5);
+        padding: 10px 12px 12px;
+      }
+
+      #Objetivo_Habitos_Bloques_Lista .Habitos_Vinculos_Grupo_Titulo,
+      #Editor_Habitos_Bloques_Lista .Habitos_Vinculos_Grupo_Titulo {
+        margin-bottom: 8px;
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        line-height: 1.2;
+        text-transform: uppercase;
+      }
+
+      #Objetivo_Habitos_Bloques_Lista .Habitos_Vinculos_Items,
+      #Editor_Habitos_Bloques_Lista .Habitos_Vinculos_Items {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
       #Objetivo_Habitos_Bloques_Lista .Habitos_Vinculo_Fila,
       #Editor_Habitos_Bloques_Lista .Habitos_Vinculo_Fila {
-        grid-template-columns:
-          minmax(0, 1fr) minmax(76px, 96px) 34px;
+        display: inline-flex !important;
+        flex-wrap: wrap;
+        width: fit-content;
+        max-width: 100%;
+        gap: 6px;
+        align-items: center;
+        grid-template-columns: none;
       }
 
       #Objetivo_Habitos_Bloques_Lista .Habitos_Vinculo_Fila.Sin_Cantidad,
       #Editor_Habitos_Bloques_Lista .Habitos_Vinculo_Fila.Sin_Cantidad {
-        grid-template-columns: minmax(0, 1fr) 34px;
+        grid-template-columns: none;
       }
 
       #Objetivo_Habitos_Bloques_Lista .Habitos_Vinculo_Fila > *,
       #Editor_Habitos_Bloques_Lista .Habitos_Vinculo_Fila > * {
         min-width: 0;
+      }
+
+      #Objetivo_Habitos_Bloques_Lista
+        .Habitos_Vinculo_Cantidad_Input[hidden],
+      #Editor_Habitos_Bloques_Lista
+        .Habitos_Vinculo_Cantidad_Input[hidden] {
+        display: none;
+        visibility: hidden;
       }
 
       .Plan_Slot_Select_Row {
@@ -10547,7 +10587,7 @@
         min-width: 0;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 7px;
         color: var(--Texto);
         font-size: 15px;
         line-height: 1.25;
@@ -10570,6 +10610,55 @@
         white-space: nowrap;
       }
 
+      .Habitos_Vinculo_Cantidad {
+        display: inline-flex;
+        align-items: center;
+        min-width: 0;
+      }
+
+      .Habitos_Vinculo_Cantidad_Texto {
+        color: var(--Texto);
+        font-size: 15px;
+        line-height: 1.2;
+      }
+
+      .Habitos_Vinculo_Cantidad_Input {
+        width: 64px;
+        height: 30px;
+        min-width: 0;
+        padding: 0 8px;
+        text-align: center;
+      }
+
+      .Habitos_Vinculo_Acciones {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        margin-left: 1px;
+      }
+
+      .Habitos_Vinculo_Editar,
+      .Habitos_Vinculo_Quitar {
+        box-sizing: border-box;
+        width: 22px;
+        height: 22px;
+        min-width: 22px;
+        padding: 0;
+        display: grid;
+        place-items: center;
+        border: none;
+        border-radius: 999px;
+        background: #ece9e4;
+        color: #67615a;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .Habitos_Vinculo_Editar {
+        font-size: 12px;
+      }
+
       .Habitos_Vinculo_Fila.Evento > .Config_Nota {
         white-space: nowrap;
       }
@@ -10588,15 +10677,10 @@
       }
 
       .Habitos_Vinculo_Quitar {
-        width: 30px;
-        height: 30px;
-        border-radius: 999px;
-        background: #ece9e4;
-        color: #67615a;
-        font-size: 18px;
-        font-weight: 700;
+        font-size: 14px;
       }
 
+      .Habitos_Vinculo_Editar:hover,
       .Habitos_Vinculo_Quitar:hover {
         background: #dfdbd3;
         color: var(--Texto);
@@ -91261,11 +91345,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
         Barra.appendChild(Btn_Nuevo);
         Contenedor.appendChild(Barra);
+        let Contenedor_Filas = Contenedor;
+        if (Es_Vinculo_Bloque_Objetivo) {
+          const Grupo = document.createElement("div");
+          Grupo.className = "Habitos_Vinculos_Grupo";
+          const Grupo_Titulo = document.createElement("div");
+          Grupo_Titulo.className = "Habitos_Vinculos_Grupo_Titulo";
+          Grupo_Titulo.textContent = t("habitos.vinculos_titulo");
+          const Grupo_Items = document.createElement("div");
+          Grupo_Items.className = "Habitos_Vinculos_Items";
+          Grupo.appendChild(Grupo_Titulo);
+          Grupo.appendChild(Grupo_Items);
+          Contenedor.appendChild(Grupo);
+          Contenedor_Filas = Grupo_Items;
+        }
         if (!Vinculos.length) {
           const Vacio = document.createElement("div");
           Vacio.className = "Planes_Subobjetivo_Metadatos_Vacio";
           Vacio.textContent = t("habitos.sin_vinculos");
-          Contenedor.appendChild(Vacio);
+          Contenedor_Filas.appendChild(Vacio);
           return;
         }
         Vinculos.forEach((Vinculo, Indice) => {
@@ -91376,28 +91474,94 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fila.appendChild(Modo);
           }
 
-          const Input = document.createElement("input");
-          Input.type = "number";
-          Input.min = "0.25";
-          Input.step = "0.25";
-          Input.className = "Config_Input";
-          Input.value = String(Number(Vinculo.Cantidad) || 1);
-          Input.hidden =
-            (
-              Fuente_Tipo === "Evento" &&
-              Modo_Habito !== "Cantidad"
-            ) ||
-            (
-              Fuente_Tipo !== "Evento" &&
-              Vinculo.Cantidad_Modo === "Usar_Fuente"
+          const Es_Cantidad_Objetivo =
+            Es_Vinculo_Bloque_Objetivo &&
+            Modo_Habito === "Cantidad";
+          let Input_Cantidad = null;
+          let Activar_Cantidad_Fila = null;
+          if (Es_Cantidad_Objetivo) {
+            const Cantidad_Wrap = document.createElement("span");
+            Cantidad_Wrap.className = "Habitos_Vinculo_Cantidad";
+            const Cantidad_Texto = document.createElement("span");
+            Cantidad_Texto.className = "Habitos_Vinculo_Cantidad_Texto";
+            const Valor_Inicial = Number(Vinculo.Cantidad) || 1;
+            Cantidad_Texto.textContent = String(
+              Planes_Formatear_Numero(Valor_Inicial)
             );
-          Input.addEventListener("input", () => {
-            Vinculo.Cantidad = Number(Input.value) || 1;
-            if (typeof On_Cambio === "function") {
-              On_Cambio();
-            }
-          });
-          Fila.appendChild(Input);
+            Input_Cantidad = document.createElement("input");
+            Input_Cantidad.type = "number";
+            Input_Cantidad.min = "0.25";
+            Input_Cantidad.step = "0.25";
+            Input_Cantidad.className =
+              "Config_Input Habitos_Vinculo_Cantidad_Input";
+            Input_Cantidad.value = String(
+              Planes_Formatear_Numero(Valor_Inicial)
+            );
+            Input_Cantidad.hidden = true;
+            Cantidad_Wrap.appendChild(Cantidad_Texto);
+            Cantidad_Wrap.appendChild(Input_Cantidad);
+            Fila.appendChild(Cantidad_Wrap);
+            const Confirmar_Cantidad = () => {
+              const Valor = Number(Input_Cantidad.value) || 1;
+              Vinculo.Cantidad = Valor;
+              const Texto_Valor = String(Planes_Formatear_Numero(Valor));
+              Input_Cantidad.value = Texto_Valor;
+              Cantidad_Texto.textContent = Texto_Valor;
+              Input_Cantidad.hidden = true;
+              Cantidad_Texto.hidden = false;
+              if (typeof On_Cambio === "function") {
+                On_Cambio();
+              }
+            };
+            const Activar_Cantidad = () => {
+              Cantidad_Texto.hidden = true;
+              Input_Cantidad.hidden = false;
+              Input_Cantidad.focus();
+              Input_Cantidad.select();
+            };
+            Input_Cantidad.addEventListener("input", () => {
+              Vinculo.Cantidad = Number(Input_Cantidad.value) || 1;
+              Cantidad_Texto.textContent = String(
+                Planes_Formatear_Numero(Vinculo.Cantidad)
+              );
+              if (typeof On_Cambio === "function") {
+                On_Cambio();
+              }
+            });
+            Input_Cantidad.addEventListener("keydown", (Ev) => {
+              if (Ev.key !== "Enter") return;
+              Ev.preventDefault();
+              Confirmar_Cantidad();
+            });
+            Input_Cantidad.addEventListener("blur", Confirmar_Cantidad);
+            Activar_Cantidad_Fila = Activar_Cantidad;
+          } else if (
+            !Es_Vinculo_Bloque_Objetivo ||
+            Modo_Habito === "Cantidad"
+          ) {
+            const Input = document.createElement("input");
+            Input.type = "number";
+            Input.min = "0.25";
+            Input.step = "0.25";
+            Input.className = "Config_Input";
+            Input.value = String(Number(Vinculo.Cantidad) || 1);
+            Input.hidden =
+              (
+                Fuente_Tipo === "Evento" &&
+                Modo_Habito !== "Cantidad"
+              ) ||
+              (
+                Fuente_Tipo !== "Evento" &&
+                Vinculo.Cantidad_Modo === "Usar_Fuente"
+              );
+            Input.addEventListener("input", () => {
+              Vinculo.Cantidad = Number(Input.value) || 1;
+              if (typeof On_Cambio === "function") {
+                On_Cambio();
+              }
+            });
+            Fila.appendChild(Input);
+          }
 
           const Quitar = document.createElement("button");
           Quitar.type = "button";
@@ -91416,8 +91580,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               On_Cambio
             );
           });
-          Fila.appendChild(Quitar);
-          Contenedor.appendChild(Fila);
+          if (Es_Vinculo_Bloque_Objetivo) {
+            const Acciones = document.createElement("span");
+            Acciones.className = "Habitos_Vinculo_Acciones";
+            if (Es_Cantidad_Objetivo) {
+              const Editar = document.createElement("button");
+              Editar.type = "button";
+              Editar.className = "Habitos_Vinculo_Editar";
+              Editar.textContent = "\u270e";
+              Editar.title = t("editar");
+              Editar.addEventListener("click", () => {
+                if (typeof Activar_Cantidad_Fila === "function") {
+                  Activar_Cantidad_Fila();
+                }
+              });
+              Acciones.appendChild(Editar);
+            }
+            Acciones.appendChild(Quitar);
+            Fila.appendChild(Acciones);
+          } else {
+            Fila.appendChild(Quitar);
+          }
+          Contenedor_Filas.appendChild(Fila);
         });
       }
 

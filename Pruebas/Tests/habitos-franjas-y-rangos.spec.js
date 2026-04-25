@@ -930,23 +930,45 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
     const Estado_Vinculos = (Selector) =>
       [...document.querySelectorAll(`${Selector} .Habitos_Vinculo_Fila`)]
         .map((Fila) => {
-          const Input = Fila.querySelector(":scope > input");
+          const Input = Fila.querySelector(
+            ".Habitos_Vinculo_Cantidad_Input, :scope > input"
+          );
           const Estilo_Input = Input ? getComputedStyle(Input) : null;
+          const Quitar = Fila.querySelector(".Habitos_Vinculo_Quitar");
           return {
             texto:
               Fila.querySelector(".Habitos_Vinculo_Nombre")?.textContent ||
               "",
+            cantidadTexto:
+              Fila.querySelector(
+                ".Habitos_Vinculo_Cantidad_Texto"
+              )?.textContent || "",
+            tieneGrupo: Boolean(
+              document.querySelector(
+                `${Selector} .Habitos_Vinculos_Grupo`
+              )
+            ),
+            grupoTitulo:
+              document.querySelector(
+                `${Selector} .Habitos_Vinculos_Grupo_Titulo`
+              )?.textContent || "",
             tieneResumen: Boolean(
               Fila.querySelector(":scope > .Habitos_Vinculo_Resumen")
             ),
             tieneSelectDirecto: Boolean(Fila.querySelector(":scope > select")),
+            tieneEditar: Boolean(
+              Fila.querySelector(".Habitos_Vinculo_Editar")
+            ),
             sinCantidad: Fila.classList.contains("Sin_Cantidad"),
             inputVisible: Boolean(
               Input &&
               !Input.hidden &&
               Estilo_Input?.display !== "none" &&
               Estilo_Input?.visibility !== "hidden"
-            )
+            ),
+            quitarAncho: Quitar
+              ? Math.round(parseFloat(getComputedStyle(Quitar).width))
+              : 0
           };
         });
     Mostrar_Creador();
@@ -980,9 +1002,28 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
       Objetivo_Habitos_Bloques_Borrador,
       "Evento"
     );
+    const Btn_Editar_Cantidad = document.querySelector(
+      "#Objetivo_Habitos_Bloques_Lista " +
+      ".Habitos_Vinculo_Fila:nth-child(3) .Habitos_Vinculo_Editar"
+    );
+    Btn_Editar_Cantidad?.click();
+    const Input_Cantidad_Creador = document.querySelector(
+      "#Objetivo_Habitos_Bloques_Lista " +
+      ".Habitos_Vinculo_Fila:nth-child(3) " +
+      ".Habitos_Vinculo_Cantidad_Input"
+    );
+    Input_Cantidad_Creador.value = "6";
+    Input_Cantidad_Creador.dispatchEvent(
+      new Event("input", { bubbles: true })
+    );
+    Input_Cantidad_Creador.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true })
+    );
     const Estado_Vinculos_Creador = Estado_Vinculos(
       "#Objetivo_Habitos_Bloques_Lista"
     );
+    const Cantidad_Creador_Confirmada =
+      Objetivo_Habitos_Bloques_Borrador[2].Cantidad;
     Ocultar_Creador();
     Objetivos = [
       {
@@ -1103,6 +1144,7 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
       modalSinDesborde: Modal_Sin_Desborde,
       estadoVinculosCreador: Estado_Vinculos_Creador,
       estadoVinculosEditor: Estado_Vinculos_Editor,
+      cantidadCreadorConfirmada: Cantidad_Creador_Confirmada,
       registrosCreados: Registros_Creados,
       registrosTrasQuitar: Registros_Tras_Quitar,
       textoMenuObjetivo: Texto_Menu_Objetivo,
@@ -1123,28 +1165,57 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
   const estadoVinculosEsperado = [
     {
       texto: "Foco objetivo",
+      cantidadTexto: "",
+      tieneGrupo: true,
+      grupoTitulo: "Hábitos vinculados",
       tieneResumen: true,
       tieneSelectDirecto: false,
+      tieneEditar: false,
       sinCantidad: true,
-      inputVisible: false
+      inputVisible: false,
+      quitarAncho: 22
     },
     {
       texto: "Bloques hechos",
+      cantidadTexto: "",
+      tieneGrupo: true,
+      grupoTitulo: "Hábitos vinculados",
       tieneResumen: true,
       tieneSelectDirecto: false,
+      tieneEditar: false,
       sinCantidad: true,
-      inputVisible: false
+      inputVisible: false,
+      quitarAncho: 22
     },
     {
       texto: "Paginas objetivo",
+      cantidadTexto: "6",
+      tieneGrupo: true,
+      grupoTitulo: "Hábitos vinculados",
       tieneResumen: true,
       tieneSelectDirecto: false,
+      tieneEditar: true,
       sinCantidad: false,
-      inputVisible: true
+      inputVisible: false,
+      quitarAncho: 22
     }
   ];
   expect(resultado.estadoVinculosCreador).toEqual(estadoVinculosEsperado);
-  expect(resultado.estadoVinculosEditor).toEqual(estadoVinculosEsperado);
+  expect(resultado.estadoVinculosEditor).toEqual([
+    {
+      ...estadoVinculosEsperado[0],
+      cantidadTexto: ""
+    },
+    {
+      ...estadoVinculosEsperado[1],
+      cantidadTexto: ""
+    },
+    {
+      ...estadoVinculosEsperado[2],
+      cantidadTexto: "5"
+    }
+  ]);
+  expect(resultado.cantidadCreadorConfirmada).toBe(6);
   expect(resultado.registrosCreados).toEqual([
     {
       Habito_Id: "Habito_Cantidad_Objetivo",
