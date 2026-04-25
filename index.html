@@ -36913,6 +36913,8 @@
       let Objetivo_Seleccionada_Id = null;
       let Modo_Editor_Abierto = false;
       let Semana_Actual = null;
+      let Calendario_Dias_Visibles_Manual_Semana = "";
+      let Calendario_Dias_Visibles_Manual = null;
       let Datos_Editor_Borrador = null;
       let Objetivo_Habitos_Bloques_Borrador = [];
       let Editor_Habitos_Bloques_Borrador = [];
@@ -45066,10 +45068,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Construir_Submenu_Dias_Visibles() {
-        const Dias_Base = Obtener_Dias_Visibles_Base();
+        const Dias_Base = Obtener_Dias_Visibles_Efectivos();
         const Dias_Largos = t("dias_completos")
           .split(",")
           .map((Texto) => Texto.trim());
+        const Html_Solo_Hoy = Semana_Visible_Es_Actual()
+          ? (
+            `<button class="Dia_Accion_Submenu_Item" type="button"` +
+            ` data-dia-atajo="solo-hoy">` +
+            `<span>${t("dia.atajo_solo_hoy")}</span>` +
+            `<span class="Dia_Accion_Submenu_Estado"></span>` +
+            `</button>`
+          )
+          : "";
         const Html_Atajos =
           `<div class="Dia_Accion_Submenu_Titulo">` +
           `${t("dia.atajos")}</div>` +
@@ -45088,11 +45099,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `<span>${t("dia.atajo_ocultar_dias_semana")}</span>` +
           `<span class="Dia_Accion_Submenu_Estado"></span>` +
           `</button>` +
-          `<button class="Dia_Accion_Submenu_Item" type="button"` +
-          ` data-dia-atajo="solo-hoy">` +
-          `<span>${t("dia.atajo_solo_hoy")}</span>` +
-          `<span class="Dia_Accion_Submenu_Estado"></span>` +
-          `</button>` +
+          Html_Solo_Hoy +
           `<button class="Dia_Accion_Submenu_Item" type="button"` +
           ` data-dia-atajo="ocultar-anteriores">` +
           `<span>${t("dia.atajo_ocultar_anteriores")}</span>` +
@@ -45134,21 +45141,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Alternar_Dia_Visible_Desde_Menu(
         Dia_Index
       ) {
-        const Dias_Base = Obtener_Dias_Visibles_Base();
+        const Dias_Base = Obtener_Dias_Visibles_Efectivos();
         if (Dias_Base.includes(Dia_Index)) {
           if (Dias_Base.length <= 1) return false;
-          Config.Dias_Visibles = Dias_Base.filter(
+          return Fijar_Dias_Visibles_Manual(Dias_Base.filter(
             (Dia) => Dia !== Dia_Index
-          );
-        } else {
-          Config.Dias_Visibles = [
-            ...Dias_Base,
-            Dia_Index
-          ].sort((A, B) => A - B);
+          ));
         }
-        Render_Calendario();
-        Guardar_Estado();
-        return true;
+        return Fijar_Dias_Visibles_Manual([
+          ...Dias_Base,
+          Dia_Index
+        ]);
       }
 
       function Resolver_Dia_Referencia_Atajo(
@@ -45201,10 +45204,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Array.isArray(Nuevo) || !Nuevo.length) {
           return false;
         }
-        Config.Dias_Visibles = Nuevo;
-        Render_Calendario();
-        Guardar_Estado();
-        return true;
+        return Fijar_Dias_Visibles_Manual(Nuevo);
       }
 
       function Refrescar_Submenu_Dias_Visibles(Menu) {
@@ -72657,7 +72657,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Fecha_Destino = Parsear_Fecha_ISO(Clave_Destino);
         if (Fecha_Destino) {
-          Semana_Actual = Obtener_Lunes(Fecha_Destino);
+          Cambiar_Semana_Actual(Fecha_Destino);
         }
         Objetivo_Seleccionada_Id = Objetivo_Destino.Id;
         Modo_Editor_Abierto = false;
@@ -83968,6 +83968,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Config.Dias_Visibles = Dias_Elegidos;
         Config.Ocultar_Dias_Automatico = Ocultar_Dias_Automatico;
+        Limpiar_Dias_Visibles_Manual();
         Config.Contador_Semanas_Activo = Contador_Semanas_Activo;
         Config.Contador_Semanas_Modo = Contador_Semanas_Modo;
         Config.Contador_Semanas_Fecha_Ref =
@@ -85848,15 +85849,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return `${Inicio_Texto} - ${Fin_Texto}`;
       }
 
-      function Obtener_Dias_Visibles_Base() {
-        const Base =
-          Array.isArray(Config.Dias_Visibles) &&
-          Config.Dias_Visibles.length
-            ? Config.Dias_Visibles
-            : [0, 1, 2, 3, 4, 5, 6];
+      function Normalizar_Dias_Visibles(Lista, Fallback = null) {
+        const Base = Array.isArray(Lista) && Lista.length
+          ? Lista
+          : (Array.isArray(Fallback) ? Fallback : [0, 1, 2, 3, 4, 5, 6]);
         return [...new Set(
-          Base.filter((Dia) => Dia >= 0 && Dia <= 6)
+          Base
+            .map((Dia) => Number(Dia))
+            .filter((Dia) => Number.isInteger(Dia) && Dia >= 0 && Dia <= 6)
         )].sort((A, B) => A - B);
+      }
+
+      function Obtener_Dias_Visibles_Base() {
+        return Normalizar_Dias_Visibles(Config.Dias_Visibles);
       }
 
       function Semana_Visible_Es_Actual() {
@@ -85871,8 +85876,58 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Dia_JS === 0 ? 6 : Dia_JS - 1;
       }
 
+      function Clave_Semana_Visible() {
+        return Formatear_Fecha_ISO(Semana_Actual);
+      }
+
+      function Obtener_Dias_Visibles_Manual() {
+        if (
+          !Calendario_Dias_Visibles_Manual_Semana ||
+          Calendario_Dias_Visibles_Manual_Semana !==
+            Clave_Semana_Visible() ||
+          !Array.isArray(Calendario_Dias_Visibles_Manual)
+        ) {
+          return null;
+        }
+        const Manual = Normalizar_Dias_Visibles(
+          Calendario_Dias_Visibles_Manual,
+          []
+        );
+        return Manual.length ? Manual : null;
+      }
+
+      function Limpiar_Dias_Visibles_Manual() {
+        Calendario_Dias_Visibles_Manual_Semana = "";
+        Calendario_Dias_Visibles_Manual = null;
+      }
+
+      function Fijar_Dias_Visibles_Manual(Dias_Nuevos) {
+        const Nuevo = Normalizar_Dias_Visibles(Dias_Nuevos, []);
+        if (!Nuevo.length) return false;
+        Calendario_Dias_Visibles_Manual_Semana =
+          Clave_Semana_Visible();
+        Calendario_Dias_Visibles_Manual = Nuevo;
+        Render_Calendario();
+        return true;
+      }
+
+      function Cambiar_Semana_Actual(Fecha) {
+        const Nueva = Obtener_Lunes(Fecha || new Date());
+        const Anterior = Semana_Actual
+          ? Formatear_Fecha_ISO(Semana_Actual)
+          : "";
+        Semana_Actual = Nueva;
+        if (Anterior && Anterior !== Formatear_Fecha_ISO(Nueva)) {
+          Limpiar_Dias_Visibles_Manual();
+        }
+      }
+
       function Obtener_Dias_Visibles_Efectivos() {
-        const Base = Obtener_Dias_Visibles_Base();
+        const Manual = Obtener_Dias_Visibles_Manual();
+        if (Manual) return Manual;
+        const Base = Semana_Visible_Es_Actual()
+          ? Obtener_Dias_Visibles_Base()
+          : [0, 1, 2, 3, 4, 5, 6];
         const Modo = Config.Ocultar_Dias_Automatico || "Ninguno";
         if (Modo === "Ninguno" || !Semana_Visible_Es_Actual()) {
           return Base;
@@ -103752,7 +103807,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Objetivo_Seleccionada_Id = null;
         Modo_Editor_Abierto = false;
         Subobjetivo_En_Edicion_Id = null;
-        Semana_Actual = Sumar_Dias(Semana_Actual, -7);
+        Cambiar_Semana_Actual(Sumar_Dias(Semana_Actual, -7));
         Render_Calendario();
         Render_Emojis();
         Render_Resumen_Objetivo();
@@ -103763,7 +103818,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Objetivo_Seleccionada_Id = null;
         Modo_Editor_Abierto = false;
         Subobjetivo_En_Edicion_Id = null;
-        Semana_Actual = Sumar_Dias(Semana_Actual, 7);
+        Cambiar_Semana_Actual(Sumar_Dias(Semana_Actual, 7));
         Render_Calendario();
         Render_Emojis();
         Render_Resumen_Objetivo();
@@ -103776,7 +103831,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Objetivo_Seleccionada_Id = null;
           Modo_Editor_Abierto = false;
           Subobjetivo_En_Edicion_Id = null;
-          Semana_Actual = Obtener_Lunes(new Date());
+          Cambiar_Semana_Actual(new Date());
           Render_Calendario();
           Render_Emojis();
           Render_Resumen_Objetivo();
@@ -104099,7 +104154,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Fecha_Destino = Parsear_Fecha_ISO(
               Transferencia.Clave_Destino
             );
-            if (Fecha_Destino) Semana_Actual = Obtener_Lunes(Fecha_Destino);
+            if (Fecha_Destino) Cambiar_Semana_Actual(Fecha_Destino);
             Objetivo_Seleccionada_Id = Transferencia.Objetivo_Destino_Id || null;
             Modo_Editor_Abierto = false;
           }
@@ -105770,7 +105825,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Inicializar() {
-        Semana_Actual = Obtener_Lunes(new Date());
+        Cambiar_Semana_Actual(new Date());
 
         const Cargo = Cargar_Estado();
         if (!Cargo) {
@@ -106093,7 +106148,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Formatear_Fecha_ISO(Lunes_Nueva) !==
             Formatear_Fecha_ISO(Lunes_Actual)
           ) {
-            Semana_Actual = Lunes_Nueva;
+            Cambiar_Semana_Actual(Lunes_Nueva);
             Aplicar_Slots_Muertos_Default_Si_Necesario();
             Render_Calendario();
             Render_Eventos();
@@ -108481,7 +108536,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               if (!Fecha) return;
               const Parsed = Parsear_Fecha_ISO(Fecha);
               if (!Parsed) return;
-              Semana_Actual = Obtener_Lunes(Parsed);
+              Cambiar_Semana_Actual(Parsed);
               Aplicar_Slots_Muertos_Default_Si_Necesario();
               Render_Calendario();
               Render_Eventos();
