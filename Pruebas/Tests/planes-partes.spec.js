@@ -1183,6 +1183,15 @@ async ({ page }) => {
     );
 
     Abrir_Modal_Planes_Subobjetivos("obj_menus");
+    const Alto_Subobjetivos = Math.round(
+      document.querySelector(
+        "#Planes_Subobjetivos_Overlay .Patron_Modal_Panel"
+      ).getBoundingClientRect().height
+    );
+    const Subtitulos_Subobjetivo = document.querySelectorAll(
+      "#Planes_Subobjetivos_Lista .Planes_Subobjetivo:first-child " +
+      ".Planes_Subobjetivo_Meta"
+    ).length;
     const Sticky_Subobjetivos = getComputedStyle(
       document.querySelector(
         "#Planes_Subobjetivos_Overlay " +
@@ -1190,11 +1199,67 @@ async ({ page }) => {
       )
     ).position;
     Abrir_Modal_Planes_Partes("sub_parte");
+    const Alto_Partes = Math.round(
+      document.querySelector(
+        "#Planes_Partes_Overlay .Patron_Modal_Panel"
+      ).getBoundingClientRect().height
+    );
     const Sticky_Partes = getComputedStyle(
       document.querySelector(
         "#Planes_Partes_Overlay .Planes_Subobjetivos_Filtros"
       )
     ).position;
+    const Capturar_Layout = (Selector, Nombre_Selector) => {
+      const Item = document.querySelector(Selector);
+      const Nombre = Item?.querySelector(Nombre_Selector);
+      const Estilo = getComputedStyle(Item);
+      const Estilo_Nombre = getComputedStyle(Nombre);
+      return {
+        columnas: Estilo.gridTemplateColumns
+          .split(" ")
+          .filter(Boolean).length,
+        gap: Estilo.columnGap,
+        alignItems: Estilo.alignItems,
+        paddingTop: Estilo.paddingTop,
+        paddingBottom: Estilo.paddingBottom,
+        bordeInferior: Estilo.borderBottomWidth,
+        nombrePeso: Estilo_Nombre.fontWeight,
+        nombreTamanio: Estilo_Nombre.fontSize
+      };
+    };
+    const Capturar_Controles = (Selector) => {
+      const Items = Array.from(document.querySelectorAll(
+        `${Selector} .Planes_Subobjetivos_Filtros ` +
+        "> .Planes_Subobjetivos_Filtro"
+      ));
+      const Anchos = Items.map((Item) =>
+        Math.round(Item.getBoundingClientRect().width)
+      );
+      const Controles_Llenos = Items.every((Item) => {
+        const Control = Item.querySelector("select, input, button");
+        if (!Control) return false;
+        const Ancho_Item = Math.round(
+          Item.getBoundingClientRect().width
+        );
+        const Ancho_Control = Math.round(
+          Control.getBoundingClientRect().width
+        );
+        return Math.abs(Ancho_Item - Ancho_Control) <= 1;
+      });
+      return {
+        cantidad: Items.length,
+        diferenciaAnchos: Math.max(...Anchos) - Math.min(...Anchos),
+        controlesLlenos: Controles_Llenos
+      };
+    };
+    const Layout_Subobjetivo = Capturar_Layout(
+      "#Planes_Subobjetivos_Lista .Planes_Subobjetivo",
+      ".Planes_Subobjetivo_Nombre"
+    );
+    const Layout_Parte = Capturar_Layout(
+      "#Planes_Partes_Lista .Planes_Parte",
+      ".Planes_Parte_Nombre"
+    );
     const Modelo_Final = Asegurar_Modelo_Planes();
 
     return {
@@ -1233,6 +1298,21 @@ async ({ page }) => {
       sticky: {
         subobjetivos: Sticky_Subobjetivos,
         partes: Sticky_Partes
+      },
+      altos: {
+        subobjetivos: Alto_Subobjetivos,
+        partes: Alto_Partes
+      },
+      subtitulosSubobjetivo: Subtitulos_Subobjetivo,
+      layout: {
+        subobjetivo: Layout_Subobjetivo,
+        parte: Layout_Parte
+      },
+      controles: {
+        subobjetivos: Capturar_Controles(
+          "#Planes_Subobjetivos_Overlay"
+        ),
+        partes: Capturar_Controles("#Planes_Partes_Overlay")
       }
     };
   });
@@ -1281,6 +1361,21 @@ async ({ page }) => {
     subobjetivos: "sticky",
     partes: "sticky"
   });
+  expect(resultado.altos.subobjetivos).toBe(resultado.altos.partes);
+  expect(resultado.subtitulosSubobjetivo).toBe(2);
+  expect(resultado.layout.subobjetivo).toEqual(
+    resultado.layout.parte
+  );
+  expect(resultado.controles.subobjetivos.cantidad).toBe(4);
+  expect(
+    resultado.controles.subobjetivos.diferenciaAnchos
+  ).toBeLessThanOrEqual(1);
+  expect(resultado.controles.subobjetivos.controlesLlenos).toBe(true);
+  expect(resultado.controles.partes.cantidad).toBe(3);
+  expect(
+    resultado.controles.partes.diferenciaAnchos
+  ).toBeLessThanOrEqual(1);
+  expect(resultado.controles.partes.controlesLlenos).toBe(true);
 });
 
 test("Administrador de partes muestra unidades en minuscula",

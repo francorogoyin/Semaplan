@@ -2217,8 +2217,11 @@ async ({ page }) => {
   await expect(page.locator("#Planes_Subobjetivos_Form"))
     .toBeHidden();
   await expect(page.locator(
-    "#Planes_Subobjetivos_Filtro_Vista option"
-  )).toHaveCount(2);
+    "#Planes_Subobjetivos_Filtro_Vista, " +
+    "#Planes_Subobjetivos_Filtro_Periodo"
+  )).toHaveCount(0);
+  await expect(page.locator("#Planes_Subobjetivos_Filtro_Metadato"))
+    .toBeVisible();
   await page.click("#Planes_Subobjetivos_Agregar");
   await expect(page.locator("#Planes_Subobjetivo_Overlay"))
     .toHaveClass(/Activo/);
@@ -2234,16 +2237,15 @@ async ({ page }) => {
     "#Planes_Subobjetivos_Filtro_Estado",
     "Todos"
   );
-  await page.selectOption(
-    "#Planes_Subobjetivos_Filtro_Vista",
-    "Biblioteca"
-  );
   await expect(page.locator("#Planes_Subobjetivos_Lista"))
-    .toHaveClass(/Biblioteca/);
+    .not.toHaveClass(/Biblioteca/);
   const Sub_Item = page.locator(".Planes_Subobjetivo")
     .filter({ hasText: "Sub prueba modal" })
     .first();
   await Sub_Item.click({ button: "right" });
+  await expect(page.locator(".Planes_Context_Menu"))
+    .toHaveCount(0);
+  await Sub_Item.locator("[data-plan-sub-menu]").click();
   await expect(page.locator(".Planes_Context_Menu"))
     .toContainText("Editar");
   await expect(page.locator(".Planes_Context_Menu"))
@@ -2282,7 +2284,7 @@ async ({ page }) => {
   expect(Sub_Hija.padre).toBe(Sub_Modal_Id);
   expect(Sub_Hija.emoji).toBe("\uD83D\uDCC4");
   expect(Sub_Hija.texto).toBe("Sub hija");
-  await Sub_Item.click({ button: "right" });
+  await Sub_Item.locator("[data-plan-sub-menu]").click();
   await page.click(
     '.Planes_Context_Menu [data-plan-sub-accion="editar"]'
   );
@@ -2312,7 +2314,7 @@ async ({ page }) => {
         Inicio.left < Objetivo.left
     };
   });
-  expect(Layout_Sub_Modal.aporteLabel).toBe("Aporte");
+  expect(Layout_Sub_Modal.aporteLabel).toContain("Aporte");
   expect(Layout_Sub_Modal.modalOverflow).toBeLessThanOrEqual(1);
   expect(Layout_Sub_Modal.formOverflow).toBeLessThanOrEqual(1);
   expect(Layout_Sub_Modal.fechasMismaLinea).toBe(true);
@@ -7063,8 +7065,8 @@ async ({ page }) => {
     }, 0);
 
     Planes_Subobjetivos_Filtro_Estado = "Todos";
-    Planes_Subobjetivos_Filtro_Periodo = "Periodo";
     Planes_Subobjetivos_Filtro_Metadato = "";
+    Planes_Subobjetivos_Filtro_Periodo = "Todos";
     Abrir_Modal_Planes_Subobjetivos(Padre.Id, false);
     const Textos = Array.from(
       document.querySelectorAll(".Planes_Subobjetivo_Nombre")
@@ -7078,9 +7080,9 @@ async ({ page }) => {
       Aporte_Contexto,
       Textos,
       Vacio,
-      Filtro: document.getElementById(
+      Filtro_Periodo_Visible: Boolean(document.getElementById(
         "Planes_Subobjetivos_Filtro_Periodo"
-      )?.value || ""
+      ))
     };
   });
 
@@ -7092,7 +7094,7 @@ async ({ page }) => {
     "Inversiones"
   ]);
   expect(Resultado.Vacio).toBe("");
-  expect(Resultado.Filtro).toBe("Periodo");
+  expect(Resultado.Filtro_Periodo_Visible).toBe(false);
   expect(errores).toEqual([]);
 });
 
