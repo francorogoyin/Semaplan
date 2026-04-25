@@ -1573,6 +1573,49 @@ test(
 );
 
 test(
+  "reintento manual vuelve a enviar si quedo solo estado error",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      Objetivos.push({
+        Id: 127,
+        Nombre: "Cambio reintento manual",
+        Emoji: "ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Âª",
+        Color: "#f1b77e",
+        Horas: 1,
+        Dia: 0,
+        Hora: 9,
+        Duracion: 1,
+        Subobjetivos: [],
+        Copias_Semana: {}
+      });
+      Marcar_Sync_Local_Sucio(false);
+      Actualizar_Sync_Indicador("Error");
+
+      const Ok = await Reintentar_Sync_Manual();
+
+      return {
+        ok: Ok,
+        syncEstadoFinal: Sync_Estado,
+        sucio: Sync_Local_Sucio,
+        remoto:
+          (window.__Estado_Remoto?.estado?.Objetivos || [])
+            .map((Objetivo) => Objetivo.Nombre)
+      };
+    });
+
+    expect(Resumen.ok).toBe(true);
+    expect(Resumen.syncEstadoFinal).toBe("Guardado");
+    expect(Resumen.sucio).toBe(false);
+    expect(Resumen.remoto).toContain("Cambio reintento manual");
+  }
+);
+
+test(
   "detecta conflicto versionado al guardar " +
   "y no pisa la version remota",
   async ({ page }) => {

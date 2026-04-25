@@ -189,7 +189,7 @@
         left: 50%;
         top: 50%;
         z-index: 11000;
-        width: min(560px, calc(100vw - 28px));
+        width: min(680px, calc(100vw - 28px));
         max-height: calc(100vh - 40px);
         overflow: auto;
         transform: translate(-50%, -50%);
@@ -200,6 +200,53 @@
         box-shadow:
           0 20px 58px rgba(35, 28, 20, 0.28),
           0 0 0 9999px rgba(38, 29, 20, 0.36);
+      }
+
+      .Creador_Titulo {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .Creador_Titulo h3 {
+        margin: 0;
+        min-width: 0;
+        font-size: 18px;
+        line-height: 1.2;
+      }
+
+      .Creador_Titulo_Emoji {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: #fff;
+        font-size: 20px;
+        line-height: 1;
+      }
+
+      .Horas_Semanales_Campo {
+        display: grid;
+        grid-template-columns: minmax(96px, 150px) minmax(0, 1fr);
+        align-items: end;
+        column-gap: 10px;
+      }
+
+      .Horas_Semanales_Campo > label:first-child {
+        grid-column: 1 / -1;
+      }
+
+      .Horas_Semanales_Campo input[type="number"] {
+        width: 100%;
+      }
+
+      .Horas_Semanales_Campo .Config_Check_Inline {
+        margin: 0 0 2px;
+        align-self: center;
       }
 
       .Meta_Aporte_Campo.Oculto,
@@ -923,7 +970,8 @@
       }
 
       .Creador_Acciones {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
         margin-top: 4px;
       }
@@ -1267,21 +1315,31 @@
       }
 
       .Editor_Titulo {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
         gap: 10px;
         margin-bottom: 12px;
       }
 
+      .Editor_Titulo > div:first-child {
+        min-width: 0;
+      }
+
       .Editor_Titulo h3 {
         margin: 0;
+        min-width: 0;
         font-size: 16px;
+        line-height: 1.25;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .Editor_Emoji {
         width: 44px;
         height: 44px;
+        flex: 0 0 auto;
         border-radius: 50%;
         display: grid;
         place-items: center;
@@ -1291,14 +1349,14 @@
       }
 
       .Editor_Acciones {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
         margin-top: 10px;
-        flex-wrap: wrap;
       }
 
       .Editor_Acciones > button {
-        flex: 1 1 auto;
+        width: 100%;
         min-width: 0;
         padding-left: 10px;
         padding-right: 10px;
@@ -10379,8 +10437,8 @@
 
       .Habitos_Vinculo_Fila.Evento {
         grid-template-columns:
-          minmax(180px, 1.4fr) minmax(150px, 0.9fr)
-          minmax(76px, 0.45fr) 30px;
+          minmax(180px, 1fr) auto minmax(72px, 92px) 30px;
+        align-items: center;
       }
 
       #Habitos_Evento_Overlay .Patron_Modal_Panel {
@@ -10394,14 +10452,25 @@
 
       #Habitos_Evento_Cuerpo .Habitos_Vinculo_Fila.Evento {
         grid-template-columns:
-          minmax(220px, 1.2fr) minmax(190px, 0.8fr)
-          minmax(92px, 0.35fr) 30px;
+          minmax(220px, 1fr) auto minmax(82px, 102px) 30px;
       }
 
       .Habitos_Vinculo_Fila > .Config_Nota {
         margin: 0;
         font-size: 12px;
         line-height: 1.25;
+      }
+
+      .Habitos_Vinculo_Fila.Evento > .Config_Nota {
+        white-space: nowrap;
+      }
+
+      .Habitos_Vinculo_Fila.Evento > .Config_Input[hidden] {
+        display: block;
+        visibility: hidden;
+        min-width: 0;
+        padding: 0;
+        border: 0;
       }
 
       .Habitos_Vinculo_Fila .Abordaje_Item_Borrar {
@@ -10423,6 +10492,23 @@
         min-width: 194px;
         border-radius: 14px;
         background: #157a58;
+      }
+
+      @media (max-width: 640px) {
+        .Habitos_Vinculo_Fila.Evento,
+        #Habitos_Evento_Cuerpo .Habitos_Vinculo_Fila.Evento {
+          grid-template-columns: minmax(0, 1fr) 30px;
+        }
+
+        .Habitos_Vinculo_Fila.Evento > .Config_Nota,
+        .Habitos_Vinculo_Fila.Evento > .Config_Input {
+          grid-column: 1;
+        }
+
+        .Habitos_Vinculo_Fila.Evento > .Abordaje_Item_Borrar {
+          grid-column: 2;
+          grid-row: 1;
+        }
       }
 
       .Tareas_Modal_Panel {
@@ -17835,6 +17921,14 @@
         <div class="Panel_Cuerpo">
           <button class="Boton_Principal Creador_Toggle" id="Mostrar_Creador" type="button" data-i18n="sidebar.crear_objetivo">Crear objetivo</button>
           <div class="Creador_Contenido Oculto" id="Creador_Contenido">
+          <div class="Creador_Titulo">
+            <h3 data-i18n="sidebar.crear_objetivo">
+              Crear objetivo
+            </h3>
+            <div class="Creador_Titulo_Emoji Con_Fallback_Emoji">
+              &#127919;
+            </div>
+          </div>
           <div class="Campo">
             <label for="Nombre_Objetivo"
               class="Planes_Dato_Ayuda"
@@ -17872,7 +17966,7 @@
             <input id="Color_Objetivo" type="color" value="#f1b77e" />
             <div class="Swatches" id="Swatches_Nuevos"></div>
           </div>
-          <div class="Campo">
+          <div class="Campo Horas_Semanales_Campo">
             <label for="Horas_Semanales"
               class="Planes_Dato_Ayuda"
               data-i18n="sidebar.horas_semanales"
@@ -22890,7 +22984,7 @@
               <input id="Editor_Color_Input" type="color" />
               <div class="Swatches" id="Swatches_Editor"></div>
             </div>
-            <div class="Campo">
+            <div class="Campo Horas_Semanales_Campo">
               <label for="Editor_Horas_Input"
                 data-i18n="sidebar.horas_semanales"
                 >Horas semanales</label>
@@ -89735,7 +89829,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Render_Vinculos_Habitos_Editor(
         Contenedor_Id,
         Vinculos,
-        Fuente_Tipo
+        Fuente_Tipo,
+        On_Cambio = null
       ) {
         const Contenedor = document.getElementById(Contenedor_Id);
         if (!Contenedor) return;
@@ -89778,10 +89873,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Nuevo.Habito_Id = Select_Agregar.value;
           Vinculos.push(Nuevo);
+          if (typeof On_Cambio === "function") {
+            On_Cambio();
+          }
           Render_Vinculos_Habitos_Editor(
             Contenedor_Id,
             Vinculos,
-            Fuente_Tipo
+            Fuente_Tipo,
+            On_Cambio
           );
         });
         Barra.appendChild(Select_Agregar);
@@ -89804,11 +89903,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               );
               Nuevo.Habito_Id = Habito.Id;
               Vinculos.push(Nuevo);
+              if (typeof On_Cambio === "function") {
+                On_Cambio();
+              }
             }
             Render_Vinculos_Habitos_Editor(
               Contenedor_Id,
               Vinculos,
-              Fuente_Tipo
+              Fuente_Tipo,
+              On_Cambio
             );
           };
           Abrir_Modal_Habitos();
@@ -89846,7 +89949,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Select.addEventListener("change", () => {
             Vinculo.Habito_Id = Select.value;
             const Habito = Habito_Por_Id(Vinculo.Habito_Id);
-            if (!Habito) return;
+            if (!Habito) {
+              if (typeof On_Cambio === "function") {
+                On_Cambio();
+              }
+              return;
+            }
             if (Fuente_Tipo === "Evento") {
               Vinculo.Cantidad_Modo =
                 Habito_Modo_Visible(Habito) === "Tiempo"
@@ -89860,10 +89968,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             } else {
               Vinculo.Cantidad_Modo = "Fija";
             }
+            if (typeof On_Cambio === "function") {
+              On_Cambio();
+            }
             Render_Vinculos_Habitos_Editor(
               Contenedor_Id,
               Vinculos,
-              Fuente_Tipo
+              Fuente_Tipo,
+              On_Cambio
             );
           });
           Fila.appendChild(Select);
@@ -89888,6 +90000,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Modo.value = Vinculo.Cantidad_Modo || "Fija";
             Modo.addEventListener("change", () => {
               Vinculo.Cantidad_Modo = Modo.value;
+              if (typeof On_Cambio === "function") {
+                On_Cambio();
+              }
             });
             Fila.appendChild(Modo);
           } else {
@@ -89917,6 +90032,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Input.addEventListener("input", () => {
             Vinculo.Cantidad = Number(Input.value) || 1;
+            if (typeof On_Cambio === "function") {
+              On_Cambio();
+            }
           });
           Fila.appendChild(Input);
 
@@ -89926,10 +90044,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Quitar.textContent = "\u00d7";
           Quitar.addEventListener("click", () => {
             Vinculos.splice(Indice, 1);
+            if (typeof On_Cambio === "function") {
+              On_Cambio();
+            }
             Render_Vinculos_Habitos_Editor(
               Contenedor_Id,
               Vinculos,
-              Fuente_Tipo
+              Fuente_Tipo,
+              On_Cambio
             );
           });
           Fila.appendChild(Quitar);
@@ -94888,6 +95010,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Reintentar_Sync_Manual() {
         if (!Supa || !Usuario_Actual) return false;
+        if (Sync_Estado === "Error" && !Sync_Local_Sucio) {
+          Marcar_Sync_Local_Sucio(true);
+        }
         Mostrar_Toast_Info(
           t("sync.reintentando"),
           "☁️",
@@ -96252,22 +96377,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Grupo.push(
           Html_Menu_Dia_Accion(
-            "toggle-realizados-sidebar",
-            Config.Ocultar_Realizados_Sidebar
-              ? t("sidebar.mostrar_realizados")
-              : t("sidebar.ocultar_realizados")
-          )
-        );
-        Grupo.push(
-          Html_Menu_Dia_Accion(
-            "toggle-habitos-sidebar",
-            Config.Mostrar_Habitos_Sidebar
-              ? t("sidebar.ocultar_habitos")
-              : t("sidebar.mostrar_habitos")
-          )
-        );
-        Grupo.push(
-          Html_Menu_Dia_Accion(
             "borrar-objetivo",
             t("borrar"),
             "Peligro"
@@ -96334,18 +96443,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Cerrar_Menu_Dia();
             Pegar_Objetivos_Multi_En_Semana_Actual();
-          });
-        Menu.querySelector(`[data-acc="toggle-realizados-sidebar"]`)
-          ?.addEventListener("click", (Ev) => {
-            Ev.stopPropagation();
-            Cerrar_Menu_Dia();
-            Alternar_Realizados_Sidebar();
-          });
-        Menu.querySelector(`[data-acc="toggle-habitos-sidebar"]`)
-          ?.addEventListener("click", (Ev) => {
-            Ev.stopPropagation();
-            Cerrar_Menu_Dia();
-            Alternar_Habitos_Sidebar();
           });
         Menu.querySelector(`[data-acc="borrar-objetivo"]`)
           ?.addEventListener("click", async (Ev) => {
@@ -98204,7 +98301,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Vinculos_Habitos_Editor(
           "Editor_Habitos_Bloques_Lista",
           Editor_Habitos_Bloques_Borrador,
-          "Evento"
+          "Evento",
+          Actualizar_Borrador_Editor
         );
         Actualizar_Form_Editor_Meta_Aporte();
         Actualizar_Resumen_Editor(Objetivo, Datos);

@@ -975,9 +975,21 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
     ];
 
     Abrir_Habitos_Evento("Evento_Default_Habitos");
-    const Modal_Max_Width = getComputedStyle(
-      document.querySelector("#Habitos_Evento_Overlay .Patron_Modal_Panel")
-    ).maxWidth;
+    const Modal = document.querySelector(
+      "#Habitos_Evento_Overlay .Patron_Modal_Panel"
+    );
+    const Modal_Max_Width = getComputedStyle(Modal).maxWidth;
+    const Modal_Rect = Modal.getBoundingClientRect();
+    const Filas_Modal = [
+      ...document.querySelectorAll(
+        "#Habitos_Evento_Cuerpo .Habitos_Vinculo_Fila.Evento"
+      )
+    ];
+    const Modal_Sin_Desborde = Filas_Modal.every((Fila) => {
+      const Rect = Fila.getBoundingClientRect();
+      return Rect.left >= Modal_Rect.left &&
+        Rect.right <= Modal_Rect.right;
+    });
     Cerrar_Habitos_Evento();
 
     await Meta_Aporte_Cambiar_Hecho_Evento(Eventos[0], true);
@@ -999,13 +1011,41 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
       (Registro) => Registro.Fuente === "Objetivo_Bloque"
     ).length;
 
+    Mostrar_Menu_Emoji_Objetivo(Objetivos[0], 120, 120);
+    const Texto_Menu_Objetivo =
+      document.getElementById("Dia_Accion_Menu")?.innerText || "";
+    Cerrar_Menu_Dia();
+
+    Objetivo_Seleccionada_Id = "Obj_Habitos_Default";
+    Modo_Editor_Abierto = true;
+    Datos_Editor_Borrador = null;
+    Render_Editor();
+    const Select_Editor = document.querySelector(
+      "#Editor_Habitos_Bloques_Lista .Habitos_Vinculos_Barra select"
+    );
+    Select_Editor.value = "Habito_Check_Objetivo";
+    Select_Editor.dispatchEvent(
+      new Event("change", { bubbles: true })
+    );
+    const Vinculos_Tras_Agregar = document.querySelectorAll(
+      "#Editor_Habitos_Bloques_Lista .Habitos_Vinculo_Fila"
+    ).length;
+    Render_Editor();
+    const Vinculos_Tras_Render = document.querySelectorAll(
+      "#Editor_Habitos_Bloques_Lista .Habitos_Vinculo_Fila"
+    ).length;
+
     return {
       menu: t("habitos.evento_menu"),
       titulo: t("habitos.evento_titulo"),
       creadorTieneVinculos: Creador_Tiene_Vinculos,
       modalMaxWidth: Modal_Max_Width,
+      modalSinDesborde: Modal_Sin_Desborde,
       registrosCreados: Registros_Creados,
       registrosTrasQuitar: Registros_Tras_Quitar,
+      textoMenuObjetivo: Texto_Menu_Objetivo,
+      vinculosTrasAgregar: Vinculos_Tras_Agregar,
+      vinculosTrasRender: Vinculos_Tras_Render,
       vinculaciones: Habitos_Obtener_Vinculaciones()
         .filter((Vinculo) =>
           Vinculo.Habito_Id === "Habito_Cantidad_Objetivo"
@@ -1017,6 +1057,7 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
   expect(resultado.titulo).toBe("Hábitos del bloque");
   expect(resultado.creadorTieneVinculos).toBe(true);
   expect(resultado.modalMaxWidth).toContain("820");
+  expect(resultado.modalSinDesborde).toBe(true);
   expect(resultado.registrosCreados).toEqual([
     {
       Habito_Id: "Habito_Cantidad_Objetivo",
@@ -1044,6 +1085,14 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
     }
   ]);
   expect(resultado.registrosTrasQuitar).toBe(0);
+  expect(resultado.textoMenuObjetivo).not.toContain(
+    "Mostrar realizados"
+  );
+  expect(resultado.textoMenuObjetivo).not.toContain(
+    "Ocultar habitos"
+  );
+  expect(resultado.vinculosTrasAgregar).toBe(1);
+  expect(resultado.vinculosTrasRender).toBe(1);
   expect(resultado.vinculaciones).toBe(0);
 });
 
