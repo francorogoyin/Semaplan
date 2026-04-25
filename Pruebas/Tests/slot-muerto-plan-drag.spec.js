@@ -726,6 +726,7 @@ test("el menu de slot muerto agrupa identidad, plan y patron", async ({
     "nota-slot",
     "plan-slot",
     "copiar-plan-slot",
+    "cortar-plan-slot",
     "borrar-plan-slot",
     "insertar-patron-slot",
     "guardar-patron-slot",
@@ -782,8 +783,11 @@ test("el menu de slot vacio agrupa plan, patron y pegar bloques", async ({
   );
 
   expect(acciones).toEqual([
+    "tarea-rapida-slot",
+    "nota-slot",
     "plan-slot",
     "copiar-plan-slot",
+    "cortar-plan-slot",
     "borrar-plan-slot",
     "insertar-patron-slot",
     "guardar-patron-slot",
@@ -793,7 +797,7 @@ test("el menu de slot vacio agrupa plan, patron y pegar bloques", async ({
   ]);
   await expect(
     page.locator("#Dia_Accion_Menu .Dia_Accion_Separador")
-  ).toHaveCount(3);
+  ).toHaveCount(5);
 });
 
 test("el click derecho sobre slot vacio no lo selecciona", async ({
@@ -1270,7 +1274,9 @@ test("el menu contextual puede limpiar un bloque y la celda debajo", async ({
   expect(acciones_menu).toEqual([
     "abordaje",
     "copiar-plan-evento",
+    "cortar-plan-evento",
     "borrar-plan-evento",
+    "habitos-evento",
     "nota",
     "borrar-nota",
     "repetir",

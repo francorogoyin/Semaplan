@@ -608,13 +608,14 @@ test("menu de bloque distingue insertar y editar plan", async ({
   const etiquetas = await page.evaluate(() => {
     const base = {
       Id: "Evento_Test",
+      Objetivo_Id: "obj_test",
       Fecha: "2026-04-13",
       Inicio: 9,
       Duracion: 1,
       Nota: ""
     };
     Portapapeles_Plan_Evento = {
-      Objetivo_Id: null,
+      Objetivo_Id: "obj_test",
       Items: [{ Texto: "Copiable", Planeada: true }]
     };
     Portapapeles_Calendario_Modo = "Plan_Evento";
@@ -696,6 +697,8 @@ test("menu de bloque distingue insertar y editar plan", async ({
   expect(etiquetas.accionesContenido)
     .toContain("copiar-plan-evento");
   expect(etiquetas.accionesContenido)
+    .toContain("cortar-plan-evento");
+  expect(etiquetas.accionesContenido)
     .toContain("borrar-plan-evento");
   expect(etiquetas.accionesContenido)
     .toContain("pegar-plan-evento");
@@ -709,15 +712,28 @@ test("menu de bloque distingue insertar y editar plan", async ({
   expect(etiquetas.accionesLegado)
     .toContain("copiar-plan-evento");
   expect(etiquetas.accionesLegado)
+    .toContain("cortar-plan-evento");
+  expect(etiquetas.accionesLegado)
     .toContain("borrar-plan-evento");
 });
 
 test("menu de bloque copia pega y borra plan", async ({ page }) => {
   const estado = Estado_Base();
+  estado.Objetivos = [{
+    Id: "obj_plan_menu",
+    Nombre: "Tarea de plan",
+    Emoji: "*",
+    Color: "#1f6b4f",
+    Horas_Semanales: 1,
+    Es_Bolsa: false,
+    Subobjetivos_Semanales: {},
+    Subobjetivos_Contraidas_Semanales: {},
+    Subobjetivos_Excluidos_Semanales: {}
+  }];
   estado.Eventos = [
     {
       Id: "ev_plan_origen",
-      Objetivo_Id: null,
+      Objetivo_Id: "obj_plan_menu",
       Fecha: "2026-04-13",
       Inicio: 9,
       Duracion: 1,
@@ -737,7 +753,7 @@ test("menu de bloque copia pega y borra plan", async ({ page }) => {
     },
     {
       Id: "ev_plan_destino",
-      Objetivo_Id: null,
+      Objetivo_Id: "obj_plan_menu",
       Fecha: "2026-04-13",
       Inicio: 11,
       Duracion: 1,
@@ -762,6 +778,7 @@ test("menu de bloque copia pega y borra plan", async ({ page }) => {
     items.map((item) => item.getAttribute("data-acc"))
   );
   expect(accionesOrigen).toContain("copiar-plan-evento");
+  expect(accionesOrigen).toContain("cortar-plan-evento");
   expect(accionesOrigen).toContain("borrar-plan-evento");
 
   await page.click(
@@ -833,10 +850,21 @@ test("menu de bloque reemplaza plan con confirmacion", async ({
   page
 }) => {
   const estado = Estado_Base();
+  estado.Objetivos = [{
+    Id: "obj_reemplazo",
+    Nombre: "Tarea reemplazo",
+    Emoji: "*",
+    Color: "#1f6b4f",
+    Horas_Semanales: 1,
+    Es_Bolsa: false,
+    Subobjetivos_Semanales: {},
+    Subobjetivos_Contraidas_Semanales: {},
+    Subobjetivos_Excluidos_Semanales: {}
+  }];
   estado.Eventos = [
     {
       Id: "ev_plan_origen",
-      Objetivo_Id: null,
+      Objetivo_Id: "obj_reemplazo",
       Fecha: "2026-04-13",
       Inicio: 9,
       Duracion: 1,
@@ -856,7 +884,7 @@ test("menu de bloque reemplaza plan con confirmacion", async ({
     },
     {
       Id: "ev_plan_destino",
-      Objetivo_Id: null,
+      Objetivo_Id: "obj_reemplazo",
       Fecha: "2026-04-13",
       Inicio: 11,
       Duracion: 1,
@@ -913,6 +941,255 @@ test("menu de bloque reemplaza plan con confirmacion", async ({
   expect(resultado).toEqual([
     { texto: "Plan nuevo", planeada: true }
   ]);
+});
+
+test("plan de bloque solo pega en bloques de la misma tarea", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Objetivos = [
+    {
+      Id: "obj_a",
+      Nombre: "Tarea A",
+      Emoji: "*",
+      Color: "#1f6b4f",
+      Horas_Semanales: 1,
+      Es_Bolsa: false,
+      Subobjetivos_Semanales: {},
+      Subobjetivos_Contraidas_Semanales: {},
+      Subobjetivos_Excluidos_Semanales: {}
+    },
+    {
+      Id: "obj_b",
+      Nombre: "Tarea B",
+      Emoji: "*",
+      Color: "#8c2f2f",
+      Horas_Semanales: 1,
+      Es_Bolsa: false,
+      Subobjetivos_Semanales: {},
+      Subobjetivos_Contraidas_Semanales: {},
+      Subobjetivos_Excluidos_Semanales: {}
+    }
+  ];
+  estado.Eventos = [
+    {
+      Id: "ev_origen",
+      Objetivo_Id: "obj_a",
+      Fecha: "2026-04-13",
+      Inicio: 9,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: "",
+      Abordaje: [{
+        Id: "ab_origen",
+        Texto: "Plan tarea A",
+        Emoji: "*",
+        Suelta: true,
+        Estado: "Planeado"
+      }]
+    },
+    {
+      Id: "ev_misma",
+      Objetivo_Id: "obj_a",
+      Fecha: "2026-04-13",
+      Inicio: 11,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: ""
+    },
+    {
+      Id: "ev_otra",
+      Objetivo_Id: "obj_b",
+      Fecha: "2026-04-13",
+      Inicio: 13,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#8c2f2f",
+      Nota: ""
+    }
+  ];
+  await Preparar(page, estado);
+
+  const resultado = await page.evaluate(async () => {
+    const Origen = Eventos.find((Ev) => Ev.Id === "ev_origen");
+    const Misma = Eventos.find((Ev) => Ev.Id === "ev_misma");
+    const Otra = Eventos.find((Ev) => Ev.Id === "ev_otra");
+    Copiar_Plan_Evento(Origen);
+
+    Mostrar_Menu_Evento(Misma, 10, 10);
+    const mismaAccion = Boolean(document.querySelector(
+      '#Dia_Accion_Menu [data-acc="pegar-plan-evento"]'
+    ));
+    Cerrar_Menu_Dia();
+
+    Mostrar_Menu_Evento(Otra, 10, 10);
+    const otraAccion = Boolean(document.querySelector(
+      '#Dia_Accion_Menu [data-acc="pegar-plan-evento"]'
+    ));
+    Cerrar_Menu_Dia();
+
+    const pegarOtra = await Pegar_Plan_En_Evento(Otra);
+    const pegarMisma = await Pegar_Plan_En_Evento(Misma);
+
+    return {
+      mismaAccion,
+      otraAccion,
+      pegarOtra,
+      pegarMisma,
+      mismaPlan: (Misma.Abordaje || []).map((Item) => Item.Texto),
+      otraPlan: (Otra.Abordaje || []).map((Item) => Item.Texto)
+    };
+  });
+
+  expect(resultado.mismaAccion).toBeTruthy();
+  expect(resultado.otraAccion).toBeFalsy();
+  expect(resultado.pegarOtra).toBeFalsy();
+  expect(resultado.pegarMisma).toBeTruthy();
+  expect(resultado.mismaPlan).toEqual(["Plan tarea A"]);
+  expect(resultado.otraPlan).toEqual([]);
+});
+
+test("cortar plan de bloque lo mueve tras pegar correctamente", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Objetivos = [{
+    Id: "obj_movible",
+    Nombre: "Tarea movible",
+    Emoji: "*",
+    Color: "#1f6b4f",
+    Horas_Semanales: 1,
+    Es_Bolsa: false,
+    Subobjetivos_Semanales: {},
+    Subobjetivos_Contraidas_Semanales: {},
+    Subobjetivos_Excluidos_Semanales: {}
+  }];
+  estado.Eventos = [
+    {
+      Id: "ev_plan_origen",
+      Objetivo_Id: "obj_movible",
+      Fecha: "2026-04-13",
+      Inicio: 9,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: "Nota origen",
+      Abordaje: [{
+        Id: "ab_origen",
+        Texto: "Plan movible",
+        Emoji: "*",
+        Suelta: true,
+        Estado: "Planeado"
+      }]
+    },
+    {
+      Id: "ev_plan_destino",
+      Objetivo_Id: "obj_movible",
+      Fecha: "2026-04-13",
+      Inicio: 11,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: ""
+    }
+  ];
+  await Preparar(page, estado);
+
+  await page.locator('.Evento[data-id="ev_plan_origen"]')
+    .click({ button: "right" });
+  await expect(
+    page.locator(
+      '#Dia_Accion_Menu [data-acc="cortar-plan-evento"]'
+    )
+  ).toBeVisible();
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="cortar-plan-evento"]'
+  );
+
+  await page.locator('.Evento[data-id="ev_plan_destino"]')
+    .click({ button: "right" });
+  await page.click(
+    '#Dia_Accion_Menu [data-acc="pegar-plan-evento"]'
+  );
+
+  const resultado = await page.evaluate(() => {
+    const Origen = Eventos.find((Ev) =>
+      Ev.Id === "ev_plan_origen"
+    );
+    const Destino = Eventos.find((Ev) =>
+      Ev.Id === "ev_plan_destino"
+    );
+    return {
+      origenNota: Origen?.Nota || "",
+      origenTotal: Origen?.Abordaje?.length || 0,
+      destinoPlan: (Destino?.Abordaje || []).map((Item) => ({
+        texto: Item.Texto,
+        planeada: Boolean(Item.Planeada)
+      }))
+    };
+  });
+
+  expect(resultado.origenNota).toBe("Nota origen");
+  expect(resultado.origenTotal).toBe(0);
+  expect(resultado.destinoPlan).toEqual([
+    { texto: "Plan movible", planeada: true }
+  ]);
+});
+
+test("cortar plan de slot lo mueve y conserva metadatos del slot", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Slots_Muertos = ["2026-04-13|9"];
+  estado.Slots_Muertos_Tipos = {
+    "2026-04-13|9": "Comida"
+  };
+  estado.Slots_Muertos_Nombres = {
+    "2026-04-13|9": "Almuerzo"
+  };
+  estado.Slots_Muertos_Titulos_Visibles = {
+    "2026-04-13|9": true
+  };
+  estado.Planes_Slot = {
+    "2026-04-13|9": {
+      Nota: "Nota slot",
+      Items: [{
+        Id: "ps_origen",
+        Texto: "Plan de slot",
+        Emoji: "*",
+        Estado: "Planeado"
+      }]
+    }
+  };
+  await Preparar(page, estado);
+
+  const resultado = await page.evaluate(async () => {
+    Cortar_Plan_Slot("2026-04-13", 9);
+    const pegado = await Pegar_Plan_En_Slot("2026-04-13", 11);
+    return {
+      pegado,
+      origenItems:
+        Planes_Slot["2026-04-13|9"]?.Items?.length || 0,
+      origenNota: Planes_Slot["2026-04-13|9"]?.Nota || "",
+      origenTipo: Slots_Muertos_Tipos["2026-04-13|9"] || "",
+      destino: Planes_Slot["2026-04-13|11"]?.Items?.map(
+        (Item) => Item.Texto
+      ) || []
+    };
+  });
+
+  expect(resultado.pegado).toBeTruthy();
+  expect(resultado.origenItems).toBe(0);
+  expect(resultado.origenNota).toBe("Nota slot");
+  expect(resultado.origenTipo).toBe("Comida");
+  expect(resultado.destino).toEqual(["Plan de slot"]);
 });
 
 test("slot vacio pega solo planes copiados desde slots", async ({

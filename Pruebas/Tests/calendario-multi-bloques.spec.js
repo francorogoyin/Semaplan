@@ -710,7 +710,13 @@ test(
     ).toContainText("2");
 
     await page.click("#Plan_Slot_Cuerpo .Config_Boton");
-    await page.fill("#Plan_Slot_Nuevo_Emoji", "P");
+    await page.locator("#Plan_Slot_Nuevo_Emoji")
+      .evaluate((input) => {
+        input.value = "*";
+        input.dispatchEvent(
+          new Event("input", { bubbles: true })
+        );
+      });
     await page.fill("#Plan_Slot_Nuevo_Input", "Plan comun");
     await page.click("#Plan_Slot_Cuerpo .Abordaje_Nuevo_Btn");
     await page.click("#Plan_Slot_Guardar");
@@ -803,7 +809,13 @@ test(
       'button:has-text("Establecer plan")'
     );
     await page.click("#Plan_Slot_Cuerpo .Config_Boton");
-    await page.fill("#Plan_Slot_Nuevo_Emoji", "P");
+    await page.locator("#Plan_Slot_Nuevo_Emoji")
+      .evaluate((input) => {
+        input.value = "*";
+        input.dispatchEvent(
+          new Event("input", { bubbles: true })
+        );
+      });
     await page.fill("#Plan_Slot_Nuevo_Input", "Plan tarea");
     await page.click("#Plan_Slot_Cuerpo .Abordaje_Nuevo_Btn");
     await page.click("#Plan_Slot_Guardar");
