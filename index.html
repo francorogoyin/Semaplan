@@ -88481,16 +88481,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : "baja";
       }
 
+      function Es_Dato_Tarea_Suelta(Base) {
+        if (!Base || typeof Base !== "object") return false;
+        if (Base.Tipo_Dato === "Tarea" || Base.Origen === "Tareas") {
+          return true;
+        }
+        const Tiene_Marca_Tarea =
+          Base.Cajon !== undefined ||
+          Base.Prioridad !== undefined ||
+          Base.prioridad !== undefined ||
+          Base.Evento_Id !== undefined ||
+          Base.Abordaje_Id !== undefined ||
+          Base.Estado !== undefined ||
+          Base.estado !== undefined;
+        const Parece_Objetivo =
+          Base.Horas_Semanales !== undefined ||
+          Base.Subobjetivos_Semanales !== undefined ||
+          Base.Fracasos_Semanales !== undefined ||
+          Base.Realizadas_Manuales_Semanales !== undefined ||
+          Base.Restante !== undefined ||
+          Base.Meta_Aporte_Semanal !== undefined ||
+          Base.Color !== undefined;
+        return Tiene_Marca_Tarea && !Parece_Objetivo;
+      }
+
       function Normalizar_Tarea(Tarea) {
         const Base = Tarea && typeof Tarea === "object"
           ? Tarea
           : {};
+        if (!Es_Dato_Tarea_Suelta(Base)) return null;
         const Estado_Tarea =
           Normalizar_Estado_Tarea(Base.Estado || Base.estado);
         const Fecha = String(Base.Fecha || "").trim();
         const Hora = String(Base.Hora || "").trim().slice(0, 5);
         const Pospuesta = Estado_Tarea === "pospuesta";
         return {
+          Tipo_Dato: "Tarea",
           Id: Base.Id || Crear_Id_Tarea(),
           Emoji: Normalizar_Emoji(Base.Emoji || "\u2022"),
           Nombre: String(Base.Nombre || Base.Texto || "").trim(),
@@ -88517,7 +88543,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Normalizar_Tareas() {
         Tareas = (Array.isArray(Tareas) ? Tareas : [])
           .map(Normalizar_Tarea)
-          .filter((Tarea) => Tarea.Nombre);
+          .filter((Tarea) => Tarea && Tarea.Nombre);
         Tareas.forEach((Tarea) => {
           if (Tarea.Fecha && Tarea.Hora) {
             Tarea.Planeada = Boolean(
