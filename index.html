@@ -88700,10 +88700,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Tareas_Cajones_Definidos;
       }
 
-      function Es_Dato_Tarea_Suelta(Base) {
+      function Es_Estructura_Objetivo_Semanal(Base) {
         if (!Base || typeof Base !== "object") return false;
-        const Parece_Objetivo =
-          Base.Es_Bolsa !== undefined ||
+        return Base.Es_Bolsa !== undefined ||
           Base.Horas_Semanales !== undefined ||
           Base.Semana_Base !== undefined ||
           Base.Semana_Inicio !== undefined ||
@@ -88716,6 +88715,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Base.Restante !== undefined ||
           Base.Meta_Aporte_Semanal !== undefined ||
           Base.Color !== undefined;
+      }
+
+      function Tarea_Coincide_Con_Objetivo_Semanal(Tarea) {
+        if (!Tarea?.Id || !Array.isArray(Objetivos)) return false;
+        return Objetivos.some((Objetivo) =>
+          Objetivo?.Id === Tarea.Id &&
+          Es_Estructura_Objetivo_Semanal(Objetivo)
+        );
+      }
+
+      function Es_Dato_Tarea_Suelta(Base) {
+        if (!Base || typeof Base !== "object") return false;
+        const Parece_Objetivo = Es_Estructura_Objetivo_Semanal(Base) ||
+          Tarea_Coincide_Con_Objetivo_Semanal(Base);
         if (Parece_Objetivo) return false;
         if (Base.Tipo_Dato === "Tarea" || Base.Origen === "Tareas") {
           return true;
