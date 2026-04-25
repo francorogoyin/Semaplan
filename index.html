@@ -36630,6 +36630,8 @@
         Scroll_Inicial: 8,
         Dias_Visibles: [0, 1, 2, 3, 4, 5, 6],
         Ocultar_Dias_Automatico: "Ninguno",
+        Dias_Visibles_Actual_Memoria: null,
+        Dias_Visibles_Actual_Memoria_Tipo: "",
         Bloques_Horarios: {
           Madrugada: { Desde: 0, Hasta: 8 },
           Manana: { Desde: 8, Hasta: 13 },
@@ -36642,6 +36644,8 @@
           "Tarde",
           "Noche"
         ],
+        Bloques_Horarios_Actual_Memoria: null,
+        Bloques_Horarios_Actual_Memoria_Tipo: "",
         Enfoque_Hora_Actual_Modo: "Completo",
         Enfoque_Hora_Actual_Atras: 1,
         Enfoque_Hora_Actual_Adelante: 6,
@@ -45382,6 +45386,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Calendario_Dias_Visibles_Manual_Tipo) {
           return Calendario_Dias_Visibles_Manual_Tipo;
         }
+        if (
+          Semana_Visible_Es_Actual() &&
+          Config.Dias_Visibles_Actual_Memoria_Tipo
+        ) {
+          return Config.Dias_Visibles_Actual_Memoria_Tipo;
+        }
         for (const Atajo of Obtener_Atajos_Dias_Visibles_Menu()) {
           const Dias_Atajo = Obtener_Dias_De_Atajo_Visible(
             Atajo,
@@ -45696,6 +45706,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Manual) return "";
         if (Calendario_Bloques_Horarios_Manual_Tipo) {
           return Calendario_Bloques_Horarios_Manual_Tipo;
+        }
+        if (
+          Semana_Visible_Es_Actual() &&
+          Config.Bloques_Horarios_Actual_Memoria_Tipo
+        ) {
+          return Config.Bloques_Horarios_Actual_Memoria_Tipo;
         }
         for (const Atajo of Obtener_Atajos_Bloques_Horarios_Menu()) {
           const Bloques_Atajo =
@@ -86489,6 +86505,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Obtener_Dias_Visibles_Manual() {
         if (
+          Semana_Visible_Es_Actual() &&
+          Array.isArray(Config.Dias_Visibles_Actual_Memoria)
+        ) {
+          const Memoria = Normalizar_Dias_Visibles(
+            Config.Dias_Visibles_Actual_Memoria,
+            []
+          );
+          if (Memoria.length) return Memoria;
+        }
+        if (
           !Calendario_Dias_Visibles_Manual_Semana ||
           Calendario_Dias_Visibles_Manual_Semana !==
             Clave_Semana_Visible() ||
@@ -86503,10 +86529,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Manual.length ? Manual : null;
       }
 
-      function Limpiar_Dias_Visibles_Manual() {
+      function Limpiar_Dias_Visibles_Manual(Opciones = {}) {
+        const Limpiar_Memoria =
+          Semana_Visible_Es_Actual() &&
+          !Opciones.Conservar_Memoria;
         Calendario_Dias_Visibles_Manual_Semana = "";
         Calendario_Dias_Visibles_Manual = null;
         Calendario_Dias_Visibles_Manual_Tipo = "";
+        if (Limpiar_Memoria) {
+          Config.Dias_Visibles_Actual_Memoria = null;
+          Config.Dias_Visibles_Actual_Memoria_Tipo = "";
+          Guardar_Estado();
+        }
       }
 
       function Fijar_Dias_Visibles_Manual(
@@ -86520,6 +86554,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Calendario_Dias_Visibles_Manual = Nuevo;
         Calendario_Dias_Visibles_Manual_Tipo =
           String(Tipo || "personalizado");
+        if (Semana_Visible_Es_Actual()) {
+          Config.Dias_Visibles_Actual_Memoria = Nuevo;
+          Config.Dias_Visibles_Actual_Memoria_Tipo =
+            Calendario_Dias_Visibles_Manual_Tipo;
+          Guardar_Estado();
+        }
         Render_Calendario();
         return true;
       }
@@ -86531,8 +86571,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : "";
         Semana_Actual = Nueva;
         if (Anterior && Anterior !== Formatear_Fecha_ISO(Nueva)) {
-          Limpiar_Dias_Visibles_Manual();
-          Limpiar_Bloques_Horarios_Visibles_Manual();
+          Limpiar_Dias_Visibles_Manual({
+            Conservar_Memoria: true
+          });
+          Limpiar_Bloques_Horarios_Visibles_Manual({
+            Conservar_Memoria: true
+          });
         }
       }
 
@@ -86609,6 +86653,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Unicos.length ? Unicos : Base;
       }
 
+      function Normalizar_Bloques_Horarios_Visibles_Memoria(Lista) {
+        const Permitidos = new Set(Obtener_Ids_Bloques_Horarios());
+        const Filtrado = Array.isArray(Lista)
+          ? Lista.map((X) => String(X || "")).filter((Id) =>
+              Permitidos.has(Id)
+            )
+          : [];
+        return [...new Set(Filtrado)];
+      }
+
       function Obtener_Bloques_Horarios_Visibles_Base() {
         return Normalizar_Bloques_Horarios_Visibles(
           Config.Bloques_Horarios_Visibles
@@ -86636,6 +86690,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Obtener_Bloques_Horarios_Visibles_Manual() {
         if (
+          Semana_Visible_Es_Actual() &&
+          Array.isArray(Config.Bloques_Horarios_Actual_Memoria)
+        ) {
+          const Memoria =
+            Normalizar_Bloques_Horarios_Visibles_Memoria(
+              Config.Bloques_Horarios_Actual_Memoria
+            );
+          if (Memoria.length) return Memoria;
+        }
+        if (
           !Calendario_Bloques_Horarios_Manual_Semana ||
           Calendario_Bloques_Horarios_Manual_Semana !==
             Clave_Semana_Visible() ||
@@ -86649,10 +86713,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Manual.length ? Manual : null;
       }
 
-      function Limpiar_Bloques_Horarios_Visibles_Manual() {
+      function Limpiar_Bloques_Horarios_Visibles_Manual(
+        Opciones = {}
+      ) {
+        const Limpiar_Memoria =
+          Semana_Visible_Es_Actual() &&
+          !Opciones.Conservar_Memoria;
         Calendario_Bloques_Horarios_Manual_Semana = "";
         Calendario_Bloques_Horarios_Manual = null;
         Calendario_Bloques_Horarios_Manual_Tipo = "";
+        if (Limpiar_Memoria) {
+          Config.Bloques_Horarios_Actual_Memoria = null;
+          Config.Bloques_Horarios_Actual_Memoria_Tipo = "";
+          Guardar_Estado();
+        }
       }
 
       function Fijar_Bloques_Horarios_Visibles_Manual(
@@ -86668,6 +86742,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Calendario_Bloques_Horarios_Manual = Nuevo;
         Calendario_Bloques_Horarios_Manual_Tipo =
           String(Tipo || "personalizado");
+        if (Semana_Visible_Es_Actual()) {
+          Config.Bloques_Horarios_Actual_Memoria = Nuevo;
+          Config.Bloques_Horarios_Actual_Memoria_Tipo =
+            Calendario_Bloques_Horarios_Manual_Tipo;
+          Guardar_Estado();
+        }
         Render_Calendario();
         return true;
       }
@@ -97508,9 +97588,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Dias_Visibles: Config.Dias_Visibles,
             Ocultar_Dias_Automatico:
               Config.Ocultar_Dias_Automatico,
+            Dias_Visibles_Actual_Memoria:
+              Config.Dias_Visibles_Actual_Memoria,
+            Dias_Visibles_Actual_Memoria_Tipo:
+              Config.Dias_Visibles_Actual_Memoria_Tipo,
             Bloques_Horarios: Config.Bloques_Horarios,
             Bloques_Horarios_Visibles:
               Config.Bloques_Horarios_Visibles,
+            Bloques_Horarios_Actual_Memoria:
+              Config.Bloques_Horarios_Actual_Memoria,
+            Bloques_Horarios_Actual_Memoria_Tipo:
+              Config.Bloques_Horarios_Actual_Memoria_Tipo,
             Enfoque_Hora_Actual_Modo:
               Config.Enfoque_Hora_Actual_Modo,
             Enfoque_Hora_Actual_Atras:
@@ -97755,6 +97843,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (Extra.Ocultar_Dias_Automatico)
               Config.Ocultar_Dias_Automatico =
                 Extra.Ocultar_Dias_Automatico;
+            if (Array.isArray(
+              Extra.Dias_Visibles_Actual_Memoria
+            )) {
+              const Dias_Memoria = Normalizar_Dias_Visibles(
+                Extra.Dias_Visibles_Actual_Memoria,
+                []
+              );
+              Config.Dias_Visibles_Actual_Memoria =
+                Dias_Memoria.length ? Dias_Memoria : null;
+            }
+            if (Extra.Dias_Visibles_Actual_Memoria_Tipo) {
+              Config.Dias_Visibles_Actual_Memoria_Tipo =
+                String(Extra.Dias_Visibles_Actual_Memoria_Tipo);
+            }
             if (
               Extra.Bloques_Horarios &&
               typeof Extra.Bloques_Horarios === "object"
@@ -97770,6 +97872,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Normalizar_Bloques_Horarios_Visibles(
                   Extra.Bloques_Horarios_Visibles
                 );
+            }
+            if (Array.isArray(
+              Extra.Bloques_Horarios_Actual_Memoria
+            )) {
+              const Bloques_Memoria =
+                Normalizar_Bloques_Horarios_Visibles_Memoria(
+                  Extra.Bloques_Horarios_Actual_Memoria
+                );
+              Config.Bloques_Horarios_Actual_Memoria =
+                Bloques_Memoria.length ? Bloques_Memoria : null;
+            }
+            if (Extra.Bloques_Horarios_Actual_Memoria_Tipo) {
+              Config.Bloques_Horarios_Actual_Memoria_Tipo =
+                String(Extra.Bloques_Horarios_Actual_Memoria_Tipo);
             }
             if (Extra.Enfoque_Hora_Actual_Modo !== undefined) {
               Config.Enfoque_Hora_Actual_Modo =
