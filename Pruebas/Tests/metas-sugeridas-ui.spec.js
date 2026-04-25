@@ -275,6 +275,67 @@ async ({ page }) => {
   });
 });
 
+test("el contador de tareas conserva el borde de metas",
+async ({ page }) => {
+  await Preparar(page);
+
+  const Bordes = await page.evaluate(() => {
+    const Leer_Estado = () => {
+      const Boton_Meta = document.querySelector(
+        ".Metas_Sugeridas_Flotante"
+      );
+      const Contador = document.getElementById(
+        "Tareas_Contador_Flotante"
+      );
+      const Meta = getComputedStyle(Boton_Meta);
+      const Estilo = getComputedStyle(Contador);
+      return {
+        Texto: Contador.textContent,
+        Clase: Contador.className,
+        Meta_Color: Meta.borderTopColor,
+        Color: Estilo.borderTopColor,
+        Ancho: Estilo.borderTopWidth,
+        Estilo: Estilo.borderTopStyle
+      };
+    };
+
+    const Hoy = Formatear_Fecha_ISO(new Date());
+    Config.Tareas_Contador_Periodo = "Hoy";
+    Tareas = [
+      Normalizar_Tarea({
+        Tipo_Dato: "Tarea",
+        Id: "tarea_prueba_pendiente",
+        Nombre: "Pendiente visible",
+        Estado: "pendiente",
+        Fecha: Hoy,
+        Cajon: "Inbox"
+      })
+    ].filter(Boolean);
+    Render_Tareas_Contador();
+    const Pendiente = Leer_Estado();
+
+    Tareas = [];
+    Render_Tareas_Contador();
+    const Completo = Leer_Estado();
+
+    return { Pendiente, Completo };
+  });
+
+  expect(Bordes.Pendiente.Texto).toBe("\u23f3");
+  expect(Bordes.Pendiente.Clase).not.toContain("Completo");
+  expect(Bordes.Pendiente.Ancho).toBe("1px");
+  expect(Bordes.Pendiente.Estilo).toBe("solid");
+  expect(Bordes.Pendiente.Color)
+    .toBe(Bordes.Pendiente.Meta_Color);
+
+  expect(Bordes.Completo.Texto).toBe("\u2713");
+  expect(Bordes.Completo.Clase).toContain("Completo");
+  expect(Bordes.Completo.Ancho).toBe("1px");
+  expect(Bordes.Completo.Estilo).toBe("solid");
+  expect(Bordes.Completo.Color)
+    .toBe(Bordes.Completo.Meta_Color);
+});
+
 test("el menu hamburguesa queda por encima del calendario",
 async ({ page }) => {
   await page.setViewportSize({ width: 1536, height: 540 });
