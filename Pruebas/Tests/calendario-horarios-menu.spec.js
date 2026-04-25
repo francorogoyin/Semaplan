@@ -165,6 +165,7 @@ test(
   await preparar(page, crearEstado());
 
   await page.evaluate(() => {
+    Config.Enfoque_Hora_Actual_Modo = "Completo";
     const Fecha_Lunes = Formatear_Fecha_ISO(
       Obtener_Fecha_Semana(0)
     );
@@ -346,6 +347,7 @@ test("mostrar horario respeta alcance semanal", async ({ page }) => {
   await preparar(page, crearEstado());
 
   const resultado = await page.evaluate(() => {
+    Config.Enfoque_Hora_Actual_Modo = "Completo";
     Config.Bloques_Horarios_Visibles = ["Madrugada"];
 
     Cambiar_Semana_Actual(new Date());
@@ -445,6 +447,52 @@ test("mostrar horario respeta alcance semanal", async ({ page }) => {
   expect(resultado.config).toEqual(["Madrugada"]);
 });
 
+test("enfoque automatico alrededor de ahora respeta manual", async ({
+  page
+}) => {
+  await preparar(page, crearEstado());
+
+  const resultado = await page.evaluate(() => {
+    Config.Enfoque_Hora_Actual_Modo = "Enfocar";
+    Config.Enfoque_Hora_Actual_Atras = 1;
+    Config.Enfoque_Hora_Actual_Adelante = 3;
+    Cambiar_Semana_Actual(new Date());
+    Render_Calendario();
+
+    const Hora_Actual = new Date().getHours();
+    const Desde = Math.max(0, Hora_Actual - 1);
+    const Hasta = Math.min(24, Hora_Actual + 4);
+    const Esperadas = [];
+    for (let H = Desde; H < Hasta; H++) Esperadas.push(H);
+
+    const Automatico = Obtener_Horas_Visibles_Efectivas();
+
+    Fijar_Bloques_Horarios_Visibles_Manual(["Tarde"]);
+    const Manual = Obtener_Horas_Visibles_Efectivas();
+
+    Cambiar_Semana_Actual(
+      Sumar_Dias(Obtener_Lunes(new Date()), 7)
+    );
+    Render_Calendario();
+    const Futura = Obtener_Horas_Visibles_Efectivas();
+
+    return {
+      automatico: Automatico,
+      esperadas: Esperadas,
+      manual: Manual,
+      futura: Futura
+    };
+  });
+
+  expect(resultado.automatico).toEqual(resultado.esperadas);
+  expect(resultado.manual).toEqual([13, 14, 15, 16, 17, 18, 19]);
+  expect(resultado.futura).toEqual([
+    0, 1, 2, 3, 4, 5, 6, 7,
+    8, 9, 10, 11, 12, 13, 14, 15,
+    16, 17, 18, 19, 20, 21, 22, 23
+  ]);
+});
+
 test("config permite ajustar bloques horarios", async ({ page }) => {
   await preparar(page, crearEstado());
 
@@ -510,5 +558,71 @@ test("config permite ajustar bloques horarios", async ({ page }) => {
   expect(resultado.guardado.Noche).toEqual({
     Desde: 20,
     Hasta: 0
+  });
+});
+
+test("config permite activar enfoque alrededor de ahora", async ({
+  page
+}) => {
+  await preparar(page, crearEstado());
+
+  const resultado = await page.evaluate(() => {
+    Abrir_Config();
+    const Modo = document.getElementById(
+      "Cfg_Enfoque_Hora_Actual_Modo"
+    );
+    const Campos = document.getElementById(
+      "Cfg_Enfoque_Hora_Actual_Campos"
+    );
+    const Atras = document.getElementById(
+      "Cfg_Enfoque_Hora_Actual_Atras"
+    );
+    const Adelante = document.getElementById(
+      "Cfg_Enfoque_Hora_Actual_Adelante"
+    );
+    const Inicial = {
+      modo: Modo?.value || "",
+      camposOcultos: Boolean(Campos?.hidden),
+      atras: Atras?.value || "",
+      adelante: Adelante?.value || ""
+    };
+    Modo.value = "Completo";
+    Modo.dispatchEvent(new Event("change"));
+    Modo.value = "Enfocar";
+    Modo.dispatchEvent(new Event("change"));
+    const Tras_Modo = {
+      camposOcultos: Boolean(Campos?.hidden),
+      atrasDeshabilitado: Boolean(Atras?.disabled),
+      adelanteDeshabilitado: Boolean(Adelante?.disabled)
+    };
+    Atras.value = "2";
+    Adelante.value = "5";
+    Guardar_Config();
+    return {
+      inicial: Inicial,
+      trasModo: Tras_Modo,
+      guardado: {
+        modo: Config.Enfoque_Hora_Actual_Modo,
+        atras: Config.Enfoque_Hora_Actual_Atras,
+        adelante: Config.Enfoque_Hora_Actual_Adelante
+      }
+    };
+  });
+
+  expect(resultado.inicial).toEqual({
+    modo: "Completo",
+    camposOcultos: true,
+    atras: "1",
+    adelante: "6"
+  });
+  expect(resultado.trasModo).toEqual({
+    camposOcultos: false,
+    atrasDeshabilitado: false,
+    adelanteDeshabilitado: false
+  });
+  expect(resultado.guardado).toEqual({
+    modo: "Enfocar",
+    atras: 2,
+    adelante: 5
   });
 });

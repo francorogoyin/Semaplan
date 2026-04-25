@@ -78,3 +78,8 @@ que el usuario aplique un filtro manual desde el encabezado.
 
 El filtro manual se limita a la semana visible donde se aplica y no
 debe modificar la configuracion automatica persistida.
+
+El modo automatico de horarios "Enfocar alrededor de ahora" muestra
+la hora actual mas el margen configurado hacia atras y hacia adelante.
+Tambien queda limitado a la semana real actual y queda por debajo del
+filtro manual del encabezado.

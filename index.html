@@ -16571,6 +16571,11 @@
         min-width: 0;
       }
 
+      .Config_Fila_Multi .Config_Input {
+        width: 72px;
+        min-width: 0;
+      }
+
       .Config_Nota {
         margin: 6px 0 0;
         font-size: 11px;
@@ -18706,6 +18711,46 @@
                 <select class="Config_Select"
                   id="Cfg_Bloque_Noche_Hasta"></select>
               </div>
+              <div class="Config_Fila">
+                <span class="Config_Label"
+                  data-i18n="config.enfoque_hora_actual_modo"
+                  >Vista automatica</span>
+                <select class="Config_Select Doble"
+                  id="Cfg_Enfoque_Hora_Actual_Modo">
+                  <option value="Completo"
+                    data-i18n="config.enfoque_hora_actual_completo">
+                    Mostrar horario completo
+                  </option>
+                  <option value="Enfocar"
+                    data-i18n="config.enfoque_hora_actual_enfocar">
+                    Enfocar alrededor de ahora
+                  </option>
+                </select>
+              </div>
+              <div class="Config_Fila Config_Fila_Multi"
+                id="Cfg_Enfoque_Hora_Actual_Campos">
+                <span class="Config_Label"
+                  data-i18n="config.enfoque_hora_actual_margen"
+                  >Margen automatico</span>
+                <input type="number" class="Config_Input"
+                  id="Cfg_Enfoque_Hora_Actual_Atras"
+                  min="0" max="24" step="1">
+                <span data-i18n="config.enfoque_hora_actual_atras"
+                  style="font-size:12px;color:var(--Texto_Suave)"
+                  >h atras</span>
+                <input type="number" class="Config_Input"
+                  id="Cfg_Enfoque_Hora_Actual_Adelante"
+                  min="0" max="24" step="1">
+                <span data-i18n="config.enfoque_hora_actual_adelante"
+                  style="font-size:12px;color:var(--Texto_Suave)"
+                  >h adelante</span>
+              </div>
+              <p class="Config_Nota"
+                id="Cfg_Enfoque_Hora_Actual_Nota"
+                data-i18n="config.enfoque_hora_actual_nota">
+                Solo aplica en la semana actual y queda por debajo
+                del filtro manual del encabezado.
+              </p>
             </div>
 
             <div class="Config_Seccion">
@@ -25243,6 +25288,21 @@
           "config.bloque_invalido":
             "En un bloque horario, el fin debe " +
             "ser mayor al inicio.",
+          "config.enfoque_hora_actual_modo":
+            "Vista automatica",
+          "config.enfoque_hora_actual_completo":
+            "Mostrar horario completo",
+          "config.enfoque_hora_actual_enfocar":
+            "Enfocar alrededor de ahora",
+          "config.enfoque_hora_actual_margen":
+            "Margen automatico",
+          "config.enfoque_hora_actual_atras":
+            "h atras",
+          "config.enfoque_hora_actual_adelante":
+            "h adelante",
+          "config.enfoque_hora_actual_nota":
+            "Solo aplica en la semana actual y queda por debajo " +
+            "del filtro manual del encabezado.",
           "config.mostrar_desde":
             "Mostrar desde",
           "config.hasta": "hasta",
@@ -29336,6 +29396,21 @@
           "config.bloque_invalido":
             "In a time block, the end must be " +
             "after the start.",
+          "config.enfoque_hora_actual_modo":
+            "Automatic view",
+          "config.enfoque_hora_actual_completo":
+            "Show full schedule",
+          "config.enfoque_hora_actual_enfocar":
+            "Focus around now",
+          "config.enfoque_hora_actual_margen":
+            "Automatic margin",
+          "config.enfoque_hora_actual_atras":
+            "h back",
+          "config.enfoque_hora_actual_adelante":
+            "h forward",
+          "config.enfoque_hora_actual_nota":
+            "Only applies to the current week and stays below " +
+            "any manual header filter.",
           "config.mostrar_desde": "Show from",
           "config.hasta": "to",
           "config.scroll_inicial":
@@ -33401,6 +33476,21 @@
           "config.bloque_invalido":
             "Em um bloco horário, o fim deve " +
             "ser maior que o início.",
+          "config.enfoque_hora_actual_modo":
+            "Vista automatica",
+          "config.enfoque_hora_actual_completo":
+            "Mostrar horario completo",
+          "config.enfoque_hora_actual_enfocar":
+            "Focar ao redor de agora",
+          "config.enfoque_hora_actual_margen":
+            "Margem automatica",
+          "config.enfoque_hora_actual_atras":
+            "h atras",
+          "config.enfoque_hora_actual_adelante":
+            "h adiante",
+          "config.enfoque_hora_actual_nota":
+            "Aplica-se apenas na semana atual e fica abaixo " +
+            "do filtro manual do cabecalho.",
           "config.mostrar_desde":
             "Mostrar a partir de",
           "config.hasta": "até",
@@ -36426,6 +36516,9 @@
           "Tarde",
           "Noche"
         ],
+        Enfoque_Hora_Actual_Modo: "Completo",
+        Enfoque_Hora_Actual_Atras: 1,
+        Enfoque_Hora_Actual_Adelante: 6,
         Slots_Muertos_Default: {},
         Agrupar_Por_Categorias: false,
         Globito_Activo: true,
@@ -73837,6 +73930,45 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           "Cfg_Bloque_Noche_Hasta",
           Bloques.Noche
         );
+        const Cfg_Enfoque_Modo = document.getElementById(
+          "Cfg_Enfoque_Hora_Actual_Modo"
+        );
+        const Cfg_Enfoque_Atras = document.getElementById(
+          "Cfg_Enfoque_Hora_Actual_Atras"
+        );
+        const Cfg_Enfoque_Adelante = document.getElementById(
+          "Cfg_Enfoque_Hora_Actual_Adelante"
+        );
+        if (Cfg_Enfoque_Modo) {
+          Cfg_Enfoque_Modo.value =
+            Normalizar_Modo_Enfoque_Hora_Actual(
+              Config.Enfoque_Hora_Actual_Modo
+            );
+        }
+        if (Cfg_Enfoque_Atras) {
+          Cfg_Enfoque_Atras.value = String(
+            Normalizar_Horas_Enfoque_Hora_Actual(
+              Config.Enfoque_Hora_Actual_Atras,
+              1
+            )
+          );
+        }
+        if (Cfg_Enfoque_Adelante) {
+          Cfg_Enfoque_Adelante.value = String(
+            Normalizar_Horas_Enfoque_Hora_Actual(
+              Config.Enfoque_Hora_Actual_Adelante,
+              6
+            )
+          );
+        }
+        Actualizar_Config_Enfoque_Hora_Actual_UI();
+        if (Cfg_Enfoque_Modo && !Cfg_Enfoque_Modo._Listener) {
+          Cfg_Enfoque_Modo._Listener = true;
+          Cfg_Enfoque_Modo.addEventListener(
+            "change",
+            Actualizar_Config_Enfoque_Hora_Actual_UI
+          );
+        }
 
         // Inicio de semana (corte para contar re-fijadas).
         const El_Sem_Dia = document.getElementById(
@@ -83664,6 +83796,31 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      function Actualizar_Config_Enfoque_Hora_Actual_UI() {
+        const Modo = document.getElementById(
+          "Cfg_Enfoque_Hora_Actual_Modo"
+        );
+        const Campos = document.getElementById(
+          "Cfg_Enfoque_Hora_Actual_Campos"
+        );
+        const Nota = document.getElementById(
+          "Cfg_Enfoque_Hora_Actual_Nota"
+        );
+        const Atras = document.getElementById(
+          "Cfg_Enfoque_Hora_Actual_Atras"
+        );
+        const Adelante = document.getElementById(
+          "Cfg_Enfoque_Hora_Actual_Adelante"
+        );
+        const Activo =
+          Normalizar_Modo_Enfoque_Hora_Actual(Modo?.value) ===
+          "Enfocar";
+        if (Campos) Campos.hidden = !Activo;
+        if (Nota) Nota.hidden = !Activo;
+        if (Atras) Atras.disabled = !Activo;
+        if (Adelante) Adelante.disabled = !Activo;
+      }
+
       function Guardar_Config() {
         const Nuevo_Inicio = parseInt(
           document.getElementById("Cfg_Inicio_Hora").value
@@ -83755,6 +83912,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         }
         Config.Bloques_Horarios = Bloques_Nuevo;
+        Config.Enfoque_Hora_Actual_Modo =
+          Normalizar_Modo_Enfoque_Hora_Actual(
+            document.getElementById(
+              "Cfg_Enfoque_Hora_Actual_Modo"
+            )?.value
+          );
+        Config.Enfoque_Hora_Actual_Atras =
+          Normalizar_Horas_Enfoque_Hora_Actual(
+            document.getElementById(
+              "Cfg_Enfoque_Hora_Actual_Atras"
+            )?.value,
+            1
+          );
+        Config.Enfoque_Hora_Actual_Adelante =
+          Normalizar_Horas_Enfoque_Hora_Actual(
+            document.getElementById(
+              "Cfg_Enfoque_Hora_Actual_Adelante"
+            )?.value,
+            6
+          );
 
         // Inicio de semana (corte para contar re-fijadas).
         const Sem_Dia_El = document.getElementById(
@@ -86015,6 +86192,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Normalizar_Modo_Enfoque_Hora_Actual(Valor) {
+        return Valor === "Enfocar" ? "Enfocar" : "Completo";
+      }
+
+      function Normalizar_Horas_Enfoque_Hora_Actual(
+        Valor,
+        Fallback
+      ) {
+        const Numero = Math.round(Number(Valor));
+        if (!Number.isFinite(Numero)) return Fallback;
+        return Math.max(0, Math.min(24, Numero));
+      }
+
+      function Enfoque_Hora_Actual_Esta_Activo() {
+        return Normalizar_Modo_Enfoque_Hora_Actual(
+          Config.Enfoque_Hora_Actual_Modo
+        ) === "Enfocar";
+      }
+
       function Obtener_Bloques_Horarios_Visibles_Manual() {
         if (
           !Calendario_Bloques_Horarios_Manual_Semana ||
@@ -86052,9 +86248,63 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Obtener_Bloques_Horarios_Visibles_Efectivos() {
         const Manual = Obtener_Bloques_Horarios_Visibles_Manual();
         if (Manual) return Manual;
+        if (
+          Semana_Visible_Es_Actual() &&
+          Enfoque_Hora_Actual_Esta_Activo()
+        ) {
+          return Obtener_Ids_Bloques_Horarios();
+        }
         return Semana_Visible_Es_Actual()
           ? Obtener_Bloques_Horarios_Visibles_Base()
           : Obtener_Ids_Bloques_Horarios();
+      }
+
+      function Obtener_Segmento_Enfoque_Hora_Actual() {
+        if (
+          !Semana_Visible_Es_Actual() ||
+          !Enfoque_Hora_Actual_Esta_Activo() ||
+          Obtener_Bloques_Horarios_Visibles_Manual()
+        ) {
+          return null;
+        }
+        const Hora_Actual = new Date().getHours();
+        const Atras = Normalizar_Horas_Enfoque_Hora_Actual(
+          Config.Enfoque_Hora_Actual_Atras,
+          1
+        );
+        const Adelante = Normalizar_Horas_Enfoque_Hora_Actual(
+          Config.Enfoque_Hora_Actual_Adelante,
+          6
+        );
+        const Desde = Math.max(
+          Config.Inicio_Hora,
+          Math.min(Config.Fin_Hora - 1, Hora_Actual - Atras)
+        );
+        const Hasta = Math.min(
+          Config.Fin_Hora,
+          Math.max(Config.Inicio_Hora + 1, Hora_Actual + Adelante + 1)
+        );
+        return Hasta > Desde ? { Desde, Hasta } : null;
+      }
+
+      function Intersecar_Segmentos_Horarios(
+        Segmentos,
+        Filtro
+      ) {
+        if (!Array.isArray(Segmentos) || !Filtro) return Segmentos;
+        const Resultado = [];
+        Segmentos.forEach((S) => {
+          const Desde = Math.max(
+            Number(S?.Desde) || 0,
+            Number(Filtro.Desde) || 0
+          );
+          const Hasta = Math.min(
+            Number(S?.Hasta) || 0,
+            Number(Filtro.Hasta) || 0
+          );
+          if (Hasta > Desde) Resultado.push({ Desde, Hasta });
+        });
+        return Resultado.length ? Resultado : Segmentos;
       }
 
       function Obtener_Segmentos_Horarios_Visibles() {
@@ -86106,7 +86356,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           ];
         }
-        return Unificados;
+        return Intersecar_Segmentos_Horarios(
+          Unificados,
+          Obtener_Segmento_Enfoque_Hora_Actual()
+        );
       }
 
       function Calcular_Duracion_Segmentos_Horarios(Segmentos) {
@@ -96827,6 +97080,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Bloques_Horarios: Config.Bloques_Horarios,
             Bloques_Horarios_Visibles:
               Config.Bloques_Horarios_Visibles,
+            Enfoque_Hora_Actual_Modo:
+              Config.Enfoque_Hora_Actual_Modo,
+            Enfoque_Hora_Actual_Atras:
+              Config.Enfoque_Hora_Actual_Atras,
+            Enfoque_Hora_Actual_Adelante:
+              Config.Enfoque_Hora_Actual_Adelante,
             Slots_Muertos_Default: Config.Slots_Muertos_Default,
             Agrupar_Por_Categorias: Config.Agrupar_Por_Categorias,
             Globito_Activo: Config.Globito_Activo,
@@ -97079,6 +97338,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Config.Bloques_Horarios_Visibles =
                 Normalizar_Bloques_Horarios_Visibles(
                   Extra.Bloques_Horarios_Visibles
+                );
+            }
+            if (Extra.Enfoque_Hora_Actual_Modo !== undefined) {
+              Config.Enfoque_Hora_Actual_Modo =
+                Normalizar_Modo_Enfoque_Hora_Actual(
+                  Extra.Enfoque_Hora_Actual_Modo
+                );
+            }
+            if (Extra.Enfoque_Hora_Actual_Atras !== undefined) {
+              Config.Enfoque_Hora_Actual_Atras =
+                Normalizar_Horas_Enfoque_Hora_Actual(
+                  Extra.Enfoque_Hora_Actual_Atras,
+                  1
+                );
+            }
+            if (Extra.Enfoque_Hora_Actual_Adelante !== undefined) {
+              Config.Enfoque_Hora_Actual_Adelante =
+                Normalizar_Horas_Enfoque_Hora_Actual(
+                  Extra.Enfoque_Hora_Actual_Adelante,
+                  6
                 );
             }
             if (Extra.Slots_Muertos_Default)
