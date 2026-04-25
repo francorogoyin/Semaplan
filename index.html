@@ -1510,6 +1510,16 @@
         gap: 6px;
       }
 
+      .Subobjetivos_Pie {
+        display: none;
+        justify-content: flex-end;
+        margin-top: 8px;
+      }
+
+      .Subobjetivos_Pie:has(.Subobjetivos_Importar_Partes.Activo) {
+        display: flex;
+      }
+
       .Subobjetivos_Toggle {
         width: 22px;
         height: 22px;
@@ -1524,21 +1534,25 @@
       }
 
       .Subobjetivos_Importar_Partes {
-        min-height: 24px;
-        border: 1px solid var(--Borde);
-        border-radius: 8px;
-        background: #fff;
+        border: 0;
+        background: transparent;
         color: var(--Texto);
         cursor: pointer;
         display: none;
         font: inherit;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
-        padding: 3px 8px;
+        line-height: 1.2;
+        padding: 0;
       }
 
       .Subobjetivos_Importar_Partes.Activo {
         display: inline-flex;
+      }
+
+      .Subobjetivos_Importar_Partes:hover {
+        color: var(--Acento);
+        text-decoration: underline;
       }
 
       .Subobjetivos_Lista {
@@ -2251,7 +2265,7 @@
       }
 
       .Objetivo_Modal_Panel {
-        max-width: 580px;
+        max-width: 760px;
       }
 
       /* Encabezado fijo (cabecera + stats + acciones) */
@@ -2320,7 +2334,7 @@
       /* Stats cards */
       .Objetivo_Stats_Cards {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 10px;
         margin-bottom: 12px;
       }
@@ -2340,6 +2354,10 @@
         text-transform: uppercase;
         color: var(--Texto_Suave);
         letter-spacing: 0.4px;
+      }
+
+      .Objetivo_Stat_Card_Label:empty {
+        display: none;
       }
 
       .Objetivo_Stat_Card_Valor {
@@ -7879,6 +7897,10 @@
 
       .Planes_Partes_Modal {
         max-width: 820px;
+      }
+
+      #Planes_Importar_Partes_Lista .Planes_Parte {
+        grid-template-columns: auto auto minmax(0, 1fr);
       }
 
       .Planes_Subobjetivos_Modal > .Patron_Modal_Cuerpo,
@@ -23347,15 +23369,17 @@
                   Administrar subobjetivos
                 </span>
                 <span class="Subobjetivos_Encabezado_Derecha">
-                  <button class="Subobjetivos_Importar_Partes"
-                    id="Subobjetivos_Importar_Partes"
-                    data-i18n="planes.importar_partes_meta"
-                    type="button">Importar partes de la meta</button>
                   <span id="Subobjetivos_Contador">0/0</span>
                   <button class="Subobjetivos_Toggle" id="Subobjetivos_Toggle" type="button" title="Contraer/expandir subobjetivos" data-i18n-title="resumen_objetivo.subobjetivos_toggle_title">−</button>
                 </span>
               </div>
               <div class="Subobjetivos_Lista" id="Subobjetivos_Lista"></div>
+              <div class="Subobjetivos_Pie">
+                <button class="Subobjetivos_Importar_Partes"
+                  id="Subobjetivos_Importar_Partes"
+                  data-i18n="planes.importar_partes_meta"
+                  type="button">Importar partes de la meta</button>
+              </div>
             </div>
           </div>
 
@@ -27870,6 +27894,8 @@
           "resumen.card_unidad_sin_nombre": "Sin unidad",
           "resumen.card_unidades_detalle":
             "{realizadas} realizadas - {restantes} restantes",
+          "resumen.card_unidades_detalle_simple":
+            "{realizadas} realizadas - {restantes} restantes",
           "objetivo.sin_nombre": "Sin nombre"
         },
         en: {
@@ -31932,6 +31958,8 @@
           "resumen.card_restante": "Left",
           "resumen.card_unidad_sin_nombre": "No unit",
           "resumen.card_unidades_detalle":
+            "{realizadas} done - {restantes} left",
+          "resumen.card_unidades_detalle_simple":
             "{realizadas} done - {restantes} left",
           "objetivo.sin_nombre": "Untitled"
         },
@@ -36110,6 +36138,8 @@
           "resumen.card_restante": "Restante",
           "resumen.card_unidad_sin_nombre": "Sem unidade",
           "resumen.card_unidades_detalle":
+            "{realizadas} realizadas - {restantes} restantes",
+          "resumen.card_unidades_detalle_simple":
             "{realizadas} realizadas - {restantes} restantes",
           "objetivo.sin_nombre": "Sem nome"
         }
@@ -100622,10 +100652,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Numero = Planes_Formatear_Numero(Cantidad);
           return Unidad ? `${Numero} ${Unidad}` : Numero;
         };
+        const Formatear_Cantidad = (Cantidad) =>
+          Planes_Formatear_Numero(Cantidad);
         Calcular_Unidades_Subobjetivos_Objetivo(Objetivo)
           .forEach((Item) => {
-            const Unidad_Label = Item.Unidad ||
-              t("resumen.card_unidad_sin_nombre");
             const Pct_U = Item.Total > 0
               ? Math.min(
                 100,
@@ -100634,17 +100664,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               : 0;
             Cont.appendChild(
               Crear_Card(
-                `${t("resumen.card_unidades")} - ${Unidad_Label}`,
+                "",
                 Formatear_Unidad(Item.Total, Item.Unidad),
-                t("resumen.card_unidades_detalle", {
-                  realizadas: Formatear_Unidad(
-                    Item.Realizadas,
-                    Item.Unidad
-                  ),
-                  restantes: Formatear_Unidad(
-                    Item.Restantes,
-                    Item.Unidad
-                  )
+                t("resumen.card_unidades_detalle_simple", {
+                  realizadas: Formatear_Cantidad(Item.Realizadas),
+                  restantes: Formatear_Cantidad(Item.Restantes)
                 }),
                 Pct_U,
                 Color_T
