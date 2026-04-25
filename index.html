@@ -72573,6 +72573,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : Obtener_Items_Contenido_Plan_Evento(Evento_Data);
       }
 
+      function Item_Plan_Evento_Vinculado_A_Tarea(Item) {
+        if (!Item || typeof Item !== "object") return false;
+        if (String(Item.Habito_Id || "").trim()) return false;
+        if (Item.Suelta === false) return true;
+        return Boolean(
+          String(Item.Plantilla_Id || "").trim() ||
+          String(Item.Parte_Meta_Id || "").trim() ||
+          String(Item.Sub_Id_Local || "").trim()
+        );
+      }
+
+      function Plan_Evento_Admite_Copiar_Cortar(Evento_Data) {
+        const Items = Obtener_Items_Copiables_Plan_Evento(
+          Evento_Data
+        );
+        return Items.length > 0 &&
+          !Items.some(Item_Plan_Evento_Vinculado_A_Tarea);
+      }
+
       function Obtener_Abordaje_Con_Plan_Slot(Evento_Data) {
         const Base = Obtener_Items_Abordaje_Evento(Evento_Data);
         if (
@@ -72853,6 +72872,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planeada: true
         }));
         if (!Items.length) return false;
+        if (Items.some(Item_Plan_Evento_Vinculado_A_Tarea)) {
+          return false;
+        }
         Portapapeles_Plan_Evento = {
           Evento_Id: Evento_Data.Id,
           Origen_Tipo: "Evento",
@@ -73035,6 +73057,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Tiene_Plan =
           Evento_Tiene_Contenido_Plan(Evento_Data);
+        const Puede_Copiar_Cortar_Plan =
+          Tiene_Plan &&
+          Plan_Evento_Admite_Copiar_Cortar(Evento_Data);
         const Puede_Pegar_Plan =
           Boolean(Obtener_Portapapeles_Plan_Para_Evento(
             Evento_Data
@@ -73052,18 +73077,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             )
           );
           if (Tiene_Plan) {
-            Grupo_Plan.push(
-              Html_Menu_Dia_Accion(
-                "copiar-plan-evento",
-                t("slot.copiar_plan")
-              )
-            );
-            Grupo_Plan.push(
-              Html_Menu_Dia_Accion(
-                "cortar-plan-evento",
-                t("slot.cortar_plan")
-              )
-            );
+            if (Puede_Copiar_Cortar_Plan) {
+              Grupo_Plan.push(
+                Html_Menu_Dia_Accion(
+                  "copiar-plan-evento",
+                  t("slot.copiar_plan")
+                )
+              );
+              Grupo_Plan.push(
+                Html_Menu_Dia_Accion(
+                  "cortar-plan-evento",
+                  t("slot.cortar_plan")
+                )
+              );
+            }
             Grupo_Plan.push(
               Html_Menu_Dia_Accion(
                 "borrar-plan-evento",

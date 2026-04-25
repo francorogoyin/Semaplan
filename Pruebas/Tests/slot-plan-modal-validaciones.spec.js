@@ -846,6 +846,120 @@ test("menu de bloque copia pega y borra plan", async ({ page }) => {
   expect(borrado.tiene_plan).toBeFalsy();
 });
 
+test("menu de bloque no copia ni corta planes vinculados a tareas", async ({
+  page
+}) => {
+  const estado = Estado_Base();
+  estado.Objetivos = [{
+    Id: "obj_vinculado",
+    Nombre: "Tarea vinculada",
+    Emoji: "*",
+    Color: "#1f6b4f",
+    Horas_Semanales: 1,
+    Es_Bolsa: false,
+    Subobjetivos_Semanales: {},
+    Subobjetivos_Contraidas_Semanales: {},
+    Subobjetivos_Excluidos_Semanales: {}
+  }];
+  estado.Eventos = [
+    {
+      Id: "ev_plan_sub",
+      Objetivo_Id: "obj_vinculado",
+      Fecha: "2026-04-13",
+      Inicio: 9,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: "",
+      Abordaje: [{
+        Id: "ab_sub",
+        Texto: "Subobjetivo de tarea",
+        Emoji: "*",
+        Plantilla_Id: "plantilla_sub",
+        Suelta: false,
+        Planeada: true
+      }]
+    },
+    {
+      Id: "ev_plan_habito",
+      Objetivo_Id: "obj_vinculado",
+      Fecha: "2026-04-13",
+      Inicio: 11,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: "#1f6b4f",
+      Nota: "",
+      Abordaje: [{
+        Id: "ab_habito",
+        Texto: "Habito portable",
+        Emoji: "*",
+        Habito_Id: "hab_1",
+        Suelta: true,
+        Planeada: true
+      }]
+    }
+  ];
+  await Preparar(page, estado);
+
+  const resultado = await page.evaluate(() => {
+    const Vinculado = Eventos.find((Ev) => Ev.Id === "ev_plan_sub");
+    const Habito = Eventos.find((Ev) => Ev.Id === "ev_plan_habito");
+    Portapapeles_Plan_Evento = null;
+    Portapapeles_Calendario_Modo = "";
+
+    Mostrar_Menu_Evento(Vinculado, 10, 10);
+    const accionesVinculado = Array.from(
+      document.querySelectorAll(
+        "#Dia_Accion_Menu .Dia_Accion_Item"
+      )
+    ).map((item) => item.getAttribute("data-acc"));
+    Cerrar_Menu_Dia();
+
+    const copiaVinculada = Copiar_Plan_Evento(Vinculado);
+    const cortaVinculada = Cortar_Plan_Evento(Vinculado);
+    const clipboardBloqueado = Portapapeles_Plan_Evento;
+
+    Mostrar_Menu_Evento(Habito, 10, 10);
+    const accionesHabito = Array.from(
+      document.querySelectorAll(
+        "#Dia_Accion_Menu .Dia_Accion_Item"
+      )
+    ).map((item) => item.getAttribute("data-acc"));
+    Cerrar_Menu_Dia();
+
+    const copiaHabito = Copiar_Plan_Evento(Habito);
+
+    return {
+      accionesVinculado,
+      copiaVinculada,
+      cortaVinculada,
+      clipboardBloqueado,
+      accionesHabito,
+      copiaHabito,
+      clipboardHabito:
+        Portapapeles_Plan_Evento?.Items?.[0]?.Habito_Id || ""
+    };
+  });
+
+  expect(resultado.accionesVinculado)
+    .not.toContain("copiar-plan-evento");
+  expect(resultado.accionesVinculado)
+    .not.toContain("cortar-plan-evento");
+  expect(resultado.accionesVinculado)
+    .toContain("borrar-plan-evento");
+  expect(resultado.copiaVinculada).toBeFalsy();
+  expect(resultado.cortaVinculada).toBeFalsy();
+  expect(resultado.clipboardBloqueado).toBeNull();
+  expect(resultado.accionesHabito)
+    .toContain("copiar-plan-evento");
+  expect(resultado.accionesHabito)
+    .toContain("cortar-plan-evento");
+  expect(resultado.copiaHabito).toBeTruthy();
+  expect(resultado.clipboardHabito).toBe("hab_1");
+});
+
 test("menu de bloque reemplaza plan con confirmacion", async ({
   page
 }) => {
