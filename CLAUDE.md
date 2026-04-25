@@ -232,6 +232,21 @@ instrucciones, agregar un resumen breve al comienzo de
 archivo y hora local de Argentina (`America/Buenos_Aires`). El registro
 debe quedar antes de los registros anteriores.
 
+### Control de cierre de avances
+
+Antes de dar por cerrado cualquier avance, hacer una revision critica
+breve despues de implementar y probar. La pregunta guia es: "Ademas
+del caso pedido, falta cubrir alguna variante razonable, caso borde,
+flujo vecino o efecto colateral?".
+
+La revision debe considerar, segun aplique: estados vacios, edicion,
+borrado, deshacer, persistencia tras recargar, sync, mobile/desktop,
+menus contextuales, permisos, traducciones, datos viejos y relacion con
+funciones cercanas. Si aparece una omision concreta y razonable, volver
+al codigo y resolverla antes de registrar, commitear y pushear. Si no
+aparece nada relevante, no inventar trabajo extra: registrar solo que
+el avance quedo validado con pruebas y revision de variantes.
+
 ### Regla general de guardado
 
 Seguir `Documentacion/Planes/Funcionamiento_Semaplan.md`.
