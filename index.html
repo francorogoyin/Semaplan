@@ -1190,7 +1190,7 @@
         width: 38px;
         height: 38px;
         border-radius: 50%;
-        border: 1px solid var(--Borde);
+        border: 0;
         background: #fff;
         display: grid;
         place-items: center;
@@ -1202,6 +1202,7 @@
         touch-action: manipulation;
         -webkit-touch-callout: none;
         user-select: none;
+        box-shadow: inset 0 0 0 1px var(--Borde);
       }
 
       .Emoji_Item:focus-visible {
@@ -1234,12 +1235,12 @@
 
       .Emoji_Item.Activa {
         border-color: var(--Borde);
-        box-shadow: none;
+        box-shadow: inset 0 0 0 1px var(--Borde);
       }
 
       .Emoji_Item.Multi_Activa {
         border-color: var(--Borde);
-        box-shadow: none;
+        box-shadow: inset 0 0 0 1px var(--Borde);
         position: relative;
       }
 
@@ -1763,6 +1764,10 @@
         max-height: calc(100vh - 32px);
         position: relative;
         overflow: visible;
+      }
+
+      .Panel.Calendario_Contenedor {
+        overflow: visible !important;
       }
 
       .Calendario_Top {
@@ -15483,7 +15488,10 @@
       .Emoji_Item.Completa,
       .Emoji_Item.Fracasada,
       .Emoji_Item.Sin_Horas {
-        border-color: var(--Borde) !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: 0 !important;
+        box-shadow: inset 0 0 0 1px var(--Borde) !important;
       }
 
       /* --- Diálogo genérico (posición fija, modal total) --- */
@@ -83843,6 +83851,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Pop.parentElement !== document.body) {
           document.body.appendChild(Pop);
         }
+        Pop.style.setProperty("position", "fixed", "important");
+        Pop.style.setProperty("z-index", "13000", "important");
 
         const Estilo = Config.Menu_Estilo === "Hamburguesa"
           ? "Hamburguesa" : "Iconos";
@@ -98413,6 +98423,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Boton = document.createElement("button");
         Boton.type = "button";
         Boton.className = "Emoji_Item";
+        Boton.style.setProperty("border", "0", "important");
+        Boton.style.setProperty("outline", "0", "important");
+        Boton.style.setProperty(
+          "box-shadow",
+          "inset 0 0 0 1px var(--Borde)",
+          "important"
+        );
         if (
           Objetivo.Id === Objetivo_Seleccionada_Id ||
           Objetivo.Id === Objetivo_Touch_Para_Bloque_Id

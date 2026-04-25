@@ -195,13 +195,16 @@ async ({ page }) => {
       Meta_Color: Meta.borderTopColor,
       Objetivo_Color: Objetivo.borderTopColor,
       Objetivo_Ancho: Objetivo.borderTopWidth,
-      Objetivo_Estilo: Objetivo.borderTopStyle
+      Objetivo_Estilo: Objetivo.borderTopStyle,
+      Objetivo_Aro: Objetivo.boxShadow,
+      Objetivo_Inline: Boton_Objetivo.getAttribute("style") || ""
     };
   });
 
-  expect(Bordes.Objetivo_Color).toBe(Bordes.Meta_Color);
-  expect(Bordes.Objetivo_Ancho).toBe("1px");
-  expect(Bordes.Objetivo_Estilo).toBe("solid");
+  expect(Bordes.Objetivo_Ancho).toBe("0px");
+  expect(Bordes.Objetivo_Estilo).toBe("none");
+  expect(Bordes.Objetivo_Aro).toContain(Bordes.Meta_Color);
+  expect(Bordes.Objetivo_Inline).toContain("box-shadow");
 
   await page.evaluate(() => {
     Objetivo_Seleccionada_Id = Objetivos[0]?.Id || null;
@@ -218,12 +221,14 @@ async ({ page }) => {
     return {
       Meta_Color: getComputedStyle(Boton_Meta).borderTopColor,
       Objetivo_Color:
-        getComputedStyle(Boton_Objetivo).borderTopColor
+        getComputedStyle(Boton_Objetivo).borderTopColor,
+      Objetivo_Aro:
+        getComputedStyle(Boton_Objetivo).boxShadow
     };
   });
 
-  expect(Borde_Activo.Objetivo_Color)
-    .toBe(Borde_Activo.Meta_Color);
+  expect(Borde_Activo.Objetivo_Aro)
+    .toContain(Borde_Activo.Meta_Color);
 });
 
 test("los estados de objetivos conservan el borde de metas",
@@ -257,15 +262,16 @@ async ({ page }) => {
         Meta_Color,
         Color: Estilo.borderTopColor,
         Ancho: Estilo.borderTopWidth,
-        Estilo: Estilo.borderTopStyle
+        Estilo: Estilo.borderTopStyle,
+        Aro: Estilo.boxShadow
       };
     });
   });
 
   Bordes.forEach((Borde) => {
-    expect(Borde.Color).toBe(Borde.Meta_Color);
-    expect(Borde.Ancho).toBe("1px");
-    expect(Borde.Estilo).toBe("solid");
+    expect(Borde.Ancho).toBe("0px");
+    expect(Borde.Estilo).toBe("none");
+    expect(Borde.Aro).toContain(Borde.Meta_Color);
   });
 });
 
