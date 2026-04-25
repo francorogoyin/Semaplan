@@ -90533,6 +90533,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Crear_Form_Tarea(Prefijo = "Tareas", Tarea = null) {
         const Cajones = Tareas_Cajones();
         const Prioridad = Normalizar_Prioridad_Tarea(Tarea?.Prioridad);
+        const Fecha_Default = Tarea?.Fecha ||
+          (Prefijo === "Tareas_Rapida"
+            ? Formatear_Fecha_ISO(new Date())
+            : "");
         const Form = document.createElement("div");
         Form.className = "Tareas_Form";
         Form.innerHTML = `
@@ -90580,7 +90584,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           <label class="Habitos_Modal_Campo Fecha">
             <span class="Habitos_Modal_Label">Fecha</span>
             <input class="Habitos_Modal_Input" id="${Prefijo}_Fecha"
-              type="date" value="${Escape_Html(Tarea?.Fecha || "")}">
+              type="date" value="${Escape_Html(Fecha_Default)}">
           </label>
           <label class="Habitos_Modal_Campo Hora">
             <span class="Habitos_Modal_Label">Hora</span>
