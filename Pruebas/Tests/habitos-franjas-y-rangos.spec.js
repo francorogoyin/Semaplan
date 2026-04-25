@@ -2329,6 +2329,53 @@ test("panel de habitos mantiene orden, alto y alterna realizados", async ({
       .filter(Boolean).length
   );
   expect(columnas).toBe(5);
+  const distribucion = await page.locator(
+    '[data-habitos-card="Habito_Primero"] .Habitos_Card_MetaGrid'
+  ).evaluate((Grid) => {
+    const Items = Array.from(
+      Grid.querySelectorAll(".Habitos_Card_Dato")
+    );
+    const Anchos = Items.map((Item) =>
+      Math.round(Item.getBoundingClientRect().width)
+    );
+    const Diferencias_Centro = Items.map((Item) => {
+      const Etiqueta = Item.querySelector("span");
+      const Valor = Item.querySelector("strong");
+      const Boton = Item.querySelector(".Habitos_Card_Registro_Link");
+      const Rect_Etiqueta = Etiqueta.getBoundingClientRect();
+      const Rect_Valor = (Boton || Valor).getBoundingClientRect();
+      const Centro_Etiqueta =
+        Rect_Etiqueta.left + Rect_Etiqueta.width / 2;
+      const Centro_Valor = Rect_Valor.left + Rect_Valor.width / 2;
+      return Math.abs(Centro_Etiqueta - Centro_Valor);
+    });
+    const Detalle = Grid.closest(".Habitos_Card_Detalle");
+    const Estilo_Detalle = getComputedStyle(Detalle);
+    const Ancho_Detalle =
+      Detalle.getBoundingClientRect().width -
+      parseFloat(Estilo_Detalle.paddingLeft) -
+      parseFloat(Estilo_Detalle.paddingRight);
+    return {
+      Ancho_Grid: Math.round(Grid.getBoundingClientRect().width),
+      Ancho_Detalle: Math.round(Ancho_Detalle),
+      Diferencia_Anchos: Math.max(...Anchos) - Math.min(...Anchos),
+      Diferencia_Centros: Math.max(...Diferencias_Centro),
+      Alineaciones: Items.map((Item) => ({
+        Etiqueta: getComputedStyle(Item.querySelector("span")).textAlign,
+        Valor: getComputedStyle(Item.querySelector("strong")).textAlign
+      }))
+    };
+  });
+  expect(
+    Math.abs(distribucion.Ancho_Grid - distribucion.Ancho_Detalle)
+  ).toBeLessThanOrEqual(1);
+  expect(distribucion.Diferencia_Anchos).toBeLessThanOrEqual(1);
+  expect(distribucion.Diferencia_Centros).toBeLessThanOrEqual(1);
+  expect(
+    distribucion.Alineaciones.every((Item) =>
+      Item.Etiqueta === "center" && Item.Valor === "center"
+    )
+  ).toBe(true);
   const registro = await page.locator(
     '[data-habitos-registro-habito="Habito_Primero"]'
   ).evaluate((Boton) => {
