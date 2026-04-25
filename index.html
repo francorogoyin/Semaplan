@@ -10062,6 +10062,26 @@
         color: #8c2f2f;
       }
 
+      .Habitos_Card_Registro_Link {
+        border: 0;
+        background: transparent;
+        color: var(--Acento);
+        cursor: pointer;
+        display: inline-grid;
+        place-items: center;
+        font: inherit;
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1;
+        padding: 0 2px;
+      }
+
+      .Habitos_Card_Registro_Link:hover,
+      .Habitos_Card_Registro_Link:focus-visible {
+        color: #125a42;
+        outline: none;
+      }
+
       .Habitos_Vinculos_Grupo {
         border: 1px solid rgba(143, 124, 98, 0.18);
         border-radius: 8px;
@@ -24318,7 +24338,7 @@
           "habitos.periodo": "Per\u00edodo",
           "habitos.periodo_dia": "Por d\u00eda",
           "habitos.periodo_semana": "Por semana",
-          "habitos.periodo_quincena": "Por quincena",
+          "habitos.periodo_quincena": "Por dos semanas",
           "habitos.periodo_mes": "Por mes",
           "habitos.meta_cantidad": "Meta",
           "habitos.meta_maxima": "Máximo",
@@ -24382,7 +24402,7 @@
           "habitos.card_promedio": "Promedio",
           "habitos.unidad_dias": "d\u00eda(s)",
           "habitos.unidad_semanas": "semana(s)",
-          "habitos.unidad_quincenas": "quincena(s)",
+          "habitos.unidad_quincenas": "bloque(s) de dos semanas",
           "habitos.unidad_meses": "mes(es)",
           "habitos.borrar_confirm":
             "Este h\u00e1bito aparece en {planes} plan(es), {patrones} patr\u00f3n(es) y {fuentes} fuente(s).",
@@ -28469,7 +28489,7 @@
           "habitos.periodo": "Period",
           "habitos.periodo_dia": "Per day",
           "habitos.periodo_semana": "Per week",
-          "habitos.periodo_quincena": "Per half-month",
+          "habitos.periodo_quincena": "Per two weeks",
           "habitos.periodo_mes": "Per month",
           "habitos.meta_cantidad": "Target",
           "habitos.meta_maxima": "Maximum",
@@ -28531,7 +28551,7 @@
           "habitos.card_promedio": "Average",
           "habitos.unidad_dias": "day(s)",
           "habitos.unidad_semanas": "week(s)",
-          "habitos.unidad_quincenas": "half-month(s)",
+          "habitos.unidad_quincenas": "two-week period(s)",
           "habitos.unidad_meses": "month(s)",
           "habitos.borrar_confirm":
             "This habit appears in {planes} plan(s), {patrones} pattern(s) and {fuentes} source(s).",
@@ -32561,7 +32581,7 @@
           "habitos.periodo": "Periodo",
           "habitos.periodo_dia": "Por dia",
           "habitos.periodo_semana": "Por semana",
-          "habitos.periodo_quincena": "Por quinzena",
+          "habitos.periodo_quincena": "A cada duas semanas",
           "habitos.periodo_mes": "Por mes",
           "habitos.meta_cantidad": "Meta",
           "habitos.meta_maxima": "Máximo",
@@ -32625,7 +32645,7 @@
           "habitos.card_promedio": "Media",
           "habitos.unidad_dias": "dia(s)",
           "habitos.unidad_semanas": "semana(s)",
-          "habitos.unidad_quincenas": "quinzena(s)",
+          "habitos.unidad_quincenas": "periodo(s) de duas semanas",
           "habitos.unidad_meses": "mes(es)",
           "habitos.borrar_confirm":
             "Este habito aparece em {planes} plano(s), {patrones} padrao(es) e {fuentes} fonte(s).",
@@ -36776,7 +36796,8 @@
         // Inicio_Semana_Dia: 0=Lun ... 6=Dom.
         Inicio_Semana_Dia: 0,
         Inicio_Semana_Hora: 8,
-        Tareas_Contador_Periodo: "Hoy"
+        Tareas_Contador_Periodo: "Hoy",
+        Tareas_Vista_Memoria: "Hoy"
       };
       let Backup_Auto_Timer_Id = null;
       const Backup_Auto_Timer_Max_Ms = 2147480000;
@@ -37107,7 +37128,7 @@
       let Tareas_Cajones_Definidos = ["Inbox"];
       let Tareas_Modal_Vista = "Panel";
       let Tareas_En_Edicion_Id = "";
-      let Tareas_Vista = "Inbox";
+      let Tareas_Vista = "Temporal";
       let Tareas_Temporal_Modo = "Hoy";
       let Tareas_Panel_Fecha = "";
       let Tareas_Cajon_Activo = "";
@@ -77223,13 +77244,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Habitos_Rango_Quincena(Fecha) {
         const Base = Parsear_Fecha_ISO(Fecha) || new Date();
-        const Anio = Base.getFullYear();
-        const Mes = Base.getMonth();
-        const Es_Primera = Base.getDate() <= 15;
-        const Inicio = new Date(Anio, Mes, Es_Primera ? 1 : 16);
-        const Fin = Es_Primera
-          ? new Date(Anio, Mes, 15)
-          : Ultimo_Dia_Mes(Anio, Mes);
+        const Lunes = Obtener_Lunes(Base);
+        const Ancla = new Date(1970, 0, 5);
+        const Semanas_Desde_Ancla = Math.floor(
+          Dias_Entre(Ancla, Lunes) / 7
+        );
+        const Offset = ((Semanas_Desde_Ancla % 2) + 2) % 2;
+        const Inicio = Sumar_Dias(Lunes, -7 * Offset);
+        const Fin = Sumar_Dias(Inicio, 13);
         return {
           Inicio: Formatear_Fecha_ISO(Inicio),
           Fin: Formatear_Fecha_ISO(Fin)
@@ -77278,12 +77300,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return Formatear_Fecha_ISO(Sumar_Dias(Base, -7));
         }
         if (Periodo === "Quincena") {
-          const Anio = Base.getFullYear();
-          const Mes = Base.getMonth();
-          const Anterior = Base.getDate() <= 15
-            ? new Date(Anio, Mes - 1, 16)
-            : new Date(Anio, Mes, 1);
-          return Formatear_Fecha_ISO(Anterior);
+          const Rango = Habitos_Rango_Quincena(
+            Formatear_Fecha_ISO(Base)
+          );
+          const Inicio = Parsear_Fecha_ISO(Rango.Inicio) || Base;
+          return Formatear_Fecha_ISO(Sumar_Dias(Inicio, -14));
         }
         if (Periodo === "Mes") {
           return Formatear_Fecha_ISO(
@@ -77336,36 +77357,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `${Habitos_Formatear_Fecha_DDMMYYYY(Rango.Fin)}`;
       }
 
-      function Habitos_Rango_Quincena(Fecha) {
-        const Fecha_Obj = Parsear_Fecha_ISO(Fecha) || new Date();
-        const Anio = Fecha_Obj.getFullYear();
-        const Mes = Fecha_Obj.getMonth();
-        const Inicio_Dia = Fecha_Obj.getDate() <= 15 ? 1 : 16;
-        const Fin_Dia = Inicio_Dia === 1
-          ? 15
-          : new Date(Anio, Mes + 1, 0).getDate();
-        return {
-          Inicio: Formatear_Fecha_ISO(new Date(Anio, Mes, Inicio_Dia)),
-          Fin: Formatear_Fecha_ISO(new Date(Anio, Mes, Fin_Dia))
-        };
-      }
-
       function Habitos_Navegar_Quincena(Fecha, Direccion) {
-        const Fecha_Obj = Parsear_Fecha_ISO(Fecha) || new Date();
-        const Anio = Fecha_Obj.getFullYear();
-        const Mes = Fecha_Obj.getMonth();
-        const Dia = Fecha_Obj.getDate();
-        if (Direccion > 0) {
-          return Formatear_Fecha_ISO(
-            Dia <= 15
-              ? new Date(Anio, Mes, 16)
-              : new Date(Anio, Mes + 1, 1)
-          );
-        }
+        const Rango = Habitos_Rango_Quincena(Fecha);
+        const Inicio = Parsear_Fecha_ISO(Rango.Inicio) || new Date();
+        const Delta = Direccion > 0 ? 14 : -14;
         return Formatear_Fecha_ISO(
-          Dia <= 15
-            ? new Date(Anio, Mes - 1, 16)
-            : new Date(Anio, Mes, 1)
+          Sumar_Dias(Inicio, Delta)
         );
       }
 
@@ -77788,6 +77785,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             return {
               Clave: "Pendiente",
               Label: t("habitos.estado_pendiente")
+            };
+          }
+          if (
+            Habito_Modo_Visible(Habito) === "Tiempo" &&
+            Habito_Periodo_Finalizado(Habito, Fecha)
+          ) {
+            return {
+              Clave: "Realizado",
+              Label: t("habitos.estado_realizado")
             };
           }
           if (
@@ -78797,7 +78803,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 <div class="Habitos_Card_Dato">
                   <span>${t("habitos.panel_registro")}</span>
                   <strong>
-                    <button class="Habitos_Accion_Icono" type="button"
+                    <button class="Habitos_Card_Registro_Link" type="button"
                       data-habitos-registro-habito="${
                         Escape_Html(Habito.Id)
                       }"
@@ -90011,7 +90017,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Habitos_Registros = (Array.isArray(Habitos_Registros)
           ? Habitos_Registros
           : [])
-          .map(Normalizar_Habito_Registro)
+          .map((Registro) => {
+            const Normalizado = Normalizar_Habito_Registro(Registro);
+            const Habito = Habito_Por_Id(Normalizado.Habito_Id);
+            if (Habito && Habito_Periodo(Habito) === "Quincena") {
+              const Clave = Habito_Clave_Periodo(
+                Habito,
+                Normalizado.Fecha
+              );
+              if (Clave) Normalizado.Periodo_Clave = Clave;
+            }
+            return Normalizado;
+          })
           .filter((Registro) =>
             Registro.Habito_Id &&
             Registro.Fecha &&
@@ -91185,6 +91202,54 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Tareas_Vista === "Proximas" ? "Proximas" : Tareas_Vista;
       }
 
+      function Tareas_Normalizar_Modo_Memoria(Valor) {
+        const Modo = String(Valor || "").trim();
+        return [
+          "Inbox",
+          "Hoy",
+          "Semana",
+          "Quincena",
+          "Mes",
+          "Proximas",
+          "Vencidas",
+          "Completadas",
+          "Canceladas",
+          "Pospuestas",
+          "Cajon"
+        ].includes(Modo)
+          ? Modo
+          : "Hoy";
+      }
+
+      function Tareas_Modo_Memoria_Actual() {
+        if (Tareas_Vista === "Temporal") return Tareas_Temporal_Modo;
+        return Tareas_Normalizar_Modo_Memoria(Tareas_Vista);
+      }
+
+      function Tareas_Recordar_Vista(Persistir = false) {
+        Config.Tareas_Vista_Memoria = Tareas_Modo_Memoria_Actual();
+        if (Persistir) Guardar_Estado();
+      }
+
+      function Tareas_Aplicar_Modo(Valor, Recordar = false) {
+        const Modo = Tareas_Normalizar_Modo_Memoria(Valor);
+        if (["Hoy", "Semana", "Quincena", "Mes"].includes(Modo)) {
+          Tareas_Vista = "Temporal";
+          Tareas_Temporal_Modo = Modo;
+          if (!Tareas_Panel_Fecha) {
+            Tareas_Panel_Fecha = Formatear_Fecha_ISO(new Date());
+          }
+        } else if (Modo === "Cajon") {
+          Tareas_Vista = "Cajon";
+          Tareas_Cajon_Activo = Tareas_Cajon_Activo ||
+            Tareas_Ultimo_Cajon ||
+            "Inbox";
+        } else {
+          Tareas_Vista = Modo;
+        }
+        if (Recordar) Tareas_Recordar_Vista(true);
+      }
+
       function Tareas_Formatear_Fecha_DDMMYYYY(Fecha_ISO) {
         const Fecha = Parsear_Fecha_ISO(Fecha_ISO);
         if (!Fecha) return Fecha_ISO || "";
@@ -91544,15 +91609,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         document.querySelectorAll("[data-tareas-modo]")
           .forEach((Btn) => Btn.addEventListener("click", () => {
             const Modo = Btn.dataset.tareasModo;
-            if (["Hoy", "Semana", "Quincena", "Mes"].includes(Modo)) {
-              Tareas_Vista = "Temporal";
-              Tareas_Temporal_Modo = Modo;
-              if (!Tareas_Panel_Fecha) {
-                Tareas_Panel_Fecha = Formatear_Fecha_ISO(new Date());
-              }
-            } else {
-              Tareas_Vista = Modo;
-            }
+            Tareas_Aplicar_Modo(Modo, true);
             Render_Tareas();
           }));
         document.querySelectorAll("[data-tareas-temporal-nav]")
@@ -91618,16 +91675,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.addEventListener("change", (Ev) => {
             const Valor = Ev.target.value;
             if (Valor) {
-              Tareas_Vista = "Cajon";
               Tareas_Cajon_Activo = Valor;
+              Tareas_Aplicar_Modo("Cajon", true);
             } else {
-              Tareas_Vista = "Inbox";
+              Tareas_Aplicar_Modo("Inbox", true);
             }
             Render_Tareas();
           });
         document.getElementById("Tareas_Filtro_Estado")
           ?.addEventListener("change", (Ev) => {
-            Tareas_Vista = Ev.target.value || "Inbox";
+            Tareas_Aplicar_Modo(Ev.target.value || "Inbox", true);
             Render_Tareas();
           });
         document.getElementById("Tareas_Filtro_Contador")
@@ -91999,10 +92056,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Abrir_Tareas(Opciones = {}) {
-        if (Opciones.Vista) Tareas_Vista = Opciones.Vista;
-        if (Opciones.Temporal) Tareas_Temporal_Modo = Opciones.Temporal;
-        if (!Tareas_Panel_Fecha) {
-          Tareas_Panel_Fecha = Formatear_Fecha_ISO(new Date());
+        if (Opciones.Temporal) {
+          Tareas_Aplicar_Modo(Opciones.Temporal);
+        } else if (Opciones.Vista) {
+          Tareas_Aplicar_Modo(Opciones.Vista);
+        } else {
+          Tareas_Aplicar_Modo(Config.Tareas_Vista_Memoria || "Hoy");
         }
         Tareas_Modal_Vista = Opciones.Vista_Modal || "Panel";
         Tareas_En_Edicion_Id = "";
@@ -92099,7 +92158,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Anio = Fecha_Obj.getFullYear();
         const Mes = String(Fecha_Obj.getMonth() + 1).padStart(2, "0");
         if (Periodo === "Quincena") {
-          return `${Anio}-${Mes}-Q${Fecha_Obj.getDate() <= 15 ? "1" : "2"}`;
+          return `Q2S-${Habitos_Rango_Quincena(Fecha_Normalizada).Inicio}`;
         }
         if (Periodo === "Mes") {
           return `${Anio}-${Mes}`;
@@ -92214,6 +92273,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Habitos_Rango_Periodo(Periodo, Fecha) {
+        if (Periodo === "Semana") return Habitos_Rango_Semana(Fecha);
+        if (Periodo === "Quincena") return Habitos_Rango_Quincena(Fecha);
+        if (Periodo === "Mes") return Habitos_Rango_Mes(Fecha);
+        const Fecha_Normalizada = Formatear_Fecha_ISO(
+          Parsear_Fecha_ISO(Fecha) || new Date()
+        );
+        return {
+          Inicio: Fecha_Normalizada,
+          Fin: Fecha_Normalizada
+        };
+      }
+
+      function Habito_Periodo_Finalizado(Habito, Fecha) {
+        const Rango = Habitos_Rango_Periodo(Habito_Periodo(Habito), Fecha);
+        const Fin = Parsear_Fecha_ISO(Rango.Fin);
+        const Hoy = Parsear_Fecha_ISO(Formatear_Fecha_ISO(new Date()));
+        return Boolean(Fin && Hoy && Fin < Hoy);
+      }
+
       function Habito_Puede_Destildar_Rapido(Habito) {
         return Habito?.Tipo === "Evitar" ||
           Habito_Modo_Visible(Habito) === "Check";
@@ -92228,6 +92307,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Habitos_Evitar_Confirmado_En_Periodo(Habito, Fecha);
         }
         if (Regla === "Como_Maximo") {
+          if (Habito_Modo_Visible(Habito) === "Tiempo") {
+            return Habito_Periodo_Finalizado(Habito, Fecha) &&
+              Actual <= Objetivo;
+          }
           return Actual <= Objetivo;
         }
         if (Regla === "Entre") {
@@ -98194,7 +98277,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Inicio_Semana_Hora: Config.Inicio_Semana_Hora,
             Tareas_Ultimo_Cajon: Tareas_Ultimo_Cajon,
             Tareas_Contador_Periodo:
-              Config.Tareas_Contador_Periodo || "Hoy"
+              Config.Tareas_Contador_Periodo || "Hoy",
+            Tareas_Vista_Memoria:
+              Tareas_Normalizar_Modo_Memoria(
+                Config.Tareas_Vista_Memoria ||
+                Tareas_Modo_Memoria_Actual()
+              )
           },
           Tipos_Slot,
           Tipos_Slot_Inicializados,
@@ -98653,6 +98741,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ) {
               Config.Tareas_Contador_Periodo =
                 Extra.Tareas_Contador_Periodo;
+            }
+            if (Extra.Tareas_Vista_Memoria !== undefined) {
+              Config.Tareas_Vista_Memoria =
+                Tareas_Normalizar_Modo_Memoria(
+                  Extra.Tareas_Vista_Memoria
+                );
             }
           }
           if (Array.isArray(Estado.Tipos_Slot)) {

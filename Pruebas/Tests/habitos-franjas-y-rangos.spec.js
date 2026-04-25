@@ -197,6 +197,9 @@ test("calcula periodos quincenales y mensuales de habitos", async ({
     return {
       q10: Habito_Clave_Periodo(Quincenal, "2026-04-10"),
       q20: Habito_Clave_Periodo(Quincenal, "2026-04-20"),
+      rangoQ10: Habitos_Rango_Quincena("2026-04-10"),
+      rangoQ20: Habitos_Rango_Quincena("2026-04-20"),
+      siguienteQ10: Habitos_Navegar_Quincena("2026-04-10", 1),
       mes: Habito_Clave_Periodo(Mensual, "2026-04-20"),
       progresoQ10: Habito_Progreso_Actual(Quincenal, "2026-04-10"),
       progresoQ20: Habito_Progreso_Actual(Quincenal, "2026-04-20"),
@@ -215,16 +218,130 @@ test("calcula periodos quincenales y mensuales de habitos", async ({
   });
 
   expect(resultado).toEqual({
-    q10: "2026-04-Q1",
-    q20: "2026-04-Q2",
+    q10: "Q2S-2026-03-30",
+    q20: "Q2S-2026-04-13",
+    rangoQ10: {
+      Inicio: "2026-03-30",
+      Fin: "2026-04-12"
+    },
+    rangoQ20: {
+      Inicio: "2026-04-13",
+      Fin: "2026-04-26"
+    },
+    siguienteQ10: "2026-04-13",
     mes: "2026-04",
     progresoQ10: 10,
     progresoQ20: 20,
     progresoMes: 90,
-    metaQ: "30 paginas - Por quincena",
+    metaQ: "30 paginas - Por dos semanas",
     metaM: "100 paginas - Por mes",
     tieneQuincena: true,
     tieneMes: true
+  });
+});
+
+test("marca como hechos los habitos de tiempo con maximo ya cerrado",
+async ({ page }) => {
+  await Preparar(page);
+
+  const resultado = await page.evaluate(() => {
+    const Hoy = Formatear_Fecha_ISO(new Date());
+    const Ayer = Formatear_Fecha_ISO(Sumar_Dias(new Date(), -1));
+    const Habito = Normalizar_Habito({
+      Id: "Habito_Tiempo_Maximo",
+      Nombre: "Pantallas",
+      Meta: {
+        Modo: "Tiempo",
+        Regla: "Como_Maximo",
+        Periodo: "Dia",
+        Cantidad: 30,
+        Unidad: "Minutos"
+      }
+    });
+    Habitos = [Habito];
+    Habitos_Registros = [];
+    const Cerrado_Sin_Exceso = {
+      Completo: Habito_Esta_Completo(Habito, Ayer),
+      Estado: Habitos_Estado(Habito, Ayer).Clave
+    };
+    const Abierto_Sin_Exceso = {
+      Completo: Habito_Esta_Completo(Habito, Hoy),
+      Estado: Habitos_Estado(Habito, Hoy).Clave
+    };
+    Habito_Registrar_Fuente({
+      Habito_Id: Habito.Id,
+      Fecha: Ayer,
+      Fuente: "Manual",
+      Fuente_Id: "exceso",
+      Cantidad: 45,
+      Unidad: "Minutos"
+    });
+    const Cerrado_Con_Exceso = {
+      Completo: Habito_Esta_Completo(Habito, Ayer),
+      Estado: Habitos_Estado(Habito, Ayer).Clave
+    };
+    return {
+      Cerrado_Sin_Exceso,
+      Abierto_Sin_Exceso,
+      Cerrado_Con_Exceso
+    };
+  });
+
+  expect(resultado).toEqual({
+    Cerrado_Sin_Exceso: {
+      Completo: true,
+      Estado: "Realizado"
+    },
+    Abierto_Sin_Exceso: {
+      Completo: false,
+      Estado: "Pendiente"
+    },
+    Cerrado_Con_Exceso: {
+      Completo: false,
+      Estado: "Pendiente"
+    }
+  });
+});
+
+test("abre tareas en hoy y recuerda la pestana cambiada",
+async ({ page }) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Config.Tareas_Vista_Memoria = "Hoy";
+    Tareas_Vista = "Inbox";
+    Tareas_Temporal_Modo = "Mes";
+    Tareas = [];
+    Abrir_Tareas();
+  });
+
+  await expect(page.locator('[data-tareas-modo="Hoy"]'))
+    .toHaveClass(/Activo/);
+
+  await page.click('[data-tareas-modo="Semana"]');
+  await page.click("#Tareas_Cerrar");
+  await page.evaluate(() => Abrir_Tareas());
+
+  await expect(page.locator('[data-tareas-modo="Semana"]'))
+    .toHaveClass(/Activo/);
+
+  const memoria = await page.evaluate(() => {
+    const Estado = JSON.parse(
+      localStorage.getItem("Semaplan_Estado_V2") || "{}"
+    );
+    return {
+      Vista: Tareas_Vista,
+      Temporal: Tareas_Temporal_Modo,
+      Config: Config.Tareas_Vista_Memoria,
+      Guardada: Estado.Config_Extra?.Tareas_Vista_Memoria
+    };
+  });
+
+  expect(memoria).toEqual({
+    Vista: "Temporal",
+    Temporal: "Semana",
+    Config: "Semana",
+    Guardada: "Semana"
   });
 });
 
@@ -2204,6 +2321,19 @@ test("panel de habitos mantiene orden y alterna realizados", async ({
       .filter(Boolean).length
   );
   expect(columnas).toBe(5);
+  const registro = await page.locator(
+    '[data-habitos-registro-habito="Habito_Primero"]'
+  ).evaluate((Boton) => {
+    const Estilo = getComputedStyle(Boton);
+    return {
+      Fondo: Estilo.backgroundColor,
+      Borde: Estilo.borderTopWidth
+    };
+  });
+  expect(registro).toEqual({
+    Fondo: "rgba(0, 0, 0, 0)",
+    Borde: "0px"
+  });
 
   await page.click(
     '[data-habitos-registro-rapido="Habito_Primero"]'
