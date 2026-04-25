@@ -10425,6 +10425,153 @@
         background: #157a58;
       }
 
+      .Tareas_Modal_Panel {
+        width: min(980px, calc(100vw - 32px));
+        max-width: min(980px, calc(100vw - 32px));
+      }
+
+      .Tareas_Quick_Form {
+        display: grid;
+        grid-template-columns: 64px minmax(180px, 1.4fr)
+          minmax(132px, 0.8fr) 126px 118px 116px;
+        gap: 10px;
+        align-items: end;
+        margin-bottom: 18px;
+      }
+
+      .Tareas_Quick_Form .Campo {
+        margin: 0;
+      }
+
+      .Tareas_Tabs,
+      .Tareas_Subtabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+
+      .Tareas_Tab {
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--Texto);
+        padding: 7px 12px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .Tareas_Tab.Activo {
+        background: #157a58;
+        border-color: #157a58;
+        color: #fff;
+      }
+
+      .Tareas_Lista {
+        display: grid;
+        gap: 8px;
+      }
+
+      .Tareas_Item {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: #fff;
+        padding: 10px 12px;
+      }
+
+      .Tareas_Item.Completada {
+        opacity: 0.62;
+      }
+
+      .Tareas_Item.Completada .Tareas_Nombre {
+        text-decoration: line-through;
+      }
+
+      .Tareas_Check {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1px solid var(--Borde);
+        background: #fff;
+        cursor: pointer;
+      }
+
+      .Tareas_Item.Completada .Tareas_Check {
+        background: #157a58;
+        border-color: #157a58;
+        color: #fff;
+      }
+
+      .Tareas_Texto {
+        min-width: 0;
+        display: grid;
+        gap: 4px;
+      }
+
+      .Tareas_Nombre {
+        font-weight: 800;
+        color: var(--Texto);
+        overflow-wrap: anywhere;
+      }
+
+      .Tareas_Meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        color: var(--Texto_Suave);
+        font-size: 12px;
+      }
+
+      .Tareas_Acciones {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .Tareas_Accion {
+        border: none;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.07);
+        color: var(--Texto);
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .Tareas_Accion.Peligro {
+        background: rgba(159, 52, 47, 0.1);
+        color: #8c2f2f;
+      }
+
+      .Tareas_Contador_Flotante {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: none;
+        background: #157a58;
+        color: #fff;
+        font-weight: 900;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+      }
+
+      .Tareas_Vacio {
+        border: 1px dashed var(--Borde);
+        border-radius: 8px;
+        padding: 18px;
+        color: var(--Texto_Suave);
+        text-align: center;
+      }
+
       .Habitos_Modal_Borrar {
         margin-right: auto;
         border: 1px solid rgba(159, 52, 47, 0.24);
@@ -18006,6 +18153,12 @@
               type="button"
               data-i18n-title="menu.habitos"
               title="H&aacute;bitos">&#9989;</button>
+            <button class="Config_Boton Menu_Btn Con_Fallback_Emoji"
+              id="Tareas_Boton"
+              data-menu-key="Tareas_Boton"
+              data-menu-nombre="Tareas"
+              type="button"
+              title="Tareas">&#9745;</button>
             <button class="Config_Boton Menu_Btn" id="Limpiar_Semana_Boton"
               data-menu-key="Limpiar_Semana_Boton"
               data-menu-nombre="Limpiar semana"
@@ -22398,6 +22551,40 @@
         </div>
         <div class="Patron_Modal_Cuerpo">
           <div id="Planes_Registro_Cuerpo"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="Patron_Modal_Overlay" id="Tareas_Overlay">
+      <div class="Patron_Modal_Panel Tareas_Modal_Panel">
+        <div class="Patron_Modal_Cabecera Habitos_Modal_Cabecera">
+          <div class="Habitos_Modal_Encabezado">
+            <span class="Habitos_Modal_Icono">✓</span>
+            <div class="Habitos_Modal_Encabezado_Texto">
+              <span class="Patron_Modal_Titulo Habitos_Modal_Titulo">
+                Tareas
+              </span>
+              <p class="Habitos_Modal_Subtitulo">
+                Pendientes simples, planificables en el calendario.
+              </p>
+            </div>
+          </div>
+          <button class="Config_Cerrar"
+            id="Tareas_Cerrar"
+            type="button">&times;</button>
+        </div>
+        <div class="Patron_Modal_Cuerpo Habitos_Modal_Cuerpo"
+          id="Tareas_Cuerpo"></div>
+        <div class="Patron_Modal_Acciones Habitos_Modal_Acciones">
+          <button class="Config_Boton_Cancelar"
+            id="Tareas_Toggle_Realizadas"
+            type="button">Ocultar realizadas</button>
+          <button class="Config_Boton_Cancelar"
+            id="Tareas_Cancelar"
+            type="button">Cerrar</button>
+          <button class="Config_Boton_Guardar"
+            id="Tareas_Guardar"
+            type="button">Crear tarea</button>
         </div>
       </div>
     </div>
@@ -35828,6 +36015,7 @@
           Archivero_Boton: true,
           Patron_Boton: true,
           Habitos_Boton: true,
+          Tareas_Boton: true,
           Limpiar_Semana_Boton: true,
           Ayuda_Boton: true,
           Logout_Boton: true
@@ -35857,7 +36045,8 @@
         // suma al contador de re-fijadas; antes no.
         // Inicio_Semana_Dia: 0=Lun ... 6=Dom.
         Inicio_Semana_Dia: 0,
-        Inicio_Semana_Hora: 8
+        Inicio_Semana_Hora: 8,
+        Tareas_Contador_Periodo: "Hoy"
       };
       let Backup_Auto_Timer_Id = null;
       const Backup_Auto_Timer_Max_Ms = 2147480000;
@@ -36184,6 +36373,12 @@
       let Habitos_Filtro_Hora_Hasta = 20;
       let Habitos_Filtro_Estado = "Todos";
       let Habitos_Ocultar_Realizados = false;
+      let Tareas = [];
+      let Tareas_Vista = "Inbox";
+      let Tareas_Temporal_Modo = "Hoy";
+      let Tareas_Cajon_Activo = "";
+      let Tareas_Ocultar_Realizadas = true;
+      let Tareas_Ultimo_Cajon = "Inbox";
       let Habitos_Filtros_Modal_Abierto = false;
       let Habitos_Filtros_Borrador = null;
       let Habito_Evento_En_Edicion_Id = null;
@@ -70812,6 +71007,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Metas_Abierto()) {
           Render_Metas();
         }
+        Render_Tareas_Contador();
         if (
           document.getElementById("Plan_Overlay")
             ?.classList.contains("Activo")
@@ -88111,6 +88307,543 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
       }
 
+      function Crear_Id_Tarea() {
+        return `Tarea_${Date.now()}_${Math.floor(
+          Math.random() * 1000
+        )}`;
+      }
+
+      function Tarea_Por_Id(Tarea_Id) {
+        return (Array.isArray(Tareas) ? Tareas : []).find(
+          (Tarea) => Tarea?.Id === Tarea_Id
+        ) || null;
+      }
+
+      function Normalizar_Estado_Tarea(Valor) {
+        return ["pendiente", "pospuesta", "cancelada", "completada"]
+          .includes(Valor) ? Valor : "pendiente";
+      }
+
+      function Normalizar_Prioridad_Tarea(Valor) {
+        return ["baja", "media", "alta"].includes(Valor)
+          ? Valor
+          : "baja";
+      }
+
+      function Normalizar_Tarea(Tarea) {
+        const Base = Tarea && typeof Tarea === "object"
+          ? Tarea
+          : {};
+        const Estado_Tarea =
+          Normalizar_Estado_Tarea(Base.Estado || Base.estado);
+        const Fecha = String(Base.Fecha || "").trim();
+        const Hora = String(Base.Hora || "").trim().slice(0, 5);
+        const Pospuesta = Estado_Tarea === "pospuesta";
+        return {
+          Id: Base.Id || Crear_Id_Tarea(),
+          Emoji: Normalizar_Emoji(Base.Emoji || "\u2022"),
+          Nombre: String(Base.Nombre || Base.Texto || "").trim(),
+          Cajon: String(Base.Cajon || "Inbox").trim() || "Inbox",
+          Prioridad: Normalizar_Prioridad_Tarea(
+            Base.Prioridad || Base.prioridad
+          ),
+          Estado: Estado_Tarea,
+          Fecha: Pospuesta ? "" : Fecha,
+          Hora: Pospuesta ? "" : Hora,
+          Planeada: Boolean(Base.Planeada),
+          Evento_Id: String(Base.Evento_Id || "").trim(),
+          Abordaje_Id: String(Base.Abordaje_Id || "").trim(),
+          Fecha_Creacion: String(
+            Base.Fecha_Creacion || new Date().toISOString()
+          ),
+          Fecha_Actualizacion: String(
+            Base.Fecha_Actualizacion || new Date().toISOString()
+          ),
+          Fecha_Completado: String(Base.Fecha_Completado || "")
+        };
+      }
+
+      function Normalizar_Tareas() {
+        Tareas = (Array.isArray(Tareas) ? Tareas : [])
+          .map(Normalizar_Tarea)
+          .filter((Tarea) => Tarea.Nombre);
+        Tareas.forEach((Tarea) => {
+          if (Tarea.Fecha && Tarea.Hora) {
+            Tarea.Planeada = Boolean(
+              Evento_Por_Id(Tarea.Evento_Id)
+            );
+          } else {
+            Tarea.Planeada = false;
+            Tarea.Evento_Id = "";
+            Tarea.Abordaje_Id = "";
+          }
+        });
+      }
+
+      function Tarea_Esta_Pendiente(Tarea) {
+        return Tarea?.Estado === "pendiente";
+      }
+
+      function Tarea_Esta_Vencida(Tarea) {
+        const Hoy = Formatear_Fecha_ISO(new Date());
+        return Tarea_Esta_Pendiente(Tarea) &&
+          Boolean(Tarea.Fecha) &&
+          Tarea.Fecha < Hoy;
+      }
+
+      function Tarea_En_Rango_Temporal(Tarea, Modo = "Hoy") {
+        if (!Tarea?.Fecha) return false;
+        const Hoy = new Date();
+        const Inicio = new Date(
+          Hoy.getFullYear(), Hoy.getMonth(), Hoy.getDate()
+        );
+        let Fin = new Date(Inicio);
+        if (Modo === "Semana") Fin.setDate(Inicio.getDate() + 6);
+        else if (Modo === "Quincena") Fin.setDate(Inicio.getDate() + 13);
+        else if (Modo === "Mes") Fin.setMonth(Inicio.getMonth() + 1);
+        const Fecha = Parsear_Fecha_ISO(Tarea.Fecha);
+        if (!Fecha) return false;
+        return Fecha >= Inicio && Fecha <= Fin;
+      }
+
+      function Tareas_Cajones() {
+        const Cajones = new Set(["Inbox"]);
+        Tareas.forEach((Tarea) => {
+          if (Tarea.Cajon) Cajones.add(Tarea.Cajon);
+        });
+        return Array.from(Cajones).sort((A, B) =>
+          A.localeCompare(B, "es")
+        );
+      }
+
+      function Tareas_Filtradas() {
+        return Tareas.filter((Tarea) => {
+          if (
+            Tareas_Ocultar_Realizadas &&
+            Tarea.Estado === "completada"
+          ) return false;
+          if (Tarea.Estado === "cancelada") return false;
+          if (Tareas_Vista === "Inbox") {
+            return !Tarea.Fecha && Tarea.Cajon === "Inbox";
+          }
+          if (Tareas_Vista === "Temporal") {
+            return Tarea_En_Rango_Temporal(
+              Tarea,
+              Tareas_Temporal_Modo
+            );
+          }
+          if (Tareas_Vista === "Proximas") {
+            return Tarea_Esta_Pendiente(Tarea) &&
+              Boolean(Tarea.Fecha) &&
+              !Tarea_Esta_Vencida(Tarea);
+          }
+          if (Tareas_Vista === "Vencidas") {
+            return Tarea_Esta_Vencida(Tarea);
+          }
+          if (Tareas_Vista === "Completadas") {
+            return Tarea.Estado === "completada";
+          }
+          if (Tareas_Vista === "Cajon") {
+            return Tarea.Cajon === Tareas_Cajon_Activo;
+          }
+          return true;
+        }).sort((A, B) => {
+          const FA = A.Fecha || "9999-12-31";
+          const FB = B.Fecha || "9999-12-31";
+          if (FA !== FB) return FA.localeCompare(FB);
+          return (A.Hora || "99:99").localeCompare(B.Hora || "99:99");
+        });
+      }
+
+      function Tareas_Contador_Pendientes() {
+        const Periodo = Config.Tareas_Contador_Periodo || "Hoy";
+        return Tareas.filter((Tarea) =>
+          Tarea_Esta_Pendiente(Tarea) &&
+          Tarea_En_Rango_Temporal(Tarea, Periodo)
+        ).length;
+      }
+
+      function Buscar_Evento_Tarea(Fecha, Hora) {
+        const Inicio = Number(String(Hora || "0").split(":")[0]);
+        return Eventos.find((Evento) =>
+          Evento.Fecha === Fecha &&
+          Number(Evento.Inicio) === Inicio
+        ) || null;
+      }
+
+      function Crear_Evento_Automatico_Tarea(Tarea) {
+        const Inicio = Number(String(Tarea.Hora || "0").split(":")[0]);
+        const Evento = {
+          Id: `Evento_${Contador_Eventos++}`,
+          Objetivo_Id: null,
+          Fecha: Tarea.Fecha,
+          Inicio,
+          Duracion: 1,
+          Nombre: Tarea.Emoji || "\u2022",
+          Emoji: Tarea.Emoji || "\u2022",
+          Color: "#157a58",
+          Origen: "tarea",
+          Abordaje: []
+        };
+        Eventos.push(Evento);
+        return Evento;
+      }
+
+      function Planificar_Tarea(Tarea) {
+        if (!Tarea?.Fecha || !Tarea?.Hora) return false;
+        Desplanificar_Tarea(Tarea);
+        let Evento = Buscar_Evento_Tarea(Tarea.Fecha, Tarea.Hora);
+        if (!Evento) Evento = Crear_Evento_Automatico_Tarea(Tarea);
+        if (!Array.isArray(Evento.Abordaje)) Evento.Abordaje = [];
+        const Item = {
+          Id: Crear_Id_Abordaje(),
+          Plantilla_Id: null,
+          Texto: Tarea.Nombre,
+          Emoji: Tarea.Emoji || "\u2022",
+          Suelta: true,
+          Planeada: true,
+          Tarea_Id: Tarea.Id
+        };
+        if (Tarea.Estado === "completada") {
+          Item.Estado = "Completado";
+        }
+        Evento.Abordaje.push(Item);
+        Tarea.Planeada = true;
+        Tarea.Evento_Id = Evento.Id;
+        Tarea.Abordaje_Id = Item.Id;
+        return true;
+      }
+
+      function Desplanificar_Tarea(Tarea) {
+        if (!Tarea?.Evento_Id || !Tarea?.Abordaje_Id) return false;
+        const Evento = Evento_Por_Id(Tarea.Evento_Id);
+        if (!Evento || !Array.isArray(Evento.Abordaje)) {
+          Tarea.Planeada = false;
+          Tarea.Evento_Id = "";
+          Tarea.Abordaje_Id = "";
+          return false;
+        }
+        Evento.Abordaje = Evento.Abordaje.filter((Item) =>
+          Item.Id !== Tarea.Abordaje_Id
+        );
+        if (
+          Evento.Origen === "tarea" &&
+          Evento.Abordaje.length === 0
+        ) {
+          Eventos = Eventos.filter((Item) => Item.Id !== Evento.Id);
+        }
+        Tarea.Planeada = false;
+        Tarea.Evento_Id = "";
+        Tarea.Abordaje_Id = "";
+        return true;
+      }
+
+      function Sincronizar_Tareas_Desde_Abordajes() {
+        Tareas.forEach((Tarea) => {
+          if (!Tarea.Evento_Id || !Tarea.Abordaje_Id) return;
+          const Evento = Evento_Por_Id(Tarea.Evento_Id);
+          const Item = (Evento?.Abordaje || []).find((Entrada) =>
+            Entrada.Id === Tarea.Abordaje_Id
+          );
+          if (!Item) {
+            Tarea.Planeada = false;
+            Tarea.Evento_Id = "";
+            Tarea.Abordaje_Id = "";
+            return;
+          }
+          if (Item.Estado === "Completado" && Tarea.Estado !== "completada") {
+            Tarea.Estado = "completada";
+            Tarea.Fecha_Completado = new Date().toISOString();
+          }
+        });
+      }
+
+      function Cambiar_Estado_Tarea(Tarea, Estado_Nuevo) {
+        if (!Tarea) return;
+        const Estado = Normalizar_Estado_Tarea(Estado_Nuevo);
+        Tarea.Estado = Estado;
+        Tarea.Fecha_Actualizacion = new Date().toISOString();
+        if (Estado === "completada") {
+          Tarea.Fecha_Completado = new Date().toISOString();
+          const Evento = Evento_Por_Id(Tarea.Evento_Id);
+          const Item = (Evento?.Abordaje || []).find((Entrada) =>
+            Entrada.Id === Tarea.Abordaje_Id
+          );
+          if (Item) Item.Estado = "Completado";
+        } else {
+          Tarea.Fecha_Completado = "";
+        }
+        if (Estado === "pospuesta") {
+          Desplanificar_Tarea(Tarea);
+          Tarea.Fecha = "";
+          Tarea.Hora = "";
+        }
+        if (Estado === "cancelada") {
+          Desplanificar_Tarea(Tarea);
+        }
+      }
+
+      function Guardar_Tarea_Desde_Form() {
+        const Nombre = document.getElementById("Tareas_Nombre")
+          ?.value.trim();
+        if (!Nombre) {
+          Mostrar_Toast_Info("La tarea necesita nombre.", "\u26a0\ufe0f");
+          return;
+        }
+        const Cajon = document.getElementById("Tareas_Cajon")
+          ?.value.trim() || Tareas_Ultimo_Cajon || "Inbox";
+        const Tarea = Normalizar_Tarea({
+          Emoji: document.getElementById("Tareas_Emoji")?.value || "\u2022",
+          Nombre,
+          Cajon,
+          Prioridad: document.getElementById("Tareas_Prioridad")?.value,
+          Estado: "pendiente",
+          Fecha: document.getElementById("Tareas_Fecha")?.value || "",
+          Hora: document.getElementById("Tareas_Hora")?.value || ""
+        });
+        Tareas_Ultimo_Cajon = Cajon;
+        Tareas.push(Tarea);
+        if (Tarea.Fecha && Tarea.Hora) Planificar_Tarea(Tarea);
+        Render_Tareas();
+        Render_Tareas_Contador();
+        Render_Eventos();
+        Guardar_Estado();
+      }
+
+      function Render_Tareas() {
+        const Cuerpo = document.getElementById("Tareas_Cuerpo");
+        if (!Cuerpo) return;
+        Sincronizar_Tareas_Desde_Abordajes();
+        const Cajones = Tareas_Cajones();
+        if (!Tareas_Cajon_Activo) Tareas_Cajon_Activo = Cajones[0] || "Inbox";
+        Cuerpo.innerHTML = "";
+
+        const Form = document.createElement("div");
+        Form.className = "Tareas_Quick_Form";
+        Form.innerHTML = `
+          <label class="Campo">
+            <span>Emoji</span>
+            <input id="Tareas_Emoji" class="Con_Selector_Emoji"
+              maxlength="4" value="✓">
+          </label>
+          <label class="Campo">
+            <span>Tarea</span>
+            <input id="Tareas_Nombre" placeholder="Nombre de tarea">
+          </label>
+          <label class="Campo">
+            <span>Cajón</span>
+            <input id="Tareas_Cajon" list="Tareas_Cajones"
+              value="${Tareas_Ultimo_Cajon || "Inbox"}">
+            <datalist id="Tareas_Cajones">
+              ${Cajones.map((C) => `<option value="${C}"></option>`).join("")}
+            </datalist>
+          </label>
+          <label class="Campo">
+            <span>Prioridad</span>
+            <select id="Tareas_Prioridad">
+              <option value="baja">Baja</option>
+              <option value="media">Media</option>
+              <option value="alta">Alta</option>
+            </select>
+          </label>
+          <label class="Campo">
+            <span>Fecha</span>
+            <input id="Tareas_Fecha" type="date">
+          </label>
+          <label class="Campo">
+            <span>Hora</span>
+            <input id="Tareas_Hora" type="time">
+          </label>`;
+        Cuerpo.appendChild(Form);
+
+        const Tabs = document.createElement("div");
+        Tabs.className = "Tareas_Tabs";
+        ["Inbox", "Temporal", "Proximas", "Vencidas", "Completadas"]
+          .forEach((Vista) => {
+            const Btn = document.createElement("button");
+            Btn.className = "Tareas_Tab" +
+              (Tareas_Vista === Vista ? " Activo" : "");
+            Btn.type = "button";
+            Btn.textContent = Vista === "Proximas" ? "Próximas" : Vista;
+            Btn.addEventListener("click", () => {
+              Tareas_Vista = Vista;
+              Render_Tareas();
+            });
+            Tabs.appendChild(Btn);
+          });
+        Cajones.forEach((Cajon) => {
+          const Btn = document.createElement("button");
+          Btn.className = "Tareas_Tab" +
+            (Tareas_Vista === "Cajon" &&
+             Tareas_Cajon_Activo === Cajon ? " Activo" : "");
+          Btn.type = "button";
+          Btn.textContent = Cajon;
+          Btn.addEventListener("click", () => {
+            Tareas_Vista = "Cajon";
+            Tareas_Cajon_Activo = Cajon;
+            Render_Tareas();
+          });
+          Tabs.appendChild(Btn);
+        });
+        Cuerpo.appendChild(Tabs);
+
+        if (Tareas_Vista === "Temporal") {
+          const Subtabs = document.createElement("div");
+          Subtabs.className = "Tareas_Subtabs";
+          ["Hoy", "Semana", "Quincena", "Mes"].forEach((Modo) => {
+            const Btn = document.createElement("button");
+            Btn.className = "Tareas_Tab" +
+              (Tareas_Temporal_Modo === Modo ? " Activo" : "");
+            Btn.type = "button";
+            Btn.textContent = Modo;
+            Btn.addEventListener("click", () => {
+              Tareas_Temporal_Modo = Modo;
+              Render_Tareas();
+            });
+            Subtabs.appendChild(Btn);
+          });
+          Cuerpo.appendChild(Subtabs);
+        }
+
+        const Lista = document.createElement("div");
+        Lista.className = "Tareas_Lista";
+        const Items = Tareas_Filtradas();
+        if (!Items.length) {
+          const Vacio = document.createElement("div");
+          Vacio.className = "Tareas_Vacio";
+          Vacio.textContent = "No hay tareas para esta vista.";
+          Lista.appendChild(Vacio);
+        }
+        Items.forEach((Tarea) => {
+          const Item = document.createElement("div");
+          Item.className = "Tareas_Item" +
+            (Tarea.Estado === "completada" ? " Completada" : "");
+          const Check = document.createElement("button");
+          Check.className = "Tareas_Check";
+          Check.type = "button";
+          Check.textContent = Tarea.Estado === "completada" ? "✓" : "";
+          Check.addEventListener("click", () => {
+            Cambiar_Estado_Tarea(
+              Tarea,
+              Tarea.Estado === "completada" ? "pendiente" : "completada"
+            );
+            Render_Tareas();
+            Render_Tareas_Contador();
+            Render_Eventos();
+            Guardar_Estado();
+          });
+          const Texto = document.createElement("div");
+          Texto.className = "Tareas_Texto";
+          const Nombre = document.createElement("div");
+          Nombre.className = "Tareas_Nombre";
+          Nombre.textContent = `${Tarea.Emoji} ${Tarea.Nombre}`;
+          const Meta = document.createElement("div");
+          Meta.className = "Tareas_Meta";
+          Meta.textContent = [
+            Tarea.Cajon,
+            Tarea.Prioridad,
+            Tarea.Fecha ? `${Tarea.Fecha}${Tarea.Hora ? " " + Tarea.Hora : ""}` : "",
+            Tarea.Planeada ? "planeada" : "",
+            Tarea.Estado
+          ].filter(Boolean).join(" · ");
+          Texto.appendChild(Nombre);
+          Texto.appendChild(Meta);
+          const Acciones = document.createElement("div");
+          Acciones.className = "Tareas_Acciones";
+          const Planificar = document.createElement("button");
+          Planificar.className = "Tareas_Accion";
+          Planificar.type = "button";
+          Planificar.textContent = "Planificar";
+          Planificar.addEventListener("click", () => {
+            const Fecha = prompt("Fecha YYYY-MM-DD", Tarea.Fecha || "");
+            if (Fecha === null) return;
+            const Hora = prompt("Hora HH:MM", Tarea.Hora || "");
+            if (Hora === null) return;
+            Tarea.Fecha = Fecha.trim();
+            Tarea.Hora = Hora.trim();
+            Tarea.Estado = "pendiente";
+            Tarea.Fecha_Actualizacion = new Date().toISOString();
+            if (Tarea.Fecha && Tarea.Hora) Planificar_Tarea(Tarea);
+            Render_Tareas();
+            Render_Tareas_Contador();
+            Render_Eventos();
+            Guardar_Estado();
+          });
+          const Posponer = document.createElement("button");
+          Posponer.className = "Tareas_Accion";
+          Posponer.type = "button";
+          Posponer.textContent = "Posponer";
+          Posponer.addEventListener("click", () => {
+            Cambiar_Estado_Tarea(Tarea, "pospuesta");
+            Render_Tareas();
+            Render_Tareas_Contador();
+            Render_Eventos();
+            Guardar_Estado();
+          });
+          const Borrar = document.createElement("button");
+          Borrar.className = "Tareas_Accion Peligro";
+          Borrar.type = "button";
+          Borrar.textContent = "Borrar";
+          Borrar.addEventListener("click", () => {
+            Desplanificar_Tarea(Tarea);
+            Tareas = Tareas.filter((Entrada) => Entrada.Id !== Tarea.Id);
+            Render_Tareas();
+            Render_Tareas_Contador();
+            Render_Eventos();
+            Guardar_Estado();
+          });
+          Acciones.appendChild(Planificar);
+          Acciones.appendChild(Posponer);
+          Acciones.appendChild(Borrar);
+          Item.appendChild(Check);
+          Item.appendChild(Texto);
+          Item.appendChild(Acciones);
+          Lista.appendChild(Item);
+        });
+        Cuerpo.appendChild(Lista);
+        document.getElementById("Tareas_Toggle_Realizadas").textContent =
+          Tareas_Ocultar_Realizadas
+            ? "Mostrar realizadas"
+            : "Ocultar realizadas";
+      }
+
+      function Abrir_Tareas(Opciones = {}) {
+        if (Opciones.Vista) Tareas_Vista = Opciones.Vista;
+        if (Opciones.Temporal) Tareas_Temporal_Modo = Opciones.Temporal;
+        document.getElementById("Tareas_Overlay")
+          ?.classList.add("Activo");
+        Render_Tareas();
+        setTimeout(() => {
+          document.getElementById("Tareas_Nombre")?.focus();
+        }, 0);
+      }
+
+      function Cerrar_Tareas() {
+        document.getElementById("Tareas_Overlay")
+          ?.classList.remove("Activo");
+      }
+
+      function Render_Tareas_Contador() {
+        let Btn = document.getElementById("Tareas_Contador_Flotante");
+        const Referencia = document.querySelector(".Metas_Sugeridas_Flotante");
+        if (!Referencia) return;
+        if (!Btn) {
+          Btn = document.createElement("button");
+          Btn.id = "Tareas_Contador_Flotante";
+          Btn.className = "Tareas_Contador_Flotante";
+          Btn.type = "button";
+          Btn.title = "Tareas pendientes";
+          Btn.addEventListener("click", () => {
+            Abrir_Tareas({
+              Vista: "Temporal",
+              Temporal: Config.Tareas_Contador_Periodo || "Hoy"
+            });
+          });
+          Referencia.insertAdjacentElement("afterend", Btn);
+        }
+        Btn.textContent = String(Tareas_Contador_Pendientes());
+      }
+
       function Normalizar_Vinculos_Habito_Fuente(Vinculos = []) {
         return (Array.isArray(Vinculos) ? Vinculos : [])
           .map((Vinculo) => {
@@ -93964,6 +94697,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Construir_Estado_Completo() {
         // Construye el blob de estado completo para serializar.
+        Sincronizar_Tareas_Desde_Abordajes();
         Normalizar_Planes_Slot();
         Planes_Periodo = Normalizar_Modelo_Planes(Planes_Periodo);
         return {
@@ -93983,6 +94717,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Patrones,
           Habitos,
           Habitos_Registros,
+          Tareas,
           Contador_Eventos,
           Objetivo_Seleccionada_Id: null,
           Modo_Editor_Abierto: false,
@@ -94076,7 +94811,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Contador_Semanas_Vida_Anios:
               Config.Contador_Semanas_Vida_Anios,
             Inicio_Semana_Dia: Config.Inicio_Semana_Dia,
-            Inicio_Semana_Hora: Config.Inicio_Semana_Hora
+            Inicio_Semana_Hora: Config.Inicio_Semana_Hora,
+            Tareas_Ultimo_Cajon: Tareas_Ultimo_Cajon,
+            Tareas_Contador_Periodo:
+              Config.Tareas_Contador_Periodo || "Hoy"
           },
           Tipos_Slot,
           Tipos_Slot_Inicializados,
@@ -94472,6 +95210,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Config.Inicio_Semana_Hora = Hora_Num;
               }
             }
+            if (Extra.Tareas_Ultimo_Cajon !== undefined) {
+              Tareas_Ultimo_Cajon =
+                String(Extra.Tareas_Ultimo_Cajon || "Inbox")
+                  .trim() || "Inbox";
+            }
+            if (
+              ["Hoy", "Semana", "Quincena", "Mes"].includes(
+                Extra.Tareas_Contador_Periodo
+              )
+            ) {
+              Config.Tareas_Contador_Periodo =
+                Extra.Tareas_Contador_Periodo;
+            }
           }
           if (Array.isArray(Estado.Tipos_Slot)) {
             Tipos_Slot = Clonar_Tipos_Slot_Base(
@@ -94628,6 +95379,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           } else {
             Habitos_Registros = [];
           }
+          Tareas = Array.isArray(Estado.Tareas)
+            ? Estado.Tareas
+            : [];
           if (Array.isArray(Estado.Semanas_Con_Defaults)) {
             Semanas_Con_Defaults = new Set(Estado.Semanas_Con_Defaults);
           }
@@ -94668,6 +95422,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Planes_Periodo = Normalizar_Modelo_Planes(Planes_Periodo);
         Normalizar_Habitos();
         Normalizar_Habitos_Registros();
+        Normalizar_Tareas();
         Config.Globito_Activo =
           Config.Globito_Activo !== false;
         Config.Mostrar_Globitos_Habitos =
@@ -94908,8 +95663,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return {
             ...Evento,
             Objetivo_Id:
-              Evento.Objetivo_Id ||
-              Evento.Tarea_Id || null,
+              Evento.Objetivo_Id || null,
             Fecha,
             Inicio,
             Duracion,
@@ -98017,10 +98771,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Cuerpo = Columna.querySelector(".Dia_Cuerpo");
           const Objetivo = Objetivo_Por_Id(Evento.Objetivo_Id);
           const Color = Objetivo ? Objetivo.Color : Evento.Color;
-          const Emoji = Objetivo ? Objetivo.Emoji : "\u2022";
+          const Emoji = Objetivo
+            ? Objetivo.Emoji
+            : (Evento.Emoji || "\u2022");
           const Nombre = Objetivo
             ? Objetivo.Nombre
-            : t("evento.sin_objetivo");
+            : (Evento.Nombre || t("evento.sin_objetivo"));
 
           const Bloque = document.createElement("div");
           Bloque.className = "Evento";
@@ -100259,6 +101015,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       El_Baul_Boton?.addEventListener("click", Abrir_Baul);
       document.getElementById("Baul_Cerrar")
         ?.addEventListener("click", Cerrar_Baul);
+      document.getElementById("Tareas_Cerrar")
+        ?.addEventListener("click", Cerrar_Tareas);
+      document.getElementById("Tareas_Cancelar")
+        ?.addEventListener("click", Cerrar_Tareas);
+      document.getElementById("Tareas_Guardar")
+        ?.addEventListener("click", Guardar_Tarea_Desde_Form);
+      document.getElementById("Tareas_Toggle_Realizadas")
+        ?.addEventListener("click", () => {
+          Tareas_Ocultar_Realizadas = !Tareas_Ocultar_Realizadas;
+          Render_Tareas();
+        });
+      document.getElementById("Tareas_Overlay")
+        ?.addEventListener("click", (Ev) => {
+          if (Ev.target.id === "Tareas_Overlay") {
+            Ev.preventDefault();
+          }
+        });
       // --- Listeners del Archivero (Premium) ---
       document.getElementById("Archivero_Boton")
         ?.addEventListener("click", Abrir_Archivero);
@@ -100805,6 +101578,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Habitos_Boton")
         ?.addEventListener("click", () => {
           Abrir_Panel_Habitos();
+        });
+      document.getElementById("Tareas_Boton")
+        ?.addEventListener("click", () => {
+          Abrir_Tareas();
         });
       document.getElementById("Habitos_Cerrar")
         ?.addEventListener("click", () => {
@@ -103015,6 +103792,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Render_Resumen_Objetivo();
         Render_Editor();
         Render_Calendario();
+        Render_Tareas_Contador();
         Configurar_Seleccion_Multi_Calendario();
         Configurar_Listeners_Selector_Emojis();
         Guardar_Estado();
@@ -106185,6 +106963,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
 
         // Si hay diálogo o modal abierto, solo manejar Esc.
+        if (
+          !Ev.ctrlKey &&
+          !Ev.metaKey &&
+          !Ev.altKey &&
+          (Ev.key === "t" || Ev.key === "T")
+        ) {
+          Cerrar_Menu_Dia();
+          Abrir_Tareas();
+          Ev.preventDefault();
+          return;
+        }
+
         const Dialogo_Abierto_DOM = document
           .querySelector(".Dialogo_Overlay.Activo");
         const Modal_Patron_Abierto = document
@@ -106252,6 +107042,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.classList.contains("Activo");
         const Planes_Registro_Activo = document
           .getElementById("Planes_Registro_Overlay")
+          ?.classList.contains("Activo");
+        const Tareas_Activo = document
+          .getElementById("Tareas_Overlay")
           ?.classList.contains("Activo");
         const Baul_Abierto = document
           .getElementById("Baul_Overlay")
@@ -106354,6 +107147,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (Planes_Registro_Activo) {
             Cerrar_Modal_Planes_Registro();
+            Ev.preventDefault();
+            return;
+          }
+          if (Tareas_Activo) {
+            Cerrar_Tareas();
             Ev.preventDefault();
             return;
           }
@@ -106551,6 +107349,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Subobjetivos_Activo ||
           Planes_Objetivo_Activo ||
           Planes_Activo ||
+          Tareas_Activo ||
           Habitos_Activo ||
           Baul_Nuevo_Abierto ||
           Baul_Abierto ||
