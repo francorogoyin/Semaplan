@@ -16488,6 +16488,11 @@
         flex-wrap: wrap;
       }
 
+      .Config_Fila[hidden],
+      .Config_Nota[hidden] {
+        display: none !important;
+      }
+
       .Config_Label {
         font-size: 13px;
         color: var(--Texto);
@@ -18731,6 +18736,7 @@
                 </select>
               </div>
               <div class="Config_Fila Config_Fila_Multi"
+                hidden
                 id="Cfg_Enfoque_Hora_Actual_Campos">
                 <span class="Config_Label"
                   data-i18n="config.enfoque_hora_actual_margen"
@@ -18749,6 +18755,7 @@
                   >h adelante</span>
               </div>
               <p class="Config_Nota"
+                hidden
                 id="Cfg_Enfoque_Hora_Actual_Nota"
                 data-i18n="config.enfoque_hora_actual_nota">
                 Solo aplica en la semana actual y queda por debajo
@@ -83818,8 +83825,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Activo =
           Normalizar_Modo_Enfoque_Hora_Actual(Modo?.value) ===
           "Enfocar";
-        if (Campos) Campos.hidden = !Activo;
-        if (Nota) Nota.hidden = !Activo;
+        if (Campos) {
+          Campos.hidden = !Activo;
+          Campos.setAttribute("aria-hidden", String(!Activo));
+        }
+        if (Nota) {
+          Nota.hidden = !Activo;
+          Nota.setAttribute("aria-hidden", String(!Activo));
+        }
         if (Atras) Atras.disabled = !Activo;
         if (Adelante) Adelante.disabled = !Activo;
       }

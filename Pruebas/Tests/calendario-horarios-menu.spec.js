@@ -574,6 +574,9 @@ test("config permite activar enfoque alrededor de ahora", async ({
     const Campos = document.getElementById(
       "Cfg_Enfoque_Hora_Actual_Campos"
     );
+    const Nota = document.getElementById(
+      "Cfg_Enfoque_Hora_Actual_Nota"
+    );
     const Atras = document.getElementById(
       "Cfg_Enfoque_Hora_Actual_Atras"
     );
@@ -583,6 +586,9 @@ test("config permite activar enfoque alrededor de ahora", async ({
     const Inicial = {
       modo: Modo?.value || "",
       camposOcultos: Boolean(Campos?.hidden),
+      camposDisplay: getComputedStyle(Campos).display,
+      notaOculta: Boolean(Nota?.hidden),
+      notaDisplay: getComputedStyle(Nota).display,
       atras: Atras?.value || "",
       adelante: Adelante?.value || ""
     };
@@ -592,15 +598,31 @@ test("config permite activar enfoque alrededor de ahora", async ({
     Modo.dispatchEvent(new Event("change"));
     const Tras_Modo = {
       camposOcultos: Boolean(Campos?.hidden),
+      camposDisplay: getComputedStyle(Campos).display,
+      notaOculta: Boolean(Nota?.hidden),
+      notaDisplay: getComputedStyle(Nota).display,
       atrasDeshabilitado: Boolean(Atras?.disabled),
       adelanteDeshabilitado: Boolean(Adelante?.disabled)
     };
+    Modo.value = "Completo";
+    Modo.dispatchEvent(new Event("change"));
+    const Tras_Completo = {
+      camposOcultos: Boolean(Campos?.hidden),
+      camposDisplay: getComputedStyle(Campos).display,
+      notaOculta: Boolean(Nota?.hidden),
+      notaDisplay: getComputedStyle(Nota).display,
+      atrasDeshabilitado: Boolean(Atras?.disabled),
+      adelanteDeshabilitado: Boolean(Adelante?.disabled)
+    };
+    Modo.value = "Enfocar";
+    Modo.dispatchEvent(new Event("change"));
     Atras.value = "2";
     Adelante.value = "5";
     Guardar_Config();
     return {
       inicial: Inicial,
       trasModo: Tras_Modo,
+      trasCompleto: Tras_Completo,
       guardado: {
         modo: Config.Enfoque_Hora_Actual_Modo,
         atras: Config.Enfoque_Hora_Actual_Atras,
@@ -612,13 +634,27 @@ test("config permite activar enfoque alrededor de ahora", async ({
   expect(resultado.inicial).toEqual({
     modo: "Completo",
     camposOcultos: true,
+    camposDisplay: "none",
+    notaOculta: true,
+    notaDisplay: "none",
     atras: "1",
     adelante: "6"
   });
   expect(resultado.trasModo).toEqual({
     camposOcultos: false,
+    camposDisplay: "flex",
+    notaOculta: false,
+    notaDisplay: "block",
     atrasDeshabilitado: false,
     adelanteDeshabilitado: false
+  });
+  expect(resultado.trasCompleto).toEqual({
+    camposOcultos: true,
+    camposDisplay: "none",
+    notaOculta: true,
+    notaDisplay: "none",
+    atrasDeshabilitado: true,
+    adelanteDeshabilitado: true
   });
   expect(resultado.guardado).toEqual({
     modo: "Enfocar",
