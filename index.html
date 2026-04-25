@@ -1343,13 +1343,13 @@
 
       .Editor_Titulo {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: auto minmax(0, 1fr);
         align-items: center;
         gap: 10px;
         margin-bottom: 12px;
       }
 
-      .Editor_Titulo > div:first-child {
+      .Editor_Titulo_Textos {
         min-width: 0;
       }
 
@@ -2350,6 +2350,9 @@
         padding: 9px 13px;
         position: relative;
         overflow: hidden;
+        display: grid;
+        grid-template-rows: 13px 24px 14px 3px;
+        align-items: start;
       }
 
       .Objetivo_Stat_Card_Label {
@@ -2369,24 +2372,30 @@
         font-weight: 700;
         color: var(--Texto);
         margin-top: 2px;
+        line-height: 1.2;
         font-variant-numeric: tabular-nums;
       }
 
       .Objetivo_Stat_Card_Valor:empty {
-        display: none;
+        visibility: hidden;
       }
 
       .Objetivo_Stat_Card_Sub {
         font-size: 10px;
         color: var(--Texto_Suave);
         margin-top: 1px;
+        line-height: 1.2;
+      }
+
+      .Objetivo_Stat_Card_Sub:empty {
+        visibility: hidden;
       }
 
       .Objetivo_Stat_Card_Mini_Barra {
         height: 3px;
         background: rgba(0, 0, 0, 0.06);
         border-radius: 999px;
-        margin-top: 6px;
+        margin-top: 0;
         overflow: hidden;
       }
 
@@ -23393,11 +23402,11 @@
 
           <div class="Editor_Objetivo Oculto" id="Editor_Objetivo">
             <div class="Editor_Titulo">
-              <div>
+              <div class="Editor_Emoji" id="Editor_Emoji">&#8226;</div>
+              <div class="Editor_Titulo_Textos">
                 <h3 id="Editor_Nombre">Selecciona un objetivo</h3>
                 <span class="Etiqueta_Compacta" id="Editor_Estado">Sin seleccion</span>
               </div>
-              <div class="Editor_Emoji" id="Editor_Emoji">&#8226;</div>
             </div>
 
             <div class="Campo">
@@ -23493,7 +23502,7 @@
               </label>
               <div id="Editor_Habitos_Bloques_Lista"></div>
             </div>
-            <div class="Campo Meta_Aporte_Campo Oculto"
+            <div class="Campo Meta_Aporte_Campo Oculto" hidden
               id="Editor_Meta_Aporte_Campo">
               <label for="Editor_Meta_Aporte_Semanal_Input"
                 data-i18n="sidebar.aporte_semanal">
@@ -23510,7 +23519,7 @@
                 <span id="Editor_Meta_Aporte_Sugerencia_Texto"></span>
               </div>
             </div>
-            <div class="Campo Meta_Aporte_Campo Oculto"
+            <div class="Campo Meta_Aporte_Campo Oculto" hidden
               id="Editor_Meta_Aporte_Hora_Campo">
               <label for="Editor_Meta_Aporte_Hora_Input"
                 data-i18n="sidebar.aporte_por_hora">
@@ -27900,10 +27909,11 @@
           "resumen.card_unidades": "Unidades",
           "resumen.card_restante": "Restante",
           "resumen.card_unidad_sin_nombre": "Sin unidad",
+          "resumen.card_unidades_total": "{total} totales",
           "resumen.card_unidades_detalle":
             "{realizadas} realizadas - {restantes} restantes",
           "resumen.card_unidades_detalle_simple":
-            "{realizadas} realizadas - {restantes} restantes",
+            "{realizadas} realizadas \u00b7 {restantes} restantes",
           "resumen.card_unidades_detalle_completo":
             "{total} totales \u00b7 {realizadas} realizadas \u00b7 " +
             "{restantes} restantes",
@@ -31968,10 +31978,11 @@
           "resumen.card_unidades": "Units",
           "resumen.card_restante": "Left",
           "resumen.card_unidad_sin_nombre": "No unit",
+          "resumen.card_unidades_total": "{total} total",
           "resumen.card_unidades_detalle":
             "{realizadas} done - {restantes} left",
           "resumen.card_unidades_detalle_simple":
-            "{realizadas} done - {restantes} left",
+            "{realizadas} done \u00b7 {restantes} left",
           "resumen.card_unidades_detalle_completo":
             "{total} total \u00b7 {realizadas} done \u00b7 " +
             "{restantes} left",
@@ -36151,10 +36162,11 @@
           "resumen.card_unidades": "Unidades",
           "resumen.card_restante": "Restante",
           "resumen.card_unidad_sin_nombre": "Sem unidade",
+          "resumen.card_unidades_total": "{total} totais",
           "resumen.card_unidades_detalle":
             "{realizadas} realizadas - {restantes} restantes",
           "resumen.card_unidades_detalle_simple":
-            "{realizadas} realizadas - {restantes} restantes",
+            "{realizadas} realizadas \u00b7 {restantes} restantes",
           "resumen.card_unidades_detalle_completo":
             "{total} totais \u00b7 {realizadas} realizadas \u00b7 " +
             "{restantes} restantes",
@@ -100694,13 +100706,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           C.appendChild(L);
           C.appendChild(V);
 
-          // Sub solo se muestra si tiene texto.
-          if (Sub) {
-            const S = document.createElement("div");
-            S.className = "Objetivo_Stat_Card_Sub";
-            S.textContent = Sub;
-            C.appendChild(S);
-          }
+          const S = document.createElement("div");
+          S.className = "Objetivo_Stat_Card_Sub";
+          S.textContent = Sub || "";
+          C.appendChild(S);
 
           if (Pct !== null) {
             const Bc = document.createElement("div");
@@ -100802,8 +100811,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Cont.appendChild(
               Crear_Card(
                 Unidad_Label,
-                "",
-                t("resumen.card_unidades_detalle_completo", {
+                t("resumen.card_unidades_total", {
+                  total: Formatear_Cantidad(Item.Total)
+                }),
+                t("resumen.card_unidades_detalle_simple", {
                   total: Formatear_Cantidad(Item.Total),
                   realizadas: Formatear_Cantidad(Item.Realizadas),
                   restantes: Formatear_Cantidad(Item.Restantes)
