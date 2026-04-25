@@ -247,9 +247,13 @@ al codigo y resolverla antes de registrar, commitear y pushear. Si no
 aparece nada relevante, no inventar trabajo extra: registrar solo que
 el avance quedo validado con pruebas y revision de variantes.
 
-### Regla general de guardado
+### Regla general de funcionamiento
 
-Seguir `Documentacion/Planes/Funcionamiento_Semaplan.md`.
+Seguir `Documentacion/Planes/Funcionamiento_Semaplan.md` como
+referencia general de funcionamiento de la pagina. No tratarlo como
+un documento limitado al guardado: tambien define reglas de UX,
+modales, seleccion multiple, comportamiento visible, estilo operativo y
+criterios de consistencia entre flujos.
 
 ### Git después de cada cambio
 
