@@ -51802,6 +51802,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      function Planes_Marcar_Guardado_Planes_Critico() {
+        if (
+          typeof Marcar_Sync_Critico_Inmediato_Pendiente === "function"
+        ) {
+          Marcar_Sync_Critico_Inmediato_Pendiente();
+        }
+      }
+
       function Planes_Upsert_Avance_Parte(
         Parte,
         Cantidad,
@@ -51829,6 +51837,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (Existente) {
             delete Modelo.Avances[Existente.Id];
+            Planes_Marcar_Guardado_Planes_Critico();
           }
           if (Opciones.Solo_Modelo) {
             Planes_Recalcular_Progreso_Parte(Parte, Modelo);
@@ -51887,6 +51896,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Opciones.Origen_Subobjetivo_Semanal_Id || "",
           Automatico: Opciones.Automatico === true
         });
+        Planes_Marcar_Guardado_Planes_Critico();
         if (Opciones.Solo_Modelo) {
           Planes_Recalcular_Progreso_Parte(Parte, Modelo);
           const Sub = Modelo.Subobjetivos[Parte.Subobjetivo_Id];
@@ -51935,6 +51945,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Avance_Auto) return false;
         delete M.Avances[Avance_Auto.Id];
+        Planes_Marcar_Guardado_Planes_Critico();
         Planes_Recalcular_Progreso_Parte(Parte, M);
         const Sub = M.Subobjetivos[Parte.Subobjetivo_Id];
         if (Sub) {
@@ -52109,6 +52120,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Avance?.Id || Eliminados.has(Avance.Id)) return;
           Eliminados.add(Avance.Id);
           delete Modelo.Avances[Avance.Id];
+          Planes_Marcar_Guardado_Planes_Critico();
           Planes_Sincronizar_Habitos_Avance_Registro(Avance, false);
         });
       }
@@ -59113,6 +59125,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         if (!Objetivo) return;
         Objetivo.Actualizado_En = new Date().toISOString();
+        Planes_Marcar_Guardado_Planes_Critico();
         const Modelo = Asegurar_Modelo_Planes();
         Planes_Sincronizar_Familia_Objetivo(Objetivo.Id, Modelo);
         Object.values(Modelo.Objetivos)
@@ -62037,6 +62050,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Modelo = Asegurar_Modelo_Planes();
         const Parte_Ids = Meta_Aporte_Parte_Ids_Avance(Avance);
         delete Modelo.Avances[Avance.Id];
+        Planes_Marcar_Guardado_Planes_Critico();
         if (Evento) delete Evento.Meta_Avance_Id;
         Meta_Aporte_Recalcular_Partes_Ids(Parte_Ids, Modelo);
         const Objetivo = Modelo.Objetivos[Avance.Objetivo_Id];
@@ -62099,6 +62113,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Objetivo_Semanal?.Id || "",
           Distribucion
         });
+        Planes_Marcar_Guardado_Planes_Critico();
         Evento.Meta_Avance_Id = Id;
         Meta_Aporte_Recalcular_Partes_Ids([
           ...new Set([
@@ -62794,6 +62809,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fecha_Hora: `${Fecha}T${Hora || "00:00"}`
         });
         M.Avances[Id] = Avance;
+        Planes_Marcar_Guardado_Planes_Critico();
         if (Item.Tipo === "Parte") {
           Planes_Recalcular_Progreso_Parte(Item.Parte, M);
           Planes_Recalcular_Progreso_Subobjetivo(Item.Sub, M);
@@ -63014,6 +63030,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fecha_Hora: `${Fecha}T${Hora || "00:00"}`
         });
         Modelo.Avances[Id] = Avance;
+        Planes_Marcar_Guardado_Planes_Critico();
         if (Item.Tipo === "Parte") {
           Planes_Recalcular_Progreso_Parte(Item.Parte, Modelo);
           Planes_Recalcular_Progreso_Subobjetivo(Item.Sub, Modelo);
@@ -63982,6 +63999,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Hora,
           Fecha_Hora: `${Fecha}T${Hora || "00:00"}`
         });
+        Planes_Marcar_Guardado_Planes_Critico();
       }
 
       async function Planes_Marcar_Subobjetivo_Como_Realizado(
@@ -65271,8 +65289,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Avance.Hora = Hora;
         Avance.Fecha_Hora = `${Fecha}T${Avance.Hora}`;
         Avance.Actualizado_En = new Date().toISOString();
-        Planes_Recalcular_Avance_Subobjetivo(Avance);
+        Planes_Marcar_Guardado_Planes_Critico();
         Planes_Sincronizar_Habitos_Avance_Registro(Avance, true);
+        Planes_Recalcular_Avance_Subobjetivo(Avance);
         Mostrar_Toast_Undo(t("planes.avance_actualizado"), Snap);
       }
 
@@ -65303,6 +65322,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Planes_Sincronizar_Habitos_Avance_Registro(Avance, false);
         delete Modelo.Avances[Avance_Id];
+        Planes_Marcar_Guardado_Planes_Critico();
         Planes_Recalcular_Avance_Subobjetivo(Avance);
         Mostrar_Toast_Undo(t("planes.avance_eliminado"), Snap);
       }
