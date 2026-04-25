@@ -10516,17 +10516,53 @@
         max-width: min(980px, calc(100vw - 32px));
       }
 
+      .Tareas_Rapida_Modal {
+        width: min(560px, calc(100vw - 28px));
+        max-width: min(560px, calc(100vw - 28px));
+      }
+
       .Tareas_Quick_Form {
         display: grid;
         grid-template-columns: 64px minmax(180px, 1.4fr)
           minmax(132px, 0.8fr) 126px 118px 116px;
         gap: 10px;
         align-items: end;
-        margin-bottom: 18px;
+        margin-top: 12px;
+        padding: 12px;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.72);
       }
 
       .Tareas_Quick_Form .Campo {
         margin: 0;
+      }
+
+      .Tareas_Form_Guardar {
+        align-self: end;
+        min-height: 38px;
+        border: none;
+        border-radius: 12px;
+        background: #157a58;
+        color: #fff;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .Tareas_Rapida_Modal .Tareas_Quick_Form {
+        grid-template-columns: 62px minmax(0, 1fr);
+      }
+
+      .Tareas_Rapida_Modal .Tareas_Quick_Form .Campo {
+        min-width: 0;
+      }
+
+      .Tareas_Rapida_Modal .Tareas_Quick_Form .Campo:nth-child(n + 3) {
+        grid-column: span 1;
+      }
+
+      .Tareas_Rapida_Modal .Tareas_Form_Guardar {
+        display: none;
       }
 
       .Tareas_Tabs,
@@ -10539,11 +10575,15 @@
 
       .Tareas_Tab {
         border: 1px solid var(--Borde);
-        border-radius: 999px;
+        border-radius: 50%;
         background: #fff;
         color: var(--Texto);
-        padding: 7px 12px;
-        font-size: 13px;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        display: grid;
+        place-items: center;
+        font-size: 18px;
         font-weight: 700;
         cursor: pointer;
       }
@@ -10557,6 +10597,21 @@
       .Tareas_Lista {
         display: grid;
         gap: 8px;
+      }
+
+      .Tareas_Agregar_Linea {
+        width: 100%;
+        height: 38px;
+        border-radius: 8px;
+        border: 1px dashed var(--Borde);
+        background: rgba(255, 255, 255, 0.64);
+        color: var(--Texto);
+        font-size: 24px;
+        line-height: 1;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        margin-top: 10px;
       }
 
       .Tareas_Item {
@@ -10637,17 +10692,29 @@
       }
 
       .Tareas_Contador_Flotante {
-        width: 34px;
-        height: 34px;
+        position: fixed;
+        left: 96px;
+        bottom: 33px;
+        z-index: 5200;
+        width: 42px;
+        height: 42px;
         border-radius: 50%;
-        border: none;
-        background: #157a58;
-        color: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.42);
+        background: #ece8df;
+        color: var(--Texto);
         font-weight: 900;
+        font-size: 20px;
+        line-height: 1;
         cursor: pointer;
         display: grid;
         place-items: center;
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 10px 26px rgba(35, 28, 20, 0.18);
+      }
+
+      .Tareas_Contador_Flotante.Completo {
+        background: #dcebdd;
+        border-color: rgba(21, 122, 88, 0.35);
+        color: #157a58;
       }
 
       .Tareas_Vacio {
@@ -10699,7 +10766,8 @@
         }
 
         .Habitos_Panel_Filtros,
-        .Habitos_Lista {
+        .Habitos_Lista,
+        .Tareas_Quick_Form {
           grid-template-columns: 1fr;
         }
 
@@ -18246,7 +18314,7 @@
               data-menu-nombre="H&aacute;bitos"
               type="button"
               data-i18n-title="menu.habitos"
-              title="H&aacute;bitos">&#9989;</button>
+              title="H&aacute;bitos">&#9200;</button>
             <button class="Config_Boton Menu_Btn Con_Fallback_Emoji"
               id="Tareas_Boton"
               data-menu-key="Tareas_Boton"
@@ -22676,8 +22744,36 @@
           <button class="Config_Boton_Cancelar"
             id="Tareas_Cancelar"
             type="button">Cerrar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="Patron_Modal_Overlay" id="Tareas_Rapida_Overlay">
+      <div class="Patron_Modal_Panel Tareas_Rapida_Modal">
+        <div class="Patron_Modal_Cabecera Habitos_Modal_Cabecera">
+          <div class="Habitos_Modal_Encabezado">
+            <span class="Habitos_Modal_Icono">&#9745;</span>
+            <div class="Habitos_Modal_Encabezado_Texto">
+              <span class="Patron_Modal_Titulo Habitos_Modal_Titulo">
+                Nueva tarea
+              </span>
+              <p class="Habitos_Modal_Subtitulo">
+                Cargala rapido y planificala si tiene fecha y hora.
+              </p>
+            </div>
+          </div>
+          <button class="Config_Cerrar"
+            id="Tareas_Rapida_Cerrar"
+            type="button">&times;</button>
+        </div>
+        <div class="Patron_Modal_Cuerpo Habitos_Modal_Cuerpo"
+          id="Tareas_Rapida_Cuerpo"></div>
+        <div class="Patron_Modal_Acciones Habitos_Modal_Acciones">
+          <button class="Config_Boton_Cancelar"
+            id="Tareas_Rapida_Cancelar"
+            type="button">Cancelar</button>
           <button class="Config_Boton_Guardar"
-            id="Tareas_Guardar"
+            id="Tareas_Rapida_Guardar"
             type="button">Crear tarea</button>
         </div>
       </div>
@@ -36473,6 +36569,7 @@
       let Tareas_Cajon_Activo = "";
       let Tareas_Ocultar_Realizadas = true;
       let Tareas_Ultimo_Cajon = "Inbox";
+      let Tareas_Mostrar_Creador = false;
       let Habitos_Filtros_Modal_Abierto = false;
       let Habitos_Filtros_Borrador = null;
       let Habito_Evento_En_Edicion_Id = null;
@@ -88514,9 +88611,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Tareas.filter((Tarea) => {
           if (
             Tareas_Ocultar_Realizadas &&
-            Tarea.Estado === "completada"
+            Tarea.Estado === "completada" &&
+            Tareas_Vista !== "Completadas"
           ) return false;
-          if (Tarea.Estado === "cancelada") return false;
+          if (
+            Tarea.Estado === "cancelada" &&
+            Tareas_Vista !== "Canceladas"
+          ) return false;
           if (Tareas_Vista === "Inbox") {
             return !Tarea.Fecha && Tarea.Cajon === "Inbox";
           }
@@ -88536,6 +88637,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (Tareas_Vista === "Completadas") {
             return Tarea.Estado === "completada";
+          }
+          if (Tareas_Vista === "Canceladas") {
+            return Tarea.Estado === "cancelada";
           }
           if (Tareas_Vista === "Cajon") {
             return Tarea.Cajon === Tareas_Cajon_Activo;
@@ -88677,31 +88781,87 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
-      function Guardar_Tarea_Desde_Form() {
-        const Nombre = document.getElementById("Tareas_Nombre")
+      function Crear_Form_Tarea(Prefijo = "Tareas") {
+        const Cajones = Tareas_Cajones();
+        const Form = document.createElement("div");
+        Form.className = "Tareas_Quick_Form";
+        Form.innerHTML = `
+          <label class="Campo">
+            <span>Emoji</span>
+            <input id="${Prefijo}_Emoji" class="Con_Selector_Emoji"
+              maxlength="4" value="&#9745;">
+          </label>
+          <label class="Campo">
+            <span>Tarea</span>
+            <input id="${Prefijo}_Nombre" placeholder="Nombre de tarea">
+          </label>
+          <label class="Campo">
+            <span>Caj&oacute;n</span>
+            <input id="${Prefijo}_Cajon" list="${Prefijo}_Cajones"
+              value="${Tareas_Ultimo_Cajon || "Inbox"}">
+            <datalist id="${Prefijo}_Cajones">
+              ${Cajones.map((C) =>
+                `<option value="${C}"></option>`
+              ).join("")}
+            </datalist>
+          </label>
+          <label class="Campo">
+            <span>Prioridad</span>
+            <select id="${Prefijo}_Prioridad">
+              <option value="baja">Baja</option>
+              <option value="media">Media</option>
+              <option value="alta">Alta</option>
+            </select>
+          </label>
+          <label class="Campo">
+            <span>Fecha</span>
+            <input id="${Prefijo}_Fecha" type="date">
+          </label>
+          <label class="Campo">
+            <span>Hora</span>
+            <input id="${Prefijo}_Hora" type="time">
+          </label>
+          <button class="Tareas_Form_Guardar"
+            id="${Prefijo}_Guardar_Linea"
+            type="button">Crear</button>`;
+        setTimeout(() => {
+          document.getElementById(`${Prefijo}_Guardar_Linea`)
+            ?.addEventListener("click", () =>
+              Guardar_Tarea_Desde_Form(Prefijo)
+            );
+        }, 0);
+        return Form;
+      }
+
+      function Guardar_Tarea_Desde_Form(Prefijo = "Tareas") {
+        const Nombre = document.getElementById(`${Prefijo}_Nombre`)
           ?.value.trim();
         if (!Nombre) {
           Mostrar_Toast_Info("La tarea necesita nombre.", "\u26a0\ufe0f");
           return;
         }
-        const Cajon = document.getElementById("Tareas_Cajon")
+        const Cajon = document.getElementById(`${Prefijo}_Cajon`)
           ?.value.trim() || Tareas_Ultimo_Cajon || "Inbox";
         const Tarea = Normalizar_Tarea({
-          Emoji: document.getElementById("Tareas_Emoji")?.value || "\u2022",
+          Emoji: document.getElementById(`${Prefijo}_Emoji`)?.value || "\u2022",
           Nombre,
           Cajon,
-          Prioridad: document.getElementById("Tareas_Prioridad")?.value,
+          Prioridad: document.getElementById(`${Prefijo}_Prioridad`)?.value,
           Estado: "pendiente",
-          Fecha: document.getElementById("Tareas_Fecha")?.value || "",
-          Hora: document.getElementById("Tareas_Hora")?.value || ""
+          Fecha: document.getElementById(`${Prefijo}_Fecha`)?.value || "",
+          Hora: document.getElementById(`${Prefijo}_Hora`)?.value || ""
         });
         Tareas_Ultimo_Cajon = Cajon;
         Tareas.push(Tarea);
         if (Tarea.Fecha && Tarea.Hora) Planificar_Tarea(Tarea);
+        Tareas_Mostrar_Creador = false;
         Render_Tareas();
         Render_Tareas_Contador();
         Render_Eventos();
         Guardar_Estado();
+        if (Prefijo === "Tareas_Rapida") {
+          Cerrar_Tarea_Rapida();
+        }
       }
 
       function Render_Tareas() {
@@ -88748,17 +88908,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             <span>Hora</span>
             <input id="Tareas_Hora" type="time">
           </label>`;
-        Cuerpo.appendChild(Form);
+        Form.hidden = true;
+        // La carga inline se monta abajo de la lista cuando se toca +.
 
         const Tabs = document.createElement("div");
         Tabs.className = "Tareas_Tabs";
-        ["Inbox", "Temporal", "Proximas", "Vencidas", "Completadas"]
+        ["Inbox", "Temporal", "Proximas", "Vencidas",
+          "Canceladas", "Completadas"]
           .forEach((Vista) => {
             const Btn = document.createElement("button");
             Btn.className = "Tareas_Tab" +
               (Tareas_Vista === Vista ? " Activo" : "");
             Btn.type = "button";
-            Btn.textContent = Vista === "Proximas" ? "Próximas" : Vista;
+            Btn.title = Vista === "Proximas" ? "Proximas" : Vista;
+            Btn.textContent = {
+              Inbox: "\ud83d\udce5",
+              Temporal: "\ud83d\udcc5",
+              Proximas: "\u23ed\ufe0f",
+              Vencidas: "\u23f0",
+              Canceladas: "\u2716\ufe0f",
+              Completadas: "\u2705"
+            }[Vista] || Vista;
             Btn.addEventListener("click", () => {
               Tareas_Vista = Vista;
               Render_Tareas();
@@ -88771,7 +88941,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             (Tareas_Vista === "Cajon" &&
              Tareas_Cajon_Activo === Cajon ? " Activo" : "");
           Btn.type = "button";
-          Btn.textContent = Cajon;
+          Btn.title = Cajon;
+          Btn.textContent = "\ud83d\uddc2\ufe0f";
           Btn.addEventListener("click", () => {
             Tareas_Vista = "Cajon";
             Tareas_Cajon_Activo = Cajon;
@@ -88874,6 +89045,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Render_Eventos();
             Guardar_Estado();
           });
+          const Cancelar = document.createElement("button");
+          Cancelar.className = "Tareas_Accion";
+          Cancelar.type = "button";
+          Cancelar.textContent = Tarea.Estado === "cancelada"
+            ? "Restaurar"
+            : "Cancelar";
+          Cancelar.addEventListener("click", () => {
+            Cambiar_Estado_Tarea(
+              Tarea,
+              Tarea.Estado === "cancelada" ? "pendiente" : "cancelada"
+            );
+            Render_Tareas();
+            Render_Tareas_Contador();
+            Render_Eventos();
+            Guardar_Estado();
+          });
           const Borrar = document.createElement("button");
           Borrar.className = "Tareas_Accion Peligro";
           Borrar.type = "button";
@@ -88888,6 +89075,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           Acciones.appendChild(Planificar);
           Acciones.appendChild(Posponer);
+          Acciones.appendChild(Cancelar);
           Acciones.appendChild(Borrar);
           Item.appendChild(Check);
           Item.appendChild(Texto);
@@ -88895,6 +89083,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Lista.appendChild(Item);
         });
         Cuerpo.appendChild(Lista);
+        if (Tareas_Mostrar_Creador) {
+          Cuerpo.appendChild(Crear_Form_Tarea("Tareas"));
+          setTimeout(() => {
+            document.getElementById("Tareas_Nombre")?.focus();
+          }, 0);
+        } else {
+          const Agregar = document.createElement("button");
+          Agregar.className = "Tareas_Agregar_Linea";
+          Agregar.type = "button";
+          Agregar.textContent = "+";
+          Agregar.title = "Nueva tarea";
+          Agregar.addEventListener("click", () => {
+            Tareas_Mostrar_Creador = true;
+            Render_Tareas();
+          });
+          Cuerpo.appendChild(Agregar);
+        }
         document.getElementById("Tareas_Toggle_Realizadas").textContent =
           Tareas_Ocultar_Realizadas
             ? "Mostrar realizadas"
@@ -88907,13 +89112,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         document.getElementById("Tareas_Overlay")
           ?.classList.add("Activo");
         Render_Tareas();
-        setTimeout(() => {
-          document.getElementById("Tareas_Nombre")?.focus();
-        }, 0);
       }
 
       function Cerrar_Tareas() {
         document.getElementById("Tareas_Overlay")
+          ?.classList.remove("Activo");
+      }
+
+      function Abrir_Tarea_Rapida() {
+        const Cuerpo = document.getElementById("Tareas_Rapida_Cuerpo");
+        if (!Cuerpo) return;
+        Cuerpo.innerHTML = "";
+        Cuerpo.appendChild(Crear_Form_Tarea("Tareas_Rapida"));
+        document.getElementById("Tareas_Rapida_Overlay")
+          ?.classList.add("Activo");
+        setTimeout(() => {
+          document.getElementById("Tareas_Rapida_Nombre")?.focus();
+        }, 0);
+      }
+
+      function Cerrar_Tarea_Rapida() {
+        document.getElementById("Tareas_Rapida_Overlay")
           ?.classList.remove("Activo");
       }
 
@@ -88935,7 +89154,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           Referencia.insertAdjacentElement("afterend", Btn);
         }
-        Btn.textContent = String(Tareas_Contador_Pendientes());
+        const Pendientes = Tareas_Contador_Pendientes();
+        Btn.classList.toggle("Completo", Pendientes === 0);
+        Btn.textContent = Pendientes === 0 ? "\u2713" : "\u23f3";
+        Btn.title = Pendientes === 0
+          ? "Tareas al dia"
+          : `${Pendientes} tareas pendientes`;
       }
 
       function Normalizar_Vinculos_Habito_Fuente(Vinculos = []) {
@@ -101117,8 +101341,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", Cerrar_Tareas);
       document.getElementById("Tareas_Cancelar")
         ?.addEventListener("click", Cerrar_Tareas);
-      document.getElementById("Tareas_Guardar")
-        ?.addEventListener("click", Guardar_Tarea_Desde_Form);
       document.getElementById("Tareas_Toggle_Realizadas")
         ?.addEventListener("click", () => {
           Tareas_Ocultar_Realizadas = !Tareas_Ocultar_Realizadas;
@@ -101127,6 +101349,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       document.getElementById("Tareas_Overlay")
         ?.addEventListener("click", (Ev) => {
           if (Ev.target.id === "Tareas_Overlay") {
+            Ev.preventDefault();
+          }
+        });
+      document.getElementById("Tareas_Rapida_Cerrar")
+        ?.addEventListener("click", Cerrar_Tarea_Rapida);
+      document.getElementById("Tareas_Rapida_Cancelar")
+        ?.addEventListener("click", Cerrar_Tarea_Rapida);
+      document.getElementById("Tareas_Rapida_Guardar")
+        ?.addEventListener("click", () =>
+          Guardar_Tarea_Desde_Form("Tareas_Rapida")
+        );
+      document.getElementById("Tareas_Rapida_Overlay")
+        ?.addEventListener("click", (Ev) => {
+          if (Ev.target.id === "Tareas_Rapida_Overlay") {
             Ev.preventDefault();
           }
         });
@@ -107068,7 +107304,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Ev.key === "t" || Ev.key === "T")
         ) {
           Cerrar_Menu_Dia();
-          Abrir_Tareas();
+          Abrir_Tarea_Rapida();
           Ev.preventDefault();
           return;
         }
@@ -107143,6 +107379,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ?.classList.contains("Activo");
         const Tareas_Activo = document
           .getElementById("Tareas_Overlay")
+          ?.classList.contains("Activo");
+        const Tareas_Rapida_Activo = document
+          .getElementById("Tareas_Rapida_Overlay")
           ?.classList.contains("Activo");
         const Baul_Abierto = document
           .getElementById("Baul_Overlay")
@@ -107250,6 +107489,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           if (Tareas_Activo) {
             Cerrar_Tareas();
+            Ev.preventDefault();
+            return;
+          }
+          if (Tareas_Rapida_Activo) {
+            Cerrar_Tarea_Rapida();
             Ev.preventDefault();
             return;
           }
@@ -107448,6 +107692,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Planes_Objetivo_Activo ||
           Planes_Activo ||
           Tareas_Activo ||
+          Tareas_Rapida_Activo ||
           Habitos_Activo ||
           Baul_Nuevo_Abierto ||
           Baul_Abierto ||
