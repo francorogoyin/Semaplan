@@ -24241,6 +24241,9 @@
           "habitos.registro_eliminar_confirm_origen":
             "Eliminar este registro tambi\u00e9n va a desmarcar " +
             "el \u00edtem o bloque que lo gener\u00f3. \u00bfContinuar?",
+          "habitos.registro_eliminar_confirm_plan":
+            "Eliminar este registro tambi\u00e9n va a borrar el avance " +
+            "vinculado en Metas. \u00bfContinuar?",
           "habitos.registro_actualizado": "Registro actualizado.",
           "habitos.registro_eliminado": "Registro eliminado.",
           "habitos.vinculaciones_titulo": "Vinculaciones de h\u00e1bitos",
@@ -28390,6 +28393,9 @@
           "habitos.registro_eliminar_confirm_origen":
             "Deleting this record will also uncheck the item or " +
             "block that created it. Continue?",
+          "habitos.registro_eliminar_confirm_plan":
+            "Deleting this record will also delete the linked progress " +
+            "entry in Goals. Continue?",
           "habitos.registro_actualizado": "Record updated.",
           "habitos.registro_eliminado": "Record deleted.",
           "habitos.vinculaciones_titulo": "Habit links",
@@ -32478,6 +32484,9 @@
           "habitos.registro_eliminar_confirm_origen":
             "Excluir este registro tambem vai desmarcar o item ou " +
             "bloco que o gerou. Continuar?",
+          "habitos.registro_eliminar_confirm_plan":
+            "Excluir este registro tambem vai apagar o avanco " +
+            "vinculado em Metas. Continuar?",
           "habitos.registro_actualizado": "Registro atualizado.",
           "habitos.registro_eliminado": "Registro excluido.",
           "habitos.vinculaciones_titulo": "Vinculacoes de habitos",
@@ -65327,6 +65336,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Mostrar_Toast_Undo(t("planes.avance_eliminado"), Snap);
       }
 
+      function Planes_Eliminar_Avance_Registro_Silencioso(Avance_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Avance = Modelo.Avances[Avance_Id];
+        if (!Planes_Avance_Registro_Editable(Avance)) return false;
+        Planes_Ajustar_Manual_Por_Avance(
+          Avance,
+          -(Number(Avance.Cantidad) || 0)
+        );
+        Planes_Sincronizar_Habitos_Avance_Registro(Avance, false);
+        delete Modelo.Avances[Avance_Id];
+        Planes_Marcar_Guardado_Planes_Critico();
+        Planes_Recalcular_Avance_Subobjetivo(Avance);
+        return true;
+      }
+
       async function Planes_Editar_Registro_Manual_Previo(
         Objetivo_Id
       ) {
@@ -77956,10 +77980,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             `${Habitos_Formatear_Hora_Select(Hora)}`.trim();
         }
         if (Fuente === "Plan_Subobjetivo") {
-          return Modelo.Subobjetivos?.[Fuente_Id]?.Texto || Fuente_Id;
+          const Avance = Habitos_Avance_Planes_De_Registro(
+            Registro,
+            Modelo
+          );
+          const Sub_Id = Avance?.Subobjetivo_Id || Fuente_Id;
+          return Modelo.Subobjetivos?.[Sub_Id]?.Texto || Fuente_Id;
         }
         if (Fuente === "Plan_Parte") {
-          return Modelo.Partes?.[Fuente_Id]?.Nombre || Fuente_Id;
+          const Avance = Habitos_Avance_Planes_De_Registro(
+            Registro,
+            Modelo
+          );
+          const Parte_Id = Avance?.Parte_Id || Fuente_Id;
+          return Modelo.Partes?.[Parte_Id]?.Nombre || Fuente_Id;
         }
         if (Fuente === "Objetivo") {
           return Modelo.Objetivos?.[Fuente_Id]?.Nombre ||
@@ -79088,6 +79122,50 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Mostrar_Toast_Info(t("habitos.registro_actualizado"));
       }
 
+      function Habitos_Avance_Planes_De_Registro(
+        Registro,
+        Modelo = null
+      ) {
+        const Fuente = String(Registro?.Fuente || "").trim();
+        if (!["Plan_Subobjetivo", "Plan_Parte"].includes(Fuente)) {
+          return null;
+        }
+        const Fuente_Id = String(Registro?.Fuente_Id || "").trim();
+        if (!Fuente_Id) return null;
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Directo = M.Avances?.[Fuente_Id];
+        if (Directo) return Directo;
+        const Fecha = (Registro?.Fecha || "").toString();
+        const Hora = (Registro?.Hora || "").toString().slice(0, 5);
+        return Object.values(M.Avances || {})
+          .find((Avance) => {
+            if (!Avance) return false;
+            if (Fuente === "Plan_Subobjetivo") {
+              if (Avance.Subobjetivo_Id !== Fuente_Id) return false;
+            }
+            if (Fuente === "Plan_Parte") {
+              const Partes = Planes_Partes_De_Avance_Registro(
+                Avance,
+                M
+              );
+              if (!Partes.some((Parte) => Parte.Id === Fuente_Id)) {
+                return false;
+              }
+            }
+            if (Fecha && Planes_Fecha_Avance_Plan(Avance) !== Fecha) {
+              return false;
+            }
+            if (Hora && Planes_Hora_Avance_Plan(Avance) !== Hora) {
+              return false;
+            }
+            return true;
+          }) || null;
+      }
+
+      function Habitos_Registro_Tiene_Avance_Planes(Registro) {
+        return Boolean(Habitos_Avance_Planes_De_Registro(Registro));
+      }
+
       async function Habitos_Eliminar_Registro(Registro_Id) {
         const Registro = Habitos_Registros.find((Item) =>
           Item?.Id === Registro_Id
@@ -79096,10 +79174,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Tiene_Origen = Habitos_Registro_Tiene_Origen_Reversible(
           Registro
         );
+        const Tiene_Avance_Planes =
+          Habitos_Registro_Tiene_Avance_Planes(Registro);
+        const Mensaje_Confirmacion = Tiene_Avance_Planes
+          ? t("habitos.registro_eliminar_confirm_plan")
+          : (
+            Tiene_Origen
+              ? t("habitos.registro_eliminar_confirm_origen")
+              : t("habitos.registro_eliminar_confirm")
+          );
         const Ok = await Mostrar_Dialogo(
-          Tiene_Origen
-            ? t("habitos.registro_eliminar_confirm_origen")
-            : t("habitos.registro_eliminar_confirm"),
+          Mensaje_Confirmacion,
           [
             { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
             { Etiqueta: t("eliminar"), Valor: true, Tipo: "Peligro" }
@@ -79184,6 +79269,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         const Modelo = Asegurar_Modelo_Planes();
         if (Fuente === "Plan_Parte") {
+          const Avance = Habitos_Avance_Planes_De_Registro(
+            Registro,
+            Modelo
+          );
+          if (Avance) {
+            Planes_Eliminar_Avance_Registro_Silencioso(Avance.Id);
+            return;
+          }
           const Parte = Modelo.Partes?.[Fuente_Id];
           if (Parte) {
             Planes_Desmarcar_Parte_Realizada(Parte.Id, {
@@ -79193,6 +79286,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return;
         }
         if (Fuente === "Plan_Subobjetivo") {
+          const Avance = Habitos_Avance_Planes_De_Registro(
+            Registro,
+            Modelo
+          );
+          if (Avance) {
+            Planes_Eliminar_Avance_Registro_Silencioso(Avance.Id);
+            return;
+          }
           const Sub = Modelo.Subobjetivos?.[Fuente_Id];
           if (Sub) {
             Sub.Hecha = false;
