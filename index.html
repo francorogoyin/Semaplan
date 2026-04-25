@@ -88594,6 +88594,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Base.Estado !== undefined ||
           Base.estado !== undefined;
         const Parece_Objetivo =
+          Base.Es_Bolsa !== undefined ||
           Base.Horas_Semanales !== undefined ||
           Base.Subobjetivos_Semanales !== undefined ||
           Base.Fracasos_Semanales !== undefined ||
@@ -91079,10 +91080,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Input.step = "0.25";
           Input.className = "Config_Input";
           Input.value = String(Number(Vinculo.Cantidad) || 1);
-          Input.hidden = (
-            Fuente_Tipo !== "Evento" &&
-            Vinculo.Cantidad_Modo === "Usar_Fuente"
-          );
+          Input.hidden =
+            (
+              Fuente_Tipo === "Evento" &&
+              Modo_Habito === "Tiempo"
+            ) ||
+            (
+              Fuente_Tipo !== "Evento" &&
+              Vinculo.Cantidad_Modo === "Usar_Fuente"
+            );
           Input.addEventListener("input", () => {
             Vinculo.Cantidad = Number(Input.value) || 1;
             if (typeof On_Cambio === "function") {
