@@ -78760,6 +78760,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Habito,
           Fecha
         );
+        const Completo = Modo === "Cantidad" &&
+          Habito_Esta_Completo(Habito, Fecha);
         const Bloqueado = Habitos_Evitar_Bloqueado_Para_Accion(
           Habito,
           Fecha
@@ -78806,7 +78808,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               data-habitos-registro-input="${Escape_Html(Habito.Id)}"
               placeholder="${Escape_Html(Placeholder)}"
               aria-label="${Escape_Html(t("habitos.registro_avance"))}">
-            <button class="Habitos_Card_Registro_Btn" type="button"
+            <button class="Habitos_Card_Registro_Btn${
+              Completo ? " Confirmado" : ""
+            }" type="button"
               data-habitos-registro-rapido="${Escape_Html(Habito.Id)}"
               title="${Escape_Html(t("habitos.registrar_avance"))}"
               aria-label="${Escape_Html(t("habitos.registrar_avance"))}">
@@ -78825,6 +78829,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Boton) return;
         Boton.classList.add("Confirmado");
         window.setTimeout(() => {
+          const Habito = Habito_Por_Id(Habito_Id);
+          if (!Habito || Habito_Esta_Completo(
+            Habito,
+            Habitos_Fecha_Referencia()
+          )) {
+            return;
+          }
           Boton.classList.remove("Confirmado");
         }, 1000);
       }

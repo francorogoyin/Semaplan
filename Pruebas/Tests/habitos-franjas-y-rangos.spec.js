@@ -2213,6 +2213,59 @@ test("panel de habitos registra avances manuales desde la lista", async ({
   await expect(page.locator(".Habitos_Card")).toHaveCount(2);
 });
 
+test("el tilde de cantidad se pinta verde al llegar a la meta y se mantiene con excedentes", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    Habitos = [
+      Normalizar_Habito({
+        Id: "Habito_Cantidad_Verde",
+        Nombre: "Cantidad verde",
+        Tipo: "Hacer",
+        Meta: {
+          Modo: "Cantidad",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 5,
+          Unidad: "paginas"
+        }
+      })
+    ];
+    Habitos_Registros = [];
+    Abrir_Panel_Habitos();
+  });
+
+  const Boton = page.locator(
+    '[data-habitos-registro-rapido="Habito_Cantidad_Verde"]'
+  );
+
+  await page.fill(
+    '[data-habitos-registro-input="Habito_Cantidad_Verde"]',
+    "5"
+  );
+  await Boton.click();
+  await expect(Boton).toHaveClass(/Confirmado/);
+  await page.waitForTimeout(1100);
+  await expect(Boton).toHaveClass(/Confirmado/);
+
+  await page.fill(
+    '[data-habitos-registro-input="Habito_Cantidad_Verde"]',
+    "2"
+  );
+  await Boton.click();
+  await expect(Boton).toHaveClass(/Confirmado/);
+
+  const Progreso = await page.evaluate(() =>
+    Habito_Progreso_Actual(
+      Habito_Por_Id("Habito_Cantidad_Verde"),
+      Habitos_Fecha_Referencia()
+    )
+  );
+  expect(Progreso).toBe(7);
+});
+
 test("panel de habitos mantiene orden, alto y alterna realizados", async ({
   page
 }) => {
