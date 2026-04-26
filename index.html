@@ -24081,9 +24081,14 @@
             "Vas a registrar {cantidad} {unidad} en {meta}. " +
             "¿Confirmás?",
           "meta_aporte.confirmar_quitar":
-            "El aporte pasará a 0, se borrará el avance de " +
-            "{cantidad} {unidad} y se redistribuirá en los " +
-            "bloques futuros disponibles. ¿Confirmás?",
+            "Vas a borrar un registro de Avances. El aporte " +
+            "pasará a 0, se borrará el avance de {cantidad} " +
+            "{unidad} y se redistribuirá en los bloques " +
+            "futuros disponibles. ¿Confirmás?",
+          "meta_aporte.confirmar_editar_hora":
+            "Vas a editar la hora del registro. ¿Confirmás?",
+          "meta_aporte.confirmar_editar_horas":
+            "Vas a editar la hora de {n} registros. ¿Confirmás?",
           "meta_aporte.confirmar_editar":
             "El avance cambiará de {anterior} a {nueva} " +
             "{unidad} y se redistribuirá la diferencia en " +
@@ -28258,9 +28263,14 @@
             "This will register {cantidad} {unidad} in {meta}. " +
             "Confirm?",
           "meta_aporte.confirmar_quitar":
-            "The contribution will become 0, the {cantidad} " +
+            "You are about to delete a progress entry. The " +
+            "contribution will become 0, the {cantidad} " +
             "{unidad} progress entry will be deleted and it will " +
             "be redistributed into available future blocks. Confirm?",
+          "meta_aporte.confirmar_editar_hora":
+            "You are about to edit the entry time. Confirm?",
+          "meta_aporte.confirmar_editar_horas":
+            "You are about to edit the time of {n} entries. Confirm?",
           "meta_aporte.confirmar_editar":
             "Progress will change from {anterior} to {nueva} " +
             "{unidad} and the difference will be redistributed into " +
@@ -32367,9 +32377,14 @@
             "Você vai registrar {cantidad} {unidad} em {meta}. " +
             "Confirma?",
           "meta_aporte.confirmar_quitar":
-            "O aporte passará para 0, o avanço de {cantidad} " +
-            "{unidad} será apagado e redistribuído nos blocos " +
-            "futuros disponíveis. Confirma?",
+            "Você vai apagar um registro de avanço. O aporte " +
+            "passará para 0, o avanço de {cantidad} {unidad} " +
+            "será apagado e redistribuído nos blocos futuros " +
+            "disponíveis. Confirma?",
+          "meta_aporte.confirmar_editar_hora":
+            "Você vai editar a hora do registro. Confirma?",
+          "meta_aporte.confirmar_editar_horas":
+            "Você vai editar a hora de {n} registros. Confirma?",
           "meta_aporte.confirmar_editar":
             "O avanço mudará de {anterior} para {nueva} " +
             "{unidad} e a diferença será redistribuída nos " +
@@ -62254,12 +62269,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ) || null;
       }
 
+      function Meta_Aporte_Evento_Tiene_Avance(Evento) {
+        return Boolean(Meta_Aporte_Buscar_Avance_Evento(Evento));
+      }
+
+      function Meta_Aporte_Contar_Eventos_Con_Avance(Eventos_Lista) {
+        return (Array.isArray(Eventos_Lista) ? Eventos_Lista : [])
+          .filter((Evento) => Meta_Aporte_Evento_Tiene_Avance(Evento))
+          .length;
+      }
+
+      async function Meta_Aporte_Confirmar_Impacto_Avance(
+        Cantidad,
+        Clave_Singular,
+        Clave_Plural
+      ) {
+        if (!Cantidad) return true;
+        return Meta_Aporte_Confirmar(
+          Cantidad === 1 ? Clave_Singular : Clave_Plural,
+          Cantidad === 1 ? {} : { n: Cantidad }
+        );
+      }
+
       function Meta_Aporte_Eliminar_Avance_Evento(Evento) {
         const Avance = Meta_Aporte_Buscar_Avance_Evento(Evento);
         if (!Avance) {
           if (Evento) delete Evento.Meta_Avance_Id;
           return false;
         }
+        Planes_Sincronizar_Habitos_Avance_Registro(Avance, false);
         const Modelo = Asegurar_Modelo_Planes();
         const Parte_Ids = Meta_Aporte_Parte_Ids_Avance(Avance);
         delete Modelo.Avances[Avance.Id];
@@ -62328,6 +62366,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
         Planes_Marcar_Guardado_Planes_Critico();
         Evento.Meta_Avance_Id = Id;
+        Planes_Sincronizar_Habitos_Avance_Registro(
+          Modelo.Avances[Id],
+          true
+        );
         Meta_Aporte_Recalcular_Partes_Ids([
           ...new Set([
             ...Parte_Ids_Anteriores,
@@ -62354,7 +62396,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Meta_Aporte_Cambiar_Hecho_Evento(
         Evento,
-        Nuevo_Hecho
+        Nuevo_Hecho,
+        Opciones = {}
       ) {
         if (!Evento) return false;
         const Objetivo = Objetivo_Por_Id(Evento.Objetivo_Id);
@@ -62395,6 +62438,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           Meta_Aporte_Redistribuir_Objetivo(Objetivo);
         } else {
+          if (
+            Meta_Aporte_Evento_Tiene_Avance(Evento) &&
+            !Opciones.Omitir_Confirmacion_Borrado
+          ) {
+            const Ok = await Meta_Aporte_Confirmar(
+              "meta_aporte.confirmar_quitar",
+              {
+                cantidad: Meta_Aporte_Formatear(
+                  Meta_Aporte_Asignado_Evento(Evento),
+                  Meta_Aporte_Unidad_Objetivo(Objetivo)
+                ),
+                unidad: Meta_Aporte_Unidad_Objetivo(Objetivo)
+              }
+            );
+            if (!Ok) return false;
+          }
           Evento.Hecho = false;
           Meta_Aporte_Eliminar_Avance_Evento(Evento);
         }
@@ -81262,8 +81321,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
 
         Acciones.appendChild(Btn_Plan);
-        Acciones.appendChild(Btn_Tildar);
-
         const Input = document.createElement("input");
         Input.type = "number";
         Input.min = "0";
@@ -81445,6 +81502,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               return false;
             }
           } else {
+            if (
+              Meta_Aporte_Evento_Tiene_Avance(Evento) &&
+              !(await Meta_Aporte_Confirmar("meta_aporte.confirmar_quitar", {
+                cantidad: Meta_Aporte_Formatear(
+                  Meta_Aporte_Asignado_Evento(Evento),
+                  Unidad
+                ),
+                unidad: Unidad
+              }))
+            ) {
+              return false;
+            }
             Meta_Aporte_Eliminar_Avance_Evento(Evento);
           }
         }
@@ -96032,10 +96101,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Marcar_Eventos_Multi(Hecho) {
         const Lista = Obtener_Eventos_Multi_Seleccionados_Ordenados();
         if (!Lista.length) return;
+        if (!Hecho) {
+          const Cantidad_Avances = Meta_Aporte_Contar_Eventos_Con_Avance(
+            Lista.filter((Evento) => Evento.Hecho)
+          );
+          if (
+            Cantidad_Avances > 0 &&
+            !await Meta_Aporte_Confirmar_Impacto_Avance(
+              Cantidad_Avances,
+              "meta_aporte.confirmar_quitar",
+              "meta_aporte.confirmar_quitar"
+            )
+          ) {
+            return;
+          }
+        }
         for (const Evento of Lista) {
           const Cambio = await Meta_Aporte_Cambiar_Hecho_Evento(
             Evento,
-            Boolean(Hecho)
+            Boolean(Hecho),
+            { Omitir_Confirmacion_Borrado: !Hecho }
           );
           if (!Cambio) break;
         }
@@ -96050,8 +96135,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Ids = Array.from(Eventos_Multi_Seleccion);
         if (!Ids.length) return;
         const Ids_Set = new Set(Ids);
+        const Cantidad_Avances = Meta_Aporte_Contar_Eventos_Con_Avance(
+          Eventos.filter((Evento) => Ids_Set.has(Evento.Id))
+        );
         const Confirmar = await Mostrar_Dialogo(
-          t("cal_multi.borrar_confirm", { n: Ids.length }),
+          Cantidad_Avances > 0
+            ? `${t("cal_multi.borrar_confirm", { n: Ids.length })} ` +
+              `${t("meta_aporte.confirmar_quitar", {
+                cantidad: Cantidad_Avances,
+                unidad: ""
+              })}`
+            : t("cal_multi.borrar_confirm", { n: Ids.length }),
           [
             {
               Etiqueta: t("borrar"),
@@ -96275,6 +96369,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Propuesta.forEach((Item) => {
           Item.Evento.Fecha = Item.Fecha;
           Item.Evento.Inicio = Item.Inicio;
+          if (
+            Item.Evento.Hecho &&
+            Meta_Aporte_Evento_Tiene_Avance(Item.Evento)
+          ) {
+            Meta_Aporte_Upsert_Avance_Evento(Item.Evento);
+          }
         });
         Render_Emojis();
         Render_Resumen_Objetivo();
@@ -96289,6 +96389,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Eventos_Multi_Seleccion
         );
         if (Evento_Ids.length === 0) return;
+        const Cantidad_Avances = Meta_Aporte_Contar_Eventos_Con_Avance(
+          Obtener_Eventos_Multi_Seleccionados_Ordenados(
+            Evento_Ids
+          ).filter((Evento) => Evento.Hecho)
+        );
+        if (
+          Cantidad_Avances > 0 &&
+          !await Meta_Aporte_Confirmar_Impacto_Avance(
+            Cantidad_Avances,
+            "meta_aporte.confirmar_editar_hora",
+            "meta_aporte.confirmar_editar_horas"
+          )
+        ) {
+          return;
+        }
         const Opcion = await Mostrar_Dialogo(
           t("cal_multi.mover_prompt"),
           [
@@ -96909,6 +97024,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Propuesta_Eventos.forEach((Item) => {
           Item.Evento.Fecha = Item.Fecha;
           Item.Evento.Inicio = Item.Inicio;
+          if (
+            Item.Evento.Hecho &&
+            Meta_Aporte_Evento_Tiene_Avance(Item.Evento)
+          ) {
+            Meta_Aporte_Upsert_Avance_Evento(Item.Evento);
+          }
         });
         Eventos_Multi_Seleccion = new Set(
           Lista_Eventos.map((Evento) => Evento.Id)
@@ -96974,6 +97095,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Slot_Claves
           )
         );
+        const Cantidad_Avances = Meta_Aporte_Contar_Eventos_Con_Avance(
+          Obtener_Eventos_Multi_Seleccionados_Ordenados(
+            Evento_Ids
+          ).filter((Evento) => Evento.Hecho)
+        );
+        if (
+          Cantidad_Avances > 0 &&
+          !await Meta_Aporte_Confirmar_Impacto_Avance(
+            Cantidad_Avances,
+            "meta_aporte.confirmar_editar_hora",
+            "meta_aporte.confirmar_editar_horas"
+          )
+        ) {
+          return;
+        }
         const Destino =
           await Solicitar_Destino_Mover_Calendario_Multi(
             Ancla,
@@ -102792,9 +102928,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Boton_Borrar.className = "Evento_Boton";
           Boton_Borrar.title = t("evento.borrar_bloque_title");
           Boton_Borrar.textContent = "\u00D7";
-          Boton_Borrar.addEventListener("click", (E) => {
+          Boton_Borrar.addEventListener("click", async (E) => {
             E.stopPropagation();
-            Borrar_Evento(Evento.Id);
+            await Borrar_Evento(Evento.Id);
           });
 
           Acciones.appendChild(Boton_Hecho);
@@ -103695,11 +103831,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Guardar_Estado();
       }
 
-      function Borrar_Evento(Evento_Id) {
+      async function Borrar_Evento(Evento_Id) {
         const Index = Eventos.findIndex((Evento) => Evento.Id === Evento_Id);
         if (Index === -1) return;
         const Evento = Eventos[Index];
         const Objetivo = Objetivo_Por_Id(Evento.Objetivo_Id);
+        if (
+          Meta_Aporte_Evento_Tiene_Avance(Evento) &&
+          !await Meta_Aporte_Confirmar("meta_aporte.confirmar_quitar", {
+            cantidad: Meta_Aporte_Formatear(
+              Meta_Aporte_Asignado_Evento(Evento),
+              Meta_Aporte_Unidad_Objetivo(Objetivo)
+            ),
+            unidad: Meta_Aporte_Unidad_Objetivo(Objetivo)
+          })
+        ) {
+          return;
+        }
         Meta_Aporte_Eliminar_Avance_Evento(Evento);
         Habito_Recalcular_Fuente(
           "Evento",
@@ -103910,17 +104058,41 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Mostrar_Toast_Error(Motivo_Conflicto);
             return;
           }
+          if (
+            Meta_Aporte_Evento_Tiene_Avance(Bloque) &&
+            !await Meta_Aporte_Confirmar(
+              "meta_aporte.confirmar_editar_hora"
+            )
+          ) {
+            return;
+          }
           Bloque.Fecha = Fecha;
           Bloque.Inicio = Hora;
-          Meta_Aporte_Redistribuir_Objetivo(
-            Objetivo_Por_Id(Bloque.Objetivo_Id)
-          );
+          if (Bloque.Hecho && Meta_Aporte_Evento_Tiene_Avance(Bloque)) {
+            Meta_Aporte_Upsert_Avance_Evento(Bloque);
+          }
+          Meta_Aporte_Redistribuir_Objetivo(Objetivo_Por_Id(Bloque.Objetivo_Id));
           Render_Eventos();
           Guardar_Estado();
           return;
         }
 
         if (Payload.Tipo === "Eventos_Multi") {
+          const Eventos_Avance = Meta_Aporte_Contar_Eventos_Con_Avance(
+            Obtener_Eventos_Multi_Seleccionados_Ordenados(
+              Payload.Evento_Ids
+            ).filter((Evento) => Evento.Hecho)
+          );
+          if (
+            Eventos_Avance > 0 &&
+            !await Meta_Aporte_Confirmar_Impacto_Avance(
+              Eventos_Avance,
+              "meta_aporte.confirmar_editar_hora",
+              "meta_aporte.confirmar_editar_horas"
+            )
+          ) {
+            return;
+          }
           Mover_Eventos_Multi_Con_Ancla(
             Payload.Evento_Ancla_Id,
             Payload.Evento_Ids,
@@ -104042,6 +104214,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
 
         if (Payload.Tipo === "Calendario_Mixto") {
+          const Eventos_Avance = Meta_Aporte_Contar_Eventos_Con_Avance(
+            (Array.isArray(Payload.Evento_Ids)
+              ? Payload.Evento_Ids
+              : [])
+              .map((Evento_Id) => Evento_Por_Id(Evento_Id))
+              .filter((Evento) => Evento?.Hecho)
+          );
+          if (
+            Eventos_Avance > 0 &&
+            !await Meta_Aporte_Confirmar_Impacto_Avance(
+              Eventos_Avance,
+              "meta_aporte.confirmar_editar_hora",
+              "meta_aporte.confirmar_editar_horas"
+            )
+          ) {
+            return;
+          }
           Mover_Calendario_Mixto_Con_Ancla(
             Payload,
             Fecha,
@@ -108232,13 +108421,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Borrador.Cantidad,
           Borrador.Unidad
         );
-        const Btn_Confirmar = document.createElement("button");
-        Btn_Confirmar.type = "button";
-        Btn_Confirmar.className = "Aporte_Meta_Confirmar";
-        Btn_Confirmar.title = t("plan.aporte_meta_confirmar");
-        Btn_Confirmar.textContent = "\u2713";
-        Btn_Confirmar.addEventListener("click", Guardar_Aporte_Focus);
-
         Input.addEventListener("input", () => {
           Meta_Aporte_Actualizar_Borrador_Cantidad(
             Borrador,
@@ -108275,7 +108457,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Row.appendChild(Input);
         Row.appendChild(Unidad);
         Row.appendChild(Tiempo);
-        Row.appendChild(Btn_Confirmar);
         Wrap.appendChild(Row);
         Render_Aporte_Meta_Destinos(Wrap, Borrador, {
           Al_Cambiar: Guardar_Aporte_Focus,
@@ -108787,6 +108968,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Cantidad === null) return false;
           Item.Habito_Cantidad = Cantidad;
         }
+        if (
+          Estado === "Planeado" &&
+          Item.Estado !== "Planeado" &&
+          Habito_Item_Plan_Slot_Tiene_Sync(Item)
+        ) {
+          const Confirmar = await Mostrar_Dialogo(
+            t("habitos.destildar_confirm"),
+            [
+              { Etiqueta: t("cancelar"), Valor: false, Tipo: "Cancelar" },
+              { Etiqueta: t("confirmar"), Valor: true, Tipo: "Peligro" }
+            ]
+          );
+          if (!Confirmar) return false;
+        }
         Item.Estado = Estado;
         Habito_Sincronizar_Items_Plan_Slot(
           Bloque?.Slot?.Fecha || "",
@@ -109158,8 +109353,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ? t("focus.bloque_ya_anulado")
                 : t("focus.marcar_bloque_anulado");
             Btn_Anulada.textContent = "!";
-            Btn_Anulada.addEventListener("click", () => {
+            Btn_Anulada.addEventListener("click", async () => {
               const Ev_Bloque = Bloque.Evento;
+              if (
+                !Ev_Bloque.Anulada &&
+                Meta_Aporte_Evento_Tiene_Avance(Ev_Bloque)
+              ) {
+                const Confirmar = await Meta_Aporte_Confirmar(
+                  "meta_aporte.confirmar_quitar",
+                  {
+                    cantidad: Meta_Aporte_Formatear(
+                      Meta_Aporte_Asignado_Evento(Ev_Bloque),
+                      Meta_Aporte_Unidad_Objetivo(
+                        Objetivo_Por_Id(Ev_Bloque.Objetivo_Id)
+                      )
+                    ),
+                    unidad: Meta_Aporte_Unidad_Objetivo(
+                      Objetivo_Por_Id(Ev_Bloque.Objetivo_Id)
+                    )
+                  }
+                );
+                if (!Confirmar) return;
+              }
               Ev_Bloque.Anulada =
                 !Ev_Bloque.Anulada;
               if (Ev_Bloque.Anulada) {
