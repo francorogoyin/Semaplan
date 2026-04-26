@@ -37552,6 +37552,36 @@
           El_Multi_Sel_Barra
         );
       }
+      const Panel_Lateral_Aviso_Original = El_Panel_Lateral?.getAttribute(
+        "title"
+      ) || "";
+      let Panel_Lateral_Aviso_Suspendido = false;
+      function Panel_Lateral_Actualizar_Aviso(Suspender) {
+        if (!El_Panel_Lateral) return;
+        if (Suspender) {
+          if (Panel_Lateral_Aviso_Suspendido) return;
+          Panel_Lateral_Aviso_Suspendido = true;
+          El_Panel_Lateral.removeAttribute("title");
+          return;
+        }
+        if (!Panel_Lateral_Aviso_Suspendido) return;
+        Panel_Lateral_Aviso_Suspendido = false;
+        El_Panel_Lateral.setAttribute(
+          "title",
+          t("sidebar.aviso") || Panel_Lateral_Aviso_Original
+        );
+      }
+      const Actualizar_Aviso_Panel_Lateral = (Ev) => {
+        Panel_Lateral_Actualizar_Aviso(
+          Boolean((Ev.target instanceof Element) &&
+            Ev.target.closest(".Emoji_Item"))
+        );
+      };
+      El_Lista_Emojis?.addEventListener("pointerover", Actualizar_Aviso_Panel_Lateral);
+      El_Lista_Emojis?.addEventListener("pointermove", Actualizar_Aviso_Panel_Lateral);
+      El_Lista_Emojis?.addEventListener("pointerleave", () => {
+        Panel_Lateral_Actualizar_Aviso(false);
+      });
       const El_Calendario_Seleccion_Rectangulo =
         document.getElementById(
           "Calendario_Seleccion_Rectangulo"
@@ -101661,23 +101691,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Sidebar_Habitos.classList.add("Oculto");
           return;
         }
-        // El sidebar sigue la semana visible, no la fecha de hoy.
-        // Así el estado lateral refleja el corte temporal que el
-        // usuario está mirando en el calendario.
-        const Fecha = Clave_Semana_Actual();
-        const Activos = (Array.isArray(Habitos) ? Habitos : [])
+        // Diarios y mensuales siguen hoy; semanales y quincenales
+        // siguen la semana visible del calendario.
+        const Fecha_Hoy = Habitos_Fecha_Hoy();
+        const Fecha_Semana = Clave_Semana_Actual();
+        const Habitos_Base = (Array.isArray(Habitos) ? Habitos : [])
           .filter((Habito) =>
             Habito?.Activo !== false &&
-            Habito?.Archivado !== true &&
-            !Habitos_Habito_Pospuesto(Habito, Fecha) &&
-            Habito_Coincide_Con_Dia(Habito, Fecha)
+            Habito?.Archivado !== true
           )
           .sort(Habitos_Comparar_Orden_Base);
+        const Activos_Hoy = Habitos_Base.filter((Habito) =>
+          !Habitos_Habito_Pospuesto(Habito, Fecha_Hoy) &&
+          Habito_Coincide_Con_Dia(Habito, Fecha_Hoy)
+        );
+        const Activos_Semana = Habitos_Base.filter((Habito) =>
+          !Habitos_Habito_Pospuesto(Habito, Fecha_Semana) &&
+          Habito_Coincide_Con_Dia(Habito, Fecha_Semana)
+        );
+        const Activos = [
+          ...Activos_Hoy.filter((Habito) =>
+            Habito_Periodo(Habito) === "Dia" ||
+            Habito_Periodo(Habito) === "Mes"
+          ),
+          ...Activos_Semana.filter((Habito) =>
+            Habito_Periodo(Habito) === "Semana" ||
+            Habito_Periodo(Habito) === "Quincena"
+          )
+        ];
+        const Activos_Unicos = Activos.filter((Habito, Index) =>
+          Activos.findIndex((Otro) => Otro?.Id === Habito?.Id) === Index
+        );
         El_Sidebar_Habitos.classList.toggle(
           "Oculto",
-          Activos.length === 0
+          Activos_Unicos.length === 0
         );
-        if (!Activos.length) return;
+        if (!Activos_Unicos.length) return;
         const Mostrar_Globitos =
           Config.Mostrar_Globitos_Habitos !== false;
         El_Sidebar_Habitos.classList.toggle(
@@ -101704,7 +101753,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Titulo.textContent = t("sidebar.habitos_titulo");
         El_Sidebar_Habitos.appendChild(Titulo);
 
-        const Crear_Boton = (Habito) => {
+        const Crear_Boton = (Habito, Fecha) => {
           const Btn = document.createElement("button");
           Btn.type = "button";
           Btn.className = "Sidebar_Habito Con_Fallback_Emoji";
@@ -101785,8 +101834,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Label.textContent = `${Iconos[Clave] || "\u2713"} ${Texto_Label}`;
           const Fila = document.createElement("div");
           Fila.className = "Sidebar_Habitos_Fila";
+          const Fecha =
+            Clave === "sidebar.habitos_diarios" ||
+            Clave === "sidebar.habitos_mensuales"
+              ? Fecha_Hoy
+              : Fecha_Semana;
           Lista.forEach((Habito) => {
-            Fila.appendChild(Crear_Boton(Habito));
+            Fila.appendChild(Crear_Boton(Habito, Fecha));
           });
           Grupo.appendChild(Label);
           Grupo.appendChild(Fila);
