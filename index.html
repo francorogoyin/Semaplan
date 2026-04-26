@@ -9,7 +9,8 @@
     <title>Semaplan</title>
     <link
       rel="icon"
-      href="Aplicaciones/Desktop/Semaplan.ico"
+      type="image/png"
+      href="Aplicaciones/Desktop/Semaplan.png"
     />
     <script>
       (function Redirigir_Ruta_Canonica_Produccion() {
@@ -1771,6 +1772,69 @@
 
       .Swatch.Activa {
         box-shadow: 0 0 0 2px #1f1f1f;
+      }
+
+      #Color_Objetivo,
+      #Editor_Color_Input {
+        width: 28px;
+        height: 28px;
+        border: 0;
+        border-radius: 999px;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      #Color_Objetivo::-webkit-color-swatch-wrapper,
+      #Editor_Color_Input::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+
+      #Color_Objetivo::-webkit-color-swatch,
+      #Editor_Color_Input::-webkit-color-swatch {
+        border: 1px solid rgba(31, 31, 31, 0.12);
+        border-radius: 999px;
+      }
+
+      .Swatch.Color_Preset_Mas,
+      .Habitos_Modal_Color_Btn.Color_Preset_Mas {
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(31, 31, 31, 0.12);
+        background:
+          conic-gradient(
+            #157a58,
+            #2f6fd4,
+            #6d48b8,
+            #f38b3a,
+            #d44b81,
+            #157a58
+          );
+        color: #1f1f1f;
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+      }
+
+      .Color_Preset_Popover {
+        position: fixed;
+        z-index: 13020;
+        display: grid;
+        grid-template-columns: repeat(6, 24px);
+        gap: 9px;
+        width: max-content;
+        max-width: calc(100vw - 24px);
+        padding: 10px;
+        border: 1px solid var(--Borde);
+        border-radius: 14px;
+        background: var(--Panel);
+        box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18);
+      }
+
+      .Color_Preset_Popover .Swatch {
+        width: 24px;
+        height: 24px;
       }
 
       .Etiqueta_Compacta {
@@ -36852,7 +36916,36 @@
         "Nov",
         "Dic"
       ];
-      const Colores_Preset = ["#f1b77e", "#a6c8e5", "#c1d7ae", "#e4b3d4", "#f2a4a0", "#f2e08b", "#b8c7e0", "#c7b7ef"];
+      const Colores_Preset = [
+        "#f1b77e",
+        "#a6c8e5",
+        "#c1d7ae",
+        "#e4b3d4",
+        "#f2a4a0",
+        "#f2e08b",
+        "#b8c7e0",
+        "#c7b7ef",
+        "#157a58",
+        "#2f6fd4",
+        "#6d48b8",
+        "#f38b3a",
+        "#d44b81",
+        "#8b95a3",
+        "#0f5f5a",
+        "#c44d3d",
+        "#8a4f7d",
+        "#607d3b",
+        "#b07d2c",
+        "#2f7f8f"
+      ];
+      const Colores_Habitos_Visibles = [
+        "#157a58",
+        "#2f6fd4",
+        "#6d48b8",
+        "#f38b3a",
+        "#d44b81",
+        "#8b95a3"
+      ];
       const Color_Tarea_Suelta_Default = "#7f8b7a";
       function Detectar_Entorno_App_Id() {
         try {
@@ -60831,26 +60924,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         if (!Contenedor || !Input) return;
         Input.value = Metas_Sugeridas_Color_Preset(Input.value);
-        Contenedor.innerHTML = "";
-        Colores_Preset.forEach((Color) => {
-          const Boton = document.createElement("button");
-          Boton.type = "button";
-          Boton.className = "Swatch";
-          if (Color === Input.value) {
-            Boton.classList.add("Activa");
-          }
-          Boton.style.background = Color;
-          Boton.title = Color;
-          Boton.setAttribute("aria-label", Color);
-          Boton.addEventListener("click", () => {
+        Render_Colores_Compactos(
+          Contenedor,
+          Input.value,
+          (Color) => {
             Input.value = Color;
-            Metas_Sugeridas_Render_Color_Swatches(
-              Contenedor,
-              Input
-            );
-          });
-          Contenedor.appendChild(Boton);
-        });
+          }
+        );
       }
 
       function Metas_Sugeridas_Fijar_Input(Input) {
@@ -78271,7 +78351,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return !Habito_Esta_Completo(Habito, Fecha);
       }
 
+      function Habitos_Prioridad_Tipo_Orden(Habito) {
+        if (Habito?.Tipo === "Evitar") return 3;
+        const Modo = Habito_Modo_Visible(Habito);
+        if (Modo === "Cantidad") return 1;
+        if (Modo === "Tiempo") return 2;
+        return 0;
+      }
+
+      function Habitos_Periodo_Tiene_Orden_Manual(Periodo) {
+        return (Array.isArray(Habitos) ? Habitos : []).some((Habito) =>
+          Habito?.Orden_Manual === true &&
+          Habito_Periodo(Habito) === Periodo
+        );
+      }
+
       function Habitos_Comparar_Orden_Base(A, B) {
+        const Periodo_A = Habito_Periodo(A);
+        const Periodo_B = Habito_Periodo(B);
+        if (
+          Periodo_A === Periodo_B &&
+          !Habitos_Periodo_Tiene_Orden_Manual(Periodo_A)
+        ) {
+          const Tipo_Diff =
+            Habitos_Prioridad_Tipo_Orden(A) -
+            Habitos_Prioridad_Tipo_Orden(B);
+          if (Tipo_Diff !== 0) return Tipo_Diff;
+        }
         return (Number(A.Orden) || 0) - (Number(B.Orden) || 0) ||
           (A.Nombre || "").localeCompare(B.Nombre || "");
       }
@@ -79160,7 +79266,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Ordenados.splice(Index_Nuevo, 0, Movido);
         Ordenados.forEach((Habito, Indice) => {
           const Real = Habito_Por_Id(Habito.Id);
-          if (Real) Real.Orden = Indice;
+          if (Real) {
+            Real.Orden = Indice;
+            if (Habito_Periodo(Real) === Habito_Periodo(Movido)) {
+              Real.Orden_Manual = true;
+            }
+          }
         });
         Guardar_Estado();
         Render_Modal_Habitos();
@@ -80526,14 +80637,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 ? "Puntual"
                 : "Personalizado")
               : "Todos";
-        const Colores = [
-          "#157a58",
-          "#2f6fd4",
-          "#6d48b8",
-          "#f38b3a",
-          "#d44b81",
-          "#8b95a3"
-        ];
         Form.innerHTML = `
           <div class="Habitos_Modal_Fila Identidad">
             <label class="Habitos_Modal_Campo">
@@ -80841,27 +80944,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         `;
         const Paleta = Form.querySelector("#Habito_Color_Paleta");
         if (Paleta) {
-          Colores.forEach((Color) => {
-            const Boton = document.createElement("button");
-            Boton.type = "button";
-            Boton.className =
-              "Habitos_Modal_Color_Btn" +
-              (Normalizar_Color_Hex(B.Color) === Color
-                ? " Activo"
-                : "");
-            Boton.style.background = Color;
-            Boton.style.color = Color;
-            Boton.addEventListener("click", () => {
+          Render_Colores_Compactos(
+            Paleta,
+            B.Color,
+            (Color) => {
               const Input = Form.querySelector("#Habito_Color");
-              if (Input) {
-                Input.value = Color;
-              }
-              Paleta.querySelectorAll(".Habitos_Modal_Color_Btn")
-                .forEach((Btn) => Btn.classList.remove("Activo"));
-              Boton.classList.add("Activo");
-            });
-            Paleta.appendChild(Boton);
-          });
+              if (Input) Input.value = Color;
+            },
+            {
+              Clase_Boton: "Habitos_Modal_Color_Btn",
+              Colores_Visibles: Colores_Habitos_Visibles
+            }
+          );
         }
         const Dias_Fila = Form.querySelector("#Habito_Dias_Lista");
         if (!Dias_Fila) return;
@@ -90460,7 +90554,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           },
           Orden: Number.isFinite(Number(Base.Orden))
             ? Number(Base.Orden)
-            : Indice
+            : Indice,
+          Orden_Manual: Base.Orden_Manual === true
         };
       }
 
@@ -99843,18 +99938,211 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       }
 
-      function Render_Colores_Compactos(Contenedor, Seleccion_Actual, Al_Seleccionar) {
-        Contenedor.innerHTML = "";
-        Colores_Preset.forEach((Color) => {
+      let Color_Preset_Popover_Activo = null;
+      let Color_Preset_Popover_Mouse_Handler = null;
+      let Color_Preset_Popover_Key_Handler = null;
+
+      function Cerrar_Mini_Paleta_Colores() {
+        if (Color_Preset_Popover_Activo) {
+          Color_Preset_Popover_Activo.remove();
+        }
+        if (Color_Preset_Popover_Mouse_Handler) {
+          document.removeEventListener(
+            "mousedown",
+            Color_Preset_Popover_Mouse_Handler
+          );
+        }
+        if (Color_Preset_Popover_Key_Handler) {
+          document.removeEventListener(
+            "keydown",
+            Color_Preset_Popover_Key_Handler
+          );
+        }
+        Color_Preset_Popover_Activo = null;
+        Color_Preset_Popover_Mouse_Handler = null;
+        Color_Preset_Popover_Key_Handler = null;
+      }
+
+      function Posicionar_Mini_Paleta_Colores(Popover, Ancla) {
+        const Rect = Ancla.getBoundingClientRect();
+        const Pop_Rect = Popover.getBoundingClientRect();
+        let Left = Rect.left + (Rect.width - Pop_Rect.width) / 2;
+        let Top = Rect.bottom + 8;
+        if (Top + Pop_Rect.height > window.innerHeight - 10) {
+          Top = Rect.top - Pop_Rect.height - 8;
+        }
+        Left = Math.max(
+          10,
+          Math.min(Left, window.innerWidth - Pop_Rect.width - 10)
+        );
+        Top = Math.max(
+          10,
+          Math.min(Top, window.innerHeight - Pop_Rect.height - 10)
+        );
+        Popover.style.left = `${Left}px`;
+        Popover.style.top = `${Top}px`;
+      }
+
+      function Crear_Boton_Color_Preset(
+        Color,
+        Seleccion_Actual,
+        Al_Seleccionar,
+        Clase_Boton = "Swatch"
+      ) {
+        const Boton = document.createElement("button");
+        Boton.type = "button";
+        Boton.className = Clase_Boton;
+        if (Color === Seleccion_Actual) {
+          Boton.classList.add(
+            Clase_Boton === "Swatch" ? "Activa" : "Activo"
+          );
+        }
+        Boton.style.background = Color;
+        Boton.style.color = Color;
+        Boton.title = Color;
+        Boton.setAttribute("aria-label", Color);
+        Boton.addEventListener("click", () => Al_Seleccionar(Color));
+        return Boton;
+      }
+
+      function Abrir_Mini_Paleta_Colores(
+        Ancla,
+        Seleccion_Actual,
+        Al_Seleccionar,
+        Opciones = {}
+      ) {
+        Cerrar_Mini_Paleta_Colores();
+        const Colores = (Opciones.Colores || Colores_Preset)
+          .map((Color) => Normalizar_Color_Hex(Color))
+          .filter(Boolean);
+        const Seleccion = Normalizar_Color_Hex(Seleccion_Actual);
+        const Popover = document.createElement("div");
+        Popover.className = "Color_Preset_Popover";
+        Popover.setAttribute("role", "dialog");
+        Popover.setAttribute("aria-label", t("config.colores"));
+        Colores.forEach((Color) => {
           const Boton = document.createElement("button");
           Boton.type = "button";
           Boton.className = "Swatch";
-          if (Color === Seleccion_Actual) Boton.classList.add("Activa");
+          if (Color === Seleccion) Boton.classList.add("Activa");
           Boton.style.background = Color;
           Boton.title = Color;
-          Boton.addEventListener("click", () => Al_Seleccionar(Color));
-          Contenedor.appendChild(Boton);
+          Boton.setAttribute("aria-label", Color);
+          Boton.addEventListener("click", () => {
+            Al_Seleccionar(Color);
+            Cerrar_Mini_Paleta_Colores();
+          });
+          Popover.appendChild(Boton);
         });
+        document.body.appendChild(Popover);
+        Color_Preset_Popover_Activo = Popover;
+        Posicionar_Mini_Paleta_Colores(Popover, Ancla);
+        Color_Preset_Popover_Mouse_Handler = (Ev) => {
+          if (
+            Popover.contains(Ev.target) ||
+            Ancla.contains(Ev.target)
+          ) {
+            return;
+          }
+          Cerrar_Mini_Paleta_Colores();
+        };
+        Color_Preset_Popover_Key_Handler = (Ev) => {
+          if (Ev.key === "Escape") Cerrar_Mini_Paleta_Colores();
+        };
+        setTimeout(() => {
+          document.addEventListener(
+            "mousedown",
+            Color_Preset_Popover_Mouse_Handler
+          );
+          document.addEventListener(
+            "keydown",
+            Color_Preset_Popover_Key_Handler
+          );
+        }, 0);
+      }
+
+      function Render_Selector_Colores_Compacto(
+        Contenedor,
+        Seleccion_Actual,
+        Al_Seleccionar,
+        Opciones = {}
+      ) {
+        if (!Contenedor) return;
+        const Clase_Boton = Opciones.Clase_Boton || "Swatch";
+        const Cantidad_Visible = Number(Opciones.Cantidad_Visible) || 6;
+        const Colores = (Opciones.Colores || Colores_Preset)
+          .map((Color) => Normalizar_Color_Hex(Color))
+          .filter(Boolean);
+        const Seleccion = Normalizar_Color_Hex(Seleccion_Actual);
+        const Visibles_Base = (
+          Opciones.Colores_Visibles || Colores.slice(0, Cantidad_Visible)
+        )
+          .map((Color) => Normalizar_Color_Hex(Color))
+          .filter(Boolean);
+        const Visibles = [...new Set(Visibles_Base)]
+          .slice(0, Cantidad_Visible);
+        if (Seleccion && !Visibles.includes(Seleccion)) {
+          if (Visibles.length >= Cantidad_Visible) {
+            Visibles[Visibles.length - 1] = Seleccion;
+          } else {
+            Visibles.push(Seleccion);
+          }
+        }
+        const Seleccionar = (Color) => {
+          const Hex = Normalizar_Color_Hex(Color);
+          if (!Hex) return;
+          Al_Seleccionar(Hex);
+          Render_Selector_Colores_Compacto(
+            Contenedor,
+            Hex,
+            Al_Seleccionar,
+            Opciones
+          );
+        };
+        Contenedor.innerHTML = "";
+        Visibles.forEach((Color) => {
+          Contenedor.appendChild(
+            Crear_Boton_Color_Preset(
+              Color,
+              Seleccion,
+              Seleccionar,
+              Clase_Boton
+            )
+          );
+        });
+        if (Colores.length > Visibles.length) {
+          const Mas = document.createElement("button");
+          Mas.type = "button";
+          Mas.className = `${Clase_Boton} Color_Preset_Mas`;
+          Mas.textContent = "+";
+          Mas.title = t("config.colores");
+          Mas.setAttribute("aria-label", t("config.colores"));
+          Mas.addEventListener("click", (Ev) => {
+            Ev.preventDefault();
+            Ev.stopPropagation();
+            Abrir_Mini_Paleta_Colores(
+              Mas,
+              Seleccion,
+              Seleccionar,
+              { Colores }
+            );
+          });
+          Contenedor.appendChild(Mas);
+        }
+      }
+
+      function Render_Colores_Compactos(
+        Contenedor,
+        Seleccion_Actual,
+        Al_Seleccionar,
+        Opciones = {}
+      ) {
+        Render_Selector_Colores_Compacto(
+          Contenedor,
+          Seleccion_Actual,
+          Al_Seleccionar,
+          Opciones
+        );
       }
 
       function Crear_Boton_Emoji(Objetivo) {
@@ -105943,7 +106231,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Actualizar_Borrador_Editor
       );
       El_Editor_Emoji_Input.addEventListener("input", Actualizar_Borrador_Editor);
-      El_Editor_Color_Input.addEventListener("input", Actualizar_Borrador_Editor);
+      El_Editor_Color_Input.addEventListener("input", () => {
+        Actualizar_Borrador_Editor();
+        Render_Colores_Compactos(
+          El_Swatches_Editor,
+          El_Editor_Color_Input.value,
+          (Color) => {
+            El_Editor_Color_Input.value = Color;
+            Actualizar_Borrador_Editor();
+          }
+        );
+      });
       El_Editor_Horas_Input.addEventListener("input", Actualizar_Borrador_Editor);
       El_Editor_Tipo_Input.addEventListener("change", () => {
         Sincronizar_Campos_Sin_Horas_Editor();
