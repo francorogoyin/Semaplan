@@ -1698,9 +1698,9 @@
         flex: 0 0 24px;
         width: 24px;
         height: 24px;
-        border: 1px solid var(--Borde);
-        border-radius: 6px;
-        background: #fff;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
         color: var(--Texto);
         cursor: pointer;
         font-size: 14px;
@@ -1711,8 +1711,15 @@
       .Subobjetivo_Borrar:hover,
       .Subobjetivo_Duplicar:hover,
       .Subobjetivo_Transferir:hover {
-        background: var(--Acento_Suave);
+        background: transparent;
         color: var(--Acento);
+      }
+
+      .Subobjetivo_Borrar:focus-visible,
+      .Subobjetivo_Duplicar:focus-visible,
+      .Subobjetivo_Transferir:focus-visible {
+        outline: 2px solid rgba(13, 111, 103, 0.24);
+        outline-offset: 2px;
       }
 
       .Barra_Progreso {
@@ -82552,6 +82559,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Texto = document.createElement("span");
         Texto.className = "Abordaje_Item_Texto";
+        let Texto_Item = Item.Texto || "";
         if (Item.Tipo === "Habito" && Item.Habito_Id) {
           const Habito = Habito_Por_Id(Item.Habito_Id);
           const Progreso = Habito
@@ -82560,12 +82568,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Modal_Plan_Slot_Fecha
             )
             : "";
-          Texto.textContent = Progreso
-            ? `${Item.Texto || ""} · ${Progreso}`
-            : Item.Texto || "";
-        } else {
-          Texto.textContent = Item.Texto || "";
+          if (Progreso && Progreso !== t("pendiente")) {
+            Texto_Item = `${Texto_Item} · ${Progreso}`;
+          }
         }
+        Texto.textContent = Texto_Item;
         if (
           Estado === "Realizado" ||
           Estado === "Anulado"
