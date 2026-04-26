@@ -101691,33 +101691,44 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Sidebar_Habitos.classList.add("Oculto");
           return;
         }
-        // Diarios y mensuales siguen hoy; semanales y quincenales
-        // siguen la semana visible del calendario.
         const Fecha_Hoy = Habitos_Fecha_Hoy();
         const Fecha_Semana = Clave_Semana_Actual();
+        const Fecha_Semana_Hoy = Formatear_Fecha_ISO(
+          Obtener_Lunes(new Date())
+        );
+        const Es_Semana_Actual = Fecha_Semana === Fecha_Semana_Hoy;
+        const Fecha_Mensual = Es_Semana_Actual
+          ? Fecha_Hoy
+          : Fecha_Semana;
         const Habitos_Base = (Array.isArray(Habitos) ? Habitos : [])
           .filter((Habito) =>
             Habito?.Activo !== false &&
             Habito?.Archivado !== true
           )
           .sort(Habitos_Comparar_Orden_Base);
-        const Activos_Hoy = Habitos_Base.filter((Habito) =>
-          !Habitos_Habito_Pospuesto(Habito, Fecha_Hoy) &&
-          Habito_Coincide_Con_Dia(Habito, Fecha_Hoy)
+        const Diarios = Es_Semana_Actual
+          ? Habitos_Base.filter((Habito) =>
+            Habito_Periodo(Habito) === "Dia" &&
+            !Habitos_Habito_Pospuesto(Habito, Fecha_Hoy)
+          )
+          : [];
+        const Semanales = Habitos_Base.filter((Habito) =>
+          Habito_Periodo(Habito) === "Semana" &&
+          !Habitos_Habito_Pospuesto(Habito, Fecha_Semana)
         );
-        const Activos_Semana = Habitos_Base.filter((Habito) =>
-          !Habitos_Habito_Pospuesto(Habito, Fecha_Semana) &&
-          Habito_Coincide_Con_Dia(Habito, Fecha_Semana)
+        const Quincenales = Habitos_Base.filter((Habito) =>
+          Habito_Periodo(Habito) === "Quincena" &&
+          !Habitos_Habito_Pospuesto(Habito, Fecha_Semana)
+        );
+        const Mensuales = Habitos_Base.filter((Habito) =>
+          Habito_Periodo(Habito) === "Mes" &&
+          !Habitos_Habito_Pospuesto(Habito, Fecha_Mensual)
         );
         const Activos = [
-          ...Activos_Hoy.filter((Habito) =>
-            Habito_Periodo(Habito) === "Dia" ||
-            Habito_Periodo(Habito) === "Mes"
-          ),
-          ...Activos_Semana.filter((Habito) =>
-            Habito_Periodo(Habito) === "Semana" ||
-            Habito_Periodo(Habito) === "Quincena"
-          )
+          ...Diarios,
+          ...Semanales,
+          ...Quincenales,
+          ...Mensuales
         ];
         const Activos_Unicos = Activos.filter((Habito, Index) =>
           Activos.findIndex((Otro) => Otro?.Id === Habito?.Id) === Index
@@ -101734,19 +101745,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           !Mostrar_Globitos
         );
         El_Sidebar_Habitos.title = t("sidebar.habitos_titulo");
-
-        const Semanales = Activos.filter((Habito) =>
-          Habito_Periodo(Habito) === "Semana"
-        );
-        const Quincenales = Activos.filter((Habito) =>
-          Habito_Periodo(Habito) === "Quincena"
-        );
-        const Mensuales = Activos.filter((Habito) =>
-          Habito_Periodo(Habito) === "Mes"
-        );
-        const Diarios = Activos.filter((Habito) =>
-          Habito_Periodo(Habito) === "Dia"
-        );
 
         const Titulo = document.createElement("div");
         Titulo.className = "Sidebar_Habitos_Titulo";
@@ -101835,10 +101833,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Fila = document.createElement("div");
           Fila.className = "Sidebar_Habitos_Fila";
           const Fecha =
-            Clave === "sidebar.habitos_diarios" ||
-            Clave === "sidebar.habitos_mensuales"
+            Clave === "sidebar.habitos_diarios"
               ? Fecha_Hoy
-              : Fecha_Semana;
+              : Clave === "sidebar.habitos_mensuales"
+                ? Fecha_Mensual
+                : Fecha_Semana;
           Lista.forEach((Habito) => {
             Fila.appendChild(Crear_Boton(Habito, Fecha));
           });
