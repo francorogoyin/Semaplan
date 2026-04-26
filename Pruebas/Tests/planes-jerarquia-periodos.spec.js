@@ -1465,7 +1465,6 @@ async ({ page }) => {
       Anio_2027,
       {
         Solo_Pendientes: true,
-        Limpiar_Fechas: true,
         Omitir_Partes_Realizadas: true
       }
     );
@@ -1474,7 +1473,6 @@ async ({ page }) => {
       Anio_2027,
       {
         Solo_Pendientes: true,
-        Limpiar_Fechas: true,
         Omitir_Partes_Realizadas: true
       }
     );
@@ -7283,6 +7281,114 @@ async ({ page }) => {
   expect(Resultado.Badge_Importado).toBe(false);
   expect(Resultado.Metadatos_Visibles).toBe(0);
   expect(Resultado.Texto).not.toContain("Importado");
+  expect(errores).toEqual([]);
+});
+
+test("Subobjetivos muestra progreso acumulado y tiempo restante",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Activo = 2026;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Trimestre_1 = Planes_Crear_Periodo(
+      Modelo,
+      "Trimestre",
+      "2026-01-01",
+      "2026-03-31",
+      Anio.Id,
+      0
+    );
+    const Trimestre_2 = Planes_Crear_Periodo(
+      Modelo,
+      "Trimestre",
+      "2026-04-01",
+      "2026-06-30",
+      Anio.Id,
+      1
+    );
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(
+      Anio.Id,
+      {
+        Nombre: "Lecturas",
+        Emoji: "\uD83D\uDCDA",
+        Target_Total: 12,
+        Unidad: "Personalizado",
+        Unidad_Custom: "libros"
+      }
+    );
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Liberalismo"
+    );
+    Planes_Actualizar_Subobjetivo_Datos(Sub_Id, {
+      Unidad: "Personalizado",
+      Unidad_Custom: "p\u00E1ginas",
+      Target_Total: 10,
+      Tiempo_Valor: 1,
+      Tiempo_Modo: "Horas_Por_Unidad",
+      Fecha_Inicio: "2026-01-01",
+      Fecha_Objetivo: "2026-06-30",
+      Aporte_Meta: 1
+    });
+
+    const Modelo_Actual = Asegurar_Modelo_Planes();
+    const Sub = Modelo_Actual.Subobjetivos[Sub_Id];
+    const Avance_1 = Normalizar_Avance_Plan({
+      Id: "Av_Sub_1",
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Id,
+      Fuente: "Subobjetivo",
+      Cantidad: 3,
+      Unidad: "p\u00E1ginas",
+      Fecha: "2026-02-10",
+      Hora: "09:00"
+    });
+    const Avance_2 = Normalizar_Avance_Plan({
+      Id: "Av_Sub_2",
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Id,
+      Fuente: "Subobjetivo",
+      Cantidad: 4,
+      Unidad: "p\u00E1ginas",
+      Fecha: "2026-05-10",
+      Hora: "09:00"
+    });
+    Modelo_Actual.Avances[Avance_1.Id] = Avance_1;
+    Modelo_Actual.Avances[Avance_2.Id] = Avance_2;
+    Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo_Actual);
+    Planes_Recalcular_Desde(Objetivo);
+
+    Abrir_Modal_Planes_Subobjetivos(
+      Objetivo.Id,
+      false,
+      Trimestre_2.Id
+    );
+    const Item = document.querySelector(".Planes_Subobjetivo");
+    const Metas = Item?.querySelectorAll(".Planes_Subobjetivo_Meta");
+    return {
+      Meta: Metas?.[0]?.textContent?.trim() || "",
+      Tiempo: Metas?.[1]?.textContent?.trim() || ""
+    };
+  });
+
+  expect(Resultado.Meta).toContain("7/10");
+  expect(Resultado.Meta).toContain("p\u00E1ginas");
+  expect(Resultado.Meta).not.toContain("2/10");
+  expect(Resultado.Tiempo).toContain("3 h");
+  expect(Resultado.Tiempo).toContain("restantes aprox.");
   expect(errores).toEqual([]);
 });
 

@@ -24613,6 +24613,7 @@
           "planes.tiempo_unidades_minuto": "Unidades por minuto",
           "planes.tiempo_unidades_hora": "Unidades por hora",
           "planes.tiempo_aprox": "{tiempo} aprox.",
+          "planes.tiempo_restante_aprox": "{tiempo} restantes aprox.",
           "planes.tiempo_aprox_col": "Tiempo aprox.",
           "planes.tiempo_incompleto":
             "No est\u00e1n todas las unidades hijas con tiempo cargado; " +
@@ -28777,6 +28778,7 @@
           "planes.tiempo_unidades_minuto": "Units per minute",
           "planes.tiempo_unidades_hora": "Units per hour",
           "planes.tiempo_aprox": "{tiempo} approx.",
+          "planes.tiempo_restante_aprox": "{tiempo} approx. remaining",
           "planes.tiempo_aprox_col": "Approx. time",
           "planes.tiempo_incompleto":
             "Not every child unit has time filled in; " +
@@ -32903,6 +32905,7 @@
           "planes.tiempo_unidades_minuto": "Unidades por minuto",
           "planes.tiempo_unidades_hora": "Unidades por hora",
           "planes.tiempo_aprox": "{tiempo} aprox.",
+          "planes.tiempo_restante_aprox": "{tiempo} restantes aprox.",
           "planes.tiempo_aprox_col": "Tempo aprox.",
           "planes.tiempo_incompleto":
             "Nem todas as unidades filhas t\u00eam tempo preenchido; " +
@@ -49972,6 +49975,53 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Planes_Estimar_Tiempo_Restante_Subobjetivo(
+        Sub,
+        Modelo = null
+      ) {
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Partes = Planes_Partes_De_Subobjetivo(Sub?.Id || "", M)
+          .filter((Parte) => !Parte.Eliminado_Local);
+        if (Partes.length) {
+          return Partes.reduce((Total, Parte) => {
+            const Est = Planes_Estimar_Tiempo_Parte(Parte, M);
+            const Aporte = Number(Parte?.Aporte_Total) || 0;
+            if (Aporte <= 0) return Total;
+            const Progreso = Math.max(
+              0,
+              Planes_Progreso_Total_Parte(Parte, M)
+            );
+            const Restante = Math.max(0, Aporte - Progreso);
+            if (Restante <= 0) return Total;
+            const Minutos = (Number(Est.Minutos) || 0) *
+              (Restante / Aporte);
+            return Planes_Combinar_Tiempo_Estimado(
+              Total,
+              Planes_Estimar_Tiempo_Resultado(
+                Minutos,
+                Boolean(Est.Tiene_Tiempo),
+                Boolean(Est.Sin_Tiempo)
+              )
+            );
+          }, Planes_Estimar_Tiempo_Resultado(0, false, false));
+        }
+        const Minutos_Unidad =
+          Planes_Tiempo_Minutos_Por_Unidad_Subobjetivo(Sub, M);
+        const Target = Number(Sub?.Target_Total) || 0;
+        const Progreso = Math.max(
+          0,
+          Planes_Progreso_Total_Subobjetivo(Sub, M)
+        );
+        const Restante = Math.max(0, Target - Progreso);
+        return Planes_Estimar_Tiempo_Resultado(
+          Minutos_Unidad && Restante > 0
+            ? Minutos_Unidad * Restante
+            : 0,
+          Boolean(Minutos_Unidad) && Restante > 0,
+          !Minutos_Unidad && Restante > 0
+        );
+      }
+
       function Planes_Estimar_Tiempo_Objetivo(
         Objetivo,
         Modelo = null
@@ -50046,7 +50096,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return `${Planes_Formatear_Numero(Horas)} h`;
       }
 
-      function Planes_Render_Tiempo_Aprox(Estimacion) {
+      function Planes_Render_Tiempo_Aprox(
+        Estimacion,
+        Clave_Texto = "planes.tiempo_aprox"
+      ) {
         const Texto_Base = Planes_Formatear_Tiempo_Aprox_Minutos(
           Estimacion?.Minutos
         );
@@ -50058,7 +50111,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               !
             </span>`
           : "";
-        const Texto = t("planes.tiempo_aprox", {
+        const Texto = t(Clave_Texto, {
           tiempo: Texto_Base
         });
         return `<span class="Planes_Tiempo_Aprox">` +
@@ -54324,12 +54377,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return Aporte_Txt_Limpio.replace(/^\s*·\s*/, "")
             .trim();
         }
-        const Progreso_Base =
-          Planes_Progreso_Subobjetivo_En_Contexto(
-            Sub,
-            Objetivo_Contexto
-          );
-        const Progreso = Progreso_Base;
+        const Progreso = Planes_Progreso_Total_Subobjetivo(Sub);
         const Porcentaje = Planes_Formatear_Porcentaje_Meta(
           Progreso,
           Target
@@ -54414,7 +54462,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .map((Parte) => Escape_Html(Parte))
           .join(" \u00B7 ");
         const Tiempo = Planes_Render_Tiempo_Aprox(
-          Planes_Estimar_Tiempo_Subobjetivo(Sub)
+          Planes_Estimar_Tiempo_Restante_Subobjetivo(Sub),
+          "planes.tiempo_restante_aprox"
         );
         const Separador = Texto && Tiempo ? " \u00B7 " : "";
         return `${Texto}${Separador}${Tiempo}`;
@@ -55723,6 +55772,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         const Modelo = Asegurar_Modelo_Planes();
         if (!Objetivo || !Periodo_Destino) return null;
+        const Opciones_Efectivas = {
+          ...Opciones,
+          Limpiar_Fechas: true
+        };
         if (Periodo_Destino.Id === Objetivo.Periodo_Id) {
           Mostrar_Toast_Error(t("planes.pegar_duplicado"));
           return null;
@@ -55760,7 +55813,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Planes_Clonar_Subobjetivos_A_Objetivo(
           Objetivo.Id,
           Copia.Id,
-          Opciones
+          Opciones_Efectivas
         );
         Planes_Actualizar_Progreso(Copia);
         return Copia;
