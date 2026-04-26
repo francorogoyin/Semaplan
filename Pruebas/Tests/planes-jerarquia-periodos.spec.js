@@ -3155,6 +3155,92 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Registrar avance recuerda la ultima seleccion al reabrir con M",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Datos = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Periodo = Planes_Crear_Periodos_Distribucion(
+      Anio,
+      "Trimestre"
+    )[1];
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(
+      Periodo.Id,
+      {
+        Nombre: "Libros memoria",
+        Emoji: "\uD83D\uDCD7",
+        Target_Total: 10,
+        Unidad: "Horas",
+        Progreso_Manual: 3
+      }
+    );
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Sub lectura"
+    );
+    Modelo.UI.Periodo_Activo_Id = Periodo.Id;
+    Render_Plan();
+    Object.keys(localStorage).forEach((Clave) => {
+      if (
+        Clave.includes("Semaplan_Planes_Avance_Seleccion_V1")
+      ) {
+        localStorage.removeItem(Clave);
+      }
+    });
+    return {
+      Objetivo_Id: Objetivo.Id,
+      Periodo_Id: Periodo.Id,
+      Sub_Id
+    };
+  });
+
+  await page.keyboard.press("m");
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Avance_Item"))
+    .toHaveValue(`Objetivo|${Datos.Objetivo_Id}`);
+
+  await page.evaluate((Sub_Id) => {
+    const Select = document.getElementById("Planes_Avance_Item");
+    if (!Select) return;
+    Select.value = `Subobjetivo|${Sub_Id}`;
+    Select.dispatchEvent(new Event("change", { bubbles: true }));
+  }, Datos.Sub_Id);
+  await expect(page.locator(".Planes_Avance_Boton"))
+    .toContainText("Sub lectura");
+
+  await page.locator("#Planes_Avance_Cancelar").click();
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .not.toHaveClass(/Activo/);
+
+  await page.keyboard.press("m");
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Avance_Item"))
+    .toHaveValue(`Subobjetivo|${Datos.Sub_Id}`);
+  await expect(page.locator(".Planes_Avance_Boton"))
+    .toContainText("Sub lectura");
+
+  await page.locator("#Planes_Avance_Cancelar").click();
+  expect(errores).toEqual([]);
+});
+
 test("Registrar avance ordena por fecha objetivo en todos los niveles",
 async ({ page }) => {
   const errores = [];

@@ -36884,6 +36884,10 @@
         Clave_Por_Entorno(
           "Semaplan_Sync_Local_Pendiente_V1"
         );
+      const Clave_Memoria_Avance_Base =
+        Clave_Por_Entorno(
+          "Semaplan_Planes_Avance_Seleccion_V1"
+        );
       const Clave_QA_Sin_Captcha =
         Clave_Por_Entorno("Semaplan_QA_Sin_Captcha");
       const Max_Backups_Locales = 12;
@@ -59257,6 +59261,48 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Planes_Id_Usuario_Memoria_Avance() {
+        return (
+          Usuario_Actual?.id ||
+          Obtener_Id_Usuario_Cache_Local() ||
+          ""
+        ).toString();
+      }
+
+      function Planes_Clave_Memoria_Avance() {
+        const Id_Usuario =
+          Planes_Id_Usuario_Memoria_Avance();
+        return Id_Usuario
+          ? `${Clave_Memoria_Avance_Base}_${Id_Usuario}`
+          : Clave_Memoria_Avance_Base;
+      }
+
+      function Planes_Leer_Memoria_Avance() {
+        try {
+          return (
+            localStorage.getItem(
+              Planes_Clave_Memoria_Avance()
+            ) || ""
+          );
+        } catch (_) {
+          return "";
+        }
+      }
+
+      function Planes_Recordar_Memoria_Avance(Valor = "") {
+        const Clave = Planes_Clave_Memoria_Avance();
+        const Valor_Normalizado = String(Valor || "").trim();
+        if (!Clave) return;
+        if (Valor_Normalizado) {
+          localStorage.setItem(
+            Clave,
+            Valor_Normalizado
+          );
+        } else {
+          localStorage.removeItem(Clave);
+        }
+      }
+
       function Planes_Valor_Item_Avance(Item) {
         if (!Item) return "";
         return `${Item.Tipo}|${Item.Id}`;
@@ -62349,6 +62395,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : Planes_Valor_Item_Avance(Items[0]);
         Planes_Render_Select_Avance_Custom(Select, Items);
         Actualizar_Unidad_Modal_Planes_Avance();
+        Planes_Recordar_Memoria_Avance(Select.value);
         return true;
       }
 
@@ -62555,6 +62602,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Unidad.textContent = Planes_Unidad_Item_Avance(Item);
         Planes_Render_Select_Avance_Custom(Select);
         Planes_Sincronizar_Final_Modal_Avance();
+        Planes_Recordar_Memoria_Avance(Select.value);
       }
 
       function Abrir_Modal_Planes_Avance(
@@ -62563,8 +62611,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         Planes_Avance_Alcance =
           Planes_Normalizar_Alcance_Avance(Alcance);
+        const Valor_Recordado =
+          Planes_Leer_Memoria_Avance();
         const Ok = Planes_Poblar_Select_Avance(
-          Valor_Default,
+          Valor_Default || Valor_Recordado,
           Planes_Avance_Alcance
         );
         if (!Ok) {
