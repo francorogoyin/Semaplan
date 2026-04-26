@@ -58190,6 +58190,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             });
         }
         Cerrar_Modal_Planes_Objetivo();
+        Render_Emojis();
+        Render_Resumen_Objetivo();
       }
 
       function Planes_Toggle_Expansion_Objetivo(
@@ -82698,7 +82700,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Modal_Plan_Slot_Fecha
             )
             : "";
-          if (Progreso && Progreso !== t("pendiente")) {
+          if (
+            Progreso &&
+            String(Progreso).trim().toLocaleLowerCase() !==
+              String(t("pendiente") || "").trim()
+                .toLocaleLowerCase() &&
+            String(Progreso).trim().toLocaleLowerCase() !==
+              String(t("hecho") || "").trim().toLocaleLowerCase()
+          ) {
             Texto_Item = `${Texto_Item} · ${Progreso}`;
           }
         }
