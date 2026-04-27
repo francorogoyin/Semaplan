@@ -87534,12 +87534,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : "";
         Semana_Actual = Nueva;
         if (Anterior && Anterior !== Formatear_Fecha_ISO(Nueva)) {
-          Limpiar_Dias_Visibles_Manual({
-            Conservar_Memoria: true
-          });
-          Limpiar_Bloques_Horarios_Visibles_Manual({
-            Conservar_Memoria: true
-          });
+          Calendario_Dias_Visibles_Manual_Semana = "";
+          Calendario_Dias_Visibles_Manual = null;
+          Calendario_Dias_Visibles_Manual_Tipo = "";
+          Config.Dias_Visibles_Actual_Memoria = null;
+          Config.Dias_Visibles_Actual_Memoria_Tipo = "";
+          Calendario_Bloques_Horarios_Manual_Semana = "";
+          Calendario_Bloques_Horarios_Manual = null;
+          Calendario_Bloques_Horarios_Manual_Tipo = "";
+          Config.Bloques_Horarios_Actual_Memoria = null;
+          Config.Bloques_Horarios_Actual_Memoria_Tipo = "";
         }
       }
 
@@ -98879,17 +98883,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Dias_Visibles: Config.Dias_Visibles,
             Ocultar_Dias_Automatico:
               Config.Ocultar_Dias_Automatico,
-            Dias_Visibles_Actual_Memoria:
-              Config.Dias_Visibles_Actual_Memoria,
-            Dias_Visibles_Actual_Memoria_Tipo:
-              Config.Dias_Visibles_Actual_Memoria_Tipo,
             Bloques_Horarios: Config.Bloques_Horarios,
             Bloques_Horarios_Visibles:
               Config.Bloques_Horarios_Visibles,
-            Bloques_Horarios_Actual_Memoria:
-              Config.Bloques_Horarios_Actual_Memoria,
-            Bloques_Horarios_Actual_Memoria_Tipo:
-              Config.Bloques_Horarios_Actual_Memoria_Tipo,
             Enfoque_Hora_Actual_Modo:
               Config.Enfoque_Hora_Actual_Modo,
             Enfoque_Hora_Actual_Atras:
@@ -99139,20 +99135,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (Extra.Ocultar_Dias_Automatico)
               Config.Ocultar_Dias_Automatico =
                 Extra.Ocultar_Dias_Automatico;
-            if (Array.isArray(
-              Extra.Dias_Visibles_Actual_Memoria
-            )) {
-              const Dias_Memoria = Normalizar_Dias_Visibles(
-                Extra.Dias_Visibles_Actual_Memoria,
-                []
-              );
-              Config.Dias_Visibles_Actual_Memoria =
-                Dias_Memoria.length ? Dias_Memoria : null;
-            }
-            if (Extra.Dias_Visibles_Actual_Memoria_Tipo) {
-              Config.Dias_Visibles_Actual_Memoria_Tipo =
-                String(Extra.Dias_Visibles_Actual_Memoria_Tipo);
-            }
             if (
               Extra.Bloques_Horarios &&
               typeof Extra.Bloques_Horarios === "object"
@@ -99168,20 +99150,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Normalizar_Bloques_Horarios_Visibles(
                   Extra.Bloques_Horarios_Visibles
                 );
-            }
-            if (Array.isArray(
-              Extra.Bloques_Horarios_Actual_Memoria
-            )) {
-              const Bloques_Memoria =
-                Normalizar_Bloques_Horarios_Visibles_Memoria(
-                  Extra.Bloques_Horarios_Actual_Memoria
-                );
-              Config.Bloques_Horarios_Actual_Memoria =
-                Bloques_Memoria.length ? Bloques_Memoria : null;
-            }
-            if (Extra.Bloques_Horarios_Actual_Memoria_Tipo) {
-              Config.Bloques_Horarios_Actual_Memoria_Tipo =
-                String(Extra.Bloques_Horarios_Actual_Memoria_Tipo);
             }
             if (Extra.Enfoque_Hora_Actual_Modo !== undefined) {
               Config.Enfoque_Hora_Actual_Modo =
