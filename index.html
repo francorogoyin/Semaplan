@@ -123,20 +123,20 @@
       .Nav {
         display: none;
         flex-direction: column;
-        align-items: center;
+        align-items: flex-start;
         gap: 14px;
         position: absolute;
         top: calc(100% + 12px);
         right: 0;
-        width: min(300px, calc(100vw - 36px));
-        padding: 20px;
+        width: min(216px, calc(100vw - 36px));
+        padding: 18px 18px 18px 20px;
         border-radius: 24px;
         border: 1px solid var(--Borde);
         background: rgba(255, 252, 245, 0.96);
         box-shadow: 0 26px 60px rgba(16, 34, 28, 0.18);
         backdrop-filter: blur(16px);
         z-index: 20;
-        text-align: center;
+        text-align: left;
       }
 
       .Nav.Abierto {
@@ -147,16 +147,17 @@
         color: var(--Tinta_Suave);
         font-size: 0.96rem;
         font-weight: 700;
+        width: 100%;
       }
 
       .Idioma_Switcher {
         display: inline-flex;
         gap: 4px;
-        padding: 4px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.62);
-        border: 1px solid var(--Borde);
-        backdrop-filter: blur(10px);
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+        border: 0;
+        backdrop-filter: none;
       }
 
       .Idioma_Btn {
@@ -182,12 +183,7 @@
       }
 
       .Idioma_Btn.Activo {
-        color: #fff;
-        background: linear-gradient(
-          135deg,
-          var(--Verde) 0%,
-          var(--Verde_Fuerte) 100%
-        );
+        background: rgba(25, 110, 88, 0.16);
       }
 
       .Idioma_Flag {
@@ -224,11 +220,11 @@
         justify-content: center;
         width: 48px;
         height: 48px;
-        border: 1px solid var(--Borde);
-        border-radius: 18px;
+        border: 0;
+        border-radius: 0;
         color: var(--Tinta);
-        background: rgba(255, 255, 255, 0.62);
-        backdrop-filter: blur(10px);
+        background: transparent;
+        backdrop-filter: none;
         cursor: pointer;
         transition:
           transform 0.18s ease,
@@ -239,8 +235,8 @@
       .Menu_Toggle:hover,
       .Menu_Toggle[aria-expanded="true"] {
         transform: translateY(-1px);
-        background: rgba(255, 255, 255, 0.82);
-        border-color: rgba(25, 110, 88, 0.24);
+        background: rgba(25, 110, 88, 0.08);
+        border-color: transparent;
       }
 
       .Menu_Icon {
@@ -504,7 +500,7 @@
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 16px;
-        margin-top: 24px;
+        margin-top: 48px;
       }
 
       .Feature {
@@ -629,8 +625,33 @@
         margin: 18px 0 0;
         padding-left: 0;
         list-style: none;
+        width: min(100%, 360px);
         color: var(--Tinta_Suave);
+        text-align: left;
         line-height: 1.74;
+      }
+
+      .Plan_List li {
+        display: grid;
+        grid-template-columns: 1.35rem 1fr;
+        align-items: start;
+        column-gap: 10px;
+      }
+
+      .Plan_List li::before {
+        display: block;
+        width: 1.35rem;
+        text-align: center;
+        font-size: 0.96rem;
+        line-height: 1.74;
+      }
+
+      .Plan_List.Premium li::before {
+        content: "✅";
+      }
+
+      .Plan_List.Free li::before {
+        content: "❌";
       }
 
       .Plan_List li + li {
@@ -744,7 +765,7 @@
         }
 
         .Nav {
-          width: min(100vw - 18px, 320px);
+          width: min(220px, calc(100vw - 18px));
         }
       }
     </style>
@@ -935,7 +956,7 @@
                 <strong data-i18n="free_price">ARS 0</strong>
                 <span data-i18n="per_month">por mes</span>
               </div>
-              <ul class="Plan_List">
+              <ul class="Plan_List Free">
                 <li data-i18n="free_item_1">Calendario y planificación base</li>
                 <li data-i18n="free_item_2">Organización de tareas y objetivos</li>
                 <li data-i18n="free_item_3">Login y uso regular</li>
@@ -952,7 +973,7 @@
 
             <article class="Plan_Card Highlight">
               <span class="Plan_Tag" data-i18n="premium_tag">Premium</span>
-              <h3 data-i18n="premium_title">Semaplan Premium</h3>
+              <h3 data-i18n="premium_title">Premium</h3>
               <p data-i18n="premium_desc">
                 Suscripción mensual para quienes quieren el flujo
                 completo, archivero, resúmenes y una estructura semanal
@@ -962,7 +983,7 @@
                 <strong data-i18n="premium_price">ARS 7.499</strong>
                 <span data-i18n="per_month">por mes</span>
               </div>
-              <ul class="Plan_List">
+              <ul class="Plan_List Premium">
                 <li data-i18n="premium_item_1">Archivero y planificación extendida</li>
                 <li data-i18n="premium_item_2">Resumen semanal y herramientas más profundas</li>
                 <li data-i18n="premium_item_3">Soporte para un flujo personal más completo</li>
@@ -1113,12 +1134,12 @@
             "Acceso central para planificación semanal, horarios, tareas y uso básico de cuenta.",
           free_price: "ARS 0",
           per_month: "por mes",
-          free_item_1: "Calendario y planificación base",
-          free_item_2: "Organización de tareas y objetivos",
-          free_item_3: "Login y uso regular",
+          free_item_1: "Sin archivero ni planificación extendida",
+          free_item_2: "Sin resumen semanal ni herramientas profundas",
+          free_item_3: "Sin flujo premium más completo",
           free_cta: "Usar plan free",
           premium_tag: "Premium",
-          premium_title: "Semaplan Premium",
+          premium_title: "Premium",
           premium_desc:
             "Suscripción mensual para quienes quieren el flujo completo, archivero, resúmenes y una estructura semanal más rica.",
           premium_price: "ARS 7.499",
@@ -1200,12 +1221,12 @@
             "Core access for weekly planning, schedules, tasks, and basic account use.",
           free_price: "ARS 0",
           per_month: "per month",
-          free_item_1: "Calendar and base planning",
-          free_item_2: "Task and goal organization",
-          free_item_3: "Login and regular use",
+          free_item_1: "No archive or extended planning",
+          free_item_2: "No weekly summary or deeper tools",
+          free_item_3: "No fuller premium workflow",
           free_cta: "Use free plan",
           premium_tag: "Premium",
-          premium_title: "Semaplan Premium",
+          premium_title: "Premium",
           premium_desc:
             "Monthly subscription for people who want the full workflow, archive, summaries, and a richer weekly structure.",
           premium_price: "ARS 7,499",
@@ -1287,12 +1308,12 @@
             "Acesso principal para planejamento semanal, horários, tarefas e uso básico da conta.",
           free_price: "ARS 0",
           per_month: "por mês",
-          free_item_1: "Calendário e planejamento base",
-          free_item_2: "Organização de tarefas e metas",
-          free_item_3: "Login e uso regular",
+          free_item_1: "Sem arquivo nem planejamento estendido",
+          free_item_2: "Sem resumo semanal nem ferramentas mais profundas",
+          free_item_3: "Sem fluxo premium mais completo",
           free_cta: "Usar plano free",
           premium_tag: "Premium",
-          premium_title: "Semaplan Premium",
+          premium_title: "Premium",
           premium_desc:
             "Assinatura mensal para quem quer o fluxo completo, arquivo, resumos e uma estrutura semanal mais rica.",
           premium_price: "ARS 7.499",
