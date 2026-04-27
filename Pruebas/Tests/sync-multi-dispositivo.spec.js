@@ -689,6 +689,71 @@ test(
 );
 
 test(
+  "guardar un cambio de orden en objetivos fuerza sync critico automatico",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Primero", "Segundo"])
+    );
+
+    await page.evaluate(() => {
+      const Movido = Objetivos.pop();
+      Objetivos.unshift(Movido);
+      Guardar_Estado();
+    });
+
+    await expect.poll(async () => {
+      return await page.evaluate(() => {
+        return {
+          Orden: (
+            window.__Estado_Remoto?.estado?.Objetivos || []
+          ).map((Objetivo) => Objetivo?.Nombre || ""),
+          Sync_Estado,
+          Pendiente: Hay_Sync_Pendiente()
+        };
+      });
+    }).toEqual({
+      Orden: ["Segundo", "Primero"],
+      Sync_Estado: "Guardado",
+      Pendiente: false
+    });
+  }
+);
+
+test(
+  "guardar un cambio en plan de slot fuerza sync critico automatico",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado_Con_Slot("2026-04-13", 10)
+    );
+
+    await page.evaluate(() => {
+      const Clave = "2026-04-13|10";
+      Planes_Slot[Clave].Items[0].Texto =
+        "Idea actualizada";
+      Guardar_Estado();
+    });
+
+    await expect.poll(async () => {
+      return await page.evaluate(() => {
+        const Item = window.__Estado_Remoto?.estado
+          ?.Planes_Slot?.["2026-04-13|10"]?.Items?.[0];
+        return {
+          Texto: Item?.Texto || "",
+          Sync_Estado,
+          Pendiente: Hay_Sync_Pendiente()
+        };
+      });
+    }).toEqual({
+      Texto: "Idea actualizada",
+      Sync_Estado: "Guardado",
+      Pendiente: false
+    });
+  }
+);
+
+test(
   "el sync no reintroduce slots muertos borrados " +
   "al moverlos de hora",
   async ({ page }) => {

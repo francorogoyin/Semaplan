@@ -99004,8 +99004,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         // 1) Persistir en localStorage como caché inmediato.
         const Estado = Construir_Estado_Completo();
+        const Estado_Anterior_Raw =
+          localStorage.getItem(Clave_Local) || "";
         const Forzar_Sync_Critico =
-          Consumir_Sync_Critico_Inmediato_Pendiente();
+          Consumir_Sync_Critico_Inmediato_Pendiente() ||
+          Debe_Forzar_Sync_Critico_Automatico(
+            Estado,
+            Estado_Anterior_Raw
+          );
         localStorage.setItem(Clave_Local, JSON.stringify(Estado));
         if (Usuario_Actual?.id) {
           Marcar_Usuario_Cache_Local(Usuario_Actual.id);
@@ -99033,6 +99039,75 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         Marcar_Sync_Critico_Inmediato_Pendiente();
         Guardar_Estado(Opciones);
+      }
+
+      const Claves_Sync_Critico_Automatico = [
+        "Objetivos",
+        "Eventos",
+        "Metas",
+        "Slots_Muertos",
+        "Plantillas_Subobjetivos",
+        "Planes_Slot",
+        "Categorias",
+        "Etiquetas",
+        "Baul_Objetivos",
+        "Baul_Grupos_Colapsados",
+        "Archiveros",
+        "Notas_Archivero",
+        "Etiquetas_Archivero",
+        "Patrones",
+        "Habitos",
+        "Habitos_Registros",
+        "Tareas",
+        "Tareas_Cajones_Definidos",
+        "Contador_Eventos",
+        "Tipos_Slot",
+        "Tipos_Slot_Inicializados",
+        "Slots_Muertos_Tipos",
+        "Slots_Muertos_Nombres",
+        "Slots_Muertos_Titulos_Visibles",
+        "Slots_Muertos_Nombres_Auto",
+        "Slots_Muertos_Grupo_Ids",
+        "Planes_Semana",
+        "Planes_Periodo"
+      ];
+
+      function Construir_Firma_Sync_Critico_Automatico(
+        Estado = null
+      ) {
+        if (!Es_Objeto_Json(Estado)) return "";
+        const Firma = {};
+        Claves_Sync_Critico_Automatico.forEach((Clave) => {
+          Firma[Clave] =
+            Estado[Clave] === undefined ? null : Estado[Clave];
+        });
+        return JSON.stringify(Firma);
+      }
+
+      function Debe_Forzar_Sync_Critico_Automatico(
+        Estado_Actual,
+        Estado_Anterior_Raw = ""
+      ) {
+        if (Cargando_Inicial) return false;
+        if (!Usuario_Actual?.id) return false;
+        try {
+          const Firma_Actual =
+            Construir_Firma_Sync_Critico_Automatico(
+              Estado_Actual
+            );
+          if (!Firma_Actual) return false;
+          if (!Estado_Anterior_Raw) return true;
+          const Estado_Anterior = JSON.parse(
+            Estado_Anterior_Raw
+          );
+          const Firma_Anterior =
+            Construir_Firma_Sync_Critico_Automatico(
+              Estado_Anterior
+            );
+          return Firma_Anterior !== Firma_Actual;
+        } catch (_) {
+          return false;
+        }
       }
 
       async function Forzar_Sync_Inmediato_Cambio_Critico() {
