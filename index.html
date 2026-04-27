@@ -17,6 +17,9 @@
       type="image/png"
       href="Aplicaciones/Desktop/Semaplan.png"
     />
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    ></script>
     <style>
       :root {
         --Fondo: #f5eddc;
@@ -63,6 +66,10 @@
           "Segoe UI",
           "Trebuchet MS",
           sans-serif;
+      }
+
+      main {
+        padding-bottom: 60px;
       }
 
       a {
@@ -263,19 +270,21 @@
       .Hero_Row {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 14px;
+        gap: 16px;
         margin-top: 34px;
       }
 
       .Hero_Point {
         padding-top: 14px;
+        padding-bottom: 14px;
         border-top: 1px solid rgba(27, 37, 29, 0.12);
       }
 
       .Hero_Point strong {
         display: block;
         margin-bottom: 5px;
-        font-size: 0.98rem;
+        font-size: 1rem;
+        font-weight: 700;
       }
 
       .Hero_Point span {
@@ -338,18 +347,20 @@
       .Mini_Item strong {
         display: block;
         margin-bottom: 5px;
-        font-size: 0.97rem;
+        font-size: 1rem;
+        font-weight: 700;
       }
 
       .Mini_Grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
+        margin-top: 8px;
       }
 
       .Mini_Block {
         padding: 18px;
-        border-radius: 22px;
+        border-radius: 16px;
         color: #f8fff8;
         background: linear-gradient(
           155deg,
@@ -368,22 +379,22 @@
 
       .Mini_Block strong {
         display: block;
-        font-size: 1.34rem;
+        font-size: 1.1rem;
         line-height: 1.08;
       }
 
       .Seccion {
-        margin-top: 24px;
-        padding: 28px;
+        margin-top: 40px;
+        padding: 44px;
         border-radius: var(--Radio);
       }
 
       .Seccion_Header {
         display: flex;
-        align-items: end;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 12px;
       }
 
       .Seccion_Header h2 {
@@ -393,8 +404,9 @@
 
       .Seccion_Header p {
         margin: 0;
-        max-width: 38rem;
+        max-width: 52ch;
         color: var(--Tinta_Suave);
+        opacity: 0.88;
         line-height: 1.64;
       }
 
@@ -406,15 +418,17 @@
       }
 
       .Feature {
-        padding: 20px;
+        padding: 24px;
         border-radius: 22px;
-        background: rgba(255, 255, 255, 0.58);
+        border-left: 3px solid var(--Verde);
+        background: rgba(255, 255, 255, 0.76);
       }
 
       .Feature strong {
         display: block;
         margin-bottom: 8px;
         font-size: 1rem;
+        font-weight: 700;
       }
 
       .Feature p {
@@ -426,6 +440,7 @@
       .Pricing {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
         gap: 18px;
         margin-top: 24px;
       }
@@ -482,7 +497,7 @@
       }
 
       .Plan_Price strong {
-        font-size: clamp(2.2rem, 4vw, 3rem);
+        font-size: clamp(1.8rem, 3vw, 2.2rem);
         line-height: 1;
       }
 
@@ -562,6 +577,9 @@
         }
 
         .Topbar_Acciones {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
           justify-content: flex-start;
         }
 
@@ -876,38 +894,41 @@
         <span data-i18n="footer_tagline">
           Semaplan, software de planificación personal
         </span>
-        <div class="Legal_Links">
-          <a
-            class="Link_Pagina"
-            data-link="terms.html"
-            href="terms.html"
-            data-i18n="nav_terms"
-          >Términos</a>
-          <a
-            class="Link_Pagina"
-            data-link="privacy.html"
-            href="privacy.html"
-            data-i18n="nav_privacy"
-          >Privacidad</a>
-          <a
-            class="Link_Pagina"
-            data-link="refund.html"
-            href="refund.html"
-            data-i18n="nav_refund"
-          >Reembolsos</a>
-          <a
-            class="Link_Pagina"
-            data-link="login.html"
-            href="login.html"
-            data-i18n="nav_login"
-          >Login</a>
-        </div>
+        <a
+          class="Link_Pagina"
+          data-link="login.html"
+          href="login.html"
+          data-i18n="nav_login"
+        >Login</a>
       </footer>
     </div>
 
     <script>
       const Idiomas_Publicos = ["es", "en", "pt"];
       const Clave_Idioma_Publico = "Semaplan_Idioma_Publico";
+      let Sesion_Publica_Activa = false;
+      const Entornos_Publicos = {
+        produccion: {
+          Supabase_Url:
+            "https://cprdnxkkhuuhdispubds.supabase.co",
+          Supabase_Anon_Key:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" +
+            ".eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwcmRueGtraHV1aGRpc3" +
+            "B1YmRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NzgxMTQsImV4" +
+            "cCI6MjA5MTE1NDExNH0" +
+            ".lKLesAkMG4zUzaD6urbNDnmcC3vOL7VNeTGDwoTaDTI"
+        },
+        staging: {
+          Supabase_Url:
+            "https://cukkxjmdspbefkqzjumh.supabase.co",
+          Supabase_Anon_Key:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" +
+            ".eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1a2t4am1kc3BiZWZrcX" +
+            "pqdW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzk5NjIsImV4" +
+            "cCI6MjA5MTg1NTk2Mn0" +
+            ".lEcIsYbxQR8Lw_-cOw1v8UXwG0zDErPmo0K8xp9jkzA"
+        }
+      };
       const Textos = {
         es: {
           title: "Semaplan | Planificación personal",
@@ -919,11 +940,13 @@
           nav_privacy: "Privacidad",
           nav_refund: "Reembolsos",
           nav_login: "Login",
+          nav_app: "Entrar a app",
           hero_tag: "Planificación semanal con un sistema claro",
           hero_title: "Ordená tu semana sin partir tu atención.",
           hero_desc:
             "Semaplan es una app web de planificación personal para organizar tareas, objetivos, horarios y notas en un solo lugar. Está pensada para trabajar con calma, no para sumar otra interfaz ruidosa.",
           hero_cta_login: "Ir al login",
+          hero_cta_app: "Entrar a app",
           hero_cta_pricing: "Ver planes",
           point_1_title: "Mapa semanal",
           point_1_body:
@@ -1004,11 +1027,13 @@
           nav_privacy: "Privacy",
           nav_refund: "Refund",
           nav_login: "Login",
+          nav_app: "Open app",
           hero_tag: "Weekly planning with a clear system",
           hero_title: "Organize your week without splitting your attention.",
           hero_desc:
             "Semaplan is a personal planning web app for organizing tasks, goals, schedules, and notes in one place. It is built for calmer work, not for adding another noisy interface.",
           hero_cta_login: "Go to login",
+          hero_cta_app: "Open app",
           hero_cta_pricing: "View plans",
           point_1_title: "Weekly map",
           point_1_body:
@@ -1089,11 +1114,13 @@
           nav_privacy: "Privacidade",
           nav_refund: "Reembolsos",
           nav_login: "Login",
+          nav_app: "Entrar no app",
           hero_tag: "Planejamento semanal com um sistema claro",
           hero_title: "Organize sua semana sem dividir sua atenção.",
           hero_desc:
             "Semaplan é um app web de planejamento pessoal para organizar tarefas, metas, horários e notas em um só lugar. Foi feito para trabalhar com mais calma, não para somar outra interface barulhenta.",
           hero_cta_login: "Ir para o login",
+          hero_cta_app: "Entrar no app",
           hero_cta_pricing: "Ver planos",
           point_1_title: "Mapa semanal",
           point_1_body:
@@ -1182,13 +1209,57 @@
         return Normalizar_Idioma(Guardado);
       }
 
+      function Detectar_Entorno_Publico_Id() {
+        try {
+          const Url = new URL(window.location.href);
+          const Query = String(
+            Url.searchParams.get("entorno")
+            || Url.searchParams.get("Entorno")
+            || ""
+          ).trim().toLowerCase();
+          if (Query === "staging") {
+            return "staging";
+          }
+          const Ruta = String(
+            window.location.pathname || ""
+          ).trim().toLowerCase();
+          if (Ruta.includes("staging")) {
+            return "staging";
+          }
+        } catch (_) {}
+        return "produccion";
+      }
+
+      function Construir_Url_Login(Idioma) {
+        const Url_Actual = new URL(window.location.href);
+        const Url_Login = new URL(
+          "login.html",
+          window.location.href
+        );
+        const Entorno = String(
+          Url_Actual.searchParams.get("entorno")
+          || Url_Actual.searchParams.get("Entorno")
+          || ""
+        ).trim().toLowerCase();
+        if (Entorno === "staging") {
+          Url_Login.searchParams.set("entorno", "staging");
+        }
+        Url_Login.searchParams.set("lang", Idioma);
+        return Url_Login;
+      }
+
       function Actualizar_Links_Publicos(Idioma) {
         document
           .querySelectorAll(".Link_Pagina[data-link]")
           .forEach((Link) => {
-            const Ruta = Link.dataset.link;
-            const Url = new URL(Ruta, window.location.href);
-            Url.searchParams.set("lang", Idioma);
+            const Ruta = String(Link.dataset.link || "");
+            const Url =
+              Ruta === "login.html"
+                ? Construir_Url_Login(Idioma)
+                : new URL(Ruta, window.location.href);
+            if (Ruta !== "login.html") {
+              Url.searchParams.set("lang", Idioma);
+            }
             Link.href = Url.pathname + Url.search;
           });
       }
@@ -1209,6 +1280,18 @@
             }
             Nodo.textContent = Copia[Clave];
           });
+        if (Sesion_Publica_Activa) {
+          document
+            .querySelectorAll('[data-i18n="nav_login"]')
+            .forEach((Nodo) => {
+              Nodo.textContent = Copia.nav_app;
+            });
+          document
+            .querySelectorAll('[data-i18n="hero_cta_login"]')
+            .forEach((Nodo) => {
+              Nodo.textContent = Copia.hero_cta_app;
+            });
+        }
         document
           .querySelectorAll(".Idioma_Btn")
           .forEach((Btn) => {
@@ -1227,6 +1310,35 @@
         history.replaceState({}, "", Url.toString());
       }
 
+      async function Redirigir_Si_Hay_Sesion() {
+        if (!window.supabase?.createClient) {
+          return false;
+        }
+        const Entorno_Id = Detectar_Entorno_Publico_Id();
+        const Entorno =
+          Entornos_Publicos[Entorno_Id]
+          || Entornos_Publicos.produccion;
+        const Cliente = window.supabase.createClient(
+          Entorno.Supabase_Url,
+          Entorno.Supabase_Anon_Key,
+          { auth: { persistSession: true } }
+        );
+        try {
+          const {
+            data: { session }
+          } = await Cliente.auth.getSession();
+          if (session?.user) {
+            Sesion_Publica_Activa = true;
+            const Idioma = Leer_Idioma_Publico();
+            window.location.replace(
+              Construir_Url_Login(Idioma).toString()
+            );
+            return true;
+          }
+        } catch (_) {}
+        return false;
+      }
+
       document
         .querySelectorAll(".Idioma_Btn")
         .forEach((Btn) => {
@@ -1235,7 +1347,11 @@
           });
         });
 
-      Aplicar_Idioma_Publico(Leer_Idioma_Publico());
+      (async () => {
+        const Redirigio = await Redirigir_Si_Hay_Sesion();
+        if (Redirigio) return;
+        Aplicar_Idioma_Publico(Leer_Idioma_Publico());
+      })();
     </script>
   </body>
 </html>
