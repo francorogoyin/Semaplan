@@ -1,0 +1,84 @@
+Instrucciones para integrar Semaplan con Claude via MCP.
+
+Objetivo.
+
+Usar un server MCP local que no lea Supabase directo, sino que reenvie
+todas las herramientas al gateway `semaplan-ai`.
+
+Archivos.
+
+- `Herramientas/Scripts/semaplan-ai-mcp-server.js`
+- `Documentacion/Planes/OpenAPI_Semaplan_AI.yaml`
+
+Reglas.
+
+- El MCP no debe consultar Supabase directo.
+- El MCP debe reenviar siempre el token en
+  `X-Semaplan-AI-Token`.
+- El MCP debe hablar solo con el gateway
+  `https://<project>.supabase.co/functions/v1/semaplan-ai`.
+- La version 1 es solo lectura.
+
+Variables de entorno requeridas.
+
+- `SEMAPLAN_AI_BASE_URL`
+- `SEMAPLAN_AI_TOKEN`
+
+Variable opcional.
+
+- `SEMAPLAN_AI_TIMEOUT_MS`
+
+Comando de arranque local.
+
+`npm run mcp:semaplan-ai`
+
+Herramientas expuestas.
+
+- `semaplan_contexto`
+- `semaplan_agenda`
+- `semaplan_tareas`
+- `semaplan_habitos`
+- `semaplan_slots`
+- `semaplan_plan_semana`
+- `semaplan_planes_periodos`
+- `semaplan_buscar_archivero`
+- `semaplan_listar_archivero`
+- `semaplan_listar_baul`
+- `semaplan_listar_metas`
+
+Mapeo al gateway.
+
+- `semaplan_contexto` -> `GET /contexto`
+- `semaplan_agenda` -> `GET /agenda`
+- `semaplan_tareas` -> `GET /tareas`
+- `semaplan_habitos` -> `GET /habitos`
+- `semaplan_slots` -> `GET /slots`
+- `semaplan_plan_semana` -> `GET /planes/semana`
+- `semaplan_planes_periodos` -> `GET /planes/periodos`
+- `semaplan_buscar_archivero` -> `GET /archivero/buscar`
+- `semaplan_listar_archivero` -> `GET /archivero`
+- `semaplan_listar_baul` -> `GET /baul`
+- `semaplan_listar_metas` -> `GET /metas`
+
+Configuracion sugerida.
+
+1. Crear un token de lectura de Semaplan para el usuario.
+2. Exportar `SEMAPLAN_AI_BASE_URL` con la URL real del gateway.
+3. Exportar `SEMAPLAN_AI_TOKEN` con ese token.
+4. Registrar el comando `npm run mcp:semaplan-ai` como server MCP de
+   Claude.
+
+Comportamiento esperado en Claude.
+
+- Usar `semaplan_contexto` para preguntas generales.
+- Usar herramientas especificas cuando la consulta sea puntual.
+- No inferir datos ausentes.
+- Si una herramienta devuelve vacio, decirlo.
+- Si la pregunta temporal es ambigua, pedir fechas concretas.
+
+Notas de operacion.
+
+- El script usa `stdio` y protocolo MCP.
+- El script devuelve el JSON del gateway como texto estructurado.
+- Si faltan variables de entorno, responde error util sin exponer
+  secretos.

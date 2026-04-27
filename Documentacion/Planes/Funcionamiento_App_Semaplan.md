@@ -27,6 +27,9 @@ estructuras persistidas o relaciones importantes entre modulos.
   `/planes/semana`, `/planes/periodos`, `/archivero`,
   `/archivero/buscar`, `/baul`, `/metas` y `/openapi.json` con vistas
   compactas y contrato publico para IA.
+- `Herramientas/Scripts/semaplan-ai-mcp-server.js`: puente MCP local
+  por `stdio` que expone herramientas para Claude y las reenvia al
+  gateway `semaplan-ai`, sin leer Supabase directo.
 - `supabase/functions/*`: Edge Functions remotas para suscripcion,
   ayuda, eliminar cuenta y demas integraciones.
 - `supabase/migrations/*`: cambios de esquema remoto.
