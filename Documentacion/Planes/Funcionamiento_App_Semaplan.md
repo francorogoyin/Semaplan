@@ -24,7 +24,8 @@ estructuras persistidas o relaciones importantes entre modulos.
   construccion para consultas de IA sobre datos de Semaplan. Ya valida
   tokens/JWT, puede leer `estado_usuario` con filtrado seguro y expone
   `/agenda`, `/contexto`, `/tareas`, `/habitos`, `/slots`,
-  `/planes/semana` y `/planes/periodos` con vistas compactas para IA.
+  `/planes/semana`, `/planes/periodos`, `/archivero`,
+  `/archivero/buscar`, `/baul` y `/metas` con vistas compactas para IA.
 - `supabase/functions/*`: Edge Functions remotas para suscripcion,
   ayuda, eliminar cuenta y demas integraciones.
 - `supabase/migrations/*`: cambios de esquema remoto.

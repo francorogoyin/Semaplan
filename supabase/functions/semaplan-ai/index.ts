@@ -707,6 +707,45 @@ function Normalizar_Texto(
   return String(Valor || "").trim();
 }
 
+function Normalizar_Texto_Busqueda(
+  Valor: unknown
+) {
+  return Normalizar_Texto(Valor)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+function Limitar_Texto_IA(
+  Texto: string,
+  Maximo = 1000
+) {
+  if (Texto.length <= Maximo) {
+    return {
+      Texto,
+      Texto_Truncado: false,
+    };
+  }
+  return {
+    Texto: `${Texto.slice(0, Maximo)}...`,
+    Texto_Truncado: true,
+  };
+}
+
+function Normalizar_Marca_Tiempo_IA(
+  Valor: unknown
+) {
+  if (
+    typeof Valor === "number" &&
+    Number.isFinite(Valor)
+  ) {
+    return Valor;
+  }
+  const Texto = Normalizar_Texto(Valor);
+  return Texto || null;
+}
+
 function Numero_Entero(
   Valor: unknown,
   Fallback = 0
@@ -1386,6 +1425,567 @@ function Construir_Resumen_Metas(
       .filter((Meta) => !Meta.Archivada)
       .slice(0, 12),
   };
+}
+
+function Construir_Cajones_Archivero_IA(
+  Estado: Record<string, unknown>
+) {
+  const Archiveros = Obtener_Array_Estado(
+    Estado,
+    "Archiveros"
+  );
+  const Notas = Obtener_Array_Estado(
+    Estado,
+    "Notas_Archivero"
+  );
+  const Conteo_Por_Cajon: Record<string, number> =
+    {};
+  Notas.forEach((Nota) => {
+    if (!Nota || typeof Nota !== "object") {
+      return;
+    }
+    const Cajon_Id = Normalizar_Texto(
+      (Nota as Record<string, unknown>)
+        .Archivero_Id
+    );
+    if (!Cajon_Id) {
+      return;
+    }
+    Conteo_Por_Cajon[Cajon_Id] =
+      (Conteo_Por_Cajon[Cajon_Id] || 0) + 1;
+  });
+  return Archiveros
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item, Indice) => {
+      const Base =
+        Item as Record<string, unknown>;
+      const Id = Normalizar_Texto(Base.Id);
+      return {
+        Id,
+        Nombre: Normalizar_Texto(Base.Nombre),
+        Emoji: Normalizar_Texto(
+          Base.Emoji || "\ud83d\uddc2\ufe0f"
+        ),
+        Notas_Total:
+          Conteo_Por_Cajon[Id] || 0,
+        Orden: Number.isFinite(Number(Base.Orden))
+          ? Number(Base.Orden)
+          : Indice,
+      };
+    })
+    .filter((Cajon) => Cajon.Id && Cajon.Nombre);
+}
+
+function Construir_Notas_Archivero_IA(
+  Estado: Record<string, unknown>
+) {
+  return Obtener_Array_Estado(
+    Estado,
+    "Notas_Archivero"
+  )
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item, Indice) => {
+      const Base =
+        Item as Record<string, unknown>;
+      const Titulo = Normalizar_Texto(
+        Base.Titulo
+      );
+      const Texto_Completo = Normalizar_Texto(
+        Base.Texto
+      );
+      const Texto_Limitado =
+        Limitar_Texto_IA(Texto_Completo);
+      const Etiquetas = Array.isArray(
+        Base.Etiquetas
+      )
+        ? Base.Etiquetas
+          .map((Etiqueta) =>
+            Normalizar_Texto(Etiqueta)
+          )
+          .filter(Boolean)
+        : [];
+      const Origen = Normalizar_Texto(
+        Base.Origen
+      );
+      const Fecha_Creacion =
+        Normalizar_Marca_Tiempo_IA(
+          Base.Fecha_Creacion ??
+            Base.Creado_En
+        );
+      const Fecha_Actualizacion =
+        Normalizar_Marca_Tiempo_IA(
+          Base.Fecha_Actualizacion ??
+            Base.Actualizado_En
+        );
+      return {
+        Id:
+          Normalizar_Texto(Base.Id) ||
+          `Nota_${Indice}`,
+        Archivero_Id: Normalizar_Texto(
+          Base.Archivero_Id
+        ),
+        Titulo: Titulo || null,
+        Texto: Texto_Limitado.Texto,
+        Texto_Truncado:
+          Texto_Limitado.Texto_Truncado,
+        Etiquetas,
+        Origen,
+        Tipo:
+          Normalizar_Texto(Base.Tipo) ||
+          "Texto",
+        Fecha_Creacion,
+        Fecha_Actualizacion,
+        Adjuntos_Total: Array.isArray(
+          Base.Adjuntos
+        )
+          ? Base.Adjuntos.length
+          : 0,
+        _Orden_Fecha:
+          Fecha_Actualizacion ??
+          Fecha_Creacion ??
+          0,
+        _Busqueda: Normalizar_Texto_Busqueda(
+          [
+            Titulo,
+            Texto_Completo,
+            Origen,
+            ...Etiquetas,
+          ].join(" ")
+        ),
+      };
+    })
+    .filter((Nota) => Nota.Archivero_Id);
+}
+
+function Construir_Baul_Normalizado_IA(
+  Estado: Record<string, unknown>
+) {
+  const Categorias_Por_Id =
+    Construir_Mapa_Por_Id(
+      Obtener_Array_Estado(
+        Estado,
+        "Categorias"
+      )
+    );
+  const Etiquetas_Por_Id =
+    Construir_Mapa_Por_Id(
+      Obtener_Array_Estado(
+        Estado,
+        "Etiquetas"
+      )
+    );
+  return Obtener_Array_Estado(
+    Estado,
+    "Baul_Objetivos"
+  )
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item, Indice) => {
+      const Base =
+        Item as Record<string, unknown>;
+      const Categoria_Id = Normalizar_Texto(
+        Base.Categoria_Id
+      );
+      const Categoria =
+        Categorias_Por_Id[Categoria_Id] || null;
+      const Etiquetas_Ids = Array.isArray(
+        Base.Etiquetas_Ids
+      )
+        ? Base.Etiquetas_Ids
+          .map((Id) => Normalizar_Texto(Id))
+          .filter(Boolean)
+        : [];
+      const Metadatos_Categoria =
+        Array.isArray(Categoria?.Metadatos)
+          ? Categoria.Metadatos
+          : [];
+      const Nombres_Metadatos = new Map(
+        Metadatos_Categoria
+          .filter((Meta) =>
+            Meta && typeof Meta === "object"
+          )
+          .map((Meta) => {
+            const Base_Meta =
+              Meta as Record<string, unknown>;
+            return [
+              Normalizar_Texto(Base_Meta.Id),
+              Normalizar_Texto(
+                Base_Meta.Nombre
+              ),
+            ];
+          })
+      );
+      const Metadatos_Raw =
+        Base.Metadatos &&
+          typeof Base.Metadatos === "object" &&
+          !Array.isArray(Base.Metadatos)
+          ? Base.Metadatos as Record<
+              string,
+              unknown
+            >
+          : {};
+      const Metadatos = Object.entries(
+        Metadatos_Raw
+      ).reduce<Record<string, string>>(
+        (Acumulado, [Clave, Valor]) => {
+          const Texto = Normalizar_Texto(Valor);
+          if (!Texto) {
+            return Acumulado;
+          }
+          Acumulado[
+            Nombres_Metadatos.get(Clave) ||
+              Clave
+          ] = Texto;
+          return Acumulado;
+        },
+        {}
+      );
+      return {
+        Id:
+          Normalizar_Texto(Base.Id) ||
+          `Baul_${Indice}`,
+        Nombre: Normalizar_Texto(Base.Nombre),
+        Emoji: Normalizar_Texto(
+          Base.Emoji || "\u2022"
+        ),
+        Estado:
+          Normalizar_Texto(Base.Estado) ||
+          "Activa",
+        Archivada: Base.Archivada === true,
+        Categoria_Id: Categoria_Id || null,
+        Categoria: Normalizar_Texto(
+          Categoria?.Nombre
+        ),
+        Etiquetas: Etiquetas_Ids
+          .map((Etiqueta_Id) =>
+            Normalizar_Texto(
+              Etiquetas_Por_Id[Etiqueta_Id]
+                ?.Nombre
+            )
+          )
+          .filter(Boolean),
+        Descripcion: Normalizar_Texto(
+          Base.Descripcion
+        ),
+        Timeline: Normalizar_Texto(
+          Base.Timeline
+        ) || null,
+        Horas_Aprox:
+          Number(Base.Horas_Aprox) || 0,
+        Metadatos,
+        Orden: Number.isFinite(
+          Number(Base.Orden_Personalizado)
+        )
+          ? Number(Base.Orden_Personalizado)
+          : Indice,
+      };
+    })
+    .filter((Objetivo) => Objetivo.Nombre);
+}
+
+function Resolver_Rango_Meta_IA(
+  Meta: Record<string, unknown>
+) {
+  const Periodo =
+    Normalizar_Texto(Meta.Periodo) ||
+    "Semana";
+  if (Periodo === "Semana") {
+    const Semana =
+      Obtener_Lunes_ISO_Desde_Fecha(
+        Normalizar_Texto(
+          Meta.Semana_Ref
+        ) || Obtener_Hoy_ISO()
+      ) || Obtener_Hoy_ISO();
+    const Desde = Semana;
+    const Hasta = Formatear_Fecha_ISO(
+      Sumar_Dias(
+        Parsear_Fecha_ISO(Semana)!,
+        6
+      )
+    );
+    return { Desde, Hasta };
+  }
+  if (Periodo === "Mes") {
+    const Coincidencia = Normalizar_Texto(
+      Meta.Mes_Ref
+    ).match(/^(\d{4})-(\d{2})$/);
+    if (Coincidencia) {
+      const Ano = Number(Coincidencia[1]);
+      const Mes = Number(Coincidencia[2]) - 1;
+      const Desde = new Date(
+        Date.UTC(Ano, Mes, 1)
+      );
+      const Hasta = new Date(
+        Date.UTC(Ano, Mes + 1, 0)
+      );
+      return {
+        Desde: Formatear_Fecha_ISO(Desde),
+        Hasta: Formatear_Fecha_ISO(Hasta),
+      };
+    }
+  }
+  const Desde = Normalizar_Texto(
+    Meta.Fecha_Desde
+  );
+  const Hasta = Normalizar_Texto(
+    Meta.Fecha_Hasta
+  );
+  if (
+    Es_Fecha_ISO_Valida(Desde) &&
+    Es_Fecha_ISO_Valida(Hasta)
+  ) {
+    return {
+      Desde,
+      Hasta: Hasta >= Desde ? Hasta : Desde,
+    };
+  }
+  const Hoy = Obtener_Hoy_ISO();
+  return { Desde: Hoy, Hasta: Hoy };
+}
+
+function Calcular_Ratio_Tiempo_Meta_IA(
+  Desde: string,
+  Hasta: string
+) {
+  const Hoy = Obtener_Hoy_ISO();
+  if (Hoy < Desde) {
+    return 0;
+  }
+  if (Hoy > Hasta) {
+    return 1;
+  }
+  const Inicio = Parsear_Fecha_ISO(Desde);
+  const Fin = Parsear_Fecha_ISO(Hasta);
+  const Actual = Parsear_Fecha_ISO(Hoy);
+  if (!Inicio || !Fin || !Actual) {
+    return 0;
+  }
+  const Total_Dias = Math.max(
+    1,
+    Math.round(
+      (Fin.getTime() - Inicio.getTime()) /
+        (24 * 3600 * 1000)
+    ) + 1
+  );
+  const Transcurridos = Math.max(
+    0,
+    Math.round(
+      (Actual.getTime() - Inicio.getTime()) /
+        (24 * 3600 * 1000)
+    ) + 1
+  );
+  return Math.max(
+    0,
+    Math.min(1, Transcurridos / Total_Dias)
+  );
+}
+
+function Construir_Metas_Normalizadas_IA(
+  Estado: Record<string, unknown>
+) {
+  const Metas = Obtener_Array_Estado(
+    Estado,
+    "Metas"
+  );
+  const Eventos = Obtener_Array_Estado(
+    Estado,
+    "Eventos"
+  );
+  const Objetivos_Por_Id =
+    Construir_Mapa_Por_Id(
+      Obtener_Array_Estado(
+        Estado,
+        "Objetivos"
+      )
+    );
+  const Categorias_Por_Id =
+    Construir_Mapa_Por_Id(
+      Obtener_Array_Estado(
+        Estado,
+        "Categorias"
+      )
+    );
+  const Etiquetas_Por_Id =
+    Construir_Mapa_Por_Id(
+      Obtener_Array_Estado(
+        Estado,
+        "Etiquetas"
+      )
+    );
+
+  return Metas
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item, Indice) => {
+      const Base =
+        Item as Record<string, unknown>;
+      const Nombre = Normalizar_Texto(
+        Base.Nombre
+      );
+      const Objetivo =
+        Number(Base.Horas_Objetivo) || 0;
+      if (!Nombre || Objetivo <= 0) {
+        return null;
+      }
+      const Periodo = [
+        "Semana",
+        "Mes",
+        "Personalizado",
+      ].includes(Normalizar_Texto(Base.Periodo))
+        ? Normalizar_Texto(Base.Periodo)
+        : "Semana";
+      const Fuente_Tipo = [
+        "Categoria",
+        "Etiqueta",
+        "Objetivo",
+      ].includes(
+        Normalizar_Texto(Base.Fuente_Tipo)
+      )
+        ? Normalizar_Texto(Base.Fuente_Tipo)
+        : "Categoria";
+      const Fuente_Valor =
+        Fuente_Tipo === "Categoria"
+          ? Normalizar_Texto(
+              Base.Fuente_Valor ||
+                Base.Categoria_Id
+            )
+          : Fuente_Tipo === "Etiqueta"
+          ? Normalizar_Texto(
+              Base.Fuente_Valor ||
+                Base.Etiqueta_Id
+            )
+          : Normalizar_Texto(
+              Base.Fuente_Valor ||
+                Base.Objetivo_Nombre
+            );
+      const Fuente_Clave =
+        Fuente_Tipo === "Objetivo"
+          ? Normalizar_Texto_Busqueda(
+              Base.Fuente_Clave ||
+                Fuente_Valor
+            )
+          : Fuente_Valor;
+      if (!Fuente_Valor) {
+        return null;
+      }
+      const { Desde, Hasta } =
+        Resolver_Rango_Meta_IA({
+          ...Base,
+          Periodo,
+        });
+      const Progreso = Eventos
+        .filter((Evento) =>
+          Evento && typeof Evento === "object"
+        )
+        .reduce((Total, Evento) => {
+          const Base_Evento =
+            Evento as Record<string, unknown>;
+          if (Base_Evento.Hecho !== true) {
+            return Total;
+          }
+          const Fecha = Normalizar_Texto(
+            Base_Evento.Fecha
+          );
+          if (
+            !Es_Fecha_ISO_Valida(Fecha) ||
+            Fecha < Desde ||
+            Fecha > Hasta
+          ) {
+            return Total;
+          }
+          const Objetivo_Evento =
+            Objetivos_Por_Id[
+              Normalizar_Texto(
+                Base_Evento.Objetivo_Id
+              )
+            ];
+          if (!Objetivo_Evento) {
+            return Total;
+          }
+          const Coincide =
+            Fuente_Tipo === "Categoria"
+              ? Normalizar_Texto(
+                  Objetivo_Evento.Categoria_Id
+                ) === Fuente_Valor
+              : Fuente_Tipo === "Etiqueta"
+              ? Array.isArray(
+                  Objetivo_Evento.Etiquetas_Ids
+                ) &&
+                Objetivo_Evento.Etiquetas_Ids
+                  .map((Id) =>
+                    Normalizar_Texto(Id)
+                  )
+                  .includes(Fuente_Valor)
+              : Normalizar_Texto_Busqueda(
+                  Objetivo_Evento.Nombre
+                ) === Fuente_Clave;
+          if (!Coincide) {
+            return Total;
+          }
+          return (
+            Total +
+            Math.max(
+              0,
+              Number(Base_Evento.Duracion) || 0
+            )
+          );
+        }, 0);
+      const Ratio_Meta =
+        Objetivo > 0 ? Progreso / Objetivo : 0;
+      const Ratio_Tiempo =
+        Calcular_Ratio_Tiempo_Meta_IA(
+          Desde,
+          Hasta
+        );
+      let Estado = "En_Ritmo";
+      const Hoy = Obtener_Hoy_ISO();
+      if (Ratio_Meta >= 1) {
+        Estado = "Cumplida";
+      } else if (Hoy < Desde) {
+        Estado = "Proxima";
+      } else if (Hoy > Hasta) {
+        Estado = "Vencida";
+      } else if (Ratio_Meta - Ratio_Tiempo >= 0.08) {
+        Estado = "Adelantada";
+      } else if (Ratio_Meta - Ratio_Tiempo <= -0.08) {
+        Estado = "Atrasada";
+      }
+      const Fuente =
+        Fuente_Tipo === "Categoria"
+          ? Normalizar_Texto(
+              Categorias_Por_Id[Fuente_Valor]
+                ?.Nombre
+            ) || "Categoria eliminada"
+          : Fuente_Tipo === "Etiqueta"
+          ? Normalizar_Texto(
+              Etiquetas_Por_Id[Fuente_Valor]
+                ?.Nombre
+            ) || "Etiqueta eliminada"
+          : Fuente_Valor;
+      return {
+        Id:
+          Normalizar_Texto(Base.Id) ||
+          `Meta_${Indice}`,
+        Nombre,
+        Periodo,
+        Unidad: "Horas",
+        Objetivo,
+        Progreso,
+        Estado,
+        Fuente,
+        Fecha_Desde: Desde,
+        Fecha_Hasta: Hasta,
+        Archivada: Base.Archivada === true,
+        Detalle: null,
+      };
+    })
+    .filter((Meta) => Meta !== null);
 }
 
 function Construir_Tareas_Normalizadas_IA(
@@ -3176,6 +3776,215 @@ function Responder_Planes_Periodos(
   });
 }
 
+function Responder_Archivero(
+  Estado: Record<string, unknown>,
+  Url: URL
+) {
+  const Limite = Resolver_Limite(
+    Url,
+    50,
+    100
+  );
+  const Cajon_Id = Normalizar_Texto(
+    Url.searchParams.get("cajon_id")
+  );
+  const Cajones =
+    Construir_Cajones_Archivero_IA(
+      Estado
+    );
+  const Cajon = Cajon_Id
+    ? Cajones.find((Item) => Item.Id === Cajon_Id)
+    : Cajones[0];
+
+  if (Cajon_Id && !Cajon) {
+    return Responder_Error(
+      404,
+      "Cajon inexistente",
+      "No existe el cajon de Archivero solicitado."
+    );
+  }
+
+  const Notas =
+    Construir_Notas_Archivero_IA(Estado)
+      .filter((Nota) =>
+        Cajon ? Nota.Archivero_Id === Cajon.Id : false
+      )
+      .sort((A, B) =>
+        String(B._Orden_Fecha).localeCompare(
+          String(A._Orden_Fecha)
+        )
+      )
+      .slice(0, Limite)
+      .map(
+        ({
+          _Orden_Fecha,
+          _Busqueda,
+          ...Nota
+        }) => Nota
+      );
+
+  return Responder_Json({
+    Ok: true,
+    Cajones: Cajones.map(
+      ({ Orden, ...Item }) => Item
+    ),
+    Cajon: Cajon
+      ? {
+          Id: Cajon.Id,
+          Nombre: Cajon.Nombre,
+          Emoji: Cajon.Emoji,
+          Notas_Total: Cajon.Notas_Total,
+        }
+      : null,
+    Notas,
+  });
+}
+
+function Responder_Archivero_Buscar(
+  Estado: Record<string, unknown>,
+  Url: URL
+) {
+  const Query = Normalizar_Texto(
+    Url.searchParams.get("q")
+  );
+  if (!Query) {
+    return Responder_Error(
+      400,
+      "Busqueda vacia",
+      "La busqueda requiere el parametro q."
+    );
+  }
+  if (Query.length > 200) {
+    return Responder_Error(
+      400,
+      "Busqueda demasiado larga",
+      "La busqueda admite hasta 200 caracteres."
+    );
+  }
+  const Limite = Resolver_Limite(
+    Url,
+    20,
+    50
+  );
+  const Query_Normalizada =
+    Normalizar_Texto_Busqueda(Query);
+  const Cajones_Por_Id = new Map(
+    Construir_Cajones_Archivero_IA(Estado).map(
+      (Cajon) => [Cajon.Id, Cajon]
+    )
+  );
+  const Resultados =
+    Construir_Notas_Archivero_IA(Estado)
+      .filter((Nota) =>
+        Nota._Busqueda.includes(
+          Query_Normalizada
+        )
+      )
+      .sort((A, B) =>
+        String(B._Orden_Fecha).localeCompare(
+          String(A._Orden_Fecha)
+        )
+      )
+      .slice(0, Limite)
+      .map(
+        ({
+          _Orden_Fecha,
+          _Busqueda,
+          ...Nota
+        }) => ({
+          ...Nota,
+          Cajon: (() => {
+            const Cajon =
+              Cajones_Por_Id.get(
+                Nota.Archivero_Id
+              ) || null;
+            return Cajon
+              ? {
+                  Id: Cajon.Id,
+                  Nombre: Cajon.Nombre,
+                  Emoji: Cajon.Emoji,
+                }
+              : null;
+          })(),
+        })
+      );
+
+  return Responder_Json({
+    Ok: true,
+    Query,
+    Resultados,
+  });
+}
+
+function Responder_Baul(
+  Estado: Record<string, unknown>,
+  Url: URL
+) {
+  const Categoria = Normalizar_Texto(
+    Url.searchParams.get("categoria")
+  ).toLowerCase();
+  const Estado_Filtro = Normalizar_Texto(
+    Url.searchParams.get("estado")
+  ).toLowerCase();
+  const Limite = Resolver_Limite(
+    Url,
+    100,
+    100
+  );
+  const Objetivos =
+    Construir_Baul_Normalizado_IA(Estado)
+      .filter((Objetivo) =>
+        !Categoria ||
+        Objetivo.Categoria.toLowerCase() ===
+          Categoria ||
+        String(
+          Objetivo.Categoria_Id || ""
+        ).toLowerCase() === Categoria
+      )
+      .filter((Objetivo) =>
+        !Estado_Filtro ||
+        Objetivo.Estado.toLowerCase() ===
+          Estado_Filtro
+      )
+      .sort((A, B) =>
+        `${A.Orden}|${A.Timeline || "9999-12-31"}|${A.Nombre}`
+          .localeCompare(
+            `${B.Orden}|${B.Timeline || "9999-12-31"}|${B.Nombre}`
+          )
+      )
+      .slice(0, Limite);
+
+  return Responder_Json({
+    Ok: true,
+    Objetivos,
+  });
+}
+
+function Responder_Metas(
+  Estado: Record<string, unknown>,
+  Url: URL
+) {
+  const Limite = Resolver_Limite(
+    Url,
+    50,
+    100
+  );
+  const Metas =
+    Construir_Metas_Normalizadas_IA(Estado)
+      .sort((A, B) =>
+        `${Number(A.Archivada)}|${A.Fecha_Hasta}|${A.Nombre}`
+          .localeCompare(
+            `${Number(B.Archivada)}|${B.Fecha_Hasta}|${B.Nombre}`
+          )
+      )
+      .slice(0, Limite);
+
+  return Responder_Json({
+    Ok: true,
+    Metas,
+  });
+}
+
 function Responder_Agenda(
   Estado: Record<string, unknown>,
   Url: URL
@@ -3396,6 +4205,34 @@ Deno.serve(async (Req) => {
       );
     }
 
+    if (Ruta === "/archivero") {
+      return Responder_Archivero(
+        Estado.Estado,
+        Url
+      );
+    }
+
+    if (Ruta === "/archivero/buscar") {
+      return Responder_Archivero_Buscar(
+        Estado.Estado,
+        Url
+      );
+    }
+
+    if (Ruta === "/baul") {
+      return Responder_Baul(
+        Estado.Estado,
+        Url
+      );
+    }
+
+    if (Ruta === "/metas") {
+      return Responder_Metas(
+        Estado.Estado,
+        Url
+      );
+    }
+
     // TODO: Fase posterior.
     // Agregar rate limit por token antes de abrir
     // la API en produccion.
@@ -3404,7 +4241,8 @@ Deno.serve(async (Req) => {
       "No implementado",
       "La fase actual expone /salud, " +
         "/agenda, /contexto, /tareas, /habitos, " +
-        "/slots, /planes/semana, /planes/periodos " +
+        "/slots, /planes/semana, /planes/periodos, " +
+        "/archivero, /archivero/buscar, /baul, /metas " +
         "y lectura segura del estado."
     );
   }
