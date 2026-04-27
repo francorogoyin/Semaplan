@@ -436,6 +436,1031 @@ async function Leer_Estado_Usuario(
   }
 }
 
+type Rango_Resultado =
+  | {
+    Ok: true;
+    Desde: string;
+    Hasta: string;
+  }
+  | {
+    Ok: false;
+    Status: number;
+    Error: string;
+    Detalle: string;
+  };
+
+function Es_Fecha_ISO_Valida(Valor: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(Valor);
+}
+
+function Parsear_Fecha_ISO(
+  Valor: string
+) {
+  if (!Es_Fecha_ISO_Valida(Valor)) {
+    return null;
+  }
+  const Fecha = new Date(`${Valor}T00:00:00.000Z`);
+  return Number.isNaN(Fecha.getTime())
+    ? null
+    : Fecha;
+}
+
+function Formatear_Fecha_ISO(
+  Fecha: Date
+) {
+  return Fecha.toISOString().slice(0, 10);
+}
+
+function Sumar_Dias(
+  Fecha: Date,
+  Dias: number
+) {
+  const Copia = new Date(Fecha.getTime());
+  Copia.setUTCDate(Copia.getUTCDate() + Dias);
+  return Copia;
+}
+
+function Obtener_Hoy_ISO() {
+  return Formatear_Fecha_ISO(new Date());
+}
+
+function Resolver_Rango(
+  Url: URL
+): Rango_Resultado {
+  const Desde_Raw = String(
+    Url.searchParams.get("desde") || ""
+  ).trim();
+  const Hasta_Raw = String(
+    Url.searchParams.get("hasta") || ""
+  ).trim();
+
+  let Desde = Desde_Raw;
+  let Hasta = Hasta_Raw;
+
+  if (!Desde && !Hasta) {
+    Desde = Obtener_Hoy_ISO();
+    Hasta = Formatear_Fecha_ISO(
+      Sumar_Dias(Parsear_Fecha_ISO(Desde)!, 6)
+    );
+  } else if (Desde && !Hasta) {
+    Hasta = Desde;
+  } else if (!Desde && Hasta) {
+    Desde = Hasta;
+  }
+
+  const Desde_Fecha = Parsear_Fecha_ISO(Desde);
+  const Hasta_Fecha = Parsear_Fecha_ISO(Hasta);
+  if (!Desde_Fecha || !Hasta_Fecha) {
+    return {
+      Ok: false,
+      Status: 400,
+      Error: "Rango invalido",
+      Detalle:
+        "Las fechas deben usar formato YYYY-MM-DD.",
+    };
+  }
+
+  if (Hasta < Desde) {
+    return {
+      Ok: false,
+      Status: 400,
+      Error: "Rango invalido",
+      Detalle:
+        "`hasta` no puede ser menor que `desde`.",
+    };
+  }
+
+  const Dias = Math.floor(
+    (Hasta_Fecha.getTime() -
+      Desde_Fecha.getTime()) /
+      86400000
+  ) + 1;
+  if (Dias > 45) {
+    return {
+      Ok: false,
+      Status: 400,
+      Error: "Rango excedido",
+      Detalle:
+        "El rango maximo permitido es de 45 dias.",
+    };
+  }
+
+  return {
+    Ok: true,
+    Desde,
+    Hasta,
+  };
+}
+
+function Obtener_Array_Estado(
+  Estado: Record<string, unknown>,
+  Clave: string
+) {
+  return Array.isArray(Estado[Clave])
+    ? Estado[Clave] as unknown[]
+    : [];
+}
+
+function Obtener_Objeto_Estado(
+  Estado: Record<string, unknown>,
+  Clave: string
+) {
+  const Valor = Estado[Clave];
+  return Valor &&
+      typeof Valor === "object" &&
+      !Array.isArray(Valor)
+    ? Valor as Record<string, unknown>
+    : {};
+}
+
+function Normalizar_Texto(
+  Valor: unknown
+) {
+  return String(Valor || "").trim();
+}
+
+function Numero_Entero(
+  Valor: unknown,
+  Fallback = 0
+) {
+  const Numero = Math.round(Number(Valor));
+  return Number.isFinite(Numero)
+    ? Numero
+    : Fallback;
+}
+
+function Formatear_Hora(
+  Hora: number
+) {
+  const Valor = Math.max(
+    0,
+    Math.min(24, Math.round(Hora))
+  );
+  return `${String(Valor).padStart(2, "0")}:00`;
+}
+
+function Construir_Mapa_Por_Id(
+  Lista: unknown[]
+) {
+  const Mapa: Record<string, Record<string, unknown>> =
+    {};
+  Lista.forEach((Item) => {
+    if (!Item || typeof Item !== "object") {
+      return;
+    }
+    const Id = Normalizar_Texto(
+      (Item as Record<string, unknown>).Id
+    );
+    if (!Id) {
+      return;
+    }
+    Mapa[Id] = Item as Record<string, unknown>;
+  });
+  return Mapa;
+}
+
+function Parsear_Clave_Slot(
+  Clave_Raw: unknown
+) {
+  const Clave = Normalizar_Texto(Clave_Raw);
+  const [Fecha, Hora_Raw] = Clave.split("|");
+  if (!Es_Fecha_ISO_Valida(Fecha)) {
+    return null;
+  }
+  const Hora = Numero_Entero(Hora_Raw, -1);
+  if (Hora < 0 || Hora > 23) {
+    return null;
+  }
+  return {
+    Clave,
+    Fecha,
+    Hora,
+  };
+}
+
+function Normalizar_Plan_Slot_IA(
+  Plan_Raw: unknown
+) {
+  if (
+    !Plan_Raw ||
+    typeof Plan_Raw !== "object" ||
+    Array.isArray(Plan_Raw)
+  ) {
+    return null;
+  }
+  const Plan = Plan_Raw as Record<string, unknown>;
+  const Items = Array.isArray(Plan.Items)
+    ? Plan.Items
+      .filter((Item) =>
+        Item && typeof Item === "object"
+      )
+      .map((Item) => {
+        const Base =
+          Item as Record<string, unknown>;
+        return {
+          Id: Normalizar_Texto(Base.Id),
+          Emoji: Normalizar_Texto(
+            Base.Emoji || "\u2022"
+          ),
+          Texto: Normalizar_Texto(Base.Texto),
+          Estado: Normalizar_Texto(
+            Base.Estado || "Planeado"
+          ),
+          Tarea_Id: Normalizar_Texto(
+            Base.Tarea_Id
+          ),
+        };
+      })
+      .filter((Item) => Item.Texto || Item.Tarea_Id)
+    : [];
+  const Nota = Normalizar_Texto(Plan.Nota);
+  if (!Items.length && !Nota) {
+    return null;
+  }
+  return {
+    Items,
+    Nota,
+  };
+}
+
+function Construir_Bloques_Agenda(
+  Estado: Record<string, unknown>,
+  Desde: string,
+  Hasta: string
+) {
+  const Objetivos = Obtener_Array_Estado(
+    Estado,
+    "Objetivos"
+  );
+  const Categorias = Obtener_Array_Estado(
+    Estado,
+    "Categorias"
+  );
+  const Tipos_Slot = Obtener_Array_Estado(
+    Estado,
+    "Tipos_Slot"
+  );
+  const Eventos = Obtener_Array_Estado(
+    Estado,
+    "Eventos"
+  );
+  const Slots_Muertos = Obtener_Array_Estado(
+    Estado,
+    "Slots_Muertos"
+  );
+  const Planes_Slot = Obtener_Objeto_Estado(
+    Estado,
+    "Planes_Slot"
+  );
+  const Slots_Muertos_Tipos =
+    Obtener_Objeto_Estado(
+      Estado,
+      "Slots_Muertos_Tipos"
+    );
+  const Slots_Muertos_Nombres =
+    Obtener_Objeto_Estado(
+      Estado,
+      "Slots_Muertos_Nombres"
+    );
+  const Slots_Muertos_Titulos_Visibles =
+    Obtener_Objeto_Estado(
+      Estado,
+      "Slots_Muertos_Titulos_Visibles"
+    );
+
+  const Objetivos_Por_Id =
+    Construir_Mapa_Por_Id(Objetivos);
+  const Categorias_Por_Id =
+    Construir_Mapa_Por_Id(Categorias);
+  const Tipos_Slot_Por_Id =
+    Construir_Mapa_Por_Id(Tipos_Slot);
+
+  const Bloques: Record<string, unknown>[] = [];
+  const Claves_Ocupadas = new Set<string>();
+  const Claves_Slots_Muertos = new Set<string>();
+
+  Eventos.forEach((Evento_Raw) => {
+    if (
+      !Evento_Raw ||
+      typeof Evento_Raw !== "object"
+    ) {
+      return;
+    }
+    const Evento =
+      Evento_Raw as Record<string, unknown>;
+    const Fecha = Normalizar_Texto(
+      Evento.Fecha
+    );
+    if (
+      !Es_Fecha_ISO_Valida(Fecha) ||
+      Fecha < Desde ||
+      Fecha > Hasta
+    ) {
+      return;
+    }
+
+    const Inicio = Numero_Entero(
+      Evento.Inicio,
+      0
+    );
+    const Duracion = Math.max(
+      1,
+      Numero_Entero(Evento.Duracion, 1)
+    );
+    for (
+      let Hora = Inicio;
+      Hora < Inicio + Duracion;
+      Hora += 1
+    ) {
+      Claves_Ocupadas.add(`${Fecha}|${Hora}`);
+    }
+
+    const Objetivo_Id = Normalizar_Texto(
+      Evento.Objetivo_Id
+    );
+    const Objetivo =
+      Objetivos_Por_Id[Objetivo_Id] || null;
+    const Categoria_Id = Normalizar_Texto(
+      Objetivo?.Categoria_Id
+    );
+    const Categoria =
+      Categorias_Por_Id[Categoria_Id] || null;
+
+    Bloques.push({
+      Id:
+        Normalizar_Texto(Evento.Id) ||
+        `Evento_${Fecha}_${Inicio}`,
+      Fecha,
+      Inicio: Formatear_Hora(Inicio),
+      Fin: Formatear_Hora(
+        Math.min(24, Inicio + Duracion)
+      ),
+      Titulo:
+        Normalizar_Texto(Objetivo?.Nombre) ||
+        Normalizar_Texto(Evento.Titulo) ||
+        "Evento",
+      Tipo: "Evento",
+      Objetivo_Id: Objetivo_Id || null,
+      Objetivo_Nombre: Normalizar_Texto(
+        Objetivo?.Nombre
+      ),
+      Categoria: Normalizar_Texto(
+        Categoria?.Nombre
+      ),
+      Nota: Normalizar_Texto(Evento.Nota),
+      Estado: "Planeado",
+      Origen: "Calendario",
+      Plan_Slot: null,
+    });
+  });
+
+  Slots_Muertos.forEach((Item) => {
+    const Slot =
+      typeof Item === "string"
+        ? Parsear_Clave_Slot(Item)
+        : Parsear_Clave_Slot(
+          (Item as Record<string, unknown>)
+            ?.Clave ||
+            `${Normalizar_Texto(
+              (Item as Record<string, unknown>)
+                ?.Fecha
+            )}|${Numero_Entero(
+              (Item as Record<string, unknown>)
+                ?.Hora,
+              -1
+            )}`
+        );
+    if (!Slot) {
+      return;
+    }
+    if (
+      Slot.Fecha < Desde ||
+      Slot.Fecha > Hasta
+    ) {
+      return;
+    }
+    Claves_Slots_Muertos.add(Slot.Clave);
+    const Tipo_Id = Normalizar_Texto(
+      Slots_Muertos_Tipos[Slot.Clave]
+    );
+    const Tipo_Slot =
+      Tipos_Slot_Por_Id[Tipo_Id] || null;
+    const Nombre = Normalizar_Texto(
+      Slots_Muertos_Nombres[Slot.Clave]
+    );
+    const Titulo_Visible = Boolean(
+      Slots_Muertos_Titulos_Visibles[
+        Slot.Clave
+      ]
+    );
+    const Plan_Slot = Normalizar_Plan_Slot_IA(
+      Planes_Slot[Slot.Clave]
+    );
+
+    Bloques.push({
+      Id: `Slot_${Slot.Clave}`,
+      Fecha: Slot.Fecha,
+      Inicio: Formatear_Hora(Slot.Hora),
+      Fin: Formatear_Hora(
+        Math.min(24, Slot.Hora + 1)
+      ),
+      Titulo:
+        (Titulo_Visible && Nombre) ||
+        Nombre ||
+        Normalizar_Texto(Tipo_Slot?.Titulo) ||
+        Normalizar_Texto(Tipo_Slot?.Nombre) ||
+        "Slot muerto",
+      Tipo: "Slot_Muerto",
+      Objetivo_Id: null,
+      Objetivo_Nombre: "",
+      Categoria: "",
+      Nota: Plan_Slot?.Nota || "",
+      Estado: Plan_Slot ? "Planeado" : "Libre",
+      Origen: "Slot_Muerto",
+      Tipo_Slot_Id: Tipo_Id || null,
+      Tipo_Slot_Nombre: Normalizar_Texto(
+        Tipo_Slot?.Nombre
+      ),
+      Plan_Slot,
+    });
+  });
+
+  Object.entries(Planes_Slot).forEach(
+    ([Clave, Plan_Raw]) => {
+      const Slot = Parsear_Clave_Slot(Clave);
+      if (!Slot) {
+        return;
+      }
+      if (
+        Slot.Fecha < Desde ||
+        Slot.Fecha > Hasta ||
+        Claves_Slots_Muertos.has(Slot.Clave) ||
+        Claves_Ocupadas.has(Slot.Clave)
+      ) {
+        return;
+      }
+      const Plan_Slot =
+        Normalizar_Plan_Slot_IA(Plan_Raw);
+      if (!Plan_Slot) {
+        return;
+      }
+      const Primer_Item = Plan_Slot.Items[0];
+      Bloques.push({
+        Id: `Plan_${Slot.Clave}`,
+        Fecha: Slot.Fecha,
+        Inicio: Formatear_Hora(Slot.Hora),
+        Fin: Formatear_Hora(
+          Math.min(24, Slot.Hora + 1)
+        ),
+        Titulo:
+          Normalizar_Texto(Primer_Item?.Texto) ||
+          "Slot con plan",
+        Tipo: "Slot_Vacio",
+        Objetivo_Id: null,
+        Objetivo_Nombre: "",
+        Categoria: "",
+        Nota: Plan_Slot.Nota || "",
+        Estado: "Planeado",
+        Origen: "Plan_Slot",
+        Plan_Slot,
+      });
+    }
+  );
+
+  Bloques.sort((A, B) => {
+    const Fecha_A = Normalizar_Texto(A.Fecha);
+    const Fecha_B = Normalizar_Texto(B.Fecha);
+    if (Fecha_A !== Fecha_B) {
+      return Fecha_A.localeCompare(Fecha_B);
+    }
+    const Inicio_A = Normalizar_Texto(A.Inicio);
+    const Inicio_B = Normalizar_Texto(B.Inicio);
+    if (Inicio_A !== Inicio_B) {
+      return Inicio_A.localeCompare(Inicio_B);
+    }
+    return Normalizar_Texto(A.Tipo)
+      .localeCompare(Normalizar_Texto(B.Tipo));
+  });
+
+  return Bloques;
+}
+
+function Construir_Resumen_Tareas(
+  Estado: Record<string, unknown>,
+  Desde: string,
+  Hasta: string
+) {
+  const Tareas = Obtener_Array_Estado(
+    Estado,
+    "Tareas"
+  )
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item) => {
+      const Base =
+        Item as Record<string, unknown>;
+      return {
+        Id: Normalizar_Texto(Base.Id),
+        Nombre: Normalizar_Texto(Base.Nombre),
+        Emoji: Normalizar_Texto(
+          Base.Emoji || "\u2022"
+        ),
+        Cajon: Normalizar_Texto(Base.Cajon),
+        Prioridad: Normalizar_Texto(
+          Base.Prioridad
+        ),
+        Estado: Normalizar_Texto(
+          Base.Estado || "pendiente"
+        ),
+        Fecha: Normalizar_Texto(Base.Fecha),
+        Hora: Normalizar_Texto(Base.Hora).slice(
+          0,
+          5
+        ),
+        Planeada: Boolean(Base.Planeada),
+        Evento_Id: Normalizar_Texto(
+          Base.Evento_Id
+        ),
+        Plan_Clave: Normalizar_Texto(
+          Base.Plan_Clave
+        ),
+      };
+    })
+    .filter((Tarea) => Tarea.Nombre);
+
+  const En_Rango = Tareas
+    .filter((Tarea) =>
+      Tarea.Fecha &&
+      Tarea.Fecha >= Desde &&
+      Tarea.Fecha <= Hasta
+    )
+    .sort((A, B) =>
+      `${A.Fecha}|${A.Hora}`.localeCompare(
+        `${B.Fecha}|${B.Hora}`
+      )
+    );
+
+  return {
+    Total: Tareas.length,
+    Pendientes: Tareas.filter((Tarea) =>
+      Tarea.Estado === "pendiente"
+    ).length,
+    Realizadas: Tareas.filter((Tarea) =>
+      Tarea.Estado === "realizada"
+    ).length,
+    Pospuestas: Tareas.filter((Tarea) =>
+      Tarea.Estado === "pospuesta"
+    ).length,
+    Proximas: En_Rango.slice(0, 12),
+  };
+}
+
+function Construir_Resumen_Habitos(
+  Estado: Record<string, unknown>,
+  Desde: string,
+  Hasta: string
+) {
+  const Habitos = Obtener_Array_Estado(
+    Estado,
+    "Habitos"
+  )
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item) => {
+      const Base =
+        Item as Record<string, unknown>;
+      return {
+        Id: Normalizar_Texto(Base.Id),
+        Nombre: Normalizar_Texto(Base.Nombre),
+        Emoji: Normalizar_Texto(
+          Base.Emoji || "\u2022"
+        ),
+        Tipo: Normalizar_Texto(
+          Base.Tipo || "Hacer"
+        ),
+        Activo: Base.Activo !== false,
+        Archivado: Base.Archivado === true,
+        Fecha_Inicio: Normalizar_Texto(
+          Base.Fecha_Inicio
+        ),
+        Programacion:
+          Base.Programacion &&
+            typeof Base.Programacion ===
+              "object"
+            ? Base.Programacion
+            : {},
+        Meta:
+          Base.Meta &&
+            typeof Base.Meta === "object"
+            ? Base.Meta
+            : {},
+      };
+    })
+    .filter((Habito) => Habito.Nombre);
+
+  const Registros = Obtener_Array_Estado(
+    Estado,
+    "Habitos_Registros"
+  )
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item) => {
+      const Base =
+        Item as Record<string, unknown>;
+      return {
+        Id: Normalizar_Texto(Base.Id),
+        Habito_Id: Normalizar_Texto(
+          Base.Habito_Id
+        ),
+        Fecha: Normalizar_Texto(Base.Fecha),
+        Hora: Normalizar_Texto(Base.Hora).slice(
+          0,
+          5
+        ),
+        Cantidad: Number(Base.Cantidad) || 0,
+      };
+    });
+
+  const Registros_En_Rango = Registros
+    .filter((Registro) =>
+      Registro.Fecha &&
+      Registro.Fecha >= Desde &&
+      Registro.Fecha <= Hasta
+    )
+    .sort((A, B) =>
+      `${B.Fecha}|${B.Hora}`.localeCompare(
+        `${A.Fecha}|${A.Hora}`
+      )
+    );
+
+  return {
+    Total: Habitos.length,
+    Activos: Habitos.filter((Habito) =>
+      Habito.Activo && !Habito.Archivado
+    ).length,
+    Archivados: Habitos.filter((Habito) =>
+      Habito.Archivado
+    ).length,
+    Registros_En_Rango: Registros_En_Rango.length,
+    Destacados: Habitos
+      .filter((Habito) => !Habito.Archivado)
+      .slice(0, 12),
+    Registros_Recientes:
+      Registros_En_Rango.slice(0, 12),
+  };
+}
+
+function Construir_Resumen_Slots(
+  Estado: Record<string, unknown>
+) {
+  const Slots_Muertos = Obtener_Array_Estado(
+    Estado,
+    "Slots_Muertos"
+  );
+  const Planes_Slot = Obtener_Objeto_Estado(
+    Estado,
+    "Planes_Slot"
+  );
+  const Tipos_Slot = Obtener_Array_Estado(
+    Estado,
+    "Tipos_Slot"
+  );
+
+  return {
+    Slots_Muertos_Total:
+      Slots_Muertos.length,
+    Con_Plan_Total: Object.keys(Planes_Slot)
+      .filter((Clave) =>
+        Boolean(
+          Normalizar_Plan_Slot_IA(
+            Planes_Slot[Clave]
+          )
+        )
+      )
+      .length,
+    Tipos_Total: Tipos_Slot.length,
+  };
+}
+
+function Construir_Resumen_Planes_Semana(
+  Estado: Record<string, unknown>,
+  Desde: string,
+  Hasta: string
+) {
+  const Planes_Semana =
+    Obtener_Objeto_Estado(
+      Estado,
+      "Planes_Semana"
+    );
+  const Semanas = Object.keys(Planes_Semana)
+    .filter(Es_Fecha_ISO_Valida)
+    .sort();
+  return {
+    Total: Semanas.length,
+    Semanas_En_Rango: Semanas.filter(
+      (Semana) =>
+        Semana >= Desde && Semana <= Hasta
+    ).length,
+    Claves: Semanas.slice(0, 12),
+  };
+}
+
+function Construir_Resumen_Planes_Periodo(
+  Estado: Record<string, unknown>
+) {
+  const Planes_Periodo =
+    Obtener_Objeto_Estado(
+      Estado,
+      "Planes_Periodo"
+    );
+  const Periodos = Object.values(Planes_Periodo)
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item) => {
+      const Base =
+        Item as Record<string, unknown>;
+      return {
+        Id:
+          Normalizar_Texto(Base.Id) ||
+          Normalizar_Texto(Base.Periodo_Id),
+        Nombre: Normalizar_Texto(Base.Nombre),
+        Tipo: Normalizar_Texto(Base.Tipo),
+        Estado: Normalizar_Texto(Base.Estado),
+        Fecha_Inicio: Normalizar_Texto(
+          Base.Fecha_Inicio
+        ),
+        Fecha_Fin: Normalizar_Texto(
+          Base.Fecha_Fin
+        ),
+      };
+    })
+    .filter((Periodo) =>
+      Periodo.Id || Periodo.Nombre
+    );
+
+  return {
+    Total: Periodos.length,
+    Destacados: Periodos.slice(0, 12),
+  };
+}
+
+function Construir_Resumen_Archivero(
+  Estado: Record<string, unknown>
+) {
+  const Archiveros = Obtener_Array_Estado(
+    Estado,
+    "Archiveros"
+  );
+  const Notas = Obtener_Array_Estado(
+    Estado,
+    "Notas_Archivero"
+  );
+  const Etiquetas = Obtener_Array_Estado(
+    Estado,
+    "Etiquetas_Archivero"
+  );
+
+  const Cantidad_Por_Cajon: Record<
+    string,
+    number
+  > = {};
+  Notas.forEach((Nota) => {
+    if (!Nota || typeof Nota !== "object") {
+      return;
+    }
+    const Cajon_Id = Normalizar_Texto(
+      (Nota as Record<string, unknown>)
+        .Archivero_Id
+    );
+    if (!Cajon_Id) {
+      return;
+    }
+    Cantidad_Por_Cajon[Cajon_Id] =
+      (Cantidad_Por_Cajon[Cajon_Id] || 0) + 1;
+  });
+
+  const Cajones = Archiveros
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item) => {
+      const Base =
+        Item as Record<string, unknown>;
+      const Id = Normalizar_Texto(Base.Id);
+      return {
+        Id,
+        Nombre: Normalizar_Texto(Base.Nombre),
+        Notas_Total:
+          Cantidad_Por_Cajon[Id] || 0,
+      };
+    })
+    .filter((Cajon) => Cajon.Nombre);
+
+  return {
+    Cajones_Total: Archiveros.length,
+    Notas_Total: Notas.length,
+    Etiquetas_Total: Etiquetas.length,
+    Cajones: Cajones.slice(0, 12),
+  };
+}
+
+function Construir_Resumen_Baul(
+  Estado: Record<string, unknown>
+) {
+  const Baul = Obtener_Array_Estado(
+    Estado,
+    "Baul_Objetivos"
+  )
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item) => {
+      const Base =
+        Item as Record<string, unknown>;
+      return {
+        Id: Normalizar_Texto(Base.Id),
+        Nombre: Normalizar_Texto(Base.Nombre),
+        Emoji: Normalizar_Texto(
+          Base.Emoji || "\u2022"
+        ),
+        Estado: Normalizar_Texto(Base.Estado),
+        Archivada: Base.Archivada === true,
+        Timeline: Normalizar_Texto(
+          Base.Timeline
+        ),
+      };
+    })
+    .filter((Objetivo) => Objetivo.Nombre);
+
+  return {
+    Total: Baul.length,
+    Activas: Baul.filter((Objetivo) =>
+      !Objetivo.Archivada
+    ).length,
+    Archivadas: Baul.filter((Objetivo) =>
+      Objetivo.Archivada
+    ).length,
+    Destacadas: Baul
+      .filter((Objetivo) => !Objetivo.Archivada)
+      .slice(0, 12),
+  };
+}
+
+function Construir_Resumen_Metas(
+  Estado: Record<string, unknown>
+) {
+  const Metas = Obtener_Array_Estado(
+    Estado,
+    "Metas"
+  )
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item) => {
+      const Base =
+        Item as Record<string, unknown>;
+      return {
+        Id: Normalizar_Texto(Base.Id),
+        Nombre: Normalizar_Texto(Base.Nombre),
+        Periodo: Normalizar_Texto(
+          Base.Periodo
+        ),
+        Fecha_Desde: Normalizar_Texto(
+          Base.Fecha_Desde
+        ),
+        Fecha_Hasta: Normalizar_Texto(
+          Base.Fecha_Hasta
+        ),
+        Archivada: Base.Archivada === true,
+      };
+    })
+    .filter((Meta) => Meta.Nombre);
+
+  return {
+    Total: Metas.length,
+    Activas: Metas.filter((Meta) =>
+      !Meta.Archivada
+    ).length,
+    Archivadas: Metas.filter((Meta) =>
+      Meta.Archivada
+    ).length,
+    Destacadas: Metas
+      .filter((Meta) => !Meta.Archivada)
+      .slice(0, 12),
+  };
+}
+
+function Responder_Agenda(
+  Estado: Record<string, unknown>,
+  Url: URL
+) {
+  const Rango = Resolver_Rango(Url);
+  if (!Rango.Ok) {
+    return Responder_Error(
+      Rango.Status,
+      Rango.Error,
+      Rango.Detalle
+    );
+  }
+  return Responder_Json({
+    Ok: true,
+    Desde: Rango.Desde,
+    Hasta: Rango.Hasta,
+    Bloques: Construir_Bloques_Agenda(
+      Estado,
+      Rango.Desde,
+      Rango.Hasta
+    ),
+  });
+}
+
+function Responder_Contexto(
+  Estado: Record<string, unknown>,
+  Version: number,
+  Actualizado_En: string | null,
+  Url: URL
+) {
+  const Rango = Resolver_Rango(Url);
+  if (!Rango.Ok) {
+    return Responder_Error(
+      Rango.Status,
+      Rango.Error,
+      Rango.Detalle
+    );
+  }
+
+  const Bloques_Agenda =
+    Construir_Bloques_Agenda(
+      Estado,
+      Rango.Desde,
+      Rango.Hasta
+    );
+
+  return Responder_Json({
+    Ok: true,
+    Contexto: {
+      Desde: Rango.Desde,
+      Hasta: Rango.Hasta,
+      Version_Estado: Version,
+      Actualizado_En,
+      Agenda: {
+        Bloques_Total:
+          Bloques_Agenda.length,
+        Eventos_Total:
+          Bloques_Agenda.filter((Bloque) =>
+            Bloque.Tipo === "Evento"
+          ).length,
+        Slots_Muertos_Total:
+          Bloques_Agenda.filter((Bloque) =>
+            Bloque.Tipo === "Slot_Muerto"
+          ).length,
+        Planes_Slot_Total:
+          Bloques_Agenda.filter((Bloque) =>
+            Bloque.Plan_Slot
+          ).length,
+        Proximos_Bloques:
+          Bloques_Agenda.slice(0, 15),
+      },
+      Tareas: Construir_Resumen_Tareas(
+        Estado,
+        Rango.Desde,
+        Rango.Hasta
+      ),
+      Habitos: Construir_Resumen_Habitos(
+        Estado,
+        Rango.Desde,
+        Rango.Hasta
+      ),
+      Slots: Construir_Resumen_Slots(
+        Estado
+      ),
+      Planes_Semana:
+        Construir_Resumen_Planes_Semana(
+          Estado,
+          Rango.Desde,
+          Rango.Hasta
+        ),
+      Planes_Periodo:
+        Construir_Resumen_Planes_Periodo(
+          Estado
+        ),
+      Archivero: Construir_Resumen_Archivero(
+        Estado
+      ),
+      Baul: Construir_Resumen_Baul(
+        Estado
+      ),
+      Metas: Construir_Resumen_Metas(
+        Estado
+      ),
+    },
+  });
+}
+
 Deno.serve(async (Req) => {
   if (Req.method === "OPTIONS") {
     return new Response("ok", {
@@ -444,6 +1469,7 @@ Deno.serve(async (Req) => {
   }
 
   const Ruta = Obtener_Ruta_Relativa(Req);
+  const Url = new URL(Req.url);
 
   if (Req.method === "GET" && Ruta === "/salud") {
     return Responder_Json({
@@ -489,6 +1515,30 @@ Deno.serve(async (Req) => {
       );
     }
 
+    if (Req.method !== "GET") {
+      return Responder_Error(
+        405,
+        "Metodo no permitido",
+        "Esta ruta por ahora solo acepta GET."
+      );
+    }
+
+    if (Ruta === "/agenda") {
+      return Responder_Agenda(
+        Estado.Estado,
+        Url
+      );
+    }
+
+    if (Ruta === "/contexto") {
+      return Responder_Contexto(
+        Estado.Estado,
+        Estado.Version,
+        Estado.Actualizado_En,
+        Url
+      );
+    }
+
     // TODO: Fase posterior.
     // Agregar rate limit por token antes de abrir
     // la API en produccion.
@@ -496,7 +1546,7 @@ Deno.serve(async (Req) => {
       501,
       "No implementado",
       "La fase actual expone /salud, " +
-        "validacion base y lectura segura del estado."
+        "/agenda, /contexto y lectura segura del estado."
     );
   }
 
