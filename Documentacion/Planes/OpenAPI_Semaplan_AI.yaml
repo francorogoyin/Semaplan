@@ -1,0 +1,323 @@
+openapi: 3.1.0
+info:
+  title: Semaplan AI Gateway
+  version: 1.0.0
+  description: API read-only para consultar datos normalizados de Semaplan.
+servers:
+  - url: https://<project>.supabase.co/functions/v1/semaplan-ai
+components:
+  securitySchemes:
+    SemaplanAIToken:
+      type: apiKey
+      in: header
+      name: X-Semaplan-AI-Token
+      description: Token de lectura de Semaplan para integraciones de IA.
+paths:
+  /salud:
+    get:
+      operationId: semaplan_salud
+      summary: Chequear salud del gateway
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+  /openapi.json:
+    get:
+      operationId: semaplan_openapi
+      summary: Obtener contrato OpenAPI del gateway
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+  /contexto:
+    get:
+      operationId: semaplan_contexto
+      summary: Obtener contexto compacto de Semaplan
+      security:
+        - SemaplanAIToken: []
+      parameters:
+        - name: desde
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: hasta
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+  /agenda:
+    get:
+      operationId: semaplan_agenda
+      summary: Leer agenda, eventos y slots muertos por rango
+      security:
+        - SemaplanAIToken: []
+      parameters:
+        - name: desde
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: hasta
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+  /tareas:
+    get:
+      operationId: semaplan_tareas
+      summary: Leer tareas por rango y filtros
+      security:
+        - SemaplanAIToken: []
+      parameters:
+        - name: desde
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: hasta
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: cajon
+          in: query
+          schema:
+            type: string
+        - name: estado
+          in: query
+          schema:
+            type: string
+        - name: limite
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+  /habitos:
+    get:
+      operationId: semaplan_habitos
+      summary: Leer habitos visibles
+      security:
+        - SemaplanAIToken: []
+      parameters:
+        - name: fecha
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: modo
+          in: query
+          schema:
+            type: string
+            enum: [Dia, Semana, Quincena, Mes, Todos]
+        - name: limite
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+  /slots:
+    get:
+      operationId: semaplan_slots
+      summary: Leer slots vacios o muertos por rango
+      security:
+        - SemaplanAIToken: []
+      parameters:
+        - name: desde
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: hasta
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+  /planes/semana:
+    get:
+      operationId: semaplan_plan_semana
+      summary: Leer snapshot y diff del plan semanal
+      security:
+        - SemaplanAIToken: []
+      parameters:
+        - name: semana
+          in: query
+          description: Fecha dentro de la semana deseada. El gateway la resuelve al lunes correspondiente.
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+  /planes/periodos:
+    get:
+      operationId: semaplan_planes_periodos
+      summary: Leer periodos o arbol compacto de un periodo
+      security:
+        - SemaplanAIToken: []
+      parameters:
+        - name: periodo_id
+          in: query
+          schema:
+            type: string
+        - name: tipo
+          in: query
+          schema:
+            type: string
+        - name: limite
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+  /archivero:
+    get:
+      operationId: semaplan_listar_archivero
+      summary: Listar cajones y notas del Archivero
+      security:
+        - SemaplanAIToken: []
+      parameters:
+        - name: cajon_id
+          in: query
+          schema:
+            type: string
+        - name: limite
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+  /archivero/buscar:
+    get:
+      operationId: semaplan_buscar_archivero
+      summary: Buscar notas del Archivero por texto
+      security:
+        - SemaplanAIToken: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            maxLength: 200
+        - name: limite
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+  /baul:
+    get:
+      operationId: semaplan_listar_baul
+      summary: Listar objetivos del Baul
+      security:
+        - SemaplanAIToken: []
+      parameters:
+        - name: categoria
+          in: query
+          schema:
+            type: string
+        - name: estado
+          in: query
+          schema:
+            type: string
+        - name: limite
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+  /metas:
+    get:
+      operationId: semaplan_listar_metas
+      summary: Listar metas resumidas
+      security:
+        - SemaplanAIToken: []
+      parameters:
+        - name: limite
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                type: object

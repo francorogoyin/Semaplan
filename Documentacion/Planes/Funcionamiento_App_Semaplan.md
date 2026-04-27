@@ -25,7 +25,8 @@ estructuras persistidas o relaciones importantes entre modulos.
   tokens/JWT, puede leer `estado_usuario` con filtrado seguro y expone
   `/agenda`, `/contexto`, `/tareas`, `/habitos`, `/slots`,
   `/planes/semana`, `/planes/periodos`, `/archivero`,
-  `/archivero/buscar`, `/baul` y `/metas` con vistas compactas para IA.
+  `/archivero/buscar`, `/baul`, `/metas` y `/openapi.json` con vistas
+  compactas y contrato publico para IA.
 - `supabase/functions/*`: Edge Functions remotas para suscripcion,
   ayuda, eliminar cuenta y demas integraciones.
 - `supabase/migrations/*`: cambios de esquema remoto.

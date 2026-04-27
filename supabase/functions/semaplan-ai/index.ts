@@ -117,6 +117,556 @@ function Obtener_Ruta_Relativa(Req: Request) {
   return Url.pathname.replace(/\/+$/, "") || "/";
 }
 
+function Obtener_Url_Base_Gateway(
+  Req: Request
+) {
+  const Url = new URL(Req.url);
+  const Segmentos = Url.pathname
+    .split("/")
+    .filter(Boolean);
+  const Indice = Segmentos.lastIndexOf(
+    "semaplan-ai"
+  );
+  if (Indice >= 0) {
+    return `${Url.origin}/${Segmentos
+      .slice(0, Indice + 1)
+      .join("/")}`;
+  }
+  return Url.origin;
+}
+
+function Construir_OpenAPI_Semaplan_IA(
+  Base_Url: string
+) {
+  const Respuesta_200 = {
+    description: "Respuesta exitosa.",
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+        },
+      },
+    },
+  };
+  const Respuesta_Error = {
+    description:
+      "Error estandar del gateway.",
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          properties: {
+            Ok: {
+              type: "boolean",
+              example: false,
+            },
+            Error: {
+              type: "string",
+            },
+            Detalle: {
+              type: "string",
+            },
+          },
+          required: [
+            "Ok",
+            "Error",
+            "Detalle",
+          ],
+        },
+      },
+    },
+  };
+
+  return {
+    openapi: "3.1.0",
+    info: {
+      title: "Semaplan AI Gateway",
+      version: "1.0.0",
+      description:
+        "API read-only para consultar datos normalizados de Semaplan desde GPT u otros clientes.",
+    },
+    servers: [
+      {
+        url: Base_Url,
+      },
+    ],
+    components: {
+      securitySchemes: {
+        SemaplanAIToken: {
+          type: "apiKey",
+          in: "header",
+          name: "X-Semaplan-AI-Token",
+          description:
+            "Token de lectura de Semaplan para integraciones de IA.",
+        },
+      },
+    },
+    paths: {
+      "/salud": {
+        get: {
+          operationId: "semaplan_salud",
+          summary:
+            "Chequear salud del gateway",
+          responses: {
+            "200": Respuesta_200,
+          },
+        },
+      },
+      "/openapi.json": {
+        get: {
+          operationId: "semaplan_openapi",
+          summary:
+            "Obtener contrato OpenAPI del gateway",
+          responses: {
+            "200": Respuesta_200,
+          },
+        },
+      },
+      "/contexto": {
+        get: {
+          operationId: "semaplan_contexto",
+          summary:
+            "Obtener contexto compacto de Semaplan",
+          security: [
+            {
+              SemaplanAIToken: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "desde",
+              in: "query",
+              schema: {
+                type: "string",
+                format: "date",
+              },
+            },
+            {
+              name: "hasta",
+              in: "query",
+              schema: {
+                type: "string",
+                format: "date",
+              },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+          },
+        },
+      },
+      "/agenda": {
+        get: {
+          operationId: "semaplan_agenda",
+          summary:
+            "Leer agenda, eventos y slots muertos por rango",
+          security: [
+            {
+              SemaplanAIToken: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "desde",
+              in: "query",
+              schema: {
+                type: "string",
+                format: "date",
+              },
+            },
+            {
+              name: "hasta",
+              in: "query",
+              schema: {
+                type: "string",
+                format: "date",
+              },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+          },
+        },
+      },
+      "/tareas": {
+        get: {
+          operationId: "semaplan_tareas",
+          summary: "Leer tareas por rango y filtros",
+          security: [
+            {
+              SemaplanAIToken: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "desde",
+              in: "query",
+              schema: {
+                type: "string",
+                format: "date",
+              },
+            },
+            {
+              name: "hasta",
+              in: "query",
+              schema: {
+                type: "string",
+                format: "date",
+              },
+            },
+            {
+              name: "cajon",
+              in: "query",
+              schema: {
+                type: "string",
+              },
+            },
+            {
+              name: "estado",
+              in: "query",
+              schema: {
+                type: "string",
+              },
+            },
+            {
+              name: "limite",
+              in: "query",
+              schema: {
+                type: "integer",
+                minimum: 1,
+                maximum: 100,
+              },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+          },
+        },
+      },
+      "/habitos": {
+        get: {
+          operationId: "semaplan_habitos",
+          summary: "Leer habitos visibles",
+          security: [
+            {
+              SemaplanAIToken: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "fecha",
+              in: "query",
+              schema: {
+                type: "string",
+                format: "date",
+              },
+            },
+            {
+              name: "modo",
+              in: "query",
+              schema: {
+                type: "string",
+                enum: [
+                  "Dia",
+                  "Semana",
+                  "Quincena",
+                  "Mes",
+                  "Todos",
+                ],
+              },
+            },
+            {
+              name: "limite",
+              in: "query",
+              schema: {
+                type: "integer",
+                minimum: 1,
+                maximum: 100,
+              },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+          },
+        },
+      },
+      "/slots": {
+        get: {
+          operationId: "semaplan_slots",
+          summary:
+            "Leer slots vacios o muertos por rango",
+          security: [
+            {
+              SemaplanAIToken: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "desde",
+              in: "query",
+              schema: {
+                type: "string",
+                format: "date",
+              },
+            },
+            {
+              name: "hasta",
+              in: "query",
+              schema: {
+                type: "string",
+                format: "date",
+              },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+          },
+        },
+      },
+      "/planes/semana": {
+        get: {
+          operationId: "semaplan_plan_semana",
+          summary:
+            "Leer snapshot y diff del plan semanal",
+          security: [
+            {
+              SemaplanAIToken: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "semana",
+              in: "query",
+              schema: {
+                type: "string",
+                format: "date",
+              },
+              description:
+                "Fecha dentro de la semana deseada. El gateway la resuelve al lunes correspondiente.",
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+          },
+        },
+      },
+      "/planes/periodos": {
+        get: {
+          operationId:
+            "semaplan_planes_periodos",
+          summary:
+            "Leer periodos o arbol compacto de un periodo",
+          security: [
+            {
+              SemaplanAIToken: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "periodo_id",
+              in: "query",
+              schema: {
+                type: "string",
+              },
+            },
+            {
+              name: "tipo",
+              in: "query",
+              schema: {
+                type: "string",
+              },
+            },
+            {
+              name: "limite",
+              in: "query",
+              schema: {
+                type: "integer",
+                minimum: 1,
+                maximum: 100,
+              },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+            "404": Respuesta_Error,
+          },
+        },
+      },
+      "/archivero": {
+        get: {
+          operationId:
+            "semaplan_listar_archivero",
+          summary:
+            "Listar cajones y notas del Archivero",
+          security: [
+            {
+              SemaplanAIToken: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "cajon_id",
+              in: "query",
+              schema: {
+                type: "string",
+              },
+            },
+            {
+              name: "limite",
+              in: "query",
+              schema: {
+                type: "integer",
+                minimum: 1,
+                maximum: 100,
+              },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+            "404": Respuesta_Error,
+          },
+        },
+      },
+      "/archivero/buscar": {
+        get: {
+          operationId:
+            "semaplan_buscar_archivero",
+          summary:
+            "Buscar notas del Archivero por texto",
+          security: [
+            {
+              SemaplanAIToken: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "q",
+              in: "query",
+              required: true,
+              schema: {
+                type: "string",
+                maxLength: 200,
+              },
+            },
+            {
+              name: "limite",
+              in: "query",
+              schema: {
+                type: "integer",
+                minimum: 1,
+                maximum: 50,
+              },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+          },
+        },
+      },
+      "/baul": {
+        get: {
+          operationId: "semaplan_listar_baul",
+          summary:
+            "Listar objetivos del Baul",
+          security: [
+            {
+              SemaplanAIToken: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "categoria",
+              in: "query",
+              schema: {
+                type: "string",
+              },
+            },
+            {
+              name: "estado",
+              in: "query",
+              schema: {
+                type: "string",
+              },
+            },
+            {
+              name: "limite",
+              in: "query",
+              schema: {
+                type: "integer",
+                minimum: 1,
+                maximum: 100,
+              },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+          },
+        },
+      },
+      "/metas": {
+        get: {
+          operationId:
+            "semaplan_listar_metas",
+          summary:
+            "Listar metas resumidas",
+          security: [
+            {
+              SemaplanAIToken: [],
+            },
+          ],
+          parameters: [
+            {
+              name: "limite",
+              in: "query",
+              schema: {
+                type: "integer",
+                minimum: 1,
+                maximum: 100,
+              },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+          },
+        },
+      },
+    },
+  };
+}
+
 function Crear_Supabase_Servicio() {
   const Supabase_Url = Deno.env.get(
     "SUPABASE_URL"
@@ -4110,6 +4660,17 @@ Deno.serve(async (Req) => {
     });
   }
 
+  if (
+    Req.method === "GET" &&
+    Ruta === "/openapi.json"
+  ) {
+    return Responder_Json(
+      Construir_OpenAPI_Semaplan_IA(
+        Obtener_Url_Base_Gateway(Req)
+      )
+    );
+  }
+
   const Rutas_Reservadas = new Set([
     "/contexto",
     "/agenda",
@@ -4122,7 +4683,6 @@ Deno.serve(async (Req) => {
     "/archivero/buscar",
     "/baul",
     "/metas",
-    "/openapi.json",
   ]);
 
   if (Rutas_Reservadas.has(Ruta)) {
@@ -4242,7 +4802,8 @@ Deno.serve(async (Req) => {
       "La fase actual expone /salud, " +
         "/agenda, /contexto, /tareas, /habitos, " +
         "/slots, /planes/semana, /planes/periodos, " +
-        "/archivero, /archivero/buscar, /baul, /metas " +
+        "/archivero, /archivero/buscar, /baul, /metas, " +
+        "/openapi.json " +
         "y lectura segura del estado."
     );
   }
