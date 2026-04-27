@@ -62,9 +62,9 @@
           ),
           linear-gradient(180deg, #fbf7ef 0%, #f2e7d1 100%);
         font-family:
-          "Aptos",
+          "Calibri Light",
+          Calibri,
           "Segoe UI",
-          "Trebuchet MS",
           sans-serif;
       }
 
@@ -91,6 +91,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 20px;
+        flex-wrap: wrap;
         padding: 22px 0 12px;
       }
 
@@ -113,27 +114,45 @@
       .Topbar_Acciones {
         display: flex;
         align-items: center;
-        gap: 14px;
-        flex-wrap: wrap;
+        gap: 10px;
         justify-content: flex-end;
+        margin-left: auto;
+        position: relative;
       }
 
       .Nav {
-        display: flex;
+        display: none;
+        flex-direction: column;
         align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
+        gap: 14px;
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        width: min(300px, calc(100vw - 36px));
+        padding: 20px;
+        border-radius: 24px;
+        border: 1px solid var(--Borde);
+        background: rgba(255, 252, 245, 0.96);
+        box-shadow: 0 26px 60px rgba(16, 34, 28, 0.18);
+        backdrop-filter: blur(16px);
+        z-index: 20;
+        text-align: center;
+      }
+
+      .Nav.Abierto {
+        display: flex;
       }
 
       .Nav a {
         color: var(--Tinta_Suave);
         font-size: 0.96rem;
+        font-weight: 700;
       }
 
       .Idioma_Switcher {
         display: inline-flex;
-        gap: 8px;
-        padding: 5px;
+        gap: 4px;
+        padding: 4px;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.62);
         border: 1px solid var(--Borde);
@@ -142,7 +161,12 @@
 
       .Idioma_Btn {
         border: 0;
-        padding: 8px 12px;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         border-radius: 999px;
         color: var(--Tinta_Suave);
         background: transparent;
@@ -167,12 +191,61 @@
       }
 
       .Idioma_Flag {
-        margin-right: 6px;
-        font-family:
-          "Segoe UI Emoji",
-          "Apple Color Emoji",
-          "Noto Color Emoji",
-          "Segoe UI Symbol";
+        margin-right: 0;
+        display: block;
+        width: 18px;
+        height: 12px;
+        font-size: 0;
+        line-height: 0;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: inset 0 0 0 1px rgba(27, 37, 29, 0.08);
+      }
+
+      .Idioma_Btn[data-lang="es"] .Idioma_Flag {
+        background:
+          linear-gradient(180deg, #74acdf 0 33%, #ffffff 33% 66%, #74acdf 66% 100%);
+      }
+
+      .Idioma_Btn[data-lang="en"] .Idioma_Flag {
+        background:
+          linear-gradient(180deg, #b22234 0 14%, #ffffff 14% 28%, #b22234 28% 42%, #ffffff 42% 56%, #b22234 56% 70%, #ffffff 70% 84%, #b22234 84% 100%);
+      }
+
+      .Idioma_Btn[data-lang="pt"] .Idioma_Flag {
+        background:
+          linear-gradient(135deg, transparent 28%, #f7d54a 28% 72%, transparent 72%),
+          #009b3a;
+      }
+
+      .Menu_Toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border: 1px solid var(--Borde);
+        border-radius: 18px;
+        color: var(--Tinta);
+        background: rgba(255, 255, 255, 0.62);
+        backdrop-filter: blur(10px);
+        cursor: pointer;
+        transition:
+          transform 0.18s ease,
+          background 0.18s ease,
+          border-color 0.18s ease;
+      }
+
+      .Menu_Toggle:hover,
+      .Menu_Toggle[aria-expanded="true"] {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.82);
+        border-color: rgba(25, 110, 88, 0.24);
+      }
+
+      .Menu_Icon {
+        font-size: 1.24rem;
+        line-height: 1;
       }
 
       .Btn,
@@ -207,23 +280,29 @@
         backdrop-filter: blur(10px);
       }
 
+      .Nav_Login {
+        min-width: 134px;
+      }
+
       .Btn:hover,
       .Btn_Suave:hover,
-      .Plan_Card:hover,
-      .Hero_Side:hover {
+      .Plan_Card:hover {
         transform: translateY(-2px);
       }
 
       .Hero {
         display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.78fr);
+        grid-template-columns: 1fr;
         gap: 28px;
-        align-items: start;
-        padding: 42px 0 24px;
+        align-items: center;
+        justify-items: center;
+        padding: 48px 0 24px;
+        text-align: center;
       }
 
       .Hero_Main {
-        padding: 16px 4px 0 0;
+        width: min(100%, 820px);
+        padding: 0;
       }
 
       .Hero_Tag {
@@ -238,23 +317,21 @@
         font-weight: 800;
         letter-spacing: 0.05em;
         text-transform: uppercase;
+        justify-content: center;
       }
 
       .Hero_Title {
-        margin: 20px 0 0;
-        max-width: 10ch;
-        font-family:
-          "Georgia",
-          "Palatino Linotype",
-          serif;
+        margin: 20px auto 0;
+        max-width: 12ch;
         font-size: clamp(3.1rem, 7vw, 6rem);
-        line-height: 0.92;
-        letter-spacing: -0.06em;
+        font-weight: 300;
+        line-height: 0.94;
+        letter-spacing: -0.05em;
       }
 
       .Hero_Desc {
-        max-width: 40rem;
-        margin: 24px 0 0;
+        max-width: 44rem;
+        margin: 24px auto 0;
         color: var(--Tinta_Suave);
         font-size: 1.08rem;
         line-height: 1.72;
@@ -264,6 +341,7 @@
         display: flex;
         gap: 14px;
         flex-wrap: wrap;
+        justify-content: center;
         margin-top: 30px;
       }
 
@@ -302,10 +380,21 @@
       }
 
       .Hero_Side {
-        display: grid;
-        gap: 18px;
-        padding: 24px;
+        width: min(100%, 1080px);
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+        border-radius: 0;
+      }
+
+      .Hero_Captura {
+        display: block;
+        width: 100%;
         border-radius: calc(var(--Radio) + 8px);
+        border: 1px solid rgba(27, 37, 29, 0.08);
+        box-shadow: 0 32px 80px rgba(24, 52, 40, 0.18);
       }
 
       .Mini_Label {
@@ -387,12 +476,13 @@
         margin-top: 40px;
         padding: 44px;
         border-radius: var(--Radio);
+        text-align: center;
       }
 
       .Seccion_Header {
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
         justify-content: flex-start;
         gap: 12px;
       }
@@ -418,10 +508,34 @@
       }
 
       .Feature {
+        position: relative;
         padding: 24px;
         border-radius: 22px;
         border-left: 3px solid var(--Verde);
         background: rgba(255, 255, 255, 0.76);
+      }
+
+      .Feature::before {
+        display: grid;
+        place-items: center;
+        width: 58px;
+        height: 58px;
+        margin: 0 auto 18px;
+        border-radius: 18px;
+        background: rgba(242, 217, 143, 0.46);
+        box-shadow: 0 14px 28px rgba(25, 110, 88, 0.1);
+        font-size: 1.5rem;
+        content: "🗓️";
+      }
+
+      .Feature:nth-child(2)::before {
+        background: rgba(25, 110, 88, 0.14);
+        content: "🎯";
+      }
+
+      .Feature:nth-child(3)::before {
+        background: rgba(220, 139, 81, 0.18);
+        content: "📝";
       }
 
       .Feature strong {
@@ -432,7 +546,8 @@
       }
 
       .Feature p {
-        margin: 0;
+        margin: 0 auto;
+        max-width: 30ch;
         color: var(--Tinta_Suave);
         line-height: 1.6;
       }
@@ -446,6 +561,9 @@
       }
 
       .Plan_Card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         padding: 24px;
         border-radius: 26px;
         border: 1px solid rgba(27, 37, 29, 0.1);
@@ -492,6 +610,7 @@
       .Plan_Price {
         display: flex;
         align-items: baseline;
+        justify-content: center;
         gap: 8px;
         margin-top: 18px;
       }
@@ -508,22 +627,29 @@
 
       .Plan_List {
         margin: 18px 0 0;
-        padding-left: 18px;
+        padding-left: 0;
+        list-style: none;
         color: var(--Tinta_Suave);
         line-height: 1.74;
+      }
+
+      .Plan_List li + li {
+        margin-top: 6px;
       }
 
       .Plan_Actions {
         display: flex;
         gap: 12px;
         flex-wrap: wrap;
+        justify-content: center;
         margin-top: 22px;
       }
 
       .Legal_Row {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
         gap: 16px;
         flex-wrap: wrap;
         margin-top: 22px;
@@ -550,15 +676,32 @@
       .Footer {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
         gap: 14px;
         flex-wrap: wrap;
         padding: 28px 0 46px;
         color: var(--Tinta_Suave);
+        text-align: center;
+      }
+
+      #features,
+      #pricing {
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+        padding-inline: 0;
+      }
+
+      #features .Feature {
+        padding: 8px 0 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
       }
 
       @media (max-width: 980px) {
-        .Hero,
         .Features,
         .Pricing {
           grid-template-columns: 1fr;
@@ -571,16 +714,9 @@
       }
 
       @media (max-width: 720px) {
-        .Topbar {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
         .Topbar_Acciones {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 10px;
-          justify-content: flex-start;
+          width: 100%;
+          justify-content: flex-end;
         }
 
         .Hero_Row,
@@ -599,13 +735,16 @@
         }
 
         .Hero_Title {
-          font-size: 3.2rem;
+          font-size: 2.95rem;
         }
 
-        .Hero_Side,
         .Seccion,
         .Plan_Card {
           padding: 22px;
+        }
+
+        .Nav {
+          width: min(100vw - 18px, 320px);
         }
       }
     </style>
@@ -621,7 +760,37 @@
           <span>Semaplan</span>
         </a>
         <div class="Topbar_Acciones">
-          <nav class="Nav" aria-label="Primary">
+          <div class="Idioma_Switcher" aria-label="Language selector">
+            <button
+              class="Idioma_Btn"
+              data-lang="es"
+              type="button"
+              aria-label="Español"
+              title="Español"
+            ><span class="Idioma_Flag">🇦🇷</span></button>
+            <button
+              class="Idioma_Btn"
+              data-lang="en"
+              type="button"
+              aria-label="English"
+              title="English"
+            ><span class="Idioma_Flag">🇺🇸</span></button>
+            <button
+              class="Idioma_Btn"
+              data-lang="pt"
+              type="button"
+              aria-label="Português"
+              title="Português"
+            ><span class="Idioma_Flag">🇧🇷</span></button>
+          </div>
+          <button
+            class="Menu_Toggle"
+            type="button"
+            aria-label="Menu"
+            aria-expanded="false"
+            aria-controls="Menu_Principal"
+          ><span class="Menu_Icon">☰</span></button>
+          <nav class="Nav" id="Menu_Principal" aria-label="Primary">
             <a href="#features" data-i18n="nav_features">Funciones</a>
             <a href="#pricing" data-i18n="nav_pricing">Precios</a>
             <a
@@ -636,30 +805,13 @@
               href="privacy.html"
               data-i18n="nav_privacy"
             >Privacidad</a>
-            <a
-              class="Btn Link_Pagina"
-              data-link="login.html"
-              href="login.html"
-              data-i18n="nav_login"
-            >Login</a>
           </nav>
-          <div class="Idioma_Switcher" aria-label="Language selector">
-            <button
-              class="Idioma_Btn"
-              data-lang="es"
-              type="button"
-            ><span class="Idioma_Flag">🇦🇷</span>ES</button>
-            <button
-              class="Idioma_Btn"
-              data-lang="en"
-              type="button"
-            ><span class="Idioma_Flag">🇺🇸</span>EN</button>
-            <button
-              class="Idioma_Btn"
-              data-lang="pt"
-              type="button"
-            ><span class="Idioma_Flag">🇧🇷</span>PT</button>
-          </div>
+          <a
+            class="Btn Link_Pagina Nav_Login"
+            data-link="login.html"
+            href="login.html"
+            data-i18n="nav_login"
+          >Login</a>
         </div>
       </header>
 
@@ -715,47 +867,12 @@
             </div>
           </div>
 
-          <aside class="Hero_Side" aria-label="Semaplan overview">
-            <span class="Mini_Label" data-i18n="side_label">Adentro de Semaplan</span>
-            <h2 data-i18n="side_title">
-              Una forma más estable de sostener semanas reales.
-            </h2>
-            <p data-i18n="side_desc">
-              La idea no es llenar paneles. Es mantener visible lo que
-              importa y darle una estructura concreta.
-            </p>
-            <div class="Mini_List">
-              <div class="Mini_Item">
-                <strong data-i18n="side_item_1_title">Calendario y estructura</strong>
-                <p data-i18n="side_item_1_body">
-                  Bloques, rutinas y ventanas de foco aterrizadas a una
-                  semana real.
-                </p>
-              </div>
-              <div class="Mini_Item">
-                <strong data-i18n="side_item_2_title">Objetivos y ejecución</strong>
-                <p data-i18n="side_item_2_body">
-                  Metas conectadas con pasos concretos y visibles.
-                </p>
-              </div>
-              <div class="Mini_Item">
-                <strong data-i18n="side_item_3_title">Notas y archivo</strong>
-                <p data-i18n="side_item_3_body">
-                  Ideas, pendientes pospuestos y material de referencia
-                  cerca del plan.
-                </p>
-              </div>
-            </div>
-            <div class="Mini_Grid">
-              <div class="Mini_Block">
-                <small data-i18n="side_price_label">Premium actual</small>
-                <strong data-i18n="side_price_value">ARS 7.499 / mes</strong>
-              </div>
-              <div class="Mini_Block">
-                <small data-i18n="side_kind_label">Qué se vende</small>
-                <strong data-i18n="side_kind_value">Software de planificación personal</strong>
-              </div>
-            </div>
+          <aside class="Hero_Side" aria-label="Semaplan screenshot">
+            <img
+              class="Hero_Captura"
+              src="Documentacion/Auditorias/Flujo_Habitos_2026_04_23/21-local-semana-base-desktop.png"
+              alt="Vista semanal de Semaplan"
+            />
           </aside>
         </section>
 
@@ -1310,6 +1427,60 @@
         history.replaceState({}, "", Url.toString());
       }
 
+      function Cerrar_Menu_Publico() {
+        const Menu = document.getElementById("Menu_Principal");
+        const Toggle = document.querySelector(".Menu_Toggle");
+        if (!Menu || !Toggle) {
+          return;
+        }
+        Menu.classList.remove("Abierto");
+        Toggle.setAttribute("aria-expanded", "false");
+      }
+
+      function Alternar_Menu_Publico(Forzar) {
+        const Menu = document.getElementById("Menu_Principal");
+        const Toggle = document.querySelector(".Menu_Toggle");
+        if (!Menu || !Toggle) {
+          return;
+        }
+        const Abierto =
+          typeof Forzar === "boolean"
+            ? Forzar
+            : !Menu.classList.contains("Abierto");
+        Menu.classList.toggle("Abierto", Abierto);
+        Toggle.setAttribute("aria-expanded", String(Abierto));
+      }
+
+      function Configurar_Menu_Publico() {
+        const Menu = document.getElementById("Menu_Principal");
+        const Toggle = document.querySelector(".Menu_Toggle");
+        if (!Menu || !Toggle) {
+          return;
+        }
+        Toggle.addEventListener("click", (Evento) => {
+          Evento.stopPropagation();
+          Alternar_Menu_Publico();
+        });
+        Menu.querySelectorAll("a").forEach((Link) => {
+          Link.addEventListener("click", () => {
+            Cerrar_Menu_Publico();
+          });
+        });
+        document.addEventListener("click", (Evento) => {
+          if (
+            !Menu.contains(Evento.target)
+            && !Toggle.contains(Evento.target)
+          ) {
+            Cerrar_Menu_Publico();
+          }
+        });
+        document.addEventListener("keydown", (Evento) => {
+          if (Evento.key === "Escape") {
+            Cerrar_Menu_Publico();
+          }
+        });
+      }
+
       async function Redirigir_Si_Hay_Sesion() {
         if (!window.supabase?.createClient) {
           return false;
@@ -1346,6 +1517,8 @@
             Aplicar_Idioma_Publico(Btn.dataset.lang);
           });
         });
+
+      Configurar_Menu_Publico();
 
       (async () => {
         const Redirigio = await Redirigir_Si_Hay_Sesion();

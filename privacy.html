@@ -38,9 +38,9 @@
           ),
           linear-gradient(180deg, #fbf6ee 0%, #f1e8d8 100%);
         font-family:
-          "Aptos",
+          "Calibri Light",
+          Calibri,
           "Segoe UI",
-          "Trebuchet MS",
           sans-serif;
       }
 
@@ -71,6 +71,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 14px;
+        flex-wrap: wrap;
         padding: 18px 22px;
         border-radius: 26px;
       }
@@ -91,25 +92,43 @@
       .Topbar_Acciones {
         display: flex;
         align-items: center;
-        gap: 14px;
-        flex-wrap: wrap;
+        gap: 10px;
         justify-content: flex-end;
+        margin-left: auto;
+        position: relative;
       }
 
       .Nav {
-        display: flex;
+        display: none;
+        flex-direction: column;
+        align-items: center;
         gap: 14px;
-        flex-wrap: wrap;
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        width: min(280px, calc(100vw - 40px));
+        padding: 18px;
+        border-radius: 22px;
+        border: 1px solid var(--Borde);
+        background: rgba(255, 250, 242, 0.96);
+        box-shadow: 0 22px 52px rgba(16, 34, 28, 0.16);
+        text-align: center;
+        z-index: 20;
+      }
+
+      .Nav.Abierto {
+        display: flex;
       }
 
       .Nav a {
         color: var(--Suave);
+        font-weight: 700;
       }
 
       .Idioma_Switcher {
         display: inline-flex;
-        gap: 8px;
-        padding: 5px;
+        gap: 4px;
+        padding: 4px;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.62);
         border: 1px solid var(--Borde);
@@ -117,7 +136,12 @@
 
       .Idioma_Btn {
         border: 0;
-        padding: 8px 12px;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         border-radius: 999px;
         color: var(--Suave);
         background: transparent;
@@ -134,12 +158,65 @@
       }
 
       .Idioma_Flag {
-        margin-right: 6px;
-        font-family:
-          "Segoe UI Emoji",
-          "Apple Color Emoji",
-          "Noto Color Emoji",
-          "Segoe UI Symbol";
+        margin-right: 0;
+        display: block;
+        width: 18px;
+        height: 12px;
+        font-size: 0;
+        line-height: 0;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: inset 0 0 0 1px rgba(27, 37, 29, 0.08);
+      }
+
+      .Idioma_Btn[data-lang="es"] .Idioma_Flag {
+        background:
+          linear-gradient(180deg, #74acdf 0 33%, #ffffff 33% 66%, #74acdf 66% 100%);
+      }
+
+      .Idioma_Btn[data-lang="en"] .Idioma_Flag {
+        background:
+          linear-gradient(180deg, #b22234 0 14%, #ffffff 14% 28%, #b22234 28% 42%, #ffffff 42% 56%, #b22234 56% 70%, #ffffff 70% 84%, #b22234 84% 100%);
+      }
+
+      .Idioma_Btn[data-lang="pt"] .Idioma_Flag {
+        background:
+          linear-gradient(135deg, transparent 28%, #f7d54a 28% 72%, transparent 72%),
+          #009b3a;
+      }
+
+      .Menu_Toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border: 1px solid var(--Borde);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.62);
+        cursor: pointer;
+      }
+
+      .Menu_Icon {
+        font-size: 1.2rem;
+        line-height: 1;
+      }
+
+      .Nav_Login {
+        min-width: 124px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 18px;
+        border-radius: 999px;
+        color: #fff;
+        font-weight: 700;
+        background: linear-gradient(
+          135deg,
+          var(--Marca) 0%,
+          var(--Marca_Fuerte) 100%
+        );
       }
 
       .Contenido {
@@ -150,18 +227,19 @@
 
       h1 {
         margin: 0 0 10px;
-        font-size: clamp(2.2rem, 4vw, 3.2rem);
+        font-size: clamp(1.95rem, 3vw, 2.55rem);
         line-height: 1;
       }
 
       h2 {
         margin: 28px 0 10px;
-        font-size: 1.22rem;
+        font-size: 1.06rem;
       }
 
       p,
       li {
         color: var(--Suave);
+        font-size: 0.94rem;
         line-height: 1.72;
       }
 
@@ -176,13 +254,9 @@
       }
 
       @media (max-width: 680px) {
-        .Topbar {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
         .Topbar_Acciones {
-          justify-content: flex-start;
+          width: 100%;
+          justify-content: flex-end;
         }
 
         .Contenido {
@@ -202,7 +276,25 @@
           <span>Semaplan</span>
         </a>
         <div class="Topbar_Acciones">
-          <nav class="Nav" aria-label="Legal navigation">
+          <div class="Idioma_Switcher" aria-label="Language selector">
+            <button class="Idioma_Btn" data-lang="es" type="button" aria-label="Español" title="Español">
+              <span class="Idioma_Flag">🇦🇷</span>
+            </button>
+            <button class="Idioma_Btn" data-lang="en" type="button" aria-label="English" title="English">
+              <span class="Idioma_Flag">🇺🇸</span>
+            </button>
+            <button class="Idioma_Btn" data-lang="pt" type="button" aria-label="Português" title="Português">
+              <span class="Idioma_Flag">🇧🇷</span>
+            </button>
+          </div>
+          <button
+            class="Menu_Toggle"
+            type="button"
+            aria-label="Menu"
+            aria-expanded="false"
+            aria-controls="Menu_Legal"
+          ><span class="Menu_Icon">☰</span></button>
+          <nav class="Nav" id="Menu_Legal" aria-label="Legal navigation">
             <a
               class="Link_Pagina"
               data-link="index.html"
@@ -221,24 +313,13 @@
               href="refund.html"
               data-i18n="nav_refund"
             >Reembolsos</a>
-            <a
-              class="Link_Pagina"
-              data-link="login.html"
-              href="login.html"
-              data-i18n="nav_login"
-            >Login</a>
           </nav>
-          <div class="Idioma_Switcher" aria-label="Language selector">
-            <button class="Idioma_Btn" data-lang="es" type="button">
-              <span class="Idioma_Flag">🇦🇷</span>ES
-            </button>
-            <button class="Idioma_Btn" data-lang="en" type="button">
-              <span class="Idioma_Flag">🇺🇸</span>EN
-            </button>
-            <button class="Idioma_Btn" data-lang="pt" type="button">
-              <span class="Idioma_Flag">🇧🇷</span>PT
-            </button>
-          </div>
+          <a
+            class="Link_Pagina Nav_Login"
+            data-link="login.html"
+            href="login.html"
+            data-i18n="nav_login"
+          >Login</a>
         </div>
       </header>
 
@@ -594,6 +675,60 @@
         history.replaceState({}, "", Url.toString());
       }
 
+      function Cerrar_Menu() {
+        const Menu = document.getElementById("Menu_Legal");
+        const Toggle = document.querySelector(".Menu_Toggle");
+        if (!Menu || !Toggle) {
+          return;
+        }
+        Menu.classList.remove("Abierto");
+        Toggle.setAttribute("aria-expanded", "false");
+      }
+
+      function Alternar_Menu(Forzar) {
+        const Menu = document.getElementById("Menu_Legal");
+        const Toggle = document.querySelector(".Menu_Toggle");
+        if (!Menu || !Toggle) {
+          return;
+        }
+        const Abierto =
+          typeof Forzar === "boolean"
+            ? Forzar
+            : !Menu.classList.contains("Abierto");
+        Menu.classList.toggle("Abierto", Abierto);
+        Toggle.setAttribute("aria-expanded", String(Abierto));
+      }
+
+      function Configurar_Menu() {
+        const Menu = document.getElementById("Menu_Legal");
+        const Toggle = document.querySelector(".Menu_Toggle");
+        if (!Menu || !Toggle) {
+          return;
+        }
+        Toggle.addEventListener("click", (Evento) => {
+          Evento.stopPropagation();
+          Alternar_Menu();
+        });
+        Menu.querySelectorAll("a").forEach((Link) => {
+          Link.addEventListener("click", () => {
+            Cerrar_Menu();
+          });
+        });
+        document.addEventListener("click", (Evento) => {
+          if (
+            !Menu.contains(Evento.target)
+            && !Toggle.contains(Evento.target)
+          ) {
+            Cerrar_Menu();
+          }
+        });
+        document.addEventListener("keydown", (Evento) => {
+          if (Evento.key === "Escape") {
+            Cerrar_Menu();
+          }
+        });
+      }
+
       document
         .querySelectorAll(".Idioma_Btn")
         .forEach((Btn) => {
@@ -601,6 +736,8 @@
             Aplicar_Idioma(Btn.dataset.lang);
           });
         });
+
+      Configurar_Menu();
 
       Aplicar_Idioma(Leer_Idioma_Publico());
     </script>
