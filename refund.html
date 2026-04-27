@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <title>Semaplan | Reembolsos</title>
+    <link
+      rel="icon"
+      type="image/png"
+      href="Aplicaciones/Desktop/Semaplan.png"
+    />
+    <style>
+      :root {
+        --Tarjeta: rgba(255, 250, 242, 0.9);
+        --Tinta: #1b251d;
+        --Suave: #566457;
+        --Marca: #196e58;
+        --Marca_Fuerte: #0f5847;
+        --Borde: rgba(27, 37, 29, 0.12);
+        --Sombra: 0 18px 56px rgba(16, 34, 28, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--Tinta);
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(25, 110, 88, 0.12),
+            transparent 34%
+          ),
+          linear-gradient(180deg, #fbf6ee 0%, #f1e8d8 100%);
+        font-family:
+          "Aptos",
+          "Segoe UI",
+          "Trebuchet MS",
+          sans-serif;
+      }
+
+      a {
+        color: var(--Marca_Fuerte);
+        text-decoration: none;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .Pagina {
+        width: min(100% - 24px, 920px);
+        margin: 0 auto;
+        padding: 28px 0 42px;
+      }
+
+      .Topbar,
+      .Contenido {
+        background: var(--Tarjeta);
+        border: 1px solid var(--Borde);
+        box-shadow: var(--Sombra);
+      }
+
+      .Topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 18px 22px;
+        border-radius: 26px;
+      }
+
+      .Brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 800;
+      }
+
+      .Brand img {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+      }
+
+      .Topbar_Acciones {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .Nav {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .Nav a {
+        color: var(--Suave);
+      }
+
+      .Idioma_Switcher {
+        display: inline-flex;
+        gap: 8px;
+        padding: 5px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid var(--Borde);
+      }
+
+      .Idioma_Btn {
+        border: 0;
+        padding: 8px 12px;
+        border-radius: 999px;
+        color: var(--Suave);
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .Idioma_Btn.Activo {
+        color: #fff;
+        background: linear-gradient(
+          135deg,
+          var(--Marca) 0%,
+          var(--Marca_Fuerte) 100%
+        );
+      }
+
+      .Idioma_Flag {
+        margin-right: 6px;
+        font-family:
+          "Segoe UI Emoji",
+          "Apple Color Emoji",
+          "Noto Color Emoji",
+          "Segoe UI Symbol";
+      }
+
+      .Contenido {
+        margin-top: 18px;
+        padding: 30px;
+        border-radius: 30px;
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: clamp(2.2rem, 4vw, 3.2rem);
+        line-height: 1;
+      }
+
+      h2 {
+        margin: 28px 0 10px;
+        font-size: 1.22rem;
+      }
+
+      p,
+      li {
+        color: var(--Suave);
+        line-height: 1.72;
+      }
+
+      ul {
+        margin: 10px 0 0;
+        padding-left: 20px;
+      }
+
+      .Meta {
+        margin: 0;
+        color: var(--Suave);
+      }
+
+      @media (max-width: 680px) {
+        .Topbar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .Topbar_Acciones {
+          justify-content: flex-start;
+        }
+
+        .Contenido {
+          padding: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="Pagina">
+      <header class="Topbar">
+        <a class="Brand Link_Pagina" data-link="index.html" href="index.html">
+          <img
+            src="Aplicaciones/Desktop/Semaplan.png"
+            alt="Semaplan"
+          />
+          <span>Semaplan</span>
+        </a>
+        <div class="Topbar_Acciones">
+          <nav class="Nav" aria-label="Legal navigation">
+            <a
+              class="Link_Pagina"
+              data-link="index.html"
+              href="index.html"
+              data-i18n="nav_home"
+            >Inicio</a>
+            <a
+              class="Link_Pagina"
+              data-link="terms.html"
+              href="terms.html"
+              data-i18n="nav_terms"
+            >Términos</a>
+            <a
+              class="Link_Pagina"
+              data-link="privacy.html"
+              href="privacy.html"
+              data-i18n="nav_privacy"
+            >Privacidad</a>
+            <a
+              class="Link_Pagina"
+              data-link="login.html"
+              href="login.html"
+              data-i18n="nav_login"
+            >Login</a>
+          </nav>
+          <div class="Idioma_Switcher" aria-label="Language selector">
+            <button class="Idioma_Btn" data-lang="es" type="button">
+              <span class="Idioma_Flag">🇦🇷</span>ES
+            </button>
+            <button class="Idioma_Btn" data-lang="en" type="button">
+              <span class="Idioma_Flag">🇺🇸</span>EN
+            </button>
+            <button class="Idioma_Btn" data-lang="pt" type="button">
+              <span class="Idioma_Flag">🇧🇷</span>PT
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="Contenido">
+        <h1 id="Titulo">Política de reembolsos</h1>
+        <p class="Meta" id="Meta">Última actualización: 2026-04-27</p>
+        <div id="Cuerpo"></div>
+      </main>
+    </div>
+
+    <script>
+      const Idiomas_Publicos = ["es", "en", "pt"];
+      const Clave_Idioma_Publico = "Semaplan_Idioma_Publico";
+      const Textos = {
+        es: {
+          title: "Semaplan | Reembolsos",
+          nav_home: "Inicio",
+          nav_terms: "Términos",
+          nav_privacy: "Privacidad",
+          nav_login: "Login",
+          heading: "Política de reembolsos",
+          meta: "Última actualización: 2026-04-27",
+          intro:
+            "Esta Política de reembolsos explica cómo Semaplan maneja los reembolsos de suscripciones pagas.",
+          sections: [
+            {
+              title: "1. Suscripciones mensuales",
+              paragraphs: [
+                "Semaplan Premium se ofrece como una suscripción mensual recurrente. Al suscribirte, autorizás cobros recurrentes hasta cancelar la suscripción antes de la próxima renovación."
+              ]
+            },
+            {
+              title: "2. Primer cargo de suscripción",
+              paragraphs: [
+                "Si es tu primera suscripción paga a Semaplan, podés pedir un reembolso dentro de los 7 días corridos del cargo inicial si:"
+              ],
+              list: [
+                "te cobraron por error;",
+                "no pudiste acceder al servicio pago luego de un intento razonable de soporte;",
+                "hubo un cargo duplicado u otro error claro de facturación."
+              ]
+            },
+            {
+              title: "3. Renovaciones",
+              paragraphs: [
+                "Los cargos de renovación generalmente no son reembolsables una vez procesados, salvo que la ley exija otra cosa o se confirme un error de facturación."
+              ]
+            },
+            {
+              title: "4. Cancelación",
+              paragraphs: [
+                "Cancelar una suscripción corta las renovaciones futuras. Cancelar no reembolsa automáticamente los cargos ya procesados para el período de facturación actual."
+              ]
+            },
+            {
+              title: "5. Excepciones",
+              paragraphs: [
+                "Podemos otorgar reembolsos fuera de estas reglas estándar de buena fe cuando haya un problema técnico o de facturación claro, o cuando la ley de consumo exija un resultado distinto."
+              ]
+            },
+            {
+              title: "6. Procesadores de pago",
+              paragraphs: [
+                "Los pagos pueden ser gestionados por procesadores de pago de terceros. Los reembolsos aprobados vuelven al medio de pago original y pueden tardar tiempo adicional según el proveedor."
+              ]
+            },
+            {
+              title: "7. Contracargos",
+              paragraphs: [
+                "Si creés que un cargo es incorrecto, intentá pedir soporte antes de iniciar un contracargo siempre que sea razonablemente posible. Eso ayuda a resolver más rápido y evita disputas innecesarias."
+              ]
+            }
+          ]
+        },
+        en: {
+          title: "Semaplan | Refund Policy",
+          nav_home: "Home",
+          nav_terms: "Terms",
+          nav_privacy: "Privacy",
+          nav_login: "Login",
+          heading: "Refund Policy",
+          meta: "Last updated: 2026-04-27",
+          intro:
+            "This Refund Policy explains how Semaplan handles refunds for paid subscriptions.",
+          sections: [
+            {
+              title: "1. Monthly subscriptions",
+              paragraphs: [
+                "Semaplan Premium is offered as a recurring monthly subscription. By subscribing, you authorize recurring charges until you cancel the subscription before the next renewal."
+              ]
+            },
+            {
+              title: "2. First subscription charge",
+              paragraphs: [
+                "If this is your first paid subscription to Semaplan, you may request a refund within 7 calendar days of the initial charge if:"
+              ],
+              list: [
+                "you were charged by mistake;",
+                "you could not access the paid service after a reasonable support attempt;",
+                "there was a duplicate charge or another clear billing error."
+              ]
+            },
+            {
+              title: "3. Renewals",
+              paragraphs: [
+                "Renewal charges are generally non-refundable once processed, unless the law requires otherwise or a billing error is confirmed."
+              ]
+            },
+            {
+              title: "4. Cancellation",
+              paragraphs: [
+                "Canceling a subscription stops future renewals. Cancellation does not automatically refund charges already processed for the current billing period."
+              ]
+            },
+            {
+              title: "5. Exceptions",
+              paragraphs: [
+                "We may grant refunds outside these standard rules in good faith when there is a clear technical or billing issue, or when consumer law requires a different result."
+              ]
+            },
+            {
+              title: "6. Payment processors",
+              paragraphs: [
+                "Payments may be handled by third-party processors. Approved refunds are returned through the original payment method and may take additional time depending on the provider."
+              ]
+            },
+            {
+              title: "7. Chargebacks",
+              paragraphs: [
+                "If you believe a charge is incorrect, please try to request support before opening a chargeback whenever reasonably possible. That helps resolve issues faster and avoids unnecessary payment disputes."
+              ]
+            }
+          ]
+        },
+        pt: {
+          title: "Semaplan | Política de reembolsos",
+          nav_home: "Início",
+          nav_terms: "Termos",
+          nav_privacy: "Privacidade",
+          nav_login: "Login",
+          heading: "Política de reembolsos",
+          meta: "Última atualização: 2026-04-27",
+          intro:
+            "Esta Política de reembolsos explica como o Semaplan trata reembolsos de assinaturas pagas.",
+          sections: [
+            {
+              title: "1. Assinaturas mensais",
+              paragraphs: [
+                "Semaplan Premium é oferecido como uma assinatura mensal recorrente. Ao assinar, você autoriza cobranças recorrentes até cancelar a assinatura antes da próxima renovação."
+              ]
+            },
+            {
+              title: "2. Primeira cobrança da assinatura",
+              paragraphs: [
+                "Se esta for sua primeira assinatura paga do Semaplan, você pode solicitar um reembolso dentro de 7 dias corridos da cobrança inicial se:"
+              ],
+              list: [
+                "você foi cobrado por engano;",
+                "não conseguiu acessar o serviço pago após uma tentativa razoável de suporte;",
+                "houve uma cobrança duplicada ou outro erro claro de faturamento."
+              ]
+            },
+            {
+              title: "3. Renovações",
+              paragraphs: [
+                "Cobranças de renovação normalmente não são reembolsáveis depois de processadas, salvo quando a lei exigir outra coisa ou um erro de cobrança for confirmado."
+              ]
+            },
+            {
+              title: "4. Cancelamento",
+              paragraphs: [
+                "Cancelar uma assinatura interrompe renovações futuras. O cancelamento não reembolsa automaticamente cobranças já processadas para o período atual."
+              ]
+            },
+            {
+              title: "5. Exceções",
+              paragraphs: [
+                "Podemos conceder reembolsos fora dessas regras padrão de boa fé quando houver um problema técnico ou de cobrança claro, ou quando a lei do consumidor exigir resultado diferente."
+              ]
+            },
+            {
+              title: "6. Processadores de pagamento",
+              paragraphs: [
+                "Os pagamentos podem ser tratados por processadores terceiros. Reembolsos aprovados retornam ao método de pagamento original e podem levar tempo adicional conforme o provedor."
+              ]
+            },
+            {
+              title: "7. Chargebacks",
+              paragraphs: [
+                "Se você acredita que uma cobrança está incorreta, tente solicitar suporte antes de abrir um chargeback sempre que isso for razoavelmente possível. Isso ajuda a resolver mais rápido e evita disputas desnecessárias."
+              ]
+            }
+          ]
+        }
+      };
+
+      function Normalizar_Idioma(Idioma) {
+        return Idiomas_Publicos.includes(Idioma) ? Idioma : "es";
+      }
+
+      function Leer_Idioma_Publico() {
+        const Url = new URL(window.location.href);
+        const Query = Url.searchParams.get("lang");
+        if (Idiomas_Publicos.includes(Query)) {
+          return Query;
+        }
+        const Guardado = localStorage.getItem(
+          Clave_Idioma_Publico
+        );
+        return Normalizar_Idioma(Guardado);
+      }
+
+      function Actualizar_Links(Idioma) {
+        document
+          .querySelectorAll(".Link_Pagina[data-link]")
+          .forEach((Link) => {
+            const Url = new URL(
+              Link.dataset.link,
+              window.location.href
+            );
+            Url.searchParams.set("lang", Idioma);
+            Link.href = Url.pathname + Url.search;
+          });
+      }
+
+      function Renderizar_Cuerpo(Idioma) {
+        const Copia = Textos[Idioma];
+        const Contenedor = document.getElementById("Cuerpo");
+        Contenedor.innerHTML = "";
+
+        const Intro = document.createElement("p");
+        Intro.textContent = Copia.intro;
+        Contenedor.appendChild(Intro);
+
+        Copia.sections.forEach((Seccion) => {
+          const Titulo = document.createElement("h2");
+          Titulo.textContent = Seccion.title;
+          Contenedor.appendChild(Titulo);
+
+          (Seccion.paragraphs || []).forEach((Texto) => {
+            const P = document.createElement("p");
+            P.textContent = Texto;
+            Contenedor.appendChild(P);
+          });
+
+          if (Seccion.list?.length) {
+            const Lista = document.createElement("ul");
+            Seccion.list.forEach((Item) => {
+              const Li = document.createElement("li");
+              Li.textContent = Item;
+              Lista.appendChild(Li);
+            });
+            Contenedor.appendChild(Lista);
+          }
+        });
+      }
+
+      function Aplicar_Idioma(Idioma) {
+        const Idioma_Activo = Normalizar_Idioma(Idioma);
+        const Copia = Textos[Idioma_Activo];
+        document.documentElement.lang = Idioma_Activo;
+        document.title = Copia.title;
+        document.getElementById("Titulo").textContent =
+          Copia.heading;
+        document.getElementById("Meta").textContent = Copia.meta;
+        document
+          .querySelectorAll("[data-i18n]")
+          .forEach((Nodo) => {
+            Nodo.textContent = Copia[Nodo.dataset.i18n];
+          });
+        document
+          .querySelectorAll(".Idioma_Btn")
+          .forEach((Btn) => {
+            Btn.classList.toggle(
+              "Activo",
+              Btn.dataset.lang === Idioma_Activo
+            );
+          });
+        Renderizar_Cuerpo(Idioma_Activo);
+        localStorage.setItem(
+          Clave_Idioma_Publico,
+          Idioma_Activo
+        );
+        Actualizar_Links(Idioma_Activo);
+        const Url = new URL(window.location.href);
+        Url.searchParams.set("lang", Idioma_Activo);
+        history.replaceState({}, "", Url.toString());
+      }
+
+      document
+        .querySelectorAll(".Idioma_Btn")
+        .forEach((Btn) => {
+          Btn.addEventListener("click", () => {
+            Aplicar_Idioma(Btn.dataset.lang);
+          });
+        });
+
+      Aplicar_Idioma(Leer_Idioma_Publico());
+    </script>
+  </body>
+</html>

@@ -8,62 +8,55 @@ dispositivo.
 
 ## Cómo poner en marcha
 
-### 1. Configurar el esquema en Supabase (una sola vez)
+### 1. Configurar el esquema en Supabase
 
 1. Abrí el dashboard de tu proyecto en
    <https://supabase.com/dashboard>.
-2. En el menú lateral, click en **SQL Editor**.
-3. Click en **New query**.
-4. Abrí el archivo `supabase/Supabase_Schema.sql`, copiá
-   todo su contenido y pegalo en el editor.
-5. Click en **Run** (abajo a la derecha).
-6. Si todo salió bien, verás "Success. No rows returned."
+2. En el menú lateral, entrá a **SQL Editor**.
+3. Creá una query nueva.
+4. Abrí `supabase/Supabase_Schema.sql`, copiá todo su
+   contenido y pegalo en el editor.
+5. Ejecutá la query.
 
-### 2. Configurar autenticación por email (una sola vez)
+### 2. Configurar autenticación por email
 
-1. En el dashboard, andá a **Authentication** → **Providers**.
-2. Verificá que **Email** esté habilitado (viene así por default).
-3. Para que NO requiera confirmación por mail al registrarse
-   (más cómodo en desarrollo), andá a **Authentication** →
-   **Sign In / Providers** → **Email** y desactivá
-   "Confirm email". Cuando vayas a producción, lo podés
-   reactivar.
+1. En Supabase, andá a **Authentication**.
+2. Verificá que el provider **Email** esté habilitado.
+3. Si querés evitar la confirmación por mail en desarrollo,
+   desactivá la confirmación de email. En producción podés
+   volver a activarla.
 
-### 3. Abrir la app
+### 3. Abrir el proyecto
 
-Abrí `index.html` en el navegador. Va a aparecer la
-pantalla de login. Hacé click en "Crear cuenta", poné tu mail
-y una contraseña, y listo.
+- `index.html` es la landing pública.
+- `login.html` es la app principal y muestra el login.
+- `Semaplan.html` redirige por compatibilidad al login.
 
 ## Estructura del proyecto
 
-- `index.html` — la app web principal
-- `Semaplan.html` — redirect de compatibilidad
-- `Aplicaciones/` — wrappers y binarios auxiliares
-- `Documentacion/` — planes, auditorías y registros
-- `Herramientas/` — scripts de soporte
-- `Pruebas/` — tests y estado de Playwright
-- `supabase/` — configuración, funciones y esquema
-- `Local/` — archivos operativos no centrales
-- `README.md` — este archivo
+- `index.html` — landing pública.
+- `login.html` — app web principal.
+- `terms.html` — términos del servicio.
+- `privacy.html` — política de privacidad.
+- `refund.html` — política de reembolsos.
+- `Semaplan.html` — redirect de compatibilidad al login.
+- `Aplicaciones/` — wrappers y binarios auxiliares.
+- `Documentacion/` — planes, auditorías y registros.
+- `Herramientas/` — scripts de soporte.
+- `Pruebas/` — tests y estado de Playwright.
+- `supabase/` — configuración, funciones y esquema.
+- `Local/` — archivos operativos no centrales.
 
-## Cómo funciona la sincronización
+## Sincronización
 
-- Todos tus datos viven en una sola fila JSON en la tabla
-  `estado_usuario` de Supabase, indexada por tu user_id.
-- Cada cambio en la app dispara un guardado **con debounce
-  de 2 segundos**: si hacés muchos cambios rápido, espera a
-  que pares y manda uno solo.
-- Hay un indicador en la barra superior que dice "Guardado",
-  "Guardando..." o "Error" según el estado.
-- Los datos se mantienen también en localStorage como caché
-  para que la app cargue rápido al abrir.
+- Todos los datos viven en una fila JSON por usuario dentro
+  de `estado_usuario` en Supabase.
+- Cada cambio dispara guardado con debounce.
+- La app muestra estado de guardado en la barra superior.
+- También usa `localStorage` como caché para acelerar carga.
 
-## Migración de datos del HTML viejo (sin backend)
+## Migración de datos
 
-Si ya usabas Semaplan (antes "Timeblock") con localStorage
-en otra carpeta, la primera vez que entres a tu cuenta nueva,
-la app te va a preguntar si querés importar los datos del
-localStorage actual de este navegador a tu cuenta. Si decís
-que sí, los sube y quedan asociados a tu user_id.
-
+Si ya usabas Semaplan en una versión anterior basada solo en
+`localStorage`, la app puede ofrecer importar esos datos a tu
+cuenta la primera vez que entrás con login.
