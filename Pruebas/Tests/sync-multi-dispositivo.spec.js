@@ -586,6 +586,109 @@ test(
 );
 
 test(
+  "editar horario de una tarea dispara sync remoto inmediato",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    await page.evaluate(() => {
+      Tareas = [
+        Normalizar_Tarea({
+          Id: "Tarea_Sync_Horario",
+          Nombre: "Mover horario",
+          Emoji: "☑",
+          Cajon: "Inbox",
+          Prioridad: "media",
+          Estado: "pendiente",
+          Fecha: "2026-04-14",
+          Hora: "09:00"
+        })
+      ];
+      Abrir_Modal_Tarea("Tarea_Sync_Horario");
+    });
+
+    await page.fill("#Tareas_Fecha", "2026-04-15");
+    await page.fill("#Tareas_Hora", "11:30");
+    await page.click("#Tareas_Editor_Guardar");
+
+    await expect.poll(async () => {
+      return await page.evaluate(() => {
+        const Remota = (
+          window.__Estado_Remoto?.estado?.Tareas || []
+        ).find((Tarea) => Tarea?.Id === "Tarea_Sync_Horario");
+        return {
+          Fecha: Remota?.Fecha || "",
+          Hora: Remota?.Hora || "",
+          Sync_Estado,
+          Pendiente: Hay_Sync_Pendiente()
+        };
+      });
+    }).toEqual({
+      Fecha: "2026-04-15",
+      Hora: "11:30",
+      Sync_Estado: "Guardado",
+      Pendiente: false
+    });
+  }
+);
+
+test(
+  "registrar un habito manual dispara sync remoto inmediato",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    await page.evaluate(() => {
+      Habitos = [
+        Normalizar_Habito({
+          Id: "Habito_Sync_Registro",
+          Nombre: "Leer",
+          Emoji: "📘",
+          Activo: true,
+          Programacion: {
+            Tipo: "Libre"
+          },
+          Meta: {
+            Modo: "Check",
+            Regla: "Al_Menos",
+            Periodo: "Dia",
+            Cantidad: 1,
+            Unidad: ""
+          }
+        })
+      ];
+      Habitos_Registros = [];
+      Habitos_Registrar_Rapido_Desde_Panel(
+        "Habito_Sync_Registro"
+      );
+    });
+
+    await expect.poll(async () => {
+      return await page.evaluate(() => {
+        const Registros = (
+          window.__Estado_Remoto?.estado?.Habitos_Registros || []
+        ).filter((Registro) =>
+          Registro?.Habito_Id === "Habito_Sync_Registro"
+        );
+        return {
+          Registros: Registros.length,
+          Sync_Estado,
+          Pendiente: Hay_Sync_Pendiente()
+        };
+      });
+    }).toEqual({
+      Registros: 1,
+      Sync_Estado: "Guardado",
+      Pendiente: false
+    });
+  }
+);
+
+test(
   "el sync no reintroduce slots muertos borrados " +
   "al moverlos de hora",
   async ({ page }) => {
