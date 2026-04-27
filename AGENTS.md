@@ -81,6 +81,11 @@ Antes de tocar frontend, modales, guardado o UX, leer
 `Documentacion/Planes/Reglas_Operativas_Semaplan.md`. Ese archivo es
 la fuente base para reglas operativas, de funcionamiento y de estilo.
 
+Antes de tocar flujos operativos, estado, sync, modulos o relaciones
+entre sistemas, leer tambien
+`Documentacion/Planes/Funcionamiento_App_Semaplan.md`. Ese archivo es
+el mapa funcional vivo de la app real.
+
 ## Regla UX de seleccion multiple
 
 Seguir `Documentacion/Planes/Reglas_Operativas_Semaplan.md`.
@@ -287,6 +292,14 @@ instrucciones, agregar un resumen breve al comienzo de
 `Documentacion/Registros/Registro_Avance.txt`, usando la plantilla del
 archivo y hora local de Argentina (`America/Buenos_Aires`). El registro
 debe quedar antes de los registros anteriores.
+
+Si el cambio fue operativo fuerte, actualizar tambien en el mismo turno
+`Documentacion/Planes/Funcionamiento_App_Semaplan.md`.
+
+Se considera cambio operativo fuerte, por ejemplo, cualquier cambio que
+altere flujos visibles, estructuras persistidas, modulos principales,
+sync, import/export o relaciones entre agenda, tareas, habitos, planes,
+Archivero, Baul y metas.
 
 ### Control de cierre de avances
 
