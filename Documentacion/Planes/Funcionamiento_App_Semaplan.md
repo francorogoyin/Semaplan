@@ -20,6 +20,8 @@ estructuras persistidas o relaciones importantes entre modulos.
 - `index.html`: landing publica.
 - `Semaplan.html`: redireccion liviana a `login.html`.
 - `login.html`: aplicacion operativa principal.
+- `supabase/functions/semaplan-ai`: gateway read-only en
+  construccion para consultas de IA sobre datos de Semaplan.
 - `supabase/functions/*`: Edge Functions remotas para suscripcion,
   ayuda, eliminar cuenta y demas integraciones.
 - `supabase/migrations/*`: cambios de esquema remoto.

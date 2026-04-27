@@ -222,12 +222,74 @@ CREATE TRIGGER trigger_suscripcion_actualizada
     public.actualizar_timestamp_suscripcion();
 
 -- ============================================================
+-- Tabla de tokens de lectura para integraciones de IA.
+-- Guarda solo hashes SHA-256 y permite revocacion.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.tokens_ia_usuario (
+  id                  UUID PRIMARY KEY
+                      DEFAULT gen_random_uuid(),
+  usuario_id          UUID NOT NULL
+                      REFERENCES auth.users(id)
+                      ON DELETE CASCADE,
+  nombre              TEXT NOT NULL
+                      DEFAULT 'Integracion IA',
+  token_hash          TEXT NOT NULL UNIQUE,
+  scopes              TEXT[] NOT NULL
+                      DEFAULT ARRAY['read']::TEXT[],
+  ultimo_uso_en       TIMESTAMPTZ,
+  creado_en           TIMESTAMPTZ NOT NULL
+                      DEFAULT NOW(),
+  revocado_en         TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS
+  idx_tokens_ia_usuario_usuario
+  ON public.tokens_ia_usuario (usuario_id);
+
+CREATE INDEX IF NOT EXISTS
+  idx_tokens_ia_usuario_revocado
+  ON public.tokens_ia_usuario (usuario_id, revocado_en);
+
+ALTER TABLE public.tokens_ia_usuario
+  ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Tokens IA propios: ver"
+  ON public.tokens_ia_usuario;
+CREATE POLICY "Tokens IA propios: ver"
+  ON public.tokens_ia_usuario
+  FOR SELECT
+  USING (auth.uid() = usuario_id);
+
+DROP POLICY IF EXISTS "Tokens IA propios: insertar"
+  ON public.tokens_ia_usuario;
+CREATE POLICY "Tokens IA propios: insertar"
+  ON public.tokens_ia_usuario
+  FOR INSERT
+  WITH CHECK (auth.uid() = usuario_id);
+
+DROP POLICY IF EXISTS "Tokens IA propios: actualizar"
+  ON public.tokens_ia_usuario;
+CREATE POLICY "Tokens IA propios: actualizar"
+  ON public.tokens_ia_usuario
+  FOR UPDATE
+  USING (auth.uid() = usuario_id)
+  WITH CHECK (auth.uid() = usuario_id);
+
+DROP POLICY IF EXISTS "Tokens IA propios: borrar"
+  ON public.tokens_ia_usuario;
+CREATE POLICY "Tokens IA propios: borrar"
+  ON public.tokens_ia_usuario
+  FOR DELETE
+  USING (auth.uid() = usuario_id);
+
+-- ============================================================
 -- Listo. Verificación opcional:
 -- ============================================================
 -- Para verificar que todo está bien, podés correr:
 --
 --   SELECT * FROM public.estado_usuario;
 --   SELECT * FROM public.suscripciones;
+--   SELECT * FROM public.tokens_ia_usuario;
 --
 -- Deberían devolver 0 filas sin error.
 -- ============================================================
