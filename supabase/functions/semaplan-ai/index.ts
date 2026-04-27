@@ -633,6 +633,53 @@ function Resolver_Fecha_Referencia(
   };
 }
 
+function Obtener_Lunes_ISO_Desde_Fecha(
+  Fecha: string
+) {
+  const Base = Parsear_Fecha_ISO(Fecha);
+  if (!Base) {
+    return null;
+  }
+  return Formatear_Fecha_ISO(
+    Obtener_Lunes_UTC(Base)
+  );
+}
+
+function Resolver_Semana(
+  Url: URL
+): Resultado_Con_Error<{
+  Semana: string;
+}> {
+  const Semana_Raw = Normalizar_Texto(
+    Url.searchParams.get("semana")
+  ) || Obtener_Hoy_ISO();
+  if (!Es_Fecha_ISO_Valida(Semana_Raw)) {
+    return {
+      Ok: false,
+      Status: 400,
+      Error: "Semana invalida",
+      Detalle:
+        "La semana debe usar formato YYYY-MM-DD.",
+    };
+  }
+  const Semana = Obtener_Lunes_ISO_Desde_Fecha(
+    Semana_Raw
+  );
+  if (!Semana) {
+    return {
+      Ok: false,
+      Status: 400,
+      Error: "Semana invalida",
+      Detalle:
+        "No se pudo resolver la semana pedida.",
+    };
+  }
+  return {
+    Ok: true,
+    Semana,
+  };
+}
+
 function Obtener_Array_Estado(
   Estado: Record<string, unknown>,
   Clave: string
@@ -2137,6 +2184,658 @@ function Construir_Slots_Normalizados_IA(
   return Resultado;
 }
 
+function Construir_Eventos_Semana_IA(
+  Estado: Record<string, unknown>,
+  Semana: string
+) {
+  const Desde = Semana;
+  const Hasta = Formatear_Fecha_ISO(
+    Sumar_Dias(Parsear_Fecha_ISO(Semana)!, 6)
+  );
+  return Obtener_Array_Estado(
+    Estado,
+    "Eventos"
+  )
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item) => {
+      const Base =
+        Item as Record<string, unknown>;
+      return {
+        Id: Normalizar_Texto(Base.Id),
+        Objetivo_Id: Normalizar_Texto(
+          Base.Objetivo_Id
+        ),
+        Fecha: Normalizar_Texto(Base.Fecha),
+        Inicio: Numero_Entero(Base.Inicio, 0),
+        Duracion: Math.max(
+          1,
+          Numero_Entero(Base.Duracion, 1)
+        ),
+        Color: Normalizar_Texto(Base.Color) || null,
+      };
+    })
+    .filter((Evento) =>
+      Evento.Id &&
+      Evento.Fecha >= Desde &&
+      Evento.Fecha <= Hasta
+    );
+}
+
+function Construir_Clave_Evento_Plan_IA(
+  Evento: Record<string, unknown>
+) {
+  return Normalizar_Texto(Evento.Id);
+}
+
+function Construir_Diff_Plan_Semana_IA(
+  Eventos_Base: Record<string, unknown>[],
+  Eventos_Actuales: Record<string, unknown>[]
+) {
+  const Mapa_Base = new Map(
+    Eventos_Base.map((Evento) => [
+      Construir_Clave_Evento_Plan_IA(Evento),
+      Evento,
+    ])
+  );
+  const Mapa_Actual = new Map(
+    Eventos_Actuales.map((Evento) => [
+      Construir_Clave_Evento_Plan_IA(Evento),
+      Evento,
+    ])
+  );
+  const Agregados: Record<string, unknown>[] = [];
+  const Quitados: Record<string, unknown>[] = [];
+  const Movidos: Record<string, unknown>[] = [];
+  const Duracion: Record<string, unknown>[] = [];
+
+  Eventos_Actuales.forEach((Evento) => {
+    const Antes = Mapa_Base.get(
+      Construir_Clave_Evento_Plan_IA(Evento)
+    );
+    if (!Antes) {
+      Agregados.push(Evento);
+      return;
+    }
+    if (
+      Normalizar_Texto(Antes.Fecha) !==
+        Normalizar_Texto(Evento.Fecha) ||
+      Numero_Entero(Antes.Inicio, 0) !==
+        Numero_Entero(Evento.Inicio, 0)
+    ) {
+      Movidos.push({
+        Id: Evento.Id,
+        Antes: {
+          Fecha: Antes.Fecha,
+          Inicio: Antes.Inicio,
+        },
+        Ahora: {
+          Fecha: Evento.Fecha,
+          Inicio: Evento.Inicio,
+        },
+      });
+    }
+    if (
+      Numero_Entero(Antes.Duracion, 1) !==
+      Numero_Entero(Evento.Duracion, 1)
+    ) {
+      Duracion.push({
+        Id: Evento.Id,
+        Antes: Numero_Entero(Antes.Duracion, 1),
+        Ahora: Numero_Entero(Evento.Duracion, 1),
+      });
+    }
+  });
+
+  Eventos_Base.forEach((Evento) => {
+    const Clave =
+      Construir_Clave_Evento_Plan_IA(Evento);
+    if (!Mapa_Actual.has(Clave)) {
+      Quitados.push(Evento);
+    }
+  });
+
+  return {
+    Agregados,
+    Quitados,
+    Movidos,
+    Duracion,
+    Resumen: {
+      Agregados: Agregados.length,
+      Quitados: Quitados.length,
+      Movidos: Movidos.length,
+      Duracion: Duracion.length,
+    },
+  };
+}
+
+function Construir_Plan_Semana_Normalizado_IA(
+  Estado: Record<string, unknown>,
+  Semana: string
+) {
+  const Planes_Semana =
+    Obtener_Objeto_Estado(
+      Estado,
+      "Planes_Semana"
+    );
+  const Plan_Raw = Planes_Semana[Semana];
+  const Plan =
+    Plan_Raw &&
+      typeof Plan_Raw === "object" &&
+      !Array.isArray(Plan_Raw)
+      ? Plan_Raw as Record<string, unknown>
+      : {};
+  const Eventos_Base = Array.isArray(
+    Plan.Eventos_Base
+  )
+    ? Plan.Eventos_Base
+      .filter((Item) =>
+        Item && typeof Item === "object"
+      )
+      .map((Item) => {
+        const Base =
+          Item as Record<string, unknown>;
+        return {
+          Id: Normalizar_Texto(Base.Id),
+          Objetivo_Id: Normalizar_Texto(
+            Base.Objetivo_Id
+          ),
+          Fecha: Normalizar_Texto(Base.Fecha),
+          Inicio: Numero_Entero(Base.Inicio, 0),
+          Duracion: Math.max(
+            1,
+            Numero_Entero(Base.Duracion, 1)
+          ),
+          Color:
+            Normalizar_Texto(Base.Color) || null,
+        };
+      })
+    : [];
+  const Eventos_Actuales =
+    Construir_Eventos_Semana_IA(
+      Estado,
+      Semana
+    );
+  const Diff = Construir_Diff_Plan_Semana_IA(
+    Eventos_Base,
+    Eventos_Actuales
+  );
+
+  return {
+    Semana,
+    Fijada_En: Normalizar_Texto(
+      Plan.Fijada_En
+    ) || null,
+    Cerrada_En: Normalizar_Texto(
+      Plan.Cerrada_En
+    ) || null,
+    Nota_Inicial: Normalizar_Texto(
+      Plan.Nota_Inicial
+    ),
+    Nota_Cierre: Normalizar_Texto(
+      Plan.Nota_Cierre
+    ),
+    Veces_Refijada: Math.max(
+      0,
+      Numero_Entero(Plan.Veces_Refijada, 0)
+    ),
+    Eventos_Base,
+    Eventos_Actuales,
+    Diff,
+  };
+}
+
+function Resolver_Modelo_Planes_Periodo_IA(
+  Estado: Record<string, unknown>
+) {
+  const Raw = Obtener_Objeto_Estado(
+    Estado,
+    "Planes_Periodo"
+  );
+  const Usa_V2 = Numero_Entero(Raw.Version, 0) === 2;
+  const Periodos_Raw = Usa_V2
+    ? Obtener_Objeto_Estado(Raw, "Periodos")
+    : Raw;
+  const Objetivos_Raw =
+    Obtener_Objeto_Estado(Raw, "Objetivos");
+  const Subobjetivos_Raw =
+    Obtener_Objeto_Estado(
+      Raw,
+      "Subobjetivos"
+    );
+  const Partes_Raw =
+    Obtener_Objeto_Estado(Raw, "Partes");
+  const Avances_Raw =
+    Obtener_Objeto_Estado(Raw, "Avances");
+
+  const Periodos = Object.values(Periodos_Raw)
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item, Indice) => {
+      const Base =
+        Item as Record<string, unknown>;
+      const Inicio = Normalizar_Texto(
+        Base.Inicio
+      );
+      const Fin = Normalizar_Texto(
+        Base.Fin || Base.Inicio
+      );
+      const Tipo = Normalizar_Texto(
+        Base.Tipo || "Custom"
+      ) || "Custom";
+      const Id =
+        Normalizar_Texto(Base.Id) ||
+        `P_${Tipo}_${Inicio}_${Fin}`;
+      return {
+        Id,
+        Tipo,
+        Inicio,
+        Fin,
+        Titulo: Normalizar_Texto(
+          Base.Titulo
+        ),
+        Resumen: Normalizar_Texto(
+          Base.Resumen || Base.Nota
+        ),
+        Parent_Id: Normalizar_Texto(
+          Base.Parent_Id
+        ) || null,
+        Tags: Array.isArray(Base.Tags)
+          ? Base.Tags
+            .map((Tag) =>
+              Normalizar_Texto(Tag)
+            )
+            .filter(Boolean)
+          : [],
+        Estado: Normalizar_Texto(
+          Base.Estado || "Activo"
+        ) || "Activo",
+        Orden: Number.isFinite(Number(Base.Orden))
+          ? Number(Base.Orden)
+          : Indice,
+        Creado_En: Normalizar_Texto(
+          Base.Creado_En
+        ),
+        Actualizado_En: Normalizar_Texto(
+          Base.Actualizado_En
+        ),
+      };
+    })
+    .filter((Periodo) =>
+      Periodo.Id && Periodo.Inicio && Periodo.Fin
+    );
+
+  const Objetivos = Object.values(Objetivos_Raw)
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item, Indice) => {
+      const Base =
+        Item as Record<string, unknown>;
+      return {
+        Id: Normalizar_Texto(Base.Id),
+        Periodo_Id: Normalizar_Texto(
+          Base.Periodo_Id
+        ) || null,
+        Objetivo_Padre_Id: Normalizar_Texto(
+          Base.Objetivo_Padre_Id ||
+            Base.Parent_Objetivo_Id
+        ) || null,
+        Nombre: Normalizar_Texto(Base.Nombre),
+        Descripcion: Normalizar_Texto(
+          Base.Descripcion || Base.Resumen
+        ),
+        Emoji: Normalizar_Texto(
+          Base.Emoji || "\u2705"
+        ),
+        Color: Normalizar_Texto(Base.Color),
+        Target_Total:
+          Number(Base.Target_Total) || 0,
+        Progreso_Total:
+          Number(Base.Progreso_Total) || 0,
+        Target_Pendiente:
+          Number(Base.Target_Pendiente) || 0,
+        Unidad: Normalizar_Texto(
+          Base.Unidad || "Horas"
+        ) || "Horas",
+        Unidad_Custom: Normalizar_Texto(
+          Base.Unidad_Custom ||
+            Base.Unidad_Personalizada
+        ),
+        Tiempo_Valor:
+          Number(Base.Tiempo_Valor) || 0,
+        Tiempo_Modo: Normalizar_Texto(
+          Base.Tiempo_Modo
+        ),
+        Modo_Avance: Normalizar_Texto(
+          Base.Modo_Avance
+        ),
+        Estado: Normalizar_Texto(
+          Base.Estado || "Activo"
+        ) || "Activo",
+        Fecha_Inicio: Normalizar_Texto(
+          Base.Fecha_Inicio
+        ),
+        Fecha_Objetivo: Normalizar_Texto(
+          Base.Fecha_Objetivo
+        ),
+        Fecha_Fin: Normalizar_Texto(
+          Base.Fecha_Fin
+        ),
+        Hora_Fin: Normalizar_Texto(
+          Base.Hora_Fin
+        ),
+        Vinculo_Tipo: Normalizar_Texto(
+          Base.Vinculo_Tipo
+        ),
+        Vinculo_Id: Normalizar_Texto(
+          Base.Vinculo_Id
+        ),
+        Etiquetas_Ids: Array.isArray(
+          Base.Etiquetas_Ids
+        )
+          ? Base.Etiquetas_Ids
+            .map((Id) =>
+              Normalizar_Texto(Id)
+            )
+            .filter(Boolean)
+          : [],
+        Tags: Array.isArray(Base.Tags)
+          ? Base.Tags
+            .map((Tag) =>
+              Normalizar_Texto(Tag)
+            )
+            .filter(Boolean)
+          : [],
+        Orden: Number.isFinite(Number(Base.Orden))
+          ? Number(Base.Orden)
+          : Indice,
+        Creado_En: Normalizar_Texto(
+          Base.Creado_En
+        ),
+        Actualizado_En: Normalizar_Texto(
+          Base.Actualizado_En
+        ),
+      };
+    })
+    .filter((Objetivo) =>
+      Objetivo.Id && Objetivo.Nombre
+    );
+
+  const Subobjetivos = Object.values(
+    Subobjetivos_Raw
+  )
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item, Indice) => {
+      const Base =
+        Item as Record<string, unknown>;
+      return {
+        Id: Normalizar_Texto(Base.Id),
+        Objetivo_Id: Normalizar_Texto(
+          Base.Objetivo_Id
+        ) || null,
+        Parent_Subobjetivo_Id:
+          Normalizar_Texto(
+            Base.Parent_Subobjetivo_Id
+          ) || null,
+        Subobjetivo_Padre_Id:
+          Normalizar_Texto(
+            Base.Subobjetivo_Padre_Id
+          ) || null,
+        Emoji: Normalizar_Texto(
+          Base.Emoji || "\u2022"
+        ),
+        Texto: Normalizar_Texto(
+          Base.Texto
+        ),
+        Target_Total:
+          Number(Base.Target_Total) || 0,
+        Aporte_Meta:
+          Number(Base.Aporte_Meta) || 0,
+        Unidad: Normalizar_Texto(
+          Base.Unidad
+        ),
+        Unidad_Custom: Normalizar_Texto(
+          Base.Unidad_Custom ||
+            Base.Unidad_Personalizada
+        ),
+        Tiempo_Valor:
+          Number(Base.Tiempo_Valor) || 0,
+        Tiempo_Modo: Normalizar_Texto(
+          Base.Tiempo_Modo
+        ),
+        Progreso_Manual:
+          Number(Base.Progreso_Manual) || 0,
+        Progreso_Avances:
+          Number(Base.Progreso_Avances) || 0,
+        Fecha_Inicio: Normalizar_Texto(
+          Base.Fecha_Inicio
+        ),
+        Fecha_Objetivo: Normalizar_Texto(
+          Base.Fecha_Objetivo
+        ),
+        Fecha_Fin: Normalizar_Texto(
+          Base.Fecha_Fin
+        ),
+        Hora_Fin: Normalizar_Texto(
+          Base.Hora_Fin
+        ),
+        Estado: Normalizar_Texto(
+          Base.Estado || "Activo"
+        ) || "Activo",
+        Hecha: Base.Hecha === true,
+        Importado: Base.Importado === true,
+        Orden: Number.isFinite(Number(Base.Orden))
+          ? Number(Base.Orden)
+          : Indice,
+      };
+    })
+    .filter((Sub) =>
+      Sub.Id && Sub.Objetivo_Id && Sub.Texto
+    );
+
+  const Partes = Object.values(Partes_Raw)
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item, Indice) => {
+      const Base =
+        Item as Record<string, unknown>;
+      return {
+        Id: Normalizar_Texto(Base.Id),
+        Objetivo_Id: Normalizar_Texto(
+          Base.Objetivo_Id
+        ) || null,
+        Subobjetivo_Id:
+          Normalizar_Texto(
+            Base.Subobjetivo_Id ||
+              Base.Sub_Id
+          ) || null,
+        Emoji: Normalizar_Texto(
+          Base.Emoji || "\u2022"
+        ),
+        Nombre: Normalizar_Texto(
+          Base.Nombre || Base.Texto
+        ),
+        Aporte_Total:
+          Number(Base.Aporte_Total ??
+            Base.Target_Total) || 0,
+        Unidad: Normalizar_Texto(Base.Unidad),
+        Unidad_Custom: Normalizar_Texto(
+          Base.Unidad_Custom ||
+            Base.Unidad_Personalizada
+        ),
+        Tiempo_Valor:
+          Number(Base.Tiempo_Valor) || 0,
+        Tiempo_Modo: Normalizar_Texto(
+          Base.Tiempo_Modo
+        ),
+        Progreso_Avances:
+          Number(Base.Progreso_Avances) || 0,
+        Progreso_Total:
+          Number(Base.Progreso_Total) || 0,
+        Fecha_Inicio: Normalizar_Texto(
+          Base.Fecha_Inicio
+        ),
+        Fecha_Objetivo: Normalizar_Texto(
+          Base.Fecha_Objetivo
+        ),
+        Fecha_Fin: Normalizar_Texto(
+          Base.Fecha_Fin
+        ),
+        Hora_Fin: Normalizar_Texto(
+          Base.Hora_Fin
+        ),
+        Estado: Normalizar_Texto(
+          Base.Estado || "Pendiente"
+        ) || "Pendiente",
+        Orden: Number.isFinite(Number(Base.Orden))
+          ? Number(Base.Orden)
+          : Indice,
+      };
+    })
+    .filter((Parte) =>
+      Parte.Id && Parte.Subobjetivo_Id && Parte.Nombre
+    );
+
+  const Avances = Object.values(Avances_Raw)
+    .filter((Item) =>
+      Item && typeof Item === "object"
+    )
+    .map((Item, Indice) => {
+      const Base =
+        Item as Record<string, unknown>;
+      return {
+        Id: Normalizar_Texto(Base.Id),
+        Objetivo_Id: Normalizar_Texto(
+          Base.Objetivo_Id
+        ) || null,
+        Subobjetivo_Id:
+          Normalizar_Texto(
+            Base.Subobjetivo_Id
+          ) || null,
+        Parte_Id: Normalizar_Texto(
+          Base.Parte_Id
+        ) || null,
+        Fuente: Normalizar_Texto(
+          Base.Fuente || "Manual"
+        ) || "Manual",
+        Cantidad: Number(Base.Cantidad) || 0,
+        Cantidad_Total:
+          Number(Base.Cantidad_Total) || 0,
+        Unidad: Normalizar_Texto(Base.Unidad),
+        Fecha: Normalizar_Texto(Base.Fecha),
+        Hora: Normalizar_Texto(Base.Hora),
+        Fecha_Hora: Normalizar_Texto(
+          Base.Fecha_Hora
+        ),
+        Nota: Normalizar_Texto(Base.Nota),
+        Origen_Tipo: Normalizar_Texto(
+          Base.Origen_Tipo
+        ),
+        Origen_Id: Normalizar_Texto(
+          Base.Origen_Id
+        ),
+        Automatico: Base.Automatico === true,
+        Distribucion: Array.isArray(
+          Base.Distribucion
+        )
+          ? Base.Distribucion
+            .filter((D) =>
+              D && typeof D === "object"
+            )
+            .map((D) => ({
+              Tipo: Normalizar_Texto(
+                (D as Record<string, unknown>).Tipo
+              ),
+              Parte_Id: Normalizar_Texto(
+                (D as Record<string, unknown>).Parte_Id
+              ),
+              Cantidad:
+                Number(
+                  (D as Record<string, unknown>).Cantidad
+                ) || 0,
+            }))
+          : [],
+        Orden: Number.isFinite(Number(Base.Orden))
+          ? Number(Base.Orden)
+          : Indice,
+        Creado_En: Normalizar_Texto(
+          Base.Creado_En
+        ),
+        Actualizado_En: Normalizar_Texto(
+          Base.Actualizado_En
+        ),
+      };
+    })
+    .filter((Avance) =>
+      Avance.Id && (Avance.Objetivo_Id ||
+      Avance.Subobjetivo_Id || Avance.Parte_Id)
+    );
+
+  return {
+    Periodos,
+    Objetivos,
+    Subobjetivos,
+    Partes,
+    Avances,
+  };
+}
+
+function Construir_Resumen_Modelo_Planes_IA(
+  Modelo: ReturnType<
+    typeof Resolver_Modelo_Planes_Periodo_IA
+  >
+) {
+  return {
+    Periodos_Total: Modelo.Periodos.length,
+    Objetivos_Total: Modelo.Objetivos.length,
+    Subobjetivos_Total:
+      Modelo.Subobjetivos.length,
+    Partes_Total: Modelo.Partes.length,
+    Avances_Total: Modelo.Avances.length,
+  };
+}
+
+function Construir_Ids_Periodos_Relevantes_IA(
+  Periodo_Id: string,
+  Periodos: ReturnType<
+    typeof Resolver_Modelo_Planes_Periodo_IA
+  >["Periodos"]
+) {
+  const Hijos_Por_Padre = new Map<
+    string,
+    string[]
+  >();
+  Periodos.forEach((Periodo) => {
+    if (!Periodo.Parent_Id) {
+      return;
+    }
+    if (!Hijos_Por_Padre.has(Periodo.Parent_Id)) {
+      Hijos_Por_Padre.set(Periodo.Parent_Id, []);
+    }
+    Hijos_Por_Padre.get(Periodo.Parent_Id)!.push(
+      Periodo.Id
+    );
+  });
+  const Resultado = new Set<string>();
+  const Cola = [Periodo_Id];
+  while (Cola.length) {
+    const Actual = Cola.shift()!;
+    if (Resultado.has(Actual)) {
+      continue;
+    }
+    Resultado.add(Actual);
+    (Hijos_Por_Padre.get(Actual) || [])
+      .forEach((Hijo) => Cola.push(Hijo));
+  }
+  return Resultado;
+}
+
 function Responder_Tareas(
   Estado: Record<string, unknown>,
   Url: URL
@@ -2313,6 +3012,167 @@ function Responder_Slots(
       Rango.Desde,
       Rango.Hasta
     ).slice(0, Limite),
+  });
+}
+
+function Responder_Planes_Semana(
+  Estado: Record<string, unknown>,
+  Url: URL
+) {
+  const Semana = Resolver_Semana(Url);
+  if (!Semana.Ok) {
+    return Responder_Error(
+      Semana.Status,
+      Semana.Error,
+      Semana.Detalle
+    );
+  }
+  return Responder_Json({
+    Ok: true,
+    Plan_Semana:
+      Construir_Plan_Semana_Normalizado_IA(
+        Estado,
+        Semana.Semana
+      ),
+  });
+}
+
+function Responder_Planes_Periodos(
+  Estado: Record<string, unknown>,
+  Url: URL
+) {
+  const Modelo =
+    Resolver_Modelo_Planes_Periodo_IA(Estado);
+  const Periodo_Id = Normalizar_Texto(
+    Url.searchParams.get("periodo_id")
+  );
+  const Tipo = Normalizar_Texto(
+    Url.searchParams.get("tipo")
+  );
+  const Limite = Resolver_Limite(
+    Url,
+    50,
+    100
+  );
+
+  if (!Periodo_Id) {
+    let Periodos = Modelo.Periodos.slice();
+    if (Tipo) {
+      Periodos = Periodos.filter(
+        (Periodo) => Periodo.Tipo === Tipo
+      );
+    }
+    Periodos.sort((A, B) =>
+      `${A.Inicio}|${A.Orden}`.localeCompare(
+        `${B.Inicio}|${B.Orden}`
+      )
+    );
+    return Responder_Json({
+      Ok: true,
+      Resumen:
+        Construir_Resumen_Modelo_Planes_IA(
+          Modelo
+        ),
+      Periodos: Periodos
+        .slice(0, Limite)
+        .map((Periodo) => ({
+          ...Periodo,
+          Objetivos_Total:
+            Modelo.Objetivos.filter(
+              (Objetivo) =>
+                Objetivo.Periodo_Id ===
+                Periodo.Id
+            ).length,
+        })),
+    });
+  }
+
+  const Periodo = Modelo.Periodos.find(
+    (Item) => Item.Id === Periodo_Id
+  );
+  if (!Periodo) {
+    return Responder_Error(
+      404,
+      "Periodo inexistente",
+      "No existe el periodo solicitado."
+    );
+  }
+
+  const Periodos_Relevantes =
+    Construir_Ids_Periodos_Relevantes_IA(
+      Periodo.Id,
+      Modelo.Periodos
+    );
+  const Objetivos = Modelo.Objetivos
+    .filter((Objetivo) =>
+      Objetivo.Periodo_Id &&
+      Periodos_Relevantes.has(
+        Objetivo.Periodo_Id
+      )
+    )
+    .slice(0, Limite);
+  const Objetivos_Ids = new Set(
+    Objetivos.map((Objetivo) => Objetivo.Id)
+  );
+  const Subobjetivos = Modelo.Subobjetivos
+    .filter((Subobjetivo) =>
+      Subobjetivo.Objetivo_Id &&
+      Objetivos_Ids.has(
+        Subobjetivo.Objetivo_Id
+      )
+    )
+    .slice(0, Limite);
+  const Subobjetivos_Ids = new Set(
+    Subobjetivos.map((Subobjetivo) =>
+      Subobjetivo.Id
+    )
+  );
+  const Partes = Modelo.Partes
+    .filter((Parte) =>
+      Parte.Subobjetivo_Id &&
+      Subobjetivos_Ids.has(
+        Parte.Subobjetivo_Id
+      )
+    )
+    .slice(0, Limite);
+  const Partes_Ids = new Set(
+    Partes.map((Parte) => Parte.Id)
+  );
+  const Avances = Modelo.Avances
+    .filter((Avance) =>
+      (Avance.Objetivo_Id &&
+        Objetivos_Ids.has(
+          Avance.Objetivo_Id
+        )) ||
+      (Avance.Subobjetivo_Id &&
+        Subobjetivos_Ids.has(
+          Avance.Subobjetivo_Id
+        )) ||
+      (Avance.Parte_Id &&
+        Partes_Ids.has(Avance.Parte_Id))
+    )
+    .sort((A, B) =>
+      `${B.Fecha}|${B.Hora}|${B.Orden}`
+        .localeCompare(
+          `${A.Fecha}|${A.Hora}|${A.Orden}`
+        )
+    )
+    .slice(0, Limite);
+
+  return Responder_Json({
+    Ok: true,
+    Resumen:
+      Construir_Resumen_Modelo_Planes_IA(
+        Modelo
+      ),
+    Periodo,
+    Periodos_Hijos: Modelo.Periodos.filter(
+      (Item) => Item.Parent_Id === Periodo.Id
+    ),
+    Objetivos,
+    Subobjetivos,
+    Partes,
+    Avances,
   });
 }
 
@@ -2522,6 +3382,20 @@ Deno.serve(async (Req) => {
       );
     }
 
+    if (Ruta === "/planes/semana") {
+      return Responder_Planes_Semana(
+        Estado.Estado,
+        Url
+      );
+    }
+
+    if (Ruta === "/planes/periodos") {
+      return Responder_Planes_Periodos(
+        Estado.Estado,
+        Url
+      );
+    }
+
     // TODO: Fase posterior.
     // Agregar rate limit por token antes de abrir
     // la API en produccion.
@@ -2530,7 +3404,8 @@ Deno.serve(async (Req) => {
       "No implementado",
       "La fase actual expone /salud, " +
         "/agenda, /contexto, /tareas, /habitos, " +
-        "/slots y lectura segura del estado."
+        "/slots, /planes/semana, /planes/periodos " +
+        "y lectura segura del estado."
     );
   }
 

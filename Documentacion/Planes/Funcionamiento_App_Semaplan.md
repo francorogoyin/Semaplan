@@ -23,8 +23,8 @@ estructuras persistidas o relaciones importantes entre modulos.
 - `supabase/functions/semaplan-ai`: gateway read-only en
   construccion para consultas de IA sobre datos de Semaplan. Ya valida
   tokens/JWT, puede leer `estado_usuario` con filtrado seguro y expone
-  `/agenda`, `/contexto`, `/tareas`, `/habitos` y `/slots` con vistas
-  compactas para IA.
+  `/agenda`, `/contexto`, `/tareas`, `/habitos`, `/slots`,
+  `/planes/semana` y `/planes/periodos` con vistas compactas para IA.
 - `supabase/functions/*`: Edge Functions remotas para suscripcion,
   ayuda, eliminar cuenta y demas integraciones.
 - `supabase/migrations/*`: cambios de esquema remoto.
