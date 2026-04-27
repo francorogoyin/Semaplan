@@ -1,14 +1,20 @@
 Plan operativo para API de IA de Semaplan.
 
-Fecha de redaccion: 2026-04-16.
+Fecha de redaccion inicial: 2026-04-16.
+Fecha de actualizacion: 2026-04-27.
 
 Objetivo.
 
 Construir una API de solo lectura para que GPT y Claude puedan
 consultar datos de Semaplan con autorizacion explicita del usuario.
 
-La API debe permitir leer agenda, horarios, Archivero, Baul, metas y
-resumen basico sin exponer el estado crudo completo ni credenciales
+La API no debe quedar limitada a agenda, Archivero, Baul y metas
+sueltas. Debe cubrir el estado operativo real de la app: agenda,
+tareas, habitos, slots, bloques, planes semanales, planes por
+periodos, Archivero, Baul, metas y resumen compacto.
+
+La API debe exponer vistas legibles y seguras sin devolver el blob
+crudo completo de `public.estado_usuario.estado` ni credenciales
 internas.
 
 Este documento esta escrito para que Codex pueda tomarlo como unica
@@ -36,8 +42,12 @@ La arquitectura debe quedar asi.
 Semaplan en Supabase guarda el estado del usuario en
 `public.estado_usuario.estado`.
 
-La Edge Function `semaplan-ai` lee ese estado, lo normaliza y devuelve
-JSON minimo para IA.
+La app operativa actual que modela ese estado vive principalmente en
+`login.html`. `index.html` hoy funciona como landing publica, asi que
+la inspeccion del modelo real debe hacerse sobre `login.html`.
+
+La Edge Function `semaplan-ai` lee ese estado, lo normaliza por
+dominios y devuelve JSON minimo para IA.
 
 Un archivo OpenAPI describe esa API para GPT Actions.
 
@@ -59,6 +69,18 @@ La version 1 debe ser solo lectura.
 
 Debe permitir consultar agenda por rango de fechas.
 
+Debe permitir consultar tareas y cajones de tareas.
+
+Debe permitir consultar habitos, su programacion y su estado visible.
+
+Debe permitir consultar slots vacios, tipos de slot, planes de slot y
+bloques visibles relevantes.
+
+Debe permitir consultar objetivos y cambios de planes semanales.
+
+Debe permitir consultar planes por periodos con su jerarquia de
+objetivos, subobjetivos y partes.
+
 Debe permitir buscar notas del Archivero por texto.
 
 Debe permitir listar notas de un cajon del Archivero.
@@ -75,8 +97,9 @@ No debe permitir disparar sync.
 
 No debe devolver el blob completo de `estado_usuario.estado`.
 
-No debe devolver credenciales, tokens, email de terceros ni datos de
-debug internos.
+No debe devolver credenciales, tokens, email de terceros, snapshots
+internos, datos de debug ni configuraciones tecnicas que no aporten a
+la consulta.
 
 Fuente de datos.
 
@@ -94,6 +117,22 @@ Las claves principales que se deben contemplar son estas.
 
 `Slots_Muertos`.
 
+`Planes_Slot`.
+
+`Planes_Semana`.
+
+`Planes_Periodo`.
+
+`Plantillas_Subobjetivos`.
+
+`Tareas`.
+
+`Tareas_Cajones_Definidos`.
+
+`Habitos`.
+
+`Habitos_Registros`.
+
 `Baul_Objetivos`.
 
 `Archiveros`.
@@ -104,12 +143,57 @@ Las claves principales que se deben contemplar son estas.
 
 `Patrones`.
 
+`Categorias`.
+
+`Etiquetas`.
+
+`Tipos_Slot`.
+
+`Slots_Muertos_Tipos`.
+
+`Slots_Muertos_Nombres`.
+
+`Slots_Muertos_Titulos_Visibles`.
+
 `Config_Extra`.
 
 `Inicio_Semana`.
 
 Si durante la implementacion el codigo real usa nombres adicionales,
 Codex debe agregarlos al normalizador sin cambiar el contrato publico.
+
+Modelo real observado en la app.
+
+El estado persistido actual de Semaplan no es un calendario aislado.
+
+Incluye al menos estas familias funcionales.
+
+Agenda y eventos:
+`Eventos`, `Objetivos`, `Slots_Muertos`,
+`Planes_Slot`, `Tipos_Slot`.
+
+Trabajo semanal:
+`Planes_Semana`, objetivos de semana y diferencias entre plan base y
+estado actual.
+
+Trabajo por periodos:
+`Planes_Periodo` con `Periodos`, `Objetivos`,
+`Subobjetivos`, `Partes` y `Avances`.
+
+Operacion diaria:
+`Tareas`, `Tareas_Cajones_Definidos`, `Habitos`,
+`Habitos_Registros`, `Patrones`.
+
+Memoria y backlog:
+`Archiveros`, `Notas_Archivero`, `Etiquetas_Archivero`,
+`Baul_Objetivos`.
+
+Seguimiento:
+`Metas`.
+
+Configuracion visible:
+`Config_Extra`, `Categorias`, `Etiquetas`,
+`Inicio_Semana`.
 
 Autenticacion recomendada.
 
@@ -191,8 +275,9 @@ Endpoint de contexto compacto.
 
 `GET /contexto?desde=YYYY-MM-DD&hasta=YYYY-MM-DD`.
 
-Devuelve una vista resumida de agenda, proximos eventos, cantidad de
-notas, cantidad de objetivos del Baul y metas.
+Devuelve una vista resumida del estado operativo:
+agenda proxima, tareas, habitos activos, slots vacios, cantidad de
+notas, cantidad de objetivos del Baul, metas y planes visibles.
 
 Este endpoint es el recomendado para preguntas generales.
 
@@ -200,19 +285,74 @@ Endpoint de agenda.
 
 `GET /agenda?desde=YYYY-MM-DD&hasta=YYYY-MM-DD`.
 
-Devuelve eventos calendarizados y slots muertos dentro del rango.
+Devuelve eventos calendarizados, slots muertos y planes de slot dentro
+del rango.
 
 El rango maximo permitido debe ser 45 dias.
 
-Respuesta esperada.
-
-`Eventos` debe ser un array de bloques normalizados.
-
 Cada bloque debe incluir, si existe en el estado, `Id`, `Fecha`,
-`Inicio`, `Fin`, `Titulo`, `Tipo`, `Objetivo_Id`, `Objetivo_Nombre`,
-`Categoria`, `Nota`, `Estado` y `Origen`.
+`Inicio`, `Fin`, `Titulo`, `Tipo`, `Objetivo_Id`,
+`Objetivo_Nombre`, `Categoria`, `Nota`, `Estado`, `Origen` y
+`Plan_Slot`.
 
 No devolver propiedades internas que no aporten a la pregunta.
+
+Endpoint de tareas.
+
+`GET /tareas?desde=YYYY-MM-DD&hasta=YYYY-MM-DD&cajon=<texto>&estado=<texto>&limite=100`.
+
+Devuelve tareas sueltas visibles.
+
+Cada tarea debe incluir `Id`, `Nombre`, `Emoji`, `Cajon`,
+`Prioridad`, `Estado`, `Fecha`, `Hora`, `Planeada`,
+`Fecha_Creacion`, `Fecha_Actualizacion` y referencias minimas al plan
+si existen.
+
+Endpoint de habitos.
+
+`GET /habitos?fecha=YYYY-MM-DD&modo=Dia|Semana|Quincena|Mes&limite=100`.
+
+Devuelve habitos con nombre, tipo, programacion, meta, periodo y
+estado visible en la fecha consultada.
+
+Si existen registros relevantes en el rango del modo pedido, devolver
+resumen de cumplimiento y ultimo registro visible.
+
+Endpoint de slots y bloques.
+
+`GET /slots?desde=YYYY-MM-DD&hasta=YYYY-MM-DD&limite=200`.
+
+Devuelve slots vacios, tipos de slot, nombres visibles y planes
+explicitos de slot.
+
+Este endpoint existe para preguntas sobre disponibilidad, planes de
+bloques, bolsas de horas y slots configurados.
+
+Endpoint de planes semanales.
+
+`GET /planes/semana?semana=YYYY-MM-DD`.
+
+Devuelve el plan semanal persistido para la semana base pedida.
+
+Debe incluir `Semana`, `Fijada_En`, `Cerrada_En`, `Nota_Inicial`,
+`Nota_Cierre`, `Veces_Refijada`, `Eventos_Base` y un diff resumido
+contra los eventos actuales: `Agregados`, `Quitados`, `Movidos`,
+`Duracion`.
+
+Endpoint de planes por periodos.
+
+`GET /planes/periodos?periodo_id=<id>&tipo=<texto>&limite=100`.
+
+Devuelve la jerarquia de `Planes_Periodo`.
+
+Si no viene `periodo_id`, debe devolver periodos visibles y un resumen
+de objetivos relacionados.
+
+Si viene `periodo_id`, debe devolver periodo, objetivos directos,
+subobjetivos, partes y avances resumidos.
+
+Este endpoint es la fuente principal para preguntas sobre objetivos,
+subobjetivos y partes del panel jerarquico.
 
 Endpoint de Archivero por cajon.
 
@@ -245,8 +385,8 @@ Endpoint de Baul.
 
 Devuelve objetivos del Baul.
 
-Debe incluir nombre, descripcion, categoria, etiquetas, fecha y
-metadatos visibles si existen.
+Debe incluir nombre, descripcion, categoria, etiquetas, fecha,
+timeline y metadatos visibles si existen.
 
 No debe devolver datos de UI innecesarios.
 
@@ -287,52 +427,39 @@ Funciones internas recomendadas en la Edge Function.
 
 `Responder_Json`.
 
-Devuelve JSON con headers CORS.
-
 `Responder_Error`.
-
-Devuelve errores uniformes con `Error` y `Detalle`.
 
 `Validar_Request`.
 
-Lee JWT o `X-Semaplan-AI-Token` y devuelve `Usuario_Id`.
-
 `Leer_Estado_Usuario`.
-
-Consulta `estado_usuario` por `Usuario_Id`.
 
 `Normalizar_Texto_Busqueda`.
 
-Pasa a minusculas, elimina acentos, compacta espacios y trimmea.
-
 `Parsear_Fecha`.
-
-Valida `YYYY-MM-DD`.
 
 `Limitar_Rango_Fechas`.
 
-Rechaza rangos mayores a 45 dias para agenda y contexto.
+`Normalizar_Contexto`.
 
 `Normalizar_Agenda`.
 
-Convierte `Eventos`, `Objetivos` y `Slots_Muertos` en bloques legibles.
+`Normalizar_Tareas`.
+
+`Normalizar_Habitos`.
+
+`Normalizar_Slots`.
+
+`Normalizar_Planes_Semana`.
+
+`Normalizar_Planes_Periodo`.
 
 `Normalizar_Archivero`.
 
-Une `Archiveros`, `Notas_Archivero` y `Etiquetas_Archivero`.
-
 `Normalizar_Baul`.
-
-Devuelve objetivos del Baul con campos humanos.
 
 `Normalizar_Metas`.
 
-Devuelve metas con progreso legible.
-
 `Filtrar_Campos_Seguros`.
-
-Remueve campos internos, credenciales, snapshots pesados y datos de
-debug.
 
 Formato de errores.
 
@@ -387,8 +514,8 @@ No cerrar la tarea final sin rate limit si la API queda publica.
 
 Normalizacion de agenda.
 
-Codex debe inspeccionar como `index.html` renderiza eventos para
-mapear fechas y horarios reales.
+Codex debe inspeccionar como `login.html` renderiza eventos, slots y
+bloques para mapear fechas y horarios reales.
 
 El contrato publico no debe exponer el modelo interno completo.
 
@@ -402,6 +529,47 @@ Si un evento tiene nota, incluirla solo si es texto breve.
 
 Si una nota supera 1000 caracteres, truncar y agregar
 `Texto_Truncado:true`.
+
+Normalizacion de tareas.
+
+Las tareas deben salir como entidades propias, no mezcladas
+forzosamente con eventos.
+
+Si una tarea esta pospuesta, no devolver fecha ni hora activas.
+
+Si una tarea esta vinculada a un plan o evento, devolver solo
+referencias legibles minimas.
+
+Normalizacion de habitos.
+
+Devolver nombre, tipo, programacion, meta, periodo, activo,
+archivado y estado visible en la fecha o rango consultado.
+
+No devolver estructuras de UI ni borradores internos.
+
+Normalizacion de slots y bloques.
+
+Los slots vacios deben incluir `Fecha`, `Hora`, `Tipo_Id`,
+`Tipo_Nombre`, `Titulo_Visible` y plan explicito si existe.
+
+Si el slot tiene items planeados, devolver una lista corta legible.
+
+No devolver metadata redundante por cada clave si puede resumirse.
+
+Normalizacion de planes semanales.
+
+Devolver el snapshot base de la semana y su diff resumido contra el
+estado actual.
+
+No devolver estructuras pesadas si la consulta solo pide contexto.
+
+Normalizacion de planes por periodos.
+
+Devolver periodos, objetivos, subobjetivos y partes con nombres,
+fechas, estado, progreso, unidad, target y relaciones padre-hijo.
+
+Si hay avances, devolver resumen corto y ultimo movimiento visible si
+aplica.
 
 Normalizacion de Archivero.
 
@@ -425,15 +593,16 @@ Si hay categorias, devolver nombre de categoria.
 
 Si hay descripcion, devolverla.
 
-Si hay fecha o semana especifica, devolverla.
+Si hay fecha o timeline, devolverlo.
 
-Si hay subobjetivos, devolver solo cantidad y lista corta.
+Si hay subestructuras derivadas, devolver solo resumen corto.
 
 No devolver estructuras duplicadas pesadas.
 
 Normalizacion de metas.
 
-Devolver nombre, progreso, unidad, estado y ultimo movimiento si existe.
+Devolver nombre, progreso, unidad, estado y ultimo movimiento si
+existe.
 
 No intentar inferir progreso si el dato no esta claro.
 
@@ -453,7 +622,7 @@ Instrucciones base del GPT.
 
 Responder sobre datos de Semaplan solo cuando el usuario lo pida.
 
-No inventar horarios, notas ni objetivos.
+No inventar horarios, notas, tareas, habitos ni objetivos.
 
 Si el endpoint devuelve vacio, decir que no hay datos en ese rango.
 
@@ -473,6 +642,16 @@ El servidor MCP debe exponer estas herramientas.
 `semaplan_contexto`.
 
 `semaplan_agenda`.
+
+`semaplan_tareas`.
+
+`semaplan_habitos`.
+
+`semaplan_slots`.
+
+`semaplan_plan_semana`.
+
+`semaplan_planes_periodos`.
 
 `semaplan_buscar_archivero`.
 
@@ -513,33 +692,41 @@ Implementar `/contexto` y `/agenda`.
 
 Paso 5.
 
-Implementar `/archivero` y `/archivero/buscar`.
+Implementar `/tareas`, `/habitos` y `/slots`.
 
 Paso 6.
 
-Implementar `/baul`.
+Implementar `/planes/semana` y `/planes/periodos`.
 
 Paso 7.
 
-Implementar `/metas`.
+Implementar `/archivero` y `/archivero/buscar`.
 
 Paso 8.
 
-Crear OpenAPI para GPT Actions.
+Implementar `/baul`.
 
 Paso 9.
 
-Crear instrucciones del GPT.
+Implementar `/metas`.
 
 Paso 10.
 
-Crear adaptador MCP o dejarlo preparado con herramientas y contratos.
+Crear OpenAPI para GPT Actions.
 
 Paso 11.
 
-Agregar UI minima en Configuracion para crear y revocar token de IA.
+Crear instrucciones del GPT.
 
 Paso 12.
+
+Crear adaptador MCP o dejarlo preparado con herramientas y contratos.
+
+Paso 13.
+
+Agregar UI minima en Configuracion para crear y revocar token de IA.
+
+Paso 14.
 
 Probar con Playwright y smoke de produccion.
 
@@ -572,7 +759,8 @@ Agregar pruebas de Edge Function cuando el entorno lo permita.
 
 Agregar Playwright para crear token y revocarlo desde Configuracion.
 
-Agregar test de que el token completo no queda guardado en localStorage.
+Agregar test de que el token completo no queda guardado en
+localStorage.
 
 Agregar test de que un token revocado devuelve `403`.
 
@@ -580,8 +768,15 @@ Agregar test de que `/agenda` rechaza rangos mayores a 45 dias.
 
 Agregar test de que `/archivero/buscar` no depende de acentos.
 
-Agregar test de que GPT OpenAPI contiene todos los endpoints de version
-1.
+Agregar test de que `/tareas` devuelve solo tareas normalizadas.
+
+Agregar test de que `/habitos` devuelve estado visible consistente.
+
+Agregar test de que `/planes/periodos` expone objetivos,
+subobjetivos y partes sin filtrar campos internos de mas.
+
+Agregar test de que GPT OpenAPI contiene todos los endpoints de
+version 1.
 
 Agregar smoke de produccion porque toca Auth, Edge Functions y datos
 personales.
@@ -601,7 +796,7 @@ Criterios de seguridad.
 
 No usar endpoints sin autenticacion.
 
-No loguear contenido de notas, objetivos ni agenda.
+No loguear contenido de notas, objetivos, agenda, tareas ni habitos.
 
 No devolver el blob completo de estado.
 
@@ -624,7 +819,7 @@ Decision sobre escritura futura.
 La escritura queda fuera de version 1.
 
 Para version 2 se puede evaluar crear acciones como crear nota, crear
-objetivo o mover bloque.
+tarea, crear objetivo, mover bloque o completar habito.
 
 La escritura solo puede implementarse con confirmacion explicita del
 usuario, scopes separados, auditoria y undo.
@@ -635,9 +830,13 @@ Scopes futuros recomendados.
 
 `write_notes`.
 
+`write_tasks`.
+
 `write_baul`.
 
 `write_agenda`.
+
+`write_habits`.
 
 `admin_tokens`.
 
@@ -660,8 +859,8 @@ No usar `git add .`.
 Como cerrar la tarea.
 
 La tarea se considera cerrada cuando existe una API read-only segura,
-el usuario puede crear y revocar un token, GPT puede consultar mediante
-OpenAPI y Claude tiene un camino MCP o tool use documentado.
+el usuario puede crear y revocar un token, GPT puede consultar
+mediante OpenAPI y Claude tiene un camino MCP o tool use documentado.
 
 El cierre debe incluir commit y push en `main`.
 

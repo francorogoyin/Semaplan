@@ -1,10 +1,10 @@
-# Funcionamiento Semaplan
+# Reglas Operativas de Semaplan
 
 Este documento es la referencia base antes de tocar frontend,
-modales, guardado o reglas de UX en Semaplan. Conviene mantenerlo como
-un unico documento: funcionamiento y estilo se pisan en muchos flujos
-de esta app, y separarlos aumenta la chance de aplicar una regla y
-olvidar la otra.
+modales, guardado, botones, procedimientos o reglas de UX en
+Semaplan. Conviene mantenerlo como un unico documento: funcionamiento,
+estilo y operacion se pisan en muchos flujos de esta app, y separarlos
+aumenta la chance de aplicar una regla y olvidar la otra.
 
 ## Convenciones de codigo
 

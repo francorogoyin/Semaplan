@@ -11,7 +11,8 @@ y Turnstile para CAPTCHA en el login).
 
 ## Estructura del proyecto
 
-La aplicación corre en `index.html`. Es un proyecto sin build y con
+La landing pública corre en `index.html` y la aplicación operativa
+principal hoy vive en `login.html`. Es un proyecto sin build y con
 lógica inline, así que los cambios principales suelen concentrarse ahí.
 
 Rutas operativas principales:
@@ -77,12 +78,12 @@ Rutas operativas principales:
 ## Convenciones de codigo
 
 Antes de tocar frontend, modales, guardado o UX, leer
-`Documentacion/Planes/Funcionamiento_Semaplan.md`. Ese archivo es la
-fuente base para reglas de funcionamiento y estilo.
+`Documentacion/Planes/Reglas_Operativas_Semaplan.md`. Ese archivo es
+la fuente base para reglas operativas, de funcionamiento y de estilo.
 
 ## Regla UX de seleccion multiple
 
-Seguir `Documentacion/Planes/Funcionamiento_Semaplan.md`.
+Seguir `Documentacion/Planes/Reglas_Operativas_Semaplan.md`.
 
 ## Comunicación
 
@@ -304,7 +305,7 @@ el avance quedo validado con pruebas y revision de variantes.
 
 ### Regla general de funcionamiento
 
-Seguir `Documentacion/Planes/Funcionamiento_Semaplan.md` como
+Seguir `Documentacion/Planes/Reglas_Operativas_Semaplan.md` como
 referencia general de funcionamiento de la pagina. No tratarlo como
 un documento limitado al guardado: tambien define reglas de UX,
 modales, seleccion multiple, comportamiento visible, estilo operativo y
