@@ -1,4 +1,4 @@
-Plan operativo para API de IA de Semaplan.
+Plan de implementacion para API de IA de Semaplan.
 
 Fecha de redaccion inicial: 2026-04-16.
 Fecha de actualizacion: 2026-04-27.
@@ -8,893 +8,917 @@ Objetivo.
 Construir una API de solo lectura para que GPT y Claude puedan
 consultar datos de Semaplan con autorizacion explicita del usuario.
 
-La API no debe quedar limitada a agenda, Archivero, Baul y metas
-sueltas. Debe cubrir el estado operativo real de la app: agenda,
-tareas, habitos, slots, bloques, planes semanales, planes por
-periodos, Archivero, Baul, metas y resumen compacto.
+La API debe cubrir el estado operativo real de la app:
 
-La API debe exponer vistas legibles y seguras sin devolver el blob
-crudo completo de `public.estado_usuario.estado` ni credenciales
-internas.
+- agenda y eventos;
+- tareas;
+- habitos;
+- slots vacios, tipos de slot y planes de slot;
+- planes semanales;
+- planes por periodos;
+- Archivero;
+- Baul;
+- metas;
+- contexto compacto.
 
-Este documento esta escrito para que Codex pueda tomarlo como unica
-entrada operativa y empezar a implementar directamente.
+La API debe exponer vistas legibles y seguras, sin devolver el blob
+crudo completo de `public.estado_usuario.estado`.
 
-Decision tecnica recomendada.
+Este documento ya no describe solo la idea general. Debe servir como
+guia lista para implementar: orden de fases, contrato publico,
+normalizadores, tests y criterio de cierre.
+
+## Decision tecnica
 
 Crear un Semaplan AI Gateway como capa unica de lectura.
 
-El gateway debe vivir como Edge Function de Supabase, con nombre
-`semaplan-ai`.
-
-GPT debe consumir ese gateway mediante GPT Actions y un esquema
-OpenAPI.
-
-Claude debe consumir el mismo gateway mediante un servidor MCP remoto,
-o mediante herramientas de Claude API mientras se construye el MCP.
+- Backend unico:
+  `supabase/functions/semaplan-ai/index.ts`
+- Consumo de GPT:
+  GPT Actions + OpenAPI
+- Consumo de Claude:
+  MCP remoto o tool use intermedio
 
 No crear dos backends separados para GPT y Claude.
 
-Arquitectura objetivo.
-
-La arquitectura debe quedar asi.
-
-Semaplan en Supabase guarda el estado del usuario en
-`public.estado_usuario.estado`.
-
-La app operativa actual que modela ese estado vive principalmente en
-`login.html`. `index.html` hoy funciona como landing publica, asi que
-la inspeccion del modelo real debe hacerse sobre `login.html`.
-
-La Edge Function `semaplan-ai` lee ese estado, lo normaliza por
-dominios y devuelve JSON minimo para IA.
-
-Un archivo OpenAPI describe esa API para GPT Actions.
-
-Un adaptador MCP expone herramientas equivalentes para Claude.
-
-El flujo logico es este.
-
-Semaplan y Supabase.
-
-Semaplan AI Gateway.
-
-OpenAPI para GPT Actions.
-
-MCP server para Claude.
-
-Alcance de la version 1.
-
-La version 1 debe ser solo lectura.
-
-Debe permitir consultar agenda por rango de fechas.
-
-Debe permitir consultar tareas y cajones de tareas.
-
-Debe permitir consultar habitos, su programacion y su estado visible.
-
-Debe permitir consultar slots vacios, tipos de slot, planes de slot y
-bloques visibles relevantes.
-
-Debe permitir consultar objetivos y cambios de planes semanales.
-
-Debe permitir consultar planes por periodos con su jerarquia de
-objetivos, subobjetivos y partes.
-
-Debe permitir buscar notas del Archivero por texto.
-
-Debe permitir listar notas de un cajon del Archivero.
-
-Debe permitir listar objetivos del Baul.
-
-Debe permitir consultar metas visibles.
-
-Debe permitir devolver un resumen compacto de contexto.
-
-No debe permitir crear, editar, mover ni borrar datos.
-
-No debe permitir disparar sync.
-
-No debe devolver el blob completo de `estado_usuario.estado`.
-
-No debe devolver credenciales, tokens, email de terceros, snapshots
-internos, datos de debug ni configuraciones tecnicas que no aporten a
-la consulta.
-
-Fuente de datos.
+## Fuente real de datos
 
 La fuente remota de verdad es `public.estado_usuario`.
 
 La columna `estado` contiene el blob JSON completo del usuario.
 
-Las claves principales que se deben contemplar son estas.
+La app operativa real hoy vive principalmente en `login.html`.
+`index.html` es landing publica y `Semaplan.html` redirige a
+`login.html`.
 
-`Objetivos`.
+Antes de codificar un normalizador, relevar en `login.html` la
+estructura actual del subsistema correspondiente.
 
-`Eventos`.
+Claves persistidas relevantes observadas hoy:
 
-`Metas`.
+- `Objetivos`
+- `Eventos`
+- `Metas`
+- `Slots_Muertos`
+- `Planes_Slot`
+- `Planes_Semana`
+- `Planes_Periodo`
+- `Plantillas_Subobjetivos`
+- `Tareas`
+- `Tareas_Cajones_Definidos`
+- `Habitos`
+- `Habitos_Registros`
+- `Baul_Objetivos`
+- `Archiveros`
+- `Notas_Archivero`
+- `Etiquetas_Archivero`
+- `Patrones`
+- `Categorias`
+- `Etiquetas`
+- `Tipos_Slot`
+- `Slots_Muertos_Tipos`
+- `Slots_Muertos_Nombres`
+- `Slots_Muertos_Titulos_Visibles`
+- `Config_Extra`
+- `Inicio_Semana`
 
-`Slots_Muertos`.
+Si durante la implementacion aparece una clave adicional que sea
+necesaria para exponer un dato visible, agregarla al normalizador sin
+romper el contrato publico.
 
-`Planes_Slot`.
+## Principios de version 1
 
-`Planes_Semana`.
+La version 1 debe ser estrictamente read-only.
 
-`Planes_Periodo`.
+Permitido:
 
-`Plantillas_Subobjetivos`.
+- leer estado normalizado por dominios;
+- consultar por fecha, rango, cajon, estado o texto;
+- devolver resumenes compactos para IA.
 
-`Tareas`.
+No permitido:
 
-`Tareas_Cajones_Definidos`.
+- crear, editar, mover o borrar datos;
+- disparar sync;
+- devolver el blob completo;
+- devolver credenciales, tokens, emails de terceros o datos de debug;
+- usar cookies;
+- exponer service role key al frontend.
 
-`Habitos`.
-
-`Habitos_Registros`.
-
-`Baul_Objetivos`.
-
-`Archiveros`.
-
-`Notas_Archivero`.
-
-`Etiquetas_Archivero`.
-
-`Patrones`.
-
-`Categorias`.
-
-`Etiquetas`.
-
-`Tipos_Slot`.
-
-`Slots_Muertos_Tipos`.
-
-`Slots_Muertos_Nombres`.
-
-`Slots_Muertos_Titulos_Visibles`.
-
-`Config_Extra`.
-
-`Inicio_Semana`.
-
-Si durante la implementacion el codigo real usa nombres adicionales,
-Codex debe agregarlos al normalizador sin cambiar el contrato publico.
-
-Modelo real observado en la app.
-
-El estado persistido actual de Semaplan no es un calendario aislado.
-
-Incluye al menos estas familias funcionales.
-
-Agenda y eventos:
-`Eventos`, `Objetivos`, `Slots_Muertos`,
-`Planes_Slot`, `Tipos_Slot`.
-
-Trabajo semanal:
-`Planes_Semana`, objetivos de semana y diferencias entre plan base y
-estado actual.
-
-Trabajo por periodos:
-`Planes_Periodo` con `Periodos`, `Objetivos`,
-`Subobjetivos`, `Partes` y `Avances`.
-
-Operacion diaria:
-`Tareas`, `Tareas_Cajones_Definidos`, `Habitos`,
-`Habitos_Registros`, `Patrones`.
-
-Memoria y backlog:
-`Archiveros`, `Notas_Archivero`, `Etiquetas_Archivero`,
-`Baul_Objetivos`.
-
-Seguimiento:
-`Metas`.
-
-Configuracion visible:
-`Config_Extra`, `Categorias`, `Etiquetas`,
-`Inicio_Semana`.
-
-Autenticacion recomendada.
+## Autenticacion
 
 La integracion inicial debe usar tokens de lectura de IA por usuario.
 
-No usar la service role key en el frontend.
+Tabla nueva recomendada:
+`public.tokens_ia_usuario`
+
+Columnas recomendadas:
+
+- `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
+- `usuario_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE`
+- `nombre TEXT NOT NULL DEFAULT 'Integracion IA'`
+- `token_hash TEXT NOT NULL UNIQUE`
+- `scopes TEXT[] NOT NULL DEFAULT ARRAY['read']`
+- `ultimo_uso_en TIMESTAMPTZ`
+- `creado_en TIMESTAMPTZ NOT NULL DEFAULT NOW()`
+- `revocado_en TIMESTAMPTZ`
+
+Reglas:
+
+- El token real se muestra una sola vez.
+- La base guarda solo hash SHA-256.
+- El cliente envia `X-Semaplan-AI-Token`.
+- La Edge Function hashea el token entrante y busca su hash.
+- Si el token no existe o esta revocado, rechazar.
+- Leer solo el estado del `usuario_id` asociado al token.
+- Aceptar `Authorization: Bearer <jwt>` solo como modo interno de
+  prueba para la app web.
+
+## Base URL
+
+Base publica:
+`https://<project>.supabase.co/functions/v1/semaplan-ai`
+
+Todos los endpoints deben vivir bajo la misma Edge Function.
+
+## Contrato publico de v1
+
+### 1. `GET /salud`
+
+Uso:
+chequeo simple del servicio.
+
+Respuesta:
+
+```json
+{
+  "Ok": true,
+  "Servicio": "Semaplan AI Gateway",
+  "Version": "1.0.0"
+}
+```
+
+### 2. `GET /contexto?desde=YYYY-MM-DD&hasta=YYYY-MM-DD`
+
+Uso:
+endpoint recomendado para preguntas generales.
+
+Rango maximo:
+45 dias.
+
+Respuesta minima esperada:
+
+```json
+{
+  "Ok": true,
+  "Contexto": {
+    "Desde": "2026-04-27",
+    "Hasta": "2026-05-03",
+    "Agenda": {},
+    "Tareas": {},
+    "Habitos": {},
+    "Slots": {},
+    "Planes_Semana": {},
+    "Planes_Periodo": {},
+    "Archivero": {},
+    "Baul": {},
+    "Metas": {}
+  }
+}
+```
+
+No tiene que devolver listas completas pesadas si una cuenta alcanza.
+Debe priorizar resumenes y proximos items.
+
+### 3. `GET /agenda?desde=YYYY-MM-DD&hasta=YYYY-MM-DD`
+
+Uso:
+leer eventos calendarizados, slots muertos y planes de slot en rango.
+
+Rango maximo:
+45 dias.
+
+Respuesta:
+
+```json
+{
+  "Ok": true,
+  "Desde": "2026-04-27",
+  "Hasta": "2026-05-03",
+  "Bloques": [
+    {
+      "Id": "Ev_1",
+      "Fecha": "2026-04-27",
+      "Inicio": "09:00",
+      "Fin": "10:00",
+      "Titulo": "Leer Foucault",
+      "Tipo": "Evento",
+      "Objetivo_Id": "Obj_1",
+      "Objetivo_Nombre": "Lectura",
+      "Categoria": "Estudio",
+      "Nota": "Capitulo 1",
+      "Estado": "Planeado",
+      "Origen": "Calendario",
+      "Plan_Slot": null
+    }
+  ]
+}
+```
+
+### 4. `GET /tareas?desde=YYYY-MM-DD&hasta=YYYY-MM-DD&cajon=<texto>&estado=<texto>&limite=100`
+
+Uso:
+leer tareas sueltas por rango, cajon y estado.
+
+Limites:
+
+- `limite` default 50
+- `limite` maximo 100
+- rango maximo 45 dias cuando se usa rango
+
+Respuesta:
+
+```json
+{
+  "Ok": true,
+  "Tareas": [
+    {
+      "Id": "Tarea_1",
+      "Nombre": "Mandar mail",
+      "Emoji": "•",
+      "Cajon": "Inbox",
+      "Prioridad": "Media",
+      "Estado": "pendiente",
+      "Fecha": "2026-04-27",
+      "Hora": "11:00",
+      "Planeada": true,
+      "Evento_Id": "Ev_10",
+      "Plan_Clave": "2026-04-27|11",
+      "Fecha_Creacion": "2026-04-27T10:00:00.000Z",
+      "Fecha_Actualizacion": "2026-04-27T10:10:00.000Z"
+    }
+  ]
+}
+```
+
+### 5. `GET /habitos?fecha=YYYY-MM-DD&modo=Dia|Semana|Quincena|Mes&limite=100`
+
+Uso:
+leer habitos visibles para una fecha y su contexto operativo.
+
+Respuesta:
+
+```json
+{
+  "Ok": true,
+  "Fecha": "2026-04-27",
+  "Modo": "Semana",
+  "Habitos": [
+    {
+      "Id": "Hab_1",
+      "Nombre": "Caminar",
+      "Emoji": "🚶",
+      "Tipo": "Hacer",
+      "Activo": true,
+      "Archivado": false,
+      "Fecha_Inicio": "2026-04-01",
+      "Programacion": {},
+      "Meta": {},
+      "Estado_Visible": "Pendiente",
+      "Ultimo_Registro": null
+    }
+  ]
+}
+```
+
+### 6. `GET /slots?desde=YYYY-MM-DD&hasta=YYYY-MM-DD&limite=200`
+
+Uso:
+leer slots vacios, tipos, nombres visibles y planes de slot.
+
+Respuesta:
+
+```json
+{
+  "Ok": true,
+  "Slots": [
+    {
+      "Fecha": "2026-04-27",
+      "Hora": "15:00",
+      "Tipo_Id": "Slot_Trabajo",
+      "Tipo_Nombre": "Trabajo",
+      "Titulo_Visible": "Bloque libre",
+      "Plan": {
+        "Items": [],
+        "Nota": ""
+      }
+    }
+  ]
+}
+```
+
+### 7. `GET /planes/semana?semana=YYYY-MM-DD`
+
+Uso:
+leer el snapshot de plan semanal y su diff contra eventos actuales.
+
+Respuesta:
+
+```json
+{
+  "Ok": true,
+  "Plan_Semana": {
+    "Semana": "2026-04-27",
+    "Fijada_En": "2026-04-27T03:00:00.000Z",
+    "Cerrada_En": null,
+    "Nota_Inicial": "",
+    "Nota_Cierre": "",
+    "Veces_Refijada": 0,
+    "Eventos_Base": [],
+    "Diff": {
+      "Agregados": [],
+      "Quitados": [],
+      "Movidos": [],
+      "Duracion": []
+    }
+  }
+}
+```
+
+### 8. `GET /planes/periodos?periodo_id=<id>&tipo=<texto>&limite=100`
+
+Uso:
+leer el sistema jerarquico de planes por periodos.
+
+Reglas:
+
+- si no viene `periodo_id`, devolver lista de periodos y resumen;
+- si viene `periodo_id`, devolver periodo y su arbol relevante.
+
+Respuesta:
+
+```json
+{
+  "Ok": true,
+  "Periodo": {},
+  "Objetivos": [],
+  "Subobjetivos": [],
+  "Partes": [],
+  "Avances": []
+}
+```
+
+### 9. `GET /archivero?cajon_id=<id>&limite=50`
+
+Uso:
+leer notas de un cajon.
+
+Reglas:
+
+- si no viene `cajon_id`, usar cajon seleccionado o primer cajon;
+- `limite` default 50;
+- `limite` maximo 100.
+
+Respuesta:
+
+```json
+{
+  "Ok": true,
+  "Cajon": {
+    "Id": "Arch_1",
+    "Nombre": "Semaplan"
+  },
+  "Notas": [
+    {
+      "Id": "Nota_1",
+      "Titulo": "Idea",
+      "Texto": "Texto",
+      "Etiquetas": ["Inmediata"],
+      "Origen": "",
+      "Fecha_Creacion": 0,
+      "Fecha_Actualizacion": 0
+    }
+  ]
+}
+```
+
+### 10. `GET /archivero/buscar?q=<texto>&limite=20`
+
+Uso:
+buscar en titulo, texto, etiquetas y origen.
+
+Reglas:
+
+- normalizar mayusculas, acentos y espacios;
+- `q` maximo 200 caracteres;
+- `limite` default 20;
+- `limite` maximo 50.
+
+### 11. `GET /baul?categoria=<texto>&estado=<texto>&limite=100`
+
+Uso:
+leer objetivos del Baul.
+
+Respuesta:
+
+```json
+{
+  "Ok": true,
+  "Objetivos": [
+    {
+      "Id": "Baul_1",
+      "Nombre": "Curso X",
+      "Emoji": "📚",
+      "Estado": "Activo",
+      "Archivada": false,
+      "Categoria": "Estudio",
+      "Etiquetas": [],
+      "Descripcion": "",
+      "Timeline": null,
+      "Metadatos": {}
+    }
+  ]
+}
+```
+
+### 12. `GET /metas?limite=50`
+
+Uso:
+leer metas visibles y resumidas.
+
+Respuesta:
+
+```json
+{
+  "Ok": true,
+  "Metas": [
+    {
+      "Id": "Meta_1",
+      "Nombre": "Lectura",
+      "Periodo": "Semana",
+      "Unidad": "Horas",
+      "Objetivo": 8,
+      "Progreso": 3,
+      "Estado": "En_Ritmo",
+      "Detalle": null
+    }
+  ]
+}
+```
+
+### 13. `GET /openapi.json`
+
+Uso:
+servir esquema OpenAPI minimo para GPT Actions.
+
+Puede estar en runtime o generarse desde archivo del repo.
+
+## Reglas de normalizacion por dominio
+
+### Agenda
+
+- inspeccionar `login.html` para mapear eventos reales;
+- horarios en `America/Buenos_Aires`;
+- omitir eventos sin fecha valida;
+- incluir nombre de objetivo asociado si existe;
+- incluir nota solo si es breve;
+- si una nota supera 1000 caracteres, truncar y marcar
+  `Texto_Truncado: true`.
+
+### Tareas
+
+- no mezclar tareas con eventos aunque puedan estar vinculadas;
+- si la tarea esta pospuesta, devolver fecha y hora vacias;
+- exponer solo referencias minimas a slot, plan o evento;
+- no exponer borradores ni flags solo de UI.
+
+### Habitos
+
+- devolver solo habitos visibles para fecha y modo pedido;
+- incluir programacion y meta en formato legible;
+- resumir registros relevantes sin bajar historial entero pesado;
+- no exponer filtros ni estados internos de UI.
+
+### Slots
+
+- incluir `Fecha`, `Hora`, `Tipo_Id`, `Tipo_Nombre`,
+  `Titulo_Visible` y plan explicito si existe;
+- si un slot tiene items planeados, devolver lista corta legible;
+- no duplicar metadata pesada por cada entrada si puede resumirse.
+
+### Planes semanales
+
+- exponer snapshot base y diff resumido;
+- no bajar toda la semana completa dentro de `/contexto`;
+- si la semana no existe, devolver estructura vacia consistente.
+
+### Planes por periodos
+
+- devolver periodos, objetivos, subobjetivos y partes con:
+  `Id`, `Nombre`, `Estado`, `Progreso`, `Unidad`,
+  fechas y relaciones padre-hijo;
+- resumir avances;
+- no exponer configuracion `UI` salvo lo minimo necesario.
+
+### Archivero
+
+- ordenar notas por fecha mas nueva primero;
+- buscar por texto normalizado;
+- si no hay titulo, `Titulo: null`;
+- si no hay etiquetas, `Etiquetas: []`;
+- no devolver color de fondo salvo necesidad concreta;
+- si hay adjuntos, no devolver base64 completo en v1.
+
+### Baul
+
+- devolver objetivos accionables y archivados visibles;
+- incluir categoria legible;
+- incluir timeline si existe;
+- resumir metadatos visibles;
+- no devolver estructuras duplicadas pesadas.
+
+### Metas
+
+- devolver nombre, periodo, unidad, objetivo, progreso y estado;
+- si no se puede inferir progreso con seguridad, usar `Detalle`;
+- agregar test antes de publicar si la estructura real queda ambigua.
+
+## Estructura interna recomendada de la Edge Function
+
+Archivo principal:
+`supabase/functions/semaplan-ai/index.ts`
+
+Funciones internas sugeridas:
+
+- `Responder_Json`
+- `Responder_Error`
+- `Validar_Request`
+- `Leer_Estado_Usuario`
+- `Normalizar_Texto_Busqueda`
+- `Parsear_Fecha`
+- `Limitar_Rango_Fechas`
+- `Normalizar_Contexto`
+- `Normalizar_Agenda`
+- `Normalizar_Tareas`
+- `Normalizar_Habitos`
+- `Normalizar_Slots`
+- `Normalizar_Planes_Semana`
+- `Normalizar_Planes_Periodo`
+- `Normalizar_Archivero`
+- `Normalizar_Baul`
+- `Normalizar_Metas`
+- `Filtrar_Campos_Seguros`
+
+Si el archivo principal crece demasiado, separar helpers por dominio
+sin cambiar el contrato del endpoint.
+
+## CORS, errores y limites
+
+CORS:
+
+- responder siempre `OPTIONS`;
+- permitir `Authorization`, `apikey`, `content-type` y
+  `X-Semaplan-AI-Token`;
+- usar `Access-Control-Allow-Origin: *` solo sin cookies.
+
+Formato de error:
+
+```json
+{
+  "Ok": false,
+  "Error": "No autorizado",
+  "Detalle": "Token invalido."
+}
+```
+
+Codigos HTTP:
+
+- `200` exito
+- `400` parametros invalidos
+- `401` sin token o JWT invalido
+- `403` token revocado o scope insuficiente
+- `404` ruta inexistente
+- `429` rate limit
+- `500` error inesperado
+
+Rate limit minimo de v1:
+
+- 60 requests por minuto por token
+- 500 requests por dia por token
+
+Si no entra tabla de rate limit en el primer commit tecnico, dejar el
+codigo preparado y documentar deuda explicita. No cerrar la API
+publica sin rate limit.
+
+## Archivos a crear
+
+- `supabase/functions/semaplan-ai/index.ts`
+- `supabase/migrations/YYYYMMDD_tokens_ia_usuario.sql`
+- `Documentacion/Planes/OpenAPI_Semaplan_AI.yaml`
+- `Documentacion/Planes/Instrucciones_GPT_Semaplan_AI.txt`
+- `Documentacion/Planes/Instrucciones_Claude_MCP_Semaplan_AI.txt`
+
+Opcional si entra MCP en el mismo turno:
+
+- `Herramientas/Scripts/semaplan-ai-mcp-server.js`
+
+## Fases de implementacion
+
+### Fase 0. Cerrar contrato
+
+Objetivo:
+definir payloads, reglas de normalizacion y limites antes de escribir
+la funcion.
+
+Salida esperada:
+
+- este documento cerrado;
+- OpenAPI bosquejado;
+- decision tomada sobre campos minimos por endpoint.
+
+### Fase 1. Autenticacion y esqueleto
+
+Archivos:
+
+- migration `tokens_ia_usuario`
+- Edge Function con `OPTIONS`, `/salud` y validacion de token
+
+Tests minimos:
+
+- `/salud` responde `200`
+- request sin token responde `401`
+- token revocado responde `403`
+
+Commit recomendado:
+`Agregar autenticacion base de semaplan-ai`
+
+### Fase 2. Lectura segura del estado
+
+Objetivo:
+leer `estado_usuario` del usuario autenticado y filtrar campos seguros.
+
+Tests minimos:
+
+- no mezclar usuarios
+- no devolver blob crudo completo
+- no exponer tokens ni credenciales
+
+Commit recomendado:
+`Agregar lectura segura de estado para semaplan-ai`
+
+### Fase 3. Contexto y agenda
+
+Endpoints:
+
+- `/contexto`
+- `/agenda`
+
+Tests minimos:
+
+- rango > 45 dias da `400`
+- evento sin fecha valida se omite
+- agenda devuelve nombre de objetivo asociado si existe
+
+Commit recomendado:
+`Agregar contexto y agenda a semaplan-ai`
+
+### Fase 4. Operacion diaria
+
+Endpoints:
+
+- `/tareas`
+- `/habitos`
+- `/slots`
 
-No poner tokens de Supabase dentro de un Custom GPT.
+Tests minimos:
+
+- `/tareas` devuelve solo tareas normalizadas
+- tarea pospuesta sale sin fecha ni hora
+- `/habitos` devuelve estado visible consistente
+- `/slots` devuelve tipo, titulo visible y plan si existe
 
-No depender de localStorage ni de la app Desktop para esta API.
+Commit recomendado:
+`Agregar tareas habitos y slots a semaplan-ai`
 
-Crear una tabla nueva para tokens de IA.
+### Fase 5. Planificacion
 
-Nombre recomendado: `public.tokens_ia_usuario`.
+Endpoints:
+
+- `/planes/semana`
+- `/planes/periodos`
+
+Tests minimos:
+
+- `/planes/semana` devuelve diff resumido
+- `/planes/periodos` expone objetivos, subobjetivos y partes
+- no exponer estructuras internas de UI innecesarias
+
+Commit recomendado:
+`Agregar planes semanales y por periodos a semaplan-ai`
+
+### Fase 6. Memoria y backlog
+
+Endpoints:
+
+- `/archivero`
+- `/archivero/buscar`
+- `/baul`
+- `/metas`
 
-Columnas recomendadas.
+Tests minimos:
+
+- `/archivero/buscar` no depende de acentos
+- Archivero ordena mas nuevo primero
+- Baul devuelve categoria legible
+- Metas devuelven estado y progreso o detalle seguro
+
+Commit recomendado:
+`Agregar archivero baul y metas a semaplan-ai`
+
+### Fase 7. OpenAPI y GPT
 
-`id UUID PRIMARY KEY DEFAULT gen_random_uuid()`.
+Archivos:
 
-`usuario_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE`.
+- `OpenAPI_Semaplan_AI.yaml`
+- `Instrucciones_GPT_Semaplan_AI.txt`
 
-`nombre TEXT NOT NULL DEFAULT 'Integracion IA'`.
+Tests minimos:
+
+- OpenAPI contiene todos los endpoints de v1
+- auth declarada por header `X-Semaplan-AI-Token`
+
+Commit recomendado:
+`Agregar OpenAPI e instrucciones GPT para semaplan-ai`
+
+### Fase 8. Claude MCP o camino intermedio
+
+Archivos:
+
+- `Instrucciones_Claude_MCP_Semaplan_AI.txt`
+- MCP remoto opcional en este turno
+
+Tests minimos:
+
+- todas las herramientas MCP mapear al gateway
+- MCP no leer Supabase directo
+
+Commit recomendado:
+`Documentar integracion Claude para semaplan-ai`
+
+### Fase 9. UI minima de tokens
+
+Objetivo:
+seccion `Integraciones IA` en Configuracion.
 
-`token_hash TEXT NOT NULL UNIQUE`.
+Botones:
 
-`scopes TEXT[] NOT NULL DEFAULT ARRAY['read']`.
-
-`ultimo_uso_en TIMESTAMPTZ`.
-
-`creado_en TIMESTAMPTZ NOT NULL DEFAULT NOW()`.
-
-`revocado_en TIMESTAMPTZ`.
-
-El token real se debe mostrar una sola vez al usuario.
-
-La base debe guardar solo hash SHA-256 del token.
-
-El token enviado por GPT o Claude debe viajar en el header
-`X-Semaplan-AI-Token`.
-
-La Edge Function debe hashear el token entrante y buscarlo en
-`tokens_ia_usuario`.
-
-La Edge Function debe rechazar tokens inexistentes o revocados.
-
-La Edge Function debe leer solo el estado del `usuario_id` asociado al
-token validado.
-
-La Edge Function puede usar `SUPABASE_SERVICE_ROLE_KEY` solo del lado
-servidor para validar token y leer estado.
-
-Si el usuario esta logueado en la app web, tambien se puede aceptar
-`Authorization: Bearer <jwt>` como modo interno de prueba.
-
-Para GPT Actions conviene usar `X-Semaplan-AI-Token`.
-
-Para Claude MCP conviene usar el mismo token como bearer interno del
-servidor MCP.
-
-Endpoints de version 1.
-
-Implementar todos los endpoints bajo una sola Edge Function.
-
-Base publica.
-
-`https://<project>.supabase.co/functions/v1/semaplan-ai`.
-
-Endpoint de salud.
-
-`GET /salud`.
-
-Devuelve estado simple de la API.
-
-Respuesta esperada.
-
-`{"Ok":true,"Servicio":"Semaplan AI Gateway","Version":"1.0.0"}`.
-
-Endpoint de contexto compacto.
-
-`GET /contexto?desde=YYYY-MM-DD&hasta=YYYY-MM-DD`.
-
-Devuelve una vista resumida del estado operativo:
-agenda proxima, tareas, habitos activos, slots vacios, cantidad de
-notas, cantidad de objetivos del Baul, metas y planes visibles.
-
-Este endpoint es el recomendado para preguntas generales.
-
-Endpoint de agenda.
-
-`GET /agenda?desde=YYYY-MM-DD&hasta=YYYY-MM-DD`.
-
-Devuelve eventos calendarizados, slots muertos y planes de slot dentro
-del rango.
-
-El rango maximo permitido debe ser 45 dias.
-
-Cada bloque debe incluir, si existe en el estado, `Id`, `Fecha`,
-`Inicio`, `Fin`, `Titulo`, `Tipo`, `Objetivo_Id`,
-`Objetivo_Nombre`, `Categoria`, `Nota`, `Estado`, `Origen` y
-`Plan_Slot`.
-
-No devolver propiedades internas que no aporten a la pregunta.
-
-Endpoint de tareas.
-
-`GET /tareas?desde=YYYY-MM-DD&hasta=YYYY-MM-DD&cajon=<texto>&estado=<texto>&limite=100`.
-
-Devuelve tareas sueltas visibles.
-
-Cada tarea debe incluir `Id`, `Nombre`, `Emoji`, `Cajon`,
-`Prioridad`, `Estado`, `Fecha`, `Hora`, `Planeada`,
-`Fecha_Creacion`, `Fecha_Actualizacion` y referencias minimas al plan
-si existen.
-
-Endpoint de habitos.
-
-`GET /habitos?fecha=YYYY-MM-DD&modo=Dia|Semana|Quincena|Mes&limite=100`.
-
-Devuelve habitos con nombre, tipo, programacion, meta, periodo y
-estado visible en la fecha consultada.
-
-Si existen registros relevantes en el rango del modo pedido, devolver
-resumen de cumplimiento y ultimo registro visible.
-
-Endpoint de slots y bloques.
-
-`GET /slots?desde=YYYY-MM-DD&hasta=YYYY-MM-DD&limite=200`.
-
-Devuelve slots vacios, tipos de slot, nombres visibles y planes
-explicitos de slot.
-
-Este endpoint existe para preguntas sobre disponibilidad, planes de
-bloques, bolsas de horas y slots configurados.
-
-Endpoint de planes semanales.
-
-`GET /planes/semana?semana=YYYY-MM-DD`.
-
-Devuelve el plan semanal persistido para la semana base pedida.
-
-Debe incluir `Semana`, `Fijada_En`, `Cerrada_En`, `Nota_Inicial`,
-`Nota_Cierre`, `Veces_Refijada`, `Eventos_Base` y un diff resumido
-contra los eventos actuales: `Agregados`, `Quitados`, `Movidos`,
-`Duracion`.
-
-Endpoint de planes por periodos.
-
-`GET /planes/periodos?periodo_id=<id>&tipo=<texto>&limite=100`.
-
-Devuelve la jerarquia de `Planes_Periodo`.
-
-Si no viene `periodo_id`, debe devolver periodos visibles y un resumen
-de objetivos relacionados.
-
-Si viene `periodo_id`, debe devolver periodo, objetivos directos,
-subobjetivos, partes y avances resumidos.
-
-Este endpoint es la fuente principal para preguntas sobre objetivos,
-subobjetivos y partes del panel jerarquico.
-
-Endpoint de Archivero por cajon.
-
-`GET /archivero?cajon_id=<id>&limite=50`.
-
-Devuelve notas de un cajon.
-
-Si no viene `cajon_id`, usar el cajon seleccionado o el primer cajon.
-
-El limite maximo debe ser 100.
-
-Cada nota debe incluir `Id`, `Titulo`, `Texto`, `Etiquetas`,
-`Origen`, `Fecha_Creacion`, `Fecha_Actualizacion` y `Cajon`.
-
-Endpoint de busqueda de Archivero.
-
-`GET /archivero/buscar?q=<texto>&limite=20`.
-
-Debe buscar en titulo, texto, etiquetas y origen.
-
-La busqueda debe normalizar mayusculas, acentos y espacios.
-
-No usar busqueda exacta sensible a acentos.
-
-El limite maximo debe ser 50.
-
-Endpoint de Baul.
-
-`GET /baul?categoria=<texto>&estado=<texto>&limite=100`.
-
-Devuelve objetivos del Baul.
-
-Debe incluir nombre, descripcion, categoria, etiquetas, fecha,
-timeline y metadatos visibles si existen.
-
-No debe devolver datos de UI innecesarios.
-
-Endpoint de metas.
-
-`GET /metas?limite=50`.
-
-Devuelve metas con progreso, ritmo e historial resumido si existe.
-
-Debe omitir campos internos que no sean utiles para responder.
-
-Endpoint de OpenAPI.
-
-`GET /openapi.json`.
-
-Devuelve el esquema OpenAPI minimo para GPT Actions.
-
-Este endpoint es opcional si se mantiene el esquema como archivo dentro
-del repo.
-
-Archivos a crear.
-
-Crear `supabase/functions/semaplan-ai/index.ts`.
-
-Crear `supabase/migrations/YYYYMMDD_tokens_ia_usuario.sql`.
-
-Crear `Documentacion/Planes/OpenAPI_Semaplan_AI.yaml`.
-
-Crear `Documentacion/Planes/Instrucciones_GPT_Semaplan_AI.txt`.
-
-Crear `Documentacion/Planes/Instrucciones_Claude_MCP_Semaplan_AI.txt`.
-
-Si se implementa MCP en el mismo turno, crear
-`Herramientas/Scripts/semaplan-ai-mcp-server.js` o una carpeta
-equivalente bajo `Herramientas/Scripts`.
-
-Funciones internas recomendadas en la Edge Function.
-
-`Responder_Json`.
-
-`Responder_Error`.
-
-`Validar_Request`.
-
-`Leer_Estado_Usuario`.
-
-`Normalizar_Texto_Busqueda`.
-
-`Parsear_Fecha`.
-
-`Limitar_Rango_Fechas`.
-
-`Normalizar_Contexto`.
-
-`Normalizar_Agenda`.
-
-`Normalizar_Tareas`.
-
-`Normalizar_Habitos`.
-
-`Normalizar_Slots`.
-
-`Normalizar_Planes_Semana`.
-
-`Normalizar_Planes_Periodo`.
-
-`Normalizar_Archivero`.
-
-`Normalizar_Baul`.
-
-`Normalizar_Metas`.
-
-`Filtrar_Campos_Seguros`.
-
-Formato de errores.
-
-Todos los errores deben devolver JSON.
-
-Ejemplo.
-
-`{"Ok":false,"Error":"No autorizado","Detalle":"Token invalido."}`.
-
-Codigos HTTP esperados.
-
-`200` para exito.
-
-`400` para parametros invalidos.
-
-`401` para falta de token o JWT invalido.
-
-`403` para token revocado o scope insuficiente.
-
-`404` para ruta inexistente.
-
-`429` para rate limit.
-
-`500` para error inesperado.
-
-CORS.
-
-Responder siempre `OPTIONS`.
-
-Permitir `Authorization`, `apikey`, `content-type` y
-`X-Semaplan-AI-Token`.
-
-Usar `Access-Control-Allow-Origin: *` solo si no hay cookies.
-
-No usar cookies para esta integracion.
-
-Rate limit.
-
-Agregar limitacion basica por token.
-
-Minimo recomendado para version 1.
-
-60 requests por minuto por token.
-
-500 requests por dia por token.
-
-Si no se implementa tabla de rate limit en el primer commit, dejar el
-codigo preparado y documentar la deuda tecnica en el mismo archivo de
-la Edge Function.
-
-No cerrar la tarea final sin rate limit si la API queda publica.
-
-Normalizacion de agenda.
-
-Codex debe inspeccionar como `login.html` renderiza eventos, slots y
-bloques para mapear fechas y horarios reales.
-
-El contrato publico no debe exponer el modelo interno completo.
-
-Los horarios deben salir en zona horaria `America/Buenos_Aires`.
-
-Si un evento no tiene fecha valida, omitirlo.
-
-Si un evento tiene objetivo asociado, incluir el nombre del objetivo.
-
-Si un evento tiene nota, incluirla solo si es texto breve.
-
-Si una nota supera 1000 caracteres, truncar y agregar
-`Texto_Truncado:true`.
-
-Normalizacion de tareas.
-
-Las tareas deben salir como entidades propias, no mezcladas
-forzosamente con eventos.
-
-Si una tarea esta pospuesta, no devolver fecha ni hora activas.
-
-Si una tarea esta vinculada a un plan o evento, devolver solo
-referencias legibles minimas.
-
-Normalizacion de habitos.
-
-Devolver nombre, tipo, programacion, meta, periodo, activo,
-archivado y estado visible en la fecha o rango consultado.
-
-No devolver estructuras de UI ni borradores internos.
-
-Normalizacion de slots y bloques.
-
-Los slots vacios deben incluir `Fecha`, `Hora`, `Tipo_Id`,
-`Tipo_Nombre`, `Titulo_Visible` y plan explicito si existe.
-
-Si el slot tiene items planeados, devolver una lista corta legible.
-
-No devolver metadata redundante por cada clave si puede resumirse.
-
-Normalizacion de planes semanales.
-
-Devolver el snapshot base de la semana y su diff resumido contra el
-estado actual.
-
-No devolver estructuras pesadas si la consulta solo pide contexto.
-
-Normalizacion de planes por periodos.
-
-Devolver periodos, objetivos, subobjetivos y partes con nombres,
-fechas, estado, progreso, unidad, target y relaciones padre-hijo.
-
-Si hay avances, devolver resumen corto y ultimo movimiento visible si
-aplica.
-
-Normalizacion de Archivero.
-
-Las notas deben ordenarse por fecha mas nueva primero por defecto.
-
-La busqueda debe comparar texto normalizado.
-
-La respuesta debe incluir el cajon de cada nota.
-
-Si una nota no tiene titulo, devolver `Titulo:null`.
-
-Si una nota no tiene etiquetas, devolver `Etiquetas:[]`.
-
-No devolver color de fondo salvo que se agregue una razon concreta.
-
-Normalizacion de Baul.
-
-El Baul debe devolver objetivos accionables y archivados visibles.
-
-Si hay categorias, devolver nombre de categoria.
-
-Si hay descripcion, devolverla.
-
-Si hay fecha o timeline, devolverlo.
-
-Si hay subestructuras derivadas, devolver solo resumen corto.
-
-No devolver estructuras duplicadas pesadas.
-
-Normalizacion de metas.
-
-Devolver nombre, progreso, unidad, estado y ultimo movimiento si
-existe.
-
-No intentar inferir progreso si el dato no esta claro.
-
-Si la estructura real de metas es ambigua, devolver el dato bruto
-minimo bajo `Detalle` y agregar test antes de publicar.
-
-Integracion con GPT.
-
-Crear un Custom GPT llamado `Semaplan`.
-
-Configurar GPT Actions con el OpenAPI de
-`Documentacion/Planes/OpenAPI_Semaplan_AI.yaml`.
-
-Usar autenticacion por API key en header `X-Semaplan-AI-Token`.
-
-Instrucciones base del GPT.
-
-Responder sobre datos de Semaplan solo cuando el usuario lo pida.
-
-No inventar horarios, notas, tareas, habitos ni objetivos.
-
-Si el endpoint devuelve vacio, decir que no hay datos en ese rango.
-
-Pedir rango de fechas si la pregunta temporal es ambigua.
-
-No exponer identificadores internos salvo que el usuario los pida para
-debug.
-
-No modificar datos porque la version 1 es solo lectura.
-
-Integracion con Claude.
-
-La opcion recomendada es MCP remoto.
-
-El servidor MCP debe exponer estas herramientas.
-
-`semaplan_contexto`.
-
-`semaplan_agenda`.
-
-`semaplan_tareas`.
-
-`semaplan_habitos`.
-
-`semaplan_slots`.
-
-`semaplan_plan_semana`.
-
-`semaplan_planes_periodos`.
-
-`semaplan_buscar_archivero`.
-
-`semaplan_listar_archivero`.
-
-`semaplan_listar_baul`.
-
-`semaplan_listar_metas`.
-
-Cada herramienta MCP debe llamar al Semaplan AI Gateway.
-
-El MCP no debe leer Supabase directamente.
-
-El MCP debe aceptar un token de usuario y reenviarlo como
-`X-Semaplan-AI-Token`.
-
-Si el MCP remoto se deja para una fase posterior, documentar en
-`Instrucciones_Claude_MCP_Semaplan_AI.txt` como usar las mismas
-operaciones mediante tool use de Claude API.
-
-Orden de implementacion.
-
-Paso 1.
-
-Crear migracion de `tokens_ia_usuario`.
-
-Paso 2.
-
-Crear Edge Function `semaplan-ai` con `/salud` y validacion de token.
-
-Paso 3.
-
-Agregar lectura segura de `estado_usuario`.
-
-Paso 4.
-
-Implementar `/contexto` y `/agenda`.
-
-Paso 5.
-
-Implementar `/tareas`, `/habitos` y `/slots`.
-
-Paso 6.
-
-Implementar `/planes/semana` y `/planes/periodos`.
-
-Paso 7.
-
-Implementar `/archivero` y `/archivero/buscar`.
-
-Paso 8.
-
-Implementar `/baul`.
-
-Paso 9.
-
-Implementar `/metas`.
-
-Paso 10.
-
-Crear OpenAPI para GPT Actions.
-
-Paso 11.
-
-Crear instrucciones del GPT.
-
-Paso 12.
-
-Crear adaptador MCP o dejarlo preparado con herramientas y contratos.
-
-Paso 13.
-
-Agregar UI minima en Configuracion para crear y revocar token de IA.
-
-Paso 14.
-
-Probar con Playwright y smoke de produccion.
-
-UI minima recomendada.
-
-Agregar en Configuracion una seccion `Integraciones IA`.
-
-Mostrar texto breve.
-
-`Permite que GPT o Claude lean tus datos de Semaplan con un token de
-solo lectura.`
-
-Botones.
-
-`Crear token de lectura`.
-
-`Copiar token`.
-
-`Revocar token`.
-
-El token completo debe mostrarse solo una vez.
-
-Despues de cerrar el modal, no debe poder verse de nuevo.
-
-Guardar solo hash en Supabase.
-
-Pruebas obligatorias.
-
-Agregar pruebas de Edge Function cuando el entorno lo permita.
-
-Agregar Playwright para crear token y revocarlo desde Configuracion.
-
-Agregar test de que el token completo no queda guardado en
-localStorage.
-
-Agregar test de que un token revocado devuelve `403`.
-
-Agregar test de que `/agenda` rechaza rangos mayores a 45 dias.
-
-Agregar test de que `/archivero/buscar` no depende de acentos.
-
-Agregar test de que `/tareas` devuelve solo tareas normalizadas.
-
-Agregar test de que `/habitos` devuelve estado visible consistente.
-
-Agregar test de que `/planes/periodos` expone objetivos,
-subobjetivos y partes sin filtrar campos internos de mas.
-
-Agregar test de que GPT OpenAPI contiene todos los endpoints de
-version 1.
-
-Agregar smoke de produccion porque toca Auth, Edge Functions y datos
-personales.
-
-Comandos de validacion esperados.
-
-`npm run test`.
-
-`npm run test:smoke:prod`.
-
-`supabase functions deploy semaplan-ai`.
-
-Si el deploy requiere credenciales no disponibles, Codex debe dejar el
-cambio listo y explicar exactamente que comando falta ejecutar.
-
-Criterios de seguridad.
-
-No usar endpoints sin autenticacion.
-
-No loguear contenido de notas, objetivos, agenda, tareas ni habitos.
-
-No devolver el blob completo de estado.
-
-No permitir escritura en version 1.
-
-No incluir service role key en frontend.
-
-No guardar tokens reales en base ni localStorage.
-
-No aceptar rangos temporales abiertos o ilimitados.
-
-No aceptar queries de busqueda mayores a 200 caracteres.
-
-No responder con stack traces al cliente.
-
-No mezclar datos entre usuarios.
-
-Decision sobre escritura futura.
-
-La escritura queda fuera de version 1.
-
-Para version 2 se puede evaluar crear acciones como crear nota, crear
-tarea, crear objetivo, mover bloque o completar habito.
-
-La escritura solo puede implementarse con confirmacion explicita del
-usuario, scopes separados, auditoria y undo.
-
-Scopes futuros recomendados.
-
-`read`.
-
-`write_notes`.
-
-`write_tasks`.
-
-`write_baul`.
-
-`write_agenda`.
-
-`write_habits`.
-
-`admin_tokens`.
+- `Crear token de lectura`
+- `Copiar token`
+- `Revocar token`
+
+Tests minimos:
+
+- token completo se muestra una sola vez
+- token no queda en localStorage
+- revocacion invalida el uso posterior
+
+Commit recomendado:
+`Agregar gestion de tokens IA en configuracion`
+
+### Fase 10. Validacion final
+
+Validaciones obligatorias:
+
+- `npm run test`
+- `npm run test:smoke:prod`
+- deploy o comando pendiente documentado
+
+Si el deploy no puede ejecutarse por credenciales, dejar el cambio
+listo y anotar exactamente el comando pendiente.
+
+## Matriz minima de pruebas por endpoint
+
+- `/salud`: responde `200` y version
+- `/contexto`: respeta rango y no devuelve payload excesivo
+- `/agenda`: valida rango y omite eventos invalidos
+- `/tareas`: filtra tareas y no mezcla objetivos
+- `/habitos`: calcula estado visible segun fecha y modo
+- `/slots`: devuelve plan de slot y tipo visible
+- `/planes/semana`: devuelve snapshot y diff
+- `/planes/periodos`: devuelve jerarquia segura
+- `/archivero`: ordena y no baja base64 de adjuntos
+- `/archivero/buscar`: normaliza acentos
+- `/baul`: devuelve categoria y timeline si existe
+- `/metas`: devuelve progreso o detalle seguro
+- `/openapi.json`: refleja endpoints y auth real
+
+## Integracion con GPT
+
+Crear Custom GPT `Semaplan`.
+
+Usar GPT Actions con:
+
+- OpenAPI de
+  `Documentacion/Planes/OpenAPI_Semaplan_AI.yaml`
+- auth por API key en `X-Semaplan-AI-Token`
+
+Instrucciones base del GPT:
+
+- responder solo cuando el usuario pida datos de Semaplan;
+- no inventar horarios, notas, tareas, habitos ni objetivos;
+- pedir rango de fechas si la pregunta temporal es ambigua;
+- si el endpoint devuelve vacio, decirlo;
+- no modificar datos en v1.
+
+## Integracion con Claude
+
+Opcion recomendada:
+MCP remoto.
+
+Herramientas esperadas:
+
+- `semaplan_contexto`
+- `semaplan_agenda`
+- `semaplan_tareas`
+- `semaplan_habitos`
+- `semaplan_slots`
+- `semaplan_plan_semana`
+- `semaplan_planes_periodos`
+- `semaplan_buscar_archivero`
+- `semaplan_listar_archivero`
+- `semaplan_listar_baul`
+- `semaplan_listar_metas`
+
+Reglas:
+
+- todas deben llamar al gateway;
+- MCP no debe leer Supabase directo;
+- reenviar el token como `X-Semaplan-AI-Token`.
+
+## Seguridad
+
+- no usar endpoints sin autenticacion;
+- no loguear contenido de notas, agenda, tareas ni habitos;
+- no devolver stack traces al cliente;
+- no aceptar queries de busqueda > 200 caracteres;
+- no aceptar rangos temporales abiertos o ilimitados;
+- no mezclar datos entre usuarios;
+- no guardar tokens reales en base ni localStorage.
+
+## Escritura futura
+
+La escritura queda fuera de v1.
+
+Posibles scopes futuros:
+
+- `read`
+- `write_notes`
+- `write_tasks`
+- `write_baul`
+- `write_agenda`
+- `write_habits`
+- `admin_tokens`
 
 La version 1 solo debe usar `read`.
 
-Archivos que no se deben tocar salvo necesidad.
+Si algun dia entra escritura, debe requerir:
 
-No mover `index.html`.
+- confirmacion explicita del usuario;
+- scopes separados;
+- auditoria;
+- undo.
 
-No mover `Semaplan_Version_1_0_0.html`.
+## Cierre de tarea
 
-No tocar `Local/Credenciales.txt`.
+La tarea se considera cerrada cuando existan:
 
-No tocar `Local/Finanzas.xlsx`.
+- API read-only segura;
+- tokens de lectura por usuario;
+- OpenAPI usable por GPT;
+- camino documentado o implementado para Claude;
+- pruebas reportadas;
+- deploy ejecutado o comando pendiente explicitado.
 
-No usar `git add -A`.
+## Referencias oficiales
 
-No usar `git add .`.
+OpenAI GPT Actions:
+`https://platform.openai.com/docs/actions/getting-started/getting-started`
 
-Como cerrar la tarea.
+OpenAI function calling:
+`https://platform.openai.com/docs/guides/function-calling`
 
-La tarea se considera cerrada cuando existe una API read-only segura,
-el usuario puede crear y revocar un token, GPT puede consultar
-mediante OpenAPI y Claude tiene un camino MCP o tool use documentado.
+Anthropic MCP connector:
+`https://docs.anthropic.com/en/docs/agents-and-tools/mcp-connector`
 
-El cierre debe incluir commit y push en `main`.
+Anthropic tool use:
+`https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview`
 
-El cierre debe indicar que pruebas pasaron.
+## Nota final
 
-El cierre debe indicar si el deploy de Supabase fue ejecutado o quedo
-pendiente por credenciales.
+La secuencia recomendada es esta:
 
-Referencias oficiales para implementar.
-
-OpenAI GPT Actions.
-
-`https://platform.openai.com/docs/actions/getting-started/getting-started`.
-
-OpenAI function calling y herramientas.
-
-`https://platform.openai.com/docs/guides/function-calling`.
-
-Anthropic MCP connector.
-
-`https://docs.anthropic.com/en/docs/agents-and-tools/mcp-connector`.
-
-Anthropic tool use.
-
-`https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview`.
-
-Nota final.
-
-La integracion es viable y conviene hacerla incremental.
-
-Primero lectura segura.
-
-Despues GPT Actions.
-
-Despues MCP para Claude.
-
-Recien despues escritura con confirmacion, scopes y auditoria.
+1. cerrar contrato;
+2. implementar lectura segura;
+3. abrir GPT Actions;
+4. abrir Claude MCP;
+5. recien despues evaluar escritura.
