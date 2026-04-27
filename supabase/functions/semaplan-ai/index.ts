@@ -22,6 +22,55 @@ type Auth_Resultado =
     Detalle: string;
   };
 
+type Estado_Resultado =
+  | {
+    Ok: true;
+    Estado: Record<string, unknown>;
+    Version: number;
+    Actualizado_En: string | null;
+  }
+  | {
+    Ok: false;
+    Status: number;
+    Error: string;
+    Detalle: string;
+  };
+
+const Claves_Estado_Seguras = new Set([
+  "Objetivos",
+  "Eventos",
+  "Metas",
+  "Slots_Muertos",
+  "Planes_Slot",
+  "Planes_Semana",
+  "Planes_Periodo",
+  "Plantillas_Subobjetivos",
+  "Tareas",
+  "Tareas_Cajones_Definidos",
+  "Habitos",
+  "Habitos_Registros",
+  "Baul_Objetivos",
+  "Archiveros",
+  "Notas_Archivero",
+  "Etiquetas_Archivero",
+  "Patrones",
+  "Categorias",
+  "Etiquetas",
+  "Tipos_Slot",
+  "Tipos_Slot_Inicializados",
+  "Slots_Muertos_Tipos",
+  "Slots_Muertos_Nombres",
+  "Slots_Muertos_Titulos_Visibles",
+  "Slots_Muertos_Nombres_Auto",
+  "Slots_Muertos_Grupo_Ids",
+  "Config_Extra",
+  "Inicio_Semana",
+  "Contador_Eventos",
+  "Semanas_Con_Defaults",
+  "Esquema_Estado_Version",
+  "Version_Programa_Actual",
+]);
+
 function Responder_Json(
   Cuerpo: Record<string, unknown>,
   Status = 200
@@ -297,6 +346,96 @@ async function Validar_Request(
   };
 }
 
+function Filtrar_Campos_Seguros(
+  Estado_Raw: unknown
+) {
+  const Estado =
+    Estado_Raw &&
+    typeof Estado_Raw === "object" &&
+    !Array.isArray(Estado_Raw)
+      ? (Estado_Raw as Record<string, unknown>)
+      : {};
+  const Resultado: Record<string, unknown> = {};
+  Object.entries(Estado).forEach(
+    ([Clave, Valor]) => {
+      if (!Claves_Estado_Seguras.has(Clave)) {
+        return;
+      }
+      Resultado[Clave] = Valor;
+    }
+  );
+  return Resultado;
+}
+
+async function Leer_Estado_Usuario(
+  Usuario_Id: string
+): Promise<Estado_Resultado> {
+  try {
+    const Supa_Servicio =
+      Crear_Supabase_Servicio();
+    const {
+      data: Fila_Estado,
+      error: Error_Estado,
+    } = await Supa_Servicio
+      .from("estado_usuario")
+      .select(
+        "user_id, estado, version, actualizado_en"
+      )
+      .eq("user_id", Usuario_Id)
+      .maybeSingle();
+
+    if (Error_Estado) {
+      console.error(
+        "Error leyendo estado_usuario:",
+        Error_Estado
+      );
+      return {
+        Ok: false,
+        Status: 500,
+        Error: "Error interno",
+        Detalle:
+          "No se pudo leer el estado del usuario.",
+      };
+    }
+
+    if (!Fila_Estado) {
+      return {
+        Ok: false,
+        Status: 404,
+        Error: "Estado inexistente",
+        Detalle:
+          "No existe un estado remoto para el usuario.",
+      };
+    }
+
+    return {
+      Ok: true,
+      Estado: Filtrar_Campos_Seguros(
+        Fila_Estado.estado
+      ),
+      Version:
+        Number(Fila_Estado.version) || 1,
+      Actualizado_En:
+        typeof Fila_Estado.actualizado_en ===
+          "string"
+          ? Fila_Estado.actualizado_en
+          : null,
+    };
+  } catch (Error_General) {
+    console.error(
+      "Error general leyendo estado del usuario:",
+      Error_General
+    );
+    return {
+      Ok: false,
+      Status: 500,
+      Error: "Error interno",
+      Detalle:
+        "No se pudo leer el estado del usuario.",
+    };
+  }
+}
+
 Deno.serve(async (Req) => {
   if (Req.method === "OPTIONS") {
     return new Response("ok", {
@@ -339,14 +478,25 @@ Deno.serve(async (Req) => {
       );
     }
 
+    const Estado = await Leer_Estado_Usuario(
+      Auth.Usuario_Id
+    );
+    if (!Estado.Ok) {
+      return Responder_Error(
+        Estado.Status,
+        Estado.Error,
+        Estado.Detalle
+      );
+    }
+
     // TODO: Fase posterior.
     // Agregar rate limit por token antes de abrir
     // la API en produccion.
     return Responder_Error(
       501,
       "No implementado",
-      "La fase actual solo expone /salud y " +
-        "la validacion base."
+      "La fase actual expone /salud, " +
+        "validacion base y lectura segura del estado."
     );
   }
 

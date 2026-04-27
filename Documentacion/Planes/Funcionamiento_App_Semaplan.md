@@ -21,7 +21,8 @@ estructuras persistidas o relaciones importantes entre modulos.
 - `Semaplan.html`: redireccion liviana a `login.html`.
 - `login.html`: aplicacion operativa principal.
 - `supabase/functions/semaplan-ai`: gateway read-only en
-  construccion para consultas de IA sobre datos de Semaplan.
+  construccion para consultas de IA sobre datos de Semaplan. Ya valida
+  tokens/JWT y puede leer `estado_usuario` con filtrado seguro.
 - `supabase/functions/*`: Edge Functions remotas para suscripcion,
   ayuda, eliminar cuenta y demas integraciones.
 - `supabase/migrations/*`: cambios de esquema remoto.
