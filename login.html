@@ -3049,12 +3049,25 @@
 
       .Resumen_Sem_Meta {
         border: 1px solid var(--Borde);
-        border-radius: 16px;
+        border-radius: 8px;
         background: rgba(255, 255, 255, 0.9);
-        padding: 12px;
+        padding: 10px;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 10px 14px;
+        gap: 8px;
+      }
+
+      .Resumen_Sem_Meta_Toggle {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto 18px;
+        gap: 10px;
+        align-items: center;
+        border: none;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        padding: 0;
+        text-align: left;
       }
 
       .Resumen_Sem_Meta_Cabecera {
@@ -3083,15 +3096,20 @@
       }
 
       .Resumen_Sem_Meta_Estado {
-        font-size: 11px;
+        font-size: 12px;
         color: var(--Texto_Suave);
         font-weight: 800;
         text-align: right;
         white-space: nowrap;
       }
 
+      .Resumen_Sem_Meta_Chevron {
+        color: var(--Texto_Suave);
+        font-size: 12px;
+        text-align: center;
+      }
+
       .Resumen_Sem_Meta_Barra {
-        grid-column: 1 / -1;
         height: 7px;
         border-radius: 999px;
         background: rgba(0, 0, 0, 0.07);
@@ -3106,9 +3124,8 @@
       }
 
       .Resumen_Sem_Meta_Datos {
-        grid-column: 1 / -1;
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 8px;
       }
 
@@ -3138,25 +3155,53 @@
       }
 
       .Resumen_Sem_Meta_Detalle {
-        grid-column: 1 / -1;
         display: flex;
         flex-direction: column;
-        gap: 4px;
-        padding-top: 4px;
+        gap: 6px;
+        padding-top: 2px;
       }
 
       .Resumen_Sem_Meta_Sub,
       .Resumen_Sem_Meta_Parte {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
         gap: 8px;
+        align-items: center;
         color: var(--Texto_Suave);
         font-size: 11px;
       }
 
+      .Resumen_Sem_Meta_Sub {
+        width: 100%;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.68);
+        cursor: pointer;
+        padding: 7px 8px;
+        text-align: left;
+      }
+
+      .Resumen_Sem_Meta_Sub:hover {
+        background: var(--Acento_Suave);
+      }
+
       .Resumen_Sem_Meta_Parte {
-        padding-left: 18px;
+        padding: 6px 8px 6px 28px;
         opacity: 0.9;
+      }
+
+      .Resumen_Sem_Meta_Sub_Emoji,
+      .Resumen_Sem_Meta_Parte_Emoji {
+        width: 18px;
+        height: 18px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+      }
+
+      .Resumen_Sem_Meta_Sub_Chevron {
+        color: var(--Texto_Suave);
+        font-size: 11px;
       }
 
       .Resumen_Sem_Meta_Sub span,
@@ -3164,6 +3209,23 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+
+      .Resumen_Sem_Meta_Ver_Mas {
+        align-self: flex-start;
+        border: 1px solid var(--Borde);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.82);
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 800;
+        padding: 6px 9px;
+      }
+
+      .Resumen_Sem_Meta_Ver_Mas:hover {
+        background: var(--Acento_Suave);
+        color: var(--Acento);
       }
 
       @media (max-width: 620px) {
@@ -3177,7 +3239,7 @@
         }
 
         .Resumen_Sem_Meta_Datos {
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
 
@@ -26595,6 +26657,7 @@
             "Usar color del baúl",
           "baul.etiqueta": "Etiqueta",
           "baul.estado": "Estado",
+          "baul.cambiar_estado": "Cambiar estado",
           "baul.copia_nombre": "{nombre} copia",
           "baul.duplicada": "Elemento duplicado",
           "baul.estado_actualizado": "Estado actualizado",
@@ -27517,7 +27580,18 @@
           "resumen.rango_aplicar": "Aplicar",
           "resumen.metas_vacio":
             "No hay metas con datos para este rango.",
-          "resumen.meta_en_rango": "En el rango",
+          "resumen.meta_en_rango": "Unidades completadas",
+          "resumen.meta_unidades_avanzadas":
+            "Unidades avanzadas",
+          "resumen.meta_avance_total": "Avance total",
+          "resumen.meta_ver_sin_avance":
+            "Ver subobjetivos que no avanzaron",
+          "resumen.meta_ocultar_sin_avance":
+            "Ocultar subobjetivos sin avance",
+          "resumen.meta_ver_partes_sin_avance":
+            "Ver partes que no avanzaron",
+          "resumen.meta_ocultar_partes_sin_avance":
+            "Ocultar partes sin avance",
           "resumen.meta_acumulado": "Acumulado",
           "resumen.meta_sin_target": "Sin meta",
           "contexto.abordaje": "Plan",
@@ -30811,6 +30885,7 @@
             "Use vault color",
           "baul.etiqueta": "Tag",
           "baul.estado": "Status",
+          "baul.cambiar_estado": "Change status",
           "baul.copia_nombre": "{nombre} copy",
           "baul.duplicada": "Item duplicated",
           "baul.estado_actualizado": "Status updated",
@@ -31717,7 +31792,18 @@
           "resumen.rango_aplicar": "Apply",
           "resumen.metas_vacio":
             "There are no goals with data for this range.",
-          "resumen.meta_en_rango": "In range",
+          "resumen.meta_en_rango": "Completed units",
+          "resumen.meta_unidades_avanzadas":
+            "Advanced units",
+          "resumen.meta_avance_total": "Total progress",
+          "resumen.meta_ver_sin_avance":
+            "Show subobjectives with no progress",
+          "resumen.meta_ocultar_sin_avance":
+            "Hide subobjectives with no progress",
+          "resumen.meta_ver_partes_sin_avance":
+            "Show parts with no progress",
+          "resumen.meta_ocultar_partes_sin_avance":
+            "Hide parts with no progress",
           "resumen.meta_acumulado": "Accumulated",
           "resumen.meta_sin_target": "No target",
           "contexto.abordaje": "Plan",
@@ -35041,6 +35127,7 @@
             "Usar cor do bau",
           "baul.etiqueta": "Tag",
           "baul.estado": "Status",
+          "baul.cambiar_estado": "Alterar status",
           "baul.copia_nombre": "Copia de {nombre}",
           "baul.duplicada": "Item duplicado",
           "baul.estado_actualizado": "Status atualizado",
@@ -35979,7 +36066,18 @@
           "resumen.rango_aplicar": "Aplicar",
           "resumen.metas_vacio":
             "Nao ha metas com dados para este intervalo.",
-          "resumen.meta_en_rango": "No intervalo",
+          "resumen.meta_en_rango": "Unidades concluidas",
+          "resumen.meta_unidades_avanzadas":
+            "Unidades avancadas",
+          "resumen.meta_avance_total": "Avanco total",
+          "resumen.meta_ver_sin_avance":
+            "Ver subobjetivos sem avanco",
+          "resumen.meta_ocultar_sin_avance":
+            "Ocultar subobjetivos sem avanco",
+          "resumen.meta_ver_partes_sin_avance":
+            "Ver partes sem avanco",
+          "resumen.meta_ocultar_partes_sin_avance":
+            "Ocultar partes sem avanco",
           "resumen.meta_acumulado": "Acumulado",
           "resumen.meta_sin_target": "Sem meta",
           "contexto.abordaje": "Plano",
@@ -38176,6 +38274,10 @@
       let Resumen_Sem_Custom_Hasta = "";
       // Métrica del resumen: "Horas" o "Subobjetivos".
       let Resumen_Sem_Metrica = "Horas";
+      let Resumen_Sem_Metas_Expandidas = new Set();
+      let Resumen_Sem_Metas_Sub_Expandidos = new Set();
+      let Resumen_Sem_Metas_Sin_Avance_Visibles = new Set();
+      let Resumen_Sem_Metas_Partes_Sin_Avance_Visibles = new Set();
       let Resumen_Sem_Filtro_Categoria = "";
       let Resumen_Sem_Orden = "Cumplimiento";
       let Resumen_Sem_Solo_Pendientes = false;
@@ -40987,6 +41089,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Mostrar_Menu_Baul(Objetivo, X, Y) {
         const Menu = document.getElementById("Dia_Accion_Menu");
         if (!Menu || !Objetivo) return;
+        const Reposicionar = () => {
+          const Rect = Menu.getBoundingClientRect();
+          const VH = window.innerHeight;
+          const VW = window.innerWidth;
+          if (Rect.bottom > VH - 8) {
+            Menu.style.top =
+              `${Math.max(8, VH - Rect.height - 8)}px`;
+          }
+          if (Rect.right > VW - 8) {
+            Menu.style.left =
+              `${Math.max(8, VW - Rect.width - 8)}px`;
+          }
+        };
         Menu.innerHTML =
           `<button class="Dia_Accion_Item"` +
           ` type="button"` +
@@ -41026,7 +41141,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `<button class="Dia_Accion_Item"` +
           ` type="button"` +
           ` data-acc="estado">` +
-          t("baul.estado") +
+          t("baul.cambiar_estado") +
           `</button>` +
           `<div class="Baul_Menu_Estados" data-baul-estados>` +
           ["Activa", "Realizada", "Postergada", "Anulada"].map(
@@ -41036,7 +41151,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   ? " Baul_Estado_Actual"
                   : ""
               }" type="button" data-baul-estado="${Estado}">` +
-              `${Obtener_Emoji_Estado_Baul(Estado)} ` +
               `${Escape_Html(Obtener_Label_Estado_Baul(Estado))}` +
               `</button>`
           ).join("") +
@@ -41057,19 +41171,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Menu.style.top = `${Y}px`;
         Menu.classList.add("Activo");
 
-        requestAnimationFrame(() => {
-          const Rect = Menu.getBoundingClientRect();
-          const VH = window.innerHeight;
-          const VW = window.innerWidth;
-          if (Rect.bottom > VH - 8) {
-            Menu.style.top =
-              `${Math.max(8, VH - Rect.height - 8)}px`;
-          }
-          if (Rect.right > VW - 8) {
-            Menu.style.left =
-              `${Math.max(8, VW - Rect.width - 8)}px`;
-          }
-        });
+        requestAnimationFrame(Reposicionar);
 
         const Vincular = (Accion, Fn) => {
           Menu.querySelector(`[data-acc="${Accion}"]`)
@@ -41108,6 +41210,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Ev.stopPropagation();
             Menu.querySelector("[data-baul-estados]")
               ?.classList.toggle("Activo");
+            Reposicionar();
+            requestAnimationFrame(Reposicionar);
           });
         Menu.querySelectorAll("[data-baul-estado]")
           .forEach((Btn) => {
@@ -102399,30 +102503,30 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Cuerpo.innerHTML = "";
         Render_Control_Rango_Resumen(Cuerpo);
 
-        // Toggle Horas / Subobjetivos.
-        const Met_Cont = document.createElement("div");
-        Met_Cont.className = "Resumen_Sem_Metrica_Toggle";
-        ["Horas", "Subobjetivos"].forEach((M) => {
-          const Btn = document.createElement("button");
-          Btn.type = "button";
-          Btn.className = "Resumen_Sem_Metrica_Btn" +
-            (Resumen_Sem_Metrica === M ? " Activo" : "");
-          Btn.textContent = t(
-            M === "Horas"
-              ? "resumen.metric_horas"
-              : "resumen.metric_subobjetivos"
-          );
-          Btn.addEventListener("click", () => {
-            Resumen_Sem_Metrica = M;
-            Render_Resumen_Semanal();
-          });
-          Met_Cont.appendChild(Btn);
-        });
-        Cuerpo.appendChild(Met_Cont);
-
-        // Cards de totales (siempre visibles).
         const Datos = Calcular_Datos_Resumen_Semanal();
-        Cuerpo.appendChild(Render_Cards_Totales(Datos));
+        if (Resumen_Sem_Pestana !== "Metas") {
+          // Toggle Horas / Subobjetivos.
+          const Met_Cont = document.createElement("div");
+          Met_Cont.className = "Resumen_Sem_Metrica_Toggle";
+          ["Horas", "Subobjetivos"].forEach((M) => {
+            const Btn = document.createElement("button");
+            Btn.type = "button";
+            Btn.className = "Resumen_Sem_Metrica_Btn" +
+              (Resumen_Sem_Metrica === M ? " Activo" : "");
+            Btn.textContent = t(
+              M === "Horas"
+                ? "resumen.metric_horas"
+                : "resumen.metric_subobjetivos"
+            );
+            Btn.addEventListener("click", () => {
+              Resumen_Sem_Metrica = M;
+              Render_Resumen_Semanal();
+            });
+            Met_Cont.appendChild(Btn);
+          });
+          Cuerpo.appendChild(Met_Cont);
+          Cuerpo.appendChild(Render_Cards_Totales(Datos));
+        }
 
         // Tabs de pestañas.
         const Tabs = document.createElement("div");
@@ -103132,9 +103236,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Resumen_Crear_Periodo_Desde_Datos(Datos) {
+        const Tipo = {
+          Semana: "Semana",
+          Mes: "Mes",
+          Anio: "Anio"
+        }[Datos?.Rango?.Tipo] || "Custom";
         return {
           Id: "Resumen_Rango",
-          Tipo: "Custom",
+          Tipo,
           Inicio: Datos.Rango.Inicio_ISO,
           Fin: Datos.Rango.Fin_ISO
         };
@@ -103156,6 +103265,138 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Texto_Unidad ? `${Valor} ${Texto_Unidad}` : Valor;
       }
 
+      function Resumen_Item_Solapa_Rango(Item, Periodo) {
+        const Rango = Planes_Rango_Item_Fechado(Item);
+        return Rango
+          ? Planes_Periodo_Solapa_Rango(Periodo, Rango)
+          : null;
+      }
+
+      function Resumen_Subobjetivo_Relevante_Para_Meta(
+        Sub,
+        Objetivo,
+        Periodo_Rango
+      ) {
+        const Solapa = Resumen_Item_Solapa_Rango(Sub, Periodo_Rango);
+        if (Solapa !== null) return Solapa;
+        return Sub.Objetivo_Id === Objetivo.Id;
+      }
+
+      function Resumen_Parte_Relevante_Para_Meta(
+        Parte,
+        Sub,
+        Objetivo,
+        Periodo_Rango
+      ) {
+        const Solapa = Resumen_Item_Solapa_Rango(Parte, Periodo_Rango);
+        if (Solapa !== null) return Solapa;
+        return Resumen_Subobjetivo_Relevante_Para_Meta(
+          Sub,
+          Objetivo,
+          Periodo_Rango
+        );
+      }
+
+      function Resumen_Agregar_Unidades_Avanzadas(Mapa, Sub_Item) {
+        if (!Sub_Item || Sub_Item.Rango <= 0) return;
+        const Clave = [
+          Sub_Item.Sub.Unidad || "",
+          Sub_Item.Sub.Unidad_Custom || ""
+        ].join("|");
+        const Actual = Mapa.get(Clave) || {
+          Cantidad: 0,
+          Sub: Sub_Item.Sub
+        };
+        Actual.Cantidad += Sub_Item.Rango;
+        Mapa.set(Clave, Actual);
+      }
+
+      function Resumen_Formatear_Unidades_Avanzadas(Mapa) {
+        const Partes = Array.from(Mapa.values())
+          .filter((Item) => Item.Cantidad > 0)
+          .map((Item) =>
+            Resumen_Formatear_Cantidad_Meta(
+              Item.Cantidad,
+              Planes_Unidad_Label_Subobjetivo(
+                Item.Sub,
+                Item.Cantidad
+              )
+            )
+          );
+        return Partes.length ? Partes.join(" + ") : "-";
+      }
+
+      function Resumen_Dias_Solapados(Periodo_A, Periodo_B) {
+        if (
+          !Periodo_A?.Inicio ||
+          !Periodo_A?.Fin ||
+          !Periodo_B?.Inicio ||
+          !Periodo_B?.Fin
+        ) {
+          return 0;
+        }
+        const Inicio = Periodo_A.Inicio > Periodo_B.Inicio
+          ? Periodo_A.Inicio
+          : Periodo_B.Inicio;
+        const Fin = Periodo_A.Fin < Periodo_B.Fin
+          ? Periodo_A.Fin
+          : Periodo_B.Fin;
+        if (Inicio > Fin) return 0;
+        const Fecha_Inicio = Parsear_Fecha_ISO(Inicio);
+        const Fecha_Fin = Parsear_Fecha_ISO(Fin);
+        if (!Fecha_Inicio || !Fecha_Fin) return 0;
+        return Dias_Entre(Fecha_Inicio, Fecha_Fin) + 1;
+      }
+
+      function Resumen_Dias_Periodo(Periodo) {
+        const Inicio = Parsear_Fecha_ISO(Periodo?.Inicio || "");
+        const Fin = Parsear_Fecha_ISO(Periodo?.Fin || "");
+        if (!Inicio || !Fin) return 0;
+        return Math.max(1, Dias_Entre(Inicio, Fin) + 1);
+      }
+
+      function Resumen_Target_Objetivo_En_Periodo(
+        Objetivo,
+        Periodo_Rango,
+        Modelo
+      ) {
+        const Directo = Math.max(
+          0,
+          Number(Planes_Target_Contextual_Objetivo(
+            Objetivo,
+            Periodo_Rango,
+            Modelo
+          )) || 0
+        );
+        if (Planes_Tipos.includes(Periodo_Rango.Tipo)) {
+          return Directo;
+        }
+        const Config =
+          Planes_Redistribucion_Target_Objetivo(Objetivo, Modelo);
+        if (!Config.Tipo) return Directo;
+        const Periodos = Planes_Periodos_Redistribucion_Target(
+          Objetivo,
+          Config.Tipo,
+          Modelo
+        );
+        if (!Periodos.length) return Directo;
+        const Prorrateado = Periodos.reduce((Total, Periodo) => {
+          const Dias = Resumen_Dias_Solapados(Periodo, Periodo_Rango);
+          if (Dias <= 0) return Total;
+          const Dias_Periodo = Resumen_Dias_Periodo(Periodo);
+          const Target_Periodo = Planes_Target_Contextual_Objetivo(
+            Objetivo,
+            Periodo,
+            Modelo
+          );
+          return Total + (
+            (Number(Target_Periodo) || 0) *
+            (Dias / Math.max(1, Dias_Periodo))
+          );
+        }, 0);
+        return Prorrateado > 0 ? Prorrateado : Directo;
+      }
+
       function Calcular_Datos_Metas_Resumen(Datos) {
         const Modelo = Asegurar_Modelo_Planes();
         const Periodo_Rango = Resumen_Crear_Periodo_Desde_Datos(Datos);
@@ -103164,8 +103405,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Items = [];
         Object.values(Modelo.Objetivos || {}).forEach((Objetivo) => {
           if (!Objetivo || Objetivo.Eliminado_Local) return;
-          const Target = Number(Objetivo.Target_Total) || 0;
-          const Unidad = Planes_Unidad_Label(Objetivo, Target);
+          const Target_Total = Number(Objetivo.Target_Total) || 0;
+          const Target_Periodo = Math.max(
+            0,
+            Number(Resumen_Target_Objetivo_En_Periodo(
+              Objetivo,
+              Periodo_Rango,
+              Modelo
+            )) || 0
+          );
+          const Unidad = Planes_Unidad_Label(Objetivo, Target_Periodo);
           const Objetivo_Ids =
             Planes_Objetivos_Descendencia_Ids(Objetivo.Id);
           const Periodo_Objetivo =
@@ -103191,7 +103440,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .filter((Sub) =>
               Sub &&
               !Sub.Eliminado_Local &&
-              Objetivo_Ids.has(Sub.Objetivo_Id)
+              Objetivo_Ids.has(Sub.Objetivo_Id) &&
+              Resumen_Subobjetivo_Relevante_Para_Meta(
+                Sub,
+                Objetivo,
+                Periodo_Rango
+              )
             )
             .map((Sub) => {
               const Sub_Unidad = Planes_Unidad_Label_Subobjetivo(
@@ -103216,6 +103470,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 false,
                 false
               )
+                .filter((Parte) =>
+                  Resumen_Parte_Relevante_Para_Meta(
+                    Parte,
+                    Sub,
+                    Objetivo,
+                    Periodo_Rango
+                  )
+                )
                 .map((Parte) => {
                   const Parte_Unidad =
                     Planes_Unidad_Label_Parte(
@@ -103241,11 +103503,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     Target: Number(Parte.Aporte_Total) || 0
                   };
                 })
-                .filter((Parte) =>
-                  Parte.Rango > 0 ||
-                  Parte.Target > 0 ||
-                  Parte.Total > 0
-                );
+                .sort((A, B) => {
+                  const Delta = B.Rango - A.Rango;
+                  if (Delta !== 0) return Delta;
+                  return (A.Parte.Nombre || "").localeCompare(
+                    B.Parte.Nombre || "",
+                    "es",
+                    { sensitivity: "base", numeric: true }
+                  );
+                });
               return {
                 Sub,
                 Unidad: Sub_Unidad,
@@ -103264,23 +103530,49 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Sub.Rango > 0 ||
               Sub.Target > 0 ||
               Sub.Total > 0 ||
-              Sub.Partes.length > 0
-            );
+              Sub.Partes.length > 0 ||
+              (Sub.Sub.Texto || Sub.Sub.Nombre || "").trim()
+            )
+            .sort((A, B) => {
+              const Delta = B.Rango - A.Rango;
+              if (Delta !== 0) return Delta;
+              const A_Nombre = A.Sub.Texto || A.Sub.Nombre || "";
+              const B_Nombre = B.Sub.Texto || B.Sub.Nombre || "";
+              return A_Nombre.localeCompare(
+                B_Nombre,
+                "es",
+                { sensitivity: "base", numeric: true }
+              );
+            });
           const Sub_Rango = Subs.reduce(
             (Total, Sub) => Total + Sub.Aporte_Rango,
             0
           );
           const Avance_Rango = Calendario + Manual + Sub_Rango;
+          const Unidades_Avanzadas = new Map();
+          Subs.forEach((Sub) =>
+            Resumen_Agregar_Unidades_Avanzadas(
+              Unidades_Avanzadas,
+              Sub
+            )
+          );
           const Total = Number(Objetivo.Progreso_Total) || 0;
           const Incluir =
-            Solapa || Avance_Rango > 0 || Total > 0 || Target > 0;
+            Solapa || Avance_Rango > 0 || Total > 0 ||
+            Target_Total > 0 || Target_Periodo > 0;
           if (!Incluir) return;
           Items.push({
             Objetivo,
             Unidad,
-            Target,
+            Target: Target_Periodo,
+            Target_Total,
             Total,
             Avance_Rango,
+            Unidades_Avanzadas,
+            Unidades_Avanzadas_Texto:
+              Resumen_Formatear_Unidades_Avanzadas(
+                Unidades_Avanzadas
+              ),
             Calendario,
             Manual,
             Subs
@@ -103310,30 +103602,55 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Lista = document.createElement("div");
         Lista.className = "Resumen_Sem_Metas_Lista";
         Items.forEach((Item) => {
+          const Expandida =
+            Resumen_Sem_Metas_Expandidas.has(Item.Objetivo.Id);
           const Card = document.createElement("div");
-          Card.className = "Resumen_Sem_Meta";
+          Card.className = "Resumen_Sem_Meta" +
+            (Expandida ? " Expandida" : "");
+
+          const Toggle = document.createElement("button");
+          Toggle.type = "button";
+          Toggle.className = "Resumen_Sem_Meta_Toggle";
+          Toggle.setAttribute("aria-expanded", Expandida ? "true" : "false");
+          Toggle.addEventListener("click", () => {
+            if (Expandida) {
+              Resumen_Sem_Metas_Expandidas.delete(Item.Objetivo.Id);
+            } else {
+              Resumen_Sem_Metas_Expandidas.add(Item.Objetivo.Id);
+            }
+            Render_Resumen_Semanal();
+          });
+
           const Cab = document.createElement("div");
           Cab.className = "Resumen_Sem_Meta_Cabecera";
           const Emoji = document.createElement("span");
-          Emoji.className = "Resumen_Sem_Meta_Emoji";
-          Emoji.textContent = Item.Objetivo.Emoji || "\u2022";
+          Emoji.className = "Resumen_Sem_Meta_Emoji Con_Fallback_Emoji";
+          Emoji.textContent = Normalizar_Emoji(
+            Item.Objetivo.Emoji || "\u2022"
+          );
           const Nombre = document.createElement("span");
           Nombre.className = "Resumen_Sem_Meta_Nombre";
           Nombre.textContent =
             Item.Objetivo.Nombre || t("objetivo.sin_nombre");
           Cab.appendChild(Emoji);
           Cab.appendChild(Nombre);
-          Card.appendChild(Cab);
+          Toggle.appendChild(Cab);
 
           const Estado = document.createElement("div");
           Estado.className = "Resumen_Sem_Meta_Estado";
           const Pct = Item.Target > 0
-            ? Math.round((Item.Total / Item.Target) * 100)
+            ? Math.round((Item.Avance_Rango / Item.Target) * 100)
             : 0;
           Estado.textContent = Item.Target > 0
             ? `${Pct}%`
             : t("resumen.meta_sin_target");
-          Card.appendChild(Estado);
+          Toggle.appendChild(Estado);
+
+          const Chevron = document.createElement("span");
+          Chevron.className = "Resumen_Sem_Meta_Chevron";
+          Chevron.textContent = Expandida ? "\u25BE" : "\u25B8";
+          Toggle.appendChild(Chevron);
+          Card.appendChild(Toggle);
 
           const Barra = document.createElement("div");
           Barra.className = "Resumen_Sem_Meta_Barra";
@@ -103355,6 +103672,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               )
             ],
             [
+              t("resumen.meta_unidades_avanzadas"),
+              Item.Unidades_Avanzadas_Texto
+            ],
+            [
               t("resumen.meta_acumulado"),
               Resumen_Formatear_Cantidad_Meta(Item.Total, Item.Unidad)
             ],
@@ -103365,6 +103686,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   Item.Target,
                   Item.Unidad
                 )
+                : "-"
+            ],
+            [
+              t("resumen.meta_avance_total"),
+              Item.Target_Total > 0
+                ? `${Math.round(
+                  (Item.Avance_Rango / Item.Target_Total) * 100
+                )}%`
                 : "-"
             ]
           ].forEach(([Label, Valor]) => {
@@ -103380,39 +103709,145 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
           Card.appendChild(Datos_Grid);
 
-          const Detalle = document.createElement("div");
-          Detalle.className = "Resumen_Sem_Meta_Detalle";
-          Item.Subs.slice(0, 6).forEach((Sub_Item) => {
-            const Fila = document.createElement("div");
-            Fila.className = "Resumen_Sem_Meta_Sub";
-            const Nom = document.createElement("span");
-            Nom.textContent = Sub_Item.Sub.Texto ||
-              Sub_Item.Sub.Nombre ||
-              t("resumen.card_subobjetivos");
-            const Val = document.createElement("strong");
-            Val.textContent = Resumen_Formatear_Cantidad_Meta(
-              Sub_Item.Rango,
-              Sub_Item.Unidad
-            );
-            Fila.appendChild(Nom);
-            Fila.appendChild(Val);
-            Detalle.appendChild(Fila);
-            Sub_Item.Partes.slice(0, 3).forEach((Parte_Item) => {
-              const Parte_Fila = document.createElement("div");
-              Parte_Fila.className = "Resumen_Sem_Meta_Parte";
-              const P_Nom = document.createElement("span");
-              P_Nom.textContent = Parte_Item.Parte.Nombre || "Parte";
-              const P_Val = document.createElement("strong");
-              P_Val.textContent = Resumen_Formatear_Cantidad_Meta(
-                Parte_Item.Rango,
-                Parte_Item.Unidad
+          if (Expandida && Item.Subs.length > 0) {
+            const Detalle = document.createElement("div");
+            Detalle.className = "Resumen_Sem_Meta_Detalle";
+            const Mostrar_Cero =
+              Resumen_Sem_Metas_Sin_Avance_Visibles
+                .has(Item.Objetivo.Id);
+            const Subs_Avanzados = Item.Subs
+              .filter((Sub_Item) => Sub_Item.Rango > 0);
+            const Subs_Sin_Avance = Item.Subs
+              .filter((Sub_Item) => Sub_Item.Rango <= 0);
+            const Subs_Visibles = Mostrar_Cero
+              ? [...Subs_Avanzados, ...Subs_Sin_Avance]
+              : Subs_Avanzados;
+
+            Subs_Visibles.forEach((Sub_Item) => {
+              const Sub_Abierto =
+                Resumen_Sem_Metas_Sub_Expandidos.has(Sub_Item.Sub.Id);
+              const Fila = document.createElement("button");
+              Fila.type = "button";
+              Fila.className = "Resumen_Sem_Meta_Sub";
+              Fila.setAttribute(
+                "aria-expanded",
+                Sub_Abierto ? "true" : "false"
               );
-              Parte_Fila.appendChild(P_Nom);
-              Parte_Fila.appendChild(P_Val);
-              Detalle.appendChild(Parte_Fila);
+              Fila.addEventListener("click", () => {
+                if (Sub_Abierto) {
+                  Resumen_Sem_Metas_Sub_Expandidos.delete(
+                    Sub_Item.Sub.Id
+                  );
+                } else {
+                  Resumen_Sem_Metas_Sub_Expandidos.add(
+                    Sub_Item.Sub.Id
+                  );
+                }
+                Render_Resumen_Semanal();
+              });
+              const Sub_Emoji = document.createElement("span");
+              Sub_Emoji.className =
+                "Resumen_Sem_Meta_Sub_Emoji Con_Fallback_Emoji";
+              Sub_Emoji.textContent = Normalizar_Emoji(
+                Sub_Item.Sub.Emoji || "\u2022"
+              );
+              const Nom = document.createElement("span");
+              Nom.textContent = Sub_Item.Sub.Texto ||
+                Sub_Item.Sub.Nombre ||
+                t("resumen.card_subobjetivos");
+              const Val = document.createElement("strong");
+              Val.textContent = Resumen_Formatear_Cantidad_Meta(
+                Sub_Item.Rango,
+                Sub_Item.Unidad
+              );
+              const Sub_Chevron = document.createElement("span");
+              Sub_Chevron.className = "Resumen_Sem_Meta_Sub_Chevron";
+              Sub_Chevron.textContent = Sub_Abierto ? "\u25BE" : "\u25B8";
+              Fila.appendChild(Sub_Emoji);
+              Fila.appendChild(Nom);
+              Fila.appendChild(Val);
+              Fila.appendChild(Sub_Chevron);
+              Detalle.appendChild(Fila);
+
+              if (Sub_Abierto && Sub_Item.Partes.length > 0) {
+                const Mostrar_Partes_Cero =
+                  Resumen_Sem_Metas_Partes_Sin_Avance_Visibles
+                    .has(Sub_Item.Sub.Id);
+                const Partes_Avanzadas = Sub_Item.Partes
+                  .filter((Parte_Item) => Parte_Item.Rango > 0);
+                const Partes_Sin_Avance = Sub_Item.Partes
+                  .filter((Parte_Item) => Parte_Item.Rango <= 0);
+                const Partes_Visibles = Mostrar_Partes_Cero
+                  ? [...Partes_Avanzadas, ...Partes_Sin_Avance]
+                  : Partes_Avanzadas;
+                Partes_Visibles.forEach((Parte_Item) => {
+                  const Parte_Fila = document.createElement("div");
+                  Parte_Fila.className = "Resumen_Sem_Meta_Parte";
+                  const P_Emoji = document.createElement("span");
+                  P_Emoji.className =
+                    "Resumen_Sem_Meta_Parte_Emoji Con_Fallback_Emoji";
+                  P_Emoji.textContent = Normalizar_Emoji(
+                    Parte_Item.Parte.Emoji || "\u2022"
+                  );
+                  const P_Nom = document.createElement("span");
+                  P_Nom.textContent =
+                    Parte_Item.Parte.Nombre || "Parte";
+                  const P_Val = document.createElement("strong");
+                  P_Val.textContent = Resumen_Formatear_Cantidad_Meta(
+                    Parte_Item.Rango,
+                    Parte_Item.Unidad
+                  );
+                  const P_Espacio = document.createElement("span");
+                  Parte_Fila.appendChild(P_Emoji);
+                  Parte_Fila.appendChild(P_Nom);
+                  Parte_Fila.appendChild(P_Val);
+                  Parte_Fila.appendChild(P_Espacio);
+                  Detalle.appendChild(Parte_Fila);
+                });
+                if (Partes_Sin_Avance.length > 0) {
+                  const Btn_Partes = document.createElement("button");
+                  Btn_Partes.type = "button";
+                  Btn_Partes.className = "Resumen_Sem_Meta_Ver_Mas";
+                  Btn_Partes.textContent = t(
+                    Mostrar_Partes_Cero
+                      ? "resumen.meta_ocultar_partes_sin_avance"
+                      : "resumen.meta_ver_partes_sin_avance"
+                  );
+                  Btn_Partes.addEventListener("click", () => {
+                    if (Mostrar_Partes_Cero) {
+                      Resumen_Sem_Metas_Partes_Sin_Avance_Visibles
+                        .delete(Sub_Item.Sub.Id);
+                    } else {
+                      Resumen_Sem_Metas_Partes_Sin_Avance_Visibles
+                        .add(Sub_Item.Sub.Id);
+                    }
+                    Render_Resumen_Semanal();
+                  });
+                  Detalle.appendChild(Btn_Partes);
+                }
+              }
             });
-          });
-          if (Detalle.children.length > 0) {
+            if (Subs_Sin_Avance.length > 0) {
+              const Btn_Subs = document.createElement("button");
+              Btn_Subs.type = "button";
+              Btn_Subs.className = "Resumen_Sem_Meta_Ver_Mas";
+              Btn_Subs.textContent = t(
+                Mostrar_Cero
+                  ? "resumen.meta_ocultar_sin_avance"
+                  : "resumen.meta_ver_sin_avance"
+              );
+              Btn_Subs.addEventListener("click", () => {
+                if (Mostrar_Cero) {
+                  Resumen_Sem_Metas_Sin_Avance_Visibles
+                    .delete(Item.Objetivo.Id);
+                } else {
+                  Resumen_Sem_Metas_Sin_Avance_Visibles
+                    .add(Item.Objetivo.Id);
+                }
+                Render_Resumen_Semanal();
+              });
+              Detalle.appendChild(Btn_Subs);
+            }
             Card.appendChild(Detalle);
           }
           Lista.appendChild(Card);

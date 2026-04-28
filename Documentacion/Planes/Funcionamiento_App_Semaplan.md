@@ -195,6 +195,11 @@ Notas operativas.
 - La pestana Metas del resumen es de solo lectura y cruza el rango
   seleccionado contra `Planes_Periodo`, mostrando avance dentro del
   rango y acumulado actual de objetivos, subobjetivos y partes.
+- En Resumen > Metas las tarjetas son compactas y expandibles. La barra
+  y el porcentaje usan unidades avanzadas del rango contra el valor
+  objetivo contextual de ese periodo; el detalle muestra primero
+  subobjetivos y partes con avance, ordenados de mayor a menor, y deja
+  los items sin avance detras de botones de expansion.
 
 ## Slots vacios, bloques y planes de slot
 
