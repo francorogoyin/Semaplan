@@ -115954,6 +115954,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Solo_Operativo;
       }
 
+      async function Backend_Refrescar_Si_Remoto_No_Conflicta(
+        Estado_Referencia = null
+      ) {
+        if (!Estado_Referencia) return false;
+        const Fila = await Backend_Leer_Fila_Remota();
+        if (Fila.error) throw Fila.error;
+        if (!Fila.data?.estado) return false;
+        const Estado_Remoto =
+          Limpiar_Tombstones_Json(Fila.data.estado);
+        const Requiere_Conflicto =
+          Cambio_Remoto_Requiere_Conflicto(
+            Estado_Referencia,
+            Estado_Remoto
+          );
+        Actualizar_Meta_Remota(Fila.data);
+        if (
+          Sesion_Operativa_Corte_Remoto_Activo(
+            Estado_Remoto
+          ) ||
+          Sesion_Global_Remota_Activa()
+        ) {
+          await Cerrar_Sesion_Por_Corte_Global();
+          return false;
+        }
+        return !Requiere_Conflicto;
+      }
+
       async function Backend_Verificar_Remoto_Antes_De_Sync(
         Estado_Referencia = null
       ) {
@@ -116931,7 +116958,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               if (!Resultado.data) {
                 if (
                   Intento_Metadata === 0 &&
-                  await Backend_Refrescar_Si_Cambio_Remoto_Solo_Operativo(
+                  await Backend_Refrescar_Si_Remoto_No_Conflicta(
                     Estado_Remoto_Referencia
                   )
                 ) {
@@ -116973,7 +117000,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 }
                 if (
                   Intento_Metadata === 0 &&
-                  await Backend_Refrescar_Si_Cambio_Remoto_Solo_Operativo(
+                  await Backend_Refrescar_Si_Remoto_No_Conflicta(
                     Estado_Remoto_Referencia
                   )
                 ) {

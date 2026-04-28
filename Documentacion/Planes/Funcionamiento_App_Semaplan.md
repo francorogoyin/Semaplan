@@ -130,8 +130,9 @@ El flujo operativo base es este.
    usuario. Si el remoto cambio solo por heartbeat, no se muestra
    conflicto ni toast de otro dispositivo. Antes de sobrescribir remoto,
    `Backend_Sync_Ejecutar()` relee la fila: si cambiaron datos reales
-   abre conflicto; si cambio solo metadata, refresca version y reintenta
-   el guardado.
+   con marca mas nueva abre conflicto; si el remoto no requiere
+   conflicto, refresca version y reintenta el guardado aunque el
+   `UPDATE` versionado haya perdido contra otra escritura reciente.
 13. Mientras hay sync local pendiente, los heartbeats de sesion se
    difieren para no avanzar `actualizado_en` remoto con cambios
    puramente operativos.

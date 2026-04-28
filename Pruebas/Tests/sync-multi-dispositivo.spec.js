@@ -169,6 +169,8 @@ async function Preparar_App(page, Estado_Remoto) {
       window.__Forzar_Error_Upsert = false;
       window.__Forzar_Error_Update = false;
       window.__Forzar_Error_Insert = false;
+      window.__Bump_Remoto_Antes_Update_Una_Vez = false;
+      window.__Bump_Remoto_Estado_Extra = null;
 
       const Es_Objeto_Json = (Valor) => {
         return Boolean(
@@ -351,6 +353,27 @@ async function Preparar_App(page, Estado_Remoto) {
                 },
                 async maybeSingle() {
                   if (this._accion === "update") {
+                    if (
+                      window.__Bump_Remoto_Antes_Update_Una_Vez
+                    ) {
+                      window.__Bump_Remoto_Antes_Update_Una_Vez =
+                        false;
+                      const Actual =
+                        window.__Estado_Remoto || null;
+                      if (Actual) {
+                        window.__Estado_Remoto = {
+                          estado:
+                            Merge_Profundo_Preservando_Faltantes(
+                              Actual.estado || null,
+                              window.__Bump_Remoto_Estado_Extra || {}
+                            ),
+                          actualizado_en:
+                            "2026-04-14T00:00:08Z",
+                          version:
+                            Number(Actual.version || 0) + 1
+                        };
+                      }
+                    }
                     if (window.__Forzar_Error_Update) {
                       return {
                         data: null,
@@ -835,6 +858,55 @@ test(
     expect(Resumen.remoto_tipo_destino).toBe("Comida");
     expect(Resumen.remoto_plan_origen).toBe(0);
     expect(Resumen.remoto_plan_destino).toBe(1);
+  }
+);
+
+test(
+  "reintenta slot muerto si la version remota cambia sin marca nueva",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      const Clave = "2026-04-13|10";
+      Crear_Slot_Muerto("2026-04-13", 10, "Comida", true);
+      Guardar_Estado();
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+
+      window.__Bump_Remoto_Antes_Update_Una_Vez = true;
+      window.__Bump_Remoto_Estado_Extra = {
+        Config_Extra: {
+          Scroll_Inicial: 9
+        }
+      };
+
+      const Ok = await Backend_Sync_Ejecutar();
+      const Estado_Remoto = Limpiar_Tombstones_Json(
+        window.__Estado_Remoto?.estado || {}
+      );
+
+      return {
+        ok: Ok,
+        syncEstado: Sync_Estado,
+        localSucio: Sync_Local_Sucio,
+        conflicto: Sync_Conflicto_Pendiente,
+        remotoSlots: Estado_Remoto.Slots_Muertos || [],
+        remotoTipo:
+          Estado_Remoto.Slots_Muertos_Tipos?.[Clave] || "",
+        version: window.__Estado_Remoto?.version || 0
+      };
+    });
+
+    expect(Resumen.ok).toBe(true);
+    expect(Resumen.syncEstado).toBe("Guardado");
+    expect(Resumen.localSucio).toBe(false);
+    expect(Resumen.conflicto).toBe(false);
+    expect(Resumen.remotoSlots).toContain("2026-04-13|10");
+    expect(Resumen.remotoTipo).toBe("Comida");
+    expect(Resumen.version).toBeGreaterThanOrEqual(3);
   }
 );
 
