@@ -162,14 +162,17 @@
 
       .Idioma_Btn {
         border: 0;
-        width: 38px;
+        min-width: 38px;
         height: 38px;
-        padding: 0;
+        padding: 0 8px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         border-radius: 999px;
         color: var(--Tinta_Suave);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
         background: transparent;
         cursor: pointer;
         transition:
@@ -183,35 +186,12 @@
       }
 
       .Idioma_Btn.Activo {
+        color: var(--Verde_Fuerte);
         background: rgba(25, 110, 88, 0.16);
       }
 
       .Idioma_Flag {
-        margin-right: 0;
-        display: block;
-        width: 18px;
-        height: 12px;
-        font-size: 0;
-        line-height: 0;
-        border-radius: 4px;
-        overflow: hidden;
-        box-shadow: inset 0 0 0 1px rgba(27, 37, 29, 0.08);
-      }
-
-      .Idioma_Btn[data-lang="es"] .Idioma_Flag {
-        background:
-          linear-gradient(180deg, #74acdf 0 33%, #ffffff 33% 66%, #74acdf 66% 100%);
-      }
-
-      .Idioma_Btn[data-lang="en"] .Idioma_Flag {
-        background:
-          linear-gradient(180deg, #b22234 0 14%, #ffffff 14% 28%, #b22234 28% 42%, #ffffff 42% 56%, #b22234 56% 70%, #ffffff 70% 84%, #b22234 84% 100%);
-      }
-
-      .Idioma_Btn[data-lang="pt"] .Idioma_Flag {
-        background:
-          linear-gradient(135deg, transparent 28%, #f7d54a 28% 72%, transparent 72%),
-          #009b3a;
+        display: inline;
       }
 
       .Menu_Toggle {
@@ -646,11 +626,14 @@
         line-height: 1.74;
       }
 
-      .Plan_List.Premium li::before {
+      .Plan_List.Premium li::before,
+      .Plan_List.Free li.Incluye::before,
+      .Plan_List li.Incluye::before {
         content: "✅";
       }
 
-      .Plan_List.Free li::before {
+      .Plan_List.Free li::before,
+      .Plan_List li.No_Incluye::before {
         content: "❌";
       }
 
@@ -788,21 +771,21 @@
               type="button"
               aria-label="Español"
               title="Español"
-            ><span class="Idioma_Flag">🇦🇷</span></button>
+            ><span class="Idioma_Flag">ES</span></button>
             <button
               class="Idioma_Btn"
               data-lang="en"
               type="button"
               aria-label="English"
               title="English"
-            ><span class="Idioma_Flag">🇺🇸</span></button>
+            ><span class="Idioma_Flag">EN</span></button>
             <button
               class="Idioma_Btn"
               data-lang="pt"
               type="button"
               aria-label="Português"
               title="Português"
-            ><span class="Idioma_Flag">🇧🇷</span></button>
+            ><span class="Idioma_Flag">PT</span></button>
           </div>
           <button
             class="Menu_Toggle"
@@ -949,17 +932,26 @@
               <span class="Plan_Tag" data-i18n="free_tag">Base</span>
               <h3 data-i18n="free_title">Free</h3>
               <p data-i18n="free_desc">
-                Acceso central para planificación semanal, horarios,
-                tareas y uso básico de cuenta.
+                Acceso al calendario semanal, horarios, bloques y uso
+                básico de cuenta.
               </p>
               <div class="Plan_Price">
                 <strong data-i18n="free_price">ARS 0</strong>
                 <span data-i18n="per_month">por mes</span>
               </div>
               <ul class="Plan_List Free">
-                <li data-i18n="free_item_1">Calendario y planificación base</li>
-                <li data-i18n="free_item_2">Organización de tareas y objetivos</li>
-                <li data-i18n="free_item_3">Login y uso regular</li>
+                <li class="Incluye" data-i18n="free_item_1">
+                  Calendario semanal con bloques, horarios y vista diaria
+                </li>
+                <li class="Incluye" data-i18n="free_item_2">
+                  Cuenta con guardado y sincronización entre sesiones
+                </li>
+                <li class="No_Incluye" data-i18n="free_item_3">
+                  Sin Tareas, Hábitos, Metas ni Resumen semanal
+                </li>
+                <li class="No_Incluye" data-i18n="free_item_4">
+                  Sin Archivero, Baúl ni planificación extendida
+                </li>
               </ul>
               <div class="Plan_Actions">
                 <a
@@ -1131,12 +1123,17 @@
           free_tag: "Base",
           free_title: "Free",
           free_desc:
-            "Acceso central para planificación semanal, horarios, tareas y uso básico de cuenta.",
+            "Acceso al calendario semanal, horarios, bloques y uso básico de cuenta.",
           free_price: "ARS 0",
           per_month: "por mes",
-          free_item_1: "Sin archivero ni planificación extendida",
-          free_item_2: "Sin resumen semanal ni herramientas profundas",
-          free_item_3: "Sin flujo premium más completo",
+          free_item_1:
+            "Calendario semanal con bloques, horarios y vista diaria",
+          free_item_2:
+            "Cuenta con guardado y sincronización entre sesiones",
+          free_item_3:
+            "Sin Tareas, Hábitos, Metas ni Resumen semanal",
+          free_item_4:
+            "Sin Archivero, Baúl ni planificación extendida",
           free_cta: "Usar plan free",
           premium_tag: "Premium",
           premium_title: "Premium",
@@ -1218,12 +1215,17 @@
           free_tag: "Base",
           free_title: "Free",
           free_desc:
-            "Core access for weekly planning, schedules, tasks, and basic account use.",
+            "Access to the weekly calendar, schedules, blocks, and basic account use.",
           free_price: "ARS 0",
           per_month: "per month",
-          free_item_1: "No archive or extended planning",
-          free_item_2: "No weekly summary or deeper tools",
-          free_item_3: "No fuller premium workflow",
+          free_item_1:
+            "Weekly calendar with time blocks, schedules, and daily view",
+          free_item_2:
+            "Account with saving and sync across supported sessions",
+          free_item_3:
+            "No Tasks, Habits, Goals, or weekly Summary",
+          free_item_4:
+            "No Archive, Backlog, or extended planning",
           free_cta: "Use free plan",
           premium_tag: "Premium",
           premium_title: "Premium",
@@ -1305,12 +1307,17 @@
           free_tag: "Base",
           free_title: "Free",
           free_desc:
-            "Acesso principal para planejamento semanal, horários, tarefas e uso básico da conta.",
+            "Acesso ao calendário semanal, horários, blocos e uso básico da conta.",
           free_price: "ARS 0",
           per_month: "por mês",
-          free_item_1: "Sem arquivo nem planejamento estendido",
-          free_item_2: "Sem resumo semanal nem ferramentas mais profundas",
-          free_item_3: "Sem fluxo premium mais completo",
+          free_item_1:
+            "Calendário semanal com blocos, horários e vista diária",
+          free_item_2:
+            "Conta com salvamento e sincronização entre sessões",
+          free_item_3:
+            "Sem Tarefas, Hábitos, Metas nem Resumo semanal",
+          free_item_4:
+            "Sem Arquivo, Baú nem planejamento estendido",
           free_cta: "Usar plano free",
           premium_tag: "Premium",
           premium_title: "Premium",
