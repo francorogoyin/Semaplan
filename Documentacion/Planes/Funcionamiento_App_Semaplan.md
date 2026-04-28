@@ -115,6 +115,9 @@ El flujo operativo base es este.
    no por la sesion Auth de Supabase. Cada pantalla tiene `Id` e
    `Instancia_Id`: una recarga conserva la instancia para no bloquearse
    a si misma, pero una pantalla duplicada se trata como otra sesion.
+   En remoto, `Sesiones_Operativas.Activas` se indexa por
+   `Id::Instancia_Id` para no pisar pestañas distintas con el mismo
+   `Id`.
    Una sesion vieja deja de bloquear cuando vence su TTL, y tambien
    puede cerrarse explicitamente desde el bloqueo de entrada.
 10. `Sync_Datos_Marca_Ms` marca cambios reales de datos generados por
@@ -140,7 +143,9 @@ El flujo operativo base es este.
    el estado remoto. Si Supabase rechaza el `signOut` global, la app
    registra el error pero igualmente cierra la sesion local, porque el
    corte remoto propio es el mecanismo que expulsa a las otras
-   sesiones al revisar sync.
+   sesiones al revisar sync. Si el corte propio falla (por ejemplo por
+   timeout) pero `signOut` global responde, tambien se cierra la sesion
+   local sin mostrar falso error de cambios sin guardar.
 15. Si `Cerrar sesion en todas` encuentra sync local pendiente, fuerza
    el corte global usando el estado local actual como base remota. Si
    hay un conflicto pendiente, interrumpe el cierre y muestra el

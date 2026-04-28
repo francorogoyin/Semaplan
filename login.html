@@ -115241,6 +115241,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .slice(2)}`;
       }
 
+      function Clave_Sesion_Operativa_Activa(
+        Id = "",
+        Instancia = ""
+      ) {
+        const Id_Limpio = String(Id || "").trim();
+        if (!Id_Limpio) return "";
+        const Instancia_Limpia = String(
+          Instancia || ""
+        ).trim();
+        return Instancia_Limpia
+          ? `${Id_Limpio}::${Instancia_Limpia}`
+          : Id_Limpio;
+      }
+
+      function Clave_Sesion_Operativa_Desde_Sesion(
+        Sesion = null
+      ) {
+        return Clave_Sesion_Operativa_Activa(
+          Sesion?.Id || "",
+          Sesion?.Instancia_Id || ""
+        );
+      }
+
       function Obtener_Sesion_Operativa_Id() {
         if (Sesion_Operativa_Id) return Sesion_Operativa_Id;
         try {
@@ -115382,12 +115405,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Normalizar_Sesiones_Operativas(Estado);
         const Ahora = Date.now();
         const Id_Actual = Obtener_Sesion_Operativa_Id();
+        const Instancia_Actual =
+          Obtener_Sesion_Operativa_Instancia_Id();
+        const Clave_Actual =
+          Clave_Sesion_Operativa_Activa(
+            Id_Actual,
+            Instancia_Actual
+          );
         const Activas = {};
 
         Object.entries(Sesiones.Activas).forEach(
-          ([Id, Sesion]) => {
+          ([Clave_Entrada, Sesion]) => {
             const Es_Actual =
-              Id === Id_Actual &&
               Sesion_Operativa_Es_La_Actual(Sesion);
             if (Opciones.Cerrar_Otras && !Es_Actual) {
               return;
@@ -115401,15 +115430,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ) {
               return;
             }
-            Activas[Id] = Sesion;
+            const Clave_Normalizada =
+              Clave_Sesion_Operativa_Desde_Sesion(
+                Sesion
+              ) || String(Clave_Entrada || "");
+            Activas[Clave_Normalizada] = Sesion;
           }
         );
 
         if (Opciones.Registrar_Actual !== false) {
-          Activas[Id_Actual] =
+          const Sesion_Actual =
             Construir_Marca_Sesion_Operativa();
+          const Clave_Sesion_Actual =
+            Clave_Sesion_Operativa_Desde_Sesion(
+              Sesion_Actual
+            ) || Clave_Actual;
+          Activas[Clave_Sesion_Actual] = Sesion_Actual;
         } else if (Opciones.Remover_Actual) {
-          delete Activas[Id_Actual];
+          Object.entries(Activas).forEach(
+            ([Clave, Sesion]) => {
+              const Es_Actual =
+                Sesion_Operativa_Es_La_Actual(Sesion);
+              if (Es_Actual || Clave === Clave_Actual) {
+                delete Activas[Clave];
+              }
+            }
+          );
         }
 
         Estado.Sesiones_Operativas = {
@@ -118626,14 +118672,52 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? false
             : await Backend_Asegurar_Sync_Antes_De_Salir();
         Sync_Sesion_Cerrando = true;
-        const Corte_Registrado =
+        let Corte_Registrado =
           Sync_Listo
             ? await Backend_Registrar_Corte_Sesion_Global()
             : await Backend_Forzar_Corte_Global_Desde_Local();
-        if (!Corte_Registrado) {
+        let Cierre_Global_Supabase_Ok = false;
+
+        async function Intentar_Cierre_Global_Supabase(
+          Motivo = "se usa corte propio"
+        ) {
+          try {
+            await Supa.auth.signOut({ scope: "global" });
+            Cierre_Global_Supabase_Ok = true;
+            return true;
+          } catch (E) {
+            Log_Error_App(
+              "auth",
+              "cerrar_sesion_global_supabase",
+              "Supabase rechazo el cierre global; " +
+              Motivo,
+              E,
+              { entidad_afectada: "cerrar_sesion_todas" }
+            );
+            return false;
+          }
+        }
+
+        if (!Corte_Registrado && Sync_Listo) {
+          await Intentar_Cierre_Global_Supabase(
+            "se intenta corte propio"
+          );
+          if (!Cierre_Global_Supabase_Ok) {
+            Corte_Registrado =
+              await Backend_Forzar_Corte_Global_Desde_Local();
+          }
+        }
+        if (!Cierre_Global_Supabase_Ok) {
+          await Intentar_Cierre_Global_Supabase();
+        }
+
+        if (!Corte_Registrado && !Cierre_Global_Supabase_Ok) {
           Sync_Sesion_Cerrando = false;
+          const Mensaje_Fallo = Sync_Listo
+            ? t("sesion_bloqueo.error")
+            : t("sync.logout_sync_fallo");
           await Mostrar_Dialogo(
-            t("sync.logout_sync_fallo"),
+            Mensaje_Fallo,
             [
               {
                 Etiqueta: t("ok"),
@@ -118643,17 +118727,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ]
           );
           return;
-        }
-        try {
-          await Supa.auth.signOut({ scope: "global" });
-        } catch (E) {
-          Log_Error_App(
-            "auth",
-            "cerrar_sesion_global_supabase",
-            "Supabase rechazo el cierre global; se usa corte propio",
-            E,
-            { entidad_afectada: "cerrar_sesion_todas" }
-          );
         }
         try {
           await Supa.auth.signOut({ scope: "local" });
