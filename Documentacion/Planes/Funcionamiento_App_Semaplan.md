@@ -242,6 +242,11 @@ Relaciones importantes.
 - Si un slot deja de ser vacio y aparece un evento real, parte del
   plan de slot puede transferirse al evento.
 - Los patrones de tipo slot alimentan este sistema.
+- En el modal de plan de slot, `Habitos sugeridos` muestra los
+  habitos diarios solo cuando coinciden con el dia y la hora del slot.
+  Los habitos semanales, quincenales y mensuales pendientes se sugieren
+  dentro del periodo aunque su programacion tenga dias u horarios
+  preferidos; dejan de aparecer cuando el periodo queda completo.
 
 ## Tareas
 

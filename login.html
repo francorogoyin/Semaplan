@@ -84731,7 +84731,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         const Es_Evento = Slot_Tiene_Evento(Fecha, Hora);
         return (Array.isArray(Habitos) ? Habitos : [])
-          .filter((Habito) => Habito?.Activo)
+          .filter((Habito) =>
+            Habito_Disponible_Para_Plan_Slot(Habito)
+          )
           .filter((Habito) => {
             if (Solo_Sugeridos) {
               return Habito_Puede_Sugerirse_En_Slot(
@@ -94760,11 +94762,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Dias.includes(Dia);
       }
 
+      function Habito_Disponible_Para_Plan_Slot(Habito) {
+        return Boolean(
+          Habito &&
+          Habito.Activo !== false &&
+          Habito.Archivado !== true
+        );
+      }
+
       function Habito_Coincide_Con_Slot(Habito, Fecha, Hora) {
         if (
-          !Habito ||
-          !Habito.Activo ||
-          Habito.Archivado ||
+          !Habito_Disponible_Para_Plan_Slot(Habito) ||
           Habitos_Habito_Pospuesto(Habito, Fecha)
         ) {
           return false;
@@ -94805,8 +94813,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Hora,
         Es_Evento = false
       ) {
-        if (!Habito_Coincide_Con_Slot(Habito, Fecha, Hora)) return false;
-        return !Habito_Esta_Completo(Habito, Fecha);
+        if (
+          !Habito_Disponible_Para_Plan_Slot(Habito) ||
+          Habitos_Habito_Pospuesto(Habito, Fecha) ||
+          Habito_Esta_Completo(Habito, Fecha)
+        ) {
+          return false;
+        }
+        if (Habito_Periodo(Habito) !== "Dia") return true;
+        return Habito_Coincide_Con_Slot(Habito, Fecha, Hora);
       }
 
       function Habito_Quitar_Registros_Fuente(
