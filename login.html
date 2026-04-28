@@ -17933,6 +17933,141 @@
         border: 1px solid #b8d6d2;
       }
 
+      .Sesion_Bloqueo_Overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 10020;
+        align-items: center;
+        justify-content: center;
+        padding: 22px;
+        box-sizing: border-box;
+        background:
+          radial-gradient(
+            circle at 20% 0%,
+            rgba(238, 199, 128, 0.38),
+            transparent 34%
+          ),
+          radial-gradient(
+            circle at 85% 15%,
+            rgba(39, 112, 96, 0.26),
+            transparent 32%
+          ),
+          rgba(29, 34, 31, 0.62);
+        backdrop-filter: blur(10px);
+      }
+
+      .Sesion_Bloqueo_Overlay.Activo {
+        display: flex;
+      }
+
+      .Sesion_Bloqueo_Panel {
+        width: min(460px, 100%);
+        border-radius: 24px;
+        padding: 28px;
+        box-sizing: border-box;
+        background:
+          linear-gradient(
+            145deg,
+            rgba(255, 252, 245, 0.98),
+            rgba(239, 230, 213, 0.98)
+          );
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        box-shadow:
+          0 34px 90px rgba(0, 0, 0, 0.34),
+          inset 0 1px 0 rgba(255, 255, 255, 0.82);
+        color: var(--Texto);
+      }
+
+      .Sesion_Bloqueo_Marca {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 7px 11px;
+        margin-bottom: 18px;
+        background: rgba(15, 95, 90, 0.1);
+        color: #0f5f5a;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .Sesion_Bloqueo_Titulo {
+        margin: 0 0 10px;
+        color: #20332b;
+        font-size: 24px;
+        line-height: 1.12;
+        letter-spacing: -0.03em;
+      }
+
+      .Sesion_Bloqueo_Texto {
+        margin: 0 0 18px;
+        color: #59635d;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .Sesion_Bloqueo_Meta {
+        margin: 0 0 20px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(32, 51, 43, 0.12);
+        color: #56615b;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .Sesion_Bloqueo_Acciones {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      .Sesion_Bloqueo_Btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 11px 16px;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .Sesion_Bloqueo_Btn.Primario {
+        background: #0f5f5a;
+        color: #fff;
+        box-shadow: 0 12px 26px rgba(15, 95, 90, 0.28);
+      }
+
+      .Sesion_Bloqueo_Btn.Secundario {
+        background: rgba(255, 255, 255, 0.72);
+        color: #415047;
+        border: 1px solid rgba(65, 80, 71, 0.18);
+      }
+
+      .Sesion_Bloqueo_Btn:disabled {
+        cursor: wait;
+        opacity: 0.62;
+      }
+
+      @media (max-width: 520px) {
+        .Sesion_Bloqueo_Panel {
+          padding: 22px;
+          border-radius: 20px;
+        }
+
+        .Sesion_Bloqueo_Acciones {
+          flex-direction: column-reverse;
+        }
+
+        .Sesion_Bloqueo_Btn {
+          width: 100%;
+        }
+      }
+
       /* --- Indicador de sincronización --- */
       .Sync_Indicador {
         display: inline-flex;
@@ -18376,6 +18511,45 @@
           <button type="button"
             class="Idioma_Btn_Mini"
             data-lang="pt">PT</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="Sesion_Bloqueo_Overlay"
+      id="Sesion_Bloqueo_Overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="Sesion_Bloqueo_Titulo">
+      <div class="Sesion_Bloqueo_Panel">
+        <div class="Sesion_Bloqueo_Marca"
+          data-i18n="sesion_bloqueo.marca">
+          Sesion operativa
+        </div>
+        <h2 class="Sesion_Bloqueo_Titulo"
+          id="Sesion_Bloqueo_Titulo"
+          data-i18n="sesion_bloqueo.titulo">
+          Semaplan esta abierto en otro lugar
+        </h2>
+        <p class="Sesion_Bloqueo_Texto"
+          data-i18n="sesion_bloqueo.texto">
+          Para evitar que una computadora pise cambios de otra,
+          esta sesion queda bloqueada hasta cerrar las demas.
+        </p>
+        <div class="Sesion_Bloqueo_Meta"
+          id="Sesion_Bloqueo_Meta"></div>
+        <div class="Sesion_Bloqueo_Acciones">
+          <button type="button"
+            class="Sesion_Bloqueo_Btn Secundario"
+            id="Sesion_Bloqueo_Salir"
+            data-i18n="sesion_bloqueo.salir">
+            Salir
+          </button>
+          <button type="button"
+            class="Sesion_Bloqueo_Btn Primario"
+            id="Sesion_Bloqueo_Cerrar_Otras"
+            data-i18n="sesion_bloqueo.cerrar_otras">
+            Cerrar otras sesiones
+          </button>
         </div>
       </div>
     </div>
@@ -23962,6 +24136,26 @@
           "auth.sdk_no_cargado":
             "No se pudo cargar Supabase. Verifica tu conexion.",
           "auth.idioma": "Idioma",
+          "sesion_bloqueo.marca": "Sesion operativa",
+          "sesion_bloqueo.titulo":
+            "Semaplan esta abierto en otro lugar",
+          "sesion_bloqueo.texto":
+            "Para evitar que una computadora pise cambios de otra, " +
+            "esta sesion queda bloqueada hasta cerrar las demas.",
+          "sesion_bloqueo.meta":
+            "Sesiones activas detectadas: {Cantidad}. " +
+            "Si la otra computadora ya fue cerrada, podes cerrar " +
+            "esas sesiones viejas y continuar.",
+          "sesion_bloqueo.cerrar_otras":
+            "Cerrar otras sesiones",
+          "sesion_bloqueo.cerrando":
+            "Cerrando otras sesiones...",
+          "sesion_bloqueo.salir": "Salir",
+          "sesion_bloqueo.error":
+            "No se pudieron cerrar las otras sesiones.",
+          "sesion_bloqueo.registro_error":
+            "No se pudo registrar esta sesion. " +
+            "No conviene operar sin bloqueo remoto.",
           "sidebar.crear_objetivo": "Crear objetivo",
           "sidebar.nombre": "Nombre",
           "sidebar.nombre_ph": "Gimnasio",
@@ -28146,6 +28340,26 @@
           "auth.sdk_no_cargado":
             "Supabase could not be loaded. Check your connection.",
           "auth.idioma": "Language",
+          "sesion_bloqueo.marca": "Operational session",
+          "sesion_bloqueo.titulo":
+            "Semaplan is open somewhere else",
+          "sesion_bloqueo.texto":
+            "To prevent one computer from overwriting another, " +
+            "this session is locked until the others are closed.",
+          "sesion_bloqueo.meta":
+            "Active sessions detected: {Cantidad}. " +
+            "If the other computer was already closed, you can " +
+            "close those old sessions and continue.",
+          "sesion_bloqueo.cerrar_otras":
+            "Close other sessions",
+          "sesion_bloqueo.cerrando":
+            "Closing other sessions...",
+          "sesion_bloqueo.salir": "Sign out",
+          "sesion_bloqueo.error":
+            "The other sessions could not be closed.",
+          "sesion_bloqueo.registro_error":
+            "This session could not be registered. " +
+            "Operating without remote locking is unsafe.",
           "sidebar.crear_objetivo":
             "Create objective",
           "sidebar.nombre": "Name",
@@ -32257,6 +32471,26 @@
           "auth.sdk_no_cargado":
             "Nao foi possivel carregar o Supabase. Verifique sua conexao.",
           "auth.idioma": "Idioma",
+          "sesion_bloqueo.marca": "Sessao operacional",
+          "sesion_bloqueo.titulo":
+            "Semaplan esta aberto em outro lugar",
+          "sesion_bloqueo.texto":
+            "Para evitar que um computador sobrescreva outro, " +
+            "esta sessao fica bloqueada ate fechar as demais.",
+          "sesion_bloqueo.meta":
+            "Sessoes ativas detectadas: {Cantidad}. " +
+            "Se o outro computador ja foi fechado, voce pode " +
+            "fechar essas sessoes antigas e continuar.",
+          "sesion_bloqueo.cerrar_otras":
+            "Fechar outras sessoes",
+          "sesion_bloqueo.cerrando":
+            "Fechando outras sessoes...",
+          "sesion_bloqueo.salir": "Sair",
+          "sesion_bloqueo.error":
+            "Nao foi possivel fechar as outras sessoes.",
+          "sesion_bloqueo.registro_error":
+            "Nao foi possivel registrar esta sessao. " +
+            "Nao convem operar sem bloqueio remoto.",
           "sidebar.crear_objetivo":
             "Criar objetivo",
           "sidebar.nombre": "Nome",
@@ -37093,6 +37327,27 @@
         );
         if (!Clave) return false;
         return Boolean(localStorage.getItem(Clave));
+      }
+
+      function Obtener_Sync_Local_Pendiente_Ms_Usuario(
+        Id_Usuario = ""
+      ) {
+        const Clave = Clave_Sync_Pendiente_Usuario(
+          Id_Usuario
+        );
+        if (!Clave) return 0;
+        const Valor = Number(
+          localStorage.getItem(Clave)
+        );
+        return Number.isFinite(Valor) && Valor > 0
+          ? Valor
+          : 0;
+      }
+
+      function Obtener_Sync_Local_Pendiente_Ms_Actual() {
+        return Obtener_Sync_Local_Pendiente_Ms_Usuario(
+          Usuario_Actual?.id || ""
+        );
       }
 
       function Sync_Local_Pendiente_Usuario_Actual() {
@@ -98981,6 +99236,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slots_Muertos_Titulos_Visibles,
           Slots_Muertos_Nombres_Auto,
           Slots_Muertos_Grupo_Ids,
+          Sesiones_Operativas:
+            Obtener_Sesiones_Operativas_Para_Estado(),
           Abordajes_Migrados_V1: true,
           Semanas_Con_Defaults: Array.from(Semanas_Con_Defaults),
           Planes_Semana,
@@ -112389,6 +112646,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       const Clave_Sync_Evento_Local =
         Clave_Por_Entorno("Semaplan_Sync_Evento_V1");
+      const Clave_Sesion_Operativa_Id =
+        Clave_Por_Entorno("Semaplan_Sesion_Operativa_Id");
 
       // Cliente de Supabase (se inicializa al cargar la página).
       let Supa = null;
@@ -112427,6 +112686,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_Sesion_Inicio_Local_Ms = 0;
       let Sync_Sesion_Cerrando = false;
       let Sync_Evento_Local_Procesado = "";
+      let Sesion_Operativa_Id = "";
+      let Sesion_Operativa_Heartbeat_Timer_Id = null;
+      let Sesion_Operativa_Bloqueada = false;
+      const Sesion_Operativa_TTL_Ms = 120000;
+      const Sesion_Operativa_Heartbeat_Ms = 30000;
       const Clave_Log_Errores_Local =
         Clave_Por_Entorno(
           "Semaplan_Log_Errores_App_V1"
@@ -112740,6 +113004,459 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Resultado;
       }
 
+      function Obtener_Sesion_Operativa_Id() {
+        if (Sesion_Operativa_Id) return Sesion_Operativa_Id;
+        try {
+          const Existente = sessionStorage.getItem(
+            Clave_Sesion_Operativa_Id
+          );
+          if (Existente) {
+            Sesion_Operativa_Id = Existente;
+            return Sesion_Operativa_Id;
+          }
+        } catch (_) {}
+        Sesion_Operativa_Id =
+          `ses_${Date.now()}_${Math.random()
+            .toString(36)
+            .slice(2)}`;
+        try {
+          sessionStorage.setItem(
+            Clave_Sesion_Operativa_Id,
+            Sesion_Operativa_Id
+          );
+        } catch (_) {}
+        return Sesion_Operativa_Id;
+      }
+
+      function Sesion_Operativa_Es_Reciente(
+        Sesion,
+        Ahora = Date.now()
+      ) {
+        const Ultimo = Number(
+          Sesion?.Ultimo_Visto_Ms
+        ) || 0;
+        return Ultimo > 0 &&
+          Ahora - Ultimo <= Sesion_Operativa_TTL_Ms;
+      }
+
+      function Normalizar_Sesiones_Operativas(
+        Estado = null
+      ) {
+        const Base = Es_Objeto_Json(
+          Estado?.Sesiones_Operativas
+        )
+          ? Estado.Sesiones_Operativas
+          : {};
+        const Activas = Es_Objeto_Json(Base.Activas)
+          ? Base.Activas
+          : {};
+        return {
+          ...Base,
+          Activas
+        };
+      }
+
+      function Obtener_Sesiones_Operativas_Activas(
+        Estado = null,
+        Excluir_Id = ""
+      ) {
+        const Sesiones =
+          Normalizar_Sesiones_Operativas(Estado);
+        const Ahora = Date.now();
+        return Object.values(Sesiones.Activas)
+          .filter((Sesion) => {
+            if (!Sesion_Operativa_Es_Reciente(
+              Sesion,
+              Ahora
+            )) {
+              return false;
+            }
+            if (
+              Excluir_Id &&
+              String(Sesion.Id || "") === Excluir_Id
+            ) {
+              return false;
+            }
+            return true;
+          });
+      }
+
+      function Construir_Marca_Sesion_Operativa() {
+        const Ahora = Date.now();
+        return {
+          Id: Obtener_Sesion_Operativa_Id(),
+          Usuario_Id: Usuario_Actual?.id || "",
+          Email: Usuario_Actual?.email || "",
+          Iniciada_Ms:
+            Sync_Sesion_Inicio_Local_Ms || Ahora,
+          Ultimo_Visto_Ms: Ahora,
+          Version_Programa: Version_Programa_Actual
+        };
+      }
+
+      function Preparar_Estado_Sesiones_Operativas(
+        Estado_Base = null,
+        Opciones = {}
+      ) {
+        const Estado = Es_Objeto_Json(Estado_Base)
+          ? { ...Estado_Base }
+          : {};
+        const Sesiones =
+          Normalizar_Sesiones_Operativas(Estado);
+        const Ahora = Date.now();
+        const Id_Actual = Obtener_Sesion_Operativa_Id();
+        const Activas = {};
+
+        Object.entries(Sesiones.Activas).forEach(
+          ([Id, Sesion]) => {
+            const Es_Actual = Id === Id_Actual;
+            if (Opciones.Cerrar_Otras && !Es_Actual) {
+              return;
+            }
+            if (
+              !Es_Actual &&
+              !Sesion_Operativa_Es_Reciente(
+                Sesion,
+                Ahora
+              )
+            ) {
+              return;
+            }
+            Activas[Id] = Sesion;
+          }
+        );
+
+        if (Opciones.Registrar_Actual !== false) {
+          Activas[Id_Actual] =
+            Construir_Marca_Sesion_Operativa();
+        } else if (Opciones.Remover_Actual) {
+          delete Activas[Id_Actual];
+        }
+
+        Estado.Sesiones_Operativas = {
+          ...Sesiones,
+          Activas,
+          Actualizado_Ms: Ahora
+        };
+
+        if (Opciones.Cerrar_Otras) {
+          Estado.Sesiones_Operativas.Corte_Ms = Ahora;
+          Estado.Sesiones_Operativas.Corte_Excepto_Id =
+            Id_Actual;
+        }
+
+        return Estado;
+      }
+
+      function Obtener_Sesiones_Operativas_Para_Estado() {
+        if (!Usuario_Actual?.id) return undefined;
+        const Estado_Base =
+          Sync_Remoto_Estado_Ultimo &&
+          typeof Sync_Remoto_Estado_Ultimo === "object"
+            ? Sync_Remoto_Estado_Ultimo
+            : {};
+        return Preparar_Estado_Sesiones_Operativas(
+          Estado_Base
+        ).Sesiones_Operativas;
+      }
+
+      function Sesion_Operativa_Corte_Remoto_Activo(
+        Estado = null
+      ) {
+        const Sesiones =
+          Normalizar_Sesiones_Operativas(Estado);
+        const Corte = Number(Sesiones.Corte_Ms) || 0;
+        const Excepto = String(
+          Sesiones.Corte_Excepto_Id || ""
+        );
+        return (
+          !Sync_Sesion_Cerrando &&
+          Corte > 0 &&
+          Sync_Sesion_Inicio_Local_Ms > 0 &&
+          Corte > Sync_Sesion_Inicio_Local_Ms + 1000 &&
+          Excepto !== Obtener_Sesion_Operativa_Id()
+        );
+      }
+
+      async function Actualizar_Sesion_Operativa_Remota(
+        Opciones = {}
+      ) {
+        if (!Supa || !Usuario_Actual) return false;
+        const Tabla = Supa.from("estado_usuario");
+        for (let Intento = 0; Intento < 2; Intento += 1) {
+          try {
+            const Resultado_Remoto =
+              await Backend_Leer_Fila_Remota();
+            if (Resultado_Remoto.error) {
+              throw Resultado_Remoto.error;
+            }
+            if (Resultado_Remoto.data) {
+              Actualizar_Meta_Remota(
+                Resultado_Remoto.data
+              );
+            }
+            const Estado_Base =
+              Resultado_Remoto.data?.estado &&
+              typeof Resultado_Remoto.data.estado === "object"
+                ? Limpiar_Tombstones_Json(
+                  Resultado_Remoto.data.estado
+                )
+                : {};
+            const Estado =
+              Preparar_Estado_Sesiones_Operativas(
+                Estado_Base,
+                Opciones
+              );
+            const Version = Obtener_Version_Remota(
+              Resultado_Remoto.data
+            );
+            let Resultado = null;
+
+            if (Resultado_Remoto.data && Version > 0) {
+              Resultado = Normalizar_Fila_Resultado(
+                await Tabla
+                  .update({
+                    estado: Estado,
+                    version: Version + 1
+                  })
+                  .eq("user_id", Usuario_Actual.id)
+                  .eq("version", Version)
+                  .select("version, actualizado_en")
+                  .maybeSingle()
+              );
+              if (!Resultado.data && !Resultado.error) {
+                continue;
+              }
+            } else if (Resultado_Remoto.data) {
+              Resultado = Normalizar_Fila_Resultado(
+                await Tabla
+                  .update({ estado: Estado })
+                  .eq("user_id", Usuario_Actual.id)
+                  .select("version, actualizado_en")
+                  .maybeSingle()
+              );
+            } else {
+              Resultado = Normalizar_Fila_Resultado(
+                await Tabla
+                  .insert({
+                    user_id: Usuario_Actual.id,
+                    estado: Estado
+                  })
+                  .select("version, actualizado_en")
+                  .maybeSingle()
+              );
+            }
+
+            if (Resultado?.error) {
+              const Codigo = String(
+                Resultado.error.code || ""
+              );
+              const Msg = String(
+                Resultado.error.message || ""
+              ).toLowerCase();
+              if (
+                Codigo === "23505" ||
+                Msg.includes("duplicate")
+              ) {
+                continue;
+              }
+              throw Resultado.error;
+            }
+
+            Actualizar_Meta_Remota({
+              ...(Resultado?.data || {}),
+              estado: Estado
+            });
+            return true;
+          } catch (E) {
+            if (Intento === 0) continue;
+            if (!Opciones.Silencioso) {
+              Log_Error_App(
+                "sync",
+                "sesion_operativa_actualizar",
+                "No se pudo actualizar la sesion operativa",
+                E
+              );
+            }
+            return false;
+          }
+        }
+        return false;
+      }
+
+      function Mostrar_Bloqueo_Sesion_Operativa(
+        Sesiones_Activas = []
+      ) {
+        const Overlay = document.getElementById(
+          "Sesion_Bloqueo_Overlay"
+        );
+        const Meta = document.getElementById(
+          "Sesion_Bloqueo_Meta"
+        );
+        const Btn_Cerrar = document.getElementById(
+          "Sesion_Bloqueo_Cerrar_Otras"
+        );
+        const Btn_Salir = document.getElementById(
+          "Sesion_Bloqueo_Salir"
+        );
+        if (!Overlay || !Btn_Cerrar || !Btn_Salir) {
+          return Promise.resolve("Cerrar_Otras");
+        }
+        if (Meta) {
+          Meta.textContent = t("sesion_bloqueo.meta", {
+            Cantidad: Sesiones_Activas.length
+          });
+        }
+        Overlay.classList.add("Activo");
+        Sesion_Operativa_Bloqueada = true;
+        Aplicar_Traducciones();
+
+        return new Promise((Resolver) => {
+          const Cerrar = (Valor) => {
+            Btn_Cerrar.removeEventListener(
+              "click",
+              On_Cerrar
+            );
+            Btn_Salir.removeEventListener(
+              "click",
+              On_Salir
+            );
+            Resolver(Valor);
+          };
+          const On_Cerrar = () => Cerrar("Cerrar_Otras");
+          const On_Salir = () => Cerrar("Salir");
+          Btn_Cerrar.addEventListener("click", On_Cerrar);
+          Btn_Salir.addEventListener("click", On_Salir);
+          Btn_Cerrar.focus();
+        });
+      }
+
+      function Ocultar_Bloqueo_Sesion_Operativa() {
+        document.getElementById("Sesion_Bloqueo_Overlay")
+          ?.classList.remove("Activo");
+        Sesion_Operativa_Bloqueada = false;
+      }
+
+      function Setear_Bloqueo_Sesion_Operativa_Cargando(
+        Cargando = false
+      ) {
+        const Btn_Cerrar = document.getElementById(
+          "Sesion_Bloqueo_Cerrar_Otras"
+        );
+        const Btn_Salir = document.getElementById(
+          "Sesion_Bloqueo_Salir"
+        );
+        if (Btn_Cerrar) {
+          Btn_Cerrar.disabled = Cargando;
+          Btn_Cerrar.textContent = Cargando
+            ? t("sesion_bloqueo.cerrando")
+            : t("sesion_bloqueo.cerrar_otras");
+        }
+        if (Btn_Salir) {
+          Btn_Salir.disabled = Cargando;
+        }
+      }
+
+      async function Preparar_Sesion_Operativa_Entrada() {
+        Obtener_Sesion_Operativa_Id();
+        const Resultado_Remoto =
+          await Backend_Leer_Fila_Remota();
+        if (Resultado_Remoto.error) {
+          Log_Error_App(
+            "sync",
+            "sesion_operativa_entrada",
+            "No se pudo leer sesiones operativas",
+            Resultado_Remoto.error
+          );
+          Mostrar_Auth_Mensaje(
+            t("sesion_bloqueo.registro_error")
+          );
+          return false;
+        }
+        if (Resultado_Remoto.data) {
+          Actualizar_Meta_Remota(Resultado_Remoto.data);
+        }
+        const Estado_Remoto =
+          Resultado_Remoto.data?.estado || null;
+        if (
+          Sesion_Operativa_Corte_Remoto_Activo(
+            Estado_Remoto
+          )
+        ) {
+          await Cerrar_Sesion_Por_Corte_Global();
+          return false;
+        }
+
+        const Activas =
+          Obtener_Sesiones_Operativas_Activas(
+            Estado_Remoto,
+            Obtener_Sesion_Operativa_Id()
+          );
+        if (!Activas.length) {
+          const Registro_Ok =
+            await Actualizar_Sesion_Operativa_Remota({
+              Silencioso: true
+            });
+          if (!Registro_Ok) {
+            Mostrar_Auth_Mensaje(
+              t("sesion_bloqueo.registro_error")
+            );
+            return false;
+          }
+          return true;
+        }
+
+        const Eleccion =
+          await Mostrar_Bloqueo_Sesion_Operativa(Activas);
+        if (Eleccion !== "Cerrar_Otras") {
+          Sync_Sesion_Cerrando = true;
+          try {
+            await Supa.auth.signOut({ scope: "local" });
+          } catch (_) {}
+          location.reload();
+          return false;
+        }
+
+        Setear_Bloqueo_Sesion_Operativa_Cargando(true);
+        const Ok =
+          await Actualizar_Sesion_Operativa_Remota({
+            Cerrar_Otras: true
+          });
+        Setear_Bloqueo_Sesion_Operativa_Cargando(false);
+        if (!Ok) {
+          Mostrar_Toast_Info(
+            t("sesion_bloqueo.error"),
+            "!",
+            4200
+          );
+          return false;
+        }
+        Ocultar_Bloqueo_Sesion_Operativa();
+        return true;
+      }
+
+      function Iniciar_Heartbeat_Sesion_Operativa() {
+        if (Sesion_Operativa_Heartbeat_Timer_Id) {
+          clearInterval(
+            Sesion_Operativa_Heartbeat_Timer_Id
+          );
+        }
+        Sesion_Operativa_Heartbeat_Timer_Id =
+          setInterval(() => {
+            if (document.hidden) return;
+            if (!Usuario_Actual) return;
+            Actualizar_Sesion_Operativa_Remota({
+              Silencioso: true
+            });
+          }, Sesion_Operativa_Heartbeat_Ms);
+      }
+
+      function Detener_Heartbeat_Sesion_Operativa() {
+        if (!Sesion_Operativa_Heartbeat_Timer_Id) return;
+        clearInterval(Sesion_Operativa_Heartbeat_Timer_Id);
+        Sesion_Operativa_Heartbeat_Timer_Id = null;
+      }
+
       async function Preparar_Estado_Para_Sync(
         Estado_Local
       ) {
@@ -112834,6 +113551,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Limpiar_Estado_Sync_Local() {
+        Detener_Heartbeat_Sesion_Operativa();
         if (Sync_Timer_Id) {
           clearTimeout(Sync_Timer_Id);
           Sync_Timer_Id = null;
@@ -113005,10 +113723,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               "object"
               ? Resultado_Remoto.data.estado
               : Construir_Estado_Completo();
-          const Estado = {
-            ...Estado_Base,
-            Sesion_Global_Corte_Ms: Corte_Ms
-          };
+          const Estado =
+            Preparar_Estado_Sesiones_Operativas(
+              {
+                ...Estado_Base,
+                Sesion_Global_Corte_Ms: Corte_Ms
+              },
+              {
+                Cerrar_Otras: true,
+                Registrar_Actual: false,
+                Remover_Actual: true
+              }
+            );
 
           let Error = null;
           const Tabla = Supa.from("estado_usuario");
@@ -113719,6 +114445,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               if (Fila.error) throw Fila.error;
               if (Fila.data) {
                 Actualizar_Meta_Remota(Fila.data);
+                if (
+                  Sesion_Operativa_Corte_Remoto_Activo(
+                    Fila.data.estado
+                  )
+                ) {
+                  await Cerrar_Sesion_Por_Corte_Global();
+                  return false;
+                }
                 if (Sesion_Global_Remota_Activa()) {
                   await Cerrar_Sesion_Por_Corte_Global();
                   return false;
@@ -113878,6 +114612,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (data) {
             Actualizar_Meta_Remota(data);
           }
+          if (Sesion_Operativa_Corte_Remoto_Activo(
+            data?.estado
+          )) {
+            await Cerrar_Sesion_Por_Corte_Global();
+            return false;
+          }
           if (Sesion_Global_Remota_Activa()) {
             await Cerrar_Sesion_Por_Corte_Global();
             return false;
@@ -113948,6 +114688,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
           if (data) {
             Actualizar_Meta_Remota(data);
+          }
+          if (Sesion_Operativa_Corte_Remoto_Activo(
+            data?.estado
+          )) {
+            await Cerrar_Sesion_Por_Corte_Global();
+            return true;
           }
           if (
             Corte_Remoto_Ms > Corte_Conocido_Ms &&
@@ -115178,6 +115924,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Sync_Listo =
           await Backend_Asegurar_Sync_Antes_De_Salir();
         if (!Sync_Listo) return;
+        await Actualizar_Sesion_Operativa_Remota({
+          Registrar_Actual: false,
+          Remover_Actual: true,
+          Silencioso: true
+        });
         Sync_Sesion_Cerrando = true;
         await Supa.auth.signOut();
         Actualizar_Token_Sync(null);
@@ -115224,7 +115975,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           return;
         }
-        await Supa.auth.signOut({ scope: "global" });
+        try {
+          await Supa.auth.signOut({ scope: "global" });
+        } catch (E) {
+          Log_Error_App(
+            "auth",
+            "cerrar_sesion_global_supabase",
+            "Supabase rechazo el cierre global; se usa corte propio",
+            E,
+            { entidad_afectada: "cerrar_sesion_todas" }
+          );
+        }
         try {
           await Supa.auth.signOut({ scope: "local" });
         } catch (_) {}
@@ -115240,13 +116001,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Aislar_Cache_Local_Por_Usuario();
         Preparar_Sesion_Local_Activa();
 
+        const Sesion_Operativa_Ok =
+          await Preparar_Sesion_Operativa_Entrada();
+        if (!Sesion_Operativa_Ok) return;
+
         // 1) Migrar datos del localStorage si corresponde.
         await Backend_Migrar_Local_A_Cuenta();
 
         // 2) Cargar el estado remoto a localStorage.
-        const Hay_Sync_Local_Pendiente =
+        let Hay_Sync_Local_Pendiente =
           Cache_Local_Coincide_Con_Usuario_Actual() &&
           Sync_Local_Pendiente_Usuario_Actual();
+        let Conflicto_Inicial_Remoto_Ms = 0;
         let Habia_Remoto = false;
         if (Hay_Sync_Local_Pendiente) {
           const Fila_Remota = await Backend_Leer_Fila_Remota();
@@ -115258,6 +116024,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           } else if (Fila_Remota.data) {
             Actualizar_Meta_Remota(Fila_Remota.data);
             Habia_Remoto = true;
+            const Pendiente_Local_Ms =
+              Obtener_Sync_Local_Pendiente_Ms_Actual();
+            const Marca_Remota_Ms =
+              Obtener_Marca_Remota_Ms(
+                Fila_Remota.data.actualizado_en || ""
+              );
+            if (
+              Marca_Remota_Ms &&
+              (
+                !Pendiente_Local_Ms ||
+                Marca_Remota_Ms > Pendiente_Local_Ms + 1000
+              )
+            ) {
+              Conflicto_Inicial_Remoto_Ms = Marca_Remota_Ms;
+              Hay_Sync_Local_Pendiente = false;
+            }
           }
         } else {
           Habia_Remoto = await Backend_Cargar_Estado_Remoto();
@@ -115282,12 +116064,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // 5b2) Aplicar traducciones al idioma elegido.
         Aplicar_Traducciones();
         Marcar_Idioma_Activo();
+        Iniciar_Heartbeat_Sesion_Operativa();
 
         Actualizar_Sync_Indicador("Guardado");
 
         // 5c) Si era usuario nuevo (sin estado remoto previo),
         // forzar un primer guardado para crear su fila.
-        if (Hay_Sync_Local_Pendiente) {
+        if (Conflicto_Inicial_Remoto_Ms) {
+          Programar_Conflicto_Sync(
+            Conflicto_Inicial_Remoto_Ms
+          );
+        } else if (Hay_Sync_Local_Pendiente) {
           Marcar_Sync_Local_Sucio(true);
           Actualizar_Sync_Indicador("Guardando");
           await Backend_Sync_Ejecutar();
@@ -115487,12 +116274,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               return;
             }
             Revisar_Backup_Automatico_Programado();
+            Actualizar_Sesion_Operativa_Remota({
+              Silencioso: true
+            });
             Backend_Revisar_Cambios_Remotos(true);
           }
         );
 
         window.addEventListener("focus", () => {
           Revisar_Backup_Automatico_Programado();
+          Actualizar_Sesion_Operativa_Remota({
+            Silencioso: true
+          });
           Backend_Revisar_Cambios_Remotos(true);
         });
 

@@ -79,6 +79,7 @@ Las claves centrales persistidas hoy son estas.
 - `Tareas`
 - `Tareas_Cajones_Definidos`
 - `Config_Extra`
+- `Sesiones_Operativas`
 - `Tipos_Slot`
 - `Slots_Muertos_Tipos`
 - `Slots_Muertos_Nombres`
@@ -105,6 +106,23 @@ El flujo operativo base es este.
 6. `Backend_Sync_Programar()` hace debounce.
 7. `Backend_Sync_Ejecutar()` sube el estado a `estado_usuario`,
    con manejo de versionado, conflictos y reintentos.
+8. Antes de habilitar la app logueada, Semaplan registra una
+   `Sesiones_Operativas` propia con heartbeat remoto. Si detecta otra
+   sesion activa reciente, bloquea la interfaz y solo permite salir o
+   cerrar las otras sesiones antes de operar.
+9. La sesion operativa se considera activa por `last_seen` reciente,
+   no por la sesion Auth de Supabase. Una sesion vieja deja de bloquear
+   cuando vence su TTL, y tambien puede cerrarse explicitamente desde
+   el bloqueo de entrada.
+10. Si al iniciar hay cambios locales pendientes pero Supabase tiene
+   una marca remota posterior a la marca local pendiente, la app no
+   sube automaticamente el cache viejo: abre conflicto de sync para
+   elegir entre recargar remoto o conservar local.
+11. `Cerrar sesión en todas` registra primero un corte global propio en
+   el estado remoto. Si Supabase rechaza el `signOut` global, la app
+   registra el error pero igualmente cierra la sesion local, porque el
+   corte remoto propio es el mecanismo que expulsa a las otras
+   sesiones al revisar sync.
 
 Funciones transversales importantes.
 
@@ -115,6 +133,8 @@ Funciones transversales importantes.
 - `Guardar_Estado_Cambio_Critico()`
 - `Backend_Sync_Programar()`
 - `Backend_Sync_Ejecutar()`
+- `Preparar_Sesion_Operativa_Entrada()`
+- `Actualizar_Sesion_Operativa_Remota()`
 - `Invocar_Edge_Con_Sesion()`
 - `Aplicar_Importacion_Objeto()`
 
