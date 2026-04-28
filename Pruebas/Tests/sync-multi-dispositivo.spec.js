@@ -1307,6 +1307,38 @@ test(
 );
 
 test(
+  "estado local legacy sin marca abre conflicto si remoto tiene marca",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Resultado = await page.evaluate(() => {
+      return Resolver_Conflicto_Inicial_Sync(
+        {
+          Objetivos: [
+            {
+              Nombre: "Local legacy"
+            }
+          ]
+        },
+        {
+          Objetivos: [
+            {
+              Nombre: "Remoto nuevo"
+            }
+          ],
+          Sync_Datos_Marca_Ms: 10000
+        }
+      );
+    });
+
+    expect(Resultado).toBe("Conflicto");
+  }
+);
+
+test(
   "limpiar una celda con plan sincroniza antes del debounce",
   async ({ page }) => {
     await Preparar_App(
@@ -1644,6 +1676,41 @@ test(
 );
 
 test(
+  "web registra revision remota cada 15 segundos",
+  async ({ page }) => {
+    await page.addInitScript(() => {
+      const Set_Interval_Original =
+        window.setInterval.bind(window);
+      window.__Intervalos_Registrados = [];
+      window.setInterval = (
+        Callback,
+        Tiempo,
+        ...Args
+      ) => {
+        window.__Intervalos_Registrados.push(Tiempo);
+        return Set_Interval_Original(
+          Callback,
+          Tiempo,
+          ...Args
+        );
+      };
+    });
+
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Intervalos = await page.evaluate(() =>
+      window.__Intervalos_Registrados || []
+    );
+
+    expect(Intervalos).toContain(15000);
+    expect(Intervalos).not.toContain(5000);
+  }
+);
+
+test(
   "bloquea la app y deja recargar la version remota " +
   "si hay conflicto",
   async ({ page }) => {
@@ -1868,6 +1935,73 @@ test(
     );
     expect(Resumen.signOuts).toEqual([]);
     expect(Resumen.syncEstado).toBe("Guardando");
+  }
+);
+
+test(
+  "cerrar sesion en todas muestra conflicto pendiente " +
+  "antes de confirmar",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      window.__Dialogos = [];
+      window.__Toasts = [];
+      let Conflicto_Mostrado = false;
+
+      const Dialogo_Original = Mostrar_Dialogo;
+      const Toast_Original = Mostrar_Toast_Info;
+      const Conflicto_Original =
+        Intentar_Mostrar_Conflicto_Sync;
+
+      Mostrar_Dialogo = async (
+        Texto,
+        Botones = []
+      ) => {
+        window.__Dialogos.push(Texto);
+        return Botones[0]?.Valor ?? true;
+      };
+      Mostrar_Toast_Info = (
+        Texto,
+        Icono,
+        Duracion
+      ) => {
+        window.__Toasts.push({
+          Texto,
+          Icono,
+          Duracion
+        });
+      };
+      Intentar_Mostrar_Conflicto_Sync = () => {
+        Conflicto_Mostrado = true;
+        return true;
+      };
+
+      Sync_Conflicto_Pendiente = true;
+      await Cerrar_Sesion_Todas();
+
+      Mostrar_Dialogo = Dialogo_Original;
+      Mostrar_Toast_Info = Toast_Original;
+      Intentar_Mostrar_Conflicto_Sync =
+        Conflicto_Original;
+      Sync_Conflicto_Pendiente = false;
+
+      return {
+        conflictoMostrado: Conflicto_Mostrado,
+        dialogos: window.__Dialogos,
+        signOuts: window.__SignOut_Llamadas,
+        toasts: window.__Toasts
+      };
+    });
+
+    expect(Resumen.conflictoMostrado).toBe(true);
+    expect(Resumen.dialogos).toEqual([]);
+    expect(Resumen.signOuts).toEqual([]);
+    expect(Resumen.toasts).toHaveLength(1);
+    expect(Resumen.toasts[0].Duracion).toBe(4200);
   }
 );
 

@@ -115225,6 +115225,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Marca_Local && !Marca_Remota) {
           return "Local";
         }
+        if (!Marca_Local && Marca_Remota > 0) {
+          return "Conflicto";
+        }
         return Marca_Remota > Marca_Local + 1000
           ? "Conflicto"
           : "Local";
@@ -118566,6 +118569,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Cerrar_Sesion_Todas() {
         if (!Supa) return;
+        if (Sync_Conflicto_Pendiente) {
+          Intentar_Mostrar_Conflicto_Sync();
+          Mostrar_Toast_Info(
+            t("sync.conflicto_cambios"),
+            "⚠️",
+            4200
+          );
+          return;
+        }
         const Confirmar = await Mostrar_Dialogo(
           t("menu.cerrar_sesion_todas_confirm"),
           [
@@ -118951,7 +118963,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Sync_Revision_Timer_Id) {
           Sync_Revision_Timer_Id = setInterval(() => {
             Backend_Revisar_Cambios_Remotos();
-          }, Entorno_Desktop_Activo() ? 2000 : 5000);
+          }, Entorno_Desktop_Activo() ? 2000 : 15000);
         }
 
         if (!Persistencia_Salvavidas_Timer_Id) {
