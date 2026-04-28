@@ -76,6 +76,13 @@ async function esperarAppLista(page) {
   await page.waitForSelector("#Archivero_Boton", {
     timeout: 120000
   });
+
+  const Bloqueo = page.locator("#Sesion_Bloqueo_Overlay.Activo");
+  if (await Bloqueo.count()) {
+    await page.locator("#Sesion_Bloqueo_Cerrar_Otras").click();
+    await expect(Bloqueo).toHaveCount(0, { timeout: 120000 });
+  }
+
   await page.waitForFunction(() => {
     const Loader = document.getElementById("App_Loader");
     const Auth = document.getElementById("Auth_Overlay");

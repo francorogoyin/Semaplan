@@ -97,3 +97,15 @@ El modo automatico de horarios "Enfocar alrededor de ahora" muestra
 la hora actual mas el margen configurado hacia atras y hacia adelante.
 Tambien queda limitado a la semana real actual y queda por debajo del
 filtro manual del encabezado.
+
+## Resumen por periodo
+
+El resumen abierto desde el calendario debe usar un unico rango de
+lectura para todas sus pestanas. Si el usuario cambia entre semana,
+quincena, mes, ano o personalizado, las vistas de objetivos, dias y
+metas deben recalcularse sobre ese mismo rango.
+
+La pestana Metas debe ser informativa: no modifica `Planes_Periodo`,
+no cierra periodos y no registra avances. Debe diferenciar el avance
+generado dentro del rango visible del acumulado total actual para no
+confundir una lectura historica con el estado global de la meta.

@@ -168,6 +168,13 @@ Notas operativas.
 - Si se toca creacion, edicion, borrado o movimiento de eventos hay
   que revisar efectos colaterales en planes semanales, planes de slot,
   metas y sync.
+- El resumen accesible desde el calendario ya no esta limitado a la
+  semana visible: permite leer semana, quincena, mes, ano o rango
+  personalizado. Sus pestanas de objetivos, dias y metas comparten el
+  mismo rango de lectura.
+- La pestana Metas del resumen es de solo lectura y cruza el rango
+  seleccionado contra `Planes_Periodo`, mostrando avance dentro del
+  rango y acumulado actual de objetivos, subobjetivos y partes.
 
 ## Slots vacios, bloques y planes de slot
 
