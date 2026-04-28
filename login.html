@@ -114208,6 +114208,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Clave_Por_Entorno("Semaplan_Sync_Evento_V1");
       const Clave_Sesion_Operativa_Id =
         Clave_Por_Entorno("Semaplan_Sesion_Operativa_Id");
+      const Clave_Sesion_Operativa_Instancia_Id =
+        Clave_Por_Entorno(
+          "Semaplan_Sesion_Operativa_Instancia_Id"
+        );
 
       // Cliente de Supabase (se inicializa al cargar la página).
       let Supa = null;
@@ -114247,10 +114251,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_Sesion_Cerrando = false;
       let Sync_Evento_Local_Procesado = "";
       let Sesion_Operativa_Id = "";
+      let Sesion_Operativa_Instancia_Id = "";
       let Sesion_Operativa_Heartbeat_Timer_Id = null;
       let Sesion_Operativa_Bloqueada = false;
       const Sesion_Operativa_TTL_Ms = 120000;
       const Sesion_Operativa_Heartbeat_Ms = 30000;
+      const Sesion_Operativa_Es_Recarga =
+        (() => {
+          try {
+            const Entrada =
+              performance.getEntriesByType("navigation")?.[0];
+            return Entrada?.type === "reload";
+          } catch (_) {
+            return false;
+          }
+        })();
       const Clave_Log_Errores_Local =
         Clave_Por_Entorno(
           "Semaplan_Log_Errores_App_V1"
@@ -114564,6 +114579,57 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Resultado;
       }
 
+      function Estado_Sin_Metadata_Operativa(
+        Estado = null
+      ) {
+        const Limpio = Limpiar_Tombstones_Json(
+          Estado || {}
+        );
+        if (!Es_Objeto_Json(Limpio)) {
+          return Limpio;
+        }
+        const Resultado = { ...Limpio };
+        delete Resultado.Sesiones_Operativas;
+        delete Resultado.Sesion_Global_Corte_Ms;
+        return Resultado;
+      }
+
+      function Estados_Datos_Sync_Iguales(
+        Estado_A = null,
+        Estado_B = null
+      ) {
+        try {
+          return JSON.stringify(
+            Estado_Sin_Metadata_Operativa(Estado_A)
+          ) === JSON.stringify(
+            Estado_Sin_Metadata_Operativa(Estado_B)
+          );
+        } catch (_) {
+          return false;
+        }
+      }
+
+      function Cambio_Remoto_Solo_Operativo(
+        Estado_Anterior = null,
+        Estado_Nuevo = null
+      ) {
+        if (!Estado_Anterior || !Estado_Nuevo) {
+          return false;
+        }
+        return Estados_Datos_Sync_Iguales(
+          Estado_Anterior,
+          Estado_Nuevo
+        );
+      }
+
+      function Generar_Id_Sesion_Operativa(
+        Prefijo = "ses"
+      ) {
+        return `${Prefijo}_${Date.now()}_${Math.random()
+          .toString(36)
+          .slice(2)}`;
+      }
+
       function Obtener_Sesion_Operativa_Id() {
         if (Sesion_Operativa_Id) return Sesion_Operativa_Id;
         try {
@@ -114576,9 +114642,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         } catch (_) {}
         Sesion_Operativa_Id =
-          `ses_${Date.now()}_${Math.random()
-            .toString(36)
-            .slice(2)}`;
+          Generar_Id_Sesion_Operativa("ses");
         try {
           sessionStorage.setItem(
             Clave_Sesion_Operativa_Id,
@@ -114586,6 +114650,45 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
         } catch (_) {}
         return Sesion_Operativa_Id;
+      }
+
+      function Obtener_Sesion_Operativa_Instancia_Id() {
+        if (Sesion_Operativa_Instancia_Id) {
+          return Sesion_Operativa_Instancia_Id;
+        }
+        try {
+          const Existente = sessionStorage.getItem(
+            Clave_Sesion_Operativa_Instancia_Id
+          );
+          if (Sesion_Operativa_Es_Recarga && Existente) {
+            Sesion_Operativa_Instancia_Id = Existente;
+            return Sesion_Operativa_Instancia_Id;
+          }
+        } catch (_) {}
+        Sesion_Operativa_Instancia_Id =
+          Generar_Id_Sesion_Operativa("inst");
+        try {
+          sessionStorage.setItem(
+            Clave_Sesion_Operativa_Instancia_Id,
+            Sesion_Operativa_Instancia_Id
+          );
+        } catch (_) {}
+        return Sesion_Operativa_Instancia_Id;
+      }
+
+      function Sesion_Operativa_Es_La_Actual(
+        Sesion = null
+      ) {
+        const Id = String(Sesion?.Id || "");
+        if (Id !== Obtener_Sesion_Operativa_Id()) {
+          return false;
+        }
+        const Instancia = String(
+          Sesion?.Instancia_Id || ""
+        );
+        return !Instancia ||
+          Instancia ===
+            Obtener_Sesion_Operativa_Instancia_Id();
       }
 
       function Sesion_Operativa_Es_Reciente(
@@ -114633,7 +114736,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
             if (
               Excluir_Id &&
-              String(Sesion.Id || "") === Excluir_Id
+              String(Sesion.Id || "") === Excluir_Id &&
+              Sesion_Operativa_Es_La_Actual(Sesion)
             ) {
               return false;
             }
@@ -114645,6 +114749,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Ahora = Date.now();
         return {
           Id: Obtener_Sesion_Operativa_Id(),
+          Instancia_Id:
+            Obtener_Sesion_Operativa_Instancia_Id(),
           Usuario_Id: Usuario_Actual?.id || "",
           Email: Usuario_Actual?.email || "",
           Iniciada_Ms:
@@ -114669,7 +114775,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         Object.entries(Sesiones.Activas).forEach(
           ([Id, Sesion]) => {
-            const Es_Actual = Id === Id_Actual;
+            const Es_Actual =
+              Id === Id_Actual &&
+              Sesion_Operativa_Es_La_Actual(Sesion);
             if (Opciones.Cerrar_Otras && !Es_Actual) {
               return;
             }
@@ -114703,6 +114811,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado.Sesiones_Operativas.Corte_Ms = Ahora;
           Estado.Sesiones_Operativas.Corte_Excepto_Id =
             Id_Actual;
+          Estado.Sesiones_Operativas
+            .Corte_Excepto_Instancia_Id =
+              Obtener_Sesion_Operativa_Instancia_Id();
         }
 
         return Estado;
@@ -114729,12 +114840,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Excepto = String(
           Sesiones.Corte_Excepto_Id || ""
         );
+        const Excepto_Instancia = String(
+          Sesiones.Corte_Excepto_Instancia_Id || ""
+        );
+        const Excluye_Actual =
+          Excepto === Obtener_Sesion_Operativa_Id() &&
+          (
+            !Excepto_Instancia ||
+            Excepto_Instancia ===
+              Obtener_Sesion_Operativa_Instancia_Id()
+          );
         return (
           !Sync_Sesion_Cerrando &&
           Corte > 0 &&
           Sync_Sesion_Inicio_Local_Ms > 0 &&
           Corte > Sync_Sesion_Inicio_Local_Ms + 1000 &&
-          Excepto !== Obtener_Sesion_Operativa_Id()
+          !Excluye_Actual
         );
       }
 
@@ -114743,7 +114864,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         if (!Supa || !Usuario_Actual) return false;
         const Tabla = Supa.from("estado_usuario");
-        for (let Intento = 0; Intento < 2; Intento += 1) {
+        for (let Intento = 0; Intento < 4; Intento += 1) {
           try {
             const Resultado_Remoto =
               await Backend_Leer_Fila_Remota();
@@ -114919,6 +115040,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       async function Preparar_Sesion_Operativa_Entrada() {
         Obtener_Sesion_Operativa_Id();
+        Obtener_Sesion_Operativa_Instancia_Id();
         const Resultado_Remoto =
           await Backend_Leer_Fila_Remota();
         if (Resultado_Remoto.error) {
@@ -115164,6 +115286,69 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           .maybeSingle();
       }
 
+      async function Backend_Refrescar_Si_Cambio_Remoto_Solo_Operativo(
+        Estado_Referencia = null
+      ) {
+        if (!Estado_Referencia) return false;
+        const Fila = await Backend_Leer_Fila_Remota();
+        if (Fila.error) throw Fila.error;
+        if (!Fila.data?.estado) return false;
+        const Estado_Remoto =
+          Limpiar_Tombstones_Json(Fila.data.estado);
+        const Solo_Operativo =
+          Cambio_Remoto_Solo_Operativo(
+            Estado_Referencia,
+            Estado_Remoto
+          );
+        Actualizar_Meta_Remota(Fila.data);
+        if (
+          Sesion_Operativa_Corte_Remoto_Activo(
+            Estado_Remoto
+          ) ||
+          Sesion_Global_Remota_Activa()
+        ) {
+          await Cerrar_Sesion_Por_Corte_Global();
+          return false;
+        }
+        return Solo_Operativo;
+      }
+
+      async function Backend_Verificar_Remoto_Antes_De_Sync(
+        Estado_Referencia = null
+      ) {
+        if (!Sync_Remoto_Fila_Existe) return true;
+        if (!Estado_Referencia) return true;
+        const Fila = await Backend_Leer_Fila_Remota();
+        if (Fila.error) throw Fila.error;
+        if (!Fila.data?.estado) return true;
+        const Estado_Remoto =
+          Limpiar_Tombstones_Json(Fila.data.estado);
+        const Datos_Iguales =
+          Estados_Datos_Sync_Iguales(
+            Estado_Referencia,
+            Estado_Remoto
+          );
+        const Marca_Remota_Ms =
+          Obtener_Marca_Remota_Ms(
+            Fila.data.actualizado_en || ""
+          );
+        Actualizar_Meta_Remota(Fila.data);
+        if (
+          Sesion_Operativa_Corte_Remoto_Activo(
+            Estado_Remoto
+          ) ||
+          Sesion_Global_Remota_Activa()
+        ) {
+          await Cerrar_Sesion_Por_Corte_Global();
+          return false;
+        }
+        if (!Datos_Iguales) {
+          Programar_Conflicto_Sync(Marca_Remota_Ms);
+          return false;
+        }
+        return true;
+      }
+
       function Backend_Registrar_Sync_Exitoso(
         Datos = null,
         Estado_Sincronizado = null
@@ -115266,130 +115451,139 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Supa || !Usuario_Actual) return false;
         const Corte_Ms = Date.now();
         try {
-          const Resultado_Remoto =
-            await Backend_Leer_Fila_Remota();
-          if (Resultado_Remoto.error) {
-            throw Resultado_Remoto.error;
-          }
-          if (Resultado_Remoto.data) {
-            Actualizar_Meta_Remota(
+          for (let Intento = 0; Intento < 4; Intento += 1) {
+            const Resultado_Remoto =
+              await Backend_Leer_Fila_Remota();
+            if (Resultado_Remoto.error) {
+              throw Resultado_Remoto.error;
+            }
+            if (Resultado_Remoto.data) {
+              Actualizar_Meta_Remota(
+                Resultado_Remoto.data
+              );
+            }
+
+            const Estado_Base =
+              Resultado_Remoto.data?.estado &&
+              typeof Resultado_Remoto.data.estado ===
+                "object"
+                ? Resultado_Remoto.data.estado
+                : Construir_Estado_Completo();
+            const Estado =
+              Preparar_Estado_Sesiones_Operativas(
+                {
+                  ...Estado_Base,
+                  Sesion_Global_Corte_Ms: Corte_Ms
+                },
+                {
+                  Cerrar_Otras: true,
+                  Registrar_Actual: false,
+                  Remover_Actual: true
+                }
+              );
+
+            let Error = null;
+            const Tabla = Supa.from("estado_usuario");
+            const Version = Obtener_Version_Remota(
               Resultado_Remoto.data
             );
-          }
-
-          const Estado_Base =
-            Resultado_Remoto.data?.estado &&
-            typeof Resultado_Remoto.data.estado ===
-              "object"
-              ? Resultado_Remoto.data.estado
-              : Construir_Estado_Completo();
-          const Estado =
-            Preparar_Estado_Sesiones_Operativas(
-              {
-                ...Estado_Base,
-                Sesion_Global_Corte_Ms: Corte_Ms
-              },
-              {
-                Cerrar_Otras: true,
-                Registrar_Actual: false,
-                Remover_Actual: true
+            if (
+              Resultado_Remoto.data &&
+              Version > 0 &&
+              typeof Tabla.update === "function"
+            ) {
+              const Resultado =
+                Normalizar_Fila_Resultado(
+                  await Tabla
+                    .update({
+                      estado: Estado,
+                      version: Version + 1
+                    })
+                    .eq("user_id", Usuario_Actual.id)
+                    .eq("version", Version)
+                    .select("version, actualizado_en")
+                    .maybeSingle()
+                );
+              if (Resultado.error) {
+                Error = Resultado.error;
+              } else if (Resultado.data) {
+                Sync_Sesion_Global_Corte_Ms = Corte_Ms;
+                Backend_Registrar_Sync_Exitoso(
+                  Resultado.data,
+                  Estado
+                );
+                Emitir_Evento_Local_Sync(
+                  "cerrar_sesion_global",
+                  { Corte_Sesion_Ms: Corte_Ms }
+                );
+                return true;
+              } else {
+                continue;
               }
-            );
-
-          let Error = null;
-          const Tabla = Supa.from("estado_usuario");
-          if (
-            Sync_Remoto_Fila_Existe &&
-            Sync_Remoto_Version_Actual > 0 &&
-            typeof Tabla.update === "function"
-          ) {
-            const Resultado =
-              Normalizar_Fila_Resultado(
-                await Tabla
-                  .update({
-                    estado: Estado,
-                    version:
-                      Sync_Remoto_Version_Actual + 1
-                  })
-                  .eq("user_id", Usuario_Actual.id)
-                  .eq(
-                    "version",
-                    Sync_Remoto_Version_Actual
-                  )
-                  .select("version, actualizado_en")
-                  .maybeSingle()
-              );
-            if (Resultado.error) {
-              Error = Resultado.error;
-            } else if (Resultado.data) {
-              Sync_Sesion_Global_Corte_Ms = Corte_Ms;
-              Backend_Registrar_Sync_Exitoso(
-                Resultado.data
-              );
-              Emitir_Evento_Local_Sync(
-                "cerrar_sesion_global",
-                {
-                  Corte_Sesion_Ms: Corte_Ms
+            } else if (
+              !Resultado_Remoto.data &&
+              typeof Tabla.insert === "function"
+            ) {
+              const Resultado =
+                Normalizar_Fila_Resultado(
+                  await Tabla
+                    .insert({
+                      user_id: Usuario_Actual.id,
+                      estado: Estado
+                    })
+                    .select("version, actualizado_en")
+                    .maybeSingle()
+                );
+              if (Resultado.error) {
+                const Msg = String(
+                  Resultado.error.message || ""
+                ).toLowerCase();
+                const Codigo = String(
+                  Resultado.error.code || ""
+                );
+                if (
+                  Codigo === "23505" ||
+                  Msg.includes("duplicate")
+                ) {
+                  continue;
                 }
-              );
-              return true;
+                Error = Resultado.error;
+              } else if (Resultado.data) {
+                Sync_Sesion_Global_Corte_Ms = Corte_Ms;
+                Backend_Registrar_Sync_Exitoso(
+                  Resultado.data,
+                  Estado
+                );
+                Emitir_Evento_Local_Sync(
+                  "cerrar_sesion_global",
+                  { Corte_Sesion_Ms: Corte_Ms }
+                );
+                return true;
+              }
             } else {
-              Error = {
-                message:
-                  "No se pudo registrar el corte global"
-              };
+              const Resultado = await Supa
+                .from("estado_usuario")
+                .upsert({
+                  user_id: Usuario_Actual.id,
+                  estado: Estado
+                });
+              Error = Resultado.error || null;
+              if (!Error) {
+                Sync_Sesion_Global_Corte_Ms = Corte_Ms;
+                Backend_Registrar_Sync_Exitoso(
+                  null,
+                  Estado
+                );
+                Emitir_Evento_Local_Sync(
+                  "cerrar_sesion_global",
+                  { Corte_Sesion_Ms: Corte_Ms }
+                );
+                return true;
+              }
             }
-          } else if (
-            !Sync_Remoto_Fila_Existe &&
-            typeof Tabla.insert === "function"
-          ) {
-            const Resultado =
-              Normalizar_Fila_Resultado(
-                await Tabla
-                  .insert({
-                    user_id: Usuario_Actual.id,
-                    estado: Estado
-                  })
-                  .select("version, actualizado_en")
-                  .maybeSingle()
-              );
-            if (Resultado.error) {
-              Error = Resultado.error;
-            } else if (Resultado.data) {
-              Sync_Sesion_Global_Corte_Ms = Corte_Ms;
-              Backend_Registrar_Sync_Exitoso(
-                Resultado.data
-              );
-              Emitir_Evento_Local_Sync(
-                "cerrar_sesion_global",
-                {
-                  Corte_Sesion_Ms: Corte_Ms
-                }
-              );
-              return true;
-            }
-          } else {
-            const Resultado = await Supa
-              .from("estado_usuario")
-              .upsert({
-                user_id: Usuario_Actual.id,
-                estado: Estado
-              });
-            Error = Resultado.error || null;
-            if (!Error) {
-              Sync_Sesion_Global_Corte_Ms = Corte_Ms;
-              Backend_Registrar_Sync_Exitoso();
-              Emitir_Evento_Local_Sync(
-                "cerrar_sesion_global",
-                {
-                  Corte_Sesion_Ms: Corte_Ms
-                }
-              );
-              return true;
-            }
-          }
 
-          if (Error) throw Error;
+            if (Error) throw Error;
+          }
           return false;
         } catch (E) {
           console.error(
@@ -115410,89 +115604,108 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Supa || !Usuario_Actual) return false;
         const Corte_Ms = Date.now();
         try {
-          const Resultado_Remoto =
-            await Backend_Leer_Fila_Remota();
-          if (Resultado_Remoto.error) {
-            throw Resultado_Remoto.error;
-          }
-          if (Resultado_Remoto.data) {
-            Actualizar_Meta_Remota(Resultado_Remoto.data);
-          }
-
-          const Estado_Local = Construir_Estado_Completo();
-          const Estado_Base =
-            Fusionar_Estado_Raiz_Faltante(
-              Resultado_Remoto.data?.estado || {},
-              Estado_Local
-            );
-          const Estado =
-            Preparar_Estado_Sesiones_Operativas(
-              {
-                ...Estado_Base,
-                Sesion_Global_Corte_Ms: Corte_Ms
-              },
-              {
-                Cerrar_Otras: true,
-                Registrar_Actual: false,
-                Remover_Actual: true
-              }
-            );
-
-          const Version = Obtener_Version_Remota(
-            Resultado_Remoto.data
-          );
-          const Tabla = Supa.from("estado_usuario");
-          let Resultado = null;
-
-          if (Resultado_Remoto.data && Version > 0) {
-            Resultado = Normalizar_Fila_Resultado(
-              await Tabla
-                .update({
-                  estado: Estado,
-                  version: Version + 1
-                })
-                .eq("user_id", Usuario_Actual.id)
-                .eq("version", Version)
-                .select("version, actualizado_en")
-                .maybeSingle()
-            );
-            if (!Resultado.data && !Resultado.error) {
-              return false;
+          for (let Intento = 0; Intento < 4; Intento += 1) {
+            const Resultado_Remoto =
+              await Backend_Leer_Fila_Remota();
+            if (Resultado_Remoto.error) {
+              throw Resultado_Remoto.error;
             }
-          } else if (Resultado_Remoto.data) {
-            Resultado = Normalizar_Fila_Resultado(
-              await Tabla
-                .update({ estado: Estado })
-                .eq("user_id", Usuario_Actual.id)
-                .select("version, actualizado_en")
-                .maybeSingle()
-            );
-          } else {
-            Resultado = Normalizar_Fila_Resultado(
-              await Tabla
-                .insert({
-                  user_id: Usuario_Actual.id,
-                  estado: Estado
-                })
-                .select("version, actualizado_en")
-                .maybeSingle()
-            );
-          }
+            if (Resultado_Remoto.data) {
+              Actualizar_Meta_Remota(
+                Resultado_Remoto.data
+              );
+            }
 
-          if (Resultado?.error) {
-            throw Resultado.error;
-          }
+            const Estado_Local = Construir_Estado_Completo();
+            const Estado_Base =
+              Fusionar_Estado_Raiz_Faltante(
+                Resultado_Remoto.data?.estado || {},
+                Estado_Local
+              );
+            const Estado =
+              Preparar_Estado_Sesiones_Operativas(
+                {
+                  ...Estado_Base,
+                  Sesion_Global_Corte_Ms: Corte_Ms
+                },
+                {
+                  Cerrar_Otras: true,
+                  Registrar_Actual: false,
+                  Remover_Actual: true
+                }
+              );
 
-          Sync_Sesion_Global_Corte_Ms = Corte_Ms;
-          Backend_Registrar_Sync_Exitoso(
-            Resultado?.data || null,
-            Estado
-          );
-          Emitir_Evento_Local_Sync(
-            "cerrar_sesion_global",
-            { Corte_Sesion_Ms: Corte_Ms }
-          );
-          return true;
+            const Version = Obtener_Version_Remota(
+              Resultado_Remoto.data
+            );
+            const Tabla = Supa.from("estado_usuario");
+            let Resultado = null;
+
+            if (Resultado_Remoto.data && Version > 0) {
+              Resultado = Normalizar_Fila_Resultado(
+                await Tabla
+                  .update({
+                    estado: Estado,
+                    version: Version + 1
+                  })
+                  .eq("user_id", Usuario_Actual.id)
+                  .eq("version", Version)
+                  .select("version, actualizado_en")
+                  .maybeSingle()
+              );
+              if (!Resultado.data && !Resultado.error) {
+                continue;
+              }
+            } else if (Resultado_Remoto.data) {
+              Resultado = Normalizar_Fila_Resultado(
+                await Tabla
+                  .update({ estado: Estado })
+                  .eq("user_id", Usuario_Actual.id)
+                  .select("version, actualizado_en")
+                  .maybeSingle()
+              );
+            } else {
+              Resultado = Normalizar_Fila_Resultado(
+                await Tabla
+                  .insert({
+                    user_id: Usuario_Actual.id,
+                    estado: Estado
+                  })
+                  .select("version, actualizado_en")
+                  .maybeSingle()
+              );
+              if (Resultado.error) {
+                const Msg = String(
+                  Resultado.error.message || ""
+                ).toLowerCase();
+                const Codigo = String(
+                  Resultado.error.code || ""
+                );
+                if (
+                  Codigo === "23505" ||
+                  Msg.includes("duplicate")
+                ) {
+                  continue;
+                }
+              }
+            }
+
+            if (Resultado?.error) {
+              throw Resultado.error;
+            }
+
+            Sync_Sesion_Global_Corte_Ms = Corte_Ms;
+            Backend_Registrar_Sync_Exitoso(
+              Resultado?.data || null,
+              Estado
+            );
+            Emitir_Evento_Local_Sync(
+              "cerrar_sesion_global",
+              { Corte_Sesion_Ms: Corte_Ms }
+            );
+            return true;
+          }
+          return false;
         } catch (E) {
           console.error(
             "Error forzando corte global:",
@@ -115623,7 +115836,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Eleccion === "Local") {
           Limpiar_Conflicto_Sync();
-          const Ok = await Backend_Sync_Ejecutar();
+          const Ok = await Backend_Sync_Ejecutar({
+            Forzar_Sobrescribir: true
+          });
           Mostrar_Toast_Info(
             t(
               Ok
@@ -115971,10 +116186,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Sync_Conflicto_Pendiente;
       }
 
-      async function Backend_Sync_Ejecutar() {
+      async function Backend_Sync_Ejecutar(
+        Opciones = {}
+      ) {
         if (Sync_Conflicto_Pendiente) return false;
         if (!Supa || !Usuario_Actual) return false;
-        if (Sync_Promesa_En_Curso) {
+        if (
+          Sync_Promesa_En_Curso &&
+          !Opciones.Forzar_Sobrescribir
+        ) {
           return await Sync_Promesa_En_Curso;
         }
         if (Sync_Timer_Id) {
@@ -115984,6 +116204,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Sync_Promesa_En_Curso = (async () => {
           Sync_En_Curso = true;
           try {
+            for (
+              let Intento_Metadata = 0;
+              Intento_Metadata < 2;
+              Intento_Metadata += 1
+            ) {
+            const Estado_Remoto_Referencia =
+              Sync_Remoto_Estado_Ultimo
+                ? Limpiar_Tombstones_Json(
+                  Sync_Remoto_Estado_Ultimo
+                )
+                : null;
+            if (
+              !Opciones.Forzar_Sobrescribir &&
+              !await Backend_Verificar_Remoto_Antes_De_Sync(
+                Estado_Remoto_Referencia
+              )
+            ) {
+              return false;
+            }
             const Estado_Local =
               Construir_Estado_Completo();
             const {
@@ -116041,6 +116280,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 throw Resultado.error;
               }
               if (!Resultado.data) {
+                if (
+                  Intento_Metadata === 0 &&
+                  await Backend_Refrescar_Si_Cambio_Remoto_Solo_Operativo(
+                    Estado_Remoto_Referencia
+                  )
+                ) {
+                  continue;
+                }
                 throw Conflicto;
               }
               Backend_Registrar_Sync_Exitoso(
@@ -116075,6 +116322,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 if (!Es_Duplicado) {
                   throw Resultado.error;
                 }
+                if (
+                  Intento_Metadata === 0 &&
+                  await Backend_Refrescar_Si_Cambio_Remoto_Solo_Operativo(
+                    Estado_Remoto_Referencia
+                  )
+                ) {
+                  continue;
+                }
                 throw Conflicto;
               }
               if (Resultado.data) {
@@ -116101,19 +116356,38 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
 
             return true;
+            }
+            return false;
           } catch (E) {
             let Hay_Conflicto = false;
             try {
               const Marca_Anterior_Ms =
                 Sync_Remoto_Marca_Ms;
+              const Estado_Remoto_Anterior =
+                Sync_Remoto_Estado_Ultimo
+                  ? Limpiar_Tombstones_Json(
+                    Sync_Remoto_Estado_Ultimo
+                  )
+                  : null;
               const Fila =
                 await Backend_Leer_Fila_Remota();
               if (Fila.error) throw Fila.error;
               if (Fila.data) {
+                const Estado_Remoto_Nuevo =
+                  Fila.data.estado
+                    ? Limpiar_Tombstones_Json(
+                      Fila.data.estado
+                    )
+                    : null;
+                const Solo_Operativo =
+                  Cambio_Remoto_Solo_Operativo(
+                    Estado_Remoto_Anterior,
+                    Estado_Remoto_Nuevo
+                  );
                 Actualizar_Meta_Remota(Fila.data);
                 if (
                   Sesion_Operativa_Corte_Remoto_Activo(
-                    Fila.data.estado
+                    Estado_Remoto_Nuevo || Fila.data.estado
                   )
                 ) {
                   await Cerrar_Sesion_Por_Corte_Global();
@@ -116128,9 +116402,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     Fila.data.actualizado_en || ""
                   );
                 if (
-                  Marca_Remota_Ms >
-                    Marca_Anterior_Ms + 1000 ||
-                  E?.Es_Conflicto_Sync
+                  !Solo_Operativo &&
+                  (
+                    Marca_Remota_Ms >
+                      Marca_Anterior_Ms + 1000 ||
+                    E?.Es_Conflicto_Sync
+                  )
                 ) {
                   Hay_Conflicto = true;
                   Programar_Conflicto_Sync(
@@ -116340,6 +116617,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Sync_Remoto_Marca_Ms;
           const Corte_Conocido_Ms =
             Sync_Sesion_Global_Corte_Ms;
+          const Estado_Remoto_Conocido =
+            Sync_Remoto_Estado_Ultimo
+              ? Limpiar_Tombstones_Json(
+                Sync_Remoto_Estado_Ultimo
+              )
+              : null;
           const { data, error } =
             await Backend_Leer_Fila_Remota();
           if (error) throw error;
@@ -116352,11 +116635,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Obtener_Corte_Sesion_Global(
               data?.estado
             );
+          const Estado_Remoto_Nuevo =
+            data?.estado
+              ? Limpiar_Tombstones_Json(data.estado)
+              : null;
+          const Solo_Operativo =
+            Cambio_Remoto_Solo_Operativo(
+              Estado_Remoto_Conocido,
+              Estado_Remoto_Nuevo
+            );
           if (data) {
             Actualizar_Meta_Remota(data);
           }
           if (Sesion_Operativa_Corte_Remoto_Activo(
-            data?.estado
+            Estado_Remoto_Nuevo || data?.estado
           )) {
             await Cerrar_Sesion_Por_Corte_Global();
             return true;
@@ -116374,6 +116666,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Marca_Remota_Ms <=
               Marca_Conocida_Ms + 1000
           ) {
+            return false;
+          }
+          if (Solo_Operativo) {
             return false;
           }
 
@@ -117628,7 +117923,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (!Confirmar) return;
         const Sync_Listo =
-          await Backend_Asegurar_Sync_Antes_De_Salir();
+          Sync_Conflicto_Pendiente
+            ? false
+            : await Backend_Asegurar_Sync_Antes_De_Salir();
         Sync_Sesion_Cerrando = true;
         const Corte_Registrado =
           Sync_Listo

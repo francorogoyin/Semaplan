@@ -1296,6 +1296,123 @@ test(
 );
 
 test(
+  "ignora cambios remotos que solo actualizan sesiones",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Solo remoto"])
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      const Estado_Operativo = JSON.parse(JSON.stringify(
+        window.__Estado_Remoto.estado
+      ));
+      Estado_Operativo.Sesiones_Operativas = {
+        Activas: {
+          [Obtener_Sesion_Operativa_Id()]: {
+            Id: Obtener_Sesion_Operativa_Id(),
+            Instancia_Id:
+              Obtener_Sesion_Operativa_Instancia_Id(),
+            Ultimo_Visto_Ms: Date.now()
+          }
+        },
+        Actualizado_Ms: Date.now()
+      };
+      window.__Estado_Remoto = {
+        estado: Estado_Operativo,
+        actualizado_en: "2026-04-14T00:00:18Z",
+        version:
+          Number(window.__Estado_Remoto.version || 0) + 1
+      };
+
+      const Refresco =
+        await Backend_Revisar_Cambios_Remotos(true);
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+
+      return {
+        refresco: Refresco,
+        conflicto: Sync_Conflicto_Pendiente,
+        nombres:
+          (Estado_Local.Objetivos || []).map(
+            (Objetivo) => Objetivo.Nombre
+          )
+      };
+    });
+
+    expect(Resumen.refresco).toBe(false);
+    expect(Resumen.conflicto).toBe(false);
+    expect(Resumen.nombres).toEqual(["Solo remoto"]);
+  }
+);
+
+test(
+  "guarda si la version remota cambio solo por sesiones",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      Objetivos.push({
+        Id: 128,
+        Nombre: "Cambio local con heartbeat",
+        Emoji: "*",
+        Color: "#f1b77e",
+        Horas: 1,
+        Dia: 0,
+        Hora: 9,
+        Duracion: 1,
+        Subobjetivos: [],
+        Copias_Semana: {}
+      });
+      Guardar_Estado();
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+
+      const Estado_Operativo = JSON.parse(JSON.stringify(
+        window.__Estado_Remoto.estado
+      ));
+      Estado_Operativo.Sesiones_Operativas = {
+        Activas: {
+          sesion_vieja: {
+            Id: "sesion_vieja",
+            Instancia_Id: "instancia_vieja",
+            Ultimo_Visto_Ms: Date.now()
+          }
+        },
+        Actualizado_Ms: Date.now()
+      };
+      window.__Estado_Remoto = {
+        estado: Estado_Operativo,
+        actualizado_en: "2026-04-14T00:00:52Z",
+        version:
+          Number(window.__Estado_Remoto.version || 0) + 1
+      };
+
+      const Ok = await Backend_Sync_Ejecutar();
+
+      return {
+        ok: Ok,
+        conflicto: Sync_Conflicto_Pendiente,
+        remoto:
+          (window.__Estado_Remoto?.estado?.Objetivos || [])
+            .map((Objetivo) => Objetivo.Nombre)
+      };
+    });
+
+    expect(Resumen.ok).toBe(true);
+    expect(Resumen.conflicto).toBe(false);
+    expect(Resumen.remoto).toContain(
+      "Cambio local con heartbeat"
+    );
+  }
+);
+
+test(
   "recarga cambios remotos mas nuevos al volver al foco",
   async ({ page }) => {
     await Preparar_App(
