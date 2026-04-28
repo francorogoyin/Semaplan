@@ -84724,13 +84724,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Habitos_Prioridad_Periodo_Plan_Slot(Habito) {
+        const Orden = {
+          Dia: 0,
+          Semana: 1,
+          Quincena: 2,
+          Mes: 3
+        };
+        return Orden[Habito_Periodo(Habito)] ?? 99;
+      }
+
+      function Habitos_Comparar_Sugeridos_Plan_Slot(A, B) {
+        const Periodo_Diff =
+          Habitos_Prioridad_Periodo_Plan_Slot(A) -
+          Habitos_Prioridad_Periodo_Plan_Slot(B);
+        if (Periodo_Diff !== 0) return Periodo_Diff;
+        const Tipo_Diff =
+          Habitos_Prioridad_Tipo_Orden(A) -
+          Habitos_Prioridad_Tipo_Orden(B);
+        if (Tipo_Diff !== 0) return Tipo_Diff;
+        return Habitos_Comparar_Orden_Base(A, B);
+      }
+
       function Obtener_Habitos_Disponibles_Plan_Slot(
         Fecha,
         Hora,
         Solo_Sugeridos = false
       ) {
         const Es_Evento = Slot_Tiene_Evento(Fecha, Hora);
-        return (Array.isArray(Habitos) ? Habitos : [])
+        const Lista = (Array.isArray(Habitos) ? Habitos : [])
           .filter((Habito) =>
             Habito_Disponible_Para_Plan_Slot(Habito)
           )
@@ -84745,6 +84767,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
             return true;
           });
+        return Solo_Sugeridos
+          ? Lista.sort(Habitos_Comparar_Sugeridos_Plan_Slot)
+          : Lista;
       }
 
       function Crear_Select_Habitos_Plan_Slot(

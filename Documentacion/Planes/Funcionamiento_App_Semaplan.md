@@ -246,7 +246,10 @@ Relaciones importantes.
   habitos diarios solo cuando coinciden con el dia y la hora del slot.
   Los habitos semanales, quincenales y mensuales pendientes se sugieren
   dentro del periodo aunque su programacion tenga dias u horarios
-  preferidos; dejan de aparecer cuando el periodo queda completo.
+  preferidos; dejan de aparecer cuando el periodo queda completo. La
+  lista sugerida se ordena por periodo: diarios, semanales,
+  quincenales y mensuales; y dentro de cada periodo por tipo: Check,
+  Cantidad, Tiempo y Evitar.
 
 ## Tareas
 

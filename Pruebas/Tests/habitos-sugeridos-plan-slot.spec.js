@@ -198,3 +198,77 @@ test("sugiere habitos de periodo largo pendientes en planes", async ({
     Sugeridos_Sabado: ["Habito_Diario_Finde"]
   });
 });
+
+test("ordena habitos sugeridos por periodo y tipo", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  const resultado = await page.evaluate(() => {
+    const Crear = (Periodo, Tipo_Orden) => {
+      const Es_Evitar = Tipo_Orden === "Evitar";
+      const Modo = Tipo_Orden === "Evitar"
+        ? "Cantidad"
+        : Tipo_Orden;
+      return Normalizar_Habito({
+        Id: `Habito_${Periodo}_${Tipo_Orden}`,
+        Nombre: `${Periodo} ${Tipo_Orden}`,
+        Tipo: Es_Evitar ? "Evitar" : "Hacer",
+        Programacion: {
+          Tipo: "Dias",
+          Dias: [0]
+        },
+        Meta: {
+          Modo,
+          Regla: Es_Evitar ? "Como_Maximo" : "Al_Menos",
+          Periodo,
+          Cantidad: Es_Evitar ? 0 : 1,
+          Unidad: Modo === "Tiempo" ? "Minutos" : "u"
+        }
+      });
+    };
+    Habitos = [
+      Crear("Mes", "Evitar"),
+      Crear("Quincena", "Tiempo"),
+      Crear("Dia", "Cantidad"),
+      Crear("Semana", "Evitar"),
+      Crear("Mes", "Check"),
+      Crear("Dia", "Evitar"),
+      Crear("Quincena", "Cantidad"),
+      Crear("Semana", "Tiempo"),
+      Crear("Dia", "Check"),
+      Crear("Mes", "Cantidad"),
+      Crear("Semana", "Check"),
+      Crear("Quincena", "Evitar"),
+      Crear("Dia", "Tiempo"),
+      Crear("Semana", "Cantidad"),
+      Crear("Quincena", "Check"),
+      Crear("Mes", "Tiempo")
+    ];
+    Habitos_Registros = [];
+    return Obtener_Habitos_Disponibles_Plan_Slot(
+      "2026-04-13",
+      9,
+      true
+    ).map((Habito) => Habito.Id);
+  });
+
+  expect(resultado).toEqual([
+    "Habito_Dia_Check",
+    "Habito_Dia_Cantidad",
+    "Habito_Dia_Tiempo",
+    "Habito_Dia_Evitar",
+    "Habito_Semana_Check",
+    "Habito_Semana_Cantidad",
+    "Habito_Semana_Tiempo",
+    "Habito_Semana_Evitar",
+    "Habito_Quincena_Check",
+    "Habito_Quincena_Cantidad",
+    "Habito_Quincena_Tiempo",
+    "Habito_Quincena_Evitar",
+    "Habito_Mes_Check",
+    "Habito_Mes_Cantidad",
+    "Habito_Mes_Tiempo",
+    "Habito_Mes_Evitar"
+  ]);
+});
