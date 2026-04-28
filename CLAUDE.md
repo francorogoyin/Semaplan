@@ -116,6 +116,21 @@ puede resolver revisando el contexto local sin riesgo, avanzar sin
 preguntar para no enlentecer. Si hay una ambigüedad menor y una
 suposicion conservadora alcanza, explicitar la suposicion y seguir.
 
+Cuando el usuario encargue una tarea mediana o grande, o use una
+formula como `itera como siempre`, antes de implementar hay que hacer
+dos pasadas deliberadas de pensamiento:
+
+1. Proponer un diseño de solucion e iterarlo tres veces, criticando
+   cada version y corrigiendo sus puntos flojos.
+2. Proponer una estrategia de implementacion e iterarla tres veces,
+   revisando riesgos, variantes, validaciones y posibles efectos
+   colaterales.
+
+Esta regla no debe bloquear pedidos simples, fixes puntuales ni
+acciones urgentes donde el alcance este claro. Si el usuario pide
+ejecutar directamente, se puede hacer la iteracion de forma breve y
+pragmatica, pero debe existir antes de tocar la solucion.
+
 Si el usuario pide actualizar `AGENTS.md` o `CLAUDE.md`, actualizar
 siempre ambos archivos aunque solo nombre uno de los dos.
 
