@@ -351,6 +351,12 @@ async function Preparar_App(page, Estado_Remoto) {
                   this[Campo] = Valor;
                   return this;
                 },
+                order() {
+                  return this;
+                },
+                limit() {
+                  return this;
+                },
                 async maybeSingle() {
                   if (this._accion === "update") {
                     if (
@@ -547,6 +553,103 @@ async function Preparar_App_Desktop(page, Estado_Remoto) {
 
   await Preparar_App(page, Estado_Remoto);
 }
+
+async function Mostrar_Semana(page, Clave_Semana) {
+  await page.evaluate((Clave) => {
+    const Fecha = Parsear_Fecha_ISO(Clave);
+    if (!Fecha) return;
+    Semana_Actual = Obtener_Lunes(Fecha);
+    Render_Calendario();
+    if (Sync_Timer_Id) {
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+    }
+    Marcar_Sync_Local_Sucio(false);
+    Actualizar_Sync_Indicador("Guardado");
+  }, Clave_Semana);
+}
+
+test(
+  "no registra sesiones remotas al iniciar sin otra pantalla",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Resumen = await page.evaluate(() => {
+      const Estado_Construido =
+        Construir_Estado_Completo();
+      return {
+        version: window.__Estado_Remoto?.version || 0,
+        sesionesRemotas: Boolean(
+          window.__Estado_Remoto?.estado
+            ?.Sesiones_Operativas
+        ),
+        sesionesEnEstado:
+          Object.prototype.hasOwnProperty.call(
+            Estado_Construido,
+            "Sesiones_Operativas"
+          ),
+        syncEstado: Sync_Estado,
+        pendiente: Hay_Sync_Pendiente()
+      };
+    });
+
+    expect(Resumen.version).toBe(1);
+    expect(Resumen.sesionesRemotas).toBe(false);
+    expect(Resumen.sesionesEnEstado).toBe(false);
+    expect(Resumen.syncEstado).toBe("Guardado");
+    expect(Resumen.pendiente).toBe(false);
+  }
+);
+
+test(
+  "guardar sin cambios no programa sync remoto",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Resumen = await page.evaluate(() => {
+      const Estado_Canonico =
+        Construir_Estado_Completo();
+      localStorage.setItem(
+        Clave_Local,
+        JSON.stringify(Estado_Canonico)
+      );
+      Marcar_Sync_Local_Sucio(false);
+      Actualizar_Sync_Indicador("Guardado");
+
+      const Version_Antes =
+        window.__Estado_Remoto?.version || 0;
+      const Marca_Antes = Sync_Datos_Marca_Ms;
+      Guardar_Estado();
+
+      return {
+        versionAntes: Version_Antes,
+        versionDespues:
+          window.__Estado_Remoto?.version || 0,
+        marcaAntes: Marca_Antes,
+        marcaDespues: Sync_Datos_Marca_Ms,
+        sucio: Sync_Local_Sucio,
+        pendiente: Hay_Sync_Pendiente(),
+        syncEstado: Sync_Estado
+      };
+    });
+
+    expect(Resumen.versionDespues).toBe(
+      Resumen.versionAntes
+    );
+    expect(Resumen.marcaDespues).toBe(
+      Resumen.marcaAntes
+    );
+    expect(Resumen.sucio).toBe(false);
+    expect(Resumen.pendiente).toBe(false);
+    expect(Resumen.syncEstado).toBe("Guardado");
+  }
+);
 
 test(
   "fuerza keepalive si la pagina se oculta con sync pendiente",
@@ -1070,6 +1173,7 @@ test(
       page,
       Crear_Estado_Con_Slot("2026-04-13", 10)
     );
+    await Mostrar_Semana(page, "2026-04-13");
 
     await page.click(
       '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
@@ -1126,6 +1230,7 @@ test(
         10
       )
     );
+    await Mostrar_Semana(page, "2026-04-13");
 
     await page.click(
       '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
@@ -1179,6 +1284,7 @@ test(
       page,
       Crear_Estado_Con_Slot("2026-04-13", 10)
     );
+    await Mostrar_Semana(page, "2026-04-13");
 
     await page.evaluate(() => {
       Abrir_Modal_Plan_Slot("2026-04-13", 10);
@@ -1417,6 +1523,7 @@ test(
       page,
       Crear_Estado_Con_Slot("2026-04-13", 10)
     );
+    await Mostrar_Semana(page, "2026-04-13");
 
     await page.click(
       '.Slot[data-fecha="2026-04-13"][data-hora="10"]',
@@ -1748,7 +1855,7 @@ test(
 );
 
 test(
-  "web registra revision remota cada 15 segundos",
+  "web no registra polling remoto permanente",
   async ({ page }) => {
     await page.addInitScript(() => {
       const Set_Interval_Original =
@@ -1777,8 +1884,8 @@ test(
       window.__Intervalos_Registrados || []
     );
 
-    expect(Intervalos).toContain(15000);
-    expect(Intervalos).not.toContain(5000);
+    expect(Intervalos).not.toContain(15000);
+    expect(Intervalos).not.toContain(2000);
   }
 );
 
@@ -1808,9 +1915,13 @@ test(
       clearTimeout(Sync_Timer_Id);
       Sync_Timer_Id = null;
       Actualizar_Sync_Indicador("Guardado");
+      const Estado_Remoto_Con_Marca =
+        JSON.parse(JSON.stringify(Estado_Remoto_Nuevo));
+      Estado_Remoto_Con_Marca.Sync_Datos_Marca_Ms =
+        Sync_Datos_Marca_Ms + 5000;
 
       window.__Estado_Remoto = {
-        estado: Estado_Remoto_Nuevo,
+        estado: Estado_Remoto_Con_Marca,
         actualizado_en: "2026-04-14T00:00:30Z",
         version: 2
       };
@@ -1891,9 +2002,13 @@ test(
       clearTimeout(Sync_Timer_Id);
       Sync_Timer_Id = null;
       Actualizar_Sync_Indicador("Guardado");
+      const Estado_Remoto_Con_Marca =
+        JSON.parse(JSON.stringify(Estado_Remoto_Nuevo));
+      Estado_Remoto_Con_Marca.Sync_Datos_Marca_Ms =
+        Sync_Datos_Marca_Ms + 5000;
 
       window.__Estado_Remoto = {
-        estado: Estado_Remoto_Nuevo,
+        estado: Estado_Remoto_Con_Marca,
         actualizado_en: "2026-04-14T00:00:40Z",
         version: 2
       };
@@ -2211,9 +2326,13 @@ test(
       Guardar_Estado();
       clearTimeout(Sync_Timer_Id);
       Sync_Timer_Id = null;
+      const Estado_Remoto_Con_Marca =
+        JSON.parse(JSON.stringify(Estado_Remoto_Nuevo));
+      Estado_Remoto_Con_Marca.Sync_Datos_Marca_Ms =
+        Sync_Datos_Marca_Ms + 5000;
 
       window.__Estado_Remoto = {
-        estado: Estado_Remoto_Nuevo,
+        estado: Estado_Remoto_Con_Marca,
         actualizado_en: "2026-04-14T00:00:55Z",
         version: 2
       };

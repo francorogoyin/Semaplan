@@ -80,7 +80,6 @@ Las claves centrales persistidas hoy son estas.
 - `Tareas`
 - `Tareas_Cajones_Definidos`
 - `Config_Extra`
-- `Sesiones_Operativas`
 - `Sync_Datos_Marca_Ms`
 - `Tipos_Slot`
 - `Slots_Muertos_Tipos`
@@ -103,27 +102,25 @@ El flujo operativo base es este.
 3. `Normalizar_Estado()` deja todos los modulos en formato canonico.
 4. Los renders principales reconstruyen UI segun el estado ya
    normalizado.
-5. `Guardar_Estado()` serializa el estado completo, lo guarda en
-   localStorage y programa sync remoto.
-6. `Backend_Sync_Programar()` hace debounce.
+5. `Guardar_Estado()` serializa el estado completo y lo guarda en
+   localStorage. Solo programa sync remoto si el estado de datos
+   reales cambio respecto del cache anterior; cambios puramente
+   operativos como sesiones o marcas de sync no ensucian remoto.
+6. `Backend_Sync_Programar()` sube cambios reales casi al toque, con
+   una demora minima para mantener un punto unico de ejecucion y sin
+   debounce largo.
 7. `Backend_Sync_Ejecutar()` sube el estado a `estado_usuario`,
    con manejo de versionado, conflictos y reintentos.
-8. Antes de habilitar la app logueada, Semaplan registra una
-   `Sesiones_Operativas` propia con heartbeat remoto. Si detecta otra
-   pantalla activa reciente para la misma cuenta, bloquea la interfaz y
-   solo permite salir o cerrar las otras sesiones antes de operar.
-9. La sesion operativa se considera activa por `last_seen` reciente,
-   no por la sesion Auth de Supabase. Cada pantalla tiene `Id` e
-   `Instancia_Id`: una recarga conserva la instancia para no bloquearse
-   a si misma, pero una pantalla duplicada se trata como otra sesion.
-   En remoto, `Sesiones_Operativas.Activas` se indexa por
-   `Id::Instancia_Id` para no pisar pestañas distintas con el mismo
-   `Id`.
-   Una sesion vieja deja de bloquear cuando vence su TTL, y tambien
-   puede cerrarse explicitamente desde el bloqueo de entrada.
+8. La carga inicial ya no registra una `Sesiones_Operativas` propia ni
+   mantiene heartbeat remoto por pestana. Esto evita escrituras
+   periodicas que solo cambian metadata y acelera la recarga normal de
+   una unica pantalla.
+9. `Sesiones_Operativas` queda como metadata operativa/legacy para
+   cortes globales y compatibilidad con estados previos, pero no forma
+   parte del estado normal generado por `Construir_Estado_Completo()`
+   ni se escribe por actividad pasiva de una pestana.
 10. `Sync_Datos_Marca_Ms` marca cambios reales de datos generados por
-   `Guardar_Estado()`. Los heartbeats y la metadata de sesiones no
-   actualizan esa marca.
+   `Guardar_Estado()`. La metadata de sesiones no actualiza esa marca.
 11. Si al iniciar hay cambios locales pendientes, la app no decide
    conflicto por `actualizado_en` remoto solamente. Solo abre
    conflicto si el estado remoto trae una marca de datos reales mas
@@ -131,15 +128,15 @@ El flujo operativo base es este.
    marca de datos mas nueva, el cache local pendiente se sincroniza.
 12. La metadata operativa de sesiones (`Sesiones_Operativas` y
    `Sesion_Global_Corte_Ms`) no se trata como cambio de datos del
-   usuario. Si el remoto cambio solo por heartbeat, no se muestra
+   usuario. Si el remoto cambio solo por metadata operativa, no se muestra
    conflicto ni toast de otro dispositivo. Antes de sobrescribir remoto,
    `Backend_Sync_Ejecutar()` relee la fila: si cambiaron datos reales
    con marca mas nueva abre conflicto; si el remoto no requiere
    conflicto, refresca version y reintenta el guardado aunque el
    `UPDATE` versionado haya perdido contra otra escritura reciente.
-13. Mientras hay sync local pendiente, los heartbeats de sesion se
-   difieren para no avanzar `actualizado_en` remoto con cambios
-   puramente operativos.
+13. No hay heartbeat ni polling remoto permanente por defecto. La app
+   revisa cambios remotos al volver al foco/visibilidad o por eventos
+   locales de sync, sin marcar `Guardando` si no hay cambios propios.
 14. `Hay_Sync_Pendiente()` representa trabajo real pendiente
    (timer, reintento o promesa en curso) y no solamente el texto
    visible `Guardando`. Si la UI queda en `Guardando` sin tarea activa,
@@ -169,7 +166,6 @@ Funciones transversales importantes.
 - `Backend_Sync_Ejecutar()`
 - `Backend_Verificar_Remoto_Antes_De_Sync()`
 - `Preparar_Sesion_Operativa_Entrada()`
-- `Actualizar_Sesion_Operativa_Remota()`
 - `Backend_Registrar_Corte_Sesion_Global()`
 - `Backend_Forzar_Corte_Global_Desde_Local()`
 - `Invocar_Edge_Con_Sesion()`

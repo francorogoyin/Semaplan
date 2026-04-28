@@ -85141,6 +85141,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         Plan_Slot_Borrador = Items;
         if (!Items.length) {
+          const Plan_Anterior = Obtener_Plan_Slot(
+            Modal_Plan_Slot_Fecha,
+            Modal_Plan_Slot_Hora,
+            false
+          );
+          const Items_Anteriores =
+            Normalizar_Items_Plan_Slot(
+              JSON.parse(JSON.stringify(
+                Plan_Anterior?.Items || []
+              ))
+            );
+          if (Items_Anteriores.length) {
+            Limpiar_Plan_Slot_Por_Clave(Clave);
+            Habito_Sincronizar_Items_Plan_Slot(
+              Modal_Plan_Slot_Fecha,
+              Items_Anteriores,
+              [],
+              "Plan_Slot_Item",
+              Modal_Plan_Slot_Hora
+            );
+            Cerrar_Modal_Plan_Slot();
+            Render_Calendario();
+            Guardar_Estado();
+            await Forzar_Sync_Inmediato_Cambio_Critico();
+            return;
+          }
           Mostrar_Toast_Plan_Slot(
             "slot.toast_faltan_objetivos"
           );
@@ -100712,8 +100738,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slots_Muertos_Titulos_Visibles,
           Slots_Muertos_Nombres_Auto,
           Slots_Muertos_Grupo_Ids,
-          Sesiones_Operativas:
-            Obtener_Sesiones_Operativas_Para_Estado(),
           Abordajes_Migrados_V1: true,
           Semanas_Con_Defaults: Array.from(Semanas_Con_Defaults),
           Planes_Semana,
@@ -100736,14 +100760,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
         }
         // 1) Persistir en localStorage como caché inmediato.
-        if (!Cargando_Inicial && !Opciones.Omitir_Marca_Datos_Sync) {
-          Sync_Datos_Marca_Ms = Date.now();
-        }
-        const Estado = Construir_Estado_Completo();
         const Estado_Anterior_Raw =
           localStorage.getItem(Clave_Local) || "";
+        let Estado = Construir_Estado_Completo();
+        const Sync_Critico_Forzado =
+          Consumir_Sync_Critico_Inmediato_Pendiente();
+        const Hay_Cambio_Datos =
+          Sync_Critico_Forzado ||
+          Hay_Cambio_Datos_Local_Sync(
+            Estado,
+            Estado_Anterior_Raw
+          );
+        if (
+          Hay_Cambio_Datos &&
+          !Cargando_Inicial &&
+          !Opciones.Omitir_Marca_Datos_Sync
+        ) {
+          Sync_Datos_Marca_Ms = Date.now();
+          Estado = Construir_Estado_Completo();
+        }
         const Forzar_Sync_Critico =
-          Consumir_Sync_Critico_Inmediato_Pendiente() ||
+          Sync_Critico_Forzado ||
           Debe_Forzar_Sync_Critico_Automatico(
             Estado,
             Estado_Anterior_Raw
@@ -100751,16 +100788,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         localStorage.setItem(Clave_Local, JSON.stringify(Estado));
         if (Usuario_Actual?.id) {
           Marcar_Usuario_Cache_Local(Usuario_Actual.id);
-          if (!Cargando_Inicial) {
+          if (!Cargando_Inicial && Hay_Cambio_Datos) {
             Marcar_Sync_Local_Sucio(true);
           }
         }
         if (Metas_Abierto()) {
           Render_Metas();
         }
-        // 2) Disparar sync con Supabase (con debounce).
-        if (typeof Backend_Sync_Programar === "function") {
+        // 2) Disparar sync remoto solo ante cambios reales.
+        if (
+          (Hay_Cambio_Datos || Sync_Local_Sucio) &&
+          typeof Backend_Sync_Programar === "function"
+        ) {
           Backend_Sync_Programar();
+        } else if (
+          typeof Resolver_Sync_Guardando_Inactivo === "function"
+        ) {
+          Resolver_Sync_Guardando_Inactivo();
         }
         if (Forzar_Sync_Critico) {
           Promise.resolve().then(() => {
@@ -100818,6 +100862,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Estado[Clave] === undefined ? null : Estado[Clave];
         });
         return JSON.stringify(Firma);
+      }
+
+      function Hay_Cambio_Datos_Local_Sync(
+        Estado_Actual,
+        Estado_Anterior_Raw = ""
+      ) {
+        if (Cargando_Inicial) return false;
+        if (!Usuario_Actual?.id) return false;
+        if (!Estado_Anterior_Raw) return true;
+        try {
+          const Estado_Anterior = JSON.parse(
+            Estado_Anterior_Raw
+          );
+          return !Estados_Datos_Sync_Iguales(
+            Estado_Actual,
+            Estado_Anterior
+          );
+        } catch (_) {
+          return true;
+        }
       }
 
       function Debe_Forzar_Sync_Critico_Automatico(
@@ -115160,7 +115224,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_Conflicto_Mostrando = false;
       let Sync_Conflicto_Marca_Ms = 0;
       let Sync_Conflicto_Timer_Id = null;
-      let Sync_Revision_Timer_Id = null;
       let Sync_Sesion_Global_Corte_Ms = 0;
       let Sync_Sesion_Inicio_Local_Ms = 0;
       let Sync_Sesion_Cerrando = false;
@@ -115172,7 +115235,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sesion_Operativa_Heartbeat_Timer_Id = null;
       let Sesion_Operativa_Bloqueada = false;
       const Sesion_Operativa_TTL_Ms = 120000;
-      const Sesion_Operativa_Heartbeat_Ms = 30000;
       const Sesion_Operativa_Es_Recarga =
         (() => {
           try {
@@ -115872,18 +115934,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Estado;
       }
 
-      function Obtener_Sesiones_Operativas_Para_Estado() {
-        if (!Usuario_Actual?.id) return undefined;
-        const Estado_Base =
-          Sync_Remoto_Estado_Ultimo &&
-          typeof Sync_Remoto_Estado_Ultimo === "object"
-            ? Sync_Remoto_Estado_Ultimo
-            : {};
-        return Preparar_Estado_Sesiones_Operativas(
-          Estado_Base
-        ).Sesiones_Operativas;
-      }
-
       function Sesion_Operativa_Corte_Remoto_Activo(
         Estado = null
       ) {
@@ -116112,108 +116162,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Preparar_Sesion_Operativa_Entrada() {
         Obtener_Sesion_Operativa_Id();
         Obtener_Sesion_Operativa_Instancia_Id();
-        const Resultado_Remoto =
-          await Backend_Leer_Fila_Remota();
-        if (Resultado_Remoto.error) {
-          Log_Error_App(
-            "sync",
-            "sesion_operativa_entrada",
-            "No se pudo leer sesiones operativas",
-            Resultado_Remoto.error
-          );
-          Mostrar_Auth_Mensaje(
-            t("sesion_bloqueo.registro_error")
-          );
-          return false;
-        }
-        if (Resultado_Remoto.data) {
-          Actualizar_Meta_Remota(Resultado_Remoto.data);
-        }
-        Sync_Remoto_Marca_Antes_Sesion_Ms =
-          Obtener_Marca_Remota_Ms(
-            Resultado_Remoto.data?.actualizado_en || ""
-          );
-        Sync_Remoto_Estado_Antes_Sesion =
-          Resultado_Remoto.data?.estado
-            ? Limpiar_Tombstones_Json(
-              Resultado_Remoto.data.estado
-            )
-            : null;
-        const Estado_Remoto =
-          Resultado_Remoto.data?.estado || null;
-        if (
-          Sesion_Operativa_Corte_Remoto_Activo(
-            Estado_Remoto
-          )
-        ) {
-          await Cerrar_Sesion_Por_Corte_Global();
-          return false;
-        }
-
-        const Activas =
-          Obtener_Sesiones_Operativas_Activas(
-            Estado_Remoto,
-            Obtener_Sesion_Operativa_Id()
-          );
-        if (!Activas.length) {
-          const Registro_Ok =
-            await Actualizar_Sesion_Operativa_Remota({
-              Silencioso: true,
-              Forzar: true
-            });
-          if (!Registro_Ok) {
-            Mostrar_Auth_Mensaje(
-              t("sesion_bloqueo.registro_error")
-            );
-            return false;
-          }
-          return true;
-        }
-
-        const Eleccion =
-          await Mostrar_Bloqueo_Sesion_Operativa(Activas);
-        if (Eleccion !== "Cerrar_Otras") {
-          Sync_Sesion_Cerrando = true;
-          try {
-            await Supa.auth.signOut({ scope: "local" });
-          } catch (_) {}
-          location.reload();
-          return false;
-        }
-
-        Setear_Bloqueo_Sesion_Operativa_Cargando(true);
-        const Ok =
-          await Actualizar_Sesion_Operativa_Remota({
-            Cerrar_Otras: true,
-            Forzar: true
-          });
-        Setear_Bloqueo_Sesion_Operativa_Cargando(false);
-        if (!Ok) {
-          Mostrar_Toast_Info(
-            t("sesion_bloqueo.error"),
-            "!",
-            4200
-          );
-          return false;
-        }
-        Ocultar_Bloqueo_Sesion_Operativa();
         return true;
-      }
-
-      function Iniciar_Heartbeat_Sesion_Operativa() {
-        if (Sesion_Operativa_Heartbeat_Timer_Id) {
-          clearInterval(
-            Sesion_Operativa_Heartbeat_Timer_Id
-          );
-        }
-        Sesion_Operativa_Heartbeat_Timer_Id =
-          setInterval(() => {
-            if (document.hidden) return;
-            if (!Usuario_Actual) return;
-            Actualizar_Sesion_Operativa_Remota({
-              Silencioso: true
-            });
-          }, Sesion_Operativa_Heartbeat_Ms);
       }
 
       function Detener_Heartbeat_Sesion_Operativa() {
@@ -117276,18 +117225,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Backend_Sync_Programar() {
-        // Debounce: se acumulan cambios y a los 2s se manda uno.
         if (Cargando_Inicial) return;
         if (!Usuario_Actual) {
           IA_Tokens_Cuenta = [];
           Renderizar_Tokens_IA_Cuenta();
           return;
         }
+        if (!Sync_Local_Sucio) {
+          Resolver_Sync_Guardando_Inactivo();
+          return;
+        }
         Limpiar_Reintento_Sync();
         if (Sync_Timer_Id) clearTimeout(Sync_Timer_Id);
         Actualizar_Sync_Indicador("Guardando");
         Sync_Timer_Id = setTimeout(
-          Backend_Sync_Ejecutar, 2000
+          Backend_Sync_Ejecutar, 50
         );
       }
 
@@ -119254,7 +119206,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         // 5b2) Aplicar traducciones al idioma elegido.
         Aplicar_Traducciones();
         Marcar_Idioma_Activo();
-        Iniciar_Heartbeat_Sesion_Operativa();
 
         Actualizar_Sync_Indicador("Guardado");
 
@@ -119464,18 +119415,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               return;
             }
             Revisar_Backup_Automatico_Programado();
-            Actualizar_Sesion_Operativa_Remota({
-              Silencioso: true
-            });
             Backend_Revisar_Cambios_Remotos(true);
           }
         );
 
         window.addEventListener("focus", () => {
           Revisar_Backup_Automatico_Programado();
-          Actualizar_Sesion_Operativa_Remota({
-            Silencioso: true
-          });
           Backend_Revisar_Cambios_Remotos(true);
         });
 
@@ -119485,12 +119430,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
           Procesar_Evento_Local_Sync(Ev.newValue || "");
         });
-
-        if (!Sync_Revision_Timer_Id) {
-          Sync_Revision_Timer_Id = setInterval(() => {
-            Backend_Revisar_Cambios_Remotos();
-          }, Entorno_Desktop_Activo() ? 2000 : 15000);
-        }
 
         if (!Persistencia_Salvavidas_Timer_Id) {
           Persistencia_Salvavidas_Timer_Id = setInterval(() => {
