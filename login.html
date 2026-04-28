@@ -113846,6 +113846,108 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      async function Backend_Forzar_Corte_Global_Desde_Local() {
+        if (!Supa || !Usuario_Actual) return false;
+        const Corte_Ms = Date.now();
+        try {
+          const Resultado_Remoto =
+            await Backend_Leer_Fila_Remota();
+          if (Resultado_Remoto.error) {
+            throw Resultado_Remoto.error;
+          }
+          if (Resultado_Remoto.data) {
+            Actualizar_Meta_Remota(Resultado_Remoto.data);
+          }
+
+          const Estado_Local = Construir_Estado_Completo();
+          const Estado_Base =
+            Fusionar_Estado_Raiz_Faltante(
+              Resultado_Remoto.data?.estado || {},
+              Estado_Local
+            );
+          const Estado =
+            Preparar_Estado_Sesiones_Operativas(
+              {
+                ...Estado_Base,
+                Sesion_Global_Corte_Ms: Corte_Ms
+              },
+              {
+                Cerrar_Otras: true,
+                Registrar_Actual: false,
+                Remover_Actual: true
+              }
+            );
+
+          const Version = Obtener_Version_Remota(
+            Resultado_Remoto.data
+          );
+          const Tabla = Supa.from("estado_usuario");
+          let Resultado = null;
+
+          if (Resultado_Remoto.data && Version > 0) {
+            Resultado = Normalizar_Fila_Resultado(
+              await Tabla
+                .update({
+                  estado: Estado,
+                  version: Version + 1
+                })
+                .eq("user_id", Usuario_Actual.id)
+                .eq("version", Version)
+                .select("version, actualizado_en")
+                .maybeSingle()
+            );
+            if (!Resultado.data && !Resultado.error) {
+              return false;
+            }
+          } else if (Resultado_Remoto.data) {
+            Resultado = Normalizar_Fila_Resultado(
+              await Tabla
+                .update({ estado: Estado })
+                .eq("user_id", Usuario_Actual.id)
+                .select("version, actualizado_en")
+                .maybeSingle()
+            );
+          } else {
+            Resultado = Normalizar_Fila_Resultado(
+              await Tabla
+                .insert({
+                  user_id: Usuario_Actual.id,
+                  estado: Estado
+                })
+                .select("version, actualizado_en")
+                .maybeSingle()
+            );
+          }
+
+          if (Resultado?.error) {
+            throw Resultado.error;
+          }
+
+          Sync_Sesion_Global_Corte_Ms = Corte_Ms;
+          Backend_Registrar_Sync_Exitoso(
+            Resultado?.data || null,
+            Estado
+          );
+          Emitir_Evento_Local_Sync(
+            "cerrar_sesion_global",
+            { Corte_Sesion_Ms: Corte_Ms }
+          );
+          return true;
+        } catch (E) {
+          console.error(
+            "Error forzando corte global:",
+            E
+          );
+          Log_Error_App(
+            "sync",
+            "forzar_corte_global_desde_local",
+            "Error forzando cierre global desde estado local",
+            E
+          );
+          return false;
+        }
+      }
+
       function Marcar_Sync_Local_Sucio(
         Sucio = false
       ) {
@@ -115957,10 +116059,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Confirmar) return;
         const Sync_Listo =
           await Backend_Asegurar_Sync_Antes_De_Salir();
-        if (!Sync_Listo) return;
         Sync_Sesion_Cerrando = true;
         const Corte_Registrado =
-          await Backend_Registrar_Corte_Sesion_Global();
+          Sync_Listo
+            ? await Backend_Registrar_Corte_Sesion_Global()
+            : await Backend_Forzar_Corte_Global_Desde_Local();
         if (!Corte_Registrado) {
           Sync_Sesion_Cerrando = false;
           await Mostrar_Dialogo(

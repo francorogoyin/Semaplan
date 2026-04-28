@@ -123,6 +123,11 @@ El flujo operativo base es este.
    registra el error pero igualmente cierra la sesion local, porque el
    corte remoto propio es el mecanismo que expulsa a las otras
    sesiones al revisar sync.
+12. Si `Cerrar sesión en todas` encuentra sync local pendiente o un
+   conflicto que impide el guardado normal previo, fuerza el corte
+   global usando el estado local actual como base remota. La prioridad
+   de esa accion es destrabar la cuenta y expulsar las otras sesiones,
+   no quedar bloqueado por el mismo conflicto que se quiere resolver.
 
 Funciones transversales importantes.
 
