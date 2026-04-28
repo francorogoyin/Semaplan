@@ -37824,6 +37824,10 @@
         Clave_Por_Entorno(
           "Semaplan_Planes_Avance_Seleccion_V1"
         );
+      const Clave_Memoria_Avance_Detalle_Base =
+        Clave_Por_Entorno(
+          "Semaplan_Planes_Avance_Detalle_V1"
+        );
       const Clave_QA_Sin_Captcha =
         Clave_Por_Entorno("Semaplan_QA_Sin_Captcha");
       const Max_Backups_Locales = 12;
@@ -60326,6 +60330,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : Clave_Memoria_Avance_Base;
       }
 
+      function Planes_Clave_Memoria_Avance_Detalle() {
+        const Id_Usuario =
+          Planes_Id_Usuario_Memoria_Avance();
+        return Id_Usuario
+          ? `${Clave_Memoria_Avance_Detalle_Base}_${Id_Usuario}`
+          : Clave_Memoria_Avance_Detalle_Base;
+      }
+
       function Planes_Leer_Memoria_Avance() {
         try {
           return (
@@ -60350,6 +60362,45 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           localStorage.removeItem(Clave);
         }
+      }
+
+      function Planes_Leer_Memoria_Avance_Detalle() {
+        try {
+          const Raw = localStorage.getItem(
+            Planes_Clave_Memoria_Avance_Detalle()
+          );
+          if (!Raw) return null;
+          const Datos = JSON.parse(Raw);
+          if (!Datos || typeof Datos !== "object") return null;
+          const Cantidad = Number(Datos.Cantidad);
+          return {
+            Item: String(Datos.Item || "").trim(),
+            Cantidad:
+              Number.isFinite(Cantidad) && Cantidad > 0
+                ? Cantidad
+                : 0
+          };
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function Planes_Recordar_Memoria_Avance_Detalle(
+        Datos = {}
+      ) {
+        const Clave = Planes_Clave_Memoria_Avance_Detalle();
+        if (!Clave) return;
+        const Item = String(Datos.Item || "").trim();
+        const Cantidad = Number(Datos.Cantidad);
+        if (!Item || !Number.isFinite(Cantidad) || Cantidad <= 0) {
+          localStorage.removeItem(Clave);
+          return;
+        }
+        localStorage.setItem(
+          Clave,
+          JSON.stringify({ Item, Cantidad })
+        );
+        Planes_Recordar_Memoria_Avance(Item);
       }
 
       function Planes_Valor_Item_Avance(Item) {
@@ -63691,7 +63742,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       ) {
         Planes_Avance_Alcance =
           Planes_Normalizar_Alcance_Avance(Alcance);
+        const Memoria_Detalle =
+          Planes_Leer_Memoria_Avance_Detalle();
         const Valor_Recordado =
+          Memoria_Detalle?.Item ||
           Planes_Leer_Memoria_Avance();
         const Ok = Planes_Poblar_Select_Avance(
           Valor_Default || Valor_Recordado,
@@ -63714,7 +63768,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Cantidad) {
           Cantidad.disabled = false;
           Cantidad.readOnly = false;
-          Cantidad.value = "1";
+          Cantidad.value =
+            Memoria_Detalle?.Cantidad > 0
+              ? String(Planes_Formatear_Numero(
+                Memoria_Detalle.Cantidad
+              ))
+              : "1";
         }
         if (Fecha) Fecha.value = Actual.Fecha;
         if (Hora) Hora.value = Actual.Hora;
@@ -64260,6 +64319,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Snap
             );
           if (!Ok_Distribucion) return;
+          Planes_Recordar_Memoria_Avance_Detalle({
+            Item: Select?.value || "",
+            Cantidad
+          });
           Cerrar_Modal_Planes_Avance();
           if (
             document.getElementById("Planes_Subobjetivos_Overlay")
@@ -64309,6 +64372,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         }
         Planes_Sincronizar_Habitos_Avance_Registro(Avance, true);
+        Planes_Recordar_Memoria_Avance_Detalle({
+          Item: Select?.value || "",
+          Cantidad
+        });
         Cerrar_Modal_Planes_Avance();
         if (
           document.getElementById("Planes_Subobjetivos_Overlay")
@@ -88762,6 +88829,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : "";
         Semana_Actual = Nueva;
         if (Anterior && Anterior !== Formatear_Fecha_ISO(Nueva)) {
+          const Limpiar_Memoria_Persistida =
+            Boolean(
+              Config.Dias_Visibles_Actual_Memoria ||
+              Config.Dias_Visibles_Actual_Memoria_Tipo ||
+              Config.Bloques_Horarios_Actual_Memoria ||
+              Config.Bloques_Horarios_Actual_Memoria_Tipo
+            );
           Calendario_Dias_Visibles_Manual_Semana = "";
           Calendario_Dias_Visibles_Manual = null;
           Calendario_Dias_Visibles_Manual_Tipo = "";
@@ -88772,6 +88846,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Calendario_Bloques_Horarios_Manual_Tipo = "";
           Config.Bloques_Horarios_Actual_Memoria = null;
           Config.Bloques_Horarios_Actual_Memoria_Tipo = "";
+          if (Limpiar_Memoria_Persistida) {
+            Guardar_Estado({ Omitir_Backup_Auto: true });
+          }
         }
       }
 
@@ -100101,6 +100178,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Duracion_Defecto: Config.Duracion_Default,
           Esquema_Estado_Version:
             Esquema_Estado_Version_Actual,
+          Sync_Datos_Marca_Ms:
+            Sync_Datos_Marca_Ms,
           Sesion_Global_Corte_Ms:
             Sync_Sesion_Global_Corte_Ms,
           Config_Extra: {
@@ -100241,6 +100320,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
         }
         // 1) Persistir en localStorage como caché inmediato.
+        if (!Cargando_Inicial && !Opciones.Omitir_Marca_Datos_Sync) {
+          Sync_Datos_Marca_Ms = Date.now();
+        }
         const Estado = Construir_Estado_Completo();
         const Estado_Anterior_Raw =
           localStorage.getItem(Clave_Local) || "";
@@ -100412,6 +100494,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ) {
             return false;
           }
+          Actualizar_Marca_Datos_Sync_Desde_Estado(Estado);
           Objetivos = Objetivos_Cargados;
           Eventos = Estado.Eventos;
 
@@ -114239,6 +114322,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_Remoto_Version_Actual = 0;
       let Sync_Remoto_Marca_Ms = 0;
       let Sync_Remoto_Estado_Ultimo = null;
+      let Sync_Datos_Marca_Ms = 0;
       let Sync_Remoto_Revisando = false;
       let Sync_Remoto_Ultima_Revision_Ms = 0;
       let Sync_Conflicto_Pendiente = false;
@@ -114250,6 +114334,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Sync_Sesion_Inicio_Local_Ms = 0;
       let Sync_Sesion_Cerrando = false;
       let Sync_Evento_Local_Procesado = "";
+      let Sync_Remoto_Marca_Antes_Sesion_Ms = 0;
+      let Sync_Remoto_Estado_Antes_Sesion = null;
       let Sesion_Operativa_Id = "";
       let Sesion_Operativa_Instancia_Id = "";
       let Sesion_Operativa_Heartbeat_Timer_Id = null;
@@ -114382,6 +114468,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Corte > 0 ? Corte : 0;
       }
 
+      function Obtener_Marca_Datos_Sync(
+        Estado = null
+      ) {
+        const Marca = Number(
+          Estado?.Sync_Datos_Marca_Ms
+        ) || 0;
+        return Marca > 0 ? Marca : 0;
+      }
+
+      function Actualizar_Marca_Datos_Sync_Desde_Estado(
+        Estado = null
+      ) {
+        const Marca = Obtener_Marca_Datos_Sync(Estado);
+        if (!Marca) return;
+        Sync_Datos_Marca_Ms = Math.max(
+          Sync_Datos_Marca_Ms,
+          Marca
+        );
+      }
+
       function Marcar_Sync_Remoto_Actualizado(
         Marca = ""
       ) {
@@ -114415,6 +114521,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) {
           Sync_Remoto_Estado_Ultimo =
             Limpiar_Tombstones_Json(Datos.estado);
+          Actualizar_Marca_Datos_Sync_Desde_Estado(
+            Sync_Remoto_Estado_Ultimo
+          );
         }
         const Corte = Obtener_Corte_Sesion_Global(
           Datos.estado
@@ -114432,6 +114541,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Sync_Remoto_Version_Actual = 0;
         Sync_Remoto_Marca_Ms = 0;
         Sync_Remoto_Estado_Ultimo = null;
+        Sync_Datos_Marca_Ms = 0;
         Sync_Sesion_Global_Corte_Ms = 0;
       }
 
@@ -114591,6 +114701,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Resultado = { ...Limpio };
         delete Resultado.Sesiones_Operativas;
         delete Resultado.Sesion_Global_Corte_Ms;
+        delete Resultado.Sync_Datos_Marca_Ms;
         return Resultado;
       }
 
@@ -114620,6 +114731,68 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado_Anterior,
           Estado_Nuevo
         );
+      }
+
+      function Cambio_Remoto_Requiere_Conflicto(
+        Estado_Referencia = null,
+        Estado_Nuevo = null
+      ) {
+        if (!Estado_Referencia || !Estado_Nuevo) {
+          return false;
+        }
+        if (Estados_Datos_Sync_Iguales(
+          Estado_Referencia,
+          Estado_Nuevo
+        )) {
+          return false;
+        }
+        const Marca_Referencia =
+          Obtener_Marca_Datos_Sync(Estado_Referencia);
+        const Marca_Nueva =
+          Obtener_Marca_Datos_Sync(Estado_Nuevo);
+        if (!Marca_Referencia && !Marca_Nueva) {
+          return false;
+        }
+        return Marca_Nueva > Marca_Referencia + 1000;
+      }
+
+      function Leer_Estado_Local_Cache_Sync() {
+        if (!Cache_Local_Coincide_Con_Usuario_Actual()) {
+          return null;
+        }
+        try {
+          const Raw = localStorage.getItem(Clave_Local);
+          if (!Raw) return null;
+          const Estado = JSON.parse(Raw);
+          return Limpiar_Tombstones_Json(Estado);
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function Resolver_Conflicto_Inicial_Sync(
+        Estado_Local = null,
+        Estado_Remoto = null
+      ) {
+        if (!Estado_Local || !Estado_Remoto) {
+          return "Local";
+        }
+        if (Estados_Datos_Sync_Iguales(
+          Estado_Local,
+          Estado_Remoto
+        )) {
+          return "Igual";
+        }
+        const Marca_Local =
+          Obtener_Marca_Datos_Sync(Estado_Local);
+        const Marca_Remota =
+          Obtener_Marca_Datos_Sync(Estado_Remoto);
+        if (!Marca_Local && !Marca_Remota) {
+          return "Local";
+        }
+        return Marca_Remota > Marca_Local + 1000
+          ? "Conflicto"
+          : "Local";
       }
 
       function Generar_Id_Sesion_Operativa(
@@ -114859,10 +115032,28 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Diferir_Heartbeat_Sesion_Operativa(
+        Opciones = {}
+      ) {
+        if (Opciones.Forzar || Opciones.Cerrar_Otras) {
+          return false;
+        }
+        return Boolean(
+          Sync_Local_Sucio ||
+          Sync_Timer_Id ||
+          Sync_Reintento_Timer_Id ||
+          Sync_En_Curso ||
+          Sync_Local_Pendiente_Usuario_Actual()
+        );
+      }
+
       async function Actualizar_Sesion_Operativa_Remota(
         Opciones = {}
       ) {
         if (!Supa || !Usuario_Actual) return false;
+        if (Diferir_Heartbeat_Sesion_Operativa(Opciones)) {
+          return false;
+        }
         const Tabla = Supa.from("estado_usuario");
         for (let Intento = 0; Intento < 4; Intento += 1) {
           try {
@@ -115058,6 +115249,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Resultado_Remoto.data) {
           Actualizar_Meta_Remota(Resultado_Remoto.data);
         }
+        Sync_Remoto_Marca_Antes_Sesion_Ms =
+          Obtener_Marca_Remota_Ms(
+            Resultado_Remoto.data?.actualizado_en || ""
+          );
+        Sync_Remoto_Estado_Antes_Sesion =
+          Resultado_Remoto.data?.estado
+            ? Limpiar_Tombstones_Json(
+              Resultado_Remoto.data.estado
+            )
+            : null;
         const Estado_Remoto =
           Resultado_Remoto.data?.estado || null;
         if (
@@ -115077,7 +115278,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Activas.length) {
           const Registro_Ok =
             await Actualizar_Sesion_Operativa_Remota({
-              Silencioso: true
+              Silencioso: true,
+              Forzar: true
             });
           if (!Registro_Ok) {
             Mostrar_Auth_Mensaje(
@@ -115102,7 +115304,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Setear_Bloqueo_Sesion_Operativa_Cargando(true);
         const Ok =
           await Actualizar_Sesion_Operativa_Remota({
-            Cerrar_Otras: true
+            Cerrar_Otras: true,
+            Forzar: true
           });
         Setear_Bloqueo_Sesion_Operativa_Cargando(false);
         if (!Ok) {
@@ -115328,6 +115531,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Estado_Referencia,
             Estado_Remoto
           );
+        const Requiere_Conflicto =
+          Cambio_Remoto_Requiere_Conflicto(
+            Estado_Referencia,
+            Estado_Remoto
+          );
         const Marca_Remota_Ms =
           Obtener_Marca_Remota_Ms(
             Fila.data.actualizado_en || ""
@@ -115342,7 +115550,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           await Cerrar_Sesion_Por_Corte_Global();
           return false;
         }
-        if (!Datos_Iguales) {
+        if (!Datos_Iguales && Requiere_Conflicto) {
           Programar_Conflicto_Sync(Marca_Remota_Ms);
           return false;
         }
@@ -115364,6 +115572,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           typeof Estado_Sincronizado === "object"
         ) {
           Sync_Remoto_Estado_Ultimo = Estado_Sincronizado;
+          Actualizar_Marca_Datos_Sync_Desde_Estado(
+            Estado_Sincronizado
+          );
         }
         if (Datos) {
           Actualizar_Meta_Remota(Datos);
@@ -116384,6 +116595,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                     Estado_Remoto_Anterior,
                     Estado_Remoto_Nuevo
                   );
+                const Requiere_Conflicto =
+                  Cambio_Remoto_Requiere_Conflicto(
+                    Estado_Remoto_Anterior,
+                    Estado_Remoto_Nuevo
+                  );
                 Actualizar_Meta_Remota(Fila.data);
                 if (
                   Sesion_Operativa_Corte_Remoto_Activo(
@@ -116403,6 +116619,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   );
                 if (
                   !Solo_Operativo &&
+                  Requiere_Conflicto &&
                   (
                     Marca_Remota_Ms >
                       Marca_Anterior_Ms + 1000 ||
@@ -116644,6 +116861,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Estado_Remoto_Conocido,
               Estado_Remoto_Nuevo
             );
+          const Requiere_Conflicto =
+            Cambio_Remoto_Requiere_Conflicto(
+              Estado_Remoto_Conocido,
+              Estado_Remoto_Nuevo
+            );
           if (data) {
             Actualizar_Meta_Remota(data);
           }
@@ -116673,6 +116895,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
 
           if (Sync_Local_Sucio) {
+            if (!Requiere_Conflicto) {
+              return false;
+            }
             Programar_Conflicto_Sync(Marca_Remota_Ms);
             return true;
           }
@@ -118000,15 +118225,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Obtener_Marca_Remota_Ms(
                 Fila_Remota.data.actualizado_en || ""
               );
-            if (
-              Marca_Remota_Ms &&
+            const Estado_Local_Pendiente =
+              Leer_Estado_Local_Cache_Sync();
+            const Estado_Remoto_Comparacion =
+              Sync_Remoto_Estado_Antes_Sesion ||
               (
-                !Pendiente_Local_Ms ||
-                Marca_Remota_Ms > Pendiente_Local_Ms + 1000
-              )
-            ) {
-              Conflicto_Inicial_Remoto_Ms = Marca_Remota_Ms;
+                Fila_Remota.data.estado
+                  ? Limpiar_Tombstones_Json(
+                    Fila_Remota.data.estado
+                  )
+                  : null
+              );
+            const Decision =
+              Resolver_Conflicto_Inicial_Sync(
+                Estado_Local_Pendiente,
+                Estado_Remoto_Comparacion
+              );
+            if (Decision === "Igual") {
+              Marcar_Sync_Local_Sucio(false);
               Hay_Sync_Local_Pendiente = false;
+            } else if (Decision === "Conflicto") {
+              Conflicto_Inicial_Remoto_Ms =
+                Sync_Remoto_Marca_Antes_Sesion_Ms ||
+                Marca_Remota_Ms;
+              Hay_Sync_Local_Pendiente = false;
+            } else if (!Obtener_Marca_Datos_Sync(
+              Estado_Local_Pendiente
+            ) && Pendiente_Local_Ms) {
+              Sync_Datos_Marca_Ms = Math.max(
+                Sync_Datos_Marca_Ms,
+                Pendiente_Local_Ms
+              );
             }
           }
         } else {

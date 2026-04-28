@@ -80,6 +80,7 @@ Las claves centrales persistidas hoy son estas.
 - `Tareas_Cajones_Definidos`
 - `Config_Extra`
 - `Sesiones_Operativas`
+- `Sync_Datos_Marca_Ms`
 - `Tipos_Slot`
 - `Slots_Muertos_Tipos`
 - `Slots_Muertos_Nombres`
@@ -116,23 +117,30 @@ El flujo operativo base es este.
    a si misma, pero una pantalla duplicada se trata como otra sesion.
    Una sesion vieja deja de bloquear cuando vence su TTL, y tambien
    puede cerrarse explicitamente desde el bloqueo de entrada.
-10. Si al iniciar hay cambios locales pendientes pero Supabase tiene
-   una marca remota posterior a la marca local pendiente, la app no
-   sube automaticamente el cache viejo: abre conflicto de sync para
-   elegir entre recargar remoto o conservar local.
-11. La metadata operativa de sesiones (`Sesiones_Operativas` y
+10. `Sync_Datos_Marca_Ms` marca cambios reales de datos generados por
+   `Guardar_Estado()`. Los heartbeats y la metadata de sesiones no
+   actualizan esa marca.
+11. Si al iniciar hay cambios locales pendientes, la app no decide
+   conflicto por `actualizado_en` remoto solamente. Solo abre
+   conflicto si el estado remoto trae una marca de datos reales mas
+   nueva que la local. Si el cambio remoto fue operativo o no tiene
+   marca de datos mas nueva, el cache local pendiente se sincroniza.
+12. La metadata operativa de sesiones (`Sesiones_Operativas` y
    `Sesion_Global_Corte_Ms`) no se trata como cambio de datos del
    usuario. Si el remoto cambio solo por heartbeat, no se muestra
    conflicto ni toast de otro dispositivo. Antes de sobrescribir remoto,
    `Backend_Sync_Ejecutar()` relee la fila: si cambiaron datos reales
    abre conflicto; si cambio solo metadata, refresca version y reintenta
    el guardado.
-12. `Cerrar sesión en todas` registra primero un corte global propio en
+13. Mientras hay sync local pendiente, los heartbeats de sesion se
+   difieren para no avanzar `actualizado_en` remoto con cambios
+   puramente operativos.
+14. `Cerrar sesion en todas` registra primero un corte global propio en
    el estado remoto. Si Supabase rechaza el `signOut` global, la app
    registra el error pero igualmente cierra la sesion local, porque el
    corte remoto propio es el mecanismo que expulsa a las otras
    sesiones al revisar sync.
-13. Si `Cerrar sesión en todas` encuentra sync local pendiente o un
+15. Si `Cerrar sesion en todas` encuentra sync local pendiente o un
    conflicto que impide el guardado normal previo, fuerza el corte
    global usando el estado local actual como base remota. La prioridad
    de esa accion es destrabar la cuenta y expulsar las otras sesiones,

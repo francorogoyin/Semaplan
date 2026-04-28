@@ -1229,6 +1229,84 @@ test(
 );
 
 test(
+  "no abre conflicto inicial si remoto es mas nuevo solo por sesion",
+  async ({ page }) => {
+    const Estado_Remoto = Crear_Estado(["Base remota"]);
+    Estado_Remoto.Sync_Datos_Marca_Ms = 1000;
+
+    await Preparar_App(page, Estado_Remoto);
+
+    const Resumen = await page.evaluate(async () => {
+      Objetivos.push({
+        Id: 129,
+        Nombre: "Cambio local pendiente real",
+        Emoji: "*",
+        Color: "#f1b77e",
+        Horas: 1,
+        Dia: 0,
+        Hora: 9,
+        Duracion: 1,
+        Subobjetivos: [],
+        Copias_Semana: {}
+      });
+      Guardar_Estado();
+      clearTimeout(Sync_Timer_Id);
+      Sync_Timer_Id = null;
+
+      Marcar_Sync_Local_Pendiente_Usuario(
+        Usuario_Actual?.id || "",
+        true
+      );
+      Sync_Local_Sucio = false;
+
+      const Estado_Remoto_Solo_Sesion =
+        JSON.parse(JSON.stringify(
+          window.__Estado_Remoto.estado
+        ));
+      Estado_Remoto_Solo_Sesion.Sesiones_Operativas = {
+        Activas: {},
+        Actualizado_Ms: Date.now()
+      };
+      Estado_Remoto_Solo_Sesion.Sync_Datos_Marca_Ms = 1000;
+      window.__Estado_Remoto = {
+        estado: Estado_Remoto_Solo_Sesion,
+        actualizado_en: "2026-04-14T00:01:00Z",
+        version:
+          Number(window.__Estado_Remoto.version || 0) + 1
+      };
+
+      await Iniciar_App_Logueada();
+
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+
+      return {
+        conflicto: Sync_Conflicto_Pendiente,
+        syncPendiente: Sync_Local_Pendiente_Usuario_Actual(),
+        remoto:
+          (window.__Estado_Remoto?.estado?.Objetivos || [])
+            .map((Objetivo) => Objetivo.Nombre),
+        local:
+          (Estado_Local.Objetivos || []).map(
+            (Objetivo) => Objetivo.Nombre
+          )
+      };
+    });
+
+    expect(Resumen.conflicto).toBe(false);
+    expect(Resumen.syncPendiente).toBe(false);
+    expect(Resumen.remoto).toContain(
+      "Cambio local pendiente real"
+    );
+    expect(Resumen.local).toContain(
+      "Cambio local pendiente real"
+    );
+  }
+);
+
+test(
   "limpiar una celda con plan sincroniza antes del debounce",
   async ({ page }) => {
     await Preparar_App(

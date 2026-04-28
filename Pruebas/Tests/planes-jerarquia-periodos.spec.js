@@ -173,7 +173,7 @@ async function Preparar(page) {
     );
   }, Crear_Estado());
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() => typeof window.Inicializar === "function");
   await page.evaluate(() => {
     document.getElementById("Auth_Overlay")
@@ -3153,7 +3153,7 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Registrar avance recuerda la ultima seleccion al reabrir con M",
+test("Registrar avance recuerda seleccion y cantidad al reabrir con M",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
@@ -3192,11 +3192,14 @@ async ({ page }) => {
       Objetivo.Id,
       "Sub lectura"
     );
+    Modelo.Subobjetivos[Sub_Id].Target_Total = 10;
+    Modelo.Subobjetivos[Sub_Id].Unidad = "Horas";
     Modelo.UI.Periodo_Activo_Id = Periodo.Id;
     Render_Plan();
     Object.keys(localStorage).forEach((Clave) => {
       if (
-        Clave.includes("Semaplan_Planes_Avance_Seleccion_V1")
+        Clave.includes("Semaplan_Planes_Avance_Seleccion_V1") ||
+        Clave.includes("Semaplan_Planes_Avance_Detalle_V1")
       ) {
         localStorage.removeItem(Clave);
       }
@@ -3234,6 +3237,27 @@ async ({ page }) => {
     .toHaveValue(`Subobjetivo|${Datos.Sub_Id}`);
   await expect(page.locator(".Planes_Avance_Boton"))
     .toContainText("Sub lectura");
+
+  await page.evaluate((Objetivo_Id) => {
+    const Select = document.getElementById("Planes_Avance_Item");
+    if (!Select) return;
+    Select.value = `Objetivo|${Objetivo_Id}`;
+    Select.dispatchEvent(new Event("change", { bubbles: true }));
+  }, Datos.Objetivo_Id);
+  await expect(page.locator(".Planes_Avance_Boton"))
+    .toContainText("Libros memoria");
+  await page.fill("#Planes_Avance_Cantidad", "4");
+  await page.click("#Planes_Avance_Guardar");
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .not.toHaveClass(/Activo/);
+
+  await page.keyboard.press("m");
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Planes_Avance_Item"))
+    .toHaveValue(`Objetivo|${Datos.Objetivo_Id}`);
+  await expect(page.locator("#Planes_Avance_Cantidad"))
+    .toHaveValue("4");
 
   await page.locator("#Planes_Avance_Cancelar").click();
   expect(errores).toEqual([]);

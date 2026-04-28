@@ -103,6 +103,8 @@ test(
             },
             from() {
               return {
+                _accion: "",
+                _payload: null,
                 select() {
                   return this;
                 },
@@ -110,7 +112,34 @@ test(
                   return this;
                 },
                 async maybeSingle() {
+                  if (
+                    this._accion === "insert" ||
+                    this._accion === "update"
+                  ) {
+                    localStorage.setItem(
+                      "Test_Ultimo_Upsert_Estado",
+                      JSON.stringify(this._payload)
+                    );
+                    return {
+                      data: {
+                        version: 1,
+                        actualizado_en:
+                          "2026-04-14T00:00:00Z"
+                      },
+                      error: null
+                    };
+                  }
                   return { data: null, error: null };
+                },
+                insert(Payload) {
+                  this._accion = "insert";
+                  this._payload = Payload;
+                  return this;
+                },
+                update(Payload) {
+                  this._accion = "update";
+                  this._payload = Payload;
+                  return this;
                 },
                 async upsert(Payload) {
                   localStorage.setItem(
@@ -135,7 +164,7 @@ test(
       window.alert = () => {};
     });
 
-    await page.goto("/index.html");
+    await page.goto("/login.html");
     await page.waitForFunction(() => {
       const Loader =
         document.getElementById("App_Loader");
