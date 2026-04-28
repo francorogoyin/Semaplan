@@ -21,10 +21,11 @@ estructuras persistidas o relaciones importantes entre modulos.
 - `Semaplan.html`: redireccion liviana a `login.html`.
 - `login.html`: aplicacion operativa principal.
 - `supabase/functions/semaplan-ai`: gateway read-only en
-  construccion para consultas de IA sobre datos de Semaplan. Ya valida
-  tokens/JWT, puede leer `estado_usuario` con filtrado seguro y expone
-  `/agenda`, `/contexto`, `/tareas`, `/habitos`, `/slots`,
-  `/planes/semana`, `/planes/periodos`, `/archivero`,
+  produccion para consultas de IA sobre datos de Semaplan en
+  `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai`.
+  Ya valida tokens/JWT, puede leer `estado_usuario` con filtrado
+  seguro y expone `/agenda`, `/contexto`, `/tareas`, `/habitos`,
+  `/slots`, `/planes/semana`, `/planes/periodos`, `/archivero`,
   `/archivero/buscar`, `/baul`, `/metas` y `/openapi.json` con vistas
   compactas y contrato publico para IA.
 - `Herramientas/Scripts/semaplan-ai-mcp-server.js`: puente MCP local
@@ -494,7 +495,9 @@ Funciones de entrada recomendadas.
 - `Renderizar_Datos_Cuenta()`
 - `Cargar_Tokens_IA_Cuenta()`
 - `Crear_Token_IA_Cuenta()`
+- `Renombrar_Token_IA_Cuenta()`
 - `Revocar_Token_IA_Cuenta()`
+- `Eliminar_Token_IA_Cuenta()`
 - `Render_Config_Backups()`
 - `Cargar_Backups_Locales()`
 - `Aplicar_Importacion_Objeto()`
@@ -507,6 +510,9 @@ Notas operativas de este bloque.
   en `tokens_ia_usuario`.
 - El token plano se muestra una sola vez en la UI de Cuenta y no debe
   persistirse en estado ni en `localStorage`.
+- La UI de Cuenta permite renombrar tokens, revocarlos y eliminar del
+  historial visible los que ya fueron revocados, sin recuperar nunca el
+  valor plano.
 - Si el entorno remoto todavia no tiene la tabla
   `tokens_ia_usuario`, la UI debe degradar con mensaje claro y sin
   intentar crear tokens.
