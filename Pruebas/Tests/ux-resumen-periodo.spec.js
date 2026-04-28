@@ -236,8 +236,11 @@ test("resumen por periodo filtra metas y centra navegacion", async ({
       barraWidth: Barra?.style.width || "",
       barraFondo: getComputedStyle(Barra).backgroundImage,
       barraColor: getComputedStyle(Barra).backgroundColor,
+      barraMarginBottom:
+        getComputedStyle(Barra.parentElement).marginBottom,
       valorWeight: getComputedStyle(Valor).fontWeight,
       valorSize: getComputedStyle(Valor).fontSize,
+      valorMarginTop: getComputedStyle(Valor).marginTop,
       valorAlign: getComputedStyle(Valor.parentElement).textAlign
     };
   });
@@ -257,8 +260,10 @@ test("resumen por periodo filtra metas y centra navegacion", async ({
   expect(inicial.barraWidth).toBe("100%");
   expect(inicial.barraFondo).toBe("none");
   expect(inicial.barraColor).toBe("rgb(47, 143, 88)");
+  expect(inicial.barraMarginBottom).toBe("4px");
   expect(Number(inicial.valorWeight)).toBeLessThan(700);
   expect(inicial.valorSize).toBe("11px");
+  expect(inicial.valorMarginTop).toBe("3px");
   expect(inicial.valorAlign).toBe("center");
 
   await page.evaluate(() => document.body.focus());
