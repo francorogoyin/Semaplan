@@ -108,22 +108,31 @@ El flujo operativo base es este.
    con manejo de versionado, conflictos y reintentos.
 8. Antes de habilitar la app logueada, Semaplan registra una
    `Sesiones_Operativas` propia con heartbeat remoto. Si detecta otra
-   sesion activa reciente, bloquea la interfaz y solo permite salir o
-   cerrar las otras sesiones antes de operar.
+   pantalla activa reciente para la misma cuenta, bloquea la interfaz y
+   solo permite salir o cerrar las otras sesiones antes de operar.
 9. La sesion operativa se considera activa por `last_seen` reciente,
-   no por la sesion Auth de Supabase. Una sesion vieja deja de bloquear
-   cuando vence su TTL, y tambien puede cerrarse explicitamente desde
-   el bloqueo de entrada.
+   no por la sesion Auth de Supabase. Cada pantalla tiene `Id` e
+   `Instancia_Id`: una recarga conserva la instancia para no bloquearse
+   a si misma, pero una pantalla duplicada se trata como otra sesion.
+   Una sesion vieja deja de bloquear cuando vence su TTL, y tambien
+   puede cerrarse explicitamente desde el bloqueo de entrada.
 10. Si al iniciar hay cambios locales pendientes pero Supabase tiene
    una marca remota posterior a la marca local pendiente, la app no
    sube automaticamente el cache viejo: abre conflicto de sync para
    elegir entre recargar remoto o conservar local.
-11. `Cerrar sesión en todas` registra primero un corte global propio en
+11. La metadata operativa de sesiones (`Sesiones_Operativas` y
+   `Sesion_Global_Corte_Ms`) no se trata como cambio de datos del
+   usuario. Si el remoto cambio solo por heartbeat, no se muestra
+   conflicto ni toast de otro dispositivo. Antes de sobrescribir remoto,
+   `Backend_Sync_Ejecutar()` relee la fila: si cambiaron datos reales
+   abre conflicto; si cambio solo metadata, refresca version y reintenta
+   el guardado.
+12. `Cerrar sesión en todas` registra primero un corte global propio en
    el estado remoto. Si Supabase rechaza el `signOut` global, la app
    registra el error pero igualmente cierra la sesion local, porque el
    corte remoto propio es el mecanismo que expulsa a las otras
    sesiones al revisar sync.
-12. Si `Cerrar sesión en todas` encuentra sync local pendiente o un
+13. Si `Cerrar sesión en todas` encuentra sync local pendiente o un
    conflicto que impide el guardado normal previo, fuerza el corte
    global usando el estado local actual como base remota. La prioridad
    de esa accion es destrabar la cuenta y expulsar las otras sesiones,
@@ -138,8 +147,11 @@ Funciones transversales importantes.
 - `Guardar_Estado_Cambio_Critico()`
 - `Backend_Sync_Programar()`
 - `Backend_Sync_Ejecutar()`
+- `Backend_Verificar_Remoto_Antes_De_Sync()`
 - `Preparar_Sesion_Operativa_Entrada()`
 - `Actualizar_Sesion_Operativa_Remota()`
+- `Backend_Registrar_Corte_Sesion_Global()`
+- `Backend_Forzar_Corte_Global_Desde_Local()`
 - `Invocar_Edge_Con_Sesion()`
 - `Aplicar_Importacion_Objeto()`
 
