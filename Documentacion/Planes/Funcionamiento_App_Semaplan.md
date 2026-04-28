@@ -140,14 +140,19 @@ El flujo operativo base es este.
 13. Mientras hay sync local pendiente, los heartbeats de sesion se
    difieren para no avanzar `actualizado_en` remoto con cambios
    puramente operativos.
-14. `Cerrar sesion en todas` registra primero un corte global propio en
+14. `Hay_Sync_Pendiente()` representa trabajo real pendiente
+   (timer, reintento o promesa en curso) y no solamente el texto
+   visible `Guardando`. Si la UI queda en `Guardando` sin tarea activa,
+   `Resolver_Sync_Guardando_Inactivo()` la normaliza a `Guardado`,
+   reintento o `Error` segun haya datos locales sucios o conflicto.
+15. `Cerrar sesion en todas` registra primero un corte global propio en
    el estado remoto. Si Supabase rechaza el `signOut` global, la app
    registra el error pero igualmente cierra la sesion local, porque el
    corte remoto propio es el mecanismo que expulsa a las otras
    sesiones al revisar sync. Si el corte propio falla (por ejemplo por
    timeout) pero `signOut` global responde, tambien se cierra la sesion
    local sin mostrar falso error de cambios sin guardar.
-15. Si `Cerrar sesion en todas` encuentra sync local pendiente, fuerza
+16. Si `Cerrar sesion en todas` encuentra sync local pendiente, fuerza
    el corte global usando el estado local actual como base remota. Si
    hay un conflicto pendiente, interrumpe el cierre y muestra el
    conflicto para que el usuario lo resuelva antes de expulsar otras
@@ -207,6 +212,10 @@ Notas operativas.
   objetivo contextual de ese periodo; el detalle muestra primero
   subobjetivos y partes con avance, ordenados de mayor a menor, y deja
   los items sin avance detras de botones de expansion.
+- En Resumen > Metas un objetivo solo se incluye si su periodo solapa el
+  rango visible, si tuvo avance dentro de ese rango o si su target
+  contextual para ese rango es mayor a cero. Los objetivos de otros
+  periodos no deben aparecer solo por tener avance acumulado global.
 
 ## Slots vacios, bloques y planes de slot
 
@@ -468,6 +477,9 @@ Relaciones importantes.
   objetivo padre.
 - Un subobjetivo puede tener partes.
 - Objetivos, subobjetivos y partes pueden vincular habitos.
+- La descripcion de un periodo en Metas se muestra contraida cuando ya
+  tiene texto. El boton propio de expansion solo contrae o expande; el
+  click en el cuerpo de la descripcion sigue abriendo la edicion.
 - Los avances recalculan progreso y pueden afectar vistas, estados y
   metricas.
 

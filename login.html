@@ -2592,24 +2592,14 @@
 
       .Resumen_Sem_Rango {
         display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 10px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px 10px;
         align-items: center;
         margin-bottom: 12px;
-        padding: 10px;
+        padding: 10px 12px;
         border: 1px solid var(--Borde);
-        border-radius: 16px;
-        background:
-          linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.96),
-            rgba(246, 239, 228, 0.88)
-          );
-      }
-
-      .Resumen_Sem_Rango_Nav {
-        display: flex;
-        gap: 6px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.94);
       }
 
       .Resumen_Sem_Rango_Btn,
@@ -2623,8 +2613,8 @@
       }
 
       .Resumen_Sem_Rango_Btn {
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
         line-height: 1;
       }
 
@@ -2642,9 +2632,9 @@
       }
 
       .Resumen_Sem_Rango_Centro {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
+        display: grid;
+        grid-template-columns: 32px minmax(132px, auto) 32px;
+        gap: 6px;
         align-items: center;
         justify-content: center;
         min-width: 0;
@@ -2663,8 +2653,14 @@
         padding: 0 10px;
       }
 
+      .Resumen_Sem_Rango_Select {
+        min-width: 132px;
+        text-align: center;
+        text-align-last: center;
+      }
+
       .Resumen_Sem_Rango_Texto {
-        flex: 1 1 100%;
+        grid-column: 1 / -1;
         min-width: 0;
         color: var(--Texto_Suave);
         font-size: 12px;
@@ -2865,7 +2861,7 @@
 
       .Resumen_Sem_Barra_Fill {
         height: 100%;
-        background: var(--Acento);
+        background: #c9413b;
       }
 
       .Resumen_Sem_Dia {
@@ -3120,17 +3116,19 @@
         display: block;
         height: 100%;
         border-radius: inherit;
-        background: var(--Acento);
+        background: #c9413b;
       }
 
       .Resumen_Sem_Meta_Datos {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 8px;
+        align-items: start;
       }
 
       .Resumen_Sem_Meta_Dato {
         min-width: 0;
+        text-align: center;
       }
 
       .Resumen_Sem_Meta_Dato span {
@@ -3146,8 +3144,8 @@
         display: block;
         margin-top: 2px;
         color: var(--Texto);
-        font-size: 13px;
-        font-weight: 850;
+        font-size: 11px;
+        font-weight: 400;
         font-variant-numeric: tabular-nums;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -3233,9 +3231,10 @@
           grid-template-columns: 1fr;
         }
 
-        .Resumen_Sem_Rango_Nav,
         .Resumen_Sem_Rango_Centro {
           justify-content: center;
+          grid-template-columns: 32px minmax(120px, 1fr) 32px;
+          width: 100%;
         }
 
         .Resumen_Sem_Meta_Datos {
@@ -5540,11 +5539,58 @@
         border-radius: 8px;
         cursor: pointer;
         padding-top: 16px;
+        padding-right: 36px;
+        position: relative;
       }
 
       .Planes_Resumen_Texto_Fila .Planes_Resumen_Texto {
         min-width: 0;
         margin-top: 0;
+        position: relative;
+      }
+
+      .Planes_Resumen_Texto_Fila.Colapsada .Planes_Resumen_Texto {
+        max-height: 4.35em;
+        overflow: hidden;
+      }
+
+      .Planes_Resumen_Texto_Fila.Colapsada
+        .Planes_Resumen_Texto::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1.6em;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0),
+          var(--Panel)
+        );
+        pointer-events: none;
+      }
+
+      .Planes_Resumen_Texto_Toggle {
+        position: absolute;
+        top: 11px;
+        right: 0;
+        width: 26px;
+        height: 26px;
+        border: 1px solid var(--Borde);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--Texto_Suave);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+        line-height: 1;
+        padding: 0;
+      }
+
+      .Planes_Resumen_Texto_Toggle:hover {
+        border-color: rgba(31, 107, 79, 0.35);
+        color: var(--Acento);
       }
 
       .Planes_Resumen_Texto_Fila:hover .Planes_Resumen_Texto {
@@ -5578,13 +5624,14 @@
       }
 
       .Planes_Metricas {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 10px 18px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(58px, 1fr));
+        justify-content: center;
+        gap: 10px;
         margin-top: 0;
         padding-top: 2px;
         padding-left: 0;
+        width: min(360px, 100%);
       }
 
       .Planes_Metrica {
@@ -5606,9 +5653,10 @@
         display: block;
         margin-top: 0;
         color: var(--Texto);
-        font-size: 14px;
+        font-size: 12px;
         line-height: 1;
-        font-weight: 700;
+        font-weight: 400;
+        text-align: center;
       }
 
       .Planes_Formulario {
@@ -8580,8 +8628,9 @@
         }
 
         .Planes_Metricas {
-          justify-content: flex-start;
+          justify-content: center;
           padding-left: 0;
+          width: 100%;
         }
 
         .Planes_Objetivo_Form {
@@ -12447,9 +12496,16 @@
         border-radius: 12px;
         background: rgba(255,255,255,0.72);
         color: var(--Texto);
+        font-family:
+          ui-monospace,
+          SFMono-Regular,
+          Consolas,
+          "Liberation Mono",
+          monospace;
         font-size: 12px;
         line-height: 1.45;
-        word-break: break-all;
+        overflow-wrap: anywhere;
+        user-select: all;
         box-sizing: border-box;
       }
 
@@ -16084,7 +16140,7 @@
         position: fixed;
         inset: 0;
         background: rgba(31, 31, 31, 0.42);
-        z-index: 12000;
+        z-index: 14000;
         align-items: center;
         justify-content: center;
         padding: 20px;
@@ -20967,7 +21023,7 @@
               </div>
               <div class="Ayuda_Bloque">
                 <h3 data-i18n="ayuda.resumen_titulo"
-                  >Resumen por periodo 📊</h3>
+                  >Resumen por período 📊</h3>
                 <p data-i18n="ayuda.resumen_p1">
                   El resumen semanal muestra un panorama de la
                   semana: horas por objetivo, distribución por
@@ -24294,7 +24350,7 @@
         <div class="Resumen_Sem_Cabecera">
           <span class="Resumen_Sem_Titulo"
             data-i18n="resumen_sem.titulo"
-            >Resumen por periodo</span>
+            >Resumen por período</span>
           <button class="Config_Cerrar"
             id="Resumen_Sem_Cerrar"
             type="button">&times;</button>
@@ -27045,7 +27101,7 @@
             "Metas con progreso, ritmo " +
             "e historial",
           "suscripcion.feat_resumen":
-            "Resumen por periodo con metas",
+            "Resumen por período con metas",
           "suscripcion.feat_archivero":
             "Archivero de notas, frases " +
             "e ideas",
@@ -27075,7 +27131,7 @@
             "No se pudo conectar con Mercado Pago. " +
             "Revisá tu conexión e intentá de nuevo.",
           "resumen_sem.titulo":
-            "Resumen por periodo",
+            "Resumen por período",
           "resumen_objetivo.sin_seleccion":
             "Sin seleccion",
           "resumen_objetivo.menu_acciones":
@@ -28255,7 +28311,7 @@
             "hitos en ⚙ " +
             "Configuración.",
           "ayuda.resumen_titulo":
-            "Resumen por periodo 📊",
+            "Resumen por período 📊",
           "ayuda.resumen_p1":
             "El resumen muestra un panorama " +
             "por rango: horas por objetivo, " +
@@ -35563,7 +35619,7 @@
             "Metas com progresso, ritmo " +
             "e histórico",
           "suscripcion.feat_resumen":
-            "Resumo por periodo com metas",
+            "Resumo por período com metas",
           "suscripcion.feat_archivero":
             "Arquivo de notas, frases " +
             "e ideias",
@@ -35593,7 +35649,7 @@
             "Não foi possível conectar com o Mercado Pago. " +
             "Verifique sua conexão e tente novamente.",
           "resumen_sem.titulo":
-            "Resumo por periodo",
+            "Resumo por período",
           "resumen_objetivo.sin_seleccion":
             "Sem seleção",
           "resumen_objetivo.menu_acciones":
@@ -36773,7 +36829,7 @@
             "marcos em ⚙ " +
             "Configurações.",
           "ayuda.resumen_titulo":
-            "Resumo por periodo 📊",
+            "Resumo por período 📊",
           "ayuda.resumen_p1":
             "O resumo mostra um panorama " +
             "por intervalo: horas por " +
@@ -38192,6 +38248,7 @@
       let Planes_Multi_Seleccion = new Set();
       let Planes_Objetivo_Copiado_Id = "";
       let Planes_Periodo_Expansion_Render_Id = null;
+      let Planes_Resumenes_Expandidos = new Set();
       let Planes_Etiquetas_Originales = null;
       // Modal único de Plan: pestaña activa.
       // "Periodos" | "Semana" | "Cerrar" | "Historial"
@@ -57826,11 +57883,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
         }
         const Hay_Resumen = Boolean((Periodo.Resumen || "").trim());
+        const Resumen_Expandido =
+          Planes_Resumenes_Expandidos.has(Periodo.Id);
         const Texto_Fila = Hay_Resumen
           ? document.createElement("div")
           : document.createElement("button");
         Texto_Fila.className = Hay_Resumen
-          ? "Planes_Resumen_Texto_Fila"
+          ? (
+            "Planes_Resumen_Texto_Fila " +
+            (Resumen_Expandido ? "Expandida" : "Colapsada")
+          )
           : "Planes_Vacio Planes_Vacio_Accion Planes_Resumen_Vacio";
         if (!Hay_Resumen) {
           Texto_Fila.type = "button";
@@ -57849,6 +57911,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto.className = "Planes_Resumen_Texto";
           Texto.textContent = Periodo.Resumen;
           Texto_Fila.appendChild(Texto);
+          const Toggle_Resumen = document.createElement("button");
+          Toggle_Resumen.type = "button";
+          Toggle_Resumen.className = "Planes_Resumen_Texto_Toggle";
+          Toggle_Resumen.textContent = Resumen_Expandido
+            ? "\u25B4"
+            : "\u25BE";
+          Toggle_Resumen.title = t(
+            Resumen_Expandido
+              ? "sidebar.metas_descripcion_comprimir"
+              : "sidebar.metas_descripcion_descomprimir"
+          );
+          Toggle_Resumen.setAttribute(
+            "aria-label",
+            Toggle_Resumen.title
+          );
+          Toggle_Resumen.addEventListener("click", (Ev) => {
+            Ev.preventDefault();
+            Ev.stopPropagation();
+            if (Resumen_Expandido) {
+              Planes_Resumenes_Expandidos.delete(Periodo.Id);
+            } else {
+              Planes_Resumenes_Expandidos.add(Periodo.Id);
+            }
+            Render_Planes_Contenido();
+          });
+          Texto_Fila.appendChild(Toggle_Resumen);
         } else {
           Texto_Fila.textContent = t("planes.descripcion_vacia");
         }
@@ -57885,8 +57973,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cont.appendChild(Acciones_Edit);
           Editor.focus();
         };
-        Texto_Fila.addEventListener("click", Abrir_Editor);
+        Texto_Fila.addEventListener("click", (Ev) => {
+          if (Ev.target.closest(".Planes_Resumen_Texto_Toggle")) {
+            return;
+          }
+          Abrir_Editor();
+        });
         Texto_Fila.addEventListener("keydown", (Ev) => {
+          if (Ev.target.closest(".Planes_Resumen_Texto_Toggle")) {
+            return;
+          }
           if (Ev.key !== "Enter" && Ev.key !== " ") return;
           Ev.preventDefault();
           Abrir_Editor();
@@ -75799,12 +75895,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Generar_Token_IA_Cliente() {
-        const Bytes = new Uint8Array(24);
+        const Alfabeto = "23456789abcdefghjkmnpqrstvwxyz";
+        const Bytes = new Uint8Array(32);
         crypto.getRandomValues(Bytes);
         const Base = Array.from(Bytes, (Byte) => {
-          return Byte.toString(16).padStart(2, "0");
+          return Alfabeto[Byte % Alfabeto.length];
         }).join("");
-        return `sai_${Base}`;
+        const Grupos = Base.match(/.{1,4}/g) || [Base];
+        return `sai_${Grupos.join("-")}`;
       }
 
       async function Hash_SHA256_Hex(Texto) {
@@ -102607,21 +102705,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Resumen_Sem_Rango_Base = Formatear_Fecha_ISO(Nueva);
       }
 
+      function Resumen_Navegar_Rango_Actual(Delta) {
+        Resumen_Mover_Rango(Delta);
+        Render_Resumen_Semanal();
+      }
+
       function Render_Control_Rango_Resumen(Cuerpo) {
         const Rango = Resumen_Rango_Actual();
         const Barra = document.createElement("div");
         Barra.className = "Resumen_Sem_Rango";
 
-        const Nav = document.createElement("div");
-        Nav.className = "Resumen_Sem_Rango_Nav";
         const Btn_Ant = document.createElement("button");
         Btn_Ant.type = "button";
         Btn_Ant.className = "Resumen_Sem_Rango_Btn";
         Btn_Ant.textContent = "<";
         Btn_Ant.title = t("nav.anterior");
         Btn_Ant.addEventListener("click", () => {
-          Resumen_Mover_Rango(-1);
-          Render_Resumen_Semanal();
+          Resumen_Navegar_Rango_Actual(-1);
         });
         const Btn_Sig = document.createElement("button");
         Btn_Sig.type = "button";
@@ -102629,15 +102729,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Btn_Sig.textContent = ">";
         Btn_Sig.title = t("nav.siguiente");
         Btn_Sig.addEventListener("click", () => {
-          Resumen_Mover_Rango(1);
-          Render_Resumen_Semanal();
+          Resumen_Navegar_Rango_Actual(1);
         });
-        Nav.appendChild(Btn_Ant);
-        Nav.appendChild(Btn_Sig);
-        Barra.appendChild(Nav);
 
         const Centro = document.createElement("div");
         Centro.className = "Resumen_Sem_Rango_Centro";
+        Centro.appendChild(Btn_Ant);
         const Select = document.createElement("select");
         Select.className = "Resumen_Sem_Rango_Select";
         [
@@ -102659,6 +102756,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Render_Resumen_Semanal();
         });
         Centro.appendChild(Select);
+        Centro.appendChild(Btn_Sig);
 
         const Texto = document.createElement("div");
         Texto.className = "Resumen_Sem_Rango_Texto";
@@ -102911,6 +103009,43 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) || 0;
         if (Total <= 0) return 0;
         return (Number(Item.Horas_Hechas) || 0) / Total;
+      }
+
+      function Resumen_Limitar_Porcentaje(Porcentaje) {
+        return Math.max(
+          0,
+          Math.min(100, Number(Porcentaje) || 0)
+        );
+      }
+
+      function Resumen_Interpolar_Color(A, B, Ratio) {
+        const T = Math.max(0, Math.min(1, Number(Ratio) || 0));
+        const C = (Valor) => {
+          const Hex = Valor.replace("#", "");
+          return [
+            parseInt(Hex.slice(0, 2), 16),
+            parseInt(Hex.slice(2, 4), 16),
+            parseInt(Hex.slice(4, 6), 16)
+          ];
+        };
+        const CA = C(A);
+        const CB = C(B);
+        const Rgb = CA.map((Valor, Indice) =>
+          Math.round(Valor + ((CB[Indice] - Valor) * T))
+        );
+        return `rgb(${Rgb[0]}, ${Rgb[1]}, ${Rgb[2]})`;
+      }
+
+      function Resumen_Color_Porcentaje(Porcentaje) {
+        const P = Resumen_Limitar_Porcentaje(Porcentaje);
+        if (P <= 50) {
+          return Resumen_Interpolar_Color("#c9413b", "#e89a34", P / 50);
+        }
+        return Resumen_Interpolar_Color(
+          "#e89a34",
+          "#2f8f58",
+          (P - 50) / 50
+        );
       }
 
       function Obtener_Objetivos_Resumen_Filtradas(Datos) {
@@ -103174,9 +103309,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Pct_I = Total_It > 0
             ? Math.round((Hechas_It / Total_It) * 100)
             : 0;
-          Bar_F.style.width = `${Pct_I}%`;
-          Bar_F.style.background = Item.Objetivo.Color
-            || "var(--Acento)";
+          Bar_F.style.width =
+            `${Resumen_Limitar_Porcentaje(Pct_I)}%`;
+          Bar_F.style.backgroundColor =
+            Resumen_Color_Porcentaje(Pct_I);
           Bar_C.appendChild(Bar_F);
 
           // Si hay abordajes, agregar flechita toggle al inicio.
@@ -103573,6 +103709,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Periodo_Rango,
         Modelo
       ) {
+        const Base = Planes_Periodo_Base_Objetivo(Objetivo, Modelo);
+        if (
+          Base &&
+          Periodo_Rango &&
+          !Planes_Periodo_Solapa_Rango(Base, Periodo_Rango)
+        ) {
+          return 0;
+        }
         const Directo = Math.max(
           0,
           Number(Planes_Target_Contextual_Objetivo(
@@ -103771,8 +103915,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           const Total = Number(Objetivo.Progreso_Total) || 0;
           const Incluir =
-            Solapa || Avance_Rango > 0 || Total > 0 ||
-            Target_Total > 0 || Target_Periodo > 0;
+            Solapa || Avance_Rango > 0 || Target_Periodo > 0;
           if (!Incluir) return;
           Items.push({
             Objetivo,
@@ -103868,9 +104011,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Barra = document.createElement("div");
           Barra.className = "Resumen_Sem_Meta_Barra";
           const Fill = document.createElement("span");
-          Fill.style.width = `${Math.min(100, Math.max(0, Pct))}%`;
-          Fill.style.background =
-            Item.Objetivo.Color || "var(--Acento)";
+          Fill.style.width =
+            `${Resumen_Limitar_Porcentaje(Pct)}%`;
+          Fill.style.backgroundColor =
+            Resumen_Color_Porcentaje(Pct);
           Barra.appendChild(Fill);
           Card.appendChild(Barra);
 
@@ -114469,6 +114613,24 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
 
         if (
+          Resumen_Abierto &&
+          !Ev.ctrlKey &&
+          !Ev.metaKey &&
+          !Ev.altKey &&
+          !Ev.shiftKey &&
+          (
+            Ev.key === "ArrowLeft" ||
+            Ev.key === "ArrowRight"
+          )
+        ) {
+          Resumen_Navegar_Rango_Actual(
+            Ev.key === "ArrowLeft" ? -1 : 1
+          );
+          Ev.preventDefault();
+          return;
+        }
+
+        if (
           (Ev.ctrlKey || Ev.metaKey) &&
           !Ev.shiftKey &&
           !Ev.altKey &&
@@ -117131,8 +117293,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Hay_Sync_Pendiente() {
         return Boolean(Sync_Timer_Id) ||
           Boolean(Sync_Reintento_Timer_Id) ||
-          Boolean(Sync_En_Curso) ||
-          Sync_Estado === "Guardando";
+          Boolean(Sync_En_Curso);
+      }
+
+      function Resolver_Sync_Guardando_Inactivo() {
+        if (Sync_Estado !== "Guardando") return;
+        if (Hay_Sync_Pendiente()) return;
+        if (Sync_Conflicto_Pendiente) {
+          Actualizar_Sync_Indicador("Error");
+          return;
+        }
+        if (Sync_Local_Sucio) {
+          if (!Programar_Reintento_Sync(true)) {
+            Actualizar_Sync_Indicador("Error");
+          }
+          return;
+        }
+        Actualizar_Sync_Indicador("Guardado");
       }
 
       function Hay_Cambios_Locales_Sin_Sync() {
@@ -117144,8 +117321,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       async function Backend_Sync_Ejecutar(
         Opciones = {}
       ) {
-        if (Sync_Conflicto_Pendiente) return false;
-        if (!Supa || !Usuario_Actual) return false;
+        if (Sync_Conflicto_Pendiente) {
+          if (Sync_Timer_Id) {
+            clearTimeout(Sync_Timer_Id);
+            Sync_Timer_Id = null;
+          }
+          Resolver_Sync_Guardando_Inactivo();
+          return false;
+        }
+        if (!Supa || !Usuario_Actual) {
+          if (Sync_Timer_Id) {
+            clearTimeout(Sync_Timer_Id);
+            Sync_Timer_Id = null;
+          }
+          Resolver_Sync_Guardando_Inactivo();
+          return false;
+        }
         if (
           Sync_Promesa_En_Curso &&
           !Opciones.Forzar_Sobrescribir
@@ -117397,6 +117588,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           } finally {
             Sync_En_Curso = false;
             Sync_Promesa_En_Curso = null;
+            Resolver_Sync_Guardando_Inactivo();
           }
         })();
         return await Sync_Promesa_En_Curso;
