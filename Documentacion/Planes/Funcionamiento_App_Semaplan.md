@@ -453,17 +453,32 @@ Areas importantes.
 - filtros automaticos
 - comportamiento de habitos en sidebar
 - colores y modos de UI
+- datos de cuenta y tokens de integracion IA read-only
 - backups locales
 - import/export completo
 - selector de versiones del frontend
 
 Funciones de entrada recomendadas.
 
+- `Renderizar_Datos_Cuenta()`
+- `Cargar_Tokens_IA_Cuenta()`
+- `Crear_Token_IA_Cuenta()`
+- `Revocar_Token_IA_Cuenta()`
 - `Render_Config_Backups()`
 - `Cargar_Backups_Locales()`
 - `Aplicar_Importacion_Objeto()`
 - `Render_Config_Versiones_Programa()`
 - `Cargar_Registro_Versiones_Programa()`
+
+Notas operativas de este bloque.
+
+- Los tokens IA se generan en cliente y solo se guarda `token_hash`
+  en `tokens_ia_usuario`.
+- El token plano se muestra una sola vez en la UI de Cuenta y no debe
+  persistirse en estado ni en `localStorage`.
+- Si el entorno remoto todavia no tiene la tabla
+  `tokens_ia_usuario`, la UI debe degradar con mensaje claro y sin
+  intentar crear tokens.
 
 ## Orden sugerido de lectura cuando haya que tocar algo
 
