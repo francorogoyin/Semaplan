@@ -86,6 +86,13 @@ vuelve a regir la configuracion automatica correspondiente. La opcion
 Personalizado muestra los items individuales y, al desactivarse,
 tambien vuelve al automatico.
 
+Si el filtro manual corresponde a la semana real actual, debe
+persistir al abrir o guardar Configuracion y tambien al recargar la
+app. Esa persistencia no convierte el filtro manual en configuracion
+automatica global: sigue siendo una memoria de vista de la semana
+actual y se limpia al cambiar de semana o al desactivar la opcion
+manual.
+
 El modo automatico de horarios "Enfocar alrededor de ahora" muestra
 la hora actual mas el margen configurado hacia atras y hacia adelante.
 Tambien queda limitado a la semana real actual y queda por debajo del

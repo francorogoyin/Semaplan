@@ -440,6 +440,9 @@ app.
 Areas importantes.
 
 - visibilidad de dias y horas
+- memoria manual de dias y bloques horarios visibles de la semana
+  actual, persistida en `Config_Extra` sin convertirla en default
+  automatico global
 - filtros automaticos
 - comportamiento de habitos en sidebar
 - colores y modos de UI
