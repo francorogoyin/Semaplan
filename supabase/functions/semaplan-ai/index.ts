@@ -2380,7 +2380,7 @@ function Construir_Metas_Normalizadas_IA(
       );
       const Objetivo =
         Number(Base.Horas_Objetivo) || 0;
-      if (!Nombre || Objetivo <= 0) {
+      if (!Nombre) {
         return null;
       }
       const Periodo = [
