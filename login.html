@@ -26925,6 +26925,14 @@
             "Se abrió ChatGPT para iniciar la conexión.",
           "config.ia_chatgpt_url_faltante":
             "El enlace del GPT de Semaplan todavía no está publicado.",
+          "config.ia_chatgpt_url_pedir":
+            "Pegá el enlace directo del GPT de Semaplan.",
+          "config.ia_chatgpt_url_placeholder":
+            "https://chatgpt.com/g/g-...",
+          "config.ia_chatgpt_url_guardada":
+            "Enlace del GPT guardado.",
+          "config.ia_chatgpt_url_invalida":
+            "El enlace debe ser https://chatgpt.com/g/... (o chat.openai.com/g/...).",
           "dialog.ia_oauth_autorizar_confirm":
             "ChatGPT solicita permiso para leer tu Semaplan. ¿Querés autorizar esta conexión?",
           "config.ia_oauth_cancelado":
@@ -31184,6 +31192,14 @@
             "ChatGPT was opened to start the connection.",
           "config.ia_chatgpt_url_faltante":
             "The Semaplan GPT link is not published yet.",
+          "config.ia_chatgpt_url_pedir":
+            "Paste the direct link to your Semaplan GPT.",
+          "config.ia_chatgpt_url_placeholder":
+            "https://chatgpt.com/g/g-...",
+          "config.ia_chatgpt_url_guardada":
+            "GPT link saved.",
+          "config.ia_chatgpt_url_invalida":
+            "The link must be https://chatgpt.com/g/... (or chat.openai.com/g/...).",
           "dialog.ia_oauth_autorizar_confirm":
             "ChatGPT is requesting read access to your Semaplan. Do you want to authorize this connection?",
           "config.ia_oauth_cancelado":
@@ -35456,6 +35472,14 @@
             "O ChatGPT foi aberto para iniciar a conexão.",
           "config.ia_chatgpt_url_faltante":
             "O link do GPT Semaplan ainda não foi publicado.",
+          "config.ia_chatgpt_url_pedir":
+            "Cole o link direto do GPT do Semaplan.",
+          "config.ia_chatgpt_url_placeholder":
+            "https://chatgpt.com/g/g-...",
+          "config.ia_chatgpt_url_guardada":
+            "Link do GPT salvo.",
+          "config.ia_chatgpt_url_invalida":
+            "O link deve ser https://chatgpt.com/g/... (ou chat.openai.com/g/...).",
           "dialog.ia_oauth_autorizar_confirm":
             "O ChatGPT está pedindo permissão de leitura do seu Semaplan. Você quer autorizar essa conexão?",
           "config.ia_oauth_cancelado":
@@ -38793,8 +38817,10 @@
       let Objetivo_Touch_Para_Bloque_Id = null;
       const Url_App_Desktop = "";
       const Url_App_Android = "";
-      const Url_GPT_Semaplan =
-        "https://chatgpt.com/gpts";
+      const Url_GPT_Semaplan_Default = "";
+      const Clave_GPT_Semaplan_Url = Clave_Por_Entorno(
+        "Semaplan_GPT_Url_V1"
+      );
       let Objetivo_Seleccionada_Id = null;
       let Modo_Editor_Abierto = false;
       let Semana_Actual = null;
@@ -77819,15 +77845,91 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         window.open(Url, "_blank", "noopener");
       }
 
-      function Abrir_ChatGPT_Semaplan_Config() {
-        const Url = String(
-          Url_GPT_Semaplan || ""
+      function Normalizar_Url_GPT_Semaplan(Url_Raw) {
+        const Url_Limpia = String(
+          Url_Raw || ""
         ).trim();
-        if (!Url) {
-          Mostrar_Toast_Error(
-            t("config.ia_chatgpt_url_faltante")
+        if (!Url_Limpia) return "";
+        try {
+          const Url = new URL(Url_Limpia);
+          const Host = Url.hostname.toLowerCase();
+          const Ruta = String(Url.pathname || "")
+            .trim()
+            .toLowerCase();
+          if (
+            Url.protocol !== "https:" ||
+            (
+              Host !== "chatgpt.com" &&
+              Host !== "chat.openai.com"
+            ) ||
+            !Ruta.startsWith("/g/")
+          ) {
+            return "";
+          }
+          return Url.toString();
+        } catch (_) {
+          return "";
+        }
+      }
+
+      function Leer_Url_GPT_Semaplan_Guardada() {
+        return String(
+          localStorage.getItem(Clave_GPT_Semaplan_Url) || ""
+        ).trim();
+      }
+
+      function Guardar_Url_GPT_Semaplan_Guardada(Url) {
+        const Url_Normalizada =
+          Normalizar_Url_GPT_Semaplan(Url);
+        if (!Url_Normalizada) {
+          localStorage.removeItem(Clave_GPT_Semaplan_Url);
+          return "";
+        }
+        localStorage.setItem(
+          Clave_GPT_Semaplan_Url,
+          Url_Normalizada
+        );
+        return Url_Normalizada;
+      }
+
+      function Obtener_Url_GPT_Semaplan_Config() {
+        const Guardada =
+          Normalizar_Url_GPT_Semaplan(
+            Leer_Url_GPT_Semaplan_Guardada()
           );
-          return;
+        if (Guardada) return Guardada;
+        return Normalizar_Url_GPT_Semaplan(
+          Url_GPT_Semaplan_Default
+        );
+      }
+
+      async function Abrir_ChatGPT_Semaplan_Config() {
+        let Url = Obtener_Url_GPT_Semaplan_Config();
+        if (!Url) {
+          const Url_Cargada = await Mostrar_Dialogo_Con_Texto(
+            t("config.ia_chatgpt_url_pedir"),
+            {
+              Placeholder: t(
+                "config.ia_chatgpt_url_placeholder"
+              ),
+              Etiqueta_Confirmar: t("guardar"),
+              Etiqueta_Cancelar: t("cancelar")
+            }
+          );
+          if (Url_Cargada == null) return;
+          Url = Guardar_Url_GPT_Semaplan_Guardada(
+            Url_Cargada
+          );
+          if (!Url) {
+            Mostrar_Toast_Error(
+              t("config.ia_chatgpt_url_invalida")
+            );
+            return;
+          }
+          Mostrar_Toast_Info(
+            t("config.ia_chatgpt_url_guardada"),
+            "GPT"
+          );
         }
         window.open(Url, "_blank", "noopener");
         Mostrar_Toast_Info(
