@@ -223,9 +223,6 @@ function Construir_OpenAPI_Semaplan_IA(
     {
       SemaplanAIOAuth: [OAUTH_SCOPE_LECTURA],
     },
-    {
-      SemaplanAIToken: [],
-    },
   ];
 
   return {
@@ -277,13 +274,6 @@ function Construir_OpenAPI_Semaplan_IA(
         },
       },
       securitySchemes: {
-        SemaplanAIToken: {
-          type: "apiKey",
-          in: "header",
-          name: "X-Semaplan-AI-Token",
-          description:
-            "Token de lectura de Semaplan para integraciones de IA.",
-        },
         SemaplanAIOAuth: {
           type: "oauth2",
           flows: {
