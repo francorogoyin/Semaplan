@@ -265,6 +265,11 @@ Relaciones importantes.
   lista sugerida se ordena por periodo: diarios, semanales,
   quincenales y mensuales; y dentro de cada periodo por tipo: Check,
   Cantidad, Tiempo y Evitar.
+- Los planes de slots vacios, slots muertos y bloques usan controles
+  desplegables equivalentes para agregar habitos y objetivos. Los
+  objetivos agregados se guardan como items con `Objetivo_Id`, se
+  deduplican por ese identificador y conservan el vinculo cuando un
+  plan de slot se transfiere a un bloque.
 
 ## Tareas
 

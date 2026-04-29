@@ -10990,6 +10990,12 @@
         text-align: center;
       }
 
+      .Plan_Slot_Selectores {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
       .Habitos_Vinculos_Nuevo {
         width: 34px;
         height: 34px;
@@ -25472,6 +25478,7 @@
           "habitos.sugeridos": "H\u00e1bitos sugeridos",
           "habitos.sin_vinculos": "Sin v\u00ednculos de h\u00e1bitos.",
           "habitos.seleccionar": "Seleccionar h\u00e1bito",
+          "objetivos.seleccionar": "Seleccionar objetivo",
           "habitos.modo_fijo": "Cantidad fija",
           "habitos.usar_fuente": "Usar fuente",
           "habitos.usar_duracion": "Usar duraci\u00f3n del bloque",
@@ -29780,6 +29787,7 @@
           "habitos.sugeridos": "Suggested habits",
           "habitos.sin_vinculos": "No linked habits.",
           "habitos.seleccionar": "Select habit",
+          "objetivos.seleccionar": "Select objective",
           "habitos.modo_fijo": "Fixed amount",
           "habitos.usar_fuente": "Use source",
           "habitos.usar_duracion": "Use block duration",
@@ -34029,6 +34037,7 @@
           "habitos.sugeridos": "Habitos sugeridos",
           "habitos.sin_vinculos": "Sem vinculos de habitos.",
           "habitos.seleccionar": "Selecionar habito",
+          "objetivos.seleccionar": "Selecionar objetivo",
           "habitos.modo_fijo": "Quantidade fixa",
           "habitos.usar_fuente": "Usar fonte",
           "habitos.usar_duracion": "Usar duracao do bloco",
@@ -74540,6 +74549,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Resultado = {
           Id: Crear_Id_Abordaje(),
           Plantilla_Id: null,
+          Tipo: Item?.Tipo || "Texto",
+          Objetivo_Id: String(Item?.Objetivo_Id || "").trim(),
           Texto,
           Emoji: Item?.Emoji || "\u2022",
           Habito_Id: String(Item?.Habito_Id || "").trim(),
@@ -74819,6 +74830,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Plantilla_Id: Suelta
               ? null
               : Item?.Plantilla_Id || null,
+            Tipo: Item?.Tipo || "Texto",
+            Objetivo_Id: String(Item?.Objetivo_Id || "").trim(),
             Habito_Id: String(Item?.Habito_Id || "").trim(),
             Texto,
             Emoji: Item?.Emoji || "\u2022",
@@ -74833,6 +74846,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return String(Item_A?.Habito_Id || "").trim() !== "" &&
             String(Item_A?.Habito_Id || "").trim() ===
               String(Item_B?.Habito_Id || "").trim();
+        }
+        if (Item_A?.Objetivo_Id || Item_B?.Objetivo_Id) {
+          return String(Item_A?.Objetivo_Id || "").trim() !== "" &&
+            String(Item_A?.Objetivo_Id || "").trim() ===
+              String(Item_B?.Objetivo_Id || "").trim();
         }
         if (Item_A?.Suelta || Item_B?.Suelta) return false;
         if (Item_A?.Plantilla_Id && Item_B?.Plantilla_Id) {
@@ -79859,6 +79877,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Texto: (Item.Texto || "").trim(),
               Estado: Item.Estado || "Planeado",
               Tipo: Item?.Tipo || "Texto",
+              Objetivo_Id: String(Item?.Objetivo_Id || "").trim(),
               Habito_Id: String(Item?.Habito_Id || "").trim(),
               Habitos_Vinculos: Normalizar_Vinculos_Habito_Fuente(
                 Item?.Habitos_Vinculos || []
@@ -84265,11 +84284,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Id: I.Id || Crear_Id_Abordaje(),
             Plantilla_Id: null,
             Sub_Id_Local: null,
-          Habito_Id: String(I.Habito_Id || "").trim(),
-          Habito_Cantidad: Number(I.Habito_Cantidad) > 0
-            ? Number(I.Habito_Cantidad)
-            : null,
-          Texto: I.Texto || "",
+            Tipo: I.Tipo || "Texto",
+            Objetivo_Id: String(I.Objetivo_Id || "").trim(),
+            Habito_Id: String(I.Habito_Id || "").trim(),
+            Habito_Cantidad: Number(I.Habito_Cantidad) > 0
+              ? Number(I.Habito_Cantidad)
+              : null,
+            Texto: I.Texto || "",
             Emoji: I.Emoji || "•",
             Marcado: I_Tiene_Trabajo,
             Estado: I_Tiene_Trabajo ? I.Estado : "Abordado",
@@ -84547,19 +84568,59 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Btn.addEventListener(
             "click", Agregar_Item_Abordaje_Desde_Input
           );
-          const Btn_Habito = document.createElement("button");
-          Btn_Habito.type = "button";
-          Btn_Habito.className = "Abordaje_Nuevo_Btn";
-          Btn_Habito.textContent = "H";
-          Btn_Habito.title = t("habitos.agregar");
-          Btn_Habito.addEventListener("click", () => {
-            void Agregar_Habito_Desde_Abordaje();
-          });
           Cont.appendChild(Input_Emoji);
           Cont.appendChild(Input);
           Cont.appendChild(Btn);
-          Cont.appendChild(Btn_Habito);
           Cuerpo.appendChild(Cont);
+
+          const Habitos_Disponibles =
+            Evento_Actual
+              ? Obtener_Habitos_Disponibles_Plan_Slot(
+                Evento_Actual.Fecha,
+                Evento_Actual.Inicio,
+                false
+              ).filter((Habito) =>
+                Habito_Modo_Visible(Habito) !== "Tiempo" &&
+                !Abordaje_Borrador.some((Item) =>
+                  Item.Suelta &&
+                  String(Item.Habito_Id || "").trim() === Habito.Id
+                )
+              )
+              : [];
+          const Objetivos_Disponibles =
+            Obtener_Objetivos_Disponibles_Plan_Slot(
+              Abordaje_Borrador,
+              Evento_Actual?.Objetivo_Id || ""
+            );
+          if (Habitos_Disponibles.length || Objetivos_Disponibles.length) {
+            const Selectores = document.createElement("div");
+            Selectores.className =
+              "Campo Campo_Ancho Plan_Slot_Selectores";
+            if (Habitos_Disponibles.length) {
+              const Control_Habitos =
+                Crear_Fila_Select_Habito_Plan_Slot(
+                  Habitos_Disponibles,
+                  (Habito_Id) =>
+                    Agregar_Habito_A_Abordaje(Habito_Id),
+                  {
+                    Texto_Boton: t("agregar"),
+                    Tipo: "habito"
+                  }
+                );
+              Selectores.appendChild(Control_Habitos.Fila);
+            }
+            if (Objetivos_Disponibles.length) {
+              const Control_Objetivos =
+                Crear_Fila_Select_Objetivo_Plan_Slot(
+                  Objetivos_Disponibles,
+                  (Objetivo_Id) =>
+                    Agregar_Objetivo_A_Abordaje(Objetivo_Id),
+                  { Texto_Boton: t("agregar") }
+                );
+              Selectores.appendChild(Control_Objetivos.Fila);
+            }
+            Cuerpo.appendChild(Selectores);
+          }
 
           // Botón para destildar todo el abordaje.
           const Btn_Limpiar = document.createElement("button");
@@ -84673,6 +84734,35 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return true;
       }
 
+      function Agregar_Habito_A_Abordaje(Habito_Id) {
+        const Habito = Habito_Por_Id(Habito_Id);
+        if (!Habito) return false;
+        const Ya_Existe = Abordaje_Borrador.some((Item) =>
+          Item.Suelta &&
+          String(Item.Habito_Id || "").trim() === Habito.Id
+        );
+        if (Ya_Existe) return false;
+        const Item = Crear_Item_Habito_Abordaje(Habito);
+        if (!Item) return false;
+        Abordaje_Borrador.push(Item);
+        Render_Modal_Abordaje();
+        return true;
+      }
+
+      function Agregar_Objetivo_A_Abordaje(Objetivo_Id) {
+        const Objetivo = Objetivo_Por_Id(Objetivo_Id);
+        if (!Objetivo) return false;
+        const Ya_Existe = Abordaje_Borrador.some((Item) =>
+          String(Item?.Objetivo_Id || "").trim() === Objetivo.Id
+        );
+        if (Ya_Existe) return false;
+        const Item = Crear_Item_Objetivo_Abordaje(Objetivo);
+        if (!Item) return false;
+        Abordaje_Borrador.push(Item);
+        Render_Modal_Abordaje();
+        return true;
+      }
+
       async function Agregar_Habito_Desde_Abordaje() {
         const Evento = Evento_Por_Id(Abordaje_Evento_Id);
         if (!Evento) return false;
@@ -84688,30 +84778,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           return false;
         }
-        const Elegido = await Mostrar_Dialogo(
-          t("habitos.agregar_desde_slot"),
-          [
-            ...Opciones.map((Habito) => ({
-              Etiqueta: `${Habito.Emoji} ${Habito.Nombre}`,
-              Valor: Habito.Id,
-              Tipo: "Secundario"
-            })),
-            { Etiqueta: t("cancelar"), Valor: null, Tipo: "Cancelar" }
-          ]
+        const Elegido = await Pedir_Habito_Plan_Slot_Desde_Select(
+          Opciones
         );
         if (!Elegido) return false;
-        const Habito = Habito_Por_Id(Elegido);
-        if (!Habito) return false;
-        const Ya_Existe = Abordaje_Borrador.some((Item) =>
-          Item.Suelta &&
-          String(Item.Habito_Id || "").trim() === Habito.Id
-        );
-        if (Ya_Existe) return false;
-        const Item = Crear_Item_Habito_Abordaje(Habito);
-        if (!Item) return false;
-        Abordaje_Borrador.push(Item);
-        Render_Modal_Abordaje();
-        return true;
+        return Agregar_Habito_A_Abordaje(Elegido);
       }
 
       async function Agregar_Item_Abordaje_Desde_Input() {
@@ -85005,16 +85076,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Es_Suelta) {
           // Botón promover (convertir en subobjetivo real).
-          if (!Item.Habito_Id) {
-          const Btn_P = document.createElement("button");
-          Btn_P.type = "button";
-          Btn_P.className = "Abordaje_Item_Promover";
-          Btn_P.textContent = "↥";
-          Btn_P.title = t("abordaje.convertir_sub_title");
-          Btn_P.addEventListener(
-            "click", () => Promover_Item_Abordaje(Item)
-          );
-          Fila.appendChild(Btn_P);
+          if (!Item.Habito_Id && !Item.Objetivo_Id) {
+            const Btn_P = document.createElement("button");
+            Btn_P.type = "button";
+            Btn_P.className = "Abordaje_Item_Promover";
+            Btn_P.textContent = "↥";
+            Btn_P.title = t("abordaje.convertir_sub_title");
+            Btn_P.addEventListener(
+              "click", () => Promover_Item_Abordaje(Item)
+            );
+            Fila.appendChild(Btn_P);
           }
 
           // Botón borrar.
@@ -85085,11 +85156,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Id: I.Id,
               Plantilla_Id: I.Plantilla_Id,
               Parte_Meta_Id: I.Parte_Meta_Id || null,
-            Habito_Id: String(I.Habito_Id || "").trim(),
-            Habito_Cantidad: Number(I.Habito_Cantidad) > 0
-              ? Number(I.Habito_Cantidad)
-              : null,
-            Texto: I.Texto,
+              Tipo: I.Tipo || "Texto",
+              Objetivo_Id: String(I.Objetivo_Id || "").trim(),
+              Habito_Id: String(I.Habito_Id || "").trim(),
+              Habito_Cantidad: Number(I.Habito_Cantidad) > 0
+                ? Number(I.Habito_Cantidad)
+                : null,
+              Texto: I.Texto,
               Emoji: I.Emoji || "•",
               Suelta: Boolean(I.Suelta)
             };
@@ -85533,6 +85606,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Crear_Item_Objetivo_Plan_Slot(Objetivo) {
+        if (!Objetivo) return null;
+        return {
+          Id: Crear_Id_Plan_Slot_Item(),
+          Tipo: "Objetivo",
+          Objetivo_Id: Objetivo.Id,
+          Emoji: Objetivo.Emoji || "\u2022",
+          Texto: Objetivo.Nombre || "",
+          Estado: "Planeado"
+        };
+      }
+
       function Habitos_Prioridad_Periodo_Plan_Slot(Habito) {
         const Orden = {
           Dia: 0,
@@ -85581,9 +85666,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : Lista;
       }
 
-      function Crear_Select_Habitos_Plan_Slot(
+      function Crear_Select_Plan_Slot(
         Opciones,
-        Placeholder = t("habitos.seleccionar")
+        Placeholder,
+        Obtener_Id,
+        Obtener_Texto
       ) {
         const Select = document.createElement("select");
         Select.className = "Config_Select";
@@ -85591,14 +85678,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Opt_Vacio.value = "";
         Opt_Vacio.textContent = Placeholder;
         Select.appendChild(Opt_Vacio);
-        (Array.isArray(Opciones) ? Opciones : []).forEach((Habito) => {
+        (Array.isArray(Opciones) ? Opciones : []).forEach((Item) => {
           const Opt = document.createElement("option");
-          Opt.value = Habito.Id;
-          Opt.textContent =
-            `${Habito.Emoji || "\u2022"} ${Habito.Nombre || ""}`.trim();
+          Opt.value = Obtener_Id(Item);
+          Opt.textContent = Obtener_Texto(Item);
           Select.appendChild(Opt);
         });
         return Select;
+      }
+
+      function Crear_Select_Habitos_Plan_Slot(
+        Opciones,
+        Placeholder = t("habitos.seleccionar")
+      ) {
+        return Crear_Select_Plan_Slot(
+          Opciones,
+          Placeholder,
+          (Habito) => Habito.Id,
+          (Habito) =>
+            `${Habito.Emoji || "\u2022"} ${Habito.Nombre || ""}`.trim()
+        );
+      }
+
+      function Crear_Select_Objetivos_Plan_Slot(
+        Opciones,
+        Placeholder = t("objetivos.seleccionar")
+      ) {
+        return Crear_Select_Plan_Slot(
+          Opciones,
+          Placeholder,
+          (Objetivo) => Objetivo.Id,
+          (Objetivo) =>
+            `${Objetivo.Emoji || "\u2022"} ${Objetivo.Nombre || ""}`.trim()
+        );
       }
 
       function Crear_Fila_Select_Habito_Plan_Slot(
@@ -85609,9 +85721,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Fila = document.createElement("div");
         Fila.className = "Plan_Slot_Select_Row" +
           (Config_Fila.Dialogo ? " Dialogo" : "");
+        if (Config_Fila.Tipo) {
+          Fila.dataset.planSelect = Config_Fila.Tipo;
+        }
         const Select = Crear_Select_Habitos_Plan_Slot(
           Opciones,
           Config_Fila.Placeholder || t("habitos.seleccionar")
+        );
+        const Btn = document.createElement("button");
+        Btn.type = "button";
+        Btn.className = Config_Fila.Clase_Boton ||
+          "Archivero_Sub_Btn Compacto";
+        Btn.textContent = Config_Fila.Texto_Boton || t("agregar");
+        Btn.addEventListener("click", () => {
+          if (!Select.value) {
+            Select.focus();
+            return;
+          }
+          On_Agregar?.(Select.value);
+        });
+        Fila.appendChild(Select);
+        Fila.appendChild(Btn);
+        return { Fila, Select, Btn };
+      }
+
+      function Crear_Fila_Select_Objetivo_Plan_Slot(
+        Opciones,
+        On_Agregar,
+        Config_Fila = {}
+      ) {
+        const Fila = document.createElement("div");
+        Fila.className = "Plan_Slot_Select_Row" +
+          (Config_Fila.Dialogo ? " Dialogo" : "");
+        Fila.dataset.planSelect = Config_Fila.Tipo || "objetivo";
+        const Select = Crear_Select_Objetivos_Plan_Slot(
+          Opciones,
+          Config_Fila.Placeholder || t("objetivos.seleccionar")
         );
         const Btn = document.createElement("button");
         Btn.type = "button";
@@ -85657,6 +85802,39 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (Ya_Existe) return false;
         const Item = Crear_Item_Habito_Plan_Slot(Habito);
+        if (!Item) return false;
+        Plan_Slot_Borrador.push(Item);
+        Render_Modal_Plan_Slot();
+        return true;
+      }
+
+      function Obtener_Objetivos_Disponibles_Plan_Slot(
+        Items = [],
+        Objetivo_Excluir_Id = ""
+      ) {
+        const Existentes = new Set(
+          (Array.isArray(Items) ? Items : [])
+            .map((Item) => String(Item?.Objetivo_Id || "").trim())
+            .filter(Boolean)
+        );
+        const Excluir = String(Objetivo_Excluir_Id || "").trim();
+        return Obtener_Objetivos_Visibles()
+          .filter((Objetivo) => {
+            const Id = String(Objetivo?.Id || "").trim();
+            if (!Id) return false;
+            if (Excluir && Id === Excluir) return false;
+            return !Existentes.has(Id);
+          });
+      }
+
+      function Agregar_Objetivo_A_Plan_Slot(Objetivo_Id) {
+        const Objetivo = Objetivo_Por_Id(Objetivo_Id);
+        if (!Objetivo) return false;
+        const Ya_Existe = Plan_Slot_Borrador.some((Item) =>
+          String(Item?.Objetivo_Id || "").trim() === Objetivo.Id
+        );
+        if (Ya_Existe) return false;
+        const Item = Crear_Item_Objetivo_Plan_Slot(Objetivo);
         if (!Item) return false;
         Plan_Slot_Borrador.push(Item);
         Render_Modal_Plan_Slot();
@@ -85730,15 +85908,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         });
         Acciones.appendChild(Btn_Agregar);
 
-        const Btn_Habito = document.createElement("button");
-        Btn_Habito.type = "button";
-        Btn_Habito.className = "Config_Boton";
-        Btn_Habito.textContent = t("habitos.agregar");
-        Btn_Habito.addEventListener("click", () => {
-          void Elegir_Y_Agregar_Habito_Plan_Slot();
-        });
-        Acciones.appendChild(Btn_Habito);
-
         const Btn_Insertar_Patron =
           document.createElement("button");
         Btn_Insertar_Patron.type = "button";
@@ -85783,6 +85952,51 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Acciones.appendChild(Btn_Guardar_Patron);
         }
         Cuerpo.appendChild(Acciones);
+
+        const Habitos_Disponibles =
+          Obtener_Habitos_Disponibles_Plan_Slot(
+            Modal_Plan_Slot_Fecha,
+            Modal_Plan_Slot_Hora,
+            false
+          ).filter((Habito) =>
+            !Plan_Slot_Borrador.some((Item) =>
+              Item.Tipo === "Habito" &&
+              Item.Habito_Id === Habito.Id
+            )
+          );
+        const Objetivos_Disponibles =
+          Obtener_Objetivos_Disponibles_Plan_Slot(
+            Plan_Slot_Borrador
+          );
+        if (Habitos_Disponibles.length || Objetivos_Disponibles.length) {
+          const Selectores = document.createElement("div");
+          Selectores.className =
+            "Campo Campo_Ancho Plan_Slot_Selectores";
+          if (Habitos_Disponibles.length) {
+            const Control_Habitos =
+              Crear_Fila_Select_Habito_Plan_Slot(
+                Habitos_Disponibles,
+                (Habito_Id) =>
+                  Agregar_Habito_A_Plan_Slot(Habito_Id),
+                {
+                  Texto_Boton: t("agregar"),
+                  Tipo: "habito"
+                }
+              );
+            Selectores.appendChild(Control_Habitos.Fila);
+          }
+          if (Objetivos_Disponibles.length) {
+            const Control_Objetivos =
+              Crear_Fila_Select_Objetivo_Plan_Slot(
+                Objetivos_Disponibles,
+                (Objetivo_Id) =>
+                  Agregar_Objetivo_A_Plan_Slot(Objetivo_Id),
+                { Texto_Boton: t("agregar") }
+              );
+            Selectores.appendChild(Control_Objetivos.Fila);
+          }
+          Cuerpo.appendChild(Selectores);
+        }
 
         const Habitos_Sugeridos =
           Obtener_Habitos_Disponibles_Plan_Slot(
@@ -93139,6 +93353,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Tarea_Id) return `Tarea:${Tarea_Id}`;
         const Habito_Id = String(Item?.Habito_Id || "").trim();
         if (Habito_Id) return `Habito:${Habito_Id}`;
+        const Objetivo_Id = String(Item?.Objetivo_Id || "").trim();
+        if (Objetivo_Id) return `Objetivo:${Objetivo_Id}`;
         return [
           String(Item?.Tipo || "Texto").trim(),
           String(Item?.Emoji || "\u2022").trim(),
@@ -96662,10 +96878,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Id: Crear_Id_Abordaje(),
           Plantilla_Id: null,
           Sub_Id_Local: null,
+          Tipo: "Habito",
+          Objetivo_Id: "",
           Habito_Id: Habito.Id,
           Habito_Cantidad: null,
           Texto: Habito.Nombre || "",
           Emoji: Habito.Emoji || "\u2022",
+          Marcado: false,
+          Estado: "Abordado",
+          Planeada: true,
+          Suelta: true
+        };
+      }
+
+      function Crear_Item_Objetivo_Abordaje(Objetivo) {
+        if (!Objetivo) return null;
+        return {
+          Id: Crear_Id_Abordaje(),
+          Plantilla_Id: null,
+          Sub_Id_Local: null,
+          Tipo: "Objetivo",
+          Objetivo_Id: Objetivo.Id,
+          Texto: Objetivo.Nombre || "",
+          Emoji: Objetivo.Emoji || "\u2022",
           Marcado: false,
           Estado: "Abordado",
           Planeada: true,
@@ -97141,6 +97376,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto: Item?.Texto || "",
           Estado: Item?.Estado || "Planeado",
           Tipo: Item?.Tipo || "Texto",
+          Objetivo_Id: String(Item?.Objetivo_Id || "").trim(),
           Tarea_Id: String(Item?.Tarea_Id || "").trim(),
           Habito_Id: String(Item?.Habito_Id || "").trim(),
           Habito_Cantidad: Number(Item?.Habito_Cantidad) > 0
@@ -97162,6 +97398,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto: Item?.Texto || "",
           Estado: Item?.Estado || "Planeado",
           Tipo: Item?.Tipo || "Texto",
+          Objetivo_Id: String(Item?.Objetivo_Id || "").trim(),
           Tarea_Id: String(Item?.Tarea_Id || "").trim(),
           Habito_Id: String(Item?.Habito_Id || "").trim(),
           Habito_Cantidad: Number(Item?.Habito_Cantidad) > 0
@@ -97185,6 +97422,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto: String(Item?.Texto || "").trim(),
           Estado: Item?.Estado || "Planeado",
           Tipo: Item?.Tipo || "Texto",
+          Objetivo_Id: String(Item?.Objetivo_Id || "").trim(),
           Tarea_Id: String(Item?.Tarea_Id || "").trim(),
           Habito_Id: String(Item?.Habito_Id || "").trim(),
           Habito_Cantidad: Number(Item?.Habito_Cantidad) > 0
