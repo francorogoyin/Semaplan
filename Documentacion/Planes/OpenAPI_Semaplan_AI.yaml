@@ -12,6 +12,24 @@ components:
       in: header
       name: X-Semaplan-AI-Token
       description: Token de lectura de Semaplan para integraciones de IA.
+  schemas:
+    SemaplanRespuestaGenerica:
+      type: object
+      description: >
+        Respuesta generica read-only de Semaplan AI. El payload puede
+        variar segun endpoint.
+      properties:
+        ok:
+          type: boolean
+          description: Indica si la respuesta fue exitosa.
+        data:
+          type: object
+          description: Contenido principal de la respuesta.
+          additionalProperties: true
+        error:
+          type: string
+          description: Mensaje de error en caso de falla.
+      additionalProperties: true
 paths:
   /salud:
     get:
@@ -23,7 +41,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
   /openapi.json:
     get:
       operationId: semaplan_openapi
@@ -34,7 +52,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
   /contexto:
     get:
       operationId: semaplan_contexto
@@ -58,7 +76,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
   /agenda:
     get:
       operationId: semaplan_agenda
@@ -82,7 +100,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
   /tareas:
     get:
       operationId: semaplan_tareas
@@ -120,7 +138,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
   /habitos:
     get:
       operationId: semaplan_habitos
@@ -150,7 +168,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
   /slots:
     get:
       operationId: semaplan_slots
@@ -174,7 +192,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
   /planes/semana:
     get:
       operationId: semaplan_plan_semana
@@ -194,7 +212,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
   /planes/periodos:
     get:
       operationId: semaplan_planes_periodos
@@ -222,7 +240,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
   /archivero:
     get:
       operationId: semaplan_listar_archivero
@@ -246,7 +264,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
   /archivero/buscar:
     get:
       operationId: semaplan_buscar_archivero
@@ -272,7 +290,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
   /baul:
     get:
       operationId: semaplan_listar_baul
@@ -300,7 +318,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
   /metas:
     get:
       operationId: semaplan_listar_metas
@@ -320,4 +338,4 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
