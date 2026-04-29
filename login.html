@@ -20024,15 +20024,6 @@
                   <option value="1"
                     data-i18n="config.1_hora"
                     >1 hora</option>
-                  <option value="2"
-                    data-i18n="config.2_horas"
-                    >2 horas</option>
-                  <option value="3"
-                    data-i18n="config.3_horas"
-                    >3 horas</option>
-                  <option value="4"
-                    data-i18n="config.4_horas"
-                    >4 horas</option>
                 </select>
               </div>
             </div>
@@ -38313,6 +38304,7 @@
         Fin_Hora: 24,
         Altura_Slot: 48,
         Duracion_Default: 1,
+        Duracion_Grilla_Eventos: 1,
         Scroll_Inicial: 8,
         Dias_Visibles: [0, 1, 2, 3, 4, 5, 6],
         Ocultar_Dias_Automatico: "Ninguno",
@@ -38414,6 +38406,93 @@
         Tareas_Contador_Periodo: "Hoy",
         Tareas_Vista_Memoria: "Hoy"
       };
+
+      const Duraciones_Evento_Permitidas = [0.25, 0.5, 1];
+      const Epsilon_Hora = 0.0001;
+
+      function Normalizar_Duracion_Default_Evento(Valor) {
+        const Numero = Number(Valor);
+        if (!Number.isFinite(Numero)) return 1;
+        const Exacta = Duraciones_Evento_Permitidas.find(
+          (Item) => Math.abs(Item - Numero) < Epsilon_Hora
+        );
+        if (Exacta) return Exacta;
+        if (Numero <= 0.25) return 0.25;
+        if (Numero <= 0.5) return 0.5;
+        return 1;
+      }
+
+      function Obtener_Duracion_Slot_Calendario() {
+        return Normalizar_Duracion_Default_Evento(
+          Config.Duracion_Default
+        );
+      }
+
+      function Normalizar_Numero_Hora(Valor) {
+        const Numero = Number(Valor);
+        if (!Number.isFinite(Numero)) return 0;
+        return Math.round(Numero * 100) / 100;
+      }
+
+      function Formatear_Hora_Clave(Valor) {
+        return String(Normalizar_Numero_Hora(Valor));
+      }
+
+      function Redondear_Hora_A_Paso(
+        Valor,
+        Paso = Obtener_Duracion_Slot_Calendario(),
+        Modo = "round"
+      ) {
+        const Numero = Number(Valor);
+        const Paso_Final =
+          Normalizar_Duracion_Default_Evento(Paso);
+        if (!Number.isFinite(Numero)) return 0;
+        const Dividido = Numero / Paso_Final;
+        const Redondeado = Modo === "floor"
+          ? Math.floor(Dividido + Epsilon_Hora)
+          : Modo === "ceil"
+            ? Math.ceil(Dividido - Epsilon_Hora)
+            : Math.round(Dividido);
+        return Normalizar_Numero_Hora(Redondeado * Paso_Final);
+      }
+
+      function Obtener_Horas_Slot_En_Rango(
+        Inicio,
+        Duracion,
+        Paso = Obtener_Duracion_Slot_Calendario()
+      ) {
+        const Paso_Final =
+          Normalizar_Duracion_Default_Evento(Paso);
+        const Desde = Redondear_Hora_A_Paso(
+          Number(Inicio) || 0,
+          Paso_Final,
+          "floor"
+        );
+        const Hasta = Number(Inicio) + (Number(Duracion) || 0);
+        const Horas = [];
+        for (
+          let Hora = Desde;
+          Hora < Hasta - Epsilon_Hora;
+          Hora = Normalizar_Numero_Hora(Hora + Paso_Final)
+        ) {
+          if (Hora + Paso_Final <= Number(Inicio) + Epsilon_Hora) {
+            continue;
+          }
+          Horas.push(Hora);
+        }
+        return Horas;
+      }
+
+      function Pixeles_Por_Hora_Calendario() {
+        return Config.Altura_Slot /
+          Obtener_Duracion_Slot_Calendario();
+      }
+
+      function Pixeles_Duracion_Calendario(Duracion) {
+        return (Number(Duracion) || 0) *
+          Pixeles_Por_Hora_Calendario();
+      }
+
       let Backup_Auto_Timer_Id = null;
       const Backup_Auto_Timer_Max_Ms = 2147480000;
 
@@ -46638,7 +46717,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // --- Funciones del menú de día ---
 
       function Todos_Los_Slots_Son_Muertos(Fecha_ISO) {
-        for (let H = Config.Inicio_Hora; H < Config.Fin_Hora; H++) {
+        const Paso = Obtener_Duracion_Slot_Calendario();
+        for (
+          let H = Config.Inicio_Hora;
+          H < Config.Fin_Hora - Epsilon_Hora;
+          H = Normalizar_Numero_Hora(H + Paso)
+        ) {
           if (!Slots_Muertos.includes(Clave_Slot(Fecha_ISO, H)))
             return false;
         }
@@ -46648,7 +46732,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Bloquear_Dia_Completo(Fecha_ISO, Tipo_Id) {
         const Tipos_Ef = Obtener_Tipos_Slot();
         const Tipo_Final = Tipo_Id || Tipos_Ef[0]?.Id || "Sueno";
-        for (let H = Config.Inicio_Hora; H < Config.Fin_Hora; H++) {
+        const Paso = Obtener_Duracion_Slot_Calendario();
+        for (
+          let H = Config.Inicio_Hora;
+          H < Config.Fin_Hora - Epsilon_Hora;
+          H = Normalizar_Numero_Hora(H + Paso)
+        ) {
           Crear_Slot_Muerto(Fecha_ISO, H, Tipo_Final);
         }
         Render_Calendario();
@@ -46656,7 +46745,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Desbloquear_Dia_Completo(Fecha_ISO) {
-        for (let H = Config.Inicio_Hora; H < Config.Fin_Hora; H++) {
+        const Paso = Obtener_Duracion_Slot_Calendario();
+        for (
+          let H = Config.Inicio_Hora;
+          H < Config.Fin_Hora - Epsilon_Hora;
+          H = Normalizar_Numero_Hora(H + Paso)
+        ) {
           const Clave = Clave_Slot(Fecha_ISO, H);
           const Idx = Slots_Muertos.indexOf(Clave);
           if (Idx >= 0) Slots_Muertos.splice(Idx, 1);
@@ -47420,8 +47514,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Hora_Fila_Seleccionada = null;
 
       function Seleccionar_Fila_Hora(Hora) {
-        const Hora_Num = Math.floor(Number(Hora) || 0);
-        const Hora_Str = String(Hora_Num);
+        const Hora_Str = Formatear_Hora_Clave(Hora);
         Deseleccionar_Fila_Hora();
         Hora_Fila_Seleccionada = Hora_Str;
         document.querySelectorAll(
@@ -47753,11 +47846,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Copiar_Horario(Hora) {
         const Hora_Base = Number(Hora) || 0;
+        const Paso = Obtener_Duracion_Slot_Calendario();
         const Datos_Por_Dia = {};
         const Dias_Visibles =
           Obtener_Dias_Visibles_Efectivos();
         const Desde = Hora_Base - 0.0001;
-        const Hasta = Hora_Base + 1 - 0.0001;
+        const Hasta = Hora_Base + Paso - 0.0001;
         Dias_Visibles.forEach((Dia_Index) => {
           const Fecha = Formatear_Fecha_ISO(
             Obtener_Fecha_Semana(Dia_Index)
@@ -47838,6 +47932,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Snap = Capturar_Snapshot_Undo();
         const Hora_Base = Number(Portapapeles_Hora.Hora_Base) || 0;
         const Hora_Dest = Number(Hora_Destino) || 0;
+        const Paso = Obtener_Duracion_Slot_Calendario();
         const Dias_Visibles =
           Obtener_Dias_Visibles_Efectivos();
         const Set_Copia = new Set(
@@ -47856,7 +47951,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Modo === "Reemplazar") {
           const Fechas_Set = new Set(Fechas_Aplicar);
           const Desde = Hora_Dest - 0.0001;
-          const Hasta = Hora_Dest + 1 - 0.0001;
+          const Hasta = Hora_Dest + Paso - 0.0001;
           Eventos = Eventos.filter((Ev) => {
             if (!Fechas_Set.has(Ev.Fecha)) return true;
             return Ev.Inicio < Desde || Ev.Inicio >= Hasta;
@@ -47874,7 +47969,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Datos) return;
 
           (Datos.Slots || []).forEach((S) => {
-            const Hora_Final = Hora_Dest + (S.Hora - Hora_Base);
+            const Hora_Final = Normalizar_Numero_Hora(
+              Hora_Dest + (S.Hora - Hora_Base)
+            );
             const Clave = Clave_Slot(Fecha, Hora_Final);
             if (!Slots_Muertos.includes(Clave)) {
               Slots_Muertos.push(Clave);
@@ -47897,7 +47994,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
 
           (Datos.Nombres_Slots || []).forEach((S) => {
-            const Hora_Final = Hora_Dest + (S.Hora - Hora_Base);
+            const Hora_Final = Normalizar_Numero_Hora(
+              Hora_Dest + (S.Hora - Hora_Base)
+            );
             const Clave = Clave_Slot(Fecha, Hora_Final);
             if (S.Nombre) {
               Guardar_Nombre_Slot_Muerto(
@@ -47970,6 +48069,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Snap = Capturar_Snapshot_Undo();
         const Hora_Base = Number(Hora) || 0;
+        const Paso = Obtener_Duracion_Slot_Calendario();
         const Dias_Visibles =
           Obtener_Dias_Visibles_Efectivos();
         const Fechas = new Set(
@@ -47980,7 +48080,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           )
         );
         const Desde = Hora_Base - 0.0001;
-        const Hasta = Hora_Base + 1 - 0.0001;
+        const Hasta = Hora_Base + Paso - 0.0001;
         Eventos = Eventos.filter((Ev) => {
           if (!Fechas.has(Ev.Fecha)) return true;
           return Ev.Inicio < Desde || Ev.Inicio >= Hasta;
@@ -74402,15 +74502,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Obtener_Claves_Plan_Slot_Evento(Evento_Data) {
         const Fecha = String(Evento_Data?.Fecha || "").trim();
         const Inicio = Number(Evento_Data?.Inicio);
-        const Duracion = Math.max(
-          Number(Evento_Data?.Duracion) || 1,
-          1
+        const Duracion = Normalizar_Duracion_Evento(
+          Evento_Data?.Duracion,
+          Inicio
         );
         if (!Fecha || !Number.isFinite(Inicio)) return [];
-        const Desde = Math.floor(Inicio);
-        const Hasta = Math.ceil(Inicio + Duracion - 0.0001);
         const Claves = [];
-        for (let Hora = Desde; Hora < Hasta; Hora++) {
+        Obtener_Horas_Slot_En_Rango(Inicio, Duracion)
+          .forEach((Hora) => {
           const Clave = Clave_Slot(Fecha, Hora);
           if (
             Clave &&
@@ -74422,7 +74521,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ) {
             Claves.push(Clave);
           }
-        }
+        });
         return Claves;
       }
 
@@ -87696,6 +87795,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Guardar_Config() {
+        const Duracion_Anterior =
+          Obtener_Duracion_Slot_Calendario();
         const Nuevo_Inicio = parseInt(
           document.getElementById("Cfg_Inicio_Hora").value
         );
@@ -87834,9 +87935,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Config.Inicio_Semana_Hora = Hora_Num;
           }
         }
-        Config.Duracion_Default = parseFloat(
-          document.getElementById("Cfg_Duracion_Default").value
-        );
+        Config.Duracion_Default =
+          Normalizar_Duracion_Default_Evento(parseFloat(
+            document.getElementById("Cfg_Duracion_Default").value
+          ));
 
         const Dias_Elegidos = Dias
           .map((_, Index) => Index)
@@ -88047,6 +88149,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         // Resetear semanas para que los defaults se re-apliquen.
         Semanas_Con_Defaults.clear();
+        Migrar_Calendario_A_Duracion_Default(Duracion_Anterior);
 
         // Confirmar el backup al guardar (no restaurar).
         Patrones_Backup_Config = null;
@@ -88066,7 +88169,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Segmentos_Horas
             );
           El_Viewport.scrollTop =
-            Offset * Config.Altura_Slot;
+            Offset * Pixeles_Por_Hora_Calendario();
         }
         Guardar_Estado();
       }
@@ -89154,10 +89257,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Tipo_D =
               Franja.Tipo_Id || Franja.Naturaleza || "Sueno";
             const Nombre_D = (Franja.Nombre || "").trim();
+            const Paso = Obtener_Duracion_Slot_Calendario();
             for (
               let Hora = Franja.Desde;
-              Hora < Franja.Hasta;
-              Hora++
+              Hora < Franja.Hasta - Epsilon_Hora;
+              Hora = Normalizar_Numero_Hora(Hora + Paso)
             ) {
               const Clave = Crear_Slot_Muerto(
                 Fecha,
@@ -90392,14 +90496,27 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Obtener_Horas_Visibles_Efectivas() {
         const Segmentos = Obtener_Segmentos_Horarios_Visibles();
         const Horas = [];
+        const Paso = Obtener_Duracion_Slot_Calendario();
         Segmentos.forEach((S) => {
-          const Desde = Math.ceil(Number(S?.Desde) || 0);
-          const Hasta = Math.floor(Number(S?.Hasta) || 0);
-          for (let H = Desde; H < Hasta; H++) {
-            if (H >= 0 && H <= 23) Horas.push(H);
+          const Desde = Redondear_Hora_A_Paso(
+            Number(S?.Desde) || 0,
+            Paso,
+            "ceil"
+          );
+          const Hasta = Redondear_Hora_A_Paso(
+            Number(S?.Hasta) || 0,
+            Paso,
+            "floor"
+          );
+          for (
+            let H = Desde;
+            H < Hasta - Epsilon_Hora;
+            H = Normalizar_Numero_Hora(H + Paso)
+          ) {
+            if (H >= 0 && H < 24) Horas.push(H);
           }
         });
-        return Horas;
+        return Array.from(new Set(Horas));
       }
 
       function Obtener_Info_Semana_ISO(Fecha) {
@@ -90753,9 +90870,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Duracion = Config.Duracion_Default
       ) {
         if (!Objetivo) return false;
+        const Duracion_Base = Normalizar_Duracion_Evento(
+          Duracion,
+          Hora
+        );
         const Duracion_Final = Objetivo.Es_Bolsa
-          ? Duracion
-          : Math.min(Number(Duracion) || 1, 1);
+          ? Duracion_Base
+          : Math.min(Duracion_Base, 1);
 
         if (
           !Objetivo.Es_Bolsa &&
@@ -91059,7 +91180,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         const Meta = document.createElement("div");
         Meta.className = "Slot_Muerto_Drag_Preview_Meta";
-        Meta.textContent = `${Franja.Horas.length} h`;
+        Meta.textContent = Formatear_Horas(
+          Franja.Fin - Franja.Inicio
+        );
         Bloque.appendChild(Meta);
         Wrapper.appendChild(Bloque);
         document.body.appendChild(Wrapper);
@@ -91070,7 +91193,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           10,
           Math.min(
             Bloque.getBoundingClientRect().height - 10,
-            (Hora - Franja.Inicio) * Config.Altura_Slot +
+            ((Hora - Franja.Inicio) /
+              Obtener_Duracion_Slot_Calendario()) *
+              Config.Altura_Slot +
               Config.Altura_Slot / 2
           )
         );
@@ -92868,7 +92993,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Clave_Slot(Fecha, Hora) {
-        return `${Fecha}|${Hora}`;
+        return `${Fecha}|${Formatear_Hora_Clave(Hora)}`;
       }
 
       const Emoji_Plan_Slot_Placeholder = "\u2022";
@@ -92931,6 +93056,451 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         });
         Slots_Muertos = Array.from(new Set(Resultado));
+      }
+
+      function Obtener_Hora_Tarea_Como_Numero(Tarea) {
+        const Texto = String(Tarea?.Hora || "").trim();
+        if (!Texto.includes(":")) return null;
+        const [Horas_Txt, Min_Txt] = Texto.split(":");
+        const Horas = Number(Horas_Txt);
+        const Minutos = Number(Min_Txt);
+        if (
+          !Number.isFinite(Horas) ||
+          !Number.isFinite(Minutos) ||
+          Horas < 0 ||
+          Horas > 23 ||
+          Minutos < 0 ||
+          Minutos > 59
+        ) {
+          return null;
+        }
+        return Horas + (Minutos / 60);
+      }
+
+      function Obtener_Slot_De_Tarea(Tarea, Paso) {
+        const Hora = Obtener_Hora_Tarea_Como_Numero(Tarea);
+        if (!Number.isFinite(Hora)) return null;
+        return Redondear_Hora_A_Paso(Hora, Paso, "floor");
+      }
+
+      function Buscar_Tarea_De_Item_Abordaje(Evento, Item) {
+        if (!Evento?.Id || !Item?.Id) return null;
+        return (Array.isArray(Tareas) ? Tareas : []).find(
+          (Tarea) =>
+            Tarea?.Evento_Id === Evento.Id &&
+            Tarea?.Abordaje_Id === Item.Id
+        ) || null;
+      }
+
+      function Buscar_Tarea_De_Item_Plan_Slot(Item) {
+        const Tarea_Id = String(Item?.Tarea_Id || "").trim();
+        if (!Tarea_Id) return null;
+        return (Array.isArray(Tareas) ? Tareas : []).find(
+          (Tarea) => Tarea?.Id === Tarea_Id
+        ) || null;
+      }
+
+      function Indice_Segmento_Para_Hora(Segmentos, Hora) {
+        const Valor = Number(Hora);
+        if (!Number.isFinite(Valor)) return 0;
+        const Indice = Segmentos.findIndex((Segmento) => {
+          const Inicio = Number(Segmento?.Inicio) || 0;
+          const Fin = Inicio + (Number(Segmento?.Duracion) || 0);
+          return Valor >= Inicio - Epsilon_Hora &&
+            Valor < Fin - Epsilon_Hora;
+        });
+        return Indice >= 0 ? Indice : 0;
+      }
+
+      function Distribuir_Abordaje_En_Segmentos(
+        Evento,
+        Segmentos,
+        Paso
+      ) {
+        const Resultado = Segmentos.map(() => []);
+        const Items = Array.isArray(Evento?.Abordaje)
+          ? Evento.Abordaje
+          : [];
+        Items.forEach((Item) => {
+          const Tarea = Buscar_Tarea_De_Item_Abordaje(Evento, Item);
+          const Hora_Tarea = Tarea
+            ? Obtener_Slot_De_Tarea(Tarea, Paso)
+            : null;
+          const Indice = Number.isFinite(Hora_Tarea)
+            ? Indice_Segmento_Para_Hora(Segmentos, Hora_Tarea)
+            : 0;
+          Resultado[Indice].push({ ...Item });
+        });
+        return Resultado;
+      }
+
+      function Clave_Item_Plan_Slot(Item) {
+        const Tarea_Id = String(Item?.Tarea_Id || "").trim();
+        if (Tarea_Id) return `Tarea:${Tarea_Id}`;
+        const Habito_Id = String(Item?.Habito_Id || "").trim();
+        if (Habito_Id) return `Habito:${Habito_Id}`;
+        return [
+          String(Item?.Tipo || "Texto").trim(),
+          String(Item?.Emoji || "\u2022").trim(),
+          String(Item?.Texto || "").trim().toLowerCase()
+        ].join("|");
+      }
+
+      function Fusionar_Items_Plan_Slot_Unicos(
+        Base = [],
+        Nuevos = []
+      ) {
+        const Resultado = Normalizar_Items_Plan_Slot(Base)
+          .map((Item) => ({ ...Item }));
+        Nuevos.forEach((Item_Base) => {
+          const Item = Normalizar_Items_Plan_Slot([Item_Base])[0];
+          if (!Item) return;
+          const Clave = Clave_Item_Plan_Slot(Item);
+          const Existente = Resultado.find(
+            (Entrada) => Clave_Item_Plan_Slot(Entrada) === Clave
+          );
+          if (Existente) {
+            if (Item.Estado === "Realizado") {
+              Existente.Estado = "Realizado";
+            } else if (
+              Item.Estado === "Abordado" &&
+              Existente.Estado !== "Realizado"
+            ) {
+              Existente.Estado = "Abordado";
+            }
+            return;
+          }
+          Resultado.push(Item);
+        });
+        return Resultado;
+      }
+
+      function Fusionar_Notas_Slot(Actual = "", Nueva = "") {
+        const Partes = [Actual, Nueva]
+          .map((Texto) => Normalizar_Nota_Slot(Texto))
+          .filter(Boolean);
+        return Array.from(new Set(Partes)).join("\n\n");
+      }
+
+      function Obtener_Horas_Migradas_De_Slot(
+        Hora,
+        Paso_Anterior,
+        Paso_Nuevo
+      ) {
+        const Inicio = Number(Hora) || 0;
+        return Obtener_Horas_Slot_En_Rango(
+          Inicio,
+          Paso_Anterior,
+          Paso_Nuevo
+        );
+      }
+
+      function Migrar_Slots_Y_Planes_A_Duracion(
+        Paso_Anterior,
+        Paso_Nuevo
+      ) {
+        Normalizar_Slots_Muertos();
+        Normalizar_Grupo_Ids_Slots_Muertos();
+        const Slots_Nuevos = new Set();
+        const Tipos_Nuevos = {};
+        const Nombres_Nuevos = {};
+        const Titulos_Nuevos = {};
+        const Auto_Nuevos = {};
+        const Grupos_Nuevos = {};
+
+        Slots_Muertos.forEach((Clave) => {
+          const [Fecha, Hora_Txt] = String(Clave).split("|");
+          const Hora = Number(Hora_Txt);
+          if (!Fecha || !Number.isFinite(Hora)) return;
+          const Horas_Nuevas = Obtener_Horas_Migradas_De_Slot(
+            Hora,
+            Paso_Anterior,
+            Paso_Nuevo
+          );
+          const Grupo =
+            Obtener_Grupo_Id_Slot_Muerto_Clave(Clave) ||
+            Crear_Id_Grupo_Slot_Muerto();
+          Horas_Nuevas.forEach((Hora_Nueva) => {
+            const Clave_Nueva = Clave_Slot(Fecha, Hora_Nueva);
+            Slots_Nuevos.add(Clave_Nueva);
+            if (!Tipos_Nuevos[Clave_Nueva]) {
+              Tipos_Nuevos[Clave_Nueva] =
+                Slots_Muertos_Tipos[Clave] || "Sueno";
+            }
+            if (
+              Slots_Muertos_Nombres[Clave] &&
+              !Nombres_Nuevos[Clave_Nueva]
+            ) {
+              Nombres_Nuevos[Clave_Nueva] =
+                Slots_Muertos_Nombres[Clave];
+            }
+            if (
+              Object.prototype.hasOwnProperty.call(
+                Slots_Muertos_Titulos_Visibles,
+                Clave
+              ) &&
+              !Object.prototype.hasOwnProperty.call(
+                Titulos_Nuevos,
+                Clave_Nueva
+              )
+            ) {
+              Titulos_Nuevos[Clave_Nueva] =
+                Slots_Muertos_Titulos_Visibles[Clave];
+            }
+            if (
+              Object.prototype.hasOwnProperty.call(
+                Slots_Muertos_Nombres_Auto,
+                Clave
+              ) &&
+              !Object.prototype.hasOwnProperty.call(
+                Auto_Nuevos,
+                Clave_Nueva
+              )
+            ) {
+              Auto_Nuevos[Clave_Nueva] =
+                Slots_Muertos_Nombres_Auto[Clave];
+            }
+            Grupos_Nuevos[Clave_Nueva] =
+              Grupos_Nuevos[Clave_Nueva] || Grupo;
+          });
+        });
+
+        const Planes_Nuevos = {};
+        Object.entries(Planes_Slot || {}).forEach(([Clave, Plan]) => {
+          const Clave_Normal = Normalizar_Clave_Slot(Clave);
+          if (!Clave_Normal) return;
+          const [Fecha, Hora_Txt] = Clave_Normal.split("|");
+          const Hora = Number(Hora_Txt);
+          if (!Fecha || !Number.isFinite(Hora)) return;
+          const Horas_Nuevas = Obtener_Horas_Migradas_De_Slot(
+            Hora,
+            Paso_Anterior,
+            Paso_Nuevo
+          );
+          if (!Horas_Nuevas.length) return;
+          const Clave_Primera = Clave_Slot(Fecha, Horas_Nuevas[0]);
+          const Nota = Normalizar_Nota_Slot(Plan?.Nota);
+          if (Nota) {
+            Planes_Nuevos[Clave_Primera] =
+              Planes_Nuevos[Clave_Primera] || { Items: [] };
+            Planes_Nuevos[Clave_Primera].Nota = Fusionar_Notas_Slot(
+              Planes_Nuevos[Clave_Primera].Nota,
+              Nota
+            );
+          }
+
+          Normalizar_Items_Plan_Slot(Plan?.Items || [])
+            .forEach((Item) => {
+              const Tarea = Buscar_Tarea_De_Item_Plan_Slot(Item);
+              const Hora_Tarea =
+                Tarea && Tarea.Fecha === Fecha
+                  ? Obtener_Slot_De_Tarea(Tarea, Paso_Nuevo)
+                  : null;
+              const Clave_Destino = Number.isFinite(Hora_Tarea)
+                ? Clave_Slot(Fecha, Hora_Tarea)
+                : Clave_Primera;
+              Planes_Nuevos[Clave_Destino] =
+                Planes_Nuevos[Clave_Destino] || { Items: [] };
+              Planes_Nuevos[Clave_Destino].Items =
+                Fusionar_Items_Plan_Slot_Unicos(
+                  Planes_Nuevos[Clave_Destino].Items,
+                  [Item]
+                );
+              if (Tarea) {
+                Tarea.Plan_Clave = Clave_Destino;
+                Tarea.Plan_Item_Id = Item.Id;
+              }
+            });
+        });
+
+        Slots_Muertos = Array.from(Slots_Nuevos);
+        Slots_Muertos_Tipos = Tipos_Nuevos;
+        Slots_Muertos_Nombres = Nombres_Nuevos;
+        Slots_Muertos_Titulos_Visibles = Titulos_Nuevos;
+        Slots_Muertos_Nombres_Auto = Auto_Nuevos;
+        Slots_Muertos_Grupo_Ids = Grupos_Nuevos;
+        Planes_Slot = Planes_Nuevos;
+      }
+
+      function Crear_Segmentos_Evento_Migrado(Evento, Paso) {
+        const Inicio_Base = Number(Evento?.Inicio);
+        const Duracion_Base = Number(Evento?.Duracion);
+        const Inicio = Redondear_Hora_A_Paso(
+          Number.isFinite(Inicio_Base) ? Inicio_Base : Config.Inicio_Hora,
+          Paso,
+          "floor"
+        );
+        const Fin_Base = Inicio_Base +
+          (Number.isFinite(Duracion_Base) && Duracion_Base > 0
+            ? Duracion_Base
+            : Paso);
+        let Fin = Redondear_Hora_A_Paso(Fin_Base, Paso, "ceil");
+        Fin = Math.min(
+          Config.Fin_Hora,
+          Math.max(Inicio + Paso, Fin)
+        );
+        const Segmentos = [];
+        for (
+          let Hora = Inicio;
+          Hora < Fin - Epsilon_Hora;
+          Hora = Normalizar_Numero_Hora(Hora + Paso)
+        ) {
+          Segmentos.push({ Inicio: Hora, Duracion: Paso });
+        }
+        return Segmentos.length
+          ? Segmentos
+          : [{ Inicio, Duracion: Paso }];
+      }
+
+      function Copiar_Evento_Para_Segmento(
+        Evento,
+        Segmento,
+        Items,
+        Es_Primero
+      ) {
+        const Nuevo = {
+          ...Evento,
+          Id: Es_Primero
+            ? Evento.Id
+            : `Evento_${Contador_Eventos++}`,
+          Inicio: Segmento.Inicio,
+          Duracion: Segmento.Duracion
+        };
+        if (Items.length) {
+          Nuevo.Abordaje = Items.map((Item) => ({ ...Item }));
+        } else {
+          delete Nuevo.Abordaje;
+        }
+        if (!Es_Primero) {
+          delete Nuevo.Nota;
+          delete Nuevo.Meta_Avance_Id;
+          delete Nuevo.Meta_Aporte_Cantidad;
+          delete Nuevo.Meta_Aporte_Distribucion;
+          delete Nuevo.Meta_Aporte_Manual;
+          delete Nuevo.Meta_Aporte_Distribucion_Manual;
+        }
+        return Nuevo;
+      }
+
+      function Unificar_Eventos_Migrados(Eventos_Migrados) {
+        const Grupos = new Map();
+        Eventos_Migrados.forEach((Evento) => {
+          const Clave = [
+            Evento.Fecha,
+            Formatear_Hora_Clave(Evento.Inicio),
+            String(Evento.Objetivo_Id || ""),
+            String(Evento.Color || "")
+          ].join("|");
+          if (!Grupos.has(Clave)) Grupos.set(Clave, []);
+          Grupos.get(Clave).push(Evento);
+        });
+        const Resultado = [];
+        Grupos.forEach((Grupo) => {
+          if (Grupo.length === 1) {
+            Resultado.push(Grupo[0]);
+            return;
+          }
+          const Base = { ...Grupo[0] };
+          let Abordaje = [];
+          const Notas = [];
+          Grupo.forEach((Evento) => {
+            Abordaje = Fusionar_Plan_En_Abordaje(
+              Abordaje,
+              Array.isArray(Evento.Abordaje) ? Evento.Abordaje : []
+            );
+            const Nota = String(Evento.Nota || "").trim();
+            if (Nota) Notas.push(Nota);
+          });
+          if (Abordaje.length) {
+            Base.Abordaje = Abordaje;
+          } else {
+            delete Base.Abordaje;
+          }
+          const Notas_Unicas = Array.from(new Set(Notas));
+          if (Notas_Unicas.length) {
+            Base.Nota = Notas_Unicas.join("\n\n");
+          } else {
+            delete Base.Nota;
+          }
+          Base.Hecho = Grupo.every((Evento) => Boolean(Evento.Hecho));
+          Base.Anulada = Grupo.some((Evento) => Boolean(Evento.Anulada));
+          Resultado.push(Base);
+        });
+        return Resultado.sort((A, B) => {
+          if (A.Fecha !== B.Fecha) return A.Fecha.localeCompare(B.Fecha);
+          return (Number(A.Inicio) || 0) - (Number(B.Inicio) || 0);
+        });
+      }
+
+      function Migrar_Eventos_A_Duracion(Paso_Nuevo) {
+        const Migrados = [];
+        (Array.isArray(Eventos) ? Eventos : []).forEach((Evento) => {
+          const Segmentos = Crear_Segmentos_Evento_Migrado(
+            Evento,
+            Paso_Nuevo
+          );
+          const Items_Por_Segmento =
+            Distribuir_Abordaje_En_Segmentos(
+              Evento,
+              Segmentos,
+              Paso_Nuevo
+            );
+          Segmentos.forEach((Segmento, Indice) => {
+            Migrados.push(Copiar_Evento_Para_Segmento(
+              Evento,
+              Segmento,
+              Items_Por_Segmento[Indice] || [],
+              Indice === 0
+            ));
+          });
+        });
+        Eventos = Unificar_Eventos_Migrados(Migrados);
+        const Mapa_Item_Evento = new Map();
+        Eventos.forEach((Evento) => {
+          (Evento.Abordaje || []).forEach((Item) => {
+            if (Item?.Id) Mapa_Item_Evento.set(Item.Id, Evento.Id);
+          });
+        });
+        (Array.isArray(Tareas) ? Tareas : []).forEach((Tarea) => {
+          if (
+            Tarea.Abordaje_Id &&
+            Mapa_Item_Evento.has(Tarea.Abordaje_Id)
+          ) {
+            Tarea.Evento_Id = Mapa_Item_Evento.get(Tarea.Abordaje_Id);
+          }
+        });
+      }
+
+      function Migrar_Calendario_A_Duracion_Default(
+        Paso_Anterior = null
+      ) {
+        const Paso_Nuevo =
+          Normalizar_Duracion_Default_Evento(Config.Duracion_Default);
+        const Paso_Base =
+          Paso_Anterior === null || Paso_Anterior === undefined
+            ? Config.Duracion_Grilla_Eventos
+            : Paso_Anterior;
+        const Paso_Viejo =
+          Normalizar_Duracion_Default_Evento(Paso_Base || 1);
+        Config.Duracion_Default = Paso_Nuevo;
+        if (Math.abs(Paso_Viejo - Paso_Nuevo) < Epsilon_Hora) {
+          Config.Duracion_Grilla_Eventos = Paso_Nuevo;
+          return false;
+        }
+        Migrar_Slots_Y_Planes_A_Duracion(Paso_Viejo, Paso_Nuevo);
+        Migrar_Eventos_A_Duracion(Paso_Nuevo);
+        Eventos_Multi_Seleccion?.clear?.();
+        Slots_Multi_Seleccion?.clear?.();
+        Config.Duracion_Grilla_Eventos = Paso_Nuevo;
+        const Objetivos_Afectados = new Set(
+          Eventos.map((Evento) => Evento.Objetivo_Id).filter(Boolean)
+        );
+        Objetivos_Afectados.forEach((Objetivo_Id) => {
+          Meta_Aporte_Redistribuir_Objetivo(
+            Objetivo_Por_Id(Objetivo_Id)
+          );
+        });
+        return true;
       }
 
       function Falta_Emoji_Plan_Slot(Valor = "") {
@@ -93432,10 +94002,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Tarea_Hora_Slot(Tarea) {
-        const Hora = Number(String(Tarea?.Hora || "0").split(":")[0]);
-        return Number.isFinite(Hora)
-          ? Math.max(0, Math.min(23, Math.floor(Hora)))
-          : 0;
+        const Hora = Obtener_Hora_Tarea_Como_Numero(Tarea);
+        if (!Number.isFinite(Hora)) return 0;
+        return Math.max(
+          0,
+          Math.min(
+            Config.Fin_Hora - Obtener_Duracion_Slot_Calendario(),
+            Redondear_Hora_A_Paso(
+              Hora,
+              Obtener_Duracion_Slot_Calendario(),
+              "floor"
+            )
+          )
+        );
       }
 
       function Tarea_Estado_A_Plan(Tarea) {
@@ -96016,7 +96595,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return Cantidad_Item;
         }
         if (Habito_Modo_Visible(Habito) !== "Tiempo") return 1;
-        const Horas = Number(Config?.Duracion_Default) || 1;
+        const Horas = Obtener_Duracion_Slot_Calendario();
         return Habito?.Meta?.Unidad === "Minutos"
           ? Horas * 60
           : Horas;
@@ -96680,7 +97259,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 const Evento_Slot = Obtener_Evento_Conflicto(
                   Fecha,
                   Hora,
-                  1
+                  Obtener_Duracion_Slot_Calendario()
                 );
                 if (
                   Evento_Slot &&
@@ -96749,7 +97328,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Slot_Tiene_Evento(Fecha, Hora) {
         return Boolean(
-          Obtener_Evento_Conflicto(Fecha, Hora, 1)
+          Obtener_Evento_Conflicto(
+            Fecha,
+            Hora,
+            Obtener_Duracion_Slot_Calendario()
+          )
         );
       }
 
@@ -96853,18 +97436,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Obtener_Franja_Slot_Muerto(Fecha, Hora) {
         if (!Slot_Es_Muerto(Fecha, Hora)) return null;
+        const Paso = Obtener_Duracion_Slot_Calendario();
         let Inicio = Hora;
-        let Fin = Hora + 1;
+        let Fin = Normalizar_Numero_Hora(Hora + Paso);
         while (
           Inicio > Config.Inicio_Hora &&
           Slot_Muerto_Es_Misma_Franja(
             Fecha,
             Hora,
             Fecha,
-            Inicio - 1
+            Normalizar_Numero_Hora(Inicio - Paso)
           )
         ) {
-          Inicio -= 1;
+          Inicio = Normalizar_Numero_Hora(Inicio - Paso);
         }
         while (
           Fin < Config.Fin_Hora &&
@@ -96875,14 +97459,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fin
           )
         ) {
-          Fin += 1;
+          Fin = Normalizar_Numero_Hora(Fin + Paso);
         }
         const Horas = [];
         const Claves = [];
         for (
           let Hora_Actual = Inicio;
-          Hora_Actual < Fin;
-          Hora_Actual++
+          Hora_Actual < Fin - Epsilon_Hora;
+          Hora_Actual = Normalizar_Numero_Hora(
+            Hora_Actual + Paso
+          )
         ) {
           Horas.push(Hora_Actual);
           Claves.push(Clave_Slot(Fecha, Hora_Actual));
@@ -97287,15 +97873,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Evento_Cae_En_Slot_Muerto(
         Fecha, Inicio, Duracion
       ) {
-        const Fin = Inicio + Duracion;
-        for (
-          let Hora = Math.floor(Inicio);
-          Hora < Math.ceil(Fin - 0.0001);
-          Hora++
-        ) {
-          if (Slot_Es_Muerto(Fecha, Hora)) return true;
-        }
-        return false;
+        return Obtener_Horas_Slot_En_Rango(
+          Inicio,
+          Duracion
+        ).some((Hora) => Slot_Es_Muerto(Fecha, Hora));
       }
 
       function Obtener_Evento_Conflicto(
@@ -97355,10 +97936,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Dist < Max_Dur) Max_Dur = Dist;
         });
         const Hasta_Max = Seg ? Seg.Hasta : Config.Fin_Hora;
+        const Paso = Obtener_Duracion_Slot_Calendario();
         for (
-          let Hora = Math.floor(Inicio);
-          Hora < Hasta_Max;
-          Hora++
+          let Hora = Redondear_Hora_A_Paso(Inicio, Paso, "floor");
+          Hora < Hasta_Max - Epsilon_Hora;
+          Hora = Normalizar_Numero_Hora(Hora + Paso)
         ) {
           if (!Slot_Es_Muerto(Fecha, Hora)) continue;
           if (Hora < Inicio + 0.0001) continue;
@@ -97404,8 +97986,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Claves_Origen = new Set(Franja?.Claves || []);
         for (const Hora_Origen of Franja?.Horas || []) {
           const Hora_Final =
-            Hora_Destino +
-            (Hora_Origen - Franja.Hora_Ancla);
+            Normalizar_Numero_Hora(
+              Hora_Destino +
+              (Hora_Origen - Franja.Hora_Ancla)
+            );
           const Clave_Origen = Clave_Slot(
             Franja.Fecha,
             Hora_Origen
@@ -97457,13 +98041,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (!Franja_Origen) return false;
         const Mover_Franja = Boolean(Opciones?.Mover_Franja);
+        const Paso = Obtener_Duracion_Slot_Calendario();
         const Franja = Mover_Franja
           ? Franja_Origen
           : {
             Fecha: Fecha_Origen,
             Hora_Ancla: Hora_Origen,
             Inicio: Hora_Origen,
-            Fin: Hora_Origen + 1,
+            Fin: Normalizar_Numero_Hora(Hora_Origen + Paso),
             Horas: [Hora_Origen],
             Claves: [Clave_Origen]
           };
@@ -97485,8 +98070,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Plan_Slot_Clave_Activa;
         const Movimientos = Franja.Horas.map((Hora_Item) => {
           const Hora_Final =
-            Hora_Destino +
-            (Hora_Item - Hora_Origen);
+            Normalizar_Numero_Hora(
+              Hora_Destino +
+              (Hora_Item - Hora_Origen)
+            );
           return {
             Fecha_Origen,
             Hora_Origen: Hora_Item,
@@ -98658,7 +99245,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Evento.Fecha,
             Dias_Delta
           ),
-          Inicio: (Number(Evento.Inicio) || 0) + Horas_Delta,
+          Inicio: Normalizar_Numero_Hora(
+            (Number(Evento.Inicio) || 0) + Horas_Delta
+          ),
           Duracion: Number(Evento.Duracion) || 0,
           Objetivo_Id: Evento.Objetivo_Id,
           Color: Evento.Color || null,
@@ -98843,16 +99432,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Obtener_Horas_Cubiertas_Evento(Evento) {
         const Inicio = Number(Evento?.Inicio) || 0;
         const Duracion = Number(Evento?.Duracion) || 0;
-        const Fin = Inicio + Duracion;
-        const Horas = [];
-        for (
-          let Hora = Math.floor(Inicio);
-          Hora < Math.ceil(Fin - 0.0001);
-          Hora++
-        ) {
-          Horas.push(Hora);
-        }
-        return Horas;
+        return Obtener_Horas_Slot_En_Rango(Inicio, Duracion);
       }
 
       function Slot_Tiene_Contenido_Limpiable(
@@ -98892,7 +99472,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Evento = Obtener_Evento_Conflicto(
           Fecha,
           Hora,
-          1
+          Obtener_Duracion_Slot_Calendario()
         );
         const Tiene_Contenido = Boolean(Evento) ||
           Slot_Tiene_Contenido_Limpiable(Fecha, Hora);
@@ -99347,7 +99927,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fecha,
             Number(Item.Delta_Dias) || 0
           ),
-          Inicio: Hora + (Number(Item.Delta_Horas) || 0),
+          Inicio: Normalizar_Numero_Hora(
+            Hora + (Number(Item.Delta_Horas) || 0)
+          ),
           Duracion: Number(Item.Duracion) || 0,
           Objetivo_Id: Item.Objetivo_Id,
           Color: Item.Color || null,
@@ -99370,7 +99952,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fecha,
             Number(Item.Delta_Dias) || 0
           ),
-          Hora: Hora + (Number(Item.Delta_Horas) || 0),
+          Hora: Normalizar_Numero_Hora(
+            Hora + (Number(Item.Delta_Horas) || 0)
+          ),
           Datos: Item.Datos || null
         }));
       }
@@ -99424,7 +100008,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Fecha,
               Dias_Delta
             ),
-            Hora: Hora + Horas_Delta,
+            Hora: Normalizar_Numero_Hora(Hora + Horas_Delta),
             Datos: {
               ...Datos,
               Grupo_Id: Mapa_Grupo_Ids.get(Grupo_Origen)
@@ -99466,7 +100050,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Obtener_Evento_Conflicto(
               Item.Fecha,
               Item.Hora,
-              1
+              Obtener_Duracion_Slot_Calendario()
             );
           if (
             Evento_Conflicto &&
@@ -99509,11 +100093,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Conflictos_Ids: []
             };
           }
-          for (
-            let Hora = Math.floor(Item.Inicio);
-            Hora < Math.ceil(Fin - 0.0001);
-            Hora++
-          ) {
+          for (const Hora of Obtener_Horas_Slot_En_Rango(
+            Item.Inicio,
+            Item.Duracion
+          )) {
             const Clave = Clave_Slot(Item.Fecha, Hora);
             if (
               Claves_Slots_Propuestas.has(Clave)
@@ -101381,6 +101964,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fin_Hora: Config.Fin_Hora,
             Scroll_Inicial: Config.Scroll_Inicial,
             Duracion_Default: Config.Duracion_Default,
+            Duracion_Grilla_Eventos:
+              Config.Duracion_Grilla_Eventos,
             Dias_Visibles: Config.Dias_Visibles,
             Ocultar_Dias_Automatico:
               Config.Ocultar_Dias_Automatico,
@@ -101764,7 +102349,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (Extra.Scroll_Inicial !== undefined)
               Config.Scroll_Inicial = Extra.Scroll_Inicial;
             if (Extra.Duracion_Default !== undefined)
-              Config.Duracion_Default = Extra.Duracion_Default;
+              Config.Duracion_Default =
+                Normalizar_Duracion_Default_Evento(
+                  Extra.Duracion_Default
+                );
+            if (Extra.Duracion_Grilla_Eventos !== undefined)
+              Config.Duracion_Grilla_Eventos =
+                Normalizar_Duracion_Default_Evento(
+                  Extra.Duracion_Grilla_Eventos
+                );
             if (Array.isArray(Extra.Dias_Visibles))
               Config.Dias_Visibles = Extra.Dias_Visibles;
             if (Extra.Ocultar_Dias_Automatico)
@@ -102275,9 +102868,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Math.max(1, Valor);
       }
 
+      function Normalizar_Duracion_Evento(Horas, Inicio = 0) {
+        const Paso = Obtener_Duracion_Slot_Calendario();
+        const Valor = Number(Horas);
+        const Base = Number.isFinite(Valor) && Valor > 0
+          ? Valor
+          : Paso;
+        const Duracion = Math.max(
+          Paso,
+          Redondear_Hora_A_Paso(Base, Paso, "round")
+        );
+        const Maxima = Math.max(
+          Paso,
+          Config.Fin_Hora - (Number(Inicio) || 0)
+        );
+        return Math.min(Duracion, Maxima);
+      }
+
       function Normalizar_Hora(Inicio) {
-        const Valor = Math.round(Number(Inicio) || Config.Inicio_Hora);
-        return Math.max(Config.Inicio_Hora, Math.min(Config.Fin_Hora - 1, Valor));
+        const Paso = Obtener_Duracion_Slot_Calendario();
+        const Valor = Number.isFinite(Number(Inicio))
+          ? Number(Inicio)
+          : Config.Inicio_Hora;
+        const Redondeada = Redondear_Hora_A_Paso(
+          Valor,
+          Paso,
+          "round"
+        );
+        return Math.max(
+          Config.Inicio_Hora,
+          Math.min(Config.Fin_Hora - Paso, Redondeada)
+        );
       }
 
       function Normalizar_Estado() {
@@ -102311,6 +102932,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Normalizar_Menu_Botones_Visibles(
             Config.Menu_Botones_Visibles
           );
+        Migrar_Calendario_A_Duracion_Default();
 
         Categorias = Array.isArray(Categorias)
           ? Categorias
@@ -102515,7 +103137,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Eventos = Eventos.map((Evento) => {
           const Inicio = Normalizar_Hora(Evento.Inicio);
           const Duracion = Math.min(
-            Normalizar_Duracion(Evento.Duracion),
+            Normalizar_Duracion_Evento(Evento.Duracion, Inicio),
             Config.Fin_Hora - Inicio
           );
           const Fecha_Base = Parsear_Fecha_ISO(Evento.Fecha);
@@ -106336,8 +106958,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         for (const Hora of Horas_Visibles) {
           const Item = document.createElement("div");
           Item.className = "Hora_Item";
-          Item.dataset.hora = Hora.toString();
-          Item.textContent = `${Hora.toString().padStart(2, "0")}:00`;
+          Item.dataset.hora = Formatear_Hora_Clave(Hora);
+          Item.textContent = Focus_Formatear_HoraHM(Hora);
           Item.addEventListener("contextmenu", (Ev) => {
             Ev.preventDefault();
             Ev.stopPropagation();
@@ -106388,7 +107010,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Slot.className = "Slot";
           Slot.dataset.dia = Dia_Index.toString();
           Slot.dataset.fecha = Fecha_ISO;
-          Slot.dataset.hora = Hora.toString();
+          Slot.dataset.hora = Formatear_Hora_Clave(Hora);
           if (Slot_Es_Muerto(Fecha_ISO, Hora)) {
             Slot.classList.add("Slot_Muerto");
             const Clave_M = Clave_Slot(Fecha_ISO, Hora);
@@ -106425,7 +107047,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             : null;
           const Slot_Cierra_Franja = Boolean(
             Franja_Slot_Muerto &&
-            Franja_Slot_Muerto.Fin - 1 === Hora
+            Math.abs(
+              Franja_Slot_Muerto.Fin -
+                Obtener_Duracion_Slot_Calendario() -
+                Hora
+            ) < Epsilon_Hora
           );
           if (Conteo_Plan_Slot > 0) {
             const Marca_Plan = document.createElement("div");
@@ -106790,9 +107416,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Segmentos_Horas
             );
           Bloque.style.top =
-            `${Top * Config.Altura_Slot + 3}px`;
+            `${Top * Pixeles_Por_Hora_Calendario() + 3}px`;
           Bloque.style.height =
-            `${Evento.Duracion * Config.Altura_Slot - 6}px`;
+            `${Pixeles_Duracion_Calendario(Evento.Duracion) - 6}px`;
           Bloque.style.background = Color;
           Bloque.style.borderLeftColor = Color;
 
@@ -107077,21 +107703,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         let Hubo_Cambio = false;
 
         const Mover = (Ev) => {
+          const Paso = Obtener_Duracion_Slot_Calendario();
           const Delta_Px = Ev.clientY - Y_Inicial;
           const Delta_H = Math.round(
             Delta_Px / Config.Altura_Slot
-          );
+          ) * Paso;
           let Fin_Deseado = Fin_Inicial + Delta_H;
           Fin_Deseado = Math.max(
-            Franja.Inicio + 1,
+            Franja.Inicio + Paso,
             Math.min(Config.Fin_Hora, Fin_Deseado)
+          );
+          Fin_Deseado = Redondear_Hora_A_Paso(
+            Fin_Deseado,
+            Paso,
+            "round"
           );
           if (Fin_Deseado > Fin_Aplicado) {
             let Fin_Posible = Fin_Aplicado;
             for (
               let Hora_Nueva = Fin_Aplicado;
-              Hora_Nueva < Fin_Deseado;
-              Hora_Nueva++
+              Hora_Nueva < Fin_Deseado - Epsilon_Hora;
+              Hora_Nueva = Normalizar_Numero_Hora(
+                Hora_Nueva + Paso
+              )
             ) {
               const Motivo =
                 Obtener_Motivo_Conflicto_Traslado_Slot(
@@ -107099,7 +107733,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   Hora_Nueva
                 );
               if (Motivo) break;
-              Fin_Posible = Hora_Nueva + 1;
+              Fin_Posible = Normalizar_Numero_Hora(
+                Hora_Nueva + Paso
+              );
             }
             Fin_Deseado = Fin_Posible;
           }
@@ -107107,8 +107743,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Fin_Deseado > Fin_Aplicado) {
             for (
               let Hora_Nueva = Fin_Aplicado;
-              Hora_Nueva < Fin_Deseado;
-              Hora_Nueva++
+              Hora_Nueva < Fin_Deseado - Epsilon_Hora;
+              Hora_Nueva = Normalizar_Numero_Hora(
+                Hora_Nueva + Paso
+              )
             ) {
               Aplicar_Datos_Slot_Muerto(
                 Fecha,
@@ -107123,8 +107761,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           } else {
             for (
               let Hora_Quitar = Fin_Deseado;
-              Hora_Quitar < Fin_Aplicado;
-              Hora_Quitar++
+              Hora_Quitar < Fin_Aplicado - Epsilon_Hora;
+              Hora_Quitar = Normalizar_Numero_Hora(
+                Hora_Quitar + Paso
+              )
             ) {
               Quitar_Slot_Muerto_Silencioso(
                 Fecha,
@@ -107175,7 +107815,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         // Granularidad: si es libre, 0.25 (15 min);
         // si es por bloques, usa la duración default.
-        const Dur_Cfg = Config.Duracion_Default || 1;
+        const Dur_Cfg = Obtener_Duracion_Slot_Calendario();
         const Gran = Personalizado ? 0.25 : Dur_Cfg;
 
         // Calcular el máximo real al que se puede estirar.
@@ -107203,7 +107843,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Mover = (Ev) => {
           const Delta_Px = Ev.clientY - Y_Inicial;
-          const Delta_H = Delta_Px / Config.Altura_Slot;
+          const Delta_H =
+            Delta_Px / Pixeles_Por_Hora_Calendario();
           // Snap a la granularidad.
           const Pasos = Math.round(Delta_H / Gran);
           const Nueva_Dur = Math.max(
@@ -107213,7 +107854,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Aplicada !== Evento.Duracion) Hubo_Cambio = true;
           Evento.Duracion = Aplicada;
           Bloque.style.height =
-            `${Evento.Duracion * Config.Altura_Slot - 6}px`;
+            `${Pixeles_Duracion_Calendario(Evento.Duracion) - 6}px`;
           const Meta_Box = Bloque.querySelector(".Evento_Meta");
           if (Meta_Box) {
             Meta_Box.textContent = Formatear_Rango(
@@ -107930,21 +108571,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Slot = Evento.currentTarget;
         const Fecha = Slot.dataset.fecha;
         const Hora_Base = parseFloat(Slot.dataset.hora);
-        const Rect_Slot = Slot.getBoundingClientRect();
-        const Pct_Y = Math.max(
-          0,
-          Math.min(Evento.clientY - Rect_Slot.top, Rect_Slot.height - 1)
-        ) / Rect_Slot.height;
-        // Snap según la granularidad de Duracion_Default.
-        // 1+ → entero, 0.5 → media hora, ≤0.25 → cuartos.
-        const Dur_Cfg = Config.Duracion_Default;
-        const Granularidad =
-          Dur_Cfg >= 1 ? 1 : (Dur_Cfg === 0.5 ? 0.5 : 0.25);
-        const Pasos = 1 / Granularidad;
-        const Hora =
-          Hora_Base +
-          Math.floor(Pct_Y * Pasos) / Pasos;
-        const Duracion = Config.Duracion_Default;
+        const Hora = Hora_Base;
+        const Duracion = Obtener_Duracion_Slot_Calendario();
 
         if (Payload.Tipo === "Objetivo") {
           const Objetivo = Objetivo_Por_Id(Payload.Objetivo_Id);
@@ -108066,7 +108694,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Offset_Visible = Math.max(
           0,
           Math.min(
-            Posicion_Y / Config.Altura_Slot,
+            Posicion_Y / Pixeles_Por_Hora_Calendario(),
             Math.max(0, Duracion_Total - 0.001)
           )
         );
@@ -108080,7 +108708,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Gran2 =
           Dur_Cfg2 >= 1 ? 1 : (Dur_Cfg2 === 0.5 ? 0.5 : 0.25);
         const Pasos2 = 1 / Gran2;
-        const Hora = Math.floor(Hora_Exacta * Pasos2) / Pasos2;
+        const Hora = Redondear_Hora_A_Paso(
+          Hora_Exacta,
+          Obtener_Duracion_Slot_Calendario(),
+          "floor"
+        );
 
         if (Payload.Tipo === "Objetivo") {
           const Objetivo = Objetivo_Por_Id(Payload.Objetivo_Id);
@@ -111951,7 +112583,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Segmentos_Horas
             );
           El_Viewport.scrollTop =
-            Offset * Config.Altura_Slot;
+            Offset * Pixeles_Por_Hora_Calendario();
         }
       }
 
@@ -112015,7 +112647,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Focus_Clave_Slot_Foco(Fecha, Hora) {
-        return `Slot|${Fecha}|${Hora}`;
+        return `Slot|${Fecha}|${Formatear_Hora_Clave(Hora)}`;
       }
 
       function Focus_Obtener_Slots_Plan() {
@@ -112066,7 +112698,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Slot.Fecha < Hoy_ISO) return "Pasado";
         if (Slot.Fecha > Hoy_ISO) return "Proximo";
         const Inicio = Number(Slot.Hora) || 0;
-        const Fin = Inicio + 1;
+        const Fin = Inicio + Obtener_Duracion_Slot_Calendario();
         const Hora_Ahora = Focus_Tiempo_Actual_Horas();
         if (Hora_Ahora < Inicio) return "Proximo";
         if (Hora_Ahora < Fin) return "En_Curso";
@@ -112152,7 +112784,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Item.Fecha !== Hoy_ISO) continue;
           const Fin = Item.Tipo === "Evento"
             ? Item.Inicio + (Number(Item.Evento.Duracion) || 0)
-            : Item.Inicio + 1;
+            : Item.Inicio + Obtener_Duracion_Slot_Calendario();
           if (Hora_Ahora >= Item.Inicio && Hora_Ahora < Fin) {
             return {
               ...Item,
@@ -112167,7 +112799,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             if (Focus_Target_Esta_Cerrado(Item)) return false;
             const Fin = Item.Tipo === "Evento"
               ? Item.Inicio + (Number(Item.Evento.Duracion) || 0)
-              : Item.Inicio + 1;
+              : Item.Inicio + Obtener_Duracion_Slot_Calendario();
             return Fin <= Hora_Ahora && Fin >= Hora_Ahora - 1;
           })
           .sort((A, B) => B.Inicio - A.Inicio);

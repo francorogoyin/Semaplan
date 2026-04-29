@@ -204,6 +204,13 @@ Notas operativas.
 - Si se toca creacion, edicion, borrado o movimiento de eventos hay
   que revisar efectos colaterales en planes semanales, planes de slot,
   metas y sync.
+- La duracion por defecto de eventos define tambien el paso visible de
+  la grilla del calendario. Solo se permiten 15 minutos, 30 minutos y
+  1 hora. Al cambiarla, `Duracion_Grilla_Eventos` permite detectar el
+  paso anterior y migrar eventos, slots muertos y `Planes_Slot`: al
+  partir una hora los items generales van al primer sub-bloque y las
+  tareas con hora van al sub-bloque correspondiente; al fusionar
+  sub-bloques se unifican items y notas sin generar copias duplicadas.
 - El resumen accesible desde el calendario ya no esta limitado a la
   semana visible: permite leer semana, quincena, mes, ano o rango
   personalizado. Sus pestanas de objetivos, dias y metas comparten el
