@@ -11,6 +11,8 @@ const Cors_Headers = {
 const MCP_PROTOCOL_VERSION = "2025-03-26";
 const MCP_SERVER_NAME = "semaplan-ai-mcp";
 const MCP_SERVER_VERSION = "1.0.0";
+const Url_Canonica_Semaplan = "https://semaplan.com/login.html";
+const Prefijo_Id_Fetch = "spmcp_";
 
 type Mapa = Record<string, unknown>;
 
@@ -21,7 +23,52 @@ type Herramienta_MCP = {
   Input_Schema: Mapa;
 };
 
+type Documento_Fetch = {
+  id: string;
+  title: string;
+  text: string;
+  url: string;
+  metadata?: Record<string, unknown>;
+};
+
 const Herramientas_MCP: Herramienta_MCP[] = [
+  {
+    Nombre: "search",
+    Descripcion:
+      "Busca contenido de Semaplan para usar en ChatGPT " +
+      "Apps y deep research.",
+    Ruta: "",
+    Input_Schema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Consulta en lenguaje natural.",
+        },
+      },
+      required: ["query"],
+      additionalProperties: false,
+    },
+  },
+  {
+    Nombre: "fetch",
+    Descripcion:
+      "Recupera el contenido completo de un resultado de " +
+      "busqueda de Semaplan.",
+    Ruta: "",
+    Input_Schema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          description:
+            "Identificador devuelto por la herramienta search.",
+        },
+      },
+      required: ["id"],
+      additionalProperties: false,
+    },
+  },
   {
     Nombre: "semaplan_contexto",
     Descripcion:
@@ -419,13 +466,139 @@ function Parsear_Json_Seguro(Texto: string) {
   }
 }
 
-async function Ejecutar_Herramienta(
+function Normalizar_Texto_Plano(
+  Valor: unknown,
+  Largo_Max = 900,
+) {
+  const Texto = String(Valor ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!Texto) return "";
+  return Texto.slice(0, Largo_Max);
+}
+
+function Campo_String(Item: Mapa, Claves: string[]) {
+  for (const Clave of Claves) {
+    const Valor = Item?.[Clave];
+    if (Valor === undefined || Valor === null) continue;
+    const Texto = Normalizar_Texto_Plano(Valor);
+    if (Texto) return Texto;
+  }
+  return "";
+}
+
+function Base64Url_Encode(Texto: string) {
+  const Bytes = new TextEncoder().encode(Texto);
+  let Binario = "";
+  for (let I = 0; I < Bytes.length; I += 1) {
+    Binario += String.fromCharCode(Bytes[I]);
+  }
+  return btoa(Binario)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+function Base64Url_Decode(Token: string) {
+  const Base64 = String(Token || "")
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+  if (!Base64) return "";
+  const Relleno = Base64.length % 4;
+  const Completo = Base64 +
+    (Relleno ? "=".repeat(4 - Relleno) : "");
+  const Binario = atob(Completo);
+  const Bytes = new Uint8Array(Binario.length);
+  for (let I = 0; I < Binario.length; I += 1) {
+    Bytes[I] = Binario.charCodeAt(I);
+  }
+  return new TextDecoder().decode(Bytes);
+}
+
+function Crear_Documento_Fetch_Desde_Item(
+  Item: Mapa,
+  Indice: number,
+  Query: string,
+): Documento_Fetch {
+  const Titulo = Campo_String(Item, [
+    "Titulo",
+    "title",
+    "Nombre",
+    "name",
+    "Texto",
+    "text",
+    "Contenido",
+    "contenido",
+  ]) || `Resultado ${Indice + 1}`;
+  const Texto = Campo_String(Item, [
+    "Contenido",
+    "contenido",
+    "Texto",
+    "text",
+    "Descripcion",
+    "descripcion",
+    "Detalle",
+    "detalle",
+    "Resumen",
+    "resumen",
+  ]) || JSON.stringify(Item, null, 2);
+  const Id_Base = Campo_String(Item, [
+    "Id",
+    "id",
+    "Nota_Id",
+    "Objetivo_Id",
+    "Meta_Id",
+  ]) || `q:${Query}:i:${Indice}`;
+  return {
+    id: Id_Base,
+    title: Titulo,
+    text: Texto,
+    url: Url_Canonica_Semaplan,
+    metadata: {
+      fuente: "semaplan.archivero.buscar",
+      query: Query,
+    },
+  };
+}
+
+function Construir_Id_Fetch(Doc: Documento_Fetch) {
+  return `${Prefijo_Id_Fetch}${Base64Url_Encode(
+    JSON.stringify(Doc),
+  )}`;
+}
+
+function Parsear_Id_Fetch(Id: string) {
+  try {
+    if (!Id.startsWith(Prefijo_Id_Fetch)) return null;
+    const Payload = Id.slice(Prefijo_Id_Fetch.length);
+    if (!Payload) return null;
+    const Json = Base64Url_Decode(Payload);
+    const Doc = Parsear_Json_Seguro(Json) as Documento_Fetch;
+    if (!Doc || typeof Doc !== "object") return null;
+    if (!Doc.id || !Doc.title || !Doc.text) return null;
+    return {
+      id: String(Doc.id),
+      title: String(Doc.title),
+      text: String(Doc.text),
+      url: String(Doc.url || Url_Canonica_Semaplan),
+      metadata:
+        Doc.metadata &&
+          typeof Doc.metadata === "object"
+          ? Doc.metadata as Record<string, unknown>
+          : undefined,
+    } satisfies Documento_Fetch;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function Consultar_Gateway_Lectura(
   Req: Request,
-  Herramienta: Herramienta_MCP,
+  Ruta: string,
   Argumentos: Mapa,
 ) {
   const Base_Gateway = Obtener_Url_Base_Gateway(Req);
-  const Url = new URL(`${Base_Gateway}${Herramienta.Ruta}`);
+  const Url = new URL(`${Base_Gateway}${Ruta}`);
   Agregar_Query(Url, Argumentos);
 
   const Headers = new Headers({
@@ -450,39 +623,206 @@ async function Ejecutar_Herramienta(
       headers: Headers,
     });
     const Texto = await Resp.text();
-    const Payload = Parsear_Json_Seguro(Texto);
     return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(Payload, null, 2),
-        },
-      ],
-      ...(Resp.ok ? {} : { isError: true }),
+      Ok: Resp.ok,
+      Status: Resp.status,
+      Payload: Parsear_Json_Seguro(Texto),
+      Url: Url.toString(),
     };
   } catch (Error) {
     return {
-      isError: true,
+      Ok: false,
+      Status: 0,
+      Payload: {
+        Ok: false,
+        Error: "Fallo MCP",
+        Detalle: String(
+          Error && (Error as Error).message
+            ? (Error as Error).message
+            : Error,
+        ),
+      },
+      Url: Url.toString(),
+    };
+  }
+}
+
+async function Ejecutar_Herramienta(
+  Req: Request,
+  Herramienta: Herramienta_MCP,
+  Argumentos: Mapa,
+) {
+  const Resp = await Consultar_Gateway_Lectura(
+    Req,
+    Herramienta.Ruta,
+    Argumentos,
+  );
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(Resp.Payload, null, 2),
+      },
+    ],
+    ...(Resp.Ok ? {} : { isError: true }),
+  };
+}
+
+async function Ejecutar_Search_Compat(
+  Req: Request,
+  Argumentos: Mapa,
+) {
+  try {
+    const Query = String(
+      Argumentos.query ??
+        Argumentos.q ??
+        "",
+    ).trim();
+    if (!Query) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({ results: [] }),
+          },
+        ],
+      };
+    }
+
+    const Resp = await Consultar_Gateway_Lectura(
+      Req,
+      "/archivero/buscar",
+      {
+        q: Query,
+        limite: 12,
+      },
+    );
+    if (!Resp.Ok) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              results: [],
+              notice: "search_unavailable_without_auth",
+            }),
+          },
+        ],
+      };
+    }
+
+    const Payload = (Resp.Payload &&
+        typeof Resp.Payload === "object"
+      ? Resp.Payload
+      : {}) as Mapa;
+    const Candidatos = (
+      Array.isArray(Payload.Resultados)
+        ? Payload.Resultados
+        : Array.isArray(Payload.Notas)
+        ? Payload.Notas
+        : Array.isArray(Payload.resultados)
+        ? Payload.resultados
+        : Array.isArray(Payload.notas)
+        ? Payload.notas
+        : []
+    )
+      .filter((Item) => Item && typeof Item === "object")
+      .slice(0, 12) as Mapa[];
+
+    const Results = Candidatos.map((Item, Indice) => {
+      const Doc = Crear_Documento_Fetch_Desde_Item(
+        Item,
+        Indice,
+        Query,
+      );
+      return {
+        id: Construir_Id_Fetch(Doc),
+        title: Doc.title,
+        url: Doc.url || Url_Canonica_Semaplan,
+      };
+    });
+
+    return {
       content: [
         {
           type: "text",
-          text: JSON.stringify(
-            {
-              Ok: false,
-              Error: "Fallo MCP",
-              Detalle: String(
-                Error && (Error as Error).message
-                  ? (Error as Error).message
-                  : Error,
-              ),
-            },
-            null,
-            2,
-          ),
+          text: JSON.stringify({ results: Results }),
+        },
+      ],
+    };
+  } catch (_) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ results: [] }),
         },
       ],
     };
   }
+}
+
+async function Ejecutar_Fetch_Compat(
+  Argumentos: Mapa,
+) {
+  const Id = String(
+    Argumentos.id ??
+      Argumentos.document_id ??
+      "",
+  ).trim();
+  if (!Id) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            id: "",
+            title: "",
+            text: "",
+            url: Url_Canonica_Semaplan,
+            metadata: {
+              notice: "missing_id",
+            },
+          }),
+        },
+      ],
+    };
+  }
+
+  const Doc = Parsear_Id_Fetch(Id);
+  if (!Doc) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            id: "",
+            title: "",
+            text: "",
+            url: Url_Canonica_Semaplan,
+            metadata: {
+              notice: "invalid_id",
+            },
+          }),
+        },
+      ],
+    };
+  }
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify({
+          id: Doc.id,
+          title: Doc.title,
+          text: Normalizar_Texto_Plano(Doc.text, 8000),
+          url: Doc.url || Url_Canonica_Semaplan,
+          metadata: Doc.metadata || {},
+        }),
+      },
+    ],
+  };
 }
 
 function Procesar_Initialize(Request_Id: unknown) {
@@ -535,6 +875,28 @@ async function Procesar_Llamar_Herramienta(
       ? Params.arguments
       : {}
   ) as Mapa;
+
+  if (Nombre === "search") {
+    const Resultado_Search = await Ejecutar_Search_Compat(
+      Req,
+      Argumentos,
+    );
+    return Respuesta_MCP_Ok(
+      Request_Id,
+      Resultado_Search,
+    );
+  }
+
+  if (Nombre === "fetch") {
+    const Resultado_Fetch = await Ejecutar_Fetch_Compat(
+      Argumentos,
+    );
+    return Respuesta_MCP_Ok(
+      Request_Id,
+      Resultado_Fetch,
+    );
+  }
+
   const Resultado = await Ejecutar_Herramienta(
     Req,
     Herramienta,
@@ -687,4 +1049,3 @@ Deno.serve(async (Req) => {
       : Respuestas,
   );
 });
-

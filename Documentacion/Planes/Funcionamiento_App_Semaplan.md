@@ -32,9 +32,10 @@ estructuras persistidas o relaciones importantes entre modulos.
 - `supabase/functions/semaplan-ai-mcp`: servidor MCP remoto por HTTP
   (streamable compatible) para ChatGPT Apps/Developer Mode. Expone
   `initialize`, `tools/list` y `tools/call` en el endpoint
-  `/functions/v1/semaplan-ai-mcp/mcp`, y reenvia cada tool de lectura
-  al gateway `semaplan-ai` reutilizando `Authorization` OAuth o
-  `X-Semaplan-AI-Token`.
+  `/functions/v1/semaplan-ai-mcp/mcp`, incluyendo `search` y `fetch`
+  para compatibilidad de conectores/deep research en ChatGPT. Reenvia
+  tools de lectura al gateway `semaplan-ai` reutilizando
+  `Authorization` OAuth o `X-Semaplan-AI-Token`.
 - `Herramientas/Scripts/semaplan-ai-mcp-server.js`: puente MCP local
   por `stdio` que expone herramientas para Claude y las reenvia al
   gateway `semaplan-ai`, sin leer Supabase directo.
