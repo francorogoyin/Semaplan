@@ -283,6 +283,38 @@ CREATE POLICY "Tokens IA propios: borrar"
   USING (auth.uid() = usuario_id);
 
 -- ============================================================
+-- Tabla de codigos OAuth para integracion con ChatGPT Actions.
+-- Guarda hashes del auth code y permite intercambio seguro.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.oauth_ia_codigos (
+  id                  UUID PRIMARY KEY
+                      DEFAULT gen_random_uuid(),
+  usuario_id          UUID NOT NULL
+                      REFERENCES auth.users(id)
+                      ON DELETE CASCADE,
+  cliente_id          TEXT NOT NULL,
+  redirect_uri        TEXT NOT NULL,
+  scopes              TEXT[] NOT NULL
+                      DEFAULT ARRAY['read']::TEXT[],
+  code_hash           TEXT NOT NULL UNIQUE,
+  expira_en           TIMESTAMPTZ NOT NULL,
+  usado_en            TIMESTAMPTZ,
+  creado_en           TIMESTAMPTZ NOT NULL
+                      DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS
+  idx_oauth_ia_codigos_usuario
+  ON public.oauth_ia_codigos (usuario_id);
+
+CREATE INDEX IF NOT EXISTS
+  idx_oauth_ia_codigos_expira
+  ON public.oauth_ia_codigos (expira_en);
+
+ALTER TABLE public.oauth_ia_codigos
+  ENABLE ROW LEVEL SECURITY;
+
+-- ============================================================
 -- Listo. Verificación opcional:
 -- ============================================================
 -- Para verificar que todo está bien, podés correr:

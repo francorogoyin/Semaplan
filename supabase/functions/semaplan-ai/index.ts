@@ -13,7 +13,7 @@ type Auth_Resultado =
   | {
     Ok: true;
     Usuario_Id: string;
-    Fuente: "jwt" | "token";
+    Fuente: "jwt" | "token" | "oauth";
   }
   | {
     Ok: false;
@@ -71,6 +71,50 @@ const Claves_Estado_Seguras = new Set([
   "Version_Programa_Actual",
 ]);
 
+const OAUTH_SCOPE_LECTURA = "read";
+const OAUTH_RESPONSE_TYPE_CODIGO = "code";
+const OAUTH_AUTH_CODE_EXPIRA_SEGUNDOS = 300;
+const OAUTH_ACCESS_TOKEN_EXPIRA_SEGUNDOS =
+  60 * 60 * 24 * 30;
+
+function Obtener_Config_OAuth() {
+  const Cliente_Id = String(
+    Deno.env.get("SEMAPLAN_AI_OAUTH_CLIENT_ID") ||
+      "semaplan-chatgpt"
+  ).trim();
+  const Cliente_Secret = String(
+    Deno.env.get("SEMAPLAN_AI_OAUTH_CLIENT_SECRET") ||
+      ""
+  ).trim();
+  const Habilitado =
+    Boolean(Cliente_Id) && Boolean(Cliente_Secret);
+  return {
+    Habilitado,
+    Cliente_Id,
+    Cliente_Secret,
+  };
+}
+
+function Es_Redirect_ChatGPT_Valido(
+  Redirect_Uri: string
+) {
+  try {
+    const Url = new URL(Redirect_Uri);
+    const Host = Url.hostname.toLowerCase();
+    if (
+      Host !== "chat.openai.com" &&
+      Host !== "chatgpt.com"
+    ) {
+      return false;
+    }
+    return /^\/aip\/[^/]+\/oauth\/callback$/.test(
+      Url.pathname
+    );
+  } catch (_) {
+    return false;
+  }
+}
+
 function Responder_Json(
   Cuerpo: Record<string, unknown>,
   Status = 200
@@ -94,6 +138,20 @@ function Responder_Error(
       Ok: false,
       Error,
       Detalle,
+    },
+    Status
+  );
+}
+
+function Responder_OAuth_Error(
+  Status: number,
+  Error: string,
+  Descripcion: string
+) {
+  return Responder_Json(
+    {
+      error: Error,
+      error_description: Descripcion,
     },
     Status
   );
@@ -143,7 +201,8 @@ function Construir_OpenAPI_Semaplan_IA(
     content: {
       "application/json": {
         schema: {
-          type: "object",
+          $ref:
+            "#/components/schemas/SemaplanRespuestaExitosa",
         },
       },
     },
@@ -154,6 +213,48 @@ function Construir_OpenAPI_Semaplan_IA(
     content: {
       "application/json": {
         schema: {
+          $ref:
+            "#/components/schemas/SemaplanRespuestaError",
+        },
+      },
+    },
+  };
+  const Seguridad_Lectura = [
+    {
+      SemaplanAIOAuth: [OAUTH_SCOPE_LECTURA],
+    },
+    {
+      SemaplanAIToken: [],
+    },
+  ];
+
+  return {
+    openapi: "3.1.0",
+    info: {
+      title: "Semaplan AI Gateway",
+      version: "1.0.0",
+      description:
+        "API read-only para consultar datos normalizados de Semaplan desde GPT u otros clientes.",
+    },
+    servers: [
+      {
+        url: Base_Url,
+      },
+    ],
+    components: {
+      schemas: {
+        SemaplanRespuestaExitosa: {
+          type: "object",
+          properties: {
+            Ok: {
+              type: "boolean",
+              example: true,
+            },
+          },
+          required: ["Ok"],
+          additionalProperties: true,
+        },
+        SemaplanRespuestaError: {
           type: "object",
           properties: {
             Ok: {
@@ -172,25 +273,9 @@ function Construir_OpenAPI_Semaplan_IA(
             "Error",
             "Detalle",
           ],
+          additionalProperties: true,
         },
       },
-    },
-  };
-
-  return {
-    openapi: "3.1.0",
-    info: {
-      title: "Semaplan AI Gateway",
-      version: "1.0.0",
-      description:
-        "API read-only para consultar datos normalizados de Semaplan desde GPT u otros clientes.",
-    },
-    servers: [
-      {
-        url: Base_Url,
-      },
-    ],
-    components: {
       securitySchemes: {
         SemaplanAIToken: {
           type: "apiKey",
@@ -198,6 +283,20 @@ function Construir_OpenAPI_Semaplan_IA(
           name: "X-Semaplan-AI-Token",
           description:
             "Token de lectura de Semaplan para integraciones de IA.",
+        },
+        SemaplanAIOAuth: {
+          type: "oauth2",
+          flows: {
+            authorizationCode: {
+              authorizationUrl:
+                `${Base_Url}/oauth/authorize`,
+              tokenUrl: `${Base_Url}/oauth/token`,
+              scopes: {
+                [OAUTH_SCOPE_LECTURA]:
+                  "Lectura de datos del usuario en Semaplan.",
+              },
+            },
+          },
         },
       },
     },
@@ -227,11 +326,7 @@ function Construir_OpenAPI_Semaplan_IA(
           operationId: "semaplan_contexto",
           summary:
             "Obtener contexto compacto de Semaplan",
-          security: [
-            {
-              SemaplanAIToken: [],
-            },
-          ],
+          security: Seguridad_Lectura,
           parameters: [
             {
               name: "desde",
@@ -263,11 +358,7 @@ function Construir_OpenAPI_Semaplan_IA(
           operationId: "semaplan_agenda",
           summary:
             "Leer agenda, eventos y slots muertos por rango",
-          security: [
-            {
-              SemaplanAIToken: [],
-            },
-          ],
+          security: Seguridad_Lectura,
           parameters: [
             {
               name: "desde",
@@ -298,11 +389,7 @@ function Construir_OpenAPI_Semaplan_IA(
         get: {
           operationId: "semaplan_tareas",
           summary: "Leer tareas por rango y filtros",
-          security: [
-            {
-              SemaplanAIToken: [],
-            },
-          ],
+          security: Seguridad_Lectura,
           parameters: [
             {
               name: "desde",
@@ -356,11 +443,7 @@ function Construir_OpenAPI_Semaplan_IA(
         get: {
           operationId: "semaplan_habitos",
           summary: "Leer habitos visibles",
-          security: [
-            {
-              SemaplanAIToken: [],
-            },
-          ],
+          security: Seguridad_Lectura,
           parameters: [
             {
               name: "fecha",
@@ -407,11 +490,7 @@ function Construir_OpenAPI_Semaplan_IA(
           operationId: "semaplan_slots",
           summary:
             "Leer slots vacios o muertos por rango",
-          security: [
-            {
-              SemaplanAIToken: [],
-            },
-          ],
+          security: Seguridad_Lectura,
           parameters: [
             {
               name: "desde",
@@ -443,11 +522,7 @@ function Construir_OpenAPI_Semaplan_IA(
           operationId: "semaplan_plan_semana",
           summary:
             "Leer snapshot y diff del plan semanal",
-          security: [
-            {
-              SemaplanAIToken: [],
-            },
-          ],
+          security: Seguridad_Lectura,
           parameters: [
             {
               name: "semana",
@@ -474,11 +549,7 @@ function Construir_OpenAPI_Semaplan_IA(
             "semaplan_planes_periodos",
           summary:
             "Leer periodos o arbol compacto de un periodo",
-          security: [
-            {
-              SemaplanAIToken: [],
-            },
-          ],
+          security: Seguridad_Lectura,
           parameters: [
             {
               name: "periodo_id",
@@ -519,11 +590,7 @@ function Construir_OpenAPI_Semaplan_IA(
             "semaplan_listar_archivero",
           summary:
             "Listar cajones y notas del Archivero",
-          security: [
-            {
-              SemaplanAIToken: [],
-            },
-          ],
+          security: Seguridad_Lectura,
           parameters: [
             {
               name: "cajon_id",
@@ -557,11 +624,7 @@ function Construir_OpenAPI_Semaplan_IA(
             "semaplan_buscar_archivero",
           summary:
             "Buscar notas del Archivero por texto",
-          security: [
-            {
-              SemaplanAIToken: [],
-            },
-          ],
+          security: Seguridad_Lectura,
           parameters: [
             {
               name: "q",
@@ -595,11 +658,7 @@ function Construir_OpenAPI_Semaplan_IA(
           operationId: "semaplan_listar_baul",
           summary:
             "Listar objetivos del Baul",
-          security: [
-            {
-              SemaplanAIToken: [],
-            },
-          ],
+          security: Seguridad_Lectura,
           parameters: [
             {
               name: "categoria",
@@ -639,11 +698,7 @@ function Construir_OpenAPI_Semaplan_IA(
             "semaplan_listar_metas",
           summary:
             "Listar metas resumidas",
-          security: [
-            {
-              SemaplanAIToken: [],
-            },
-          ],
+          security: Seguridad_Lectura,
           parameters: [
             {
               name: "limite",
@@ -741,6 +796,148 @@ function Tiene_Scope_Lectura(
     );
 }
 
+function Normalizar_Scopes_OAuth(
+  Scope_Raw: string
+) {
+  const Unicos = new Set(
+    Scope_Raw
+      .split(/\s+/)
+      .map((Item) => Item.trim())
+      .filter(Boolean)
+  );
+  if (Unicos.size === 0) {
+    return [OAUTH_SCOPE_LECTURA];
+  }
+  return Array.from(Unicos);
+}
+
+function Generar_Secreto_Token(
+  Prefijo: string
+) {
+  const Bytes = new Uint8Array(24);
+  crypto.getRandomValues(Bytes);
+  const Base = Array.from(Bytes)
+    .map((Byte) =>
+      Byte.toString(16).padStart(2, "0")
+    )
+    .join("");
+  return `${Prefijo}_${Base}`;
+}
+
+type Resultado_Validacion_Token_IA = {
+  Encontrado: boolean;
+  Resultado: Auth_Resultado | null;
+};
+
+async function Validar_Token_IA_Por_Valor(
+  Token_IA: string,
+  Fuente_Exito: "token" | "oauth"
+): Promise<Resultado_Validacion_Token_IA> {
+  try {
+    const Supa_Servicio =
+      Crear_Supabase_Servicio();
+    const Token_Hash = await Hash_Token(Token_IA);
+    const {
+      data: Token_Registro,
+      error: Error_Token,
+    } = await Supa_Servicio
+      .from("tokens_ia_usuario")
+      .select(
+        "id, usuario_id, scopes, revocado_en"
+      )
+      .eq("token_hash", Token_Hash)
+      .maybeSingle();
+
+    if (Error_Token) {
+      console.error(
+        "Error validando token IA:",
+        Error_Token
+      );
+      return {
+        Encontrado: false,
+        Resultado: {
+          Ok: false,
+          Status: 500,
+          Error: "Error interno",
+          Detalle:
+            "No se pudo validar el token de IA.",
+        },
+      };
+    }
+
+    if (!Token_Registro) {
+      return {
+        Encontrado: false,
+        Resultado: null,
+      };
+    }
+
+    if (Token_Registro.revocado_en) {
+      return {
+        Encontrado: true,
+        Resultado: {
+          Ok: false,
+          Status: 403,
+          Error: "Token revocado",
+          Detalle:
+            "El token de IA fue revocado.",
+        },
+      };
+    }
+
+    if (
+      !Tiene_Scope_Lectura(
+        Token_Registro.scopes
+      )
+    ) {
+      return {
+        Encontrado: true,
+        Resultado: {
+          Ok: false,
+          Status: 403,
+          Error: "Scope insuficiente",
+          Detalle:
+            "El token no tiene permiso de lectura.",
+        },
+      };
+    }
+
+    await Supa_Servicio
+      .from("tokens_ia_usuario")
+      .update({
+        ultimo_uso_en:
+          new Date().toISOString(),
+      })
+      .eq("id", Token_Registro.id);
+
+    return {
+      Encontrado: true,
+      Resultado: {
+        Ok: true,
+        Usuario_Id: String(
+          Token_Registro.usuario_id
+        ),
+        Fuente: Fuente_Exito,
+      },
+    };
+  } catch (Error_General) {
+    console.error(
+      "Error general validando token IA:",
+      Error_General
+    );
+    return {
+      Encontrado: false,
+      Resultado: {
+        Ok: false,
+        Status: 500,
+        Error: "Error interno",
+        Detalle:
+          "No se pudo validar el token de IA.",
+      },
+    };
+  }
+}
+
 async function Validar_Request(
   Req: Request
 ): Promise<Auth_Resultado> {
@@ -748,96 +945,20 @@ async function Validar_Request(
     Req.headers.get("X-Semaplan-AI-Token") || ""
   ).trim();
   if (Token_IA) {
-    try {
-      const Supa_Servicio =
-        Crear_Supabase_Servicio();
-      const Token_Hash = await Hash_Token(Token_IA);
-      const {
-        data: Token_Registro,
-        error: Error_Token,
-      } = await Supa_Servicio
-        .from("tokens_ia_usuario")
-        .select(
-          "id, usuario_id, scopes, revocado_en"
-        )
-        .eq("token_hash", Token_Hash)
-        .maybeSingle();
-
-      if (Error_Token) {
-        console.error(
-          "Error validando token IA:",
-          Error_Token
-        );
-        return {
-          Ok: false,
-          Status: 500,
-          Error: "Error interno",
-          Detalle:
-            "No se pudo validar el token de IA.",
-        };
-      }
-
-      if (!Token_Registro) {
-        return {
-          Ok: false,
-          Status: 401,
-          Error: "No autorizado",
-          Detalle: "Token invalido.",
-        };
-      }
-
-      if (Token_Registro.revocado_en) {
-        return {
-          Ok: false,
-          Status: 403,
-          Error: "Token revocado",
-          Detalle:
-            "El token de IA fue revocado.",
-        };
-      }
-
-      if (
-        !Tiene_Scope_Lectura(
-          Token_Registro.scopes
-        )
-      ) {
-        return {
-          Ok: false,
-          Status: 403,
-          Error: "Scope insuficiente",
-          Detalle:
-            "El token no tiene permiso de lectura.",
-        };
-      }
-
-      await Supa_Servicio
-        .from("tokens_ia_usuario")
-        .update({
-          ultimo_uso_en:
-            new Date().toISOString(),
-        })
-        .eq("id", Token_Registro.id);
-
-      return {
-        Ok: true,
-        Usuario_Id: String(
-          Token_Registro.usuario_id
-        ),
-        Fuente: "token",
-      };
-    } catch (Error_General) {
-      console.error(
-        "Error general validando token IA:",
-        Error_General
+    const Validacion_Token =
+      await Validar_Token_IA_Por_Valor(
+        Token_IA,
+        "token"
       );
-      return {
-        Ok: false,
-        Status: 500,
-        Error: "Error interno",
-        Detalle:
-          "No se pudo validar el token de IA.",
-      };
+    if (Validacion_Token.Resultado) {
+      return Validacion_Token.Resultado;
     }
+    return {
+      Ok: false,
+      Status: 401,
+      Error: "No autorizado",
+      Detalle: "Token invalido.",
+    };
   }
 
   const Auth_Header = String(
@@ -849,6 +970,32 @@ async function Validar_Request(
       "bearer "
     )
   ) {
+    const Bearer_Token = Auth_Header
+      .slice(7)
+      .trim();
+    if (Bearer_Token) {
+      const Validacion_OAuth =
+        await Validar_Token_IA_Por_Valor(
+          Bearer_Token,
+          "oauth"
+        );
+      if (Validacion_OAuth.Resultado?.Ok) {
+        return Validacion_OAuth.Resultado;
+      }
+      if (
+        Validacion_OAuth.Resultado &&
+        Validacion_OAuth.Encontrado
+      ) {
+        return Validacion_OAuth.Resultado;
+      }
+      if (
+        Validacion_OAuth.Resultado &&
+        !Validacion_OAuth.Resultado.Ok &&
+        Validacion_OAuth.Resultado.Status >= 500
+      ) {
+        return Validacion_OAuth.Resultado;
+      }
+    }
     try {
       const Supa_Usuario =
         Crear_Supabase_Usuario(Auth_Header);
@@ -4642,6 +4789,441 @@ function Responder_Contexto(
   });
 }
 
+type Parametros_OAuth_Autorizar =
+  | {
+    Ok: true;
+    Cliente_Id: string;
+    Redirect_Uri: string;
+    State: string;
+    Scopes: string[];
+  }
+  | {
+    Ok: false;
+    Status: number;
+    Error: string;
+    Detalle: string;
+  };
+
+function Resolver_Parametros_OAuth_Autorizar(
+  Url: URL
+): Parametros_OAuth_Autorizar {
+  const Config_OAuth = Obtener_Config_OAuth();
+  if (!Config_OAuth.Habilitado) {
+    return {
+      Ok: false,
+      Status: 503,
+      Error: "temporarily_unavailable",
+      Detalle:
+        "OAuth no esta habilitado en este entorno.",
+    };
+  }
+  const Response_Type = String(
+    Url.searchParams.get("response_type") || ""
+  )
+    .trim()
+    .toLowerCase();
+  if (Response_Type !== OAUTH_RESPONSE_TYPE_CODIGO) {
+    return {
+      Ok: false,
+      Status: 400,
+      Error: "unsupported_response_type",
+      Detalle:
+        "Solo se admite response_type=code.",
+    };
+  }
+  const Cliente_Id = String(
+    Url.searchParams.get("client_id") || ""
+  ).trim();
+  if (!Cliente_Id) {
+    return {
+      Ok: false,
+      Status: 400,
+      Error: "invalid_request",
+      Detalle: "Falta client_id.",
+    };
+  }
+  if (Cliente_Id !== Config_OAuth.Cliente_Id) {
+    return {
+      Ok: false,
+      Status: 401,
+      Error: "unauthorized_client",
+      Detalle: "client_id invalido.",
+    };
+  }
+  const Redirect_Uri = String(
+    Url.searchParams.get("redirect_uri") || ""
+  ).trim();
+  if (!Redirect_Uri) {
+    return {
+      Ok: false,
+      Status: 400,
+      Error: "invalid_request",
+      Detalle: "Falta redirect_uri.",
+    };
+  }
+  if (!Es_Redirect_ChatGPT_Valido(Redirect_Uri)) {
+    return {
+      Ok: false,
+      Status: 400,
+      Error: "invalid_request",
+      Detalle:
+        "redirect_uri invalida para ChatGPT.",
+    };
+  }
+  const State = String(
+    Url.searchParams.get("state") || ""
+  ).trim();
+  if (!State) {
+    return {
+      Ok: false,
+      Status: 400,
+      Error: "invalid_request",
+      Detalle: "Falta state.",
+    };
+  }
+  const Scope_Raw = String(
+    Url.searchParams.get("scope") ||
+      OAUTH_SCOPE_LECTURA
+  ).trim();
+  const Scopes = Normalizar_Scopes_OAuth(
+    Scope_Raw
+  );
+  if (!Scopes.includes(OAUTH_SCOPE_LECTURA)) {
+    return {
+      Ok: false,
+      Status: 400,
+      Error: "invalid_scope",
+      Detalle:
+        "El scope solicitado debe incluir read.",
+    };
+  }
+  return {
+    Ok: true,
+    Cliente_Id,
+    Redirect_Uri,
+    State,
+    Scopes,
+  };
+}
+
+function Obtener_Url_Login_OAuth() {
+  const Default =
+    "https://semaplan.com/login.html";
+  const Raw = String(
+    Deno.env.get("SEMAPLAN_AI_OAUTH_LOGIN_URL") ||
+      Default
+  ).trim();
+  try {
+    return new URL(Raw).toString();
+  } catch (_) {
+    return Default;
+  }
+}
+
+function Construir_Url_Redirect(
+  Base: string,
+  Parametros: Record<string, string>
+) {
+  const Url = new URL(Base);
+  Object.entries(Parametros).forEach(
+    ([Clave, Valor]) => {
+      Url.searchParams.set(Clave, Valor);
+    }
+  );
+  return Url.toString();
+}
+
+async function Crear_Codigo_OAuth_IA(
+  Usuario_Id: string,
+  Parametros: Extract<
+    Parametros_OAuth_Autorizar,
+    { Ok: true }
+  >
+) {
+  const Codigo_Plano = Generar_Secreto_Token(
+    "soac"
+  );
+  const Codigo_Hash = await Hash_Token(
+    Codigo_Plano
+  );
+  const Expira_En = new Date(
+    Date.now() +
+      OAUTH_AUTH_CODE_EXPIRA_SEGUNDOS * 1000
+  ).toISOString();
+  const Supa_Servicio =
+    Crear_Supabase_Servicio();
+  const { error } = await Supa_Servicio
+    .from("oauth_ia_codigos")
+    .insert({
+      usuario_id: Usuario_Id,
+      cliente_id: Parametros.Cliente_Id,
+      redirect_uri: Parametros.Redirect_Uri,
+      scopes: Parametros.Scopes,
+      code_hash: Codigo_Hash,
+      expira_en: Expira_En,
+    });
+  if (error) {
+    throw error;
+  }
+  return Codigo_Plano;
+}
+
+async function Procesar_OAuth_Autorizar_Post(
+  Req: Request,
+  Url: URL
+) {
+  const Parametros =
+    Resolver_Parametros_OAuth_Autorizar(Url);
+  if (!Parametros.Ok) {
+    return Responder_OAuth_Error(
+      Parametros.Status,
+      Parametros.Error,
+      Parametros.Detalle
+    );
+  }
+  const Auth = await Validar_Request(Req);
+  if (!Auth.Ok) {
+    return Responder_OAuth_Error(
+      Auth.Status,
+      "access_denied",
+      "No se pudo validar la sesion del usuario."
+    );
+  }
+  try {
+    const Codigo = await Crear_Codigo_OAuth_IA(
+      Auth.Usuario_Id,
+      Parametros
+    );
+    const Redirect_Url = Construir_Url_Redirect(
+      Parametros.Redirect_Uri,
+      {
+        code: Codigo,
+        state: Parametros.State,
+      }
+    );
+    return Responder_Json({
+      Ok: true,
+      Redirect_Url,
+    });
+  } catch (Error_General) {
+    console.error(
+      "Error creando codigo OAuth IA:",
+      Error_General
+    );
+    return Responder_OAuth_Error(
+      500,
+      "server_error",
+      "No se pudo autorizar la conexion."
+    );
+  }
+}
+
+async function Leer_Body_Como_Form(
+  Req: Request
+) {
+  const Contenido = String(
+    Req.headers.get("content-type") || ""
+  ).toLowerCase();
+  if (Contenido.includes("application/json")) {
+    try {
+      const Json = await Req.json();
+      const Form = new URLSearchParams();
+      Object.entries(
+        Json &&
+        typeof Json === "object" &&
+        !Array.isArray(Json)
+          ? Json as Record<string, unknown>
+          : {}
+      ).forEach(([Clave, Valor]) => {
+        if (Valor == null) return;
+        Form.set(Clave, String(Valor));
+      });
+      return Form;
+    } catch (_) {
+      return new URLSearchParams();
+    }
+  }
+  const Texto = await Req.text();
+  return new URLSearchParams(Texto || "");
+}
+
+async function Procesar_OAuth_Token(
+  Req: Request
+) {
+  const Config_OAuth = Obtener_Config_OAuth();
+  if (!Config_OAuth.Habilitado) {
+    return Responder_OAuth_Error(
+      503,
+      "temporarily_unavailable",
+      "OAuth no esta habilitado en este entorno."
+    );
+  }
+  const Form = await Leer_Body_Como_Form(Req);
+  const Grant_Type = String(
+    Form.get("grant_type") || ""
+  )
+    .trim()
+    .toLowerCase();
+  const Cliente_Id = String(
+    Form.get("client_id") || ""
+  ).trim();
+  const Cliente_Secret = String(
+    Form.get("client_secret") || ""
+  ).trim();
+  if (
+    Cliente_Id !== Config_OAuth.Cliente_Id ||
+    Cliente_Secret !== Config_OAuth.Cliente_Secret
+  ) {
+    return Responder_OAuth_Error(
+      401,
+      "invalid_client",
+      "Credenciales OAuth invalidas."
+    );
+  }
+  if (Grant_Type !== "authorization_code") {
+    return Responder_OAuth_Error(
+      400,
+      "unsupported_grant_type",
+      "Solo se admite grant_type=authorization_code."
+    );
+  }
+  const Codigo = String(
+    Form.get("code") || ""
+  ).trim();
+  const Redirect_Uri = String(
+    Form.get("redirect_uri") || ""
+  ).trim();
+  if (!Codigo || !Redirect_Uri) {
+    return Responder_OAuth_Error(
+      400,
+      "invalid_request",
+      "Faltan code o redirect_uri."
+    );
+  }
+  const Codigo_Hash = await Hash_Token(Codigo);
+  const Supa_Servicio =
+    Crear_Supabase_Servicio();
+  const {
+    data: Codigo_Registro,
+    error: Error_Codigo,
+  } = await Supa_Servicio
+    .from("oauth_ia_codigos")
+    .select(
+      "id, usuario_id, cliente_id, redirect_uri, scopes, expira_en, usado_en"
+    )
+    .eq("code_hash", Codigo_Hash)
+    .maybeSingle();
+  if (Error_Codigo) {
+    console.error(
+      "Error leyendo codigo OAuth IA:",
+      Error_Codigo
+    );
+    return Responder_OAuth_Error(
+      500,
+      "server_error",
+      "No se pudo validar el codigo OAuth."
+    );
+  }
+  if (!Codigo_Registro) {
+    return Responder_OAuth_Error(
+      400,
+      "invalid_grant",
+      "Codigo OAuth invalido."
+    );
+  }
+  if (Codigo_Registro.usado_en) {
+    return Responder_OAuth_Error(
+      400,
+      "invalid_grant",
+      "Codigo OAuth ya utilizado."
+    );
+  }
+  const Expira_En = Date.parse(
+    String(Codigo_Registro.expira_en || "")
+  );
+  if (!Number.isFinite(Expira_En) || Expira_En <= Date.now()) {
+    return Responder_OAuth_Error(
+      400,
+      "invalid_grant",
+      "Codigo OAuth vencido."
+    );
+  }
+  if (
+    String(Codigo_Registro.cliente_id || "") !==
+      Cliente_Id ||
+    String(Codigo_Registro.redirect_uri || "") !==
+      Redirect_Uri
+  ) {
+    return Responder_OAuth_Error(
+      400,
+      "invalid_grant",
+      "El codigo OAuth no coincide con el cliente."
+    );
+  }
+  const Access_Token = Generar_Secreto_Token(
+    "sao"
+  );
+  const Access_Token_Hash = await Hash_Token(
+    Access_Token
+  );
+  const Scopes = Array.isArray(
+    Codigo_Registro.scopes
+  )
+    ? Codigo_Registro.scopes
+      .map((Scope) =>
+        String(Scope || "").trim()
+      )
+      .filter(Boolean)
+    : [OAUTH_SCOPE_LECTURA];
+  const { error: Error_Usar_Codigo } =
+    await Supa_Servicio
+      .from("oauth_ia_codigos")
+      .update({
+        usado_en: new Date().toISOString(),
+      })
+      .eq("id", Codigo_Registro.id)
+      .is("usado_en", null);
+  if (Error_Usar_Codigo) {
+    console.error(
+      "Error marcando codigo OAuth usado:",
+      Error_Usar_Codigo
+    );
+    return Responder_OAuth_Error(
+      500,
+      "server_error",
+      "No se pudo consumir el codigo OAuth."
+    );
+  }
+  const { error: Error_Insert_Token } =
+    await Supa_Servicio
+      .from("tokens_ia_usuario")
+      .insert({
+        usuario_id: String(
+          Codigo_Registro.usuario_id
+        ),
+        nombre: "ChatGPT OAuth",
+        token_hash: Access_Token_Hash,
+        scopes: Scopes,
+      });
+  if (Error_Insert_Token) {
+    console.error(
+      "Error creando token OAuth IA:",
+      Error_Insert_Token
+    );
+    return Responder_OAuth_Error(
+      500,
+      "server_error",
+      "No se pudo crear el token de acceso."
+    );
+  }
+  return Responder_Json({
+    access_token: Access_Token,
+    token_type: "bearer",
+    expires_in: OAUTH_ACCESS_TOKEN_EXPIRA_SEGUNDOS,
+    scope: Scopes.join(" "),
+  });
+}
+
 Deno.serve(async (Req) => {
   if (Req.method === "OPTIONS") {
     return new Response("ok", {
@@ -4669,6 +5251,50 @@ Deno.serve(async (Req) => {
         Obtener_Url_Base_Gateway(Req)
       )
     );
+  }
+
+  if (
+    Req.method === "GET" &&
+    Ruta === "/oauth/authorize"
+  ) {
+    const Parametros =
+      Resolver_Parametros_OAuth_Autorizar(Url);
+    if (!Parametros.Ok) {
+      return Responder_OAuth_Error(
+        Parametros.Status,
+        Parametros.Error,
+        Parametros.Detalle
+      );
+    }
+    const Login_Url = Construir_Url_Redirect(
+      Obtener_Url_Login_OAuth(),
+      {
+        oauth_ia: "1",
+        response_type: OAUTH_RESPONSE_TYPE_CODIGO,
+        client_id: Parametros.Cliente_Id,
+        redirect_uri: Parametros.Redirect_Uri,
+        scope: Parametros.Scopes.join(" "),
+        state: Parametros.State,
+      }
+    );
+    return Response.redirect(Login_Url, 302);
+  }
+
+  if (
+    Req.method === "POST" &&
+    Ruta === "/oauth/authorize"
+  ) {
+    return await Procesar_OAuth_Autorizar_Post(
+      Req,
+      Url
+    );
+  }
+
+  if (
+    Req.method === "POST" &&
+    Ruta === "/oauth/token"
+  ) {
+    return await Procesar_OAuth_Token(Req);
   }
 
   const Rutas_Reservadas = new Set([

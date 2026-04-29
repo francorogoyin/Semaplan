@@ -23,11 +23,12 @@ estructuras persistidas o relaciones importantes entre modulos.
 - `supabase/functions/semaplan-ai`: gateway read-only en
   produccion para consultas de IA sobre datos de Semaplan en
   `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai`.
-  Ya valida tokens/JWT, puede leer `estado_usuario` con filtrado
+  Ya valida tokens/JWT/OAuth, puede leer `estado_usuario` con filtrado
   seguro y expone `/agenda`, `/contexto`, `/tareas`, `/habitos`,
   `/slots`, `/planes/semana`, `/planes/periodos`, `/archivero`,
-  `/archivero/buscar`, `/baul`, `/metas` y `/openapi.json` con vistas
-  compactas y contrato publico para IA.
+  `/archivero/buscar`, `/baul`, `/metas`, `/openapi.json`,
+  `/oauth/authorize` y `/oauth/token` con vistas compactas y contrato
+  publico para IA.
 - `Herramientas/Scripts/semaplan-ai-mcp-server.js`: puente MCP local
   por `stdio` que expone herramientas para Claude y las reenvia al
   gateway `semaplan-ai`, sin leer Supabase directo.

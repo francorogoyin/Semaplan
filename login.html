@@ -20766,6 +20766,14 @@
                 </p>
                 <div class="Cfg_IA_Acciones">
                   <button type="button"
+                    id="Cfg_IA_ChatGPT_Conectar_Btn"
+                    class="Config_Dato_Btn">
+                    <span class="Config_Dato_Btn_Icono">GPT</span>
+                    <span data-i18n="config.ia_chatgpt_conectar">
+                      Conectar ChatGPT
+                    </span>
+                  </button>
+                  <button type="button"
                     id="Cfg_IA_Token_Crear_Btn"
                     class="Config_Dato_Btn">
                     <span class="Config_Dato_Btn_Icono">AI</span>
@@ -26911,6 +26919,18 @@
             "Creá tokens de solo lectura para GPT, Claude y otras herramientas. El valor completo se muestra una sola vez.",
           "config.ia_tokens_intro":
             "Cada token queda guardado como hash y sirve para consultar tu estado desde la API de IA sin compartir tu sesión principal.",
+          "config.ia_chatgpt_conectar":
+            "Conectar ChatGPT",
+          "config.ia_chatgpt_abrir_ok":
+            "Se abrió ChatGPT para iniciar la conexión.",
+          "config.ia_chatgpt_url_faltante":
+            "El enlace del GPT de Semaplan todavía no está publicado.",
+          "dialog.ia_oauth_autorizar_confirm":
+            "ChatGPT solicita permiso para leer tu Semaplan. ¿Querés autorizar esta conexión?",
+          "config.ia_oauth_cancelado":
+            "Conexión con ChatGPT cancelada.",
+          "config.ia_oauth_error":
+            "No se pudo completar la autorización con ChatGPT.",
           "config.ia_tokens_crear":
             "Crear token",
           "config.ia_tokens_ultimo_titulo":
@@ -31158,6 +31178,18 @@
             "Create read-only tokens for GPT, Claude, and other tools. The full value is shown only once.",
           "config.ia_tokens_intro":
             "Each token is stored as a hash and can query your state through the AI API without sharing your main session.",
+          "config.ia_chatgpt_conectar":
+            "Connect ChatGPT",
+          "config.ia_chatgpt_abrir_ok":
+            "ChatGPT was opened to start the connection.",
+          "config.ia_chatgpt_url_faltante":
+            "The Semaplan GPT link is not published yet.",
+          "dialog.ia_oauth_autorizar_confirm":
+            "ChatGPT is requesting read access to your Semaplan. Do you want to authorize this connection?",
+          "config.ia_oauth_cancelado":
+            "ChatGPT connection canceled.",
+          "config.ia_oauth_error":
+            "Could not complete authorization with ChatGPT.",
           "config.ia_tokens_crear":
             "Create token",
           "config.ia_tokens_ultimo_titulo":
@@ -35418,6 +35450,18 @@
             "Crie tokens somente leitura para GPT, Claude e outras ferramentas. O valor completo aparece apenas uma vez.",
           "config.ia_tokens_intro":
             "Cada token fica salvo como hash e serve para consultar seu estado pela API de IA sem compartilhar sua sessão principal.",
+          "config.ia_chatgpt_conectar":
+            "Conectar ChatGPT",
+          "config.ia_chatgpt_abrir_ok":
+            "O ChatGPT foi aberto para iniciar a conexão.",
+          "config.ia_chatgpt_url_faltante":
+            "O link do GPT Semaplan ainda não foi publicado.",
+          "dialog.ia_oauth_autorizar_confirm":
+            "O ChatGPT está pedindo permissão de leitura do seu Semaplan. Você quer autorizar essa conexão?",
+          "config.ia_oauth_cancelado":
+            "Conexão com ChatGPT cancelada.",
+          "config.ia_oauth_error":
+            "Não foi possível concluir a autorização com o ChatGPT.",
           "config.ia_tokens_crear":
             "Criar token",
           "config.ia_tokens_ultimo_titulo":
@@ -38749,6 +38793,8 @@
       let Objetivo_Touch_Para_Bloque_Id = null;
       const Url_App_Desktop = "";
       const Url_App_Android = "";
+      const Url_GPT_Semaplan =
+        "https://chatgpt.com/gpts";
       let Objetivo_Seleccionada_Id = null;
       let Modo_Editor_Abierto = false;
       let Semana_Actual = null;
@@ -76174,6 +76220,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let IA_Tokens_Error_Msg = "";
       let IA_Tokens_Remoto_No_Configurado = false;
       let IA_Tokens_Remoto_No_Configurado_Notificado = false;
+      let OAuth_IA_Autorizacion_En_Curso = false;
 
       function Limpiar_Token_IA_Ultimo_Creado() {
         IA_Token_Ultimo_Creado = "";
@@ -77770,6 +77817,164 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Url = Obtener_Url_App_Config(Tipo);
         if (!Url) return;
         window.open(Url, "_blank", "noopener");
+      }
+
+      function Abrir_ChatGPT_Semaplan_Config() {
+        const Url = String(
+          Url_GPT_Semaplan || ""
+        ).trim();
+        if (!Url) {
+          Mostrar_Toast_Error(
+            t("config.ia_chatgpt_url_faltante")
+          );
+          return;
+        }
+        window.open(Url, "_blank", "noopener");
+        Mostrar_Toast_Info(
+          t("config.ia_chatgpt_abrir_ok"),
+          "GPT"
+        );
+      }
+
+      function Leer_Solicitud_OAuth_IA_Desde_Url() {
+        try {
+          const Params = new URLSearchParams(
+            window.location.search || ""
+          );
+          if (Params.get("oauth_ia") !== "1") {
+            return null;
+          }
+          const Response_Type = String(
+            Params.get("response_type") || ""
+          ).trim();
+          const Cliente_Id = String(
+            Params.get("client_id") || ""
+          ).trim();
+          const Redirect_Uri = String(
+            Params.get("redirect_uri") || ""
+          ).trim();
+          const Scope = String(
+            Params.get("scope") || "read"
+          ).trim();
+          const State = String(
+            Params.get("state") || ""
+          ).trim();
+          if (
+            !Response_Type ||
+            !Cliente_Id ||
+            !Redirect_Uri ||
+            !State
+          ) {
+            return null;
+          }
+          return {
+            Response_Type,
+            Cliente_Id,
+            Redirect_Uri,
+            Scope,
+            State
+          };
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function Limpiar_Solicitud_OAuth_IA_Url() {
+        try {
+          const Url = new URL(window.location.href);
+          [
+            "oauth_ia",
+            "response_type",
+            "client_id",
+            "redirect_uri",
+            "scope",
+            "state"
+          ].forEach((Clave) => {
+            Url.searchParams.delete(Clave);
+          });
+          history.replaceState(
+            null,
+            "",
+            Url.toString()
+          );
+        } catch (_) {}
+      }
+
+      async function Procesar_Solicitud_OAuth_IA_Pendiente() {
+        const Solicitud =
+          Leer_Solicitud_OAuth_IA_Desde_Url();
+        if (!Solicitud) return false;
+        if (!Supa || !Usuario_Actual) return false;
+        if (OAuth_IA_Autorizacion_En_Curso) {
+          return false;
+        }
+        OAuth_IA_Autorizacion_En_Curso = true;
+        try {
+          const Confirmar = await Mostrar_Dialogo(
+            t("dialog.ia_oauth_autorizar_confirm"),
+            [
+              {
+                Etiqueta: t("cancelar"),
+                Valor: false,
+                Tipo: "Cancelar"
+              },
+              {
+                Etiqueta: t("ok"),
+                Valor: true,
+                Tipo: "Primario"
+              }
+            ]
+          );
+          if (!Confirmar) {
+            Limpiar_Solicitud_OAuth_IA_Url();
+            Mostrar_Toast_Info(
+              t("config.ia_oauth_cancelado"),
+              "GPT"
+            );
+            return false;
+          }
+          const Query = new URLSearchParams({
+            response_type: Solicitud.Response_Type,
+            client_id: Solicitud.Cliente_Id,
+            redirect_uri: Solicitud.Redirect_Uri,
+            scope: Solicitud.Scope,
+            state: Solicitud.State
+          }).toString();
+          const { data, error } =
+            await Invocar_Edge_Con_Sesion(
+              `semaplan-ai/oauth/authorize?${Query}`,
+              {
+                method: "POST",
+                body: {},
+                Registrar_Error: false
+              }
+            );
+          const Redirect = String(
+            data?.Redirect_Url || ""
+          ).trim();
+          if (error || !data?.Ok || !Redirect) {
+            Mostrar_Toast_Error(
+              t("config.ia_oauth_error")
+            );
+            return false;
+          }
+          Limpiar_Solicitud_OAuth_IA_Url();
+          window.location.assign(Redirect);
+          return true;
+        } catch (E) {
+          await Log_Error_App(
+            "cuenta",
+            "oauth_ia_autorizar",
+            "No se pudo completar OAuth de IA",
+            E
+          );
+          Mostrar_Toast_Error(
+            t("config.ia_oauth_error")
+          );
+          return false;
+        } finally {
+          OAuth_IA_Autorizacion_En_Curso = false;
+        }
       }
 
       async function Guardar_Tipo_Slot_Config_Desde_Modal() {
@@ -108556,6 +108761,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ?.addEventListener("click", Cuenta_Eliminar_Cuenta);
       document.getElementById("Cfg_IA_Token_Crear_Btn")
         ?.addEventListener("click", Crear_Token_IA_Cuenta);
+      document.getElementById("Cfg_IA_ChatGPT_Conectar_Btn")
+        ?.addEventListener("click", Abrir_ChatGPT_Semaplan_Config);
       document.getElementById("Cfg_IA_Token_Copiar_Btn")
         ?.addEventListener("click", Copiar_Token_IA_Visible);
       document.getElementById("Cfg_IA_Tokens_Lista")
@@ -119589,6 +119796,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         // 4) Mostrar datos del usuario en la sección Cuenta.
         Renderizar_Datos_Cuenta();
+
+        const OAuth_IA_Procesado =
+          await Procesar_Solicitud_OAuth_IA_Pendiente();
+        if (OAuth_IA_Procesado) return;
 
         // 5) Llamar al Inicializar original (carga estado).
         Cargando_Inicial = true;

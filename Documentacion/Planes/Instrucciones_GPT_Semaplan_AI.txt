@@ -7,6 +7,10 @@ Texto exacto sugerido para pegar en el campo `Instructions` del GPT:
 Nombre sugerido:
 Semaplan
 
+Base URL viva actual:
+
+`https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai`
+
 Acciones.
 
 1. Usar como contrato principal:
@@ -15,14 +19,48 @@ Acciones.
 2. Si se quiere validar el contrato vivo en runtime, revisar:
    `GET /openapi.json`
 
-Base URL viva actual:
+Autenticacion recomendada (sin copiar API key por usuario).
 
-`https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai`
+Usar OAuth en GPT Actions.
 
-3. Configurar autenticacion como API key en header:
-   `X-Semaplan-AI-Token`
+Valores:
 
-4. Usar siempre un token de lectura por usuario.
+- Authorization URL:
+  `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai/oauth/authorize`
+- Token URL:
+  `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai/oauth/token`
+- Scope:
+  `read`
+- Client ID:
+  `semaplan-chatgpt` (o el que definas en secreto)
+- Client Secret:
+  el mismo valor que guardes en `SEMAPLAN_AI_OAUTH_CLIENT_SECRET`
+
+Secrets requeridos en Supabase Functions.
+
+- `SEMAPLAN_AI_OAUTH_CLIENT_ID`
+- `SEMAPLAN_AI_OAUTH_CLIENT_SECRET`
+- `SEMAPLAN_AI_OAUTH_LOGIN_URL`
+  recomendado:
+  `https://semaplan.com/login.html`
+
+Flujo final para usuario.
+
+1. El usuario abre el GPT de Semaplan en ChatGPT.
+2. Al primer uso de Actions, ChatGPT muestra `Sign in`.
+3. ChatGPT redirige a Semaplan (`/oauth/authorize`) y luego a
+   `login.html`.
+4. Si el usuario no tenia sesion, inicia sesion en Semaplan.
+5. Semaplan pide confirmar permisos de lectura.
+6. Se completa OAuth y ChatGPT queda conectado.
+7. Desde ese momento consulta datos sin token manual.
+
+Compatibilidad / fallback.
+
+- Se mantiene el modo API key por `X-Semaplan-AI-Token` para pruebas o
+  escenarios legacy.
+- En modo OAuth, cada autorizacion crea un token de lectura interno del
+  usuario para auditar uso y revocar desde `Cuenta -> Integraciones IA`.
 
 Instrucciones sugeridas para el GPT.
 
@@ -55,5 +93,3 @@ Notas.
 - `GET /salud` sirve solo para chequeo tecnico.
 - `GET /openapi.json` no expone datos del usuario y puede usarse como
   referencia viva del contrato.
-- El token se crea desde `Cuenta` -> `Integraciones IA` dentro de la
-  app y viaja siempre por `X-Semaplan-AI-Token`.

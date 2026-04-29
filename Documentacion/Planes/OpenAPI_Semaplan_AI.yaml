@@ -12,23 +12,38 @@ components:
       in: header
       name: X-Semaplan-AI-Token
       description: Token de lectura de Semaplan para integraciones de IA.
+    SemaplanAIOAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai/oauth/authorize
+          tokenUrl: https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai/oauth/token
+          scopes:
+            read: Lectura de datos del usuario en Semaplan.
   schemas:
-    SemaplanRespuestaGenerica:
+    SemaplanRespuestaExitosa:
       type: object
-      description: >
-        Respuesta generica read-only de Semaplan AI. El payload puede
-        variar segun endpoint.
       properties:
-        ok:
+        Ok:
           type: boolean
-          description: Indica si la respuesta fue exitosa.
-        data:
-          type: object
-          description: Contenido principal de la respuesta.
-          additionalProperties: true
-        error:
+          example: true
+      required:
+        - Ok
+      additionalProperties: true
+    SemaplanRespuestaError:
+      type: object
+      properties:
+        Ok:
+          type: boolean
+          example: false
+        Error:
           type: string
-          description: Mensaje de error en caso de falla.
+        Detalle:
+          type: string
+      required:
+        - Ok
+        - Error
+        - Detalle
       additionalProperties: true
 paths:
   /salud:
@@ -41,7 +56,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
   /openapi.json:
     get:
       operationId: semaplan_openapi
@@ -52,12 +67,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
   /contexto:
     get:
       operationId: semaplan_contexto
       summary: Obtener contexto compacto de Semaplan
       security:
+        - SemaplanAIOAuth:
+            - read
         - SemaplanAIToken: []
       parameters:
         - name: desde
@@ -76,12 +93,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
   /agenda:
     get:
       operationId: semaplan_agenda
       summary: Leer agenda, eventos y slots muertos por rango
       security:
+        - SemaplanAIOAuth:
+            - read
         - SemaplanAIToken: []
       parameters:
         - name: desde
@@ -100,12 +119,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
   /tareas:
     get:
       operationId: semaplan_tareas
       summary: Leer tareas por rango y filtros
       security:
+        - SemaplanAIOAuth:
+            - read
         - SemaplanAIToken: []
       parameters:
         - name: desde
@@ -138,12 +159,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
   /habitos:
     get:
       operationId: semaplan_habitos
       summary: Leer habitos visibles
       security:
+        - SemaplanAIOAuth:
+            - read
         - SemaplanAIToken: []
       parameters:
         - name: fecha
@@ -168,12 +191,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
   /slots:
     get:
       operationId: semaplan_slots
       summary: Leer slots vacios o muertos por rango
       security:
+        - SemaplanAIOAuth:
+            - read
         - SemaplanAIToken: []
       parameters:
         - name: desde
@@ -192,12 +217,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
   /planes/semana:
     get:
       operationId: semaplan_plan_semana
       summary: Leer snapshot y diff del plan semanal
       security:
+        - SemaplanAIOAuth:
+            - read
         - SemaplanAIToken: []
       parameters:
         - name: semana
@@ -212,12 +239,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
   /planes/periodos:
     get:
       operationId: semaplan_planes_periodos
       summary: Leer periodos o arbol compacto de un periodo
       security:
+        - SemaplanAIOAuth:
+            - read
         - SemaplanAIToken: []
       parameters:
         - name: periodo_id
@@ -240,12 +269,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
   /archivero:
     get:
       operationId: semaplan_listar_archivero
       summary: Listar cajones y notas del Archivero
       security:
+        - SemaplanAIOAuth:
+            - read
         - SemaplanAIToken: []
       parameters:
         - name: cajon_id
@@ -264,12 +295,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
   /archivero/buscar:
     get:
       operationId: semaplan_buscar_archivero
       summary: Buscar notas del Archivero por texto
       security:
+        - SemaplanAIOAuth:
+            - read
         - SemaplanAIToken: []
       parameters:
         - name: q
@@ -290,12 +323,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
   /baul:
     get:
       operationId: semaplan_listar_baul
       summary: Listar objetivos del Baul
       security:
+        - SemaplanAIOAuth:
+            - read
         - SemaplanAIToken: []
       parameters:
         - name: categoria
@@ -318,12 +353,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
   /metas:
     get:
       operationId: semaplan_listar_metas
       summary: Listar metas resumidas
       security:
+        - SemaplanAIOAuth:
+            - read
         - SemaplanAIToken: []
       parameters:
         - name: limite
@@ -338,4 +375,6 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SemaplanRespuestaGenerica"
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
+
+
