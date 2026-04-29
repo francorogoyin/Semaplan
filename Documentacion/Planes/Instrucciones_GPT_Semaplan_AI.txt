@@ -1,4 +1,6 @@
-Instrucciones base para configurar el GPT de Semaplan.
+Instrucciones base para configurar Semaplan en ChatGPT.
+
+Modo recomendado actual: App MCP (no GPT por link).
 
 Texto exacto sugerido para pegar en el campo `Instructions` del GPT:
 
@@ -7,9 +9,13 @@ Texto exacto sugerido para pegar en el campo `Instructions` del GPT:
 Nombre sugerido:
 Semaplan
 
-Base URL viva actual:
+Base URL viva actual (gateway de lectura):
 
 `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai`
+
+URL MCP remota para ChatGPT Apps:
+
+`https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai-mcp/mcp`
 
 Acciones.
 
@@ -21,7 +27,7 @@ Acciones.
 
 Autenticacion recomendada (sin copiar API key por usuario).
 
-Usar OAuth en GPT Actions.
+Usar OAuth en App MCP o GPT Actions.
 
 Valores:
 
@@ -44,20 +50,21 @@ Secrets requeridos en Supabase Functions.
   recomendado:
   `https://semaplan.com/login.html`
 
-Flujo final para usuario.
+Flujo final para usuario (App MCP).
 
-1. El usuario abre el GPT de Semaplan en ChatGPT.
-2. Al primer uso de Actions, ChatGPT muestra `Sign in`.
-3. ChatGPT redirige a Semaplan (`/oauth/authorize`) y luego a
-   `login.html`.
-4. Si el usuario no tenia sesion, inicia sesion en Semaplan.
-5. Semaplan pide confirmar permisos de lectura.
-6. Se completa OAuth y ChatGPT queda conectado.
-7. Desde ese momento consulta datos sin token manual.
+1. En ChatGPT, abrir `Settings -> Apps & Connectors -> Create`.
+2. Cargar la URL MCP remota de Semaplan (`.../mcp`).
+3. Elegir autenticacion OAuth y usar URLs/credenciales de arriba.
+4. Al conectar, ChatGPT redirige a Semaplan (`/oauth/authorize`) y
+   luego a `login.html`.
+5. Si el usuario no tenia sesion, inicia sesion en Semaplan.
+6. Semaplan pide confirmar permisos de lectura.
+7. Se completa OAuth y la app queda disponible para chats comunes.
 
 Compatibilidad / fallback.
 
-- En ChatGPT Actions, usar solo OAuth (unico esquema del OpenAPI).
+- En ChatGPT Apps (MCP), usar OAuth para identidad de usuario.
+- En ChatGPT Actions, seguir usando OAuth (unico esquema del OpenAPI).
 - El modo API key por `X-Semaplan-AI-Token` se mantiene para pruebas o
   scripts legacy fuera de Actions.
 - En modo OAuth, cada autorizacion crea un token de lectura interno del

@@ -26920,19 +26920,19 @@
           "config.ia_tokens_intro":
             "Cada token queda guardado como hash y sirve para consultar tu estado desde la API de IA sin compartir tu sesión principal.",
           "config.ia_chatgpt_conectar":
-            "Conectar ChatGPT",
+            "Conectar App MCP",
           "config.ia_chatgpt_abrir_ok":
-            "Se abrió ChatGPT para iniciar la conexión.",
+            "Se abrió ChatGPT en Apps y Conectores para conectar Semaplan MCP.",
           "config.ia_chatgpt_url_faltante":
-            "El enlace del GPT de Semaplan todavía no está publicado.",
+            "ChatGPT no tiene disponible la configuración de Apps en este entorno.",
           "config.ia_chatgpt_url_pedir":
-            "Pegá el enlace directo del GPT de Semaplan.",
+            "Abrí Apps y Conectores en ChatGPT y creá una app MCP con la URL /mcp de Semaplan.",
           "config.ia_chatgpt_url_placeholder":
-            "https://chatgpt.com/g/g-...",
+            "https://<proyecto>.supabase.co/functions/v1/semaplan-ai-mcp/mcp",
           "config.ia_chatgpt_url_guardada":
-            "Enlace del GPT guardado.",
+            "Configuración MCP guardada.",
           "config.ia_chatgpt_url_invalida":
-            "El enlace debe ser https://chatgpt.com/g/... (o chat.openai.com/g/...).",
+            "La URL MCP debe terminar en /functions/v1/semaplan-ai-mcp/mcp",
           "dialog.ia_oauth_autorizar_confirm":
             "ChatGPT solicita permiso para leer tu Semaplan. ¿Querés autorizar esta conexión?",
           "config.ia_oauth_cancelado":
@@ -31187,19 +31187,19 @@
           "config.ia_tokens_intro":
             "Each token is stored as a hash and can query your state through the AI API without sharing your main session.",
           "config.ia_chatgpt_conectar":
-            "Connect ChatGPT",
+            "Connect MCP App",
           "config.ia_chatgpt_abrir_ok":
-            "ChatGPT was opened to start the connection.",
+            "ChatGPT Apps & Connectors was opened to connect Semaplan MCP.",
           "config.ia_chatgpt_url_faltante":
-            "The Semaplan GPT link is not published yet.",
+            "ChatGPT Apps settings are not available in this environment.",
           "config.ia_chatgpt_url_pedir":
-            "Paste the direct link to your Semaplan GPT.",
+            "Open ChatGPT Apps & Connectors and create an MCP app with the Semaplan /mcp URL.",
           "config.ia_chatgpt_url_placeholder":
-            "https://chatgpt.com/g/g-...",
+            "https://<project>.supabase.co/functions/v1/semaplan-ai-mcp/mcp",
           "config.ia_chatgpt_url_guardada":
-            "GPT link saved.",
+            "MCP configuration saved.",
           "config.ia_chatgpt_url_invalida":
-            "The link must be https://chatgpt.com/g/... (or chat.openai.com/g/...).",
+            "The MCP URL must end with /functions/v1/semaplan-ai-mcp/mcp",
           "dialog.ia_oauth_autorizar_confirm":
             "ChatGPT is requesting read access to your Semaplan. Do you want to authorize this connection?",
           "config.ia_oauth_cancelado":
@@ -35467,19 +35467,19 @@
           "config.ia_tokens_intro":
             "Cada token fica salvo como hash e serve para consultar seu estado pela API de IA sem compartilhar sua sessão principal.",
           "config.ia_chatgpt_conectar":
-            "Conectar ChatGPT",
+            "Conectar App MCP",
           "config.ia_chatgpt_abrir_ok":
-            "O ChatGPT foi aberto para iniciar a conexão.",
+            "O ChatGPT em Apps e Conectores foi aberto para conectar o Semaplan MCP.",
           "config.ia_chatgpt_url_faltante":
-            "O link do GPT Semaplan ainda não foi publicado.",
+            "A configuração de Apps do ChatGPT não está disponível neste ambiente.",
           "config.ia_chatgpt_url_pedir":
-            "Cole o link direto do GPT do Semaplan.",
+            "Abra Apps e Conectores no ChatGPT e crie um app MCP com a URL /mcp do Semaplan.",
           "config.ia_chatgpt_url_placeholder":
-            "https://chatgpt.com/g/g-...",
+            "https://<projeto>.supabase.co/functions/v1/semaplan-ai-mcp/mcp",
           "config.ia_chatgpt_url_guardada":
-            "Link do GPT salvo.",
+            "Configuração MCP salva.",
           "config.ia_chatgpt_url_invalida":
-            "O link deve ser https://chatgpt.com/g/... (ou chat.openai.com/g/...).",
+            "A URL MCP deve terminar em /functions/v1/semaplan-ai-mcp/mcp",
           "dialog.ia_oauth_autorizar_confirm":
             "O ChatGPT está pedindo permissão de leitura do seu Semaplan. Você quer autorizar essa conexão?",
           "config.ia_oauth_cancelado":
@@ -38817,10 +38817,8 @@
       let Objetivo_Touch_Para_Bloque_Id = null;
       const Url_App_Desktop = "";
       const Url_App_Android = "";
-      const Url_GPT_Semaplan_Default = "";
-      const Clave_GPT_Semaplan_Url = Clave_Por_Entorno(
-        "Semaplan_GPT_Url_V1"
-      );
+      const Url_ChatGPT_Apps_Default =
+        "https://chatgpt.com/#settings/Connectors";
       let Objetivo_Seleccionada_Id = null;
       let Modo_Editor_Abierto = false;
       let Semana_Actual = null;
@@ -77845,93 +77843,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         window.open(Url, "_blank", "noopener");
       }
 
-      function Normalizar_Url_GPT_Semaplan(Url_Raw) {
-        const Url_Limpia = String(
-          Url_Raw || ""
-        ).trim();
-        if (!Url_Limpia) return "";
-        try {
-          const Url = new URL(Url_Limpia);
-          const Host = Url.hostname.toLowerCase();
-          const Ruta = String(Url.pathname || "")
-            .trim()
-            .toLowerCase();
-          if (
-            Url.protocol !== "https:" ||
-            (
-              Host !== "chatgpt.com" &&
-              Host !== "chat.openai.com"
-            ) ||
-            !Ruta.startsWith("/g/")
-          ) {
-            return "";
-          }
-          return Url.toString();
-        } catch (_) {
-          return "";
-        }
-      }
-
-      function Leer_Url_GPT_Semaplan_Guardada() {
-        return String(
-          localStorage.getItem(Clave_GPT_Semaplan_Url) || ""
-        ).trim();
-      }
-
-      function Guardar_Url_GPT_Semaplan_Guardada(Url) {
-        const Url_Normalizada =
-          Normalizar_Url_GPT_Semaplan(Url);
-        if (!Url_Normalizada) {
-          localStorage.removeItem(Clave_GPT_Semaplan_Url);
-          return "";
-        }
-        localStorage.setItem(
-          Clave_GPT_Semaplan_Url,
-          Url_Normalizada
+      function Abrir_ChatGPT_Semaplan_Config() {
+        window.open(
+          Url_ChatGPT_Apps_Default,
+          "_blank",
+          "noopener"
         );
-        return Url_Normalizada;
-      }
-
-      function Obtener_Url_GPT_Semaplan_Config() {
-        const Guardada =
-          Normalizar_Url_GPT_Semaplan(
-            Leer_Url_GPT_Semaplan_Guardada()
-          );
-        if (Guardada) return Guardada;
-        return Normalizar_Url_GPT_Semaplan(
-          Url_GPT_Semaplan_Default
-        );
-      }
-
-      async function Abrir_ChatGPT_Semaplan_Config() {
-        let Url = Obtener_Url_GPT_Semaplan_Config();
-        if (!Url) {
-          const Url_Cargada = await Mostrar_Dialogo_Con_Texto(
-            t("config.ia_chatgpt_url_pedir"),
-            {
-              Placeholder: t(
-                "config.ia_chatgpt_url_placeholder"
-              ),
-              Etiqueta_Confirmar: t("guardar"),
-              Etiqueta_Cancelar: t("cancelar")
-            }
-          );
-          if (Url_Cargada == null) return;
-          Url = Guardar_Url_GPT_Semaplan_Guardada(
-            Url_Cargada
-          );
-          if (!Url) {
-            Mostrar_Toast_Error(
-              t("config.ia_chatgpt_url_invalida")
-            );
-            return;
-          }
-          Mostrar_Toast_Info(
-            t("config.ia_chatgpt_url_guardada"),
-            "GPT"
-          );
-        }
-        window.open(Url, "_blank", "noopener");
         Mostrar_Toast_Info(
           t("config.ia_chatgpt_abrir_ok"),
           "GPT"
