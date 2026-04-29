@@ -18661,7 +18661,7 @@
       /* --- Selector universal de emojis --- */
       .Selector_Emojis_Popover {
         position: fixed;
-        z-index: 13000;
+        z-index: 14500;
         background: #fff;
         border: 1px solid var(--Borde);
         border-radius: 12px;
@@ -111291,6 +111291,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Pop.style.visibility = "visible";
       }
 
+      function Calcular_Z_Index_Selector_Emojis() {
+        // Asegura que el selector quede por encima del modal
+        // o popover activo al momento de abrirse.
+        let Max_Z = 14500;
+        document.querySelectorAll(".Activo").forEach((El) => {
+          if (!(El instanceof HTMLElement)) return;
+          const Z = Number.parseInt(
+            window.getComputedStyle(El).zIndex || "",
+            10
+          );
+          if (Number.isFinite(Z)) {
+            Max_Z = Math.max(Max_Z, Z + 20);
+          }
+        });
+        return Max_Z;
+      }
+
       function Selector_Emojis_Esta_Abierto() {
         const Pop = document.getElementById(
           "Selector_Emojis_Popover"
@@ -111345,6 +111362,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Construir_Selector_Emojis();
         Selector_Emojis_Input_Activo = Input_El;
         Bloquear_Input_Emoji_Activo(Input_El);
+        const Pop = document.getElementById(
+          "Selector_Emojis_Popover"
+        );
+        if (Pop) {
+          if (Pop.parentElement !== document.body) {
+            document.body.appendChild(Pop);
+          }
+          Pop.style.zIndex = String(
+            Calcular_Z_Index_Selector_Emojis()
+          );
+        }
         const Buscador = document.getElementById(
           "Selector_Emojis_Buscador"
         );
