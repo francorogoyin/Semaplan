@@ -13,6 +13,8 @@ const MCP_SERVER_NAME = "semaplan-ai-mcp";
 const MCP_SERVER_VERSION = "1.0.0";
 const Url_Canonica_Semaplan = "https://semaplan.com/login.html";
 const Prefijo_Id_Fetch = "spmcp_";
+const OAUTH_SCOPE_LECTURA = "read";
+const OAUTH_SCOPE_REFRESH = "offline_access";
 
 type Mapa = Record<string, unknown>;
 
@@ -351,6 +353,16 @@ function Es_Mensaje_JSONRPC_Request(M: unknown) {
   );
 }
 
+function Request_Tiene_Bearer_O_Token(Req: Request) {
+  const Auth = String(
+    Req.headers.get("authorization") || "",
+  ).trim();
+  const Token = String(
+    Req.headers.get("x-semaplan-ai-token") || "",
+  ).trim();
+  return Boolean(Auth || Token);
+}
+
 function Normalizar_Origen_Item(Valor: string) {
   const Limpio = String(Valor || "").trim();
   if (!Limpio) return "";
@@ -408,6 +420,99 @@ function Origen_Valido(Req: Request) {
   }
 }
 
+function Obtener_Config_OAuth() {
+  const Cliente_Id = String(
+    Deno.env.get("SEMAPLAN_AI_OAUTH_CLIENT_ID") ||
+      "semaplan-chatgpt",
+  ).trim();
+  const Cliente_Secret = String(
+    Deno.env.get("SEMAPLAN_AI_OAUTH_CLIENT_SECRET") ||
+      "",
+  ).trim();
+  return {
+    Cliente_Id,
+    Cliente_Secret,
+    Habilitado: Boolean(Cliente_Id && Cliente_Secret),
+  };
+}
+
+function Quitar_Slash_Final(Valor: string) {
+  return Valor.replace(/\/+$/, "");
+}
+
+function Quitar_Slash_Inicial(Valor: string) {
+  return Valor.replace(/^\/+/, "");
+}
+
+function Unir_Url(Base: string, Ruta: string) {
+  const Base_Limpia = Quitar_Slash_Final(
+    String(Base || ""),
+  );
+  const Ruta_Limpia = Quitar_Slash_Inicial(
+    String(Ruta || ""),
+  );
+  if (!Base_Limpia) {
+    return `/${Ruta_Limpia}`;
+  }
+  if (!Ruta_Limpia) {
+    return Base_Limpia;
+  }
+  return `${Base_Limpia}/${Ruta_Limpia}`;
+}
+
+function Obtener_Origen_Publico(Req: Request) {
+  const Url = new URL(Req.url);
+  const Url_Supabase = String(
+    Deno.env.get("SUPABASE_URL") || "",
+  ).trim();
+  if (Url_Supabase) {
+    return Quitar_Slash_Final(
+      Url_Supabase.replace(/^http:\/\//i, "https://"),
+    );
+  }
+
+  const Protocolo_Header = String(
+    Req.headers.get("x-forwarded-proto") ||
+      Req.headers.get("x-forwarded-protocol") ||
+      "",
+  )
+    .split(",")[0]
+    .trim()
+    .replace(/:$/, "");
+  const Host_Header = String(
+    Req.headers.get("x-forwarded-host") ||
+      Req.headers.get("host") ||
+      "",
+  )
+    .split(",")[0]
+    .trim();
+  if (Host_Header) {
+    const Protocolo = Protocolo_Header || "https";
+    return `${Protocolo}://${Host_Header}`
+      .replace(/^http:\/\//i, "https://");
+  }
+
+  return Url.origin.replace(/^http:\/\//i, "https://");
+}
+
+function Obtener_Prefijo_Publico_Funciones(
+  Req: Request,
+) {
+  const Url = new URL(Req.url);
+  const Segmentos = Url.pathname
+    .split("/")
+    .filter(Boolean);
+  const Indice = Segmentos.lastIndexOf(
+    "semaplan-ai-mcp",
+  );
+  if (Indice > 0) {
+    return `/${Segmentos
+      .slice(0, Indice)
+      .join("/")}`;
+  }
+  return "/functions/v1";
+}
+
 function Obtener_Ruta_Relativa(Req: Request) {
   const Url = new URL(Req.url);
   const Segmentos = Url.pathname
@@ -427,20 +532,139 @@ function Obtener_Ruta_Relativa(Req: Request) {
 }
 
 function Obtener_Url_Base_Gateway(Req: Request) {
-  const Url = new URL(Req.url);
-  const Segmentos = Url.pathname
-    .split("/")
-    .filter(Boolean);
-  const Indice = Segmentos.lastIndexOf(
+  const Base_Funciones = Unir_Url(
+    Obtener_Origen_Publico(Req),
+    Obtener_Prefijo_Publico_Funciones(Req),
+  );
+  return Unir_Url(Base_Funciones, "semaplan-ai");
+}
+
+function Obtener_Url_Base_MCP(Req: Request) {
+  const Base_Funciones = Unir_Url(
+    Obtener_Origen_Publico(Req),
+    Obtener_Prefijo_Publico_Funciones(Req),
+  );
+  return Unir_Url(
+    Base_Funciones,
     "semaplan-ai-mcp",
   );
-  if (Indice >= 0) {
-    const Base = Segmentos
-      .slice(0, Indice)
-      .join("/");
-    return `${Url.origin}/${Base}/semaplan-ai`;
+}
+
+function Obtener_Url_Endpoint_MCP(Req: Request) {
+  return `${Quitar_Slash_Final(
+    Obtener_Url_Base_MCP(Req),
+  )}/mcp`;
+}
+
+function Obtener_Url_Metadata_Recurso(Req: Request) {
+  return `${Quitar_Slash_Final(
+    Obtener_Url_Base_MCP(Req),
+  )}/.well-known/oauth-protected-resource`;
+}
+
+function Obtener_Url_Metadata_Authorization_Server(
+  Req: Request,
+) {
+  return `${Quitar_Slash_Final(
+    Obtener_Url_Base_MCP(Req),
+  )}/.well-known/oauth-authorization-server`;
+}
+
+function Construir_Header_WWW_Authenticate(
+  Req: Request,
+  Parametros: {
+    error?: string;
+    error_description?: string;
+    scope?: string;
+  } = {},
+) {
+  const Partes = [
+    `Bearer realm="${MCP_SERVER_NAME}"`,
+    `resource_metadata="${Obtener_Url_Metadata_Recurso(Req)}"`,
+  ];
+  const Scope = String(
+    Parametros.scope || OAUTH_SCOPE_LECTURA,
+  ).trim();
+  if (Scope) {
+    Partes.push(`scope="${Scope}"`);
   }
-  return `${Url.origin}/functions/v1/semaplan-ai`;
+  if (Parametros.error) {
+    Partes.push(`error="${Parametros.error}"`);
+  }
+  if (Parametros.error_description) {
+    Partes.push(
+      `error_description="${Parametros.error_description}"`,
+    );
+  }
+  return Partes.join(", ");
+}
+
+function Es_Ruta_WellKnown(
+  Ruta: string,
+  Sufijo: string,
+) {
+  const Limpia = (Ruta || "").replace(/\/+$/, "");
+  if (!Limpia) return false;
+  const Base = `/.well-known/${Sufijo}`;
+  return Limpia === Base ||
+    Limpia.startsWith(`${Base}/`) ||
+    Limpia.endsWith(Base) ||
+    Limpia.includes(`${Base}/`);
+}
+
+function Construir_Metadata_Recurso(Req: Request) {
+  const Endpoint_MCP = Obtener_Url_Endpoint_MCP(Req);
+  const Auth_Server = Quitar_Slash_Final(
+    Obtener_Url_Base_MCP(Req),
+  );
+  return {
+    resource: Endpoint_MCP,
+    authorization_servers: [Auth_Server],
+    scopes_supported: [OAUTH_SCOPE_LECTURA],
+    bearer_methods_supported: ["header"],
+    resource_name: "Semaplan MCP",
+    resource_documentation: Url_Canonica_Semaplan,
+  };
+}
+
+function Construir_Metadata_Authorization_Server(
+  Req: Request,
+) {
+  const Issuer = Quitar_Slash_Final(
+    Obtener_Url_Base_MCP(Req),
+  );
+  const Base_OAuth = Quitar_Slash_Final(
+    Obtener_Url_Base_Gateway(Req),
+  );
+  return {
+    issuer: Issuer,
+    authorization_endpoint:
+      `${Base_OAuth}/oauth/authorize`,
+    token_endpoint: `${Base_OAuth}/oauth/token`,
+    response_types_supported: ["code"],
+    grant_types_supported: ["authorization_code"],
+    code_challenge_methods_supported: ["S256"],
+    token_endpoint_auth_methods_supported: ["none"],
+    client_id_metadata_document_supported: true,
+    scopes_supported: [OAUTH_SCOPE_LECTURA],
+  };
+}
+
+function Responder_OAuth_Unauthorized(
+  Req: Request,
+  Parametros: {
+    error?: string;
+    error_description?: string;
+    scope?: string;
+  } = {},
+) {
+  return Responder_Sin_Cuerpo(401, {
+    "WWW-Authenticate":
+      Construir_Header_WWW_Authenticate(
+        Req,
+        Parametros,
+      ),
+  });
 }
 
 function Agregar_Query(Url: URL, Argumentos: Mapa) {
@@ -971,6 +1195,39 @@ Deno.serve(async (Req) => {
   }
 
   const Ruta = Obtener_Ruta_Relativa(Req);
+
+  if (
+    Req.method === "GET" &&
+    Es_Ruta_WellKnown(
+      Ruta,
+      "oauth-protected-resource",
+    )
+  ) {
+    return Responder_Json(
+      Construir_Metadata_Recurso(Req),
+    );
+  }
+
+  if (
+    Req.method === "GET" &&
+    (
+      Es_Ruta_WellKnown(
+        Ruta,
+        "oauth-authorization-server",
+      ) ||
+      Es_Ruta_WellKnown(
+        Ruta,
+        "openid-configuration",
+      )
+    )
+  ) {
+    return Responder_Json(
+      Construir_Metadata_Authorization_Server(
+        Req,
+      ),
+    );
+  }
+
   if (Ruta !== "/" && Ruta !== "/mcp") {
     return Responder_Json(
       Respuesta_MCP_Error(
@@ -983,9 +1240,15 @@ Deno.serve(async (Req) => {
   }
 
   if (Req.method === "GET") {
-    return Responder_Sin_Cuerpo(405, {
-      Allow: "POST",
-    });
+    return Responder_OAuth_Unauthorized(
+      Req,
+      {
+        error: "invalid_token",
+        error_description:
+          "Se requiere OAuth Bearer para usar este MCP.",
+        scope: OAUTH_SCOPE_LECTURA,
+      },
+    );
   }
 
   if (Req.method === "DELETE") {
@@ -1026,6 +1289,27 @@ Deno.serve(async (Req) => {
   ) as Mapa[];
   if (!Requests.length) {
     return Responder_Sin_Cuerpo(202);
+  }
+
+  const Hay_Tools_Call = Requests.some(
+    (Request_MCP) =>
+      String(
+        Request_MCP?.method || "",
+      ).trim() === "tools/call",
+  );
+  if (
+    Hay_Tools_Call &&
+    !Request_Tiene_Bearer_O_Token(Req)
+  ) {
+    return Responder_OAuth_Unauthorized(
+      Req,
+      {
+        error: "invalid_token",
+        error_description:
+          "Falta Bearer token OAuth para tools/call.",
+        scope: OAUTH_SCOPE_LECTURA,
+      },
+    );
   }
 
   const Respuestas: unknown[] = [];
