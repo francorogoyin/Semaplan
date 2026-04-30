@@ -118195,15 +118195,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       const Supabase_Url = Entorno_App.Supabase_Url;
       const Supabase_Anon_Key =
         Entorno_App.Supabase_Anon_Key;
+      const Titulo_Login = "Semaplan | Login";
+      const Titulo_App = "Semaplan";
+
+      function Construir_Titulo_Pagina(En_App = false) {
+        const Base = En_App ? Titulo_App : Titulo_Login;
+        return Entorno_App_Id === "produccion"
+          ? Base
+          : `${Base} [Staging]`;
+      }
+
+      function Actualizar_Titulo_Pagina(En_App = false) {
+        document.title = Construir_Titulo_Pagina(En_App);
+      }
 
       if (Entorno_App_Id !== "produccion") {
         document.documentElement.dataset.entorno =
           Entorno_App_Id;
-        if (!document.title.includes("[Staging]")) {
-          document.title =
-            `${document.title} [Staging]`;
-        }
       }
+      Actualizar_Titulo_Pagina(false);
 
       // Capturar el hash de la URL antes de que
       // el SDK de Supabase lo consuma al
@@ -121173,6 +121183,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Mostrar_Auth() {
+        Actualizar_Titulo_Pagina(false);
         document.getElementById("App_Loader")
           .classList.add("Oculto");
         document.getElementById("Auth_Overlay")
@@ -122367,6 +122378,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       // ----- Inicio de la app después de loguear -----
 
       async function Iniciar_App_Logueada() {
+        Actualizar_Titulo_Pagina(true);
         Aislar_Cache_Local_Por_Usuario();
         Preparar_Sesion_Local_Activa();
 
