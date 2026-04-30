@@ -1,53 +1,54 @@
 {
   "Identificador": "Baul_Objetivos_Semaplan",
   "Titulo": "Usar el Baul de objetivos de Semaplan",
-  "Descripcion_Corta": "Video introductorio para mostrar objetivos no programados, filtros, categorias y vistas del Baul",
+  "Descripcion_Corta": "Video detallado para recorrer el Baul paso a paso, mostrando busqueda, filtros, vistas, archivadas y el formulario de nuevo objetivo",
   "Url_Inicial": "https://semaplan.com",
   "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
   "Headless": true,
+  "Cursor_Fps": 12,
   "Resolucion": {
     "Ancho": 1920,
     "Alto": 1080
   },
-  "Duracion_Cartel_Segundos": 4,
+  "Duracion_Cartel_Segundos": 6,
+  "Voz": {
+    "Proveedor": "Windows",
+    "Velocidad": 2,
+    "Volumen": 100
+  },
   "Youtube": {
     "Titulo": "Usar el Baul de objetivos de Semaplan",
-    "Descripcion": "Como entrar al Baul, revisar objetivos por categoria, usar filtros y cambiar la vista de objetivos",
+    "Descripcion": "Recorrido lento por el Baul de Semaplan: para que sirve, como buscar, filtrar, cambiar vistas, mostrar archivadas y crear un objetivo sin guardarlo",
     "Etiquetas": [
       "Semaplan",
       "Baul",
       "objetivos",
-      "tutorial"
+      "tutorial",
+      "ayuda"
     ]
   },
-  "Narracion": [
-    {
-      "Texto": "El Baul guarda objetivos que todavia no estan puestos en la semana."
-    },
-    {
-      "Texto": "Se puede filtrar por categoria, etiqueta, estado, periodo y cambiar entre vista biblioteca y lista."
-    }
-  ],
   "Pasos_Texto": [
     {
-      "Titulo": "Abrir el Baul",
-      "Texto": "Usar el boton del menu superior"
+      "Titulo": "Entender para que sirve el Baul",
+      "Texto": "El Baul guarda objetivos que todavia no tienen lugar en la semana"
     },
     {
-      "Titulo": "Revisar filtros",
-      "Texto": "Mirar busqueda, categorias, etiquetas, estado y periodo"
+      "Titulo": "Recorrer los filtros",
+      "Texto": "Buscar por nombre, categoria, etiqueta, estado, periodo, orden y agrupacion"
     },
     {
-      "Titulo": "Cambiar vista",
-      "Texto": "Usar los controles de biblioteca o lista"
+      "Titulo": "Cambiar la vista",
+      "Texto": "Alternar entre biblioteca y lista para revisar objetivos con distinto nivel de detalle"
+    },
+    {
+      "Titulo": "Explorar el formulario de nuevo objetivo",
+      "Texto": "Abrir el formulario, revisar sus campos y cerrarlo sin guardar cambios"
     }
   ],
   "Acciones": [
     {
       "Tipo": "Ir_A",
-      "Url": "https://semaplan.com",
-      "Cartel": "Entramos a la app para abrir el Baul.",
-      "Posicion": "Inferior"
+      "Url": "https://semaplan.com"
     },
     {
       "Tipo": "Esperar_Funcion",
@@ -58,9 +59,15 @@
       "Codigo": "() => { if (typeof Aplicar_Estilo_Menu === 'function' && typeof Config === 'object' && Config) { Config.Menu_Estilo = 'Iconos'; Aplicar_Estilo_Menu(); } }"
     },
     {
+      "Tipo": "Esperar",
+      "Segundos": 7,
+      "Tipo_Cartel": "Intro",
+      "Cartel": "En este video vamos a recorrer el Baul. Sirve para guardar objetivos que todavia no queres poner en la semana, pero que no queres perder."
+    },
+    {
       "Tipo": "Click",
       "Selector": "#Baul_Boton",
-      "Cartel": "El Baul junta objetivos disponibles para usar mas adelante.",
+      "Cartel": "Abrimos el Baul desde el menu superior. Primero miramos el mapa general y despues cada control.",
       "Posicion": "Inferior"
     },
     {
@@ -69,23 +76,193 @@
     },
     {
       "Tipo": "Esperar",
-      "Segundos": 4,
-      "Cartel": "Los filtros ayudan a encontrar objetivos por categoria, etiqueta o estado.",
-      "Posicion": "Superior"
+      "Segundos": 7,
+      "Cartel": "Arriba estan busqueda, filtros, orden y vista. Abajo aparece la biblioteca de objetivos.",
+      "Posicion": "Inferior"
     },
     {
-      "Tipo": "Click",
-      "Selector": "#Baul_Vista_Lista",
-      "Cartel": "La vista Lista es util para revisar muchos objetivos rapido.",
+      "Tipo": "Hover",
+      "Selector": "#Baul_Buscar_Input",
+      "Cartel": "La busqueda sirve cuando recordas una palabra del objetivo y queres encontrarlo rapido.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Baul_Buscar_Input",
+      "Texto": "lectura",
+      "Cartel": "Al escribir, la lista se filtra sin borrar nada. Es solo una forma de mirar menos objetivos.",
       "Posicion": "Inferior"
     },
     {
       "Tipo": "Esperar",
-      "Segundos": 4
+      "Segundos": 3
     },
     {
-      "Tipo": "Presionar",
-      "Tecla": "Escape"
+      "Tipo": "Rellenar",
+      "Selector": "#Baul_Buscar_Input",
+      "Texto": "",
+      "Cartel": "Borramos la busqueda para volver a ver el conjunto completo.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Filtro_Categoria",
+      "Cartel": "Categoria separa grandes grupos: trabajo, lectura, salud, compras o cualquier baul que armes.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Filtro_Etiqueta",
+      "Cartel": "Etiqueta sirve para marcas transversales. Por ejemplo urgente, llamada, idea, pospuesta o proyecto.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Filtro_Estado",
+      "Cartel": "Estado diferencia objetivos activos, realizados, postergados o anulados sin mezclarlos.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Filtro_Periodo",
+      "Cartel": "Periodo ayuda cuando un objetivo tiene fecha limite o cuando queres ver vencidos y proximos.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Ordenar_Por",
+      "Cartel": "Ordenar cambia la lectura de la lista: por nombre, fecha, estado u otros criterios disponibles.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Agrupar_Por",
+      "Cartel": "Agrupar junta objetivos por categoria, etiqueta o estado. Es util cuando el Baul crece.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Objetivos_Por_Fila",
+      "Cartel": "Por fila cambia la densidad visual. Menos por fila da mas aire; mas por fila muestra mas cantidad.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Baul_Vista_Lista",
+      "Cartel": "La vista Lista sirve para revisar muchos objetivos de forma rapida y compacta.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Baul_Vista_Biblioteca",
+      "Cartel": "La vista Biblioteca es mejor cuando queres mirar tarjetas con mas contexto visual.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Baul_Mostrar_Archivadas",
+      "Cartel": "Mostrar archivadas trae objetivos que ya sacaste del uso cotidiano, sin eliminarlos.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Baul_Mostrar_Archivadas",
+      "Cartel": "Volvemos a ocultarlas para dejar el Baul limpio y enfocado en lo vigente.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Baul_Nueva_Libreria",
+      "Cartel": "Nueva abre el formulario para cargar un objetivo en el Baul. Todavia no se guarda nada.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Baul_Nuevo_Overlay.Activo"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Nombre_Input",
+      "Cartel": "Nombre es la accion o posibilidad que queres conservar para decidir despues.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Emoji_Input",
+      "Cartel": "Emoji ayuda a reconocer el objetivo rapido cuando despues aparezca en tarjetas o listas.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Tipo_Input",
+      "Cartel": "Tipo distingue un objetivo comun de una bolsa de horas, cuando queres reservar tiempo flexible.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Categoria_Input",
+      "Cartel": "Categoria define en que grupo vive el objetivo dentro del Baul.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Color_Input",
+      "Cartel": "Color sirve como senal visual. Puede venir del baul o elegirse para este objetivo puntual.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Estado_Input",
+      "Cartel": "Estado permite dejar algo activo, postergado, realizado o anulado sin perder historial.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Horas_Aprox_Input",
+      "Cartel": "Horas aproximadas te da una idea del esfuerzo antes de llevarlo a la semana.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Timeline_Input",
+      "Cartel": "Fecha limite convierte una posibilidad suelta en algo que conviene revisar a tiempo.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Descripcion_Input",
+      "Cartel": "Descripcion guarda contexto: por que importa, que falta decidir o cual seria el proximo paso.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Etiquetas_Input",
+      "Cartel": "Etiquetas agregan marcas flexibles para encontrar objetivos desde distintos criterios.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Metadatos_Input",
+      "Cartel": "Metadatos permiten guardar informacion estructurada, como autor, lugar, cliente o prioridad.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Baul_Guardar",
+      "Cartel": "Guardar en el Baul confirma el objetivo. En este tutorial no lo apretamos para no crear datos.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Baul_Nuevo_Cerrar",
+      "Cartel": "Cerramos sin guardar. La idea era aprender el formulario, no modificar la cuenta de prueba.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Baul_Cerrar",
+      "Cartel": "Listo: ya sabes para que sirve el Baul, como filtrarlo, cambiar vistas y cargar objetivos.",
+      "Posicion": "Inferior"
     }
   ]
 }

@@ -11,6 +11,7 @@ contratos de tutoriales, videos generados y motor de produccion.
 - `Ayuda/Videos/Overlays`: carteles generados como imagenes.
 - `Ayuda/Videos/Audio`: narraciones generadas por voz IA.
 - `Ayuda/Videos/Datos`: eventos, capturas y datos intermedios.
+- `Ayuda/Videos/Subtitulos`: subtitulos SRT accesibles.
 - `Ayuda/Sistema_Tutoriales`: scripts del pipeline.
 
 ## Instalacion.
@@ -91,8 +92,29 @@ Las acciones soportadas son `Ir_A`, `Click`, `Rellenar`, `Presionar`,
 grabacion, por ejemplo iniciar sesion o preparar datos visibles antes
 de seguir con acciones automaticas.
 
+## Accesibilidad.
+
+La fuente textual principal del video son los carteles y toasts
+temporizados. Ese mismo texto se usa para la voz y para el archivo
+`.srt`, de modo que una persona sorda pueda leer todo lo que se dice
+y una persona que escucha reciba exactamente lo que aparece en pantalla.
+
+Cada accion relevante debe tener un cartel breve, escrito desde la
+duda del usuario. Primero se explica que se va a hacer, despues el
+mouse visible se mueve hacia el control y recien ahi se ejecuta la
+accion.
+
+Si no hay clave de ElevenLabs, los contratos pueden usar
+`"Proveedor": "Windows"` dentro de `Voz` para generar una narracion
+local de borrador.
+
 ## Regla editorial.
 
-Conviene producir videos de 60 a 180 segundos. Cada video debe cubrir
-una funcion real, no una recorrida general larga. Si una funcion tiene
-muchas variantes, se parte en una pieza base y una pieza avanzada.
+Conviene producir videos de 3 a 8 minutos para secciones grandes y
+de 60 a 180 segundos para funciones puntuales. Cada video debe abrir
+con una introduccion clara: que seccion se recorre, para que sirve,
+que duda resuelve y que acciones se van a mostrar.
+
+El ritmo debe ser deliberado. No alcanza con abrir una seccion: hay
+que recorrer sus zonas principales, mostrar controles, explicar cuando
+usarlos y anticipar el efecto de cada click.

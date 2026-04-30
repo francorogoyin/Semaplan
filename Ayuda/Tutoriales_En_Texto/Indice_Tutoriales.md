@@ -35,6 +35,14 @@ Estos tutoriales ya tienen contrato, texto y video renderizado local.
 - `Habitos_Tareas_Semaplan`.
 - `Ayuda_Config_Semaplan`.
 
+## Nuevo estandar accesible.
+
+`Baul_Objetivos_Semaplan` ya fue migrado al formato detallado:
+recorrido lento, introduccion previa, cursor visible, toasts
+explicativos abajo y subtitulos `.srt` generados desde el mismo texto
+que escucha la persona usuaria. Desde este punto, los demas tutoriales
+deben seguir ese criterio editorial.
+
 ## Criterio de produccion.
 
 Cada tutorial debe tener un contrato JSON propio. Ese contrato define

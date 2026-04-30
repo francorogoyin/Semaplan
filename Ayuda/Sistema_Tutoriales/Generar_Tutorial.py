@@ -19,6 +19,7 @@ Ruta_Renderizados = Ruta_Videos / "Renderizados"
 Ruta_Overlays = Ruta_Videos / "Overlays"
 Ruta_Audios = Ruta_Videos / "Audio"
 Ruta_Datos = Ruta_Videos / "Datos"
+Ruta_Subtitulos = Ruta_Videos / "Subtitulos"
 Ruta_Tutoriales = Ruta_Ayuda / "Tutoriales_En_Texto"
 
 
@@ -68,6 +69,7 @@ def Crear_Directorios_Base() -> None:
         Ruta_Overlays,
         Ruta_Audios,
         Ruta_Datos,
+        Ruta_Subtitulos,
         Ruta_Tutoriales,
     ]:
         Ruta.mkdir(parents = True, exist_ok = True)
@@ -316,7 +318,6 @@ def Generar_Tutorial_Texto(
     Titulo = Obtener_Cadena(Tutorial, "Titulo")
     Descripcion = Obtener_Cadena(Tutorial, "Descripcion_Corta")
     Pasos = Obtener_Lista_Diccionarios(Tutorial, "Pasos_Texto")
-    Narracion = Obtener_Lista_Diccionarios(Tutorial, "Narracion")
     Carteles = Obtener_Carteles_Consolidados(Tutorial)
     Youtube = Tutorial.get("Youtube", {})
 
@@ -351,7 +352,7 @@ def Generar_Tutorial_Texto(
     Lineas.append("## Guion de narracion.")
     Lineas.append("")
 
-    Texto_Narracion = Obtener_Texto_Narracion(Narracion)
+    Texto_Narracion = Obtener_Texto_Audio_Tutorial(Tutorial)
 
     if Texto_Narracion:
         Lineas.append(Texto_Narracion)
@@ -441,6 +442,111 @@ def Obtener_Texto_Narracion(
             Partes.append(Texto.rstrip(".") + ".")
 
     return "\n\n".join(Partes)
+
+
+def Obtener_Texto_Audio_Tutorial(
+    Tutorial: dict[str, object],
+) -> str:
+
+    """
+    Obtiene el texto unico que debe decir la voz del video.
+    La prioridad son los carteles y toasts ya temporizados,
+    porque son exactamente el texto visible para accesibilidad.
+
+    Parametros:
+    - Tutorial: Contrato completo del tutorial.
+
+    Retorna:
+    - str: Texto continuo para generar audio narrado.
+
+    """
+
+    Carteles = Obtener_Carteles_Consolidados(Tutorial)
+
+    if Carteles:
+        Partes = [
+            str(Cartel["Texto"]).strip().rstrip(".") + "."
+            for Cartel in Carteles
+            if str(Cartel.get("Texto", "")).strip()
+        ]
+        return "\n\n".join(Partes)
+
+    Narracion = Obtener_Lista_Diccionarios(Tutorial, "Narracion")
+    return Obtener_Texto_Narracion(Narracion)
+
+
+def Formatear_Tiempo_Srt(Segundos: float) -> str:
+
+    """
+    Formatea segundos como marca de tiempo SRT.
+    El formato generado es HH:MM:SS,mmm y sirve para subir
+    subtitulos junto al video en YouTube u otras plataformas.
+
+    Parametros:
+    - Segundos: Tiempo expresado en segundos desde el inicio.
+
+    Retorna:
+    - str: Tiempo compatible con archivos `.srt`.
+
+    """
+
+    Milisegundos_Totales = int(max(0.0, Segundos) * 1000)
+    Horas = Milisegundos_Totales // 3600000
+    Resto = Milisegundos_Totales % 3600000
+    Minutos = Resto // 60000
+    Resto = Resto % 60000
+    Segundos_Enteros = Resto // 1000
+    Milisegundos = Resto % 1000
+
+    return (
+        f"{Horas:02d}:{Minutos:02d}:"
+        f"{Segundos_Enteros:02d},{Milisegundos:03d}"
+    )
+
+
+def Generar_Subtitulos(
+    Tutorial: dict[str, object],
+    Carteles: list[dict[str, object]],
+) -> Pathlib.Path | None:
+
+    """
+    Genera subtitulos SRT desde los mismos carteles del video.
+    Esta regla evita desalineaciones: lo que se oye, lo que se
+    lee en pantalla y lo que se exporta como subtitulo sale de
+    una unica fuente textual.
+
+    Parametros:
+    - Tutorial: Contrato completo del tutorial.
+    - Carteles: Carteles y toasts temporizados del video.
+
+    Retorna:
+    - Pathlib.Path | None: Ruta SRT generada o None si no hay texto.
+
+    """
+
+    if not Carteles:
+        return None
+
+    Identificador = Obtener_Identificador(Tutorial)
+    Ruta_Salida = Ruta_Subtitulos / f"{Identificador}.srt"
+    Lineas: list[str] = []
+
+    for Indice, Cartel in enumerate(Carteles, start = 1):
+        Texto = str(Cartel.get("Texto", "")).strip()
+
+        if not Texto:
+            continue
+
+        Inicio = Formatear_Tiempo_Srt(float(Cartel["Inicio"]))
+        Fin = Formatear_Tiempo_Srt(float(Cartel["Fin"]))
+        Lineas.append(str(Indice))
+        Lineas.append(f"{Inicio} --> {Fin}")
+        Lineas.append(Texto)
+        Lineas.append("")
+
+    Ruta_Salida.write_text("\n".join(Lineas), encoding = "utf-8")
+
+    return Ruta_Salida
 
 
 def Formatear_Tiempo(Segundos: float) -> str:
@@ -566,6 +672,7 @@ def Normalizar_Cartel(
         "Fin": Fin,
         "Texto": Texto,
         "Posicion": Obtener_Cadena(Cartel, "Posicion", "Inferior"),
+        "Tipo": Obtener_Cadena(Cartel, "Tipo_Cartel", "Toast"),
         "Area": Cartel.get("Area"),
     }
 
@@ -641,6 +748,8 @@ def Capturar_Video(
     Headless = Obtener_Bandera(Tutorial, "Headless", False)
     Ruta_Salida = Ruta_Crudos / f"{Identificador}.webm"
     Eventos: list[dict[str, object]] = []
+    Eventos_Mouse: list[dict[str, object]] = []
+    Estado_Mouse = {"X": 90.0, "Y": 90.0}
 
     if not Acciones:
         raise ValueError("El tutorial no tiene acciones para grabar.")
@@ -673,7 +782,14 @@ def Capturar_Video(
                 Tiempo_Accion,
                 Tutorial,
             )
-            Ejecutar_Accion_Playwright(Pagina, Accion)
+            Ejecutar_Accion_Playwright(
+                Pagina,
+                Accion,
+                Eventos_Mouse,
+                Tiempo_Base,
+                Estado_Mouse,
+            )
+            Pausar_Despues_De_Accion(Pagina, Accion, Tutorial)
 
         Pagina.wait_for_timeout(1000)
         Video = Pagina.video
@@ -693,6 +809,16 @@ def Capturar_Video(
     Ruta_Eventos = Ruta_Datos / f"{Identificador}_Eventos.json"
     Ruta_Eventos.write_text(
         Json.dumps(Eventos, indent = 2, ensure_ascii = False) + "\n",
+        encoding = "utf-8",
+    )
+
+    Ruta_Mouse = Ruta_Datos / f"{Identificador}_Cursor.json"
+    Ruta_Mouse.write_text(
+        Json.dumps(
+            Eventos_Mouse,
+            indent = 2,
+            ensure_ascii = False,
+        ) + "\n",
         encoding = "utf-8",
     )
 
@@ -743,14 +869,70 @@ def Agregar_Evento_Desde_Accion(
                 "Posicion",
                 "Inferior",
             ),
+            "Tipo_Cartel": Obtener_Cadena(
+                Accion,
+                "Tipo_Cartel",
+                "Toast",
+            ),
             "Area": Accion.get("Area"),
         }
     )
 
 
+def Pausar_Despues_De_Accion(
+    Pagina: object,
+    Accion: dict[str, object],
+    Tutorial: dict[str, object],
+) -> None:
+
+    """
+    Inserta una pausa didactica despues de cada accion explicada.
+    Si la accion tiene cartel y no es una espera explicita, se
+    deja respirar la pantalla para que el usuario pueda leer.
+
+    Parametros:
+    - Pagina: Pagina activa de Playwright.
+    - Accion: Accion declarada en el tutorial.
+    - Tutorial: Contrato completo para leer duraciones por defecto.
+
+    Retorna:
+    - None: Solo espera dentro del navegador.
+
+    """
+
+    Tipo = Obtener_Cadena(Accion, "Tipo").replace("-", "_").lower()
+    Pausa = Obtener_Numero(Accion, "Pausa_Despues_Segundos", -1)
+
+    if Pausa < 0:
+        Tiene_Cartel = bool(Obtener_Cadena(Accion, "Cartel"))
+        Es_Espera = Tipo in ["esperar", "pausa_manual"]
+
+        if Tiene_Cartel and not Es_Espera:
+            Pausa = min(
+                Obtener_Numero(
+                    Accion,
+                    "Duracion_Cartel_Segundos",
+                    Obtener_Numero(
+                        Tutorial,
+                        "Duracion_Cartel_Segundos",
+                        5.0,
+                    ),
+                ) * 0.7,
+                4.5,
+            )
+        else:
+            Pausa = 0
+
+    if Pausa > 0:
+        Pagina.wait_for_timeout(int(Pausa * 1000))
+
+
 def Ejecutar_Accion_Playwright(
     Pagina: object,
     Accion: dict[str, object],
+    Eventos_Mouse: list[dict[str, object]] | None = None,
+    Tiempo_Base: float = 0.0,
+    Estado_Mouse: dict[str, float] | None = None,
 ) -> None:
 
     """
@@ -790,11 +972,29 @@ def Ejecutar_Accion_Playwright(
         return
 
     if Tipo == "click":
+        Mover_Mouse_A_Selector(
+            Pagina,
+            Selector,
+            Accion,
+            Eventos_Mouse,
+            Tiempo_Base,
+            Estado_Mouse,
+            True,
+        )
         Pagina.locator(Selector).click()
         return
 
     if Tipo == "rellenar":
         Texto = Obtener_Cadena(Accion, "Texto")
+        Mover_Mouse_A_Selector(
+            Pagina,
+            Selector,
+            Accion,
+            Eventos_Mouse,
+            Tiempo_Base,
+            Estado_Mouse,
+            True,
+        )
         Pagina.locator(Selector).fill(Texto)
         return
 
@@ -823,6 +1023,15 @@ def Ejecutar_Accion_Playwright(
         return
 
     if Tipo == "hover":
+        Mover_Mouse_A_Selector(
+            Pagina,
+            Selector,
+            Accion,
+            Eventos_Mouse,
+            Tiempo_Base,
+            Estado_Mouse,
+            False,
+        )
         Pagina.locator(Selector).hover()
         return
 
@@ -883,6 +1092,80 @@ def Resolver_Ruta_Opcional(
     return Pathlib.Path.cwd() / Ruta
 
 
+def Mover_Mouse_A_Selector(
+    Pagina: object,
+    Selector: str,
+    Accion: dict[str, object],
+    Eventos_Mouse: list[dict[str, object]] | None,
+    Tiempo_Base: float,
+    Estado_Mouse: dict[str, float] | None,
+    Es_Click: bool,
+) -> None:
+
+    """
+    Registra y ejecuta un movimiento deliberado de mouse.
+    Playwright no siempre deja visible el cursor en el video,
+    por eso se guarda un evento para dibujar un cursor sintetico
+    durante el render final.
+
+    Parametros:
+    - Pagina: Pagina activa de Playwright.
+    - Selector: Selector CSS del destino.
+    - Accion: Accion declarada en el tutorial.
+    - Eventos_Mouse: Lista mutable de movimientos registrados.
+    - Tiempo_Base: Momento base para calcular tiempos relativos.
+    - Estado_Mouse: Ultima posicion conocida del cursor sintetico.
+    - Es_Click: Indica si debe dibujarse pulso de click.
+
+    Retorna:
+    - None: Modifica la lista de eventos y mueve el mouse real.
+
+    """
+
+    if not Selector or Eventos_Mouse is None or Estado_Mouse is None:
+        return
+
+    if not Obtener_Bandera(Accion, "Mostrar_Mouse", True):
+        return
+
+    Localizador = Pagina.locator(Selector)
+    Localizador.wait_for(state = "visible", timeout = 30000)
+    Caja = Localizador.bounding_box()
+
+    if Caja is None:
+        return
+
+    Destino_X = float(Caja["x"] + Caja["width"] / 2)
+    Destino_Y = float(Caja["y"] + Caja["height"] / 2)
+    Inicio = Time.perf_counter() - Tiempo_Base
+    Duracion = Obtener_Numero(
+        Accion,
+        "Duracion_Mouse_Segundos",
+        0.9,
+    )
+
+    Eventos_Mouse.append(
+        {
+            "Inicio": round(Inicio, 3),
+            "Fin": round(Inicio + Duracion, 3),
+            "Desde": [
+                round(float(Estado_Mouse.get("X", 90.0)), 2),
+                round(float(Estado_Mouse.get("Y", 90.0)), 2),
+            ],
+            "Hasta": [
+                round(Destino_X, 2),
+                round(Destino_Y, 2),
+            ],
+            "Click": Es_Click,
+        }
+    )
+
+    Pagina.mouse.move(Destino_X, Destino_Y, steps = 18)
+    Pagina.wait_for_timeout(int(Duracion * 1000))
+    Estado_Mouse["X"] = Destino_X
+    Estado_Mouse["Y"] = Destino_Y
+
+
 def Generar_Audio_Narracion(
     Tutorial: dict[str, object],
 ) -> Pathlib.Path:
@@ -902,26 +1185,30 @@ def Generar_Audio_Narracion(
 
     Crear_Directorios_Base()
 
-    Api_Key = Os.environ.get("ELEVENLABS_API_KEY", "").strip()
-    Voz_Entorno = Os.environ.get("ELEVENLABS_VOICE_ID", "").strip()
     Voz = Tutorial.get("Voz", {})
 
     if not isinstance(Voz, dict):
         Voz = {}
 
+    Proveedor = Obtener_Cadena(Voz, "Proveedor", "ElevenLabs")
+    Texto = Obtener_Texto_Audio_Tutorial(Tutorial)
+
+    if not Texto:
+        raise RuntimeError("El tutorial no tiene texto de narracion.")
+
+    if Proveedor.lower() in ["windows", "local", "sapi"]:
+        return Generar_Audio_Windows(Tutorial, Texto, Voz)
+
+    Api_Key = Os.environ.get("ELEVENLABS_API_KEY", "").strip()
+    Voz_Entorno = Os.environ.get("ELEVENLABS_VOICE_ID", "").strip()
     Voice_Id = Obtener_Cadena(Voz, "Elevenlabs_Voice_Id", Voz_Entorno)
     Modelo = Obtener_Cadena(Voz, "Modelo", "eleven_multilingual_v2")
-    Narracion = Obtener_Lista_Diccionarios(Tutorial, "Narracion")
-    Texto = Obtener_Texto_Narracion(Narracion)
 
     if not Api_Key:
         raise RuntimeError("Falta la variable ELEVENLABS_API_KEY.")
 
     if not Voice_Id:
         raise RuntimeError("Falta Elevenlabs_Voice_Id o entorno.")
-
-    if not Texto:
-        raise RuntimeError("El tutorial no tiene texto de narracion.")
 
     Identificador = Obtener_Identificador(Tutorial)
     Ruta_Salida = Ruta_Audios / f"{Identificador}.mp3"
@@ -962,6 +1249,83 @@ def Generar_Audio_Narracion(
     return Ruta_Salida
 
 
+def Generar_Audio_Windows(
+    Tutorial: dict[str, object],
+    Texto: str,
+    Voz: dict[str, object],
+) -> Pathlib.Path:
+
+    """
+    Genera una narracion local con la voz instalada en Windows.
+    Es un respaldo practico cuando no hay clave de ElevenLabs y
+    alcanza para producir borradores accesibles con audio real.
+
+    Parametros:
+    - Tutorial: Contrato completo del tutorial.
+    - Texto: Texto unico que debe decir la voz.
+    - Voz: Configuracion de voz declarada en el contrato.
+
+    Retorna:
+    - Pathlib.Path: Ruta del archivo WAV generado.
+
+    """
+
+    Identificador = Obtener_Identificador(Tutorial)
+    Ruta_Texto = Ruta_Datos / f"{Identificador}_Narracion.txt"
+    Ruta_Audio = Ruta_Audios / f"{Identificador}.wav"
+    Ruta_Script = Ruta_Datos / f"{Identificador}_Voz_Windows.ps1"
+    Velocidad = int(Obtener_Numero(Voz, "Velocidad", -1))
+    Volumen = int(Obtener_Numero(Voz, "Volumen", 100))
+    Nombre_Voz = Obtener_Cadena(Voz, "Windows_Voz")
+    Script = """
+param(
+  [string]$Ruta_Texto,
+  [string]$Ruta_Audio,
+  [int]$Velocidad,
+  [int]$Volumen,
+  [string]$Nombre_Voz
+)
+$ErrorActionPreference = "Stop"
+Add-Type -AssemblyName System.Speech
+$Texto = Get-Content -Raw -Encoding UTF8 -LiteralPath $Ruta_Texto
+$Sintetizador = New-Object System.Speech.Synthesis.SpeechSynthesizer
+if ($Nombre_Voz) {
+  $Sintetizador.SelectVoice($Nombre_Voz)
+}
+$Sintetizador.Rate = $Velocidad
+$Sintetizador.Volume = $Volumen
+$Sintetizador.SetOutputToWaveFile($Ruta_Audio)
+$Sintetizador.Speak($Texto)
+$Sintetizador.Dispose()
+"""
+
+    Ruta_Texto.write_text(Texto, encoding = "utf-8")
+    Ruta_Script.write_text(Script.strip() + "\n", encoding = "utf-8")
+    Resultado = Subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(Ruta_Script),
+            str(Ruta_Texto),
+            str(Ruta_Audio),
+            str(Velocidad),
+            str(Volumen),
+            Nombre_Voz,
+        ],
+        capture_output = True,
+        text = True,
+    )
+
+    if Resultado.returncode != 0:
+        Detalle = (Resultado.stderr or Resultado.stdout or "").strip()
+        raise RuntimeError(f"Fallo voz local Windows: {Detalle}")
+
+    return Ruta_Audio
+
+
 def Renderizar_Video(
     Tutorial: dict[str, object],
     Ruta_Crudo_Manual: Pathlib.Path | None = None,
@@ -995,23 +1359,64 @@ def Renderizar_Video(
         )
 
     Ruta_Ffmpeg = Buscar_Ffmpeg()
-    Ruta_Audio = Ruta_Audios / f"{Identificador}.mp3"
+    Ruta_Audio = Obtener_Ruta_Audio_Disponible(Identificador)
     Ruta_Salida = Ruta_Renderizados / f"{Identificador}.mp4"
     Carteles = Obtener_Carteles_Consolidados(Tutorial)
-    Overlays = Crear_Overlays(Tutorial, Carteles)
+    Generar_Subtitulos(Tutorial, Carteles)
+    Duracion_Video = Obtener_Duracion_Video(Ruta_Ffmpeg, Ruta_Crudo)
+    Ruta_Capa_Dinamica = Crear_Capa_Dinamica_Video(
+        Tutorial,
+        Ruta_Ffmpeg,
+        Duracion_Video,
+        Carteles,
+    )
+    Overlays = []
+    Carteles_Estaticos = []
+
+    if Ruta_Capa_Dinamica is None:
+        Overlays = Crear_Overlays(Tutorial, Carteles)
+        Carteles_Estaticos = Carteles
+
     Comando = Construir_Comando_Ffmpeg(
         Ruta_Ffmpeg,
         Ruta_Crudo,
         Ruta_Salida,
         Overlays,
-        Carteles,
-        Ruta_Audio if Ruta_Audio.exists() else None,
-        Obtener_Duracion_Video(Ruta_Ffmpeg, Ruta_Crudo),
+        Carteles_Estaticos,
+        Ruta_Audio,
+        Duracion_Video,
+        Ruta_Capa_Dinamica,
     )
 
     Ejecutar_Ffmpeg(Comando)
 
     return Ruta_Salida
+
+
+def Obtener_Ruta_Audio_Disponible(
+    Identificador: str,
+) -> Pathlib.Path | None:
+
+    """
+    Busca audio generado para un tutorial.
+    Acepta MP3 de ElevenLabs y WAV de voz local Windows, dejando
+    el render sin audio cuando no existe ninguna pista.
+
+    Parametros:
+    - Identificador: Identificador estable del tutorial.
+
+    Retorna:
+    - Pathlib.Path | None: Ruta de audio o None si no existe.
+
+    """
+
+    for Extension in ["mp3", "wav", "m4a"]:
+        Ruta = Ruta_Audios / f"{Identificador}.{Extension}"
+
+        if Ruta.exists():
+            return Ruta
+
+    return None
 
 
 def Buscar_Ffmpeg() -> str:
@@ -1105,6 +1510,408 @@ def Crear_Overlays(
         Rutas.append(Ruta_Overlay)
 
     return Rutas
+
+
+def Crear_Cursor_Video(
+    Tutorial: dict[str, object],
+    Ruta_Ffmpeg: str,
+    Duracion_Video: float | None,
+) -> Pathlib.Path | None:
+
+    """
+    Crea un video transparente con cursor sintetico visible.
+    Se renderiza desde los eventos de mouse capturados durante
+    Playwright para que el usuario vea hacia donde va cada accion.
+
+    Parametros:
+    - Tutorial: Contrato completo del tutorial.
+    - Ruta_Ffmpeg: Ejecutable de FFmpeg disponible.
+    - Duracion_Video: Duracion del video base.
+
+    Retorna:
+    - Pathlib.Path | None: Video transparente del cursor o None.
+
+    """
+
+    Eventos_Mouse = Cargar_Eventos_Mouse(Tutorial)
+
+    if not Eventos_Mouse or Duracion_Video is None:
+        return None
+
+    try:
+        from PIL import Image as Imagen
+        from PIL import ImageDraw as Imagen_Dibujo
+    except ImportError as Error:
+        raise RuntimeError(
+            "Falta Pillow para crear cursor."
+        ) from Error
+
+    Identificador = Obtener_Identificador(Tutorial)
+    Ancho, Alto = Obtener_Resolucion(Tutorial)
+    Fps = int(Obtener_Numero(Tutorial, "Cursor_Fps", 12))
+    Ruta_Cursor = Ruta_Datos / f"{Identificador}_Cursor.mov"
+    Comando = [
+        Ruta_Ffmpeg,
+        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-f",
+        "rawvideo",
+        "-pix_fmt",
+        "rgba",
+        "-s",
+        f"{Ancho}x{Alto}",
+        "-r",
+        str(Fps),
+        "-i",
+        "-",
+        "-an",
+        "-c:v",
+        "qtrle",
+        str(Ruta_Cursor),
+    ]
+    Proceso = Subprocess.Popen(
+        Comando,
+        stdin = Subprocess.PIPE,
+        stderr = Subprocess.PIPE,
+    )
+
+    if Proceso.stdin is None:
+        return None
+
+    Cantidad_Frames = int(Duracion_Video * Fps) + 1
+
+    for Indice in range(Cantidad_Frames):
+        Segundo = Indice / Fps
+        Posicion, Pulso = Calcular_Estado_Cursor(
+            Eventos_Mouse,
+            Segundo,
+        )
+        Frame = Imagen.new("RGBA", (Ancho, Alto), (0, 0, 0, 0))
+        Dibujo = Imagen_Dibujo.Draw(Frame)
+        Dibujar_Cursor_Sintetico(Dibujo, Posicion, Pulso)
+        Proceso.stdin.write(Frame.tobytes())
+
+    Proceso.stdin.close()
+    Codigo = Proceso.wait()
+
+    if Codigo != 0:
+        Error_Texto = b""
+
+        if Proceso.stderr is not None:
+            Error_Texto = Proceso.stderr.read()
+
+        raise RuntimeError(
+            "FFmpeg no pudo crear el cursor: "
+            + Error_Texto.decode("utf-8", errors = "ignore")
+        )
+
+    return Ruta_Cursor
+
+
+def Crear_Capa_Dinamica_Video(
+    Tutorial: dict[str, object],
+    Ruta_Ffmpeg: str,
+    Duracion_Video: float | None,
+    Carteles: list[dict[str, object]],
+) -> Pathlib.Path | None:
+
+    """
+    Crea una sola capa transparente con toasts, resaltados y cursor.
+    Evita encadenar decenas de imagenes PNG en FFmpeg, algo que en
+    videos largos puede consumir demasiada memoria.
+
+    Parametros:
+    - Tutorial: Contrato completo del tutorial.
+    - Ruta_Ffmpeg: Ejecutable de FFmpeg disponible.
+    - Duracion_Video: Duracion del video base.
+    - Carteles: Carteles y toasts temporizados.
+
+    Retorna:
+    - Pathlib.Path | None: Ruta de la capa transparente o None.
+
+    """
+
+    Eventos_Mouse = Cargar_Eventos_Mouse(Tutorial)
+
+    if Duracion_Video is None:
+        return None
+
+    if not Eventos_Mouse and not Carteles:
+        return None
+
+    try:
+        from PIL import Image as Imagen
+        from PIL import ImageDraw as Imagen_Dibujo
+        from PIL import ImageFont as Imagen_Fuente
+    except ImportError as Error:
+        raise RuntimeError(
+            "Falta Pillow para crear capa dinamica."
+        ) from Error
+
+    Identificador = Obtener_Identificador(Tutorial)
+    Ancho, Alto = Obtener_Resolucion(Tutorial)
+    Fps = int(Obtener_Numero(Tutorial, "Cursor_Fps", 12))
+    Fuente = Cargar_Fuente(Imagen_Fuente, 42)
+    Fuente_Chica = Cargar_Fuente(Imagen_Fuente, 34)
+    Ruta_Capa = Ruta_Datos / f"{Identificador}_Capa_Dinamica.mov"
+    Proceso = Abrir_Ffmpeg_Capa(
+        Ruta_Ffmpeg,
+        Ruta_Capa,
+        Ancho,
+        Alto,
+        Fps,
+    )
+
+    if Proceso.stdin is None:
+        return None
+
+    Cantidad_Frames = int(Duracion_Video * Fps) + 1
+
+    for Indice in range(Cantidad_Frames):
+        Segundo = Indice / Fps
+        Frame = Imagen.new("RGBA", (Ancho, Alto), (0, 0, 0, 0))
+        Dibujo = Imagen_Dibujo.Draw(Frame)
+
+        for Cartel in Carteles:
+            Inicio = float(Cartel["Inicio"])
+            Fin = float(Cartel["Fin"])
+
+            if Inicio <= Segundo <= Fin:
+                Dibujar_Area(Dibujo, Cartel)
+                Dibujar_Caja_Texto(
+                    Dibujo,
+                    Cartel,
+                    Ancho,
+                    Alto,
+                    Fuente,
+                    Fuente_Chica,
+                )
+
+        if Eventos_Mouse:
+            Posicion, Pulso = Calcular_Estado_Cursor(
+                Eventos_Mouse,
+                Segundo,
+            )
+            Dibujar_Cursor_Sintetico(Dibujo, Posicion, Pulso)
+
+        Proceso.stdin.write(Frame.tobytes())
+
+    Proceso.stdin.close()
+    Codigo = Proceso.wait()
+
+    if Codigo != 0:
+        Error_Texto = b""
+
+        if Proceso.stderr is not None:
+            Error_Texto = Proceso.stderr.read()
+
+        raise RuntimeError(
+            "FFmpeg no pudo crear la capa dinamica: "
+            + Error_Texto.decode("utf-8", errors = "ignore")
+        )
+
+    return Ruta_Capa
+
+
+def Abrir_Ffmpeg_Capa(
+    Ruta_Ffmpeg: str,
+    Ruta_Capa: Pathlib.Path,
+    Ancho: int,
+    Alto: int,
+    Fps: int,
+) -> Subprocess.Popen:
+
+    """
+    Abre un proceso FFmpeg preparado para recibir frames RGBA.
+    La salida usa `qtrle` en MOV porque conserva transparencia y
+    funciona bien como una unica capa superpuesta.
+
+    Parametros:
+    - Ruta_Ffmpeg: Ejecutable de FFmpeg disponible.
+    - Ruta_Capa: Ruta de salida de la capa transparente.
+    - Ancho: Ancho del video.
+    - Alto: Alto del video.
+    - Fps: Cuadros por segundo de la capa.
+
+    Retorna:
+    - Subprocess.Popen: Proceso con stdin abierto para frames.
+
+    """
+
+    Comando = [
+        Ruta_Ffmpeg,
+        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-f",
+        "rawvideo",
+        "-pix_fmt",
+        "rgba",
+        "-s",
+        f"{Ancho}x{Alto}",
+        "-r",
+        str(Fps),
+        "-i",
+        "-",
+        "-an",
+        "-c:v",
+        "qtrle",
+        str(Ruta_Capa),
+    ]
+
+    return Subprocess.Popen(
+        Comando,
+        stdin = Subprocess.PIPE,
+        stderr = Subprocess.PIPE,
+    )
+
+
+def Cargar_Eventos_Mouse(
+    Tutorial: dict[str, object],
+) -> list[dict[str, object]]:
+
+    """
+    Carga los eventos de mouse generados durante una captura.
+    Si el tutorial aun no fue capturado, devuelve una lista vacia
+    y el render continua sin cursor sintetico.
+
+    Parametros:
+    - Tutorial: Contrato completo del tutorial.
+
+    Retorna:
+    - list[dict[str, object]]: Eventos de movimiento y click.
+
+    """
+
+    Identificador = Obtener_Identificador(Tutorial)
+    Ruta_Mouse = Ruta_Datos / f"{Identificador}_Cursor.json"
+
+    if not Ruta_Mouse.exists():
+        return []
+
+    try:
+        Datos = Json.loads(Ruta_Mouse.read_text(encoding = "utf-8"))
+    except Json.JSONDecodeError:
+        return []
+
+    if not isinstance(Datos, list):
+        return []
+
+    return [Evento for Evento in Datos if isinstance(Evento, dict)]
+
+
+def Calcular_Estado_Cursor(
+    Eventos_Mouse: list[dict[str, object]],
+    Segundo: float,
+) -> tuple[tuple[float, float], bool]:
+
+    """
+    Calcula la posicion del cursor para un instante del video.
+    Interpola entre origen y destino de cada movimiento y activa
+    un pulso breve cuando el evento representa un click.
+
+    Parametros:
+    - Eventos_Mouse: Eventos generados durante la captura.
+    - Segundo: Tiempo del frame actual.
+
+    Retorna:
+    - tuple[tuple[float, float], bool]: Posicion y pulso activo.
+
+    """
+
+    Posicion = (90.0, 90.0)
+    Pulso = False
+
+    for Evento in Eventos_Mouse:
+        Inicio = Obtener_Numero(Evento, "Inicio", 0.0)
+        Fin = Obtener_Numero(Evento, "Fin", Inicio)
+        Desde = Evento.get("Desde", [Posicion[0], Posicion[1]])
+        Hasta = Evento.get("Hasta", [Posicion[0], Posicion[1]])
+
+        if not isinstance(Desde, list) or not isinstance(Hasta, list):
+            continue
+
+        if len(Desde) != 2 or len(Hasta) != 2:
+            continue
+
+        Desde_X, Desde_Y = float(Desde[0]), float(Desde[1])
+        Hasta_X, Hasta_Y = float(Hasta[0]), float(Hasta[1])
+
+        if Segundo < Inicio:
+            break
+
+        if Inicio <= Segundo <= Fin and Fin > Inicio:
+            Progreso = (Segundo - Inicio) / (Fin - Inicio)
+            Progreso = max(0.0, min(1.0, Progreso))
+            Suave = Progreso * Progreso * (3 - 2 * Progreso)
+            X = Desde_X + (Hasta_X - Desde_X) * Suave
+            Y = Desde_Y + (Hasta_Y - Desde_Y) * Suave
+            Pulso = False
+            return (X, Y), Pulso
+
+        Posicion = (Hasta_X, Hasta_Y)
+        Es_Click = bool(Evento.get("Click", False))
+
+        if Es_Click and Fin <= Segundo <= Fin + 0.45:
+            Pulso = True
+
+    return Posicion, Pulso
+
+
+def Dibujar_Cursor_Sintetico(
+    Dibujo: object,
+    Posicion: tuple[float, float],
+    Pulso: bool,
+) -> None:
+
+    """
+    Dibuja un cursor visible con sombra y pulso de click.
+    El estilo busca ser claro sobre fondos claros u oscuros sin
+    tapar demasiado la interfaz que se esta explicando.
+
+    Parametros:
+    - Dibujo: Objeto ImageDraw de Pillow.
+    - Posicion: Coordenadas del cursor.
+    - Pulso: Indica si debe mostrarse feedback de click.
+
+    Retorna:
+    - None: Dibuja directamente sobre el frame transparente.
+
+    """
+
+    X, Y = Posicion
+    Puntos = [
+        (X, Y),
+        (X + 5, Y + 34),
+        (X + 15, Y + 25),
+        (X + 23, Y + 45),
+        (X + 33, Y + 41),
+        (X + 24, Y + 22),
+        (X + 38, Y + 21),
+    ]
+    Sombra = [
+        (Punto_X + 3, Punto_Y + 4)
+        for Punto_X, Punto_Y in Puntos
+    ]
+
+    if Pulso:
+        Dibujo.ellipse(
+            [X - 22, Y - 22, X + 44, Y + 44],
+            outline = (18, 119, 103, 190),
+            width = 5,
+        )
+
+    Dibujo.polygon(Sombra, fill = (0, 0, 0, 120))
+    Dibujo.polygon(Puntos, fill = (255, 255, 255, 255))
+    Dibujo.line(
+        Puntos + [Puntos[0]],
+        fill = (17, 24, 39, 255),
+        width = 3,
+        joint = "curve",
+    )
 
 
 def Cargar_Fuente(
@@ -1203,8 +2010,13 @@ def Dibujar_Caja_Texto(
     """
 
     Texto = str(Cartel["Texto"]).strip()
-    Fuente_Usada = Fuente if len(Texto) <= 110 else Fuente_Chica
-    Texto_Envuelto = "\n".join(Textwrap.wrap(Texto, width = 48))
+    Tipo = str(Cartel.get("Tipo", "Toast")).lower()
+    Es_Intro = Tipo == "intro"
+    Ancho_Texto_Maximo = 56 if Es_Intro else 46
+    Fuente_Usada = Fuente if len(Texto) <= 120 else Fuente_Chica
+    Texto_Envuelto = "\n".join(
+        Textwrap.wrap(Texto, width = Ancho_Texto_Maximo)
+    )
     Caja_Texto = Dibujo.multiline_textbbox(
         (0, 0),
         Texto_Envuelto,
@@ -1214,20 +2026,27 @@ def Dibujar_Caja_Texto(
     Ancho_Texto = Caja_Texto[2] - Caja_Texto[0]
     Alto_Texto = Caja_Texto[3] - Caja_Texto[1]
     Margen = 56
-    Relleno_X = 34
-    Relleno_Y = 24
-    Ancho_Caja = min(
-        Ancho - (Margen * 2),
-        Ancho_Texto + Relleno_X * 2,
-    )
+    Relleno_X = 40 if Es_Intro else 28
+    Relleno_Y = 30 if Es_Intro else 20
+    Ancho_Maximo = int(Ancho * 0.58)
+
+    if Es_Intro:
+        Ancho_Maximo = int(Ancho * 0.66)
+
+    Ancho_Caja = min(Ancho_Maximo, Ancho_Texto + Relleno_X * 2)
     Alto_Caja = Alto_Texto + Relleno_Y * 2
     Posicion = str(Cartel.get("Posicion", "Inferior")).lower()
-    X = int((Ancho - Ancho_Caja) / 2)
+    X = Margen
     Y = Alto - Alto_Caja - Margen
 
-    if Posicion == "superior":
+    if Es_Intro:
+        X = int((Ancho - Ancho_Caja) / 2)
+        Y = int((Alto - Alto_Caja) / 2)
+    elif Posicion == "superior":
+        X = int((Ancho - Ancho_Caja) / 2)
         Y = Margen
     elif Posicion == "centro":
+        X = int((Ancho - Ancho_Caja) / 2)
         Y = int((Alto - Alto_Caja) / 2)
     elif Posicion == "izquierda":
         X = Margen
@@ -1238,11 +2057,25 @@ def Dibujar_Caja_Texto(
 
     Dibujo.rounded_rectangle(
         [X, Y, X + Ancho_Caja, Y + Alto_Caja],
-        radius = 20,
-        fill = (24, 31, 42, 232),
-        outline = (255, 255, 255, 68),
+        radius = 18 if Es_Intro else 14,
+        fill = (22, 30, 38, 238),
+        outline = (17, 119, 103, 180),
         width = 2,
     )
+
+    if not Es_Intro:
+        Dibujo.rounded_rectangle(
+            [X + 16, Y - 24, X + 122, Y + 20],
+            radius = 10,
+            fill = (17, 119, 103, 235),
+        )
+        Dibujo.text(
+            (X + 32, Y - 22),
+            "Paso",
+            font = Fuente_Chica,
+            fill = (255, 255, 255, 255),
+        )
+
     Dibujo.multiline_text(
         (X + Relleno_X, Y + Relleno_Y),
         Texto_Envuelto,
@@ -1260,6 +2093,7 @@ def Construir_Comando_Ffmpeg(
     Carteles: list[dict[str, object]],
     Ruta_Audio: Pathlib.Path | None,
     Duracion_Video: float | None,
+    Ruta_Cursor: Pathlib.Path | None,
 ) -> list[str]:
 
     """
@@ -1275,6 +2109,7 @@ def Construir_Comando_Ffmpeg(
     - Carteles: Carteles con tiempos para activar overlays.
     - Ruta_Audio: Audio narrado opcional.
     - Duracion_Video: Duracion maxima del video base.
+    - Ruta_Cursor: Video transparente con cursor sintetico.
 
     Retorna:
     - list[str]: Argumentos listos para Subprocess.run.
@@ -1286,13 +2121,24 @@ def Construir_Comando_Ffmpeg(
     for Ruta_Overlay in Overlays:
         Comando.extend(["-loop", "1", "-i", str(Ruta_Overlay)])
 
+    Indice_Cursor = 1 + len(Overlays)
+
+    if Ruta_Cursor is not None:
+        Comando.extend(["-i", str(Ruta_Cursor)])
+
     Indice_Audio = 1 + len(Overlays)
+
+    if Ruta_Cursor is not None:
+        Indice_Audio += 1
 
     if Ruta_Audio is not None:
         Comando.extend(["-i", str(Ruta_Audio)])
 
-    if Overlays:
-        Filtro, Etiqueta_Final = Construir_Filtro_Overlays(Carteles)
+    if Overlays or Ruta_Cursor is not None:
+        Filtro, Etiqueta_Final = Construir_Filtro_Overlays(
+            Carteles,
+            Indice_Cursor if Ruta_Cursor is not None else None,
+        )
         Comando.extend(["-filter_complex", Filtro])
         Comando.extend(["-map", Etiqueta_Final])
     else:
@@ -1314,7 +2160,6 @@ def Construir_Comando_Ffmpeg(
             "yuv420p",
             "-c:a",
             "aac",
-            "-shortest",
             str(Ruta_Salida),
         ]
     )
@@ -1324,6 +2169,7 @@ def Construir_Comando_Ffmpeg(
 
 def Construir_Filtro_Overlays(
     Carteles: list[dict[str, object]],
+    Indice_Cursor: int | None = None,
 ) -> tuple[str, str]:
 
     """
@@ -1333,6 +2179,7 @@ def Construir_Filtro_Overlays(
 
     Parametros:
     - Carteles: Carteles normalizados y ordenados.
+    - Indice_Cursor: Indice de entrada FFmpeg para cursor.
 
     Retorna:
     - tuple[str, str]: Filtergraph y etiqueta de video final.
@@ -1352,6 +2199,14 @@ def Construir_Filtro_Overlays(
             f"overlay=0:0:shortest=1:"
             f"enable='between(t,{Inicio},{Fin})'"
             f"{Salida}"
+        )
+        Entrada_Actual = Salida
+
+    if Indice_Cursor is not None:
+        Salida = "[v_cursor]"
+        Partes.append(
+            f"{Entrada_Actual}[{Indice_Cursor}:v]"
+            f"overlay=0:0:shortest=1{Salida}"
         )
         Entrada_Actual = Salida
 
@@ -1451,11 +2306,11 @@ def Ejecutar_Todo(
 
     """
 
-    Ruta_Texto = Generar_Tutorial_Texto(Tutorial)
-    Escribir_Mensaje(f"Texto generado: {Ruta_Texto}")
-
     Ruta_Crudo = Capturar_Video(Tutorial)
     Escribir_Mensaje(f"Video crudo generado: {Ruta_Crudo}")
+
+    Ruta_Texto = Generar_Tutorial_Texto(Tutorial)
+    Escribir_Mensaje(f"Texto generado: {Ruta_Texto}")
 
     try:
         Ruta_Audio = Generar_Audio_Narracion(Tutorial)
