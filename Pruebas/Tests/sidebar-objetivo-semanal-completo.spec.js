@@ -58,7 +58,7 @@ async function Preparar(page, Estado_Inicial) {
     );
   }, Estado_Inicial);
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() =>
     typeof window.Inicializar === "function"
   );
@@ -331,12 +331,22 @@ async ({ page }) => {
   await expect(
     page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_Bloque")
   ).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-  await expect(page.locator(".Aporte_Meta_Check")).toHaveCount(1);
-  await expect(page.locator(".Aporte_Meta_Check"))
-    .toHaveClass(/Activo/);
-  await expect(page.locator(".Aporte_Meta_Input"))
-    .toHaveCSS("border-radius", "12px");
-  await page.fill(".Aporte_Meta_Input", "25");
+  await expect(
+    page.locator(
+      "#Abordaje_Modal_Cuerpo .Aporte_Meta_General " +
+        ".Aporte_Meta_Destino_Check"
+    )
+  ).toBeChecked();
+  await expect(
+    page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_General_Input")
+  ).toHaveCSS("border-radius", "8px");
+  await page.fill(
+    "#Abordaje_Modal_Cuerpo .Aporte_Meta_General_Input",
+    "25"
+  );
+  await page.evaluate(() => {
+    Mostrar_Dialogo = async () => true;
+  });
   await page.click("#Abordaje_Modal_Guardar_Btn");
 
   const Datos = await page.evaluate(() => {
@@ -363,9 +373,6 @@ async ({ page }) => {
   await expect(page.locator("#Focus_Overlay"))
     .toHaveClass(/Activo/);
   await expect(
-    page.locator("#Focus_Cuerpo .Aporte_Meta_Check")
-  ).toHaveCount(1);
-  await expect(
     page.locator("#Focus_Cuerpo .Aporte_Meta_Bloque")
   ).toHaveCSS("border-top-width", "0px");
   await expect(
@@ -375,16 +382,19 @@ async ({ page }) => {
     page.locator("#Focus_Cuerpo .Aporte_Meta_Bloque")
   ).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(
-    page.locator("#Focus_Cuerpo .Aporte_Meta_Check")
-  ).toHaveClass(/Activo/);
+    page.locator(
+      "#Focus_Cuerpo .Aporte_Meta_General " +
+        ".Aporte_Meta_Destino_Check"
+    )
+  ).toBeChecked();
   await expect(
-    page.locator("#Focus_Cuerpo .Aporte_Meta_Input")
+    page.locator("#Focus_Cuerpo .Aporte_Meta_General_Input")
   ).toHaveValue("25");
   await page.evaluate(() => Cerrar_Focus_Mode());
 
   await page.evaluate(() => Abrir_Modal_Abordaje("ev_meta"));
   await expect(
-    page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_Input")
+    page.locator("#Abordaje_Modal_Cuerpo .Aporte_Meta_General_Input")
   )
     .toHaveValue("25");
 });

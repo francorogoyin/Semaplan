@@ -116,6 +116,42 @@ async function Preparar(page) {
       })
     ];
     Habitos_Registros = [];
+    Tareas = [
+      Normalizar_Tarea({
+        Tipo_Dato: "Tarea",
+        Id: "tar_mismo_horario",
+        Nombre: "Tarea dentro del horario",
+        Emoji: "\u{1F4DD}",
+        Estado: "pendiente",
+        Fecha: "2026-05-04",
+        Hora: "09:00"
+      }),
+      Normalizar_Tarea({
+        Tipo_Dato: "Tarea",
+        Id: "tar_sin_horario",
+        Nombre: "Tarea sin horario",
+        Emoji: "\u{1F4E5}",
+        Estado: "pendiente"
+      }),
+      Normalizar_Tarea({
+        Tipo_Dato: "Tarea",
+        Id: "tar_otro_horario",
+        Nombre: "Tarea de otro horario",
+        Emoji: "\u{1F552}",
+        Estado: "pendiente",
+        Fecha: "2026-05-04",
+        Hora: "10:00"
+      }),
+      Normalizar_Tarea({
+        Tipo_Dato: "Tarea",
+        Id: "tar_bloque",
+        Nombre: "Tarea del bloque",
+        Emoji: "\u{1F4CC}",
+        Estado: "pendiente",
+        Fecha: "2026-05-05",
+        Hora: "10:00"
+      })
+    ];
     Eventos = [
       {
         Id: "ev_bloque",
@@ -134,7 +170,7 @@ async function Preparar(page) {
   });
 }
 
-test("slots y bloques agregan habitos y objetivos con desplegables",
+test("slots y bloques agregan habitos y tareas con desplegables",
 async ({ page }) => {
   await Preparar(page);
 
@@ -147,16 +183,19 @@ async ({ page }) => {
     Plan_Habito_Select.value = "hab_lectura";
     Plan_Habito.querySelector("button").click();
 
-    const Plan_Objetivo = document.querySelector(
-      '#Plan_Slot_Cuerpo [data-plan-select="objetivo"]'
+    const Plan_Tarea = document.querySelector(
+      '#Plan_Slot_Cuerpo [data-plan-select="tarea"]'
     );
-    const Plan_Objetivo_Select = Plan_Objetivo.querySelector("select");
-    Plan_Objetivo_Select.value = "obj_extra";
-    Plan_Objetivo.querySelector("button").click();
+    const Plan_Tarea_Select = Plan_Tarea.querySelector("select");
+    const Orden_Tareas_Slot = Array.from(Plan_Tarea_Select.options)
+      .map((Option) => Option.value)
+      .filter(Boolean);
+    Plan_Tarea_Select.value = "tar_mismo_horario";
+    Plan_Tarea.querySelector("button").click();
     const Items_Slot = Plan_Slot_Borrador.map((Item) => ({
       Tipo: Item.Tipo,
       Habito_Id: Item.Habito_Id || "",
-      Objetivo_Id: Item.Objetivo_Id || "",
+      Tarea_Id: Item.Tarea_Id || "",
       Texto: Item.Texto
     }));
     Cerrar_Modal_Plan_Slot();
@@ -172,17 +211,17 @@ async ({ page }) => {
     Muerto_Habito_Select.value = "hab_lectura";
     Muerto_Habito.querySelector("button").click();
 
-    const Muerto_Objetivo = document.querySelector(
-      '#Plan_Slot_Cuerpo [data-plan-select="objetivo"]'
+    const Muerto_Tarea = document.querySelector(
+      '#Plan_Slot_Cuerpo [data-plan-select="tarea"]'
     );
-    const Muerto_Objetivo_Select =
-      Muerto_Objetivo.querySelector("select");
-    Muerto_Objetivo_Select.value = "obj_extra";
-    Muerto_Objetivo.querySelector("button").click();
+    const Muerto_Tarea_Select =
+      Muerto_Tarea.querySelector("select");
+    Muerto_Tarea_Select.value = "tar_sin_horario";
+    Muerto_Tarea.querySelector("button").click();
     const Items_Slot_Muerto = Plan_Slot_Borrador.map((Item) => ({
       Tipo: Item.Tipo,
       Habito_Id: Item.Habito_Id || "",
-      Objetivo_Id: Item.Objetivo_Id || "",
+      Tarea_Id: Item.Tarea_Id || "",
       Texto: Item.Texto
     }));
     Cerrar_Modal_Plan_Slot();
@@ -195,71 +234,82 @@ async ({ page }) => {
     Bloque_Habito_Select.value = "hab_lectura";
     Bloque_Habito.querySelector("button").click();
 
-    const Bloque_Objetivo = document.querySelector(
-      '#Abordaje_Modal_Cuerpo [data-plan-select="objetivo"]'
+    const Bloque_Tarea = document.querySelector(
+      '#Abordaje_Modal_Cuerpo [data-plan-select="tarea"]'
     );
-    const Bloque_Objetivo_Select = Bloque_Objetivo.querySelector("select");
-    Bloque_Objetivo_Select.value = "obj_extra";
-    Bloque_Objetivo.querySelector("button").click();
+    const Bloque_Tarea_Select = Bloque_Tarea.querySelector("select");
+    Bloque_Tarea_Select.value = "tar_bloque";
+    Bloque_Tarea.querySelector("button").click();
     const Items_Bloque = Abordaje_Borrador
       .filter((Item) => Item.Suelta)
       .map((Item) => ({
         Tipo: Item.Tipo,
         Habito_Id: Item.Habito_Id || "",
-        Objetivo_Id: Item.Objetivo_Id || "",
+        Tarea_Id: Item.Tarea_Id || "",
         Texto: Item.Texto,
         Planeada: Boolean(Item.Planeada)
       }));
-    return { Items_Slot, Items_Slot_Muerto, Items_Bloque };
+    return {
+      Orden_Tareas_Slot,
+      Items_Slot,
+      Items_Slot_Muerto,
+      Items_Bloque
+    };
   });
 
+  expect(resultado.Orden_Tareas_Slot).toEqual([
+    "tar_mismo_horario",
+    "tar_sin_horario",
+    "tar_otro_horario",
+    "tar_bloque"
+  ]);
   expect(resultado.Items_Slot).toEqual([
     {
       Tipo: "Habito",
       Habito_Id: "hab_lectura",
-      Objetivo_Id: "",
+      Tarea_Id: "",
       Texto: "Lectura"
     },
     {
-      Tipo: "Objetivo",
+      Tipo: "Tarea",
       Habito_Id: "",
-      Objetivo_Id: "obj_extra",
-      Texto: "Proyecto extra"
+      Tarea_Id: "tar_mismo_horario",
+      Texto: "Tarea dentro del horario"
     }
   ]);
   expect(resultado.Items_Slot_Muerto).toEqual([
     {
       Tipo: "Habito",
       Habito_Id: "hab_lectura",
-      Objetivo_Id: "",
+      Tarea_Id: "",
       Texto: "Lectura"
     },
     {
-      Tipo: "Objetivo",
+      Tipo: "Tarea",
       Habito_Id: "",
-      Objetivo_Id: "obj_extra",
-      Texto: "Proyecto extra"
+      Tarea_Id: "tar_sin_horario",
+      Texto: "Tarea sin horario"
     }
   ]);
   expect(resultado.Items_Bloque).toEqual([
     {
       Tipo: "Habito",
       Habito_Id: "hab_lectura",
-      Objetivo_Id: "",
+      Tarea_Id: "",
       Texto: "Lectura",
       Planeada: true
     },
     {
-      Tipo: "Objetivo",
+      Tipo: "Tarea",
       Habito_Id: "",
-      Objetivo_Id: "obj_extra",
-      Texto: "Proyecto extra",
+      Tarea_Id: "tar_bloque",
+      Texto: "Tarea del bloque",
       Planeada: true
     }
   ]);
 });
 
-test("los objetivos de un plan de slot pasan al bloque",
+test("las tareas de un plan de slot pasan al bloque",
 async ({ page }) => {
   await Preparar(page);
 
@@ -267,7 +317,7 @@ async ({ page }) => {
     Planes_Slot[Clave_Slot("2026-05-05", 10)] = {
       Items: [
         Crear_Item_Habito_Plan_Slot(Habito_Por_Id("hab_lectura")),
-        Crear_Item_Objetivo_Plan_Slot(Objetivo_Por_Id("obj_extra"))
+        Crear_Item_Tarea_Plan_Slot(Tarea_Por_Id("tar_bloque"))
       ]
     };
     Abrir_Modal_Abordaje("ev_bloque");
@@ -276,7 +326,7 @@ async ({ page }) => {
       .map((Item) => ({
         Tipo: Item.Tipo,
         Habito_Id: Item.Habito_Id || "",
-        Objetivo_Id: Item.Objetivo_Id || "",
+        Tarea_Id: Item.Tarea_Id || "",
         Texto: Item.Texto,
         Planeada: Boolean(Item.Planeada)
       }));
@@ -286,16 +336,80 @@ async ({ page }) => {
     {
       Tipo: "Habito",
       Habito_Id: "hab_lectura",
-      Objetivo_Id: "",
+      Tarea_Id: "",
       Texto: "Lectura",
       Planeada: true
     },
     {
-      Tipo: "Objetivo",
+      Tipo: "Tarea",
       Habito_Id: "",
-      Objetivo_Id: "obj_extra",
-      Texto: "Proyecto extra",
+      Tarea_Id: "tar_bloque",
+      Texto: "Tarea del bloque",
       Planeada: true
     }
   ]);
+});
+
+test("guardar tareas en planes sincroniza el vinculo de la tarea",
+async ({ page }) => {
+  await Preparar(page);
+
+  const resultado = await page.evaluate(async () => {
+    const Clave = Clave_Slot("2026-05-04", 9);
+    Abrir_Modal_Plan_Slot("2026-05-04", 9);
+    Agregar_Tarea_A_Plan_Slot("tar_mismo_horario");
+    await Guardar_Modal_Plan_Slot();
+
+    const Tarea_Slot = Tarea_Por_Id("tar_mismo_horario");
+    const Despues_Slot = {
+      fecha: Tarea_Slot.Fecha,
+      hora: Tarea_Slot.Hora,
+      planeada: Tarea_Slot.Planeada,
+      planClave: Tarea_Slot.Plan_Clave,
+      planItem: Boolean(Tarea_Slot.Plan_Item_Id),
+      itemsSlot: (Planes_Slot[Clave]?.Items || [])
+        .map((Item) => Item.Tarea_Id || "")
+    };
+
+    Abrir_Modal_Abordaje("ev_bloque");
+    Agregar_Tarea_A_Abordaje("tar_mismo_horario");
+    await Guardar_Modal_Abordaje();
+
+    const Tarea_Bloque = Tarea_Por_Id("tar_mismo_horario");
+    const Evento = Evento_Por_Id("ev_bloque");
+    return {
+      Despues_Slot,
+      Despues_Bloque: {
+        fecha: Tarea_Bloque.Fecha,
+        hora: Tarea_Bloque.Hora,
+        planeada: Tarea_Bloque.Planeada,
+        eventoId: Tarea_Bloque.Evento_Id,
+        abordajeId: Boolean(Tarea_Bloque.Abordaje_Id),
+        planClave: Tarea_Bloque.Plan_Clave,
+        itemsSlot: (Planes_Slot[Clave]?.Items || [])
+          .map((Item) => Item.Tarea_Id || ""),
+        itemsBloque: (Evento.Abordaje || [])
+          .map((Item) => Item.Tarea_Id || "")
+      }
+    };
+  });
+
+  expect(resultado.Despues_Slot).toEqual({
+    fecha: "2026-05-04",
+    hora: "09:00",
+    planeada: true,
+    planClave: "2026-05-04|9",
+    planItem: true,
+    itemsSlot: ["tar_mismo_horario"]
+  });
+  expect(resultado.Despues_Bloque).toEqual({
+    fecha: "2026-05-05",
+    hora: "10:00",
+    planeada: true,
+    eventoId: "ev_bloque",
+    abordajeId: true,
+    planClave: "",
+    itemsSlot: [],
+    itemsBloque: ["tar_mismo_horario"]
+  });
 });

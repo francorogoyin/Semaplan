@@ -86,6 +86,10 @@ entre sistemas, leer tambien
 `Documentacion/Planes/Funcionamiento_App_Semaplan.md`. Ese archivo es
 el mapa funcional vivo de la app real.
 
+Cuando el usuario pida una reforma en `Planes` de bloques, interpretar
+que el alcance incluye Bloques, Slots muertos y Slots vacios, salvo que
+aclare explicitamente otro alcance.
+
 ## Regla UX de seleccion multiple
 
 Seguir `Documentacion/Planes/Reglas_Operativas_Semaplan.md`.

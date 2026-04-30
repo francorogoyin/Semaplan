@@ -843,7 +843,7 @@
       }
 
       .Aporte_Meta_Row {
-        display: grid;
+        display: none;
         grid-template-columns: auto minmax(0, 1fr) auto auto;
         align-items: center;
         gap: 8px;
@@ -863,8 +863,19 @@
         border-top: 1px solid var(--Borde);
       }
 
-      .Aporte_Meta_Destinos_Titulo,
-      .Aporte_Meta_General {
+      .Aporte_Meta_Contador {
+        color: var(--Texto);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .Aporte_Meta_Contador small {
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .Aporte_Meta_Destinos_Titulo {
         color: var(--Texto_Suave);
         font-size: 11px;
         font-weight: 700;
@@ -2613,8 +2624,13 @@
       }
 
       .Resumen_Sem_Rango_Btn {
-        width: 32px;
-        height: 32px;
+        width: 26px;
+        height: 30px;
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        color: var(--Texto_Suave);
+        font-size: 20px;
         line-height: 1;
       }
 
@@ -2627,13 +2643,12 @@
 
       .Resumen_Sem_Rango_Btn:hover,
       .Resumen_Sem_Rango_Hoy:hover {
-        border-color: var(--Acento);
         color: var(--Acento);
       }
 
       .Resumen_Sem_Rango_Centro {
         display: grid;
-        grid-template-columns: 32px minmax(132px, auto) 32px;
+        grid-template-columns: 26px minmax(132px, auto) 26px;
         gap: 6px;
         align-items: center;
         justify-content: center;
@@ -3710,10 +3725,15 @@
         color: #fff;
         border: none;
         border-radius: 8px;
-        padding: 0 14px;
-        font-size: 13px;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        font-size: 18px;
         font-weight: 700;
         cursor: pointer;
+        display: grid;
+        place-items: center;
+        line-height: 1;
       }
 
       /* --- Marca de abordaje en el evento --- */
@@ -10949,8 +10969,8 @@
 
       .Plan_Slot_Select_Row {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 8px;
+        grid-template-columns: 52px minmax(0, 1fr) 32px;
+        gap: 6px;
         align-items: center;
         width: 100%;
       }
@@ -10962,11 +10982,46 @@
       .Plan_Slot_Select_Row select {
         min-width: 0;
         width: 100%;
+        height: 32px;
+        border-radius: 8px;
+        padding-top: 0;
+        padding-bottom: 0;
+        font-size: 13px;
+      }
+
+      .Plan_Slot_Select_Row::before {
+        content: "";
+      }
+
+      .Plan_Slot_Select_Row select.Plan_Slot_Select_Sugerido {
+        background: #eeeeee;
+        border-color: #bdb8ae;
+        color: var(--Texto);
       }
 
       .Plan_Slot_Select_Row .Config_Boton,
       .Plan_Slot_Select_Row .Archivero_Sub_Btn {
         white-space: nowrap;
+      }
+
+      .Plan_Slot_Add_Btn {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 8px;
+        background: var(--Acento);
+        color: #fff;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .Plan_Slot_Add_Btn:hover,
+      .Abordaje_Nuevo_Btn:hover {
+        filter: brightness(0.95);
       }
 
       .Plan_Slot_Acciones {
@@ -20799,15 +20854,15 @@
                   <span data-i18n="config.ia_tokens_titulo">
                     Integraciones IA
                   </span>
-                  <span class="Config_Hint_Icono">â“˜</span>
+                  <span class="Config_Hint_Icono">ⓘ</span>
                   <span class="Config_Hint_Texto"
                     data-i18n="config.ia_tokens_hint">
-                    CreÃ¡ tokens de solo lectura para GPT, Claude y otras herramientas. El valor completo se muestra una sola vez.
+                    Crea tokens de solo lectura para GPT, Claude y otras herramientas. El valor completo se muestra una sola vez.
                   </span>
                 </p>
                 <p class="Cfg_IA_Intro"
                   data-i18n="config.ia_tokens_intro">
-                  Cada token queda guardado como hash y sirve para consultar tu estado desde la API de IA sin compartir tu sesiÃ³n principal.
+                  Cada token queda guardado como hash y sirve para consultar tu estado desde la API de IA sin compartir tu sesion principal.
                 </p>
                 <div class="Cfg_IA_Acciones">
                   <button type="button"
@@ -20822,7 +20877,7 @@
                         decoding="async" />
                     </span>
                     <span data-i18n="config.ia_chatgpt_conectar">
-                      Conectar ChatGPT
+                      Conectar con ChatGPT
                     </span>
                   </button>
                   <button type="button"
@@ -24965,6 +25020,7 @@
           "tareas.cajon_borrar_con_tareas":
             "Este caj\u00f3n tiene {cantidad} tarea(s). " +
             "Si lo borr\u00e1s, se mover\u00e1n a Inbox.",
+          "tareas.seleccionar": "Seleccionar tarea",
           eliminar: "Eliminar",
           archivar: "Archivar",
           editar: "Editar",
@@ -25287,6 +25343,10 @@
           "plan.aporte_meta_planear": "Planear aporte",
           "plan.aporte_meta_tildar": "Tildar aporte",
           "plan.aporte_meta_partes": "Partes del bloque",
+          "plan.aporte_meta_contador":
+            "Aporte a la meta: {cantidad} ({sugerido} sugeridos)",
+          "plan.aporte_meta_general_destino":
+            "Aporte general de {unidad} a {meta}",
           "plan.aporte_meta_general":
             "Aporte general: {cantidad} {unidad}",
           "plan.aporte_meta_disponible":
@@ -26973,7 +27033,7 @@
           "config.ia_tokens_intro":
             "Cada token queda guardado como hash y sirve para consultar tu estado desde la API de IA sin compartir tu sesión principal.",
           "config.ia_chatgpt_conectar":
-            "Conectar App MCP",
+            "Conectar con ChatGPT",
           "config.ia_chatgpt_guia_intro":
             "Conectá Semaplan en ChatGPT usando esta URL MCP.",
           "config.ia_chatgpt_guia_ruta":
@@ -29114,7 +29174,7 @@
           "slot.aplica_vacio": "Slot vacío",
           "slot.aplica_varios": "Varios tipos",
           "slot.aplica_todos": "Todos los tipos",
-          "slot.agregar_objetivo": "+ Objetivo",
+          "slot.agregar_objetivo": "+ Item",
           "slot.insertar_plan": "Insertar plan",
           "slot.editar_plan": "Editar plan",
           "slot.tarea_rapida": "Tarea rapida",
@@ -29135,7 +29195,7 @@
             "Colocar título",
           "slot.quitar_titulo":
             "Borrar título",
-          "slot.item_ph": "Objetivo rápida",
+          "slot.item_ph": "Agregar item suelto...",
           "slot.estado_planeado": "Planeado",
           "slot.estado_abordado": "Abordado",
           "slot.estado_realizado": "Realizado",
@@ -29276,6 +29336,7 @@
           "tareas.cajon_borrar_con_tareas":
             "This drawer has {cantidad} task(s). " +
             "If you delete it, they will move to Inbox.",
+          "tareas.seleccionar": "Select task",
           eliminar: "Delete",
           archivar: "Archive",
           editar: "Edit",
@@ -29600,6 +29661,10 @@
           "plan.aporte_meta_planear": "Plan contribution",
           "plan.aporte_meta_tildar": "Check contribution",
           "plan.aporte_meta_partes": "Block parts",
+          "plan.aporte_meta_contador":
+            "Goal contribution: {cantidad} ({sugerido} suggested)",
+          "plan.aporte_meta_general_destino":
+            "General contribution of {unidad} to {meta}",
           "plan.aporte_meta_general":
             "General contribution: {cantidad} {unidad}",
           "plan.aporte_meta_disponible":
@@ -31251,7 +31316,7 @@
           "config.ia_tokens_intro":
             "Each token is stored as a hash and can query your state through the AI API without sharing your main session.",
           "config.ia_chatgpt_conectar":
-            "Connect MCP App",
+            "Connect with ChatGPT",
           "config.ia_chatgpt_guia_intro":
             "Connect Semaplan in ChatGPT using this MCP URL.",
           "config.ia_chatgpt_guia_ruta":
@@ -33347,7 +33412,7 @@
           "slot.aplica_vacio": "Empty slot",
           "slot.aplica_varios": "Multiple types",
           "slot.aplica_todos": "All types",
-          "slot.agregar_objetivo": "+ Objective",
+          "slot.agregar_objetivo": "+ Item",
           "slot.insertar_plan": "Insert plan",
           "slot.editar_plan": "Edit plan",
           "slot.tarea_rapida": "Quick task",
@@ -33368,7 +33433,7 @@
             "Add title",
           "slot.quitar_titulo":
             "Delete title",
-          "slot.item_ph": "Quick objective",
+          "slot.item_ph": "Add loose item...",
           "slot.estado_planeado": "Planned",
           "slot.estado_abordado": "Started",
           "slot.estado_realizado": "Done",
@@ -33512,6 +33577,7 @@
           "tareas.cajon_borrar_con_tareas":
             "Este gaveteiro tem {cantidad} tarefa(s). " +
             "Se voc\u00ea o excluir, elas ir\u00e3o para Inbox.",
+          "tareas.seleccionar": "Selecionar tarefa",
           eliminar: "Excluir",
           archivar: "Arquivar",
           editar: "Editar",
@@ -33845,6 +33911,10 @@
           "plan.aporte_meta_planear": "Planejar aporte",
           "plan.aporte_meta_tildar": "Marcar aporte",
           "plan.aporte_meta_partes": "Partes do bloco",
+          "plan.aporte_meta_contador":
+            "Aporte a meta: {cantidad} ({sugerido} sugeridos)",
+          "plan.aporte_meta_general_destino":
+            "Aporte geral de {unidad} para {meta}",
           "plan.aporte_meta_general":
             "Aporte geral: {cantidad} {unidad}",
           "plan.aporte_meta_disponible":
@@ -35542,7 +35612,7 @@
           "config.ia_tokens_intro":
             "Cada token fica salvo como hash e serve para consultar seu estado pela API de IA sem compartilhar sua sessão principal.",
           "config.ia_chatgpt_conectar":
-            "Conectar App MCP",
+            "Conectar com ChatGPT",
           "config.ia_chatgpt_guia_intro":
             "Conecte o Semaplan no ChatGPT usando esta URL MCP.",
           "config.ia_chatgpt_guia_ruta":
@@ -37697,7 +37767,7 @@
           "slot.aplica_vacio": "Slot vazio",
           "slot.aplica_varios": "Vários tipos",
           "slot.aplica_todos": "Todos os tipos",
-          "slot.agregar_objetivo": "+ Objetivo",
+          "slot.agregar_objetivo": "+ Item",
           "slot.insertar_plan": "Inserir plano",
           "slot.editar_plan": "Editar plano",
           "slot.tarea_rapida": "Tarefa rapida",
@@ -37718,7 +37788,7 @@
             "Colocar título",
           "slot.quitar_titulo":
             "Excluir título",
-          "slot.item_ph": "Objetivo rápida",
+          "slot.item_ph": "Adicionar item solto...",
           "slot.estado_planeado": "Planejado",
           "slot.estado_abordado": "Abordado",
           "slot.estado_realizado": "Realizado",
@@ -63646,32 +63716,41 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Number(Objetivo.Horas_Semanales) || 0) > 0;
       }
 
-      function Meta_Aporte_Asignado_Evento(Evento) {
-        const Objetivo = Objetivo_Por_Id(Evento?.Objetivo_Id);
-        if (!Objetivo || !Meta_Aporte_Objetivo_Tiene_Vinculo(Objetivo)) {
+      function Meta_Aporte_Sugerido_Evento(Evento, Objetivo = null) {
+        const Obj = Objetivo || Objetivo_Por_Id(Evento?.Objetivo_Id);
+        if (!Obj || !Meta_Aporte_Objetivo_Tiene_Vinculo(Obj)) {
           return 0;
         }
-        const Unidad = Meta_Aporte_Unidad_Objetivo(Objetivo);
-        const Manual = Number(Evento.Meta_Aporte_Cantidad);
-        if (Number.isFinite(Manual) && Manual >= 0) {
-          return Meta_Aporte_Redondear(Manual, Unidad);
-        }
-        if (Meta_Aporte_Objetivo_Usa_Horas(Objetivo)) {
+        const Unidad = Meta_Aporte_Unidad_Objetivo(Obj);
+        if (Meta_Aporte_Objetivo_Usa_Horas(Obj)) {
           const Horas = Math.max(
             0,
-            Number(Objetivo.Horas_Semanales) || 0
+            Number(Obj.Horas_Semanales) || 0
           );
           if (Horas <= 0) return 0;
           return Meta_Aporte_Redondear(
-            (Number(Objetivo.Meta_Aporte_Semanal) || 0) *
+            (Number(Obj.Meta_Aporte_Semanal) || 0) *
               (Number(Evento.Duracion) || 0) / Horas,
             Unidad
           );
         }
         return Meta_Aporte_Redondear(
-          Number(Objetivo.Meta_Aporte_Semanal) || 0,
+          Number(Obj.Meta_Aporte_Semanal) || 0,
           Unidad
         );
+      }
+
+      function Meta_Aporte_Asignado_Evento(Evento) {
+        if (Evento?.Meta_Aporte_Tildado === false) {
+          return 0;
+        }
+        const Obj = Objetivo_Por_Id(Evento?.Objetivo_Id);
+        const Unidad = Meta_Aporte_Unidad_Objetivo(Obj);
+        const Manual = Number(Evento?.Meta_Aporte_Cantidad);
+        if (Number.isFinite(Manual) && Manual >= 0) {
+          return Meta_Aporte_Redondear(Manual, Unidad);
+        }
+        return Meta_Aporte_Sugerido_Evento(Evento);
       }
 
       function Meta_Aporte_Evento_Es_Futuro(Evento) {
@@ -63900,6 +63979,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Borrador.Unidad
             )
           }));
+        const General = Borrador.General_Seleccionada
+          ? Meta_Aporte_Redondear(
+            Borrador.General_Cantidad,
+            Borrador.Unidad
+          )
+          : 0;
+        const Partes = Meta_Aporte_Suma_Distribucion_Partes(
+          Borrador.Distribucion,
+          Borrador.Unidad
+        );
+        Borrador.General_Cantidad = General;
+        Borrador.Cantidad = Meta_Aporte_Redondear(
+          General + Partes,
+          Borrador.Unidad
+        );
+        Borrador.Tildado = Borrador.Cantidad > 0;
+        if (Borrador.Tildado) {
+          Borrador.Planeado = true;
+        }
       }
 
       function Meta_Aporte_Validar_Distribucion_Borrador(
@@ -74565,6 +74663,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Plantilla_Id: null,
           Tipo: Item?.Tipo || "Texto",
           Objetivo_Id: String(Item?.Objetivo_Id || "").trim(),
+          Tarea_Id: String(Item?.Tarea_Id || "").trim(),
           Texto,
           Emoji: Item?.Emoji || "\u2022",
           Habito_Id: String(Item?.Habito_Id || "").trim(),
@@ -74645,6 +74744,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Item_Plan_Evento_Vinculado_A_Tarea(Item) {
         if (!Item || typeof Item !== "object") return false;
+        if (String(Item.Tarea_Id || "").trim()) return true;
         if (String(Item.Habito_Id || "").trim()) return false;
         if (Item.Suelta === false) return true;
         return Boolean(
@@ -83653,6 +83753,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         const Unidad = Meta_Aporte_Unidad_Objetivo(Objetivo);
         const Cantidad = Meta_Aporte_Asignado_Evento(Evento);
+        const Sugerido = Meta_Aporte_Sugerido_Evento(Evento, Objetivo);
         const Tenia_Avance = Boolean(
           Meta_Aporte_Buscar_Avance_Evento(Evento)
         );
@@ -83684,6 +83785,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Vistas.add(Item.Parte_Id);
         });
         const Item_Aporte = Meta_Aporte_Item_Objetivo(Objetivo);
+        const General_Cantidad = Meta_Aporte_General_Distribucion(
+          Cantidad,
+          Distribucion,
+          Unidad
+        );
         const Borrador = {
           Activo: true,
           Meta: Meta_Aporte_Label_Item(Item_Aporte),
@@ -83691,6 +83797,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Item_Id: Item_Aporte?.Id || "",
           Unidad,
           Cantidad,
+          Sugerido,
+          General_Seleccionada:
+            Tildado && General_Cantidad > 0,
+          General_Cantidad,
           Original_Cantidad: Cantidad,
           Planeado: Evento.Meta_Aporte_Planeado !== false,
           Tildado,
@@ -83734,16 +83844,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Opciones = {}
       ) {
         if (!Borrador) return;
-        Borrador.Cantidad = Meta_Aporte_Numero(Valor);
+        Borrador.General_Cantidad = Meta_Aporte_Numero(Valor);
         if (Opciones.Activar !== false) {
-          Borrador.Tildado = Borrador.Cantidad > 0;
-          Borrador.Planeado = Borrador.Cantidad > 0;
+          Borrador.General_Seleccionada =
+            Borrador.General_Cantidad > 0 ||
+            Borrador.General_Seleccionada === true;
         }
-        if (!Borrador.Distribucion_Manual) {
-          Meta_Aporte_Distribuir_Auto_Borrador(Borrador);
-        } else {
-          Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
-        }
+        Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
       }
 
       function Crear_Check_Aporte_Meta(Borrador, Al_Cambiar) {
@@ -83778,7 +83885,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Sincronizar_Aporte_Meta_Borrador_Desde_DOM() {
         const Input = document.querySelector(
-          "#Abordaje_Modal_Cuerpo .Aporte_Meta_Input"
+          "#Abordaje_Modal_Cuerpo .Aporte_Meta_General_Input"
         );
         if (!Input || !Abordaje_Aporte_Meta_Borrador) return;
         Meta_Aporte_Actualizar_Borrador_Cantidad(
@@ -83793,12 +83900,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return Planes_Estimar_Tiempo_Resultado(0, false, false);
         }
         const Modelo = Asegurar_Modelo_Planes();
+        let Total = Planes_Estimar_Tiempo_Resultado(0, false, false);
         const Partes = (Borrador.Partes || [])
           .filter((Parte) =>
             Parte.Seleccionada && (Number(Parte.Cantidad) || 0) > 0
           );
         if (Partes.length) {
-          return Partes.reduce((Total, Parte_Borrador) => {
+          Total = Partes.reduce((Acum, Parte_Borrador) => {
             const Parte = Modelo.Partes?.[Parte_Borrador.Parte_Id];
             const Est = Planes_Estimar_Tiempo_Cantidad_Item(
               "Parte",
@@ -83806,22 +83914,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Parte_Borrador.Cantidad,
               Modelo
             );
-            return Planes_Combinar_Tiempo_Estimado(Total, Est);
-          }, Planes_Estimar_Tiempo_Resultado(0, false, false));
+            return Planes_Combinar_Tiempo_Estimado(Acum, Est);
+          }, Total);
         }
+        const General = Borrador.General_Seleccionada
+          ? Number(Borrador.General_Cantidad) || 0
+          : 0;
+        if (General <= 0) return Total;
         if (Borrador.Item_Tipo === "Subobjetivo") {
-          return Planes_Estimar_Tiempo_Cantidad_Item(
-            "Subobjetivo",
-            Modelo.Subobjetivos?.[Borrador.Item_Id],
-            Borrador.Cantidad,
-            Modelo
+          return Planes_Combinar_Tiempo_Estimado(
+            Total,
+            Planes_Estimar_Tiempo_Cantidad_Item(
+              "Subobjetivo",
+              Modelo.Subobjetivos?.[Borrador.Item_Id],
+              General,
+              Modelo
+            )
           );
         }
-        return Planes_Estimar_Tiempo_Cantidad_Item(
-          "Objetivo",
-          Modelo.Objetivos?.[Borrador.Item_Id],
-          Borrador.Cantidad,
-          Modelo
+        return Planes_Combinar_Tiempo_Estimado(
+          Total,
+          Planes_Estimar_Tiempo_Cantidad_Item(
+            "Objetivo",
+            Modelo.Objetivos?.[Borrador.Item_Id],
+            General,
+            Modelo
+          )
         );
       }
 
@@ -83842,29 +83960,111 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Borrador,
         Opciones = {}
       ) {
-        if (!Wrap || !Borrador?.Partes?.length) return;
+        if (!Wrap || !Borrador) return;
         const Cont = document.createElement("div");
         Cont.className = "Aporte_Meta_Destinos";
 
+        const Contador = document.createElement("div");
+        Contador.className = "Aporte_Meta_Contador";
+        const Actualizar_Contador = () => {
+          Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+          Contador.textContent = t("plan.aporte_meta_contador", {
+            cantidad: Meta_Aporte_Formatear(
+              Borrador.Cantidad,
+              Borrador.Unidad
+            ),
+            sugerido: Meta_Aporte_Formatear(
+              Borrador.Sugerido,
+              Borrador.Unidad
+            ),
+            unidad: Borrador.Unidad
+          });
+        };
+        Actualizar_Contador();
+        Cont.appendChild(Contador);
+
+        const General_Fila = document.createElement("label");
+        General_Fila.className = "Aporte_Meta_Destino Aporte_Meta_General" +
+          (Borrador.General_Seleccionada ? " Activo" : "");
+
+        const General_Check = document.createElement("input");
+        General_Check.type = "checkbox";
+        General_Check.className = "Aporte_Meta_Destino_Check";
+        General_Check.checked = Borrador.General_Seleccionada;
+
+        const General_Nombre = document.createElement("span");
+        General_Nombre.className = "Aporte_Meta_Destino_Nombre";
+        General_Nombre.textContent = t("plan.aporte_meta_general_destino", {
+          unidad: Borrador.Unidad,
+          meta: Borrador.Meta
+        });
+
+        const General_Input = document.createElement("input");
+        General_Input.type = "number";
+        General_Input.min = "0";
+        General_Input.step = Meta_Aporte_Debe_Redondear(Borrador.Unidad)
+          ? "1"
+          : "0.01";
+        General_Input.className =
+          "Aporte_Meta_Destino_Input Aporte_Meta_General_Input";
+        General_Input.disabled = !Borrador.General_Seleccionada;
+        General_Input.value = Meta_Aporte_Formatear(
+          Borrador.General_Cantidad,
+          Borrador.Unidad
+        );
+
+        General_Check.addEventListener("change", async () => {
+          Borrador.General_Seleccionada = General_Check.checked;
+          if (!Borrador.General_Seleccionada) {
+            Borrador.General_Cantidad = 0;
+          }
+          Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+          General_Input.disabled = !Borrador.General_Seleccionada;
+          General_Fila.classList.toggle(
+            "Activo",
+            Borrador.General_Seleccionada
+          );
+          Actualizar_Contador();
+          Opciones.Al_Tiempo_Cambiar?.();
+          await Opciones.Al_Cambiar?.();
+        });
+
+        General_Input.addEventListener("input", () => {
+          Borrador.General_Cantidad =
+            Meta_Aporte_Numero(General_Input.value);
+          if (Borrador.General_Cantidad > 0) {
+            Borrador.General_Seleccionada = true;
+          }
+          General_Check.checked = Borrador.General_Seleccionada;
+          General_Fila.classList.toggle(
+            "Activo",
+            Borrador.General_Seleccionada
+          );
+          Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+          Actualizar_Contador();
+          Opciones.Al_Tiempo_Cambiar?.();
+        });
+
+        General_Input.addEventListener("blur", async () => {
+          if (
+            !Meta_Aporte_Validar_Distribucion_Borrador(Borrador, true)
+          ) {
+            await Opciones.Al_Error?.();
+            return;
+          }
+          await Opciones.Al_Cambiar?.();
+        });
+
+        General_Fila.appendChild(General_Check);
+        General_Fila.appendChild(General_Nombre);
+        General_Fila.appendChild(General_Input);
+        Cont.appendChild(General_Fila);
+
+        if (Borrador.Partes?.length) {
         const Titulo = document.createElement("div");
         Titulo.className = "Aporte_Meta_Destinos_Titulo";
         Titulo.textContent = t("plan.aporte_meta_partes");
         Cont.appendChild(Titulo);
-
-        const General = document.createElement("div");
-        General.className = "Aporte_Meta_General";
-        const Actualizar_General = () => {
-          Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
-          const Valor = Meta_Aporte_General_Distribucion(
-            Borrador.Tildado ? Borrador.Cantidad : 0,
-            Borrador.Distribucion,
-            Borrador.Unidad
-          );
-          General.textContent = t("plan.aporte_meta_general", {
-            cantidad: Meta_Aporte_Formatear(Valor, Borrador.Unidad),
-            unidad: Borrador.Unidad
-          });
-        };
 
         Borrador.Partes.forEach((Parte) => {
           const Fila = document.createElement("label");
@@ -83875,7 +84075,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Check.type = "checkbox";
           Check.className = "Aporte_Meta_Destino_Check";
           Check.checked = Parte.Seleccionada;
-          Check.disabled = !Borrador.Tildado;
 
           const Nombre = document.createElement("span");
           Nombre.className =
@@ -83899,7 +84098,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ? "1"
             : "0.01";
           Input.className = "Aporte_Meta_Destino_Input";
-          Input.disabled = !Borrador.Tildado || !Parte.Seleccionada;
+          Input.disabled = !Parte.Seleccionada;
           Input.value = Meta_Aporte_Formatear(
             Parte.Cantidad,
             Borrador.Unidad
@@ -83908,11 +84107,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Check.addEventListener("change", async () => {
             Parte.Seleccionada = Check.checked;
             if (!Parte.Seleccionada) Parte.Cantidad = 0;
-            if (!Borrador.Distribucion_Manual) {
-              Meta_Aporte_Distribuir_Auto_Borrador(Borrador);
-            } else {
-              Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
-            }
+            Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
+            Input.disabled = !Parte.Seleccionada;
+            Fila.classList.toggle("Activo", Parte.Seleccionada);
+            Actualizar_Contador();
             Opciones.Al_Tiempo_Cambiar?.();
             await Opciones.Al_Cambiar?.();
           });
@@ -83925,7 +84123,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Check.checked = Parte.Seleccionada;
             Fila.classList.toggle("Activo", Parte.Seleccionada);
             Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
-            Actualizar_General();
+            Actualizar_Contador();
             Opciones.Al_Tiempo_Cambiar?.();
           });
 
@@ -83944,9 +84142,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fila.appendChild(Input);
           Cont.appendChild(Fila);
         });
-
-        Actualizar_General();
-        Cont.appendChild(General);
+        }
         Wrap.appendChild(Cont);
       }
 
@@ -84071,6 +84267,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return true;
         }
         const Unidad = Meta_Aporte_Unidad_Objetivo(Objetivo);
+        Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
         const Cantidad_Asignada_Nueva = Meta_Aporte_Redondear(
           Borrador.Cantidad,
           Unidad
@@ -84083,7 +84280,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Cantidad_Anterior = Borrador.Original_Tildado
           ? Meta_Aporte_Redondear(Borrador.Original_Cantidad, Unidad)
           : 0;
-        Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
         if (!Meta_Aporte_Validar_Distribucion_Borrador(Borrador, true)) {
           return false;
         }
@@ -84186,13 +84382,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Ok) return false;
         }
 
-        Evento.Meta_Aporte_Cantidad = Cantidad_Asignada_Nueva;
+        Evento.Meta_Aporte_Cantidad = Tildado_Nuevo
+          ? Cantidad_Asignada_Nueva
+          : 0;
         Evento.Meta_Aporte_Unidad = Unidad;
         Evento.Meta_Aporte_Planeado = Tildado_Nuevo;
         Evento.Meta_Aporte_Tildado = Tildado_Nuevo;
         Evento.Meta_Aporte_Manual =
-          Borrador.Original_Manual ||
-          Cantidad_Asignada_Nueva !== Borrador.Original_Cantidad;
+          Tildado_Nuevo &&
+          (
+            Borrador.Original_Manual ||
+            Cantidad_Asignada_Nueva !== Borrador.Original_Cantidad
+          );
         Evento.Meta_Aporte_Distribucion = Distribucion_Nueva;
         Evento.Meta_Aporte_Distribucion_Manual =
           Tildado_Nuevo &&
@@ -84311,6 +84512,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Sub_Id_Local: null,
             Tipo: I.Tipo || "Texto",
             Objetivo_Id: String(I.Objetivo_Id || "").trim(),
+            Tarea_Id: String(I.Tarea_Id || "").trim(),
             Habito_Id: String(I.Habito_Id || "").trim(),
             Habito_Cantidad: Number(I.Habito_Cantidad) > 0
               ? Number(I.Habito_Cantidad)
@@ -84526,27 +84728,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Mostrar_Sueltos_Completo ||
           Mostrar_Solo_Sueltos_Existentes
         ) {
-          const Tit_Sueltos = document.createElement("div");
-          Tit_Sueltos.className = "Abordaje_Seccion_Titulo";
-          Tit_Sueltos.textContent =
-            t("abordaje.items_sueltos");
-          Cuerpo.appendChild(Tit_Sueltos);
-
-          if (Items_Sueltos.length === 0) {
-            const V = document.createElement("div");
-            V.className = "Abordaje_Vacio";
-            V.textContent =
-              t("abordaje.sin_items");
-            Cuerpo.appendChild(V);
-          } else {
-            Items_Sueltos.forEach((Item) => {
-              Cuerpo.appendChild(
-                Crear_Fila_Abordaje(
-                  Item, true, Permitir_Planear
-                )
-              );
-            });
-          }
+          Items_Sueltos.forEach((Item) => {
+            Cuerpo.appendChild(
+              Crear_Fila_Abordaje(
+                Item, true, Permitir_Planear
+              )
+            );
+          });
         }
 
         // Input para agregar nuevo ítem suelto + botón destildar.
@@ -84598,26 +84786,47 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cont.appendChild(Btn);
           Cuerpo.appendChild(Cont);
 
+          const Habitos_Sugeridos_Ids = Evento_Actual
+            ? new Set(
+              Obtener_Habitos_Disponibles_Plan_Slot(
+                Evento_Actual.Fecha,
+                Evento_Actual.Inicio,
+                true
+              ).map((Habito) => Habito.Id)
+            )
+            : new Set();
           const Habitos_Disponibles =
             Evento_Actual
               ? Obtener_Habitos_Disponibles_Plan_Slot(
                 Evento_Actual.Fecha,
                 Evento_Actual.Inicio,
                 false
-              ).filter((Habito) =>
-                Habito_Modo_Visible(Habito) !== "Tiempo" &&
-                !Abordaje_Borrador.some((Item) =>
-                  Item.Suelta &&
-                  String(Item.Habito_Id || "").trim() === Habito.Id
-                )
               )
+                .filter((Habito) =>
+                  Habito_Modo_Visible(Habito) !== "Tiempo" &&
+                  !Abordaje_Borrador.some((Item) =>
+                    Item.Suelta &&
+                    String(Item.Habito_Id || "").trim() === Habito.Id
+                  )
+                )
+                .sort((A, B) => {
+                  const SA = Habitos_Sugeridos_Ids.has(A.Id) ? 0 : 1;
+                  const SB = Habitos_Sugeridos_Ids.has(B.Id) ? 0 : 1;
+                  if (SA !== SB) return SA - SB;
+                  if (SA === 0) {
+                    return Habitos_Comparar_Sugeridos_Plan_Slot(A, B);
+                  }
+                  return Habitos_Comparar_Orden_Base(A, B);
+                })
               : [];
-          const Objetivos_Disponibles =
-            Obtener_Objetivos_Disponibles_Plan_Slot(
-              Abordaje_Borrador,
-              Evento_Actual?.Objetivo_Id || ""
-            );
-          if (Habitos_Disponibles.length || Objetivos_Disponibles.length) {
+          const Tareas_Disponibles = Evento_Actual
+            ? Obtener_Tareas_Disponibles_Plan_Slot(
+              Evento_Actual.Fecha,
+              Evento_Actual.Inicio,
+              Abordaje_Borrador
+            )
+            : [];
+          if (Habitos_Disponibles.length || Tareas_Disponibles.length) {
             const Selectores = document.createElement("div");
             Selectores.className =
               "Campo Campo_Ancho Plan_Slot_Selectores";
@@ -84628,21 +84837,23 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   (Habito_Id) =>
                     Agregar_Habito_A_Abordaje(Habito_Id),
                   {
-                    Texto_Boton: t("agregar"),
-                    Tipo: "habito"
+                    Tipo: "habito",
+                    Select_Config: {
+                      Es_Sugerida: (Habito) =>
+                        Habitos_Sugeridos_Ids.has(Habito.Id)
+                    }
                   }
                 );
               Selectores.appendChild(Control_Habitos.Fila);
             }
-            if (Objetivos_Disponibles.length) {
-              const Control_Objetivos =
-                Crear_Fila_Select_Objetivo_Plan_Slot(
-                  Objetivos_Disponibles,
-                  (Objetivo_Id) =>
-                    Agregar_Objetivo_A_Abordaje(Objetivo_Id),
-                  { Texto_Boton: t("agregar") }
+            if (Tareas_Disponibles.length) {
+              const Control_Tareas =
+                Crear_Fila_Select_Tarea_Plan_Slot(
+                  Tareas_Disponibles,
+                  (Tarea_Id) =>
+                    Agregar_Tarea_A_Abordaje(Tarea_Id)
                 );
-              Selectores.appendChild(Control_Objetivos.Fila);
+              Selectores.appendChild(Control_Tareas.Fila);
             }
             Cuerpo.appendChild(Selectores);
           }
@@ -84783,6 +84994,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Ya_Existe) return false;
         const Item = Crear_Item_Objetivo_Abordaje(Objetivo);
         if (!Item) return false;
+        Abordaje_Borrador.push(Item);
+        Render_Modal_Abordaje();
+        return true;
+      }
+
+      function Agregar_Tarea_A_Abordaje(Tarea_Id) {
+        const Tarea = Tarea_Por_Id(Tarea_Id);
+        if (!Tarea || !Tarea_Esta_Pendiente(Tarea)) return false;
+        const Ya_Existe = Abordaje_Borrador.some((Item) =>
+          String(Item?.Tarea_Id || "").trim() === Tarea.Id
+        );
+        if (Ya_Existe) return false;
+        const Item = Crear_Item_Tarea_Plan_Slot(Tarea);
+        if (!Item) return false;
+        Item.Suelta = true;
+        Item.Planeada = true;
         Abordaje_Borrador.push(Item);
         Render_Modal_Abordaje();
         return true;
@@ -85101,7 +85328,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         if (Es_Suelta) {
           // Botón promover (convertir en subobjetivo real).
-          if (!Item.Habito_Id && !Item.Objetivo_Id) {
+          if (!Item.Habito_Id && !Item.Objetivo_Id && !Item.Tarea_Id) {
             const Btn_P = document.createElement("button");
             Btn_P.type = "button";
             Btn_P.className = "Abordaje_Item_Promover";
@@ -85183,6 +85410,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Parte_Meta_Id: I.Parte_Meta_Id || null,
               Tipo: I.Tipo || "Texto",
               Objetivo_Id: String(I.Objetivo_Id || "").trim(),
+              Tarea_Id: String(I.Tarea_Id || "").trim(),
               Habito_Id: String(I.Habito_Id || "").trim(),
               Habito_Cantidad: Number(I.Habito_Cantidad) > 0
                 ? Number(I.Habito_Cantidad)
@@ -85205,6 +85433,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           delete Evento.Abordaje;
         }
+        Sincronizar_Tareas_De_Abordaje_Guardado(
+          Evento,
+          Abordaje_Anterior,
+          Final
+        );
         Habito_Sincronizar_Items_Abordaje(
           Evento,
           Abordaje_Anterior,
@@ -85643,6 +85876,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Crear_Item_Tarea_Plan_Slot(Tarea) {
+        if (!Tarea) return null;
+        return {
+          Id: Tarea.Plan_Item_Id || Crear_Id_Plan_Slot_Item(),
+          Tipo: "Tarea",
+          Tarea_Id: Tarea.Id,
+          Emoji: Tarea.Emoji || "\u2022",
+          Texto: Tarea.Nombre || "",
+          Estado: Tarea_Estado_A_Plan(Tarea)
+        };
+      }
+
       function Habitos_Prioridad_Periodo_Plan_Slot(Habito) {
         const Orden = {
           Dia: 0,
@@ -85695,7 +85940,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Opciones,
         Placeholder,
         Obtener_Id,
-        Obtener_Texto
+        Obtener_Texto,
+        Config = {}
       ) {
         const Select = document.createElement("select");
         Select.className = "Config_Select";
@@ -85707,21 +85953,32 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Opt = document.createElement("option");
           Opt.value = Obtener_Id(Item);
           Opt.textContent = Obtener_Texto(Item);
+          const Grupo = Config.Obtener_Grupo?.(Item) || "";
+          if (Grupo) Opt.dataset.grupo = Grupo;
+          if (Config.Es_Sugerida?.(Item)) {
+            Opt.dataset.sugerida = "1";
+          }
           Select.appendChild(Opt);
         });
+        if ((Array.isArray(Opciones) ? Opciones : [])
+          .some((Item) => Config.Es_Sugerida?.(Item))) {
+          Select.classList.add("Plan_Slot_Select_Sugerido");
+        }
         return Select;
       }
 
       function Crear_Select_Habitos_Plan_Slot(
         Opciones,
-        Placeholder = t("habitos.seleccionar")
+        Placeholder = t("habitos.seleccionar"),
+        Config = {}
       ) {
         return Crear_Select_Plan_Slot(
           Opciones,
           Placeholder,
           (Habito) => Habito.Id,
           (Habito) =>
-            `${Habito.Emoji || "\u2022"} ${Habito.Nombre || ""}`.trim()
+            `${Habito.Emoji || "\u2022"} ${Habito.Nombre || ""}`.trim(),
+          Config
         );
       }
 
@@ -85738,6 +85995,19 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Crear_Select_Tareas_Plan_Slot(
+        Opciones,
+        Placeholder = t("tareas.seleccionar")
+      ) {
+        return Crear_Select_Plan_Slot(
+          Opciones,
+          Placeholder,
+          (Tarea) => Tarea.Id,
+          (Tarea) =>
+            `${Tarea.Emoji || "\u2022"} ${Tarea.Nombre || ""}`.trim()
+        );
+      }
+
       function Crear_Fila_Select_Habito_Plan_Slot(
         Opciones,
         On_Agregar,
@@ -85751,13 +86021,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         const Select = Crear_Select_Habitos_Plan_Slot(
           Opciones,
-          Config_Fila.Placeholder || t("habitos.seleccionar")
+          Config_Fila.Placeholder || t("habitos.seleccionar"),
+          Config_Fila.Select_Config || {}
         );
         const Btn = document.createElement("button");
         Btn.type = "button";
         Btn.className = Config_Fila.Clase_Boton ||
-          "Archivero_Sub_Btn Compacto";
-        Btn.textContent = Config_Fila.Texto_Boton || t("agregar");
+          "Plan_Slot_Add_Btn";
+        Btn.textContent = Config_Fila.Texto_Boton || "+";
+        Btn.title = t("agregar");
+        Btn.setAttribute("aria-label", t("agregar"));
         Btn.addEventListener("click", () => {
           if (!Select.value) {
             Select.focus();
@@ -85786,8 +86059,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Btn = document.createElement("button");
         Btn.type = "button";
         Btn.className = Config_Fila.Clase_Boton ||
-          "Archivero_Sub_Btn Compacto";
-        Btn.textContent = Config_Fila.Texto_Boton || t("agregar");
+          "Plan_Slot_Add_Btn";
+        Btn.textContent = Config_Fila.Texto_Boton || "+";
+        Btn.title = t("agregar");
+        Btn.setAttribute("aria-label", t("agregar"));
+        Btn.addEventListener("click", () => {
+          if (!Select.value) {
+            Select.focus();
+            return;
+          }
+          On_Agregar?.(Select.value);
+        });
+        Fila.appendChild(Select);
+        Fila.appendChild(Btn);
+        return { Fila, Select, Btn };
+      }
+
+      function Crear_Fila_Select_Tarea_Plan_Slot(
+        Opciones,
+        On_Agregar,
+        Config_Fila = {}
+      ) {
+        const Fila = document.createElement("div");
+        Fila.className = "Plan_Slot_Select_Row" +
+          (Config_Fila.Dialogo ? " Dialogo" : "");
+        Fila.dataset.planSelect = Config_Fila.Tipo || "tarea";
+        const Select = Crear_Select_Tareas_Plan_Slot(
+          Opciones,
+          Config_Fila.Placeholder || t("tareas.seleccionar")
+        );
+        const Btn = document.createElement("button");
+        Btn.type = "button";
+        Btn.className = Config_Fila.Clase_Boton ||
+          "Plan_Slot_Add_Btn";
+        Btn.textContent = Config_Fila.Texto_Boton || "+";
+        Btn.title = t("agregar");
+        Btn.setAttribute("aria-label", t("agregar"));
         Btn.addEventListener("click", () => {
           if (!Select.value) {
             Select.focus();
@@ -85852,6 +86159,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
       }
 
+      function Obtener_Tareas_Disponibles_Plan_Slot(
+        Fecha,
+        Hora,
+        Items = []
+      ) {
+        const Existentes = new Set(
+          (Array.isArray(Items) ? Items : [])
+            .map((Item) => String(Item?.Tarea_Id || "").trim())
+            .filter(Boolean)
+        );
+        return (Array.isArray(Tareas) ? Tareas : [])
+          .filter((Tarea) =>
+            Tarea &&
+            Tarea_Esta_Pendiente(Tarea) &&
+            !Existentes.has(Tarea.Id)
+          )
+          .sort(Tarea_Comparar_Para_Plan_Slot(Fecha, Hora));
+      }
+
       function Agregar_Objetivo_A_Plan_Slot(Objetivo_Id) {
         const Objetivo = Objetivo_Por_Id(Objetivo_Id);
         if (!Objetivo) return false;
@@ -85860,6 +86186,20 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         if (Ya_Existe) return false;
         const Item = Crear_Item_Objetivo_Plan_Slot(Objetivo);
+        if (!Item) return false;
+        Plan_Slot_Borrador.push(Item);
+        Render_Modal_Plan_Slot();
+        return true;
+      }
+
+      function Agregar_Tarea_A_Plan_Slot(Tarea_Id) {
+        const Tarea = Tarea_Por_Id(Tarea_Id);
+        if (!Tarea || !Tarea_Esta_Pendiente(Tarea)) return false;
+        const Ya_Existe = Plan_Slot_Borrador.some((Item) =>
+          String(Item?.Tarea_Id || "").trim() === Tarea.Id
+        );
+        if (Ya_Existe) return false;
+        const Item = Crear_Item_Tarea_Plan_Slot(Tarea);
         if (!Item) return false;
         Plan_Slot_Borrador.push(Item);
         Render_Modal_Plan_Slot();
@@ -85978,22 +86318,42 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Cuerpo.appendChild(Acciones);
 
+        const Habitos_Sugeridos_Ids = new Set(
+          Obtener_Habitos_Disponibles_Plan_Slot(
+            Modal_Plan_Slot_Fecha,
+            Modal_Plan_Slot_Hora,
+            true
+          ).map((Habito) => Habito.Id)
+        );
         const Habitos_Disponibles =
           Obtener_Habitos_Disponibles_Plan_Slot(
             Modal_Plan_Slot_Fecha,
             Modal_Plan_Slot_Hora,
             false
-          ).filter((Habito) =>
-            !Plan_Slot_Borrador.some((Item) =>
-              Item.Tipo === "Habito" &&
-              Item.Habito_Id === Habito.Id
+          )
+            .filter((Habito) =>
+              !Plan_Slot_Borrador.some((Item) =>
+                Item.Tipo === "Habito" &&
+                Item.Habito_Id === Habito.Id
+              )
             )
-          );
-        const Objetivos_Disponibles =
-          Obtener_Objetivos_Disponibles_Plan_Slot(
+            .sort((A, B) => {
+              const SA = Habitos_Sugeridos_Ids.has(A.Id) ? 0 : 1;
+              const SB = Habitos_Sugeridos_Ids.has(B.Id) ? 0 : 1;
+              if (SA !== SB) return SA - SB;
+              if (SA === 0) {
+                return Habitos_Comparar_Sugeridos_Plan_Slot(A, B);
+              }
+              return Habitos_Comparar_Orden_Base(A, B);
+            });
+        const Tareas_Disponibles = Plan_Slot_Modo_Masivo
+          ? []
+          : Obtener_Tareas_Disponibles_Plan_Slot(
+            Modal_Plan_Slot_Fecha,
+            Modal_Plan_Slot_Hora,
             Plan_Slot_Borrador
           );
-        if (Habitos_Disponibles.length || Objetivos_Disponibles.length) {
+        if (Habitos_Disponibles.length || Tareas_Disponibles.length) {
           const Selectores = document.createElement("div");
           Selectores.className =
             "Campo Campo_Ancho Plan_Slot_Selectores";
@@ -86004,53 +86364,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 (Habito_Id) =>
                   Agregar_Habito_A_Plan_Slot(Habito_Id),
                 {
-                  Texto_Boton: t("agregar"),
-                  Tipo: "habito"
+                  Tipo: "habito",
+                  Select_Config: {
+                    Es_Sugerida: (Habito) =>
+                      Habitos_Sugeridos_Ids.has(Habito.Id)
+                  }
                 }
               );
             Selectores.appendChild(Control_Habitos.Fila);
           }
-          if (Objetivos_Disponibles.length) {
-            const Control_Objetivos =
-              Crear_Fila_Select_Objetivo_Plan_Slot(
-                Objetivos_Disponibles,
-                (Objetivo_Id) =>
-                  Agregar_Objetivo_A_Plan_Slot(Objetivo_Id),
-                { Texto_Boton: t("agregar") }
+          if (Tareas_Disponibles.length) {
+            const Control_Tareas =
+              Crear_Fila_Select_Tarea_Plan_Slot(
+                Tareas_Disponibles,
+                (Tarea_Id) =>
+                  Agregar_Tarea_A_Plan_Slot(Tarea_Id)
               );
-            Selectores.appendChild(Control_Objetivos.Fila);
+            Selectores.appendChild(Control_Tareas.Fila);
           }
           Cuerpo.appendChild(Selectores);
-        }
-
-        const Habitos_Sugeridos =
-          Obtener_Habitos_Disponibles_Plan_Slot(
-            Modal_Plan_Slot_Fecha,
-            Modal_Plan_Slot_Hora,
-            true
-          ).filter((Habito) =>
-            !Plan_Slot_Borrador.some((Item) =>
-              Item.Tipo === "Habito" &&
-              Item.Habito_Id === Habito.Id
-            )
-          );
-        if (Habitos_Sugeridos.length) {
-          const Seccion = document.createElement("div");
-          Seccion.className = "Campo Campo_Ancho";
-          Seccion.style.marginTop = "10px";
-          const Titulo = document.createElement("div");
-          Titulo.className = "Planes_Form_Seccion_Titulo";
-          Titulo.textContent = t("habitos.sugeridos");
-          Seccion.appendChild(Titulo);
-          const Control_Sugeridos =
-            Crear_Fila_Select_Habito_Plan_Slot(
-              Habitos_Sugeridos,
-              (Habito_Id) =>
-                Agregar_Habito_A_Plan_Slot(Habito_Id),
-              { Texto_Boton: t("agregar") }
-            );
-          Seccion.appendChild(Control_Sugeridos.Fila);
-          Cuerpo.appendChild(Seccion);
         }
 
         if (Plan_Slot_Mostrando_Nuevo) {
@@ -86226,8 +86558,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               JSON.parse(JSON.stringify(
                 Plan_Anterior?.Items || []
               ))
-            );
+          );
           if (Items_Anteriores.length) {
+            Sincronizar_Tareas_De_Plan_Slot_Guardado(
+              Clave,
+              Items_Anteriores,
+              [],
+              Modal_Plan_Slot_Fecha,
+              Modal_Plan_Slot_Hora
+            );
             Limpiar_Plan_Slot_Por_Clave(Clave);
             Habito_Sincronizar_Items_Plan_Slot(
               Modal_Plan_Slot_Fecha,
@@ -86268,6 +86607,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Items_Anteriores = Normalizar_Items_Plan_Slot(
           JSON.parse(JSON.stringify(Plan_Anterior?.Items || []))
+        );
+        Sincronizar_Tareas_De_Plan_Slot_Guardado(
+          Clave,
+          Items_Anteriores,
+          Items,
+          Modal_Plan_Slot_Fecha,
+          Modal_Plan_Slot_Hora
         );
         Guardar_Plan_Slot_Clave(Clave, Items);
         Habito_Sincronizar_Items_Plan_Slot(
@@ -94258,6 +94604,48 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Tarea_Formatear_Hora_Desde_Numero(Hora) {
+        const Valor = Math.max(0, Number(Hora) || 0);
+        const H = Math.floor(Valor);
+        const M = Math.round((Valor - H) * 60);
+        return `${String(H).padStart(2, "0")}:` +
+          `${String(M).padStart(2, "0")}`;
+      }
+
+      function Tarea_Categoria_Plan_Slot(Tarea, Fecha, Hora) {
+        const Fecha_Tarea = String(Tarea?.Fecha || "").trim();
+        const Hora_Tarea = String(Tarea?.Hora || "").trim();
+        const Hora_Slot = Number(Hora) || 0;
+        if (
+          Fecha_Tarea === Fecha &&
+          Hora_Tarea &&
+          Math.abs(Tarea_Hora_Slot(Tarea) - Hora_Slot) < 0.001
+        ) {
+          return 0;
+        }
+        if (!Hora_Tarea) return 1;
+        return 2;
+      }
+
+      function Tarea_Comparar_Para_Plan_Slot(Fecha, Hora) {
+        return (A, B) => {
+          const CA = Tarea_Categoria_Plan_Slot(A, Fecha, Hora);
+          const CB = Tarea_Categoria_Plan_Slot(B, Fecha, Hora);
+          if (CA !== CB) return CA - CB;
+          const FA = A.Fecha || "9999-12-31";
+          const FB = B.Fecha || "9999-12-31";
+          if (FA !== FB) return FA.localeCompare(FB);
+          const HA = A.Hora || "99:99";
+          const HB = B.Hora || "99:99";
+          if (HA !== HB) return HA.localeCompare(HB);
+          return (A.Nombre || "").localeCompare(
+            B.Nombre || "",
+            "es",
+            { sensitivity: "base", numeric: true }
+          );
+        };
+      }
+
       function Tarea_Estado_A_Plan(Tarea) {
         return Tarea?.Estado === "completada"
           ? "Realizado"
@@ -94389,6 +94777,135 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Cambio;
       }
 
+      function Sincronizar_Tareas_De_Plan_Slot_Guardado(
+        Clave,
+        Items_Anteriores = [],
+        Items_Nuevos = [],
+        Fecha = "",
+        Hora = 0
+      ) {
+        const Ids_Nuevos = new Set(
+          Normalizar_Items_Plan_Slot(Items_Nuevos)
+            .map((Item) => String(Item.Tarea_Id || "").trim())
+            .filter(Boolean)
+        );
+        Normalizar_Items_Plan_Slot(Items_Anteriores)
+          .forEach((Item) => {
+            const Tarea = Tarea_Por_Id(Item.Tarea_Id);
+            if (!Tarea || Ids_Nuevos.has(Tarea.Id)) return;
+            if (
+              Tarea.Plan_Clave === Clave ||
+              Tarea.Plan_Item_Id === Item.Id
+            ) {
+              Tarea.Planeada = false;
+              Tarea.Plan_Clave = "";
+              Tarea.Plan_Item_Id = "";
+            }
+          });
+        Normalizar_Items_Plan_Slot(Items_Nuevos)
+          .forEach((Item) => {
+            const Tarea = Tarea_Por_Id(Item.Tarea_Id);
+            if (!Tarea) return;
+            const Datos_Plan = Tarea_Obtener_Item_Plan(Tarea);
+            if (
+              Datos_Plan.Clave &&
+              Datos_Plan.Clave !== Clave &&
+              Datos_Plan.Plan
+            ) {
+              Datos_Plan.Plan.Items = (Datos_Plan.Plan.Items || [])
+                .filter((Entrada) =>
+                  Entrada.Id !== Datos_Plan.Item?.Id &&
+                  Entrada.Tarea_Id !== Tarea.Id
+                );
+              Guardar_Plan_Slot_Clave(
+                Datos_Plan.Clave,
+                Datos_Plan.Plan.Items
+              );
+            }
+            if (Tarea.Evento_Id) {
+              const Evento_Anterior = Evento_Por_Id(Tarea.Evento_Id);
+              if (Evento_Anterior && Array.isArray(Evento_Anterior.Abordaje)) {
+                Evento_Anterior.Abordaje = Evento_Anterior.Abordaje
+                  .filter((Entrada) => Entrada.Id !== Tarea.Abordaje_Id);
+                if (!Evento_Anterior.Abordaje.length) {
+                  delete Evento_Anterior.Abordaje;
+                }
+              }
+            }
+            Tarea.Fecha = Fecha;
+            Tarea.Hora = Tarea_Formatear_Hora_Desde_Numero(Hora);
+            Tarea.Planeada = true;
+            Tarea.Evento_Id = "";
+            Tarea.Abordaje_Id = "";
+            Tarea.Plan_Clave = Clave;
+            Tarea.Plan_Item_Id = Item.Id;
+            Tarea.Fecha_Actualizacion = new Date().toISOString();
+          });
+      }
+
+      function Sincronizar_Tareas_De_Abordaje_Guardado(
+        Evento,
+        Items_Anteriores = [],
+        Items_Nuevos = []
+      ) {
+        if (!Evento) return;
+        const Ids_Nuevos = new Set(
+          (Array.isArray(Items_Nuevos) ? Items_Nuevos : [])
+            .map((Item) => String(Item.Tarea_Id || "").trim())
+            .filter(Boolean)
+        );
+        (Array.isArray(Items_Anteriores) ? Items_Anteriores : [])
+          .forEach((Item) => {
+            const Tarea = Tarea_Por_Id(Item.Tarea_Id);
+            if (!Tarea || Ids_Nuevos.has(Tarea.Id)) return;
+            if (
+              Tarea.Evento_Id === Evento.Id ||
+              Tarea.Abordaje_Id === Item.Id
+            ) {
+              Tarea.Planeada = false;
+              Tarea.Evento_Id = "";
+              Tarea.Abordaje_Id = "";
+            }
+          });
+        (Array.isArray(Items_Nuevos) ? Items_Nuevos : [])
+          .forEach((Item) => {
+            const Tarea = Tarea_Por_Id(Item.Tarea_Id);
+            if (!Tarea) return;
+            const Datos_Plan = Tarea_Obtener_Item_Plan(Tarea);
+            if (Datos_Plan.Clave && Datos_Plan.Plan) {
+              Datos_Plan.Plan.Items = (Datos_Plan.Plan.Items || [])
+                .filter((Entrada) =>
+                  Entrada.Id !== Datos_Plan.Item?.Id &&
+                  Entrada.Tarea_Id !== Tarea.Id
+                );
+              Guardar_Plan_Slot_Clave(
+                Datos_Plan.Clave,
+                Datos_Plan.Plan.Items
+              );
+            }
+            Tarea.Plan_Clave = "";
+            Tarea.Plan_Item_Id = "";
+            if (Tarea.Evento_Id && Tarea.Evento_Id !== Evento.Id) {
+              const Evento_Anterior = Evento_Por_Id(Tarea.Evento_Id);
+              if (Evento_Anterior && Array.isArray(Evento_Anterior.Abordaje)) {
+                Evento_Anterior.Abordaje = Evento_Anterior.Abordaje
+                  .filter((Entrada) => Entrada.Id !== Tarea.Abordaje_Id);
+                if (!Evento_Anterior.Abordaje.length) {
+                  delete Evento_Anterior.Abordaje;
+                }
+              }
+            }
+            Tarea.Fecha = Evento.Fecha || Tarea.Fecha;
+            Tarea.Hora = Tarea_Formatear_Hora_Desde_Numero(
+              Evento.Inicio
+            );
+            Tarea.Planeada = true;
+            Tarea.Evento_Id = Evento.Id;
+            Tarea.Abordaje_Id = Item.Id;
+            Tarea.Fecha_Actualizacion = new Date().toISOString();
+          });
+      }
+
       function Sincronizar_Tareas_Desde_Abordajes() {
         Tareas.forEach((Tarea) => {
           const Datos_Plan = Tarea_Obtener_Item_Plan(Tarea);
@@ -94421,6 +94938,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Tarea.Abordaje_Id = "";
             return;
           }
+          Tarea.Planeada = true;
           if (Item.Estado === "Completado" && Tarea.Estado !== "completada") {
             Tarea.Estado = "completada";
             Tarea.Fecha_Completado = new Date().toISOString();
@@ -104426,7 +104944,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Btn_Ant = document.createElement("button");
         Btn_Ant.type = "button";
         Btn_Ant.className = "Resumen_Sem_Rango_Btn";
-        Btn_Ant.textContent = "<";
+        Btn_Ant.textContent = "\u2039";
         Btn_Ant.title = t("nav.anterior");
         Btn_Ant.addEventListener("click", () => {
           Resumen_Navegar_Rango_Actual(-1);
@@ -104434,7 +104952,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Btn_Sig = document.createElement("button");
         Btn_Sig.type = "button";
         Btn_Sig.className = "Resumen_Sem_Rango_Btn";
-        Btn_Sig.textContent = ">";
+        Btn_Sig.textContent = "\u203A";
         Btn_Sig.title = t("nav.siguiente");
         Btn_Sig.addEventListener("click", () => {
           Resumen_Navegar_Rango_Actual(1);
@@ -105623,7 +106141,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           const Total = Number(Objetivo.Progreso_Total) || 0;
           const Incluir =
-            Solapa || Avance_Rango > 0 || Target_Periodo > 0;
+            Avance_Rango > 0 ||
+            Target_Periodo > 0 ||
+            (Solapa && Target_Total > 0);
           if (!Incluir) return;
           Items.push({
             Objetivo,
@@ -105704,8 +106224,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado.className = "Resumen_Sem_Meta_Estado";
           const Pct = Item.Target > 0
             ? Math.round((Item.Avance_Rango / Item.Target) * 100)
-            : 0;
-          Estado.textContent = Item.Target > 0
+            : (Item.Avance_Rango > 0 ? 100 : 0);
+          Estado.textContent = Item.Target > 0 || Item.Avance_Rango > 0
             ? `${Pct}%`
             : t("resumen.meta_sin_target");
           Toggle.appendChild(Estado);

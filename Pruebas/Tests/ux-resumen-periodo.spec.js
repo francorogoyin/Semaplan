@@ -193,6 +193,24 @@ test("resumen por periodo filtra metas y centra navegacion", async ({
       Target_Total: 10,
       Unidad: "Horas"
     });
+    const Sin_Meta = Planes_Crear_Objetivo_Silencioso(P2026.Id, {
+      Id: "obj_sin_meta",
+      Nombre: "Sin meta sin avance",
+      Emoji: "\uD83C\uDFAC",
+      Color: "#7b68a8",
+      Target_Total: 0,
+      Unidad: "Personalizado",
+      Unidad_Custom: "peliculas"
+    });
+    const Avance_Sin_Meta = Planes_Crear_Objetivo_Silencioso(P2026.Id, {
+      Id: "obj_avance_sin_meta",
+      Nombre: "Avance sin meta",
+      Emoji: "\uD83C\uDFAF",
+      Color: "#9b6b2f",
+      Target_Total: 0,
+      Unidad: "Personalizado",
+      Unidad_Custom: "peliculas"
+    });
     Modelo.Avances.av_2026 = Normalizar_Avance_Plan({
       Id: "av_2026",
       Objetivo_Id: Actual.Id,
@@ -211,8 +229,19 @@ test("resumen por periodo filtra metas y centra navegacion", async ({
       Fecha: "2027-03-10",
       Hora: "10:00"
     });
+    Modelo.Avances.av_sin_meta = Normalizar_Avance_Plan({
+      Id: "av_sin_meta",
+      Objetivo_Id: Avance_Sin_Meta.Id,
+      Fuente: "Manual",
+      Cantidad: 1,
+      Unidad: "peliculas",
+      Fecha: "2026-05-10",
+      Hora: "10:00"
+    });
     Planes_Actualizar_Progreso(Actual);
     Planes_Actualizar_Progreso(Futuro);
+    Planes_Actualizar_Progreso(Sin_Meta);
+    Planes_Actualizar_Progreso(Avance_Sin_Meta);
     Render_Resumen_Semanal();
 
     const Select = document.querySelector(".Resumen_Sem_Rango_Select");
@@ -224,6 +253,9 @@ test("resumen por periodo filtra metas y centra navegacion", async ({
         ?.textContent?.trim() || "",
       nombres: Array.from(document.querySelectorAll(
         ".Resumen_Sem_Meta_Nombre"
+      )).map((Nodo) => Nodo.textContent.trim()),
+      estados: Array.from(document.querySelectorAll(
+        ".Resumen_Sem_Meta_Estado"
       )).map((Nodo) => Nodo.textContent.trim()),
       orden: Array.from(document.querySelector(
         ".Resumen_Sem_Rango_Centro"
@@ -246,7 +278,11 @@ test("resumen por periodo filtra metas y centra navegacion", async ({
   });
 
   expect(inicial.titulo.toLowerCase()).toContain("per\u00edodo");
-  expect(inicial.nombres).toEqual(["Meta periodo 2026"]);
+  expect(inicial.nombres).toEqual([
+    "Meta periodo 2026",
+    "Avance sin meta"
+  ]);
+  expect(inicial.estados[1]).toBe("100%");
   expect(inicial.orden.map((Item) => Item.tag)).toEqual([
     "BUTTON",
     "SELECT",

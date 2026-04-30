@@ -181,15 +181,19 @@ async ({ page }) => {
   });
 
   await page.evaluate(() => Abrir_Modal_Abordaje("ev_quince"));
-  await expect(page.locator(".Aporte_Meta_Check"))
-    .not.toHaveClass(/Activo/);
-  await expect(page.locator(".Aporte_Meta_Input")).toHaveValue("5");
+  await expect(page.locator(".Aporte_Meta_Contador"))
+    .toContainText("Aporte a la meta: 0 (5 sugeridos)");
+  await expect(page.locator(".Aporte_Meta_General_Input"))
+    .toHaveValue("0");
+  await expect(page.locator(".Aporte_Meta_General_Input"))
+    .toBeDisabled();
   await page.click("#Abordaje_Modal_Guardar_Btn");
 
   const sinActivar = await page.evaluate(() => {
     const Evento = Eventos.find((Item) => Item.Id === "ev_quince");
     return {
       cantidad: Evento.Meta_Aporte_Cantidad,
+      asignado: Meta_Aporte_Asignado_Evento(Evento),
       tildado: Evento.Meta_Aporte_Tildado,
       planeado: Evento.Meta_Aporte_Planeado,
       avances: Object.keys(Asegurar_Modelo_Planes().Avances).length
@@ -198,13 +202,21 @@ async ({ page }) => {
 
   expect(sinActivar).toEqual({
     cantidad: 5,
+    asignado: 0,
     tildado: false,
     planeado: false,
     avances: 0
   });
 
   await page.evaluate(() => Abrir_Modal_Abordaje("ev_quince"));
-  await page.click(".Aporte_Meta_Check");
+  await page.locator(
+    ".Aporte_Meta_General .Aporte_Meta_Destino_Check"
+  ).check();
+  await expect(page.locator(".Aporte_Meta_General_Input"))
+    .toBeEnabled();
+  await page.fill(".Aporte_Meta_General_Input", "5");
+  await expect(page.locator(".Aporte_Meta_Contador"))
+    .toContainText("Aporte a la meta: 5 (5 sugeridos)");
   await page.evaluate(() => {
     Mostrar_Dialogo = async () => true;
   });
@@ -224,6 +236,6 @@ async ({ page }) => {
     cantidad: 5,
     tildado: true,
     planeado: true,
-    manual: false
+    manual: true
   });
 });

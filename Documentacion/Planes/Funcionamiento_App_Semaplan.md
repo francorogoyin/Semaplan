@@ -239,10 +239,11 @@ Notas operativas.
   objetivo contextual de ese periodo; el detalle muestra primero
   subobjetivos y partes con avance, ordenados de mayor a menor, y deja
   los items sin avance detras de botones de expansion.
-- En Resumen > Metas un objetivo solo se incluye si su periodo solapa el
-  rango visible, si tuvo avance dentro de ese rango o si su target
-  contextual para ese rango es mayor a cero. Los objetivos de otros
-  periodos no deben aparecer solo por tener avance acumulado global.
+- En Resumen > Metas un objetivo solo se incluye si tuvo avance dentro
+  del rango visible, si su target contextual para ese rango es mayor a
+  cero o si su periodo solapa el rango y tiene target total definido.
+  Si no tiene meta ni avance en el rango, queda oculto; si tiene avance
+  pero no meta, se muestra como 100%.
 
 ## Slots vacios, bloques y planes de slot
 
@@ -273,19 +274,26 @@ Relaciones importantes.
 - Si un slot deja de ser vacio y aparece un evento real, parte del
   plan de slot puede transferirse al evento.
 - Los patrones de tipo slot alimentan este sistema.
-- En el modal de plan de slot, `Habitos sugeridos` muestra los
-  habitos diarios solo cuando coinciden con el dia y la hora del slot.
-  Los habitos semanales, quincenales y mensuales pendientes se sugieren
-  dentro del periodo aunque su programacion tenga dias u horarios
-  preferidos; dejan de aparecer cuando el periodo queda completo. La
-  lista sugerida se ordena por periodo: diarios, semanales,
-  quincenales y mensuales; y dentro de cada periodo por tipo: Check,
-  Cantidad, Tiempo y Evitar.
+- En pedidos de reforma de `Planes` de bloques, el alcance operativo
+  por defecto incluye bloques, slots muertos y slots vacios, salvo que
+  el usuario aclare otra cosa.
+- En el modal de plan de slot o bloque, los habitos sugeridos ya no se
+  muestran en un apartado separado: aparecen primero dentro del
+  desplegable de habitos y el selector se pinta en gris cuando contiene
+  sugerencias. Los habitos diarios se sugieren solo cuando coinciden
+  con el dia y la hora del slot. Los habitos semanales, quincenales y
+  mensuales pendientes se sugieren dentro del periodo aunque su
+  programacion tenga dias u horarios preferidos; dejan de aparecer
+  cuando el periodo queda completo. La lista sugerida se ordena por
+  periodo: diarios, semanales, quincenales y mensuales; y dentro de
+  cada periodo por tipo: Check, Cantidad, Tiempo y Evitar.
 - Los planes de slots vacios, slots muertos y bloques usan controles
-  desplegables equivalentes para agregar habitos y objetivos. Los
-  objetivos agregados se guardan como items con `Objetivo_Id`, se
-  deduplican por ese identificador y conservan el vinculo cuando un
-  plan de slot se transfiere a un bloque.
+  desplegables equivalentes para agregar habitos y tareas, no objetivos
+  semanales. En el desplegable de tareas van primero las tareas del
+  mismo dia y horario, despues las tareas sin horario y al final las de
+  otros horarios. Las tareas agregadas se guardan como items con
+  `Tarea_Id`, se deduplican por ese identificador y conservan el
+  vinculo al persistir o transferirse entre plan de slot y bloque.
 
 ## Tareas
 
@@ -451,10 +459,13 @@ Relaciones importantes.
 - Cambios en agenda y objetivos pueden cambiar indirectamente sus
   calculos y mensajes.
 - En bloques vinculados a metas de planes por periodo, el aporte por
-  bloque se muestra como sugerencia proporcional a la duracion real del
-  bloque cuando el objetivo tiene horas semanales. El aporte arranca
-  desmarcado y solo se registra si el usuario lo activa o confirma
-  explicitamente.
+  bloque separa el aporte real del aporte sugerido. El contador muestra
+  `Aporte a la meta: X (Y sugeridos)`, donde `X` suma el aporte general
+  y los aportes de partes seleccionadas, e `Y` se calcula de forma
+  proporcional a la duracion real del bloque cuando el objetivo tiene
+  horas semanales. El aporte general arranca en cero, usa el mismo
+  estilo que las partes y solo se registra si el usuario lo tilda y le
+  asigna cantidad.
 
 ## Planes semanales
 
