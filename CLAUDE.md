@@ -96,30 +96,6 @@ Seguir `Documentacion/Planes/Reglas_Operativas_Semaplan.md`.
 
 ## Comunicación
 
-La fórmula `Entendí que...` se usa solo al iniciar un objetivo nueva,
-cuando el agente va a ponerse a ejecutar algo.
-
-No usar `Entendí que...` en estos casos:
-
-- cuando el usuario hace una pregunta y no está encargando un objetivo;
-- cuando el agente solo responde una duda o aclara una regla;
-- cuando el agente solo notifica avance de algo ya iniciado.
-
-Si el usuario da una instrucción explícita y ejecutable, el agente debe
-actuar sin pedir confirmación previa. Solo corresponde frenar para
-preguntar cuando haya ambigüedad material, impacto destructivo o un
-riesgo no obvio que pueda cambiar la decisión.
-
-En pedidos de cambios operativos o visuales, si el pedido es vago o
-admite varias interpretaciones razonables, hacer preguntas breves de
-aclaracion antes de editar. Las preguntas deben apuntar a decisiones
-que cambian la implementacion o la validacion, por ejemplo estado
-esperado, flujo afectado, cuenta de prueba, persistencia, alcance
-desktop/mobile o variante visual. Si el pedido es puntual, obvio o se
-puede resolver revisando el contexto local sin riesgo, avanzar sin
-preguntar para no enlentecer. Si hay una ambigüedad menor y una
-suposicion conservadora alcanza, explicitar la suposicion y seguir.
-
 Cuando el usuario encargue una tarea mediana o grande, o use una
 formula como `itera como siempre`, antes de implementar hay que hacer
 dos pasadas deliberadas de pensamiento:
