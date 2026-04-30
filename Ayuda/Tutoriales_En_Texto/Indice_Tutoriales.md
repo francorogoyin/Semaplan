@@ -35,13 +35,26 @@ Estos tutoriales ya tienen contrato, texto y video renderizado local.
 - `Habitos_Tareas_Semaplan`.
 - `Ayuda_Config_Semaplan`.
 
-## Nuevo estandar accesible.
+## Nuevo estándar accesible.
 
 `Baul_Objetivos_Semaplan` ya fue migrado al formato detallado:
-recorrido lento, introduccion previa, cursor visible, toasts
-explicativos abajo, datos de ejemplo realistas y subtitulos `.srt`
+recorrido lento, introducción previa, cursor visible, toasts
+explicativos abajo, datos de ejemplo realistas y subtítulos `.srt`
 generados desde el mismo texto que escucha la persona usuaria. Desde
-este punto, los demas tutoriales deben seguir ese criterio editorial.
+este punto, los demás tutoriales deben seguir ese criterio editorial.
+
+También quedan definidos como tutoriales detallados:
+
+- `Tareas_Semaplan`.
+- `Habitos_Semaplan`.
+- `Objetivos_Subobjetivos_Semanales_Semaplan`.
+- `Metas_Semaplan`.
+- `Resumen_Semanal_Semaplan`.
+- `Planes_Bloques_Slots_Semaplan`.
+- `Modo_Focus_Semaplan`.
+
+Todos usan preparación previa de ejemplos reales, voz lenta,
+subtítulos alineados, carteles sin solapes y texto con tildes.
 
 ## Criterio de produccion.
 

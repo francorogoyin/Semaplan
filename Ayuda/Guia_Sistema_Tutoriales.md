@@ -104,13 +104,20 @@ La fuente textual principal del video son los carteles y toasts
 temporizados. Ese mismo texto se usa para la voz y para el archivo
 `.srt`, de modo que una persona sorda pueda leer todo lo que se dice
 y una persona que escucha reciba exactamente lo que aparece en pantalla.
-El motor recorta automaticamente los rangos de carteles consecutivos
+El motor recorta automáticamente los rangos de carteles consecutivos
 para que nunca se superpongan en el video.
 
-Cada accion relevante debe tener un cartel breve, escrito desde la
-duda del usuario. Primero se explica que se va a hacer, despues el
-mouse visible se mueve hacia el control y recien ahi se ejecuta la
-accion.
+Los textos visibles deben escribirse en español completo, con tildes,
+signos y puntuación correctos. Si un contrato viejo no tiene tildes,
+el motor aplica una corrección conservadora antes de generar voz,
+toasts, subtítulos y texto de ayuda. No se debe entregar un video donde
+la voz lea mal palabras como `baúl`, `búsqueda`, `cajón`, `hábito`,
+`qué`, `cómo`, `médico`, `período` o `próximo`.
+
+Cada acción relevante debe tener un cartel breve, escrito desde la
+duda del usuario. Primero se explica qué se va a hacer, después el
+mouse visible se mueve hacia el control y recién ahí se ejecuta la
+acción.
 
 Si no hay clave de ElevenLabs, los contratos pueden usar
 `"Proveedor": "Windows"` dentro de `Voz` para generar una narracion
@@ -122,6 +129,31 @@ segundo en que aparece el toast. Si una frase no entra en la ventana
 del cartel, el segmento se ajusta solo lo necesario para evitar
 solapes con el texto siguiente. La pista final se valida para evitar
 archivos silenciosos.
+
+## Control de calidad editorial.
+
+Antes de dar por listo un video, revisar estas reglas.
+
+- La introducción dice qué se va a recorrer, para qué sirve la sección
+  y qué dudas resuelve.
+- La voz va lenta y alineada con el cartel visible y con el movimiento
+  del mouse.
+- Todo lo que dice la voz aparece también como texto en pantalla y en
+  subtítulos.
+- No aparece la palabra `Paso` en los toasts, ni carteles con fuente
+  excesiva, ni carteles superpuestos.
+- El mouse se ve durante clicks, hovers y rellenos importantes.
+- Las palabras salen con tildes reales en voz, cartel, `.srt` y
+  tutorial escrito.
+- Si el flujo natural crea, edita o marca algo, se guarda. No se dice
+  que se evita modificar una cuenta de prueba.
+- No se mencionan detalles internos del pipeline, cuentas de prueba,
+  Playwright ni excusas técnicas dentro del video.
+- Los ejemplos deben parecer datos de una persona usuaria normal:
+  nombres claros, fechas, emojis, categorías, etiquetas, notas o
+  fotos cuando la función lo justifique.
+- La preparación previa debe cargar esos ejemplos antes de grabar y
+  debe poder repetirse sin acumular basura.
 
 ## Datos de ejemplo.
 

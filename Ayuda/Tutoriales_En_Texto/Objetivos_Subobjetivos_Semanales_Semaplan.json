@@ -1,0 +1,221 @@
+{
+  "Url_Inicial": "https://semaplan.com",
+  "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
+  "Headless": true,
+  "Cursor_Fps": 12,
+  "Resolucion": {
+    "Ancho": 1920,
+    "Alto": 1080
+  },
+  "Duracion_Cartel_Segundos": 9.5,
+  "Pausa_Didactica_Factor": 0.9,
+  "Pausa_Didactica_Max_Segundos": 8.5,
+  "Corregir_Tildes": true,
+  "Sincronizar_Carteles": true,
+  "Voz": {
+    "Proveedor": "Windows",
+    "Velocidad": 0,
+    "Tempo": 0.72,
+    "Volumen": 100
+  },
+  "Identificador": "Objetivos_Subobjetivos_Semanales_Semaplan",
+  "Titulo": "Usar objetivos y subobjetivos semanales en Semaplan",
+  "Descripcion_Corta": "Recorrido lento por creación, selección y seguimiento semanal",
+  "Youtube": {
+    "Titulo": "Usar objetivos y subobjetivos semanales en Semaplan",
+    "Descripcion": "Tutorial detallado para usar objetivos semanales y subobjetivos en Semaplan: crear un objetivo, seleccionarlo, revisar sus tareas internas y marcar avance.",
+    "Etiquetas": [
+      "Semaplan",
+      "tutorial",
+      "ayuda",
+      "objetivos semanales",
+      "subobjetivos"
+    ]
+  },
+  "Pasos_Texto": [
+    {
+      "Titulo": "Crear un objetivo semanal",
+      "Texto": "Completar nombre, descripción, emoji, horas y categoría."
+    },
+    {
+      "Titulo": "Seleccionar un objetivo",
+      "Texto": "Abrir el resumen del objetivo y revisar sus datos."
+    },
+    {
+      "Titulo": "Usar subobjetivos",
+      "Texto": "Marcar una parte interna como realizada."
+    }
+  ],
+  "Acciones_Preparacion": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Archivo_Codigo": "Ayuda/Sistema_Tutoriales/Preparar_Datos_Tutoriales.js"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 1
+    }
+  ],
+  "Acciones": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "async () => {",
+        "  Config.Menu_Estilo = 'Iconos';",
+        "  if (typeof Plan_Modal_Modo !== \"undefined\") {",
+        "    Plan_Modal_Modo = 'Periodos';",
+        "  }",
+        "  if (typeof Aplicar_Estilo_Menu === \"function\") {",
+        "    Aplicar_Estilo_Menu();",
+        "  }",
+        "  if (typeof Cerrar_Tareas === \"function\") Cerrar_Tareas();",
+        "  if (typeof Cerrar_Modal_Habitos === \"function\") {",
+        "    Cerrar_Modal_Habitos(true);",
+        "  }",
+        "  if (typeof Cerrar_Plan === \"function\") Cerrar_Plan();",
+        "  if (typeof Cerrar_Resumen_Semanal === \"function\") {",
+        "    Cerrar_Resumen_Semanal();",
+        "  }",
+        "  if (typeof Cerrar_Focus_Mode === \"function\") {",
+        "    Cerrar_Focus_Mode();",
+        "  }",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 13,
+      "Duracion_Cartel_Segundos": 13,
+      "Tipo_Cartel": "Intro",
+      "Cartel": "En este video vamos a recorrer Objetivos y subobjetivos semanales. Sirven para decidir qué importa esta semana y dividirlo en pasos concretos que se puedan marcar.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Mostrar_Creador",
+      "Cartel": "El botón de crear objetivo abre el formulario semanal. Se usa cuando querés sumar una prioridad nueva a la semana."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Mostrar_Creador",
+      "Cartel": "Abrimos el creador de objetivo semanal."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Nombre_Objetivo"
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Nombre_Objetivo",
+      "Texto": "Ordenar papeles del estudio",
+      "Cartel": "El nombre debe ser concreto y reconocible."
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Descripcion_Corta_Objetivo",
+      "Texto": "Separar facturas, contratos y notas sueltas.",
+      "Cartel": "La descripción corta aclara el resultado esperado."
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Emoji_Objetivo",
+      "Texto": "🗂️",
+      "Cartel": "El emoji ayuda a encontrar el objetivo rápido en la columna lateral."
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Horas_Semanales",
+      "Texto": "2",
+      "Cartel": "Las horas semanales indican cuánto tiempo se quiere reservar para este objetivo."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Crear_Objetivo",
+      "Cartel": "Guardamos el objetivo nuevo. Si se crea un objetivo real, queda guardado en la semana."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 2,
+      "Cartel": "Ahora vamos a seleccionar un objetivo con subobjetivos ya cargados para ver el seguimiento interno."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": ".Emoji_Item[data-objetivo-id=\"Tutorial_Obj_Propuesta\"]",
+      "Cartel": "Seleccionamos Preparar propuesta comercial desde la lista lateral."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Resumen_Objetivo"
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Obj = Objetivo_Por_Id('Tutorial_Obj_Propuesta');",
+        "  const Clave = Clave_Semana_Actual();",
+        "  if (Obj) {",
+        "    Obj.Subobjetivos_Contraidas_Semanales =",
+        "      Obj.Subobjetivos_Contraidas_Semanales || {};",
+        "    Obj.Subobjetivos_Contraidas_Semanales[Clave] = false;",
+        "  }",
+        "  if (typeof Render_Resumen_Objetivo === \"function\") {",
+        "    Render_Resumen_Objetivo();",
+        "  }",
+        "}"
+      ],
+      "Cartel": "Expandimos los subobjetivos para ver los pasos internos del objetivo seleccionado."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Resumen_Objetivo",
+      "Cartel": "El resumen muestra el objetivo seleccionado, sus horas, sus bloques y sus subobjetivos de la semana."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": ".Subobjetivo_Item[data-subobjetivo-id=\"Tutorial_Sub_Presupuesto\"]",
+      "Cartel": "Los subobjetivos son pasos internos. Ayudan a saber qué falta sin crear un objetivo separado."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": ".Subobjetivo_Item[data-subobjetivo-id=\"Tutorial_Sub_Presupuesto\"] .Subobjetivo_Check",
+      "Cartel": "Marcamos Revisar presupuesto como realizado. El avance queda guardado dentro del objetivo semanal."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 3,
+      "Cartel": "Esta combinación permite trabajar con un objetivo grande sin perder de vista los pasos chicos."
+    }
+  ]
+}

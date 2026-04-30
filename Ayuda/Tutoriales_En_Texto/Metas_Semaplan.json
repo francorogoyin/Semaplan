@@ -1,0 +1,204 @@
+{
+  "Url_Inicial": "https://semaplan.com",
+  "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
+  "Headless": true,
+  "Cursor_Fps": 12,
+  "Resolucion": {
+    "Ancho": 1920,
+    "Alto": 1080
+  },
+  "Duracion_Cartel_Segundos": 9.5,
+  "Pausa_Didactica_Factor": 0.9,
+  "Pausa_Didactica_Max_Segundos": 8.5,
+  "Corregir_Tildes": true,
+  "Sincronizar_Carteles": true,
+  "Voz": {
+    "Proveedor": "Windows",
+    "Velocidad": 0,
+    "Tempo": 0.72,
+    "Volumen": 100
+  },
+  "Identificador": "Metas_Semaplan",
+  "Titulo": "Usar Metas en Semaplan",
+  "Descripcion_Corta": "Recorrido lento por metas de período, progreso, subobjetivos y avances",
+  "Youtube": {
+    "Titulo": "Usar Metas en Semaplan",
+    "Descripcion": "Tutorial detallado para usar Metas en Semaplan desde Planes: elegir período, revisar objetivos de largo plazo, abrir avance y entender métricas.",
+    "Etiquetas": [
+      "Semaplan",
+      "tutorial",
+      "ayuda",
+      "metas",
+      "planes"
+    ]
+  },
+  "Pasos_Texto": [
+    {
+      "Titulo": "Abrir Metas desde Planes",
+      "Texto": "Entrar a la vista de período y ubicar los controles principales."
+    },
+    {
+      "Titulo": "Revisar progreso",
+      "Texto": "Leer tarjetas, porcentajes, unidades y estados."
+    },
+    {
+      "Titulo": "Registrar avance",
+      "Texto": "Abrir el formulario de avance y ver qué datos pide."
+    }
+  ],
+  "Acciones_Preparacion": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Archivo_Codigo": "Ayuda/Sistema_Tutoriales/Preparar_Datos_Tutoriales.js"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 1
+    }
+  ],
+  "Acciones": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "async () => {",
+        "  Config.Menu_Estilo = 'Iconos';",
+        "  if (typeof Plan_Modal_Modo !== \"undefined\") {",
+        "    Plan_Modal_Modo = 'Periodos';",
+        "  }",
+        "  if (typeof Aplicar_Estilo_Menu === \"function\") {",
+        "    Aplicar_Estilo_Menu();",
+        "  }",
+        "  if (typeof Cerrar_Tareas === \"function\") Cerrar_Tareas();",
+        "  if (typeof Cerrar_Modal_Habitos === \"function\") {",
+        "    Cerrar_Modal_Habitos(true);",
+        "  }",
+        "  if (typeof Cerrar_Plan === \"function\") Cerrar_Plan();",
+        "  if (typeof Cerrar_Resumen_Semanal === \"function\") {",
+        "    Cerrar_Resumen_Semanal();",
+        "  }",
+        "  if (typeof Cerrar_Focus_Mode === \"function\") {",
+        "    Cerrar_Focus_Mode();",
+        "  }",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 13,
+      "Duracion_Cartel_Segundos": 13,
+      "Tipo_Cartel": "Intro",
+      "Cartel": "En este video vamos a recorrer Metas dentro de Planes. Sirven para seguir objetivos de más de una semana, medir progreso y conectar avances con períodos concretos.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Planes_Boton",
+      "Cartel": "Abrimos Planes para entrar a la zona donde viven las metas de período."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Plan_Overlay.Activo"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Planes_Capa_Select",
+      "Cartel": "La capa define el tamaño del período: año, trimestre, mes u otra escala disponible."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Planes_Subperiodo_Select",
+      "Cartel": "El subperíodo permite moverse dentro del año sin perder el contexto."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Planes_Filtro_Estado",
+      "Cartel": "El filtro de estado separa metas activas, cumplidas, pausadas u ocultas."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Planes_Vista_Toggle",
+      "Cartel": "El cambio de vista permite mirar las metas como tarjetas, lista o biblioteca."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": ".Planes_Resumen",
+      "Cartel": "El resumen del período explica para qué sirve este tramo y qué se está intentando lograr."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "[data-plan-objetivo-id=\"Tutorial_Plan_Obj_Onboarding\"]",
+      "Cartel": "Cada tarjeta de meta muestra nombre, unidad, progreso y señales de ritmo."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "[data-plan-universo-avance]",
+      "Cartel": "Abrimos Registrar avance para cargar progreso real sobre una meta."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Planes_Avance_Overlay.Activo"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": ".Planes_Avance_Boton",
+      "Cartel": "Primero se elige a qué objetivo, subobjetivo o parte pertenece el avance. El selector muestra la opción actual y permite cambiarla."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Planes_Avance_Cantidad",
+      "Cartel": "Después se carga una cantidad. La unidad depende de la meta: horas, sesiones u otra unidad definida."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Planes_Avance_Fecha",
+      "Cartel": "La fecha ubica el avance dentro del período correcto."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Planes_Avance_Cancelar",
+      "Cartel": "Cancelamos el formulario para no duplicar un avance durante el tutorial."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 2,
+      "Cartel": "Cuando se guarda un avance real, la tarjeta recalcula el progreso de la meta."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Plan_Cerrar",
+      "Cartel": "Cerramos Planes y dejamos las metas preparadas para seguir usándolas."
+    }
+  ]
+}

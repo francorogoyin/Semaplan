@@ -1,0 +1,245 @@
+{
+  "Url_Inicial": "https://semaplan.com",
+  "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
+  "Headless": true,
+  "Cursor_Fps": 12,
+  "Resolucion": {
+    "Ancho": 1920,
+    "Alto": 1080
+  },
+  "Duracion_Cartel_Segundos": 9.5,
+  "Pausa_Didactica_Factor": 0.9,
+  "Pausa_Didactica_Max_Segundos": 8.5,
+  "Corregir_Tildes": true,
+  "Sincronizar_Carteles": true,
+  "Voz": {
+    "Proveedor": "Windows",
+    "Velocidad": 0,
+    "Tempo": 0.72,
+    "Volumen": 100
+  },
+  "Identificador": "Planes_Bloques_Slots_Semaplan",
+  "Titulo": "Usar Planes, bloques y slots en Semaplan",
+  "Descripcion_Corta": "Recorrido lento por bloques, slots muertos, slots vacíos y planificación",
+  "Youtube": {
+    "Titulo": "Usar Planes, bloques y slots en Semaplan",
+    "Descripcion": "Tutorial detallado para usar Planes en el calendario de Semaplan: entender bloques, slots muertos, slots vacíos y el plan de un slot.",
+    "Etiquetas": [
+      "Semaplan",
+      "tutorial",
+      "ayuda",
+      "planes",
+      "bloques",
+      "slots"
+    ]
+  },
+  "Pasos_Texto": [
+    {
+      "Titulo": "Reconocer bloques",
+      "Texto": "Ver eventos ya planificados en el calendario."
+    },
+    {
+      "Titulo": "Entender slots vacíos",
+      "Texto": "Abrir un espacio libre preparado para tareas o hábitos."
+    },
+    {
+      "Titulo": "Entender slots muertos",
+      "Texto": "Revisar franjas bloqueadas que no deberían recibir trabajo normal."
+    }
+  ],
+  "Acciones_Preparacion": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Archivo_Codigo": "Ayuda/Sistema_Tutoriales/Preparar_Datos_Tutoriales.js"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 1
+    }
+  ],
+  "Acciones": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "async () => {",
+        "  Config.Menu_Estilo = 'Iconos';",
+        "  if (typeof Plan_Modal_Modo !== \"undefined\") {",
+        "    Plan_Modal_Modo = 'Periodos';",
+        "  }",
+        "  if (typeof Aplicar_Estilo_Menu === \"function\") {",
+        "    Aplicar_Estilo_Menu();",
+        "  }",
+        "  if (typeof Cerrar_Tareas === \"function\") Cerrar_Tareas();",
+        "  if (typeof Cerrar_Modal_Habitos === \"function\") {",
+        "    Cerrar_Modal_Habitos(true);",
+        "  }",
+        "  if (typeof Cerrar_Plan === \"function\") Cerrar_Plan();",
+        "  if (typeof Cerrar_Resumen_Semanal === \"function\") {",
+        "    Cerrar_Resumen_Semanal();",
+        "  }",
+        "  if (typeof Cerrar_Focus_Mode === \"function\") {",
+        "    Cerrar_Focus_Mode();",
+        "  }",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 13,
+      "Duracion_Cartel_Segundos": 13,
+      "Tipo_Cartel": "Intro",
+      "Cartel": "En este video vamos a recorrer Planes en el calendario: bloques, slots muertos y slots vacíos. La idea es entender qué ya está reservado, qué queda libre y qué conviene proteger.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "() => {",
+        "  if (typeof Render_Calendario === \"function\") {",
+        "    Render_Calendario();",
+        "  }",
+        "  if (typeof Render_Eventos === \"function\") {",
+        "    Render_Eventos();",
+        "  }",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Parte = (N) => String(N).padStart(2, \"0\");",
+        "  const Fecha = (Dias) => {",
+        "    const V = new Date();",
+        "    V.setHours(12, 0, 0, 0);",
+        "    V.setDate(V.getDate() + Dias);",
+        "    return `${V.getFullYear()}-${Parte(V.getMonth() + 1)}-` +",
+        "      `${Parte(V.getDate())}`;",
+        "  };",
+        "  const Evento = document.querySelector(",
+        "    '.Evento[data-id=\"Tutorial_Evento_Propuesta\"]'",
+        "  );",
+        "  if (Evento) Evento.id = 'Tutorial_Bloque_Propuesta';",
+        "  const Slot_Vacio = document.querySelector(",
+        "    `.Slot[data-fecha=\"${Fecha(2)}\"][data-hora=\"16\"]`",
+        "  );",
+        "  if (Slot_Vacio) Slot_Vacio.id = 'Tutorial_Slot_Vacio';",
+        "  const Slot_Muerto = document.querySelector(",
+        "    `.Slot[data-fecha=\"${Fecha(3)}\"][data-hora=\"13\"]`",
+        "  );",
+        "  if (Slot_Muerto) Slot_Muerto.id = 'Tutorial_Slot_Muerto';",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Tutorial_Bloque_Propuesta",
+      "Cartel": "Un bloque es tiempo ya reservado en el calendario. Este bloque pertenece a un objetivo semanal concreto."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Tutorial_Slot_Vacio",
+      "Cartel": "Un slot vacío es un espacio libre. Puede tener un plan interno con tareas, hábitos o notas sin convertirse todavía en un bloque."
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Parte = (N) => String(N).padStart(2, \"0\");",
+        "  const V = new Date();",
+        "  V.setHours(12, 0, 0, 0);",
+        "  V.setDate(V.getDate() + 2);",
+        "  const F = `${V.getFullYear()}-${Parte(V.getMonth() + 1)}-` +",
+        "    `${Parte(V.getDate())}`;",
+        "  Abrir_Modal_Plan_Slot(F, 16);",
+        "}"
+      ],
+      "Cartel": "Abrimos el plan del slot vacío para ver qué contiene."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Plan_Slot_Overlay.Activo"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Plan_Slot_Cuerpo",
+      "Cartel": "El plan del slot puede reunir tareas y hábitos sugeridos para ese espacio libre."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Plan_Slot_Cancelar",
+      "Cartel": "Cerramos el plan del slot sin modificarlo."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Tutorial_Slot_Muerto",
+      "Cartel": "Un slot muerto representa tiempo bloqueado: sueño, descanso, traslado o trabajo profundo protegido."
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Parte = (N) => String(N).padStart(2, \"0\");",
+        "  const V = new Date();",
+        "  V.setHours(12, 0, 0, 0);",
+        "  V.setDate(V.getDate() + 3);",
+        "  const F = `${V.getFullYear()}-${Parte(V.getMonth() + 1)}-` +",
+        "    `${Parte(V.getDate())}`;",
+        "  Abrir_Modal_Plan_Slot(F, 13);",
+        "}"
+      ],
+      "Cartel": "También se puede revisar el contenido planificado dentro de un slot muerto."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Plan_Slot_Overlay.Activo"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Plan_Slot_Cuerpo",
+      "Cartel": "En este ejemplo, el slot muerto incluye una rutina asociada, pero sigue siendo una franja protegida."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Plan_Slot_Cancelar",
+      "Cartel": "Cerramos el plan y volvemos al calendario."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 3,
+      "Cartel": "La diferencia clave: el bloque ocupa tiempo con un objetivo, el slot vacío es oportunidad y el slot muerto es tiempo protegido."
+    }
+  ]
+}

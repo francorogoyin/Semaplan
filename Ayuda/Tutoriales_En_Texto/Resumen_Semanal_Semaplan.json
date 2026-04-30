@@ -1,0 +1,186 @@
+{
+  "Url_Inicial": "https://semaplan.com",
+  "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
+  "Headless": true,
+  "Cursor_Fps": 12,
+  "Resolucion": {
+    "Ancho": 1920,
+    "Alto": 1080
+  },
+  "Duracion_Cartel_Segundos": 9.5,
+  "Pausa_Didactica_Factor": 0.9,
+  "Pausa_Didactica_Max_Segundos": 8.5,
+  "Corregir_Tildes": true,
+  "Sincronizar_Carteles": true,
+  "Voz": {
+    "Proveedor": "Windows",
+    "Velocidad": 0,
+    "Tempo": 0.72,
+    "Volumen": 100
+  },
+  "Identificador": "Resumen_Semanal_Semaplan",
+  "Titulo": "Usar Resumen semanal en Semaplan",
+  "Descripcion_Corta": "Recorrido lento por rango, métricas, pestañas y lectura de resultados",
+  "Youtube": {
+    "Titulo": "Usar Resumen semanal en Semaplan",
+    "Descripcion": "Tutorial detallado para usar el Resumen semanal en Semaplan: cambiar rango, alternar métricas y leer el resumen por objetivo, día y metas.",
+    "Etiquetas": [
+      "Semaplan",
+      "tutorial",
+      "ayuda",
+      "resumen semanal",
+      "seguimiento"
+    ]
+  },
+  "Pasos_Texto": [
+    {
+      "Titulo": "Abrir Resumen semanal",
+      "Texto": "Entrar a la vista de revisión de resultados."
+    },
+    {
+      "Titulo": "Cambiar rango y métrica",
+      "Texto": "Mirar semana, mes, horas y subobjetivos."
+    },
+    {
+      "Titulo": "Leer pestañas",
+      "Texto": "Revisar por objetivo, por día y por metas."
+    }
+  ],
+  "Acciones_Preparacion": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Archivo_Codigo": "Ayuda/Sistema_Tutoriales/Preparar_Datos_Tutoriales.js"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 1
+    }
+  ],
+  "Acciones": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "async () => {",
+        "  Config.Menu_Estilo = 'Iconos';",
+        "  if (typeof Plan_Modal_Modo !== \"undefined\") {",
+        "    Plan_Modal_Modo = 'Periodos';",
+        "  }",
+        "  if (typeof Aplicar_Estilo_Menu === \"function\") {",
+        "    Aplicar_Estilo_Menu();",
+        "  }",
+        "  if (typeof Cerrar_Tareas === \"function\") Cerrar_Tareas();",
+        "  if (typeof Cerrar_Modal_Habitos === \"function\") {",
+        "    Cerrar_Modal_Habitos(true);",
+        "  }",
+        "  if (typeof Cerrar_Plan === \"function\") Cerrar_Plan();",
+        "  if (typeof Cerrar_Resumen_Semanal === \"function\") {",
+        "    Cerrar_Resumen_Semanal();",
+        "  }",
+        "  if (typeof Cerrar_Focus_Mode === \"function\") {",
+        "    Cerrar_Focus_Mode();",
+        "  }",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 13,
+      "Duracion_Cartel_Segundos": 13,
+      "Tipo_Cartel": "Intro",
+      "Cartel": "En este video vamos a recorrer Resumen semanal. Sirve para mirar qué pasó en la semana, comparar horas, subobjetivos y avances de metas sin entrar a cada sección por separado.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Resumen_Sem_Boton",
+      "Cartel": "Abrimos Resumen semanal desde el menú principal."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Resumen_Sem_Overlay.Activo"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": ".Resumen_Sem_Rango",
+      "Cartel": "Arriba se elige el rango. Podés revisar una semana, una quincena, un mes, un año o un rango personalizado."
+    },
+    {
+      "Tipo": "Seleccionar",
+      "Selector": ".Resumen_Sem_Rango_Select",
+      "Valor": "Mes",
+      "Cartel": "Cambiamos a Mes para ver un período más amplio."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 2,
+      "Cartel": "El resumen recalcula los datos según el rango elegido."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": ".Resumen_Sem_Metrica_Btn:nth-child(2)",
+      "Cartel": "Alternamos la métrica a subobjetivos para mirar avance por pasos completados."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 2,
+      "Cartel": "Horas y subobjetivos responden preguntas distintas: cuánto tiempo asignaste y cuántas partes cerraste."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": ".Resumen_Sem_Tab:nth-child(2)",
+      "Cartel": "La pestaña Por día ordena el resumen según el calendario."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 2,
+      "Cartel": "Esta lectura ayuda a detectar días cargados, días vacíos y distribución del trabajo."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": ".Resumen_Sem_Tab:nth-child(3)",
+      "Cartel": "La pestaña Metas conecta el resumen semanal con objetivos de períodos más largos."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 3,
+      "Cartel": "Resumen semanal es una vista de revisión: no reemplaza el trabajo diario, pero muestra si el sistema está avanzando."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Resumen_Sem_Cerrar",
+      "Cartel": "Cerramos el resumen semanal."
+    }
+  ]
+}

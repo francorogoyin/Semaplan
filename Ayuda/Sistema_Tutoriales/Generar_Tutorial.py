@@ -105,6 +105,9 @@ def Cargar_Tutorial(
     if not isinstance(Tutorial, dict):
         raise ValueError("El tutorial debe ser un objeto JSON.")
 
+    if Obtener_Bandera(Tutorial, "Corregir_Tildes", True):
+        Tutorial = Corregir_Tildes_Tutorial(Tutorial)
+
     Identificador = Obtener_Cadena(Tutorial, "Identificador")
     Titulo = Obtener_Cadena(Tutorial, "Titulo")
 
@@ -115,6 +118,190 @@ def Cargar_Tutorial(
         raise ValueError("Falta `Titulo` en el tutorial.")
 
     return Tutorial
+
+
+def Corregir_Tildes_Tutorial(
+    Tutorial: dict[str, object],
+) -> dict[str, object]:
+
+    """
+    Corrige tildes frecuentes en textos visibles del tutorial.
+    La voz, los toasts y los subtitulos salen de esos textos; por
+    eso se corrigen antes de generar cualquier artefacto.
+
+    Parametros:
+    - Tutorial: Contrato completo leido desde JSON.
+
+    Retorna:
+    - dict[str, object]: Contrato con textos editoriales corregidos.
+
+    """
+
+    return {
+        Clave: Corregir_Tildes_Valor(Clave, Valor)
+        for Clave, Valor in Tutorial.items()
+    }
+
+
+def Corregir_Tildes_Valor(
+    Clave: str,
+    Valor: object,
+) -> object:
+
+    """
+    Recorre valores del contrato y corrige solo textos editoriales.
+    Evita tocar selectores, codigo JavaScript, rutas, ids y valores
+    tecnicos que deben mantenerse exactos para Playwright.
+
+    Parametros:
+    - Clave: Clave JSON del valor actual.
+    - Valor: Valor heterogeneo leido desde el contrato.
+
+    Retorna:
+    - object: Valor corregido cuando corresponde.
+
+    """
+
+    Claves_Texto = {
+        "Titulo",
+        "Descripcion",
+        "Descripcion_Corta",
+        "Texto",
+        "Cartel",
+        "Titulo_Youtube",
+    }
+    Claves_Bloqueadas = {
+        "Codigo",
+        "Codigo_Lineas",
+        "Selector",
+        "Valor",
+        "Url",
+        "Storage_State",
+        "Identificador",
+        "Ruta",
+    }
+
+    if Clave in Claves_Bloqueadas:
+        return Valor
+
+    if isinstance(Valor, str):
+        if Clave in Claves_Texto:
+            return Corregir_Tildes_Texto(Valor)
+
+        return Valor
+
+    if isinstance(Valor, list):
+        return [
+            Corregir_Tildes_Valor(Clave, Elemento)
+            for Elemento in Valor
+        ]
+
+    if isinstance(Valor, dict):
+        return {
+            Subclave: Corregir_Tildes_Valor(Subclave, Subvalor)
+            for Subclave, Subvalor in Valor.items()
+        }
+
+    return Valor
+
+
+def Corregir_Tildes_Texto(Texto: str) -> str:
+
+    """
+    Aplica reemplazos conservadores de palabras con tilde segura.
+    No corrige palabras ambiguas como `esta`, `como` o `que`,
+    porque pueden requerir o no tilde segun la frase.
+
+    Parametros:
+    - Texto: Texto visible que puede alimentar voz y subtitulos.
+
+    Retorna:
+    - str: Texto con tildes frecuentes corregidas.
+
+    """
+
+    Correcciones = {
+        "accion": "acción",
+        "acciones": "acciones",
+        "ademas": "además",
+        "ano": "año",
+        "anios": "años",
+        "baul": "baúl",
+        "busqueda": "búsqueda",
+        "categoria": "categoría",
+        "categorias": "categorías",
+        "clinica": "clínica",
+        "descripcion": "descripción",
+        "despues": "después",
+        "estan": "están",
+        "funcion": "función",
+        "habito": "hábito",
+        "habitos": "hábitos",
+        "limite": "límite",
+        "mas": "más",
+        "medico": "médico",
+        "medica": "médica",
+        "numero": "número",
+        "opcion": "opción",
+        "opciones": "opciones",
+        "periodo": "período",
+        "periodos": "períodos",
+        "podes": "podés",
+        "proxima": "próxima",
+        "proximas": "próximas",
+        "proximo": "próximo",
+        "proximos": "próximos",
+        "rapida": "rápida",
+        "rapido": "rápido",
+        "seccion": "sección",
+        "tambien": "también",
+        "tenes": "tenés",
+        "todavia": "todavía",
+        "util": "útil",
+    }
+
+    Texto_Corregido = Texto
+
+    for Sin_Tilde, Con_Tilde in Correcciones.items():
+        Patron = Re.compile(
+            rf"\b{Re.escape(Sin_Tilde)}\b",
+            Re.IGNORECASE,
+        )
+        Texto_Corregido = Patron.sub(
+            lambda Coincidencia: Aplicar_Mayusculas_Tilde(
+                Coincidencia.group(0),
+                Con_Tilde,
+            ),
+            Texto_Corregido,
+        )
+
+    return Texto_Corregido
+
+
+def Aplicar_Mayusculas_Tilde(
+    Original: str,
+    Corregido: str,
+) -> str:
+
+    """
+    Conserva el estilo de mayusculas al reemplazar una palabra.
+
+    Parametros:
+    - Original: Palabra encontrada en el contrato.
+    - Corregido: Palabra con tilde correcta en minusculas.
+
+    Retorna:
+    - str: Palabra corregida con capitalizacion equivalente.
+
+    """
+
+    if Original.isupper():
+        return Corregido.upper()
+
+    if Original[:1].isupper():
+        return Corregido[:1].upper() + Corregido[1:]
+
+    return Corregido
 
 
 def Obtener_Cadena(
@@ -1240,6 +1427,18 @@ def Obtener_Codigo_Accion(
     - str: Codigo listo para entregar a Playwright.
 
     """
+
+    Archivo_Codigo = Obtener_Cadena(Accion, "Archivo_Codigo")
+
+    if Archivo_Codigo:
+        Ruta_Codigo = Resolver_Ruta_Opcional(Archivo_Codigo)
+
+        if not Ruta_Codigo or not Ruta_Codigo.exists():
+            raise FileNotFoundError(
+                f"No existe el archivo de codigo: {Archivo_Codigo}"
+            )
+
+        return Ruta_Codigo.read_text(encoding = "utf-8")
 
     Codigo = Obtener_Cadena(Accion, "Codigo")
 

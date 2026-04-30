@@ -1,0 +1,237 @@
+{
+  "Url_Inicial": "https://semaplan.com",
+  "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
+  "Headless": true,
+  "Cursor_Fps": 12,
+  "Resolucion": {
+    "Ancho": 1920,
+    "Alto": 1080
+  },
+  "Duracion_Cartel_Segundos": 9.5,
+  "Pausa_Didactica_Factor": 0.9,
+  "Pausa_Didactica_Max_Segundos": 8.5,
+  "Corregir_Tildes": true,
+  "Sincronizar_Carteles": true,
+  "Voz": {
+    "Proveedor": "Windows",
+    "Velocidad": 0,
+    "Tempo": 0.72,
+    "Volumen": 100
+  },
+  "Identificador": "Habitos_Semaplan",
+  "Titulo": "Usar Hábitos en Semaplan",
+  "Descripcion_Corta": "Recorrido lento por hábitos, registros rápidos, vistas y creación",
+  "Youtube": {
+    "Titulo": "Usar Hábitos en Semaplan",
+    "Descripcion": "Tutorial detallado para usar Hábitos en Semaplan: revisar el panel, cambiar período, registrar avances y crear un hábito nuevo.",
+    "Etiquetas": [
+      "Semaplan",
+      "tutorial",
+      "ayuda",
+      "hábitos",
+      "rutinas"
+    ]
+  },
+  "Pasos_Texto": [
+    {
+      "Titulo": "Abrir Hábitos",
+      "Texto": "Entrar al panel y revisar hábitos activos."
+    },
+    {
+      "Titulo": "Registrar avances",
+      "Texto": "Usar los botones rápidos y cambiar entre día, semana y mes."
+    },
+    {
+      "Titulo": "Crear un hábito",
+      "Texto": "Guardar una rutina nueva con meta medible."
+    }
+  ],
+  "Acciones_Preparacion": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Archivo_Codigo": "Ayuda/Sistema_Tutoriales/Preparar_Datos_Tutoriales.js"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 1
+    }
+  ],
+  "Acciones": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "async () => {",
+        "  Config.Menu_Estilo = 'Iconos';",
+        "  if (typeof Plan_Modal_Modo !== \"undefined\") {",
+        "    Plan_Modal_Modo = 'Periodos';",
+        "  }",
+        "  if (typeof Aplicar_Estilo_Menu === \"function\") {",
+        "    Aplicar_Estilo_Menu();",
+        "  }",
+        "  if (typeof Cerrar_Tareas === \"function\") Cerrar_Tareas();",
+        "  if (typeof Cerrar_Modal_Habitos === \"function\") {",
+        "    Cerrar_Modal_Habitos(true);",
+        "  }",
+        "  if (typeof Cerrar_Plan === \"function\") Cerrar_Plan();",
+        "  if (typeof Cerrar_Resumen_Semanal === \"function\") {",
+        "    Cerrar_Resumen_Semanal();",
+        "  }",
+        "  if (typeof Cerrar_Focus_Mode === \"function\") {",
+        "    Cerrar_Focus_Mode();",
+        "  }",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 13,
+      "Duracion_Cartel_Segundos": 13,
+      "Tipo_Cartel": "Intro",
+      "Cartel": "En este video vamos a recorrer Hábitos. Esta sección sirve para sostener rutinas, registrar avances diarios y ver si una conducta se está cumpliendo con constancia.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "() => {",
+        "  Habitos_Modal_Vista = 'Panel';",
+        "  Habitos_Panel_Modo = 'Dia';",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Habitos_Boton",
+      "Cartel": "Abrimos Hábitos desde el menú principal."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Habitos_Overlay.Activo"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "[data-habitos-card=\"Tutorial_Habito_Agua\"]",
+      "Cartel": "Cada hábito tiene un nombre, una meta y un estado. Este ejemplo pide tomar agua dos veces por día."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "[data-habitos-registro-rapido=\"Tutorial_Habito_Agua\"]",
+      "Cartel": "El botón rápido registra un avance sin abrir formularios. Es útil para hábitos simples y repetidos."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "[data-habitos-panel-modo=\"Semana\"]",
+      "Cartel": "Cambiamos a vista semanal para ver continuidad, no solo el día actual."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 2,
+      "Cartel": "La vista semanal ayuda a detectar patrones: qué se repite, qué falta y qué conviene ajustar."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "[data-habitos-panel-modo=\"Mes\"]",
+      "Cartel": "La vista mensual sirve para revisar una tendencia más larga."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 2,
+      "Cartel": "Cuando el período cambia, Semaplan recalcula el progreso con el mismo hábito y sus registros."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "[data-habitos-nav=\"Registro\"]",
+      "Cartel": "El Registro muestra el historial de avances cargados."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 2,
+      "Cartel": "Esta vista sirve para revisar cuándo se registró cada hábito y corregir el seguimiento si hace falta."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Habitos_Cancelar",
+      "Cartel": "Volvemos al panel principal antes de crear un hábito nuevo."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "[data-habitos-nav=\"Editor\"]",
+      "Cartel": "Abrimos el editor para crear una nueva rutina."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Habito_Nombre"
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Habito_Nombre",
+      "Texto": "Respirar cinco minutos",
+      "Cartel": "Escribimos un hábito con una acción fácil de entender."
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Habito_Emoji",
+      "Texto": "🫁",
+      "Cartel": "Elegimos un emoji para reconocerlo rápido en el panel."
+    },
+    {
+      "Tipo": "Seleccionar",
+      "Selector": "#Habito_Meta_Modo",
+      "Valor": "Tiempo",
+      "Cartel": "La meta puede ser por check, cantidad o tiempo. Para respirar, usamos tiempo."
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Habito_Meta_Cantidad",
+      "Texto": "5",
+      "Cartel": "La cantidad define cuánto cuenta como avance suficiente."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Habitos_Nuevo",
+      "Cartel": "Guardamos el hábito. Desde ahora aparece en el panel y puede registrarse como cualquier otro."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 3,
+      "Cartel": "Hábitos combina rutina, medición y revisión histórica en una sola sección."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Habitos_Cerrar",
+      "Cartel": "Cerramos Hábitos con los cambios guardados."
+    }
+  ]
+}

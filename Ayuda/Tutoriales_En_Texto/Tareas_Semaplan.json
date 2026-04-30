@@ -1,0 +1,264 @@
+{
+  "Url_Inicial": "https://semaplan.com",
+  "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
+  "Headless": true,
+  "Cursor_Fps": 12,
+  "Resolucion": {
+    "Ancho": 1920,
+    "Alto": 1080
+  },
+  "Duracion_Cartel_Segundos": 9.5,
+  "Pausa_Didactica_Factor": 0.9,
+  "Pausa_Didactica_Max_Segundos": 8.5,
+  "Corregir_Tildes": true,
+  "Sincronizar_Carteles": true,
+  "Voz": {
+    "Proveedor": "Windows",
+    "Velocidad": 0,
+    "Tempo": 0.72,
+    "Volumen": 100
+  },
+  "Identificador": "Tareas_Semaplan",
+  "Titulo": "Usar Tareas en Semaplan",
+  "Descripcion_Corta": "Recorrido lento por tareas, cajones, estados, registro y creación",
+  "Youtube": {
+    "Titulo": "Usar Tareas en Semaplan",
+    "Descripcion": "Tutorial detallado para usar Tareas en Semaplan: ver pendientes, marcar realizadas, revisar cajones, consultar registro y crear una tarea con fecha.",
+    "Etiquetas": [
+      "Semaplan",
+      "tutorial",
+      "ayuda",
+      "tareas",
+      "productividad"
+    ]
+  },
+  "Pasos_Texto": [
+    {
+      "Titulo": "Abrir Tareas",
+      "Texto": "Entrar al panel de tareas y leer qué hay pendiente."
+    },
+    {
+      "Titulo": "Revisar estados",
+      "Texto": "Marcar una tarea, entender cajones, prioridades y fechas."
+    },
+    {
+      "Titulo": "Crear una tarea",
+      "Texto": "Guardar una tarea nueva con cajón, prioridad, fecha y hora."
+    }
+  ],
+  "Acciones_Preparacion": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Archivo_Codigo": "Ayuda/Sistema_Tutoriales/Preparar_Datos_Tutoriales.js"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 1
+    }
+  ],
+  "Acciones": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "async () => {",
+        "  Config.Menu_Estilo = 'Iconos';",
+        "  if (typeof Plan_Modal_Modo !== \"undefined\") {",
+        "    Plan_Modal_Modo = 'Periodos';",
+        "  }",
+        "  if (typeof Aplicar_Estilo_Menu === \"function\") {",
+        "    Aplicar_Estilo_Menu();",
+        "  }",
+        "  if (typeof Cerrar_Tareas === \"function\") Cerrar_Tareas();",
+        "  if (typeof Cerrar_Modal_Habitos === \"function\") {",
+        "    Cerrar_Modal_Habitos(true);",
+        "  }",
+        "  if (typeof Cerrar_Plan === \"function\") Cerrar_Plan();",
+        "  if (typeof Cerrar_Resumen_Semanal === \"function\") {",
+        "    Cerrar_Resumen_Semanal();",
+        "  }",
+        "  if (typeof Cerrar_Focus_Mode === \"function\") {",
+        "    Cerrar_Focus_Mode();",
+        "  }",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 13,
+      "Duracion_Cartel_Segundos": 13,
+      "Tipo_Cartel": "Intro",
+      "Cartel": "En este video vamos a recorrer Tareas. Sirve para guardar pendientes concretos, separarlos por cajón, poner prioridad, asignar fecha y revisar qué ya quedó hecho.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "() => {",
+        "  Tareas_Modal_Vista = 'Panel';",
+        "  Config.Tareas_Vista_Memoria = 'Semana';",
+        "  Tareas_Vista = 'Temporal';",
+        "  Tareas_Temporal_Modo = 'Semana';",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Tareas_Boton",
+      "Cartel": "Abrimos Tareas desde el menú principal."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Tareas_Overlay.Activo"
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Card = Array.from(document.querySelectorAll(",
+        "    '.Tareas_Item, .Tareas_Card'",
+        "  )).find((Item) =>",
+        "    Item.textContent.includes('Enviar presupuesto a Clara')",
+        "  );",
+        "  if (Card) Card.id = 'Tutorial_Tarea_Clara_Card';",
+        "  const Check = Card?.querySelector('.Tareas_Check, .Tareas_Check_Btn');",
+        "  if (Check) Check.id = 'Tutorial_Tarea_Clara_Check';",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Tareas_Cuerpo",
+      "Cartel": "El panel muestra las tareas filtradas. Acá se ve el nombre, el cajón, la prioridad, la fecha y el estado."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "[data-tarea-id=\"Tutorial_Tarea_Presupuesto\"]",
+      "Cartel": "Cada tarea es un ítem funcional: tiene un texto claro, un cajón de trabajo, prioridad y una fecha real."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "[data-tareas-check=\"Tutorial_Tarea_Presupuesto\"]",
+      "Cartel": "Podés marcar una tarea como realizada desde el check. Semaplan guarda ese cambio y actualiza los contadores."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "[data-tareas-nav=\"Cajones\"]",
+      "Cartel": "Entramos a Cajones para ordenar tareas por áreas de trabajo, como Clientes, Salud o Administración."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": ".Tareas_Cajones_Admin"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": ".Tareas_Cajones_Admin",
+      "Cartel": "Los cajones sirven para separar pendientes por contexto. Esto evita mezclar trámites, clientes y tareas personales."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Tareas_Cancelar",
+      "Cartel": "Volvemos al panel principal para seguir revisando opciones."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "[data-tareas-nav=\"Registro\"]",
+      "Cartel": "El Registro permite revisar tareas por historial y no solo por lo pendiente de hoy."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 2,
+      "Cartel": "Esta vista sirve para auditar qué fue pasando con las tareas, especialmente cuando hay muchas pendientes."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Tareas_Cancelar",
+      "Cartel": "Volvemos al panel antes de crear una tarea nueva."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "[data-tareas-nav=\"Editor\"]",
+      "Cartel": "Abrimos el editor para crear una tarea nueva."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Tareas_Nombre"
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Tareas_Nombre",
+      "Texto": "Confirmar turno médico",
+      "Cartel": "Primero escribimos un nombre concreto. Una buena tarea empieza con una acción clara."
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Tareas_Cajon",
+      "Texto": "Salud",
+      "Cartel": "Después elegimos el cajón. En este caso la tarea queda dentro de Salud."
+    },
+    {
+      "Tipo": "Seleccionar",
+      "Selector": "#Tareas_Prioridad",
+      "Valor": "alta",
+      "Cartel": "La prioridad ayuda a distinguir qué necesita atención antes."
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Tareas_Fecha",
+      "Texto": "2026-05-14",
+      "Cartel": "Agregamos fecha para que aparezca en la vista temporal correspondiente."
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Tareas_Hora",
+      "Texto": "10:30",
+      "Cartel": "Si también tiene hora, Semaplan puede planificarla con más precisión."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Tareas_Editor_Guardar",
+      "Cartel": "Guardamos la tarea. Si una acción debe persistir, se guarda; no hace falta evitar cambios en la cuenta de ejemplo."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 3,
+      "Cartel": "La tarea nueva queda en el panel y ya forma parte del flujo normal de Semaplan."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Tareas_Cerrar",
+      "Cartel": "Cerramos Tareas y dejamos el cambio guardado."
+    }
+  ]
+}

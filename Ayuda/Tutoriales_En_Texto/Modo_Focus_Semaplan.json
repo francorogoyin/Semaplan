@@ -1,0 +1,180 @@
+{
+  "Url_Inicial": "https://semaplan.com",
+  "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
+  "Headless": true,
+  "Cursor_Fps": 12,
+  "Resolucion": {
+    "Ancho": 1920,
+    "Alto": 1080
+  },
+  "Duracion_Cartel_Segundos": 9.5,
+  "Pausa_Didactica_Factor": 0.9,
+  "Pausa_Didactica_Max_Segundos": 8.5,
+  "Corregir_Tildes": true,
+  "Sincronizar_Carteles": true,
+  "Voz": {
+    "Proveedor": "Windows",
+    "Velocidad": 0,
+    "Tempo": 0.72,
+    "Volumen": 100
+  },
+  "Identificador": "Modo_Focus_Semaplan",
+  "Titulo": "Usar Modo focus en Semaplan",
+  "Descripcion_Corta": "Recorrido lento por bloque activo, cuenta regresiva, nota y subobjetivos",
+  "Youtube": {
+    "Titulo": "Usar Modo focus en Semaplan",
+    "Descripcion": "Tutorial detallado para usar Modo focus en Semaplan: abrir el bloque actual, leer la cuenta regresiva, escribir una nota y marcar subobjetivos.",
+    "Etiquetas": [
+      "Semaplan",
+      "tutorial",
+      "ayuda",
+      "modo focus",
+      "concentración"
+    ]
+  },
+  "Pasos_Texto": [
+    {
+      "Titulo": "Abrir Modo focus",
+      "Texto": "Entrar al bloque activo desde el menú."
+    },
+    {
+      "Titulo": "Leer el foco actual",
+      "Texto": "Revisar objetivo, tiempo restante y contexto."
+    },
+    {
+      "Titulo": "Trabajar dentro del bloque",
+      "Texto": "Escribir notas y marcar subobjetivos."
+    }
+  ],
+  "Acciones_Preparacion": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Archivo_Codigo": "Ayuda/Sistema_Tutoriales/Preparar_Datos_Tutoriales.js"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 1
+    }
+  ],
+  "Acciones": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo_Lineas": [
+        "() => {",
+        "  const Loader = document.getElementById('App_Loader');",
+        "  const Auth = document.getElementById('Auth_Overlay');",
+        "  return !!document.getElementById('Tareas_Boton') &&",
+        "    Loader?.classList.contains('Oculto') &&",
+        "    !Auth?.classList.contains('Activo');",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo_Lineas": [
+        "async () => {",
+        "  Config.Menu_Estilo = 'Iconos';",
+        "  if (typeof Plan_Modal_Modo !== \"undefined\") {",
+        "    Plan_Modal_Modo = 'Periodos';",
+        "  }",
+        "  if (typeof Aplicar_Estilo_Menu === \"function\") {",
+        "    Aplicar_Estilo_Menu();",
+        "  }",
+        "  if (typeof Cerrar_Tareas === \"function\") Cerrar_Tareas();",
+        "  if (typeof Cerrar_Modal_Habitos === \"function\") {",
+        "    Cerrar_Modal_Habitos(true);",
+        "  }",
+        "  if (typeof Cerrar_Plan === \"function\") Cerrar_Plan();",
+        "  if (typeof Cerrar_Resumen_Semanal === \"function\") {",
+        "    Cerrar_Resumen_Semanal();",
+        "  }",
+        "  if (typeof Cerrar_Focus_Mode === \"function\") {",
+        "    Cerrar_Focus_Mode();",
+        "  }",
+        "}"
+      ]
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 13,
+      "Duracion_Cartel_Segundos": 13,
+      "Tipo_Cartel": "Intro",
+      "Cartel": "En este video vamos a recorrer Modo focus. Sirve para trabajar dentro del bloque actual, ver cuánto tiempo queda, tomar una nota rápida y cerrar subobjetivos sin cambiar de pantalla.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Focus_Boton",
+      "Cartel": "Abrimos Modo focus desde el menú principal."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Focus_Overlay.Activo"
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Focus_Countdown_Card",
+      "Cartel": "La cuenta regresiva muestra cuánto tiempo queda del bloque activo. Sirve para sostener una sesión de trabajo sin mirar todo el calendario."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Focus_Cuerpo",
+      "Cartel": "El cuerpo del modo focus resume el objetivo actual y el contexto de trabajo."
+    },
+    {
+      "Tipo": "Rellenar",
+      "Selector": "#Focus_Nota_Editor",
+      "Texto": "Idea clave: enviar la versión final después de revisar costos.",
+      "Cartel": "La nota rápida guarda ideas del bloque sin salir del modo focus."
+    },
+    {
+      "Tipo": "Hover",
+      "Selector": "#Focus_Subobjetivos_Lista",
+      "Cartel": "Los subobjetivos aparecen dentro del foco para transformar el bloque en acciones concretas."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": ".Focus_Sub_Filtro_Btn",
+      "Cartel": "Usamos Mostrar todas para ver también los subobjetivos que todavía no fueron planeados dentro del bloque."
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": ".Focus_Sub_Item[data-sub-id=\"Tutorial_Sub_Envio\"]"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": ".Focus_Sub_Item[data-sub-id=\"Tutorial_Sub_Envio\"] .Focus_Sub_Check",
+      "Cartel": "Marcamos un subobjetivo como realizado desde el mismo foco. El avance vuelve al objetivo semanal."
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 3,
+      "Cartel": "Modo focus reduce la pantalla a lo que importa ahora: tiempo restante, nota y próximos pasos."
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Focus_Cerrar",
+      "Cartel": "Cerramos Modo focus y volvemos a Semaplan."
+    }
+  ]
+}
