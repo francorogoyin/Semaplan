@@ -1,4 +1,5 @@
 import argparse as Argparse
+import array as Array
 import json as Json
 import os as Os
 import pathlib as Pathlib
@@ -10,6 +11,7 @@ import textwrap as Textwrap
 import time as Time
 import urllib.error as Urlerror
 import urllib.request as Urlrequest
+import wave as Wave
 
 
 Ruta_Ayuda = Pathlib.Path(__file__).resolve().parents[1]
@@ -634,7 +636,55 @@ def Obtener_Carteles_Consolidados(
         if Cartel_Normalizado:
             Carteles.append(Cartel_Normalizado)
 
-    return sorted(Carteles, key = lambda Elemento: Elemento["Inicio"])
+    Carteles_Ordenados = sorted(
+        Carteles,
+        key = lambda Elemento: Elemento["Inicio"],
+    )
+    return Ajustar_Solapes_Carteles(Carteles_Ordenados)
+
+
+def Ajustar_Solapes_Carteles(
+    Carteles: list[dict[str, object]],
+) -> list[dict[str, object]]:
+
+    """
+    Recorta los carteles para que no se pisen en pantalla.
+    El sistema usa una sola posicion visual para los toasts, por
+    eso cuando dos tiempos se cruzan se corta el anterior antes
+    de que empiece el siguiente.
+
+    Parametros:
+    - Carteles: Carteles normalizados y ordenados por inicio.
+
+    Retorna:
+    - list[dict[str, object]]: Carteles sin solapes visibles.
+
+    """
+
+    if len(Carteles) < 2:
+        return Carteles
+
+    Margen = 0.08
+    Ajustados = [dict(Cartel) for Cartel in Carteles]
+
+    for Indice in range(len(Ajustados) - 1):
+        Actual = Ajustados[Indice]
+        Siguiente = Ajustados[Indice + 1]
+        Inicio = float(Actual["Inicio"])
+        Fin = float(Actual["Fin"])
+        Proximo_Inicio = float(Siguiente["Inicio"])
+
+        if Fin <= Proximo_Inicio - Margen:
+            continue
+
+        Nuevo_Fin = max(Inicio + 0.15, Proximo_Inicio - Margen)
+        Actual["Fin"] = round(Nuevo_Fin, 2)
+
+    return [
+        Cartel
+        for Cartel in Ajustados
+        if float(Cartel["Fin"]) > float(Cartel["Inicio"])
+    ]
 
 
 def Normalizar_Cartel(
@@ -1433,6 +1483,9 @@ param(
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Speech
 $Texto = Get-Content -Raw -Encoding UTF8 -LiteralPath $Ruta_Texto
+$Partes = $Texto -split "(\\r?\\n){2,}" | Where-Object {
+  $_.Trim()
+}
 $Sintetizador = New-Object System.Speech.Synthesis.SpeechSynthesizer
 if ($Nombre_Voz) {
   $Sintetizador.SelectVoice($Nombre_Voz)
@@ -1440,7 +1493,9 @@ if ($Nombre_Voz) {
 $Sintetizador.Rate = $Velocidad
 $Sintetizador.Volume = $Volumen
 $Sintetizador.SetOutputToWaveFile($Ruta_Audio)
-$Sintetizador.Speak($Texto)
+foreach ($Parte in $Partes) {
+  $Sintetizador.Speak($Parte.Trim())
+}
 $Sintetizador.Dispose()
 """
 
@@ -1454,10 +1509,15 @@ $Sintetizador.Dispose()
             "Bypass",
             "-File",
             str(Ruta_Script),
+            "-Ruta_Texto",
             str(Ruta_Texto),
+            "-Ruta_Audio",
             str(Ruta_Audio),
+            "-Velocidad",
             str(Velocidad),
+            "-Volumen",
             str(Volumen),
+            "-Nombre_Voz",
             Nombre_Voz,
         ],
         capture_output = True,
@@ -1468,7 +1528,47 @@ $Sintetizador.Dispose()
         Detalle = (Resultado.stderr or Resultado.stdout or "").strip()
         raise RuntimeError(f"Fallo voz local Windows: {Detalle}")
 
+    Validar_Audio_Wav_Audible(Ruta_Audio)
     return Ruta_Audio
+
+
+def Validar_Audio_Wav_Audible(
+    Ruta_Audio: Pathlib.Path,
+) -> None:
+
+    """
+    Valida que un WAV tenga senal audible y no sea silencio.
+    La voz local de Windows puede crear archivos validos pero
+    mudos cuando recibe textos largos de una sola vez; este
+    control evita publicar un MP4 con pista silenciosa.
+
+    Parametros:
+    - Ruta_Audio: Archivo WAV que debe revisarse.
+
+    Retorna:
+    - None: Lanza RuntimeError si el audio parece silencioso.
+
+    """
+
+    with Wave.open(str(Ruta_Audio), "rb") as Archivo:
+        Frames = Archivo.readframes(Archivo.getnframes())
+        Ancho_Muestra = Archivo.getsampwidth()
+
+    if Ancho_Muestra != 2 or not Frames:
+        return
+
+    Muestras = Array.array("h")
+    Muestras.frombytes(Frames)
+
+    if Sys.byteorder != "little":
+        Muestras.byteswap()
+
+    Pico = max((abs(Muestra) for Muestra in Muestras), default = 0)
+
+    if Pico < 500:
+        raise RuntimeError(
+            "La voz local genero un WAV sin volumen audible."
+        )
 
 
 def Ajustar_Tempo_Audio(
@@ -1710,8 +1810,8 @@ def Crear_Overlays(
 
     Identificador = Obtener_Identificador(Tutorial)
     Ancho, Alto = Obtener_Resolucion(Tutorial)
-    Fuente = Cargar_Fuente(Imagen_Fuente, 42)
-    Fuente_Chica = Cargar_Fuente(Imagen_Fuente, 34)
+    Fuente = Cargar_Fuente(Imagen_Fuente, 32)
+    Fuente_Chica = Cargar_Fuente(Imagen_Fuente, 26)
     Rutas: list[Pathlib.Path] = []
 
     for Indice, Cartel in enumerate(Carteles, start = 1):
@@ -1876,8 +1976,8 @@ def Crear_Capa_Dinamica_Video(
     Identificador = Obtener_Identificador(Tutorial)
     Ancho, Alto = Obtener_Resolucion(Tutorial)
     Fps = int(Obtener_Numero(Tutorial, "Cursor_Fps", 12))
-    Fuente = Cargar_Fuente(Imagen_Fuente, 42)
-    Fuente_Chica = Cargar_Fuente(Imagen_Fuente, 34)
+    Fuente = Cargar_Fuente(Imagen_Fuente, 32)
+    Fuente_Chica = Cargar_Fuente(Imagen_Fuente, 26)
     Ruta_Capa = Ruta_Datos / f"{Identificador}_Capa_Dinamica.mov"
     Proceso = Abrir_Ffmpeg_Capa(
         Ruta_Ffmpeg,
@@ -2235,7 +2335,7 @@ def Dibujar_Caja_Texto(
     Texto = str(Cartel["Texto"]).strip()
     Tipo = str(Cartel.get("Tipo", "Toast")).lower()
     Es_Intro = Tipo == "intro"
-    Ancho_Texto_Maximo = 56 if Es_Intro else 46
+    Ancho_Texto_Maximo = 62 if Es_Intro else 58
     Fuente_Usada = Fuente if len(Texto) <= 120 else Fuente_Chica
     Texto_Envuelto = "\n".join(
         Textwrap.wrap(Texto, width = Ancho_Texto_Maximo)
@@ -2244,14 +2344,14 @@ def Dibujar_Caja_Texto(
         (0, 0),
         Texto_Envuelto,
         font = Fuente_Usada,
-        spacing = 12,
+        spacing = 9,
     )
     Ancho_Texto = Caja_Texto[2] - Caja_Texto[0]
     Alto_Texto = Caja_Texto[3] - Caja_Texto[1]
     Margen = 56
-    Relleno_X = 40 if Es_Intro else 28
-    Relleno_Y = 30 if Es_Intro else 20
-    Ancho_Maximo = int(Ancho * 0.58)
+    Relleno_X = 36 if Es_Intro else 24
+    Relleno_Y = 28 if Es_Intro else 18
+    Ancho_Maximo = int(Ancho * 0.52)
 
     if Es_Intro:
         Ancho_Maximo = int(Ancho * 0.66)
@@ -2280,31 +2380,18 @@ def Dibujar_Caja_Texto(
 
     Dibujo.rounded_rectangle(
         [X, Y, X + Ancho_Caja, Y + Alto_Caja],
-        radius = 18 if Es_Intro else 14,
-        fill = (22, 30, 38, 238),
-        outline = (17, 119, 103, 180),
-        width = 2,
+        radius = 16 if Es_Intro else 10,
+        fill = (22, 28, 34, 230),
+        outline = (18, 119, 103, 145),
+        width = 1,
     )
-
-    if not Es_Intro:
-        Dibujo.rounded_rectangle(
-            [X + 16, Y - 24, X + 122, Y + 20],
-            radius = 10,
-            fill = (17, 119, 103, 235),
-        )
-        Dibujo.text(
-            (X + 32, Y - 22),
-            "Paso",
-            font = Fuente_Chica,
-            fill = (255, 255, 255, 255),
-        )
 
     Dibujo.multiline_text(
         (X + Relleno_X, Y + Relleno_Y),
         Texto_Envuelto,
         font = Fuente_Usada,
         fill = (255, 255, 255, 255),
-        spacing = 12,
+        spacing = 9,
     )
 
 

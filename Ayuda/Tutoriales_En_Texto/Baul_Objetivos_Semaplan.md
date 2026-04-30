@@ -84,37 +84,37 @@ Listo: ya sabes para que sirve el Baul, como filtrarlo, cambiar vistas y guardar
 ## Carteles del video.
 
 - 00:01 - 00:10: En este video vamos a recorrer el Baul con ejemplos reales. Sirve para guardar objetivos que todavia no queres poner en la semana, pero que no queres perder.
-- 00:13 - 00:22: Abrimos el Baul desde el menu superior. Primero miramos el mapa general y despues cada control con datos cargados.
+- 00:13 - 00:21: Abrimos el Baul desde el menu superior. Primero miramos el mapa general y despues cada control con datos cargados.
 - 00:21 - 00:30: Arriba estan busqueda, filtros, orden y vista. Abajo aparecen objetivos con emoji, categoria, fecha, horas y contexto.
 - 00:31 - 00:40: La busqueda sirve cuando recordas una palabra del objetivo y queres encontrarlo rapido.
 - 00:40 - 00:49: Al escribir, la lista se filtra sin borrar nada. Es solo una forma de mirar menos objetivos.
 - 00:52 - 01:01: Borramos la busqueda para volver a ver el conjunto completo.
-- 01:01 - 01:10: Categoria separa grandes grupos: trabajo, lectura, salud, compras o cualquier baul que armes.
+- 01:01 - 01:09: Categoria separa grandes grupos: trabajo, lectura, salud, compras o cualquier baul que armes.
 - 01:09 - 01:18: Etiqueta sirve para marcas transversales. Por ejemplo urgente, llamada, idea, pospuesta o proyecto.
 - 01:18 - 01:27: Estado diferencia objetivos activos, realizados, postergados o anulados sin mezclarlos.
-- 01:27 - 01:36: Periodo ayuda cuando un objetivo tiene fecha limite o cuando queres ver vencidos y proximos.
-- 01:36 - 01:45: Ordenar cambia la lectura de la lista: por nombre, fecha, estado u otros criterios disponibles.
+- 01:27 - 01:35: Periodo ayuda cuando un objetivo tiene fecha limite o cuando queres ver vencidos y proximos.
+- 01:36 - 01:44: Ordenar cambia la lectura de la lista: por nombre, fecha, estado u otros criterios disponibles.
 - 01:44 - 01:53: Agrupar junta objetivos por categoria, etiqueta o estado. Es util cuando el Baul crece.
 - 01:53 - 02:02: Por fila cambia la densidad visual. Menos por fila da mas aire; mas por fila muestra mas cantidad.
-- 02:02 - 02:11: La vista Lista sirve para revisar muchos objetivos de forma rapida y compacta.
-- 02:11 - 02:20: La vista Biblioteca es mejor cuando queres mirar tarjetas con mas contexto visual.
+- 02:02 - 02:10: La vista Lista sirve para revisar muchos objetivos de forma rapida y compacta.
+- 02:11 - 02:19: La vista Biblioteca es mejor cuando queres mirar tarjetas con mas contexto visual.
 - 02:19 - 02:28: Mostrar archivadas trae objetivos que ya sacaste del uso cotidiano, sin eliminarlos.
 - 02:28 - 02:37: Volvemos a ocultarlas para dejar el Baul limpio y enfocado en lo vigente.
 - 02:37 - 02:46: Nueva abre el formulario. Ahora vamos a cargar un objetivo real y guardarlo en el Baul.
-- 02:46 - 02:55: Nombre es la accion que queres conservar. Usamos un ejemplo concreto: agendar el chequeo medico anual.
+- 02:46 - 02:54: Nombre es la accion que queres conservar. Usamos un ejemplo concreto: agendar el chequeo medico anual.
 - 02:54 - 03:03: El emoji funciona como una imagen rapida. Despues ayuda a reconocer el objetivo entre muchas tarjetas.
 - 03:03 - 03:12: Tipo separa un objetivo comun de una bolsa de horas. Este caso es un objetivo comun.
-- 03:12 - 03:21: Categoria define en que grupo vive el objetivo. Elegimos Casa y salud para que quede ordenado.
-- 03:21 - 03:30: Color sirve como senal visual. Puede venir de la categoria o ajustarse para este objetivo puntual.
+- 03:12 - 03:20: Categoria define en que grupo vive el objetivo. Elegimos Casa y salud para que quede ordenado.
+- 03:21 - 03:29: Color sirve como senal visual. Puede venir de la categoria o ajustarse para este objetivo puntual.
 - 03:29 - 03:38: Estado deja claro si algo sigue activo, esta postergado, realizado o anulado.
 - 03:38 - 03:47: Horas aproximadas te ayuda a estimar esfuerzo antes de llevar el objetivo a una semana concreta.
-- 03:47 - 03:56: Fecha limite transforma una posibilidad suelta en algo que conviene revisar a tiempo.
+- 03:47 - 03:55: Fecha limite transforma una posibilidad suelta en algo que conviene revisar a tiempo.
 - 03:55 - 04:04: Descripcion guarda contexto: que falta decidir, por que importa y cual seria el proximo paso.
 - 04:04 - 04:13: Etiquetas agregan marcas transversales. Marcamos Salud para encontrarlo aunque cambie la categoria.
 - 04:13 - 04:22: Metadatos guardan informacion estructurada. En este caso anotamos el lugar.
-- 04:22 - 04:31: Tambien podemos guardar un contacto para que el objetivo no dependa de la memoria.
+- 04:22 - 04:30: Tambien podemos guardar un contacto para que el objetivo no dependa de la memoria.
 - 04:30 - 04:39: Guardar confirma el objetivo y lo suma al Baul. Si el flujo natural es guardar, se guarda.
-- 04:39 - 04:48: El objetivo nuevo queda en la biblioteca junto a los demas ejemplos, listo para filtrarse o llevarse a la semana.
+- 04:39 - 04:47: El objetivo nuevo queda en la biblioteca junto a los demas ejemplos, listo para filtrarse o llevarse a la semana.
 - 04:47 - 04:56: Listo: ya sabes para que sirve el Baul, como filtrarlo, cambiar vistas y guardar objetivos reales.
 
 ## YouTube.

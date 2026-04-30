@@ -104,6 +104,8 @@ La fuente textual principal del video son los carteles y toasts
 temporizados. Ese mismo texto se usa para la voz y para el archivo
 `.srt`, de modo que una persona sorda pueda leer todo lo que se dice
 y una persona que escucha reciba exactamente lo que aparece en pantalla.
+El motor recorta automaticamente los rangos de carteles consecutivos
+para que nunca se superpongan en el video.
 
 Cada accion relevante debe tener un cartel breve, escrito desde la
 duda del usuario. Primero se explica que se va a hacer, despues el
@@ -114,7 +116,8 @@ Si no hay clave de ElevenLabs, los contratos pueden usar
 `"Proveedor": "Windows"` dentro de `Voz` para generar una narracion
 local de borrador. Para ralentizar la voz de forma confiable, usar
 `"Tempo": 0.75` o un valor similar menor que `1`; el motor ajusta
-el audio final con FFmpeg.
+el audio final con FFmpeg. La voz local se genera por segmentos y se
+valida para evitar archivos silenciosos.
 
 ## Datos de ejemplo.
 
