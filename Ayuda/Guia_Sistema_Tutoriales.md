@@ -81,16 +81,22 @@ Cada tutorial se declara en JSON con estos campos principales.
 - `Pasos_Texto`: pasos para la ayuda escrita.
 - `Narracion`: texto que puede convertirse en voz IA.
 - `Carteles`: overlays con inicio, fin, texto y posicion.
+- `Acciones_Preparacion`: acciones previas que no se graban.
 - `Acciones`: pasos reproducibles para Playwright.
 - `Youtube`: titulo, descripcion y etiquetas para publicacion.
 
-Las acciones soportadas son `Ir_A`, `Click`, `Rellenar`, `Presionar`,
-`Esperar`, `Esperar_Selector`, `Esperar_Funcion`, `Hover`, `Scroll`,
-`Evaluar`, `Captura` y `Pausa_Manual`.
+Las acciones soportadas son `Ir_A`, `Click`, `Rellenar`,
+`Seleccionar`, `Presionar`, `Esperar`, `Esperar_Selector`,
+`Esperar_Funcion`, `Hover`, `Scroll`, `Evaluar`, `Captura` y
+`Pausa_Manual`.
 
 `Pausa_Manual` sirve para casos donde conviene intervenir durante la
 grabacion, por ejemplo iniciar sesion o preparar datos visibles antes
 de seguir con acciones automaticas.
+
+Para scripts largos de `Evaluar` o `Esperar_Funcion`, usar
+`Codigo_Lineas` en lugar de una cadena unica. El motor une esas lineas
+antes de pasarlas a Playwright.
 
 ## Accesibilidad.
 
@@ -106,7 +112,22 @@ accion.
 
 Si no hay clave de ElevenLabs, los contratos pueden usar
 `"Proveedor": "Windows"` dentro de `Voz` para generar una narracion
-local de borrador.
+local de borrador. Para ralentizar la voz de forma confiable, usar
+`"Tempo": 0.75` o un valor similar menor que `1`; el motor ajusta
+el audio final con FFmpeg.
+
+## Datos de ejemplo.
+
+Antes de grabar una seccion, el contrato debe preparar datos
+realistas con `Acciones_Preparacion`. La pantalla no debe mostrar
+restos tecnicos, nombres de diagnostico ni datos vacios que una
+persona normal no usaria.
+
+La preparacion debe ser idempotente: puede borrar o reemplazar solo
+los ejemplos creados para ese tutorial, y despues debe guardar el
+estado. Si el flujo natural del tutorial termina creando algo, se
+guarda. No se mencionan cuentas de prueba ni excusas internas en la
+voz, los toasts ni el texto de ayuda.
 
 ## Regla editorial.
 

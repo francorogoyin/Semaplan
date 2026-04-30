@@ -1,6 +1,6 @@
 # Usar el Baul de objetivos de Semaplan.
 
-Video detallado para recorrer el Baul paso a paso, mostrando busqueda, filtros, vistas, archivadas y el formulario de nuevo objetivo.
+Video detallado para recorrer el Baul paso a paso, mostrando datos reales, busqueda, filtros, vistas, archivadas y guardado de un objetivo.
 
 ## Pasos.
 
@@ -11,15 +11,15 @@ Video detallado para recorrer el Baul paso a paso, mostrando busqueda, filtros, 
 3. Cambiar la vista.
    Alternar entre biblioteca y lista para revisar objetivos con distinto nivel de detalle.
 4. Explorar el formulario de nuevo objetivo.
-   Abrir el formulario, revisar sus campos y cerrarlo sin guardar cambios.
+   Abrir el formulario, completar un ejemplo real y guardarlo.
 
 ## Guion de narracion.
 
-En este video vamos a recorrer el Baul. Sirve para guardar objetivos que todavia no queres poner en la semana, pero que no queres perder.
+En este video vamos a recorrer el Baul con ejemplos reales. Sirve para guardar objetivos que todavia no queres poner en la semana, pero que no queres perder.
 
-Abrimos el Baul desde el menu superior. Primero miramos el mapa general y despues cada control.
+Abrimos el Baul desde el menu superior. Primero miramos el mapa general y despues cada control con datos cargados.
 
-Arriba estan busqueda, filtros, orden y vista. Abajo aparece la biblioteca de objetivos.
+Arriba estan busqueda, filtros, orden y vista. Abajo aparecen objetivos con emoji, categoria, fecha, horas y contexto.
 
 La busqueda sirve cuando recordas una palabra del objetivo y queres encontrarlo rapido.
 
@@ -49,110 +49,114 @@ Mostrar archivadas trae objetivos que ya sacaste del uso cotidiano, sin eliminar
 
 Volvemos a ocultarlas para dejar el Baul limpio y enfocado en lo vigente.
 
-Nueva abre el formulario para cargar un objetivo en el Baul. Todavia no se guarda nada.
+Nueva abre el formulario. Ahora vamos a cargar un objetivo real y guardarlo en el Baul.
 
-Nombre es la accion o posibilidad que queres conservar para decidir despues.
+Nombre es la accion que queres conservar. Usamos un ejemplo concreto: agendar el chequeo medico anual.
 
-Emoji ayuda a reconocer el objetivo rapido cuando despues aparezca en tarjetas o listas.
+El emoji funciona como una imagen rapida. Despues ayuda a reconocer el objetivo entre muchas tarjetas.
 
-Tipo distingue un objetivo comun de una bolsa de horas, cuando queres reservar tiempo flexible.
+Tipo separa un objetivo comun de una bolsa de horas. Este caso es un objetivo comun.
 
-Categoria define en que grupo vive el objetivo dentro del Baul.
+Categoria define en que grupo vive el objetivo. Elegimos Casa y salud para que quede ordenado.
 
-Color sirve como senal visual. Puede venir del baul o elegirse para este objetivo puntual.
+Color sirve como senal visual. Puede venir de la categoria o ajustarse para este objetivo puntual.
 
-Estado permite dejar algo activo, postergado, realizado o anulado sin perder historial.
+Estado deja claro si algo sigue activo, esta postergado, realizado o anulado.
 
-Horas aproximadas te da una idea del esfuerzo antes de llevarlo a la semana.
+Horas aproximadas te ayuda a estimar esfuerzo antes de llevar el objetivo a una semana concreta.
 
-Fecha limite convierte una posibilidad suelta en algo que conviene revisar a tiempo.
+Fecha limite transforma una posibilidad suelta en algo que conviene revisar a tiempo.
 
-Descripcion guarda contexto: por que importa, que falta decidir o cual seria el proximo paso.
+Descripcion guarda contexto: que falta decidir, por que importa y cual seria el proximo paso.
 
-Etiquetas agregan marcas flexibles para encontrar objetivos desde distintos criterios.
+Etiquetas agregan marcas transversales. Marcamos Salud para encontrarlo aunque cambie la categoria.
 
-Metadatos permiten guardar informacion estructurada, como autor, lugar, cliente o prioridad.
+Metadatos guardan informacion estructurada. En este caso anotamos el lugar.
 
-Guardar en el Baul confirma el objetivo. En este tutorial no lo apretamos para no crear datos.
+Tambien podemos guardar un contacto para que el objetivo no dependa de la memoria.
 
-Cerramos sin guardar. La idea era aprender el formulario, no modificar la cuenta de prueba.
+Guardar confirma el objetivo y lo suma al Baul. Si el flujo natural es guardar, se guarda.
 
-Listo: ya sabes para que sirve el Baul, como filtrarlo, cambiar vistas y cargar objetivos.
+El objetivo nuevo queda en la biblioteca junto a los demas ejemplos, listo para filtrarse o llevarse a la semana.
+
+Listo: ya sabes para que sirve el Baul, como filtrarlo, cambiar vistas y guardar objetivos reales.
 
 ## Carteles del video.
 
-- 00:01 - 00:07: En este video vamos a recorrer el Baul. Sirve para guardar objetivos que todavia no queres poner en la semana, pero que no queres perder.
-- 00:08 - 00:14: Abrimos el Baul desde el menu superior. Primero miramos el mapa general y despues cada control.
-- 00:14 - 00:20: Arriba estan busqueda, filtros, orden y vista. Abajo aparece la biblioteca de objetivos.
-- 00:21 - 00:27: La busqueda sirve cuando recordas una palabra del objetivo y queres encontrarlo rapido.
-- 00:26 - 00:32: Al escribir, la lista se filtra sin borrar nada. Es solo una forma de mirar menos objetivos.
-- 00:35 - 00:41: Borramos la busqueda para volver a ver el conjunto completo.
-- 00:40 - 00:46: Categoria separa grandes grupos: trabajo, lectura, salud, compras o cualquier baul que armes.
-- 00:46 - 00:52: Etiqueta sirve para marcas transversales. Por ejemplo urgente, llamada, idea, pospuesta o proyecto.
-- 00:51 - 00:57: Estado diferencia objetivos activos, realizados, postergados o anulados sin mezclarlos.
-- 00:57 - 01:03: Periodo ayuda cuando un objetivo tiene fecha limite o cuando queres ver vencidos y proximos.
-- 01:02 - 01:08: Ordenar cambia la lectura de la lista: por nombre, fecha, estado u otros criterios disponibles.
-- 01:07 - 01:13: Agrupar junta objetivos por categoria, etiqueta o estado. Es util cuando el Baul crece.
-- 01:13 - 01:19: Por fila cambia la densidad visual. Menos por fila da mas aire; mas por fila muestra mas cantidad.
-- 01:18 - 01:24: La vista Lista sirve para revisar muchos objetivos de forma rapida y compacta.
-- 01:24 - 01:30: La vista Biblioteca es mejor cuando queres mirar tarjetas con mas contexto visual.
-- 01:29 - 01:35: Mostrar archivadas trae objetivos que ya sacaste del uso cotidiano, sin eliminarlos.
-- 01:35 - 01:41: Volvemos a ocultarlas para dejar el Baul limpio y enfocado en lo vigente.
-- 01:40 - 01:46: Nueva abre el formulario para cargar un objetivo en el Baul. Todavia no se guarda nada.
-- 01:46 - 01:52: Nombre es la accion o posibilidad que queres conservar para decidir despues.
-- 01:51 - 01:57: Emoji ayuda a reconocer el objetivo rapido cuando despues aparezca en tarjetas o listas.
-- 01:57 - 02:03: Tipo distingue un objetivo comun de una bolsa de horas, cuando queres reservar tiempo flexible.
-- 02:02 - 02:08: Categoria define en que grupo vive el objetivo dentro del Baul.
-- 02:08 - 02:14: Color sirve como senal visual. Puede venir del baul o elegirse para este objetivo puntual.
-- 02:13 - 02:19: Estado permite dejar algo activo, postergado, realizado o anulado sin perder historial.
-- 02:18 - 02:24: Horas aproximadas te da una idea del esfuerzo antes de llevarlo a la semana.
-- 02:24 - 02:30: Fecha limite convierte una posibilidad suelta en algo que conviene revisar a tiempo.
-- 02:29 - 02:35: Descripcion guarda contexto: por que importa, que falta decidir o cual seria el proximo paso.
-- 02:35 - 02:41: Etiquetas agregan marcas flexibles para encontrar objetivos desde distintos criterios.
-- 02:40 - 02:46: Metadatos permiten guardar informacion estructurada, como autor, lugar, cliente o prioridad.
-- 02:46 - 02:52: Guardar en el Baul confirma el objetivo. En este tutorial no lo apretamos para no crear datos.
-- 02:51 - 02:57: Cerramos sin guardar. La idea era aprender el formulario, no modificar la cuenta de prueba.
-- 02:57 - 03:03: Listo: ya sabes para que sirve el Baul, como filtrarlo, cambiar vistas y cargar objetivos.
+- 00:01 - 00:10: En este video vamos a recorrer el Baul con ejemplos reales. Sirve para guardar objetivos que todavia no queres poner en la semana, pero que no queres perder.
+- 00:13 - 00:22: Abrimos el Baul desde el menu superior. Primero miramos el mapa general y despues cada control con datos cargados.
+- 00:21 - 00:30: Arriba estan busqueda, filtros, orden y vista. Abajo aparecen objetivos con emoji, categoria, fecha, horas y contexto.
+- 00:31 - 00:40: La busqueda sirve cuando recordas una palabra del objetivo y queres encontrarlo rapido.
+- 00:40 - 00:49: Al escribir, la lista se filtra sin borrar nada. Es solo una forma de mirar menos objetivos.
+- 00:52 - 01:01: Borramos la busqueda para volver a ver el conjunto completo.
+- 01:01 - 01:10: Categoria separa grandes grupos: trabajo, lectura, salud, compras o cualquier baul que armes.
+- 01:09 - 01:18: Etiqueta sirve para marcas transversales. Por ejemplo urgente, llamada, idea, pospuesta o proyecto.
+- 01:18 - 01:27: Estado diferencia objetivos activos, realizados, postergados o anulados sin mezclarlos.
+- 01:27 - 01:36: Periodo ayuda cuando un objetivo tiene fecha limite o cuando queres ver vencidos y proximos.
+- 01:36 - 01:45: Ordenar cambia la lectura de la lista: por nombre, fecha, estado u otros criterios disponibles.
+- 01:44 - 01:53: Agrupar junta objetivos por categoria, etiqueta o estado. Es util cuando el Baul crece.
+- 01:53 - 02:02: Por fila cambia la densidad visual. Menos por fila da mas aire; mas por fila muestra mas cantidad.
+- 02:02 - 02:11: La vista Lista sirve para revisar muchos objetivos de forma rapida y compacta.
+- 02:11 - 02:20: La vista Biblioteca es mejor cuando queres mirar tarjetas con mas contexto visual.
+- 02:19 - 02:28: Mostrar archivadas trae objetivos que ya sacaste del uso cotidiano, sin eliminarlos.
+- 02:28 - 02:37: Volvemos a ocultarlas para dejar el Baul limpio y enfocado en lo vigente.
+- 02:37 - 02:46: Nueva abre el formulario. Ahora vamos a cargar un objetivo real y guardarlo en el Baul.
+- 02:46 - 02:55: Nombre es la accion que queres conservar. Usamos un ejemplo concreto: agendar el chequeo medico anual.
+- 02:54 - 03:03: El emoji funciona como una imagen rapida. Despues ayuda a reconocer el objetivo entre muchas tarjetas.
+- 03:03 - 03:12: Tipo separa un objetivo comun de una bolsa de horas. Este caso es un objetivo comun.
+- 03:12 - 03:21: Categoria define en que grupo vive el objetivo. Elegimos Casa y salud para que quede ordenado.
+- 03:21 - 03:30: Color sirve como senal visual. Puede venir de la categoria o ajustarse para este objetivo puntual.
+- 03:29 - 03:38: Estado deja claro si algo sigue activo, esta postergado, realizado o anulado.
+- 03:38 - 03:47: Horas aproximadas te ayuda a estimar esfuerzo antes de llevar el objetivo a una semana concreta.
+- 03:47 - 03:56: Fecha limite transforma una posibilidad suelta en algo que conviene revisar a tiempo.
+- 03:55 - 04:04: Descripcion guarda contexto: que falta decidir, por que importa y cual seria el proximo paso.
+- 04:04 - 04:13: Etiquetas agregan marcas transversales. Marcamos Salud para encontrarlo aunque cambie la categoria.
+- 04:13 - 04:22: Metadatos guardan informacion estructurada. En este caso anotamos el lugar.
+- 04:22 - 04:31: Tambien podemos guardar un contacto para que el objetivo no dependa de la memoria.
+- 04:30 - 04:39: Guardar confirma el objetivo y lo suma al Baul. Si el flujo natural es guardar, se guarda.
+- 04:39 - 04:48: El objetivo nuevo queda en la biblioteca junto a los demas ejemplos, listo para filtrarse o llevarse a la semana.
+- 04:47 - 04:56: Listo: ya sabes para que sirve el Baul, como filtrarlo, cambiar vistas y guardar objetivos reales.
 
 ## YouTube.
 
 Titulo: Usar el Baul de objetivos de Semaplan.
 
-Recorrido lento por el Baul de Semaplan: para que sirve, como buscar, filtrar, cambiar vistas, mostrar archivadas y crear un objetivo sin guardarlo.
+Recorrido lento por el Baul de Semaplan: para que sirve, como buscar, filtrar, cambiar vistas, mostrar archivadas y crear un objetivo real.
 
 Etiquetas: Semaplan, Baul, objetivos, tutorial, ayuda.
 
 Capitulos sugeridos.
 
-0:01 En este video vamos a recorrer el Baul. Sirve para guardar objetivos que todavia no queres poner en la semana, pero que no queres perder.
-0:08 Abrimos el Baul desde el menu superior. Primero miramos el mapa general y despues cada control.
-0:14 Arriba estan busqueda, filtros, orden y vista. Abajo aparece la biblioteca de objetivos.
-0:21 La busqueda sirve cuando recordas una palabra del objetivo y queres encontrarlo rapido.
-0:26 Al escribir, la lista se filtra sin borrar nada. Es solo una forma de mirar menos objetivos.
-0:35 Borramos la busqueda para volver a ver el conjunto completo.
-0:40 Categoria separa grandes grupos: trabajo, lectura, salud, compras o cualquier baul que armes.
-0:46 Etiqueta sirve para marcas transversales. Por ejemplo urgente, llamada, idea, pospuesta o proyecto.
-0:51 Estado diferencia objetivos activos, realizados, postergados o anulados sin mezclarlos.
-0:57 Periodo ayuda cuando un objetivo tiene fecha limite o cuando queres ver vencidos y proximos.
-1:02 Ordenar cambia la lectura de la lista: por nombre, fecha, estado u otros criterios disponibles.
-1:07 Agrupar junta objetivos por categoria, etiqueta o estado. Es util cuando el Baul crece.
-1:13 Por fila cambia la densidad visual. Menos por fila da mas aire; mas por fila muestra mas cantidad.
-1:18 La vista Lista sirve para revisar muchos objetivos de forma rapida y compacta.
-1:24 La vista Biblioteca es mejor cuando queres mirar tarjetas con mas contexto visual.
-1:29 Mostrar archivadas trae objetivos que ya sacaste del uso cotidiano, sin eliminarlos.
-1:35 Volvemos a ocultarlas para dejar el Baul limpio y enfocado en lo vigente.
-1:40 Nueva abre el formulario para cargar un objetivo en el Baul. Todavia no se guarda nada.
-1:46 Nombre es la accion o posibilidad que queres conservar para decidir despues.
-1:51 Emoji ayuda a reconocer el objetivo rapido cuando despues aparezca en tarjetas o listas.
-1:57 Tipo distingue un objetivo comun de una bolsa de horas, cuando queres reservar tiempo flexible.
-2:02 Categoria define en que grupo vive el objetivo dentro del Baul.
-2:08 Color sirve como senal visual. Puede venir del baul o elegirse para este objetivo puntual.
-2:13 Estado permite dejar algo activo, postergado, realizado o anulado sin perder historial.
-2:18 Horas aproximadas te da una idea del esfuerzo antes de llevarlo a la semana.
-2:24 Fecha limite convierte una posibilidad suelta en algo que conviene revisar a tiempo.
-2:29 Descripcion guarda contexto: por que importa, que falta decidir o cual seria el proximo paso.
-2:35 Etiquetas agregan marcas flexibles para encontrar objetivos desde distintos criterios.
-2:40 Metadatos permiten guardar informacion estructurada, como autor, lugar, cliente o prioridad.
-2:46 Guardar en el Baul confirma el objetivo. En este tutorial no lo apretamos para no crear datos.
-2:51 Cerramos sin guardar. La idea era aprender el formulario, no modificar la cuenta de prueba.
-2:57 Listo: ya sabes para que sirve el Baul, como filtrarlo, cambiar vistas y cargar objetivos.
+0:01 En este video vamos a recorrer el Baul con ejemplos reales. Sirve para guardar objetivos que todavia no queres poner en la semana, pero que no queres perder.
+0:13 Abrimos el Baul desde el menu superior. Primero miramos el mapa general y despues cada control con datos cargados.
+0:21 Arriba estan busqueda, filtros, orden y vista. Abajo aparecen objetivos con emoji, categoria, fecha, horas y contexto.
+0:31 La busqueda sirve cuando recordas una palabra del objetivo y queres encontrarlo rapido.
+0:40 Al escribir, la lista se filtra sin borrar nada. Es solo una forma de mirar menos objetivos.
+0:52 Borramos la busqueda para volver a ver el conjunto completo.
+1:01 Categoria separa grandes grupos: trabajo, lectura, salud, compras o cualquier baul que armes.
+1:09 Etiqueta sirve para marcas transversales. Por ejemplo urgente, llamada, idea, pospuesta o proyecto.
+1:18 Estado diferencia objetivos activos, realizados, postergados o anulados sin mezclarlos.
+1:27 Periodo ayuda cuando un objetivo tiene fecha limite o cuando queres ver vencidos y proximos.
+1:36 Ordenar cambia la lectura de la lista: por nombre, fecha, estado u otros criterios disponibles.
+1:44 Agrupar junta objetivos por categoria, etiqueta o estado. Es util cuando el Baul crece.
+1:53 Por fila cambia la densidad visual. Menos por fila da mas aire; mas por fila muestra mas cantidad.
+2:02 La vista Lista sirve para revisar muchos objetivos de forma rapida y compacta.
+2:11 La vista Biblioteca es mejor cuando queres mirar tarjetas con mas contexto visual.
+2:19 Mostrar archivadas trae objetivos que ya sacaste del uso cotidiano, sin eliminarlos.
+2:28 Volvemos a ocultarlas para dejar el Baul limpio y enfocado en lo vigente.
+2:37 Nueva abre el formulario. Ahora vamos a cargar un objetivo real y guardarlo en el Baul.
+2:46 Nombre es la accion que queres conservar. Usamos un ejemplo concreto: agendar el chequeo medico anual.
+2:54 El emoji funciona como una imagen rapida. Despues ayuda a reconocer el objetivo entre muchas tarjetas.
+3:03 Tipo separa un objetivo comun de una bolsa de horas. Este caso es un objetivo comun.
+3:12 Categoria define en que grupo vive el objetivo. Elegimos Casa y salud para que quede ordenado.
+3:21 Color sirve como senal visual. Puede venir de la categoria o ajustarse para este objetivo puntual.
+3:29 Estado deja claro si algo sigue activo, esta postergado, realizado o anulado.
+3:38 Horas aproximadas te ayuda a estimar esfuerzo antes de llevar el objetivo a una semana concreta.
+3:47 Fecha limite transforma una posibilidad suelta en algo que conviene revisar a tiempo.
+3:55 Descripcion guarda contexto: que falta decidir, por que importa y cual seria el proximo paso.
+4:04 Etiquetas agregan marcas transversales. Marcamos Salud para encontrarlo aunque cambie la categoria.
+4:13 Metadatos guardan informacion estructurada. En este caso anotamos el lugar.
+4:22 Tambien podemos guardar un contacto para que el objetivo no dependa de la memoria.
+4:30 Guardar confirma el objetivo y lo suma al Baul. Si el flujo natural es guardar, se guarda.
+4:39 El objetivo nuevo queda en la biblioteca junto a los demas ejemplos, listo para filtrarse o llevarse a la semana.
+4:47 Listo: ya sabes para que sirve el Baul, como filtrarlo, cambiar vistas y guardar objetivos reales.

@@ -744,6 +744,10 @@ def Capturar_Video(
 
     Identificador = Obtener_Identificador(Tutorial)
     Acciones = Obtener_Lista_Diccionarios(Tutorial, "Acciones")
+    Acciones_Preparacion = Obtener_Lista_Diccionarios(
+        Tutorial,
+        "Acciones_Preparacion",
+    )
     Ancho, Alto = Obtener_Resolucion(Tutorial)
     Headless = Obtener_Bandera(Tutorial, "Headless", False)
     Ruta_Salida = Ruta_Crudos / f"{Identificador}.webm"
@@ -756,18 +760,34 @@ def Capturar_Video(
 
     with Iniciar_Playwright() as Playwright:
         Navegador = Playwright.chromium.launch(headless = Headless)
-        Configuracion_Contexto: dict[str, object] = {
+        Configuracion_Base: dict[str, object] = {
             "viewport": {"width": Ancho, "height": Alto},
-            "record_video_dir": str(Ruta_Crudos),
-            "record_video_size": {"width": Ancho, "height": Alto},
         }
         Ruta_Storage_State = Resolver_Ruta_Opcional(
             Obtener_Cadena(Tutorial, "Storage_State")
         )
 
         if Ruta_Storage_State is not None:
-            Configuracion_Contexto["storage_state"] = str(
+            Configuracion_Base["storage_state"] = str(
                 Ruta_Storage_State
+            )
+
+        Ruta_Storage_Preparada = Ejecutar_Acciones_Preparacion(
+            Navegador,
+            Configuracion_Base,
+            Tutorial,
+            Acciones_Preparacion,
+        )
+
+        Configuracion_Contexto = {
+            **Configuracion_Base,
+            "record_video_dir": str(Ruta_Crudos),
+            "record_video_size": {"width": Ancho, "height": Alto},
+        }
+
+        if Ruta_Storage_Preparada is not None:
+            Configuracion_Contexto["storage_state"] = str(
+                Ruta_Storage_Preparada
             )
 
         Contexto = Navegador.new_context(**Configuracion_Contexto)
@@ -823,6 +843,50 @@ def Capturar_Video(
     )
 
     return Ruta_Salida
+
+
+def Ejecutar_Acciones_Preparacion(
+    Navegador: object,
+    Configuracion_Base: dict[str, object],
+    Tutorial: dict[str, object],
+    Acciones_Preparacion: list[dict[str, object]],
+) -> Pathlib.Path | None:
+
+    """
+    Ejecuta acciones previas sin grabarlas en el video.
+    Esta fase sirve para cargar datos de ejemplo, limpiar
+    residuos tecnicos y dejar la pantalla en un estado creible
+    antes de iniciar la captura final.
+
+    Parametros:
+    - Navegador: Instancia de Chromium creada por Playwright.
+    - Configuracion_Base: Opciones compartidas del contexto.
+    - Tutorial: Contrato completo del tutorial.
+    - Acciones_Preparacion: Acciones que preparan la escena.
+
+    Retorna:
+    - Pathlib.Path | None: Ruta del estado preparado, si existio.
+
+    """
+
+    if not Acciones_Preparacion:
+        return None
+
+    Identificador = Obtener_Identificador(Tutorial)
+    Ruta_Storage_Preparada = (
+        Ruta_Datos / f"{Identificador}_Storage_Preparado.json"
+    )
+    Contexto = Navegador.new_context(**Configuracion_Base)
+    Pagina = Contexto.new_page()
+
+    try:
+        for Accion in Acciones_Preparacion:
+            Ejecutar_Accion_Playwright(Pagina, Accion)
+        Contexto.storage_state(path = str(Ruta_Storage_Preparada))
+    finally:
+        Contexto.close()
+
+    return Ruta_Storage_Preparada
 
 
 def Agregar_Evento_Desde_Accion(
@@ -908,6 +972,16 @@ def Pausar_Despues_De_Accion(
         Es_Espera = Tipo in ["esperar", "pausa_manual"]
 
         if Tiene_Cartel and not Es_Espera:
+            Factor = Obtener_Numero(
+                Tutorial,
+                "Pausa_Didactica_Factor",
+                0.7,
+            )
+            Pausa_Maxima = Obtener_Numero(
+                Tutorial,
+                "Pausa_Didactica_Max_Segundos",
+                4.5,
+            )
             Pausa = min(
                 Obtener_Numero(
                     Accion,
@@ -917,8 +991,8 @@ def Pausar_Despues_De_Accion(
                         "Duracion_Cartel_Segundos",
                         5.0,
                     ),
-                ) * 0.7,
-                4.5,
+                ) * Factor,
+                Pausa_Maxima,
             )
         else:
             Pausa = 0
@@ -998,6 +1072,42 @@ def Ejecutar_Accion_Playwright(
         Pagina.locator(Selector).fill(Texto)
         return
 
+    if Tipo == "seleccionar":
+        Valor = Obtener_Cadena(Accion, "Valor")
+        Texto_Visible = Obtener_Cadena(Accion, "Texto")
+        Mover_Mouse_A_Selector(
+            Pagina,
+            Selector,
+            Accion,
+            Eventos_Mouse,
+            Tiempo_Base,
+            Estado_Mouse,
+            True,
+        )
+        if Texto_Visible:
+            Pagina.evaluate(
+                """
+                (Datos) => {
+                  const Select = document
+                    .querySelector(Datos.Selector);
+                  if (!Select) return;
+                  const Opcion = Array.from(Select.options).find(
+                    (Item) => Item.textContent.includes(Datos.Texto)
+                  );
+                  if (!Opcion) return;
+                  Select.value = Opcion.value;
+                  Select.dispatchEvent(
+                    new Event("change", { bubbles: true })
+                  );
+                }
+                """,
+                {"Selector": Selector, "Texto": Texto_Visible},
+            )
+            return
+
+        Pagina.locator(Selector).select_option(Valor)
+        return
+
     if Tipo == "presionar":
         Tecla = Obtener_Cadena(Accion, "Tecla")
         Pagina.keyboard.press(Tecla)
@@ -1013,7 +1123,7 @@ def Ejecutar_Accion_Playwright(
         return
 
     if Tipo == "esperar_funcion":
-        Codigo = Obtener_Cadena(Accion, "Codigo")
+        Codigo = Obtener_Codigo_Accion(Accion)
         Pagina.wait_for_function(
             Codigo,
             timeout = int(
@@ -1042,7 +1152,7 @@ def Ejecutar_Accion_Playwright(
         return
 
     if Tipo == "evaluar":
-        Codigo = Obtener_Cadena(Accion, "Codigo")
+        Codigo = Obtener_Codigo_Accion(Accion)
         Pagina.evaluate(Codigo)
         return
 
@@ -1062,6 +1172,40 @@ def Ejecutar_Accion_Playwright(
         return
 
     raise ValueError(f"Tipo de accion no soportado: {Tipo}")
+
+
+def Obtener_Codigo_Accion(
+    Accion: dict[str, object],
+) -> str:
+
+    """
+    Obtiene codigo JavaScript desde una accion del contrato.
+    Permite usar `Codigo` para piezas cortas o `Codigo_Lineas`
+    para scripts largos y legibles dentro del JSON.
+
+    Parametros:
+    - Accion: Accion declarada en el contrato del tutorial.
+
+    Retorna:
+    - str: Codigo listo para entregar a Playwright.
+
+    """
+
+    Codigo = Obtener_Cadena(Accion, "Codigo")
+
+    if Codigo:
+        return Codigo
+
+    Lineas = Accion.get("Codigo_Lineas", [])
+
+    if not isinstance(Lineas, list):
+        return ""
+
+    return "\n".join(
+        str(Linea)
+        for Linea in Lineas
+        if str(Linea).strip()
+    )
 
 
 def Resolver_Ruta_Opcional(
@@ -1197,7 +1341,8 @@ def Generar_Audio_Narracion(
         raise RuntimeError("El tutorial no tiene texto de narracion.")
 
     if Proveedor.lower() in ["windows", "local", "sapi"]:
-        return Generar_Audio_Windows(Tutorial, Texto, Voz)
+        Ruta_Windows = Generar_Audio_Windows(Tutorial, Texto, Voz)
+        return Ajustar_Tempo_Audio(Ruta_Windows, Voz)
 
     Api_Key = Os.environ.get("ELEVENLABS_API_KEY", "").strip()
     Voz_Entorno = Os.environ.get("ELEVENLABS_VOICE_ID", "").strip()
@@ -1246,7 +1391,7 @@ def Generar_Audio_Narracion(
         Detalle = Error.read().decode("utf-8", errors = "ignore")
         raise RuntimeError(f"Fallo ElevenLabs: {Detalle}") from Error
 
-    return Ruta_Salida
+    return Ajustar_Tempo_Audio(Ruta_Salida, Voz)
 
 
 def Generar_Audio_Windows(
@@ -1324,6 +1469,84 @@ $Sintetizador.Dispose()
         raise RuntimeError(f"Fallo voz local Windows: {Detalle}")
 
     return Ruta_Audio
+
+
+def Ajustar_Tempo_Audio(
+    Ruta_Audio: Pathlib.Path,
+    Voz: dict[str, object],
+) -> Pathlib.Path:
+
+    """
+    Ajusta el tempo final de una narracion ya generada.
+    Algunas voces locales no respetan bien la velocidad pedida;
+    este paso permite ralentizar o acelerar el audio de forma
+    reproducible con FFmpeg.
+
+    Parametros:
+    - Ruta_Audio: Archivo de audio generado.
+    - Voz: Configuracion de voz declarada en el contrato.
+
+    Retorna:
+    - Pathlib.Path: Ruta del audio ajustado.
+
+    """
+
+    Tempo = Obtener_Numero(Voz, "Tempo", 1.0)
+
+    if Tempo <= 0 or 0.99 <= Tempo <= 1.01:
+        return Ruta_Audio
+
+    Ruta_Temporal = Ruta_Audio.with_name(
+        f"{Ruta_Audio.stem}_Tempo{Ruta_Audio.suffix}"
+    )
+    Comando = [
+        Buscar_Ffmpeg(),
+        "-y",
+        "-i",
+        str(Ruta_Audio),
+        "-filter:a",
+        Construir_Filtro_Atempo(Tempo),
+        str(Ruta_Temporal),
+    ]
+    Ejecutar_Ffmpeg(Comando)
+    Shutil.move(str(Ruta_Temporal), str(Ruta_Audio))
+    return Ruta_Audio
+
+
+def Construir_Filtro_Atempo(
+    Tempo: float,
+) -> str:
+
+    """
+    Construye una cadena `atempo` valida para FFmpeg.
+    El filtro acepta factores entre 0.5 y 2.0, por eso los
+    valores fuera de ese rango se encadenan en varios pasos.
+
+    Parametros:
+    - Tempo: Factor de tempo final. Menor que 1 ralentiza.
+
+    Retorna:
+    - str: Filtro de audio compatible con FFmpeg.
+
+    """
+
+    Factores: list[float] = []
+    Valor = float(Tempo)
+
+    while Valor < 0.5:
+        Factores.append(0.5)
+        Valor = Valor / 0.5
+
+    while Valor > 2.0:
+        Factores.append(2.0)
+        Valor = Valor / 2.0
+
+    Factores.append(Valor)
+
+    return ",".join(
+        f"atempo={Factor:.4f}".rstrip("0").rstrip(".")
+        for Factor in Factores
+    )
 
 
 def Renderizar_Video(

@@ -39,9 +39,9 @@ Estos tutoriales ya tienen contrato, texto y video renderizado local.
 
 `Baul_Objetivos_Semaplan` ya fue migrado al formato detallado:
 recorrido lento, introduccion previa, cursor visible, toasts
-explicativos abajo y subtitulos `.srt` generados desde el mismo texto
-que escucha la persona usuaria. Desde este punto, los demas tutoriales
-deben seguir ese criterio editorial.
+explicativos abajo, datos de ejemplo realistas y subtitulos `.srt`
+generados desde el mismo texto que escucha la persona usuaria. Desde
+este punto, los demas tutoriales deben seguir ese criterio editorial.
 
 ## Criterio de produccion.
 
