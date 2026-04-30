@@ -84766,6 +84766,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Actualizar_Contador();
         Cont.appendChild(Contador);
 
+        const Enfocar_Cantidad_Si_Es_Nueva = (
+          Seleccionada,
+          Cantidad,
+          Input
+        ) => {
+          if (!Seleccionada) return false;
+          const Cantidad_Actual = Meta_Aporte_Redondear(
+            Cantidad,
+            Borrador.Unidad
+          );
+          if (Cantidad_Actual > 0) return false;
+          setTimeout(() => {
+            if (!document.body.contains(Input)) return;
+            Input.disabled = false;
+            Input.focus();
+            Input.select();
+          }, 0);
+          return true;
+        };
+
         const General_Fila = document.createElement("label");
         General_Fila.className = "Aporte_Meta_Destino Aporte_Meta_General" +
           (Borrador.General_Seleccionada ? " Activo" : "");
@@ -84809,6 +84829,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           Actualizar_Contador();
           Opciones.Al_Tiempo_Cambiar?.();
+          if (
+            Enfocar_Cantidad_Si_Es_Nueva(
+              Borrador.General_Seleccionada,
+              Borrador.General_Cantidad,
+              General_Input
+            )
+          ) {
+            return;
+          }
           await Opciones.Al_Cambiar?.();
         });
 
@@ -84889,12 +84918,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           Check.addEventListener("change", async () => {
             Parte.Seleccionada = Check.checked;
+            Borrador.Distribucion_Manual = true;
             if (!Parte.Seleccionada) Parte.Cantidad = 0;
             Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
             Input.disabled = !Parte.Seleccionada;
             Fila.classList.toggle("Activo", Parte.Seleccionada);
             Actualizar_Contador();
             Opciones.Al_Tiempo_Cambiar?.();
+            if (
+              Enfocar_Cantidad_Si_Es_Nueva(
+                Parte.Seleccionada,
+                Parte.Cantidad,
+                Input
+              )
+            ) {
+              return;
+            }
             await Opciones.Al_Cambiar?.();
           });
 

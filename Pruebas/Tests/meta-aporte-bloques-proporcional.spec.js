@@ -239,3 +239,111 @@ async ({ page }) => {
     manual: true
   });
 });
+
+test("Focus mantiene activa una parte de meta antes de escribir",
+async ({ page }) => {
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.Partes = Modelo.Partes || {};
+    Modelo.Partes.parte_focus = Normalizar_Parte_Meta({
+      Id: "parte_focus",
+      Objetivo_Id: "obj_libro",
+      Subobjetivo_Id: "sub_paginas",
+      Emoji: "\uD83D\uDCC4",
+      Nombre: "Parte Focus",
+      Aporte_Total: 30,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Orden: 0
+    });
+
+    const Objetivo = Objetivos[0];
+    const Evento = Eventos[0];
+    const Clave = Obtener_Clave_Semana_Evento(Evento);
+    const Subs = Obtener_Subobjetivos_Semana(
+      Objetivo,
+      true,
+      Clave
+    );
+    Subs.push({
+      Id: "sub_sem_parte_focus",
+      Plantilla_Id: null,
+      Origen_Plantilla_Id: null,
+      Parte_Meta_Id: "parte_focus",
+      Subobjetivo_Meta_Id: "sub_paginas",
+      Objetivo_Meta_Id: "obj_libro",
+      Emoji: "\uD83D\uDCC4",
+      Texto: "Parte Focus",
+      Aporte_Total: 30,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Hecha: false,
+      Sincronizacion_Parte: "Auto",
+      Orden: 0
+    });
+
+    Evento.Meta_Aporte_Cantidad = 0;
+    Evento.Meta_Aporte_Tildado = false;
+    Evento.Meta_Aporte_Planeado = false;
+    Evento.Meta_Aporte_Distribucion = [];
+    Evento.Meta_Aporte_Distribucion_Manual = true;
+    Mostrar_Dialogo = async () => true;
+    Focus_Navegacion_Id = Evento.Id;
+    Abrir_Focus_Mode();
+  });
+
+  const Parte_Focus = page.locator(
+    "#Focus_Cuerpo .Aporte_Meta_Destino"
+  ).nth(1);
+  const Parte_Check = Parte_Focus.locator(
+    ".Aporte_Meta_Destino_Check"
+  );
+  const Parte_Input = Parte_Focus.locator(
+    ".Aporte_Meta_Destino_Input"
+  );
+
+  await expect(Parte_Focus).toContainText("Parte Focus");
+  await Parte_Check.check();
+  await expect(Parte_Check).toBeChecked();
+  await expect(Parte_Input).toBeEnabled();
+  await expect(Parte_Input).toBeFocused();
+
+  const Antes_De_Escribir = await page.evaluate(() => {
+    const Evento = Eventos.find((Item) => Item.Id === "ev_quince");
+    return {
+      cantidad: Evento.Meta_Aporte_Cantidad,
+      distribucion: Evento.Meta_Aporte_Distribucion.length
+    };
+  });
+  expect(Antes_De_Escribir).toEqual({
+    cantidad: 0,
+    distribucion: 0
+  });
+
+  await Parte_Input.fill("3");
+  await Parte_Input.blur();
+  await page.waitForFunction(() => {
+    const Evento = Eventos.find((Item) => Item.Id === "ev_quince");
+    return Evento?.Meta_Aporte_Distribucion?.some((Item) =>
+      Item.Parte_Id === "parte_focus" && Number(Item.Cantidad) === 3
+    );
+  });
+
+  const Guardado = await page.evaluate(() => {
+    const Evento = Eventos.find((Item) => Item.Id === "ev_quince");
+    return {
+      cantidad: Evento.Meta_Aporte_Cantidad,
+      tildado: Evento.Meta_Aporte_Tildado,
+      distribucion: Evento.Meta_Aporte_Distribucion
+    };
+  });
+  expect(Guardado).toEqual({
+    cantidad: 3,
+    tildado: true,
+    distribucion: [
+      { Tipo: "Parte", Parte_Id: "parte_focus", Cantidad: 3 }
+    ]
+  });
+});
