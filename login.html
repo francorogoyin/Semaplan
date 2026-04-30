@@ -117156,6 +117156,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         };
       }
 
+      function Sync_Error_Timeout_Query(Error_Sync = null) {
+        const Codigo = String(Error_Sync?.code || "").trim();
+        if (Codigo === "57014") {
+          return true;
+        }
+        const Mensaje = String(
+          Error_Sync?.message || ""
+        ).toLowerCase();
+        return Mensaje.includes("statement timeout");
+      }
+
       function Es_Objeto_Json(Valor) {
         return Boolean(
           Valor &&
@@ -119246,6 +119257,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               "Error sincronizando estado",
               E
             );
+            if (Sync_Error_Timeout_Query(E)) {
+              Sync_Reintento_Intentos =
+                Math.max(
+                  Sync_Reintento_Intentos,
+                  Sync_Reintento_Max_Intentos
+                );
+            }
             if (
               !Hay_Conflicto &&
               !Sync_Conflicto_Pendiente &&
