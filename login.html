@@ -117344,6 +117344,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : "Local";
       }
 
+      function Sync_Local_Pendiente_Obsoleto(
+        {
+          Estado_Local = null,
+          Estado_Remoto = null,
+          Pendiente_Local_Ms = 0,
+          Marca_Remota_Ms = 0
+        } = {}
+      ) {
+        if (!Estado_Local || !Estado_Remoto) {
+          return false;
+        }
+        const Marca_Local_Datos = Number(
+          Obtener_Marca_Datos_Sync(Estado_Local)
+        ) || 0;
+        if (Marca_Local_Datos > 0) {
+          return false;
+        }
+        const Pendiente_Ms = Number(Pendiente_Local_Ms) || 0;
+        if (Pendiente_Ms <= 0) {
+          return false;
+        }
+        const Remoto_Ms = Number(Marca_Remota_Ms) || 0;
+        if (Remoto_Ms <= Pendiente_Ms + 1000) {
+          return false;
+        }
+        return !Estados_Datos_Sync_Iguales(
+          Estado_Local,
+          Estado_Remoto
+        );
+      }
+
       function Generar_Id_Sesion_Operativa(
         Prefijo = "ses"
       ) {
@@ -120794,6 +120825,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               "Error leyendo estado remoto:",
               Fila_Remota.error
             );
+            // No forzar sync local si no se pudo validar
+            // el estado remoto en este arranque.
+            Hay_Sync_Local_Pendiente = false;
+            Habia_Remoto = await Backend_Cargar_Estado_Remoto();
           } else if (Fila_Remota.data) {
             Actualizar_Meta_Remota(Fila_Remota.data);
             Habia_Remoto = true;
@@ -120819,9 +120854,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 Estado_Local_Pendiente,
                 Estado_Remoto_Comparacion
               );
+            const Pendiente_Obsoleto =
+              Decision === "Local" &&
+              Sync_Local_Pendiente_Obsoleto({
+                Estado_Local: Estado_Local_Pendiente,
+                Estado_Remoto: Estado_Remoto_Comparacion,
+                Pendiente_Local_Ms,
+                Marca_Remota_Ms
+              });
             if (Decision === "Igual") {
               Marcar_Sync_Local_Sucio(false);
               Hay_Sync_Local_Pendiente = false;
+            } else if (Pendiente_Obsoleto) {
+              Marcar_Sync_Local_Sucio(false);
+              Hay_Sync_Local_Pendiente = false;
+              Habia_Remoto = await Backend_Cargar_Estado_Remoto();
             } else if (Decision === "Conflicto") {
               Conflicto_Inicial_Remoto_Ms =
                 Sync_Remoto_Marca_Antes_Sesion_Ms ||

@@ -1517,6 +1517,84 @@ test(
 );
 
 test(
+  "descarta pendiente local obsoleto y carga remoto",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      const Hace_Diez_Min = Date.now() - 10 * 60 * 1000;
+      const Estado_Local_Obsoleto = {
+        Objetivos: [
+          {
+            Id: 901,
+            Nombre: "Local viejo"
+          }
+        ]
+      };
+      localStorage.setItem(
+        "Semaplan_Estado_V2",
+        JSON.stringify(Estado_Local_Obsoleto)
+      );
+      localStorage.setItem(
+        `Semaplan_Sync_Local_Pendiente_V1_${Usuario_Actual?.id || ""}`,
+        String(Hace_Diez_Min)
+      );
+
+      const Estado_Remoto_Nuevo = {
+        Objetivos: [
+          {
+            Id: 902,
+            Nombre: "Remoto nuevo"
+          }
+        ]
+      };
+      window.__Estado_Remoto = {
+        estado: Estado_Remoto_Nuevo,
+        actualizado_en: new Date(
+          Hace_Diez_Min + 2 * 60 * 1000
+        ).toISOString(),
+        version:
+          Number(window.__Estado_Remoto?.version || 1) + 1
+      };
+
+      Sync_Local_Sucio = false;
+      if (Sync_Timer_Id) {
+        clearTimeout(Sync_Timer_Id);
+        Sync_Timer_Id = null;
+      }
+
+      await Iniciar_App_Logueada();
+
+      const Estado_Local = JSON.parse(
+        localStorage.getItem("Semaplan_Estado_V2") ||
+        "{}"
+      );
+      return {
+        syncEstado: Sync_Estado,
+        conflicto: Sync_Conflicto_Pendiente,
+        syncPendiente: Sync_Local_Pendiente_Usuario_Actual(),
+        remoto:
+          (window.__Estado_Remoto?.estado?.Objetivos || [])
+            .map((Objetivo) => Objetivo.Nombre),
+        local:
+          (Estado_Local.Objetivos || []).map(
+            (Objetivo) => Objetivo.Nombre
+          )
+      };
+    });
+
+    expect(Resumen.syncEstado).toBe("Guardado");
+    expect(Resumen.conflicto).toBe(false);
+    expect(Resumen.syncPendiente).toBe(false);
+    expect(Resumen.remoto).toEqual(["Remoto nuevo"]);
+    expect(Resumen.local).not.toContain("Local viejo");
+  }
+);
+
+test(
   "limpiar una celda con plan sincroniza antes del debounce",
   async ({ page }) => {
     await Preparar_App(
