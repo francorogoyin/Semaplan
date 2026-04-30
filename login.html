@@ -29608,6 +29608,8 @@
             "Plan del bloque pegado",
           "toast.tamano_bloque_modificado":
             "Tamaño del bloque modificado",
+          "toast.calendario_regenerado_corte":
+            "Calendario actualizado al cierre de bloque",
           "toast.sin_nombre": "sin nombre",
           "toast.subobjetivo_eliminada":
             "Subobjetivo \"{texto}\" eliminada",
@@ -33855,6 +33857,8 @@
             "Block plan pasted",
           "toast.tamano_bloque_modificado":
             "Block size changed",
+          "toast.calendario_regenerado_corte":
+            "Calendar refreshed at block boundary",
           "toast.sin_nombre": "untitled",
           "toast.subobjetivo_eliminada":
             "Subobjective \"{texto}\" deleted",
@@ -38221,6 +38225,8 @@
             "Plano do bloco colado",
           "toast.tamano_bloque_modificado":
             "Tamanho do bloco modificado",
+          "toast.calendario_regenerado_corte":
+            "Calendario atualizado ao fim do bloco",
           "toast.sin_nombre": "sem nome",
           "toast.subobjetivo_eliminada":
             "Subobjetivo \"{texto}\" removida",
@@ -39108,6 +39114,104 @@
 
       let Backup_Auto_Timer_Id = null;
       const Backup_Auto_Timer_Max_Ms = 2147480000;
+      let Calendario_Auto_Recarga_Timer_Id = null;
+      let Calendario_Auto_Recarga_Ultimo_Corte = "";
+
+      function Calendario_Auto_Recarga_Paso_Minutos() {
+        return Math.max(
+          15,
+          Math.round(Obtener_Duracion_Slot_Calendario() * 60)
+        );
+      }
+
+      function Calendario_Auto_Recarga_Clave_Corte(
+        Fecha = new Date()
+      ) {
+        const Paso_Min = Calendario_Auto_Recarga_Paso_Minutos();
+        const Paso_Ms = Paso_Min * 60000;
+        const Corte = Math.floor(Fecha.getTime() / Paso_Ms);
+        return `${Paso_Min}|${Corte}`;
+      }
+
+      function Calendario_Auto_Recarga_Registrar_Corte_Actual() {
+        Calendario_Auto_Recarga_Ultimo_Corte =
+          Calendario_Auto_Recarga_Clave_Corte(new Date());
+      }
+
+      function Calendario_Auto_Recarga_Esta_Habilitada() {
+        return (
+          !Cargando_Inicial &&
+          Boolean(El_Calendario) &&
+          Semana_Actual instanceof Date &&
+          !Number.isNaN(Semana_Actual.getTime())
+        );
+      }
+
+      function Calendario_Auto_Recarga_Ejecutar(
+        Mostrar_Toast = true
+      ) {
+        if (!Calendario_Auto_Recarga_Esta_Habilitada()) return false;
+        if (document.hidden) return false;
+        if (Calendario_Drag_AutoScroll_Timer) return false;
+        const Clave_Corte = Calendario_Auto_Recarga_Clave_Corte(
+          new Date()
+        );
+        if (Clave_Corte === Calendario_Auto_Recarga_Ultimo_Corte) {
+          return false;
+        }
+        Calendario_Auto_Recarga_Ultimo_Corte = Clave_Corte;
+        Render_Calendario();
+        if (Mostrar_Toast) {
+          Mostrar_Toast_Info(
+            t("toast.calendario_regenerado_corte"),
+            "\u{1F504}",
+            2200
+          );
+        }
+        return true;
+      }
+
+      function Calendario_Auto_Recarga_Programar() {
+        if (Calendario_Auto_Recarga_Timer_Id) {
+          clearTimeout(Calendario_Auto_Recarga_Timer_Id);
+          Calendario_Auto_Recarga_Timer_Id = null;
+        }
+        const Paso_Ms =
+          Calendario_Auto_Recarga_Paso_Minutos() * 60000;
+        const Ahora_Ms = Date.now();
+        const Proximo_Corte_Ms =
+          (Math.floor(Ahora_Ms / Paso_Ms) + 1) * Paso_Ms;
+        const Espera_Ms = Math.max(
+          250,
+          (Proximo_Corte_Ms - Ahora_Ms) + 80
+        );
+        Calendario_Auto_Recarga_Timer_Id = setTimeout(() => {
+          Calendario_Auto_Recarga_Timer_Id = null;
+          Calendario_Auto_Recarga_Ejecutar(true);
+          Calendario_Auto_Recarga_Programar();
+        }, Espera_Ms);
+      }
+
+      function Calendario_Auto_Recarga_Actualizar_Programacion(
+        Reiniciar_Corte = false
+      ) {
+        if (
+          Reiniciar_Corte ||
+          !Calendario_Auto_Recarga_Ultimo_Corte
+        ) {
+          Calendario_Auto_Recarga_Registrar_Corte_Actual();
+        }
+        Calendario_Auto_Recarga_Programar();
+      }
+
+      function Calendario_Auto_Recarga_Inicializar() {
+        Calendario_Auto_Recarga_Actualizar_Programacion(true);
+      }
+
+      function Calendario_Auto_Recarga_Revisar_Reactivacion() {
+        Calendario_Auto_Recarga_Ejecutar(true);
+        Calendario_Auto_Recarga_Programar();
+      }
 
       const Dias = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
       const Meses_Cortos = [
@@ -89606,6 +89710,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Viewport.scrollTop =
             Offset * Pixeles_Por_Hora_Calendario();
         }
+        Calendario_Auto_Recarga_Actualizar_Programacion(true);
         Guardar_Estado();
       }
 
@@ -114265,6 +114370,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           El_Viewport.scrollTop =
             Offset * Pixeles_Por_Hora_Calendario();
         }
+        Calendario_Auto_Recarga_Inicializar();
       }
 
       // ============================================================
@@ -122734,12 +122840,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Backend_Sync_Forzar_Keepalive();
               return;
             }
+            Calendario_Auto_Recarga_Revisar_Reactivacion();
             Revisar_Backup_Automatico_Programado();
             Backend_Revisar_Cambios_Remotos(true);
           }
         );
 
         window.addEventListener("focus", () => {
+          Calendario_Auto_Recarga_Revisar_Reactivacion();
           Revisar_Backup_Automatico_Programado();
           Backend_Revisar_Cambios_Remotos(true);
         });
