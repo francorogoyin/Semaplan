@@ -102531,6 +102531,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Sync_Estado === "Error" && !Sync_Local_Sucio) {
           Marcar_Sync_Local_Sucio(true);
         }
+        Limpiar_Reintento_Sync();
         Mostrar_Toast_Info(
           t("sync.reintentando"),
           "☁️",
@@ -116886,6 +116887,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         10000,
         30000
       ];
+      const Sync_Reintento_Max_Intentos = 8;
       // Estado actual del indicador de sync.
       let Sync_Estado = "Guardado";
       let Sync_Token_Actual = "";
@@ -118907,6 +118909,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return false;
         }
         if (Sync_Reintento_Timer_Id) return true;
+        if (
+          Sync_Reintento_Max_Intentos > 0 &&
+          Sync_Reintento_Intentos >=
+            Sync_Reintento_Max_Intentos
+        ) {
+          return false;
+        }
         const Demora = Obtener_Demora_Reintento_Sync();
         Sync_Reintento_Intentos += 1;
         Actualizar_Sync_Indicador("Guardando");
@@ -119242,7 +119251,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               !Sync_Conflicto_Pendiente &&
               Sync_Local_Sucio
             ) {
-              Programar_Reintento_Sync(true);
+              if (!Programar_Reintento_Sync(true)) {
+                Actualizar_Sync_Indicador("Error");
+              }
             } else {
               Actualizar_Sync_Indicador("Error");
             }

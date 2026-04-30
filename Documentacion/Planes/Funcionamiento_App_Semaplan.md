@@ -155,6 +155,9 @@ El flujo operativo base es este.
    visible `Guardando`. Si la UI queda en `Guardando` sin tarea activa,
    `Resolver_Sync_Guardando_Inactivo()` la normaliza a `Guardado`,
    reintento o `Error` segun haya datos locales sucios o conflicto.
+14.b Los reintentos automaticos de sync tienen tope. Si se alcanza el
+   maximo de intentos consecutivos sin exito, la app deja de quedar en
+   `Guardando` indefinido y pasa a `Error` hasta un reintento manual.
 15. `Cerrar sesion en todas` registra primero un corte global propio en
    el estado remoto. Si Supabase rechaza el `signOut` global, la app
    registra el error pero igualmente cierra la sesion local, porque el
