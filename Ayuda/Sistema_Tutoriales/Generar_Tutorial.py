@@ -1386,11 +1386,23 @@ def Generar_Audio_Narracion(
 
     Proveedor = Obtener_Cadena(Voz, "Proveedor", "ElevenLabs")
     Texto = Obtener_Texto_Audio_Tutorial(Tutorial)
+    Carteles = Obtener_Carteles_Consolidados(Tutorial)
 
     if not Texto:
         raise RuntimeError("El tutorial no tiene texto de narracion.")
 
     if Proveedor.lower() in ["windows", "local", "sapi"]:
+        if Carteles and Obtener_Bandera(
+            Voz,
+            "Sincronizar_Carteles",
+            True,
+        ):
+            return Generar_Audio_Windows_Sincronizado(
+                Tutorial,
+                Carteles,
+                Voz,
+            )
+
         Ruta_Windows = Generar_Audio_Windows(Tutorial, Texto, Voz)
         return Ajustar_Tempo_Audio(Ruta_Windows, Voz)
 
@@ -1466,8 +1478,119 @@ def Generar_Audio_Windows(
     """
 
     Identificador = Obtener_Identificador(Tutorial)
-    Ruta_Texto = Ruta_Datos / f"{Identificador}_Narracion.txt"
     Ruta_Audio = Ruta_Audios / f"{Identificador}.wav"
+
+    return Generar_Audio_Windows_Archivo(
+        Identificador,
+        Texto,
+        Voz,
+        Ruta_Audio,
+        "Narracion",
+    )
+
+
+def Generar_Audio_Windows_Sincronizado(
+    Tutorial: dict[str, object],
+    Carteles: list[dict[str, object]],
+    Voz: dict[str, object],
+) -> Pathlib.Path:
+
+    """
+    Genera una pista WAV con la voz alineada a cada cartel.
+    Cada texto visible se sintetiza por separado y se coloca en
+    el mismo segundo en que aparece su toast, evitando que una
+    narracion corrida se adelante o atrase frente al mouse.
+
+    Parametros:
+    - Tutorial: Contrato completo del tutorial.
+    - Carteles: Carteles ya ordenados y sin solapes visuales.
+    - Voz: Configuracion de voz declarada en el contrato.
+
+    Retorna:
+    - Pathlib.Path: Ruta del WAV sincronizado generado.
+
+    """
+
+    Identificador = Obtener_Identificador(Tutorial)
+    Ruta_Salida = Ruta_Audios / f"{Identificador}.wav"
+    Segmentos: list[dict[str, object]] = []
+    Tempo_Base = Obtener_Numero(Voz, "Tempo", 1.0)
+
+    for Indice, Cartel in enumerate(Carteles, start = 1):
+        Texto = str(Cartel.get("Texto", "")).strip()
+
+        if not Texto:
+            continue
+
+        Inicio = float(Cartel["Inicio"])
+        Fin = float(Cartel["Fin"])
+        Espacio = max(0.5, Fin - Inicio)
+        Sufijo = f"Audio_Segmento_{Indice:03d}"
+        Ruta_Segmento = Ruta_Datos / f"{Identificador}_{Sufijo}.wav"
+        Ruta_Segmento = Generar_Audio_Windows_Archivo(
+            Identificador,
+            Texto,
+            Voz,
+            Ruta_Segmento,
+            Sufijo,
+        )
+        Tempo_Efectivo = Calcular_Tempo_Segmento(
+            Ruta_Segmento,
+            Tempo_Base,
+            Espacio,
+        )
+        Ajustar_Tempo_Audio_Valor(Ruta_Segmento, Tempo_Efectivo)
+        Duracion = Obtener_Duracion_Wav(Ruta_Segmento)
+        Segmentos.append(
+            {
+                "Indice": Indice,
+                "Inicio": Inicio,
+                "Fin": Fin,
+                "Duracion": Duracion,
+                "Tempo": Tempo_Efectivo,
+                "Texto": Texto,
+                "Ruta": str(Ruta_Segmento),
+            }
+        )
+
+    if not Segmentos:
+        raise RuntimeError(
+            "No hay carteles con texto para sincronizar audio."
+        )
+
+    Mezclar_Audio_Segmentos(Ruta_Salida, Segmentos)
+    Validar_Audio_Wav_Audible(Ruta_Salida)
+    Guardar_Manifiesto_Audio_Segmentado(Identificador, Segmentos)
+
+    return Ruta_Salida
+
+
+def Generar_Audio_Windows_Archivo(
+    Identificador: str,
+    Texto: str,
+    Voz: dict[str, object],
+    Ruta_Audio: Pathlib.Path,
+    Sufijo: str,
+) -> Pathlib.Path:
+
+    """
+    Sintetiza un archivo WAV con la voz local de Windows.
+    La funcion se usa tanto para narraciones completas como para
+    segmentos breves ubicados luego en la linea de tiempo.
+
+    Parametros:
+    - Identificador: Nombre estable del tutorial.
+    - Texto: Texto que debe decir la voz.
+    - Voz: Configuracion de voz declarada en el contrato.
+    - Ruta_Audio: Destino del WAV generado.
+    - Sufijo: Sufijo de archivos auxiliares.
+
+    Retorna:
+    - Pathlib.Path: Ruta del WAV generado.
+
+    """
+
+    Ruta_Texto = Ruta_Datos / f"{Identificador}_{Sufijo}.txt"
     Ruta_Script = Ruta_Datos / f"{Identificador}_Voz_Windows.ps1"
     Velocidad = int(Obtener_Numero(Voz, "Velocidad", -1))
     Volumen = int(Obtener_Numero(Voz, "Volumen", 100))
@@ -1532,6 +1655,230 @@ $Sintetizador.Dispose()
     return Ruta_Audio
 
 
+def Calcular_Tempo_Segmento(
+    Ruta_Audio: Pathlib.Path,
+    Tempo_Base: float,
+    Espacio_Segundos: float,
+) -> float:
+
+    """
+    Calcula el tempo que permite que una frase entre en su cartel.
+    Respeta el tempo lento pedido cuando entra en ventana; si no,
+    acelera solo lo necesario para que el audio no se pise con el
+    siguiente cartel.
+
+    Parametros:
+    - Ruta_Audio: Segmento recien sintetizado.
+    - Tempo_Base: Tempo preferido para la voz.
+    - Espacio_Segundos: Ventana disponible del cartel.
+
+    Retorna:
+    - float: Factor de tempo final para el segmento.
+
+    """
+
+    if Tempo_Base <= 0:
+        Tempo_Base = 1.0
+
+    Duracion_Original = Obtener_Duracion_Wav(Ruta_Audio)
+
+    if Duracion_Original <= 0:
+        return Tempo_Base
+
+    Duracion_Pedida = Duracion_Original / Tempo_Base
+
+    if Duracion_Pedida <= Espacio_Segundos:
+        return Tempo_Base
+
+    return max(Tempo_Base, Duracion_Original / Espacio_Segundos)
+
+
+def Guardar_Manifiesto_Audio_Segmentado(
+    Identificador: str,
+    Segmentos: list[dict[str, object]],
+) -> None:
+
+    """
+    Guarda un manifiesto para auditar la sincronizacion de voz.
+    Permite revisar rapidamente que cada texto, inicio y duracion
+    coincidan con los carteles renderizados.
+
+    Parametros:
+    - Identificador: Nombre estable del tutorial.
+    - Segmentos: Segmentos de audio ya ubicados en tiempo.
+
+    Retorna:
+    - None: Escribe un JSON auxiliar.
+
+    """
+
+    Ruta_Manifiesto = (
+        Ruta_Datos / f"{Identificador}_Audio_Segmentos.json"
+    )
+    Ruta_Manifiesto.write_text(
+        Json.dumps(Segmentos, ensure_ascii = False, indent = 2),
+        encoding = "utf-8",
+    )
+
+
+def Obtener_Duracion_Wav(
+    Ruta_Audio: Pathlib.Path,
+) -> float:
+
+    """
+    Obtiene la duracion de un archivo WAV.
+
+    Parametros:
+    - Ruta_Audio: Archivo WAV a medir.
+
+    Retorna:
+    - float: Duracion en segundos.
+
+    """
+
+    with Wave.open(str(Ruta_Audio), "rb") as Archivo:
+        Frames = Archivo.getnframes()
+        Frecuencia = Archivo.getframerate()
+
+    if Frecuencia <= 0:
+        return 0.0
+
+    return Frames / Frecuencia
+
+
+def Leer_Wav_Mono_16(
+    Ruta_Audio: Pathlib.Path,
+) -> tuple[int, Array.array]:
+
+    """
+    Lee un WAV PCM de 16 bits y lo devuelve como senal mono.
+
+    Parametros:
+    - Ruta_Audio: Archivo WAV a leer.
+
+    Retorna:
+    - tuple[int, Array.array]: Frecuencia y muestras mono.
+
+    """
+
+    with Wave.open(str(Ruta_Audio), "rb") as Archivo:
+        Canales = Archivo.getnchannels()
+        Frecuencia = Archivo.getframerate()
+        Ancho_Muestra = Archivo.getsampwidth()
+        Frames = Archivo.readframes(Archivo.getnframes())
+
+    if Ancho_Muestra != 2:
+        raise RuntimeError(
+            "El audio sincronizado requiere WAV PCM de 16 bits."
+        )
+
+    Muestras = Array.array("h")
+    Muestras.frombytes(Frames)
+
+    if Sys.byteorder != "little":
+        Muestras.byteswap()
+
+    if Canales == 1:
+        return Frecuencia, Muestras
+
+    Mono = Array.array("h")
+
+    for Indice in range(0, len(Muestras), Canales):
+        Ventana = Muestras[Indice:Indice + Canales]
+        Promedio = sum(Ventana) / len(Ventana)
+        Mono.append(int(Promedio))
+
+    return Frecuencia, Mono
+
+
+def Escribir_Wav_Mono_16(
+    Ruta_Audio: Pathlib.Path,
+    Frecuencia: int,
+    Muestras: Array.array,
+) -> None:
+
+    """
+    Escribe un WAV mono PCM de 16 bits.
+
+    Parametros:
+    - Ruta_Audio: Archivo de salida.
+    - Frecuencia: Frecuencia de muestreo.
+    - Muestras: Muestras de audio ya recortadas a int16.
+
+    Retorna:
+    - None: Escribe el archivo en disco.
+
+    """
+
+    Salida = Array.array("h", Muestras)
+
+    if Sys.byteorder != "little":
+        Salida.byteswap()
+
+    with Wave.open(str(Ruta_Audio), "wb") as Archivo:
+        Archivo.setnchannels(1)
+        Archivo.setsampwidth(2)
+        Archivo.setframerate(Frecuencia)
+        Archivo.writeframes(Salida.tobytes())
+
+
+def Mezclar_Audio_Segmentos(
+    Ruta_Salida: Pathlib.Path,
+    Segmentos: list[dict[str, object]],
+) -> None:
+
+    """
+    Mezcla segmentos de voz ubicandolos en su segundo exacto.
+
+    Parametros:
+    - Ruta_Salida: Archivo WAV final.
+    - Segmentos: Segmentos con ruta e inicio en segundos.
+
+    Retorna:
+    - None: Escribe el WAV mezclado.
+
+    """
+
+    Frecuencia_Final: int | None = None
+    Mezcla = Array.array("i")
+
+    for Segmento in Segmentos:
+        Ruta = Pathlib.Path(str(Segmento["Ruta"]))
+        Inicio = float(Segmento["Inicio"])
+        Frecuencia, Muestras = Leer_Wav_Mono_16(Ruta)
+
+        if Frecuencia_Final is None:
+            Frecuencia_Final = Frecuencia
+        elif Frecuencia != Frecuencia_Final:
+            raise RuntimeError(
+                "Los segmentos de voz no tienen la misma frecuencia."
+            )
+
+        Desplazamiento = max(
+            0,
+            int(round(Inicio * Frecuencia_Final)),
+        )
+        Largo_Necesario = Desplazamiento + len(Muestras)
+
+        if len(Mezcla) < Largo_Necesario:
+            Mezcla.extend([0] * (Largo_Necesario - len(Mezcla)))
+
+        for Indice, Muestra in enumerate(Muestras):
+            Mezcla[Desplazamiento + Indice] += int(Muestra)
+
+    if Frecuencia_Final is None:
+        raise RuntimeError(
+            "No se pudieron mezclar segmentos de audio."
+        )
+
+    Salida = Array.array("h")
+
+    for Muestra in Mezcla:
+        Salida.append(max(-32768, min(32767, Muestra)))
+
+    Escribir_Wav_Mono_16(Ruta_Salida, Frecuencia_Final, Salida)
+
+
 def Validar_Audio_Wav_Audible(
     Ruta_Audio: Pathlib.Path,
 ) -> None:
@@ -1592,6 +1939,25 @@ def Ajustar_Tempo_Audio(
     """
 
     Tempo = Obtener_Numero(Voz, "Tempo", 1.0)
+    return Ajustar_Tempo_Audio_Valor(Ruta_Audio, Tempo)
+
+
+def Ajustar_Tempo_Audio_Valor(
+    Ruta_Audio: Pathlib.Path,
+    Tempo: float,
+) -> Pathlib.Path:
+
+    """
+    Aplica un factor de tempo concreto sobre un archivo de audio.
+
+    Parametros:
+    - Ruta_Audio: Archivo de audio generado.
+    - Tempo: Factor final de tempo. Menor que 1 ralentiza.
+
+    Retorna:
+    - Pathlib.Path: Ruta del audio ajustado.
+
+    """
 
     if Tempo <= 0 or 0.99 <= Tempo <= 1.01:
         return Ruta_Audio

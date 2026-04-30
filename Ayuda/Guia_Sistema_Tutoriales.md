@@ -116,8 +116,12 @@ Si no hay clave de ElevenLabs, los contratos pueden usar
 `"Proveedor": "Windows"` dentro de `Voz` para generar una narracion
 local de borrador. Para ralentizar la voz de forma confiable, usar
 `"Tempo": 0.75` o un valor similar menor que `1`; el motor ajusta
-el audio final con FFmpeg. La voz local se genera por segmentos y se
-valida para evitar archivos silenciosos.
+el audio con FFmpeg. La voz local se genera por segmentos: cada
+cartel crea su propio WAV y luego el motor lo coloca en el mismo
+segundo en que aparece el toast. Si una frase no entra en la ventana
+del cartel, el segmento se ajusta solo lo necesario para evitar
+solapes con el texto siguiente. La pista final se valida para evitar
+archivos silenciosos.
 
 ## Datos de ejemplo.
 
