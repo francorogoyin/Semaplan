@@ -86947,9 +86947,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Descripcion_Corta: "",
           Emoji: Datos_Tarea.Emoji,
           Color: Color_Tarea_Suelta_Default,
-          Es_Bolsa: false,
+          Es_Bolsa: true,
           Horas_Semanales: 0,
-          Sin_Horas_Definidas: false,
+          Sin_Horas_Definidas: true,
           Categoria_Id: null,
           Etiquetas_Ids: []
         }, Semana_Clave);
@@ -97829,9 +97829,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Es_Slot_Pasado(Fecha_ISO, Hora) {
         const Ahora = new Date();
         const Hoy_ISO = Formatear_Fecha_ISO(Ahora);
+        const Hora_Actual =
+          Ahora.getHours() +
+          (Ahora.getMinutes() / 60) +
+          (Ahora.getSeconds() / 3600);
+        const Hora_Slot = Normalizar_Numero_Hora(Hora);
         return (
           Fecha_ISO < Hoy_ISO ||
-          (Fecha_ISO === Hoy_ISO && Hora < Ahora.getHours())
+          (Fecha_ISO === Hoy_ISO && Hora_Slot < Hora_Actual)
         );
       }
 
