@@ -1,0 +1,217 @@
+﻿diff --git a/login.html b/login.html
+index 7f31002c..fbfe0d8a 100644
+--- a/login.html
++++ b/login.html
+@@ -117344,6 +117369,37 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
+           : "Local";
+       }
+ 
++      function Sync_Local_Pendiente_Obsoleto(
++        {
++          Estado_Local = null,
++          Estado_Remoto = null,
++          Pendiente_Local_Ms = 0,
++          Marca_Remota_Ms = 0
++        } = {}
++      ) {
++        if (!Estado_Local || !Estado_Remoto) {
++          return false;
++        }
++        const Marca_Local_Datos = Number(
++          Obtener_Marca_Datos_Sync(Estado_Local)
++        ) || 0;
++        if (Marca_Local_Datos > 0) {
++          return false;
++        }
++        const Pendiente_Ms = Number(Pendiente_Local_Ms) || 0;
++        if (Pendiente_Ms <= 0) {
++          return false;
++        }
++        const Remoto_Ms = Number(Marca_Remota_Ms) || 0;
++        if (Remoto_Ms <= Pendiente_Ms + 1000) {
++          return false;
++        }
++        return !Estados_Datos_Sync_Iguales(
++          Estado_Local,
++          Estado_Remoto
++        );
++      }
++
+       function Generar_Id_Sesion_Operativa(
+         Prefijo = "ses"
+       ) {
+@@ -120794,6 +120850,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
+               "Error leyendo estado remoto:",
+               Fila_Remota.error
+             );
++            // No forzar sync local si no se pudo validar
++            // el estado remoto en este arranque.
++            Hay_Sync_Local_Pendiente = false;
++            Habia_Remoto = await Backend_Cargar_Estado_Remoto();
+           } else if (Fila_Remota.data) {
+             Actualizar_Meta_Remota(Fila_Remota.data);
+             Habia_Remoto = true;
+@@ -120819,9 +120879,21 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
+                 Estado_Local_Pendiente,
+                 Estado_Remoto_Comparacion
+               );
++            const Pendiente_Obsoleto =
++              Decision === "Local" &&
++              Sync_Local_Pendiente_Obsoleto({
++                Estado_Local: Estado_Local_Pendiente,
++                Estado_Remoto: Estado_Remoto_Comparacion,
++                Pendiente_Local_Ms,
++                Marca_Remota_Ms
++              });
+             if (Decision === "Igual") {
+               Marcar_Sync_Local_Sucio(false);
+               Hay_Sync_Local_Pendiente = false;
++            } else if (Pendiente_Obsoleto) {
++              Marcar_Sync_Local_Sucio(false);
++              Hay_Sync_Local_Pendiente = false;
++              Habia_Remoto = await Backend_Cargar_Estado_Remoto();
+             } else if (Decision === "Conflicto") {
+               Conflicto_Inicial_Remoto_Ms =
+                 Sync_Remoto_Marca_Antes_Sesion_Ms ||
+diff --git a/Pruebas/Tests/sync-multi-dispositivo.spec.js b/Pruebas/Tests/sync-multi-dispositivo.spec.js
+index 8aa498be..eee10889 100644
+--- a/Pruebas/Tests/sync-multi-dispositivo.spec.js
++++ b/Pruebas/Tests/sync-multi-dispositivo.spec.js
+@@ -1516,6 +1516,84 @@ test(
+   }
+ );
+ 
++test(
++  "descarta pendiente local obsoleto y carga remoto",
++  async ({ page }) => {
++    await Preparar_App(
++      page,
++      Crear_Estado(["Base remota"])
++    );
++
++    const Resumen = await page.evaluate(async () => {
++      const Hace_Diez_Min = Date.now() - 10 * 60 * 1000;
++      const Estado_Local_Obsoleto = {
++        Objetivos: [
++          {
++            Id: 901,
++            Nombre: "Local viejo"
++          }
++        ]
++      };
++      localStorage.setItem(
++        "Semaplan_Estado_V2",
++        JSON.stringify(Estado_Local_Obsoleto)
++      );
++      localStorage.setItem(
++        `Semaplan_Sync_Local_Pendiente_V1_${Usuario_Actual?.id || ""}`,
++        String(Hace_Diez_Min)
++      );
++
++      const Estado_Remoto_Nuevo = {
++        Objetivos: [
++          {
++            Id: 902,
++            Nombre: "Remoto nuevo"
++          }
++        ]
++      };
++      window.__Estado_Remoto = {
++        estado: Estado_Remoto_Nuevo,
++        actualizado_en: new Date(
++          Hace_Diez_Min + 2 * 60 * 1000
++        ).toISOString(),
++        version:
++          Number(window.__Estado_Remoto?.version || 1) + 1
++      };
++
++      Sync_Local_Sucio = false;
++      if (Sync_Timer_Id) {
++        clearTimeout(Sync_Timer_Id);
++        Sync_Timer_Id = null;
++      }
++
++      await Iniciar_App_Logueada();
++
++      const Estado_Local = JSON.parse(
++        localStorage.getItem("Semaplan_Estado_V2") ||
++        "{}"
++      );
++      return {
++        syncEstado: Sync_Estado,
++        conflicto: Sync_Conflicto_Pendiente,
++        syncPendiente: Sync_Local_Pendiente_Usuario_Actual(),
++        remoto:
++          (window.__Estado_Remoto?.estado?.Objetivos || [])
++            .map((Objetivo) => Objetivo.Nombre),
++        local:
++          (Estado_Local.Objetivos || []).map(
++            (Objetivo) => Objetivo.Nombre
++          )
++      };
++    });
++
++    expect(Resumen.syncEstado).toBe("Guardado");
++    expect(Resumen.conflicto).toBe(false);
++    expect(Resumen.syncPendiente).toBe(false);
++    expect(Resumen.remoto).toEqual(["Remoto nuevo"]);
++    expect(Resumen.local).not.toContain("Local viejo");
++  }
++);
++
+ test(
+   "limpiar una celda con plan sincroniza antes del debounce",
+   async ({ page }) => {
+diff --git a/Documentacion/Planes/Funcionamiento_App_Semaplan.md b/Documentacion/Planes/Funcionamiento_App_Semaplan.md
+index 2744793b..8254c4bc 100644
+--- a/Documentacion/Planes/Funcionamiento_App_Semaplan.md
++++ b/Documentacion/Planes/Funcionamiento_App_Semaplan.md
+@@ -134,6 +134,11 @@ El flujo operativo base es este.
+    conflicto si el estado remoto trae una marca de datos reales mas
+    nueva que la local. Si el cambio remoto fue operativo o no tiene
+    marca de datos mas nueva, el cache local pendiente se sincroniza.
++11.b Si al iniciar hay `sync` local pendiente sin
++   `Sync_Datos_Marca_Ms`, y la marca del pendiente local queda vieja
++   frente a `actualizado_en` remoto por mas de 1 segundo, se descarta
++   ese pendiente, se limpia el flag local y se recarga el estado
++   remoto para evitar quedar en `Guardando` con cache obsoleto.
+ 12. La metadata operativa de sesiones (`Sesiones_Operativas` y
+    `Sesion_Global_Corte_Ms`) no se trata como cambio de datos del
+    usuario. Si el remoto cambio solo por metadata operativa, no se muestra
+diff --git a/Documentacion/Registros/Registro_Avance.txt b/Documentacion/Registros/Registro_Avance.txt
+index 44ef21d2..574b67c5 100644
+--- a/Documentacion/Registros/Registro_Avance.txt
++++ b/Documentacion/Registros/Registro_Avance.txt
+@@ -6,6 +6,32 @@ Plantilla de registro de avance.
+ 
+ Registros.
+ 
++- Fecha y hora: 2026-04-29 22:05:49.
++  Nota: Se ajusto el arranque de sync en `login.html` para evitar
++  bloqueos en `Guardando...` por pendientes locales obsoletos: si el
++  pendiente no tiene `Sync_Datos_Marca_Ms`, su marca local es vieja
++  frente a `actualizado_en` remoto y el estado difiere, se descarta el
++  pendiente local, se limpia su flag y se recarga remoto. Tambien se
++  evita forzar sync local cuando falla la lectura remota inicial.
++  Estado: Realizado.
++
++- Fecha y hora: 2026-04-29 21:18:30.
++  Nota: Se actualizo
++  `Documentacion/Planes/Procedimiento_Cargar_Partes_Lectura_Desde_Json.txt`
++  para forzar una regla operativa adicional en cargas de libros:
++  completar siempre emoji pertinente del subobjetivo y metadato Año
++  cuando falten, sin tocar campos que ya esten correctos.
++  Estado: Realizado.
++
++- Fecha y hora: 2026-04-29 20:13:19.
++  Nota: Se cambio el aporte por bloque de metas para que la sugerencia
++  proporcional a la duracion del bloque arranque desmarcada y solo se
++  registre cuando el usuario la activa. El calculo ahora usa horas
++  semanales aunque el objetivo no sea bolsa: por ejemplo, una meta de
++  20 unidades por hora sugiere 5 en un bloque de 15 minutos y 20 en un
++  bloque de 1 hora. Se agrego cobertura Playwright especifica.
++  Estado: Realizado.
++
+ - Fecha y hora: 2026-04-29 19:57:18.
+   Nota: Se unificaron los controles de planificacion de slots vacios,
+   slots muertos y bloques para agregar habitos y objetivos mediante

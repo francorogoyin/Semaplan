@@ -134,6 +134,11 @@ El flujo operativo base es este.
    conflicto si el estado remoto trae una marca de datos reales mas
    nueva que la local. Si el cambio remoto fue operativo o no tiene
    marca de datos mas nueva, el cache local pendiente se sincroniza.
+11.b Si al iniciar hay `sync` local pendiente sin
+   `Sync_Datos_Marca_Ms`, y la marca del pendiente local queda vieja
+   frente a `actualizado_en` remoto por mas de 1 segundo, se descarta
+   ese pendiente, se limpia el flag local y se recarga el estado
+   remoto para evitar quedar en `Guardando` con cache obsoleto.
 12. La metadata operativa de sesiones (`Sesiones_Operativas` y
    `Sesion_Global_Corte_Ms`) no se trata como cambio de datos del
    usuario. Si el remoto cambio solo por metadata operativa, no se muestra
@@ -434,6 +439,11 @@ Relaciones importantes.
 - Las metas resumen progreso por categoria, etiqueta u objetivo.
 - Cambios en agenda y objetivos pueden cambiar indirectamente sus
   calculos y mensajes.
+- En bloques vinculados a metas de planes por periodo, el aporte por
+  bloque se muestra como sugerencia proporcional a la duracion real del
+  bloque cuando el objetivo tiene horas semanales. El aporte arranca
+  desmarcado y solo se registra si el usuario lo activa o confirma
+  explicitamente.
 
 ## Planes semanales
 

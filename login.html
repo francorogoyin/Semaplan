@@ -63638,6 +63638,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Meta_Aporte_Objetivo_Usa_Horas(Objetivo) {
+        if (!Objetivo || Objetivo_Sin_Horas_Definidas(Objetivo)) {
+          return false;
+        }
+        return Objetivo_Tiene_Horas_Definidas(Objetivo) ||
+          (Number(Objetivo.Horas_Semanales) || 0) > 0;
+      }
+
       function Meta_Aporte_Asignado_Evento(Evento) {
         const Objetivo = Objetivo_Por_Id(Evento?.Objetivo_Id);
         if (!Objetivo || !Meta_Aporte_Objetivo_Tiene_Vinculo(Objetivo)) {
@@ -63648,7 +63656,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (Number.isFinite(Manual) && Manual >= 0) {
           return Meta_Aporte_Redondear(Manual, Unidad);
         }
-        if (Objetivo_Tiene_Horas_Definidas(Objetivo)) {
+        if (Meta_Aporte_Objetivo_Usa_Horas(Objetivo)) {
           const Horas = Math.max(
             0,
             Number(Objetivo.Horas_Semanales) || 0
@@ -64066,7 +64074,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Total, Evento) => Total + (Number(Evento.Duracion) || 0),
           0
         );
-        const Usa_Horas = Objetivo_Tiene_Horas_Definidas(Objetivo);
+        const Usa_Horas = Meta_Aporte_Objetivo_Usa_Horas(Objetivo);
         const Horas_Pendientes = Usa_Horas
           ? Math.max(
             0,
@@ -64104,10 +64112,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Restante = Math.max(0, Restante - Cantidad);
           Evento.Meta_Aporte_Cantidad = Cantidad;
           Evento.Meta_Aporte_Unidad = Unidad;
-          Evento.Meta_Aporte_Planeado = true;
           Evento.Meta_Aporte_Manual = false;
           if (Evento.Meta_Aporte_Tildado === undefined) {
-            Evento.Meta_Aporte_Tildado = true;
+            Evento.Meta_Aporte_Tildado = false;
+          }
+          if (Evento.Meta_Aporte_Planeado === undefined) {
+            Evento.Meta_Aporte_Planeado =
+              Evento.Meta_Aporte_Tildado === true;
           }
           Meta_Aporte_Recalcular_Distribucion_Auto_Evento(Evento);
         });
@@ -64126,10 +64137,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Unidad
           );
         Evento.Meta_Aporte_Unidad = Unidad;
-        Evento.Meta_Aporte_Planeado =
-          Evento.Meta_Aporte_Planeado !== false;
-        Evento.Meta_Aporte_Tildado =
-          Evento.Meta_Aporte_Tildado !== false;
+        if (Evento.Meta_Aporte_Tildado === undefined) {
+          Evento.Meta_Aporte_Tildado = false;
+        }
+        if (Evento.Meta_Aporte_Planeado === undefined) {
+          Evento.Meta_Aporte_Planeado =
+            Evento.Meta_Aporte_Tildado === true;
+        }
         Meta_Aporte_Recalcular_Distribucion_Auto_Evento(Evento);
         return Evento;
       }
@@ -83644,7 +83658,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Tildado = Evento.Hecho
           ? (Tenia_Avance || Evento.Meta_Aporte_Tildado === true)
-          : Evento.Meta_Aporte_Tildado !== false;
+          : Evento.Meta_Aporte_Tildado === true;
         const Modelo = Asegurar_Modelo_Planes();
         const Distribucion = Meta_Aporte_Distribucion_Evento(
           Evento,
@@ -83716,12 +83730,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Meta_Aporte_Actualizar_Borrador_Cantidad(
         Borrador,
-        Valor
+        Valor,
+        Opciones = {}
       ) {
         if (!Borrador) return;
         Borrador.Cantidad = Meta_Aporte_Numero(Valor);
-        Borrador.Tildado = Borrador.Cantidad > 0;
-        Borrador.Planeado = Borrador.Cantidad > 0;
+        if (Opciones.Activar !== false) {
+          Borrador.Tildado = Borrador.Cantidad > 0;
+          Borrador.Planeado = Borrador.Cantidad > 0;
+        }
         if (!Borrador.Distribucion_Manual) {
           Meta_Aporte_Distribuir_Auto_Borrador(Borrador);
         } else {
@@ -83766,7 +83783,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Input || !Abordaje_Aporte_Meta_Borrador) return;
         Meta_Aporte_Actualizar_Borrador_Cantidad(
           Abordaje_Aporte_Meta_Borrador,
-          Input.value
+          Input.value,
+          { Activar: false }
         );
       }
 
@@ -84053,13 +84071,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           return true;
         }
         const Unidad = Meta_Aporte_Unidad_Objetivo(Objetivo);
-        const Cantidad_Nueva = Meta_Aporte_Redondear(
-          Borrador.Tildado ? Borrador.Cantidad : 0,
+        const Cantidad_Asignada_Nueva = Meta_Aporte_Redondear(
+          Borrador.Cantidad,
           Unidad
         );
+        const Cantidad_Nueva = Borrador.Tildado
+          ? Cantidad_Asignada_Nueva
+          : 0;
         const Tildado_Nuevo =
           Borrador.Tildado && Cantidad_Nueva > 0;
-        const Cantidad_Anterior = Meta_Aporte_Asignado_Evento(Evento);
+        const Cantidad_Anterior = Borrador.Original_Tildado
+          ? Meta_Aporte_Redondear(Borrador.Original_Cantidad, Unidad)
+          : 0;
         Meta_Aporte_Sincronizar_Distribucion_Borrador(Borrador);
         if (!Meta_Aporte_Validar_Distribucion_Borrador(Borrador, true)) {
           return false;
@@ -84148,7 +84171,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
             if (!Ok) return false;
           }
-        } else if (Cantidad_Nueva !== Borrador.Original_Cantidad) {
+        } else if (
+          Cantidad_Nueva !== Cantidad_Anterior ||
+          Tildado_Nuevo !== Borrador.Original_Tildado
+        ) {
           const Ok = await Meta_Aporte_Confirmar(
             "meta_aporte.confirmar_bloque",
             {
@@ -84160,14 +84186,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (!Ok) return false;
         }
 
-        Evento.Meta_Aporte_Cantidad = Cantidad_Nueva;
+        Evento.Meta_Aporte_Cantidad = Cantidad_Asignada_Nueva;
         Evento.Meta_Aporte_Unidad = Unidad;
         Evento.Meta_Aporte_Planeado = Tildado_Nuevo;
         Evento.Meta_Aporte_Tildado = Tildado_Nuevo;
         Evento.Meta_Aporte_Manual =
           Borrador.Original_Manual ||
-          Cantidad_Nueva !== Borrador.Original_Cantidad ||
-          Tildado_Nuevo !== Borrador.Original_Tildado;
+          Cantidad_Asignada_Nueva !== Borrador.Original_Cantidad;
         Evento.Meta_Aporte_Distribucion = Distribucion_Nueva;
         Evento.Meta_Aporte_Distribucion_Manual =
           Tildado_Nuevo &&

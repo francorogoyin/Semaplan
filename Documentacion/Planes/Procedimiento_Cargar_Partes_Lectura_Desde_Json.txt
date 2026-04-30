@@ -34,6 +34,10 @@ Buscar el PDF en esta carpeta y sus subcarpetas.
 
 C:\Users\Patricio\Documents\Biblioteca\Libros\
 
+Si no existe PDF fuente valido para ese libro, frenar y no crear
+JSON, no crear subobjetivo, no crear partes y no aplicar ningun
+cambio en Semaplan para ese titulo.
+
 Si el libro figura con otro titulo editorial, usar el PDF correcto
 pero mantener como Titulo del JSON el nombre del subobjetivo destino
 en Semaplan, salvo que el usuario indique renombrarlo.
@@ -168,6 +172,8 @@ Si no existe un subobjetivo para el libro, crearlo dentro del
 objetivo anual Libros antes de crear partes. Usar como texto el
 Titulo del JSON, respetar la unidad y los metadatos definidos por el
 JSON, y registrar en la notificacion que el subobjetivo fue creado.
+Al crear un subobjetivo nuevo, asignar tambien un emoji tematico y
+pertinente para el libro.
 
 Identificar su raiz canonica con Planes_Subobjetivo_Raiz_Id.
 Identificar todas sus proyecciones con
@@ -181,6 +187,9 @@ Carga diferencial e idempotente.
 
 Antes de modificar Semaplan, comparar el JSON con el estado remoto
 crudo.
+
+Antes de esa comparacion, confirmar que el libro tenga PDF fuente
+valido. Si no hay PDF fuente valido, no hacer nada para ese libro.
 
 Si el subobjetivo ya tiene metadatos, Suma, partes, paginas,
 estados y avances correctos, no reemplazar nada. Notificar al
@@ -202,6 +211,8 @@ esta mal.
 - Si los metadatos ya son exactos, no tocarlos.
 - Si los metadatos son incorrectos o estan incompletos, reemplazarlos
   por los del JSON sin dejar claves viejas.
+- Si falta el emoji del subobjetivo o falta el metadato Año, cargarlos
+  aunque el resto del subobjetivo ya este correcto.
 
 No dejar datos duplicados, paralelos, tombstones, partes viejas ni
 claves antiguas.
@@ -213,6 +224,7 @@ quede explicado por las partes.
 Actualizacion de metadatos.
 
 Si los datos ya coinciden exactamente con el JSON, conservarlos.
+Excepcion: si falta el metadato Año, crearlo igual.
 
 Si hay diferencias, antes de aplicar los datos nuevos borrar los
 metadatos previos del subobjetivo.
@@ -231,6 +243,10 @@ otro valor o si el JSON trae el campo vacio.
 - Metadato Autor igual a Autor.
 - Metadato Año igual a Anio.
 - Metadato Género igual a Genero.
+
+No dejar el metadato Año vacio o ausente. Si ya existen Autor y
+Genero correctos pero falta Año, completar solo Año sin romper lo que
+ya este bien.
 
 Si Fecha_Inicio viene vacia o null, borrar la fecha de inicio
 preexistente en Semaplan.
@@ -341,6 +357,7 @@ Verificar estos puntos.
 - Sin metadatos duplicados o corruptos, como A?o, G?nero o valores
   tipo Pol?tica. Verificar el estado remoto crudo, no solo la vista
   ya normalizada por la app.
+- Metadato Año presente y con valor valido en cada libro cargado.
 - Emojis correctos en subobjetivo y partes. Verificar en el estado
   remoto crudo que no queden emojis como ?, ??, ???, caracter de
   reemplazo o mojibake. Verificar tambien en la UI que no se vean
