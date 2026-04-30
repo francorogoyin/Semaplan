@@ -98,13 +98,19 @@ Seguir `Documentacion/Planes/Reglas_Operativas_Semaplan.md`.
 
 Cuando el usuario encargue una tarea mediana o grande, o use una
 formula como `itera como siempre`, antes de implementar hay que hacer
-dos pasadas deliberadas de pensamiento:
+dos pasadas deliberadas de pensamiento: una sobre el diseño de la
+solucion y otra sobre la estrategia de implementacion.
 
-1. Proponer un diseño de solucion e iterarlo tres veces, criticando
-   cada version y corrigiendo sus puntos flojos.
-2. Proponer una estrategia de implementacion e iterarla tres veces,
-   revisando riesgos, variantes, validaciones y posibles efectos
-   colaterales.
+En cada pasada, iterar no significa producir tres capas independientes
+ni tres listas acumulativas. Significa hacer este ciclo: proponer una
+version inicial; criticarla buscando puntos debiles, supuestos fragiles,
+casos aledaños, variantes que puedan romperla y efectos colaterales;
+corregirla en una segunda version; repetir la critica sobre esa segunda
+version; y cerrar con una tercera version mas solida.
+
+La pasada de diseño debe terminar en una propuesta de solucion. La
+pasada de implementacion debe terminar en una estrategia concreta,
+incluyendo riesgos, validaciones y efectos colaterales relevantes.
 
 Esta regla no debe bloquear pedidos simples, fixes puntuales ni
 acciones urgentes donde el alcance este claro. Si el usuario pide
