@@ -116888,6 +116888,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         30000
       ];
       const Sync_Reintento_Max_Intentos = 8;
+      const Sync_Lote_Tamano_Max_Chars = 380000;
       // Estado actual del indicador de sync.
       let Sync_Estado = "Guardado";
       let Sync_Token_Actual = "";
@@ -117165,6 +117166,106 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Error_Sync?.message || ""
         ).toLowerCase();
         return Mensaje.includes("statement timeout");
+      }
+
+      function Construir_Cambios_Raiz_Sync(
+        Estado_Anterior = null,
+        Estado_Nuevo = null
+      ) {
+        if (!Es_Objeto_Json(Estado_Nuevo)) return [];
+        const Anterior = Es_Objeto_Json(Estado_Anterior)
+          ? Estado_Anterior
+          : {};
+        const Claves = new Set([
+          ...Object.keys(Anterior),
+          ...Object.keys(Estado_Nuevo)
+        ]);
+        const Cambios = [];
+
+        Claves.forEach((Clave) => {
+          const Tiene_Nuevo =
+            Object.prototype.hasOwnProperty.call(
+              Estado_Nuevo,
+              Clave
+            );
+          const Valor_Anterior = Anterior[Clave];
+          const Valor_Nuevo = Tiene_Nuevo
+            ? Estado_Nuevo[Clave]
+            : undefined;
+          if (
+            JSON.stringify(Valor_Anterior) ===
+            JSON.stringify(Valor_Nuevo)
+          ) {
+            return;
+          }
+          const Valor_Cambio = Tiene_Nuevo
+            ? Valor_Nuevo
+            : null;
+          let Tamano = 0;
+          try {
+            Tamano = JSON.stringify(Valor_Cambio).length;
+          } catch (_) {
+            Tamano = 0;
+          }
+          Cambios.push({
+            Clave,
+            Valor: Valor_Cambio,
+            Tamano: Tamano + Clave.length + 6
+          });
+        });
+
+        Cambios.sort((A, B) => B.Tamano - A.Tamano);
+        return Cambios;
+      }
+
+      function Construir_Lotes_Cambios_Raiz_Sync(
+        Estado_Anterior = null,
+        Estado_Nuevo = null
+      ) {
+        if (!Es_Objeto_Json(Estado_Nuevo)) {
+          return [Estado_Nuevo];
+        }
+        const Cambios = Construir_Cambios_Raiz_Sync(
+          Estado_Anterior,
+          Estado_Nuevo
+        );
+        if (!Cambios.length) {
+          return [Estado_Nuevo];
+        }
+
+        const Lotes = [];
+        let Lote_Actual = {};
+        let Tamano_Actual = 2;
+
+        function Empujar_Lote_Actual() {
+          if (!Object.keys(Lote_Actual).length) return;
+          Lotes.push(Lote_Actual);
+          Lote_Actual = {};
+          Tamano_Actual = 2;
+        }
+
+        Cambios.forEach((Cambio) => {
+          if (
+            Cambio.Tamano > Sync_Lote_Tamano_Max_Chars
+          ) {
+            Empujar_Lote_Actual();
+            Lotes.push({
+              [Cambio.Clave]: Cambio.Valor
+            });
+            return;
+          }
+          if (
+            Tamano_Actual + Cambio.Tamano >
+            Sync_Lote_Tamano_Max_Chars
+          ) {
+            Empujar_Lote_Actual();
+          }
+          Lote_Actual[Cambio.Clave] = Cambio.Valor;
+          Tamano_Actual += Cambio.Tamano;
+        });
+
+        Empujar_Lote_Actual();
+        return Lotes.length ? Lotes : [Estado_Nuevo];
       }
 
       function Es_Objeto_Json(Valor) {
@@ -119088,38 +119189,68 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Sync_Remoto_Fila_Existe &&
               Sync_Remoto_Version_Actual > 0
             ) {
-              const Resultado =
-                Normalizar_Fila_Resultado(
-                await Tabla
-                    .update({
-                      estado: Estado_Sync,
-                      version:
-                        Sync_Remoto_Version_Actual + 1
-                    })
-                    .eq("user_id", Usuario_Actual.id)
-                    .eq(
-                      "version",
-                      Sync_Remoto_Version_Actual
-                    )
-                    .select("version, actualizado_en")
-                    .maybeSingle()
-              );
-              if (Resultado.error) {
-                throw Resultado.error;
-              }
-              if (!Resultado.data) {
-                if (
-                  Intento_Metadata === 0 &&
-                  await Backend_Refrescar_Si_Remoto_No_Conflicta(
-                    Estado_Remoto_Referencia
-                  )
-                ) {
-                  continue;
+              const Lotes_Sync =
+                Construir_Lotes_Cambios_Raiz_Sync(
+                  Estado_Remoto_Referencia,
+                  Estado_Sync
+                );
+              let Version_Trabajo =
+                Sync_Remoto_Version_Actual;
+              let Resultado_Final = null;
+              let Reintentar_Metadata = false;
+
+              for (
+                let Index_Lote = 0;
+                Index_Lote < Lotes_Sync.length;
+                Index_Lote += 1
+              ) {
+                const Estado_Lote =
+                  Lotes_Sync[Index_Lote];
+                const Resultado =
+                  Normalizar_Fila_Resultado(
+                  await Tabla
+                      .update({
+                        estado: Estado_Lote,
+                        version: Version_Trabajo + 1
+                      })
+                      .eq("user_id", Usuario_Actual.id)
+                      .eq("version", Version_Trabajo)
+                      .select("version, actualizado_en")
+                      .maybeSingle()
+                );
+                if (Resultado.error) {
+                  throw Resultado.error;
                 }
+                if (!Resultado.data) {
+                  if (
+                    Index_Lote === 0 &&
+                    Intento_Metadata === 0 &&
+                    await Backend_Refrescar_Si_Remoto_No_Conflicta(
+                      Estado_Remoto_Referencia
+                    )
+                  ) {
+                    Reintentar_Metadata = true;
+                    break;
+                  }
+                  throw Conflicto;
+                }
+                Resultado_Final = Resultado.data;
+                Version_Trabajo =
+                  Obtener_Version_Remota(
+                    Resultado.data
+                  ) || (Version_Trabajo + 1);
+                Sync_Remoto_Version_Actual =
+                  Version_Trabajo;
+              }
+
+              if (Reintentar_Metadata) {
+                continue;
+              }
+              if (!Resultado_Final) {
                 throw Conflicto;
               }
               Backend_Registrar_Sync_Exitoso(
-                Resultado.data,
+                Resultado_Final,
                 Estado_Base
               );
               Sincronizado = true;
@@ -119261,7 +119392,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Sync_Reintento_Intentos =
                 Math.max(
                   Sync_Reintento_Intentos,
-                  Sync_Reintento_Max_Intentos
+                  Math.max(
+                    0,
+                    Sync_Reintento_Max_Intentos - 1
+                  )
                 );
             }
             if (

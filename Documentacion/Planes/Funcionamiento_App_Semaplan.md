@@ -162,6 +162,10 @@ El flujo operativo base es este.
    `statement timeout`) durante un guardado, la app agota de inmediato
    los reintentos automaticos y pasa a `Error` para evitar ciclos largos
    en `Guardando`.
+14.d Cuando hay muchos cambios acumulados, el sync versionado envia el
+   estado en lotes por claves raiz para evitar timeouts por payload
+   grande. Cada lote actualiza la misma fila con control de version y la
+   app confirma `Guardado` al terminar el ultimo lote.
 15. `Cerrar sesion en todas` registra primero un corte global propio en
    el estado remoto. Si Supabase rechaza el `signOut` global, la app
    registra el error pero igualmente cierra la sesion local, porque el
