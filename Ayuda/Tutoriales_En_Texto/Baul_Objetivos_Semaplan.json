@@ -1,0 +1,91 @@
+{
+  "Identificador": "Baul_Objetivos_Semaplan",
+  "Titulo": "Usar el Baul de objetivos de Semaplan",
+  "Descripcion_Corta": "Video introductorio para mostrar objetivos no programados, filtros, categorias y vistas del Baul",
+  "Url_Inicial": "https://semaplan.com",
+  "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
+  "Headless": true,
+  "Resolucion": {
+    "Ancho": 1920,
+    "Alto": 1080
+  },
+  "Duracion_Cartel_Segundos": 4,
+  "Youtube": {
+    "Titulo": "Usar el Baul de objetivos de Semaplan",
+    "Descripcion": "Como entrar al Baul, revisar objetivos por categoria, usar filtros y cambiar la vista de objetivos",
+    "Etiquetas": [
+      "Semaplan",
+      "Baul",
+      "objetivos",
+      "tutorial"
+    ]
+  },
+  "Narracion": [
+    {
+      "Texto": "El Baul guarda objetivos que todavia no estan puestos en la semana."
+    },
+    {
+      "Texto": "Se puede filtrar por categoria, etiqueta, estado, periodo y cambiar entre vista biblioteca y lista."
+    }
+  ],
+  "Pasos_Texto": [
+    {
+      "Titulo": "Abrir el Baul",
+      "Texto": "Usar el boton del menu superior"
+    },
+    {
+      "Titulo": "Revisar filtros",
+      "Texto": "Mirar busqueda, categorias, etiquetas, estado y periodo"
+    },
+    {
+      "Titulo": "Cambiar vista",
+      "Texto": "Usar los controles de biblioteca o lista"
+    }
+  ],
+  "Acciones": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com",
+      "Cartel": "Entramos a la app para abrir el Baul.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo": "() => { const Loader = document.getElementById('App_Loader'); const Auth = document.getElementById('Auth_Overlay'); return !!document.getElementById('Baul_Boton') && Loader?.classList.contains('Oculto') && !Auth?.classList.contains('Activo'); }"
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo": "() => { if (typeof Aplicar_Estilo_Menu === 'function' && typeof Config === 'object' && Config) { Config.Menu_Estilo = 'Iconos'; Aplicar_Estilo_Menu(); } }"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Baul_Boton",
+      "Cartel": "El Baul junta objetivos disponibles para usar mas adelante.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Baul_Overlay.Activo"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 4,
+      "Cartel": "Los filtros ayudan a encontrar objetivos por categoria, etiqueta o estado.",
+      "Posicion": "Superior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Baul_Vista_Lista",
+      "Cartel": "La vista Lista es util para revisar muchos objetivos rapido.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 4
+    },
+    {
+      "Tipo": "Presionar",
+      "Tecla": "Escape"
+    }
+  ]
+}

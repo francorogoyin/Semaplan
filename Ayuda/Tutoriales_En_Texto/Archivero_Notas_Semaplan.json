@@ -1,0 +1,97 @@
+{
+  "Identificador": "Archivero_Notas_Semaplan",
+  "Titulo": "Usar el Archivero de Semaplan",
+  "Descripcion_Corta": "Video introductorio para mostrar cajones, notas, busqueda, filtros y creacion de notas en el Archivero",
+  "Url_Inicial": "https://semaplan.com",
+  "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
+  "Headless": true,
+  "Resolucion": {
+    "Ancho": 1920,
+    "Alto": 1080
+  },
+  "Duracion_Cartel_Segundos": 4,
+  "Youtube": {
+    "Titulo": "Usar el Archivero de Semaplan",
+    "Descripcion": "Como entrar al Archivero, leer notas por cajon, usar busqueda y abrir el modal de nueva nota",
+    "Etiquetas": [
+      "Semaplan",
+      "Archivero",
+      "notas",
+      "tutorial"
+    ]
+  },
+  "Narracion": [
+    {
+      "Texto": "El Archivero sirve para guardar notas, referencias y material operativo dentro de cajones."
+    },
+    {
+      "Texto": "Desde la cabecera se puede buscar, filtrar, exportar el cajon y abrir una nueva nota."
+    }
+  ],
+  "Pasos_Texto": [
+    {
+      "Titulo": "Abrir el Archivero",
+      "Texto": "Usar el boton del menu superior"
+    },
+    {
+      "Titulo": "Elegir un cajon",
+      "Texto": "Mirar la lista lateral y el contenido del cajon abierto"
+    },
+    {
+      "Titulo": "Crear una nota",
+      "Texto": "Abrir el modal de nueva nota sin guardar cambios"
+    }
+  ],
+  "Acciones": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com",
+      "Cartel": "Entramos a la app para abrir el Archivero.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo": "() => { const Loader = document.getElementById('App_Loader'); const Auth = document.getElementById('Auth_Overlay'); return !!document.getElementById('Archivero_Boton') && Loader?.classList.contains('Oculto') && !Auth?.classList.contains('Activo'); }"
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo": "() => { if (typeof Aplicar_Estilo_Menu === 'function' && typeof Config === 'object' && Config) { Config.Menu_Estilo = 'Iconos'; Aplicar_Estilo_Menu(); } }"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Archivero_Boton",
+      "Cartel": "El Archivero abre las notas separadas por cajones.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Archivero_Overlay.Activo"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 4,
+      "Cartel": "A la izquierda estan los cajones; al centro, las notas del cajon activo.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Archivero_Btn_Nueva_Nota",
+      "Cartel": "Nueva nota permite cargar texto, etiquetas, cajon y color.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Archivero_Nota_Overlay.Activo"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 4,
+      "Cartel": "Este modal no se guarda hasta confirmar, asi que sirve para revisar el flujo.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Presionar",
+      "Tecla": "Escape"
+    }
+  ]
+}

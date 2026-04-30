@@ -2,6 +2,7 @@ import argparse as Argparse
 import json as Json
 import os as Os
 import pathlib as Pathlib
+import re as Re
 import shutil as Shutil
 import subprocess as Subprocess
 import sys as Sys
@@ -36,7 +37,14 @@ def Escribir_Mensaje(Texto: str) -> None:
 
     """
 
-    print(Texto)
+    try:
+        print(Texto)
+    except UnicodeEncodeError:
+        Texto_Seguro = Texto.encode(
+            "ascii",
+            errors = "replace",
+        ).decode("ascii")
+        print(Texto_Seguro)
 
 
 def Crear_Directorios_Base() -> None:
@@ -768,7 +776,17 @@ def Ejecutar_Accion_Playwright(
 
     if Tipo == "ir_a":
         Url = Obtener_Cadena(Accion, "Url")
-        Pagina.goto(Url, wait_until = "networkidle")
+        Pagina.goto(
+            Url,
+            wait_until = Obtener_Cadena(
+                Accion,
+                "Esperar_Carga",
+                "domcontentloaded",
+            ),
+            timeout = int(
+                Obtener_Numero(Accion, "Timeout_Ms", 120000)
+            ),
+        )
         return
 
     if Tipo == "click":
@@ -792,6 +810,16 @@ def Ejecutar_Accion_Playwright(
 
     if Tipo == "esperar_selector":
         Pagina.wait_for_selector(Selector)
+        return
+
+    if Tipo == "esperar_funcion":
+        Codigo = Obtener_Cadena(Accion, "Codigo")
+        Pagina.wait_for_function(
+            Codigo,
+            timeout = int(
+                Obtener_Numero(Accion, "Timeout_Ms", 120000)
+            ),
+        )
         return
 
     if Tipo == "hover":
@@ -978,9 +1006,10 @@ def Renderizar_Video(
         Overlays,
         Carteles,
         Ruta_Audio if Ruta_Audio.exists() else None,
+        Obtener_Duracion_Video(Ruta_Ffmpeg, Ruta_Crudo),
     )
 
-    Subprocess.run(Comando, check = True)
+    Ejecutar_Ffmpeg(Comando)
 
     return Ruta_Salida
 
@@ -1230,6 +1259,7 @@ def Construir_Comando_Ffmpeg(
     Overlays: list[Pathlib.Path],
     Carteles: list[dict[str, object]],
     Ruta_Audio: Pathlib.Path | None,
+    Duracion_Video: float | None,
 ) -> list[str]:
 
     """
@@ -1244,6 +1274,7 @@ def Construir_Comando_Ffmpeg(
     - Overlays: Imagenes transparentes de carteles.
     - Carteles: Carteles con tiempos para activar overlays.
     - Ruta_Audio: Audio narrado opcional.
+    - Duracion_Video: Duracion maxima del video base.
 
     Retorna:
     - list[str]: Argumentos listos para Subprocess.run.
@@ -1271,6 +1302,9 @@ def Construir_Comando_Ffmpeg(
         Comando.extend(["-map", f"{Indice_Audio}:a"])
     else:
         Comando.extend(["-map", "0:a?"])
+
+    if Duracion_Video is not None:
+        Comando.extend(["-t", f"{Duracion_Video:.3f}"])
 
     Comando.extend(
         [
@@ -1315,12 +1349,89 @@ def Construir_Filtro_Overlays(
         Fin = f"{float(Cartel['Fin']):.2f}"
         Partes.append(
             f"{Entrada_Actual}{Entrada_Overlay}"
-            f"overlay=0:0:enable='between(t,{Inicio},{Fin})'"
+            f"overlay=0:0:shortest=1:"
+            f"enable='between(t,{Inicio},{Fin})'"
             f"{Salida}"
         )
         Entrada_Actual = Salida
 
     return ";".join(Partes), Entrada_Actual
+
+
+def Ejecutar_Ffmpeg(
+    Comando: list[str],
+) -> None:
+
+    """
+    Ejecuta FFmpeg sin inundar la salida de consola.
+    Si FFmpeg falla, conserva stderr para que el error siga siendo
+    diagnosticable sin mostrar logs enormes en ejecuciones normales.
+
+    Parametros:
+    - Comando: Lista completa de argumentos para FFmpeg.
+
+    Retorna:
+    - None: Lanza RuntimeError si el proceso falla.
+
+    """
+
+    Proceso = Subprocess.run(
+        Comando,
+        capture_output = True,
+        text = True,
+    )
+
+    if Proceso.returncode == 0:
+        return
+
+    Detalle = (Proceso.stderr or Proceso.stdout or "").strip()
+    raise RuntimeError(f"FFmpeg fallo: {Detalle}")
+
+
+def Obtener_Duracion_Video(
+    Ruta_Ffmpeg: str,
+    Ruta_Video: Pathlib.Path,
+) -> float | None:
+
+    """
+    Obtiene la duracion de un video usando FFmpeg.
+    Se usa para que los overlays de imagen fija no estiren el
+    render indefinidamente cuando no hay pista de audio.
+
+    Parametros:
+    - Ruta_Ffmpeg: Ejecutable de FFmpeg disponible.
+    - Ruta_Video: Archivo de video base que se va a renderizar.
+
+    Retorna:
+    - float | None: Duracion en segundos o None si no pudo leerse.
+
+    """
+
+    Comando = [
+        Ruta_Ffmpeg,
+        "-hide_banner",
+        "-i",
+        str(Ruta_Video),
+    ]
+    Proceso = Subprocess.run(
+        Comando,
+        capture_output = True,
+        text = True,
+    )
+    Texto = (Proceso.stderr or "") + (Proceso.stdout or "")
+    Coincidencia = Re.search(
+        r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)",
+        Texto,
+    )
+
+    if Coincidencia is None:
+        return None
+
+    Horas = int(Coincidencia.group(1))
+    Minutos = int(Coincidencia.group(2))
+    Segundos = float(Coincidencia.group(3))
+
+    return Horas * 3600 + Minutos * 60 + Segundos
 
 
 def Ejecutar_Todo(

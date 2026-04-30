@@ -1,0 +1,95 @@
+{
+  "Identificador": "Habitos_Tareas_Semaplan",
+  "Titulo": "Usar Habitos y Tareas en Semaplan",
+  "Descripcion_Corta": "Video introductorio para mostrar los paneles de habitos y tareas sin modificar datos",
+  "Url_Inicial": "https://semaplan.com",
+  "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
+  "Headless": true,
+  "Resolucion": {
+    "Ancho": 1920,
+    "Alto": 1080
+  },
+  "Duracion_Cartel_Segundos": 4,
+  "Youtube": {
+    "Titulo": "Usar Habitos y Tareas en Semaplan",
+    "Descripcion": "Como abrir los paneles de habitos y tareas para revisar rutinas, pendientes y registros de trabajo",
+    "Etiquetas": [
+      "Semaplan",
+      "habitos",
+      "tareas",
+      "tutorial"
+    ]
+  },
+  "Narracion": [
+    {
+      "Texto": "Habitos sirve para registrar rutinas repetibles y medir consistencia."
+    },
+    {
+      "Texto": "Tareas muestra pendientes operativos y acciones concretas separadas del plan general."
+    }
+  ],
+  "Pasos_Texto": [
+    {
+      "Titulo": "Abrir Habitos",
+      "Texto": "Entrar desde el menu superior y revisar el panel"
+    },
+    {
+      "Titulo": "Abrir Tareas",
+      "Texto": "Cambiar al panel de tareas para revisar pendientes"
+    }
+  ],
+  "Acciones": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com",
+      "Cartel": "Entramos a la app para revisar Habitos y Tareas.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo": "() => { const Loader = document.getElementById('App_Loader'); const Auth = document.getElementById('Auth_Overlay'); return !!document.getElementById('Habitos_Boton') && Loader?.classList.contains('Oculto') && !Auth?.classList.contains('Activo'); }"
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo": "() => { if (typeof Aplicar_Estilo_Menu === 'function' && typeof Config === 'object' && Config) { Config.Menu_Estilo = 'Iconos'; Aplicar_Estilo_Menu(); } }"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Habitos_Boton",
+      "Cartel": "Habitos permite registrar rutinas y medir cumplimiento.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Habitos_Overlay.Activo"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 4
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Habitos_Cerrar"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Tareas_Boton",
+      "Cartel": "Tareas concentra pendientes concretos para ejecutar.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Tareas_Overlay.Activo"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 4,
+      "Cartel": "Separar tareas de objetivos ayuda a mantener la semana accionable.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Tareas_Cerrar"
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "Identificador": "Recorrido_App_Semaplan",
+  "Titulo": "Recorrido por la app de Semaplan",
+  "Descripcion_Corta": "Video base para ubicar calendario, objetivos, menu principal y modulos internos de Semaplan",
+  "Url_Inicial": "https://semaplan.com",
+  "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
+  "Headless": true,
+  "Resolucion": {
+    "Ancho": 1920,
+    "Alto": 1080
+  },
+  "Duracion_Cartel_Segundos": 4,
+  "Youtube": {
+    "Titulo": "Recorrido por la app de Semaplan",
+    "Descripcion": "Vista general de la app de Semaplan para ubicar calendario, objetivos, menu superior y accesos principales",
+    "Etiquetas": [
+      "Semaplan",
+      "tutorial",
+      "app",
+      "planificacion semanal"
+    ]
+  },
+  "Narracion": [
+    {
+      "Texto": "Este recorrido muestra la pantalla principal de Semaplan. A la izquierda estan los objetivos y al centro aparece el calendario semanal."
+    },
+    {
+      "Texto": "Desde el menu superior se entra a resumen, metas, baul, archivero, habitos, tareas, ayuda y configuracion."
+    }
+  ],
+  "Pasos_Texto": [
+    {
+      "Titulo": "Entrar a la app",
+      "Texto": "Abrir Semaplan con una sesion iniciada"
+    },
+    {
+      "Titulo": "Ubicar calendario y objetivos",
+      "Texto": "Reconocer la semana como espacio principal de trabajo"
+    },
+    {
+      "Titulo": "Ubicar los accesos principales",
+      "Texto": "Mirar el menu superior para encontrar los modulos internos"
+    }
+  ],
+  "Acciones": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com",
+      "Cartel": "Abrimos Semaplan con una sesion de prueba ya iniciada.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo": "() => { const Loader = document.getElementById('App_Loader'); const Auth = document.getElementById('Auth_Overlay'); return !!document.getElementById('Archivero_Boton') && Loader?.classList.contains('Oculto') && !Auth?.classList.contains('Activo'); }"
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo": "() => { const Bloqueo = document.getElementById('Sesion_Bloqueo_Overlay'); if (Bloqueo?.classList.contains('Activo')) { document.getElementById('Sesion_Bloqueo_Cerrar_Otras')?.click(); } if (typeof Aplicar_Estilo_Menu === 'function' && typeof Config === 'object' && Config) { Config.Menu_Estilo = 'Iconos'; Aplicar_Estilo_Menu(); } }"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 4,
+      "Cartel": "La pantalla central es la semana: bloques, horarios y tareas.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 4,
+      "Cartel": "El sidebar concentra los objetivos que alimentan la planificacion.",
+      "Posicion": "Izquierda"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 4,
+      "Cartel": "El menu superior abre los modulos de trabajo y revision.",
+      "Posicion": "Superior"
+    }
+  ]
+}

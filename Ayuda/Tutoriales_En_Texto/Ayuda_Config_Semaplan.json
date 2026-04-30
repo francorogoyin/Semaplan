@@ -1,0 +1,95 @@
+{
+  "Identificador": "Ayuda_Config_Semaplan",
+  "Titulo": "Ayuda y configuracion en Semaplan",
+  "Descripcion_Corta": "Video introductorio para mostrar ayuda, FAQ, consulta y configuracion general",
+  "Url_Inicial": "https://semaplan.com",
+  "Storage_State": "Pruebas/Playwright/.auth/semaplan-smoke.json",
+  "Headless": true,
+  "Resolucion": {
+    "Ancho": 1920,
+    "Alto": 1080
+  },
+  "Duracion_Cartel_Segundos": 4,
+  "Youtube": {
+    "Titulo": "Ayuda y configuracion en Semaplan",
+    "Descripcion": "Como abrir Ayuda, consultar FAQ, ubicar el formulario de consulta y entrar a Configuracion",
+    "Etiquetas": [
+      "Semaplan",
+      "ayuda",
+      "configuracion",
+      "tutorial"
+    ]
+  },
+  "Narracion": [
+    {
+      "Texto": "La ayuda concentra preguntas frecuentes, consulta y accesos de soporte."
+    },
+    {
+      "Texto": "Configuracion permite ajustar vista, datos, cuenta, backups, version e integraciones."
+    }
+  ],
+  "Pasos_Texto": [
+    {
+      "Titulo": "Abrir Ayuda",
+      "Texto": "Entrar desde el boton de ayuda del menu superior"
+    },
+    {
+      "Titulo": "Abrir Configuracion",
+      "Texto": "Entrar desde el engranaje y revisar las secciones principales"
+    }
+  ],
+  "Acciones": [
+    {
+      "Tipo": "Ir_A",
+      "Url": "https://semaplan.com",
+      "Cartel": "Entramos a la app para revisar Ayuda y Configuracion.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Funcion",
+      "Codigo": "() => { const Loader = document.getElementById('App_Loader'); const Auth = document.getElementById('Auth_Overlay'); return !!document.getElementById('Ayuda_Boton') && Loader?.classList.contains('Oculto') && !Auth?.classList.contains('Activo'); }"
+    },
+    {
+      "Tipo": "Evaluar",
+      "Codigo": "() => { if (typeof Aplicar_Estilo_Menu === 'function' && typeof Config === 'object' && Config) { Config.Menu_Estilo = 'Iconos'; Aplicar_Estilo_Menu(); } }"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Ayuda_Boton",
+      "Cartel": "Ayuda reune FAQ, consulta y enlaces de soporte.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Ayuda_Overlay.Activo"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 4
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Ayuda_Cerrar"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Config_Abrir",
+      "Cartel": "Configuracion concentra vista, datos, cuenta y backups.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Esperar_Selector",
+      "Selector": "#Config_Overlay.Activo"
+    },
+    {
+      "Tipo": "Esperar",
+      "Segundos": 5,
+      "Cartel": "Desde aca se ajusta como se ve y se comporta Semaplan.",
+      "Posicion": "Inferior"
+    },
+    {
+      "Tipo": "Click",
+      "Selector": "#Config_Cancelar"
+    }
+  ]
+}

@@ -23,6 +23,18 @@ directa.
 14. Configurar vista, backups, version e integraciones.
 15. Exportar, importar y recuperar datos.
 
+## Tanda inicial generada.
+
+Estos tutoriales ya tienen contrato, texto y video renderizado local.
+
+- `Primer_Recorrido_Semaplan`.
+- `Recorrido_App_Semaplan`.
+- `Archivero_Notas_Semaplan`.
+- `Baul_Objetivos_Semaplan`.
+- `Metas_Planes_Semaplan`.
+- `Habitos_Tareas_Semaplan`.
+- `Ayuda_Config_Semaplan`.
+
 ## Criterio de produccion.
 
 Cada tutorial debe tener un contrato JSON propio. Ese contrato define

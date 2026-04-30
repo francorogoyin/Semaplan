@@ -84,8 +84,8 @@ Cada tutorial se declara en JSON con estos campos principales.
 - `Youtube`: titulo, descripcion y etiquetas para publicacion.
 
 Las acciones soportadas son `Ir_A`, `Click`, `Rellenar`, `Presionar`,
-`Esperar`, `Esperar_Selector`, `Hover`, `Scroll`, `Evaluar`,
-`Captura` y `Pausa_Manual`.
+`Esperar`, `Esperar_Selector`, `Esperar_Funcion`, `Hover`, `Scroll`,
+`Evaluar`, `Captura` y `Pausa_Manual`.
 
 `Pausa_Manual` sirve para casos donde conviene intervenir durante la
 grabacion, por ejemplo iniciar sesion o preparar datos visibles antes
