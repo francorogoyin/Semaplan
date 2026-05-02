@@ -106848,19 +106848,103 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Resumen_Unidades_Subobjetivos_Uniformes_Periodo(
         Objetivo,
-        Subs
+        Subs,
+        Periodo_Rango,
+        Modelo = null
       ) {
         if (!Planes_Total_Unidades_Subobjetivos_Uniforme(Objetivo)) {
           return null;
         }
-        const Subs_Con_Target = Subs.filter((Sub_Item) =>
-          (Number(Sub_Item.Target) || 0) > 0
-        );
-        if (!Subs_Con_Target.length) return null;
-        const Base_Sub = Subs_Con_Target[0].Sub;
-        const Target_Periodo = Subs_Con_Target.reduce(
-          (Total, Sub_Item) =>
-            Total + Math.max(0, Number(Sub_Item.Target) || 0),
+        const M = Modelo || Asegurar_Modelo_Planes();
+        const Rango_Objetivo = Planes_Rango_Objetivo(Objetivo, M);
+        if (!Rango_Objetivo?.Inicio || !Rango_Objetivo?.Fin) {
+          return null;
+        }
+        const Normalizar_Fecha = (Valor) =>
+          Planes_Normalizar_Fecha_Comparacion(Valor || "");
+        const Rango_Efectivo = (Item, Rango_Padre) => {
+          if (!Rango_Padre?.Inicio || !Rango_Padre?.Fin) return null;
+          const Inicio_Explicito = Normalizar_Fecha(Item?.Fecha_Inicio);
+          const Fin_Explicito = Normalizar_Fecha(
+            Item?.Fecha_Fin || Item?.Fecha_Objetivo
+          );
+          let Inicio = "";
+          let Fin = "";
+          if (Inicio_Explicito && Fin_Explicito) {
+            Inicio = Inicio_Explicito;
+            Fin = Fin_Explicito;
+          } else if (Inicio_Explicito) {
+            Inicio = Inicio_Explicito;
+            Fin = Rango_Padre.Fin;
+          } else if (Fin_Explicito) {
+            Inicio = Rango_Padre.Inicio;
+            Fin = Fin_Explicito;
+          } else {
+            Inicio = Rango_Padre.Inicio;
+            Fin = Rango_Padre.Fin;
+          }
+          if (!Inicio || !Fin) return null;
+          if (Inicio > Fin) {
+            const Temp = Inicio;
+            Inicio = Fin;
+            Fin = Temp;
+          }
+          if (Inicio < Rango_Objetivo.Inicio) {
+            Inicio = Rango_Objetivo.Inicio;
+          }
+          if (Fin > Rango_Objetivo.Fin) {
+            Fin = Rango_Objetivo.Fin;
+          }
+          if (Inicio > Fin) return null;
+          return { Inicio, Fin };
+        };
+        const Unidades_Target_Sub_Periodo = (Sub_Item) => {
+          const Rango_Sub = Rango_Efectivo(Sub_Item.Sub, Rango_Objetivo);
+          if (!Rango_Sub) return 0;
+          const Partes_Con_Target = (Sub_Item.Partes || []).filter(
+            (Parte_Item) => (Number(Parte_Item.Target) || 0) > 0
+          );
+          if (Partes_Con_Target.length) {
+            return Partes_Con_Target.reduce((Total, Parte_Item) => {
+              const Target_Parte =
+                Math.max(0, Number(Parte_Item.Target) || 0);
+              if (Target_Parte <= 0) return Total;
+              const Rango_Parte = Rango_Efectivo(
+                Parte_Item.Parte,
+                Rango_Sub
+              );
+              if (!Rango_Parte) return Total;
+              const Dias_Parte = Resumen_Dias_Periodo(Rango_Parte);
+              if (Dias_Parte <= 0) return Total;
+              const Dias_En_Rango = Resumen_Dias_Solapados(
+                Rango_Parte,
+                Periodo_Rango
+              );
+              if (Dias_En_Rango <= 0) return Total;
+              return Total + (Target_Parte * (Dias_En_Rango / Dias_Parte));
+            }, 0);
+          }
+          const Target_Sub = Math.max(0, Number(Sub_Item.Target) || 0);
+          if (Target_Sub <= 0) return 0;
+          const Dias_Sub = Resumen_Dias_Periodo(Rango_Sub);
+          if (Dias_Sub <= 0) return 0;
+          const Dias_En_Rango = Resumen_Dias_Solapados(
+            Rango_Sub,
+            Periodo_Rango
+          );
+          if (Dias_En_Rango <= 0) return 0;
+          return Target_Sub * (Dias_En_Rango / Dias_Sub);
+        };
+        const Subs_Con_Unidades = Subs.filter((Sub_Item) => {
+          if ((Number(Sub_Item.Target) || 0) > 0) return true;
+          return (Sub_Item.Partes || []).some((Parte_Item) =>
+            (Number(Parte_Item.Target) || 0) > 0
+          );
+        });
+        if (!Subs_Con_Unidades.length) return null;
+        const Base_Sub = Subs_Con_Unidades[0].Sub;
+        const Target_Periodo = Subs_Con_Unidades.reduce(
+          (Total, Sub_Item) => Total + Unidades_Target_Sub_Periodo(Sub_Item),
           0
         );
         const Avance_Periodo = Subs.reduce(
@@ -107110,7 +107194,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Unidades_Subobjetivos_Uniformes =
             Resumen_Unidades_Subobjetivos_Uniformes_Periodo(
               Objetivo,
-              Subs
+              Subs,
+              Periodo_Rango,
+              Modelo
             );
           const Incluir =
             Avance_Rango > 0 ||
