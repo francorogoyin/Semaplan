@@ -3149,7 +3149,8 @@
 
       .Resumen_Sem_Meta_Datos {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns:
+          repeat(var(--Resumen_Meta_Cols, 5), minmax(0, 1fr));
         gap: 8px;
         align-items: start;
       }
@@ -28656,10 +28657,15 @@
           "resumen.rango_aplicar": "Aplicar",
           "resumen.metas_vacio":
             "No hay metas con datos para este rango.",
-          "resumen.meta_en_rango": "Unidades completadas",
+          "resumen.meta_objetivo": "Objetivo",
+          "resumen.meta_en_rango": "Completados",
+          "resumen.meta_unidades_objetivo":
+            "Unidades objetivo",
           "resumen.meta_unidades_avanzadas":
             "Unidades avanzadas",
-          "resumen.meta_avance_total": "Avance total",
+          "resumen.meta_avance_periodo":
+            "Avance del periodo",
+          "resumen.meta_avance_total": "Avance anual",
           "resumen.meta_ver_sin_avance":
             "Ver subobjetivos que no avanzaron",
           "resumen.meta_ocultar_sin_avance":
@@ -28668,7 +28674,8 @@
             "Ver partes que no avanzaron",
           "resumen.meta_ocultar_partes_sin_avance":
             "Ocultar partes sin avance",
-          "resumen.meta_acumulado": "Acumulado",
+          "resumen.meta_acumulado":
+            "Acumulado anual",
           "resumen.meta_sin_target": "Sin meta",
           "contexto.abordaje": "Plan",
           "contexto.agregar_nota":
@@ -32934,10 +32941,15 @@
           "resumen.rango_aplicar": "Apply",
           "resumen.metas_vacio":
             "There are no goals with data for this range.",
-          "resumen.meta_en_rango": "Completed units",
+          "resumen.meta_objetivo": "Target",
+          "resumen.meta_en_rango": "Completed",
+          "resumen.meta_unidades_objetivo":
+            "Target units",
           "resumen.meta_unidades_avanzadas":
             "Advanced units",
-          "resumen.meta_avance_total": "Total progress",
+          "resumen.meta_avance_periodo":
+            "Period progress",
+          "resumen.meta_avance_total": "Annual progress",
           "resumen.meta_ver_sin_avance":
             "Show subobjectives with no progress",
           "resumen.meta_ocultar_sin_avance":
@@ -32946,7 +32958,8 @@
             "Show parts with no progress",
           "resumen.meta_ocultar_partes_sin_avance":
             "Hide parts with no progress",
-          "resumen.meta_acumulado": "Accumulated",
+          "resumen.meta_acumulado":
+            "Annual total",
           "resumen.meta_sin_target": "No target",
           "contexto.abordaje": "Plan",
           "contexto.agregar_nota":
@@ -37274,10 +37287,15 @@
           "resumen.rango_aplicar": "Aplicar",
           "resumen.metas_vacio":
             "Nao ha metas com dados para este intervalo.",
-          "resumen.meta_en_rango": "Unidades concluidas",
+          "resumen.meta_objetivo": "Objetivo",
+          "resumen.meta_en_rango": "Concluidos",
+          "resumen.meta_unidades_objetivo":
+            "Unidades objetivo",
           "resumen.meta_unidades_avanzadas":
             "Unidades avancadas",
-          "resumen.meta_avance_total": "Avanco total",
+          "resumen.meta_avance_periodo":
+            "Avanco do periodo",
+          "resumen.meta_avance_total": "Avanco anual",
           "resumen.meta_ver_sin_avance":
             "Ver subobjetivos sem avanco",
           "resumen.meta_ocultar_sin_avance":
@@ -37286,7 +37304,8 @@
             "Ver partes sem avanco",
           "resumen.meta_ocultar_partes_sin_avance":
             "Ocultar partes sem avanco",
-          "resumen.meta_acumulado": "Acumulado",
+          "resumen.meta_acumulado":
+            "Acumulado anual",
           "resumen.meta_sin_target": "Sem meta",
           "contexto.abordaje": "Plano",
           "contexto.agregar_nota":
@@ -106827,33 +106846,33 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
-      function Resumen_Agregar_Unidades_Avanzadas(Mapa, Sub_Item) {
-        if (!Sub_Item || Sub_Item.Rango <= 0) return;
-        const Clave = [
-          Sub_Item.Sub.Unidad || "",
-          Sub_Item.Sub.Unidad_Custom || ""
-        ].join("|");
-        const Actual = Mapa.get(Clave) || {
-          Cantidad: 0,
-          Sub: Sub_Item.Sub
+      function Resumen_Unidades_Subobjetivos_Uniformes_Periodo(
+        Objetivo,
+        Subs
+      ) {
+        if (!Planes_Total_Unidades_Subobjetivos_Uniforme(Objetivo)) {
+          return null;
+        }
+        const Subs_Con_Target = Subs.filter((Sub_Item) =>
+          (Number(Sub_Item.Target) || 0) > 0
+        );
+        if (!Subs_Con_Target.length) return null;
+        const Base_Sub = Subs_Con_Target[0].Sub;
+        const Target_Periodo = Subs_Con_Target.reduce(
+          (Total, Sub_Item) =>
+            Total + Math.max(0, Number(Sub_Item.Target) || 0),
+          0
+        );
+        const Avance_Periodo = Subs.reduce(
+          (Total, Sub_Item) =>
+            Total + Math.max(0, Number(Sub_Item.Rango) || 0),
+          0
+        );
+        return {
+          Base_Sub,
+          Target_Periodo,
+          Avance_Periodo
         };
-        Actual.Cantidad += Sub_Item.Rango;
-        Mapa.set(Clave, Actual);
-      }
-
-      function Resumen_Formatear_Unidades_Avanzadas(Mapa) {
-        const Partes = Array.from(Mapa.values())
-          .filter((Item) => Item.Cantidad > 0)
-          .map((Item) =>
-            Resumen_Formatear_Cantidad_Meta(
-              Item.Cantidad,
-              Planes_Unidad_Label_Subobjetivo(
-                Item.Sub,
-                Item.Cantidad
-              )
-            )
-          );
-        return Partes.length ? Partes.join(" + ") : "-";
       }
 
       function Resumen_Dias_Solapados(Periodo_A, Periodo_B) {
@@ -107087,14 +107106,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             0
           );
           const Avance_Rango = Calendario + Manual + Sub_Rango;
-          const Unidades_Avanzadas = new Map();
-          Subs.forEach((Sub) =>
-            Resumen_Agregar_Unidades_Avanzadas(
-              Unidades_Avanzadas,
-              Sub
-            )
-          );
           const Total = Number(Objetivo.Progreso_Total) || 0;
+          const Unidades_Subobjetivos_Uniformes =
+            Resumen_Unidades_Subobjetivos_Uniformes_Periodo(
+              Objetivo,
+              Subs
+            );
           const Incluir =
             Avance_Rango > 0 ||
             Target_Periodo > 0 ||
@@ -107107,13 +107124,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Target_Total,
             Total,
             Avance_Rango,
-            Unidades_Avanzadas,
-            Unidades_Avanzadas_Texto:
-              Resumen_Formatear_Unidades_Avanzadas(
-                Unidades_Avanzadas
-              ),
             Calendario,
             Manual,
+            Unidades_Subobjetivos_Uniformes,
             Subs
           });
         });
@@ -107203,24 +107216,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
           const Datos_Grid = document.createElement("div");
           Datos_Grid.className = "Resumen_Sem_Meta_Datos";
-          [
+          const Datos_Campos = [
             [
-              t("resumen.meta_en_rango"),
-              Resumen_Formatear_Cantidad_Meta(
-                Item.Avance_Rango,
-                Item.Unidad
-              )
-            ],
-            [
-              t("resumen.meta_unidades_avanzadas"),
-              Item.Unidades_Avanzadas_Texto
-            ],
-            [
-              t("resumen.meta_acumulado"),
-              Resumen_Formatear_Cantidad_Meta(Item.Total, Item.Unidad)
-            ],
-            [
-              t("planes.target"),
+              t("resumen.meta_objetivo"),
               Item.Target > 0
                 ? Resumen_Formatear_Cantidad_Meta(
                   Item.Target,
@@ -107229,14 +107227,64 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 : "-"
             ],
             [
+              t("resumen.meta_en_rango"),
+              Resumen_Formatear_Cantidad_Meta(
+                Item.Avance_Rango,
+                Item.Unidad
+              )
+            ]
+          ];
+          if (Item.Unidades_Subobjetivos_Uniformes) {
+            const Unidades =
+              Item.Unidades_Subobjetivos_Uniformes;
+            Datos_Campos.push(
+              [
+                t("resumen.meta_unidades_objetivo"),
+                Resumen_Formatear_Cantidad_Meta(
+                  Unidades.Target_Periodo,
+                  Planes_Unidad_Label_Subobjetivo(
+                    Unidades.Base_Sub,
+                    Unidades.Target_Periodo
+                  )
+                )
+              ],
+              [
+                t("resumen.meta_unidades_avanzadas"),
+                Resumen_Formatear_Cantidad_Meta(
+                  Unidades.Avance_Periodo,
+                  Planes_Unidad_Label_Subobjetivo(
+                    Unidades.Base_Sub,
+                    Unidades.Avance_Periodo
+                  )
+                )
+              ]
+            );
+          }
+          Datos_Campos.push(
+            [
+              t("resumen.meta_avance_periodo"),
+              Item.Target > 0 || Item.Avance_Rango > 0
+                ? `${Pct}%`
+                : "-"
+            ],
+            [
+              t("resumen.meta_acumulado"),
+              Resumen_Formatear_Cantidad_Meta(Item.Total, Item.Unidad)
+            ],
+            [
               t("resumen.meta_avance_total"),
               Item.Target_Total > 0
                 ? `${Math.round(
-                  (Item.Avance_Rango / Item.Target_Total) * 100
+                  (Item.Total / Item.Target_Total) * 100
                 )}%`
                 : "-"
             ]
-          ].forEach(([Label, Valor]) => {
+          );
+          Datos_Grid.style.setProperty(
+            "--Resumen_Meta_Cols",
+            String(Datos_Campos.length)
+          );
+          Datos_Campos.forEach(([Label, Valor]) => {
             const Dato = document.createElement("div");
             Dato.className = "Resumen_Sem_Meta_Dato";
             const L = document.createElement("span");
