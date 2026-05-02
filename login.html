@@ -107131,8 +107131,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           });
         });
         Items.sort((A, B) => {
-          const Delta = B.Avance_Rango - A.Avance_Rango;
-          if (Delta !== 0) return Delta;
+          const Periodo_A = Modelo.Periodos[A.Objetivo.Periodo_Id];
+          const Periodo_B = Modelo.Periodos[B.Objetivo.Periodo_Id];
+          const Inicio_A = (Periodo_A?.Inicio || "").toString();
+          const Inicio_B = (Periodo_B?.Inicio || "").toString();
+          if (Inicio_A !== Inicio_B) {
+            return Inicio_A.localeCompare(Inicio_B);
+          }
+          const Orden_A = Number(A.Objetivo.Orden) || 0;
+          const Orden_B = Number(B.Objetivo.Orden) || 0;
+          if (Orden_A !== Orden_B) return Orden_A - Orden_B;
           return (A.Objetivo.Nombre || "").localeCompare(
             B.Objetivo.Nombre || "",
             "es",
