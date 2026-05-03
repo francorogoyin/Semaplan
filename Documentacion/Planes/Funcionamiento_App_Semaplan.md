@@ -227,6 +227,10 @@ Notas operativas.
   partir una hora los items generales van al primer sub-bloque y las
   tareas con hora van al sub-bloque correspondiente; al fusionar
   sub-bloques se unifican items y notas sin generar copias duplicadas.
+- En migracion a grilla mas fina (1h -> 30m/15m), los bloques no se
+  fragmentan en copias hijas y los slots muertos tampoco se duplican:
+  se conserva solo el primer bloque/slot resultante para evitar
+  multiplicaciones artificiales en calendario y planes.
 - El resumen accesible desde el calendario ya no esta limitado a la
   semana visible: permite leer semana, quincena, mes, ano o rango
   personalizado. Sus pestanas de objetivos, dias y metas comparten el
@@ -377,6 +381,10 @@ Relaciones importantes.
   items de patron y slots.
 - Cambios en programacion o registros pueden alterar sidebar,
   indicadores, planes y enfoque diario.
+- Cuando una parte o subobjetivo se marca como realizado o se cancela
+  esa realizacion, la UI de habitos debe refrescar sidebar y modal
+  desde `Habitos_Registros` en el mismo flujo para reflejar color,
+  estado e indicador sin esperar un render posterior.
 
 ## Archivero
 

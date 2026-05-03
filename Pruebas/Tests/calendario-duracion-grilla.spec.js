@@ -198,7 +198,7 @@ test("config solo ofrece tres duraciones de evento", async ({ page }) => {
   ]);
 });
 
-test("partir a media hora no duplica planes y ubica tareas",
+test("partir a media hora no duplica bloques ni planes",
 async ({ page }) => {
   const estado = estadoBase();
   estado.Eventos = [
@@ -281,14 +281,8 @@ async ({ page }) => {
     {
       id: "ev_21",
       inicio: 21,
-      duracion: 0.5,
+      duracion: 1,
       abordaje: ["Plan general"]
-    },
-    {
-      id: "Evento_20",
-      inicio: 21.5,
-      duracion: 0.5,
-      abordaje: []
     }
   ]);
   expect(resultado.plan21).toEqual([]);
@@ -297,7 +291,7 @@ async ({ page }) => {
   expect(resultado.slots).toContain("21.5");
 });
 
-test("partir a quince minutos conserva un solo destino por plan",
+test("partir a quince minutos no fragmenta bloques y conserva planes",
 async ({ page }) => {
   const estado = estadoBase();
   estado.Eventos = [
@@ -376,15 +370,43 @@ async ({ page }) => {
   });
 
   expect(resultado.eventos).toEqual([
-    { inicio: 21, duracion: 0.25, abordaje: ["Plan general"] },
-    { inicio: 21.25, duracion: 0.25, abordaje: [] },
-    { inicio: 21.5, duracion: 0.25, abordaje: [] },
-    { inicio: 21.75, duracion: 0.25, abordaje: [] }
+    { inicio: 21, duracion: 1, abordaje: ["Plan general"] }
   ]);
   expect(resultado.plan21).toEqual([]);
   expect(resultado.plan2145).toEqual(["Leer"]);
   expect(resultado.tareaClave).toBe("2026-04-13|21.75");
   expect(resultado.slots).toContain("21.75");
+});
+
+test("partir a media hora no multiplica slots muertos",
+async ({ page }) => {
+  const estado = estadoBase();
+  estado.Slots_Muertos = ["2026-04-13|21"];
+  estado.Slots_Muertos_Tipos = { "2026-04-13|21": "Comida" };
+  estado.Slots_Muertos_Nombres = {
+    "2026-04-13|21": "Cena"
+  };
+
+  await preparar(page, estado);
+
+  const resultado = await page.evaluate(() => {
+    Config.Duracion_Default = 0.5;
+    Migrar_Calendario_A_Duracion_Default(1);
+    Render_Calendario();
+    return {
+      slotsMuertos: [...Slots_Muertos].sort(),
+      tipo21: Slots_Muertos_Tipos["2026-04-13|21"] || "",
+      tipo2130: Slots_Muertos_Tipos["2026-04-13|21.5"] || "",
+      nombre21: Slots_Muertos_Nombres["2026-04-13|21"] || "",
+      nombre2130: Slots_Muertos_Nombres["2026-04-13|21.5"] || ""
+    };
+  });
+
+  expect(resultado.slotsMuertos).toEqual(["2026-04-13|21"]);
+  expect(resultado.tipo21).toBe("Comida");
+  expect(resultado.tipo2130).toBe("");
+  expect(resultado.nombre21).toBe("Cena");
+  expect(resultado.nombre2130).toBe("");
 });
 
 test("fusionar a una hora unifica planes sin duplicar", async ({

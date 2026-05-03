@@ -54937,6 +54937,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }
         );
         if (!Ok) return false;
+        Habitos_Refrescar_UI_Desde_Registros();
         Render_Modal_Planes_Partes();
         if (
           document.getElementById("Planes_Subobjetivos_Overlay")
@@ -66091,14 +66092,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Unidad_Fuente: Avance.Unidad || ""
           }
         );
-        Normalizar_Habitos_Registros();
-        Render_Emojis();
-        if (
-          document.getElementById("Habitos_Overlay")
-            ?.classList.contains("Activo")
-        ) {
-          Render_Modal_Habitos();
-        }
+        Habitos_Refrescar_UI_Desde_Registros();
       }
 
       async function Guardar_Modal_Planes_Avance() {
@@ -67319,6 +67313,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Unidad_Fuente: Planes_Unidad_Label_Subobjetivo(Sub, Cantidad)
           }
         );
+        Habitos_Refrescar_UI_Desde_Registros();
         Planes_Recalcular_Desde(
           Objetivo,
           Snap,
@@ -94760,6 +94755,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Paso_Anterior,
         Paso_Nuevo
       ) {
+        const Paso_Anterior_Normalizado =
+          Normalizar_Duracion_Default_Evento(Paso_Anterior);
+        const Paso_Nuevo_Normalizado =
+          Normalizar_Duracion_Default_Evento(Paso_Nuevo);
+        const Es_Granularidad_Mas_Fina =
+          Paso_Nuevo_Normalizado + Epsilon_Hora <
+          Paso_Anterior_Normalizado;
         Normalizar_Slots_Muertos();
         Normalizar_Grupo_Ids_Slots_Muertos();
         const Slots_Nuevos = new Set();
@@ -94778,10 +94780,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Paso_Anterior,
             Paso_Nuevo
           );
+          const Horas_Destino = Es_Granularidad_Mas_Fina
+            ? Horas_Nuevas.slice(0, 1)
+            : Horas_Nuevas;
           const Grupo =
             Obtener_Grupo_Id_Slot_Muerto_Clave(Clave) ||
             Crear_Id_Grupo_Slot_Muerto();
-          Horas_Nuevas.forEach((Hora_Nueva) => {
+          Horas_Destino.forEach((Hora_Nueva) => {
             const Clave_Nueva = Clave_Slot(Fecha, Hora_Nueva);
             Slots_Nuevos.add(Clave_Nueva);
             if (!Tipos_Nuevos[Clave_Nueva]) {
@@ -94994,6 +94999,50 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Migrar_Eventos_A_Duracion(Paso_Nuevo) {
+        const Paso_Actual =
+          Normalizar_Duracion_Default_Evento(
+            Config.Duracion_Grilla_Eventos
+          );
+        const Paso_Destino =
+          Normalizar_Duracion_Default_Evento(Paso_Nuevo);
+        if (Paso_Destino + Epsilon_Hora < Paso_Actual) {
+          Eventos = (Array.isArray(Eventos) ? Eventos : [])
+            .map((Evento) => {
+              const Inicio = Redondear_Hora_A_Paso(
+                Number(Evento?.Inicio) || 0,
+                Paso_Destino,
+                "floor"
+              );
+              const Duracion_Base = Number(Evento?.Duracion);
+              const Duracion_Candidata =
+                Number.isFinite(Duracion_Base) && Duracion_Base > 0
+                  ? Duracion_Base
+                  : Paso_Actual;
+              const Duracion =
+                Math.max(
+                  Paso_Destino,
+                  Redondear_Hora_A_Paso(
+                    Duracion_Candidata,
+                    Paso_Destino,
+                    "ceil"
+                  )
+                );
+              return {
+                ...Evento,
+                Inicio,
+                Duracion
+              };
+            })
+            .sort((A, B) => {
+              if (A.Fecha !== B.Fecha) {
+                return String(A.Fecha || "")
+                  .localeCompare(String(B.Fecha || ""));
+              }
+              return (Number(A.Inicio) || 0) -
+                (Number(B.Inicio) || 0);
+            });
+          return;
+        }
         const Migrados = [];
         (Array.isArray(Eventos) ? Eventos : []).forEach((Evento) => {
           const Segmentos = Crear_Segmentos_Evento_Migrado(
@@ -97962,6 +98011,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Fuente_Id
           }
         );
+      }
+
+      function Habitos_Refrescar_UI_Desde_Registros() {
+        Normalizar_Habitos_Registros();
+        Render_Emojis();
+        if (
+          document.getElementById("Habitos_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Modal_Habitos();
+        }
       }
 
       function Habito_Recalcular_Bloque_Objetivo(

@@ -149,7 +149,7 @@ async function Preparar(page) {
     );
   }, Crear_Estado_Base());
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() => typeof window.Inicializar === "function");
   await page.evaluate(() => {
     document.getElementById("Auth_Overlay")
@@ -1612,6 +1612,9 @@ async ({ page }) => {
       await Planes_Marcar_Parte_Como_Realizada("parte_cancelable");
       const Acciones_Realizada =
         Render_Planes_Parte_Acciones(Modelo.Partes.parte_cancelable);
+      const Sidebar_Tras_Realizar = document.querySelector(
+        '[data-sidebar-habito-id="Habito_Cancel_Parte"]'
+      );
       const Registros_Antes = Habitos_Registros.length;
       const Ok = await Planes_Cancelar_Realizacion_Parte(
         "parte_cancelable"
@@ -1625,6 +1628,11 @@ async ({ page }) => {
         ok: Ok,
         mensajes: Mensajes,
         accionesRealizada: Acciones_Realizada,
+        sidebarTrasRealizarClase:
+          Sidebar_Tras_Realizar?.className || "",
+        sidebarTrasRealizarIndicador: Sidebar_Tras_Realizar
+          ?.querySelector(".Sidebar_Habito_Indicador")
+          ?.textContent || "",
         registrosAntes: Registros_Antes,
         registrosDespues: Habitos_Registros.length,
         avancesDespues: Object.keys(Modelo_Final.Avances).length,
@@ -1650,6 +1658,8 @@ async ({ page }) => {
   );
   expect(resultado.ok).toBeTruthy();
   expect(resultado.mensajes.at(-1)).toContain("1 registro");
+  expect(resultado.sidebarTrasRealizarClase).toContain("Realizado");
+  expect(resultado.sidebarTrasRealizarIndicador).toBe("10/10 paginas");
   expect(resultado.registrosAntes).toBe(1);
   expect(resultado.registrosDespues).toBe(0);
   expect(resultado.avancesDespues).toBe(0);
