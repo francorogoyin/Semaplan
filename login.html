@@ -47825,7 +47825,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const Naturaleza =
               Franja.Naturaleza ||
               Tipos_Ef[0]?.Id || "Sueno";
-            for (let H = Franja.Desde; H < Franja.Hasta; H++) {
+            const Paso_Slot =
+              Obtener_Duracion_Slot_Calendario();
+            for (
+              let H = Franja.Desde;
+              H < Franja.Hasta - Epsilon_Hora;
+              H = Normalizar_Numero_Hora(H + Paso_Slot)
+            ) {
               Crear_Slot_Muerto(
                 Fecha_ISO,
                 H,
