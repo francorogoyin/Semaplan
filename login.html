@@ -91,8 +91,15 @@
       .Con_Fallback_Emoji option,
       .Emoji_Item,
       .Emoji_Horas_Badge,
+      .Abordaje_Item_Drag,
       .Abordaje_Item_Emoji,
+      .Abordaje_Item_Promover,
+      .Abordaje_Planear_Btn,
+      .Abordaje_Planear_Indicador,
+      .Abordaje_Toggle_Btn,
+      .Aporte_Meta_Btn,
       .Baul_Estado_Icono,
+      .Baul_Accion_Btn_Icono,
       .Baul_Modal_Emoji,
       .Baul_Card_Emoji,
       .Baul_Fila_Emoji,
@@ -100,8 +107,10 @@
       .Cat_Header_Emoji,
       .Config_Cat_Input_Emoji,
       .Config_Cat_Emoji_Btn,
+      .Config_Cat_Btn,
       .Config_Dato_Btn_Icono,
       .Config_Hint_Icono,
+      .Config_Patron_Btn,
       .Config_Patron_Emoji,
       .Cfg_App_Icono,
       .Cfg_Suscripcion_Aviso_Icono,
@@ -111,12 +120,19 @@
       .Archivero_Cajon_Emoji,
       .Archivero_Cajon_Select_Btn_Emoji,
       .Archivero_Cajon_Select_Item_Emoji,
+      .Archivero_Nota_Input_Emoji,
       .Archivero_Vacio_Emoji,
       .Evento_Abordaje_Popup_Sym,
       .Evento_Abordaje_Popup_Emoji,
+      .Dia_Accion_Submenu_Chevron,
       .Editor_Emoji,
+      .Focus_Nav_Btn,
       .Focus_Emoji,
+      .Focus_Sub_Abordada,
+      .Focus_Sub_Check,
+      .Focus_Sub_Drag,
       .Focus_Sub_Emoji,
+      .Focus_Sub_Star,
       .Habitos_Modal_Icono,
       .Habitos_Accion_Icono,
       .Habitos_Card_Emoji,
@@ -127,22 +143,35 @@
       .Meta_Card_Icono,
       .Meta_Toast_Icono,
       .Otras_Apps_Logo,
+      .Objetivo_Modal_Menu_Btn,
       .Paleta_Item_Icono,
       .Paleta_Input_Icono,
       .Planes_Avance_Titulo_Emoji,
+      .Planes_Dato_Ayuda,
+      .Planes_Header_Btn,
+      .Planes_Navegacion_Custom_Btn,
       .Planes_Objetivo_Emoji,
       .Planes_Objetivo_Estado,
       .Planes_Subobjetivo_Emoji,
       .Planes_Subobjetivo_Estado,
       .Planes_Parte_Emoji,
+      .Planes_Parte_Menu_Btn,
+      .Planes_Subobjetivo_Menu_Btn,
+      .Planes_Subobjetivos_Orden_Direccion,
       .Resumen_Sem_Objetivo_Emoji,
       .Resumen_Sem_Dia_Item_Emoji,
       .Resumen_Sem_Meta_Emoji,
       .Resumen_Sem_Meta_Sub_Emoji,
       .Resumen_Sem_Meta_Parte_Emoji,
+      .Resumen_Sem_Dia_Item_Tick,
+      .Resumen_Sem_Objetivo_Toggle,
       .Resumen_Emoji,
+      .Sidebar_Compacta_Boton,
       .Sidebar_Habitos_Label_Icono,
+      .Subobjetivo_Transferir,
+      .Subobjetivos_Toggle,
       .Suscripcion_Badge,
+      .Tareas_Check,
       .Tareas_Nombre_Emoji,
       .Tareas_Contador_Flotante,
       .Undo_Toast_Icono,
@@ -20314,7 +20343,7 @@
               type="button"
               data-i18n-title="menu.ayuda"
               title="Ayuda">?</button>
-            <button class="Config_Boton Sidebar_Compacta_Boton"
+            <button class="Config_Boton Sidebar_Compacta_Boton Con_Fallback_Emoji"
               id="Sidebar_Compacta_Boton"
               type="button"
               data-i18n-title="menu.objetivos"
@@ -20327,7 +20356,8 @@
               title="Configuración"
               data-i18n-title="menu.config"
               >&#9881;</button>
-            <button class="Config_Boton" id="Menu_Hamburguesa_Boton"
+            <button class="Config_Boton Con_Fallback_Emoji"
+              id="Menu_Hamburguesa_Boton"
               type="button"
               title="Menú"
               data-i18n-title="menu.hamburguesa"
@@ -38845,6 +38875,9 @@
         }
         if (typeof Aplicar_Ayudas_Contextuales_Planes === "function") {
           Aplicar_Ayudas_Contextuales_Planes();
+        }
+        if (typeof Aplicar_Fallback_Emojis_En_Textos === "function") {
+          Aplicar_Fallback_Emojis_En_Textos(document.body);
         }
         Actualizar_Boton_Reintento_Sync();
       }
@@ -91879,6 +91912,77 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           : "Con_Fallback_Emoji";
         Aplicar_Emoji_En_Elemento(El, Emoji);
         return El;
+      }
+
+      function Aplicar_Fallback_Emojis_En_Textos(Raiz = document.body) {
+        if (!Raiz) return;
+        const Emoji_Re =
+          /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}][\uFE0E\uFE0F]?(?:\u200D[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}][\uFE0E\uFE0F]?)*|[\u{1F1E6}-\u{1F1FF}]{2}/gu;
+        const Tags_Salteados = new Set([
+          "SCRIPT",
+          "STYLE",
+          "TEXTAREA",
+          "INPUT",
+          "SELECT",
+          "OPTION",
+          "CODE",
+          "PRE",
+          "NOSCRIPT",
+          "TEMPLATE",
+          "SVG"
+        ]);
+        const Walker = document.createTreeWalker(
+          Raiz,
+          NodeFilter.SHOW_TEXT,
+          {
+            acceptNode(Nodo) {
+              const Padre = Nodo.parentElement;
+              if (!Padre) return NodeFilter.FILTER_REJECT;
+              if (Tags_Salteados.has(Padre.tagName)) {
+                return NodeFilter.FILTER_REJECT;
+              }
+              if (
+                Padre.closest(
+                  "script, style, textarea, input, select, option, " +
+                  "code, pre, noscript, template, svg, .Emoji_Img"
+                )
+              ) {
+                return NodeFilter.FILTER_REJECT;
+              }
+              if (Padre.isContentEditable) {
+                return NodeFilter.FILTER_REJECT;
+              }
+              Emoji_Re.lastIndex = 0;
+              return Emoji_Re.test(Nodo.nodeValue || "")
+                ? NodeFilter.FILTER_ACCEPT
+                : NodeFilter.FILTER_REJECT;
+            }
+          }
+        );
+        const Nodos = [];
+        while (Walker.nextNode()) {
+          Nodos.push(Walker.currentNode);
+        }
+        Nodos.forEach((Nodo) => {
+          const Texto = Nodo.nodeValue || "";
+          const Fragmento = document.createDocumentFragment();
+          let Pos = 0;
+          Emoji_Re.lastIndex = 0;
+          for (const Match of Texto.matchAll(Emoji_Re)) {
+            const Inicio = Match.index || 0;
+            if (Inicio > Pos) {
+              Fragmento.appendChild(
+                document.createTextNode(Texto.slice(Pos, Inicio))
+              );
+            }
+            Fragmento.appendChild(Crear_Imagen_Emoji(Match[0]));
+            Pos = Inicio + Match[0].length;
+          }
+          if (Pos < Texto.length) {
+            Fragmento.appendChild(document.createTextNode(Texto.slice(Pos)));
+          }
+          Nodo.replaceWith(Fragmento);
+        });
       }
 
       function Formatear_Horas(Horas) {
