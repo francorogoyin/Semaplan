@@ -20410,6 +20410,10 @@
                     data-i18n="config.enfoque_hora_actual_completo">
                     Mostrar horario completo
                   </option>
+                  <option value="Bloques"
+                    data-i18n="config.enfoque_hora_actual_bloques">
+                    Por bloques
+                  </option>
                   <option value="Enfocar"
                     data-i18n="config.enfoque_hora_actual_enfocar">
                     Enfocar alrededor de ahora
@@ -27201,6 +27205,8 @@
             "Vista automatica",
           "config.enfoque_hora_actual_completo":
             "Mostrar horario completo",
+          "config.enfoque_hora_actual_bloques":
+            "Por bloques",
           "config.enfoque_hora_actual_enfocar":
             "Enfocar alrededor de ahora",
           "config.enfoque_hora_actual_margen":
@@ -31520,6 +31526,8 @@
             "Automatic view",
           "config.enfoque_hora_actual_completo":
             "Show full schedule",
+          "config.enfoque_hora_actual_bloques":
+            "By blocks",
           "config.enfoque_hora_actual_enfocar":
             "Focus around now",
           "config.enfoque_hora_actual_margen":
@@ -35812,6 +35820,8 @@
             "Vista automatica",
           "config.enfoque_hora_actual_completo":
             "Mostrar horario completo",
+          "config.enfoque_hora_actual_bloques":
+            "Por blocos",
           "config.enfoque_hora_actual_enfocar":
             "Focar ao redor de agora",
           "config.enfoque_hora_actual_margen":
@@ -89585,19 +89595,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Adelante = document.getElementById(
           "Cfg_Enfoque_Hora_Actual_Adelante"
         );
-        const Activo =
-          Normalizar_Modo_Enfoque_Hora_Actual(Modo?.value) ===
-          "Enfocar";
+        const Modo_Normalizado =
+          Normalizar_Modo_Enfoque_Hora_Actual(Modo?.value);
+        const Es_Enfoque = Modo_Normalizado === "Enfocar";
+        const Es_Automatico =
+          Modo_Normalizado === "Enfocar" ||
+          Modo_Normalizado === "Bloques";
         if (Campos) {
-          Campos.hidden = !Activo;
-          Campos.setAttribute("aria-hidden", String(!Activo));
+          Campos.hidden = !Es_Enfoque;
+          Campos.setAttribute("aria-hidden", String(!Es_Enfoque));
         }
         if (Nota) {
-          Nota.hidden = !Activo;
-          Nota.setAttribute("aria-hidden", String(!Activo));
+          Nota.hidden = !Es_Automatico;
+          Nota.setAttribute(
+            "aria-hidden",
+            String(!Es_Automatico)
+          );
         }
-        if (Atras) Atras.disabled = !Activo;
-        if (Adelante) Adelante.disabled = !Activo;
+        if (Atras) Atras.disabled = !Es_Enfoque;
+        if (Adelante) Adelante.disabled = !Es_Enfoque;
       }
 
       function Guardar_Config() {
@@ -92034,7 +92050,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Normalizar_Modo_Enfoque_Hora_Actual(Valor) {
-        return Valor === "Enfocar" ? "Enfocar" : "Completo";
+        if (Valor === "Enfocar") return "Enfocar";
+        if (Valor === "Bloques") return "Bloques";
+        return "Completo";
       }
 
       function Normalizar_Horas_Enfoque_Hora_Actual(
@@ -92050,6 +92068,58 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return Normalizar_Modo_Enfoque_Hora_Actual(
           Config.Enfoque_Hora_Actual_Modo
         ) === "Enfocar";
+      }
+
+      function Vista_Automatica_Bloques_Esta_Activa() {
+        return Normalizar_Modo_Enfoque_Hora_Actual(
+          Config.Enfoque_Hora_Actual_Modo
+        ) === "Bloques";
+      }
+
+      function Bloque_Horario_Contiene_Hora(Bloque, Hora) {
+        if (!Bloque) return false;
+        const Desde = Math.max(
+          0,
+          Math.min(24, Number(Bloque.Desde) || 0)
+        );
+        const Hasta = Resolver_Hasta_Bloque(
+          Desde,
+          Number(Bloque.Hasta) || 0
+        );
+        if (Hasta <= Desde) return false;
+        const Hora_Actual = Math.max(
+          0,
+          Math.min(23.9999, Number(Hora) || 0)
+        );
+        return Hora_Actual >= Desde && Hora_Actual < Hasta;
+      }
+
+      function Obtener_Bloque_Horario_Actual() {
+        const Bloques = Normalizar_Bloques_Horarios(
+          Config.Bloques_Horarios
+        );
+        const Ahora = new Date();
+        const Hora_Actual =
+          Ahora.getHours() +
+          Ahora.getMinutes() / 60 +
+          Ahora.getSeconds() / 3600;
+        const Bloques_Ordenados =
+          Obtener_Ids_Bloques_Horarios();
+        for (const Id of Bloques_Ordenados) {
+          if (
+            Bloque_Horario_Contiene_Hora(
+              Bloques[Id],
+              Hora_Actual
+            )
+          ) {
+            return Id;
+          }
+        }
+        return (
+          Obtener_Bloques_Horarios_Visibles_Base()[0] ||
+          Bloques_Ordenados[0] ||
+          ""
+        );
       }
 
       function Obtener_Bloques_Horarios_Visibles_Manual() {
@@ -92119,6 +92189,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Obtener_Bloques_Horarios_Visibles_Efectivos() {
         const Manual = Obtener_Bloques_Horarios_Visibles_Manual();
         if (Manual) return Manual;
+        if (
+          Semana_Visible_Es_Actual() &&
+          Vista_Automatica_Bloques_Esta_Activa()
+        ) {
+          const Bloque_Actual = Obtener_Bloque_Horario_Actual();
+          if (Bloque_Actual) return [Bloque_Actual];
+          return Obtener_Ids_Bloques_Horarios();
+        }
         if (
           Semana_Visible_Es_Actual() &&
           Enfoque_Hora_Actual_Esta_Activo()

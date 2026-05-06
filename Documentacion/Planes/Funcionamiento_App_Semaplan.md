@@ -573,6 +573,9 @@ Areas importantes.
   actual, persistida en `Config_Extra` sin convertirla en default
   automatico global
 - filtros automaticos
+- vista automatica de horario con tres modos (`Completo`, `Enfocar`
+  y `Por bloques`), limitada a la semana actual y siempre por debajo
+  de los filtros manuales del encabezado
 - comportamiento de habitos en sidebar
 - colores y modos de UI
 - datos de cuenta y tokens de integracion IA read-only
