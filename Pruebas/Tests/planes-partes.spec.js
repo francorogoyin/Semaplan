@@ -1529,6 +1529,135 @@ async ({ page }) => {
   expect(resultado.toasts.join(" ")).not.toContain("Parte actualizada");
 });
 
+test("Duplicar parte crea copia pendiente y actualiza target por suma",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+  await Preparar(page);
+
+  await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
+      Id: "p2026",
+      Tipo: "Anio",
+      Inicio: "2026-01-01",
+      Fin: "2026-12-31",
+      Orden: 0
+    });
+    Modelo.Objetivos.obj_dup_parte = Normalizar_Objetivo_Plan({
+      Id: "obj_dup_parte",
+      Periodo_Id: "p2026",
+      Nombre: "Objetivo partes",
+      Target_Total: 10,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    Modelo.Subobjetivos.sub_dup_parte =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_dup_parte",
+        Objetivo_Id: "obj_dup_parte",
+        Texto: "Sub con partes",
+        Target_Total: 5,
+        Target_Suma_Componentes: true,
+        Unidad: "Personalizado",
+        Unidad_Custom: "paginas"
+      });
+    Modelo.Partes.parte_dup_origen = Normalizar_Parte_Meta({
+      Id: "parte_dup_origen",
+      Objetivo_Id: "obj_dup_parte",
+      Subobjetivo_Id: "sub_dup_parte",
+      Nombre: "Parte original",
+      Aporte_Total: 5,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Estado: "Realizada",
+      Fecha_Fin: "2026-04-20",
+      Hora_Fin: "10:30",
+      Orden: 0
+    });
+    Modelo.Avances.av_dup_origen = Normalizar_Avance_Plan({
+      Id: "av_dup_origen",
+      Objetivo_Id: "obj_dup_parte",
+      Subobjetivo_Id: "sub_dup_parte",
+      Parte_Id: "parte_dup_origen",
+      Fuente: "Subobjetivo",
+      Cantidad: 5,
+      Unidad: "paginas",
+      Fecha: "2026-04-20",
+      Hora: "10:30"
+    });
+    Planes_Recalcular_Progreso_Parte(
+      Modelo.Partes.parte_dup_origen,
+      Modelo
+    );
+    Planes_Partes_Filtro_Estado = "Todos";
+    Abrir_Modal_Planes_Partes("sub_dup_parte");
+  });
+
+  await page.locator(
+    '#Planes_Partes_Lista .Planes_Parte ' +
+    '[data-parte-menu]'
+  ).click();
+  await expect(page.locator(
+    '.Planes_Parte_Menu_Flotante [data-parte-accion="duplicar"]'
+  )).toBeVisible();
+  await page.locator(
+    '.Planes_Parte_Menu_Flotante [data-parte-accion="duplicar"]'
+  ).click();
+  await expect(page.locator(
+    "#Planes_Partes_Lista .Planes_Parte"
+  )).toHaveCount(2);
+
+  const resultado = await page.evaluate(() => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Partes = Planes_Partes_De_Subobjetivo(
+      "sub_dup_parte",
+      Modelo
+    );
+    const Copia = Partes.find((Parte) =>
+      Parte.Id !== "parte_dup_origen"
+    );
+    return {
+      copiaId: Copia?.Id || "",
+      target: Modelo.Subobjetivos.sub_dup_parte.Target_Total,
+      orden: Partes.map((Parte) => Parte.Id),
+      partes: Partes.map((Parte) => ({
+        id: Parte.Id,
+        nombre: Parte.Nombre,
+        progreso: Planes_Progreso_Total_Parte(Parte, Modelo),
+        estado: Planes_Estado_Calculado_Parte(Parte, Modelo),
+        fechaFin: Parte.Fecha_Fin || "",
+        horaFin: Parte.Hora_Fin || ""
+      }))
+    };
+  });
+
+  expect(errores).toEqual([]);
+  expect(resultado.copiaId).not.toBe("");
+  expect(resultado.copiaId).not.toBe("parte_dup_origen");
+  expect(resultado.target).toBe(10);
+  expect(resultado.orden).toEqual([
+    "parte_dup_origen",
+    resultado.copiaId
+  ]);
+  expect(resultado.partes[0]).toEqual({
+    id: "parte_dup_origen",
+    nombre: "Parte original",
+    progreso: 5,
+    estado: "Realizada",
+    fechaFin: "2026-04-20",
+    horaFin: "10:30"
+  });
+  expect(resultado.partes[1]).toEqual({
+    id: resultado.copiaId,
+    nombre: "Parte original",
+    progreso: 0,
+    estado: "Pendiente",
+    fechaFin: "",
+    horaFin: ""
+  });
+});
+
 test("Cancelar realizacion de parte borra avances y habitos",
 async ({ page }) => {
   const errores = [];

@@ -15617,6 +15617,8 @@
 
       .Archivero_Sub_Campo textarea,
       .Archivero_Sub_Campo input[type="text"],
+      .Archivero_Sub_Campo input[type="date"],
+      .Archivero_Sub_Campo input[type="time"],
       .Archivero_Sub_Campo select {
         padding: 8px 10px;
         border: 1px solid var(--Borde);
@@ -15654,6 +15656,12 @@
         display: flex;
         align-items: center;
         gap: 8px;
+      }
+
+      .Archivero_Sub_Campos_Dobles {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 10px;
       }
 
       .Archivero_Sub_Campo_Inline select {
@@ -23196,6 +23204,24 @@
               data-i18n-ph="archivero.origen_ph"
               placeholder="URL o de dónde sacaste esto">
           </div>
+          <div class="Archivero_Sub_Campos_Dobles">
+            <div class="Archivero_Sub_Campo">
+              <label for="Archivero_Nota_Fecha_Input"
+                data-i18n="archivero.fecha_nota">
+                Dia
+              </label>
+              <input type="date"
+                id="Archivero_Nota_Fecha_Input">
+            </div>
+            <div class="Archivero_Sub_Campo">
+              <label for="Archivero_Nota_Hora_Input"
+                data-i18n="archivero.hora_nota">
+                Horario
+              </label>
+              <input type="time"
+                id="Archivero_Nota_Hora_Input">
+            </div>
+          </div>
           <div class="Archivero_Sub_Campo">
             <label for="Archivero_Nota_Etiquetas_Composer"
               data-i18n="archivero.etiquetas">
@@ -26998,6 +27024,7 @@
           "planes.parte_nota_semana":
             "Parte semanal realizada: {parte} ({objetivo})",
           "planes.parte_actualizada": "Parte actualizada.",
+          "planes.parte_duplicada": "Parte duplicada.",
           "planes.parte_eliminada": "Parte eliminada.",
           "planes.parte_archivar_confirm":
             "Esta parte tiene avances o vinculos semanales. Se va a archivar para conservar el historial.",
@@ -27958,6 +27985,8 @@
             "Origen (opcional)",
           "archivero.origen_ph":
             "URL o de dónde sacaste esto",
+          "archivero.fecha_nota": "D\u00eda",
+          "archivero.hora_nota": "Horario",
           "archivero.etiquetas":
             "Etiquetas (opcional)",
           "archivero.nueva_etiqueta":
@@ -31317,6 +31346,7 @@
           "planes.parte_nota_semana":
             "Weekly part done: {parte} ({objetivo})",
           "planes.parte_actualizada": "Part updated.",
+          "planes.parte_duplicada": "Part duplicated.",
           "planes.parte_eliminada": "Part deleted.",
           "planes.parte_archivar_confirm":
             "This part has progress or weekly links. It will be archived to keep history.",
@@ -32251,6 +32281,8 @@
           "archivero.origen_ph":
             "URL or where you got this " +
             "from",
+          "archivero.fecha_nota": "Day",
+          "archivero.hora_nota": "Time",
           "archivero.etiquetas":
             "Tags (optional)",
           "archivero.nueva_etiqueta":
@@ -35603,6 +35635,7 @@
           "planes.parte_nota_semana":
             "Parte semanal realizada: {parte} ({objetivo})",
           "planes.parte_actualizada": "Parte atualizada.",
+          "planes.parte_duplicada": "Parte duplicada.",
           "planes.parte_eliminada": "Parte eliminada.",
           "planes.parte_archivar_confirm":
             "Esta parte tem avancos ou vinculos semanais. Ela sera arquivada para conservar o historico.",
@@ -36579,6 +36612,8 @@
           "archivero.origen_ph":
             "URL ou de onde você tirou " +
             "isso",
+          "archivero.fecha_nota": "Dia",
+          "archivero.hora_nota": "Hor\u00e1rio",
           "archivero.etiquetas":
             "Tags (opcional)",
           "archivero.nueva_etiqueta":
@@ -45951,6 +45986,90 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
       }
 
+      function Normalizar_Fecha_Creacion_Nota_Archivero(Valor) {
+        const Timestamp = Number(Valor);
+        return Number.isFinite(Timestamp) && Timestamp > 0
+          ? Timestamp
+          : Date.now();
+      }
+
+      function Archivero_Fecha_Input_Desde_Timestamp(Valor) {
+        const F = new Date(
+          Normalizar_Fecha_Creacion_Nota_Archivero(Valor)
+        );
+        return (
+          String(F.getFullYear()).padStart(4, "0") +
+          "-" +
+          String(F.getMonth() + 1).padStart(2, "0") +
+          "-" +
+          String(F.getDate()).padStart(2, "0")
+        );
+      }
+
+      function Archivero_Hora_Input_Desde_Timestamp(Valor) {
+        const F = new Date(
+          Normalizar_Fecha_Creacion_Nota_Archivero(Valor)
+        );
+        return (
+          String(F.getHours()).padStart(2, "0") +
+          ":" +
+          String(F.getMinutes()).padStart(2, "0")
+        );
+      }
+
+      function Archivero_Timestamp_Desde_Fecha_Hora(
+        Fecha,
+        Hora,
+        Base = Date.now()
+      ) {
+        const Fecha_Base = Archivero_Fecha_Input_Desde_Timestamp(Base);
+        const Hora_Base = Archivero_Hora_Input_Desde_Timestamp(Base);
+        const Fecha_Final = /^\d{4}-\d{2}-\d{2}$/.test(
+          String(Fecha || "")
+        )
+          ? String(Fecha)
+          : Fecha_Base;
+        const Hora_Final = /^\d{2}:\d{2}$/.test(
+          String(Hora || "").slice(0, 5)
+        )
+          ? String(Hora).slice(0, 5)
+          : Hora_Base;
+        const Partes_Fecha = Fecha_Final.split("-").map(Number);
+        const Partes_Hora = Hora_Final.split(":").map(Number);
+        const F = new Date(
+          Partes_Fecha[0],
+          Partes_Fecha[1] - 1,
+          Partes_Fecha[2],
+          Partes_Hora[0],
+          Partes_Hora[1],
+          0,
+          0
+        );
+        return Number.isNaN(F.getTime())
+          ? Normalizar_Fecha_Creacion_Nota_Archivero(Base)
+          : F.getTime();
+      }
+
+      function Archivero_Datos_Comparables_Nota(Nota) {
+        return {
+          Titulo: String(Nota?.Titulo || "").trim(),
+          Texto: String(Nota?.Texto || "").trim(),
+          Origen: String(Nota?.Origen || "").trim(),
+          Etiquetas: Normalizar_Etiquetas_Archivero(
+            Nota?.Etiquetas || []
+          ),
+          Adjuntos: Normalizar_Adjuntos_Archivero(
+            Nota?.Adjuntos || []
+          ),
+          Archivero_Id: String(Nota?.Archivero_Id || ""),
+          Color_Fondo: Normalizar_Color_Hex(Nota?.Color_Fondo),
+          Tipo: Inferir_Tipo_Nota_Archivero(Nota?.Texto || ""),
+          Fecha_Creacion: Normalizar_Fecha_Creacion_Nota_Archivero(
+            Nota?.Fecha_Creacion
+          )
+        };
+      }
+
       function Sincronizar_Expansion_Nota_Archivero(
         Card,
         Nota_Id
@@ -46282,6 +46401,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Origen = document.getElementById(
           "Archivero_Nota_Origen_Input"
         );
+        const Fecha = document.getElementById(
+          "Archivero_Nota_Fecha_Input"
+        );
+        const Hora = document.getElementById(
+          "Archivero_Nota_Hora_Input"
+        );
         const Etiq = document.getElementById(
           "Archivero_Nota_Etiquetas_Input"
         );
@@ -46304,6 +46429,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           !Titulo_Nota ||
           !Texto ||
           !Origen ||
+          !Fecha ||
+          !Hora ||
           !Select ||
           !Color ||
           !Btn_Color_Cajon
@@ -46319,6 +46446,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Titulo_Nota.value = Nota.Titulo || "";
           Texto.value = Nota.Texto || "";
           Origen.value = Nota.Origen || "";
+          Fecha.value = Archivero_Fecha_Input_Desde_Timestamp(
+            Nota.Fecha_Creacion
+          );
+          Hora.value = Archivero_Hora_Input_Desde_Timestamp(
+            Nota.Fecha_Creacion
+          );
           if (Etiq_Composer) Etiq_Composer.value = "";
           if (Adjuntos_Input) Adjuntos_Input.value = "";
           Setear_Etiquetas_Modal_Nota_Archivero(
@@ -46341,10 +46474,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Nota.Archivero_Id || ""
             );
         } else {
+          const Ahora_Nota = Date.now();
           Poblar_Select_Cajones_Archivero(Select);
           Titulo_Nota.value = "";
           Texto.value = "";
           Origen.value = "";
+          Fecha.value = Archivero_Fecha_Input_Desde_Timestamp(
+            Ahora_Nota
+          );
+          Hora.value = Archivero_Hora_Input_Desde_Timestamp(
+            Ahora_Nota
+          );
           if (Etiq) Etiq.value = "";
           if (Etiq_Composer) Etiq_Composer.value = "";
           if (Adjuntos_Input) Adjuntos_Input.value = "";
@@ -46570,6 +46710,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Origen = document.getElementById(
           "Archivero_Nota_Origen_Input"
         );
+        const Fecha = document.getElementById(
+          "Archivero_Nota_Fecha_Input"
+        );
+        const Hora = document.getElementById(
+          "Archivero_Nota_Hora_Input"
+        );
         const Etiq = document.getElementById(
           "Archivero_Nota_Etiquetas_Input"
         );
@@ -46583,6 +46729,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           !Titulo ||
           !Texto ||
           !Origen ||
+          !Fecha ||
+          !Hora ||
           !Select ||
           !Color
         ) {
@@ -46618,34 +46766,47 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           (Color.dataset.modo || "Cajon") === "Cajon"
           ? ""
           : Normalizar_Color_Hex(Color.value);
-        if (Archivero_Nota_En_Edicion_Id) {
-          const Nota = Notas_Archivero.find(
+        const Nota_Existente = Archivero_Nota_En_Edicion_Id
+          ? Notas_Archivero.find(
             (N) => N.Id === Archivero_Nota_En_Edicion_Id
+          )
+          : null;
+        const Fecha_Creacion_Valor =
+          Archivero_Timestamp_Desde_Fecha_Hora(
+            Fecha.value,
+            Hora.value,
+            Nota_Existente?.Fecha_Creacion || Date.now()
           );
-          if (Nota) {
-            Nota.Titulo = Titulo_Valor;
-            Nota.Texto = Texto_Valor;
-            Nota.Origen = Origen.value.trim();
-            Nota.Etiquetas = Etiquetas_Valor;
-            Nota.Adjuntos = Adjuntos_Valor;
-            Nota.Archivero_Id = Cajon_Id;
-            Nota.Color_Fondo = Color_Valor;
-            Nota.Tipo =
-              Inferir_Tipo_Nota_Archivero(Texto_Valor);
+        const Datos_Nota = {
+          Titulo: Titulo_Valor,
+          Texto: Texto_Valor,
+          Origen: Origen.value.trim(),
+          Etiquetas: Etiquetas_Valor,
+          Adjuntos: Adjuntos_Valor,
+          Archivero_Id: Cajon_Id,
+          Color_Fondo: Color_Valor,
+          Tipo: Inferir_Tipo_Nota_Archivero(Texto_Valor),
+          Fecha_Creacion: Fecha_Creacion_Valor
+        };
+        if (Archivero_Nota_En_Edicion_Id) {
+          if (Nota_Existente) {
+            const Antes =
+              Archivero_Datos_Comparables_Nota(Nota_Existente);
+            const Despues =
+              Archivero_Datos_Comparables_Nota({
+                ...Nota_Existente,
+                ...Datos_Nota
+              });
+            if (!Hay_Cambio_Real_Guardado(Antes, Despues)) {
+              Cerrar_Modal_Nota_Archivero();
+              return;
+            }
+            Object.assign(Nota_Existente, Datos_Nota);
           }
         } else {
           Notas_Archivero.push({
             Id: Generar_Id_Archivero(),
-            Archivero_Id: Cajon_Id,
-            Titulo: Titulo_Valor,
-            Texto: Texto_Valor,
-            Origen: Origen.value.trim(),
-            Etiquetas: Etiquetas_Valor,
-            Adjuntos: Adjuntos_Valor,
-            Color_Fondo: Color_Valor,
-            Tipo:
-              Inferir_Tipo_Nota_Archivero(Texto_Valor),
-            Fecha_Creacion: Date.now()
+            ...Datos_Nota
           });
           Archivero_Seleccion_Id = Cajon_Id;
         }
@@ -64083,7 +64244,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Importar = document.createElement("input");
           Importar.type = "checkbox";
           Importar.className = "Metas_Sugeridas_Importar_Check";
-          Importar.checked = true;
+          Importar.checked = false;
           Importar.title = t("sidebar.metas_col_importar");
 
           Resumen.appendChild(Principal);
@@ -70932,11 +71093,90 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ${Escape_Html(t("planes.cancelar_realizacion"))}
             </button>
           `}
+          <button class="Planes_Btn" type="button"
+            data-parte-accion="duplicar">
+            ${Escape_Html(t("multi.duplicar"))}
+          </button>
           <button class="Planes_Btn Peligro" type="button"
             data-parte-accion="eliminar">
             ${Escape_Html(t("planes.eliminar_local"))}
           </button>
         `;
+      }
+
+      async function Planes_Duplicar_Parte(Parte_Id) {
+        const Modelo = Asegurar_Modelo_Planes();
+        const Parte = Modelo.Partes?.[Parte_Id];
+        if (!Parte || Parte.Eliminado_Local) return null;
+        const Sub = Modelo.Subobjetivos?.[Parte.Subobjetivo_Id];
+        if (!Sub || Sub.Eliminado_Local) return null;
+        const Objetivo = Modelo.Objetivos?.[
+          Parte.Objetivo_Id || Sub.Objetivo_Id
+        ];
+        const Total_Partes_Sub_Antes =
+          Planes_Total_Aporte_Partes_Subobjetivo(
+            Sub.Id,
+            Modelo
+          );
+        const Total_Partes_Sub_Nuevo =
+          Total_Partes_Sub_Antes +
+          (Number(Parte.Aporte_Total) || 0);
+        let Target_Sub_Manual_Ajustado = null;
+        if (!Planes_Target_Suma_Componentes_Activo(Sub)) {
+          const Confirmar_Exceso =
+            await Planes_Confirmar_Exceso_Target_Manual(
+              Sub,
+              Total_Partes_Sub_Nuevo,
+              Planes_Unidad_Label_Subobjetivo(Sub)
+            );
+          if (!Confirmar_Exceso) return null;
+          if (
+            Total_Partes_Sub_Nuevo >
+            (Number(Sub.Target_Total) || 0) + 0.0001
+          ) {
+            Target_Sub_Manual_Ajustado = Total_Partes_Sub_Nuevo;
+          }
+        }
+        const Snap = Capturar_Snapshot_Undo();
+        const Nuevo_Id = Crear_Id_Parte_Meta();
+        const Orden = Planes_Partes_De_Subobjetivo(
+          Sub.Id,
+          Modelo
+        ).length;
+        const Copia = Planes_Clonar_Parte_Pendiente(
+          Parte,
+          Nuevo_Id,
+          Objetivo?.Id || Parte.Objetivo_Id || Sub.Objetivo_Id,
+          Sub.Id,
+          Orden
+        );
+        Modelo.Partes[Nuevo_Id] = Copia;
+        Planes_Reordenar_Parte(Copia.Id, Parte.Id, true);
+        if (Target_Sub_Manual_Ajustado !== null) {
+          Planes_Aplicar_Target_Subobjetivo(
+            Sub,
+            Target_Sub_Manual_Ajustado
+          );
+        }
+        Planes_Sincronizar_Target_Subobjetivo_Desde_Partes(
+          Sub.Id,
+          Total_Partes_Sub_Antes,
+          Modelo
+        );
+        Planes_Recalcular_Parte_Y_Meta(
+          Copia,
+          Modelo,
+          Snap,
+          t("planes.parte_duplicada")
+        );
+        Render_Modal_Planes_Partes();
+        if (
+          document.getElementById("Planes_Subobjetivos_Overlay")
+            ?.classList.contains("Activo")
+        ) {
+          Render_Modal_Planes_Subobjetivos();
+        }
+        return Copia;
       }
 
       async function Planes_Ejecutar_Accion_Parte(Parte_Id, Tipo) {
@@ -70951,6 +71191,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         if (Tipo === "cancelar-realizacion") {
           await Planes_Cancelar_Realizacion_Parte(Parte.Id);
+        }
+        if (Tipo === "duplicar") {
+          await Planes_Duplicar_Parte(Parte.Id);
         }
         if (Tipo === "subir" || Tipo === "bajar") {
           if (Planes_Mover_Parte(Parte.Id, Tipo === "bajar")) {
@@ -105040,7 +105283,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               ),
               Color_Fondo: Normalizar_Color_Hex(
                 Nota?.Color_Fondo
-              )
+              ),
+              Fecha_Creacion:
+                Normalizar_Fecha_Creacion_Nota_Archivero(
+                  Nota?.Fecha_Creacion
+                )
             };
           })
           : [];
@@ -112399,6 +112646,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!(Objetivo instanceof Element)) return;
         if (Objetivo.closest(".Emoji_Item")) return;
         if (Objetivo.closest("#Multi_Sel_Barra")) return;
+        if (Objetivo.closest("#Dialogo_Overlay")) return;
         Objetivos_Multi_Seleccion.clear();
         Render_Emojis();
         Render_Resumen_Objetivo();

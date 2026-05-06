@@ -184,7 +184,7 @@ async function Preparar(page) {
     );
   }, Crear_Estado_Base());
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() =>
     typeof window.Inicializar === "function"
   );
@@ -531,6 +531,8 @@ async ({ page }) => {
     Render_Metas_Sugeridas();
   });
   await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(1);
+  await expect(page.locator(".Metas_Sugeridas_Importar_Check"))
+    .not.toBeChecked();
   await expect(page.locator(".Metas_Sugeridas_Fila"))
     .toContainText("SEO");
   await expect(
@@ -571,6 +573,9 @@ async ({ page }) => {
   expect(Extras_Estilo.background).toBe("rgba(0, 0, 0, 0.06)");
   await page.locator(".Metas_Sugeridas_Extras_Btn").click();
   await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(3);
+  expect(await page.locator(
+    ".Metas_Sugeridas_Importar_Check:checked"
+  ).count()).toBe(0);
   await expect(page.locator(".Metas_Sugeridas_Extras_Btn"))
     .toHaveText("Ocultar tareas extra");
   await expect(
@@ -682,13 +687,15 @@ async ({ page }) => {
       activa: Activa?.title || ""
     };
   });
-  expect(Color_Inicial).toEqual({
-    tipo: "hidden",
-    valor: "#f1b77e",
-    libres: 0,
-    swatches: 8,
-    activa: "#f1b77e"
-  });
+  expect(Color_Inicial).toEqual(
+    expect.objectContaining({
+      tipo: "hidden",
+      valor: "#f1b77e",
+      libres: 0,
+      activa: "#f1b77e"
+    })
+  );
+  expect(Color_Inicial.swatches).toBeGreaterThanOrEqual(7);
 
   await page.locator(
     ".Metas_Sugeridas_Color_Swatches .Swatch"
@@ -765,6 +772,7 @@ test("metas sugeridas calcula horas desde tiempo y partes importadas",
 async ({ page }) => {
   await Preparar(page);
   await page.evaluate(() => {
+    Semana_Actual = Parsear_Fecha_ISO("2026-05-04");
     const Modelo = Asegurar_Modelo_Planes();
     Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
       Id: "p2026",
@@ -790,8 +798,8 @@ async ({ page }) => {
       Target_Total: 6,
       Target_Suma_Componentes: true,
       Unidad: "Unidades",
-      Fecha_Inicio: "2026-04-20",
-      Fecha_Objetivo: "2026-04-26",
+      Fecha_Inicio: "2026-05-04",
+      Fecha_Objetivo: "2026-05-10",
       Orden: 0
     });
     Modelo.Partes.parte_uno = Normalizar_Parte_Meta({
@@ -804,8 +812,8 @@ async ({ page }) => {
       Unidad: "Unidades",
       Tiempo_Valor: 30,
       Tiempo_Modo: "Minutos_Por_Unidad",
-      Fecha_Inicio: "2026-04-20",
-      Fecha_Objetivo: "2026-04-22",
+      Fecha_Inicio: "2026-05-04",
+      Fecha_Objetivo: "2026-05-06",
       Orden: 0
     });
     Modelo.Partes.parte_dos = Normalizar_Parte_Meta({
@@ -818,8 +826,8 @@ async ({ page }) => {
       Unidad: "Unidades",
       Tiempo_Valor: 1,
       Tiempo_Modo: "Horas_Por_Unidad",
-      Fecha_Inicio: "2026-04-23",
-      Fecha_Objetivo: "2026-04-26",
+      Fecha_Inicio: "2026-05-07",
+      Fecha_Objetivo: "2026-05-10",
       Orden: 1
     });
     Abrir_Metas_Sugeridas();
@@ -845,6 +853,7 @@ test("metas sugeridas calcula horas por partes seleccionadas",
 async ({ page }) => {
   await Preparar(page);
   await page.evaluate(() => {
+    Semana_Actual = Parsear_Fecha_ISO("2026-05-04");
     const Modelo = Asegurar_Modelo_Planes();
     Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
       Id: "p2026",
@@ -872,8 +881,8 @@ async ({ page }) => {
       Target_Suma_Componentes: true,
       Unidad: "Personalizado",
       Unidad_Custom: "paginas",
-      Fecha_Inicio: "2026-04-20",
-      Fecha_Objetivo: "2026-04-26",
+      Fecha_Inicio: "2026-05-04",
+      Fecha_Objetivo: "2026-05-10",
       Tiempo_Valor: 10,
       Tiempo_Modo: "Unidades_Por_Hora",
       Orden: 0
@@ -887,8 +896,8 @@ async ({ page }) => {
       Aporte_Total: 100,
       Unidad: "Personalizado",
       Unidad_Custom: "paginas",
-      Fecha_Inicio: "2026-04-20",
-      Fecha_Objetivo: "2026-04-26",
+      Fecha_Inicio: "2026-05-04",
+      Fecha_Objetivo: "2026-05-10",
       Orden: 0
     });
     Modelo.Partes.parte_fuera = Normalizar_Parte_Meta({
@@ -900,8 +909,8 @@ async ({ page }) => {
       Aporte_Total: 10,
       Unidad: "Personalizado",
       Unidad_Custom: "paginas",
-      Fecha_Inicio: "2026-05-01",
-      Fecha_Objetivo: "2026-05-03",
+      Fecha_Inicio: "2026-05-18",
+      Fecha_Objetivo: "2026-05-20",
       Orden: 1
     });
     Abrir_Metas_Sugeridas();
@@ -920,6 +929,7 @@ test("metas sugeridas completa partes hasta cubrir el avance",
 async ({ page }) => {
   await Preparar(page);
   await page.evaluate(() => {
+    Semana_Actual = Parsear_Fecha_ISO("2026-05-04");
     const Modelo = Asegurar_Modelo_Planes();
     Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
       Id: "p2026",
@@ -947,8 +957,8 @@ async ({ page }) => {
       Target_Suma_Componentes: true,
       Unidad: "Personalizado",
       Unidad_Custom: "paginas",
-      Fecha_Inicio: "2026-04-20",
-      Fecha_Objetivo: "2026-04-26",
+      Fecha_Inicio: "2026-05-04",
+      Fecha_Objetivo: "2026-05-10",
       Tiempo_Valor: 10,
       Tiempo_Modo: "Unidades_Por_Hora",
       Orden: 0

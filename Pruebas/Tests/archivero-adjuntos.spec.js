@@ -57,7 +57,7 @@ async function preparar(page, estadoInicial) {
     );
   }, estadoInicial);
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() =>
     typeof window.Inicializar === "function"
   );
@@ -191,6 +191,57 @@ test("guarda adjuntos y permite descargarlos", async ({ page }) => {
   ).nth(0).click();
   const archivo = await descarga;
   expect(archivo.suggestedFilename()).toBe("resumen.txt");
+});
+
+test("permite editar fecha y hora de una nota", async ({ page }) => {
+  const Estado = estadoBase();
+  Estado.Notas_Archivero = [
+    {
+      Id: "n_fecha",
+      Archivero_Id: "c1",
+      Titulo: "",
+      Texto: "Nota fechada",
+      Origen: "",
+      Etiquetas: [],
+      Adjuntos: [],
+      Tipo: "Texto",
+      Fecha_Creacion: new Date(2026, 3, 10, 8, 15).getTime()
+    }
+  ];
+  await preparar(page, Estado);
+
+  await page.locator("[data-nota-id='n_fecha']").hover();
+  await page.locator("[data-nota-id='n_fecha'] .Archivero_Nota_Mini_Btn")
+    .first()
+    .click();
+  await expect(page.locator("#Archivero_Nota_Fecha_Input"))
+    .toHaveValue("2026-04-10");
+  await expect(page.locator("#Archivero_Nota_Hora_Input"))
+    .toHaveValue("08:15");
+  await page.fill("#Archivero_Nota_Fecha_Input", "2026-04-08");
+  await page.fill("#Archivero_Nota_Hora_Input", "21:30");
+  await page.click("#Archivero_Nota_Guardar");
+
+  const Fecha = await page.evaluate(() => {
+    const Valor = Notas_Archivero.find(
+      (Nota) => Nota.Id === "n_fecha"
+    )?.Fecha_Creacion;
+    const F = new Date(Valor);
+    return {
+      ano: F.getFullYear(),
+      mes: F.getMonth() + 1,
+      dia: F.getDate(),
+      hora: F.getHours(),
+      minuto: F.getMinutes()
+    };
+  });
+  expect(Fecha).toEqual({
+    ano: 2026,
+    mes: 4,
+    dia: 8,
+    hora: 21,
+    minuto: 30
+  });
 });
 
 test("bloquea adjuntos que superan 1 mb por nota", async ({

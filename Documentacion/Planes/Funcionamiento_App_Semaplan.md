@@ -248,6 +248,10 @@ Notas operativas.
   cero o si su periodo solapa el rango y tiene target total definido.
   Si no tiene meta ni avance en el rango, queda oculto; si tiene avance
   pero no meta, se muestra como 100%.
+- La seleccion multiple de objetivos semanales conserva los ids
+  seleccionados mientras se abre el dialogo de cambio de categoria.
+  La categoria se aplica en lote al confirmar y recien despues se
+  limpia la seleccion.
 
 ## Slots vacios, bloques y planes de slot
 
@@ -410,6 +414,9 @@ Relaciones importantes.
 
 - Las etiquetas usan comparacion normalizada sin depender de acentos.
 - Las notas pueden tener texto, origen, color y adjuntos en base64.
+- El modal de nota permite editar dia y horario de `Fecha_Creacion`.
+  Ese timestamp se normaliza al cargar estado y define la fecha visible
+  y el orden cronologico de la nota.
 - Hay seleccion multiple, mover entre cajones y gestion de etiquetas.
 
 ## Baul
@@ -474,6 +481,9 @@ Relaciones importantes.
   horas semanales. El aporte general arranca en cero, usa el mismo
   estilo que las partes y solo se registra si el usuario lo tilda y le
   asigna cantidad.
+- Las metas sugeridas arrancan destildadas por defecto. El usuario debe
+  marcar explicitamente que filas importar, incluso cuando el sistema ya
+  calcule aporte, horas y partes sugeridas.
 
 ## Planes semanales
 
@@ -540,6 +550,10 @@ Relaciones importantes.
 - Un objetivo puede pertenecer a un periodo y a la vez colgar de otro
   objetivo padre.
 - Un subobjetivo puede tener partes.
+- Los menus de subobjetivos y partes permiten duplicar. El duplicado de
+  subobjetivo clona su rama y el duplicado de parte crea una copia
+  pendiente junto a la original, sin avances ni fecha/hora de cierre, y
+  recalcula targets cuando el subobjetivo suma componentes.
 - Objetivos, subobjetivos y partes pueden vincular habitos.
 - La descripcion de un periodo en Metas se muestra contraida cuando ya
   tiene texto. El boton propio de expansion solo contrae o expande; el
