@@ -92,16 +92,60 @@
       .Emoji_Item,
       .Emoji_Horas_Badge,
       .Abordaje_Item_Emoji,
+      .Baul_Estado_Icono,
+      .Baul_Modal_Emoji,
       .Baul_Card_Emoji,
       .Baul_Fila_Emoji,
       .Baul_Detalle_Emoji,
+      .Cat_Header_Emoji,
       .Config_Cat_Input_Emoji,
+      .Config_Cat_Emoji_Btn,
+      .Config_Dato_Btn_Icono,
+      .Config_Hint_Icono,
       .Config_Patron_Emoji,
+      .Cfg_App_Icono,
+      .Cfg_Suscripcion_Aviso_Icono,
+      .Ayuda_Hero_Icono,
+      .Ayuda_Chip,
+      .Archivero_Btn_Nueva_Nota_Icono,
+      .Archivero_Cajon_Emoji,
+      .Archivero_Cajon_Select_Btn_Emoji,
+      .Archivero_Cajon_Select_Item_Emoji,
+      .Archivero_Vacio_Emoji,
+      .Evento_Abordaje_Popup_Sym,
+      .Evento_Abordaje_Popup_Emoji,
+      .Editor_Emoji,
+      .Focus_Emoji,
+      .Focus_Sub_Emoji,
+      .Habitos_Modal_Icono,
+      .Habitos_Accion_Icono,
+      .Habitos_Card_Emoji,
+      .Habitos_Vinculo_Emoji,
+      .Menu_Btn,
+      .Menu_Hamburguesa_Item_Icono,
+      .Menu_Hamburguesa_Item_Candado,
+      .Meta_Card_Icono,
+      .Meta_Toast_Icono,
+      .Otras_Apps_Logo,
+      .Paleta_Item_Icono,
+      .Paleta_Input_Icono,
+      .Planes_Avance_Titulo_Emoji,
       .Planes_Objetivo_Emoji,
       .Planes_Objetivo_Estado,
       .Planes_Subobjetivo_Emoji,
       .Planes_Subobjetivo_Estado,
       .Planes_Parte_Emoji,
+      .Resumen_Sem_Objetivo_Emoji,
+      .Resumen_Sem_Dia_Item_Emoji,
+      .Resumen_Sem_Meta_Emoji,
+      .Resumen_Sem_Meta_Sub_Emoji,
+      .Resumen_Sem_Meta_Parte_Emoji,
+      .Resumen_Emoji,
+      .Sidebar_Habitos_Label_Icono,
+      .Suscripcion_Badge,
+      .Tareas_Nombre_Emoji,
+      .Tareas_Contador_Flotante,
+      .Undo_Toast_Icono,
       .Subobjetivo_Emoji_Label {
         font-family:
           "Segoe UI Emoji",
@@ -11336,6 +11380,19 @@
         align-content: start;
       }
 
+      .Tareas_Nombre {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .Tareas_Nombre_Emoji {
+        display: inline-grid;
+        place-items: center;
+        flex: 0 0 auto;
+      }
+
       .Tareas_Card.Completada {
         border-color: rgba(31, 107, 79, 0.2);
         background: rgba(231, 244, 237, 0.82);
@@ -11906,6 +11963,9 @@
       /* --- Categorías en sidebar --- */
       .Cat_Header {
         width: 100%;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
         font-size: 11px;
         font-weight: 700;
         color: var(--Texto_Suave);
@@ -20261,7 +20321,8 @@
               data-i18n-aria="menu.objetivos"
               title="Objetivos"
               aria-label="Objetivos">🗓️</button>
-            <button class="Config_Boton" id="Config_Abrir"
+            <button class="Config_Boton Con_Fallback_Emoji"
+              id="Config_Abrir"
               type="button"
               title="Configuración"
               data-i18n-title="menu.config"
@@ -21204,7 +21265,7 @@
                   <span class="Cfg_Cuenta_Etiqueta"
                     data-i18n="config.plan_actual"
                     >Plan actual</span>
-                  <span class="Cfg_Cuenta_Valor"
+                  <span class="Cfg_Cuenta_Valor Con_Fallback_Emoji"
                     id="Cfg_Plan_Actual_Texto">🌱 Free</span>
                   <button type="button"
                     id="Cfg_Ver_Planes"
@@ -41357,14 +41418,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Icono = document.createElement("span");
         const Estado_Normalizado =
           Obtener_Estado_Baul_Normalizado(Estado);
-        Icono.className = "Baul_Estado_Icono";
+        Icono.className = "Baul_Estado_Icono Con_Fallback_Emoji";
         Icono.dataset.estado = Estado_Normalizado;
         Icono.setAttribute(
           "aria-label",
           Obtener_Label_Estado_Baul(Estado_Normalizado)
         );
-        Icono.textContent =
-          Obtener_Emoji_Estado_Baul(Estado_Normalizado);
+        Aplicar_Emoji_En_Elemento(
+          Icono,
+          Obtener_Emoji_Estado_Baul(Estado_Normalizado)
+        );
         return Icono;
       }
 
@@ -45680,28 +45743,50 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Titulo.textContent = t("dialog.sin_cajon");
           const Vacio = document.createElement("div");
           Vacio.className = "Archivero_Vacio";
-          Vacio.innerHTML =
-            '<div class="Archivero_Vacio_Emoji">🗃️</div>' +
-            "<div>" + t("archivero.crear_cajon") + "</div>";
+          Vacio.appendChild(
+            Crear_Elemento_Emoji(
+              "div",
+              "Archivero_Vacio_Emoji",
+              "\uD83D\uDDC3\uFE0F"
+            )
+          );
+          const Texto_Vacio = document.createElement("div");
+          Texto_Vacio.textContent = t("archivero.crear_cajon");
+          Vacio.appendChild(Texto_Vacio);
           Lista.appendChild(Vacio);
           Render_Archivero_Multi_Acciones();
           return;
         }
-        Titulo.innerHTML =
-          `<span>${Cajon.Emoji || "🗃️"}</span>` +
-          `<span>${Escape_Html(Cajon.Nombre)}</span>`;
+        Titulo.appendChild(
+          Crear_Elemento_Emoji(
+            "span",
+            "Archivero_Cajon_Titulo_Emoji",
+            Cajon.Emoji || "\uD83D\uDDC3\uFE0F"
+          )
+        );
+        const Titulo_Nombre = document.createElement("span");
+        Titulo_Nombre.textContent = Cajon.Nombre || "";
+        Titulo.appendChild(Titulo_Nombre);
         const Notas = Filtrar_Notas_Archivero();
         if (Notas.length === 0) {
           const Vacio = document.createElement("div");
           Vacio.className = "Archivero_Vacio";
-          Vacio.innerHTML =
-            '<div class="Archivero_Vacio_Emoji">📝</div>' +
-            "<div>" + t("archivero.sin_notas") + "</div>" +
-            '<div style="font-size:11px;opacity:0.7">' +
-            t("archivero.sin_notas_hint", {
-              Nueva: t("archivero.nueva_nota")
-            }) +
-            "</div>";
+          Vacio.appendChild(
+            Crear_Elemento_Emoji(
+              "div",
+              "Archivero_Vacio_Emoji",
+              "\uD83D\uDCDD"
+            )
+          );
+          const Texto_Sin_Notas = document.createElement("div");
+          Texto_Sin_Notas.textContent = t("archivero.sin_notas");
+          const Hint_Sin_Notas = document.createElement("div");
+          Hint_Sin_Notas.style.cssText = "font-size:11px;opacity:0.7";
+          Hint_Sin_Notas.textContent = t("archivero.sin_notas_hint", {
+            Nueva: t("archivero.nueva_nota")
+          });
+          Vacio.appendChild(Texto_Sin_Notas);
+          Vacio.appendChild(Hint_Sin_Notas);
           Lista.appendChild(Vacio);
           Render_Archivero_Multi_Acciones();
           return;
@@ -50385,7 +50470,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Emoji = document.createElement("span");
           Emoji.className =
             "Config_Meta_Festejo_Emoji Con_Fallback_Emoji";
-          Emoji.textContent = Objetivo.Emoji || "\u2022";
+          Aplicar_Emoji_En_Elemento(
+            Emoji,
+            Objetivo.Emoji || "\u2022"
+          );
           const Texto = document.createElement("span");
           const Nombre = document.createElement("span");
           Nombre.className = "Config_Meta_Festejo_Nombre";
@@ -50441,8 +50529,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         let Timer_Id = null;
 
         const Icono = document.createElement("span");
-        Icono.className = "Meta_Toast_Icono";
-        Icono.textContent = "🎉";
+        Icono.className = "Meta_Toast_Icono Con_Fallback_Emoji";
+        Aplicar_Emoji_En_Elemento(Icono, "\uD83C\uDF89");
 
         const Textos = document.createElement("div");
         Textos.className = "Meta_Toast_Textos";
@@ -50886,8 +50974,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Cuerpo.className = "Meta_Card_Cuerpo";
 
         const Icono = document.createElement("div");
-        Icono.className = "Meta_Card_Icono";
-        Icono.textContent = Obtener_Icono_Meta(Meta);
+        Icono.className = "Meta_Card_Icono Con_Fallback_Emoji";
+        Aplicar_Emoji_En_Elemento(Icono, Obtener_Icono_Meta(Meta));
 
         const Titulo = document.createElement("div");
         Titulo.className = "Meta_Card_Titulo";
@@ -64376,7 +64464,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Check.dataset.parteId = Parte.Id;
           const Emoji = document.createElement("span");
           Emoji.className = "Con_Fallback_Emoji";
-          Emoji.textContent = Parte.Emoji || "\u2022";
+          Aplicar_Emoji_En_Elemento(Emoji, Parte.Emoji || "\u2022");
           const Nombre = document.createElement("span");
           Nombre.className = "Metas_Sugeridas_Partes_Nombre";
           Nombre.textContent = Parte.Nombre || "";
@@ -75277,8 +75365,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Toast.className = "Undo_Toast";
 
         const El_Icono = document.createElement("span");
-        El_Icono.className = "Undo_Toast_Icono";
-        El_Icono.textContent = "🗑️";
+        El_Icono.className = "Undo_Toast_Icono Con_Fallback_Emoji";
+        Aplicar_Emoji_En_Elemento(El_Icono, "\uD83D\uDDD1\uFE0F");
 
         const El_Texto = document.createElement("span");
         El_Texto.className = "Undo_Toast_Texto";
@@ -75378,8 +75466,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El_Toast.className = "Undo_Toast";
 
         const El_Icono = document.createElement("span");
-        El_Icono.className = "Undo_Toast_Icono";
-        El_Icono.textContent = Icono;
+        El_Icono.className = "Undo_Toast_Icono Con_Fallback_Emoji";
+        Aplicar_Emoji_En_Elemento(El_Icono, Icono);
 
         const El_Texto = document.createElement("span");
         El_Texto.className = "Undo_Toast_Texto";
@@ -77563,8 +77651,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Icono =
           document.createElement("span");
         Icono.className =
-          "Cfg_Suscripcion_Aviso_Icono";
-        Icono.textContent = Modelo.Icono || "🗓️";
+          "Cfg_Suscripcion_Aviso_Icono Con_Fallback_Emoji";
+        Aplicar_Emoji_En_Elemento(
+          Icono,
+          Modelo.Icono || "\uD83D\uDDD3\uFE0F"
+        );
 
         const Texto =
           document.createElement("div");
@@ -78300,8 +78391,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Label = Obtener_Label_Plan(
             Config.Plan_Actual
           );
-          El_Plan_Boton.textContent = Obtener_Emoji_Plan(
-            Config.Plan_Actual
+          El_Plan_Boton.classList.add("Con_Fallback_Emoji");
+          Aplicar_Emoji_En_Elemento(
+            El_Plan_Boton,
+            Obtener_Emoji_Plan(Config.Plan_Actual)
           );
           El_Plan_Boton.classList.toggle(
             "Upgrade",
@@ -86380,8 +86473,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
 
         const Em = document.createElement("span");
-        Em.className = "Abordaje_Item_Emoji";
-        Em.textContent = Item.Emoji || "•";
+        Em.className = "Abordaje_Item_Emoji Con_Fallback_Emoji";
+        Aplicar_Emoji_En_Elemento(Em, Item.Emoji || "\u2022");
 
         const Tx = document.createElement("span");
         Tx.className = "Abordaje_Item_Texto";
@@ -86741,7 +86834,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Emoji = document.createElement("span");
         Emoji.className = "Abordaje_Item_Emoji Con_Fallback_Emoji";
-        Emoji.textContent = Item.Emoji || "\u2022";
+        Aplicar_Emoji_En_Elemento(Emoji, Item.Emoji || "\u2022");
 
         const Texto = document.createElement("span");
         Texto.className = "Abordaje_Item_Texto";
@@ -89283,8 +89376,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Item.className = "Menu_Hamburguesa_Item";
 
         const Icon = document.createElement("span");
-        Icon.className = "Menu_Hamburguesa_Item_Icono";
-        Icon.textContent = "📱";
+        Icon.className =
+          "Menu_Hamburguesa_Item_Icono Con_Fallback_Emoji";
+        Aplicar_Emoji_En_Elemento(Icon, "\uD83D\uDCF1");
 
         const Txt = document.createElement("span");
         Txt.className = "Menu_Hamburguesa_Item_Texto";
@@ -89381,8 +89475,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Item_Hoy.type = "button";
             Item_Hoy.className = "Menu_Hamburguesa_Item";
             const Icon_Hoy = document.createElement("span");
-            Icon_Hoy.className = "Menu_Hamburguesa_Item_Icono";
-            Icon_Hoy.textContent = "\u25cf";
+            Icon_Hoy.className =
+              "Menu_Hamburguesa_Item_Icono Con_Fallback_Emoji";
+            Aplicar_Emoji_En_Elemento(Icon_Hoy, "\u25cf");
             const Txt_Hoy = document.createElement("span");
             Txt_Hoy.className = "Menu_Hamburguesa_Item_Texto";
             Txt_Hoy.textContent = t("nav.hoy");
@@ -89415,8 +89510,14 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Item.classList.add("Bloqueada");
           }
           const Icon = document.createElement("span");
-          Icon.className = "Menu_Hamburguesa_Item_Icono";
-          Icon.textContent = Btn_Original.textContent.trim();
+          Icon.className =
+            "Menu_Hamburguesa_Item_Icono Con_Fallback_Emoji";
+          Aplicar_Emoji_En_Elemento(
+            Icon,
+            Btn_Original.dataset.emojiTexto ||
+            Btn_Original.textContent.trim() ||
+            "\u2022"
+          );
           const Txt = document.createElement("span");
           Txt.className = "Menu_Hamburguesa_Item_Texto";
           Txt.textContent =
@@ -89429,8 +89530,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           if (Es_Item_Bloqueado) {
             const Candado = document.createElement("span");
             Candado.className =
-              "Menu_Hamburguesa_Item_Candado";
-            Candado.textContent = "🔒";
+              "Menu_Hamburguesa_Item_Candado Con_Fallback_Emoji";
+            Aplicar_Emoji_En_Elemento(Candado, "\uD83D\uDD12");
             Candado.setAttribute(
               "aria-label", "Premium"
             );
@@ -91768,6 +91869,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         El.dataset.emojiTexto = Texto;
         El.setAttribute("aria-label", Texto);
         El.appendChild(Crear_Imagen_Emoji(Texto));
+      }
+
+      function Crear_Elemento_Emoji(Tag, Clase, Emoji) {
+        const El = document.createElement(Tag || "span");
+        const Clase_Base = String(Clase || "").trim();
+        El.className = Clase_Base
+          ? `${Clase_Base} Con_Fallback_Emoji`
+          : "Con_Fallback_Emoji";
+        Aplicar_Emoji_En_Elemento(El, Emoji);
+        return El;
       }
 
       function Formatear_Horas(Horas) {
@@ -96562,7 +96673,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Texto.className = "Tareas_Texto";
           const Nombre = document.createElement("div");
           Nombre.className = "Tareas_Nombre";
-          Nombre.textContent = `${Tarea.Emoji} ${Tarea.Nombre}`;
+          const Nombre_Emoji = document.createElement("span");
+          Nombre_Emoji.className =
+            "Tareas_Nombre_Emoji Con_Fallback_Emoji";
+          Aplicar_Emoji_En_Elemento(
+            Nombre_Emoji,
+            Tarea.Emoji || "\u2022"
+          );
+          const Nombre_Texto = document.createElement("span");
+          Nombre_Texto.textContent = Tarea.Nombre || "";
+          Nombre.appendChild(Nombre_Emoji);
+          Nombre.appendChild(Nombre_Texto);
           const Meta = document.createElement("div");
           Meta.className = "Tareas_Meta";
           Meta.textContent = [
@@ -96717,7 +96838,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         const Pendientes = Tareas_Contador_Pendientes();
         Btn.classList.toggle("Completo", Pendientes === 0);
-        Btn.textContent = Pendientes === 0 ? "\u2713" : "\u23f3";
+        Aplicar_Emoji_En_Elemento(
+          Btn,
+          Pendientes === 0 ? "\u2713" : "\u23f3"
+        );
         Btn.title = Pendientes === 0
           ? "Tareas al dia"
           : `${Pendientes} tareas pendientes`;
@@ -98889,7 +99013,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Barra = document.createElement("div");
         Barra.className = "Habitos_Vinculos_Barra";
         const Select_Agregar = document.createElement("select");
-        Select_Agregar.className = "Config_Select";
+        Select_Agregar.className = "Config_Select Con_Fallback_Emoji";
         const Opt_Placeholder = document.createElement("option");
         Opt_Placeholder.value = "";
         Opt_Placeholder.textContent = t("habitos.seleccionar");
@@ -106872,8 +106996,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Fila.className = "Resumen_Sem_Objetivo";
 
           const E = document.createElement("span");
-          E.className = "Resumen_Sem_Objetivo_Emoji";
-          E.textContent = Item.Objetivo.Emoji || "•";
+          E.className =
+            "Resumen_Sem_Objetivo_Emoji Con_Fallback_Emoji";
+          Aplicar_Emoji_En_Elemento(
+            E,
+            Item.Objetivo.Emoji || "\u2022"
+          );
 
           const N = document.createElement("span");
           N.className = "Resumen_Sem_Objetivo_Nombre";
@@ -107140,8 +107268,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             const L = document.createElement("div");
             L.className = "Resumen_Sem_Dia_Item";
             const Em = document.createElement("span");
-            Em.className = "Resumen_Sem_Dia_Item_Emoji";
-            Em.textContent = It.Objetivo.Emoji || "•";
+            Em.className =
+              "Resumen_Sem_Dia_Item_Emoji Con_Fallback_Emoji";
+            Aplicar_Emoji_En_Elemento(
+              Em,
+              It.Objetivo.Emoji || "\u2022"
+            );
             const Nm = document.createElement("span");
             Nm.className = "Resumen_Sem_Dia_Item_Nombre";
             Nm.textContent = It.Objetivo.Nombre || "Sin nombre";
@@ -107666,7 +107798,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Cab.className = "Resumen_Sem_Meta_Cabecera";
           const Emoji = document.createElement("span");
           Emoji.className = "Resumen_Sem_Meta_Emoji Con_Fallback_Emoji";
-          Emoji.textContent = Normalizar_Emoji(
+          Aplicar_Emoji_En_Elemento(
+            Emoji,
             Item.Objetivo.Emoji || "\u2022"
           );
           const Nombre = document.createElement("span");
@@ -107825,7 +107958,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               const Sub_Emoji = document.createElement("span");
               Sub_Emoji.className =
                 "Resumen_Sem_Meta_Sub_Emoji Con_Fallback_Emoji";
-              Sub_Emoji.textContent = Normalizar_Emoji(
+              Aplicar_Emoji_En_Elemento(
+                Sub_Emoji,
                 Sub_Item.Sub.Emoji || "\u2022"
               );
               const Nom = document.createElement("span");
@@ -107863,7 +107997,8 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   const P_Emoji = document.createElement("span");
                   P_Emoji.className =
                     "Resumen_Sem_Meta_Parte_Emoji Con_Fallback_Emoji";
-                  P_Emoji.textContent = Normalizar_Emoji(
+                  Aplicar_Emoji_En_Elemento(
+                    P_Emoji,
                     Parte_Item.Parte.Emoji || "\u2022"
                   );
                   const P_Nom = document.createElement("span");
@@ -108113,8 +108248,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           const Fila = document.createElement("div");
           Fila.className = "Evento_Abordaje_Popup_Item";
           const Sym = document.createElement("span");
-          Sym.className = "Evento_Abordaje_Popup_Sym";
-          Sym.textContent = Item.Emoji || "•";
+          Sym.className =
+            "Evento_Abordaje_Popup_Sym Con_Fallback_Emoji";
+          Aplicar_Emoji_En_Elemento(Sym, Item.Emoji || "\u2022");
           const Txt = document.createElement("span");
           Txt.className = "Evento_Abordaje_Popup_Txt";
           const Val = Item.Valor ? ` · ${Item.Valor}` : "";
@@ -108288,7 +108424,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             "sidebar.habitos_mensuales": "\u{1F5D3}\uFE0F",
             "sidebar.habitos_diarios": "\u2713"
           };
-          Label.textContent = `${Iconos[Clave] || "\u2713"} ${Texto_Label}`;
+          Label.classList.add("Con_Fallback_Emoji");
+          Label.appendChild(
+            Crear_Elemento_Emoji(
+              "span",
+              "Sidebar_Habitos_Label_Icono",
+              Iconos[Clave] || "\u2713"
+            )
+          );
+          Label.appendChild(document.createTextNode(` ${Texto_Label}`));
           const Fila = document.createElement("div");
           Fila.className = "Sidebar_Habitos_Fila";
           const Fecha =
@@ -108596,8 +108740,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             );
             if (Objetivos_Cat.length === 0) return;
             const Header = document.createElement("div");
-            Header.className = "Cat_Header";
-            Header.textContent = `${Cat.Emoji} ${Cat.Nombre}`;
+            Header.className = "Cat_Header Con_Fallback_Emoji";
+            const Header_Emoji = Crear_Elemento_Emoji(
+              "span",
+              "Cat_Header_Emoji",
+              Cat.Emoji || "\u2022"
+            );
+            const Header_Nombre = document.createElement("span");
+            Header_Nombre.textContent = Cat.Nombre || "";
+            Header.appendChild(Header_Emoji);
+            Header.appendChild(Header_Nombre);
             El_Lista_Emojis.appendChild(Header);
             Objetivos_Cat.forEach((Objetivo) => {
               El_Lista_Emojis.appendChild(Crear_Boton_Emoji(Objetivo));
@@ -108949,8 +109101,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Estado.className = "Subobjetivo_Estado Con_Fallback_Emoji";
           Estado.title = Meta.textContent;
           Estado.setAttribute("aria-label", Meta.textContent);
-          Estado.textContent = Planes_Emoji_Estado(
-            Subobjetivo.Hecha ? "Cumplido" : "Activo"
+          Aplicar_Emoji_En_Elemento(
+            Estado,
+            Planes_Emoji_Estado(
+              Subobjetivo.Hecha ? "Cumplido" : "Activo"
+            )
           );
 
           const Acciones = document.createElement("div");
@@ -110361,14 +110516,25 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                 : "•";
           Fila.dataset.estado = Item.Estado || "Abordado";
           const Sym = document.createElement("span");
-          Sym.className = "Evento_Abordaje_Popup_Sym";
-          Sym.textContent = Estado_Sym;
+          Sym.className =
+            "Evento_Abordaje_Popup_Sym Con_Fallback_Emoji";
+          Aplicar_Emoji_En_Elemento(Sym, Estado_Sym);
           const Txt = document.createElement("span");
           Txt.className = "Evento_Abordaje_Popup_Txt";
           const Emoji = (Item.Emoji || "").trim();
-          Txt.textContent = Emoji
-            ? `${Emoji} ${Item.Texto || ""}`
-            : (Item.Texto || "");
+          if (Emoji) {
+            Txt.appendChild(
+              Crear_Elemento_Emoji(
+                "span",
+                "Evento_Abordaje_Popup_Emoji",
+                Emoji
+              )
+            );
+            Txt.appendChild(document.createTextNode(" "));
+          }
+          Txt.appendChild(
+            document.createTextNode(Item.Texto || "")
+          );
           Fila.appendChild(Sym);
           Fila.appendChild(Txt);
           Lista.appendChild(Fila);
@@ -115492,7 +115658,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const El_Emoji = document.createElement("div");
         El_Emoji.className = "Focus_Emoji Con_Fallback_Emoji";
-        El_Emoji.textContent = Emoji;
+        Aplicar_Emoji_En_Elemento(El_Emoji, Emoji);
         Cabecera.appendChild(El_Emoji);
 
         const El_Titulo = document.createElement("div");
@@ -115949,7 +116115,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const Emoji = document.createElement("span");
         Emoji.className = "Focus_Sub_Emoji Con_Fallback_Emoji";
-        Emoji.textContent = Item.Emoji || "\u2022";
+        Aplicar_Emoji_En_Elemento(Emoji, Item.Emoji || "\u2022");
         Fila.appendChild(Emoji);
 
         const Texto = document.createElement("span");
@@ -116062,7 +116228,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
         const El_Emoji = document.createElement("div");
         El_Emoji.className = "Focus_Emoji Con_Fallback_Emoji";
-        El_Emoji.textContent = Emoji;
+        Aplicar_Emoji_En_Elemento(El_Emoji, Emoji);
         Cabecera.appendChild(El_Emoji);
 
         const El_Titulo = document.createElement("div");
@@ -116579,7 +116745,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         } else {
           const Em = document.createElement("div");
           Em.className = "Focus_Sub_Emoji Con_Fallback_Emoji";
-          Em.textContent = Sub.Emoji || "\u2022";
+          Aplicar_Emoji_En_Elemento(Em, Sub.Emoji || "\u2022");
           Fila.appendChild(Em);
 
           const Txt = document.createElement("div");
@@ -117828,8 +117994,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Item.dataset.indice = String(Indice);
 
           const Icono = document.createElement("span");
-          Icono.className = "Paleta_Item_Icono";
-          Icono.textContent = Accion.Icono || "•";
+          Icono.className = "Paleta_Item_Icono Con_Fallback_Emoji";
+          Aplicar_Emoji_En_Elemento(
+            Icono,
+            Accion.Icono || "\u2022"
+          );
 
           const Textos = document.createElement("div");
           Textos.className = "Paleta_Item_Textos";
