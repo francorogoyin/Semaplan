@@ -28,6 +28,10 @@ aumenta la chance de aplicar una regla y olvidar la otra.
   plan o estado, usar `Aplicar_Emoji_En_Elemento()` en lugar de
   `textContent` o `innerHTML` directo. Ese helper usa imagen/fallback y
   evita cuadrados en navegadores con soporte incompleto.
+- Si el icono es un simbolo de interfaz y no un emoji real
+  (`hamburguesa`, engranaje, tres puntos, check, mas, flecha,
+  estrella, etc.), debe renderizarse como SVG inline local desde el
+  helper comun, no como Twemoji remoto ni como texto suelto.
 - Todo campo editable de emoji debe usar `Con_Selector_Emoji`.
 - Esos campos no deben permitir autocomplete, autocorrect,
   sugerencias ni spellcheck del navegador.
