@@ -475,6 +475,27 @@ async ({ page }) => {
       Unidad: "Horas",
       Orden: 1
     });
+    Modelo.Subobjetivos.sub_sin_fecha_parte =
+      Normalizar_Subobjetivo_Plan({
+        Id: "sub_sin_fecha_parte",
+        Objetivo_Id: "obj_plan",
+        Emoji: "P",
+        Texto: "Sin fecha con parte semanal",
+        Target_Total: 5,
+        Unidad: "Horas",
+        Orden: 2
+      });
+    Modelo.Partes.parte_sin_fecha_semana = Normalizar_Parte_Meta({
+      Id: "parte_sin_fecha_semana",
+      Objetivo_Id: "obj_plan",
+      Subobjetivo_Id: "sub_sin_fecha_parte",
+      Nombre: "Parte sin fecha en subobjetivo",
+      Aporte_Total: 2,
+      Unidad: "Horas",
+      Fecha_Inicio: Semana_Seo.Inicio,
+      Fecha_Objetivo: Semana_Seo.Fin,
+      Orden: 0
+    });
     Modelo.Subobjetivos.sub_otra_semana = Normalizar_Subobjetivo_Plan({
       Id: "sub_otra_semana",
       Objetivo_Id: "obj_plan",
@@ -484,7 +505,7 @@ async ({ page }) => {
       Unidad: "Horas",
       Fecha_Inicio: Semana_Otra.Inicio,
       Fecha_Objetivo: Semana_Otra.Fin,
-      Orden: 2
+      Orden: 3
     });
     Abrir_Metas_Sugeridas();
   }, {
@@ -551,6 +572,11 @@ async ({ page }) => {
     })
   ).toHaveCount(0);
   await expect(
+    page.locator(".Metas_Sugeridas_Fila", {
+      hasText: "Sin fecha con parte semanal"
+    })
+  ).toHaveCount(0);
+  await expect(
     page.locator(".Metas_Sugeridas_Fila", { hasText: "Otra semana" })
   ).toHaveCount(0);
   await expect(
@@ -572,7 +598,7 @@ async ({ page }) => {
   expect(Extras_Estilo.acciones).toBe(true);
   expect(Extras_Estilo.background).toBe("rgba(0, 0, 0, 0.06)");
   await page.locator(".Metas_Sugeridas_Extras_Btn").click();
-  await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(3);
+  await expect(page.locator(".Metas_Sugeridas_Fila")).toHaveCount(2);
   expect(await page.locator(
     ".Metas_Sugeridas_Importar_Check:checked"
   ).count()).toBe(0);
@@ -582,7 +608,12 @@ async ({ page }) => {
     page.locator(".Metas_Sugeridas_Fila", {
       hasText: "Sin fecha semanal"
     })
-  ).toHaveCount(1);
+  ).toHaveCount(0);
+  await expect(
+    page.locator(".Metas_Sugeridas_Fila", {
+      hasText: "Sin fecha con parte semanal"
+    })
+  ).toHaveCount(0);
   await expect(
     page.locator(".Metas_Sugeridas_Fila", { hasText: "Otra semana" })
   ).toHaveCount(1);
@@ -606,11 +637,6 @@ async ({ page }) => {
     }),
     expect.objectContaining({
       id: "sub_otra_semana",
-      diario: "0",
-      diarioCorto: false
-    }),
-    expect.objectContaining({
-      id: "sub_sin_fecha",
       diario: "0",
       diarioCorto: false
     })

@@ -484,6 +484,10 @@ Relaciones importantes.
 - Las metas sugeridas arrancan destildadas por defecto. El usuario debe
   marcar explicitamente que filas importar, incluso cuando el sistema ya
   calcule aporte, horas y partes sugeridas.
+- En `Metas sugeridas`, un subobjetivo solo entra al listado si tiene
+  fecha explicita propia y su rango cruza la semana visible. Los
+  subobjetivos sin fecha explicita quedan fuera aunque tengan partes con
+  fecha.
 
 ## Planes semanales
 
