@@ -220,6 +220,11 @@ Notas operativas.
 - Si se toca creacion, edicion, borrado o movimiento de eventos hay
   que revisar efectos colaterales en planes semanales, planes de slot,
   metas y sync.
+- Al copiar o mover bloques entre semanas, el `Objetivo_Id` del evento
+  se remapea a la instancia semanal de destino (misma familia/plantilla
+  cuando existe, o override semanal si falta). Ese remapeo debe gatillar
+  recalculo de vinculos a habitos y redistribucion de aportes de metas
+  para que el computo quede en la semana nueva y no en la de origen.
 - La duracion por defecto de eventos define tambien el paso visible de
   la grilla del calendario. Solo se permiten 15 minutos, 30 minutos y
   1 hora. Al cambiarla, `Duracion_Grilla_Eventos` permite detectar el
@@ -576,6 +581,9 @@ Areas importantes.
 - memoria manual de dias y bloques horarios visibles de la semana
   actual, persistida en `Config_Extra` sin convertirla en default
   automatico global
+- al navegar de semana, los filtros manuales de la semana actual se
+  conservan en su memoria dedicada; los filtros manuales de semanas no
+  actuales son transitorios por semana y no deben pisar esa memoria
 - filtros automaticos
 - vista automatica de horario con tres modos (`Completo`, `Enfocar`
   y `Por bloques`), limitada a la semana actual y siempre por debajo

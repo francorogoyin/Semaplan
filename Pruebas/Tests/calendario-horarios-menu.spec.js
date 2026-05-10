@@ -458,11 +458,64 @@ test("mostrar horario respeta alcance semanal", async ({ page }) => {
   expect(resultado.semanaFuturaManual.hora8).toBe(false);
   expect(resultado.semanaFuturaManual.hora13).toBe(true);
   expect(resultado.semanaActualAlVolver.bloques).toEqual([
-    "Madrugada"
+    "Tarde"
   ]);
-  expect(resultado.semanaActualAlVolver.hora0).toBe(true);
-  expect(resultado.semanaActualAlVolver.hora13).toBe(false);
+  expect(resultado.semanaActualAlVolver.hora0).toBe(false);
+  expect(resultado.semanaActualAlVolver.hora13).toBe(true);
   expect(resultado.config).toEqual(["Madrugada"]);
+});
+
+test("al mover bloque entre semanas se reasigna al objetivo destino", async ({
+  page
+}) => {
+  await preparar(page, crearEstado());
+
+  const resultado = await page.evaluate(() => {
+    const Lunes_Origen = Obtener_Lunes(new Date());
+    const Lunes_Destino = Sumar_Dias(Lunes_Origen, 7);
+    const Fecha_Origen = Formatear_Fecha_ISO(Lunes_Origen);
+    const Fecha_Destino = Formatear_Fecha_ISO(Lunes_Destino);
+    Cambiar_Semana_Actual(Lunes_Origen);
+    const Objetivo_Origen = Crear_Objetivo_Semanal_Con_Datos({
+      Nombre: "Remap semanal",
+      Emoji: "🧪",
+      Horas: 4,
+      Color: "#7a55aa"
+    });
+    const Familia_Id = Obtener_Familia_Objetivo(Objetivo_Origen);
+    const Objetivo_Destino = Obtener_O_Crear_Override_Semanal(
+      Familia_Id,
+      Fecha_Destino,
+      Objetivo_Origen
+    );
+    const Evento = {
+      Id: `Evento_${Contador_Eventos++}`,
+      Objetivo_Id: Objetivo_Origen.Id,
+      Fecha: Fecha_Origen,
+      Inicio: 10,
+      Duracion: 1,
+      Hecho: false,
+      Anulada: false,
+      Color: Objetivo_Origen.Color
+    };
+    Eventos.push(Evento);
+
+    const Objetivo_Resuelto = Reasignar_Evento_A_Objetivo_Semana(
+      Evento,
+      Fecha_Destino
+    );
+
+    return {
+      objetivoOrigenId: Objetivo_Origen.Id,
+      objetivoDestinoId: Objetivo_Destino?.Id || null,
+      objetivoResueltoId: Objetivo_Resuelto?.Id || null,
+      objetivoEventoId: Evento.Objetivo_Id
+    };
+  });
+
+  expect(resultado.objetivoEventoId).not.toBe(resultado.objetivoOrigenId);
+  expect(resultado.objetivoEventoId).toBe(resultado.objetivoDestinoId);
+  expect(resultado.objetivoResueltoId).toBe(resultado.objetivoDestinoId);
 });
 
 test("enfoque automatico alrededor de ahora respeta manual", async ({
