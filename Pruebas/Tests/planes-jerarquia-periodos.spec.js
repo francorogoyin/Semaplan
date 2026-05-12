@@ -775,7 +775,7 @@ async ({ page }) => {
     "5 libros",
     "5",
     "0",
-    "1 h aprox. !"
+    "1 h restantes aprox. !"
   ]);
   expect(Detalle_Unidades.avisoTiempo)
     .toContain("No están todas las unidades hijas");
@@ -783,12 +783,83 @@ async ({ page }) => {
     .not.toContain("Tiempo aprox.");
   expect(Detalle_Unidades.sinTiempoAviso).toBe("");
   expect(Detalle_Unidades.padreTiempoTexto)
-    .toContain("h aprox.");
+    .toContain("restantes aprox.");
   expect(Detalle_Unidades.padreTiempoTexto)
     .not.toContain("!");
   expect(Detalle_Unidades.padreTiempoAviso).toBe("");
   expect(Detalle_Unidades.subPadreTieneTiempo).toBe(true);
   expect(Detalle_Unidades.subPadreIncompleto).toBe(false);
+  expect(errores).toEqual([]);
+});
+
+test("Detalle de objetivo calcula tiempo aprox con restante",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    const Periodo = Planes_Crear_Periodo(
+      Modelo,
+      "Mes",
+      "2026-01-01",
+      "2026-01-31",
+      null,
+      0
+    );
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Periodo.Id, {
+      Nombre: "Tiempo restante",
+      Emoji: "\u23F1\uFE0F",
+      Target_Total: 4,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    const Sub_Id = Planes_Agregar_Subobjetivo(
+      Objetivo.Id,
+      "Lectura parcial"
+    );
+    const Modelo_Actual = Asegurar_Modelo_Planes();
+    const Sub = Modelo_Actual.Subobjetivos[Sub_Id];
+    Object.assign(Sub, {
+      Target_Total: 4,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas",
+      Tiempo_Valor: 30,
+      Tiempo_Modo: "Minutos_Por_Unidad"
+    });
+    const Avance = Normalizar_Avance_Plan({
+      Id: "Avance_Tiempo_Restante",
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Id,
+      Fuente: "Subobjetivo",
+      Cantidad: 1,
+      Unidad: "paginas",
+      Fecha: "2026-01-10",
+      Hora: "10:00"
+    });
+    Modelo_Actual.Avances[Avance.Id] = Avance;
+    Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo_Actual);
+    Planes_Recalcular_Desde(Objetivo);
+    const Total =
+      Planes_Estimar_Tiempo_Objetivo(Objetivo, Modelo_Actual);
+    const Restante =
+      Planes_Estimar_Tiempo_Restante_Objetivo(Objetivo, Modelo_Actual);
+    const Host = document.createElement("div");
+    Host.innerHTML = Render_Planes_Detalle_Objetivo(Objetivo);
+    const Texto = Array.from(Host.querySelectorAll("td"))
+      .pop()?.textContent.replace(/\s+/g, " ").trim() || "";
+    return {
+      Total_Minutos: Number(Total?.Minutos) || 0,
+      Restante_Minutos: Number(Restante?.Minutos) || 0,
+      Texto
+    };
+  });
+
+  expect(Resultado.Total_Minutos).toBe(120);
+  expect(Resultado.Restante_Minutos).toBe(90);
+  expect(Resultado.Texto).toContain("restantes aprox.");
   expect(errores).toEqual([]);
 });
 
