@@ -2455,6 +2455,89 @@ test(
 );
 
 test(
+  "crear y mover un bloque del calendario dispara sync inmediato",
+  async ({ page }) => {
+    const Estado_Remoto = Crear_Estado(["Base remota"]);
+    Estado_Remoto.Objetivos[0].Es_Bolsa = true;
+    Estado_Remoto.Objetivos[0].Sin_Horas_Definidas = true;
+
+    await Preparar_App(page, Estado_Remoto);
+
+    const Resumen = await page.evaluate(async () => {
+      window.__Keepalive_Llamadas = [];
+
+      const Objetivo = Objetivos[0];
+      const Creado = await Crear_Evento_Desde_Objetivo(
+        Objetivo,
+        "2026-04-13",
+        9,
+        1
+      );
+
+      await new Promise((Resolver) => setTimeout(Resolver, 25));
+      const Keepalive_Creacion =
+        window.__Keepalive_Llamadas.length;
+      const Sync_Timer_Creacion =
+        Boolean(Sync_Timer_Id);
+
+      const Evento = Eventos.find((Item) =>
+        Item?.Objetivo_Id === Objetivo.Id &&
+        Item?.Fecha === "2026-04-13" &&
+        Item?.Inicio === 9
+      );
+      if (!Evento) {
+        return {
+          Creado,
+          Keepalive_Creacion,
+          Movio: false,
+          Keepalive_Movimiento: 0,
+          Evento_Id: "",
+          Inicio_Remoto: null
+        };
+      }
+
+      window.__Keepalive_Llamadas = [];
+      const Movio = Mover_Eventos_Multi_Por_Delta(
+        0,
+        1,
+        [Evento.Id]
+      );
+      await new Promise((Resolver) => setTimeout(Resolver, 25));
+
+      return {
+        Creado,
+        Keepalive_Creacion,
+        Sync_Timer_Creacion,
+        Movio,
+        Keepalive_Movimiento:
+          window.__Keepalive_Llamadas.length,
+        Sync_Timer_Movimiento:
+          Boolean(Sync_Timer_Id),
+        Evento_Id: Evento.Id,
+        Inicio_Remoto:
+          window.__Estado_Remoto?.estado?.Eventos
+            ?.find((Item) => Item?.Id === Evento.Id)
+            ?.Inicio ?? null
+      };
+    });
+
+    expect(Resumen.Creado).toBe(true);
+    expect(Resumen.Sync_Timer_Creacion).toBe(false);
+    expect(Resumen.Movio).toBe(true);
+    expect(Resumen.Sync_Timer_Movimiento).toBe(false);
+    expect(Resumen.Evento_Id).toBeTruthy();
+
+    await expect.poll(async () => {
+      return await page.evaluate((Evento_Id) => {
+        return (
+          window.__Estado_Remoto?.estado?.Eventos || []
+        ).find((Item) => Item?.Id === Evento_Id)?.Inicio ?? null;
+      }, Resumen.Evento_Id);
+    }).toBe(10);
+  }
+);
+
+test(
   "preserva baul y archivero si un cliente " +
   "viejo sincroniza sin esas claves",
   async ({ page }) => {

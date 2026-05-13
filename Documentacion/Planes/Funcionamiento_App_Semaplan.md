@@ -117,6 +117,11 @@ El flujo operativo base es este.
 6. `Backend_Sync_Programar()` sube cambios reales casi al toque, con
    una demora minima para mantener un punto unico de ejecucion y sin
    debounce largo.
+6.b Las mutaciones visibles del calendario que crean, mueven,
+   redimensionan o tildan bloques, y las que crean o arrastran slots
+   muertos, usan `Guardar_Estado_Cambio_Critico()` para no quedar
+   atadas al debounce normal y evitar perder los ultimos cambios al
+   reloguear.
 7. `Backend_Sync_Ejecutar()` sube el estado a `estado_usuario`,
    con manejo de versionado, conflictos y reintentos.
 8. La carga inicial ya no registra una `Sesiones_Operativas` propia ni
