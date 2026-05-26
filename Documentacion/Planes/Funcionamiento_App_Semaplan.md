@@ -49,10 +49,12 @@ estructuras persistidas o relaciones importantes entre modulos.
   `user-read-private`; abre el navegador externo y recibe el retorno
   en `/spotify/callback` del servidor local del `.exe`, evitando usar
   `file://` como redirect. Busca albumes, crea una playlist privada
-  por album y guarda el subobjetivo con partes por cancion. last.fm se
-  conecta con API key y usuario, consulta conteos publicos por tema y
-  marca partes/albumes como realizados cuando cada cancion llega al
-  umbral elegido, sin persistir `Escuchas_Lastfm` en Semaplan.
+  por album y guarda el subobjetivo con partes por cancion; si
+  `Melomania` todavia no existe, la crea automaticamente al guardar el
+  primer album. last.fm se conecta con API key y usuario, consulta
+  conteos publicos por tema y marca partes/albumes como realizados
+  cuando cada cancion llega al umbral elegido, sin persistir
+  `Escuchas_Lastfm` en Semaplan.
 - `supabase/functions/*`: Edge Functions remotas para suscripcion,
   ayuda, eliminar cuenta y demas integraciones.
 - `supabase/migrations/*`: cambios de esquema remoto.

@@ -948,12 +948,18 @@ async function Guardar_Album_Seleccionado() {
   if (!Estado.Sesion) throw new Error("Primero conectá Semaplan.");
 
   El.Guardar_Biblioteca.disabled = true;
-  Set_Mensaje("Creando playlist privada y guardando álbum...", "");
+  Set_Mensaje(
+    "Creando Melomanía si falta, playlist privada y álbum...",
+    ""
+  );
   try {
     const Playlist = await Crear_Playlist_Spotify(Album);
     const Fila_Fresca = await Leer_Fila_Semaplan();
+    const Estado_Con_Melomania = Crear_Objetivo_Melomania_En_Estado(
+      Fila_Fresca.estado || {}
+    );
     const Nuevo_Estado = Crear_Album_En_Estado(
-      Fila_Fresca.estado || {},
+      Estado_Con_Melomania,
       Album,
       Playlist
     );
