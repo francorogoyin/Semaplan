@@ -17,6 +17,21 @@ const Criterios_Default = [
   { Nombre: "Originalidad", Peso: 1, Valor: "" },
 ];
 
+const Spotify_Scopes = [
+  "playlist-modify-private",
+  "playlist-read-private",
+  "user-read-private",
+];
+
+const Storage_Keys = {
+  Spotify_Client_Id: "Melomania_Spotify_Client_Id",
+  Spotify_Tokens: "Melomania_Spotify_Tokens",
+  Spotify_Verifier: "Melomania_Spotify_Verifier",
+  Spotify_State: "Melomania_Spotify_State",
+  Lastfm_Config: "Melomania_Lastfm_Config",
+  Umbral_Escuchas: "Melomania_Umbral_Escuchas",
+};
+
 const Estado = {
   Sesion: null,
   Estado_Semaplan: null,
@@ -24,6 +39,18 @@ const Estado = {
   Actualizado_En: null,
   Biblioteca: [],
   Objetivo_Melomania: null,
+  Spotify: {
+    Client_Id: "",
+    Tokens: null,
+    Perfil: null,
+    Resultados: [],
+    Album_Seleccionado: null,
+  },
+  Lastfm: {
+    Api_Key: "",
+    Usuario: "",
+    Conectado: false,
+  },
   Modal: null,
 };
 
@@ -35,6 +62,26 @@ const El = {
   Password: $("#Password"),
   Mensaje_Conexion: $("#Mensaje_Conexion"),
   Estado_Semaplan: $("#Estado_Semaplan"),
+  Estado_Spotify: $("#Estado_Spotify"),
+  Estado_Lastfm: $("#Estado_Lastfm"),
+  Spotify_Client_Id: $("#Spotify_Client_Id"),
+  Spotify_Redirect_Uri: $("#Spotify_Redirect_Uri"),
+  Copiar_Redirect: $("#Copiar_Redirect"),
+  Conectar_Spotify: $("#Conectar_Spotify"),
+  Lastfm_Usuario: $("#Lastfm_Usuario"),
+  Lastfm_Api_Key: $("#Lastfm_Api_Key"),
+  Conectar_Lastfm: $("#Conectar_Lastfm"),
+  Umbral_Escuchas: $("#Umbral_Escuchas"),
+  Actualizar_Escuchas: $("#Actualizar_Escuchas"),
+  Nota_Integraciones: $("#Nota_Integraciones"),
+  Form_Busqueda_Spotify: $("#Form_Busqueda_Spotify"),
+  Busqueda: $("#Busqueda"),
+  Buscar_Spotify: $("#Buscar_Spotify"),
+  Anio_Album: $("#Anio_Album"),
+  Emoji_Album: $("#Emoji_Album"),
+  Guardar_Biblioteca: $("#Guardar_Biblioteca"),
+  Resultados_Spotify: $("#Resultados_Spotify"),
+  Nota_Spotify: $("#Nota_Spotify"),
   Actualizar: $("#Actualizar"),
   Accion_Melomania: $("#Accion_Melomania"),
   Crear_Melomania: $("#Crear_Melomania"),
@@ -61,6 +108,96 @@ function Set_Mensaje(Texto, Tipo = "") {
 function Set_Estado_Semaplan(Texto, Tipo = "") {
   El.Estado_Semaplan.textContent = Texto;
   El.Estado_Semaplan.className = `Chip ${Tipo}`.trim();
+}
+
+function Set_Estado_Spotify(Texto, Tipo = "") {
+  El.Estado_Spotify.textContent = Texto;
+  El.Estado_Spotify.className = `Chip ${Tipo}`.trim();
+}
+
+function Set_Estado_Lastfm(Texto, Tipo = "") {
+  El.Estado_Lastfm.textContent = Texto;
+  El.Estado_Lastfm.className = `Chip ${Tipo}`.trim();
+}
+
+function Redirect_Uri_Spotify() {
+  return `${window.location.origin}${window.location.pathname}`;
+}
+
+function Leer_Local_Json(Clave, Fallback = null) {
+  try {
+    const Raw = localStorage.getItem(Clave);
+    return Raw ? JSON.parse(Raw) : Fallback;
+  } catch {
+    return Fallback;
+  }
+}
+
+function Guardar_Local_Json(Clave, Valor) {
+  localStorage.setItem(Clave, JSON.stringify(Valor));
+}
+
+function Cargar_Config_Local() {
+  Estado.Spotify.Client_Id =
+    localStorage.getItem(Storage_Keys.Spotify_Client_Id) || "";
+  Estado.Spotify.Tokens =
+    Leer_Local_Json(Storage_Keys.Spotify_Tokens, null);
+
+  const Lastfm = Leer_Local_Json(Storage_Keys.Lastfm_Config, {});
+  Estado.Lastfm.Api_Key = Lastfm.Api_Key || "";
+  Estado.Lastfm.Usuario = Lastfm.Usuario || "";
+  Estado.Lastfm.Conectado = Lastfm.Conectado === true;
+
+  El.Spotify_Client_Id.value = Estado.Spotify.Client_Id;
+  El.Spotify_Redirect_Uri.value = Redirect_Uri_Spotify();
+  El.Lastfm_Api_Key.value = Estado.Lastfm.Api_Key;
+  El.Lastfm_Usuario.value = Estado.Lastfm.Usuario;
+  El.Umbral_Escuchas.value =
+    localStorage.getItem(Storage_Keys.Umbral_Escuchas) || "1";
+}
+
+function Guardar_Config_Lastfm() {
+  Estado.Lastfm.Api_Key = El.Lastfm_Api_Key.value.trim();
+  Estado.Lastfm.Usuario = El.Lastfm_Usuario.value.trim();
+  Estado.Lastfm.Conectado = false;
+  Guardar_Local_Json(Storage_Keys.Lastfm_Config, Estado.Lastfm);
+}
+
+function Spotify_Token_Vigente() {
+  const Tokens = Estado.Spotify.Tokens;
+  if (!Tokens?.access_token) return false;
+  return Number(Tokens.expires_at || 0) > Date.now() + 60000;
+}
+
+function Render_Estado_Integraciones() {
+  if (Estado.Spotify.Perfil) {
+    Set_Estado_Spotify("Spotify conectado", "Chip_Activo");
+  } else if (Estado.Spotify.Tokens?.access_token) {
+    Set_Estado_Spotify("Spotify con token", "Chip_Pendiente");
+  } else {
+    Set_Estado_Spotify("Spotify pendiente", "Chip_Pendiente");
+  }
+
+  if (Estado.Lastfm.Conectado) {
+    Set_Estado_Lastfm("last.fm conectado", "Chip_Activo");
+  } else if (Estado.Lastfm.Api_Key && Estado.Lastfm.Usuario) {
+    Set_Estado_Lastfm("last.fm configurado", "Chip_Pendiente");
+  } else {
+    Set_Estado_Lastfm("last.fm pendiente", "Chip_Pendiente");
+  }
+
+  const Spotify_Listo = Boolean(Estado.Spotify.Tokens?.access_token);
+  const Lastfm_Listo = Boolean(
+    Estado.Lastfm.Api_Key && Estado.Lastfm.Usuario
+  );
+  El.Busqueda.disabled = !Spotify_Listo;
+  El.Buscar_Spotify.disabled = !Spotify_Listo;
+  El.Anio_Album.disabled = !Spotify_Listo;
+  El.Emoji_Album.disabled = !Spotify_Listo;
+  El.Guardar_Biblioteca.disabled =
+    !Spotify_Listo || !Estado.Spotify.Album_Seleccionado;
+  El.Actualizar_Escuchas.disabled =
+    !Lastfm_Listo || !Estado.Sesion || !Estado.Biblioteca.length;
 }
 
 function Cabeceras_Supabase(Token = "") {
@@ -93,6 +230,40 @@ async function Fetch_Json(Url, Opciones = {}) {
   }
   if (Respuesta.status === 204) return null;
   return Respuesta.json();
+}
+
+function Random_String(Longitud = 64) {
+  const Posibles =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const Valores = crypto.getRandomValues(new Uint8Array(Longitud));
+  return Array.from(Valores)
+    .map((Valor) => Posibles[Valor % Posibles.length])
+    .join("");
+}
+
+async function Sha256(Texto) {
+  const Datos = new TextEncoder().encode(Texto);
+  return crypto.subtle.digest("SHA-256", Datos);
+}
+
+function Base64_Url(Buffer) {
+  return btoa(String.fromCharCode(...new Uint8Array(Buffer)))
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
+async function Code_Challenge(Verifier) {
+  return Base64_Url(await Sha256(Verifier));
+}
+
+function Params_Query(Objeto) {
+  const Params = new URLSearchParams();
+  Object.entries(Objeto).forEach(([Clave, Valor]) => {
+    if (Valor === undefined || Valor === null || Valor === "") return;
+    Params.set(Clave, String(Valor));
+  });
+  return Params;
 }
 
 function Normalizar_Texto(Valor) {
@@ -299,6 +470,543 @@ function Crear_Objetivo_Melomania_En_Estado(Estado_Base) {
   return Nuevo_Estado;
 }
 
+function Es_Sigla(Palabra) {
+  return /^[A-Z0-9]{2,5}$/.test(Palabra);
+}
+
+function Capitalizar_Oracion(Texto) {
+  const Limpio = String(Texto || "").trim();
+  if (!Limpio) return "";
+  const Palabras = Limpio.split(/\s+/);
+  return Palabras.map((Palabra, Indice) => {
+    if (Es_Sigla(Palabra)) return Palabra;
+    const Baja = Palabra.toLocaleLowerCase("es-AR");
+    if (Indice === 0) {
+      return Baja.charAt(0).toLocaleUpperCase("es-AR") + Baja.slice(1);
+    }
+    return Baja;
+  }).join(" ");
+}
+
+function Nombre_Playlist(Album) {
+  const Artista = Album.artists?.[0]?.name || "Artista";
+  const Anio = Anio_Album_Spotify(Album);
+  return `${Artista}. ${Capitalizar_Oracion(Album.name)} (${Anio})`;
+}
+
+function Anio_Album_Spotify(Album) {
+  return String(Album.release_date || "").slice(0, 4) ||
+    String(new Date().getFullYear());
+}
+
+function Imagen_Album(Album) {
+  const Imagenes = Array.isArray(Album.images) ? Album.images : [];
+  return Imagenes[Imagenes.length - 1]?.url ||
+    Imagenes[0]?.url ||
+    "";
+}
+
+function Duracion_Minutos(Track) {
+  return Math.round((Number(Track.duration_ms) || 0) / 600) / 100;
+}
+
+async function Iniciar_OAuth_Spotify() {
+  const Client_Id = El.Spotify_Client_Id.value.trim();
+  if (!Client_Id) {
+    throw new Error("Pegá el Spotify Client ID.");
+  }
+
+  Estado.Spotify.Client_Id = Client_Id;
+  localStorage.setItem(Storage_Keys.Spotify_Client_Id, Client_Id);
+
+  const Verifier = Random_String(64);
+  const State = Random_String(32);
+  localStorage.setItem(Storage_Keys.Spotify_Verifier, Verifier);
+  localStorage.setItem(Storage_Keys.Spotify_State, State);
+
+  const Params = Params_Query({
+    client_id: Client_Id,
+    response_type: "code",
+    redirect_uri: Redirect_Uri_Spotify(),
+    scope: Spotify_Scopes.join(" "),
+    state: State,
+    code_challenge_method: "S256",
+    code_challenge: await Code_Challenge(Verifier),
+  });
+
+  window.location.href =
+    `https://accounts.spotify.com/authorize?${Params.toString()}`;
+}
+
+async function Canjear_Codigo_Spotify(Code) {
+  const Client_Id = localStorage.getItem(Storage_Keys.Spotify_Client_Id);
+  const Verifier = localStorage.getItem(Storage_Keys.Spotify_Verifier);
+  if (!Client_Id || !Verifier) {
+    throw new Error("Falta el verificador local de Spotify.");
+  }
+
+  const Datos = await Fetch_Json(
+    "https://accounts.spotify.com/api/token",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: Params_Query({
+        client_id: Client_Id,
+        grant_type: "authorization_code",
+        code: Code,
+        redirect_uri: Redirect_Uri_Spotify(),
+        code_verifier: Verifier,
+      }).toString(),
+    }
+  );
+
+  Estado.Spotify.Client_Id = Client_Id;
+  Estado.Spotify.Tokens = {
+    ...Datos,
+    expires_at: Date.now() + (Number(Datos.expires_in) || 3600) * 1000,
+  };
+  Guardar_Local_Json(Storage_Keys.Spotify_Tokens, Estado.Spotify.Tokens);
+  localStorage.removeItem(Storage_Keys.Spotify_Verifier);
+  localStorage.removeItem(Storage_Keys.Spotify_State);
+  await Cargar_Perfil_Spotify();
+}
+
+async function Refrescar_Spotify() {
+  const Tokens = Estado.Spotify.Tokens;
+  const Client_Id = Estado.Spotify.Client_Id ||
+    localStorage.getItem(Storage_Keys.Spotify_Client_Id);
+  if (!Tokens?.refresh_token || !Client_Id) {
+    throw new Error("Spotify requiere reconexión.");
+  }
+
+  const Datos = await Fetch_Json(
+    "https://accounts.spotify.com/api/token",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: Params_Query({
+        grant_type: "refresh_token",
+        refresh_token: Tokens.refresh_token,
+        client_id: Client_Id,
+      }).toString(),
+    }
+  );
+
+  Estado.Spotify.Tokens = {
+    ...Tokens,
+    ...Datos,
+    refresh_token: Datos.refresh_token || Tokens.refresh_token,
+    expires_at: Date.now() + (Number(Datos.expires_in) || 3600) * 1000,
+  };
+  Guardar_Local_Json(Storage_Keys.Spotify_Tokens, Estado.Spotify.Tokens);
+}
+
+async function Spotify_Fetch(Path, Opciones = {}) {
+  if (!Spotify_Token_Vigente()) {
+    await Refrescar_Spotify();
+  }
+  const Url = Path.startsWith("https://")
+    ? Path
+    : `https://api.spotify.com/v1${Path}`;
+  const Cabeceras = {
+    ...(Opciones.headers || {}),
+    Authorization: `Bearer ${Estado.Spotify.Tokens.access_token}`,
+  };
+  if (Opciones.body) {
+    Cabeceras["Content-Type"] = "application/json";
+  }
+  return Fetch_Json(Url, {
+    ...Opciones,
+    headers: Cabeceras,
+  });
+}
+
+async function Cargar_Perfil_Spotify() {
+  if (!Estado.Spotify.Tokens?.access_token) return;
+  try {
+    Estado.Spotify.Perfil = await Spotify_Fetch("/me");
+    Set_Estado_Spotify("Spotify conectado", "Chip_Activo");
+  } catch (Error) {
+    Estado.Spotify.Perfil = null;
+    Set_Estado_Spotify("Spotify con error", "Chip_Error");
+    throw Error;
+  } finally {
+    Render_Estado_Integraciones();
+  }
+}
+
+async function Procesar_Retorno_Spotify() {
+  const Url = new URL(window.location.href);
+  const Code = Url.searchParams.get("code");
+  const Error_Spotify = Url.searchParams.get("error");
+  const State = Url.searchParams.get("state");
+  if (!Code && !Error_Spotify) return;
+
+  window.history.replaceState({}, "", Redirect_Uri_Spotify());
+
+  if (Error_Spotify) {
+    throw new Error(`Spotify rechazó la conexión: ${Error_Spotify}`);
+  }
+
+  const State_Local = localStorage.getItem(Storage_Keys.Spotify_State);
+  if (!State_Local || State_Local !== State) {
+    throw new Error("La respuesta de Spotify no coincide con la sesión.");
+  }
+
+  await Canjear_Codigo_Spotify(Code);
+  Set_Mensaje("Spotify conectado.", "Ok");
+}
+
+async function Buscar_Albumes_Spotify(Query) {
+  const Datos = await Spotify_Fetch(
+    `/search?${Params_Query({
+      q: Query,
+      type: "album",
+      limit: 8,
+    }).toString()}`
+  );
+  Estado.Spotify.Resultados = Datos.albums?.items || [];
+  Render_Resultados_Spotify();
+}
+
+async function Seleccionar_Album_Spotify(Album_Parcial) {
+  const Album = await Spotify_Fetch(`/albums/${Album_Parcial.id}`);
+  Estado.Spotify.Album_Seleccionado = Album;
+  El.Anio_Album.value = Anio_Album_Spotify(Album);
+  El.Emoji_Album.value = El.Emoji_Album.value || "🎧";
+  El.Nota_Spotify.textContent =
+    `${Album.artists?.[0]?.name || "Artista"} / ` +
+    `${Album.name} / ${Album.tracks?.items?.length || 0} canciones.`;
+  Render_Resultados_Spotify();
+  Render_Estado_Integraciones();
+}
+
+function Render_Resultados_Spotify() {
+  El.Resultados_Spotify.innerHTML = "";
+  Estado.Spotify.Resultados.forEach((Album) => {
+    const Boton = document.createElement("button");
+    Boton.className = "Resultado_Spotify";
+    if (Estado.Spotify.Album_Seleccionado?.id === Album.id) {
+      Boton.classList.add("Activo");
+    }
+    Boton.type = "button";
+    Boton.addEventListener("click", () => {
+      Seleccionar_Album_Spotify(Album).catch((Error) => {
+        Set_Mensaje(Error.message || String(Error), "Error");
+      });
+    });
+
+    const Imagen = document.createElement("img");
+    Imagen.alt = "";
+    Imagen.src = Imagen_Album(Album);
+
+    const Info = document.createElement("div");
+    Info.className = "Resultado_Spotify_Info";
+    const Titulo = document.createElement("strong");
+    Titulo.textContent = Album.name;
+    const Meta = document.createElement("span");
+    Meta.textContent = [
+      Album.artists?.map((Artista) => Artista.name).join(", "),
+      Anio_Album_Spotify(Album),
+      `${Album.total_tracks || 0} canciones`,
+    ].filter(Boolean).join(" / ");
+    Info.append(Titulo, Meta);
+    Boton.append(Imagen, Info);
+    El.Resultados_Spotify.appendChild(Boton);
+  });
+}
+
+async function Crear_Playlist_Spotify(Album) {
+  const Perfil = Estado.Spotify.Perfil || await Spotify_Fetch("/me");
+  Estado.Spotify.Perfil = Perfil;
+  const Nombre = Nombre_Playlist({
+    ...Album,
+    release_date: El.Anio_Album.value || Album.release_date,
+  });
+  const Playlist = await Spotify_Fetch(
+    `/users/${encodeURIComponent(Perfil.id)}/playlists`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        name: Nombre,
+        public: false,
+        description: "Playlist privada creada desde Semaplan Melomanía.",
+      }),
+    }
+  );
+  const Uris = (Album.tracks?.items || [])
+    .map((Track) => Track.uri)
+    .filter(Boolean);
+  for (let I = 0; I < Uris.length; I += 100) {
+    await Spotify_Fetch(`/playlists/${Playlist.id}/tracks`, {
+      method: "POST",
+      body: JSON.stringify({ uris: Uris.slice(I, I + 100) }),
+    });
+  }
+  return Playlist;
+}
+
+function Crear_Album_En_Estado(Estado_Base, Album, Playlist) {
+  const Nuevo_Estado = Clonar(Estado_Base);
+  const Modelo = Asegurar_Modelo_Base(Nuevo_Estado);
+  const Objetivo = Buscar_Objetivo_Melomania(Modelo);
+  if (!Objetivo) {
+    throw new Error("Primero creá Melomanía en Semaplan.");
+  }
+  const Duplicado = Object.values(Modelo.Subobjetivos || {})
+    .some((Sub) => {
+      return Sub &&
+        typeof Sub === "object" &&
+        Leer_Metadato(Sub.Metadatos, ["Spotify"]) === Album.id &&
+        !Sub.Eliminado_Local;
+    });
+  if (Duplicado) {
+    throw new Error("Ese álbum ya está guardado en Melomanía.");
+  }
+
+  const Ahora = new Date().toISOString();
+  const Sub_Id = Crear_Id("Plan_Sub");
+  const Emoji = El.Emoji_Album.value.trim() || "🎧";
+  const Tracks = Album.tracks?.items || [];
+  const Total_Minutos = Tracks.reduce(
+    (Total, Track) => Total + Duracion_Minutos(Track),
+    0
+  );
+  const Orden = Object.values(Modelo.Subobjetivos || {})
+    .filter((Sub) => {
+      return Sub &&
+        typeof Sub === "object" &&
+        Sub.Objetivo_Id === Objetivo.Id &&
+        !Sub.Eliminado_Local;
+    }).length;
+
+  Modelo.Subobjetivos[Sub_Id] = {
+    Id: Sub_Id,
+    Objetivo_Id: Objetivo.Id,
+    Parent_Subobjetivo_Id: null,
+    Subobjetivo_Padre_Id: "",
+    Emoji,
+    Texto: Capitalizar_Oracion(Album.name),
+    Target_Total: Math.round(Total_Minutos * 100) / 100,
+    Target_Suma_Componentes: true,
+    Aporte_Meta: 1,
+    Unidad: "Minutos",
+    Unidad_Custom: "",
+    Tiempo_Valor: 1,
+    Tiempo_Modo: "Minutos_Por_Unidad",
+    Progreso_Manual: 0,
+    Progreso_Avances: 0,
+    Fecha_Objetivo: "",
+    Fecha_Inicio: Fecha_ISO(new Date()),
+    Fecha_Fin: "",
+    Hora_Fin: "",
+    Metadatos: {
+      Artista: Album.artists?.[0]?.name || "",
+      "Año": El.Anio_Album.value.trim() || Anio_Album_Spotify(Album),
+      "Género": (Album.genres || []).join(", "),
+      Spotify: Album.id,
+      Playlist: Playlist.id,
+    },
+    Estado: "Activo",
+    Hecha: false,
+    Importado: true,
+    Habitos_Vinculos: [],
+    Habitos_Vinculos_Hijos_Default: [],
+    Eliminado_Local: false,
+    Orden,
+  };
+
+  Tracks.forEach((Track, Indice) => {
+    const Parte_Id = Crear_Id("Plan_Parte");
+    Modelo.Partes[Parte_Id] = {
+      Id: Parte_Id,
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Id,
+      Emoji,
+      Nombre: Capitalizar_Oracion(Track.name),
+      Aporte_Total: Duracion_Minutos(Track),
+      Unidad: "Minutos",
+      Unidad_Custom: "",
+      Tiempo_Valor: 1,
+      Tiempo_Modo: "Minutos_Por_Unidad",
+      Progreso_Avances: 0,
+      Progreso_Total: 0,
+      Fecha_Inicio: "",
+      Fecha_Objetivo: "",
+      Fecha_Fin: "",
+      Hora_Fin: "",
+      Estado: "Pendiente",
+      Habitos_Vinculos: [],
+      Orden: Indice,
+      Eliminado_Local: false,
+      Creado_En: Ahora,
+      Actualizado_En: Ahora,
+    };
+  });
+
+  Nuevo_Estado.Sync_Datos_Marca_Ms = Date.now();
+  return Nuevo_Estado;
+}
+
+async function Guardar_Album_Seleccionado() {
+  const Album = Estado.Spotify.Album_Seleccionado;
+  if (!Album) throw new Error("Seleccioná un álbum de Spotify.");
+  if (!Estado.Sesion) throw new Error("Primero conectá Semaplan.");
+
+  El.Guardar_Biblioteca.disabled = true;
+  Set_Mensaje("Creando playlist privada y guardando álbum...", "");
+  try {
+    const Playlist = await Crear_Playlist_Spotify(Album);
+    const Fila_Fresca = await Leer_Fila_Semaplan();
+    const Nuevo_Estado = Crear_Album_En_Estado(
+      Fila_Fresca.estado || {},
+      Album,
+      Playlist
+    );
+    await Guardar_Estado_Remoto(
+      Nuevo_Estado,
+      Number(Fila_Fresca.version) || 1
+    );
+    await Cargar_Estado_Semaplan();
+    Set_Mensaje("Álbum guardado y playlist creada.", "Ok");
+  } finally {
+    Render_Estado_Integraciones();
+  }
+}
+
+async function Lastfm_Fetch(Parametros) {
+  const Params = Params_Query({
+    ...Parametros,
+    api_key: Estado.Lastfm.Api_Key,
+    format: "json",
+  });
+  return Fetch_Json(`https://ws.audioscrobbler.com/2.0/?${Params}`);
+}
+
+async function Conectar_Lastfm() {
+  Guardar_Config_Lastfm();
+  if (!Estado.Lastfm.Api_Key || !Estado.Lastfm.Usuario) {
+    throw new Error("Completá usuario y API key de last.fm.");
+  }
+  const Datos = await Lastfm_Fetch({
+    method: "user.getrecenttracks",
+    user: Estado.Lastfm.Usuario,
+    limit: 1,
+  });
+  if (Datos.error) {
+    throw new Error(Datos.message || "last.fm rechazó la conexión.");
+  }
+  Estado.Lastfm.Conectado = true;
+  Guardar_Local_Json(Storage_Keys.Lastfm_Config, Estado.Lastfm);
+  Set_Estado_Lastfm("last.fm conectado", "Chip_Activo");
+  Render_Estado_Integraciones();
+  Set_Mensaje("last.fm conectado.", "Ok");
+}
+
+async function Conteo_Tema_Lastfm(Artista, Tema) {
+  const Datos = await Lastfm_Fetch({
+    method: "track.getInfo",
+    artist: Artista,
+    track: Tema,
+    username: Estado.Lastfm.Usuario,
+    autocorrect: 1,
+  });
+  const Conteo = Number(Datos.track?.userplaycount);
+  return Number.isFinite(Conteo) ? Conteo : 0;
+}
+
+function Aplicar_Escuchas_En_Estado(Estado_Base, Resultados, Umbral) {
+  const Nuevo_Estado = Clonar(Estado_Base);
+  const Modelo = Asegurar_Modelo_Base(Nuevo_Estado);
+  let Cambios = 0;
+
+  Resultados.forEach((Resultado) => {
+    const Sub = Modelo.Subobjetivos?.[Resultado.Album_Id];
+    if (!Sub) return;
+    let Todas = true;
+    Resultado.Canciones.forEach((Cancion) => {
+      const Parte = Modelo.Partes?.[Cancion.Parte_Id];
+      if (!Parte) return;
+      const Realizada = Cancion.Conteo >= Umbral;
+      Todas = Todas && Realizada;
+      const Estado_Nuevo = Realizada ? "Realizada" : "Pendiente";
+      if (Parte.Estado !== Estado_Nuevo) {
+        Parte.Estado = Estado_Nuevo;
+        Parte.Actualizado_En = new Date().toISOString();
+        Cambios += 1;
+      }
+    });
+    const Sub_Estado = Todas ? "Cumplido" : "Activo";
+    if (Sub.Estado !== Sub_Estado || Sub.Hecha !== Todas) {
+      Sub.Estado = Sub_Estado;
+      Sub.Hecha = Todas;
+      Cambios += 1;
+    }
+  });
+
+  if (Cambios > 0) {
+    Nuevo_Estado.Sync_Datos_Marca_Ms = Date.now();
+  }
+  return { Estado: Nuevo_Estado, Cambios };
+}
+
+async function Actualizar_Escuchas_Lastfm() {
+  if (!Estado.Sesion) throw new Error("Primero conectá Semaplan.");
+  Guardar_Config_Lastfm();
+  const Umbral = Math.max(1, Math.floor(Number(El.Umbral_Escuchas.value)));
+  localStorage.setItem(Storage_Keys.Umbral_Escuchas, String(Umbral));
+  if (!Estado.Lastfm.Api_Key || !Estado.Lastfm.Usuario) {
+    throw new Error("Conectá last.fm antes de actualizar escuchas.");
+  }
+
+  El.Actualizar_Escuchas.disabled = true;
+  Set_Mensaje("Leyendo conteos de last.fm...", "");
+  try {
+    const Resultados = [];
+    for (const Album of Estado.Biblioteca) {
+      const Canciones = [];
+      for (const Cancion of Album.Canciones) {
+        const Conteo = await Conteo_Tema_Lastfm(
+          Album.Artista,
+          Cancion.Nombre
+        );
+        Canciones.push({
+          Parte_Id: Cancion.Id,
+          Conteo,
+        });
+      }
+      Resultados.push({
+        Album_Id: Album.Id,
+        Canciones,
+      });
+    }
+
+    const Fila_Fresca = await Leer_Fila_Semaplan();
+    const Aplicado = Aplicar_Escuchas_En_Estado(
+      Fila_Fresca.estado || {},
+      Resultados,
+      Umbral
+    );
+    if (Aplicado.Cambios > 0) {
+      await Guardar_Estado_Remoto(
+        Aplicado.Estado,
+        Number(Fila_Fresca.version) || 1
+      );
+    }
+    await Cargar_Estado_Semaplan();
+    Set_Mensaje(
+      `Escuchas actualizadas. Cambios en Semaplan: ${Aplicado.Cambios}.`,
+      "Ok"
+    );
+  } finally {
+    Render_Estado_Integraciones();
+  }
+}
+
 async function Autenticar_Semaplan(Email, Password) {
   const Url = `${Config_Semaplan.Url}/auth/v1/token` +
     "?grant_type=password";
@@ -499,6 +1207,7 @@ function Render_Biblioteca() {
       "No encontré un objetivo de Planes llamado Melomanía.";
     El.Lista_Albumes.appendChild(Vacio);
     El.Accion_Melomania.hidden = !Estado.Sesion;
+    Render_Estado_Integraciones();
     return;
   }
 
@@ -508,6 +1217,7 @@ function Render_Biblioteca() {
     Vacio.textContent =
       "Melomanía existe, pero no tiene álbumes cargados.";
     El.Lista_Albumes.appendChild(Vacio);
+    Render_Estado_Integraciones();
     return;
   }
 
@@ -534,6 +1244,7 @@ function Render_Biblioteca() {
     Boton.append(Nombre, Artista, Anio, Puntuacion);
     El.Lista_Albumes.appendChild(Boton);
   });
+  Render_Estado_Integraciones();
 }
 
 function Detalle_Base(Album) {
@@ -941,6 +1652,77 @@ El.Form_Conexion.addEventListener("submit", async (Evento) => {
   }
 });
 
+El.Spotify_Client_Id.addEventListener("input", () => {
+  Estado.Spotify.Client_Id = El.Spotify_Client_Id.value.trim();
+  localStorage.setItem(
+    Storage_Keys.Spotify_Client_Id,
+    Estado.Spotify.Client_Id
+  );
+});
+
+El.Copiar_Redirect.addEventListener("click", async () => {
+  await navigator.clipboard.writeText(El.Spotify_Redirect_Uri.value);
+  Set_Mensaje("Redirect URI copiado.", "Ok");
+});
+
+El.Conectar_Spotify.addEventListener("click", async () => {
+  try {
+    await Iniciar_OAuth_Spotify();
+  } catch (Error) {
+    Set_Mensaje(Error.message || String(Error), "Error");
+  }
+});
+
+El.Form_Busqueda_Spotify.addEventListener("submit", async (Evento) => {
+  Evento.preventDefault();
+  const Query = El.Busqueda.value.trim();
+  if (!Query) return;
+  El.Buscar_Spotify.disabled = true;
+  Set_Mensaje("Buscando álbumes en Spotify...", "");
+  try {
+    await Buscar_Albumes_Spotify(Query);
+    Set_Mensaje("Resultados de Spotify actualizados.", "Ok");
+  } catch (Error) {
+    Set_Mensaje(Error.message || String(Error), "Error");
+  } finally {
+    Render_Estado_Integraciones();
+  }
+});
+
+El.Guardar_Biblioteca.addEventListener("click", async () => {
+  try {
+    await Guardar_Album_Seleccionado();
+  } catch (Error) {
+    Set_Mensaje(Error.message || String(Error), "Error");
+    Render_Estado_Integraciones();
+  }
+});
+
+El.Conectar_Lastfm.addEventListener("click", async () => {
+  try {
+    await Conectar_Lastfm();
+  } catch (Error) {
+    Set_Estado_Lastfm("last.fm con error", "Chip_Error");
+    Set_Mensaje(Error.message || String(Error), "Error");
+  }
+});
+
+El.Lastfm_Usuario.addEventListener("input", Guardar_Config_Lastfm);
+El.Lastfm_Api_Key.addEventListener("input", Guardar_Config_Lastfm);
+El.Umbral_Escuchas.addEventListener("input", () => {
+  const Valor = Math.max(1, Math.floor(Number(El.Umbral_Escuchas.value)));
+  localStorage.setItem(Storage_Keys.Umbral_Escuchas, String(Valor));
+});
+
+El.Actualizar_Escuchas.addEventListener("click", async () => {
+  try {
+    await Actualizar_Escuchas_Lastfm();
+  } catch (Error) {
+    Set_Mensaje(Error.message || String(Error), "Error");
+    Render_Estado_Integraciones();
+  }
+});
+
 El.Actualizar.addEventListener("click", async () => {
   Set_Mensaje("Actualizando biblioteca desde Semaplan...", "");
   try {
@@ -994,4 +1776,21 @@ El.Crear_Melomania.addEventListener("click", async () => {
   }
 });
 
-Render_Biblioteca();
+async function Inicializar_App() {
+  Cargar_Config_Local();
+  Render_Biblioteca();
+  Render_Estado_Integraciones();
+  try {
+    await Procesar_Retorno_Spotify();
+    if (Estado.Spotify.Tokens?.access_token && !Estado.Spotify.Perfil) {
+      await Cargar_Perfil_Spotify();
+    }
+  } catch (Error) {
+    Set_Estado_Spotify("Spotify con error", "Chip_Error");
+    Set_Mensaje(Error.message || String(Error), "Error");
+  } finally {
+    Render_Estado_Integraciones();
+  }
+}
+
+Inicializar_App();

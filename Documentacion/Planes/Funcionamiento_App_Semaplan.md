@@ -44,8 +44,13 @@ estructuras persistidas o relaciones importantes entre modulos.
   de produccion, lee `Planes_Periodo`, lista albumes cargados como
   subobjetivos del objetivo `Melomania`, permite crear ese objetivo
   base si no existe y fija o borra la metrica `Puntuacion` del album
-  dentro de los metadatos del subobjetivo. Spotify y last.fm quedan
-  preparados como placeholders hasta conectar sus OAuth/API.
+  dentro de los metadatos del subobjetivo. Spotify se conecta por
+  OAuth PKCE con `playlist-modify-private`, `playlist-read-private` y
+  `user-read-private`; busca albumes, crea una playlist privada por
+  album y guarda el subobjetivo con partes por cancion. last.fm se
+  conecta con API key y usuario, consulta conteos publicos por tema y
+  marca partes/albumes como realizados cuando cada cancion llega al
+  umbral elegido, sin persistir `Escuchas_Lastfm` en Semaplan.
 - `supabase/functions/*`: Edge Functions remotas para suscripcion,
   ayuda, eliminar cuenta y demas integraciones.
 - `supabase/migrations/*`: cambios de esquema remoto.

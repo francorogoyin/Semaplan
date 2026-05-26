@@ -21,6 +21,15 @@ const Ruta_Icono = Path.join(
 let Url_App = "";
 let Servidor_Local = null;
 
+function Es_Url_Autorizacion(Url_Destino) {
+  try {
+    const Destino = new URL(Url_Destino);
+    return Destino.origin === "https://accounts.spotify.com";
+  } catch {
+    return false;
+  }
+}
+
 function Es_Url_Local(Url_Destino) {
   if (!Url_App) return false;
 
@@ -35,7 +44,7 @@ function Es_Url_Local(Url_Destino) {
 
 function Configurar_Navegacion(Ventana) {
   Ventana.webContents.setWindowOpenHandler(({ url }) => {
-    if (Es_Url_Local(url)) {
+    if (Es_Url_Local(url) || Es_Url_Autorizacion(url)) {
       return { action: "allow" };
     }
 
@@ -47,6 +56,7 @@ function Configurar_Navegacion(Ventana) {
     "will-navigate",
     (Evento, url) => {
       if (Es_Url_Local(url)) return;
+      if (Es_Url_Autorizacion(url)) return;
       Evento.preventDefault();
       shell.openExternal(url);
     }
