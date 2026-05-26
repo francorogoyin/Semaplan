@@ -39,6 +39,13 @@ estructuras persistidas o relaciones importantes entre modulos.
 - `Herramientas/Scripts/semaplan-ai-mcp-server.js`: puente MCP local
   por `stdio` que expone herramientas para Claude y las reenvia al
   gateway `semaplan-ai`, sin leer Supabase directo.
+- `Aplicaciones/Desktop/Melomania`: app Electron personal para la
+  meta musical `Melomania`. Conecta con Semaplan usando Supabase Auth
+  de produccion, lee `Planes_Periodo`, lista albumes cargados como
+  subobjetivos del objetivo `Melomania`, permite crear ese objetivo
+  base si no existe y fija o borra la metrica `Puntuacion` del album
+  dentro de los metadatos del subobjetivo. Spotify y last.fm quedan
+  preparados como placeholders hasta conectar sus OAuth/API.
 - `supabase/functions/*`: Edge Functions remotas para suscripcion,
   ayuda, eliminar cuenta y demas integraciones.
 - `supabase/migrations/*`: cambios de esquema remoto.

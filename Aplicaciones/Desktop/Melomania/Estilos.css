@@ -1,0 +1,572 @@
+:root {
+  --Fondo: #f5f2ea;
+  --Panel: #fffaf0;
+  --Panel_Seco: #f0eadf;
+  --Texto: #221f1a;
+  --Texto_Suave: #675f52;
+  --Borde: #d8cdbb;
+  --Linea: #ebe1d1;
+  --Verde: #267a55;
+  --Verde_Fondo: #e5f4eb;
+  --Ambar: #9a6400;
+  --Ambar_Fondo: #fff1cf;
+  --Rojo: #9d3b35;
+  --Rojo_Fondo: #fae7e4;
+  --Tinta: #2d4d5c;
+  --Tinta_Fondo: #e6f1f3;
+  --Sombra: 0 16px 42px rgba(34, 31, 26, 0.1);
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    linear-gradient(135deg, rgba(38, 122, 85, 0.08), transparent 35%),
+    radial-gradient(circle at 90% 10%, rgba(154, 100, 0, 0.12), transparent 28%),
+    var(--Fondo);
+  color: var(--Texto);
+  font-family:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.App {
+  display: grid;
+  gap: 18px;
+  margin: 0 auto;
+  max-width: 1280px;
+  padding: 22px;
+}
+
+.Panel {
+  background: rgba(255, 250, 240, 0.92);
+  border: 1px solid var(--Borde);
+  border-radius: 8px;
+  box-shadow: var(--Sombra);
+}
+
+.Conexion {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+}
+
+.Cabecera,
+.Biblioteca_Cabecera,
+.Modal_Cabecera {
+  align-items: start;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.Etiqueta {
+  color: var(--Texto_Suave);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin: 0 0 5px;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: 0;
+  line-height: 1.08;
+  margin: 0;
+}
+
+h1 {
+  font-family:
+    "Georgia",
+    "Times New Roman",
+    serif;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 1.12rem;
+}
+
+h3 {
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+.Estado_Grupo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: end;
+}
+
+.Chip {
+  align-items: center;
+  background: var(--Panel_Seco);
+  border: 1px solid var(--Borde);
+  border-radius: 999px;
+  color: var(--Texto_Suave);
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-height: 30px;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.Chip_Activo {
+  background: var(--Verde_Fondo);
+  border-color: rgba(38, 122, 85, 0.28);
+  color: var(--Verde);
+}
+
+.Chip_Error {
+  background: var(--Rojo_Fondo);
+  border-color: rgba(157, 59, 53, 0.28);
+  color: var(--Rojo);
+}
+
+.Chip_Pendiente {
+  background: var(--Ambar_Fondo);
+  border-color: rgba(154, 100, 0, 0.26);
+  color: var(--Ambar);
+}
+
+.Formulario_Conexion {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(240px, 1fr) minmax(200px, 0.8fr) auto;
+}
+
+label {
+  color: var(--Texto_Suave);
+  display: grid;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 7px;
+}
+
+input {
+  background: #fffdf8;
+  border: 1px solid var(--Borde);
+  border-radius: 6px;
+  color: var(--Texto);
+  min-height: 40px;
+  outline: none;
+  padding: 9px 10px;
+  width: 100%;
+}
+
+input:focus {
+  border-color: rgba(45, 77, 92, 0.72);
+  box-shadow: 0 0 0 3px rgba(45, 77, 92, 0.14);
+}
+
+.Boton {
+  align-items: center;
+  background: #fffdf8;
+  border: 1px solid var(--Borde);
+  border-radius: 6px;
+  color: var(--Texto);
+  display: inline-flex;
+  font-weight: 800;
+  gap: 8px;
+  justify-content: center;
+  min-height: 40px;
+  padding: 9px 13px;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.Boton:hover:not(:disabled) {
+  background: #f7efe0;
+  border-color: #b9aa94;
+  transform: translateY(-1px);
+}
+
+.Boton.Primario {
+  background: var(--Tinta);
+  border-color: var(--Tinta);
+  color: #fff;
+}
+
+.Boton.Primario:hover:not(:disabled) {
+  background: #1f3c49;
+  border-color: #1f3c49;
+}
+
+.Boton.Secundario {
+  background: var(--Tinta_Fondo);
+  border-color: rgba(45, 77, 92, 0.22);
+  color: var(--Tinta);
+}
+
+.Boton.Ancho {
+  width: 100%;
+}
+
+.Mensaje,
+.Nota {
+  color: var(--Texto_Suave);
+  font-size: 0.86rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.Mensaje.Error {
+  color: var(--Rojo);
+}
+
+.Mensaje.Ok {
+  color: var(--Verde);
+}
+
+.Grid_Principal {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(280px, 0.34fr) minmax(0, 1fr);
+}
+
+.Herramientas,
+.Biblioteca {
+  min-height: 500px;
+  padding: 18px;
+}
+
+.Herramientas {
+  align-content: start;
+  display: grid;
+  gap: 18px;
+}
+
+.Bloque {
+  display: grid;
+  gap: 12px;
+}
+
+.Buscador {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr auto;
+}
+
+.Formulario_Minimo {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.Reglas {
+  color: var(--Texto_Suave);
+  display: grid;
+  font-size: 0.86rem;
+  gap: 9px;
+  line-height: 1.35;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.Biblioteca {
+  display: grid;
+  gap: 14px;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.Resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.Resumen span {
+  background: var(--Panel_Seco);
+  border: 1px solid var(--Linea);
+  border-radius: 6px;
+  color: var(--Texto_Suave);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 9px;
+}
+
+.Tabla {
+  border: 1px solid var(--Borde);
+  border-radius: 8px;
+  min-height: 330px;
+  overflow: hidden;
+}
+
+.Fila {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(190px, 1.2fr) minmax(140px, 0.8fr) 72px 94px;
+  min-height: 48px;
+  padding: 10px 12px;
+}
+
+.Fila.Encabezado {
+  background: #ede4d4;
+  color: var(--Texto_Suave);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.Lista_Albumes {
+  max-height: min(52vh, 520px);
+  overflow: auto;
+}
+
+.Album {
+  background: #fffdf8;
+  border: 0;
+  border-bottom: 1px solid var(--Linea);
+  color: var(--Texto);
+  display: grid;
+  font: inherit;
+  grid-template-columns: minmax(190px, 1.2fr) minmax(140px, 0.8fr) 72px 94px;
+  min-height: 58px;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.Album:hover {
+  background: #f8f0e3;
+}
+
+.Album span {
+  align-items: center;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  padding: 10px 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.Album .Nombre {
+  font-weight: 800;
+}
+
+.Album .Puntuacion {
+  color: var(--Verde);
+  font-weight: 900;
+}
+
+.Vacio {
+  color: var(--Texto_Suave);
+  display: grid;
+  gap: 14px;
+  min-height: 260px;
+  place-items: center;
+  text-align: center;
+}
+
+.Accion_Melomania {
+  display: flex;
+  justify-content: end;
+}
+
+.Accion_Melomania[hidden] {
+  display: none;
+}
+
+.Modal {
+  background: transparent;
+  border: 0;
+  max-width: min(940px, calc(100vw - 32px));
+  padding: 0;
+  width: 940px;
+}
+
+.Modal::backdrop {
+  background: rgba(34, 31, 26, 0.46);
+}
+
+.Modal_Contenido {
+  background: var(--Panel);
+  border: 1px solid var(--Borde);
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(34, 31, 26, 0.28);
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 18px;
+}
+
+.Cerrar {
+  align-items: center;
+  background: var(--Panel_Seco);
+  border: 1px solid var(--Borde);
+  border-radius: 999px;
+  color: var(--Texto_Suave);
+  display: grid;
+  font-size: 1.4rem;
+  height: 30px;
+  line-height: 1;
+  padding: 0;
+  place-items: center;
+  width: 30px;
+}
+
+.Cerrar:hover {
+  background: #e4dac8;
+  color: var(--Texto);
+}
+
+.Modal_Cuerpo {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+}
+
+.Lista_Canciones,
+.Lista_Criterios {
+  border: 1px solid var(--Linea);
+  border-radius: 8px;
+  display: grid;
+  max-height: 330px;
+  overflow: auto;
+}
+
+.Cancion,
+.Criterio {
+  align-items: center;
+  background: #fffdf8;
+  border-bottom: 1px solid var(--Linea);
+  display: grid;
+  gap: 10px;
+  min-height: 54px;
+  padding: 9px;
+}
+
+.Cancion {
+  grid-template-columns: minmax(160px, 1fr) 78px 86px;
+}
+
+.Criterio {
+  grid-template-columns: minmax(110px, 1fr) 72px 72px 34px;
+}
+
+.Cancion:last-child,
+.Criterio:last-child {
+  border-bottom: 0;
+}
+
+.Nombre_Cancion {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.Nombre_Cancion strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.Nombre_Cancion span {
+  color: var(--Texto_Suave);
+  font-size: 0.78rem;
+}
+
+.Cancion input,
+.Criterio input {
+  min-height: 34px;
+  padding: 6px 8px;
+}
+
+.Quitar {
+  background: var(--Rojo_Fondo);
+  border: 1px solid rgba(157, 59, 53, 0.24);
+  border-radius: 6px;
+  color: var(--Rojo);
+  font-weight: 900;
+  height: 34px;
+  width: 34px;
+}
+
+.Resultado {
+  align-items: center;
+  background: #ede4d4;
+  border: 1px solid var(--Borde);
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 10px 12px;
+}
+
+.Resultado span:first-child {
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.Resultado span:last-child {
+  color: var(--Texto_Suave);
+  font-size: 0.83rem;
+}
+
+.Modal_Acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: end;
+}
+
+@media (max-width: 960px) {
+  .Formulario_Conexion,
+  .Grid_Principal,
+  .Modal_Cuerpo {
+    grid-template-columns: 1fr;
+  }
+
+  .Cabecera,
+  .Biblioteca_Cabecera,
+  .Modal_Cabecera {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .Estado_Grupo {
+    justify-content: start;
+  }
+
+  .Fila,
+  .Album {
+    grid-template-columns: minmax(130px, 1fr) 94px 58px 82px;
+  }
+}

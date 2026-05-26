@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1">
+    <title>Semaplan Melomanía</title>
+    <link rel="stylesheet" href="./Estilos.css">
+  </head>
+  <body>
+    <main class="App">
+      <section class="Panel Conexion">
+        <div class="Cabecera">
+          <div>
+            <p class="Etiqueta">Semaplan / Spotify / last.fm</p>
+            <h1>Melomanía</h1>
+          </div>
+          <div class="Estado_Grupo">
+            <span class="Chip" id="Estado_Semaplan">Semaplan sin conectar</span>
+            <span class="Chip Chip_Pendiente">Spotify pendiente</span>
+            <span class="Chip Chip_Pendiente">last.fm pendiente</span>
+          </div>
+        </div>
+
+        <form class="Formulario_Conexion" id="Form_Conexion">
+          <label>
+            Cuenta Semaplan
+            <input
+              id="Email"
+              autocomplete="username"
+              spellcheck="false"
+              value="patricioe.nogueroles@gmail.com">
+          </label>
+          <label>
+            Contraseña
+            <input
+              id="Password"
+              autocomplete="current-password"
+              type="password">
+          </label>
+          <button class="Boton Primario" type="submit">
+            Conectar
+          </button>
+        </form>
+
+        <p class="Mensaje" id="Mensaje_Conexion">
+          La sesión queda en memoria. No se guarda la contraseña.
+        </p>
+      </section>
+
+      <section class="Grid_Principal">
+        <aside class="Panel Herramientas">
+          <div class="Bloque">
+            <p class="Etiqueta">Guardar álbum</p>
+            <h2>Búsqueda Spotify</h2>
+            <div class="Buscador">
+              <input
+                id="Busqueda"
+                disabled
+                placeholder="Spotify pendiente">
+              <button class="Boton" disabled>Buscar</button>
+            </div>
+            <div class="Formulario_Minimo">
+              <label>
+                Año
+                <input id="Anio_Placeholder" disabled placeholder="2026">
+              </label>
+              <label>
+                Emoji
+                <input id="Emoji_Placeholder" disabled placeholder="🎧">
+              </label>
+            </div>
+            <button class="Boton Ancho" disabled>
+              Guardar en biblioteca
+            </button>
+            <p class="Nota">
+              Placeholder: falta OAuth de Spotify para traer álbumes,
+              canciones y duraciones reales.
+            </p>
+          </div>
+
+          <div class="Bloque">
+            <p class="Etiqueta">Reglas activas</p>
+            <ul class="Reglas">
+              <li>Subobjetivos = álbumes de Melomanía.</li>
+              <li>Partes = canciones con duración.</li>
+              <li>Atributos del álbum: Artista, Año, Género,
+                Puntuación, Spotify y Playlist.</li>
+              <li>No se guarda Escuchas_Lastfm en Semaplan.</li>
+            </ul>
+          </div>
+        </aside>
+
+        <section class="Panel Biblioteca">
+          <div class="Biblioteca_Cabecera">
+            <div>
+              <p class="Etiqueta">Biblioteca</p>
+              <h2>Álbumes en Melomanía</h2>
+            </div>
+            <button class="Boton" id="Actualizar" disabled>
+              Actualizar
+            </button>
+          </div>
+
+          <div class="Resumen" id="Resumen_Biblioteca">
+              <span>0 álbumes</span>
+            <span>0 puntuados</span>
+            <span>0 canciones</span>
+          </div>
+
+          <div class="Tabla" role="table">
+            <div class="Fila Encabezado" role="row">
+              <span>Album</span>
+              <span>Artista</span>
+              <span>Año</span>
+              <span>Puntuación</span>
+            </div>
+            <div id="Lista_Albumes" class="Lista_Albumes"></div>
+          </div>
+
+          <div class="Accion_Melomania" id="Accion_Melomania" hidden>
+            <button class="Boton Primario" id="Crear_Melomania"
+              type="button">
+              Crear Melomanía en Semaplan
+            </button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="Modal_Puntuacion" class="Modal">
+      <form method="dialog" class="Modal_Contenido">
+        <div class="Modal_Cabecera">
+          <div>
+            <p class="Etiqueta" id="Modal_Artista"></p>
+            <h2 id="Modal_Titulo">Puntuación</h2>
+          </div>
+          <button
+            class="Cerrar"
+            id="Cerrar_Modal"
+            type="submit"
+            aria-label="Cerrar">&times;</button>
+        </div>
+
+        <section class="Modal_Cuerpo">
+          <div>
+            <h3>Canciones</h3>
+            <div id="Lista_Canciones" class="Lista_Canciones"></div>
+          </div>
+
+          <div>
+            <h3>Criterios generales</h3>
+            <div id="Lista_Criterios" class="Lista_Criterios"></div>
+            <button class="Boton Secundario" id="Agregar_Criterio"
+              type="button">
+              Agregar criterio
+            </button>
+          </div>
+        </section>
+
+        <div class="Resultado">
+          <span id="Resultado_Puntuacion">Sin cálculo</span>
+          <span id="Detalle_Puntuacion"></span>
+        </div>
+
+        <div class="Modal_Acciones">
+          <button class="Boton Secundario" id="Borrar_Puntuacion"
+            type="button">
+            Borrar puntuación
+          </button>
+          <button class="Boton" id="Calcular_Puntuacion" type="button">
+            Calcular
+          </button>
+          <button class="Boton Primario" id="Fijar_Puntuacion"
+            type="button">
+            Fijar puntuación
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./Renderer.js"></script>
+  </body>
+</html>
