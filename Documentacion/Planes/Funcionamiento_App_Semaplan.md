@@ -55,6 +55,7 @@ Los modulos principales son estos.
 - Slots vacios, tipos de slot y planes de slot.
 - Tareas sueltas por fecha o cajon.
 - Habitos con programacion y registros.
+- Retos de varios dias vinculados a uno o mas habitos.
 - Archivero para notas, etiquetas y adjuntos.
 - Baul como backlog de objetivos e ideas accionables.
 - Metas resumidas por fuente.
@@ -85,6 +86,7 @@ Las claves centrales persistidas hoy son estas.
 - `Patrones`
 - `Habitos`
 - `Habitos_Registros`
+- `Retos`
 - `Tareas`
 - `Tareas_Cajones_Definidos`
 - `Config_Extra`
@@ -399,6 +401,58 @@ Relaciones importantes.
   esa realizacion, la UI de habitos debe refrescar sidebar y modal
   desde `Habitos_Registros` en el mismo flujo para reflejar color,
   estado e indicador sin esperar un render posterior.
+
+## Retos
+
+Los retos son compromisos de varios dias que agrupan habitos. No tienen
+registros diarios propios: su progreso se calcula desde
+`Habitos_Registros` para evitar duplicar fuentes de verdad.
+
+Objetos centrales.
+
+- `Retos`
+- `Habitos`
+- `Habitos_Registros`
+
+Modelo basico de reto normalizado.
+
+- `Id`
+- `Nombre`
+- `Emoji`
+- `Color`
+- `Fecha_Inicio`
+- `Duracion_Dias`
+- `Estado`
+- `Regla_Cumplimiento`
+- `Habito_Ids`
+- `Notas`
+- `Fecha_Cierre`
+- `Orden`
+
+Funciones de entrada recomendadas.
+
+- `Normalizar_Reto()`
+- `Normalizar_Retos()`
+- `Abrir_Retos()`
+- `Render_Modal_Retos()`
+- `Render_Retos_Panel()`
+- `Render_Modal_Reto_Editor()`
+- `Retos_Estado_Dia()`
+- `Retos_Estadisticas()`
+
+Relaciones importantes.
+
+- Un reto puede vincular muchos habitos mediante `Habito_Ids`.
+- `Regla_Cumplimiento` define si el dia cuenta cuando se cumplen todos
+  los habitos vinculados o cualquiera de ellos.
+- Marcar, destildar o cancelar un habito refresca Retos si el modal
+  esta abierto, porque el estado diario se deriva de los registros de
+  habitos.
+- Al borrar un habito, se quita su id de los retos vinculados. El reto
+  puede quedar sin habitos y se muestra como tal hasta que el usuario lo
+  edite o lo borre.
+- Crear, editar o borrar retos usa guardado critico porque cambia una
+  clave persistida del estado completo.
 
 ## Archivero
 
