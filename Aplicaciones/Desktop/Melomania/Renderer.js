@@ -22,6 +22,9 @@ const Spotify_Scopes = [
   "playlist-read-private",
   "user-read-private",
 ];
+const Spotify_Callback_Path = "/spotify/callback";
+const Spotify_Callback_Result_Path = "/spotify/callback-result";
+const Spotify_Callback_Clear_Path = "/spotify/callback-clear";
 
 const Storage_Keys = {
   Spotify_Client_Id: "Melomania_Spotify_Client_Id",
@@ -120,8 +123,18 @@ function Set_Estado_Lastfm(Texto, Tipo = "") {
   El.Estado_Lastfm.className = `Chip ${Tipo}`.trim();
 }
 
+function App_En_Servidor_Local() {
+  return window.location.protocol === "http:" &&
+    Boolean(window.location.port);
+}
+
 function Redirect_Uri_Spotify() {
-  return `${window.location.origin}${window.location.pathname}`;
+  if (!App_En_Servidor_Local()) {
+    return "Abrí Melomanía desde el .exe";
+  }
+
+  return `http://127.0.0.1:${window.location.port}` +
+    Spotify_Callback_Path;
 }
 
 function Leer_Local_Json(Clave, Fallback = null) {
@@ -174,6 +187,8 @@ function Render_Estado_Integraciones() {
     Set_Estado_Spotify("Spotify conectado", "Chip_Activo");
   } else if (Estado.Spotify.Tokens?.access_token) {
     Set_Estado_Spotify("Spotify con token", "Chip_Pendiente");
+  } else if (!App_En_Servidor_Local()) {
+    Set_Estado_Spotify("Abrí desde el .exe", "Chip_Error");
   } else {
     Set_Estado_Spotify("Spotify pendiente", "Chip_Pendiente");
   }
@@ -192,6 +207,8 @@ function Render_Estado_Integraciones() {
   );
   El.Busqueda.disabled = !Spotify_Listo;
   El.Buscar_Spotify.disabled = !Spotify_Listo;
+  El.Copiar_Redirect.disabled = !App_En_Servidor_Local();
+  El.Conectar_Spotify.disabled = !App_En_Servidor_Local();
   El.Anio_Album.disabled = !Spotify_Listo;
   El.Emoji_Album.disabled = !Spotify_Listo;
   El.Guardar_Biblioteca.disabled =
@@ -217,7 +234,7 @@ async function Leer_Error_Respuesta(Respuesta) {
   try {
     const Json = JSON.parse(Texto);
     return Json.error_description || Json.message ||
-      Json.msg || Texto;
+      Json.error || Json.msg || Texto;
   } catch {
     return Texto;
   }
@@ -230,6 +247,12 @@ async function Fetch_Json(Url, Opciones = {}) {
   }
   if (Respuesta.status === 204) return null;
   return Respuesta.json();
+}
+
+function Esperar(Milisegundos) {
+  return new Promise((Resolver) => {
+    setTimeout(Resolver, Milisegundos);
+  });
 }
 
 function Random_String(Longitud = 64) {
@@ -510,7 +533,51 @@ function Duracion_Minutos(Track) {
   return Math.round((Number(Track.duration_ms) || 0) / 600) / 100;
 }
 
+function Validar_Callback_Spotify() {
+  if (App_En_Servidor_Local()) return;
+
+  throw new Error(
+    "Abrí Melomanía desde el .exe. Spotify no admite file:// " +
+    "como Redirect URI."
+  );
+}
+
+async function Limpiar_Callback_Spotify() {
+  await Fetch_Json(Spotify_Callback_Clear_Path, {
+    method: "POST",
+  }).catch(() => null);
+}
+
+async function Leer_Callback_Spotify() {
+  const Datos = await Fetch_Json(Spotify_Callback_Result_Path);
+  return Datos?.Callback || null;
+}
+
+async function Esperar_Callback_Spotify() {
+  const Limite = Date.now() + 180000;
+
+  while (Date.now() < Limite) {
+    await Esperar(1000);
+    const Callback = await Leer_Callback_Spotify().catch(() => null);
+    if (!Callback?.Query) continue;
+
+    try {
+      await Procesar_Query_Retorno_Spotify(Callback.Query);
+    } finally {
+      await Limpiar_Callback_Spotify();
+    }
+    return;
+  }
+
+  throw new Error(
+    "No llegó el retorno de Spotify. Revisá que la Redirect URI " +
+    "registrada sea exactamente la que muestra Melomanía."
+  );
+}
+
 async function Iniciar_OAuth_Spotify() {
+  Validar_Callback_Spotify();
+
   const Client_Id = El.Spotify_Client_Id.value.trim();
   if (!Client_Id) {
     throw new Error("Pegá el Spotify Client ID.");
@@ -523,6 +590,7 @@ async function Iniciar_OAuth_Spotify() {
   const State = Random_String(32);
   localStorage.setItem(Storage_Keys.Spotify_Verifier, Verifier);
   localStorage.setItem(Storage_Keys.Spotify_State, State);
+  await Limpiar_Callback_Spotify();
 
   const Params = Params_Query({
     client_id: Client_Id,
@@ -534,8 +602,15 @@ async function Iniciar_OAuth_Spotify() {
     code_challenge: await Code_Challenge(Verifier),
   });
 
-  window.location.href =
+  const Url_Autorizacion =
     `https://accounts.spotify.com/authorize?${Params.toString()}`;
+
+  Set_Mensaje(
+    "Se abrió Spotify en el navegador. Volvé acá al terminar.",
+    ""
+  );
+  window.open(Url_Autorizacion, "_blank", "noopener,noreferrer");
+  await Esperar_Callback_Spotify();
 }
 
 async function Canjear_Codigo_Spotify(Code) {
@@ -639,14 +714,15 @@ async function Cargar_Perfil_Spotify() {
   }
 }
 
-async function Procesar_Retorno_Spotify() {
-  const Url = new URL(window.location.href);
+async function Procesar_Query_Retorno_Spotify(Query) {
+  const Base = App_En_Servidor_Local()
+    ? Redirect_Uri_Spotify()
+    : "http://127.0.0.1/spotify/callback";
+  const Url = new URL(`${Base}${Query || ""}`);
   const Code = Url.searchParams.get("code");
   const Error_Spotify = Url.searchParams.get("error");
   const State = Url.searchParams.get("state");
   if (!Code && !Error_Spotify) return;
-
-  window.history.replaceState({}, "", Redirect_Uri_Spotify());
 
   if (Error_Spotify) {
     throw new Error(`Spotify rechazó la conexión: ${Error_Spotify}`);
@@ -659,6 +735,20 @@ async function Procesar_Retorno_Spotify() {
 
   await Canjear_Codigo_Spotify(Code);
   Set_Mensaje("Spotify conectado.", "Ok");
+}
+
+async function Procesar_Retorno_Spotify() {
+  const Url = new URL(window.location.href);
+  const Code = Url.searchParams.get("code");
+  const Error_Spotify = Url.searchParams.get("error");
+  if (!Code && !Error_Spotify) return;
+
+  window.history.replaceState(
+    {},
+    "",
+    `${window.location.origin}${window.location.pathname}`
+  );
+  await Procesar_Query_Retorno_Spotify(Url.search);
 }
 
 async function Buscar_Albumes_Spotify(Query) {

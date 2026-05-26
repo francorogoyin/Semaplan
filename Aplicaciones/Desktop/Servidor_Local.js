@@ -46,9 +46,14 @@ function Responder_Texto(Respuesta, Codigo, Texto) {
   Respuesta.end(Texto);
 }
 
-function Crear_Manejador(Raiz_App) {
+function Crear_Manejador(Raiz_App, Manejador_Extra = null) {
   return async function Atender(Pedido, Respuesta) {
     try {
+      if (Manejador_Extra) {
+        const Atendido = await Manejador_Extra(Pedido, Respuesta);
+        if (Atendido) return;
+      }
+
       const Ruta_Local = Resolver_Ruta_Local(
         Raiz_App,
         Pedido.url || "/"
@@ -104,8 +109,11 @@ function Escuchar_Servidor(Servidor, Puerto) {
 async function Iniciar_Servidor_Local({
   Puerto_Preferido = 4173,
   Raiz_App,
+  Manejador_Extra = null,
 }) {
-  const Servidor = Http.createServer(Crear_Manejador(Raiz_App));
+  const Servidor = Http.createServer(
+    Crear_Manejador(Raiz_App, Manejador_Extra)
+  );
   let Puerto_Activo = Puerto_Preferido;
 
   try {

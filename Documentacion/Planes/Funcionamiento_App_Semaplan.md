@@ -46,8 +46,10 @@ estructuras persistidas o relaciones importantes entre modulos.
   base si no existe y fija o borra la metrica `Puntuacion` del album
   dentro de los metadatos del subobjetivo. Spotify se conecta por
   OAuth PKCE con `playlist-modify-private`, `playlist-read-private` y
-  `user-read-private`; busca albumes, crea una playlist privada por
-  album y guarda el subobjetivo con partes por cancion. last.fm se
+  `user-read-private`; abre el navegador externo y recibe el retorno
+  en `/spotify/callback` del servidor local del `.exe`, evitando usar
+  `file://` como redirect. Busca albumes, crea una playlist privada
+  por album y guarda el subobjetivo con partes por cancion. last.fm se
   conecta con API key y usuario, consulta conteos publicos por tema y
   marca partes/albumes como realizados cuando cada cancion llega al
   umbral elegido, sin persistir `Escuchas_Lastfm` en Semaplan.
