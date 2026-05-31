@@ -639,6 +639,11 @@ Relaciones importantes.
   pendiente junto a la original, sin avances ni fecha/hora de cierre, y
   recalcula targets cuando el subobjetivo suma componentes.
 - Objetivos, subobjetivos y partes pueden vincular habitos.
+- El modal de registrar avance usa un selector visual en arbol: agrupa
+  por anio, objetivo, subobjetivo y parte. Los nodos con boton `+`
+  siguen siendo seleccionables; el boton solo abre o cierra la rama. Al
+  abrir una rama se cierran sus hermanos del mismo nivel y la expansion
+  queda recordada localmente para la proxima apertura con `M`.
 - La descripcion de un periodo en Metas se muestra contraida cuando ya
   tiene texto. El boton propio de expansion solo contrae o expande; el
   click en el cuerpo de la descripcion sigue abriendo la edicion.

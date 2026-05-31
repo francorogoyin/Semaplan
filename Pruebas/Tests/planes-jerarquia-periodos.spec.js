@@ -3151,7 +3151,10 @@ async ({ page }) => {
   await page.locator(".Planes_Avance_Boton").click();
   await expect(page.locator(".Planes_Avance_Menu")).toBeVisible();
   await page.locator(
-    `.Planes_Avance_Item[data-toggle-sub="${Resultado.Sub_Pendiente_Id}"]`
+    `.Planes_Avance_Expandir[data-toggle-objetivo="${Resultado.Pendiente_Id}"]`
+  ).click();
+  await page.locator(
+    `.Planes_Avance_Expandir[data-toggle-sub="${Resultado.Sub_Pendiente_Id}"]`
   ).click();
   const Items_Menu = await page.locator(
     ".Planes_Avance_Menu .Planes_Avance_Item"
@@ -3270,7 +3273,8 @@ async ({ page }) => {
     Object.keys(localStorage).forEach((Clave) => {
       if (
         Clave.includes("Semaplan_Planes_Avance_Seleccion_V1") ||
-        Clave.includes("Semaplan_Planes_Avance_Detalle_V1")
+        Clave.includes("Semaplan_Planes_Avance_Detalle_V1") ||
+        Clave.includes("Semaplan_Planes_Avance_Expansion_V1")
       ) {
         localStorage.removeItem(Clave);
       }
@@ -3329,6 +3333,147 @@ async ({ page }) => {
     .toHaveValue(`Objetivo|${Datos.Objetivo_Id}`);
   await expect(page.locator("#Planes_Avance_Cantidad"))
     .toHaveValue("4");
+
+  await page.locator("#Planes_Avance_Cancelar").click();
+  expect(errores).toEqual([]);
+});
+
+test("Registrar avance usa arbol con memoria y cierre de hermanos",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Datos = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    Modelo.UI.Anio_Desde = 2026;
+    Modelo.UI.Anio_Hasta = 2026;
+    Modelo.UI.Anio_Activo = 2026;
+
+    const Anio = Planes_Crear_Periodo(
+      Modelo,
+      "Anio",
+      "2026-01-01",
+      "2026-12-31",
+      null,
+      2026
+    );
+    const Periodo = Planes_Crear_Periodos_Distribucion(
+      Anio,
+      "Trimestre"
+    )[0];
+    const Objetivo_A = Planes_Crear_Objetivo_Silencioso(
+      Periodo.Id,
+      {
+        Nombre: "Arbol objetivo A",
+        Emoji: "\uD83C\uDFAF",
+        Target_Total: 10,
+        Unidad: "Horas"
+      }
+    );
+    const Objetivo_B = Planes_Crear_Objetivo_Silencioso(
+      Periodo.Id,
+      {
+        Nombre: "Arbol objetivo B",
+        Emoji: "\uD83D\uDCCC",
+        Target_Total: 10,
+        Unidad: "Horas"
+      }
+    );
+    const Sub_A = Planes_Agregar_Subobjetivo(
+      Objetivo_A.Id,
+      "Arbol sub A"
+    );
+    const Sub_B = Planes_Agregar_Subobjetivo(
+      Objetivo_B.Id,
+      "Arbol sub B"
+    );
+    const Modelo_Actual = Asegurar_Modelo_Planes();
+    Modelo_Actual.Subobjetivos[Sub_A].Target_Total = 5;
+    Modelo_Actual.Subobjetivos[Sub_A].Unidad = "Horas";
+    Modelo_Actual.Subobjetivos[Sub_B].Target_Total = 5;
+    Modelo_Actual.Subobjetivos[Sub_B].Unidad = "Horas";
+    Modelo_Actual.Partes.parte_arbol_b = Normalizar_Parte_Meta({
+      Id: "parte_arbol_b",
+      Objetivo_Id: Objetivo_B.Id,
+      Subobjetivo_Id: Sub_B,
+      Emoji: "\uD83D\uDCD8",
+      Nombre: "Arbol parte B",
+      Aporte_Total: 2,
+      Unidad: "Horas",
+      Orden: 0
+    });
+    Modelo_Actual.UI.Periodo_Activo_Id = Periodo.Id;
+    Render_Plan();
+    Object.keys(localStorage).forEach((Clave) => {
+      if (
+        Clave.includes("Semaplan_Planes_Avance_Seleccion_V1") ||
+        Clave.includes("Semaplan_Planes_Avance_Detalle_V1") ||
+        Clave.includes("Semaplan_Planes_Avance_Expansion_V1")
+      ) {
+        localStorage.removeItem(Clave);
+      }
+    });
+    return {
+      Objetivo_A: Objetivo_A.Id,
+      Objetivo_B: Objetivo_B.Id,
+      Sub_A,
+      Sub_B,
+      Parte_B: "parte_arbol_b"
+    };
+  });
+
+  await page.keyboard.press("m");
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.locator(".Planes_Avance_Boton").click();
+  await expect(page.locator(".Planes_Avance_Rama_Label"))
+    .toContainText("2026");
+
+  await page.locator(
+    `.Planes_Avance_Expandir[data-toggle-objetivo="${Datos.Objetivo_A}"]`
+  ).click();
+  await expect(page.locator(
+    `.Planes_Avance_Item[data-valor="Subobjetivo|${Datos.Sub_A}"]`
+  )).toBeVisible();
+  await page.locator(
+    `.Planes_Avance_Item[data-valor="Objetivo|${Datos.Objetivo_A}"]`
+  ).click();
+  await expect(page.locator("#Planes_Avance_Item"))
+    .toHaveValue(`Objetivo|${Datos.Objetivo_A}`);
+
+  await page.locator(".Planes_Avance_Boton").click();
+  await page.locator(
+    `.Planes_Avance_Expandir[data-toggle-objetivo="${Datos.Objetivo_B}"]`
+  ).click();
+  await expect(page.locator(
+    `.Planes_Avance_Item[data-valor="Subobjetivo|${Datos.Sub_A}"]`
+  )).toBeHidden();
+  await expect(page.locator(
+    `.Planes_Avance_Item[data-valor="Subobjetivo|${Datos.Sub_B}"]`
+  )).toBeVisible();
+
+  await page.locator(
+    `.Planes_Avance_Expandir[data-toggle-sub="${Datos.Sub_B}"]`
+  ).click();
+  await expect(page.locator(
+    `.Planes_Avance_Item[data-valor="Parte|${Datos.Parte_B}"]`
+  )).toBeVisible();
+  await page.locator("#Planes_Avance_Cancelar").click();
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .not.toHaveClass(/Activo/);
+
+  await page.keyboard.press("m");
+  await expect(page.locator("#Planes_Avance_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.locator(".Planes_Avance_Boton").click();
+  await expect(page.locator(
+    `.Planes_Avance_Item[data-valor="Parte|${Datos.Parte_B}"]`
+  )).toBeVisible();
+  await expect(page.locator(
+    `.Planes_Avance_Item[data-valor="Subobjetivo|${Datos.Sub_A}"]`
+  )).toBeHidden();
 
   await page.locator("#Planes_Avance_Cancelar").click();
   expect(errores).toEqual([]);
