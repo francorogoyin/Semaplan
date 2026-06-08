@@ -74,7 +74,7 @@ Los modulos principales son estos.
 - Retos de varios dias vinculados a uno o mas habitos.
 - Archivero para notas, etiquetas y adjuntos.
 - Baul como backlog de objetivos e ideas accionables.
-- Decoteca como shell visual para catalogos culturales por teca.
+- Decoteca como archivo cultural persistido por tecas.
 - Metas resumidas por fuente.
 - Planes semanales.
 - Planes por periodos con objetivos, subobjetivos y partes.
@@ -97,6 +97,7 @@ Las claves centrales persistidas hoy son estas.
 - `Categorias`
 - `Etiquetas`
 - `Baul_Objetivos`
+- `Decoteca`
 - `Archiveros`
 - `Notas_Archivero`
 - `Etiquetas_Archivero`
@@ -116,10 +117,10 @@ Las claves centrales persistidas hoy son estas.
 - `Slots_Muertos_Grupo_Ids`
 - `Semanas_Con_Defaults`
 
-La Decoteca inicial no agrega claves persistidas todavia. El primer
-avance es un shell visual en `login.html` con datos de demostracion
-para validar estructura, navegacion y formato antes de fijar modelo de
-datos, sync o import/export.
+La Decoteca persiste en la clave raiz `Decoteca`. Su formato canonico
+tiene `Tecas` y `Obras`; `Normalizar_Decoteca()` completa las tecas de
+sistema, normaliza obras viejas que usen `Teca` en lugar de `Teca_Id`,
+y conserva estados vacios ya inicializados para import/export y sync.
 
 La carga local/restauracion pasa por `Cargar_Estado()` y luego por
 `Normalizar_Estado()`.
@@ -563,14 +564,18 @@ Relaciones importantes.
 
 ## Decoteca
 
-La Decoteca es el primer diseno visual de un archivo cultural por
-tecas. Toma el lenguaje frontal del Baul, pero cambia la grilla a
-tarjetas altas y angostas tipo caratula.
+La Decoteca es un archivo cultural persistido por tecas. Toma el
+lenguaje frontal del Baul, pero cambia la grilla a tarjetas altas y
+angostas tipo caratula.
 
 Estado actual.
 
-- Shell visual navegable en `login.html`.
-- Datos de demostracion internos, no persistidos.
+- Modelo persistido en `Decoteca`, con `Tecas` y `Obras`.
+- Alta y edicion de obras desde el panel de detalle.
+- Edicion de caratula visible de cada obra: icono, texto y color.
+- Creacion de tecas nuevas con nombre, descripcion, icono y color.
+- Normalizacion de datos viejos y base inicial de demostracion cuando
+  todavia no existe estado persistido de Decoteca.
 - Boton propio `Decoteca_Boton` en el menu superior configurable.
 - Modal `Decoteca_Overlay`.
 
@@ -588,14 +593,22 @@ Funciones de entrada recomendadas.
 - `Render_Decoteca()`
 - `Decoteca_Cambiar_Teca()`
 - `Decoteca_Abrir_Nuevo()`
+- `Decoteca_Abrir_Editar()`
+- `Decoteca_Abrir_Caratula()`
+- `Decoteca_Abrir_Nueva_Teca()`
+- `Decoteca_Guardar_Obra()`
+- `Decoteca_Guardar_Caratula()`
+- `Decoteca_Guardar_Teca()`
+- `Normalizar_Decoteca()`
 
 Relaciones importantes.
 
 - Cada teca debe poder tener universo, campos y reglas propias.
 - Las obras muestran caratula, estado, periodo, progreso, metadatos y
   subpartes.
-- El alta nueva hoy muestra un boceto de campos por teca; el guardado
-  real queda pendiente hasta definir modelo persistido.
+- `Decoteca` entra en `Construir_Estado_Completo()`, `Cargar_Estado()`,
+  `Normalizar_Estado()`, sync remoto e import/export como clave raiz
+  normal del estado.
 - La vista por periodos ya existe como selector visual, pero todavia
   no distribuye ni sincroniza planes reales.
 

@@ -1,6 +1,6 @@
 const { test, expect } = require("@playwright/test");
 
-async function Preparar(page, Idioma = "es") {
+async function Preparar(page, Idioma = "es", Opciones = {}) {
   await page.route(
     "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
     async (route) => {
@@ -23,7 +23,7 @@ async function Preparar(page, Idioma = "es") {
     }
   );
 
-  await page.addInitScript((Idioma_Seleccionado) => {
+  await page.addInitScript((Config_Test) => {
     window.supabase = {
       createClient() {
         return {
@@ -53,11 +53,34 @@ async function Preparar(page, Idioma = "es") {
       remove() {},
       reset() {}
     };
-    localStorage.setItem("Semaplan_Idioma", Idioma_Seleccionado);
-    localStorage.removeItem("Semaplan_Estado_V2");
-  }, Idioma);
+    localStorage.setItem("Semaplan_Idioma", Config_Test.Idioma);
+    if (Config_Test.Limpiar_Estado) {
+      localStorage.removeItem("Semaplan_Estado_V2");
+    }
+  }, {
+    Idioma,
+    Limpiar_Estado: Opciones.Limpiar_Estado !== false
+  });
 
   await page.goto("/login.html");
+  await page.waitForFunction(() =>
+    typeof Inicializar === "function" &&
+    typeof Abrir_Decoteca === "function" &&
+    typeof Render_Decoteca === "function"
+  );
+  await page.evaluate(() => {
+    document.getElementById("Auth_Overlay")?.classList.remove("Activo");
+    document.getElementById("App_Loader")?.classList.add("Oculto");
+    Inicializar();
+    Config.Plan_Actual = "Upgrade";
+    Suscripcion_Remota = true;
+    Config.Menu_Estilo = "Iconos";
+    Config.Menu_Botones_Visibles.Decoteca_Boton = true;
+    Aplicar_Estilo_Menu();
+  });
+}
+
+async function Activar_App(page) {
   await page.waitForFunction(() =>
     typeof Inicializar === "function" &&
     typeof Abrir_Decoteca === "function" &&
@@ -145,11 +168,11 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Nueva obra");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Duración");
+    .toContainText("Director");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Plataforma");
+    .toContainText("Progreso");
 
-  await page.keyboard.press("Escape");
+  await page.locator("#Decoteca_Cerrar").click();
   await expect(page.locator("#Decoteca_Overlay"))
     .not.toHaveClass(/Activo/);
 });
@@ -174,7 +197,7 @@ test("decoteca responde a controles, filtros y botones", async ({
       estado: "Planeada",
       periodo: "Trimestre",
       formato: "Ensayo",
-      campos: ["Autor", "Partes y capítulos", "Total y avance"]
+      campos: ["Autor", "Nombre del período", "Metadatos"]
     },
     {
       teca: "Musicoteca",
@@ -184,7 +207,7 @@ test("decoteca responde a controles, filtros y botones", async ({
       estado: "En_Curso",
       periodo: "Semana",
       formato: "Álbum",
-      campos: ["Artista", "Álbum, EP o playlist", "Escuchas"]
+      campos: ["Artista", "Nombre del período", "Metadatos"]
     },
     {
       teca: "Videoteca",
@@ -194,7 +217,7 @@ test("decoteca responde a controles, filtros y botones", async ({
       estado: "Terminada",
       periodo: "Mes",
       formato: "Película",
-      campos: ["Director", "Duración", "Plataforma"]
+      campos: ["Director", "Nombre del período", "Metadatos"]
     },
     {
       teca: "Ludoteca",
@@ -204,7 +227,7 @@ test("decoteca responde a controles, filtros y botones", async ({
       estado: "En_Curso",
       periodo: "Trimestre",
       formato: "RPG",
-      campos: ["Tipo propio", "Sesiones, partidas o avance"]
+      campos: ["Creador", "Nombre del período", "Metadatos"]
     }
   ];
 
@@ -271,16 +294,18 @@ test("decoteca responde a controles, filtros y botones", async ({
     .toContainText("Los detectives salvajes");
 
   await page.locator('[data-decoteca-accion="Editar"]').click();
-  await expect(page.locator("#Undo_Contenedor"))
-    .toContainText("La edición real de fichas");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Editá la ficha");
 
+  await page.locator('[data-decoteca-cancelar="true"]').click();
   await page.locator('[data-decoteca-accion="Caratula"]').click();
-  await expect(page.locator("#Undo_Contenedor"))
-    .toContainText("La carga de carátulas");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Texto de portada");
 
+  await page.locator('[data-decoteca-cancelar="true"]').click();
   await page.locator("#Decoteca_Teca_Nueva").click();
-  await expect(page.locator("#Undo_Contenedor"))
-    .toContainText("La creación de tecas nuevas");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Nueva teca");
 
   await page.locator("#Decoteca_Cerrar").click();
   await expect(page.locator("#Decoteca_Overlay"))
@@ -298,16 +323,16 @@ test("decoteca traduce campos de alta en ingles", async ({ page }) => {
 
   await page.locator("#Decoteca_Nueva").click();
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Name of the work");
+    .toContainText("Edit the sheet");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Period, objective and rhythm");
+    .toContainText("Period name");
   await expect(page.locator("#Decoteca_Detalle"))
-    .not.toContainText("Nombre de la obra");
+    .not.toContainText("Nombre del período");
 
   await page.locator('[data-decoteca-teca="Musicoteca"]').click();
   await page.locator("#Decoteca_Nueva").click();
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Album, EP or playlist");
+    .toContainText("Artist");
 });
 
 test("decoteca traduce campos de alta en portugues", async ({ page }) => {
@@ -315,9 +340,112 @@ test("decoteca traduce campos de alta en portugues", async ({ page }) => {
   await Abrir_Decoteca(page);
   await page.locator("#Decoteca_Nueva").click();
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Nome da obra");
+    .toContainText("Edite a ficha");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Periodo, objetivo e ritmo");
+    .toContainText("Nome do periodo");
+});
+
+test("decoteca crea edita portada y persiste", async ({ page }) => {
+  await Preparar(page, "es", { Limpiar_Estado: false });
+  await Abrir_Decoteca(page);
+
+  await page.locator("#Decoteca_Teca_Nueva").click();
+  await page.locator("#Decoteca_Form_Teca_Nombre")
+    .fill("Ensayoteca");
+  await page.locator("#Decoteca_Form_Teca_Descripcion")
+    .fill("Ensayos, papers y notas largas");
+  await page.locator("#Decoteca_Form_Teca_Icono").fill("🧪");
+  await page.locator("#Decoteca_Form_Teca_Color").fill("#235a6f");
+  await page.locator('[data-decoteca-form="Teca"] .Primario')
+    .click();
+
+  await expect(page.locator("#Decoteca_Tecas"))
+    .toContainText("Ensayoteca");
+  await expect(page.locator("#Decoteca_Libreria_Titulo"))
+    .toHaveText("Ensayoteca");
+
+  await page.locator("#Decoteca_Nueva").click();
+  await page.locator("#Decoteca_Form_Titulo")
+    .fill("Cuaderno de pruebas");
+  await page.locator("#Decoteca_Form_Creador")
+    .fill("Equipo Semaplan");
+  await page.locator("#Decoteca_Form_Anio").fill("2026");
+  await page.locator("#Decoteca_Form_Formato").fill("Ensayo");
+  await page.locator("#Decoteca_Form_Estado")
+    .selectOption("En_Curso");
+  await page.locator("#Decoteca_Form_Periodo")
+    .selectOption("Mes");
+  await page.locator("#Decoteca_Form_Periodo_Label")
+    .fill("Julio 2026");
+  await page.locator("#Decoteca_Form_Progreso").fill("15");
+  await page.locator("#Decoteca_Form_Meta")
+    .fill("15 / 100 páginas");
+  await page.locator("#Decoteca_Form_Rating").fill("Pendiente");
+  await page.locator("#Decoteca_Form_Plan")
+    .fill("Revisar dos secciones por semana.");
+  await page.locator("#Decoteca_Form_Subobjetivos")
+    .fill("Hipótesis\nDesarrollo\nCierre");
+  await page.locator("#Decoteca_Form_Metadatos")
+    .fill("Tema: Decoteca\nFuente: QA");
+  await page.locator('[data-decoteca-form="Obra"] .Primario')
+    .click();
+
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Cuaderno de pruebas");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("15%");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Hipótesis");
+
+  await page.locator('[data-decoteca-accion="Editar"]').click();
+  await page.locator("#Decoteca_Form_Titulo")
+    .fill("Cuaderno editado");
+  await page.locator("#Decoteca_Form_Progreso").fill("55");
+  await page.locator("#Decoteca_Form_Plan")
+    .fill("Cerrar el ensayo y pasar notas al Archivero.");
+  await page.locator('[data-decoteca-form="Obra"] .Primario')
+    .click();
+
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Cuaderno editado");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("55%");
+
+  await page.locator('[data-decoteca-accion="Caratula"]').click();
+  await page.locator("#Decoteca_Form_Portada_Emoji").fill("🧪");
+  await page.locator("#Decoteca_Form_Portada_Texto")
+    .fill("Ensayo Vivo");
+  await page.locator("#Decoteca_Form_Color").fill("#123456");
+  await page.locator('[data-decoteca-form="Caratula"] .Primario')
+    .click();
+
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Ensayo Vivo");
+
+  const Estado_Antes = await page.evaluate(() => {
+    return JSON.parse(localStorage.getItem(Clave_Local)).Decoteca;
+  });
+  expect(Estado_Antes.Tecas.some((Teca) =>
+    Teca.Nombre === "Ensayoteca"
+  )).toBeTruthy();
+  expect(Estado_Antes.Obras.some((Obra) =>
+    Obra.Titulo === "Cuaderno editado" &&
+    Obra.Portada_Texto === "Ensayo Vivo" &&
+    Obra.Progreso === 55
+  )).toBeTruthy();
+
+  await page.reload();
+  await Activar_App(page);
+  await Abrir_Decoteca(page);
+  await expect(page.locator("#Decoteca_Tecas"))
+    .toContainText("Ensayoteca");
+  await page.locator(".Decoteca_Teca_Btn")
+    .filter({ hasText: "Ensayoteca" })
+    .click();
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Cuaderno editado");
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Ensayo Vivo");
 });
 
 test("decoteca mobile no recorta el detalle", async ({ page }) => {
