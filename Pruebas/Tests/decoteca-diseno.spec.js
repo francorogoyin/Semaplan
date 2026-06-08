@@ -23,6 +23,21 @@ async function Preparar(page, Idioma = "es", Opciones = {}) {
     }
   );
 
+  await page.route(
+    "https://example.com/decoteca-portada.png",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "image/png",
+        body: Buffer.from(
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l" +
+          "EQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=",
+          "base64"
+        )
+      });
+    }
+  );
+
   await page.addInitScript((Config_Test) => {
     window.supabase = {
       createClient() {
@@ -126,6 +141,10 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
 
   await Abrir_Decoteca(page);
 
+  await expect(page.locator(".Decoteca_Panel"))
+    .toHaveAttribute("role", "dialog");
+  await expect(page.locator(".Decoteca_Panel"))
+    .toHaveAttribute("aria-modal", "true");
   await expect(page.locator("#Decoteca_Tecas"))
     .toContainText("Biblioteca");
   await expect(page.locator("#Decoteca_Tecas"))
@@ -301,6 +320,8 @@ test("decoteca responde a controles, filtros y botones", async ({
   await page.locator('[data-decoteca-accion="Caratula"]').click();
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Texto de portada");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Tipo de portada");
 
   await page.locator('[data-decoteca-cancelar="true"]').click();
   await page.locator("#Decoteca_Teca_Nueva").click();
@@ -311,6 +332,7 @@ test("decoteca responde a controles, filtros y botones", async ({
   await expect(page.locator("#Decoteca_Overlay"))
     .not.toHaveClass(/Activo/);
   await Abrir_Decoteca(page);
+  await page.locator("#Decoteca_Buscar_Input").focus();
   await page.keyboard.press("Escape");
   await expect(page.locator("#Decoteca_Overlay"))
     .not.toHaveClass(/Activo/);
@@ -412,15 +434,41 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     .toContainText("55%");
 
   await page.locator('[data-decoteca-accion="Caratula"]').click();
+  await page.locator("#Decoteca_Form_Portada_Tipo")
+    .selectOption("Url");
+  await page.locator("#Decoteca_Form_Portada_Url")
+    .fill("https://example.com/decoteca-portada.png");
   await page.locator("#Decoteca_Form_Portada_Emoji").fill("🧪");
   await page.locator("#Decoteca_Form_Portada_Texto")
     .fill("Ensayo Vivo");
   await page.locator("#Decoteca_Form_Color").fill("#123456");
+  await expect(page.locator("#Decoteca_Form_Preview img"))
+    .toHaveAttribute("src", /decoteca-portada\.png/);
   await page.locator('[data-decoteca-form="Caratula"] .Primario')
     .click();
 
-  await expect(page.locator("#Decoteca_Grilla"))
-    .toContainText("Ensayo Vivo");
+  await expect(page.locator(".Decoteca_Caratula_Imagen").first())
+    .toHaveAttribute("src", /decoteca-portada\.png/);
+
+  await page.locator('[data-decoteca-accion="Caratula"]').click();
+  await page.locator("#Decoteca_Form_Portada_Tipo")
+    .selectOption("Archivo");
+  await page.locator("#Decoteca_Form_Portada_Archivo")
+    .setInputFiles({
+      name: "portada-decoteca.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l" +
+        "EQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=",
+        "base64"
+      )
+    });
+  await expect(page.locator("#Decoteca_Form_Preview img"))
+    .toHaveAttribute("src", /^data:image\/png;base64,/);
+  await page.locator('[data-decoteca-form="Caratula"] .Primario')
+    .click();
+  await expect(page.locator(".Decoteca_Caratula_Imagen").first())
+    .toHaveAttribute("src", /^data:image\/png;base64,/);
 
   const Estado_Antes = await page.evaluate(() => {
     return JSON.parse(localStorage.getItem(Clave_Local)).Decoteca;
@@ -431,6 +479,8 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   expect(Estado_Antes.Obras.some((Obra) =>
     Obra.Titulo === "Cuaderno editado" &&
     Obra.Portada_Texto === "Ensayo Vivo" &&
+    Obra.Portada_Tipo === "Archivo" &&
+    String(Obra.Portada_Data_Url || "").startsWith("data:image/png") &&
     Obra.Progreso === 55
   )).toBeTruthy();
 
@@ -444,8 +494,112 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     .click();
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText("Cuaderno editado");
+  await expect(page.locator(".Decoteca_Caratula_Imagen").first())
+    .toHaveAttribute("src", /^data:image\/png;base64,/);
+});
+
+test("decoteca edita borra tecas y obras con confirmacion", async ({
+  page
+}) => {
+  await Preparar(page);
+  await Abrir_Decoteca(page);
+
+  await expect(page.locator("#Decoteca_Teca_Editar"))
+    .toHaveCount(0);
+
+  await page.locator("#Decoteca_Teca_Nueva").click();
+  await page.locator("#Decoteca_Form_Teca_Nombre")
+    .fill("Cineteca QA");
+  await page.locator("#Decoteca_Form_Teca_Descripcion")
+    .fill("Seccion temporal de verificacion");
+  await page.locator("#Decoteca_Form_Teca_Icono").fill("Q");
+  await page.locator("#Decoteca_Form_Teca_Color").fill("#4b6f8f");
+  await page.locator('[data-decoteca-form="Teca"] .Primario')
+    .click();
+  await expect(page.locator("#Decoteca_Libreria_Titulo"))
+    .toHaveText("Cineteca QA");
+
+  await page.locator("#Decoteca_Teca_Editar").click();
+  await page.locator("#Decoteca_Form_Teca_Nombre")
+    .fill("Cineteca QA editada");
+  await page.locator("#Decoteca_Form_Teca_Descripcion")
+    .fill("Seccion temporal editada");
+  await page.locator("#Decoteca_Form_Teca_Color").fill("#7a3f5a");
+  await page.locator('[data-decoteca-form="Teca"] .Primario')
+    .click();
+  await expect(page.locator("#Decoteca_Tecas"))
+    .toContainText("Cineteca QA editada");
+
+  await page.locator("#Decoteca_Nueva").click();
+  await page.locator("#Decoteca_Form_Titulo")
+    .fill("Obra para borrar");
+  await page.locator("#Decoteca_Form_Creador").fill("QA");
+  await page.locator("#Decoteca_Form_Formato").fill("Pelicula");
+  await page.locator("#Decoteca_Form_Progreso").fill("10");
+  await page.locator('[data-decoteca-form="Obra"] .Primario')
+    .click();
   await expect(page.locator("#Decoteca_Grilla"))
-    .toContainText("Ensayo Vivo");
+    .toContainText("Obra para borrar");
+
+  await page.locator('[data-decoteca-accion="Borrar"]').click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.locator("#Dialogo_Botones .Dialogo_Boton_Secundario")
+    .click();
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Obra para borrar");
+
+  await page.locator('[data-decoteca-accion="Borrar"]').click();
+  await page.locator("#Dialogo_Botones .Dialogo_Boton_Peligro")
+    .click();
+  await expect(page.locator("#Decoteca_Grilla"))
+    .not.toContainText("Obra para borrar");
+
+  await page.locator("#Decoteca_Teca_Editar").click();
+  await page.locator('[data-decoteca-borrar-teca="true"]').click();
+  await page.locator("#Dialogo_Botones .Dialogo_Boton_Peligro")
+    .click();
+  await expect(page.locator("#Decoteca_Tecas"))
+    .not.toContainText("Cineteca QA editada");
+
+  await page.locator("#Decoteca_Teca_Nueva").click();
+  await page.locator("#Decoteca_Form_Teca_Nombre")
+    .fill("Teca mover QA");
+  await page.locator("#Decoteca_Form_Teca_Icono").fill("M");
+  await page.locator("#Decoteca_Form_Teca_Color").fill("#235a6f");
+  await page.locator('[data-decoteca-form="Teca"] .Primario')
+    .click();
+  await page.locator("#Decoteca_Nueva").click();
+  await page.locator("#Decoteca_Form_Titulo")
+    .fill("Obra movible QA");
+  await page.locator("#Decoteca_Form_Formato").fill("Ensayo");
+  await page.locator('[data-decoteca-form="Obra"] .Primario')
+    .click();
+  await page.locator("#Decoteca_Teca_Editar").click();
+  await page.locator('[data-decoteca-borrar-teca="true"]').click();
+  await page.locator("#Dialogo_Botones .Dialogo_Boton_Primario")
+    .click();
+  await expect(page.locator("#Decoteca_Tecas"))
+    .not.toContainText("Teca mover QA");
+  await expect(page.locator("#Decoteca_Libreria_Titulo"))
+    .toHaveText("Biblioteca");
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Obra movible QA");
+
+  const Estado = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem(Clave_Local)).Decoteca
+  );
+  expect(Estado.Tecas.some((Teca) =>
+    Teca.Nombre === "Cineteca QA editada" ||
+    Teca.Nombre === "Teca mover QA"
+  )).toBeFalsy();
+  expect(Estado.Obras.some((Obra) =>
+    Obra.Titulo === "Obra para borrar"
+  )).toBeFalsy();
+  expect(Estado.Obras.some((Obra) =>
+    Obra.Titulo === "Obra movible QA" &&
+    Obra.Teca_Id === "Biblioteca"
+  )).toBeTruthy();
 });
 
 test("decoteca mobile no recorta el detalle", async ({ page }) => {

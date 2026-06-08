@@ -572,12 +572,27 @@ Estado actual.
 
 - Modelo persistido en `Decoteca`, con `Tecas` y `Obras`.
 - Alta y edicion de obras desde el panel de detalle.
-- Edicion de caratula visible de cada obra: icono, texto y color.
-- Creacion de tecas nuevas con nombre, descripcion, icono y color.
+- Edicion de caratula visible de cada obra: icono, texto, color, URL
+  publica o archivo de imagen embebido con limite de peso.
+- Creacion y edicion de tecas propias con nombre, descripcion, icono
+  y color.
+- Borrado de obras con confirmacion. Borrado de tecas propias con
+  confirmacion y opcion de mover sus obras a otra teca disponible o
+  borrar teca y obras.
 - Normalizacion de datos viejos y base inicial de demostracion cuando
   todavia no existe estado persistido de Decoteca.
+- Las obras viejas sin campos de portada nueva siguen usando el modo
+  `Emoji`; las portadas nuevas normalizan `Portada_Tipo`,
+  `Portada_Url`, `Portada_Data_Url`, `Portada_Mime`,
+  `Portada_Nombre` y `Portada_Tamano`.
+- Los guardados de Decoteca usan el flujo de cambio critico cuando
+  esta disponible, para subir al remoto sin depender del debounce
+  normal.
 - Boton propio `Decoteca_Boton` en el menu superior configurable.
 - Modal `Decoteca_Overlay`.
+- Desde la version de frontend `1.3.0`, la Decoteca enriquecida usa
+  `Esquema_Estado_Version_Actual = 4`; versiones anteriores quedan
+  limitadas a esquemas previos en el manifest.
 
 Tecas iniciales.
 
@@ -596,9 +611,12 @@ Funciones de entrada recomendadas.
 - `Decoteca_Abrir_Editar()`
 - `Decoteca_Abrir_Caratula()`
 - `Decoteca_Abrir_Nueva_Teca()`
+- `Decoteca_Abrir_Editar_Teca()`
 - `Decoteca_Guardar_Obra()`
 - `Decoteca_Guardar_Caratula()`
 - `Decoteca_Guardar_Teca()`
+- `Decoteca_Borrar_Obra()`
+- `Decoteca_Borrar_Teca()`
 - `Normalizar_Decoteca()`
 
 Relaciones importantes.

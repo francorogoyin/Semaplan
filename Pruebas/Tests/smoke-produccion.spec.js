@@ -202,8 +202,88 @@ async function validarPersistenciaRemota(page, Marca) {
       return String(Nota?.Titulo || "") === Nombre &&
         String(Nota?.Texto || "") === "Nota smoke";
     });
-    return Tiene_Sub && Tiene_Nota;
+    const Tiene_Decoteca_Teca = (Decoteca?.Tecas || []).some(
+      (Teca) => String(Teca?.Nombre || "") ===
+        `${Nombre} Decoteca`
+    );
+    const Requiere_Portada_Tipo =
+      typeof Decoteca_Normalizar_Tipo_Portada === "function";
+    const Tiene_Decoteca_Obra = (Decoteca?.Obras || []).some(
+      (Obra) => String(Obra?.Titulo || "") ===
+        `${Nombre} Obra` && (
+          !Requiere_Portada_Tipo ||
+          String(Obra?.Portada_Tipo || "") === "Url"
+        )
+    );
+    return Tiene_Sub && Tiene_Nota &&
+      Tiene_Decoteca_Teca && Tiene_Decoteca_Obra;
   }, Marca, { timeout: 120000 });
+}
+
+async function limpiarRestosSmoke(page) {
+  const Cambio = await page.evaluate(async () => {
+    let Hubo_Cambios = false;
+    const Objetivos_Smoke = (Objetivos || []).filter((Item) => {
+      return String(Item?.Descripcion_Corta || "") ===
+        "Smoke produccion" ||
+        String(Item?.Nombre || "").startsWith("Smoke ");
+    });
+    for (const Objetivo of Objetivos_Smoke) {
+      await Borrar_Objetivo(Objetivo.Id);
+      Hubo_Cambios = true;
+    }
+
+    const Notas_Antes = (Notas_Archivero || []).length;
+    Notas_Archivero = (Notas_Archivero || []).filter((Nota) => {
+      const Etiquetas = Array.isArray(Nota?.Etiquetas)
+        ? Nota.Etiquetas
+        : [];
+      return String(Nota?.Origen || "") !== "Smoke produccion" &&
+        !Etiquetas.includes("Smoke");
+    });
+    Hubo_Cambios = Hubo_Cambios ||
+      Notas_Antes !== (Notas_Archivero || []).length;
+
+    Decoteca = Normalizar_Decoteca(Decoteca);
+    const Tecas_Borrar = new Set(
+      (Decoteca.Tecas || [])
+        .filter((Teca) =>
+          String(Teca?.Nombre || "").startsWith("Smoke ") &&
+          String(Teca?.Nombre || "").endsWith(" Decoteca")
+        )
+        .map((Teca) => Teca.Id)
+    );
+    const Obras_Antes = (Decoteca.Obras || []).length;
+    const Tecas_Antes = (Decoteca.Tecas || []).length;
+    Decoteca.Obras = (Decoteca.Obras || []).filter((Obra) => {
+      return !Tecas_Borrar.has(Obra?.Teca_Id) &&
+        String(Obra?.Plan || "") !== "Smoke Decoteca";
+    });
+    Decoteca.Tecas = (Decoteca.Tecas || []).filter((Teca) =>
+      !Tecas_Borrar.has(Teca?.Id)
+    );
+    Decoteca = Normalizar_Decoteca(Decoteca);
+    Hubo_Cambios = Hubo_Cambios ||
+      Obras_Antes !== (Decoteca.Obras || []).length ||
+      Tecas_Antes !== (Decoteca.Tecas || []).length;
+
+    if (!Hubo_Cambios) return false;
+    if (typeof Render_Archivero === "function") Render_Archivero();
+    if (typeof Render_Decoteca === "function") Render_Decoteca();
+    if (typeof Guardar_Estado_Cambio_Critico === "function") {
+      Guardar_Estado_Cambio_Critico();
+    } else {
+      Guardar_Estado();
+    }
+    if (typeof Marcar_Sync_Local_Sucio === "function") {
+      Marcar_Sync_Local_Sucio(true);
+    }
+    await Forzar_Sync_Inmediato_Cambio_Critico();
+    return true;
+  });
+  if (Cambio) {
+    await esperarSyncEstable(page, 120000, 120000);
+  }
 }
 
 test("smoke de produccion", async ({ page }) => {
@@ -220,6 +300,7 @@ test("smoke de produccion", async ({ page }) => {
   });
 
   await esperarAppLista(page);
+  await limpiarRestosSmoke(page);
 
   await page.evaluate(async (Nombre) => {
     const Semana = Clave_Semana_Actual();
@@ -319,8 +400,76 @@ test("smoke de produccion", async ({ page }) => {
   }, Marca);
 
   await esperarSyncEstable(page, 120000, 120000);
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#Archivero_Overlay"))
+    .not.toHaveClass(/Activo/);
+
+  await abrirFuncionMenu(page, "#Decoteca_Boton", /Decoteca/i);
+  await expect(page.locator("#Decoteca_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.keyboard.press("Escape");
+
+  await page.evaluate(async (Nombre) => {
+    Decoteca = Normalizar_Decoteca(Decoteca);
+    const Teca_Id = `Smoke_Teca_${Date.now()}`;
+    Decoteca.Tecas.push({
+      Id: Teca_Id,
+      Nombre: `${Nombre} Decoteca`,
+      Descripcion: "Smoke Decoteca",
+      Icono: "S",
+      Color: "#235a6f",
+      Sistema: false,
+      Orden: Decoteca.Tecas.length
+    });
+    Decoteca.Obras.unshift({
+      Id: `Smoke_Obra_${Date.now()}`,
+      Teca_Id,
+      Titulo: `${Nombre} Obra`,
+      Creador: "Smoke",
+      Anio: "2026",
+      Formato: "Ensayo",
+      Estado: "En_Curso",
+      Periodo: "Mes",
+      Periodo_Label: "Smoke",
+      Progreso: 66,
+      Meta_Principal: "Smoke",
+      Rating: "QA",
+      Color: "#123456",
+      Portada_Emoji: "S",
+      Portada_Texto: "Smoke portada",
+      Portada_Tipo: "Url",
+      Portada_Url: "https://example.com/decoteca-smoke.png",
+      Plan: "Smoke Decoteca",
+      Subobjetivos: ["Parte smoke"],
+      Metadatos: [["Smoke", "Decoteca"]]
+    });
+    Decoteca = Normalizar_Decoteca(Decoteca);
+    if (typeof Guardar_Estado_Cambio_Critico === "function") {
+      Guardar_Estado_Cambio_Critico();
+    } else {
+      Guardar_Estado();
+    }
+    if (typeof Marcar_Sync_Local_Sucio === "function") {
+      Marcar_Sync_Local_Sucio(true);
+    }
+    await Forzar_Sync_Inmediato_Cambio_Critico();
+  }, Marca);
+
+  await esperarSyncEstable(page, 120000, 120000);
   await recargarSinEstadoLocal(page);
   await validarPersistenciaRemota(page, Marca);
+
+  await abrirFuncionMenu(page, "#Decoteca_Boton", /Decoteca/i);
+  await expect(page.locator("#Decoteca_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.locator(".Decoteca_Teca_Btn")
+    .filter({ hasText: `${Marca} Decoteca` })
+    .click();
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText(`${Marca} Obra`);
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#Decoteca_Overlay"))
+    .not.toHaveClass(/Activo/);
 
   await page.keyboard.press("Escape");
   await expect(page.locator("#Archivero_Overlay"))
@@ -360,6 +509,22 @@ test("smoke de produccion", async ({ page }) => {
     Notas_Archivero = (Notas_Archivero || []).filter((Nota) => {
       return String(Nota?.Titulo || "") !== Nombre;
     });
+    Decoteca = Normalizar_Decoteca(Decoteca);
+    const Tecas_Borrar = new Set(
+      (Decoteca.Tecas || [])
+        .filter((Teca) =>
+          String(Teca?.Nombre || "") === `${Nombre} Decoteca`
+        )
+        .map((Teca) => Teca.Id)
+    );
+    Decoteca.Obras = (Decoteca.Obras || []).filter((Obra) => {
+      return String(Obra?.Titulo || "") !== `${Nombre} Obra` &&
+        !Tecas_Borrar.has(Obra?.Teca_Id);
+    });
+    Decoteca.Tecas = (Decoteca.Tecas || []).filter((Teca) =>
+      !Tecas_Borrar.has(Teca?.Id)
+    );
+    Decoteca = Normalizar_Decoteca(Decoteca);
     Render_Archivero();
     if (typeof Guardar_Estado_Cambio_Critico === "function") {
       Guardar_Estado_Cambio_Critico();
