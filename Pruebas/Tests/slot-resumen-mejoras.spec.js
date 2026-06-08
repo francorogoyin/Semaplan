@@ -56,7 +56,7 @@ async function preparar(page, estadoInicial) {
       JSON.stringify(estado)
     );
   }, estadoInicial);
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(
     () => typeof window.Inicializar === "function"
   );
@@ -66,6 +66,8 @@ async function preparar(page, estadoInicial) {
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+    Render_Calendario();
   });
 }
 
@@ -177,7 +179,15 @@ test("el modal de slot reconoce patrones del tipo del slot", async ({
     Abrir_Modal_Plan_Slot("2026-04-13", 10);
     let Opciones = [];
     const Original = Mostrar_Dialogo;
-    Mostrar_Dialogo = async (_Texto, Lista) => {
+    Mostrar_Dialogo = async (Contenido, Lista) => {
+      const Select = Contenido?.querySelector?.("select");
+      if (Select) {
+        Opciones = Array.from(Select.options).map(
+          (Opcion) => Opcion.value
+        );
+        Select.value = "p2";
+        return "Insertar";
+      }
       Opciones = Lista.map((Item) => Item.Valor).filter(Boolean);
       return "p2";
     };

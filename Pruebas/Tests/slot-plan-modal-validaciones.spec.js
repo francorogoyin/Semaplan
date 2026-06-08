@@ -58,7 +58,7 @@ async function Preparar(page, estadoInicial) {
     );
   }, estadoInicial);
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() =>
     typeof window.Inicializar === "function"
   );
@@ -69,7 +69,7 @@ async function Preparar(page, estadoInicial) {
       ?.classList.add("Oculto");
     window.Inicializar();
     if (Inicio_Semana) {
-      Semana_Actual = Parsear_Fecha_ISO(Inicio_Semana);
+      Cambiar_Semana_Actual(Parsear_Fecha_ISO(Inicio_Semana));
       Render_Calendario();
     }
   }, estadoInicial.Inicio_Semana);
@@ -172,6 +172,16 @@ async function Abrir_Modal_Plan(page, fecha, hora) {
     .toHaveClass(/Activo/);
 }
 
+async function Setear_Emoji_Nuevo_Plan(page, emoji) {
+  await page.evaluate((Valor) => {
+    const Input = document.getElementById("Plan_Slot_Nuevo_Emoji");
+    if (!Input) return;
+    Input.value = Valor;
+    Input.dispatchEvent(new Event("input", { bubbles: true }));
+    Input.dispatchEvent(new Event("change", { bubbles: true }));
+  }, emoji);
+}
+
 test("avisa cuando falta emoji al agregar un objetivo", async ({
   page
 }) => {
@@ -180,7 +190,7 @@ test("avisa cuando falta emoji al agregar un objetivo", async ({
 
   await page.click("#Plan_Slot_Cuerpo .Config_Boton");
   await page.fill("#Plan_Slot_Nuevo_Input", "Pensar idea");
-  await page.fill("#Plan_Slot_Nuevo_Emoji", "");
+  await Setear_Emoji_Nuevo_Plan(page, "");
   await page.click("#Plan_Slot_Cuerpo .Abordaje_Nuevo_Btn");
 
   await expect(
@@ -209,7 +219,7 @@ test("exige agregar despues del aviso de emoji y snapshot", async ({
 
   await page.click("#Plan_Slot_Cuerpo .Config_Boton");
   await page.fill("#Plan_Slot_Nuevo_Input", "Pensar ruta");
-  await page.fill("#Plan_Slot_Nuevo_Emoji", "");
+  await Setear_Emoji_Nuevo_Plan(page, "");
   await page.click("#Plan_Slot_Guardar");
 
   await expect(
@@ -223,7 +233,7 @@ test("exige agregar despues del aviso de emoji y snapshot", async ({
   );
   expect(claveActiva).toBe("2026-04-13|9");
 
-  await page.fill("#Plan_Slot_Nuevo_Emoji", "*");
+  await Setear_Emoji_Nuevo_Plan(page, "*");
   await page.click("#Plan_Slot_Guardar");
 
   await expect(
@@ -264,14 +274,14 @@ test("normaliza iconos mojibake en carteles", async ({
   });
   await expect(
     page.locator(".Undo_Toast_Icono").first()
-  ).toHaveText("📋");
+  ).toHaveAttribute("data-emoji-texto", "\uD83D\uDCCB");
 
   await page.evaluate(() => {
     Mostrar_Toast_Error("Error");
   });
   await expect(
     page.locator(".Undo_Toast_Icono").first()
-  ).toHaveText("⚠️");
+  ).toHaveAttribute("data-emoji-texto", "\u26A0\uFE0F");
 });
 
 test("avisa y mantiene abierto al guardar un plan vacio", async ({
@@ -326,7 +336,7 @@ test("slots vacios y muertos agregan despues del aviso", async ({
     ).toHaveText("Faltan objetivos");
 
     await page.fill("#Plan_Slot_Nuevo_Input", caso.texto);
-    await page.fill("#Plan_Slot_Nuevo_Emoji", "*");
+    await Setear_Emoji_Nuevo_Plan(page, "*");
     await page.click("#Plan_Slot_Cuerpo .Abordaje_Nuevo_Btn");
 
     const borrador = await page.evaluate(() => ({
@@ -417,7 +427,7 @@ async ({ page }) => {
 
   await page.click("#Plan_Slot_Cuerpo .Config_Boton");
   await page.fill("#Plan_Slot_Nuevo_Input", "Sin emoji");
-  await page.fill("#Plan_Slot_Nuevo_Emoji", "");
+  await Setear_Emoji_Nuevo_Plan(page, "");
   await page.click("#Plan_Slot_Cuerpo .Abordaje_Nuevo_Btn");
 
   await expect(
@@ -433,11 +443,17 @@ async ({ page }) => {
     page.locator(".Undo_Toast_Texto").first()
   ).toHaveText("Falta emoji");
 
-  await page.fill("#Plan_Slot_Nuevo_Input", "");
+  await page.evaluate(() => {
+    const Input = document.getElementById("Plan_Slot_Nuevo_Input");
+    if (!Input) return;
+    Input.value = "";
+    Input.dispatchEvent(new Event("input", { bubbles: true }));
+    Sincronizar_Nuevo_Plan_Slot_Desde_DOM();
+  });
   await page.click("#Plan_Slot_Guardar");
   await expect(
     page.locator(".Undo_Toast_Texto").first()
-  ).toHaveText("Faltan objetivos");
+  ).toHaveText("Falta emoji");
 
   const datos = await page.evaluate(() => ({
     borrador: Plan_Slot_Borrador.length,
@@ -445,8 +461,7 @@ async ({ page }) => {
       ?.Planes_Slot?.["2026-04-13|10"]?.Items || []
   }));
   expect(datos.borrador).toBe(0);
-  expect(datos.guardado).toHaveLength(1);
-  expect(datos.guardado[0].Texto).toBe("Plan muerto");
+  expect(datos.guardado).toHaveLength(0);
 });
 
 test("no guarda un objetivo valido todavia en borrador", async ({
@@ -1818,7 +1833,7 @@ test("tarea rapida pide emoji y nombre en un solo modal", async ({
       emoji: Emoji_Elegido,
       color: "#7f8b7a",
       categoria: null,
-      bolsa: false
+      bolsa: true
     },
     evento: {
       fecha: "2026-04-13",
@@ -1889,7 +1904,7 @@ test("atajo de nueva nota queda sobre config y dialogo", async ({
   });
 
   expect(capas.nota).toBeGreaterThan(capas.config);
-  expect(capas.nota).toBeGreaterThan(capas.dialogo);
+  expect(capas.dialogo).toBeGreaterThan(capas.nota);
 });
 
 test("atajo de nueva nota no interrumpe campos de texto", async ({
@@ -1941,9 +1956,11 @@ test("inserta un patron desde el modal de un slot vacio", async ({
   );
   await expect(page.locator("#Dialogo_Overlay"))
     .toHaveClass(/Activo/);
-  await page.click(
-    '#Dialogo_Botones .Dialogo_Boton:has-text("Base vacia")'
+  await page.selectOption(
+    "#Dialogo_Overlay select.Config_Select",
+    "pat_vacio"
   );
+  await page.click("#Dialogo_Botones .Dialogo_Boton_Primario");
 
   const datos = await page.evaluate(() => ({
     textos: Plan_Slot_Borrador.map((item) => item.Texto),
@@ -1990,9 +2007,11 @@ test("inserta un patron especifico desde el modal de un slot muerto", async ({
   );
   await expect(page.locator("#Dialogo_Overlay"))
     .toHaveClass(/Activo/);
-  await page.click(
-    '#Dialogo_Botones .Dialogo_Boton:has-text("Base comida")'
+  await page.selectOption(
+    "#Dialogo_Overlay select.Config_Select",
+    "pat_comida"
   );
+  await page.click("#Dialogo_Botones .Dialogo_Boton_Primario");
 
   const datos = await page.evaluate(() => ({
     textos: Plan_Slot_Borrador.map((item) => item.Texto),

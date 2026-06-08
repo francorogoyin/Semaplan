@@ -56,7 +56,7 @@ async function preparar(page, estadoInicial) {
       JSON.stringify(estado)
     );
   }, estadoInicial);
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() => typeof window.Inicializar === "function");
 }
 

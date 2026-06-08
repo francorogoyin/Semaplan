@@ -162,7 +162,7 @@ test("muestra el plan de un slot al pasar el mouse", async ({
     );
   }, estadoInicial);
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() => typeof window.Inicializar === "function");
 
   await page.evaluate(() => {
@@ -171,6 +171,8 @@ test("muestra el plan de un slot al pasar el mouse", async ({
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+    Render_Calendario();
   });
 
   const attrs = await page.evaluate((args) => {
@@ -366,7 +368,7 @@ test("el slot muerto con titulo no muestra tooltip nativo", async ({
     );
   }, estadoInicial);
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() => typeof window.Inicializar === "function");
 
   await page.evaluate(() => {
@@ -375,6 +377,8 @@ test("el slot muerto con titulo no muestra tooltip nativo", async ({
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+    Render_Calendario();
   });
 
   const datos = await page.evaluate((args) => {
@@ -599,7 +603,7 @@ test("el color de la marca del plan refleja pendiente, vencido y completado", as
     );
   }, estadoInicial);
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() => typeof window.Inicializar === "function");
 
   await page.evaluate(() => {
@@ -608,6 +612,8 @@ test("el color de la marca del plan refleja pendiente, vencido y completado", as
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+    Render_Calendario();
   });
 
   const estados = await page.evaluate((Fecha) => {

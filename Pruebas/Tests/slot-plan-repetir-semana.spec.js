@@ -144,7 +144,7 @@ test("repite slot muerto con plan en la semana", async ({
     localStorage.setItem("Semaplan_Estado_V2", JSON.stringify(estado));
   }, estadoInicial);
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() => typeof window.Inicializar === "function");
   await page.evaluate(() => {
     document.getElementById("Auth_Overlay")
@@ -152,6 +152,8 @@ test("repite slot muerto con plan en la semana", async ({
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+    Render_Calendario();
     Repetir_Slot_Muerto_Semana("2026-04-13", 10);
   });
 
@@ -334,7 +336,7 @@ test("repite una franja contigua de slots muertos en la semana", async ({
     localStorage.setItem("Semaplan_Estado_V2", JSON.stringify(estado));
   }, estadoInicial);
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() => typeof window.Inicializar === "function");
   await page.evaluate(() => {
     document.getElementById("Auth_Overlay")
@@ -342,6 +344,8 @@ test("repite una franja contigua de slots muertos en la semana", async ({
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+    Render_Calendario();
     Repetir_Slot_Muerto_Semana("2026-04-13", 10);
   });
 

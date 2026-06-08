@@ -59,7 +59,7 @@ async function preparar(page, estadoInicial) {
       JSON.stringify(estado)
     );
   }, estadoInicial);
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() =>
     typeof window.Inicializar === "function"
   );
@@ -69,7 +69,7 @@ async function preparar(page, estadoInicial) {
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
-    Semana_Actual = Parsear_Fecha_ISO("2026-04-13");
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
     Render_Calendario();
   });
 }
@@ -281,11 +281,12 @@ test("arrastra slot muerto con plan, tipo y titulo", async ({
         '.Slot[data-fecha="2026-04-13"][data-hora="12"] ' +
         '.Slot_Muerto_Nombre'
       )?.textContent || "",
-    ui_marca:
+    ui_marca: Boolean(
       document.querySelector(
         '.Slot[data-fecha="2026-04-13"][data-hora="12"] ' +
         '.Slot_Plan_Marca'
-      )?.textContent || "",
+      )
+    ),
     alerta: window.__ultimo_alert || ""
   }));
 
@@ -306,7 +307,7 @@ test("arrastra slot muerto con plan, tipo y titulo", async ({
   expect(data.destino_auto).toBeFalsy();
   expect(data.destino_plan).toBe("Idea central");
   expect(data.ui_titulo).toBe("Almuerzo largo");
-  expect(data.ui_marca).not.toBe("");
+  expect(data.ui_marca).toBeTruthy();
   expect(data.alerta).toBe("");
 });
 

@@ -56,7 +56,7 @@ async function preparar(page, estadoInicial) {
       JSON.stringify(estado)
     );
   }, estadoInicial);
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() =>
     typeof window.Inicializar === "function"
   );
@@ -66,6 +66,8 @@ async function preparar(page, estadoInicial) {
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+    Render_Calendario();
   });
 }
 

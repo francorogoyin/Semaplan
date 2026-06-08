@@ -56,7 +56,7 @@ async function preparar(page, estadoInicial) {
       JSON.stringify(estado)
     );
   }, estadoInicial);
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() =>
     typeof window.Inicializar === "function"
   );
@@ -163,6 +163,8 @@ test("mantiene el titulo aunque se oculte", async ({
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+    Render_Calendario();
 
     Alternar_Slot_Muerto("2026-04-13", 10);
     const Clave_10 = "2026-04-13|10";
@@ -339,6 +341,8 @@ test("el doble click en un slot muerto con titulo sigue alternando", async ({
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+    Render_Calendario();
   });
 
   const slot = page.locator(
@@ -350,9 +354,8 @@ test("el doble click en un slot muerto con titulo sigue alternando", async ({
   }
   const X = box.x + box.width / 2;
   const Y = box.y + box.height / 2;
-  await page.mouse.click(X, Y);
-  await page.waitForTimeout(80);
-  await page.mouse.click(X, Y);
+  await page.mouse.dblclick(X, Y);
+  await page.waitForTimeout(100);
 
   const resultado = await page.evaluate(() => {
     const clave = "2026-04-13|10";
@@ -466,6 +469,8 @@ test("el doble click en un slot vacio lo convierte en slot muerto", async ({
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+    Render_Calendario();
   });
 
   const slot = page.locator(
@@ -477,9 +482,8 @@ test("el doble click en un slot vacio lo convierte en slot muerto", async ({
   }
   const X = box.x + box.width / 2;
   const Y = box.y + box.height / 2;
-  await page.mouse.click(X, Y);
-  await page.waitForTimeout(80);
-  await page.mouse.click(X, Y);
+  await page.mouse.dblclick(X, Y);
+  await page.waitForTimeout(100);
 
   const resultado = await page.evaluate(() => {
     const clave = "2026-04-13|12";
@@ -598,6 +602,8 @@ test("al rotar toma el titulo propio del tipo", async ({
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+    Render_Calendario();
   });
 
   async function dobleClickSlot() {
@@ -610,9 +616,8 @@ test("al rotar toma el titulo propio del tipo", async ({
     }
     const X = box.x + box.width / 2;
     const Y = box.y + box.height / 2;
-    await page.mouse.click(X, Y);
-    await page.waitForTimeout(80);
-    await page.mouse.click(X, Y);
+    await page.mouse.dblclick(X, Y);
+    await page.waitForTimeout(100);
   }
 
   await dobleClickSlot();
@@ -733,39 +738,64 @@ test("aplica el titulo default segun el alcance elegido", async ({
     document.getElementById("App_Loader")
       ?.classList.add("Oculto");
     window.Inicializar();
+    Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+    Render_Calendario();
 
-    const reset = () => {
-      Slots_Muertos_Nombres["2026-04-07|10"] = "ðŸ½ï¸ Almuerzo";
-      Slots_Muertos_Nombres["2026-04-13|10"] = "ðŸ½ï¸ Almuerzo";
-      Slots_Muertos_Nombres["2026-04-16|10"] = "ðŸ½ï¸ Almuerzo";
-      Slots_Muertos_Nombres["2026-04-20|10"] = "ðŸ½ï¸ Almuerzo";
+    const Fecha_Real = window.Date;
+    const Ahora_Fijo = Fecha_Real.parse("2026-04-16T12:00:00-03:00");
+    window.Date = class extends Fecha_Real {
+      constructor(...args) {
+        return args.length
+          ? new Fecha_Real(...args)
+          : new Fecha_Real(Ahora_Fijo);
+      }
+      static now() {
+        return Ahora_Fijo;
+      }
+      static parse(...args) {
+        return Fecha_Real.parse(...args);
+      }
+      static UTC(...args) {
+        return Fecha_Real.UTC(...args);
+      }
     };
 
-    reset();
-    Aplicar_Titulo_Default_Tipo_Slot(
-      "Comida",
-      "ðŸ Cena",
-      "Semana"
-    );
-    const semana = { ...Slots_Muertos_Nombres };
+    try {
+      const reset = () => {
+        Slots_Muertos_Nombres["2026-04-07|10"] = "ðŸ½ï¸ Almuerzo";
+        Slots_Muertos_Nombres["2026-04-13|10"] = "ðŸ½ï¸ Almuerzo";
+        Slots_Muertos_Nombres["2026-04-16|10"] = "ðŸ½ï¸ Almuerzo";
+        Slots_Muertos_Nombres["2026-04-20|10"] = "ðŸ½ï¸ Almuerzo";
+      };
 
-    reset();
-    Aplicar_Titulo_Default_Tipo_Slot(
-      "Comida",
-      "ðŸ Cena",
-      "Adelante"
-    );
-    const adelante = { ...Slots_Muertos_Nombres };
+      reset();
+      Aplicar_Titulo_Default_Tipo_Slot(
+        "Comida",
+        "ðŸ Cena",
+        "Semana"
+      );
+      const semana = { ...Slots_Muertos_Nombres };
 
-    reset();
-    Aplicar_Titulo_Default_Tipo_Slot(
-      "Comida",
-      "ðŸ Cena",
-      "Todas"
-    );
-    const todas = { ...Slots_Muertos_Nombres };
+      reset();
+      Aplicar_Titulo_Default_Tipo_Slot(
+        "Comida",
+        "ðŸ Cena",
+        "Adelante"
+      );
+      const adelante = { ...Slots_Muertos_Nombres };
 
-    return { semana, adelante, todas };
+      reset();
+      Aplicar_Titulo_Default_Tipo_Slot(
+        "Comida",
+        "ðŸ Cena",
+        "Todas"
+      );
+      const todas = { ...Slots_Muertos_Nombres };
+
+      return { semana, adelante, todas };
+    } finally {
+      window.Date = Fecha_Real;
+    }
   });
 
   expect(resultado.semana["2026-04-07|10"]).toBe("ðŸ½ï¸ Almuerzo");
@@ -897,6 +927,8 @@ test(
       document.getElementById("App_Loader")
         ?.classList.add("Oculto");
       window.Inicializar();
+      Cambiar_Semana_Actual(Parsear_Fecha_ISO("2026-04-13"));
+      Render_Calendario();
     });
 
     const slot = page.locator(
@@ -908,9 +940,8 @@ test(
     }
     const X = box.x + box.width / 2;
     const Y = box.y + box.height / 2;
-    await page.mouse.click(X, Y);
-    await page.waitForTimeout(80);
-    await page.mouse.click(X, Y);
+    await page.mouse.dblclick(X, Y);
+    await page.waitForTimeout(100);
 
     const resultado = await page.evaluate(() => {
       const clave = "2026-04-13|10";

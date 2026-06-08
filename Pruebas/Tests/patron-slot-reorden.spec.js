@@ -170,7 +170,7 @@ test("permite reordenar items al editar un patrón de slot", async ({
     );
   }, estadoInicial);
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() => typeof window.Inicializar === "function");
 
   await page.evaluate(() => {

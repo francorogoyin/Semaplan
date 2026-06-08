@@ -187,7 +187,7 @@ test("usa botones de estado en focus para slots", async ({
     );
   }, Estado_Inicial);
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() =>
     typeof window.Inicializar === "function"
   );
@@ -424,7 +424,7 @@ test("congela countdown del slot vencido y pinta cierre", async ({
     );
   }, { Estado: Estado_Inicial, Ahora: Ahora_ISO });
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() =>
     typeof window.Inicializar === "function"
   );

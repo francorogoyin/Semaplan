@@ -148,7 +148,7 @@ test("incluye patrones de slot vacío en slots muertos", async ({
     localStorage.setItem("Semaplan_Estado_V2", JSON.stringify(estado));
   }, estadoInicial);
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() => typeof window.Inicializar === "function");
   const nombres = await page.evaluate(() => {
     document.getElementById("Auth_Overlay")
