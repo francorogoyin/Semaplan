@@ -74,6 +74,7 @@ Los modulos principales son estos.
 - Retos de varios dias vinculados a uno o mas habitos.
 - Archivero para notas, etiquetas y adjuntos.
 - Baul como backlog de objetivos e ideas accionables.
+- Decoteca como shell visual para catalogos culturales por teca.
 - Metas resumidas por fuente.
 - Planes semanales.
 - Planes por periodos con objetivos, subobjetivos y partes.
@@ -114,6 +115,11 @@ Las claves centrales persistidas hoy son estas.
 - `Slots_Muertos_Nombres_Auto`
 - `Slots_Muertos_Grupo_Ids`
 - `Semanas_Con_Defaults`
+
+La Decoteca inicial no agrega claves persistidas todavia. El primer
+avance es un shell visual en `login.html` con datos de demostracion
+para validar estructura, navegacion y formato antes de fijar modelo de
+datos, sync o import/export.
 
 La carga local/restauracion pasa por `Cargar_Estado()` y luego por
 `Normalizar_Estado()`.
@@ -528,6 +534,44 @@ Relaciones importantes.
 - Un item del Baul puede tener categoria, etiquetas, estado, timeline,
   descripcion y metadatos visibles.
 - Puede alimentar agenda, objetivos o decisiones semanales.
+
+## Decoteca
+
+La Decoteca es el primer diseno visual de un archivo cultural por
+tecas. Toma el lenguaje frontal del Baul, pero cambia la grilla a
+tarjetas altas y angostas tipo caratula.
+
+Estado actual.
+
+- Shell visual navegable en `login.html`.
+- Datos de demostracion internos, no persistidos.
+- Boton propio `Decoteca_Boton` en el menu superior configurable.
+- Modal `Decoteca_Overlay`.
+
+Tecas iniciales.
+
+- Biblioteca: libros, capitulos, paginas y partes de lectura.
+- Musicoteca: albumes, canciones, escuchas y artista.
+- Videoteca: peliculas, director, anio, duracion y plataforma.
+- Ludoteca: juegos, sesiones y progreso.
+
+Funciones de entrada recomendadas.
+
+- `Abrir_Decoteca()`
+- `Cerrar_Decoteca()`
+- `Render_Decoteca()`
+- `Decoteca_Cambiar_Teca()`
+- `Decoteca_Abrir_Nuevo()`
+
+Relaciones importantes.
+
+- Cada teca debe poder tener universo, campos y reglas propias.
+- Las obras muestran caratula, estado, periodo, progreso, metadatos y
+  subpartes.
+- El alta nueva hoy muestra un boceto de campos por teca; el guardado
+  real queda pendiente hasta definir modelo persistido.
+- La vista por periodos ya existe como selector visual, pero todavia
+  no distribuye ni sincroniza planes reales.
 
 ## Metas
 
