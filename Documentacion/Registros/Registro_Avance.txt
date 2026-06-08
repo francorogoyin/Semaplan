@@ -6,6 +6,23 @@ Plantilla de registro de avance.
 
 Registros.
 
+- Fecha y hora: 2026-06-08 14:21:16.
+  Nota: Se reformo el inicio de sesion para usar una sesion operativa
+  exclusiva con lease remoto, heartbeat y bloqueo de entrada cuando hay
+  otra sesion activa del mismo usuario. El bloqueo permite cerrar las
+  demas sesiones o salir sin entrar a la app. Tambien se reforzo el
+  guardado critico de calendario, slots muertos, slots vacios, planes
+  de slot, limpieza, pegado, repeticion y abordajes para que esos
+  cambios sincronicen de inmediato y no dependan del debounce normal.
+  Ademas, el snapshot remoto usado por sync ahora se clona al registrarse
+  como exitoso para que mutaciones posteriores in-place de habitos,
+  notas, slots u otros arrays no contaminen la referencia remota y no
+  queden invisibles para el diff de guardado. Se actualizo la
+  documentacion operativa, el smoke de produccion y la cobertura de
+  pruebas para bloqueo de sesion, cierre de otras sesiones, guardado
+  critico y mutaciones posteriores a un sync exitoso.
+  Estado: Realizado.
+
 - Fecha y hora: 2026-06-08 13:22:20.
   Nota: Se completo una auditoria funcional y visual de las pantallas
   principales tras el diseno inicial de Decoteca. Se corrigio el cierre

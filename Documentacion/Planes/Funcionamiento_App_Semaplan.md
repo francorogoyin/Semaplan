@@ -142,20 +142,29 @@ El flujo operativo base es este.
    una demora minima para mantener un punto unico de ejecucion y sin
    debounce largo.
 6.b Las mutaciones visibles del calendario que crean, mueven,
-   redimensionan o tildan bloques, y las que crean o arrastran slots
-   muertos, usan `Guardar_Estado_Cambio_Critico()` para no quedar
-   atadas al debounce normal y evitar perder los ultimos cambios al
-   reloguear.
+   redimensionan, repiten, limpian, pegan o tildan bloques, y las que
+   crean, borran, limpian o planifican slots muertos/vacios, usan
+   `Guardar_Estado_Cambio_Critico()` para no quedar atadas al debounce
+   normal y evitar perder los ultimos cambios al reloguear.
 7. `Backend_Sync_Ejecutar()` sube el estado a `estado_usuario`,
    con manejo de versionado, conflictos y reintentos.
-8. La carga inicial ya no registra una `Sesiones_Operativas` propia ni
-   mantiene heartbeat remoto por pestana. Esto evita escrituras
-   periodicas que solo cambian metadata y acelera la recarga normal de
-   una unica pantalla.
-9. `Sesiones_Operativas` queda como metadata operativa/legacy para
-   cortes globales y compatibilidad con estados previos, pero no forma
-   parte del estado normal generado por `Construir_Estado_Completo()`
-   ni se escribe por actividad pasiva de una pestana.
+7.b Despues de un sync exitoso, la foto remota interna se guarda como
+   clon JSON limpio, no como referencia compartida con los arrays vivos
+   de la app. Esto evita que mutaciones in-place posteriores de
+   habitos, notas, slots, planes u otros modulos contaminen la referencia
+   remota y queden invisibles para el diff de guardado.
+8. Al iniciar una sesion logueada, la app lee remoto antes de entrar y
+   registra una unica `Sesiones_Operativas` activa como lease
+   exclusivo. Si detecta otra sesion reciente del mismo usuario,
+   bloquea la entrada y ofrece cerrar las demas sesiones o salir.
+9. El lease operativo se renueva con heartbeat remoto liviano. Si el
+   usuario elige cerrar las demas sesiones, la app escribe un corte en
+   `Sesiones_Operativas`, conserva solo la sesion actual y las otras
+   quedan expulsadas cuando revisen remoto. Si una app se cierra o se
+   cae sin liberar el lease, la sesion vence por TTL.
+9.b `Sesiones_Operativas` es metadata operativa: no forma parte del
+   estado normal generado por `Construir_Estado_Completo()` y no debe
+   contarse como cambio de datos del usuario.
 10. `Sync_Datos_Marca_Ms` marca cambios reales de datos generados por
    `Guardar_Estado()`. La metadata de sesiones no actualiza esa marca.
 11. Si al iniciar hay cambios locales pendientes, la app no decide
@@ -176,9 +185,10 @@ El flujo operativo base es este.
    con marca mas nueva abre conflicto; si el remoto no requiere
    conflicto, refresca version y reintenta el guardado aunque el
    `UPDATE` versionado haya perdido contra otra escritura reciente.
-13. No hay heartbeat ni polling remoto permanente por defecto. La app
-   revisa cambios remotos al volver al foco/visibilidad o por eventos
-   locales de sync, sin marcar `Guardando` si no hay cambios propios.
+13. Fuera del heartbeat del lease exclusivo, no hay polling remoto
+   permanente por defecto. La app revisa cambios remotos al volver al
+   foco/visibilidad o por eventos locales de sync, sin marcar
+   `Guardando` si no hay cambios propios.
 14. `Hay_Sync_Pendiente()` representa trabajo real pendiente
    (timer, reintento o promesa en curso) y no solamente el texto
    visible `Guardando`. Si la UI queda en `Guardando` sin tarea activa,

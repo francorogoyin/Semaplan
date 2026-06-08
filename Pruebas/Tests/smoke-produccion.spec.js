@@ -90,23 +90,28 @@ async function esperarAppLista(page) {
       !Auth?.classList.contains("Activo");
   }, null, { timeout: 120000 });
 
-  await page.evaluate(() => {
-    if (
-      typeof Aplicar_Estilo_Menu === "function" &&
-      typeof Config === "object" &&
-      Config
-    ) {
-      Config.Menu_Estilo = "Iconos";
-      Aplicar_Estilo_Menu();
-    }
-  });
-
   await page.waitForFunction(() => {
     return (
       typeof Es_Premium === "function" &&
       Es_Premium() === true
     );
   }, null, { timeout: 120000 });
+}
+
+async function abrirFuncionMenu(page, Selector, Texto_Menu) {
+  const Boton = page.locator(Selector);
+  if (await Boton.isVisible()) {
+    await Boton.click();
+    return;
+  }
+
+  await page.locator("#Menu_Hamburguesa_Boton").click();
+  const Popup = page.locator("#Menu_Hamburguesa_Popup");
+  await expect(Popup).toHaveClass(/Activo/);
+  await Popup
+    .locator(".Menu_Hamburguesa_Item", { hasText: Texto_Menu })
+    .first()
+    .click();
 }
 
 async function recargarSinEstadoLocal(page) {
@@ -168,10 +173,6 @@ test("smoke de produccion", async ({ page }) => {
 
   await esperarAppLista(page);
 
-  await expect(page.locator("#Archivero_Boton")).toBeVisible();
-  await expect(page.locator("#Baul_Boton")).toBeVisible();
-  await expect(page.locator("#Ayuda_Boton")).toBeVisible();
-
   await page.evaluate(async (Nombre) => {
     const Semana = Clave_Semana_Actual();
     const Objetivo = Crear_Objetivo_Semanal_Con_Datos(
@@ -204,7 +205,14 @@ test("smoke de produccion", async ({ page }) => {
     }
     Render_Emojis();
     Render_Resumen_Objetivo();
-    Guardar_Estado();
+    if (typeof Guardar_Estado_Cambio_Critico === "function") {
+      Guardar_Estado_Cambio_Critico();
+    } else {
+      Guardar_Estado();
+    }
+    if (typeof Marcar_Sync_Local_Sucio === "function") {
+      Marcar_Sync_Local_Sucio(true);
+    }
     await Forzar_Sync_Inmediato_Cambio_Critico();
   }, Marca);
 
@@ -216,12 +224,12 @@ test("smoke de produccion", async ({ page }) => {
     }
   });
 
-  await page.locator("#Baul_Boton").click();
+  await abrirFuncionMenu(page, "#Baul_Boton", /Ba.l/i);
   await expect(page.locator("#Baul_Overlay"))
     .toHaveClass(/Activo/);
   await page.keyboard.press("Escape");
 
-  await page.locator("#Archivero_Boton").click();
+  await abrirFuncionMenu(page, "#Archivero_Boton", /Archivero/i);
   await expect(page.locator("#Archivero_Overlay"))
     .toHaveClass(/Activo/);
 
@@ -251,7 +259,14 @@ test("smoke de produccion", async ({ page }) => {
     });
     Archivero_Seleccion_Id = Cajon.Id;
     Render_Archivero();
-    Guardar_Estado();
+    if (typeof Guardar_Estado_Cambio_Critico === "function") {
+      Guardar_Estado_Cambio_Critico();
+    } else {
+      Guardar_Estado();
+    }
+    if (typeof Marcar_Sync_Local_Sucio === "function") {
+      Marcar_Sync_Local_Sucio(true);
+    }
     await Forzar_Sync_Inmediato_Cambio_Critico();
   }, Marca);
 
@@ -263,7 +278,7 @@ test("smoke de produccion", async ({ page }) => {
   await expect(page.locator("#Archivero_Overlay"))
     .not.toHaveClass(/Activo/);
 
-  await page.locator("#Ayuda_Boton").click();
+  await abrirFuncionMenu(page, "#Ayuda_Boton", /Ayuda/i);
   await expect(page.locator("#Ayuda_Overlay"))
     .toHaveClass(/Activo/);
 
@@ -298,7 +313,14 @@ test("smoke de produccion", async ({ page }) => {
       return String(Nota?.Titulo || "") !== Nombre;
     });
     Render_Archivero();
-    Guardar_Estado();
+    if (typeof Guardar_Estado_Cambio_Critico === "function") {
+      Guardar_Estado_Cambio_Critico();
+    } else {
+      Guardar_Estado();
+    }
+    if (typeof Marcar_Sync_Local_Sucio === "function") {
+      Marcar_Sync_Local_Sucio(true);
+    }
     await Forzar_Sync_Inmediato_Cambio_Critico();
   }, Marca);
 

@@ -570,7 +570,7 @@ async function Mostrar_Semana(page, Clave_Semana) {
 }
 
 test(
-  "no registra sesiones remotas al iniciar sin otra pantalla",
+  "registra sesion operativa al iniciar sin cambios de datos",
   async ({ page }) => {
     await Preparar_App(
       page,
@@ -596,8 +596,8 @@ test(
       };
     });
 
-    expect(Resumen.version).toBe(1);
-    expect(Resumen.sesionesRemotas).toBe(false);
+    expect(Resumen.version).toBe(2);
+    expect(Resumen.sesionesRemotas).toBe(true);
     expect(Resumen.sesionesEnEstado).toBe(false);
     expect(Resumen.syncEstado).toBe("Guardado");
     expect(Resumen.pendiente).toBe(false);
@@ -648,6 +648,79 @@ test(
     expect(Resumen.sucio).toBe(false);
     expect(Resumen.pendiente).toBe(false);
     expect(Resumen.syncEstado).toBe("Guardado");
+  }
+);
+
+test(
+  "sincroniza mutaciones in-place despues de una subida exitosa",
+  async ({ page }) => {
+    await Preparar_App(
+      page,
+      Crear_Estado(["Base remota"])
+    );
+
+    const Resumen = await page.evaluate(async () => {
+      Objetivos.push({
+        Id: 77,
+        Nombre: "Objetivo previo",
+        Emoji: "ðŸ§ª",
+        Color: "#f1b77e",
+        Horas: 1,
+        Dia: 0,
+        Hora: 9,
+        Duracion: 1,
+        Subobjetivos: [],
+        Copias_Semana: {}
+      });
+      Guardar_Estado_Cambio_Critico();
+      const Primer_Sync =
+        await Forzar_Sync_Inmediato_Cambio_Critico();
+
+      Notas_Archivero.unshift({
+        Id: "nota_inplace_post_sync",
+        Archivero_Id: "arch_sync",
+        Titulo: "Nota posterior",
+        Texto: "Debe llegar a remoto",
+        Origen: "test",
+        Etiquetas: [],
+        Color_Fondo: "",
+        Tipo: "Texto",
+        Fecha_Creacion: Date.now()
+      });
+
+      const Snapshot_Remoto_Contaminado =
+        (Sync_Remoto_Estado_Ultimo?.Notas_Archivero || [])
+          .some((Nota) => {
+            return Nota?.Id === "nota_inplace_post_sync";
+          });
+
+      Guardar_Estado_Cambio_Critico();
+      const Segundo_Sync =
+        await Forzar_Sync_Inmediato_Cambio_Critico();
+
+      const Nota_Remota =
+        (window.__Estado_Remoto?.estado?.Notas_Archivero || [])
+          .find((Nota) => {
+            return Nota?.Id === "nota_inplace_post_sync";
+          });
+
+      return {
+        primerSync: Primer_Sync,
+        segundoSync: Segundo_Sync,
+        snapshotRemotoContaminado:
+          Snapshot_Remoto_Contaminado,
+        notaRemota: Nota_Remota || null,
+        version: window.__Estado_Remoto?.version || 0
+      };
+    });
+
+    expect(Resumen.primerSync).toBe(true);
+    expect(Resumen.segundoSync).toBe(true);
+    expect(Resumen.snapshotRemotoContaminado).toBe(false);
+    expect(Resumen.notaRemota?.Texto).toBe(
+      "Debe llegar a remoto"
+    );
+    expect(Resumen.version).toBeGreaterThanOrEqual(4);
   }
 );
 
