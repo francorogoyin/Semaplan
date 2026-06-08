@@ -236,3 +236,45 @@ async ({ page }) => {
   );
   expect(resultado.cantidadToasts).toBe(1);
 });
+
+test("solo hoy salta al lunes nuevo cuando cambia la semana",
+async ({ page }) => {
+  const estado = estadoBase();
+  await preparar(page, estado, "2026-04-19T23:59:30");
+
+  const resultado = await page.evaluate(() => {
+    Config.Dias_Visibles = [0, 1, 2, 3, 4, 5, 6];
+    Config.Ocultar_Dias_Automatico = "Ninguno";
+    Config.Dias_Visibles_Actual_Memoria = [6];
+    Config.Dias_Visibles_Actual_Memoria_Tipo = "solo-hoy";
+    Calendario_Auto_Recarga_Registrar_Corte_Actual();
+    Render_Calendario();
+    const Antes = {
+      semana: Clave_Semana_Actual(),
+      dias: Obtener_Dias_Visibles_Efectivos()
+    };
+
+    window.__SetMockNow("2026-04-20T00:00:10");
+    const actualizo = Calendario_Auto_Recarga_Ejecutar(false);
+    return {
+      actualizo,
+      antes: Antes,
+      despues: {
+        semana: Clave_Semana_Actual(),
+        dias: Obtener_Dias_Visibles_Efectivos(),
+        memoria: Config.Dias_Visibles_Actual_Memoria
+      }
+    };
+  });
+
+  expect(resultado.actualizo).toBe(true);
+  expect(resultado.antes).toEqual({
+    semana: "2026-04-13",
+    dias: [6]
+  });
+  expect(resultado.despues).toEqual({
+    semana: "2026-04-20",
+    dias: [0],
+    memoria: [0]
+  });
+});

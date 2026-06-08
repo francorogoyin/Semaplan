@@ -3153,9 +3153,15 @@ async ({ page }) => {
   await page.locator(
     `.Planes_Avance_Expandir[data-toggle-objetivo="${Resultado.Pendiente_Id}"]`
   ).click();
+  await expect(page.locator(".Planes_Avance_Custom"))
+    .toHaveClass(/Abierto/);
+  await expect(page.locator(".Planes_Avance_Menu")).toBeVisible();
   await page.locator(
     `.Planes_Avance_Expandir[data-toggle-sub="${Resultado.Sub_Pendiente_Id}"]`
   ).click();
+  await expect(page.locator(".Planes_Avance_Custom"))
+    .toHaveClass(/Abierto/);
+  await expect(page.locator(".Planes_Avance_Menu")).toBeVisible();
   const Items_Menu = await page.locator(
     ".Planes_Avance_Menu .Planes_Avance_Item"
   ).evaluateAll((Items) =>

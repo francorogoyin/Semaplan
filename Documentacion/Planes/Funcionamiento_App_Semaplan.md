@@ -276,6 +276,11 @@ Notas operativas.
   cero o si su periodo solapa el rango y tiene target total definido.
   Si no tiene meta ni avance en el rango, queda oculto; si tiene avance
   pero no meta, se muestra como 100%.
+- Si la vista visible estaba siguiendo el dia actual con el filtro
+  automatico o manual de solo hoy, el refresco automatico por cambio de
+  fecha tambien reubica la semana visible. Al pasar de domingo a lunes,
+  la vista queda en el lunes de la nueva semana y no en el domingo de la
+  semana anterior.
 - La seleccion multiple de objetivos semanales conserva los ids
   seleccionados mientras se abre el dialogo de cambio de categoria.
   La categoria se aplica en lote al confirmar y recien despues se
@@ -464,6 +469,10 @@ Relaciones importantes.
 - Marcar, destildar o cancelar un habito refresca Retos si el modal
   esta abierto, porque el estado diario se deriva de los registros de
   habitos.
+- El total exigido por dia usa solo los habitos vigentes en esa fecha.
+  Si se agrega a un reto un habito cuya `Fecha_Inicio` es posterior al
+  inicio del reto, los dias previos no quedan marcados como incompletos
+  por ese nuevo vinculo.
 - Al borrar un habito, se quita su id de los retos vinculados. El reto
   puede quedar sin habitos y se muestra como tal hasta que el usuario lo
   edite o lo borre.

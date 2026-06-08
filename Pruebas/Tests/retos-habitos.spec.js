@@ -167,3 +167,86 @@ test("crea un reto vinculado a varios habitos y calcula progreso", async ({
     Total: 2
   });
 });
+
+test("no penaliza dias previos al inicio de un habito nuevo", async ({
+  page
+}) => {
+  await Preparar(page);
+
+  const estados = await page.evaluate(() => {
+    const Inicio = Formatear_Fecha_ISO(Sumar_Dias(new Date(), -10));
+    const Dia_8 = Formatear_Fecha_ISO(
+      Sumar_Dias(Parsear_Fecha_ISO(Inicio), 7)
+    );
+    const Dia_9 = Formatear_Fecha_ISO(
+      Sumar_Dias(Parsear_Fecha_ISO(Inicio), 8)
+    );
+    Habitos = Habitos.map((Habito) =>
+      Normalizar_Habito({
+        ...Habito,
+        Fecha_Inicio: Inicio
+      })
+    );
+    Habitos.push(Normalizar_Habito({
+      Id: "hab_nuevo",
+      Nombre: "Nuevo tramo",
+      Emoji: "\u{2728}",
+      Tipo: "Hacer",
+      Activo: true,
+      Fecha_Inicio: Dia_9,
+      Meta: {
+        Modo: "Check",
+        Regla: "Al_Menos",
+        Periodo: "Dia",
+        Cantidad: 1
+      }
+    }));
+    Retos = [Normalizar_Reto({
+      Nombre: "100 dias ampliado",
+      Fecha_Inicio: Inicio,
+      Duracion_Dias: 100,
+      Regla_Cumplimiento: "Todos",
+      Habito_Ids: [
+        "hab_lectura",
+        "hab_movimiento",
+        "hab_nuevo"
+      ]
+    })];
+
+    Array.from({ length: 9 }, (_, Indice) =>
+      Formatear_Fecha_ISO(
+        Sumar_Dias(Parsear_Fecha_ISO(Inicio), Indice)
+      )
+    ).forEach((Fecha) => {
+      ["hab_lectura", "hab_movimiento"].forEach((Habito_Id) => {
+        Habito_Registrar_Fuente({
+          Habito_Id,
+          Fecha,
+          Fuente: "Manual",
+          Fuente_Id: `manual_${Habito_Id}_${Fecha}`,
+          Cantidad: 1,
+          Unidad: ""
+        });
+      });
+    });
+
+    Normalizar_Habitos_Registros();
+    return {
+      dia8: Retos_Estado_Dia(Retos[0], Dia_8),
+      dia9: Retos_Estado_Dia(Retos[0], Dia_9),
+      stats: Retos_Estadisticas(Retos[0])
+    };
+  });
+
+  expect(estados.dia8).toMatchObject({
+    Clave: "Cumplido",
+    Cumplidos: 2,
+    Total: 2
+  });
+  expect(estados.dia9).toMatchObject({
+    Clave: "Parcial",
+    Cumplidos: 2,
+    Total: 3
+  });
+  expect(estados.stats.Cumplidos).toBe(8);
+});
