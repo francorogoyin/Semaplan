@@ -489,3 +489,96 @@ test("fusionar a una hora unifica planes sin duplicar", async ({
     }
   ]);
 });
+
+test("patron semanal aplica y muestra slots granulares completos",
+async ({ page }) => {
+  const estado = estadoBase();
+  estado.Config_Extra.Duracion_Default = 0.25;
+  estado.Config_Extra.Duracion_Grilla_Eventos = 0.25;
+  estado.Patrones = [
+    {
+      Id: "pat_noche",
+      Nombre: "Noche",
+      Emoji: "*",
+      Tipo: "Semanal",
+      Franjas: [
+        {
+          Desde: 21,
+          Hasta: 22,
+          Tipo: "Bloqueado",
+          Naturaleza: "Sueno",
+          Dias: [0]
+        }
+      ]
+    }
+  ];
+
+  await preparar(page, estado);
+
+  const resultado = await page.evaluate(() => {
+    const Select_Prueba = document.createElement("select");
+    Select_Prueba.innerHTML = Crear_Options_Horas();
+    const Opciones = Array.from(Select_Prueba.options)
+      .filter((Opcion) =>
+        ["21", "21.25", "21.5", "21.75", "22"]
+          .includes(Opcion.value)
+      )
+      .map((Opcion) => ({
+        valor: Opcion.value,
+        texto: Opcion.textContent
+      }));
+
+    Aplicar_Patron_Semanal_Completo(
+      Patrones[0],
+      "Completar",
+      false
+    );
+    Render_Calendario();
+
+    const Slots_Dia = [...Slots_Muertos]
+      .filter((Clave) => Clave.startsWith("2026-04-13|"))
+      .sort();
+    const Slots_DOM = Array.from(
+      document.querySelectorAll(
+        '.Slot_Muerto[data-fecha="2026-04-13"]'
+      )
+    ).map((Slot) => Slot.dataset.hora).sort();
+    const Franja = Obtener_Franja_Slot_Muerto(
+      "2026-04-13",
+      21.5
+    );
+
+    return {
+      opciones: Opciones,
+      slotsDia: Slots_Dia,
+      slotsDom: Slots_DOM,
+      franjaHoras: Franja?.Horas || []
+    };
+  });
+
+  expect(resultado.opciones).toEqual([
+    { valor: "21", texto: "21:00" },
+    { valor: "21.25", texto: "21:15" },
+    { valor: "21.5", texto: "21:30" },
+    { valor: "21.75", texto: "21:45" },
+    { valor: "22", texto: "22:00" }
+  ]);
+  expect(resultado.slotsDia).toEqual([
+    "2026-04-13|21",
+    "2026-04-13|21.25",
+    "2026-04-13|21.5",
+    "2026-04-13|21.75"
+  ]);
+  expect(resultado.slotsDom).toEqual([
+    "21",
+    "21.25",
+    "21.5",
+    "21.75"
+  ]);
+  expect(resultado.franjaHoras).toEqual([
+    21,
+    21.25,
+    21.5,
+    21.75
+  ]);
+});

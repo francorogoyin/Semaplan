@@ -273,6 +273,14 @@ Notas operativas.
   partir una hora los items generales van al primer sub-bloque y las
   tareas con hora van al sub-bloque correspondiente; al fusionar
   sub-bloques se unifican items y notas sin generar copias duplicadas.
+- Los selectores de franjas de patrones y de slots muertos por defecto
+  deben usar el mismo paso visible de la grilla. Con grilla de 15
+  minutos tienen que ofrecer 21:00, 21:15, 21:30 y 21:45, sin truncar
+  los valores decimales al guardar.
+- Al aplicar una franja bloqueada de patron o de slots muertos por
+  defecto, todos los sub-slots generados por esa franja comparten
+  `Slots_Muertos_Grupo_Ids` para que se vean y operen como una franja
+  continua al repetir, redimensionar o arrastrar.
 - En migracion a grilla mas fina (1h -> 30m/15m), los bloques no se
   fragmentan en copias hijas y los slots muertos tampoco se duplican:
   se conserva solo el primer bloque/slot resultante para evitar
