@@ -15,6 +15,7 @@ const ARCHIVO_AUTH =
 const BASE_URL =
   process.env.SEMAPLAN_BASE_URL ||
   "https://semaplan.com";
+const APP_URL = new URL("/login.html", BASE_URL).toString();
 
 test.use({
   baseURL: BASE_URL,
@@ -181,8 +182,13 @@ async function recargarSinEstadoLocal(page) {
   await esperarAppLista(page);
 }
 
-async function validarPersistenciaRemota(page, Marca) {
-  await page.waitForFunction((Nombre) => {
+async function validarPersistenciaRemota(
+  page,
+  Marca,
+  Requiere_Portada_Tipo = false
+) {
+  await page.waitForFunction((Config) => {
+    const Nombre = Config.Nombre;
     const Objetivo = (Objetivos || []).find((Item) => {
       return String(Item?.Nombre || "") ===
         `${Nombre} editado`;
@@ -206,18 +212,19 @@ async function validarPersistenciaRemota(page, Marca) {
       (Teca) => String(Teca?.Nombre || "") ===
         `${Nombre} Decoteca`
     );
-    const Requiere_Portada_Tipo =
-      typeof Decoteca_Normalizar_Tipo_Portada === "function";
     const Tiene_Decoteca_Obra = (Decoteca?.Obras || []).some(
       (Obra) => String(Obra?.Titulo || "") ===
         `${Nombre} Obra` && (
-          !Requiere_Portada_Tipo ||
+          !Config.Requiere_Portada_Tipo ||
           String(Obra?.Portada_Tipo || "") === "Url"
         )
     );
     return Tiene_Sub && Tiene_Nota &&
       Tiene_Decoteca_Teca && Tiene_Decoteca_Obra;
-  }, Marca, { timeout: 120000 });
+  }, {
+    Nombre: Marca,
+    Requiere_Portada_Tipo
+  }, { timeout: 120000 });
 }
 
 async function limpiarRestosSmoke(page) {
@@ -294,7 +301,7 @@ test("smoke de produccion", async ({ page }) => {
 
   const Marca = `Smoke ${Date.now()}`;
 
-  await page.goto(BASE_URL, {
+  await page.goto(APP_URL, {
     waitUntil: "domcontentloaded",
     timeout: 120000
   });
@@ -408,6 +415,9 @@ test("smoke de produccion", async ({ page }) => {
   await expect(page.locator("#Decoteca_Overlay"))
     .toHaveClass(/Activo/);
   await page.keyboard.press("Escape");
+  const Decoteca_Soporta_Portada_Tipo = await page.evaluate(() =>
+    typeof Decoteca_Normalizar_Tipo_Portada === "function"
+  );
 
   await page.evaluate(async (Nombre) => {
     Decoteca = Normalizar_Decoteca(Decoteca);
@@ -457,7 +467,11 @@ test("smoke de produccion", async ({ page }) => {
 
   await esperarSyncEstable(page, 120000, 120000);
   await recargarSinEstadoLocal(page);
-  await validarPersistenciaRemota(page, Marca);
+  await validarPersistenciaRemota(
+    page,
+    Marca,
+    Decoteca_Soporta_Portada_Tipo
+  );
 
   await abrirFuncionMenu(page, "#Decoteca_Boton", /Decoteca/i);
   await expect(page.locator("#Decoteca_Overlay"))
