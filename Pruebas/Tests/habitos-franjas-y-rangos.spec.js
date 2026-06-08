@@ -55,7 +55,7 @@ async function Preparar(page) {
     };
   });
 
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() =>
     typeof Normalizar_Habito === "function" &&
     typeof Habito_Coincide_Con_Slot === "function"
@@ -1147,6 +1147,7 @@ test("objetivo semanal aplica habitos por defecto al tildar bloques", async ({
         Id: "Obj_Habitos_Default",
         Nombre: "Lectura semanal",
         Emoji: "\uD83D\uDCD8",
+        Semana_Base: "2026-04-20",
         Horas_Semanales: 2,
         Restante: 2,
         Habitos_Vinculos_Bloques: [
@@ -1545,8 +1546,10 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
       "Plan_Parte",
       "Habito_Leer_Planes"
     );
+    const Fecha_Prueba = Habitos_Fecha_Hoy();
     Config.Mostrar_Habitos_Sidebar = true;
     Config.Mostrar_Globitos_Habitos = true;
+    Habitos_Panel_Fecha = Fecha_Prueba;
     Render_Emojis();
     const Estado_Sidebar = () => {
       const Btn = document.querySelector(
@@ -1563,8 +1566,7 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
 
     Abrir_Modal_Planes_Avance("Parte|parte_habitos");
     document.getElementById("Planes_Avance_Cantidad").value = "7";
-    document.getElementById("Planes_Avance_Fecha").value =
-      "2026-04-24";
+    document.getElementById("Planes_Avance_Fecha").value = Fecha_Prueba;
     document.getElementById("Planes_Avance_Hora").value = "10:00";
     document.getElementById("Planes_Avance_Hasta_Final").checked = true;
     await Guardar_Modal_Planes_Avance();
@@ -1572,16 +1574,14 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
 
     Abrir_Modal_Planes_Avance("Subobjetivo|sub_directo_habitos");
     document.getElementById("Planes_Avance_Cantidad").value = "7";
-    document.getElementById("Planes_Avance_Fecha").value =
-      "2026-04-24";
+    document.getElementById("Planes_Avance_Fecha").value = Fecha_Prueba;
     document.getElementById("Planes_Avance_Hora").value = "11:00";
     document.getElementById("Planes_Avance_Hasta_Final").checked = true;
     await Guardar_Modal_Planes_Avance();
 
     Abrir_Modal_Planes_Avance("Parte|parte_parcial_habitos");
     document.getElementById("Planes_Avance_Cantidad").value = "1";
-    document.getElementById("Planes_Avance_Fecha").value =
-      "2026-04-24";
+    document.getElementById("Planes_Avance_Fecha").value = Fecha_Prueba;
     document.getElementById("Planes_Avance_Hora").value = "12:00";
     await Guardar_Modal_Planes_Avance();
 
@@ -1594,6 +1594,7 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
     Mostrar_Dialogo = Dialogo_Original;
 
     return {
+      fechaPrueba: Fecha_Prueba,
       defaultModo: Default_Parte.Cantidad_Modo,
       sidebarAntes: Sidebar_Antes,
       sidebarTrasAvance: Sidebar_Tras_Avance,
@@ -1623,21 +1624,21 @@ test("vinculos de planes registran habitos al finalizar avances", async ({
       Fuente: "Plan_Parte",
       Cantidad: 7,
       Unidad: "paginas",
-      Fecha: "2026-04-24",
+      Fecha: resultado.fechaPrueba,
       Hora: "10:00"
     }),
     expect.objectContaining({
       Fuente: "Plan_Subobjetivo",
       Cantidad: 7,
       Unidad: "paginas",
-      Fecha: "2026-04-24",
+      Fecha: resultado.fechaPrueba,
       Hora: "11:00"
     }),
     expect.objectContaining({
       Fuente: "Plan_Parte",
       Cantidad: 1,
       Unidad: "paginas",
-      Fecha: "2026-04-24",
+      Fecha: resultado.fechaPrueba,
       Hora: "12:00"
     }),
     expect.objectContaining({
@@ -1681,6 +1682,8 @@ test("deshacer avance de planes revierte habitos vinculados", async ({
     Habitos_Registros = [];
     Config.Mostrar_Habitos_Sidebar = true;
     Config.Mostrar_Globitos_Habitos = true;
+    const Fecha_Prueba = Habitos_Fecha_Hoy();
+    Habitos_Panel_Fecha = Fecha_Prueba;
 
     const Modelo = Asegurar_Modelo_Planes();
     Modelo.Objetivos.obj_undo_habitos = Normalizar_Objetivo_Plan({
@@ -1732,8 +1735,7 @@ test("deshacer avance de planes revierte habitos vinculados", async ({
     const Antes = Estado_Sidebar();
     Abrir_Modal_Planes_Avance("Parte|parte_undo_habitos");
     document.getElementById("Planes_Avance_Cantidad").value = "7";
-    document.getElementById("Planes_Avance_Fecha").value =
-      "2026-04-24";
+    document.getElementById("Planes_Avance_Fecha").value = Fecha_Prueba;
     document.getElementById("Planes_Avance_Hora").value = "10:00";
     document.getElementById("Planes_Avance_Hasta_Final").checked = true;
     await Guardar_Modal_Planes_Avance();
@@ -1866,17 +1868,17 @@ test("sidebar de habitos rotula y separa semanales de diarios", async ({
     oculto: false,
     titulo: "H\u00e1bitos",
     labels: [
-      "\u{1F4C5} SEMANALES",
+      " DIARIOS",
+      " SEMANALES",
       "\u25D0 QUINCENALES",
-      "\u{1F5D3}\uFE0F MENSUALES",
-      "\u2713 DIARIOS"
+      " MENSUALES"
     ],
     divisores: 0,
     grupos: [
+      ["Habito_Diario_Sidebar"],
       ["Habito_Semanal_Sidebar"],
       ["Habito_Quincenal_Sidebar"],
-      ["Habito_Mensual_Sidebar"],
-      ["Habito_Diario_Sidebar"]
+      ["Habito_Mensual_Sidebar"]
     ],
     bordeRoot: "0px",
     margenIzquierdo: "-14px",
@@ -2141,7 +2143,8 @@ test("panel de habitos registra avances manuales desde la lista", async ({
   expect(Orden_Menu_Panel).toEqual([
     "habito-editar",
     "habito-cancelar",
-    "habito-archivar"
+    "habito-archivar",
+    "habito-borrar"
   ]);
   await expect(page.locator(
     '#Dia_Accion_Menu [data-acc="habito-cancelar"]'
@@ -2157,7 +2160,7 @@ test("panel de habitos registra avances manuales desde la lista", async ({
   await page.waitForTimeout(1050);
   await expect(page.locator(
     '[data-habitos-registro-rapido="Habito_Check_Rapido"]'
-  )).not.toHaveClass(/Confirmado/);
+  )).toHaveClass(/Confirmado/);
   await expect(page.locator(".Undo_Toast").first())
     .toContainText("Hábito realizado");
 

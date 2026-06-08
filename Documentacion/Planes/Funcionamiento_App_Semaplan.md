@@ -424,6 +424,10 @@ Relaciones importantes.
   items de patron y slots.
 - Cambios en programacion o registros pueden alterar sidebar,
   indicadores, planes y enfoque diario.
+- El modal principal de Habitos se cierra con Escape igual que los
+  submodales internos, para mantener consistencia con el resto de la UI.
+- Los vinculos de habitos en bloques/eventos muestran una ayuda breve
+  sobre como se computan las cantidades realizadas por bloque tildado.
 - Cuando una parte o subobjetivo se marca como realizado o se cancela
   esa realizacion, la UI de habitos debe refrescar sidebar y modal
   desde `Habitos_Registros` en el mismo flujo para reflejar color,
@@ -484,6 +488,8 @@ Relaciones importantes.
   edite o lo borre.
 - Crear, editar o borrar retos usa guardado critico porque cambia una
   clave persistida del estado completo.
+- El modal principal de Retos se cierra con Escape y refresca su vista
+  cuando cambian registros de habitos vinculados.
 
 ## Archivero
 
