@@ -77,10 +77,36 @@ async function esperarAppLista(page) {
     timeout: 120000
   });
 
-  const Bloqueo = page.locator("#Sesion_Bloqueo_Overlay.Activo");
-  if (await Bloqueo.count()) {
-    await page.locator("#Sesion_Bloqueo_Cerrar_Otras").click();
-    await expect(Bloqueo).toHaveCount(0, { timeout: 120000 });
+  for (let Intento = 0; Intento < 8; Intento += 1) {
+    const Bloqueo = page.locator(
+      "#Sesion_Bloqueo_Overlay.Activo"
+    );
+    if (await Bloqueo.count()) {
+      await page.locator("#Sesion_Bloqueo_Cerrar_Otras")
+        .click();
+      await page.waitForTimeout(1500);
+      continue;
+    }
+
+    const Dialogo_Ok = page.locator(
+      "#Dialogo_Overlay.Activo " +
+      "#Dialogo_Botones .Dialogo_Boton_Primario"
+    );
+    if (await Dialogo_Ok.count()) {
+      await Dialogo_Ok.click();
+      await page.waitForTimeout(500);
+      continue;
+    }
+
+    const Lista = await page.waitForFunction(() => {
+      const Loader = document.getElementById("App_Loader");
+      const Auth = document.getElementById("Auth_Overlay");
+      return Loader?.classList.contains("Oculto") &&
+        !Auth?.classList.contains("Activo");
+    }, null, { timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
+    if (Lista) break;
   }
 
   await page.waitForFunction(() => {
@@ -96,9 +122,31 @@ async function esperarAppLista(page) {
       Es_Premium() === true
     );
   }, null, { timeout: 120000 });
+
+  await cerrarOverlaysBloqueantes(page);
+}
+
+async function cerrarOverlaysBloqueantes(page) {
+  await page.evaluate(() => {
+    if (
+      document
+        .getElementById("Focus_Overlay")
+        ?.classList.contains("Activo")
+    ) {
+      if (typeof Cerrar_Focus_Mode === "function") {
+        Cerrar_Focus_Mode();
+      } else {
+        document
+          .getElementById("Focus_Overlay")
+          ?.classList.remove("Activo");
+      }
+    }
+  });
 }
 
 async function abrirFuncionMenu(page, Selector, Texto_Menu) {
+  await cerrarOverlaysBloqueantes(page);
+
   const Boton = page.locator(Selector);
   if (await Boton.isVisible()) {
     await Boton.click();
