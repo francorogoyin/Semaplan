@@ -71,6 +71,7 @@ async function Instalar_Backend_Sesion(page, estadoRemoto) {
         version: 1
       };
     window.__SignOuts = [];
+    window.__Payloads_Sesion = [];
     window.__MostroAuth = false;
     window.__IntervaloMs = 0;
     window.setInterval = (_fn, ms) => {
@@ -83,6 +84,20 @@ async function Instalar_Backend_Sesion(page, estadoRemoto) {
       valor === null || valor === undefined
         ? valor
         : JSON.parse(JSON.stringify(valor));
+    const fusionarRaiz = (base, incoming) => {
+      if (!base || typeof base !== "object" ||
+          Array.isArray(base)) {
+        return clonar(incoming);
+      }
+      if (!incoming || typeof incoming !== "object" ||
+          Array.isArray(incoming)) {
+        return clonar(incoming);
+      }
+      return {
+        ...clonar(base),
+        ...clonar(incoming)
+      };
+    };
 
     const crearBuilder = () => {
       const builder = {
@@ -116,6 +131,9 @@ async function Instalar_Backend_Sesion(page, estadoRemoto) {
             };
           }
           if (this.accion === "insert") {
+            window.__Payloads_Sesion.push(
+              clonar(this.payload.estado)
+            );
             window.__Fila_Sesion = {
               estado: clonar(this.payload.estado),
               actualizado_en:
@@ -141,9 +159,15 @@ async function Instalar_Backend_Sesion(page, estadoRemoto) {
           ) {
             return { data: null, error: null };
           }
+          window.__Payloads_Sesion.push(
+            clonar(this.payload.estado)
+          );
           window.__Fila_Sesion = {
             ...window.__Fila_Sesion,
-            estado: clonar(this.payload.estado),
+            estado: fusionarRaiz(
+              window.__Fila_Sesion.estado,
+              this.payload.estado
+            ),
             actualizado_en:
               "2026-06-08T12:00:02.000Z",
             version:
@@ -235,6 +259,53 @@ test("registra una sesion operativa exclusiva y heartbeat", async ({
     cantidad: 1,
     email: "sesion@example.com",
     intervalo: 30000
+  });
+});
+
+test("la sesion operativa sube solo metadata de sesion", async ({
+  page
+}) => {
+  await Preparar_Funciones(page);
+  await Instalar_Backend_Sesion(page, {
+    Objetivos: [
+      {
+        Id: "objetivo_pesado",
+        Nombre: "No debe viajar en lease"
+      }
+    ],
+    Notas_Archivero: [
+      {
+        Id: "nota_pesada",
+        Titulo: "Tampoco debe viajar"
+      }
+    ],
+    Sesiones_Operativas: {
+      Activas: {}
+    }
+  });
+
+  const resultado = await page.evaluate(async () => {
+    Preparar_Sesion_Local_Activa();
+    const ok = await Preparar_Sesion_Operativa_Entrada();
+    const ultimoPayload =
+      window.__Payloads_Sesion[
+        window.__Payloads_Sesion.length - 1
+      ] || {};
+    return {
+      ok,
+      payloadKeys: Object.keys(ultimoPayload).sort(),
+      objetivoPreservado:
+        window.__Fila_Sesion.estado.Objetivos?.[0]?.Id || "",
+      notaPreservada:
+        window.__Fila_Sesion.estado.Notas_Archivero?.[0]?.Id || ""
+    };
+  });
+
+  expect(resultado).toEqual({
+    ok: true,
+    payloadKeys: ["Sesiones_Operativas"],
+    objetivoPreservado: "objetivo_pesado",
+    notaPreservada: "nota_pesada"
   });
 });
 

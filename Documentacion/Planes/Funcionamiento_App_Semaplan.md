@@ -161,7 +161,9 @@ El flujo operativo base es este.
    usuario elige cerrar las demas sesiones, la app escribe un corte en
    `Sesiones_Operativas`, conserva solo la sesion actual y las otras
    quedan expulsadas cuando revisen remoto. Si una app se cierra o se
-   cae sin liberar el lease, la sesion vence por TTL.
+   cae sin liberar el lease, la sesion vence por TTL. El heartbeat y los
+   cortes de sesion suben solo metadata operativa de sesion, no el blob
+   completo del usuario, para evitar timeouts en cuentas grandes.
 9.b `Sesiones_Operativas` es metadata operativa: no forma parte del
    estado normal generado por `Construir_Estado_Completo()` y no debe
    contarse como cambio de datos del usuario.
