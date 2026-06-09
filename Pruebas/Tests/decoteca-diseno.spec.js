@@ -145,6 +145,10 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toHaveAttribute("role", "dialog");
   await expect(page.locator(".Decoteca_Panel"))
     .toHaveAttribute("aria-modal", "true");
+  await expect(page.locator(".Decoteca_Panel"))
+    .toHaveAttribute("aria-label", "Decoteca");
+  await expect(page.locator(".Decoteca_Hero"))
+    .toHaveCount(0);
   await expect(page.locator("#Decoteca_Tecas"))
     .toContainText("Biblioteca");
   await expect(page.locator("#Decoteca_Tecas"))
@@ -619,9 +623,11 @@ test("decoteca mobile no recorta el detalle", async ({ page }) => {
     const Teca_Activa = document.querySelector(
       '[data-decoteca-teca="Videoteca"]'
     );
+    const Cerrar = document.getElementById("Decoteca_Cerrar");
     const Barra = document.querySelector(".Decoteca_Barra_Superior");
     const Rect_Fila = Fila_Tecas?.getBoundingClientRect();
     const Rect_Teca = Teca_Activa?.getBoundingClientRect();
+    const Rect_Cerrar = Cerrar?.getBoundingClientRect();
     const Rect_Barra = Barra?.getBoundingClientRect();
     return {
       Detalle_Alto: Detalle?.getBoundingClientRect().height || 0,
@@ -630,6 +636,8 @@ test("decoteca mobile no recorta el detalle", async ({ page }) => {
       Teca_Fila_Alto: Rect_Fila?.height || 0,
       Teca_Activa_Alto: Rect_Teca?.height || 0,
       Teca_Fila_Bottom: Rect_Fila?.bottom || 0,
+      Teca_Fila_Right: Rect_Fila?.right || 0,
+      Cerrar_Left: Rect_Cerrar?.left || 0,
       Barra_Top: Rect_Barra?.top || 0
     };
   });
@@ -639,6 +647,8 @@ test("decoteca mobile no recorta el detalle", async ({ page }) => {
     .toBeGreaterThanOrEqual(Medidas.Teca_Activa_Alto);
   expect(Medidas.Teca_Fila_Bottom)
     .toBeLessThanOrEqual(Medidas.Barra_Top);
+  expect(Medidas.Teca_Fila_Right)
+    .toBeLessThanOrEqual(Medidas.Cerrar_Left);
   expect(Medidas.Detalle_Alto)
     .toBeGreaterThanOrEqual(Medidas.Detalle_Scroll - 2);
 });
