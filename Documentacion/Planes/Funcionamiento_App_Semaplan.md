@@ -597,10 +597,12 @@ Estado actual.
 - Los datos bajados normalizan titulos de obras y partes con formato
   de frase, y autores/artistas/directores con formato de nombre
   propio. Los campos escritos manualmente por el usuario se conservan.
-- La pestaña `M` de Decoteca registra avances propios por teca sin
-  mezclarlos con Metas. Permite elegir obra, parte, fecha, cantidad y
-  nota; muestra resumen del año, porcentaje y registros; y permite
-  editar o borrar registros con confirmacion.
+- El boton `M` de Decoteca abre un modal/cartel de registro de avance,
+  separado del panel de detalle y equivalente al patron visual usado
+  para registrar avances en Metas/Planes. Registra avances propios por
+  teca sin mezclarlos con Metas. Permite elegir obra, parte, fecha,
+  cantidad y nota; muestra resumen del año, porcentaje y registros; y
+  permite editar o borrar registros con confirmacion.
 - Normalizacion de datos viejos y base inicial de demostracion cuando
   todavia no existe estado persistido de Decoteca.
 - Las obras viejas sin campos de portada nueva siguen usando el modo
@@ -616,6 +618,9 @@ Estado actual.
   estructuradas y avances propios usa
   `Esquema_Estado_Version_Actual = 5`; versiones anteriores quedan
   limitadas a esquemas previos en el manifest.
+- Desde la version de frontend `1.4.1`, el registro `M` de Decoteca se
+  presenta como modal/cartel independiente y no reemplaza el detalle de
+  obra.
 
 Tecas iniciales.
 

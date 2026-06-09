@@ -1050,10 +1050,14 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
   await Abrir_Decoteca(page);
 
   await page.locator("#Decoteca_Avance_Abrir").click();
-  await expect(page.locator("#Decoteca_Detalle"))
+  const Modal_Avance = page.locator("#Decoteca_Avance_Overlay");
+  await expect(Modal_Avance).toHaveClass(/Activo/);
+  await expect(Modal_Avance)
     .toContainText("Registrar avance");
-  await expect(page.locator("#Decoteca_Detalle"))
+  await expect(Modal_Avance)
     .toContainText("Resumen del periodo");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .not.toContainText("Registrar avance");
 
   await page.locator("#Decoteca_Avance_Obra")
     .selectOption("dec_bib_1");
@@ -1064,11 +1068,11 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
   await page.locator('[data-decoteca-form="Avance"] .Primario')
     .click();
 
-  await expect(page.locator("#Decoteca_Detalle"))
+  await expect(Modal_Avance)
     .toContainText("90 pags.");
-  await expect(page.locator("#Decoteca_Detalle"))
+  await expect(Modal_Avance)
     .toContainText("15%");
-  await expect(page.locator("#Decoteca_Detalle"))
+  await expect(Modal_Avance)
     .toContainText("Lectura de prueba QA");
 
   await page.locator("[data-decoteca-avance-editar]").first().click();
@@ -1077,9 +1081,9 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
   await page.locator("#Decoteca_Avance_Cantidad").fill("120");
   await page.locator('[data-decoteca-form="Avance"] .Primario')
     .click();
-  await expect(page.locator("#Decoteca_Detalle"))
+  await expect(Modal_Avance)
     .toContainText("120 pags.");
-  await expect(page.locator("#Decoteca_Detalle"))
+  await expect(Modal_Avance)
     .toContainText("20%");
 
   await page.locator("[data-decoteca-avance-borrar]").first().click();
@@ -1087,8 +1091,10 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
     .toHaveClass(/Activo/);
   await page.locator("#Dialogo_Botones .Dialogo_Boton_Peligro")
     .click();
-  await expect(page.locator("#Decoteca_Detalle"))
+  await expect(Modal_Avance)
     .toContainText("No hay avances registrados");
+  await page.locator("#Decoteca_Avance_Cerrar").click();
+  await expect(Modal_Avance).not.toHaveClass(/Activo/);
 
   const Estado = await page.evaluate(() => {
     return JSON.parse(localStorage.getItem(Clave_Local)).Decoteca;
@@ -1148,4 +1154,52 @@ test("decoteca mobile no recorta el detalle", async ({ page }) => {
     .toBeLessThanOrEqual(Medidas.Cerrar_Left);
   expect(Medidas.Detalle_Alto)
     .toBeGreaterThanOrEqual(Medidas.Detalle_Scroll - 2);
+
+  await page.locator("#Decoteca_Avance_Abrir").click();
+  const Modal_Avance = page.locator("#Decoteca_Avance_Overlay");
+  await expect(Modal_Avance).toHaveClass(/Activo/);
+  await expect(Modal_Avance).toContainText("Registrar avance");
+
+  const Medidas_Modal = await page.evaluate(() => {
+    const Panel = document.querySelector(".Decoteca_Avance_Modal");
+    const Cuerpo = document.getElementById("Decoteca_Avance_Cuerpo");
+    const Guardar = document.querySelector(
+      '#Decoteca_Avance_Overlay button[type="submit"]'
+    );
+    const Rect_Panel = Panel?.getBoundingClientRect();
+    const Rect_Guardar = Guardar?.getBoundingClientRect();
+    return {
+      Panel_Top: Rect_Panel?.top || 0,
+      Panel_Bottom: Rect_Panel?.bottom || 0,
+      Panel_Right: Rect_Panel?.right || 0,
+      Guardar_Right: Rect_Guardar?.right || 0,
+      Cuerpo_Overflow: Cuerpo ? getComputedStyle(Cuerpo).overflowY : "",
+      Cuerpo_Alto: Cuerpo?.clientHeight || 0,
+      Cuerpo_Scroll: Cuerpo?.scrollHeight || 0,
+      Ventana_Alto: window.innerHeight,
+      Ventana_Ancho: window.innerWidth
+    };
+  });
+  expect(Medidas_Modal.Panel_Top).toBeGreaterThanOrEqual(0);
+  expect(Medidas_Modal.Panel_Bottom)
+    .toBeLessThanOrEqual(Medidas_Modal.Ventana_Alto);
+  expect(Medidas_Modal.Panel_Right)
+    .toBeLessThanOrEqual(Medidas_Modal.Ventana_Ancho);
+  expect(Medidas_Modal.Guardar_Right)
+    .toBeLessThanOrEqual(Medidas_Modal.Panel_Right);
+  expect(Medidas_Modal.Cuerpo_Overflow).toBe("auto");
+  expect(Medidas_Modal.Cuerpo_Scroll)
+    .toBeGreaterThanOrEqual(Medidas_Modal.Cuerpo_Alto);
+
+  await page.locator("#Decoteca_Avance_Obra")
+    .selectOption("dec_vid_1");
+  await page.locator("#Decoteca_Avance_Cantidad").fill("90");
+  await page.locator('[data-decoteca-form="Avance"] .Primario')
+    .click();
+  await page.locator("#Decoteca_Avance_Cuerpo")
+    .evaluate((El) => {
+      El.scrollTop = El.scrollHeight;
+    });
+  await expect(Modal_Avance).toContainText("Editar");
+  await expect(Modal_Avance).toContainText("Borrar");
 });
