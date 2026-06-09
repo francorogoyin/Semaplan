@@ -149,12 +149,41 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toHaveAttribute("aria-label", "Decoteca");
   await expect(page.locator(".Decoteca_Hero"))
     .toHaveCount(0);
-  await expect(page.locator("#Decoteca_Tecas"))
-    .toContainText("Biblioteca");
-  await expect(page.locator("#Decoteca_Tecas"))
-    .toContainText("Musicoteca");
-  await expect(page.locator("#Decoteca_Tecas"))
-    .toContainText("Videoteca");
+  await expect(page.locator('[data-decoteca-teca="Biblioteca"]'))
+    .toHaveAttribute("aria-label", /Biblioteca/);
+  await expect(page.locator('[data-decoteca-teca="Musicoteca"]'))
+    .toHaveAttribute("aria-label", /Musicoteca/);
+  await expect(page.locator('[data-decoteca-teca="Videoteca"]'))
+    .toHaveAttribute("aria-label", /Videoteca/);
+
+  const Tecas_Visual = await page.evaluate(() => {
+    const Contenedor = document.getElementById("Decoteca_Tecas");
+    const Boton = document.querySelector(
+      '[data-decoteca-teca="Biblioteca"]'
+    );
+    const Icono = Boton?.querySelector(".Decoteca_Teca_Icono");
+    const Rect_Boton = Boton?.getBoundingClientRect();
+    const Rect_Icono = Icono?.getBoundingClientRect();
+    const Estilos = Boton ? getComputedStyle(Boton) : null;
+    return {
+      Texto: Contenedor?.innerText || "",
+      Ancho_Boton: Rect_Boton?.width || 0,
+      Alto_Boton: Rect_Boton?.height || 0,
+      Ancho_Icono: Rect_Icono?.width || 0,
+      Alto_Icono: Rect_Icono?.height || 0,
+      Borde: Estilos?.borderTopWidth || "",
+      Fondo: Estilos?.backgroundColor || ""
+    };
+  });
+  expect(Tecas_Visual.Texto).not.toContain("Biblioteca");
+  expect(Tecas_Visual.Texto).not.toContain("Musicoteca");
+  expect(Tecas_Visual.Texto).not.toContain("Videoteca");
+  expect(Tecas_Visual.Ancho_Boton).toBeLessThanOrEqual(30);
+  expect(Tecas_Visual.Alto_Boton).toBeLessThanOrEqual(30);
+  expect(Tecas_Visual.Ancho_Icono).toBeLessThanOrEqual(24);
+  expect(Tecas_Visual.Alto_Icono).toBeLessThanOrEqual(24);
+  expect(Tecas_Visual.Borde).toBe("0px");
+  expect(Tecas_Visual.Fondo).toBe("rgba(0, 0, 0, 0)");
 
   const proporcion = await page.evaluate(() => {
     const Card = document.querySelector(
@@ -385,8 +414,8 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await page.locator('[data-decoteca-form="Teca"] .Primario')
     .click();
 
-  await expect(page.locator("#Decoteca_Tecas"))
-    .toContainText("Ensayoteca");
+  await expect(page.locator('.Decoteca_Teca_Btn[aria-label^="Ensayoteca"]'))
+    .toHaveCount(1);
   await expect(page.locator("#Decoteca_Libreria_Titulo"))
     .toHaveText("Ensayoteca");
 
@@ -491,10 +520,9 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await page.reload();
   await Activar_App(page);
   await Abrir_Decoteca(page);
-  await expect(page.locator("#Decoteca_Tecas"))
-    .toContainText("Ensayoteca");
-  await page.locator(".Decoteca_Teca_Btn")
-    .filter({ hasText: "Ensayoteca" })
+  await expect(page.locator('.Decoteca_Teca_Btn[aria-label^="Ensayoteca"]'))
+    .toHaveCount(1);
+  await page.locator('.Decoteca_Teca_Btn[aria-label^="Ensayoteca"]')
     .click();
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText("Cuaderno editado");
@@ -531,8 +559,9 @@ test("decoteca edita borra tecas y obras con confirmacion", async ({
   await page.locator("#Decoteca_Form_Teca_Color").fill("#7a3f5a");
   await page.locator('[data-decoteca-form="Teca"] .Primario')
     .click();
-  await expect(page.locator("#Decoteca_Tecas"))
-    .toContainText("Cineteca QA editada");
+  await expect(
+    page.locator('.Decoteca_Teca_Btn[aria-label^="Cineteca QA editada"]')
+  ).toHaveCount(1);
 
   await page.locator("#Decoteca_Nueva").click();
   await page.locator("#Decoteca_Form_Titulo")
@@ -563,8 +592,9 @@ test("decoteca edita borra tecas y obras con confirmacion", async ({
   await page.locator('[data-decoteca-borrar-teca="true"]').click();
   await page.locator("#Dialogo_Botones .Dialogo_Boton_Peligro")
     .click();
-  await expect(page.locator("#Decoteca_Tecas"))
-    .not.toContainText("Cineteca QA editada");
+  await expect(
+    page.locator('.Decoteca_Teca_Btn[aria-label^="Cineteca QA editada"]')
+  ).toHaveCount(0);
 
   await page.locator("#Decoteca_Teca_Nueva").click();
   await page.locator("#Decoteca_Form_Teca_Nombre")
@@ -583,8 +613,9 @@ test("decoteca edita borra tecas y obras con confirmacion", async ({
   await page.locator('[data-decoteca-borrar-teca="true"]').click();
   await page.locator("#Dialogo_Botones .Dialogo_Boton_Primario")
     .click();
-  await expect(page.locator("#Decoteca_Tecas"))
-    .not.toContainText("Teca mover QA");
+  await expect(
+    page.locator('.Decoteca_Teca_Btn[aria-label^="Teca mover QA"]')
+  ).toHaveCount(0);
   await expect(page.locator("#Decoteca_Libreria_Titulo"))
     .toHaveText("Biblioteca");
   await expect(page.locator("#Decoteca_Grilla"))
