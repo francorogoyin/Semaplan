@@ -107,6 +107,7 @@ async function Preparar(page, Idioma = "es", Opciones = {}) {
         ? {
           wrapperType: "collection",
           collectionType: "Album",
+          collectionId: 7001,
           collectionName: "In Rainbows",
           artistName: "Radiohead",
           releaseDate: "2007-10-10T12:00:00Z",
@@ -135,6 +136,53 @@ async function Preparar(page, Idioma = "es", Opciones = {}) {
         body: JSON.stringify({
           resultCount: 1,
           results: [Result]
+        })
+      });
+    }
+  );
+
+  await page.route(
+    "https://itunes.apple.com/lookup**",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: {
+          "access-control-allow-origin": "*"
+        },
+        body: JSON.stringify({
+          resultCount: 4,
+          results: [
+            {
+              wrapperType: "collection",
+              collectionId: 7001,
+              collectionName: "In Rainbows"
+            },
+            {
+              wrapperType: "track",
+              collectionId: 7001,
+              trackName: "15 Step",
+              trackNumber: 1,
+              discNumber: 1,
+              trackTimeMillis: 237000
+            },
+            {
+              wrapperType: "track",
+              collectionId: 7001,
+              trackName: "Nude",
+              trackNumber: 2,
+              discNumber: 1,
+              trackTimeMillis: 255000
+            },
+            {
+              wrapperType: "track",
+              collectionId: 7001,
+              trackName: "Weird Fishes/ Arpeggi",
+              trackNumber: 3,
+              discNumber: 1,
+              trackTimeMillis: 318000
+            }
+          ]
         })
       });
     }
@@ -600,17 +648,25 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
   await page.locator('[data-decoteca-metadatos="Form"]').click();
   await expect(page.locator("#Decoteca_Form_Creador"))
     .toHaveValue("Radiohead");
+  await expect(page.locator("#Decoteca_Form_Titulo"))
+    .toHaveValue("In rainbows");
   await expect(page.locator("#Decoteca_Form_Anio"))
     .toHaveValue("2007");
   await expect(page.locator("#Decoteca_Form_Formato"))
     .toHaveValue("Álbum");
   await expect(page.locator("#Decoteca_Form_Metadatos"))
     .toHaveValue(/Alternative/);
+  await expect(page.locator("#Decoteca_Form_Subobjetivos"))
+    .toHaveValue(/Nude \| 4:15/);
   await expect(page.locator("#Decoteca_Form_Portada_Url"))
     .toHaveValue(/600x600bb/);
   await page.locator('[data-decoteca-form="Obra"] .Primario').click();
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Radiohead");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Canciones");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Nude");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Apple/iTunes");
   await expect(page.locator("#Decoteca_Detalle img"))
@@ -634,11 +690,16 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
     return JSON.parse(localStorage.getItem(Clave_Local)).Decoteca;
   });
   const Album = Estado.Obras.find((Obra) =>
-    Obra.Titulo === "In Rainbows" &&
+    Obra.Titulo === "In rainbows" &&
     Obra.Creador === "Radiohead"
   );
   expect(Album.Portada_Tipo).toBe("Url");
   expect(Album.Portada_Url).toContain("600x600bb");
+  expect(Album.Partes.some((Parte) =>
+    Parte.Titulo === "Nude" &&
+    Parte.Duracion_Segundos === 255
+  )).toBeTruthy();
+  expect(Album.Datos_Teca.Total_Unidades).toBeGreaterThan(13);
   expect(Album.Metadatos.some(([Clave, Valor]) =>
     Clave === "Género" && Valor === "Alternative"
   )).toBeTruthy();
@@ -982,6 +1043,62 @@ test("decoteca edita borra tecas y obras con confirmacion", async ({
     Obra.Titulo === "Obra movible QA" &&
     Obra.Teca_Id === "Biblioteca"
   )).toBeTruthy();
+});
+
+test("decoteca registra avances propios por teca", async ({ page }) => {
+  await Preparar(page, "es", { Limpiar_Estado: false });
+  await Abrir_Decoteca(page);
+
+  await page.locator("#Decoteca_Avance_Abrir").click();
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Registrar avance");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Resumen del periodo");
+
+  await page.locator("#Decoteca_Avance_Obra")
+    .selectOption("dec_bib_1");
+  await page.locator("#Decoteca_Avance_Fecha").fill("2026-06-09");
+  await page.locator("#Decoteca_Avance_Cantidad").fill("90");
+  await page.locator("#Decoteca_Avance_Nota")
+    .fill("Lectura de prueba QA");
+  await page.locator('[data-decoteca-form="Avance"] .Primario')
+    .click();
+
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("90 pags.");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("15%");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Lectura de prueba QA");
+
+  await page.locator("[data-decoteca-avance-editar]").first().click();
+  await expect(page.locator("#Decoteca_Avance_Cantidad"))
+    .toHaveValue("90");
+  await page.locator("#Decoteca_Avance_Cantidad").fill("120");
+  await page.locator('[data-decoteca-form="Avance"] .Primario')
+    .click();
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("120 pags.");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("20%");
+
+  await page.locator("[data-decoteca-avance-borrar]").first().click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.locator("#Dialogo_Botones .Dialogo_Boton_Peligro")
+    .click();
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("No hay avances registrados");
+
+  const Estado = await page.evaluate(() => {
+    return JSON.parse(localStorage.getItem(Clave_Local)).Decoteca;
+  });
+  expect(Estado.Avances.filter((Avance) =>
+    Avance.Obra_Id === "dec_bib_1"
+  )).toHaveLength(0);
+  const Obra = Estado.Obras.find((Item) => Item.Id === "dec_bib_1");
+  expect(Obra.Partes.length).toBeGreaterThan(0);
+  expect(Obra.Datos_Teca.Total_Unidades).toBe(609);
 });
 
 test("decoteca mobile no recorta el detalle", async ({ page }) => {

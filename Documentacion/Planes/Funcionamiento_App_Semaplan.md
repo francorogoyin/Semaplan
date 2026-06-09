@@ -118,9 +118,10 @@ Las claves centrales persistidas hoy son estas.
 - `Semanas_Con_Defaults`
 
 La Decoteca persiste en la clave raiz `Decoteca`. Su formato canonico
-tiene `Tecas` y `Obras`; `Normalizar_Decoteca()` completa las tecas de
-sistema, normaliza obras viejas que usen `Teca` en lugar de `Teca_Id`,
-y conserva estados vacios ya inicializados para import/export y sync.
+tiene `Tecas`, `Obras` y `Avances`; `Normalizar_Decoteca()` completa
+las tecas de sistema, normaliza obras viejas que usen `Teca` en lugar
+de `Teca_Id`, migra partes simples a `Partes` estructuradas, y conserva
+estados vacios ya inicializados para import/export y sync.
 
 La carga local/restauracion pasa por `Cargar_Estado()` y luego por
 `Normalizar_Estado()`.
@@ -570,7 +571,9 @@ angostas tipo caratula.
 
 Estado actual.
 
-- Modelo persistido en `Decoteca`, con `Tecas` y `Obras`.
+- Modelo persistido en `Decoteca`, con `Tecas`, `Obras` y `Avances`.
+  Las obras pueden guardar `Partes` estructuradas y `Datos_Teca`
+  para totales propios de su universo.
 - Alta y edicion de obras desde el panel de detalle.
 - El panel de detalle de obra no se abre por defecto: aparece solo al
   seleccionar una obra y se oculta al tocar fuera de una obra o cambiar
@@ -586,10 +589,18 @@ Estado actual.
   borrar teca y obras.
 - `Bajar metadatos` aparece en la ficha seleccionada y en el alta o
   edicion de obra para Biblioteca, Musicoteca y Videoteca. Busca por
-  titulo y completa datos principales, metadatos y caratula: libros
-  desde Open Library; albumes desde Apple/iTunes; peliculas desde
+  titulo y completa datos principales, metadatos, caratula,
+  `Datos_Teca` y `Partes`: libros desde Open Library; albumes desde
+  Apple/iTunes con canciones y duracion por pista; peliculas desde
   Wikidata con Apple/iTunes como complemento o respaldo. Ludoteca y
   tecas propias no tienen fuente automatica por ahora.
+- Los datos bajados normalizan titulos de obras y partes con formato
+  de frase, y autores/artistas/directores con formato de nombre
+  propio. Los campos escritos manualmente por el usuario se conservan.
+- La pestaña `M` de Decoteca registra avances propios por teca sin
+  mezclarlos con Metas. Permite elegir obra, parte, fecha, cantidad y
+  nota; muestra resumen del año, porcentaje y registros; y permite
+  editar o borrar registros con confirmacion.
 - Normalizacion de datos viejos y base inicial de demostracion cuando
   todavia no existe estado persistido de Decoteca.
 - Las obras viejas sin campos de portada nueva siguen usando el modo
@@ -601,8 +612,9 @@ Estado actual.
   normal.
 - Boton propio `Decoteca_Boton` en el menu superior configurable.
 - Modal `Decoteca_Overlay`.
-- Desde la version de frontend `1.3.0`, la Decoteca enriquecida usa
-  `Esquema_Estado_Version_Actual = 4`; versiones anteriores quedan
+- Desde la version de frontend `1.4.0`, la Decoteca con partes
+  estructuradas y avances propios usa
+  `Esquema_Estado_Version_Actual = 5`; versiones anteriores quedan
   limitadas a esquemas previos en el manifest.
 
 Tecas iniciales.
@@ -628,6 +640,8 @@ Funciones de entrada recomendadas.
 - `Decoteca_Guardar_Teca()`
 - `Decoteca_Bajar_Metadatos()`
 - `Decoteca_Buscar_Metadatos()`
+- `Decoteca_Abrir_Avance()`
+- `Decoteca_Guardar_Avance()`
 - `Decoteca_Borrar_Obra()`
 - `Decoteca_Borrar_Teca()`
 - `Normalizar_Decoteca()`
