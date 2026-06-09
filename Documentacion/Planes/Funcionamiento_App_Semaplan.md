@@ -602,9 +602,15 @@ Estado actual.
   patron visual usado para registrar avances en Metas/Planes. Puede
   abrirse desde cualquier parte principal de Semaplan, no solo dentro
   de Decoteca. Registra avances propios por teca sin mezclarlos con
-  Metas. Permite elegir obra, parte, fecha, cantidad y nota; muestra
-  resumen del año, porcentaje y registros; y permite editar o borrar
-  registros con confirmacion.
+  Metas. Permite elegir fecha, cantidad, nota y un item anidado del
+  arbol `Teca -> Obra -> Parte`, con `+` y `-` para desplegar ramas.
+  El cartel `D` muestra solo el resumen del anio de la teca elegida y
+  el formulario de carga rapida.
+- El boton `R` de Decoteca abre el registro historico de avances en un
+  modal separado. Ese registro tiene filtros por anio, teca, obra y
+  parte, muestra el resumen anual cuando hay una teca concreta
+  seleccionada, y permite editar o borrar registros con confirmacion
+  sin mezclar el historial dentro del formulario `D`.
 - Normalizacion de datos viejos y base inicial de demostracion cuando
   todavia no existe estado persistido de Decoteca.
 - Las obras viejas sin campos de portada nueva siguen usando el modo
@@ -626,6 +632,10 @@ Estado actual.
 - Desde la version de frontend `1.4.2`, el registro de Decoteca usa la
   letra `D` y puede abrirse globalmente desde las secciones principales
   de Semaplan.
+- Desde la version de frontend `1.4.3`, el cartel `D` queda limitado a
+  registrar avances y el registro historico pasa al modal `R`; el
+  selector de item de avance usa arbol anidado con tecas, obras y
+  partes.
 
 Tecas iniciales.
 
@@ -652,6 +662,11 @@ Funciones de entrada recomendadas.
 - `Decoteca_Buscar_Metadatos()`
 - `Decoteca_Abrir_Avance()`
 - `Decoteca_Guardar_Avance()`
+- `Decoteca_Abrir_Registro()`
+- `Decoteca_Render_Modal_Registro()`
+- `Decoteca_Cerrar_Registro()`
+- `Decoteca_Editar_Avance()`
+- `Decoteca_Borrar_Avance()`
 - `Decoteca_Borrar_Obra()`
 - `Decoteca_Borrar_Teca()`
 - `Normalizar_Decoteca()`

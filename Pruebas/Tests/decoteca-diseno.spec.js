@@ -1058,45 +1058,86 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
     .toContainText("Registrar avance");
   await expect(Modal_Avance)
     .toContainText("Resumen del periodo");
+  await expect(Modal_Avance)
+    .not.toContainText("Registros");
   await expect(page.locator("#Decoteca_Detalle"))
     .not.toContainText("Registrar avance");
 
-  await page.locator("#Decoteca_Avance_Obra")
-    .selectOption("dec_bib_1");
+  await page.locator(".Decoteca_Avance_Boton").click();
+  const Menu_Avance = page.locator(".Decoteca_Avance_Menu");
+  await expect(Menu_Avance).toBeVisible();
+  const Teca_Biblioteca = Menu_Avance.locator(
+    '[data-decoteca-avance-clave="Teca|Biblioteca"]'
+  );
+  await expect(Teca_Biblioteca).toHaveText("-");
+  const Obra_Detectives = Menu_Avance.locator(
+    '[data-decoteca-avance-valor="Obra|dec_bib_1"]'
+  );
+  await expect(Obra_Detectives).toBeVisible();
+  const Nodo_Detectives = Menu_Avance.locator(
+    '[data-decoteca-avance-clave="Teca|Biblioteca/Obra|dec_bib_1"]'
+  );
+  await expect(Nodo_Detectives).toHaveText("+");
+  await Nodo_Detectives.click();
+  await expect(Nodo_Detectives).toHaveText("-");
+  await expect(
+    Menu_Avance.locator('[data-decoteca-avance-valor^="Parte|dec_bib_1|"]')
+      .first()
+  ).toBeVisible();
+  await Obra_Detectives.click();
+  await expect(page.locator(".Decoteca_Avance_Boton"))
+    .toContainText("Los detectives salvajes");
   await page.locator("#Decoteca_Avance_Fecha").fill("2026-06-09");
   await page.locator("#Decoteca_Avance_Cantidad").fill("90");
   await page.locator("#Decoteca_Avance_Nota")
     .fill("Lectura de prueba QA");
-  await page.locator('[data-decoteca-form="Avance"] .Primario')
-    .click();
+  await page.locator("#Decoteca_Avance_Guardar").click();
 
   await expect(Modal_Avance)
     .toContainText("90 pags.");
   await expect(Modal_Avance)
     .toContainText("15%");
   await expect(Modal_Avance)
-    .toContainText("Lectura de prueba QA");
+    .not.toContainText("Lectura de prueba QA");
 
-  await page.locator("[data-decoteca-avance-editar]").first().click();
+  await page.locator("#Decoteca_Avance_Cerrar").click();
+  await expect(Modal_Avance).not.toHaveClass(/Activo/);
+  await page.locator("#Decoteca_Registro_Abrir").click();
+  const Modal_Registro = page.locator("#Decoteca_Registro_Overlay");
+  await expect(Modal_Registro).toHaveClass(/Activo/);
+  await expect(Modal_Registro)
+    .toContainText("Registro de avances");
+  await expect(Modal_Registro)
+    .toContainText("Lectura de prueba QA");
+  await expect(Modal_Registro)
+    .toContainText("90 pags.");
+
+  await Modal_Registro
+    .locator("[data-decoteca-registro-editar]").first().click();
+  await expect(Modal_Registro).not.toHaveClass(/Activo/);
+  await expect(Modal_Avance).toHaveClass(/Activo/);
   await expect(page.locator("#Decoteca_Avance_Cantidad"))
     .toHaveValue("90");
   await page.locator("#Decoteca_Avance_Cantidad").fill("120");
-  await page.locator('[data-decoteca-form="Avance"] .Primario')
-    .click();
+  await page.locator("#Decoteca_Avance_Guardar").click();
   await expect(Modal_Avance)
     .toContainText("120 pags.");
   await expect(Modal_Avance)
     .toContainText("20%");
+  await page.locator("#Decoteca_Avance_Cerrar").click();
+  await page.locator("#Decoteca_Registro_Abrir").click();
+  await expect(Modal_Registro).toContainText("120 pags.");
 
-  await page.locator("[data-decoteca-avance-borrar]").first().click();
+  await Modal_Registro
+    .locator("[data-decoteca-registro-borrar]").first().click();
   await expect(page.locator("#Dialogo_Overlay"))
     .toHaveClass(/Activo/);
   await page.locator("#Dialogo_Botones .Dialogo_Boton_Peligro")
     .click();
-  await expect(Modal_Avance)
-    .toContainText("No hay avances registrados");
-  await page.locator("#Decoteca_Avance_Cerrar").click();
-  await expect(Modal_Avance).not.toHaveClass(/Activo/);
+  await expect(Modal_Registro)
+    .not.toContainText("Lectura de prueba QA");
+  await page.locator("#Decoteca_Registro_Cerrar").click();
+  await expect(Modal_Registro).not.toHaveClass(/Activo/);
 
   const Estado = await page.evaluate(() => {
     return JSON.parse(localStorage.getItem(Clave_Local)).Decoteca;
@@ -1193,9 +1234,7 @@ test("decoteca mobile no recorta el detalle", async ({ page }) => {
   const Medidas_Modal = await page.evaluate(() => {
     const Panel = document.querySelector(".Decoteca_Avance_Modal");
     const Cuerpo = document.getElementById("Decoteca_Avance_Cuerpo");
-    const Guardar = document.querySelector(
-      '#Decoteca_Avance_Overlay button[type="submit"]'
-    );
+    const Guardar = document.getElementById("Decoteca_Avance_Guardar");
     const Rect_Panel = Panel?.getBoundingClientRect();
     const Rect_Guardar = Guardar?.getBoundingClientRect();
     return {
@@ -1221,15 +1260,21 @@ test("decoteca mobile no recorta el detalle", async ({ page }) => {
   expect(Medidas_Modal.Cuerpo_Scroll)
     .toBeGreaterThanOrEqual(Medidas_Modal.Cuerpo_Alto);
 
-  await page.locator("#Decoteca_Avance_Obra")
-    .selectOption("dec_vid_1");
   await page.locator("#Decoteca_Avance_Cantidad").fill("90");
-  await page.locator('[data-decoteca-form="Avance"] .Primario')
-    .click();
+  await page.locator("#Decoteca_Avance_Guardar").click();
   await page.locator("#Decoteca_Avance_Cuerpo")
     .evaluate((El) => {
       El.scrollTop = El.scrollHeight;
     });
-  await expect(Modal_Avance).toContainText("Editar");
-  await expect(Modal_Avance).toContainText("Borrar");
+  await expect(Modal_Avance).toContainText("90 min");
+  await expect(Modal_Avance).not.toContainText("Editar");
+  await page.locator("#Decoteca_Avance_Cerrar").click();
+  await page.locator("#Decoteca_Registro_Abrir").click();
+  const Modal_Registro = page.locator("#Decoteca_Registro_Overlay");
+  await expect(Modal_Registro).toHaveClass(/Activo/);
+  await expect(Modal_Registro).toContainText("Stalker");
+  await expect(Modal_Registro).toContainText("90 min");
+  await expect(
+    Modal_Registro.locator("[data-decoteca-registro-editar]")
+  ).toHaveCount(1);
 });
