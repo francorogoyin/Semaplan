@@ -572,6 +572,9 @@ Estado actual.
 
 - Modelo persistido en `Decoteca`, con `Tecas` y `Obras`.
 - Alta y edicion de obras desde el panel de detalle.
+- El panel de detalle de obra no se abre por defecto: aparece solo al
+  seleccionar una obra y se oculta al tocar fuera de una obra o cambiar
+  filtros, vista o teca.
 - Edicion de caratula visible de cada obra: icono, texto, color, URL
   publica o archivo de imagen embebido con limite de peso.
 - Creacion y edicion de tecas propias con nombre, descripcion, icono

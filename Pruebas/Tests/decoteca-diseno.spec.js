@@ -197,13 +197,34 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   expect(proporcion).toBeGreaterThan(1.35);
 
   await expect(page.locator("#Decoteca_Detalle"))
+    .toBeHidden();
+  await expect(page.locator('[data-decoteca-obra="dec_bib_1"]'))
+    .not.toHaveClass(/Activa/);
+
+  await page.locator('[data-decoteca-obra="dec_bib_1"]').click();
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toBeVisible();
+  await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Los detectives salvajes");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Partes");
 
+  await page.locator("#Decoteca_Libreria_Titulo").click();
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toBeHidden();
+  await expect(page.locator('[data-decoteca-obra="dec_bib_1"]'))
+    .not.toHaveClass(/Activa/);
+
+  await page.locator('[data-decoteca-obra="dec_bib_1"]').click();
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Los detectives salvajes");
+
   await page.locator('[data-decoteca-teca="Videoteca"]').click();
   await expect(page.locator("#Decoteca_Libreria_Titulo"))
     .toHaveText("Videoteca");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toBeHidden();
+  await page.locator('[data-decoteca-obra="dec_vid_1"]').click();
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Director");
   await expect(page.locator("#Decoteca_Detalle"))
@@ -211,6 +232,8 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
 
   await page.locator("#Decoteca_Filtro_Estado")
     .selectOption("Terminada");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toBeHidden();
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText("La ciénaga");
   await expect(page.locator("#Decoteca_Grilla"))
@@ -329,12 +352,14 @@ test("decoteca responde a controles, filtros y botones", async ({
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText("No hay obras con esos filtros.");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Elegí una obra");
+    .toBeHidden();
 
   await page.locator("#Decoteca_Buscar_Input").fill("");
   await page.locator("#Decoteca_Vista_Periodos").click();
   await expect(page.locator("#Decoteca_Vista_Periodos"))
     .toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toBeHidden();
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText("Junio 2026");
   await page.locator("#Decoteca_Vista_Catalogo").click();
@@ -644,6 +669,9 @@ test("decoteca mobile no recorta el detalle", async ({ page }) => {
 
   await page.locator('[data-decoteca-teca="Videoteca"]').click();
   await page.locator("#Decoteca_Vista_Periodos").click();
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toBeHidden();
+  await page.locator('[data-decoteca-obra="dec_vid_1"]').click();
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Stalker");
 
