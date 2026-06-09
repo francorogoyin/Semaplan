@@ -149,6 +149,12 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toHaveAttribute("aria-label", "Decoteca");
   await expect(page.locator(".Decoteca_Hero"))
     .toHaveCount(0);
+  await expect(page.locator(".Decoteca_Vistas"))
+    .toHaveCount(0);
+  await expect(page.locator("#Decoteca_Vista_Catalogo"))
+    .toHaveCount(0);
+  await expect(page.locator("#Decoteca_Vista_Periodos"))
+    .toHaveCount(0);
   await expect(page.locator('[data-decoteca-teca="Biblioteca"]'))
     .toHaveAttribute("aria-label", /Biblioteca/);
   await expect(page.locator('[data-decoteca-teca="Musicoteca"]'))
@@ -355,16 +361,10 @@ test("decoteca responde a controles, filtros y botones", async ({
     .toBeHidden();
 
   await page.locator("#Decoteca_Buscar_Input").fill("");
-  await page.locator("#Decoteca_Vista_Periodos").click();
-  await expect(page.locator("#Decoteca_Vista_Periodos"))
-    .toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("#Decoteca_Detalle"))
     .toBeHidden();
   await expect(page.locator("#Decoteca_Grilla"))
-    .toContainText("Junio 2026");
-  await page.locator("#Decoteca_Vista_Catalogo").click();
-  await expect(page.locator("#Decoteca_Vista_Catalogo"))
-    .toHaveAttribute("aria-pressed", "true");
+    .toContainText("Los detectives salvajes");
 
   await page.locator('[data-decoteca-obra="dec_bib_1"]').click();
   await expect(page.locator("#Decoteca_Detalle"))
@@ -668,7 +668,6 @@ test("decoteca mobile no recorta el detalle", async ({ page }) => {
   await Abrir_Decoteca(page);
 
   await page.locator('[data-decoteca-teca="Videoteca"]').click();
-  await page.locator("#Decoteca_Vista_Periodos").click();
   await expect(page.locator("#Decoteca_Detalle"))
     .toBeHidden();
   await page.locator('[data-decoteca-obra="dec_vid_1"]').click();

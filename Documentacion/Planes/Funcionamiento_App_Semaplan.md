@@ -630,8 +630,6 @@ Relaciones importantes.
 - `Decoteca` entra en `Construir_Estado_Completo()`, `Cargar_Estado()`,
   `Normalizar_Estado()`, sync remoto e import/export como clave raiz
   normal del estado.
-- La vista por periodos ya existe como selector visual, pero todavia
-  no distribuye ni sincroniza planes reales.
 
 ## Metas
 
