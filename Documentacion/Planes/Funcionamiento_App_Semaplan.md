@@ -597,12 +597,14 @@ Estado actual.
 - Los datos bajados normalizan titulos de obras y partes con formato
   de frase, y autores/artistas/directores con formato de nombre
   propio. Los campos escritos manualmente por el usuario se conservan.
-- El boton `M` de Decoteca abre un modal/cartel de registro de avance,
-  separado del panel de detalle y equivalente al patron visual usado
-  para registrar avances en Metas/Planes. Registra avances propios por
-  teca sin mezclarlos con Metas. Permite elegir obra, parte, fecha,
-  cantidad y nota; muestra resumen del año, porcentaje y registros; y
-  permite editar o borrar registros con confirmacion.
+- El boton/atajo `D` de Decoteca abre un modal/cartel global de
+  registro de avance, separado del panel de detalle y equivalente al
+  patron visual usado para registrar avances en Metas/Planes. Puede
+  abrirse desde cualquier parte principal de Semaplan, no solo dentro
+  de Decoteca. Registra avances propios por teca sin mezclarlos con
+  Metas. Permite elegir obra, parte, fecha, cantidad y nota; muestra
+  resumen del año, porcentaje y registros; y permite editar o borrar
+  registros con confirmacion.
 - Normalizacion de datos viejos y base inicial de demostracion cuando
   todavia no existe estado persistido de Decoteca.
 - Las obras viejas sin campos de portada nueva siguen usando el modo
@@ -618,9 +620,12 @@ Estado actual.
   estructuradas y avances propios usa
   `Esquema_Estado_Version_Actual = 5`; versiones anteriores quedan
   limitadas a esquemas previos en el manifest.
-- Desde la version de frontend `1.4.1`, el registro `M` de Decoteca se
+- Desde la version de frontend `1.4.1`, el registro de Decoteca se
   presenta como modal/cartel independiente y no reemplaza el detalle de
   obra.
+- Desde la version de frontend `1.4.2`, el registro de Decoteca usa la
+  letra `D` y puede abrirse globalmente desde las secciones principales
+  de Semaplan.
 
 Tecas iniciales.
 

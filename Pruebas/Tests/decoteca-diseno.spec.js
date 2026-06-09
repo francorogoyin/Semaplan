@@ -380,6 +380,8 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toHaveCount(0);
   await expect(page.locator("#Decoteca_Nueva"))
     .toHaveText("+");
+  await expect(page.locator("#Decoteca_Avance_Abrir"))
+    .toHaveText("D");
   await expect(page.locator("#Decoteca_Nueva"))
     .toHaveAttribute("aria-label", "Nueva obra");
   await expect(page.locator("#Decoteca_Nueva"))
@@ -1105,6 +1107,34 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
   const Obra = Estado.Obras.find((Item) => Item.Id === "dec_bib_1");
   expect(Obra.Partes.length).toBeGreaterThan(0);
   expect(Obra.Datos_Teca.Total_Unidades).toBe(609);
+});
+
+test("decoteca abre registro de avances con D global", async ({
+  page
+}) => {
+  await Preparar(page, "es", { Limpiar_Estado: false });
+
+  await expect(page.locator("#Decoteca_Overlay"))
+    .not.toHaveClass(/Activo/);
+  await page.keyboard.press("d");
+  const Modal_Avance = page.locator("#Decoteca_Avance_Overlay");
+  await expect(Modal_Avance).toHaveClass(/Activo/);
+  await expect(Modal_Avance).toContainText("Registrar avance");
+  await expect(page.locator(".Decoteca_Avance_Titulo_Icono"))
+    .toHaveText("D");
+  await expect(page.locator("#Decoteca_Overlay"))
+    .not.toHaveClass(/Activo/);
+
+  await page.locator("#Decoteca_Avance_Cerrar").click();
+  await expect(Modal_Avance).not.toHaveClass(/Activo/);
+
+  await page.evaluate(() => Abrir_Plan());
+  await expect(page.locator("#Plan_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.keyboard.press("D");
+  await expect(Modal_Avance).toHaveClass(/Activo/);
+  await expect(page.locator("#Plan_Overlay"))
+    .toHaveClass(/Activo/);
 });
 
 test("decoteca mobile no recorta el detalle", async ({ page }) => {
