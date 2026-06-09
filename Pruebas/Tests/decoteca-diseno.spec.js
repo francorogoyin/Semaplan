@@ -899,7 +899,26 @@ test("decoteca edita borra tecas y obras con confirmacion", async ({
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText("Obra para borrar");
 
-  await page.locator('[data-decoteca-accion="Borrar"]').click();
+  const Card_Obra_Borrar = page.locator(".Decoteca_Card")
+    .filter({ hasText: "Obra para borrar" });
+  await Card_Obra_Borrar.click({ button: "right" });
+  await expect(page.locator(".Decoteca_Context_Menu"))
+    .toBeVisible();
+  await expect(page.locator(".Decoteca_Context_Menu"))
+    .toContainText("Editar");
+  await expect(page.locator(".Decoteca_Context_Menu"))
+    .toContainText("Borrar");
+  await page.locator(
+    '.Decoteca_Context_Menu [data-decoteca-menu-accion="Editar"]'
+  ).click();
+  await expect(page.locator("#Decoteca_Form_Titulo"))
+    .toHaveValue("Obra para borrar");
+  await page.locator('[data-decoteca-cancelar="true"]').click();
+
+  await Card_Obra_Borrar.click({ button: "right" });
+  await page.locator(
+    '.Decoteca_Context_Menu [data-decoteca-menu-accion="Borrar"]'
+  ).click();
   await expect(page.locator("#Dialogo_Overlay"))
     .toHaveClass(/Activo/);
   await page.locator("#Dialogo_Botones .Dialogo_Boton_Secundario")
@@ -907,7 +926,10 @@ test("decoteca edita borra tecas y obras con confirmacion", async ({
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText("Obra para borrar");
 
-  await page.locator('[data-decoteca-accion="Borrar"]').click();
+  await Card_Obra_Borrar.click({ button: "right" });
+  await page.locator(
+    '.Decoteca_Context_Menu [data-decoteca-menu-accion="Borrar"]'
+  ).click();
   await page.locator("#Dialogo_Botones .Dialogo_Boton_Peligro")
     .click();
   await expect(page.locator("#Decoteca_Grilla"))

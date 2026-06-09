@@ -575,6 +575,8 @@ Estado actual.
 - El panel de detalle de obra no se abre por defecto: aparece solo al
   seleccionar una obra y se oculta al tocar fuera de una obra o cambiar
   filtros, vista o teca.
+- Click derecho sobre una tarjeta de obra abre un menu contextual con
+  `Editar` y `Borrar`, usando los mismos flujos del detalle.
 - Edicion de caratula visible de cada obra: icono, texto, color, URL
   publica o archivo de imagen embebido con limite de peso.
 - Creacion y edicion de tecas propias con nombre, descripcion, icono
