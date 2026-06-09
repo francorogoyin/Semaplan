@@ -330,6 +330,12 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toHaveCount(0);
   await expect(page.locator("#Decoteca_Vista_Periodos"))
     .toHaveCount(0);
+  await expect(page.locator("#Decoteca_Nueva"))
+    .toHaveText("+");
+  await expect(page.locator("#Decoteca_Nueva"))
+    .toHaveAttribute("aria-label", "Nueva obra");
+  await expect(page.locator("#Decoteca_Nueva"))
+    .toHaveAttribute("title", "Nueva obra");
   await expect(page.locator('[data-decoteca-teca="Biblioteca"]'))
     .toHaveAttribute("aria-label", /Biblioteca/);
   await expect(page.locator('[data-decoteca-teca="Musicoteca"]'))
