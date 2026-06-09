@@ -38,6 +38,173 @@ async function Preparar(page, Idioma = "es", Opciones = {}) {
     }
   );
 
+  const Responder_Imagen_Caratula = async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "image/svg+xml",
+      body:
+        '<svg xmlns="http://www.w3.org/2000/svg" width="360" height="540">' +
+        '<rect width="360" height="540" fill="#315f6f"/>' +
+        '<circle cx="245" cy="120" r="74" fill="#f3efe8" opacity=".72"/>' +
+        '<text x="36" y="455" fill="#fff" font-size="42" ' +
+        'font-family="Arial" font-weight="700">Cover</text></svg>'
+    });
+  };
+
+  await page.route(
+    "https://covers.openlibrary.org/**",
+    Responder_Imagen_Caratula
+  );
+  await page.route(
+    "https://is1-ssl.mzstatic.com/**",
+    Responder_Imagen_Caratula
+  );
+  await page.route(
+    "https://commons.wikimedia.org/**",
+    Responder_Imagen_Caratula
+  );
+
+  await page.route(
+    "https://openlibrary.org/search.json**",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: {
+          "access-control-allow-origin": "*"
+        },
+        body: JSON.stringify({
+          docs: [
+            {
+              title: "Solaris",
+              author_name: ["Stanisław Lem"],
+              first_publish_year: 1961,
+              cover_i: 12345,
+              subject: ["Science fiction", "Polish literature"],
+              number_of_pages_median: 296,
+              editions: {
+                docs: [
+                  {
+                    number_of_pages: 296,
+                    covers: [12345],
+                    isbn_13: ["9780156027601"]
+                  }
+                ]
+              }
+            }
+          ]
+        })
+      });
+    }
+  );
+
+  await page.route(
+    "https://itunes.apple.com/search**",
+    async (route) => {
+      const Url = new URL(route.request().url());
+      const Entity = Url.searchParams.get("entity");
+      const Result = Entity === "album"
+        ? {
+          wrapperType: "collection",
+          collectionType: "Album",
+          collectionName: "In Rainbows",
+          artistName: "Radiohead",
+          releaseDate: "2007-10-10T12:00:00Z",
+          trackCount: 10,
+          primaryGenreName: "Alternative",
+          artworkUrl100:
+            "https://is1-ssl.mzstatic.com/image/thumb/Music/in-rainbows/100x100bb.jpg"
+        }
+        : {
+          wrapperType: "track",
+          kind: "feature-movie",
+          trackName: "Stalker",
+          artistName: "Mosfilm",
+          releaseDate: "1979-05-25T12:00:00Z",
+          trackTimeMillis: 9780000,
+          primaryGenreName: "Science Fiction",
+          artworkUrl100:
+            "https://is1-ssl.mzstatic.com/image/thumb/Video/stalker/100x100bb.jpg"
+        };
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: {
+          "access-control-allow-origin": "*"
+        },
+        body: JSON.stringify({
+          resultCount: 1,
+          results: [Result]
+        })
+      });
+    }
+  );
+
+  await page.route(
+    "https://query.wikidata.org/sparql**",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/sparql-results+json",
+        headers: {
+          "access-control-allow-origin": "*",
+          "access-control-allow-headers": "accept,api-user-agent",
+          "access-control-allow-methods": "GET,OPTIONS"
+        },
+        body: JSON.stringify({
+          head: {
+            vars: [
+              "item",
+              "itemLabel",
+              "date",
+              "directorLabel",
+              "genreLabel",
+              "runtime",
+              "image"
+            ]
+          },
+          results: {
+            bindings: [
+              {
+                item: {
+                  type: "uri",
+                  value: "http://www.wikidata.org/entity/Q622618"
+                },
+                itemLabel: { type: "literal", value: "Stalker" },
+                date: {
+                  type: "literal",
+                  value: "1979-05-25T00:00:00Z"
+                },
+                directorLabel: {
+                  type: "literal",
+                  value: "Andrei Tarkovsky"
+                },
+                genreLabel: {
+                  type: "literal",
+                  value: "Science fiction"
+                },
+                runtime: { type: "literal", value: "163" },
+                image: {
+                  type: "uri",
+                  value:
+                    "http://commons.wikimedia.org/wiki/Special:FilePath/Stalker-poster.jpg"
+                }
+              },
+              {
+                item: {
+                  type: "uri",
+                  value: "http://www.wikidata.org/entity/Q622618"
+                },
+                itemLabel: { type: "literal", value: "Stalker" },
+                genreLabel: { type: "literal", value: "Drama" }
+              }
+            ]
+          }
+        })
+      });
+    }
+  );
+
   await page.addInitScript((Config_Test) => {
     window.supabase = {
       createClient() {
@@ -132,6 +299,14 @@ async function Limpiar_Filtros(page) {
     .selectOption("Todos");
   await page.locator("#Decoteca_Filtro_Formato")
     .selectOption("Todos");
+}
+
+async function Esperar_Imagen_Cargada(Locator) {
+  await expect.poll(async () =>
+    Locator.evaluate((Imagen) =>
+      Imagen.complete && Imagen.naturalWidth > 0
+    )
+  ).toBeTruthy();
 }
 
 test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
@@ -395,6 +570,125 @@ test("decoteca responde a controles, filtros y botones", async ({
   await expect(page.locator("#Decoteca_Overlay"))
     .not.toHaveClass(/Activo/);
   expect(Errores_Pagina).toEqual([]);
+});
+
+test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
+  await Preparar(page, "es", { Limpiar_Estado: false });
+  await Abrir_Decoteca(page);
+
+  await page.locator('[data-decoteca-obra="dec_bib_3"]').click();
+  await page.locator('[data-decoteca-metadatos="Detalle"]').click();
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Open Library");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("296");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Science fiction");
+  await expect(page.locator("#Decoteca_Detalle img"))
+    .toHaveAttribute("src", /covers\.openlibrary\.org.*12345/);
+  await Esperar_Imagen_Cargada(page.locator("#Decoteca_Detalle img"));
+
+  await page.locator('[data-decoteca-teca="Musicoteca"]').click();
+  await page.locator("#Decoteca_Nueva").click();
+  await page.locator("#Decoteca_Form_Titulo").fill("In Rainbows");
+  await page.locator('[data-decoteca-metadatos="Form"]').click();
+  await expect(page.locator("#Decoteca_Form_Creador"))
+    .toHaveValue("Radiohead");
+  await expect(page.locator("#Decoteca_Form_Anio"))
+    .toHaveValue("2007");
+  await expect(page.locator("#Decoteca_Form_Formato"))
+    .toHaveValue("Álbum");
+  await expect(page.locator("#Decoteca_Form_Metadatos"))
+    .toHaveValue(/Alternative/);
+  await expect(page.locator("#Decoteca_Form_Portada_Url"))
+    .toHaveValue(/600x600bb/);
+  await page.locator('[data-decoteca-form="Obra"] .Primario').click();
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Radiohead");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Apple/iTunes");
+  await expect(page.locator("#Decoteca_Detalle img"))
+    .toHaveAttribute("src", /600x600bb/);
+  await Esperar_Imagen_Cargada(page.locator("#Decoteca_Detalle img"));
+
+  await page.locator('[data-decoteca-teca="Videoteca"]').click();
+  await page.locator('[data-decoteca-obra="dec_vid_1"]').click();
+  await page.locator('[data-decoteca-metadatos="Detalle"]').click();
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Andrei Tarkovsky");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("163 min");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Wikidata + Apple/iTunes");
+  await expect(page.locator("#Decoteca_Detalle img"))
+    .toHaveAttribute("src", /^https:\/\/commons\.wikimedia\.org/);
+  await Esperar_Imagen_Cargada(page.locator("#Decoteca_Detalle img"));
+
+  const Estado = await page.evaluate(() => {
+    return JSON.parse(localStorage.getItem(Clave_Local)).Decoteca;
+  });
+  const Album = Estado.Obras.find((Obra) =>
+    Obra.Titulo === "In Rainbows" &&
+    Obra.Creador === "Radiohead"
+  );
+  expect(Album.Portada_Tipo).toBe("Url");
+  expect(Album.Portada_Url).toContain("600x600bb");
+  expect(Album.Metadatos.some(([Clave, Valor]) =>
+    Clave === "Género" && Valor === "Alternative"
+  )).toBeTruthy();
+
+  const Portada_Archivo = await page.evaluate(() => {
+    const Data_Url =
+      "data:image/png;base64," +
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l" +
+      "EQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
+    Decoteca_Teca_Activa = "Biblioteca";
+    Decoteca_Editor_Modo = "Obra";
+    Decoteca_Seleccion_Id = "";
+    Decoteca_Editor_Id = "";
+    Render_Decoteca();
+    Decoteca_Rellenar_Form_Obra({
+      Id: "test_archivo",
+      Teca_Id: "Biblioteca",
+      Titulo: "Archivo con portada",
+      Creador: "Autora",
+      Anio: "2026",
+      Formato: "Libro",
+      Estado: "Planeada",
+      Periodo: "Sin_Periodo",
+      Periodo_Label: "",
+      Progreso: 0,
+      Meta_Principal: "",
+      Rating: "",
+      Color: "#315f6f",
+      Portada_Emoji: "📘",
+      Portada_Texto: "Archivo con portada",
+      Portada_Tipo: "Archivo",
+      Portada_Url: "",
+      Portada_Data_Url: Data_Url,
+      Portada_Mime: "image/png",
+      Portada_Nombre: "portada.png",
+      Portada_Tamano: 68,
+      Plan: "",
+      Subobjetivos: [],
+      Metadatos: []
+    });
+    return {
+      Tipo: document.getElementById("Decoteca_Form_Portada_Tipo")?.value,
+      Data_Url:
+        document.getElementById("Decoteca_Form_Portada_Data_Url")?.value,
+      Mime: document.getElementById("Decoteca_Form_Portada_Mime")?.value,
+      Nombre:
+        document.getElementById("Decoteca_Form_Portada_Nombre")?.value,
+      Tamano:
+        document.getElementById("Decoteca_Form_Portada_Tamano")?.value
+    };
+  });
+  expect(Portada_Archivo.Tipo).toBe("Archivo");
+  expect(Portada_Archivo.Data_Url).toContain("data:image/png;base64,");
+  expect(Portada_Archivo.Mime).toBe("image/png");
+  expect(Portada_Archivo.Nombre).toBe("portada.png");
+  expect(Portada_Archivo.Tamano).toBe("68");
 });
 
 test("decoteca traduce campos de alta en ingles", async ({ page }) => {

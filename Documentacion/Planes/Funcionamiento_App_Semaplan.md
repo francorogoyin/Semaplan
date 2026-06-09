@@ -582,6 +582,12 @@ Estado actual.
 - Borrado de obras con confirmacion. Borrado de tecas propias con
   confirmacion y opcion de mover sus obras a otra teca disponible o
   borrar teca y obras.
+- `Bajar metadatos` aparece en la ficha seleccionada y en el alta o
+  edicion de obra para Biblioteca, Musicoteca y Videoteca. Busca por
+  titulo y completa datos principales, metadatos y caratula: libros
+  desde Open Library; albumes desde Apple/iTunes; peliculas desde
+  Wikidata con Apple/iTunes como complemento o respaldo. Ludoteca y
+  tecas propias no tienen fuente automatica por ahora.
 - Normalizacion de datos viejos y base inicial de demostracion cuando
   todavia no existe estado persistido de Decoteca.
 - Las obras viejas sin campos de portada nueva siguen usando el modo
@@ -618,6 +624,8 @@ Funciones de entrada recomendadas.
 - `Decoteca_Guardar_Obra()`
 - `Decoteca_Guardar_Caratula()`
 - `Decoteca_Guardar_Teca()`
+- `Decoteca_Bajar_Metadatos()`
+- `Decoteca_Buscar_Metadatos()`
 - `Decoteca_Borrar_Obra()`
 - `Decoteca_Borrar_Teca()`
 - `Normalizar_Decoteca()`
