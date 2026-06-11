@@ -827,6 +827,15 @@ test("decoteca responde a controles, filtros y botones", async ({
     .toHaveAttribute("aria-selected", "true");
   await expect(page.locator(".Decoteca_Readlist_Item"))
     .toHaveCount(1);
+  await expect(page.locator(".Decoteca_Readlist_Caratula"))
+    .toHaveCount(1);
+  await expect.poll(async () =>
+    page.locator(".Decoteca_Readlist_Caratula").first()
+      .evaluate((El) => {
+        const Rect = El.getBoundingClientRect();
+        return Rect.height / Rect.width;
+      })
+  ).toBeGreaterThan(1.35);
   await expect(page.locator(".Decoteca_Readlist_Item").first())
     .toContainText("Vigilar y castigar");
   await expect(page.locator(".Decoteca_Readlist_Item").first())
@@ -846,6 +855,8 @@ test("decoteca responde a controles, filtros y botones", async ({
   await expect(page.locator("#Decoteca_Vista_En_Curso"))
     .toHaveAttribute("aria-selected", "true");
   await expect(page.locator(".Decoteca_Readlist_Item"))
+    .toHaveCount(1);
+  await expect(page.locator(".Decoteca_Readlist_Caratula"))
     .toHaveCount(1);
   await expect(page.locator(".Decoteca_Readlist_Item").first())
     .toContainText("Los detectives salvajes");
@@ -909,8 +920,74 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
   await Abrir_Decoteca(page);
 
   await page.evaluate(() => {
+    const Portada_Local =
+      "data:image/png;base64," +
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l" +
+      "EQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
+    window.Decoteca_Catalogo_Estructura_Libros = {
+      Version: "1.0",
+      Libros: [
+        {
+          Archivo: "Lem, Stanislaw. Solaris.pdf",
+          Ruta_Relativa:
+            "Libros\\Readlist\\Novelas\\Lem, Stanislaw. Solaris.pdf",
+          Ubicacion_Biblioteca: {
+            Categoria_Raiz: "Libros",
+            Estado_Lectura: "Readlist",
+            Subgenero: "Novelas",
+            Subcarpetas: ["Libros", "Readlist", "Novelas"]
+          },
+          Autor_Desde_Archivo: "Lem, Stanislaw",
+          Titulo_Desde_Archivo: "Solaris",
+          Titulo_Normalizado: "solaris",
+          Clave_Titulo: "solaris",
+          Descripcion:
+            "Sinopsis local de Solaris tomada del catalogo personal.",
+          Portada_Data_Url: Portada_Local,
+          Paginas: {
+            Archivo_Total: 310,
+            Editoriales_Total: 296
+          },
+          Estructura: {
+            Items: [
+              {
+                Titulo: "Solaris",
+                Tipo: "seccion",
+                Pagina_Inicio_Archivo: 1,
+                Pagina_Fin_Archivo: 296,
+                Paginas_Editoriales_Estimadas: 296,
+                Hijos: [
+                  {
+                    Titulo: "La llegada",
+                    Tipo: "capitulo",
+                    Pagina_Inicio_Archivo: 5,
+                    Pagina_Fin_Archivo: 12,
+                    Paginas_Editoriales_Estimadas: 8
+                  },
+                  {
+                    Titulo: "Los Solaristas",
+                    Tipo: "capitulo",
+                    Pagina_Inicio_Archivo: 13,
+                    Pagina_Fin_Archivo: 25,
+                    Paginas_Editoriales_Estimadas: 13
+                  },
+                  {
+                    Titulo: "Comentarios y Biograf\u00eda",
+                    Tipo: "capitulo",
+                    Pagina_Inicio_Archivo: 160,
+                    Pagina_Fin_Archivo: 160,
+                    Paginas_Editoriales_Estimadas: 1
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    };
     const Obra = Decoteca.Obras.find((Item) => Item.Id === "dec_bib_3");
     Obra.Genero = "Genero viejo";
+    Obra.Subgenero = "Subgenero viejo";
     Obra.Descripcion = "Descripcion vieja";
     Obra.Datos_Teca = {
       Unidad: "paginas",
@@ -931,13 +1008,13 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("296");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Science fiction");
+    .toContainText("Ficci\u00f3n");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Descripcion editorial de Solaris");
+    .toContainText("Novelas");
   await expect(page.locator("#Decoteca_Detalle"))
-    .not.toContainText("Open Library");
+    .toContainText("Sinopsis local de Solaris");
   await expect(page.locator("#Decoteca_Detalle img"))
-    .toHaveAttribute("src", /covers\.openlibrary\.org.*12345/);
+    .toHaveAttribute("src", /^data:image\/png;base64,/);
   await Esperar_Imagen_Cargada(page.locator("#Decoteca_Detalle img"));
 
   await page.locator('[data-decoteca-teca="Musicoteca"]').click();
@@ -998,18 +1075,68 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
     return JSON.parse(localStorage.getItem(Clave_Local)).Decoteca;
   });
   const Libro = Estado.Obras.find((Obra) => Obra.Id === "dec_bib_3");
-  expect(Libro.Genero).toBe("Science fiction");
+  expect(Libro.Creador).toBe("Lem, Stanislaw");
+  expect(Libro.Genero).toBe("Ficci\u00f3n");
+  expect(Libro.Subgenero).toBe("Novelas");
   expect(Libro.Descripcion)
-    .toContain("Descripcion editorial de Solaris");
+    .toContain("Sinopsis local de Solaris");
+  expect(Libro.Portada_Tipo).toBe("Archivo");
+  expect(Libro.Portada_Data_Url).toContain("data:image/png;base64,");
   expect(Libro.Datos_Teca.Total_Unidades).toBe(296);
+  expect(Libro.Partes).toHaveLength(2);
+  expect(Libro.Partes[0].Titulo).toBe("La llegada");
+  expect(Libro.Partes[0].Cantidad_Total).toBe(8);
+  expect(Libro.Partes.some((Parte) =>
+    Parte.Titulo.includes("Biograf")
+  )).toBeFalsy();
   expect(Libro.Metadatos.some(([Clave, Valor]) =>
-    Clave === "Fuente" &&
-    Valor.includes("Wikidata/Wikipedia") &&
-    Valor.includes("Open Library")
+    Clave === "Fuente" && Valor === "Biblioteca local"
   )).toBeTruthy();
   expect(Libro.Metadatos.some(([, Valor]) =>
     Valor === "Manual" || Valor === "Genero viejo"
   )).toBeFalsy();
+  const Conservada = await page.evaluate(() => {
+    const Base = {
+      ...Decoteca.Obras.find((Obra) => Obra.Id === "dec_bib_3"),
+      Id: "test_preserva_metadatos",
+      Genero: "Manual",
+      Subgenero: "Sub manual",
+      Anio: "1999",
+      Portada_Tipo: "Url",
+      Portada_Url: "https://example.com/portada.jpg",
+      Partes: [{
+        Titulo: "Parte manual",
+        Tipo: "Lectura",
+        Orden: 1,
+        Unidad: "paginas",
+        Cantidad_Total: 12
+      }],
+      Metadatos: [["G\u00e9nero", "Manual"]]
+    };
+    return Decoteca_Aplicar_Metadatos_A_Obra(Base, {
+      Titulo: "Libro sin datos completos",
+      Creador: "Autor nuevo",
+      Formato: "Libro",
+      Genero: "",
+      Subgenero: "",
+      Anio: "",
+      Datos_Teca: {
+        Unidad: "paginas",
+        Fuente: "Fuente parcial"
+      },
+      Partes: [],
+      Metadatos: []
+    });
+  });
+  expect(Conservada.Creador).toBe("Autor nuevo");
+  expect(Conservada.Genero).toBe("Manual");
+  expect(Conservada.Subgenero).toBe("Sub manual");
+  expect(Conservada.Anio).toBe("1999");
+  expect(Conservada.Portada_Tipo).toBe("Url");
+  expect(Conservada.Portada_Url).toBe("https://example.com/portada.jpg");
+  expect(Conservada.Datos_Teca.Total_Unidades).toBe(296);
+  expect(Conservada.Datos_Teca.Fuente).toBe("Fuente parcial");
+  expect(Conservada.Partes).toHaveLength(1);
   const Album = Estado.Obras.find((Obra) =>
     Obra.Titulo === "In rainbows" &&
     Obra.Creador === "Radiohead"
@@ -1162,7 +1289,7 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await page.locator("#Decoteca_Form_Fecha_Fin")
     .fill("2026-07-31");
   await page.locator("#Decoteca_Form_Total").fill("100");
-  await page.locator("#Decoteca_Form_Rating").fill("Pendiente");
+  await expect(page.locator("#Decoteca_Form_Rating")).toHaveCount(0);
   await page.locator("#Decoteca_Form_Descripcion")
     .fill("Revisar dos secciones por semana.");
   await expect(page.locator("#Decoteca_Form_Subobjetivos"))

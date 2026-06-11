@@ -592,7 +592,10 @@ Estado actual.
   para decidir proximas lecturas, escuchas, visionados o partidas. La
   vista `Readlist` prioriza `Proximas`, `Readlist`, `Wishlist` y
   `Pausadas`, ordena por prioridad y fechas, y muestra motivo, origen,
-  avance y restante sin obligar a abrir cada ficha.
+  avance y restante sin obligar a abrir cada ficha. Las filas densas de
+  `Readlist` y `En curso` muestran siempre miniatura vertical de la
+  obra o placeholder sobrio para sostener reconocimiento visual tambien
+  en mobile.
 - Vista `En curso` con filas operativas para obras activas: avance
   registrado, total, restante, porcentaje calculado desde registros,
   fecha final, ultimo avance o marca de ausencia de avances, dias sin
@@ -623,6 +626,29 @@ Estado actual.
   anio, genero, subgenero, descripcion, caratula, `Datos_Teca`,
   `Partes` y metadatos. La fuente queda guardada internamente, pero no
   se muestra como metadato principal en la ficha.
+- En Biblioteca, `Bajar metadatos` prioriza un catalogo local de
+  estructura de libros cuando esta disponible en
+  `Decoteca_Catalogo_Estructura_Libros`,
+  `Decoteca_Catalogo_Estructura_Local` o localStorage. Si no hay
+  catalogo cargado y el navegador soporta File System Access, el click
+  de `Bajar metadatos` permite seleccionar el JSON local; la app no
+  intenta leer rutas absolutas de Windows sin permiso. Ese catalogo se
+  interpreta como indice de `Libros/Readlist`, `Libros/Reading` y
+  `Libros/Read`, en ese orden. El match normaliza mayusculas, acentos,
+  puntuacion menor y espacios; si el candidato queda empatado o dudoso,
+  no se aplica como local. El autor y el titulo se toman de los campos
+  explicitos del catalogo o del nombre de archivo con convencion
+  `Autor. Titulo.ext`; el subgenero sale de `Ubicacion_Biblioteca` o de
+  la carpeta y el genero principal se limita a `Ficcion` o
+  `No ficcion` cuando puede inferirse.
+- El catalogo local de Biblioteca puede aportar paginas, partes,
+  paginas por parte, descripcion y caratula embebida. Si no trae
+  descripcion o caratula, el flujo intenta completar solo esos huecos
+  con fuentes externas sin degradar los datos locales. Si ninguna
+  fuente trae descripcion, genero, subgenero, anio, portada o partes,
+  se conserva el dato manual existente en la obra.
+  En el editor de caratula hay una accion secundaria para buscar una
+  caratula externa sin reemplazar la local hasta que el usuario guarde.
 - En libros, Wikidata/Wikipedia se usa para identidad, autoria, anio y
   genero; Open Library aporta paginas, portada y descripcion cuando
   esta disponible; Lectulandia queda como complemento best-effort para
