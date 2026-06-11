@@ -642,7 +642,13 @@ Estado actual.
 - El boton `R` de Decoteca abre el registro historico de avances en un
   modal separado. Ese registro tiene filtros por anio, teca, obra y
   parte, y permite editar o borrar registros con confirmacion sin
-  mezclar el historial dentro del formulario `D`.
+  mezclar el historial dentro del formulario `D`. El resultado filtrado
+  muestra un resumen compacto de registros, avance, obras y cierres, y
+  la tabla agrupa filas por dia, semana, mes o anio. Cada encabezado de
+  grupo muestra periodo, avance acumulado por unidad compatible y
+  cantidad de registros, para reconstruir el historial sin convertirlo
+  en tarjetas pesadas. En mobile, los filtros del registro se apilan
+  para no recortar controles.
 - Los filtros de periodo de Decoteca se generan desde fechas de
   planificacion o consumo: `Fecha_Inicio`/`Fecha_Fin` de la obra y
   registros de avance que completan o repiten consumo. El anio de

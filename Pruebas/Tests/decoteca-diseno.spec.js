@@ -1493,6 +1493,22 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
 
   await page.locator("#Decoteca_Avance_Cerrar").click();
   await expect(Modal_Avance).not.toHaveClass(/Activo/);
+  await page.evaluate(() => {
+    Decoteca.Avances.push({
+      Id: "qa_decoteca_avance_mismo_dia",
+      Fecha: "2026-06-09",
+      Teca_Id: "Biblioteca",
+      Obra_Id: "dec_bib_2",
+      Cantidad: 30,
+      Unidad: "paginas",
+      Tipo: "Cantidad",
+      Hasta_Posicion: 30,
+      Nota: "Lectura vecina QA",
+      Creado_Ms: 1
+    });
+    Decoteca = Normalizar_Decoteca(Decoteca);
+    Render_Decoteca();
+  });
   await page.locator("#Decoteca_Registro_Abrir").click();
   const Modal_Registro = page.locator("#Decoteca_Registro_Overlay");
   await expect(Modal_Registro).toHaveClass(/Activo/);
@@ -1502,6 +1518,27 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
     .toContainText("Lectura de prueba QA");
   await expect(Modal_Registro)
     .toContainText("90 pags.");
+  await expect(Modal_Registro)
+    .toContainText("30 pags.");
+  await expect(Modal_Registro.locator(".Decoteca_Registro_Resumen"))
+    .toContainText("Registros");
+  await expect(Modal_Registro.locator(".Decoteca_Registro_Resumen_Item")
+    .filter({ hasText: "Registros" }))
+    .toContainText("2");
+  await expect(Modal_Registro.locator(".Decoteca_Registro_Resumen_Item")
+    .filter({ hasText: "Avance" }))
+    .toContainText("120 pags.");
+  await expect(Modal_Registro.locator(".Decoteca_Registro_Resumen_Item")
+    .filter({ hasText: "Obras" }))
+    .toContainText("2");
+  await expect(Modal_Registro.locator(".Decoteca_Registro_Dia").first())
+    .toContainText("2026-06-09 \u00b7 120 pags. \u00b7 2 registros");
+  await Modal_Registro.locator("[data-decoteca-registro-agrupar]")
+    .selectOption("Semana");
+  await expect(Modal_Registro.locator(".Decoteca_Registro_Dia").first())
+    .toContainText(
+      "2026-06-08 - 2026-06-14 \u00b7 120 pags. \u00b7 2 registros"
+    );
 
   await Modal_Registro
     .locator("[data-decoteca-registro-editar]").first().click();
@@ -1514,6 +1551,11 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
   await page.locator("#Decoteca_Avance_Cerrar").click();
   await page.locator("#Decoteca_Registro_Abrir").click();
   await expect(Modal_Registro).toContainText("120 pags.");
+  await expect(Modal_Registro.locator(".Decoteca_Registro_Resumen_Item")
+    .filter({ hasText: "Avance" }))
+    .toContainText("150 pags.");
+  await expect(Modal_Registro.locator(".Decoteca_Registro_Dia").first())
+    .toContainText("2026-06-09 \u00b7 150 pags. \u00b7 2 registros");
 
   await Modal_Registro
     .locator("[data-decoteca-registro-borrar]").first().click();
