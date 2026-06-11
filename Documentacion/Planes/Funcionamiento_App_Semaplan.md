@@ -654,6 +654,12 @@ Estado actual.
   registro de cierre o, para datos viejos sin registros, `Fecha_Fin` de
   obras terminadas. El selector recalcula las opciones de mes/anio
   disponibles y la grilla respeta esa semantica.
+- Cuando el filtro de periodo apunta a un mes o anio concreto, Decoteca
+  muestra una franja compacta de resumen debajo de los filtros:
+  avance registrado en el rango, obras tocadas, cierres y pendientes.
+  La franja respeta busqueda, lista, estado y genero activos, y evita
+  mostrar un porcentaje global porque podria mezclar avance de periodo
+  con totales completos de obras.
 - La barra de filtros incluye `Lista` como dimension independiente de
   `Estado`, para distinguir archivo, readlist, proximas lecturas,
   wishlist, pausadas y obras archivadas sin alterar el estado de

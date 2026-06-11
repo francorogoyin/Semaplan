@@ -460,6 +460,8 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toHaveText("En curso");
   await expect(page.locator("#Decoteca_Vista_Catalogo"))
     .toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("#Decoteca_Periodo_Resumen"))
+    .toBeHidden();
   await expect(page.locator("#Decoteca_Nueva"))
     .toHaveText("+");
   await expect(page.locator("#Decoteca_Avance_Abrir"))
@@ -771,6 +773,20 @@ test("decoteca responde a controles, filtros y botones", async ({
     .selectOption("Mes:2026-09");
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText("Vigilar y castigar");
+  await expect(page.locator("#Decoteca_Periodo_Resumen"))
+    .toBeVisible();
+  await expect(page.locator(".Decoteca_Periodo_Item")
+    .filter({ hasText: "Avance" }))
+    .toContainText("20 pags.");
+  await expect(page.locator(".Decoteca_Periodo_Item")
+    .filter({ hasText: "Tocadas" }))
+    .toContainText("1");
+  await expect(page.locator(".Decoteca_Periodo_Item")
+    .filter({ hasText: "Cierres" }))
+    .toContainText("0");
+  await expect(page.locator(".Decoteca_Periodo_Item")
+    .filter({ hasText: "Pendientes" }))
+    .toContainText("1");
 
   await page.locator("#Decoteca_Filtro_Periodo_Criterio")
     .selectOption("Final");
@@ -781,6 +797,15 @@ test("decoteca responde a controles, filtros y botones", async ({
     .selectOption("Mes:2026-11");
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText("Vigilar y castigar");
+  await expect(page.locator(".Decoteca_Periodo_Item")
+    .filter({ hasText: "Avance" }))
+    .toContainText("360 pags.");
+  await expect(page.locator(".Decoteca_Periodo_Item")
+    .filter({ hasText: "Cierres" }))
+    .toContainText("1");
+  await expect(page.locator(".Decoteca_Periodo_Item")
+    .filter({ hasText: "Pendientes" }))
+    .toContainText("0");
 
   await page.locator("#Decoteca_Filtro_Periodo_Criterio")
     .selectOption("Rango");
@@ -794,6 +819,8 @@ test("decoteca responde a controles, filtros y botones", async ({
 
   await page.locator('[data-decoteca-teca="Biblioteca"]').click();
   await Limpiar_Filtros(page);
+  await expect(page.locator("#Decoteca_Periodo_Resumen"))
+    .toBeHidden();
 
   await page.locator("#Decoteca_Vista_Readlist").click();
   await expect(page.locator("#Decoteca_Vista_Readlist"))
