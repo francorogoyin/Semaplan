@@ -99,6 +99,20 @@ async function Preparar(page, Idioma = "es", Opciones = {}) {
   );
 
   await page.route(
+    "https://ww3.lectulandia.co/**",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "text/html",
+        headers: {
+          "access-control-allow-origin": "*"
+        },
+        body: "<html><body><main></main></body></html>"
+      });
+    }
+  );
+
+  await page.route(
     "https://itunes.apple.com/search**",
     async (route) => {
       const Url = new URL(route.request().url());
@@ -191,15 +205,52 @@ async function Preparar(page, Idioma = "es", Opciones = {}) {
   await page.route(
     "https://query.wikidata.org/sparql**",
     async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/sparql-results+json",
-        headers: {
-          "access-control-allow-origin": "*",
-          "access-control-allow-headers": "accept,api-user-agent",
-          "access-control-allow-methods": "GET,OPTIONS"
-        },
-        body: JSON.stringify({
+      const Url = new URL(route.request().url());
+      const Query = Url.searchParams.get("query") || "";
+      const Es_Libro = Query.includes("wd:Q571");
+      const Body = Es_Libro
+        ? {
+          head: {
+            vars: [
+              "item",
+              "itemLabel",
+              "date",
+              "authorLabel",
+              "genreLabel",
+              "pages",
+              "desc"
+            ]
+          },
+          results: {
+            bindings: [
+              {
+                item: {
+                  type: "uri",
+                  value: "http://www.wikidata.org/entity/Q204708"
+                },
+                itemLabel: { type: "literal", value: "Solaris" },
+                date: {
+                  type: "literal",
+                  value: "1961-01-01T00:00:00Z"
+                },
+                authorLabel: {
+                  type: "literal",
+                  value: "Stanisław Lem"
+                },
+                genreLabel: {
+                  type: "literal",
+                  value: "Science fiction"
+                },
+                pages: { type: "literal", value: "296" },
+                desc: {
+                  type: "literal",
+                  value: "novela de ciencia ficcion de Stanislaw Lem"
+                }
+              }
+            ]
+          }
+        }
+        : {
           head: {
             vars: [
               "item",
@@ -248,7 +299,16 @@ async function Preparar(page, Idioma = "es", Opciones = {}) {
               }
             ]
           }
-        })
+        };
+      await route.fulfill({
+        status: 200,
+        contentType: "application/sparql-results+json",
+        headers: {
+          "access-control-allow-origin": "*",
+          "access-control-allow-headers": "accept,api-user-agent",
+          "access-control-allow-methods": "GET,OPTIONS"
+        },
+        body: JSON.stringify(Body)
       });
     }
   );
@@ -381,7 +441,7 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator("#Decoteca_Nueva"))
     .toHaveText("+");
   await expect(page.locator("#Decoteca_Avance_Abrir"))
-    .toHaveText("D");
+    .toHaveText("\uD83D\uDCDD");
   await expect(page.locator("#Decoteca_Nueva"))
     .toHaveAttribute("aria-label", "Nueva obra");
   await expect(page.locator("#Decoteca_Nueva"))
@@ -482,7 +542,7 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Director");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Progreso");
+    .toContainText("Género");
 
   await page.locator("#Decoteca_Cerrar").click();
   await expect(page.locator("#Decoteca_Overlay"))
@@ -507,9 +567,9 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "foucault",
       resultado: "Vigilar y castigar",
       estado: "Planeada",
-      periodo: "Trimestre",
+      periodo: "Ano:1975",
       formato: "Ensayo",
-      campos: ["Autor", "Nombre del período", "Metadatos"]
+      campos: ["Autor", "Género", "Metadatos"]
     },
     {
       teca: "Musicoteca",
@@ -517,9 +577,9 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "radiohead",
       resultado: "In Rainbows",
       estado: "En_Curso",
-      periodo: "Semana",
+      periodo: "Ano:2007",
       formato: "Álbum",
-      campos: ["Artista", "Nombre del período", "Metadatos"]
+      campos: ["Artista", "Género", "Metadatos"]
     },
     {
       teca: "Videoteca",
@@ -527,9 +587,9 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "martel",
       resultado: "La ciénaga",
       estado: "Terminada",
-      periodo: "Mes",
+      periodo: "Ano:2001",
       formato: "Película",
-      campos: ["Director", "Nombre del período", "Metadatos"]
+      campos: ["Director", "Género", "Metadatos"]
     },
     {
       teca: "Ludoteca",
@@ -537,9 +597,9 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "disco",
       resultado: "Disco Elysium",
       estado: "En_Curso",
-      periodo: "Trimestre",
+      periodo: "Ano:2019",
       formato: "RPG",
-      campos: ["Creador", "Nombre del período", "Metadatos"]
+      campos: ["Creador", "Género", "Metadatos"]
     }
   ];
 
@@ -603,7 +663,7 @@ test("decoteca responde a controles, filtros y botones", async ({
 
   await page.locator('[data-decoteca-accion="Editar"]').click();
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Editá la ficha");
+    .toContainText("Género");
 
   await page.locator('[data-decoteca-cancelar="true"]').click();
   await page.locator('[data-decoteca-accion="Caratula"]').click();
@@ -766,9 +826,9 @@ test("decoteca traduce campos de alta en ingles", async ({ page }) => {
 
   await page.locator("#Decoteca_Nueva").click();
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Edit the sheet");
+    .toContainText("Genre");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Period name");
+    .toContainText("Start date");
   await expect(page.locator("#Decoteca_Detalle"))
     .not.toContainText("Nombre del período");
 
@@ -783,9 +843,9 @@ test("decoteca traduce campos de alta en portugues", async ({ page }) => {
   await Abrir_Decoteca(page);
   await page.locator("#Decoteca_Nueva").click();
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Edite a ficha");
+    .toContainText("Genero");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Nome do periodo");
+    .toContainText("Data inicial");
 });
 
 test("decoteca crea edita portada y persiste", async ({ page }) => {
@@ -799,6 +859,9 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     .fill("Ensayos, papers y notas largas");
   await page.locator("#Decoteca_Form_Teca_Icono").fill("🧪");
   await page.locator("#Decoteca_Form_Teca_Color").fill("#235a6f");
+  await page.locator("#Decoteca_Form_Teca_Unidad").fill("ensayo");
+  await page.locator("#Decoteca_Form_Teca_Subunidad").fill("seccion");
+  await page.locator("#Decoteca_Form_Teca_Metrica").fill("paginas");
   await page.locator('[data-decoteca-form="Teca"] .Primario')
     .click();
 
