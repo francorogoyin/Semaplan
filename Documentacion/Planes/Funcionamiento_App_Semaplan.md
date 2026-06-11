@@ -649,9 +649,11 @@ Estado actual.
   consumo.
 - El editor visible de obra muestra ficha descriptiva, fechas, total y
   descripcion, mas la organizacion de lista/prioridad/motivo/origen.
-  Partes y metadatos no se editan como textareas libres en el sidebar;
-  permanecen como datos estructurados derivados de la descarga o de
-  flujos especificos.
+  Las partes se editan en filas estructuradas dentro del sidebar
+  (titulo, total, unidad y borrar/agregar), preservando el `Id` de cada
+  parte existente para no romper avances historicos. El textarea crudo
+  de partes queda oculto solo como compatibilidad interna. Los
+  metadatos siguen sin editarse como textarea libre visible.
 - Normalizacion de datos viejos y base inicial de demostracion cuando
   todavia no existe estado persistido de Decoteca.
 - Las obras viejas sin campos de portada nueva siguen usando el modo
@@ -700,6 +702,8 @@ Funciones de entrada recomendadas.
 - `Decoteca_Guardar_Obra()`
 - `Decoteca_Guardar_Caratula()`
 - `Decoteca_Guardar_Teca()`
+- `Decoteca_Render_Partes_Editor()`
+- `Decoteca_Leer_Partes_Form()`
 - `Decoteca_Bajar_Metadatos()`
 - `Decoteca_Buscar_Metadatos()`
 - `Decoteca_Abrir_Avance()`

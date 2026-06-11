@@ -821,6 +821,12 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
     .toHaveValue(/Alternative/);
   await expect(page.locator("#Decoteca_Form_Subobjetivos"))
     .toHaveValue(/Nude \| 4:15/);
+  await expect(page.locator("[data-decoteca-parte-row]"))
+    .toHaveCount(3);
+  await expect(page.locator("[data-decoteca-parte-titulo]").nth(1))
+    .toHaveValue("Nude");
+  await expect(page.locator("[data-decoteca-parte-total]").nth(1))
+    .toHaveValue("1");
   await expect(page.locator("#Decoteca_Form_Portada_Url"))
     .toHaveValue(/600x600bb/);
   await page.locator('[data-decoteca-form="Obra"] .Primario').click();
@@ -1024,6 +1030,13 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     .toBeHidden();
   await expect(page.locator("#Decoteca_Form_Metadatos"))
     .toBeHidden();
+  await page.locator("[data-decoteca-parte-agregar]").click();
+  const Parte_Nueva = page.locator("[data-decoteca-parte-row]").last();
+  await Parte_Nueva.locator("[data-decoteca-parte-titulo]")
+    .fill("Seccion inicial");
+  await Parte_Nueva.locator("[data-decoteca-parte-total]").fill("40");
+  await expect(page.locator("#Decoteca_Form_Subobjetivos"))
+    .toHaveValue(/Seccion inicial \| 40 pags\./);
   await page.locator('[data-decoteca-form="Obra"] .Primario')
     .click();
 
@@ -1037,10 +1050,31 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     .toContainText("Prioridad: Alta");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Revisar dos secciones por semana.");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Seccion inicial");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("40 pags.");
+
+  const Parte_Id_Antes = await page.evaluate(() => {
+    const Estado = JSON.parse(localStorage.getItem(Clave_Local)).Decoteca;
+    const Obra = Estado.Obras.find((Item) =>
+      Item.Titulo === "Cuaderno de pruebas"
+    );
+    return Obra.Partes.find((Parte) =>
+      Parte.Titulo === "Seccion inicial"
+    )?.Id;
+  });
+  expect(Parte_Id_Antes).toBeTruthy();
 
   await page.locator('[data-decoteca-accion="Editar"]').click();
   await page.locator("#Decoteca_Form_Titulo")
     .fill("Cuaderno editado");
+  const Parte_Editada = page.locator("[data-decoteca-parte-row]").first();
+  await expect(Parte_Editada.locator("[data-decoteca-parte-titulo]"))
+    .toHaveValue("Seccion inicial");
+  await Parte_Editada.locator("[data-decoteca-parte-titulo]")
+    .fill("Seccion revisada");
+  await Parte_Editada.locator("[data-decoteca-parte-total]").fill("45");
   await page.locator("#Decoteca_Form_Lista")
     .selectOption("Proximas");
   await page.locator("#Decoteca_Form_Prioridad")
@@ -1059,6 +1093,10 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     .toContainText("120 pags.");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Lista: Proximas");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Seccion revisada");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("45 pags.");
 
   await page.locator('[data-decoteca-accion="Caratula"]').click();
   await page.locator("#Decoteca_Form_Portada_Tipo")
@@ -1115,7 +1153,12 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     Obra.Prioridad === "Media" &&
     Obra.Motivo === "Pasa a proximas por plan concreto." &&
     Obra.Origen === "Ensayo de prueba" &&
-    Obra.Fecha_Ingreso === "2026-06-11"
+    Obra.Fecha_Ingreso === "2026-06-11" &&
+    Obra.Partes.some((Parte) =>
+      Parte.Id === Parte_Id_Antes &&
+      Parte.Titulo === "Seccion revisada" &&
+      Parte.Cantidad_Total === 45
+    )
   )).toBeTruthy();
 
   await page.reload();
