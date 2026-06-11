@@ -581,6 +581,12 @@ Estado actual.
 - Modelo persistido en `Decoteca`, con `Tecas`, `Obras` y `Avances`.
   Las obras pueden guardar `Partes` estructuradas y `Datos_Teca`
   para totales propios de su universo.
+- Cada obra separa el ciclo de consumo (`Estado`: planeada, en curso,
+  terminada o abandonada) de la organizacion de biblioteca
+  (`Lista`: Biblioteca, Readlist, Proximas, Wishlist, Pausadas o
+  Archivo). Tambien guarda `Prioridad`, `Motivo`, `Origen` y
+  `Fecha_Ingreso` para que la readlist conserve criterio historico y no
+  sea solo un estado visual.
 - Alta y edicion de obras desde el panel de detalle.
 - El panel de detalle de obra no se abre por defecto: aparece solo al
   seleccionar una obra y se oculta al tocar fuera de una obra o cambiar
@@ -627,10 +633,15 @@ Estado actual.
   registros de avance que completan o repiten consumo. El anio de
   publicacion o estreno no se usa como periodo de lectura, escucha o
   visionado.
+- La barra de filtros incluye `Lista` como dimension independiente de
+  `Estado`, para distinguir archivo, readlist, proximas lecturas,
+  wishlist, pausadas y obras archivadas sin alterar el estado de
+  consumo.
 - El editor visible de obra muestra ficha descriptiva, fechas, total y
-  descripcion. Partes y metadatos no se editan como textareas libres en
-  el sidebar; permanecen como datos estructurados derivados de la
-  descarga o de flujos especificos.
+  descripcion, mas la organizacion de lista/prioridad/motivo/origen.
+  Partes y metadatos no se editan como textareas libres en el sidebar;
+  permanecen como datos estructurados derivados de la descarga o de
+  flujos especificos.
 - Normalizacion de datos viejos y base inicial de demostracion cuando
   todavia no existe estado persistido de Decoteca.
 - Las obras viejas sin campos de portada nueva siguen usando el modo
