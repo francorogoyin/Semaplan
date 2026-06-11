@@ -36,6 +36,13 @@ estructuras persistidas o relaciones importantes entre modulos.
   para compatibilidad de conectores/deep research en ChatGPT. Reenvia
   tools de lectura al gateway `semaplan-ai` reutilizando
   `Authorization` OAuth o `X-Semaplan-AI-Token`.
+- `supabase/functions/semaplan-telegram`: webhook de escritura acotada
+  para bot de Telegram. Opera tareas, habitos, avances de Metas,
+  avances de Decoteca y consulta de pendientes. Valida secreto de
+  webhook, exige vinculo previo en `telegram_vinculos_usuario`,
+  registra comandos en `telegram_comandos_usuario` para auditoria e
+  idempotencia, usa confirmaciones persistidas para borrados y guarda
+  `estado_usuario` con control de `version`.
 - `Herramientas/Scripts/semaplan-ai-mcp-server.js`: puente MCP local
   por `stdio` que expone herramientas para Claude y las reenvia al
   gateway `semaplan-ai`, sin leer Supabase directo.
