@@ -454,6 +454,8 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toHaveText("Catalogo");
   await expect(page.locator("#Decoteca_Vista_Readlist"))
     .toHaveText("Readlist");
+  await expect(page.locator("#Decoteca_Vista_En_Curso"))
+    .toHaveText("En curso");
   await expect(page.locator("#Decoteca_Vista_Catalogo"))
     .toHaveAttribute("aria-selected", "true");
   await expect(page.locator("#Decoteca_Nueva"))
@@ -700,6 +702,24 @@ test("decoteca responde a controles, filtros y botones", async ({
   await page.locator("#Decoteca_Vista_Catalogo").click();
   await expect(page.locator("#Decoteca_Vista_Catalogo"))
     .toHaveAttribute("aria-selected", "true");
+
+  await page.locator("#Decoteca_Vista_En_Curso").click();
+  await expect(page.locator("#Decoteca_Vista_En_Curso"))
+    .toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(".Decoteca_Readlist_Item"))
+    .toHaveCount(1);
+  await expect(page.locator(".Decoteca_Readlist_Item").first())
+    .toContainText("Los detectives salvajes");
+  await expect(page.locator(".Decoteca_Readlist_Item").first())
+    .toContainText("Avance: 0 pags. / 609 pags.");
+  await expect(page.locator(".Decoteca_Readlist_Item").first())
+    .toContainText("Sin avances");
+  await expect(page.locator(".Decoteca_Readlist_Item").first())
+    .toContainText("Ritmo:");
+  await page.locator(".Decoteca_Readlist_Item").first().click();
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Los detectives salvajes");
+  await page.locator("#Decoteca_Vista_Catalogo").click();
 
   await page.locator("#Decoteca_Buscar_Input")
     .fill("obra inexistente zzz");

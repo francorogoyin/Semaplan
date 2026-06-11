@@ -593,6 +593,11 @@ Estado actual.
   vista `Readlist` prioriza `Proximas`, `Readlist`, `Wishlist` y
   `Pausadas`, ordena por prioridad y fechas, y muestra motivo, origen,
   avance y restante sin obligar a abrir cada ficha.
+- Vista `En curso` con filas operativas para obras activas: avance
+  registrado, total, restante, porcentaje calculado desde registros,
+  fecha final, ultimo avance o marca de ausencia de avances, dias sin
+  tocar cuando existe historial y ritmo requerido por dia cuando hay
+  fecha final.
 - El panel de detalle de obra no se abre por defecto: aparece solo al
   seleccionar una obra y se oculta al tocar fuera de una obra o cambiar
   filtros, vista o teca.
