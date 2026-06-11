@@ -421,6 +421,8 @@ async function Limpiar_Filtros(page) {
     .selectOption("Todas");
   await page.locator("#Decoteca_Filtro_Periodo")
     .selectOption("Todos");
+  await page.locator("#Decoteca_Filtro_Periodo_Criterio")
+    .selectOption("Rango");
   await page.locator("#Decoteca_Filtro_Formato")
     .selectOption("Todos");
 }
@@ -679,6 +681,83 @@ test("decoteca responde a controles, filtros y botones", async ({
         .toContainText(Campo);
     }
   }
+
+  await page.locator('[data-decoteca-teca="Biblioteca"]').click();
+  await Limpiar_Filtros(page);
+  await page.evaluate(() => {
+    Decoteca.Avances.push(
+      {
+        Id: "qa_periodo_registro",
+        Fecha: "2026-09-10",
+        Teca_Id: "Biblioteca",
+        Obra_Id: "dec_bib_2",
+        Cantidad: 20,
+        Unidad: "paginas",
+        Tipo: "Cantidad",
+        Hasta_Posicion: 20,
+        Nota: "Registro parcial QA",
+        Creado_Ms: 1
+      },
+      {
+        Id: "qa_periodo_final",
+        Fecha: "2026-11-15",
+        Teca_Id: "Biblioteca",
+        Obra_Id: "dec_bib_2",
+        Cantidad: 360,
+        Unidad: "paginas",
+        Tipo: "Obra_Completa",
+        Hasta_Posicion: 360,
+        Nota: "Final QA",
+        Creado_Ms: 2
+      }
+    );
+    Decoteca = Normalizar_Decoteca(Decoteca);
+    Render_Decoteca();
+  });
+
+  await page.locator("#Decoteca_Buscar_Input").fill("foucault");
+  await page.locator("#Decoteca_Filtro_Periodo_Criterio")
+    .selectOption("Objetivo");
+  await expect(page.locator(
+    '#Decoteca_Filtro_Periodo option[value="Mes:2026-10"]'
+  )).toHaveCount(0);
+  await expect(page.locator(
+    '#Decoteca_Filtro_Periodo option[value="Mes:2026-12"]'
+  )).toHaveCount(1);
+  await page.locator("#Decoteca_Filtro_Periodo")
+    .selectOption("Mes:2026-12");
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Vigilar y castigar");
+
+  await page.locator("#Decoteca_Filtro_Periodo_Criterio")
+    .selectOption("Registros");
+  await expect(page.locator(
+    '#Decoteca_Filtro_Periodo option[value="Mes:2026-09"]'
+  )).toHaveCount(1);
+  await page.locator("#Decoteca_Filtro_Periodo")
+    .selectOption("Mes:2026-09");
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Vigilar y castigar");
+
+  await page.locator("#Decoteca_Filtro_Periodo_Criterio")
+    .selectOption("Final");
+  await expect(page.locator(
+    '#Decoteca_Filtro_Periodo option[value="Mes:2026-11"]'
+  )).toHaveCount(1);
+  await page.locator("#Decoteca_Filtro_Periodo")
+    .selectOption("Mes:2026-11");
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Vigilar y castigar");
+
+  await page.locator("#Decoteca_Filtro_Periodo_Criterio")
+    .selectOption("Rango");
+  await expect(page.locator(
+    '#Decoteca_Filtro_Periodo option[value="Mes:2026-10"]'
+  )).toHaveCount(1);
+  await page.locator("#Decoteca_Filtro_Periodo")
+    .selectOption("Mes:2026-10");
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Vigilar y castigar");
 
   await page.locator('[data-decoteca-teca="Biblioteca"]').click();
   await Limpiar_Filtros(page);

@@ -643,6 +643,12 @@ Estado actual.
   registros de avance que completan o repiten consumo. El anio de
   publicacion o estreno no se usa como periodo de lectura, escucha o
   visionado.
+- El filtro de periodo tiene selector de criterio: `Rango` usa el tramo
+  `Fecha_Inicio`-`Fecha_Fin`, `Objetivo` usa solo `Fecha_Fin`,
+  `Registros` usa todos los registros de avance y `Final` usa el
+  registro de cierre o, para datos viejos sin registros, `Fecha_Fin` de
+  obras terminadas. El selector recalcula las opciones de mes/anio
+  disponibles y la grilla respeta esa semantica.
 - La barra de filtros incluye `Lista` como dimension independiente de
   `Estado`, para distinguir archivo, readlist, proximas lecturas,
   wishlist, pausadas y obras archivadas sin alterar el estado de
