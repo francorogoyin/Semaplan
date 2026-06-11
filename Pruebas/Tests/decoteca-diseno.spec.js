@@ -76,6 +76,7 @@ async function Preparar(page, Idioma = "es", Opciones = {}) {
         body: JSON.stringify({
           docs: [
             {
+              key: "/works/OL123W",
               title: "Solaris",
               author_name: ["Stanisław Lem"],
               first_publish_year: 1961,
@@ -93,6 +94,23 @@ async function Preparar(page, Idioma = "es", Opciones = {}) {
               }
             }
           ]
+        })
+      });
+    }
+  );
+
+  await page.route(
+    "https://openlibrary.org/works/**",
+    async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: {
+          "access-control-allow-origin": "*"
+        },
+        body: JSON.stringify({
+          description:
+            "Descripcion editorial de Solaris con contexto de lectura."
         })
       });
     }
@@ -241,11 +259,7 @@ async function Preparar(page, Idioma = "es", Opciones = {}) {
                   type: "literal",
                   value: "Science fiction"
                 },
-                pages: { type: "literal", value: "296" },
-                desc: {
-                  type: "literal",
-                  value: "novela de ciencia ficcion de Stanislaw Lem"
-                }
+                pages: { type: "literal", value: "296" }
               }
             ]
           }
@@ -441,7 +455,11 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator("#Decoteca_Nueva"))
     .toHaveText("+");
   await expect(page.locator("#Decoteca_Avance_Abrir"))
-    .toHaveText("\uD83D\uDCDD");
+    .toHaveAttribute("aria-label", "Registrar avance");
+  await expect(page.locator("#Decoteca_Avance_Abrir"))
+    .toHaveAttribute("title", "Registrar avance");
+  await expect(page.locator("#Decoteca_Registro_Abrir"))
+    .toHaveAttribute("aria-label", "Registro de avances");
   await expect(page.locator("#Decoteca_Nueva"))
     .toHaveAttribute("aria-label", "Nueva obra");
   await expect(page.locator("#Decoteca_Nueva"))
@@ -567,9 +585,9 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "foucault",
       resultado: "Vigilar y castigar",
       estado: "Planeada",
-      periodo: "Ano:1975",
+      periodo: "Mes:2026-10",
       formato: "Ensayo",
-      campos: ["Autor", "Género", "Metadatos"]
+      campos: ["Autor", "Género", "Descripción"]
     },
     {
       teca: "Musicoteca",
@@ -577,9 +595,9 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "radiohead",
       resultado: "In Rainbows",
       estado: "En_Curso",
-      periodo: "Ano:2007",
-      formato: "Álbum",
-      campos: ["Artista", "Género", "Metadatos"]
+      periodo: "Mes:2026-06",
+      formato: "Alternative",
+      campos: ["Artista", "Género", "Descripción"]
     },
     {
       teca: "Videoteca",
@@ -587,9 +605,9 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "martel",
       resultado: "La ciénaga",
       estado: "Terminada",
-      periodo: "Ano:2001",
-      formato: "Película",
-      campos: ["Director", "Género", "Metadatos"]
+      periodo: "Mes:2026-05",
+      formato: "Drama",
+      campos: ["Director", "Género", "Descripción"]
     },
     {
       teca: "Ludoteca",
@@ -597,9 +615,9 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "disco",
       resultado: "Disco Elysium",
       estado: "En_Curso",
-      periodo: "Ano:2019",
+      periodo: "Mes:2026-04",
       formato: "RPG",
-      campos: ["Creador", "Género", "Metadatos"]
+      campos: ["Creador", "Género", "Descripción"]
     }
   ];
 
@@ -692,14 +710,34 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
   await Preparar(page, "es", { Limpiar_Estado: false });
   await Abrir_Decoteca(page);
 
+  await page.evaluate(() => {
+    const Obra = Decoteca.Obras.find((Item) => Item.Id === "dec_bib_3");
+    Obra.Genero = "Genero viejo";
+    Obra.Descripcion = "Descripcion vieja";
+    Obra.Datos_Teca = {
+      Unidad: "paginas",
+      Total_Unidades: 1,
+      Fuente: "Manual"
+    };
+    Obra.Metadatos = [
+      ["G\u00e9nero", "Genero viejo"],
+      ["P\u00e1ginas", "1"],
+      ["Fuente", "Manual"]
+    ];
+    Render_Decoteca();
+  });
   await page.locator('[data-decoteca-obra="dec_bib_3"]').click();
   await page.locator('[data-decoteca-metadatos="Detalle"]').click();
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Open Library");
+    .not.toContainText("Genero viejo");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("296");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Science fiction");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Descripcion editorial de Solaris");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .not.toContainText("Open Library");
   await expect(page.locator("#Decoteca_Detalle img"))
     .toHaveAttribute("src", /covers\.openlibrary\.org.*12345/);
   await Esperar_Imagen_Cargada(page.locator("#Decoteca_Detalle img"));
@@ -714,8 +752,12 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
     .toHaveValue("In rainbows");
   await expect(page.locator("#Decoteca_Form_Anio"))
     .toHaveValue("2007");
-  await expect(page.locator("#Decoteca_Form_Formato"))
-    .toHaveValue("Álbum");
+  await expect(page.locator("#Decoteca_Form_Genero"))
+    .toHaveValue("Alternative");
+  await expect(page.locator("#Decoteca_Form_Metadatos"))
+    .toBeHidden();
+  await expect(page.locator("#Decoteca_Form_Subobjetivos"))
+    .toBeHidden();
   await expect(page.locator("#Decoteca_Form_Metadatos"))
     .toHaveValue(/Alternative/);
   await expect(page.locator("#Decoteca_Form_Subobjetivos"))
@@ -730,7 +772,7 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Nude");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Apple/iTunes");
+    .not.toContainText("Apple/iTunes");
   await expect(page.locator("#Decoteca_Detalle img"))
     .toHaveAttribute("src", /600x600bb/);
   await Esperar_Imagen_Cargada(page.locator("#Decoteca_Detalle img"));
@@ -743,7 +785,7 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("163 min");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Wikidata + Apple/iTunes");
+    .not.toContainText("Wikidata + Apple/iTunes");
   await expect(page.locator("#Decoteca_Detalle img"))
     .toHaveAttribute("src", /^https:\/\/commons\.wikimedia\.org/);
   await Esperar_Imagen_Cargada(page.locator("#Decoteca_Detalle img"));
@@ -751,6 +793,19 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
   const Estado = await page.evaluate(() => {
     return JSON.parse(localStorage.getItem(Clave_Local)).Decoteca;
   });
+  const Libro = Estado.Obras.find((Obra) => Obra.Id === "dec_bib_3");
+  expect(Libro.Genero).toBe("Science fiction");
+  expect(Libro.Descripcion)
+    .toContain("Descripcion editorial de Solaris");
+  expect(Libro.Datos_Teca.Total_Unidades).toBe(296);
+  expect(Libro.Metadatos.some(([Clave, Valor]) =>
+    Clave === "Fuente" &&
+    Valor.includes("Wikidata/Wikipedia") &&
+    Valor.includes("Open Library")
+  )).toBeTruthy();
+  expect(Libro.Metadatos.some(([, Valor]) =>
+    Valor === "Manual" || Valor === "Genero viejo"
+  )).toBeFalsy();
   const Album = Estado.Obras.find((Obra) =>
     Obra.Titulo === "In rainbows" &&
     Obra.Creador === "Radiohead"
@@ -761,9 +816,18 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
     Parte.Titulo === "Nude" &&
     Parte.Duracion_Segundos === 255
   )).toBeTruthy();
-  expect(Album.Datos_Teca.Total_Unidades).toBeGreaterThan(13);
+  expect(Album.Datos_Teca.Total_Unidades).toBe(Album.Partes.length);
   expect(Album.Metadatos.some(([Clave, Valor]) =>
     Clave === "Género" && Valor === "Alternative"
+  )).toBeTruthy();
+  expect(Album.Metadatos.some(([Clave, Valor]) =>
+    Clave === "Fuente" && Valor === "Apple/iTunes"
+  )).toBeTruthy();
+  const Pelicula = Estado.Obras.find((Obra) => Obra.Id === "dec_vid_1");
+  expect(Pelicula.Genero).toContain("Science fiction");
+  expect(Pelicula.Datos_Teca.Total_Unidades).toBe(1);
+  expect(Pelicula.Metadatos.some(([Clave, Valor]) =>
+    Clave === "Fuente" && Valor.includes("Wikidata")
   )).toBeTruthy();
 
   const Portada_Archivo = await page.evaluate(() => {
@@ -876,38 +940,36 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await page.locator("#Decoteca_Form_Creador")
     .fill("Equipo Semaplan");
   await page.locator("#Decoteca_Form_Anio").fill("2026");
-  await page.locator("#Decoteca_Form_Formato").fill("Ensayo");
+  await page.locator("#Decoteca_Form_Genero").fill("Ensayo");
   await page.locator("#Decoteca_Form_Estado")
     .selectOption("En_Curso");
-  await page.locator("#Decoteca_Form_Periodo")
-    .selectOption("Mes");
-  await page.locator("#Decoteca_Form_Periodo_Label")
-    .fill("Julio 2026");
-  await page.locator("#Decoteca_Form_Progreso").fill("15");
-  await page.locator("#Decoteca_Form_Meta")
-    .fill("15 / 100 páginas");
+  await page.locator("#Decoteca_Form_Fecha_Inicio")
+    .fill("2026-07-01");
+  await page.locator("#Decoteca_Form_Fecha_Fin")
+    .fill("2026-07-31");
+  await page.locator("#Decoteca_Form_Total").fill("100");
   await page.locator("#Decoteca_Form_Rating").fill("Pendiente");
-  await page.locator("#Decoteca_Form_Plan")
+  await page.locator("#Decoteca_Form_Descripcion")
     .fill("Revisar dos secciones por semana.");
-  await page.locator("#Decoteca_Form_Subobjetivos")
-    .fill("Hipótesis\nDesarrollo\nCierre");
-  await page.locator("#Decoteca_Form_Metadatos")
-    .fill("Tema: Decoteca\nFuente: QA");
+  await expect(page.locator("#Decoteca_Form_Subobjetivos"))
+    .toBeHidden();
+  await expect(page.locator("#Decoteca_Form_Metadatos"))
+    .toBeHidden();
   await page.locator('[data-decoteca-form="Obra"] .Primario')
     .click();
 
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText("Cuaderno de pruebas");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("15%");
+    .toContainText("100 pags.");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Hipótesis");
+    .toContainText("Revisar dos secciones por semana.");
 
   await page.locator('[data-decoteca-accion="Editar"]').click();
   await page.locator("#Decoteca_Form_Titulo")
     .fill("Cuaderno editado");
-  await page.locator("#Decoteca_Form_Progreso").fill("55");
-  await page.locator("#Decoteca_Form_Plan")
+  await page.locator("#Decoteca_Form_Total").fill("120");
+  await page.locator("#Decoteca_Form_Descripcion")
     .fill("Cerrar el ensayo y pasar notas al Archivero.");
   await page.locator('[data-decoteca-form="Obra"] .Primario')
     .click();
@@ -915,7 +977,7 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Cuaderno editado");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("55%");
+    .toContainText("120 pags.");
 
   await page.locator('[data-decoteca-accion="Caratula"]').click();
   await page.locator("#Decoteca_Form_Portada_Tipo")
@@ -965,7 +1027,9 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     Obra.Portada_Texto === "Ensayo Vivo" &&
     Obra.Portada_Tipo === "Archivo" &&
     String(Obra.Portada_Data_Url || "").startsWith("data:image/png") &&
-    Obra.Progreso === 55
+    Obra.Genero === "Ensayo" &&
+    Obra.Descripcion === "Cerrar el ensayo y pasar notas al Archivero." &&
+    Obra.Datos_Teca.Total_Unidades === 120
   )).toBeTruthy();
 
   await page.reload();
@@ -1018,8 +1082,8 @@ test("decoteca edita borra tecas y obras con confirmacion", async ({
   await page.locator("#Decoteca_Form_Titulo")
     .fill("Obra para borrar");
   await page.locator("#Decoteca_Form_Creador").fill("QA");
-  await page.locator("#Decoteca_Form_Formato").fill("Pelicula");
-  await page.locator("#Decoteca_Form_Progreso").fill("10");
+  await page.locator("#Decoteca_Form_Genero").fill("Drama");
+  await page.locator("#Decoteca_Form_Total").fill("1");
   await page.locator('[data-decoteca-form="Obra"] .Primario')
     .click();
   await expect(page.locator("#Decoteca_Grilla"))
@@ -1079,7 +1143,7 @@ test("decoteca edita borra tecas y obras con confirmacion", async ({
   await page.locator("#Decoteca_Nueva").click();
   await page.locator("#Decoteca_Form_Titulo")
     .fill("Obra movible QA");
-  await page.locator("#Decoteca_Form_Formato").fill("Ensayo");
+  await page.locator("#Decoteca_Form_Genero").fill("Ensayo");
   await page.locator('[data-decoteca-form="Obra"] .Primario')
     .click();
   await page.locator("#Decoteca_Teca_Editar").click();
@@ -1120,7 +1184,7 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
   await expect(Modal_Avance)
     .toContainText("Registrar avance");
   await expect(Modal_Avance)
-    .toContainText("Resumen del periodo");
+    .not.toContainText("Resumen del periodo");
   await expect(Modal_Avance)
     .not.toContainText("Registros");
   await expect(page.locator("#Decoteca_Detalle"))
@@ -1157,10 +1221,6 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
   await page.locator("#Decoteca_Avance_Guardar").click();
 
   await expect(Modal_Avance)
-    .toContainText("90 pags.");
-  await expect(Modal_Avance)
-    .toContainText("15%");
-  await expect(Modal_Avance)
     .not.toContainText("Lectura de prueba QA");
 
   await page.locator("#Decoteca_Avance_Cerrar").click();
@@ -1183,10 +1243,6 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
     .toHaveValue("90");
   await page.locator("#Decoteca_Avance_Cantidad").fill("120");
   await page.locator("#Decoteca_Avance_Guardar").click();
-  await expect(Modal_Avance)
-    .toContainText("120 pags.");
-  await expect(Modal_Avance)
-    .toContainText("20%");
   await page.locator("#Decoteca_Avance_Cerrar").click();
   await page.locator("#Decoteca_Registro_Abrir").click();
   await expect(Modal_Registro).toContainText("120 pags.");
@@ -1323,20 +1379,21 @@ test("decoteca mobile no recorta el detalle", async ({ page }) => {
   expect(Medidas_Modal.Cuerpo_Scroll)
     .toBeGreaterThanOrEqual(Medidas_Modal.Cuerpo_Alto);
 
-  await page.locator("#Decoteca_Avance_Cantidad").fill("90");
+  await expect(Modal_Avance).toContainText("Visionado");
+  await expect(Modal_Avance).toContainText("1 vis.");
   await page.locator("#Decoteca_Avance_Guardar").click();
   await page.locator("#Decoteca_Avance_Cuerpo")
     .evaluate((El) => {
       El.scrollTop = El.scrollHeight;
     });
-  await expect(Modal_Avance).toContainText("90 min");
+  await expect(Modal_Avance).toContainText("1 vis.");
   await expect(Modal_Avance).not.toContainText("Editar");
   await page.locator("#Decoteca_Avance_Cerrar").click();
   await page.locator("#Decoteca_Registro_Abrir").click();
   const Modal_Registro = page.locator("#Decoteca_Registro_Overlay");
   await expect(Modal_Registro).toHaveClass(/Activo/);
   await expect(Modal_Registro).toContainText("Stalker");
-  await expect(Modal_Registro).toContainText("90 min");
+  await expect(Modal_Registro).toContainText("1 vis.");
   await expect(
     Modal_Registro.locator("[data-decoteca-registro-editar]")
   ).toHaveCount(1);

@@ -589,18 +589,23 @@ Estado actual.
   `Editar` y `Borrar`, usando los mismos flujos del detalle.
 - Edicion de caratula visible de cada obra: icono, texto, color, URL
   publica o archivo de imagen embebido con limite de peso.
-- Creacion y edicion de tecas propias con nombre, descripcion, icono
-  y color.
+- Creacion y edicion de tecas propias con nombre, descripcion, icono,
+  color, unidad, subunidad y metrica. Esos campos definen el tipo de
+  obra, la estructura interna y la unidad de avance por defecto.
 - Borrado de obras con confirmacion. Borrado de tecas propias con
   confirmacion y opcion de mover sus obras a otra teca disponible o
   borrar teca y obras.
 - `Bajar metadatos` aparece en la ficha seleccionada y en el alta o
   edicion de obra para Biblioteca, Musicoteca y Videoteca. Busca por
-  titulo y completa datos principales, metadatos, caratula,
-  `Datos_Teca` y `Partes`: libros desde Open Library; albumes desde
-  Apple/iTunes con canciones y duracion por pista; peliculas desde
-  Wikidata con Apple/iTunes como complemento o respaldo. Ludoteca y
-  tecas propias no tienen fuente automatica por ahora.
+  titulo y creador cuando corresponde, y reemplaza los datos
+  descriptivos de la ficha con la fuente elegida: titulo, creador,
+  anio, genero, subgenero, descripcion, caratula, `Datos_Teca`,
+  `Partes` y metadatos. La fuente queda guardada internamente, pero no
+  se muestra como metadato principal en la ficha.
+- En libros, Wikidata/Wikipedia se usa para identidad, autoria, anio y
+  genero; Open Library aporta paginas, portada y descripcion cuando
+  esta disponible; Lectulandia queda como complemento best-effort para
+  portada y descripcion.
 - Los datos bajados normalizan titulos de obras y partes con formato
   de frase, y autores/artistas/directores con formato de nombre
   propio. Los campos escritos manualmente por el usuario se conservan.
@@ -611,13 +616,21 @@ Estado actual.
   de Decoteca. Registra avances propios por teca sin mezclarlos con
   Metas. Permite elegir fecha, cantidad, nota y un item anidado del
   arbol `Teca -> Obra -> Parte`, con `+` y `-` para desplegar ramas.
-  El cartel `D` muestra solo el resumen del anio de la teca elegida y
-  el formulario de carga rapida.
+  El cartel `D` no muestra resumen de periodo; queda limitado al acto
+  de registrar avance rapido.
 - El boton `R` de Decoteca abre el registro historico de avances en un
   modal separado. Ese registro tiene filtros por anio, teca, obra y
-  parte, muestra el resumen anual cuando hay una teca concreta
-  seleccionada, y permite editar o borrar registros con confirmacion
-  sin mezclar el historial dentro del formulario `D`.
+  parte, y permite editar o borrar registros con confirmacion sin
+  mezclar el historial dentro del formulario `D`.
+- Los filtros de periodo de Decoteca se generan desde fechas de
+  planificacion o consumo: `Fecha_Inicio`/`Fecha_Fin` de la obra y
+  registros de avance que completan o repiten consumo. El anio de
+  publicacion o estreno no se usa como periodo de lectura, escucha o
+  visionado.
+- El editor visible de obra muestra ficha descriptiva, fechas, total y
+  descripcion. Partes y metadatos no se editan como textareas libres en
+  el sidebar; permanecen como datos estructurados derivados de la
+  descarga o de flujos especificos.
 - Normalizacion de datos viejos y base inicial de demostracion cuando
   todavia no existe estado persistido de Decoteca.
 - Las obras viejas sin campos de portada nueva siguen usando el modo
@@ -646,10 +659,11 @@ Estado actual.
 
 Tecas iniciales.
 
-- Biblioteca: libros, capitulos, paginas y partes de lectura.
-- Musicoteca: albumes, canciones, escuchas y artista.
-- Videoteca: peliculas, director, anio, duracion y plataforma.
-- Ludoteca: juegos, sesiones y progreso.
+- Biblioteca: libros, capitulos, paginas, lectura y relectura.
+- Musicoteca: albumes, canciones, escuchas y reescuchas.
+- Videoteca: peliculas, visionados y revisionados; la duracion queda
+  como dato descriptivo secundario.
+- Ludoteca: juegos, sesiones y horas.
 
 Funciones de entrada recomendadas.
 
@@ -681,8 +695,8 @@ Funciones de entrada recomendadas.
 Relaciones importantes.
 
 - Cada teca debe poder tener universo, campos y reglas propias.
-- Las obras muestran caratula, estado, periodo, progreso, metadatos y
-  subpartes.
+- Las obras muestran caratula, estado, periodo de consumo, avance
+  calculado, repeticiones, metadatos relevantes y subpartes.
 - `Decoteca` entra en `Construir_Estado_Completo()`, `Cargar_Estado()`,
   `Normalizar_Estado()`, sync remoto e import/export como clave raiz
   normal del estado.
