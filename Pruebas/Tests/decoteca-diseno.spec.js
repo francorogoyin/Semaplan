@@ -524,6 +524,27 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator('[data-decoteca-obra="dec_bib_1"]'))
     .not.toHaveClass(/Activa/);
 
+  await page.evaluate(() => {
+    const Obra = Decoteca.Obras.find((Item) => Item.Id === "dec_bib_1");
+    Obra.Partes[0].Cantidad_Total = 120;
+    Obra.Partes[0].Unidad = "paginas";
+    Decoteca.Avances.push({
+      Id: "qa_avance_parte_detalle",
+      Fecha: "2026-06-08",
+      Teca_Id: "Biblioteca",
+      Obra_Id: Obra.Id,
+      Parte_Id: Obra.Partes[0].Id,
+      Cantidad: 30,
+      Unidad: "paginas",
+      Tipo: "Cantidad",
+      Hasta_Posicion: 30,
+      Nota: "Avance de parte para detalle",
+      Creado_Ms: 1
+    });
+    Decoteca = Normalizar_Decoteca(Decoteca);
+    Render_Decoteca();
+  });
+
   await page.locator('[data-decoteca-obra="dec_bib_1"]').click();
   await expect(page.locator("#Decoteca_Detalle"))
     .toBeVisible();
@@ -531,6 +552,18 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toContainText("Los detectives salvajes");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Partes");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("30 de 120 pag.");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .not.toContainText("30 pags. / 120 pags.");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("25%");
+  await expect(page.locator(".Decoteca_Subitem_Dato")
+    .filter({ hasText: "30 de 120 pag." }))
+    .toHaveCSS("font-weight", "500");
+  await expect(page.locator(".Decoteca_Subitem_Porcentaje")
+    .filter({ hasText: "25%" }))
+    .toHaveCSS("font-weight", "850");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Organizacion");
   await expect(page.locator("#Decoteca_Detalle"))

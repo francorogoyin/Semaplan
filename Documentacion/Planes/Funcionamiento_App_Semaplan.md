@@ -601,6 +601,11 @@ Estado actual.
 - El panel de detalle de obra no se abre por defecto: aparece solo al
   seleccionar una obra y se oculta al tocar fuera de una obra o cambiar
   filtros, vista o teca.
+- En el bloque de partes del detalle, cada parte muestra avance sobre
+  total cuando existen avance registrado y total de parte, por ejemplo
+  `30 de 120 pag.`. Ese dato usa peso normal y el porcentaje queda
+  destacado en negrita; si falta avance o total, se muestra solo el
+  dato disponible.
 - Click derecho sobre una tarjeta de obra abre un menu contextual con
   `Editar` y `Borrar`, usando los mismos flujos del detalle.
 - Edicion de caratula visible de cada obra: icono, texto, color, URL
