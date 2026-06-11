@@ -588,6 +588,11 @@ Estado actual.
   `Fecha_Ingreso` para que la readlist conserve criterio historico y no
   sea solo un estado visual.
 - Alta y edicion de obras desde el panel de detalle.
+- Vista `Catalogo` con caratulas y vista `Readlist` con filas densas
+  para decidir proximas lecturas, escuchas, visionados o partidas. La
+  vista `Readlist` prioriza `Proximas`, `Readlist`, `Wishlist` y
+  `Pausadas`, ordena por prioridad y fechas, y muestra motivo, origen,
+  avance y restante sin obligar a abrir cada ficha.
 - El panel de detalle de obra no se abre por defecto: aparece solo al
   seleccionar una obra y se oculta al tocar fuera de una obra o cambiar
   filtros, vista o teca.

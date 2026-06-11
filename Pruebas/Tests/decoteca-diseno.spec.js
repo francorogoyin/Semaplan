@@ -449,11 +449,13 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator(".Decoteca_Hero"))
     .toHaveCount(0);
   await expect(page.locator(".Decoteca_Vistas"))
-    .toHaveCount(0);
+    .toHaveCount(1);
   await expect(page.locator("#Decoteca_Vista_Catalogo"))
-    .toHaveCount(0);
-  await expect(page.locator("#Decoteca_Vista_Periodos"))
-    .toHaveCount(0);
+    .toHaveText("Catalogo");
+  await expect(page.locator("#Decoteca_Vista_Readlist"))
+    .toHaveText("Readlist");
+  await expect(page.locator("#Decoteca_Vista_Catalogo"))
+    .toHaveAttribute("aria-selected", "true");
   await expect(page.locator("#Decoteca_Nueva"))
     .toHaveText("+");
   await expect(page.locator("#Decoteca_Avance_Abrir"))
@@ -678,6 +680,26 @@ test("decoteca responde a controles, filtros y botones", async ({
 
   await page.locator('[data-decoteca-teca="Biblioteca"]').click();
   await Limpiar_Filtros(page);
+
+  await page.locator("#Decoteca_Vista_Readlist").click();
+  await expect(page.locator("#Decoteca_Vista_Readlist"))
+    .toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(".Decoteca_Readlist_Item"))
+    .toHaveCount(1);
+  await expect(page.locator(".Decoteca_Readlist_Item").first())
+    .toContainText("Vigilar y castigar");
+  await expect(page.locator(".Decoteca_Readlist_Item").first())
+    .toContainText("Lista: Proximas");
+  await expect(page.locator(".Decoteca_Readlist_Item").first())
+    .toContainText("Prioridad: Alta");
+  await expect(page.locator(".Decoteca_Readlist_Item").first())
+    .toContainText("Base teorica");
+  await page.locator(".Decoteca_Readlist_Item").first().click();
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("Vigilar y castigar");
+  await page.locator("#Decoteca_Vista_Catalogo").click();
+  await expect(page.locator("#Decoteca_Vista_Catalogo"))
+    .toHaveAttribute("aria-selected", "true");
 
   await page.locator("#Decoteca_Buscar_Input")
     .fill("obra inexistente zzz");
