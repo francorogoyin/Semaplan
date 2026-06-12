@@ -490,14 +490,14 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator("#Decoteca_Avance_Abrir"))
     .toHaveAttribute("title", "Registrar avance");
   await expect(page.locator("#Decoteca_Avance_Abrir"))
-    .toContainText("D");
+    .not.toContainText("D");
   await Esperar_Emoji_Visible(
     page.locator("#Decoteca_Avance_Abrir .Decoteca_Accion_Emoji")
   );
   await expect(page.locator("#Decoteca_Registro_Abrir"))
     .toHaveAttribute("aria-label", "Registro de avances");
   await expect(page.locator("#Decoteca_Registro_Abrir"))
-    .toContainText("R");
+    .not.toContainText("R");
   await Esperar_Emoji_Visible(
     page.locator("#Decoteca_Registro_Abrir .Decoteca_Accion_Emoji")
   );
@@ -967,72 +967,42 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l" +
       "EQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
     window.Decoteca_Catalogo_Estructura_Libros = {
-      Version: "1.0",
-      Libros: [
+      Titulo: "Solaris",
+      Autor: "Lem, Stanislaw",
+      Anio: 1961,
+      Genero: "Novela filosofica",
+      Subgenero: "Ciencia ficcion",
+      Descripcion:
+        "Sinopsis local de Solaris tomada del catalogo personal.",
+      Portada_Data_Url: Portada_Local,
+      Caratula: {
+        Metodo: "primera_pagina",
+        Ruta_Imagen: "Portadas/Lem, Stanislaw. Solaris.png",
+        Requiere_Revision: false
+      },
+      Numero_Paginas_Total: 296,
+      Partes: [
         {
-          Archivo: "Lem, Stanislaw. Solaris.pdf",
-          Ruta_Relativa:
-            "Libros\\Readlist\\Novelas\\Lem, Stanislaw. Solaris.pdf",
-          Ubicacion_Biblioteca: {
-            Categoria_Raiz: "Libros",
-            Estado_Lectura: "Readlist",
-            Subgenero: "Novelas",
-            Subcarpetas: ["Libros", "Readlist", "Novelas"]
-          },
-          Autor_Desde_Archivo: "Lem, Stanislaw",
-          Titulo_Desde_Archivo: "Solaris",
-          Titulo_Normalizado: "solaris",
-          Clave_Titulo: "solaris",
-          Descripcion:
-            "Sinopsis local de Solaris tomada del catalogo personal.",
-          Portada_Data_Url: Portada_Local,
-          Caratula: {
-            Metodo: "primera_pagina",
-            Ruta_Imagen: "Portadas/Lem, Stanislaw. Solaris.png",
-            Requiere_Revision: false
-          },
-          Paginas: {
-            Archivo_Total: 310,
-            Editoriales_Total: 296
-          },
-          Estructura: {
-            Items: [
-              {
-                Titulo: "Solaris",
-                Tipo: "seccion",
-                Pagina_Inicio_Archivo: 1,
-                Pagina_Fin_Archivo: 296,
-                Paginas_Editoriales_Estimadas: 296,
-                Hijos: [
-                  {
-                    Titulo: "La llegada",
-                    Tipo: "capitulo",
-                    Pagina_Inicio_Archivo: 5,
-                    Pagina_Fin_Archivo: 12,
-                    Paginas_Editoriales_Estimadas: 8
-                  },
-                  {
-                    Titulo: "Los Solaristas",
-                    Tipo: "capitulo",
-                    Pagina_Inicio_Archivo: 13,
-                    Pagina_Fin_Archivo: 25,
-                    Paginas_Editoriales_Estimadas: 13
-                  },
-                  {
-                    Titulo: "Comentarios y Biograf\u00eda",
-                    Tipo: "capitulo",
-                    Pagina_Inicio_Archivo: 160,
-                    Pagina_Fin_Archivo: 160,
-                    Paginas_Editoriales_Estimadas: 1
-                  }
-                ]
-              }
-            ]
-          }
+          Orden: 1,
+          Titulo: "La llegada",
+          Tipo: "capitulo",
+          Pagina_Inicio: 5,
+          Pagina_Fin: 12,
+          Numero_Paginas: 8
+        },
+        {
+          Orden: 2,
+          Titulo: "Los Solaristas",
+          Tipo: "capitulo",
+          Pagina_Inicio: 13,
+          Pagina_Fin: 25,
+          Numero_Paginas: 13
         }
       ]
     };
     const Obra = Decoteca.Obras.find((Item) => Item.Id === "dec_bib_3");
+    Obra.Creador = "Autor viejo";
+    Obra.Anio = "1900";
     Obra.Genero = "Genero viejo";
     Obra.Subgenero = "Subgenero viejo";
     Obra.Descripcion = "Descripcion vieja";
@@ -1046,6 +1016,20 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
       ["P\u00e1ginas", "1"],
       ["Fuente", "Manual"]
     ];
+    Obra.Partes = [{
+      Id: "parte_vieja",
+      Titulo: "Parte vieja",
+      Tipo: "Capitulo",
+      Orden: 1,
+      Unidad: "paginas",
+      Cantidad_Total: 1,
+      Pagina_Inicio: 1,
+      Pagina_Fin: 1,
+      Metadatos: []
+    }];
+    Obra.Portada_Tipo = "Url";
+    Obra.Portada_Url = "https://example.com/decoteca-portada.png";
+    Obra.Portada_Data_Url = "";
     Render_Decoteca();
   });
   await page.locator('[data-decoteca-obra="dec_bib_3"]').click();
@@ -1055,9 +1039,9 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("296");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Ficci\u00f3n");
+    .toContainText("Novela filosofica");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Novelas");
+    .toContainText("Ciencia ficcion");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Sinopsis local de Solaris");
   await expect(page.locator("#Decoteca_Detalle img"))
@@ -1125,8 +1109,9 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
   });
   const Libro = Estado.Obras.find((Obra) => Obra.Id === "dec_bib_3");
   expect(Libro.Creador).toBe("Lem, Stanislaw");
-  expect(Libro.Genero).toBe("Ficci\u00f3n");
-  expect(Libro.Subgenero).toBe("Novelas");
+  expect(Libro.Anio).toBe("1961");
+  expect(Libro.Genero).toBe("Novela filosofica");
+  expect(Libro.Subgenero).toBe("Ciencia ficcion");
   expect(Libro.Descripcion)
     .toContain("Sinopsis local de Solaris");
   expect(Libro.Portada_Tipo).toBe("Archivo");
@@ -1140,7 +1125,7 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
   expect(Libro.Partes[0].Titulo).toBe("La llegada");
   expect(Libro.Partes[0].Cantidad_Total).toBe(8);
   expect(Libro.Partes.some((Parte) =>
-    Parte.Titulo.includes("Biograf")
+    Parte.Titulo === "Parte vieja"
   )).toBeFalsy();
   expect(Libro.Metadatos.some(([Clave, Valor]) =>
     Clave === "Fuente" && Valor === "Biblioteca local"
@@ -1424,8 +1409,12 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await page.locator('[data-decoteca-accion="Caratula"]').click();
   await page.locator("#Decoteca_Form_Portada_Tipo")
     .selectOption("Url");
-  await page.locator("#Decoteca_Form_Portada_Url")
+  const Campo_Url_Portada = page.locator("#Decoteca_Form_Portada_Url");
+  await expect(Campo_Url_Portada).toBeVisible();
+  await Campo_Url_Portada
     .fill("https://example.com/decoteca-portada.png");
+  await expect(Campo_Url_Portada)
+    .toHaveValue("https://example.com/decoteca-portada.png");
   await page.locator("#Decoteca_Form_Portada_Emoji").fill("🧪");
   await page.locator("#Decoteca_Form_Portada_Texto")
     .fill("Ensayo Vivo");

@@ -639,26 +639,29 @@ Estado actual.
   catalogo cargado y el navegador soporta File System Access, el click
   de `Bajar metadatos` permite seleccionar el JSON local; la app no
   intenta leer rutas absolutas de Windows sin permiso. Ese catalogo se
-  interpreta como indice de `Libros/Readlist`, `Libros/Reading` y
-  `Libros/Read`, en ese orden. El match normaliza mayusculas, acentos,
-  puntuacion menor y espacios; si el candidato queda empatado o dudoso,
-  no se aplica como local. El autor y el titulo se toman de los campos
+  interpreta como indice con `Libros`, `Biblioteca`, `Obras` o `Items`,
+  o como ficha individual de libro con `Titulo`, `Autor`,
+  `Numero_Paginas_Total` y `Partes`. Cuando hay indice, se priorizan
+  rutas de `Libros/Readlist`, `Libros/Reading` y `Libros/Read`, en ese
+  orden; cuando hay una ficha individual sin ruta, se toma como
+  candidato unico. El match normaliza mayusculas, acentos, puntuacion
+  menor y espacios; si el candidato queda empatado o dudoso, no se
+  aplica como local. El autor y el titulo se toman de los campos
   explicitos del catalogo o del nombre de archivo con convencion
-  `Autor. Titulo.ext`; el subgenero sale de `Ubicacion_Biblioteca` o de
-  la carpeta y el genero principal se limita a `Ficcion` o
-  `No ficcion` cuando puede inferirse.
+  `Autor. Titulo.ext`. Si el JSON trae `Genero`, ese valor reemplaza el
+  genero visible de la obra; si no, el genero principal se infiere desde
+  subgenero, ubicacion o carpeta.
 - El catalogo local de Biblioteca puede aportar paginas, partes,
-  paginas por parte, descripcion y caratula embebida. Si el JSON trae
+  paginas por parte, descripcion y caratula embebida. Cuando hay match
+  local, el JSON reemplaza los datos descriptivos existentes de la obra
+  en vez de mezclarlos con valores viejos. Si el JSON trae
   `Caratula.Metodo`, `Caratula.Ruta_Imagen` y
   `Caratula.Requiere_Revision`, `Bajar metadatos` guarda esos datos en
   la obra como `Portada_Metodo_Local`, `Portada_Ruta_Local` y
   `Portada_Requiere_Revision`; la ruta se conserva como referencia
   tecnica y no se intenta abrir automaticamente desde el navegador sin
-  permiso del usuario. Si no trae descripcion o caratula, el flujo
-  intenta completar solo esos huecos con fuentes externas sin degradar
-  los datos locales. Si ninguna fuente trae descripcion, genero,
-  subgenero, anio, portada o partes, se conserva el dato manual
-  existente en la obra.
+  permiso del usuario. Si no hay match local, recien entonces se usan
+  fuentes externas.
   En el editor de caratula hay una accion secundaria para buscar una
   caratula externa sin reemplazar la local hasta que el usuario guarde.
 - En libros, Wikidata/Wikipedia se usa para identidad, autoria, anio y
@@ -668,25 +671,27 @@ Estado actual.
 - Los datos bajados normalizan titulos de obras y partes con formato
   de frase, y autores/artistas/directores con formato de nombre
   propio. Los campos escritos manualmente por el usuario se conservan.
-- El boton/atajo `D` de Decoteca abre un modal/cartel global de
+- El boton de registrar avance de Decoteca se muestra solo como icono y
+  abre un modal/cartel global de
   registro de avance, separado del panel de detalle y equivalente al
   patron visual usado para registrar avances en Metas/Planes. Puede
   abrirse desde cualquier parte principal de Semaplan, no solo dentro
   de Decoteca. Registra avances propios por teca sin mezclarlos con
   Metas. Permite elegir fecha, cantidad, nota y un item anidado del
   arbol `Teca -> Obra -> Parte`, con `+` y `-` para desplegar ramas.
-  El cartel `D` no muestra resumen de periodo; queda limitado al acto
-  de registrar avance rapido.
-- El boton `R` de Decoteca abre el registro historico de avances en un
-  modal separado. Ese registro tiene filtros por anio, teca, obra y
-  parte, y permite editar o borrar registros con confirmacion sin
-  mezclar el historial dentro del formulario `D`. El resultado filtrado
-  muestra un resumen compacto de registros, avance, obras y cierres, y
-  la tabla agrupa filas por dia, semana, mes o anio. Cada encabezado de
-  grupo muestra periodo, avance acumulado por unidad compatible y
-  cantidad de registros, para reconstruir el historial sin convertirlo
-  en tarjetas pesadas. En mobile, los filtros del registro se apilan
-  para no recortar controles.
+  El cartel no muestra resumen de periodo; queda limitado al acto de
+  registrar avance rapido.
+- El boton de registro historico de Decoteca se muestra solo como icono
+  y abre el registro de avances en un modal separado. Ese registro tiene
+  filtros por anio, teca, obra y parte, y permite editar o borrar
+  registros con confirmacion sin mezclar el historial dentro del
+  formulario de avance rapido. El resultado filtrado muestra un resumen
+  compacto de registros, avance, obras y cierres, y la tabla agrupa
+  filas por dia, semana, mes o anio. Cada encabezado de grupo muestra
+  periodo, avance acumulado por unidad compatible y cantidad de
+  registros, para reconstruir el historial sin convertirlo en tarjetas
+  pesadas. En mobile, los filtros del registro se apilan para no
+  recortar controles.
 - Los filtros de periodo de Decoteca se generan desde fechas de
   planificacion o consumo: `Fecha_Inicio`/`Fecha_Fin` de la obra y
   registros de avance que completan o repiten consumo. El anio de
