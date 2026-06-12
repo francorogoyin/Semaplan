@@ -505,6 +505,28 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toHaveAttribute("aria-label", "Nueva obra");
   await expect(page.locator("#Decoteca_Nueva"))
     .toHaveAttribute("title", "Nueva obra");
+  await page.evaluate(() => {
+    const Obra = Decoteca.Obras.find((Item) =>
+      Item.Id === "dec_bib_1"
+    );
+    Obra.Descripcion =
+      "Descripcion QA visible en tooltip de fila superior.";
+    Render_Decoteca();
+  });
+  const Card_Superior = page.locator('[data-decoteca-obra="dec_bib_1"]');
+  await Card_Superior.hover();
+  const Tooltip_Superior = Card_Superior.locator(
+    ".Decoteca_Card_Tooltip"
+  );
+  await expect(Tooltip_Superior).toBeVisible();
+  await expect(Tooltip_Superior)
+    .toContainText("Descripcion QA visible en tooltip");
+  await expect.poll(async () =>
+    Tooltip_Superior.evaluate((El) => {
+      const Rect = El.getBoundingClientRect();
+      return Rect.top >= 0 && Rect.bottom <= window.innerHeight;
+    })
+  ).toBeTruthy();
   await expect(page.locator('[data-decoteca-teca="Biblioteca"]'))
     .toHaveAttribute("aria-label", /Biblioteca/);
   await expect(page.locator('[data-decoteca-teca="Musicoteca"]'))
