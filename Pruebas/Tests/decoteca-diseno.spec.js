@@ -527,6 +527,10 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     Render_Decoteca();
   });
   const Card_Superior = page.locator('[data-decoteca-obra="dec_bib_1"]');
+  await expect(Card_Superior.locator(".Decoteca_Caratula_Icono"))
+    .toHaveCount(1);
+  await expect(Card_Superior.locator(".Decoteca_Estado_Badge"))
+    .toHaveCount(0);
   await Card_Superior.hover();
   const Tooltip_Superior = Card_Superior.locator(
     ".Decoteca_Card_Tooltip"
@@ -1437,6 +1441,8 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
 
   await expect(page.locator(".Decoteca_Caratula_Imagen").first())
     .toHaveAttribute("src", /decoteca-portada\.png/);
+  await expect(page.locator(".Decoteca_Estado_Badge"))
+    .toHaveCount(1);
 
   await page.locator('[data-decoteca-accion="Caratula"]').click();
   await page.locator("#Decoteca_Form_Portada_Tipo")
@@ -1457,6 +1463,8 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     .click();
   await expect(page.locator(".Decoteca_Caratula_Imagen").first())
     .toHaveAttribute("src", /^data:image\/png;base64,/);
+  await expect(page.locator(".Decoteca_Estado_Badge"))
+    .toHaveCount(1);
 
   const Estado_Antes = await page.evaluate(() => {
     return JSON.parse(localStorage.getItem(Clave_Local)).Decoteca;
@@ -1495,6 +1503,8 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     .toContainText("Cuaderno editado");
   await expect(page.locator(".Decoteca_Caratula_Imagen").first())
     .toHaveAttribute("src", /^data:image\/png;base64,/);
+  await expect(page.locator(".Decoteca_Estado_Badge"))
+    .toHaveCount(1);
 });
 
 test("decoteca edita borra tecas y obras con confirmacion", async ({
