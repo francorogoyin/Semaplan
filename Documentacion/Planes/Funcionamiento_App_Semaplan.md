@@ -585,25 +585,31 @@ Estado actual.
   terminada o abandonada) de la organizacion de biblioteca
   (`Lista`: Biblioteca, Readlist, Proximas, Wishlist, Pausadas o
   Archivo). Tambien guarda `Prioridad`, `Motivo`, `Origen` y
-  `Fecha_Ingreso` para que la readlist conserve criterio historico y no
-  sea solo un estado visual.
-- Alta y edicion de obras desde el panel de detalle.
+  `Fecha_Ingreso`; el `Rating` se elige desde una lista fija
+  (`Pendiente` o valores de 0.5 a 5) para que la readlist conserve
+  criterio historico y no sea solo un estado visual.
+- Alta y edicion de obras desde la ficha modal de detalle.
 - Vista `Catalogo` con caratulas y vista `Readlist` con filas densas
   para decidir proximas lecturas, escuchas, visionados o partidas. La
   vista `Readlist` prioriza `Proximas`, `Readlist`, `Wishlist` y
   `Pausadas`, ordena por prioridad y fechas, y muestra motivo, origen,
-  avance y restante sin obligar a abrir cada ficha. Las filas densas de
-  `Readlist` y `En curso` muestran siempre miniatura vertical de la
-  obra o placeholder sobrio para sostener reconocimiento visual tambien
-  en mobile.
+  porcentaje, avance y restante sin obligar a abrir cada ficha. El
+  bloque de progreso muestra porcentaje grande con color por tramo,
+  barra y avance debajo; no repite el texto `Lista: Readlist`. Las filas
+  densas de `Readlist` y `En curso` muestran siempre miniatura vertical
+  de la obra o placeholder sobrio para sostener reconocimiento visual
+  tambien en mobile.
 - Vista `En curso` con filas operativas para obras activas: avance
   registrado, total, restante, porcentaje calculado desde registros,
   fecha final, ultimo avance o marca de ausencia de avances, dias sin
   tocar cuando existe historial y ritmo requerido por dia cuando hay
   fecha final.
-- El panel de detalle de obra no se abre por defecto: aparece solo al
-  seleccionar una obra y se oculta al tocar fuera de una obra o cambiar
-  filtros, vista o teca.
+- El detalle de obra se presenta como ficha modal sobre la Decoteca, con
+  fondo oscurecido, caratula lateral, boton superior de edicion con
+  icono de lapiz y cierre propio. No se abre por defecto: aparece solo
+  al seleccionar una obra y se cierra con el boton de cierre, Escape o
+  click en el fondo del modal. Los formularios de obra, teca y caratula
+  usan el mismo contenedor modal.
 - En el bloque de partes del detalle, cada parte muestra avance sobre
   total cuando existen avance registrado y total de parte, por ejemplo
   `30 de 120 pag.`. Ese dato usa peso normal y el porcentaje queda
@@ -642,11 +648,17 @@ Estado actual.
   la carpeta y el genero principal se limita a `Ficcion` o
   `No ficcion` cuando puede inferirse.
 - El catalogo local de Biblioteca puede aportar paginas, partes,
-  paginas por parte, descripcion y caratula embebida. Si no trae
-  descripcion o caratula, el flujo intenta completar solo esos huecos
-  con fuentes externas sin degradar los datos locales. Si ninguna
-  fuente trae descripcion, genero, subgenero, anio, portada o partes,
-  se conserva el dato manual existente en la obra.
+  paginas por parte, descripcion y caratula embebida. Si el JSON trae
+  `Caratula.Metodo`, `Caratula.Ruta_Imagen` y
+  `Caratula.Requiere_Revision`, `Bajar metadatos` guarda esos datos en
+  la obra como `Portada_Metodo_Local`, `Portada_Ruta_Local` y
+  `Portada_Requiere_Revision`; la ruta se conserva como referencia
+  tecnica y no se intenta abrir automaticamente desde el navegador sin
+  permiso del usuario. Si no trae descripcion o caratula, el flujo
+  intenta completar solo esos huecos con fuentes externas sin degradar
+  los datos locales. Si ninguna fuente trae descripcion, genero,
+  subgenero, anio, portada o partes, se conserva el dato manual
+  existente en la obra.
   En el editor de caratula hay una accion secundaria para buscar una
   caratula externa sin reemplazar la local hasta que el usuario guarde.
 - En libros, Wikidata/Wikipedia se usa para identidad, autoria, anio y
@@ -698,7 +710,7 @@ Estado actual.
   consumo.
 - El editor visible de obra muestra ficha descriptiva, fechas, total y
   descripcion, mas la organizacion de lista/prioridad/motivo/origen.
-  Las partes se editan en filas estructuradas dentro del sidebar
+  Las partes se editan en filas estructuradas dentro del modal
   (titulo, total, unidad y borrar/agregar), preservando el `Id` de cada
   parte existente para no romper avances historicos. El textarea crudo
   de partes queda oculto solo como compatibilidad interna. Los

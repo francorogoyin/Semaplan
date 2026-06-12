@@ -435,6 +435,27 @@ async function Esperar_Imagen_Cargada(Locator) {
   ).toBeTruthy();
 }
 
+async function Cerrar_Detalle_Decoteca(page) {
+  const Detalle = page.locator("#Decoteca_Detalle");
+  if (await Detalle.isVisible()) {
+    await page.locator("[data-decoteca-detalle-cerrar]").click();
+    await expect(Detalle).toBeHidden();
+  }
+}
+
+async function Esperar_Emoji_Visible(Locator) {
+  await expect.poll(async () =>
+    Locator.evaluate((El) => {
+      const Rect = El.getBoundingClientRect();
+      return Boolean(
+        El.textContent.trim() ||
+        El.querySelector("img") ||
+        (Rect.width > 0 && Rect.height > 0)
+      );
+    })
+  ).toBeTruthy();
+}
+
 test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   page
 }) => {
@@ -468,8 +489,18 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toHaveAttribute("aria-label", "Registrar avance");
   await expect(page.locator("#Decoteca_Avance_Abrir"))
     .toHaveAttribute("title", "Registrar avance");
+  await expect(page.locator("#Decoteca_Avance_Abrir"))
+    .toContainText("D");
+  await Esperar_Emoji_Visible(
+    page.locator("#Decoteca_Avance_Abrir .Decoteca_Accion_Emoji")
+  );
   await expect(page.locator("#Decoteca_Registro_Abrir"))
     .toHaveAttribute("aria-label", "Registro de avances");
+  await expect(page.locator("#Decoteca_Registro_Abrir"))
+    .toContainText("R");
+  await Esperar_Emoji_Visible(
+    page.locator("#Decoteca_Registro_Abrir .Decoteca_Accion_Emoji")
+  );
   await expect(page.locator("#Decoteca_Nueva"))
     .toHaveAttribute("aria-label", "Nueva obra");
   await expect(page.locator("#Decoteca_Nueva"))
@@ -573,7 +604,7 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Prioridad: Alta");
 
-  await page.locator("#Decoteca_Libreria_Titulo").click();
+  await Cerrar_Detalle_Decoteca(page);
   await expect(page.locator("#Decoteca_Detalle"))
     .toBeHidden();
   await expect(page.locator('[data-decoteca-obra="dec_bib_1"]'))
@@ -583,6 +614,7 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Los detectives salvajes");
 
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator('[data-decoteca-teca="Videoteca"]').click();
   await expect(page.locator("#Decoteca_Libreria_Titulo"))
     .toHaveText("Videoteca");
@@ -594,6 +626,7 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Plataforma");
 
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator("#Decoteca_Filtro_Estado")
     .selectOption("Terminada");
   await expect(page.locator("#Decoteca_Detalle"))
@@ -611,6 +644,7 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Género");
 
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator("#Decoteca_Cerrar").click();
   await expect(page.locator("#Decoteca_Overlay"))
     .not.toHaveClass(/Activo/);
@@ -675,6 +709,7 @@ test("decoteca responde a controles, filtros y botones", async ({
   ];
 
   for (const Caso of Casos) {
+    await Cerrar_Detalle_Decoteca(page);
     await page.locator(`[data-decoteca-teca="${Caso.teca}"]`).click();
     await Limpiar_Filtros(page);
 
@@ -715,6 +750,7 @@ test("decoteca responde a controles, filtros y botones", async ({
       await expect(page.locator("#Decoteca_Detalle"))
         .toContainText(Campo);
     }
+    await Cerrar_Detalle_Decoteca(page);
   }
 
   await page.locator('[data-decoteca-teca="Biblioteca"]').click();
@@ -839,14 +875,17 @@ test("decoteca responde a controles, filtros y botones", async ({
   await expect(page.locator(".Decoteca_Readlist_Item").first())
     .toContainText("Vigilar y castigar");
   await expect(page.locator(".Decoteca_Readlist_Item").first())
-    .toContainText("Lista: Proximas");
+    .not.toContainText("Lista:");
   await expect(page.locator(".Decoteca_Readlist_Item").first())
-    .toContainText("Prioridad: Alta");
+    .toContainText("Alta");
+  await expect(page.locator(".Decoteca_Readlist_Porcentaje").first())
+    .toContainText("0%");
   await expect(page.locator(".Decoteca_Readlist_Item").first())
     .toContainText("Base teorica");
   await page.locator(".Decoteca_Readlist_Item").first().click();
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Vigilar y castigar");
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator("#Decoteca_Vista_Catalogo").click();
   await expect(page.locator("#Decoteca_Vista_Catalogo"))
     .toHaveAttribute("aria-selected", "true");
@@ -861,7 +900,7 @@ test("decoteca responde a controles, filtros y botones", async ({
   await expect(page.locator(".Decoteca_Readlist_Item").first())
     .toContainText("Los detectives salvajes");
   await expect(page.locator(".Decoteca_Readlist_Item").first())
-    .toContainText("Avance: 0 pags. / 609 pags.");
+    .toContainText("0 de 609 pags.");
   await expect(page.locator(".Decoteca_Readlist_Item").first())
     .toContainText("Sin avances");
   await expect(page.locator(".Decoteca_Readlist_Item").first())
@@ -869,6 +908,7 @@ test("decoteca responde a controles, filtros y botones", async ({
   await page.locator(".Decoteca_Readlist_Item").first().click();
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Los detectives salvajes");
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator("#Decoteca_Vista_Catalogo").click();
 
   await page.locator("#Decoteca_Buscar_Input")
@@ -900,10 +940,12 @@ test("decoteca responde a controles, filtros y botones", async ({
     .toContainText("Tipo de portada");
 
   await page.locator('[data-decoteca-cancelar="true"]').click();
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator("#Decoteca_Teca_Nueva").click();
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Nueva teca");
 
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator("#Decoteca_Cerrar").click();
   await expect(page.locator("#Decoteca_Overlay"))
     .not.toHaveClass(/Activo/);
@@ -944,6 +986,11 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
           Descripcion:
             "Sinopsis local de Solaris tomada del catalogo personal.",
           Portada_Data_Url: Portada_Local,
+          Caratula: {
+            Metodo: "primera_pagina",
+            Ruta_Imagen: "Portadas/Lem, Stanislaw. Solaris.png",
+            Requiere_Revision: false
+          },
           Paginas: {
             Archivo_Total: 310,
             Editoriales_Total: 296
@@ -1017,6 +1064,7 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
     .toHaveAttribute("src", /^data:image\/png;base64,/);
   await Esperar_Imagen_Cargada(page.locator("#Decoteca_Detalle img"));
 
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator('[data-decoteca-teca="Musicoteca"]').click();
   await page.locator("#Decoteca_Nueva").click();
   await page.locator("#Decoteca_Form_Titulo").fill("In Rainbows");
@@ -1058,6 +1106,7 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
     .toHaveAttribute("src", /600x600bb/);
   await Esperar_Imagen_Cargada(page.locator("#Decoteca_Detalle img"));
 
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator('[data-decoteca-teca="Videoteca"]').click();
   await page.locator('[data-decoteca-obra="dec_vid_1"]').click();
   await page.locator('[data-decoteca-metadatos="Detalle"]').click();
@@ -1082,6 +1131,10 @@ test("decoteca baja metadatos y caratulas por titulo", async ({ page }) => {
     .toContain("Sinopsis local de Solaris");
   expect(Libro.Portada_Tipo).toBe("Archivo");
   expect(Libro.Portada_Data_Url).toContain("data:image/png;base64,");
+  expect(Libro.Portada_Ruta_Local)
+    .toBe("Portadas/Lem, Stanislaw. Solaris.png");
+  expect(Libro.Portada_Metodo_Local).toBe("primera_pagina");
+  expect(Libro.Portada_Requiere_Revision).toBe(false);
   expect(Libro.Datos_Teca.Total_Unidades).toBe(296);
   expect(Libro.Partes).toHaveLength(2);
   expect(Libro.Partes[0].Titulo).toBe("La llegada");
@@ -1227,6 +1280,7 @@ test("decoteca traduce campos de alta en ingles", async ({ page }) => {
   await expect(page.locator("#Decoteca_Detalle"))
     .not.toContainText("Nombre del período");
 
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator('[data-decoteca-teca="Musicoteca"]').click();
   await page.locator("#Decoteca_Nueva").click();
   await expect(page.locator("#Decoteca_Detalle"))
@@ -1289,7 +1343,8 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await page.locator("#Decoteca_Form_Fecha_Fin")
     .fill("2026-07-31");
   await page.locator("#Decoteca_Form_Total").fill("100");
-  await expect(page.locator("#Decoteca_Form_Rating")).toHaveCount(0);
+  await expect(page.locator("#Decoteca_Form_Rating")).toHaveCount(1);
+  await page.locator("#Decoteca_Form_Rating").selectOption("4");
   await page.locator("#Decoteca_Form_Descripcion")
     .fill("Revisar dos secciones por semana.");
   await expect(page.locator("#Decoteca_Form_Subobjetivos"))
@@ -1310,6 +1365,8 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     .toContainText("Cuaderno de pruebas");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("100 pags.");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .toContainText("★★★★");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Lista: Readlist");
   await expect(page.locator("#Decoteca_Detalle"))
@@ -1484,6 +1541,7 @@ test("decoteca edita borra tecas y obras con confirmacion", async ({
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText("Obra para borrar");
 
+  await Cerrar_Detalle_Decoteca(page);
   const Card_Obra_Borrar = page.locator(".Decoteca_Card")
     .filter({ hasText: "Obra para borrar" });
   await Card_Obra_Borrar.click({ button: "right" });
@@ -1499,6 +1557,7 @@ test("decoteca edita borra tecas y obras con confirmacion", async ({
   await expect(page.locator("#Decoteca_Form_Titulo"))
     .toHaveValue("Obra para borrar");
   await page.locator('[data-decoteca-cancelar="true"]').click();
+  await Cerrar_Detalle_Decoteca(page);
 
   await Card_Obra_Borrar.click({ button: "right" });
   await page.locator(
@@ -1541,6 +1600,7 @@ test("decoteca edita borra tecas y obras con confirmacion", async ({
   await page.locator("#Decoteca_Form_Genero").fill("Ensayo");
   await page.locator('[data-decoteca-form="Obra"] .Primario')
     .click();
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator("#Decoteca_Teca_Editar").click();
   await page.locator('[data-decoteca-borrar-teca="true"]').click();
   await page.locator("#Dialogo_Botones .Dialogo_Boton_Primario")
@@ -1636,6 +1696,7 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
     Decoteca = Normalizar_Decoteca(Decoteca);
     Render_Decoteca();
   });
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator("#Decoteca_Registro_Abrir").click();
   const Modal_Registro = page.locator("#Decoteca_Registro_Overlay");
   await expect(Modal_Registro).toHaveClass(/Activo/);
@@ -1676,6 +1737,7 @@ test("decoteca registra avances propios por teca", async ({ page }) => {
   await page.locator("#Decoteca_Avance_Cantidad").fill("120");
   await page.locator("#Decoteca_Avance_Guardar").click();
   await page.locator("#Decoteca_Avance_Cerrar").click();
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator("#Decoteca_Registro_Abrir").click();
   await expect(Modal_Registro).toContainText("120 pags.");
   await expect(Modal_Registro.locator(".Decoteca_Registro_Resumen_Item")
@@ -1717,8 +1779,9 @@ test("decoteca abre registro de avances con D global", async ({
   const Modal_Avance = page.locator("#Decoteca_Avance_Overlay");
   await expect(Modal_Avance).toHaveClass(/Activo/);
   await expect(Modal_Avance).toContainText("Registrar avance");
-  await expect(page.locator(".Decoteca_Avance_Titulo_Icono"))
-    .toHaveText("D");
+  await Esperar_Emoji_Visible(
+    Modal_Avance.locator(".Decoteca_Avance_Titulo_Icono")
+  );
   await expect(page.locator("#Decoteca_Overlay"))
     .not.toHaveClass(/Activo/);
 
@@ -1782,6 +1845,7 @@ test("decoteca mobile no recorta el detalle", async ({ page }) => {
   expect(Medidas.Detalle_Alto)
     .toBeGreaterThanOrEqual(Medidas.Detalle_Scroll - 2);
 
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator("#Decoteca_Avance_Abrir").click();
   const Modal_Avance = page.locator("#Decoteca_Avance_Overlay");
   await expect(Modal_Avance).toHaveClass(/Activo/);
@@ -1826,6 +1890,7 @@ test("decoteca mobile no recorta el detalle", async ({ page }) => {
   await expect(Modal_Avance).toContainText("1 vis.");
   await expect(Modal_Avance).not.toContainText("Editar");
   await page.locator("#Decoteca_Avance_Cerrar").click();
+  await Cerrar_Detalle_Decoteca(page);
   await page.locator("#Decoteca_Registro_Abrir").click();
   const Modal_Registro = page.locator("#Decoteca_Registro_Overlay");
   await expect(Modal_Registro).toHaveClass(/Activo/);
