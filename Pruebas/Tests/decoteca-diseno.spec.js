@@ -491,6 +491,19 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toHaveAttribute("title", "Registrar avance");
   await expect(page.locator("#Decoteca_Avance_Abrir"))
     .not.toContainText("D");
+  await expect.poll(async () =>
+    page.locator("#Decoteca_Grilla").evaluate((Grilla) => {
+      const Estilo = getComputedStyle(Grilla);
+      return {
+        overflowX: Estilo.overflowX,
+        sinDesborde:
+          Grilla.scrollWidth <= Grilla.clientWidth + 1
+      };
+    })
+  ).toEqual({
+    overflowX: "hidden",
+    sinDesborde: true
+  });
   await Esperar_Emoji_Visible(
     page.locator("#Decoteca_Avance_Abrir .Decoteca_Accion_Emoji")
   );
