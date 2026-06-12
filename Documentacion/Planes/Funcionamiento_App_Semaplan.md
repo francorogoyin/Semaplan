@@ -583,27 +583,24 @@ Estado actual.
   para totales propios de su universo.
 - Cada obra separa el ciclo de consumo (`Estado`: planeada, en curso,
   terminada o abandonada) de la organizacion de biblioteca
-  (`Lista`: Biblioteca, Readlist, Proximas, Wishlist, Pausadas o
-  Archivo). Tambien guarda `Prioridad`, `Motivo`, `Origen` y
-  `Fecha_Ingreso`; el `Rating` se elige desde una lista fija
-  (`Pendiente` o valores de 0.5 a 5) para que la readlist conserve
-  criterio historico y no sea solo un estado visual.
+  (`Lista`: Biblioteca, Pausadas o Archivo). Los valores historicos
+  `Readlist`, `Proximas` y `Wishlist` se normalizan a la lista vigente
+  compatible con el estado de la obra. Tambien guarda `Prioridad`,
+  `Motivo`, `Origen` y `Fecha_Ingreso`; el `Rating` se elige desde una
+  lista fija (`Pendiente` o valores de 0.5 a 5) para conservar criterio
+  historico sin duplicar lista, estado y prioridad.
 - Alta y edicion de obras desde la ficha modal de detalle.
-- Vista `Catalogo` con caratulas y vista `Readlist` con filas densas
-  para decidir proximas lecturas, escuchas, visionados o partidas. La
-  vista `Readlist` prioriza `Proximas`, `Readlist`, `Wishlist` y
-  `Pausadas`, ordena por prioridad y fechas, y muestra motivo, origen,
-  porcentaje, avance y restante sin obligar a abrir cada ficha. El
-  bloque de progreso muestra porcentaje grande con color por tramo,
-  barra y avance debajo; no repite el texto `Lista: Readlist`. Las filas
-  densas de `Readlist` y `En curso` muestran siempre miniatura vertical
-  de la obra o placeholder sobrio para sostener reconocimiento visual
-  tambien en mobile.
+- Vista `Catalogo` con caratulas y filtros por estado, lista, periodo
+  y genero. Las obras planeadas se distinguen por `Estado`, prioridad,
+  motivo, origen y fechas dentro del catalogo, sin una pestaña o listas
+  intermedias para decision.
 - Vista `En curso` con filas operativas para obras activas: avance
   registrado, total, restante, porcentaje calculado desde registros,
   fecha final, ultimo avance o marca de ausencia de avances, dias sin
   tocar cuando existe historial y ritmo requerido por dia cuando hay
-  fecha final.
+  fecha final. Las filas muestran miniatura vertical de la obra o
+  placeholder sobrio para sostener reconocimiento visual tambien en
+  mobile.
 - El detalle de obra se presenta como ficha modal sobre la Decoteca, con
   fondo oscurecido, caratula lateral, boton superior de edicion con
   icono de lapiz y cierre propio. No se abre por defecto: aparece solo
@@ -710,9 +707,8 @@ Estado actual.
   mostrar un porcentaje global porque podria mezclar avance de periodo
   con totales completos de obras.
 - La barra de filtros incluye `Lista` como dimension independiente de
-  `Estado`, para distinguir archivo, readlist, proximas lecturas,
-  wishlist, pausadas y obras archivadas sin alterar el estado de
-  consumo.
+  `Estado`, para distinguir biblioteca, pausadas y archivo sin alterar
+  el estado de consumo.
 - El editor visible de obra muestra ficha descriptiva, fechas, total y
   descripcion, mas la organizacion de lista/prioridad/motivo/origen.
   Las partes se editan en filas estructuradas dentro del modal

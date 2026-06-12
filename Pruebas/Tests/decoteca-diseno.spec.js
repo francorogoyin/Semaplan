@@ -476,7 +476,7 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator("#Decoteca_Vista_Catalogo"))
     .toHaveText("Catalogo");
   await expect(page.locator("#Decoteca_Vista_Readlist"))
-    .toHaveText("Readlist");
+    .toHaveCount(0);
   await expect(page.locator("#Decoteca_Vista_En_Curso"))
     .toHaveText("En curso");
   await expect(page.locator("#Decoteca_Vista_Catalogo"))
@@ -668,7 +668,7 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "foucault",
       resultado: "Vigilar y castigar",
       estado: "Planeada",
-      lista: "Proximas",
+      lista: "Biblioteca",
       periodo: "Mes:2026-10",
       formato: "Ensayo",
       campos: ["Autor", "Lista", "Prioridad", "Motivo"]
@@ -857,38 +857,14 @@ test("decoteca responde a controles, filtros y botones", async ({
   await Limpiar_Filtros(page);
   await expect(page.locator("#Decoteca_Periodo_Resumen"))
     .toBeHidden();
-
-  await page.locator("#Decoteca_Vista_Readlist").click();
   await expect(page.locator("#Decoteca_Vista_Readlist"))
-    .toHaveAttribute("aria-selected", "true");
-  await expect(page.locator(".Decoteca_Readlist_Item"))
-    .toHaveCount(1);
-  await expect(page.locator(".Decoteca_Readlist_Caratula"))
-    .toHaveCount(1);
-  await expect.poll(async () =>
-    page.locator(".Decoteca_Readlist_Caratula").first()
-      .evaluate((El) => {
-        const Rect = El.getBoundingClientRect();
-        return Rect.height / Rect.width;
-      })
-  ).toBeGreaterThan(1.35);
-  await expect(page.locator(".Decoteca_Readlist_Item").first())
-    .toContainText("Vigilar y castigar");
-  await expect(page.locator(".Decoteca_Readlist_Item").first())
-    .not.toContainText("Lista:");
-  await expect(page.locator(".Decoteca_Readlist_Item").first())
-    .toContainText("Alta");
-  await expect(page.locator(".Decoteca_Readlist_Porcentaje").first())
-    .toContainText("0%");
-  await expect(page.locator(".Decoteca_Readlist_Item").first())
-    .toContainText("Base teorica");
-  await page.locator(".Decoteca_Readlist_Item").first().click();
-  await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Vigilar y castigar");
-  await Cerrar_Detalle_Decoteca(page);
-  await page.locator("#Decoteca_Vista_Catalogo").click();
-  await expect(page.locator("#Decoteca_Vista_Catalogo"))
-    .toHaveAttribute("aria-selected", "true");
+    .toHaveCount(0);
+  await expect(page.locator('#Decoteca_Filtro_Lista option[value="Readlist"]'))
+    .toHaveCount(0);
+  await expect(page.locator('#Decoteca_Filtro_Lista option[value="Proximas"]'))
+    .toHaveCount(0);
+  await expect(page.locator('#Decoteca_Filtro_Lista option[value="Wishlist"]'))
+    .toHaveCount(0);
 
   await page.locator("#Decoteca_Vista_En_Curso").click();
   await expect(page.locator("#Decoteca_Vista_En_Curso"))
@@ -1314,7 +1290,7 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await page.locator("#Decoteca_Form_Estado")
     .selectOption("En_Curso");
   await page.locator("#Decoteca_Form_Lista")
-    .selectOption("Readlist");
+    .selectOption("Biblioteca");
   await page.locator("#Decoteca_Form_Prioridad")
     .selectOption("Alta");
   await page.locator("#Decoteca_Form_Fecha_Ingreso")
@@ -1322,7 +1298,7 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await page.locator("#Decoteca_Form_Origen")
     .fill("Ensayo de prueba");
   await page.locator("#Decoteca_Form_Motivo")
-    .fill("Validar que una obra pueda vivir en readlist.");
+    .fill("Validar que una obra pueda vivir en biblioteca.");
   await page.locator("#Decoteca_Form_Fecha_Inicio")
     .fill("2026-07-01");
   await page.locator("#Decoteca_Form_Fecha_Fin")
@@ -1353,7 +1329,7 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("★★★★");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Lista: Readlist");
+    .toContainText("Lista: Biblioteca");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Prioridad: Alta");
   await expect(page.locator("#Decoteca_Detalle"))
@@ -1384,11 +1360,11 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     .fill("Seccion revisada");
   await Parte_Editada.locator("[data-decoteca-parte-total]").fill("45");
   await page.locator("#Decoteca_Form_Lista")
-    .selectOption("Proximas");
+    .selectOption("Pausadas");
   await page.locator("#Decoteca_Form_Prioridad")
     .selectOption("Media");
   await page.locator("#Decoteca_Form_Motivo")
-    .fill("Pasa a proximas por plan concreto.");
+    .fill("Pasa a pausadas por plan concreto.");
   await page.locator("#Decoteca_Form_Total").fill("120");
   await page.locator("#Decoteca_Form_Descripcion")
     .fill("Cerrar el ensayo y pasar notas al Archivero.");
@@ -1400,7 +1376,7 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("120 pags.");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Lista: Proximas");
+    .toContainText("Lista: Pausadas");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Seccion revisada");
   await expect(page.locator("#Decoteca_Detalle"))
@@ -1461,9 +1437,9 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     Obra.Genero === "Ensayo" &&
     Obra.Descripcion === "Cerrar el ensayo y pasar notas al Archivero." &&
     Obra.Datos_Teca.Total_Unidades === 120 &&
-    Obra.Lista === "Proximas" &&
+    Obra.Lista === "Pausadas" &&
     Obra.Prioridad === "Media" &&
-    Obra.Motivo === "Pasa a proximas por plan concreto." &&
+    Obra.Motivo === "Pasa a pausadas por plan concreto." &&
     Obra.Origen === "Ensayo de prueba" &&
     Obra.Fecha_Ingreso === "2026-06-11" &&
     Obra.Partes.some((Parte) =>
