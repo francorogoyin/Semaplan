@@ -617,9 +617,11 @@ Estado actual.
   `Paginas`/`Total` queda como linea separada. La descripcion no se
   muestra en ese tooltip.
 - Click derecho sobre una tarjeta de obra abre un menu contextual con
-  `Ver descripcion`, `Editar` y `Borrar`. `Ver descripcion` abre un
-  cartel independiente sin activar el detalle lateral; `Editar` y
-  `Borrar` usan los mismos flujos del detalle.
+  `Ver descripcion`, `Editar` y `Borrar`. `Ver descripcion` reutiliza
+  el mismo tooltip de la tarjeta, reemplaza ahi los metadatos por la
+  descripcion y se cierra al clickear afuera o al sacar el mouse del
+  cartel/tarjeta, sin activar el detalle lateral. `Editar` y `Borrar`
+  usan los mismos flujos del detalle.
 - Edicion de caratula visible de cada obra: icono, texto, color, URL
   publica o archivo de imagen embebido con limite de peso.
 - Creacion y edicion de tecas propias con nombre, descripcion, icono,

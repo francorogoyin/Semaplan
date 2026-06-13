@@ -559,14 +559,34 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   ).toBe("0");
   await Menu_Contextual.locator('[data-decoteca-menu-accion="Descripcion"]')
     .click();
-  const Popup_Descripcion = page.locator(".Evento_Abordaje_Popup");
-  await expect(Popup_Descripcion).toBeVisible();
-  await expect(Popup_Descripcion)
+  await expect(page.locator(".Evento_Abordaje_Popup"))
+    .toHaveCount(0);
+  await expect.poll(async () =>
+    Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
+  ).toBe("1");
+  await expect(Tooltip_Superior)
     .toContainText("Descripcion QA disponible desde el menu contextual.");
+  await expect(Tooltip_Superior)
+    .not.toContainText("Avance:");
+  await page.mouse.click(1180, 640);
   await expect.poll(async () =>
     Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
   ).toBe("0");
-  await page.evaluate(() => Cerrar_Popup_Descripcion());
+  await Card_Superior.hover();
+  await expect(Tooltip_Superior)
+    .toContainText(/Avance: 0 pags\. \([0-9]+%\)/);
+  await Card_Superior.click({ button: "right" });
+  await expect(Menu_Contextual).toBeVisible();
+  await Menu_Contextual.locator('[data-decoteca-menu-accion="Descripcion"]')
+    .click();
+  await expect.poll(async () =>
+    Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
+  ).toBe("1");
+  await page.waitForTimeout(80);
+  await page.mouse.move(1180, 640);
+  await expect.poll(async () =>
+    Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
+  ).toBe("0");
   await Cerrar_Detalle_Decoteca(page);
   await expect(page.locator('[data-decoteca-teca="Biblioteca"]'))
     .toHaveAttribute("aria-label", /Biblioteca/);
