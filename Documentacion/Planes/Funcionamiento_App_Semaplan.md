@@ -612,8 +612,14 @@ Estado actual.
   `30 de 120 pag.`. Ese dato usa peso normal y el porcentaje queda
   destacado en negrita; si falta avance o total, se muestra solo el
   dato disponible.
+- El tooltip de hover de una obra muestra metadatos y avance compacto:
+  `Avance` usa solo unidades leidas con porcentaje entre parentesis, y
+  `Paginas`/`Total` queda como linea separada. La descripcion no se
+  muestra en ese tooltip.
 - Click derecho sobre una tarjeta de obra abre un menu contextual con
-  `Editar` y `Borrar`, usando los mismos flujos del detalle.
+  `Ver descripcion`, `Editar` y `Borrar`. `Ver descripcion` abre un
+  cartel independiente sin activar el detalle lateral; `Editar` y
+  `Borrar` usan los mismos flujos del detalle.
 - Edicion de caratula visible de cada obra: icono, texto, color, URL
   publica o archivo de imagen embebido con limite de peso.
 - Creacion y edicion de tecas propias con nombre, descripcion, icono,

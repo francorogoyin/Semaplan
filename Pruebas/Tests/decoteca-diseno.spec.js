@@ -523,7 +523,7 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
       Item.Id === "dec_bib_1"
     );
     Obra.Descripcion =
-      "Descripcion QA visible en tooltip de fila superior.";
+      "Descripcion QA disponible desde el menu contextual.";
     Render_Decoteca();
   });
   const Card_Superior = page.locator('[data-decoteca-obra="dec_bib_1"]');
@@ -537,13 +537,37 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   );
   await expect(Tooltip_Superior).toBeVisible();
   await expect(Tooltip_Superior)
-    .toContainText("Descripcion QA visible en tooltip");
+    .not.toContainText("Descripcion QA disponible");
+  await expect(Tooltip_Superior)
+    .toContainText(/Avance: 0 pags\. \([0-9]+%\)/);
+  await expect(Tooltip_Superior)
+    .toContainText(/P.ginas: 609/);
+  await expect(Tooltip_Superior)
+    .not.toContainText("0 pags. / 609 pags.");
   await expect.poll(async () =>
     Tooltip_Superior.evaluate((El) => {
       const Rect = El.getBoundingClientRect();
       return Rect.top >= 0 && Rect.bottom <= window.innerHeight;
     })
   ).toBeTruthy();
+  await Card_Superior.click({ button: "right" });
+  const Menu_Contextual = page.locator(".Decoteca_Context_Menu");
+  await expect(Menu_Contextual).toBeVisible();
+  await expect(Menu_Contextual).toContainText(/Ver descripci/);
+  await expect.poll(async () =>
+    Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
+  ).toBe("0");
+  await Menu_Contextual.locator('[data-decoteca-menu-accion="Descripcion"]')
+    .click();
+  const Popup_Descripcion = page.locator(".Evento_Abordaje_Popup");
+  await expect(Popup_Descripcion).toBeVisible();
+  await expect(Popup_Descripcion)
+    .toContainText("Descripcion QA disponible desde el menu contextual.");
+  await expect.poll(async () =>
+    Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
+  ).toBe("0");
+  await page.evaluate(() => Cerrar_Popup_Descripcion());
+  await Cerrar_Detalle_Decoteca(page);
   await expect(page.locator('[data-decoteca-teca="Biblioteca"]'))
     .toHaveAttribute("aria-label", /Biblioteca/);
   await expect(page.locator('[data-decoteca-teca="Musicoteca"]'))
