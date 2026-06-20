@@ -623,8 +623,9 @@ Estado actual.
   clickear afuera o al sacar el mouse del cartel/tarjeta, sin activar
   el detalle lateral. `Insertar imagen` lee el texto actual del
   portapapeles y, si es una URL publica valida, lo guarda directo como
-  portada `Url` de la obra sin abrir el editor. `Editar` y `Borrar`
-  usan los mismos flujos del detalle.
+  portada `Url` de la obra sin abrir el editor ni forzar la apertura
+  del detalle lateral. `Editar` y `Borrar` usan los mismos flujos del
+  detalle.
 - Edicion de caratula visible de cada obra: icono, texto, color, URL
   publica o archivo de imagen embebido con limite de peso.
 - Creacion y edicion de tecas propias con nombre, descripcion, icono,
