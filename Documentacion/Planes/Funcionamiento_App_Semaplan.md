@@ -579,8 +579,9 @@ angostas tipo caratula.
 Estado actual.
 
 - Modelo persistido en `Decoteca`, con `Tecas`, `Obras` y `Avances`.
-  Las obras pueden guardar `Partes` estructuradas y `Datos_Teca`
-  para totales propios de su universo.
+  Las obras pueden guardar `Partes` estructuradas, `Datos_Teca` y
+  `Orden` manual persistido por teca para sostener reordenamiento
+  propio sin perder filtros ni criterios alternativos.
 - Cada obra separa el ciclo de consumo (`Estado`: planeada, en curso,
   terminada o abandonada) de la organizacion de biblioteca
   (`Lista`: Biblioteca, Pausadas o Archivo). Los valores historicos
@@ -721,6 +722,27 @@ Estado actual.
 - La barra de filtros incluye `Lista` como dimension independiente de
   `Estado`, para distinguir biblioteca, pausadas y archivo sin alterar
   el estado de consumo.
+- La barra de filtros suma `Ordenar por` y `Direccion`. `Manual`
+  respeta `Obra.Orden`, desactiva la direccion y habilita
+  reordenamiento drag and drop persistido dentro de la teca y la vista
+  actual. Los otros criterios permiten ordenar por titulo, creador,
+  fechas, progreso, total, prioridad, rating, estado, lista, genero,
+  formato u origen.
+- Decoteca tiene modo `Seleccionar` con barra de acciones masivas para
+  obras visibles: cambiar `Estado`, `Lista` o `Prioridad`, archivar y
+  borrar. Mientras ese modo esta activo, el click sobre una obra solo
+  alterna seleccion, el detalle no se abre y un click vacio fuera de la
+  barra limpia la seleccion sin disparar modales ni menu contextual.
+- `Importacion masiva` abre un modal propio. Acepta texto tabular con
+  encabezados pegado desde Excel o Google Sheets, y tambien archivos
+  CSV, TSV o JSON. El mapeo reconoce columnas como `Titulo`,
+  `Autor`/`Artista`/`Director`, `Anio`, `Genero`, `Estado`, `Lista`,
+  `Prioridad`, `Total`, `Partes`, `Metadatos` y `Portada`. Los archivos
+  `.xlsx`/`.xls` no se parsean directo en frontend: la UI pide copiar
+  la tabla o exportarla a CSV/TSV. Antes de guardar, la importacion
+  muestra previsualizacion y permite definir teca/estado/lista/
+  prioridad por defecto y el manejo de duplicados (`Saltar`,
+  `Actualizar` o `Duplicar`).
 - El editor visible de obra muestra ficha descriptiva, fechas, total y
   descripcion, mas la organizacion de lista/prioridad/motivo/origen.
   Las partes se editan en filas estructuradas dentro del modal
@@ -776,6 +798,10 @@ Funciones de entrada recomendadas.
 - `Decoteca_Guardar_Obra()`
 - `Decoteca_Guardar_Caratula()`
 - `Decoteca_Guardar_Teca()`
+- `Decoteca_Reordenar_Obras()`
+- `Decoteca_Aplicar_Accion_Masiva()`
+- `Decoteca_Abrir_Importacion()`
+- `Decoteca_Guardar_Importacion()`
 - `Decoteca_Render_Partes_Editor()`
 - `Decoteca_Leer_Partes_Form()`
 - `Decoteca_Bajar_Metadatos()`

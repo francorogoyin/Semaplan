@@ -456,6 +456,107 @@ async function Esperar_Emoji_Visible(Locator) {
   ).toBeTruthy();
 }
 
+async function Obtener_Titulos_Obras_Decoteca(page) {
+  return await page.locator("#Decoteca_Grilla [data-decoteca-obra]")
+    .evaluateAll((Nodos) =>
+      Nodos.map((Nodo) => {
+        const Titulo = Nodo.querySelector(
+          ".Decoteca_Card_Titulo, .Decoteca_Readlist_Titulo"
+        );
+        return (
+          Titulo?.textContent ||
+          Nodo.getAttribute("aria-label") ||
+          ""
+        ).trim();
+      }).filter(Boolean)
+    );
+}
+
+async function Sembrar_Decoteca_QA(page, Config = {}) {
+  const Teca = {
+    Id: Config.Teca_Id || "qa_decoteca",
+    Nombre: Config.Teca_Nombre || "Decoteca QA",
+    Descripcion: Config.Teca_Descripcion || "Escenario QA",
+    Icono: Config.Teca_Icono || "Q",
+    Color: Config.Teca_Color || "#4c6a84",
+    Unidad_Nombre: "obra",
+    Subunidad_Nombre: "parte",
+    Metrica: "paginas",
+    Sistema: false,
+    Orden: 99
+  };
+  const Obras = Array.isArray(Config.Obras) ? Config.Obras : [];
+  await page.evaluate(({ Teca_QA, Obras_QA }) => {
+    const Obras_Normalizadas = Obras_QA.map((Obra, Indice) => ({
+      Id: Obra.Id || `qa_decoteca_${Indice + 1}`,
+      Teca_Id: Teca_QA.Id,
+      Titulo: Obra.Titulo || `Obra QA ${Indice + 1}`,
+      Creador: Obra.Creador || "",
+      Anio: Obra.Anio || "",
+      Formato: Obra.Formato || "Libro",
+      Genero: Obra.Genero || "",
+      Descripcion: Obra.Descripcion || "",
+      Estado: Obra.Estado || "Planeada",
+      Lista: Obra.Lista || "Biblioteca",
+      Prioridad: Obra.Prioridad || "Sin_Prioridad",
+      Motivo: Obra.Motivo || "",
+      Origen: Obra.Origen || "",
+      Fecha_Ingreso: Obra.Fecha_Ingreso || "2026-06-20",
+      Rating: Obra.Rating || "Pendiente",
+      Color: Obra.Color || "#58738a",
+      Portada_Emoji: Obra.Portada_Emoji || "📘",
+      Portada_Texto: Obra.Portada_Texto || Obra.Titulo || "",
+      Portada_Tipo: Obra.Portada_Tipo || "Emoji",
+      Portada_Url: Obra.Portada_Url || "",
+      Orden: Number(Obra.Orden) || (Indice + 1),
+      Datos_Teca: {
+        Unidad: "paginas",
+        Total_Unidades: Number(Obra.Total) || 0
+      },
+      Partes: Array.isArray(Obra.Partes) ? Obra.Partes : [],
+      Metadatos: Array.isArray(Obra.Metadatos)
+        ? Obra.Metadatos
+        : [],
+      Plan: Obra.Plan || ""
+    }));
+    const Tecas = (Decoteca?.Tecas || [])
+      .filter((Item) => Item.Id !== Teca_QA.Id);
+    Tecas.push(Teca_QA);
+    Decoteca = Normalizar_Decoteca({
+      Tecas,
+      Obras: Obras_Normalizadas,
+      Avances: []
+    });
+    Decoteca_Teca_Activa = Teca_QA.Id;
+    Decoteca_Vista = "Catalogo";
+    Decoteca_Busqueda = "";
+    Decoteca_Filtro_Estado = "Todos";
+    Decoteca_Filtro_Lista = "Todas";
+    Decoteca_Filtro_Periodo = "Todos";
+    Decoteca_Filtro_Periodo_Criterio = "Rango";
+    Decoteca_Filtro_Formato = "Todos";
+    Decoteca_Ordenar_Por = "Manual";
+    Decoteca_Orden_Direccion = "Asc";
+    Decoteca_Editor_Modo = "Detalle";
+    Decoteca_Editor_Id = "";
+    Decoteca_Seleccion_Id = "";
+    Decoteca_Avance_Editor_Id = "";
+    Decoteca_Limpiar_Seleccion_Multiple();
+    Decoteca_Invalidar_Snapshot();
+    Guardar_Estado();
+    Render_Decoteca();
+  }, {
+    Teca_QA: Teca,
+    Obras_QA: Obras
+  });
+  await expect(page.locator("#Decoteca_Libreria_Titulo"))
+    .toContainText(Teca.Nombre);
+  await expect.poll(async () =>
+    page.locator("#Decoteca_Grilla [data-decoteca-obra]").count()
+  ).toBe(Obras.length);
+  return Teca;
+}
+
 test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   page
 }) => {
@@ -1953,4 +2054,228 @@ test("decoteca mobile no recorta el detalle", async ({ page }) => {
   await expect(
     Modal_Registro.locator("[data-decoteca-registro-editar]")
   ).toHaveCount(1);
+});
+
+test("decoteca ordena y persiste reorden manual", async ({ page }) => {
+  await Preparar(page, "es", { Limpiar_Estado: false });
+  await Abrir_Decoteca(page);
+  const Teca = await Sembrar_Decoteca_QA(page, {
+    Teca_Id: "qa_decoteca_orden",
+    Teca_Nombre: "Orden QA",
+    Obras: [
+      {
+        Id: "qa_dec_a",
+        Titulo: "Beta",
+        Creador: "Autora Dos",
+        Orden: 1,
+        Total: 120
+      },
+      {
+        Id: "qa_dec_b",
+        Titulo: "Gamma",
+        Creador: "Autora Tres",
+        Orden: 2,
+        Total: 180
+      },
+      {
+        Id: "qa_dec_c",
+        Titulo: "Alfa",
+        Creador: "Autora Uno",
+        Orden: 3,
+        Total: 90
+      }
+    ]
+  });
+
+  expect(await Obtener_Titulos_Obras_Decoteca(page))
+    .toEqual(["Beta", "Gamma", "Alfa"]);
+  await expect(page.locator("#Decoteca_Orden_Direccion")).toBeDisabled();
+
+  await page.locator("#Decoteca_Ordenar_Por").selectOption("Titulo");
+  await expect(page.locator("#Decoteca_Orden_Direccion")).toBeEnabled();
+  await expect.poll(async () =>
+    Obtener_Titulos_Obras_Decoteca(page)
+  ).toEqual(["Alfa", "Beta", "Gamma"]);
+
+  await page.locator("#Decoteca_Orden_Direccion").selectOption("Desc");
+  await expect.poll(async () =>
+    Obtener_Titulos_Obras_Decoteca(page)
+  ).toEqual(["Gamma", "Beta", "Alfa"]);
+
+  await page.locator("#Decoteca_Ordenar_Por").selectOption("Manual");
+  await expect(page.locator("#Decoteca_Orden_Direccion")).toBeDisabled();
+  await expect.poll(async () =>
+    Obtener_Titulos_Obras_Decoteca(page)
+  ).toEqual(["Beta", "Gamma", "Alfa"]);
+
+  await page.locator('[data-decoteca-obra="qa_dec_c"]')
+    .dragTo(page.locator('[data-decoteca-obra="qa_dec_a"]'));
+  await expect.poll(async () =>
+    Obtener_Titulos_Obras_Decoteca(page)
+  ).toEqual(["Alfa", "Beta", "Gamma"]);
+
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await Activar_App(page);
+  await Abrir_Decoteca(page);
+  await page.locator(`[data-decoteca-teca="${Teca.Id}"]`).click();
+  await expect.poll(async () =>
+    Obtener_Titulos_Obras_Decoteca(page)
+  ).toEqual(["Alfa", "Beta", "Gamma"]);
+
+  const Ordenes = await page.evaluate(() =>
+    Decoteca.Obras
+      .filter((Obra) => Obra.Teca_Id === "qa_decoteca_orden")
+      .sort((A, B) => A.Orden - B.Orden)
+      .map((Obra) => Obra.Titulo)
+  );
+  expect(Ordenes).toEqual(["Alfa", "Beta", "Gamma"]);
+});
+
+test("decoteca selecciona en lote e importa tabla por columnas", async ({
+  page
+}) => {
+  await Preparar(page, "es", { Limpiar_Estado: false });
+  await Abrir_Decoteca(page);
+  const Teca = await Sembrar_Decoteca_QA(page, {
+    Teca_Id: "qa_decoteca_importacion",
+    Teca_Nombre: "Importacion QA",
+    Obras: [
+      {
+        Id: "qa_existente",
+        Titulo: "Libro existente",
+        Creador: "Autora Existente",
+        Orden: 1,
+        Estado: "Planeada",
+        Lista: "Biblioteca",
+        Prioridad: "Media",
+        Total: 50
+      },
+      {
+        Id: "qa_otro",
+        Titulo: "Otro libro",
+        Creador: "Otra Autora",
+        Orden: 2,
+        Estado: "Planeada",
+        Lista: "Biblioteca",
+        Prioridad: "Baja",
+        Total: 80
+      }
+    ]
+  });
+
+  await page.locator("#Decoteca_Seleccionar_Abrir").click();
+  await expect(page.locator("#Decoteca_Multi_Barra")).toBeVisible();
+  await expect(page.locator("#Decoteca_Detalle")).toBeHidden();
+  await page.locator('[data-decoteca-obra="qa_existente"]').click();
+  await page.locator('[data-decoteca-obra="qa_otro"]').click();
+  await expect(page.locator("#Decoteca_Multi_Barra"))
+    .toContainText("2");
+  await page.locator('[data-decoteca-multi-accion="Archivar"]').click();
+  await expect(page.locator("#Decoteca_Multi_Barra")).toBeHidden();
+
+  const Listas = await page.evaluate(() =>
+    Decoteca.Obras
+      .filter((Obra) =>
+        ["qa_existente", "qa_otro"].includes(Obra.Id)
+      )
+      .map((Obra) => [Obra.Id, Obra.Lista])
+      .sort((A, B) => A[0].localeCompare(B[0]))
+  );
+  expect(Listas).toEqual([
+    ["qa_existente", "Archivo"],
+    ["qa_otro", "Archivo"]
+  ]);
+
+  await page.locator("#Decoteca_Importar_Abrir").click();
+  await expect(page.locator("#Decoteca_Importacion_Overlay"))
+    .toHaveClass(/Activo/);
+  await expect(page.locator("#Decoteca_Importacion_Cuerpo"))
+    .toContainText("Excel");
+
+  await page.locator("#Decoteca_Importacion_Duplicados")
+    .selectOption("Actualizar");
+  await page.locator("#Decoteca_Importacion_Texto").fill(
+    [
+      "Titulo\tAutor\tEstado\tLista\tPrioridad\tTotal\tPortada",
+      "Libro existente\tAutora Existente\tTerminada\tArchivo\tAlta\t120\t" +
+        "https://example.com/decoteca-portada.png",
+      "Libro pegado\tAutora Uno\tEn_Curso\tBiblioteca\tBaja\t321\t" +
+        "https://example.com/decoteca-portada.png"
+    ].join("\n")
+  );
+
+  await expect.poll(async () =>
+    page.locator(".Decoteca_Importacion_Tabla tbody tr").count()
+  ).toBe(2);
+  await expect(page.locator("#Decoteca_Importacion_Resumen_Host"))
+    .toContainText("Libro existente");
+  await expect(page.locator("#Decoteca_Importacion_Resumen_Host"))
+    .toContainText("Libro pegado");
+  await expect(page.locator("#Decoteca_Importacion_Resumen_Host"))
+    .toContainText("Actualizar");
+  await expect(page.locator("#Decoteca_Importacion_Resumen_Host"))
+    .toContainText("Crear");
+
+  await page.locator("#Decoteca_Importacion_Guardar").click();
+  await expect(page.locator("#Decoteca_Importacion_Overlay"))
+    .not.toHaveClass(/Activo/);
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Libro pegado");
+
+  const Estado_Importado = await page.evaluate(() => {
+    const Obras = Decoteca.Obras.filter((Obra) =>
+      Obra.Teca_Id === "qa_decoteca_importacion"
+    );
+    const Existente = Obras.find((Obra) => Obra.Id === "qa_existente");
+    const Nueva = Obras.find((Obra) => Obra.Titulo === "Libro pegado");
+    return {
+      Existente: Existente
+        ? {
+          Estado: Existente.Estado,
+          Lista: Existente.Lista,
+          Prioridad: Existente.Prioridad,
+          Total: Number(Existente.Datos_Teca?.Total_Unidades) || 0
+        }
+        : null,
+      Nueva: Nueva
+        ? {
+          Estado: Nueva.Estado,
+          Lista: Nueva.Lista,
+          Prioridad: Nueva.Prioridad,
+          Total: Number(Nueva.Datos_Teca?.Total_Unidades) || 0,
+          Creador: Nueva.Creador
+        }
+        : null
+    };
+  });
+  expect(Estado_Importado).toEqual({
+    Existente: {
+      Estado: "Terminada",
+      Lista: "Archivo",
+      Prioridad: "Alta",
+      Total: 120
+    },
+    Nueva: {
+      Estado: "En_Curso",
+      Lista: "Biblioteca",
+      Prioridad: "Baja",
+      Total: 321,
+      Creador: "Autora Uno"
+    }
+  });
+
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await Activar_App(page);
+  await Abrir_Decoteca(page);
+  await page.locator(`[data-decoteca-teca="${Teca.Id}"]`).click();
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Libro pegado");
+  await expect.poll(async () =>
+    page.evaluate(() => {
+      const Obras = Decoteca.Obras.filter((Obra) =>
+        Obra.Teca_Id === "qa_decoteca_importacion"
+      );
+      return Obras.some((Obra) => Obra.Titulo === "Libro pegado");
+    })
+  ).toBeTruthy();
 });

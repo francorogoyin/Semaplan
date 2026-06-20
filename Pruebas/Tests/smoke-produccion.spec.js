@@ -476,9 +476,9 @@ test("smoke de produccion", async ({ page }) => {
   await abrirFuncionMenu(page, "#Decoteca_Boton", /Decoteca/i);
   await expect(page.locator("#Decoteca_Overlay"))
     .toHaveClass(/Activo/);
-  await page.locator(".Decoteca_Teca_Btn")
-    .filter({ hasText: `${Marca} Decoteca` })
-    .click();
+  await page.locator(
+    `.Decoteca_Teca_Btn[aria-label^="${Marca} Decoteca"]`
+  ).click();
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText(`${Marca} Obra`);
   await page.keyboard.press("Escape");
