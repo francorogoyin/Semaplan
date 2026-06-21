@@ -661,6 +661,12 @@ Estado actual.
   `Autor. Titulo.ext`. Si el JSON trae `Genero`, ese valor reemplaza el
   genero visible de la obra; si no, el genero principal se infiere desde
   subgenero, ubicacion o carpeta.
+- Ese catalogo local ahora tambien se intenta cargar automaticamente al
+  iniciar Semaplan desde
+  `Documentacion/Planes/Lecturas_Json/Decoteca_Catalogo_Estructura_Libros.json`.
+  Cuando esta disponible, la app lo usa para migrar las obras de
+  Biblioteca que hacen match por titulo y autor, reescribiendo en vivo
+  los campos descriptivos correctos sin pasar por `Bajar metadatos`.
 - El catalogo local de Biblioteca puede aportar paginas, partes,
   paginas por parte, descripcion y caratula embebida. Cuando hay match
   local, el JSON reemplaza los datos descriptivos existentes de la obra
