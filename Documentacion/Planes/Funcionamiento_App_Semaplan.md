@@ -590,18 +590,13 @@ Estado actual.
   `Motivo`, `Origen` y `Fecha_Ingreso`; el `Rating` se elige desde una
   lista fija (`Pendiente` o valores de 0.5 a 5) para conservar criterio
   historico sin duplicar lista, estado y prioridad.
+- `Lista` se conserva solo como compatibilidad interna para datos viejos
+  e importaciones legacy. Ya no forma parte de la UX visible de
+  filtros, detalle ni edicion de obra.
 - Alta y edicion de obras desde la ficha modal de detalle.
-- Vista `Catalogo` con caratulas y filtros por estado, lista, periodo
-  y genero. Las obras planeadas se distinguen por `Estado`, prioridad,
+- Vista unica `Catalogo` con caratulas verticales para todas las obras
+  de la teca. Las obras planeadas o activas se distinguen por `Estado`,
   motivo, origen y fechas dentro del catalogo, sin una pestaña o listas
-  intermedias para decision.
-- Vista `En curso` con filas operativas para obras activas: avance
-  registrado, total, restante, porcentaje calculado desde registros,
-  fecha final, ultimo avance o marca de ausencia de avances, dias sin
-  tocar cuando existe historial y ritmo requerido por dia cuando hay
-  fecha final. Las filas muestran miniatura vertical de la obra o
-  placeholder sobrio para sostener reconocimiento visual tambien en
-  mobile.
 - El detalle de obra se presenta como ficha modal sobre la Decoteca, con
   fondo oscurecido, caratula lateral, boton superior de edicion con
   icono de lapiz y cierre propio. No se abre por defecto: aparece solo
@@ -618,15 +613,16 @@ Estado actual.
   `Paginas`/`Total` queda como linea separada. La descripcion no se
   muestra en ese tooltip.
 - Click derecho sobre una tarjeta de obra abre un menu contextual con
-  `Ver descripcion`, `Insertar imagen`, `Editar` y `Borrar`.
+  `Ver descripcion`, `Insertar imagen`, `Puntuar`, `Editar` y `Borrar`.
   `Ver descripcion` reutiliza el mismo tooltip de la tarjeta,
   reemplaza ahi los metadatos por la descripcion y se cierra al
   clickear afuera o al sacar el mouse del cartel/tarjeta, sin activar
   el detalle lateral. `Insertar imagen` lee el texto actual del
   portapapeles y, si es una URL publica valida, lo guarda directo como
   portada `Url` de la obra sin abrir el editor ni forzar la apertura
-  del detalle lateral. `Editar` y `Borrar` usan los mismos flujos del
-  detalle.
+  del detalle lateral. `Puntuar` abre un modal liviano con valores de
+  0.5 a 5 para guardar el rating sin entrar a editar la ficha. `Editar`
+  y `Borrar` usan los mismos flujos del detalle.
 - Edicion de caratula visible de cada obra: icono, texto, color, URL
   publica o archivo de imagen embebido con limite de peso.
 - Creacion y edicion de tecas propias con nombre, descripcion, icono,
@@ -717,40 +713,44 @@ Estado actual.
   `Fecha_Inicio`-`Fecha_Fin`, `Objetivo` usa solo `Fecha_Fin`,
   `Registros` usa todos los registros de avance y `Final` usa el
   registro de cierre o, para datos viejos sin registros, `Fecha_Fin` de
-  obras terminadas. El selector recalcula las opciones de mes/anio
-  disponibles y la grilla respeta esa semantica.
+  obras terminadas. Ademas de los meses y anios detectados, ofrece modo
+  `Personalizado` con `Desde` y `Hasta`, admitiendo rangos abiertos o
+  cerrados. El selector recalcula las opciones de mes/anio disponibles
+  y la grilla respeta esa semantica.
 - Cuando el filtro de periodo apunta a un mes o anio concreto, Decoteca
   muestra una franja compacta de resumen debajo de los filtros:
   avance registrado en el rango, obras tocadas, cierres y pendientes.
-  La franja respeta busqueda, lista, estado y genero activos, y evita
+  La franja respeta busqueda, estado y genero activos, y evita
   mostrar un porcentaje global porque podria mezclar avance de periodo
   con totales completos de obras.
-- La barra de filtros incluye `Lista` como dimension independiente de
-  `Estado`, para distinguir biblioteca, pausadas y archivo sin alterar
-  el estado de consumo.
 - La barra de filtros suma `Ordenar por` y `Direccion`. `Manual`
   respeta `Obra.Orden`, desactiva la direccion y habilita
   reordenamiento drag and drop persistido dentro de la teca y la vista
   actual. Los otros criterios permiten ordenar por titulo, creador,
-  fechas, progreso, total, prioridad, rating, estado, lista, genero,
+  fechas, progreso, total, prioridad, rating, estado, genero,
   formato u origen.
+- `Importar` y `Seleccionar` viven dentro de un menu de tres puntos sin
+  marco pesado en la barra superior. Ese menu conserva las mismas
+  acciones y cierra al clickear afuera, aplicar filtros o presionar
+  Escape.
 - Decoteca tiene modo `Seleccionar` con barra de acciones masivas para
-  obras visibles: cambiar `Estado`, `Lista` o `Prioridad`, archivar y
+  obras visibles: cambiar `Estado` o `Prioridad`, archivar y
   borrar. Mientras ese modo esta activo, el click sobre una obra solo
   alterna seleccion, el detalle no se abre y un click vacio fuera de la
   barra limpia la seleccion sin disparar modales ni menu contextual.
 - `Importacion masiva` abre un modal propio. Acepta texto tabular con
   encabezados pegado desde Excel o Google Sheets, y tambien archivos
   CSV, TSV o JSON. El mapeo reconoce columnas como `Titulo`,
-  `Autor`/`Artista`/`Director`, `Anio`, `Genero`, `Estado`, `Lista`,
-  `Prioridad`, `Total`, `Partes`, `Metadatos` y `Portada`. Los archivos
-  `.xlsx`/`.xls` no se parsean directo en frontend: la UI pide copiar
-  la tabla o exportarla a CSV/TSV. Antes de guardar, la importacion
-  muestra previsualizacion y permite definir teca/estado/lista/
-  prioridad por defecto y el manejo de duplicados (`Saltar`,
+  `Autor`/`Artista`/`Director`, `Anio`, `Genero`, `Estado`,
+  `Prioridad`, `Total`, `Partes`, `Metadatos` y `Portada`; si aparece
+  `Lista`, se toma solo como dato legacy sin volverla visible en la
+  ficha. Los archivos `.xlsx`/`.xls` no se parsean directo en frontend:
+  la UI pide copiar la tabla o exportarla a CSV/TSV. Antes de guardar,
+  la importacion muestra previsualizacion y permite definir teca,
+  estado, prioridad por defecto y el manejo de duplicados (`Saltar`,
   `Actualizar` o `Duplicar`).
 - El editor visible de obra muestra ficha descriptiva, fechas, total y
-  descripcion, mas la organizacion de lista/prioridad/motivo/origen.
+  descripcion, mas la organizacion de prioridad/motivo/origen.
   Las partes se editan en filas estructuradas dentro del modal
   (titulo, total, unidad y borrar/agregar), preservando el `Id` de cada
   parte existente para no romper avances historicos. El textarea crudo

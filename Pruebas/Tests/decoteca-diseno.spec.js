@@ -417,14 +417,25 @@ async function Limpiar_Filtros(page) {
   await page.locator("#Decoteca_Buscar_Input").fill("");
   await page.locator("#Decoteca_Filtro_Estado")
     .selectOption("Todos");
-  await page.locator("#Decoteca_Filtro_Lista")
-    .selectOption("Todas");
   await page.locator("#Decoteca_Filtro_Periodo")
     .selectOption("Todos");
   await page.locator("#Decoteca_Filtro_Periodo_Criterio")
     .selectOption("Rango");
+  await expect(page.locator("#Decoteca_Filtro_Periodo_Personalizado"))
+    .toBeHidden();
+  await page.evaluate(() => {
+    const Desde = document.getElementById("Decoteca_Filtro_Periodo_Desde");
+    const Hasta = document.getElementById("Decoteca_Filtro_Periodo_Hasta");
+    if (Desde) Desde.value = "";
+    if (Hasta) Hasta.value = "";
+  });
   await page.locator("#Decoteca_Filtro_Formato")
     .selectOption("Todos");
+}
+
+async function Abrir_Menu_Acciones_Decoteca(page) {
+  await page.locator("#Decoteca_Acciones_Menu_Toggle").click();
+  await expect(page.locator("#Decoteca_Acciones_Menu")).toBeVisible();
 }
 
 async function Esperar_Imagen_Cargada(Locator) {
@@ -573,16 +584,10 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator(".Decoteca_Hero"))
     .toHaveCount(0);
   await expect(page.locator(".Decoteca_Vistas"))
-    .toHaveCount(1);
-  await expect(page.locator("#Decoteca_Vista_Catalogo"))
-    .toHaveText("Catalogo");
-  await expect(page.locator("#Decoteca_Vista_Readlist"))
     .toHaveCount(0);
-  await expect(page.locator("#Decoteca_Vista_En_Curso"))
-    .toHaveText("En curso");
-  await expect(page.locator("#Decoteca_Vista_Catalogo"))
-    .toHaveAttribute("aria-selected", "true");
   await expect(page.locator("#Decoteca_Periodo_Resumen"))
+    .toBeHidden();
+  await expect(page.locator("#Decoteca_Filtro_Periodo_Personalizado"))
     .toBeHidden();
   await expect(page.locator("#Decoteca_Nueva"))
     .toHaveText("+");
@@ -619,6 +624,12 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toHaveAttribute("aria-label", "Nueva obra");
   await expect(page.locator("#Decoteca_Nueva"))
     .toHaveAttribute("title", "Nueva obra");
+  await Abrir_Menu_Acciones_Decoteca(page);
+  await expect(page.locator("#Decoteca_Acciones_Menu"))
+    .toContainText("Importar");
+  await expect(page.locator("#Decoteca_Acciones_Menu"))
+    .toContainText("Seleccionar");
+  await page.mouse.click(1180, 80);
   await page.evaluate(() => {
     const Obra = Decoteca.Obras.find((Item) =>
       Item.Id === "dec_bib_1"
@@ -628,7 +639,9 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     Render_Decoteca();
   });
   const Card_Superior = page.locator('[data-decoteca-obra="dec_bib_1"]');
-  await expect(Card_Superior.locator(".Decoteca_Caratula_Icono"))
+  await expect(Card_Superior.locator(
+    ".Decoteca_Caratula_Icono, .Decoteca_Caratula_Imagen"
+  ))
     .toHaveCount(1);
   await expect(Card_Superior.locator(".Decoteca_Estado_Badge"))
     .toHaveCount(0);
@@ -655,6 +668,7 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   const Menu_Contextual = page.locator(".Decoteca_Context_Menu");
   await expect(Menu_Contextual).toBeVisible();
   await expect(Menu_Contextual).toContainText(/Ver descripci/);
+  await expect(Menu_Contextual).toContainText("Puntuar");
   await expect.poll(async () =>
     Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
   ).toBe("0");
@@ -678,16 +692,20 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toContainText(/Avance: 0 pags\. \([0-9]+%\)/);
   await Card_Superior.click({ button: "right" });
   await expect(Menu_Contextual).toBeVisible();
-  await Menu_Contextual.locator('[data-decoteca-menu-accion="Descripcion"]')
+  await Menu_Contextual.locator('[data-decoteca-menu-accion="Puntuar"]')
     .click();
+  await expect(page.locator("#Decoteca_Rating_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.locator('[data-decoteca-rating-valor="4"]').click();
+  await page.locator("#Decoteca_Rating_Guardar").click();
+  await expect(page.locator("#Decoteca_Rating_Overlay"))
+    .not.toHaveClass(/Activo/);
   await expect.poll(async () =>
-    Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
-  ).toBe("1");
-  await page.waitForTimeout(80);
-  await page.mouse.move(1180, 640);
-  await expect.poll(async () =>
-    Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
-  ).toBe("0");
+    page.evaluate(() =>
+      Decoteca.Obras.find((Item) => Item.Id === "dec_bib_1")?.Rating || ""
+    )
+  ).toBe("4");
+  await expect(page.locator("#Decoteca_Detalle")).toBeHidden();
   await Cerrar_Detalle_Decoteca(page);
   await expect(page.locator('[data-decoteca-teca="Biblioteca"]'))
     .toHaveAttribute("aria-label", /Biblioteca/);
@@ -784,7 +802,7 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Organizacion");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Lista: Biblioteca");
+    .not.toContainText("Lista:");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Prioridad: Alta");
 
@@ -852,10 +870,9 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "foucault",
       resultado: "Vigilar y castigar",
       estado: "Planeada",
-      lista: "Biblioteca",
       periodo: "Mes:2026-10",
       formato: "Ensayo",
-      campos: ["Autor", "Lista", "Prioridad", "Motivo"]
+      campos: ["Autor", "Prioridad", "Motivo"]
     },
     {
       teca: "Musicoteca",
@@ -863,10 +880,9 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "radiohead",
       resultado: "In Rainbows",
       estado: "En_Curso",
-      lista: "Biblioteca",
       periodo: "Mes:2026-06",
       formato: "Alternative",
-      campos: ["Artista", "Lista", "Prioridad", "Motivo"]
+      campos: ["Artista", "Prioridad", "Motivo"]
     },
     {
       teca: "Videoteca",
@@ -874,10 +890,9 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "martel",
       resultado: "La ciénaga",
       estado: "Terminada",
-      lista: "Archivo",
       periodo: "Mes:2026-05",
       formato: "Drama",
-      campos: ["Director", "Lista", "Prioridad", "Motivo"]
+      campos: ["Director", "Prioridad", "Motivo"]
     },
     {
       teca: "Ludoteca",
@@ -885,10 +900,9 @@ test("decoteca responde a controles, filtros y botones", async ({
       busqueda: "disco",
       resultado: "Disco Elysium",
       estado: "En_Curso",
-      lista: "Biblioteca",
       periodo: "Mes:2026-04",
       formato: "RPG",
-      campos: ["Creador", "Lista", "Prioridad", "Motivo"]
+      campos: ["Creador", "Prioridad", "Motivo"]
     }
   ];
 
@@ -909,11 +923,6 @@ test("decoteca responde a controles, filtros y botones", async ({
 
     await page.locator("#Decoteca_Filtro_Estado")
       .selectOption(Caso.estado);
-    await expect(page.locator("#Decoteca_Grilla"))
-      .toContainText(Caso.resultado);
-
-    await page.locator("#Decoteca_Filtro_Lista")
-      .selectOption(Caso.lista);
     await expect(page.locator("#Decoteca_Grilla"))
       .toContainText(Caso.resultado);
 
@@ -1036,40 +1045,31 @@ test("decoteca responde a controles, filtros y botones", async ({
     .selectOption("Mes:2026-10");
   await expect(page.locator("#Decoteca_Grilla"))
     .toContainText("Vigilar y castigar");
+  await page.locator("#Decoteca_Filtro_Periodo")
+    .selectOption("Personalizado");
+  await expect(page.locator("#Decoteca_Filtro_Periodo_Personalizado"))
+    .toBeVisible();
+  await page.locator("#Decoteca_Filtro_Periodo_Desde")
+    .fill("2026-10-01");
+  await page.locator("#Decoteca_Filtro_Periodo_Hasta")
+    .fill("2026-10-31");
+  await expect(page.locator("#Decoteca_Grilla"))
+    .toContainText("Vigilar y castigar");
+  await expect(page.locator("#Decoteca_Periodo_Resumen"))
+    .toBeVisible();
 
   await page.locator('[data-decoteca-teca="Biblioteca"]').click();
   await Limpiar_Filtros(page);
   await expect(page.locator("#Decoteca_Periodo_Resumen"))
     .toBeHidden();
-  await expect(page.locator("#Decoteca_Vista_Readlist"))
+  await expect(page.locator("#Decoteca_Filtro_Lista"))
     .toHaveCount(0);
-  await expect(page.locator('#Decoteca_Filtro_Lista option[value="Readlist"]'))
-    .toHaveCount(0);
-  await expect(page.locator('#Decoteca_Filtro_Lista option[value="Proximas"]'))
-    .toHaveCount(0);
-  await expect(page.locator('#Decoteca_Filtro_Lista option[value="Wishlist"]'))
-    .toHaveCount(0);
-
-  await page.locator("#Decoteca_Vista_En_Curso").click();
-  await expect(page.locator("#Decoteca_Vista_En_Curso"))
-    .toHaveAttribute("aria-selected", "true");
-  await expect(page.locator(".Decoteca_Readlist_Item"))
-    .toHaveCount(1);
-  await expect(page.locator(".Decoteca_Readlist_Caratula"))
-    .toHaveCount(1);
-  await expect(page.locator(".Decoteca_Readlist_Item").first())
-    .toContainText("Los detectives salvajes");
-  await expect(page.locator(".Decoteca_Readlist_Item").first())
-    .toContainText("0 de 609 pags.");
-  await expect(page.locator(".Decoteca_Readlist_Item").first())
-    .toContainText("Sin avances");
-  await expect(page.locator(".Decoteca_Readlist_Item").first())
-    .toContainText("Ritmo:");
-  await page.locator(".Decoteca_Readlist_Item").first().click();
+  await page.locator('[data-decoteca-obra="dec_bib_1"]').click();
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Los detectives salvajes");
+  await expect(page.locator("#Decoteca_Detalle"))
+    .not.toContainText("Lista:");
   await Cerrar_Detalle_Decoteca(page);
-  await page.locator("#Decoteca_Vista_Catalogo").click();
 
   await page.locator("#Decoteca_Buscar_Input")
     .fill("obra inexistente zzz");
@@ -1473,8 +1473,6 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await page.locator("#Decoteca_Form_Genero").fill("Ensayo");
   await page.locator("#Decoteca_Form_Estado")
     .selectOption("En_Curso");
-  await page.locator("#Decoteca_Form_Lista")
-    .selectOption("Biblioteca");
   await page.locator("#Decoteca_Form_Prioridad")
     .selectOption("Alta");
   await page.locator("#Decoteca_Form_Fecha_Ingreso")
@@ -1513,7 +1511,7 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("★★★★");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Lista: Biblioteca");
+    .not.toContainText("Lista:");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Prioridad: Alta");
   await expect(page.locator("#Decoteca_Detalle"))
@@ -1543,12 +1541,10 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await Parte_Editada.locator("[data-decoteca-parte-titulo]")
     .fill("Seccion revisada");
   await Parte_Editada.locator("[data-decoteca-parte-total]").fill("45");
-  await page.locator("#Decoteca_Form_Lista")
-    .selectOption("Pausadas");
   await page.locator("#Decoteca_Form_Prioridad")
     .selectOption("Media");
   await page.locator("#Decoteca_Form_Motivo")
-    .fill("Pasa a pausadas por plan concreto.");
+    .fill("Pasa a pausa por plan concreto.");
   await page.locator("#Decoteca_Form_Total").fill("120");
   await page.locator("#Decoteca_Form_Descripcion")
     .fill("Cerrar el ensayo y pasar notas al Archivero.");
@@ -1560,7 +1556,7 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("120 pags.");
   await expect(page.locator("#Decoteca_Detalle"))
-    .toContainText("Lista: Pausadas");
+    .not.toContainText("Lista:");
   await expect(page.locator("#Decoteca_Detalle"))
     .toContainText("Seccion revisada");
   await expect(page.locator("#Decoteca_Detalle"))
@@ -1625,9 +1621,8 @@ test("decoteca crea edita portada y persiste", async ({ page }) => {
     Obra.Genero === "Ensayo" &&
     Obra.Descripcion === "Cerrar el ensayo y pasar notas al Archivero." &&
     Obra.Datos_Teca.Total_Unidades === 120 &&
-    Obra.Lista === "Pausadas" &&
     Obra.Prioridad === "Media" &&
-    Obra.Motivo === "Pasa a pausadas por plan concreto." &&
+    Obra.Motivo === "Pasa a pausa por plan concreto." &&
     Obra.Origen === "Ensayo de prueba" &&
     Obra.Fecha_Ingreso === "2026-06-11" &&
     Obra.Partes.some((Parte) =>
@@ -2163,6 +2158,7 @@ test("decoteca selecciona en lote e importa tabla por columnas", async ({
     ]
   });
 
+  await Abrir_Menu_Acciones_Decoteca(page);
   await page.locator("#Decoteca_Seleccionar_Abrir").click();
   await expect(page.locator("#Decoteca_Multi_Barra")).toBeVisible();
   await expect(page.locator("#Decoteca_Detalle")).toBeHidden();
@@ -2186,6 +2182,7 @@ test("decoteca selecciona en lote e importa tabla por columnas", async ({
     ["qa_otro", "Archivo"]
   ]);
 
+  await Abrir_Menu_Acciones_Decoteca(page);
   await page.locator("#Decoteca_Importar_Abrir").click();
   await expect(page.locator("#Decoteca_Importacion_Overlay"))
     .toHaveClass(/Activo/);
