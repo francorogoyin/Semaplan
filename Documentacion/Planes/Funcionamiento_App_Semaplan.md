@@ -613,16 +613,17 @@ Estado actual.
   `Paginas`/`Total` queda como linea separada. La descripcion no se
   muestra en ese tooltip.
 - Click derecho sobre una tarjeta de obra abre un menu contextual con
-  `Ver descripcion`, `Insertar imagen`, `Puntuar`, `Editar` y `Borrar`.
-  `Ver descripcion` reutiliza el mismo tooltip de la tarjeta,
-  reemplaza ahi los metadatos por la descripcion y se cierra al
-  clickear afuera o al sacar el mouse del cartel/tarjeta, sin activar
-  el detalle lateral. `Insertar imagen` lee el texto actual del
-  portapapeles y, si es una URL publica valida, lo guarda directo como
-  portada `Url` de la obra sin abrir el editor ni forzar la apertura
-  del detalle lateral. `Puntuar` abre un modal liviano con valores de
-  0.5 a 5 para guardar el rating sin entrar a editar la ficha. `Editar`
-  y `Borrar` usan los mismos flujos del detalle.
+  `Editar`, `Puntuar`, `Insertar imagen`, `Ver descripcion` y
+  `Borrar`. `Ver descripcion` reutiliza el mismo tooltip de la
+  tarjeta, reemplaza ahi los metadatos por la descripcion y ya no se
+  destruye al sacar el mouse de la caratula: queda abierto hasta
+  cerrarlo con la cruz pequeña, con `Escape` o con un click afuera,
+  sin activar el detalle lateral. `Insertar imagen` lee el texto actual
+  del portapapeles y, si es una URL publica valida, lo guarda directo
+  como portada `Url` de la obra sin abrir el editor ni forzar la
+  apertura del detalle lateral. `Puntuar` abre un modal liviano con
+  valores de 0.5 a 5 para guardar el rating sin entrar a editar la
+  ficha. `Editar` y `Borrar` usan los mismos flujos del detalle.
 - Edicion de caratula visible de cada obra: icono, texto, color, URL
   publica o archivo de imagen embebido con limite de peso.
 - Creacion y edicion de tecas propias con nombre, descripcion, icono,

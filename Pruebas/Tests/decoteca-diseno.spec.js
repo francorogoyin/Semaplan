@@ -667,8 +667,13 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
   await Card_Superior.click({ button: "right" });
   const Menu_Contextual = page.locator(".Decoteca_Context_Menu");
   await expect(Menu_Contextual).toBeVisible();
-  await expect(Menu_Contextual).toContainText(/Ver descripci/);
-  await expect(Menu_Contextual).toContainText("Puntuar");
+  await expect(Menu_Contextual.locator("button")).toHaveText([
+    "Editar",
+    "Puntuar",
+    "Insertar imagen",
+    /Ver descripci/,
+    "Borrar"
+  ]);
   await expect.poll(async () =>
     Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
   ).toBe("0");
@@ -683,7 +688,24 @@ test("decoteca abre tecas con tarjetas verticales y detalle propio", async ({
     .toContainText("Descripcion QA disponible desde el menu contextual.");
   await expect(Tooltip_Superior)
     .not.toContainText("Avance:");
-  await page.mouse.click(1180, 640);
+  await expect.poll(async () =>
+    Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
+  ).toBe("1");
+  await page.mouse.move(1180, 640);
+  await expect.poll(async () =>
+    Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
+  ).toBe("1");
+  await Tooltip_Superior.locator(
+    ".Decoteca_Tooltip_Descripcion_Cerrar"
+  ).click();
+  await expect.poll(async () =>
+    Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
+  ).toBe("0");
+  await Card_Superior.click({ button: "right" });
+  await expect(Menu_Contextual).toBeVisible();
+  await Menu_Contextual.locator('[data-decoteca-menu-accion="Descripcion"]')
+    .click();
+  await page.keyboard.press("Escape");
   await expect.poll(async () =>
     Tooltip_Superior.evaluate((El) => getComputedStyle(El).opacity)
   ).toBe("0");
