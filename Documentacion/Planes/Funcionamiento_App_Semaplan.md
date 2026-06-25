@@ -925,6 +925,8 @@ Subestructuras centrales.
 - `Subobjetivos`
 - `Partes`
 - `Avances`
+- Cada avance puede guardar `Modo`, `Base` y `Hasta` para distinguir
+  carga directa de `Avance hasta` sin perder la cantidad efectiva.
 - `UI`
 
 Funciones de entrada recomendadas.
@@ -957,6 +959,11 @@ Relaciones importantes.
   siguen siendo seleccionables; el boton solo abre o cierra la rama. Al
   abrir una rama se cierran sus hermanos del mismo nivel y la expansion
   queda recordada localmente para la proxima apertura con `M`.
+- El registro de avance admite cantidad directa o `Avance hasta`. En
+  ese segundo modo toma como base el progreso actual del item
+  seleccionado y calcula la cantidad efectiva a partir del valor final
+  ingresado. Esa base y el modo quedan persistidos para que la edicion
+  posterior conserve el contexto.
 - La descripcion de un periodo en Metas se muestra contraida cuando ya
   tiene texto. El boton propio de expansion solo contrae o expande; el
   click en el cuerpo de la descripcion sigue abriendo la edicion.
