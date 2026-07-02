@@ -420,6 +420,10 @@ Relaciones importantes.
   mostrar un resumen visible en chips y una accion `Limpiar` que
   restablezca el modo base de la vista actual, sin forzar vuelta a
   `Inbox` si el usuario estaba mirando otra pestaña.
+- Crear y editar tarea deben tomar el cajon desde un selector real
+  alimentado por `Tareas_Cajones_Definidos`, para que un cajon nuevo
+  quede disponible enseguida como opcion visible y no dependa de
+  sugerencias implicitas del navegador.
 
 ## Habitos
 

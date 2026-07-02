@@ -296,6 +296,50 @@ test("tareas busca por nombre y cajon dentro de la vista actual", async ({ page 
   ]);
 });
 
+test("tareas muestra cajones creados en crear y editar tarea", async ({ page }) => {
+  await prepararPagina(page);
+
+  await page.evaluate(() => {
+    Tareas = [
+      Normalizar_Tarea({
+        Id: "tarea_casa",
+        Nombre: "Ordenar escritorio",
+        Estado: "pendiente",
+        Cajon: "Inbox",
+        Fecha: Tareas_Fecha_Referencia()
+      })
+    ].filter(Boolean);
+    Tareas_Cajones_Definidos = ["Inbox"];
+    document.getElementById("Tareas_Cuerpo").innerHTML =
+      '<input id="Tareas_Cajon_Nuevo">';
+    document.getElementById("Tareas_Cajon_Nuevo").value = "Casa";
+    Tareas_Crear_Cajon();
+    document.getElementById("Tareas_Overlay")
+      ?.classList.add("Activo");
+    Tareas_En_Edicion_Id = "";
+    Tareas_Modal_Vista = "Editor";
+    Render_Tareas();
+  });
+
+  await expect(page.locator("#Tareas_Cajon")).toHaveJSProperty(
+    "tagName",
+    "SELECT"
+  );
+  await expect(page.locator("#Tareas_Cajon option")).toContainText([
+    "Inbox",
+    "Casa"
+  ]);
+  await expect(page.locator("#Tareas_Cajon")).toHaveValue("Casa");
+
+  await page.evaluate(() => {
+    const Tarea = Tareas.find((Item) => Item?.Id === "tarea_casa");
+    if (Tarea) Tarea.Cajon = "Casa";
+    Abrir_Modal_Tarea("tarea_casa");
+  });
+
+  await expect(page.locator("#Tareas_Cajon")).toHaveValue("Casa");
+});
+
 test("archivero muestra conteo filtrado y vacio de resultados", async ({ page }) => {
   await prepararPagina(page);
 
