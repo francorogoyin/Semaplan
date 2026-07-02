@@ -412,6 +412,10 @@ Relaciones importantes.
   abordaje.
 - Cambios en tareas pueden impactar agenda, planes de slot y sync
   critico.
+- La busqueda del panel de Tareas filtra sobre la vista visible actual,
+  no sobre toda la base. Debe matchear de forma normalizada por nombre,
+  cajon, prioridad, estado, fecha y hora, y mostrar `Sin resultados`
+  cuando la vista sigue existiendo pero la busqueda no devuelve items.
 
 ## Habitos
 
@@ -461,6 +465,13 @@ Relaciones importantes.
   esa realizacion, la UI de habitos debe refrescar sidebar y modal
   desde `Habitos_Registros` en el mismo flujo para reflejar color,
   estado e indicador sin esperar un render posterior.
+- Si el usuario filtra por estado `Realizado` en el panel de Habitos,
+  la UI no debe dejar activo al mismo tiempo `Ocultar realizados`,
+  porque eso genera un filtro contradictorio y una lista vacia falsa.
+- Al normalizar `Habitos_Registros`, si falta `Periodo_Clave` debe
+  reconstruirse desde el habito y la fecha para no perder registros
+  diarios, semanales o mensuales viejos. En quincena, la clave se sigue
+  recalculando para sostener la migracion vigente.
 
 ## Retos
 
@@ -548,6 +559,9 @@ Relaciones importantes.
   Ese timestamp se normaliza al cargar estado y define la fecha visible
   y el orden cronologico de la nota.
 - Hay seleccion multiple, mover entre cajones y gestion de etiquetas.
+- Cuando hay busqueda o filtros activos, la cabecera del cajon debe
+  mostrar conteo filtrado sobre total en formato `(visibles/total)` y
+  el estado vacio debe distinguir `Sin resultados` de `Sin notas`.
 
 ## Baul
 
@@ -569,6 +583,10 @@ Relaciones importantes.
 - Un item del Baul puede tener categoria, etiquetas, estado, timeline,
   descripcion y metadatos visibles.
 - Puede alimentar agenda, objetivos o decisiones semanales.
+- La busqueda del Baul debe ser normalizada y de texto completo sobre
+  nombre, descripcion, descripcion corta, estado, timeline, categoria,
+  etiquetas y metadatos, para evitar que el filtro dependa solo del
+  titulo o de los acentos exactos.
 
 ## Decoteca
 
@@ -866,6 +884,9 @@ Relaciones importantes.
 - Las metas resumen progreso por categoria, etiqueta u objetivo.
 - Cambios en agenda y objetivos pueden cambiar indirectamente sus
   calculos y mensajes.
+- La lista de Metas debe permitir busqueda por texto sobre nombre,
+  fuente, periodo y estado visible, y cuando no haya coincidencias debe
+  usar el vacio de `Sin resultados` en lugar del vacio general.
 - En bloques vinculados a metas de planes por periodo, el aporte por
   bloque separa el aporte real del aporte sugerido. El contador muestra
   `Aporte a la meta: X (Y sugeridos)`, donde `X` suma el aporte general
