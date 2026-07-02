@@ -368,3 +368,222 @@ test("baul busca por descripcion y etiquetas sin acentos", async ({ page }) => {
     "Llamar cliente"
   ]);
 });
+
+test("metas muestra filtros activos y limpiar restablece lista", async ({ page }) => {
+  await prepararPagina(page);
+
+  await page.evaluate(() => {
+    Categorias = [
+      Normalizar_Categoria({
+        Id: "cat_lectura",
+        Nombre: "Lectura",
+        Emoji: "📚"
+      }),
+      Normalizar_Categoria({
+        Id: "cat_musica",
+        Nombre: "Musica",
+        Emoji: "🎵"
+      })
+    ].filter(Boolean);
+    Metas = [
+      Normalizar_Meta({
+        Id: "meta_lectura",
+        Nombre: "Leer novelas",
+        Horas_Objetivo: 8,
+        Periodo: "Semana",
+        Fuente_Tipo: "Categoria",
+        Fuente_Valor: "cat_lectura"
+      }),
+      Normalizar_Meta({
+        Id: "meta_musica",
+        Nombre: "Practicar piano",
+        Horas_Objetivo: 4,
+        Periodo: "Semana",
+        Fuente_Tipo: "Categoria",
+        Fuente_Valor: "cat_musica"
+      })
+    ].filter(Boolean);
+    document.getElementById("Metas_Overlay")
+      ?.classList.add("Activo");
+    Render_Metas();
+  });
+
+  await page.fill("#Metas_Buscar_Input", "lectura");
+  await expect(
+    page.locator("#Metas_Filtros_Activos .Filtros_Activo_Chip")
+  ).toHaveCount(1);
+  await page.click('[data-filtros-limpiar="Metas"]');
+
+  await expect(page.locator("#Metas_Buscar_Input")).toHaveValue("");
+  await expect(page.locator(".Meta_Card")).toHaveCount(2);
+});
+
+test("habitos muestra filtros activos y limpiar restablece panel", async ({ page }) => {
+  await prepararPagina(page);
+
+  await page.evaluate(() => {
+    Habitos = [
+      Normalizar_Habito({
+        Id: "habito_hecho",
+        Nombre: "Tomar agua",
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 1
+        }
+      }),
+      Normalizar_Habito({
+        Id: "habito_pendiente",
+        Nombre: "Leer 10 paginas",
+        Meta: {
+          Modo: "Check",
+          Regla: "Al_Menos",
+          Periodo: "Dia",
+          Cantidad: 1
+        }
+      })
+    ].filter(Boolean);
+    Habitos_Registros = [
+      Normalizar_Habito_Registro({
+        Habito_Id: "habito_hecho",
+        Fecha: Habitos_Fecha_Referencia(),
+        Hora: "09:00",
+        Fuente: "Manual",
+        Fuente_Id: "manual_prueba",
+        Cantidad: 1,
+        Unidad: "veces"
+      })
+    ];
+    Normalizar_Habitos_Registros();
+    Abrir_Panel_Habitos();
+  });
+
+  await page.click('[data-habitos-filtros="abrir"]');
+  await page.selectOption("#Habitos_Filtro_Estado", "Realizado");
+  await page.click("#Habitos_Filtros_Aceptar");
+
+  await expect(page.locator(".Habitos_Card")).toHaveCount(1);
+  await expect(
+    page.locator('.Filtros_Activos_Barra [data-filtros-limpiar="Habitos"]')
+  ).toHaveCount(1);
+  await page.click('[data-filtros-limpiar="Habitos"]');
+
+  await expect(page.locator(".Habitos_Card")).toHaveCount(2);
+});
+
+test("tareas muestra filtros activos y limpiar restablece vista", async ({ page }) => {
+  await prepararPagina(page);
+
+  await page.evaluate(() => {
+    Tareas = [
+      Normalizar_Tarea({
+        Id: "tarea_facturas",
+        Nombre: "Pagar facturas",
+        Cajon: "Finanzas",
+        Estado: "pendiente",
+        Fecha: Tareas_Fecha_Referencia()
+      }),
+      Normalizar_Tarea({
+        Id: "tarea_libro",
+        Nombre: "Terminar libro",
+        Cajon: "Lectura",
+        Estado: "pendiente",
+        Fecha: Tareas_Fecha_Referencia()
+      })
+    ].filter(Boolean);
+    Tareas_Modal_Vista = "Panel";
+    Tareas_Filtros_Abiertos = true;
+    Abrir_Tareas();
+  });
+
+  await page.fill("#Tareas_Filtro_Busqueda", "lectura");
+  await expect(page.locator(".Tareas_Card")).toHaveCount(1);
+  await expect(
+    page.locator('.Filtros_Activos_Barra [data-filtros-limpiar="Tareas"]')
+  ).toHaveCount(1);
+  await page.click('[data-filtros-limpiar="Tareas"]');
+
+  await expect(page.locator("#Tareas_Filtro_Busqueda")).toHaveValue("");
+  await expect(page.locator(".Tareas_Card")).toHaveCount(2);
+});
+
+test("archivero muestra filtros activos y limpiar restablece notas", async ({ page }) => {
+  await prepararPagina(page);
+
+  await page.evaluate(() => {
+    Archiveros = [
+      { Id: "c1", Nombre: "Semaplan", Emoji: "🗃️" }
+    ];
+    Notas_Archivero = [
+      {
+        Id: "n1",
+        Archivero_Id: "c1",
+        Texto: "Primera nota",
+        Origen: "",
+        Etiquetas: [],
+        Fecha_Creacion: 1,
+        Tipo: "Texto"
+      },
+      {
+        Id: "n2",
+        Archivero_Id: "c1",
+        Texto: "Segunda nota",
+        Origen: "",
+        Etiquetas: [],
+        Fecha_Creacion: 2,
+        Tipo: "Texto"
+      }
+    ];
+    Archivero_Seleccion_Id = "c1";
+    document.getElementById("Archivero_Overlay")
+      ?.classList.add("Activo");
+    Render_Archivero();
+  });
+
+  await page.fill("#Archivero_Buscar_Input", "tercera");
+  await expect(
+    page.locator('#Archivero_Filtros_Activos .Filtros_Activo_Chip')
+  ).toHaveCount(1);
+  await page.click('[data-filtros-limpiar="Archivero"]');
+
+  await expect(page.locator("#Archivero_Buscar_Input")).toHaveValue("");
+  await expect(page.locator(".Archivero_Nota_Card")).toHaveCount(2);
+});
+
+test("baul muestra filtros activos y limpiar restablece lista", async ({ page }) => {
+  await prepararPagina(page);
+
+  await page.evaluate(() => {
+    Etiquetas = [
+      Normalizar_Etiqueta({ Id: "tag_urgente", Nombre: "Urgente" })
+    ].filter(Boolean);
+    Baul_Objetivos = [
+      Normalizar_Baul_Objetivo({
+        Id: "baul_cafe",
+        Nombre: "Llamar cliente",
+        Descripcion: "Revisar cafe del centro",
+        Etiquetas_Ids: ["tag_urgente"],
+        Estado: "Activa"
+      }),
+      Normalizar_Baul_Objetivo({
+        Id: "baul_luz",
+        Nombre: "Pagar luz",
+        Descripcion: "Factura mensual",
+        Etiquetas_Ids: [],
+        Estado: "Activa"
+      })
+    ].filter(Boolean);
+    Abrir_Baul();
+  });
+
+  await page.fill("#Baul_Buscar_Input", "urgente");
+  await expect(page.locator(".Baul_Card")).toHaveCount(1);
+  await expect(
+    page.locator('#Baul_Filtros_Activos .Filtros_Activo_Chip')
+  ).toHaveCount(1);
+  await page.click('[data-filtros-limpiar="Baul"]');
+
+  await expect(page.locator("#Baul_Buscar_Input")).toHaveValue("");
+  await expect(page.locator(".Baul_Card")).toHaveCount(2);
+});

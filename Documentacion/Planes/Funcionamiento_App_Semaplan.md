@@ -416,6 +416,10 @@ Relaciones importantes.
   no sobre toda la base. Debe matchear de forma normalizada por nombre,
   cajon, prioridad, estado, fecha y hora, y mostrar `Sin resultados`
   cuando la vista sigue existiendo pero la busqueda no devuelve items.
+- Cuando el panel de Tareas tiene busqueda o filtros activos, debe
+  mostrar un resumen visible en chips y una accion `Limpiar` que
+  restablezca el modo base de la vista actual, sin forzar vuelta a
+  `Inbox` si el usuario estaba mirando otra pestaña.
 
 ## Habitos
 
@@ -472,6 +476,9 @@ Relaciones importantes.
   reconstruirse desde el habito y la fecha para no perder registros
   diarios, semanales o mensuales viejos. En quincena, la clave se sigue
   recalculando para sostener la migracion vigente.
+- Cuando el panel de Habitos tiene filtros activos, debe exponer ese
+  estado en chips visibles y ofrecer `Limpiar` en el mismo bloque para
+  volver rapido al panel completo sin dejar filtros silenciosos.
 
 ## Retos
 
@@ -562,6 +569,9 @@ Relaciones importantes.
 - Cuando hay busqueda o filtros activos, la cabecera del cajon debe
   mostrar conteo filtrado sobre total en formato `(visibles/total)` y
   el estado vacio debe distinguir `Sin resultados` de `Sin notas`.
+- Cuando hay busqueda o filtros activos, el panel de notas tambien debe
+  resumirlos en chips visibles y ofrecer `Limpiar` sin mover al usuario
+  de cajon ni perder el contexto actual.
 
 ## Baul
 
@@ -587,6 +597,9 @@ Relaciones importantes.
   nombre, descripcion, descripcion corta, estado, timeline, categoria,
   etiquetas y metadatos, para evitar que el filtro dependa solo del
   titulo o de los acentos exactos.
+- Cuando el Baul tenga busqueda o filtros activos, la interfaz debe
+  mostrar un resumen en chips y una accion `Limpiar` robusta aun si el
+  campo de busqueda pierde foco y re-renderiza la vista en ese flujo.
 
 ## Decoteca
 
@@ -887,6 +900,9 @@ Relaciones importantes.
 - La lista de Metas debe permitir busqueda por texto sobre nombre,
   fuente, periodo y estado visible, y cuando no haya coincidencias debe
   usar el vacio de `Sin resultados` en lugar del vacio general.
+- Cuando la lista de Metas tenga busqueda o filtros activos, debe
+  resumirlos en chips visibles y ofrecer `Limpiar` dentro del mismo
+  modal para evitar filtros persistentes poco evidentes.
 - En bloques vinculados a metas de planes por periodo, el aporte por
   bloque separa el aporte real del aporte sugerido. El contador muestra
   `Aporte a la meta: X (Y sugeridos)`, donde `X` suma el aporte general
