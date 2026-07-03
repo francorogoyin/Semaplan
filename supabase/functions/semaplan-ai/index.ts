@@ -194,6 +194,20 @@ function Obtener_Ruta_Relativa(Req: Request) {
 function Obtener_Url_Base_Gateway(
   Req: Request
 ) {
+  const Base_Configurada = Normalizar_Texto(
+    Deno.env.get("SEMAPLAN_AI_PUBLIC_BASE_URL")
+  );
+  if (Base_Configurada) {
+    return Base_Configurada.replace(/\/+$/, "");
+  }
+
+  const Supabase_Url = Normalizar_Texto(
+    Deno.env.get("SUPABASE_URL")
+  ).replace(/\/+$/, "");
+  if (Supabase_Url && /\.supabase\.co$/i.test(Supabase_Url)) {
+    return `${Supabase_Url}/functions/v1/semaplan-ai`;
+  }
+
   const Url = new URL(Req.url);
   const Segmentos = Url.pathname
     .split("/")

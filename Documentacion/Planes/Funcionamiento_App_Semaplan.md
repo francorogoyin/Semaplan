@@ -37,6 +37,10 @@ estructuras persistidas o relaciones importantes entre modulos.
   evitar el merge preservador general de `estado_usuario` en este flujo
   controlado, aceptan `idempotency_key` y registran auditoria en
   `ia_mutaciones_usuario`.
+  El OpenAPI debe publicar siempre la URL publica de Edge Functions
+  (`/functions/v1/semaplan-ai`), no la URL interna que Supabase entrega
+  a `Req.url`, porque ChatGPT usa `servers[0].url` para llamar las
+  acciones.
 - `supabase/functions/semaplan-ai-mcp`: servidor MCP remoto por HTTP
   (streamable compatible) para ChatGPT Apps/Developer Mode. Expone
   `initialize`, `tools/list` y `tools/call` en el endpoint
