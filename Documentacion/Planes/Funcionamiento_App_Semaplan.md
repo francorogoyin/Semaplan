@@ -20,15 +20,21 @@ estructuras persistidas o relaciones importantes entre modulos.
 - `index.html`: landing publica.
 - `Semaplan.html`: redireccion liviana a `login.html`.
 - `login.html`: aplicacion operativa principal.
-- `supabase/functions/semaplan-ai`: gateway read-only en
-  produccion para consultas de IA sobre datos de Semaplan en
+- `supabase/functions/semaplan-ai`: gateway de IA en produccion para
+  consultas y mutaciones B2 acotadas sobre datos de Semaplan en
   `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai`.
   Ya valida tokens/JWT/OAuth, puede leer `estado_usuario` con filtrado
   seguro y expone `/agenda`, `/contexto`, `/tareas`, `/habitos`,
   `/slots`, `/planes/semana`, `/planes/periodos`, `/archivero`,
   `/archivero/buscar`, `/baul`, `/metas`, `/openapi.json`,
   `/oauth/authorize` y `/oauth/token` con vistas compactas y contrato
-  publico para IA.
+  publico para IA. En B2 tambien expone `POST /b2/tareas/crear`,
+  `/b2/tareas/marcar`, `/b2/tareas/reprogramar`,
+  `/b2/habitos/crear`, `/b2/habitos/registrar`,
+  `/b2/metas/avance`, `/b2/archivero/nota` y `/b2/baul/item`.
+  Las mutaciones requieren scopes separados, usan control optimista de
+  `version`, aceptan `idempotency_key` y registran auditoria en
+  `ia_mutaciones_usuario`.
 - `supabase/functions/semaplan-ai-mcp`: servidor MCP remoto por HTTP
   (streamable compatible) para ChatGPT Apps/Developer Mode. Expone
   `initialize`, `tools/list` y `tools/call` en el endpoint
@@ -1031,7 +1037,7 @@ Areas importantes.
   de los filtros manuales del encabezado
 - comportamiento de habitos en sidebar
 - colores y modos de UI
-- datos de cuenta y tokens de integracion IA read-only
+- datos de cuenta y tokens de integracion IA con scopes
 - backups locales
 - import/export completo
 - selector de versiones del frontend
@@ -1054,11 +1060,17 @@ Notas operativas de este bloque.
 
 - Los tokens IA se generan en cliente y solo se guarda `token_hash`
   en `tokens_ia_usuario`.
+- Los tokens pueden tener `read` y scopes B2 especificos:
+  `write_tasks`, `write_habits`, `write_metas`, `write_archivero` y
+  `write_baul`.
 - El token plano se muestra una sola vez en la UI de Cuenta y no debe
   persistirse en estado ni en `localStorage`.
 - La UI de Cuenta permite renombrar tokens, revocarlos y eliminar del
   historial visible los que ya fueron revocados, sin recuperar nunca el
   valor plano.
+- Las mutaciones B2 se auditan en `ia_mutaciones_usuario`; la tabla
+  `ia_confirmaciones_usuario` queda reservada para confirmaciones
+  persistidas futuras.
 - Si el entorno remoto todavia no tiene la tabla
   `tokens_ia_usuario`, la UI debe degradar con mensaje claro y sin
   intentar crear tokens.

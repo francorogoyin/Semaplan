@@ -1,12 +1,13 @@
 Plan de implementacion para API de IA de Semaplan.
 
 Fecha de redaccion inicial: 2026-04-16.
-Fecha de actualizacion: 2026-04-27.
+Fecha de actualizacion: 2026-07-03.
 
 Objetivo.
 
-Construir una API de solo lectura para que GPT y Claude puedan
-consultar datos de Semaplan con autorizacion explicita del usuario.
+Mantener una API B1 de lectura y sumar una B2 de escritura acotada
+para que ChatGPT pueda operar Semaplan con autorizacion explicita del
+usuario.
 
 La API debe cubrir el estado operativo real de la app:
 
@@ -20,22 +21,27 @@ La API debe cubrir el estado operativo real de la app:
 - Baul;
 - metas;
 - contexto compacto.
+- acciones B2 sobre tareas, habitos, metas, Archivero y Baul.
 
 La API debe exponer vistas legibles y seguras, sin devolver el blob
 crudo completo de `public.estado_usuario.estado`.
 
 Este documento ya no describe solo la idea general. Debe servir como
-guia lista para implementar: orden de fases, contrato publico,
-normalizadores, tests y criterio de cierre.
+guia viva para implementar, mantener y ampliar el gateway de IA:
+contrato publico, normalizadores, acciones B2, tests y criterio de
+cierre.
 
 ## Decision tecnica
 
-Crear un Semaplan AI Gateway como capa unica de lectura.
+Crear un Semaplan AI Gateway como capa unica de lectura y mutaciones
+acotadas.
 
 - Backend unico:
   `supabase/functions/semaplan-ai/index.ts`
-- Consumo de GPT:
-  GPT Actions + OpenAPI
+- Consumo de ChatGPT B2:
+  GPT Actions + OpenAPI + OAuth
+- Consumo de ChatGPT Apps B1:
+  MCP remoto de lectura
 - Consumo de Claude:
   MCP remoto o tool use intermedio
 
@@ -105,9 +111,56 @@ No permitido:
 - usar cookies;
 - exponer service role key al frontend.
 
+## Principios de B2
+
+La B2 habilita escritura desde ChatGPT, pero no convierte al GPT en un
+cliente libre sobre todo el blob de estado.
+
+Permitido:
+
+- crear tareas sueltas;
+- marcar tareas como hechas o pendientes;
+- reprogramar tareas no vinculadas a agenda o planes;
+- crear habitos simples;
+- registrar cumplimiento de habitos;
+- registrar avances manuales de metas;
+- crear notas en Archivero;
+- crear items en Baul.
+
+No permitido en B2:
+
+- borrar datos;
+- editar datos masivamente;
+- mover notas, objetivos o items entre estructuras;
+- modificar Discoteca o Decoteca;
+- administrar tokens;
+- cambiar agenda, eventos, planes vinculados o estructuras sensibles.
+
+Reglas tecnicas de B2:
+
+- cada dominio tiene scope propio;
+- toda mutacion debe validar el scope requerido;
+- cada request puede traer `idempotency_key`;
+- cada mutacion aplicada se registra en `ia_mutaciones_usuario`;
+- la escritura usa control optimista de `version` sobre
+  `estado_usuario`;
+- los errores deben devolver una razon accionable para que ChatGPT
+  pida precision en vez de improvisar.
+
+Scopes B2:
+
+- `write_tasks`;
+- `write_habits`;
+- `write_metas`;
+- `write_archivero`;
+- `write_baul`.
+
+Discoteca y Decoteca quedan fuera de B2 y se evaluan para B3.
+
 ## Autenticacion
 
-La integracion inicial debe usar tokens de lectura de IA por usuario.
+La integracion usa tokens de IA por usuario, emitidos directamente o
+por el flujo OAuth de ChatGPT.
 
 Tabla nueva recomendada:
 `public.tokens_ia_usuario`
@@ -127,12 +180,16 @@ Reglas:
 
 - El token real se muestra una sola vez.
 - La base guarda solo hash SHA-256.
-- El cliente envia `X-Semaplan-AI-Token`.
+- El cliente legacy envia `X-Semaplan-AI-Token`.
+- ChatGPT Actions usa `Authorization: Bearer <token>` emitido por
+  OAuth.
 - La Edge Function hashea el token entrante y busca su hash.
 - Si el token no existe o esta revocado, rechazar.
 - Leer solo el estado del `usuario_id` asociado al token.
 - Aceptar `Authorization: Bearer <jwt>` solo como modo interno de
   prueba para la app web.
+- Para escribir, el token debe incluir el scope especifico del dominio.
+- El scope `read` sigue siendo obligatorio en toda autorizacion OAuth.
 
 ## Base URL
 
@@ -154,7 +211,7 @@ Respuesta:
 {
   "Ok": true,
   "Servicio": "Semaplan AI Gateway",
-  "Version": "1.0.0"
+  "Version": "2.0.0"
 }
 ```
 
@@ -473,6 +530,146 @@ servir esquema OpenAPI minimo para GPT Actions.
 
 Puede estar en runtime o generarse desde archivo del repo.
 
+## Contrato publico de B2
+
+Todos los endpoints B2 usan `POST`, OAuth y JSON. El token debe tener
+`read` y el scope de escritura correspondiente.
+
+### 1. `POST /b2/tareas/crear`
+
+Scope:
+`write_tasks`.
+
+Payload minimo:
+
+```json
+{
+  "nombre": "Mandar mail",
+  "fecha": "2026-07-03",
+  "hora": "11:00",
+  "cajon": "Inbox",
+  "idempotency_key": "crear-tarea-mail-2026-07-03"
+}
+```
+
+### 2. `POST /b2/tareas/marcar`
+
+Scope:
+`write_tasks`.
+
+Payload minimo:
+
+```json
+{
+  "tarea_id": "Tarea_1",
+  "hecha": true,
+  "idempotency_key": "marcar-tarea-1-hecha"
+}
+```
+
+Tambien acepta `busqueda` o `nombre` cuando no se conoce el id, pero
+si hay varias coincidencias debe fallar y pedir precision.
+
+### 3. `POST /b2/tareas/reprogramar`
+
+Scope:
+`write_tasks`.
+
+Payload minimo:
+
+```json
+{
+  "tarea_id": "Tarea_1",
+  "fecha": "2026-07-04",
+  "hora": "15:30",
+  "idempotency_key": "reprogramar-tarea-1-2026-07-04-1530"
+}
+```
+
+No reprograma tareas vinculadas a agenda o planes.
+
+### 4. `POST /b2/habitos/crear`
+
+Scope:
+`write_habits`.
+
+Payload minimo:
+
+```json
+{
+  "nombre": "Caminar",
+  "tipo": "Hacer",
+  "cantidad": 1,
+  "idempotency_key": "crear-habito-caminar"
+}
+```
+
+### 5. `POST /b2/habitos/registrar`
+
+Scope:
+`write_habits`.
+
+Payload minimo:
+
+```json
+{
+  "habito_id": "Habito_1",
+  "fecha": "2026-07-03",
+  "cantidad": 1,
+  "idempotency_key": "registrar-habito-1-2026-07-03"
+}
+```
+
+### 6. `POST /b2/metas/avance`
+
+Scope:
+`write_metas`.
+
+Payload minimo:
+
+```json
+{
+  "busqueda": "Lectura",
+  "cantidad": 30,
+  "unidad": "paginas",
+  "fecha": "2026-07-03",
+  "idempotency_key": "avance-lectura-2026-07-03"
+}
+```
+
+### 7. `POST /b2/archivero/nota`
+
+Scope:
+`write_archivero`.
+
+Payload minimo:
+
+```json
+{
+  "texto": "Idea para revisar despues.",
+  "titulo": "Idea",
+  "cajon": "Ideas",
+  "etiquetas": ["ChatGPT"],
+  "idempotency_key": "nota-idea-2026-07-03"
+}
+```
+
+### 8. `POST /b2/baul/item`
+
+Scope:
+`write_baul`.
+
+Payload minimo:
+
+```json
+{
+  "nombre": "Curso de fotografia",
+  "descripcion": "Revisar opciones.",
+  "estado": "activo",
+  "idempotency_key": "baul-curso-fotografia"
+}
+```
+
 ## Reglas de normalizacion por dominio
 
 ### Agenda
@@ -745,7 +942,7 @@ Archivos:
 Tests minimos:
 
 - OpenAPI contiene todos los endpoints de v1
-- auth declarada por header `X-Semaplan-AI-Token`
+- auth declarada por OAuth
 
 Commit recomendado:
 `Agregar OpenAPI e instrucciones GPT para semaplan-ai`
@@ -816,11 +1013,13 @@ listo y anotar exactamente el comando pendiente.
 
 Crear Custom GPT `Semaplan`.
 
-Usar GPT Actions con:
+Para B2, usar GPT Actions con:
 
 - OpenAPI de
   `Documentacion/Planes/OpenAPI_Semaplan_AI.yaml`
-- auth por API key en `X-Semaplan-AI-Token`
+- auth OAuth
+- scope completo:
+  `read write_tasks write_habits write_metas write_archivero write_baul`
 
 Instrucciones base del GPT:
 
@@ -828,7 +1027,11 @@ Instrucciones base del GPT:
 - no inventar horarios, notas, tareas, habitos ni objetivos;
 - pedir rango de fechas si la pregunta temporal es ambigua;
 - si el endpoint devuelve vacio, decirlo;
-- no modificar datos en v1.
+- escribir solo cuando el usuario pida una accion concreta;
+- no borrar datos ni operar Discoteca o Decoteca en B2.
+
+Para B1 de lectura en ChatGPT Apps, mantener el MCP remoto
+`semaplan-ai-mcp`.
 
 ## Integracion con Claude
 
@@ -865,36 +1068,46 @@ Reglas:
 - no mezclar datos entre usuarios;
 - no guardar tokens reales en base ni localStorage.
 
-## Escritura futura
+## Escritura B2 y escritura futura
 
-La escritura queda fuera de v1.
+La escritura B2 ya existe para tareas, habitos, metas, Archivero y
+Baul.
 
-Posibles scopes futuros:
+Scopes activos:
 
-- `read`
-- `write_notes`
-- `write_tasks`
-- `write_baul`
-- `write_agenda`
-- `write_habits`
-- `admin_tokens`
+- `read`;
+- `write_tasks`;
+- `write_habits`;
+- `write_metas`;
+- `write_archivero`;
+- `write_baul`.
 
-La version 1 solo debe usar `read`.
+La B2 requiere:
 
-Si algun dia entra escritura, debe requerir:
-
-- confirmacion explicita del usuario;
+- pedido explicito del usuario;
 - scopes separados;
 - auditoria;
-- undo.
+- idempotencia;
+- rechazo de acciones ambiguas;
+- control optimista de version.
+
+Queda fuera para versiones futuras:
+
+- borrado;
+- edicion masiva;
+- escritura de agenda y planes vinculados;
+- administracion de tokens;
+- Discoteca y Decoteca;
+- undo desde el GPT.
 
 ## Cierre de tarea
 
 La tarea se considera cerrada cuando existan:
 
-- API read-only segura;
-- tokens de lectura por usuario;
-- OpenAPI usable por GPT;
+- API B1 de lectura segura;
+- acciones B2 acotadas y auditadas;
+- tokens OAuth por usuario con scopes separados;
+- OpenAPI usable por GPT Actions;
 - camino documentado o implementado para Claude;
 - pruebas reportadas;
 - deploy ejecutado o comando pendiente explicitado.

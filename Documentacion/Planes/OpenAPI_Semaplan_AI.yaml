@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Semaplan AI Gateway
-  version: 1.0.0
-  description: API read-only para consultar datos normalizados de Semaplan.
+  version: 2.0.0
+  description: API para leer Semaplan y ejecutar acciones B2 desde ChatGPT.
 servers:
   - url: https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai
 components:
@@ -15,6 +15,11 @@ components:
           tokenUrl: https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai/oauth/token
           scopes:
             read: Lectura de datos del usuario en Semaplan.
+            write_tasks: Crear, marcar y reprogramar tareas.
+            write_habits: Crear habitos y registrar cumplimiento.
+            write_metas: Registrar avances de metas.
+            write_archivero: Crear notas en el Archivero.
+            write_baul: Crear items en el Baul.
   schemas:
     SemaplanRespuestaExitosa:
       type: object
@@ -360,6 +365,317 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SemaplanRespuestaExitosa"
-
-
-
+  /b2/tareas/crear:
+    post:
+      operationId: semaplan_b2_crear_tarea
+      summary: Crear una tarea en Semaplan
+      security:
+        - SemaplanAIOAuth:
+            - read
+            - write_tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre]
+              properties:
+                nombre:
+                  type: string
+                fecha:
+                  type: string
+                  format: date
+                hora:
+                  type: string
+                  pattern: "^([01]?\\d|2[0-3]):[0-5]\\d$"
+                cajon:
+                  type: string
+                prioridad:
+                  type: string
+                emoji:
+                  type: string
+                idempotency_key:
+                  type: string
+              additionalProperties: true
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
+  /b2/tareas/marcar:
+    post:
+      operationId: semaplan_b2_marcar_tarea
+      summary: Marcar una tarea como hecha o pendiente
+      security:
+        - SemaplanAIOAuth:
+            - read
+            - write_tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tarea_id:
+                  type: string
+                busqueda:
+                  type: string
+                nombre:
+                  type: string
+                hecha:
+                  type: boolean
+                  default: true
+                idempotency_key:
+                  type: string
+              additionalProperties: true
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
+  /b2/tareas/reprogramar:
+    post:
+      operationId: semaplan_b2_reprogramar_tarea
+      summary: Cambiar fecha y hora de una tarea no vinculada
+      security:
+        - SemaplanAIOAuth:
+            - read
+            - write_tasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tarea_id:
+                  type: string
+                busqueda:
+                  type: string
+                nombre:
+                  type: string
+                fecha:
+                  type: string
+                  format: date
+                hora:
+                  type: string
+                  pattern: "^([01]?\\d|2[0-3]):[0-5]\\d$"
+                sin_horario:
+                  type: boolean
+                idempotency_key:
+                  type: string
+              additionalProperties: true
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
+  /b2/habitos/crear:
+    post:
+      operationId: semaplan_b2_crear_habito
+      summary: Crear un habito simple
+      security:
+        - SemaplanAIOAuth:
+            - read
+            - write_habits
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre]
+              properties:
+                nombre:
+                  type: string
+                tipo:
+                  type: string
+                  enum: [Hacer, Evitar]
+                cantidad:
+                  type: number
+                unidad:
+                  type: string
+                emoji:
+                  type: string
+                color:
+                  type: string
+                idempotency_key:
+                  type: string
+              additionalProperties: true
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
+  /b2/habitos/registrar:
+    post:
+      operationId: semaplan_b2_registrar_habito
+      summary: Registrar cumplimiento de un habito
+      security:
+        - SemaplanAIOAuth:
+            - read
+            - write_habits
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                habito_id:
+                  type: string
+                busqueda:
+                  type: string
+                nombre:
+                  type: string
+                fecha:
+                  type: string
+                  format: date
+                cantidad:
+                  type: number
+                nota:
+                  type: string
+                idempotency_key:
+                  type: string
+              additionalProperties: true
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
+  /b2/metas/avance:
+    post:
+      operationId: semaplan_b2_registrar_avance_meta
+      summary: Registrar avance manual de una meta
+      security:
+        - SemaplanAIOAuth:
+            - read
+            - write_metas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [busqueda, cantidad]
+              properties:
+                busqueda:
+                  type: string
+                cantidad:
+                  type: number
+                unidad:
+                  type: string
+                fecha:
+                  type: string
+                  format: date
+                hora:
+                  type: string
+                  pattern: "^([01]?\\d|2[0-3]):[0-5]\\d$"
+                nota:
+                  type: string
+                idempotency_key:
+                  type: string
+              additionalProperties: true
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
+  /b2/archivero/nota:
+    post:
+      operationId: semaplan_b2_crear_nota_archivero
+      summary: Crear una nota en el Archivero
+      security:
+        - SemaplanAIOAuth:
+            - read
+            - write_archivero
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [texto]
+              properties:
+                texto:
+                  type: string
+                titulo:
+                  type: string
+                cajon_id:
+                  type: string
+                cajon:
+                  type: string
+                etiquetas:
+                  type: array
+                  items:
+                    type: string
+                origen:
+                  type: string
+                idempotency_key:
+                  type: string
+              additionalProperties: true
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"
+  /b2/baul/item:
+    post:
+      operationId: semaplan_b2_crear_item_baul
+      summary: Crear un item en el Baul
+      security:
+        - SemaplanAIOAuth:
+            - read
+            - write_baul
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre]
+              properties:
+                nombre:
+                  type: string
+                descripcion:
+                  type: string
+                estado:
+                  type: string
+                  enum: [activo, pendiente, pausado]
+                categoria_id:
+                  type: string
+                horas_aprox:
+                  type: number
+                timeline:
+                  type: string
+                  format: date
+                emoji:
+                  type: string
+                color:
+                  type: string
+                idempotency_key:
+                  type: string
+              additionalProperties: true
+      responses:
+        "200":
+          description: Respuesta exitosa.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SemaplanRespuestaExitosa"

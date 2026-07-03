@@ -1,103 +1,121 @@
 Instrucciones base para configurar Semaplan en ChatGPT.
 
-Modo recomendado actual: App MCP (no GPT por link).
+Modo recomendado para B2.
 
-Texto exacto sugerido para pegar en el campo `Instructions` del GPT:
+Usar un Custom GPT con GPT Actions y OAuth. Esta es la superficie
+adecuada para que ChatGPT pueda crear tareas, marcar hábitos,
+registrar avances, crear notas en Archivero y crear ítems en Baúl.
 
-`Documentacion/Planes/Prompt_GPT_Semaplan_AI.txt`
+La App MCP queda como B1 de lectura. Puede seguir usándose para
+consultas, pero no es la superficie recomendada para la B2 de
+escritura.
 
-Nombre sugerido:
-Semaplan
+Nombre sugerido.
 
-Base URL viva actual (gateway de lectura):
+Semaplan.
 
-`https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai`
+Texto exacto sugerido para pegar en el campo `Instructions` del GPT.
 
-URL MCP remota para ChatGPT Apps:
+`Documentacion/Planes/Prompt_GPT_Semaplan_AI.txt`.
 
-`https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai-mcp/mcp`
+Base URL viva actual.
 
-Acciones.
+`https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai`.
+
+Contrato OpenAPI para GPT Actions.
 
 1. Usar como contrato principal:
-   `Documentacion/Planes/OpenAPI_Semaplan_AI.yaml`
-
+   `Documentacion/Planes/OpenAPI_Semaplan_AI.yaml`.
 2. Si se quiere validar el contrato vivo en runtime, revisar:
-   `GET /openapi.json`
+   `GET /openapi.json`.
 
-Autenticacion recomendada (sin copiar API key por usuario).
+Autenticación recomendada.
 
-Usar OAuth en App MCP o GPT Actions.
+Usar OAuth. No copiar tokens personales en el GPT.
 
-Valores:
+Valores.
 
 - Authorization URL:
-  `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai/oauth/authorize`
+  `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai/oauth/authorize`.
 - Token URL:
-  `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai/oauth/token`
-- Scope:
-  `read`
+  `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai/oauth/token`.
+- Scope B2 completo:
+  `read write_tasks write_habits write_metas write_archivero write_baul`.
 - Client ID:
-  `semaplan-chatgpt` (o el que definas en secreto)
+  `semaplan-chatgpt` o el valor configurado en secreto.
 - Client Secret:
-  el mismo valor que guardes en `SEMAPLAN_AI_OAUTH_CLIENT_SECRET`
+  el mismo valor guardado en `SEMAPLAN_AI_OAUTH_CLIENT_SECRET`.
 
 Secrets requeridos en Supabase Functions.
 
-- `SEMAPLAN_AI_OAUTH_CLIENT_ID`
-- `SEMAPLAN_AI_OAUTH_CLIENT_SECRET`
-- `SEMAPLAN_AI_OAUTH_LOGIN_URL`
-  recomendado:
-  `https://semaplan.com/login.html`
+- `SEMAPLAN_AI_OAUTH_CLIENT_ID`.
+- `SEMAPLAN_AI_OAUTH_CLIENT_SECRET`.
+- `SEMAPLAN_AI_OAUTH_LOGIN_URL`.
+- Valor recomendado para `SEMAPLAN_AI_OAUTH_LOGIN_URL`:
+  `https://semaplan.com/login.html`.
 
-Flujo final para usuario (App MCP).
+Flujo final para usuario en B2.
 
-1. En ChatGPT, abrir `Settings -> Apps & Connectors -> Create`.
-2. Cargar la URL MCP remota de Semaplan (`.../mcp`).
-3. Elegir autenticacion OAuth y usar URLs/credenciales de arriba.
-4. Al conectar, ChatGPT redirige a Semaplan (`/oauth/authorize`) y
-   luego a `login.html`.
-5. Si el usuario no tenia sesion, inicia sesion en Semaplan.
-6. Semaplan pide confirmar permisos de lectura.
-7. Se completa OAuth y la app queda disponible para chats comunes.
+1. En ChatGPT, crear o editar el Custom GPT `Semaplan`.
+2. Pegar el contenido de `Prompt_GPT_Semaplan_AI.txt` en
+   `Instructions`.
+3. En `Actions`, pegar el contrato
+   `OpenAPI_Semaplan_AI.yaml`.
+4. Configurar autenticación OAuth con las URLs y credenciales de
+   arriba.
+5. Usar el scope B2 completo o solo los scopes que se quieran habilitar
+   para ese GPT.
+6. Guardar el callback URL que muestre ChatGPT en la configuración
+   OAuth permitida de Semaplan, si el entorno lo exige.
+7. Al conectar, ChatGPT redirige a Semaplan, el usuario inicia sesión
+   si hace falta y confirma permisos.
+8. El GPT queda habilitado para leer y ejecutar acciones B2.
 
-Compatibilidad / fallback.
+Acciones de lectura disponibles.
 
-- En ChatGPT Apps (MCP), usar OAuth para identidad de usuario.
-- En ChatGPT Actions, seguir usando OAuth (unico esquema del OpenAPI).
+- `semaplan_contexto`.
+- `semaplan_agenda`.
+- `semaplan_tareas`.
+- `semaplan_habitos`.
+- `semaplan_slots`.
+- `semaplan_plan_semana`.
+- `semaplan_planes_periodos`.
+- `semaplan_listar_archivero`.
+- `semaplan_buscar_archivero`.
+- `semaplan_listar_baul`.
+- `semaplan_listar_metas`.
+
+Acciones B2 de escritura disponibles.
+
+- `semaplan_b2_crear_tarea`.
+- `semaplan_b2_marcar_tarea`.
+- `semaplan_b2_reprogramar_tarea`.
+- `semaplan_b2_crear_habito`.
+- `semaplan_b2_registrar_habito`.
+- `semaplan_b2_registrar_avance_meta`.
+- `semaplan_b2_crear_nota_archivero`.
+- `semaplan_b2_crear_item_baul`.
+
+Alcance deliberadamente fuera de B2.
+
+- Borrar datos.
+- Ediciones masivas.
+- Cambios en Discoteca o Decoteca.
+- Cambios estructurales de agenda o planes vinculados.
+- Administración de tokens.
+
+Compatibilidad.
+
+- En ChatGPT Actions, usar OAuth y el OpenAPI de B2.
+- En ChatGPT Apps o MCP remoto, mantener el uso B1 de lectura.
 - El modo API key por `X-Semaplan-AI-Token` se mantiene para pruebas o
   scripts legacy fuera de Actions.
-- En modo OAuth, cada autorizacion crea un token de lectura interno del
-  usuario para auditar uso y revocar desde `Cuenta -> Integraciones IA`.
-
-Instrucciones sugeridas para el GPT.
-
-- Consulta Semaplan solo cuando el usuario pida datos de su sistema.
-- No inventes horarios, tareas, habitos, metas, notas ni objetivos.
-- Si una pregunta temporal es ambigua, pedi fechas concretas.
-- Si el endpoint devuelve vacio, decilo explicitamente.
-- Prioriza `/contexto` para preguntas generales.
-- Usa endpoints especificos cuando el pedido sea puntual:
-  `/agenda`, `/tareas`, `/habitos`, `/slots`, `/planes/semana`,
-  `/planes/periodos`, `/archivero`, `/archivero/buscar`, `/baul`,
-  `/metas`.
-- No intentes escribir, editar, mover ni borrar datos. La v1 es solo
-  lectura.
-- No supongas que un item existe si la API no lo devolvio.
-
-Orden sugerido de uso por tipo de consulta.
-
-- Vision general del usuario: `/contexto`
-- Agenda o disponibilidad: `/agenda` o `/slots`
-- Trabajo operativo: `/tareas` o `/habitos`
-- Planeamiento semanal: `/planes/semana`
-- Planeamiento de periodos: `/planes/periodos`
-- Memoria/notas: `/archivero` o `/archivero/buscar`
-- Backlog: `/baul`
-- Seguimiento resumido: `/metas`
+- En modo OAuth, cada autorización crea un token interno del usuario
+  para auditar uso y revocar desde `Cuenta -> Integraciones IA`.
 
 Notas.
 
-- `GET /salud` sirve solo para chequeo tecnico.
+- `GET /salud` sirve solo para chequeo técnico.
 - `GET /openapi.json` no expone datos del usuario y puede usarse como
   referencia viva del contrato.
+- La B2 registra mutaciones con idempotencia y auditoría en Supabase.

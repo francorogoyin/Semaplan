@@ -1,5 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+type Mapa = Record<string, unknown>;
+
 const Cors_Headers = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -14,6 +16,7 @@ type Auth_Resultado =
     Ok: true;
     Usuario_Id: string;
     Fuente: "jwt" | "token" | "oauth";
+    Scopes: string[];
   }
   | {
     Ok: false;
@@ -72,6 +75,19 @@ const Claves_Estado_Seguras = new Set([
 ]);
 
 const OAUTH_SCOPE_LECTURA = "read";
+const OAUTH_SCOPE_TAREAS = "write_tasks";
+const OAUTH_SCOPE_HABITOS = "write_habits";
+const OAUTH_SCOPE_METAS = "write_metas";
+const OAUTH_SCOPE_ARCHIVERO = "write_archivero";
+const OAUTH_SCOPE_BAUL = "write_baul";
+const OAUTH_SCOPES_SOPORTADOS = new Set([
+  OAUTH_SCOPE_LECTURA,
+  OAUTH_SCOPE_TAREAS,
+  OAUTH_SCOPE_HABITOS,
+  OAUTH_SCOPE_METAS,
+  OAUTH_SCOPE_ARCHIVERO,
+  OAUTH_SCOPE_BAUL,
+]);
 const OAUTH_RESPONSE_TYPE_CODIGO = "code";
 const OAUTH_AUTH_CODE_EXPIRA_SEGUNDOS = 300;
 const OAUTH_ACCESS_TOKEN_EXPIRA_SEGUNDOS =
@@ -224,14 +240,63 @@ function Construir_OpenAPI_Semaplan_IA(
       SemaplanAIOAuth: [OAUTH_SCOPE_LECTURA],
     },
   ];
+  const Seguridad_Escritura = (Scope: string) => [
+    {
+      SemaplanAIOAuth: [
+        OAUTH_SCOPE_LECTURA,
+        Scope,
+      ],
+    },
+  ];
+  const Respuestas_B2 = {
+    "200": Respuesta_200,
+    "400": Respuesta_Error,
+    "401": Respuesta_Error,
+    "403": Respuesta_Error,
+    "405": Respuesta_Error,
+    "409": Respuesta_Error,
+  };
+  const Body_B2 = (Schema: Mapa) => ({
+    required: true,
+    content: {
+      "application/json": {
+        schema: Schema,
+      },
+    },
+  });
+  const Post_B2 = (
+    Operation_Id: string,
+    Summary: string,
+    Scope: string,
+    Schema: Mapa
+  ) => ({
+    post: {
+      operationId: Operation_Id,
+      summary: Summary,
+      security: Seguridad_Escritura(Scope),
+      requestBody: Body_B2(Schema),
+      responses: Respuestas_B2,
+    },
+  });
+  const Schema_Base_B2 = {
+    type: "object",
+    properties: {
+      idempotency_key: {
+        type: "string",
+        description:
+          "Clave opcional para evitar repetir la misma mutacion.",
+      },
+    },
+    additionalProperties: true,
+  };
 
   return {
     openapi: "3.1.0",
     info: {
       title: "Semaplan AI Gateway",
-      version: "1.0.0",
+      version: "2.0.0",
       description:
-        "API read-only para consultar datos normalizados de Semaplan desde GPT u otros clientes.",
+        "API para leer Semaplan y ejecutar acciones B2 desde ChatGPT.",
     },
     servers: [
       {
@@ -284,6 +349,16 @@ function Construir_OpenAPI_Semaplan_IA(
               scopes: {
                 [OAUTH_SCOPE_LECTURA]:
                   "Lectura de datos del usuario en Semaplan.",
+                [OAUTH_SCOPE_TAREAS]:
+                  "Crear, marcar y reprogramar tareas.",
+                [OAUTH_SCOPE_HABITOS]:
+                  "Crear habitos y registrar cumplimiento.",
+                [OAUTH_SCOPE_METAS]:
+                  "Registrar avances de metas.",
+                [OAUTH_SCOPE_ARCHIVERO]:
+                  "Crear notas en el Archivero.",
+                [OAUTH_SCOPE_BAUL]:
+                  "Crear items en el Baul.",
               },
             },
           },
@@ -708,6 +783,162 @@ function Construir_OpenAPI_Semaplan_IA(
           },
         },
       },
+      "/b2/tareas/crear": Post_B2(
+        "semaplan_b2_crear_tarea",
+        "Crear una tarea en Semaplan",
+        OAUTH_SCOPE_TAREAS,
+        {
+          ...Schema_Base_B2,
+          required: ["nombre"],
+          properties: {
+            ...Schema_Base_B2.properties,
+            nombre: { type: "string" },
+            fecha: { type: "string", format: "date" },
+            hora: {
+              type: "string",
+              pattern: "^([01]?\\d|2[0-3]):[0-5]\\d$",
+            },
+            cajon: { type: "string" },
+            prioridad: { type: "string" },
+            emoji: { type: "string" },
+          },
+        },
+      ),
+      "/b2/tareas/marcar": Post_B2(
+        "semaplan_b2_marcar_tarea",
+        "Marcar una tarea como hecha o pendiente",
+        OAUTH_SCOPE_TAREAS,
+        {
+          ...Schema_Base_B2,
+          properties: {
+            ...Schema_Base_B2.properties,
+            tarea_id: { type: "string" },
+            busqueda: { type: "string" },
+            nombre: { type: "string" },
+            hecha: { type: "boolean", default: true },
+          },
+        },
+      ),
+      "/b2/tareas/reprogramar": Post_B2(
+        "semaplan_b2_reprogramar_tarea",
+        "Cambiar fecha y hora de una tarea no vinculada",
+        OAUTH_SCOPE_TAREAS,
+        {
+          ...Schema_Base_B2,
+          properties: {
+            ...Schema_Base_B2.properties,
+            tarea_id: { type: "string" },
+            busqueda: { type: "string" },
+            nombre: { type: "string" },
+            fecha: { type: "string", format: "date" },
+            hora: {
+              type: "string",
+              pattern: "^([01]?\\d|2[0-3]):[0-5]\\d$",
+            },
+            sin_horario: { type: "boolean" },
+          },
+        },
+      ),
+      "/b2/habitos/crear": Post_B2(
+        "semaplan_b2_crear_habito",
+        "Crear un habito simple",
+        OAUTH_SCOPE_HABITOS,
+        {
+          ...Schema_Base_B2,
+          required: ["nombre"],
+          properties: {
+            ...Schema_Base_B2.properties,
+            nombre: { type: "string" },
+            tipo: { type: "string", enum: ["Hacer", "Evitar"] },
+            cantidad: { type: "number" },
+            unidad: { type: "string" },
+            emoji: { type: "string" },
+            color: { type: "string" },
+          },
+        },
+      ),
+      "/b2/habitos/registrar": Post_B2(
+        "semaplan_b2_registrar_habito",
+        "Registrar cumplimiento de un habito",
+        OAUTH_SCOPE_HABITOS,
+        {
+          ...Schema_Base_B2,
+          properties: {
+            ...Schema_Base_B2.properties,
+            habito_id: { type: "string" },
+            busqueda: { type: "string" },
+            nombre: { type: "string" },
+            fecha: { type: "string", format: "date" },
+            cantidad: { type: "number" },
+            nota: { type: "string" },
+          },
+        },
+      ),
+      "/b2/metas/avance": Post_B2(
+        "semaplan_b2_registrar_avance_meta",
+        "Registrar avance manual de una meta",
+        OAUTH_SCOPE_METAS,
+        {
+          ...Schema_Base_B2,
+          required: ["busqueda", "cantidad"],
+          properties: {
+            ...Schema_Base_B2.properties,
+            busqueda: { type: "string" },
+            cantidad: { type: "number" },
+            unidad: { type: "string" },
+            fecha: { type: "string", format: "date" },
+            hora: {
+              type: "string",
+              pattern: "^([01]?\\d|2[0-3]):[0-5]\\d$",
+            },
+            nota: { type: "string" },
+          },
+        },
+      ),
+      "/b2/archivero/nota": Post_B2(
+        "semaplan_b2_crear_nota_archivero",
+        "Crear una nota en el Archivero",
+        OAUTH_SCOPE_ARCHIVERO,
+        {
+          ...Schema_Base_B2,
+          required: ["texto"],
+          properties: {
+            ...Schema_Base_B2.properties,
+            texto: { type: "string" },
+            titulo: { type: "string" },
+            cajon_id: { type: "string" },
+            cajon: { type: "string" },
+            etiquetas: {
+              type: "array",
+              items: { type: "string" },
+            },
+            origen: { type: "string" },
+          },
+        },
+      ),
+      "/b2/baul/item": Post_B2(
+        "semaplan_b2_crear_item_baul",
+        "Crear un item en el Baul",
+        OAUTH_SCOPE_BAUL,
+        {
+          ...Schema_Base_B2,
+          required: ["nombre"],
+          properties: {
+            ...Schema_Base_B2.properties,
+            nombre: { type: "string" },
+            descripcion: { type: "string" },
+            estado: {
+              type: "string",
+              enum: ["activo", "pendiente", "pausado"],
+            },
+            categoria_id: { type: "string" },
+            horas_aprox: { type: "number" },
+            timeline: { type: "string", format: "date" },
+            emoji: { type: "string" },
+            color: { type: "string" },
+          },
+        },
+      ),
     },
   };
 }
@@ -780,9 +1011,16 @@ async function Hash_Token(Token: string) {
 function Tiene_Scope_Lectura(
   Scopes: unknown
 ) {
+  return Tiene_Scope(Scopes, OAUTH_SCOPE_LECTURA);
+}
+
+function Tiene_Scope(
+  Scopes: unknown,
+  Scope_Requerido: string
+) {
   return Array.isArray(Scopes) &&
     Scopes.some((Scope) =>
-      String(Scope || "").trim() === "read"
+      String(Scope || "").trim() === Scope_Requerido
     );
 }
 
@@ -799,6 +1037,14 @@ function Normalizar_Scopes_OAuth(
     return [OAUTH_SCOPE_LECTURA];
   }
   return Array.from(Unicos);
+}
+
+function Hay_Scopes_OAuth_Desconocidos(
+  Scopes: string[]
+) {
+  return Scopes.some((Scope) =>
+    !OAUTH_SCOPES_SOPORTADOS.has(Scope)
+  );
 }
 
 function Generar_Secreto_Token(
@@ -900,6 +1146,16 @@ async function Validar_Token_IA_Por_Valor(
       })
       .eq("id", Token_Registro.id);
 
+    const Scopes = Array.isArray(
+      Token_Registro.scopes
+    )
+      ? Token_Registro.scopes
+        .map((Scope) =>
+          String(Scope || "").trim()
+        )
+        .filter(Boolean)
+      : [];
+
     return {
       Encontrado: true,
       Resultado: {
@@ -908,6 +1164,7 @@ async function Validar_Token_IA_Por_Valor(
           Token_Registro.usuario_id
         ),
         Fuente: Fuente_Exito,
+        Scopes,
       },
     };
   } catch (Error_General) {
@@ -1008,6 +1265,7 @@ async function Validar_Request(
         Ok: true,
         Usuario_Id: Usuario.id,
         Fuente: "jwt",
+        Scopes: [OAUTH_SCOPE_LECTURA],
       };
     } catch (Error_General) {
       console.error(
@@ -2570,7 +2828,7 @@ function Construir_Metas_Normalizadas_IA(
         .filter((Evento) =>
           Evento && typeof Evento === "object"
         )
-        .reduce((Total, Evento) => {
+        .reduce<number>((Total, Evento) => {
           const Base_Evento =
             Evento as Record<string, unknown>;
           if (Base_Evento.Hecho !== true) {
@@ -4779,6 +5037,1114 @@ function Responder_Contexto(
   });
 }
 
+type Estado_Completo_B2 =
+  | {
+    Ok: true;
+    Estado: Mapa;
+    Version: number;
+    Actualizado_En: string | null;
+  }
+  | {
+    Ok: false;
+    Status: number;
+    Error: string;
+    Detalle: string;
+  };
+
+type Resultado_Mutacion_B2 = {
+  Respuesta: string;
+  Resultado?: Mapa;
+  Cambios?: boolean;
+  Status?: number;
+  Error?: string;
+};
+
+type Handler_B2 = (
+  Estado: Mapa,
+  Payload: Mapa,
+) => Resultado_Mutacion_B2;
+
+const Timezone_Argentina = "America/Argentina/Buenos_Aires";
+
+const Rutas_B2: Record<string, {
+  Scope: string;
+  Accion: string;
+  Handler: Handler_B2;
+}> = {
+  "/b2/tareas/crear": {
+    Scope: OAUTH_SCOPE_TAREAS,
+    Accion: "crear_tarea",
+    Handler: B2_Crear_Tarea,
+  },
+  "/b2/tareas/marcar": {
+    Scope: OAUTH_SCOPE_TAREAS,
+    Accion: "marcar_tarea",
+    Handler: B2_Marcar_Tarea,
+  },
+  "/b2/tareas/reprogramar": {
+    Scope: OAUTH_SCOPE_TAREAS,
+    Accion: "reprogramar_tarea",
+    Handler: B2_Reprogramar_Tarea,
+  },
+  "/b2/habitos/crear": {
+    Scope: OAUTH_SCOPE_HABITOS,
+    Accion: "crear_habito",
+    Handler: B2_Crear_Habito,
+  },
+  "/b2/habitos/registrar": {
+    Scope: OAUTH_SCOPE_HABITOS,
+    Accion: "registrar_habito",
+    Handler: B2_Registrar_Habito,
+  },
+  "/b2/metas/avance": {
+    Scope: OAUTH_SCOPE_METAS,
+    Accion: "registrar_avance_meta",
+    Handler: B2_Registrar_Avance_Meta,
+  },
+  "/b2/archivero/nota": {
+    Scope: OAUTH_SCOPE_ARCHIVERO,
+    Accion: "crear_nota_archivero",
+    Handler: B2_Crear_Nota_Archivero,
+  },
+  "/b2/baul/item": {
+    Scope: OAUTH_SCOPE_BAUL,
+    Accion: "crear_item_baul",
+    Handler: B2_Crear_Item_Baul,
+  },
+};
+
+async function Leer_Body_Json_B2(
+  Req: Request
+): Promise<Mapa> {
+  try {
+    const Json = await Req.json();
+    return Es_Mapa_B2(Json) ? Json : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+async function Responder_B2(
+  Req: Request,
+  Auth: Extract<Auth_Resultado, { Ok: true }>,
+  Config: typeof Rutas_B2[string],
+) {
+  if (!Tiene_Scope(Auth.Scopes, Config.Scope)) {
+    return Responder_Error(
+      403,
+      "Scope insuficiente",
+      `La accion requiere ${Config.Scope}.`
+    );
+  }
+  const Payload = await Leer_Body_Json_B2(Req);
+  return await Mutar_Estado_B2(
+    Auth.Usuario_Id,
+    Config.Accion,
+    Config.Scope,
+    Payload,
+    (Estado) => Config.Handler(Estado, Payload)
+  );
+}
+
+async function Leer_Estado_Usuario_Completo_B2(
+  Usuario_Id: string
+): Promise<Estado_Completo_B2> {
+  try {
+    const Supa_Servicio = Crear_Supabase_Servicio();
+    const { data, error } = await Supa_Servicio
+      .from("estado_usuario")
+      .select("estado, version, actualizado_en")
+      .eq("user_id", Usuario_Id)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      return {
+        Ok: false,
+        Status: 404,
+        Error: "Estado inexistente",
+        Detalle: "No existe un estado remoto para el usuario.",
+      };
+    }
+    return {
+      Ok: true,
+      Estado: Es_Mapa_B2(data.estado) ? data.estado as Mapa : {},
+      Version: Number(data.version) || 1,
+      Actualizado_En:
+        typeof data.actualizado_en === "string"
+          ? data.actualizado_en
+          : null,
+    };
+  } catch (Error_General) {
+    console.error("Error leyendo estado B2:", Error_General);
+    return {
+      Ok: false,
+      Status: 500,
+      Error: "Error interno",
+      Detalle: "No se pudo leer el estado completo del usuario.",
+    };
+  }
+}
+
+async function Mutar_Estado_B2(
+  Usuario_Id: string,
+  Accion: string,
+  Scope: string,
+  Payload: Mapa,
+  Mutador: (Estado: Mapa) => Resultado_Mutacion_B2,
+  Intento = 0
+) {
+  const Idempotency_Key = Obtener_Idempotency_Key_B2(Payload);
+  if (Intento === 0 && Idempotency_Key) {
+    const Existente = await Leer_Mutacion_Idempotente_B2(
+      Usuario_Id,
+      Idempotency_Key
+    );
+    if (Existente) {
+      return Responder_Json({
+        Ok: true,
+        Repetida: true,
+        Accion,
+        Resultado: Existente.resultado || {},
+      });
+    }
+  }
+
+  const Fila = await Leer_Estado_Usuario_Completo_B2(Usuario_Id);
+  if (!Fila.Ok) {
+    return Responder_Error(Fila.Status, Fila.Error, Fila.Detalle);
+  }
+
+  const Estado_Antes = Clonar_B2(Fila.Estado);
+  const Estado = Clonar_B2(Fila.Estado);
+  const Resultado = Mutador(Estado);
+  if (Resultado.Cambios === false) {
+    return Responder_Error(
+      Resultado.Status || 400,
+      Resultado.Error || "Cambio no aplicado",
+      Resultado.Respuesta
+    );
+  }
+
+  Estado.Sync_Datos_Marca_Ms = Date.now();
+  const Supa_Servicio = Crear_Supabase_Servicio();
+  const { data, error } = await Supa_Servicio
+    .from("estado_usuario")
+    .update({
+      estado: Estado,
+      version: Fila.Version + 1,
+    })
+    .eq("user_id", Usuario_Id)
+    .eq("version", Fila.Version)
+    .select("version")
+    .maybeSingle();
+  if (error) {
+    console.error("Error guardando mutacion B2:", error);
+    return Responder_Error(
+      500,
+      "Error interno",
+      "No se pudo guardar la mutacion B2."
+    );
+  }
+  if (!data) {
+    if (Intento < 1) {
+      return await Mutar_Estado_B2(
+        Usuario_Id,
+        Accion,
+        Scope,
+        Payload,
+        Mutador,
+        Intento + 1
+      );
+    }
+    return Responder_Error(
+      409,
+      "Conflicto de version",
+      "El estado remoto cambio al mismo tiempo. Reintenta."
+    );
+  }
+
+  await Registrar_Mutacion_B2({
+    Usuario_Id,
+    Accion,
+    Scope,
+    Idempotency_Key,
+    Payload,
+    Resultado: Resultado.Resultado || {},
+    Version_Antes: Fila.Version,
+    Version_Despues: Number(data.version) || Fila.Version + 1,
+    Estado_Antes,
+  });
+
+  return Responder_Json({
+    Ok: true,
+    Accion,
+    Respuesta: Resultado.Respuesta,
+    Resultado: Resultado.Resultado || {},
+    Version: Number(data.version) || Fila.Version + 1,
+  });
+}
+
+async function Leer_Mutacion_Idempotente_B2(
+  Usuario_Id: string,
+  Idempotency_Key: string
+) {
+  try {
+    const Supa_Servicio = Crear_Supabase_Servicio();
+    const { data, error } = await Supa_Servicio
+      .from("ia_mutaciones_usuario")
+      .select("resultado")
+      .eq("usuario_id", Usuario_Id)
+      .eq("idempotency_key", Idempotency_Key)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  } catch (Error_General) {
+    console.error("Error leyendo idempotencia B2:", Error_General);
+    return null;
+  }
+}
+
+async function Registrar_Mutacion_B2(
+  Datos: {
+    Usuario_Id: string;
+    Accion: string;
+    Scope: string;
+    Idempotency_Key: string;
+    Payload: Mapa;
+    Resultado: Mapa;
+    Version_Antes: number;
+    Version_Despues: number;
+    Estado_Antes: Mapa;
+  }
+) {
+  try {
+    const Supa_Servicio = Crear_Supabase_Servicio();
+    const { error } = await Supa_Servicio
+      .from("ia_mutaciones_usuario")
+      .insert({
+        usuario_id: Datos.Usuario_Id,
+        origen: "chatgpt",
+        accion: Datos.Accion,
+        scope: Datos.Scope,
+        idempotency_key: Datos.Idempotency_Key || null,
+        payload: Datos.Payload,
+        resultado: Datos.Resultado,
+        estado: "aplicado",
+        version_antes: Datos.Version_Antes,
+        version_despues: Datos.Version_Despues,
+        estado_antes: Datos.Estado_Antes,
+      });
+    if (error) throw error;
+  } catch (Error_General) {
+    console.error("Error registrando auditoria B2:", Error_General);
+  }
+}
+
+function B2_Crear_Tarea(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Nombre = Leer_String_B2(Payload, "nombre", "Nombre");
+  if (!Nombre) return Error_Mutacion_B2("La tarea necesita nombre.");
+  const Fecha = Leer_Fecha_B2(Payload, "fecha", "Fecha", "");
+  const Hora = Leer_Hora_B2(Payload, "hora", "Hora", "");
+  const Cajon = Leer_String_B2(Payload, "cajon", "Cajon") ||
+    "Inbox";
+  const Tareas = Asegurar_Array_B2(Estado, "Tareas");
+  const Ahora = new Date().toISOString();
+  const Tarea = {
+    Tipo_Dato: "Tarea",
+    Id: Crear_Id_B2("Tarea"),
+    Emoji: Leer_String_B2(Payload, "emoji", "Emoji") || "\u2022",
+    Nombre,
+    Cajon,
+    Prioridad:
+      Leer_String_B2(Payload, "prioridad", "Prioridad") || "baja",
+    Estado: "pendiente",
+    Fecha,
+    Hora,
+    Planeada: false,
+    Evento_Id: "",
+    Abordaje_Id: "",
+    Plan_Clave: "",
+    Plan_Item_Id: "",
+    Fecha_Creacion: Ahora,
+    Fecha_Actualizacion: Ahora,
+    Fecha_Completado: "",
+  };
+  Tareas.push(Tarea);
+  Asegurar_Cajon_Tareas_B2(Estado, Cajon);
+  return {
+    Respuesta: `Tarea creada: ${Nombre}.`,
+    Resultado: { tarea_id: Tarea.Id },
+  };
+}
+
+function B2_Marcar_Tarea(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Tareas = Asegurar_Array_B2(Estado, "Tareas");
+  const Busqueda = Buscar_Item_B2(
+    Tareas,
+    Payload,
+    "tarea_id",
+    "Nombre"
+  );
+  if (Busqueda.Ok !== true) return Busqueda.Respuesta;
+  const Tarea = Busqueda.Item;
+  const Hecha = Leer_Boolean_B2(Payload, true, "hecha", "Hecha");
+  const Estado_Nuevo = Hecha ? "completada" : "pendiente";
+  const Ahora = new Date().toISOString();
+  Tarea.Estado = Estado_Nuevo;
+  Tarea.Fecha_Actualizacion = Ahora;
+  Tarea.Fecha_Completado = Hecha ? Ahora : "";
+  return {
+    Respuesta: Hecha
+      ? `Tarea marcada como hecha: ${Tarea.Nombre}.`
+      : `Tarea marcada como pendiente: ${Tarea.Nombre}.`,
+    Resultado: { tarea_id: Tarea.Id, estado: Estado_Nuevo },
+  };
+}
+
+function B2_Reprogramar_Tarea(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Tareas = Asegurar_Array_B2(Estado, "Tareas");
+  const Busqueda = Buscar_Item_B2(
+    Tareas,
+    Payload,
+    "tarea_id",
+    "Nombre"
+  );
+  if (Busqueda.Ok !== true) return Busqueda.Respuesta;
+  const Tarea = Busqueda.Item;
+  if (Tarea_Esta_Vinculada_B2(Tarea)) {
+    return Error_Mutacion_B2(
+      "Esa tarea esta vinculada a agenda o planes. " +
+        "Cambiala desde Semaplan para no romper vinculos."
+    );
+  }
+  const Sin_Horario = Leer_Boolean_B2(
+    Payload,
+    false,
+    "sin_horario",
+    "Sin_Horario"
+  );
+  const Fecha = Leer_Fecha_B2(
+    Payload,
+    "fecha",
+    "Fecha",
+    String(Tarea.Fecha || "") || Fecha_Argentina_B2()
+  );
+  const Hora = Sin_Horario
+    ? ""
+    : Leer_Hora_B2(Payload, "hora", "Hora", "");
+  if (!Sin_Horario && !Hora) {
+    return Error_Mutacion_B2("Necesito una hora para reprogramar.");
+  }
+  Tarea.Fecha = Sin_Horario ? "" : Fecha;
+  Tarea.Hora = Hora;
+  Tarea.Planeada = false;
+  Tarea.Evento_Id = "";
+  Tarea.Abordaje_Id = "";
+  Tarea.Plan_Clave = "";
+  Tarea.Plan_Item_Id = "";
+  Tarea.Fecha_Actualizacion = new Date().toISOString();
+  return {
+    Respuesta: Sin_Horario
+      ? `Horario quitado de tarea: ${Tarea.Nombre}.`
+      : `Tarea reprogramada: ${Tarea.Nombre} ${Fecha} ${Hora}.`,
+    Resultado: { tarea_id: Tarea.Id, fecha: Tarea.Fecha, hora: Hora },
+  };
+}
+
+function B2_Crear_Habito(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Nombre = Leer_String_B2(Payload, "nombre", "Nombre");
+  if (!Nombre) return Error_Mutacion_B2("El habito necesita nombre.");
+  const Habitos = Asegurar_Array_B2(Estado, "Habitos");
+  const Habito = {
+    Id: Crear_Id_B2("Habito"),
+    Nombre,
+    Emoji: Leer_String_B2(Payload, "emoji", "Emoji") || "\u2022",
+    Color: Leer_String_B2(Payload, "color", "Color") || "#426f94",
+    Activo: true,
+    Archivado: false,
+    Fecha_Inicio: Fecha_Argentina_B2(),
+    Tipo: Leer_String_B2(Payload, "tipo", "Tipo") || "Hacer",
+    Programacion: {
+      Tipo: "Libre",
+      Dias: [],
+      Horas: [],
+      Desde: 0,
+      Hasta: 0,
+    },
+    Meta: {
+      Modo: "Check",
+      Regla: "Al_Menos",
+      Periodo: "Dia",
+      Cantidad:
+        Leer_Numero_B2(Payload, "cantidad", "Cantidad") || 1,
+      Cantidad_Maxima: 1,
+      Unidad: Leer_String_B2(Payload, "unidad", "Unidad"),
+    },
+    Orden: Habitos.length,
+    Orden_Manual: false,
+  };
+  Habitos.push(Habito);
+  return {
+    Respuesta: `Habito creado: ${Nombre}.`,
+    Resultado: { habito_id: Habito.Id },
+  };
+}
+
+function B2_Registrar_Habito(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Habitos = Asegurar_Array_B2(Estado, "Habitos");
+  const Registros = Asegurar_Array_B2(Estado, "Habitos_Registros");
+  const Busqueda = Buscar_Item_B2(
+    Habitos,
+    Payload,
+    "habito_id",
+    "Nombre"
+  );
+  if (Busqueda.Ok !== true) return Busqueda.Respuesta;
+  const Habito = Busqueda.Item;
+  const Fecha = Leer_Fecha_B2(
+    Payload,
+    "fecha",
+    "Fecha",
+    Fecha_Argentina_B2()
+  );
+  const Hora = Hora_Argentina_B2();
+  const Periodo_Clave = Habito_Clave_Periodo_B2(Habito, Fecha);
+  const Cantidad_Base =
+    Leer_Numero_B2(Payload, "cantidad", "Cantidad") ??
+    Numero_Desde_Mapa_B2(Habito.Meta, "Cantidad", 1);
+  const Cantidad = String(Habito.Tipo || "") === "Evitar"
+    ? 0
+    : Math.max(0, Cantidad_Base);
+  const Fuente = "ChatGPT";
+  const Fuente_Id = Crear_Id_B2("ChatGPT_Habito");
+  Registros.push({
+    Id: Crear_Id_B2("Habito_Reg"),
+    Habito_Id: String(Habito.Id || ""),
+    Fecha,
+    Hora,
+    Fecha_Hora: `${Fecha}T${Hora}`,
+    Periodo_Clave,
+    Fuente,
+    Fuente_Id,
+    Cantidad,
+    Unidad: Habito_Unidad_B2(Habito),
+    Nota: Leer_String_B2(Payload, "nota", "Nota") || "ChatGPT",
+    Skip: false,
+  });
+  return {
+    Respuesta: `Habito registrado: ${Habito.Nombre} (${Fecha}).`,
+    Resultado: { habito_id: Habito.Id, fecha: Fecha },
+  };
+}
+
+function B2_Registrar_Avance_Meta(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Nombre = Leer_String_B2(
+    Payload,
+    "busqueda",
+    "nombre",
+    "Nombre"
+  );
+  const Cantidad = Leer_Numero_B2(Payload, "cantidad", "Cantidad") || 0;
+  if (!Nombre || Cantidad <= 0) {
+    return Error_Mutacion_B2(
+      "El avance necesita nombre de meta y cantidad positiva."
+    );
+  }
+  const Modelo = Obtener_Modelo_Planes_B2(Estado);
+  if (!Modelo) return Error_Mutacion_B2("No encontre Planes_Periodo.");
+  const Busqueda = Buscar_Item_Meta_B2(Modelo, Nombre);
+  if (Busqueda.Ok !== true) return Busqueda.Respuesta;
+  const Item = Busqueda.Item;
+  const Id = Crear_Id_B2("Plan_Avance");
+  const Fecha = Leer_Fecha_B2(
+    Payload,
+    "fecha",
+    "Fecha",
+    Fecha_Argentina_B2()
+  );
+  const Hora = Leer_Hora_B2(
+    Payload,
+    "hora",
+    "Hora",
+    Hora_Argentina_B2()
+  );
+  const Avances = Modelo.Avances as Mapa;
+  Avances[Id] = {
+    Id,
+    Objetivo_Id: String(Item.Objetivo_Id || ""),
+    Subobjetivo_Id: String(Item.Subobjetivo_Id || ""),
+    Parte_Id: String(Item.Parte_Id || ""),
+    Fuente: Item.Tipo === "Objetivo" ? "Manual" : "Subobjetivo",
+    Cantidad,
+    Cantidad_Total: 0,
+    Unidad:
+      Leer_String_B2(Payload, "unidad", "Unidad") ||
+      String(Item.Unidad || ""),
+    Fecha,
+    Hora,
+    Fecha_Hora: `${Fecha}T${Hora || "00:00"}`,
+    Nota: Leer_String_B2(Payload, "nota", "Nota") || "ChatGPT",
+    Origen_Tipo: "ChatGPT",
+    Origen_Id: Id,
+    Origen_Objetivo_Semanal_Id: "",
+    Origen_Subobjetivo_Semanal_Id: "",
+    Automatico: false,
+    Distribucion: [],
+    Orden: Object.keys(Avances).length,
+    Creado_En: new Date().toISOString(),
+    Actualizado_En: new Date().toISOString(),
+  };
+  Estado.Planes_Periodo = Modelo;
+  return {
+    Respuesta: `Avance de meta registrado: ${Item.Nombre}.`,
+    Resultado: { avance_id: Id },
+  };
+}
+
+function B2_Crear_Nota_Archivero(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Texto = Leer_String_B2(Payload, "texto", "Texto");
+  if (!Texto) return Error_Mutacion_B2("La nota necesita texto.");
+  const Archiveros = Asegurar_Array_B2(Estado, "Archiveros");
+  if (Archiveros.length === 0) {
+    Archiveros.push({
+      Id: Crear_Id_Archivero_B2(),
+      Nombre: "Ideas",
+      Emoji: "\u{1f4a1}",
+      Color_Fondo: "",
+      Fecha_Creacion: Date.now(),
+    });
+  }
+  const Cajon_Id = Resolver_Cajon_Archivero_B2(Archiveros, Payload);
+  if (!Cajon_Id) return Error_Mutacion_B2("No encontre el cajon.");
+  const Etiquetas = Normalizar_Etiquetas_Archivero_B2(
+    Leer_Array_String_B2(Payload, "etiquetas", "Etiquetas")
+  );
+  Estado.Etiquetas_Archivero = Normalizar_Etiquetas_Archivero_B2([
+    ...Leer_Array_String_Estado_B2(Estado, "Etiquetas_Archivero"),
+    ...Etiquetas,
+  ]);
+  const Notas = Asegurar_Array_B2(Estado, "Notas_Archivero");
+  const Nota = {
+    Id: Crear_Id_Archivero_B2(),
+    Archivero_Id: Cajon_Id,
+    Titulo: Leer_String_B2(Payload, "titulo", "Titulo"),
+    Texto,
+    Origen: Leer_String_B2(Payload, "origen", "Origen") || "ChatGPT",
+    Etiquetas,
+    Adjuntos: [],
+    Color_Fondo: "",
+    Tipo: Es_URL_Archivero_B2(Texto) ? "Link" : "Texto",
+    Fecha_Creacion: Date.now(),
+  };
+  Notas.push(Nota);
+  return {
+    Respuesta: "Nota creada en Archivero.",
+    Resultado: { nota_id: Nota.Id, archivero_id: Cajon_Id },
+  };
+}
+
+function B2_Crear_Item_Baul(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Nombre = Leer_String_B2(Payload, "nombre", "Nombre");
+  if (!Nombre) return Error_Mutacion_B2("El item necesita nombre.");
+  const Items = Asegurar_Array_B2(Estado, "Baul_Objetivos");
+  const Item = {
+    Id: Crear_Id_B2("Baul"),
+    Nombre,
+    Emoji: Leer_String_B2(Payload, "emoji", "Emoji"),
+    Es_Bolsa: false,
+    Categoria_Id: Leer_String_B2(
+      Payload,
+      "categoria_id",
+      "Categoria_Id"
+    ) || null,
+    Etiquetas_Ids: [],
+    Metadatos: {},
+    Estado:
+      Normalizar_Estado_Baul_B2(
+        Leer_String_B2(Payload, "estado", "Estado")
+      ),
+    Archivada: false,
+    Color_Baul: Leer_String_B2(Payload, "color", "Color"),
+    Descripcion:
+      Leer_String_B2(Payload, "descripcion", "Descripcion"),
+    Horas_Aprox:
+      Math.max(0, Leer_Numero_B2(
+        Payload,
+        "horas_aprox",
+        "Horas_Aprox"
+      ) || 0),
+    Timeline: Leer_Fecha_B2(Payload, "timeline", "Timeline", ""),
+    Orden_Personalizado: Items.length,
+    Creado_En: new Date().toISOString(),
+    Actualizado_En: new Date().toISOString(),
+  };
+  Items.push(Item);
+  return {
+    Respuesta: `Item creado en Baul: ${Nombre}.`,
+    Resultado: { baul_id: Item.Id },
+  };
+}
+
+function Error_Mutacion_B2(
+  Respuesta: string,
+  Status = 400
+): Resultado_Mutacion_B2 {
+  return {
+    Respuesta,
+    Cambios: false,
+    Status,
+  };
+}
+
+function Es_Mapa_B2(Valor: unknown): Valor is Mapa {
+  return Boolean(
+    Valor &&
+    typeof Valor === "object" &&
+    !Array.isArray(Valor)
+  );
+}
+
+function Clonar_B2<T>(Valor: T): T {
+  return JSON.parse(JSON.stringify(Valor || {}));
+}
+
+function Crear_Id_B2(Prefijo: string) {
+  return `${Prefijo}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+}
+
+function Crear_Id_Archivero_B2() {
+  return `ar_${Date.now().toString(36)}_${
+    Math.random().toString(36).slice(2, 7)
+  }`;
+}
+
+function Fecha_Argentina_B2(Offset_Dias = 0) {
+  const Partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: Timezone_Argentina,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const Mapa_Partes = Object.fromEntries(
+    Partes.map((Parte) => [Parte.type, Parte.value])
+  );
+  const Fecha = new Date(
+    `${Mapa_Partes.year}-${Mapa_Partes.month}-` +
+      `${Mapa_Partes.day}T00:00:00-03:00`
+  );
+  Fecha.setDate(Fecha.getDate() + Offset_Dias);
+  return Fecha.toISOString().slice(0, 10);
+}
+
+function Hora_Argentina_B2() {
+  const Partes = new Intl.DateTimeFormat("en-GB", {
+    timeZone: Timezone_Argentina,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const Mapa_Partes = Object.fromEntries(
+    Partes.map((Parte) => [Parte.type, Parte.value])
+  );
+  return `${Mapa_Partes.hour}:${Mapa_Partes.minute}`;
+}
+
+function Asegurar_Array_B2(
+  Estado: Mapa,
+  Clave: string
+): Mapa[] {
+  if (!Array.isArray(Estado[Clave])) {
+    Estado[Clave] = [];
+  }
+  return Estado[Clave] as Mapa[];
+}
+
+function Leer_String_B2(
+  Payload: Mapa,
+  ...Claves: string[]
+) {
+  for (const Clave of Claves) {
+    const Valor = Payload[Clave];
+    if (Valor == null) continue;
+    const Texto = String(Valor).trim();
+    if (Texto) return Texto;
+  }
+  return "";
+}
+
+function Leer_Numero_B2(
+  Payload: Mapa,
+  ...Claves: string[]
+) {
+  for (const Clave of Claves) {
+    const Valor = Payload[Clave];
+    if (Valor == null || Valor === "") continue;
+    const Numero = Number(String(Valor).replace(",", "."));
+    if (Number.isFinite(Numero)) return Numero;
+  }
+  return null;
+}
+
+function Leer_Boolean_B2(
+  Payload: Mapa,
+  Fallback: boolean,
+  ...Claves: string[]
+) {
+  for (const Clave of Claves) {
+    if (!(Clave in Payload)) continue;
+    const Valor = Payload[Clave];
+    if (typeof Valor === "boolean") return Valor;
+    const Texto = Normalizar_Texto_Busqueda(Valor);
+    if (["true", "1", "si", "hecha"].includes(Texto)) {
+      return true;
+    }
+    if (["false", "0", "no", "pendiente"].includes(Texto)) {
+      return false;
+    }
+  }
+  return Fallback;
+}
+
+function Leer_Fecha_B2(
+  Payload: Mapa,
+  Clave_A: string,
+  Clave_B: string,
+  Fallback: string
+) {
+  const Valor = Leer_String_B2(Payload, Clave_A, Clave_B);
+  if (!Valor) return Fallback;
+  if (Es_Fecha_ISO_Valida(Valor)) return Valor;
+  return Fallback;
+}
+
+function Leer_Hora_B2(
+  Payload: Mapa,
+  Clave_A: string,
+  Clave_B: string,
+  Fallback: string
+) {
+  const Valor = Leer_String_B2(Payload, Clave_A, Clave_B);
+  if (!Valor) return Fallback;
+  const Match = Valor.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+  if (!Match) return Fallback;
+  return `${Match[1].padStart(2, "0")}:${Match[2]}`;
+}
+
+function Leer_Array_String_B2(
+  Payload: Mapa,
+  ...Claves: string[]
+) {
+  for (const Clave of Claves) {
+    const Valor = Payload[Clave];
+    if (Array.isArray(Valor)) {
+      return Valor.map((Item) => String(Item || "").trim())
+        .filter(Boolean);
+    }
+    if (typeof Valor === "string" && Valor.trim()) {
+      return Valor.split(",")
+        .map((Item) => Item.trim())
+        .filter(Boolean);
+    }
+  }
+  return [];
+}
+
+function Leer_Array_String_Estado_B2(
+  Estado: Mapa,
+  Clave: string
+) {
+  return Array.isArray(Estado[Clave])
+    ? (Estado[Clave] as unknown[])
+      .map((Item) => String(Item || "").trim())
+      .filter(Boolean)
+    : [];
+}
+
+function Obtener_Idempotency_Key_B2(
+  Payload: Mapa
+) {
+  return Leer_String_B2(
+    Payload,
+    "idempotency_key",
+    "Idempotency_Key"
+  ).slice(0, 120);
+}
+
+function Buscar_Item_B2(
+  Items: Mapa[],
+  Payload: Mapa,
+  Campo_Id: string,
+  Campo_Nombre: string
+) {
+  const Id = Leer_String_B2(
+    Payload,
+    Campo_Id,
+    Campo_Id.replace(/_id$/, "_Id"),
+    "id",
+    "Id"
+  );
+  if (Id) {
+    const Item = Items.find((Actual) =>
+      String(Actual.Id || "") === Id
+    );
+    if (Item) return { Ok: true as const, Item };
+    return {
+      Ok: false as const,
+      Respuesta: Error_Mutacion_B2(`No encontre el id ${Id}.`),
+    };
+  }
+  const Texto = Leer_String_B2(
+    Payload,
+    "busqueda",
+    "Busqueda",
+    "nombre",
+    "Nombre"
+  );
+  return Buscar_Por_Nombre_B2(Items, Texto, Campo_Nombre);
+}
+
+function Buscar_Por_Nombre_B2(
+  Items: Mapa[],
+  Texto: string,
+  Campo: string
+) {
+  const Busqueda = Normalizar_Texto_Busqueda(Texto);
+  if (!Busqueda) {
+    return {
+      Ok: false as const,
+      Respuesta: Error_Mutacion_B2("Necesito un texto de busqueda."),
+    };
+  }
+  const Exactas = Items.filter((Item) =>
+    Normalizar_Texto_Busqueda(String(Item[Campo] || "")) ===
+      Busqueda
+  );
+  const Coinciden = Exactas.length
+    ? Exactas
+    : Items.filter((Item) =>
+      Normalizar_Texto_Busqueda(String(Item[Campo] || ""))
+        .includes(Busqueda)
+    );
+  if (!Coinciden.length) {
+    return {
+      Ok: false as const,
+      Respuesta:
+        Error_Mutacion_B2(`No encontre coincidencias para "${Texto}".`),
+    };
+  }
+  if (Coinciden.length > 1) {
+    return {
+      Ok: false as const,
+      Respuesta: Error_Mutacion_B2(
+        "Hay varias coincidencias. Usa un nombre mas especifico."
+      ),
+    };
+  }
+  return {
+    Ok: true as const,
+    Item: Coinciden[0],
+  };
+}
+
+function Asegurar_Cajon_Tareas_B2(
+  Estado: Mapa,
+  Cajon: string
+) {
+  const Cajones = Array.isArray(Estado.Tareas_Cajones_Definidos)
+    ? Estado.Tareas_Cajones_Definidos as unknown[]
+    : [];
+  const Normalizados = Cajones.map((Item) => String(Item || ""));
+  if (!Normalizados.some((Item) =>
+    Normalizar_Texto_Busqueda(Item) ===
+      Normalizar_Texto_Busqueda(Cajon)
+  )) {
+    Normalizados.unshift(Cajon);
+  }
+  Estado.Tareas_Cajones_Definidos = Array.from(new Set(Normalizados));
+}
+
+function Tarea_Esta_Vinculada_B2(Tarea: Mapa) {
+  return Boolean(
+    Tarea.Planeada ||
+    Tarea.Evento_Id ||
+    Tarea.Abordaje_Id ||
+    Tarea.Plan_Clave ||
+    Tarea.Plan_Item_Id
+  );
+}
+
+function Numero_Desde_Mapa_B2(
+  Valor: unknown,
+  Clave: string,
+  Fallback: number
+) {
+  const M = Es_Mapa_B2(Valor) ? Valor : {};
+  const Numero = Number(M[Clave]);
+  return Number.isFinite(Numero) ? Numero : Fallback;
+}
+
+function Habito_Clave_Periodo_B2(
+  Habito: Mapa,
+  Fecha: string
+) {
+  const Meta = Es_Mapa_B2(Habito.Meta) ? Habito.Meta as Mapa : {};
+  const Periodo = String(Meta.Periodo || "Dia");
+  if (Periodo === "Semana") {
+    return Obtener_Lunes_ISO_Desde_Fecha(Fecha) || Fecha;
+  }
+  if (Periodo === "Mes") return Fecha.slice(0, 7);
+  return Fecha;
+}
+
+function Habito_Unidad_B2(Habito: Mapa) {
+  const Meta = Es_Mapa_B2(Habito.Meta) ? Habito.Meta as Mapa : {};
+  if (Meta.Modo === "Tiempo") {
+    return Meta.Unidad === "Horas" ? "h" : "min";
+  }
+  return String(Meta.Unidad || "");
+}
+
+function Obtener_Modelo_Planes_B2(Estado: Mapa) {
+  if (!Es_Mapa_B2(Estado.Planes_Periodo)) return null;
+  const Modelo = Estado.Planes_Periodo as Mapa;
+  if (!Es_Mapa_B2(Modelo.Objetivos)) Modelo.Objetivos = {};
+  if (!Es_Mapa_B2(Modelo.Subobjetivos)) Modelo.Subobjetivos = {};
+  if (!Es_Mapa_B2(Modelo.Partes)) Modelo.Partes = {};
+  if (!Es_Mapa_B2(Modelo.Avances)) Modelo.Avances = {};
+  return Modelo;
+}
+
+function Buscar_Item_Meta_B2(Modelo: Mapa, Texto: string) {
+  const Items: Mapa[] = [];
+  Object.values(Modelo.Objetivos as Mapa).forEach((Objetivo) => {
+    if (!Es_Mapa_B2(Objetivo)) return;
+    const Obj = Objetivo as Mapa;
+    if (Obj.Eliminado_Local === true) return;
+    Items.push({
+      Tipo: "Objetivo",
+      Nombre: String(Obj.Nombre || ""),
+      Objetivo_Id: String(Obj.Id || ""),
+      Unidad: Obj.Unidad_Custom || Obj.Unidad || "",
+    });
+  });
+  Object.values(Modelo.Subobjetivos as Mapa).forEach((Subobj) => {
+    if (!Es_Mapa_B2(Subobj)) return;
+    const Sub = Subobj as Mapa;
+    if (Sub.Eliminado_Local === true) return;
+    Items.push({
+      Tipo: "Subobjetivo",
+      Nombre: String(Sub.Nombre || ""),
+      Objetivo_Id: String(Sub.Objetivo_Id || ""),
+      Subobjetivo_Id: String(Sub.Id || ""),
+      Unidad: Sub.Unidad_Custom || Sub.Unidad || "",
+    });
+  });
+  Object.values(Modelo.Partes as Mapa).forEach((Parte) => {
+    if (!Es_Mapa_B2(Parte)) return;
+    const P = Parte as Mapa;
+    if (P.Eliminado_Local === true) return;
+    const Sub = (Modelo.Subobjetivos as Mapa)[
+      String(P.Subobjetivo_Id || "")
+    ] as Mapa | undefined;
+    Items.push({
+      Tipo: "Parte",
+      Nombre: String(P.Titulo || P.Nombre || ""),
+      Objetivo_Id: String(P.Objetivo_Id || Sub?.Objetivo_Id || ""),
+      Subobjetivo_Id: String(P.Subobjetivo_Id || ""),
+      Parte_Id: String(P.Id || ""),
+      Unidad:
+        P.Unidad_Custom || P.Unidad ||
+        Sub?.Unidad_Custom || Sub?.Unidad || "",
+    });
+  });
+  return Buscar_Por_Nombre_B2(Items, Texto, "Nombre");
+}
+
+function Es_URL_Archivero_B2(Texto: string) {
+  const Limpio = String(Texto || "").trim();
+  if (!Limpio || /\s/.test(Limpio)) return false;
+  return /^(https?:\/\/|www\.)/i.test(Limpio) ||
+    /^[\w-]+\.[a-z]{2,}(\/|$)/i.test(Limpio);
+}
+
+function Resolver_Cajon_Archivero_B2(
+  Archiveros: Mapa[],
+  Payload: Mapa
+) {
+  const Cajon_Id = Leer_String_B2(
+    Payload,
+    "cajon_id",
+    "Cajon_Id",
+    "archivero_id",
+    "Archivero_Id"
+  );
+  if (Cajon_Id && Archiveros.some((Cajon) =>
+    String(Cajon.Id || "") === Cajon_Id
+  )) {
+    return Cajon_Id;
+  }
+  const Nombre = Leer_String_B2(Payload, "cajon", "Cajon");
+  if (Nombre) {
+    const Busqueda = Buscar_Por_Nombre_B2(
+      Archiveros,
+      Nombre,
+      "Nombre"
+    );
+    if (Busqueda.Ok === true) {
+      return String(Busqueda.Item.Id || "");
+    }
+  }
+  return String(Archiveros[0]?.Id || "");
+}
+
+function Normalizar_Etiquetas_Archivero_B2(Lista: string[]) {
+  const Etiquetas = new Map<string, string>();
+  Lista.forEach((Etiqueta) => {
+    const Limpia = String(Etiqueta || "").trim();
+    if (!Limpia) return;
+    const Clave = Normalizar_Texto_Busqueda(Limpia);
+    if (!Etiquetas.has(Clave)) Etiquetas.set(Clave, Limpia);
+  });
+  return [...Etiquetas.values()].sort((A, B) =>
+    A.localeCompare(B, "es", { sensitivity: "base" })
+  );
+}
+
+function Normalizar_Estado_Baul_B2(Estado: string) {
+  if (
+    Estado === "Realizada" ||
+    Estado === "Postergada" ||
+    Estado === "Anulada"
+  ) {
+    return Estado;
+  }
+  return "Activa";
+}
+
 type Parametros_OAuth_Autorizar =
   | {
     Ok: true;
@@ -4885,6 +6251,15 @@ function Resolver_Parametros_OAuth_Autorizar(
       Error: "invalid_scope",
       Detalle:
         "El scope solicitado debe incluir read.",
+    };
+  }
+  if (Hay_Scopes_OAuth_Desconocidos(Scopes)) {
+    return {
+      Ok: false,
+      Status: 400,
+      Error: "invalid_scope",
+      Detalle:
+        "El scope solicitado no esta soportado por Semaplan.",
     };
   }
   return {
@@ -5228,7 +6603,7 @@ Deno.serve(async (Req) => {
     return Responder_Json({
       Ok: true,
       Servicio: "Semaplan AI Gateway",
-      Version: "1.0.0",
+      Version: "2.0.0",
     });
   }
 
@@ -5285,6 +6660,26 @@ Deno.serve(async (Req) => {
     Ruta === "/oauth/token"
   ) {
     return await Procesar_OAuth_Token(Req);
+  }
+
+  const Ruta_B2 = Rutas_B2[Ruta];
+  if (Ruta_B2) {
+    if (Req.method !== "POST") {
+      return Responder_Error(
+        405,
+        "Metodo no permitido",
+        "Esta ruta B2 solo acepta POST."
+      );
+    }
+    const Auth = await Validar_Request(Req);
+    if (!Auth.Ok) {
+      return Responder_Error(
+        Auth.Status,
+        Auth.Error,
+        Auth.Detalle
+      );
+    }
+    return await Responder_B2(Req, Auth, Ruta_B2);
   }
 
   const Rutas_Reservadas = new Set([
