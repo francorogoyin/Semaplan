@@ -108,6 +108,10 @@ CREATE OR REPLACE FUNCTION
   public.proteger_estado_usuario_claves_nuevas()
 RETURNS TRIGGER AS $$
 BEGIN
+  IF current_setting('semaplan.skip_deep_merge', true) = '1' THEN
+    RETURN NEW;
+  END IF;
+
   NEW.estado :=
     public.jsonb_deep_merge_preserving_missing(
       OLD.estado,
@@ -125,6 +129,37 @@ CREATE TRIGGER trigger_estado_preservar_claves
   FOR EACH ROW
   EXECUTE FUNCTION
     public.proteger_estado_usuario_claves_nuevas();
+
+CREATE OR REPLACE FUNCTION public.aplicar_estado_usuario_b2(
+  p_usuario_id uuid,
+  p_estado jsonb,
+  p_version_esperada integer
+)
+RETURNS TABLE(version integer)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  PERFORM set_config('semaplan.skip_deep_merge', '1', true);
+
+  RETURN QUERY
+  UPDATE public.estado_usuario eu
+  SET estado = p_estado,
+      version = eu.version + 1
+  WHERE eu.user_id = p_usuario_id
+    AND eu.version = p_version_esperada
+  RETURNING eu.version;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION
+  public.aplicar_estado_usuario_b2(uuid, jsonb, integer)
+  FROM public;
+
+GRANT EXECUTE ON FUNCTION
+  public.aplicar_estado_usuario_b2(uuid, jsonb, integer)
+  TO service_role;
 
 CREATE OR REPLACE FUNCTION public.actualizar_timestamp_estado()
 RETURNS TRIGGER AS $$

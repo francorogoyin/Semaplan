@@ -5228,14 +5228,11 @@ async function Mutar_Estado_B2(
   Estado.Sync_Datos_Marca_Ms = Date.now();
   const Supa_Servicio = Crear_Supabase_Servicio();
   const { data, error } = await Supa_Servicio
-    .from("estado_usuario")
-    .update({
-      estado: Estado,
-      version: Fila.Version + 1,
+    .rpc("aplicar_estado_usuario_b2", {
+      p_usuario_id: Usuario_Id,
+      p_estado: Estado,
+      p_version_esperada: Fila.Version,
     })
-    .eq("user_id", Usuario_Id)
-    .eq("version", Fila.Version)
-    .select("version")
     .maybeSingle();
   if (error) {
     console.error("Error guardando mutacion B2:", error);
@@ -5263,6 +5260,9 @@ async function Mutar_Estado_B2(
     );
   }
 
+  const Version_Despues =
+    Number((data as { version?: number }).version) || Fila.Version + 1;
+
   await Registrar_Mutacion_B2({
     Usuario_Id,
     Accion,
@@ -5271,7 +5271,7 @@ async function Mutar_Estado_B2(
     Payload,
     Resultado: Resultado.Resultado || {},
     Version_Antes: Fila.Version,
-    Version_Despues: Number(data.version) || Fila.Version + 1,
+    Version_Despues,
     Estado_Antes,
   });
 
@@ -5280,7 +5280,7 @@ async function Mutar_Estado_B2(
     Accion,
     Respuesta: Resultado.Respuesta,
     Resultado: Resultado.Resultado || {},
-    Version: Number(data.version) || Fila.Version + 1,
+    Version: Version_Despues,
   });
 }
 

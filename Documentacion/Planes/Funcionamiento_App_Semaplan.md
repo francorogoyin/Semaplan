@@ -33,7 +33,9 @@ estructuras persistidas o relaciones importantes entre modulos.
   `/b2/habitos/crear`, `/b2/habitos/registrar`,
   `/b2/metas/avance`, `/b2/archivero/nota` y `/b2/baul/item`.
   Las mutaciones requieren scopes separados, usan control optimista de
-  `version`, aceptan `idempotency_key` y registran auditoria en
+  `version`, guardan mediante la RPC `aplicar_estado_usuario_b2` para
+  evitar el merge preservador general de `estado_usuario` en este flujo
+  controlado, aceptan `idempotency_key` y registran auditoria en
   `ia_mutaciones_usuario`.
 - `supabase/functions/semaplan-ai-mcp`: servidor MCP remoto por HTTP
   (streamable compatible) para ChatGPT Apps/Developer Mode. Expone
