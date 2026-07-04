@@ -607,12 +607,16 @@ Funciones de entrada recomendadas.
 Relaciones importantes.
 
 - Un item del Baul puede tener categoria, etiquetas, estado, timeline,
-  descripcion y metadatos visibles.
+  descripcion breve, detalle largo y metadatos visibles.
+- La descripcion queda como resumen corto para tarjeta y listado; el
+  detalle se usa para texto largo, pasos, contexto y notas amplias.
+- La accion `Detalle` del menu contextual abre una vista de lectura
+  grande del item con un boton `Editar` que lleva al editor modal.
 - Puede alimentar agenda, objetivos o decisiones semanales.
 - La busqueda del Baul debe ser normalizada y de texto completo sobre
-  nombre, descripcion, descripcion corta, estado, timeline, categoria,
-  etiquetas y metadatos, para evitar que el filtro dependa solo del
-  titulo o de los acentos exactos.
+  nombre, descripcion breve, detalle, descripcion corta, estado,
+  timeline, categoria, etiquetas y metadatos, para evitar que el
+  filtro dependa solo del titulo o de los acentos exactos.
 - Cuando el Baul tenga busqueda o filtros activos, la interfaz debe
   mostrar un resumen en chips y una accion `Limpiar` robusta aun si el
   campo de busqueda pierde foco y re-renderiza la vista en ese flujo.
