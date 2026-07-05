@@ -60,7 +60,7 @@ async function preparar(page, estadoInicial) {
       JSON.stringify(estado)
     );
   }, estadoInicial);
-  await page.goto("/index.html");
+  await page.goto("/login.html");
   await page.waitForFunction(() =>
     typeof window.Inicializar === "function"
   );
@@ -99,9 +99,10 @@ function crearEstadoBase() {
         Archivada: false,
         Color_Baul: "",
         Descripcion: "Linea 1\nLinea 2",
-        Detalle:
-          "Linea 1\nLinea 2\nLinea 3\nLinea 4\nLinea 5\nLinea 6\n" +
-          "Linea 7\nLinea 8\nLinea 9\nLinea 10\nLinea 11\nLinea 12",
+        Detalle: Array.from(
+          { length: 48 },
+          (_, Indice) => `Linea ${Indice + 1}`
+        ).join("\n"),
         Horas_Aprox: 0,
         Timeline: null,
         Orden_Personalizado: 1
@@ -117,7 +118,7 @@ function crearEstadoBase() {
     Inicio_Semana: "2026-04-13",
     Duracion_Defecto: 1,
     Config_Extra: {
-      Plan_Actual: "Premium",
+      Plan_Actual: "Upgrade",
       Baul_Vista_Modo: "Biblioteca",
       Baul_Ordenar_Por: "Personalizado",
       Baul_Agrupar_Por: "Ninguno",
@@ -162,4 +163,41 @@ test("el panel de detalle del baul scrollea en modo edicion", async ({
   expect(scroll).not.toBeNull();
   expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight);
   expect(scroll.after).toBeGreaterThan(0);
+});
+
+test("el panel de detalle del baul scrollea en modo lectura", async ({
+  page
+}) => {
+  await preparar(page, crearEstadoBase());
+
+  await page.evaluate(() => {
+    Abrir_Detalle_Baul("b1");
+  });
+
+  await expect(page.locator("#Baul_Detalle"))
+    .not.toHaveClass(/Oculto/);
+  await expect(page.locator("#Baul_Detalle_Lectura"))
+    .not.toHaveClass(/Oculto/);
+
+  const scroll = await page.evaluate(() => {
+    const Nodo = document.getElementById("Baul_Detalle_Lectura");
+    const Panel = document.getElementById("Baul_Detalle");
+    if (!Nodo || !Panel) return null;
+    const Antes = Nodo.scrollTop;
+    Nodo.scrollTop = Nodo.scrollHeight;
+    return {
+      parentId: Nodo.parentElement?.id || "",
+      clientHeight: Nodo.clientHeight,
+      scrollHeight: Nodo.scrollHeight,
+      before: Antes,
+      after: Nodo.scrollTop,
+      panelHeight: Panel.clientHeight
+    };
+  });
+
+  expect(scroll).not.toBeNull();
+  expect(scroll.parentId).toBe("Baul_Detalle");
+  expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight);
+  expect(scroll.after).toBeGreaterThan(0);
+  expect(scroll.clientHeight).toBeLessThan(scroll.panelHeight);
 });
