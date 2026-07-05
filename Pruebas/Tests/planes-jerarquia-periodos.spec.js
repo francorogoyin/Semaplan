@@ -4221,6 +4221,186 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
+test("Registro de planes conserva acciones tras editar",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Datos = await page.evaluate(() => {
+    Abrir_Plan();
+    const Modelo = Asegurar_Jerarquia_Planes();
+    const Anio = Object.values(Modelo.Periodos)
+      .find((Periodo) => Periodo.Tipo === "Anio");
+    const Objetivo = Planes_Crear_Objetivo_Silencioso(Anio.Id, {
+      Nombre: "Registro acciones persistentes",
+      Emoji: "\uD83D\uDCDA",
+      Target_Total: 1,
+      Unidad: "Personalizado",
+      Unidad_Custom: "libros",
+      Modo_Progreso: "Subobjetivos"
+    });
+    const Sub_A = "sub_registro_acciones_a";
+    const Sub_B = "sub_registro_acciones_b";
+    const Parte_A = "parte_registro_acciones_a";
+    const Parte_B = "parte_registro_acciones_b";
+    Modelo.Subobjetivos[Sub_A] = Normalizar_Subobjetivo_Plan({
+      Id: Sub_A,
+      Objetivo_Id: Objetivo.Id,
+      Texto: "Libro A",
+      Emoji: "\uD83D\uDCD6",
+      Target_Total: 20,
+      Target_Suma_Componentes: true,
+      Aporte_Meta: 1,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    Modelo.Subobjetivos[Sub_B] = Normalizar_Subobjetivo_Plan({
+      Id: Sub_B,
+      Objetivo_Id: Objetivo.Id,
+      Texto: "Libro B",
+      Emoji: "\uD83D\uDCD6",
+      Target_Total: 20,
+      Target_Suma_Componentes: true,
+      Aporte_Meta: 1,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    Modelo.Partes[Parte_A] = Normalizar_Parte_Meta({
+      Id: Parte_A,
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_A,
+      Emoji: "\uD83D\uDCD8",
+      Nombre: "Parte A",
+      Aporte_Total: 20,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    Modelo.Partes[Parte_B] = Normalizar_Parte_Meta({
+      Id: Parte_B,
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_B,
+      Emoji: "\uD83D\uDCD8",
+      Nombre: "Parte B",
+      Aporte_Total: 20,
+      Unidad: "Personalizado",
+      Unidad_Custom: "paginas"
+    });
+    Planes_Marcar_Parte_Realizada(Parte_A, {
+      Fecha: "2026-04-18",
+      Hora: "12:00",
+      Solo_Modelo: true
+    });
+    Planes_Marcar_Parte_Realizada(Parte_B, {
+      Fecha: "2026-04-19",
+      Hora: "13:00",
+      Solo_Modelo: true
+    });
+    [Sub_A, Sub_B].forEach((Sub_Id) => {
+      Planes_Recalcular_Progreso_Subobjetivo(
+        Modelo.Subobjetivos[Sub_Id],
+        Modelo
+      );
+    });
+    Planes_Recalcular_Desde(Objetivo);
+    Abrir_Modal_Planes_Registro(Objetivo.Id);
+    return {
+      Objetivo_Id: Objetivo.Id,
+      Sub_A,
+      Sub_B,
+      Parte_A,
+      Parte_B
+    };
+  });
+
+  await expect(page.locator('[data-plan-registro-editar="Avance"]'))
+    .toHaveCount(2);
+
+  await page.locator('[data-plan-registro-editar="Avance"]')
+    .nth(0)
+    .click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.fill("#Dialogo_Input_Campo", "12");
+  await page.locator("#Dialogo_Botones button")
+    .filter({ hasText: "Guardar" })
+    .click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .not.toHaveClass(/Activo/);
+
+  await page.locator('[data-plan-registro-editar="Avance"]')
+    .nth(1)
+    .click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.fill("#Dialogo_Input_Campo", "11");
+  await page.locator("#Dialogo_Botones button")
+    .filter({ hasText: "Guardar" })
+    .click();
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("11 paginas");
+
+  await page.evaluate((datos) => {
+    Abrir_Modal_Planes_Registro(datos.Objetivo_Id, "", {
+      Item_Id: datos.Sub_A
+    });
+  }, Datos);
+  await expect(page.locator('[data-plan-registro-editar="Avance"]'))
+    .toHaveCount(1);
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("Libro A");
+  await page.locator('[data-plan-registro-editar="Avance"]')
+    .click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.fill("#Dialogo_Input_Campo", "13");
+  await page.locator("#Dialogo_Botones button")
+    .filter({ hasText: "Guardar" })
+    .click();
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("13 paginas");
+
+  await page.evaluate((datos) => {
+    Abrir_Modal_Planes_Registro(datos.Objetivo_Id, "", {
+      Parte_Id: datos.Parte_B
+    });
+  }, Datos);
+  await expect(page.locator('[data-plan-registro-eliminar="Avance"]'))
+    .toHaveCount(1);
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("Parte B");
+  await page.locator('[data-plan-registro-eliminar="Avance"]')
+    .click();
+  await expect(page.locator("#Dialogo_Overlay"))
+    .toHaveClass(/Activo/);
+  await page.locator("#Dialogo_Botones button")
+    .filter({ hasText: "Eliminar" })
+    .click();
+  await expect(page.locator("#Planes_Registro_Cuerpo"))
+    .toContainText("No hay registros");
+
+  const Estado = await page.evaluate((datos) => {
+    const Modelo = Asegurar_Modelo_Planes();
+    const Avances = Object.values(Modelo.Avances || {})
+      .filter((Avance) =>
+        [datos.Parte_A, datos.Parte_B].includes(Avance.Parte_Id)
+      );
+    return {
+      total: Avances.length,
+      parteA: Avances.find((Avance) =>
+        Avance.Parte_Id === datos.Parte_A
+      )?.Cantidad || 0,
+      parteB: Avances.some((Avance) =>
+        Avance.Parte_Id === datos.Parte_B
+      )
+    };
+  }, Datos);
+  expect(Estado.total).toBe(1);
+  expect(Estado.parteA).toBe(13);
+  expect(Estado.parteB).toBe(false);
+  expect(errores).toEqual([]);
+});
+
 test("Subobjetivos ajustan target padre segun modo suma o manual",
 async ({ page }) => {
   const errores = [];
