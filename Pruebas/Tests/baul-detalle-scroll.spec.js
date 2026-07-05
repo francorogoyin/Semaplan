@@ -165,7 +165,7 @@ test("el panel de detalle del baul scrollea en modo edicion", async ({
   expect(scroll.after).toBeGreaterThan(0);
 });
 
-test("el panel de detalle del baul scrollea en modo lectura", async ({
+test("el detalle del baul abre como modal de lectura", async ({
   page
 }) => {
   await preparar(page, crearEstadoBase());
@@ -178,15 +178,26 @@ test("el panel de detalle del baul scrollea en modo lectura", async ({
     .not.toHaveClass(/Oculto/);
   await expect(page.locator("#Baul_Detalle_Lectura"))
     .not.toHaveClass(/Oculto/);
+  await expect(page.locator("#Baul_Detalle_Edicion"))
+    .toHaveClass(/Oculto/);
+  await expect(page.locator("#Baul_Detalle_Editar"))
+    .toBeVisible();
+  await expect(page.locator("#Baul_Accion_Agregar"))
+    .toHaveCount(0);
 
   const scroll = await page.evaluate(() => {
     const Nodo = document.getElementById("Baul_Detalle_Lectura");
-    const Panel = document.getElementById("Baul_Detalle");
-    if (!Nodo || !Panel) return null;
+    const Modal = document.getElementById("Baul_Detalle");
+    const Panel = document.querySelector(".Baul_Detalle_Panel");
+    const Contenido = document.getElementById("Baul_Contenido");
+    if (!Nodo || !Modal || !Panel) return null;
     const Antes = Nodo.scrollTop;
     Nodo.scrollTop = Nodo.scrollHeight;
     return {
-      parentId: Nodo.parentElement?.id || "",
+      modalId: Nodo.closest("#Baul_Detalle")?.id || "",
+      panelClass: Panel.className,
+      panelPosition: getComputedStyle(Modal).position,
+      contentHasSidebar: !Contenido?.classList.contains("Sin_Detalle"),
       clientHeight: Nodo.clientHeight,
       scrollHeight: Nodo.scrollHeight,
       before: Antes,
@@ -196,8 +207,54 @@ test("el panel de detalle del baul scrollea en modo lectura", async ({
   });
 
   expect(scroll).not.toBeNull();
-  expect(scroll.parentId).toBe("Baul_Detalle");
+  expect(scroll.modalId).toBe("Baul_Detalle");
+  expect(scroll.panelClass).toContain("Baul_Detalle_Panel");
+  expect(scroll.panelPosition).toBe("fixed");
+  expect(scroll.contentHasSidebar).toBe(false);
   expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight);
   expect(scroll.after).toBeGreaterThan(0);
   expect(scroll.clientHeight).toBeLessThan(scroll.panelHeight);
+});
+
+test("el detalle del baul se edita desde el modal de texto", async ({
+  page
+}) => {
+  await preparar(page, crearEstadoBase());
+
+  await page.evaluate(() => {
+    Abrir_Detalle_Baul("b1");
+  });
+
+  await page.locator("#Baul_Detalle_Editar").click();
+  await expect(page.locator("#Baul_Detalle_Lectura"))
+    .toHaveClass(/Oculto/);
+  await expect(page.locator("#Baul_Detalle_Edicion"))
+    .not.toHaveClass(/Oculto/);
+  await expect(page.locator("#Baul_Detalle_Editar"))
+    .toHaveClass(/Oculto/);
+  await expect(page.locator("#Baul_Detalle_Guardar"))
+    .toBeVisible();
+  await expect(page.locator("#Baul_Detalle_Cancelar"))
+    .toBeVisible();
+
+  await page.locator("#Baul_Detalle_Texto_Input").fill(
+    "Nuevo detalle guardado"
+  );
+  await page.locator("#Baul_Detalle_Guardar").click();
+
+  await expect(page.locator("#Baul_Detalle_Lectura"))
+    .not.toHaveClass(/Oculto/);
+  await expect(page.locator("#Baul_Detalle_Edicion"))
+    .toHaveClass(/Oculto/);
+  await expect(page.locator("#Baul_Detalle_Texto"))
+    .toContainText("Nuevo detalle guardado");
+
+  const detalle = await page.evaluate(() => {
+    const estado = JSON.parse(
+      localStorage.getItem("Semaplan_Estado_V2") || "{}"
+    );
+    return estado.Baul_Objetivos?.find((Item) => Item.Id === "b1")
+      ?.Detalle || "";
+  });
+  expect(detalle).toBe("Nuevo detalle guardado");
 });

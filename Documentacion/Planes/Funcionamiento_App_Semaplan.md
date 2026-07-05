@@ -610,8 +610,12 @@ Relaciones importantes.
   descripcion breve, detalle largo y metadatos visibles.
 - La descripcion queda como resumen corto para tarjeta y listado; el
   detalle se usa para texto largo, pasos, contexto y notas amplias.
-- La accion `Detalle` del menu contextual abre una vista de lectura
-  grande del item con un boton `Editar` que lleva al editor modal.
+- La accion `Detalle` del menu contextual abre un modal propio de
+  texto largo. En modo lectura solo muestra el detalle y un lapiz
+  plano junto a la cruz; ese lapiz pasa a edicion del texto, donde
+  aparecen solo `Guardar` y `Cancelar`. Esta edicion modifica
+  unicamente el campo `Detalle`, sin abrir el editor completo del
+  item ni mostrar acciones de agenda o archivado.
 - Puede alimentar agenda, objetivos o decisiones semanales.
 - La busqueda del Baul debe ser normalizada y de texto completo sobre
   nombre, descripcion breve, detalle, descripcion corta, estado,
