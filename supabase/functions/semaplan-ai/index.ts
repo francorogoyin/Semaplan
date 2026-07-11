@@ -42,7 +42,6 @@ type Estado_Resultado =
 const Claves_Estado_Seguras = new Set([
   "Objetivos",
   "Eventos",
-  "Metas",
   "Slots_Muertos",
   "Planes_Slot",
   "Planes_Semana",
@@ -317,7 +316,7 @@ function Construir_OpenAPI_Semaplan_IA(
     openapi: "3.1.0",
     info: {
       title: "Semaplan AI Gateway",
-      version: "2.0.0",
+      version: "2.1.0",
       description:
         "API para leer Semaplan y ejecutar acciones B2 desde ChatGPT.",
     },
@@ -387,7 +386,7 @@ function Construir_OpenAPI_Semaplan_IA(
                   [OAUTH_SCOPE_HABITOS]:
                     "Crear habitos y registrar cumplimiento.",
                   [OAUTH_SCOPE_METAS]:
-                    "Registrar avances de metas.",
+                    "Operar el arbol de Planes por periodos y sus avances.",
                   [OAUTH_SCOPE_ARCHIVERO]:
                     "Crear notas en el Archivero.",
                   [OAUTH_SCOPE_BAUL]:
@@ -646,7 +645,7 @@ function Construir_OpenAPI_Semaplan_IA(
           operationId:
             "semaplan_planes_periodos",
           summary:
-            "Leer periodos o arbol compacto de un periodo",
+            "Leer periodos o el arbol completo de Planes de un periodo",
           security: Seguridad_Lectura,
           parameters: [
             {
@@ -661,6 +660,12 @@ function Construir_OpenAPI_Semaplan_IA(
               in: "query",
               schema: {
                 type: "string",
+                enum: [
+                  "Anio",
+                  "Semestre",
+                  "Trimestre",
+                  "Mes",
+                ],
               },
             },
             {
@@ -671,6 +676,13 @@ function Construir_OpenAPI_Semaplan_IA(
                 minimum: 1,
                 maximum: 100,
               },
+            },
+            {
+              name: "incluir_eliminados",
+              in: "query",
+              schema: { type: "boolean" },
+              description:
+                "Incluye elementos archivados logicamente. Por defecto se omiten.",
             },
           ],
           responses: {
@@ -790,32 +802,6 @@ function Construir_OpenAPI_Semaplan_IA(
           },
         },
       },
-      "/metas": {
-        get: {
-          operationId:
-            "semaplan_listar_metas",
-          summary:
-            "Listar metas resumidas",
-          security: Seguridad_Lectura,
-          parameters: [
-            {
-              name: "limite",
-              in: "query",
-              schema: {
-                type: "integer",
-                minimum: 1,
-                maximum: 100,
-              },
-            },
-          ],
-          responses: {
-            "200": Respuesta_200,
-            "400": Respuesta_Error,
-            "401": Respuesta_Error,
-            "403": Respuesta_Error,
-          },
-        },
-      },
       "/openapi-key.json": {
         get: {
           operationId: "semaplan_openapi_key",
@@ -864,7 +850,7 @@ function Construir_OpenAPI_Semaplan_IA(
       ),
       "/b2/tareas/reprogramar": Post_B2(
         "semaplan_b2_reprogramar_tarea",
-        "Cambiar fecha y hora de una tarea no vinculada",
+        "Cambiar fecha y hora de una tarea, incluso si esta planificada",
         OAUTH_SCOPE_TAREAS,
         {
           ...Schema_Base_B2,
@@ -879,6 +865,54 @@ function Construir_OpenAPI_Semaplan_IA(
               pattern: "^([01]?\\d|2[0-3]):[0-5]\\d$",
             },
             sin_horario: { type: "boolean" },
+          },
+        },
+      ),
+      "/b2/tareas/editar": Post_B2(
+        "semaplan_b2_editar_tarea",
+        "Editar los datos completos de una tarea y sus vinculos",
+        OAUTH_SCOPE_TAREAS,
+        {
+          ...Schema_Base_B2,
+          properties: {
+            ...Schema_Base_B2.properties,
+            tarea_id: { type: "string" },
+            busqueda: { type: "string" },
+            nombre: { type: "string" },
+            nuevo_nombre: { type: "string" },
+            emoji: { type: "string" },
+            cajon: { type: "string" },
+            prioridad: { type: "string" },
+            estado: {
+              type: "string",
+              enum: [
+                "pendiente",
+                "completada",
+                "pospuesta",
+                "cancelada",
+              ],
+            },
+            fecha: { type: "string", format: "date" },
+            hora: {
+              type: "string",
+              pattern: "^([01]?\\d|2[0-3]):[0-5]\\d$",
+            },
+            sin_horario: { type: "boolean" },
+          },
+        },
+      ),
+      "/b2/tareas/borrar": Post_B2(
+        "semaplan_b2_borrar_tarea",
+        "Borrar una tarea y desvincularla de agenda o planes",
+        OAUTH_SCOPE_TAREAS,
+        {
+          ...Schema_Base_B2,
+          properties: {
+            ...Schema_Base_B2.properties,
+            tarea_id: { type: "string" },
+            busqueda: { type: "string" },
+            nombre: { type: "string" },
+            confirmar_eliminacion: { type: "boolean" },
           },
         },
       ),
@@ -917,17 +951,144 @@ function Construir_OpenAPI_Semaplan_IA(
           },
         },
       ),
-      "/b2/metas/avance": Post_B2(
-        "semaplan_b2_registrar_avance_meta",
-        "Registrar avance manual de una meta",
+      "/b2/planes/objetivos": Post_B2(
+        "semaplan_b2_mutar_objetivo_plan",
+        "Crear, editar o borrar un objetivo de Planes por periodo",
         OAUTH_SCOPE_METAS,
         {
           ...Schema_Base_B2,
-          required: ["busqueda", "cantidad"],
+          required: ["operacion"],
           properties: {
             ...Schema_Base_B2.properties,
-            busqueda: { type: "string" },
-            cantidad: { type: "number" },
+            operacion: {
+              type: "string",
+              enum: ["crear", "editar", "borrar"],
+            },
+            objetivo_id: { type: "string" },
+            periodo_id: { type: "string" },
+            objetivo_padre_id: { type: "string" },
+            nombre: { type: "string" },
+            descripcion: { type: "string" },
+            emoji: { type: "string" },
+            color: { type: "string" },
+            target_total: { type: "number", minimum: 0 },
+            unidad: { type: "string" },
+            unidad_custom: { type: "string" },
+            modo_progreso: {
+              type: "string",
+              enum: ["Manual", "Leido", "Hibrido"],
+            },
+            etiquetas_ids: {
+              type: "array",
+              items: { type: "string" },
+            },
+            tags: {
+              type: "array",
+              items: { type: "string" },
+            },
+            metadatos_campos: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  nombre: { type: "string" },
+                  tipo: {
+                    type: "string",
+                    enum: ["String", "Numerico"],
+                  },
+                },
+                required: ["nombre"],
+              },
+            },
+            confirmar_eliminacion: { type: "boolean" },
+            alcance_eliminacion: {
+              type: "string",
+              enum: ["solo", "hijos", "todos"],
+            },
+          },
+        },
+      ),
+      "/b2/planes/subobjetivos": Post_B2(
+        "semaplan_b2_mutar_subobjetivo_plan",
+        "Crear, editar o borrar un subobjetivo de Planes",
+        OAUTH_SCOPE_METAS,
+        {
+          ...Schema_Base_B2,
+          required: ["operacion"],
+          properties: {
+            ...Schema_Base_B2.properties,
+            operacion: {
+              type: "string",
+              enum: ["crear", "editar", "borrar"],
+            },
+            subobjetivo_id: { type: "string" },
+            objetivo_id: { type: "string" },
+            subobjetivo_padre_id: { type: "string" },
+            texto: { type: "string" },
+            emoji: { type: "string" },
+            target_total: { type: "number", minimum: 0 },
+            aporte_meta: { type: "number", minimum: 0 },
+            unidad: { type: "string" },
+            unidad_custom: { type: "string" },
+            fecha_inicio: { type: "string", format: "date" },
+            fecha_objetivo: { type: "string", format: "date" },
+            metadatos: {
+              type: "object",
+              additionalProperties: { type: "string" },
+            },
+            confirmar_eliminacion: { type: "boolean" },
+          },
+        },
+      ),
+      "/b2/planes/partes": Post_B2(
+        "semaplan_b2_mutar_parte_plan",
+        "Crear, editar o borrar una parte de un subobjetivo",
+        OAUTH_SCOPE_METAS,
+        {
+          ...Schema_Base_B2,
+          required: ["operacion"],
+          properties: {
+            ...Schema_Base_B2.properties,
+            operacion: {
+              type: "string",
+              enum: ["crear", "editar", "borrar"],
+            },
+            parte_id: { type: "string" },
+            subobjetivo_id: { type: "string" },
+            nombre: { type: "string" },
+            emoji: { type: "string" },
+            aporte_total: { type: "number", minimum: 0 },
+            unidad: { type: "string" },
+            unidad_custom: { type: "string" },
+            fecha_inicio: { type: "string", format: "date" },
+            fecha_objetivo: { type: "string", format: "date" },
+            metadatos: {
+              type: "object",
+              additionalProperties: { type: "string" },
+            },
+            confirmar_eliminacion: { type: "boolean" },
+          },
+        },
+      ),
+      "/b2/planes/avances": Post_B2(
+        "semaplan_b2_mutar_avance_plan",
+        "Crear, editar o borrar un registro manual de avance",
+        OAUTH_SCOPE_METAS,
+        {
+          ...Schema_Base_B2,
+          required: ["operacion"],
+          properties: {
+            ...Schema_Base_B2.properties,
+            operacion: {
+              type: "string",
+              enum: ["crear", "editar", "borrar"],
+            },
+            avance_id: { type: "string" },
+            objetivo_id: { type: "string" },
+            subobjetivo_id: { type: "string" },
+            parte_id: { type: "string" },
+            cantidad: { type: "number", minimum: 0 },
             unidad: { type: "string" },
             fecha: { type: "string", format: "date" },
             hora: {
@@ -935,6 +1096,11 @@ function Construir_OpenAPI_Semaplan_IA(
               pattern: "^([01]?\\d|2[0-3]):[0-5]\\d$",
             },
             nota: { type: "string" },
+            metadatos: {
+              type: "object",
+              additionalProperties: { type: "string" },
+            },
+            confirmar_eliminacion: { type: "boolean" },
           },
         },
       ),
@@ -3974,6 +4140,21 @@ function Construir_Plan_Semana_Normalizado_IA(
   };
 }
 
+function Copiar_Objeto_IA(Valor: unknown): Mapa {
+  if (
+    !Valor ||
+    typeof Valor !== "object" ||
+    Array.isArray(Valor)
+  ) {
+    return {};
+  }
+  try {
+    return JSON.parse(JSON.stringify(Valor)) as Mapa;
+  } catch (_) {
+    return {};
+  }
+}
+
 function Resolver_Modelo_Planes_Periodo_IA(
   Estado: Record<string, unknown>
 ) {
@@ -4115,12 +4296,6 @@ function Resolver_Modelo_Planes_Periodo_IA(
         Hora_Fin: Normalizar_Texto(
           Base.Hora_Fin
         ),
-        Vinculo_Tipo: Normalizar_Texto(
-          Base.Vinculo_Tipo
-        ),
-        Vinculo_Id: Normalizar_Texto(
-          Base.Vinculo_Id
-        ),
         Etiquetas_Ids: Array.isArray(
           Base.Etiquetas_Ids
         )
@@ -4136,6 +4311,80 @@ function Resolver_Modelo_Planes_Periodo_IA(
               Normalizar_Texto(Tag)
             )
             .filter(Boolean)
+          : [],
+        Metadatos_Campos: Array.isArray(
+          Base.Metadatos_Campos
+        )
+          ? Base.Metadatos_Campos
+          : [],
+        Metadatos_Campos_Config:
+          Base.Metadatos_Campos_Config === true,
+        Ajustes_Periodos: Copiar_Objeto_IA(
+          Base.Ajustes_Periodos ||
+            Base.Ajustes_Periodo ||
+            Base.Targets_Periodos
+        ),
+        Redistribucion_Target: Copiar_Objeto_IA(
+          Base.Redistribucion_Target ||
+            Base.Redistribucion_Objetivo ||
+            Base.Redistribucion
+        ),
+        Oculto_Periodos: Copiar_Objeto_IA(
+          Base.Oculto_Periodos ||
+            Base.Periodos_Ocultos ||
+            Base.Ocultamientos_Periodo
+        ),
+        Modo_Progreso: Normalizar_Texto(
+          Base.Modo_Progreso || "Hibrido"
+        ),
+        Target_Actual:
+          Number(Base.Target_Actual) ||
+          Number(Base.Target_Total) || 0,
+        Target_Automatico:
+          Number(Base.Target_Automatico) ||
+          Number(Base.Target_Total) || 0,
+        Target_Fijado:
+          Number(Base.Target_Fijado) || 0,
+        Progreso_Manual:
+          Number(Base.Progreso_Manual) || 0,
+        Progreso_Importado:
+          Number(Base.Progreso_Importado) || 0,
+        Progreso_Leido:
+          Number(Base.Progreso_Leido) || 0,
+        Progreso_Subobjetivos:
+          Number(Base.Progreso_Subobjetivos) || 0,
+        Fijado: Base.Fijado === true,
+        Pausado: Base.Pausado === true,
+        Eliminado_Local: Base.Eliminado_Local === true,
+        Vinculo_Sidebar_Activo:
+          Base.Vinculo_Sidebar_Activo !== false,
+        Vinculo_Tipo: Normalizar_Texto(
+          Base.Vinculo_Tipo
+        ),
+        Vinculo_Id: Normalizar_Texto(Base.Vinculo_Id),
+        Vinculo_Objetivo_Id: Normalizar_Texto(
+          Base.Vinculo_Objetivo_Id
+        ),
+        Vinculo_Subobjetivo_Id: Normalizar_Texto(
+          Base.Vinculo_Subobjetivo_Id
+        ),
+        Vinculo_Texto: Normalizar_Texto(
+          Base.Vinculo_Texto
+        ),
+        Warnings: Array.isArray(Base.Warnings)
+          ? Base.Warnings
+            .map((Warning) => Normalizar_Texto(Warning))
+            .filter(Boolean)
+          : [],
+        Habitos_Vinculos: Array.isArray(
+          Base.Habitos_Vinculos
+        )
+          ? Base.Habitos_Vinculos
+          : [],
+        Habitos_Vinculos_Hijos_Default: Array.isArray(
+          Base.Habitos_Vinculos_Hijos_Default
+        )
+          ? Base.Habitos_Vinculos_Hijos_Default
           : [],
         Orden: Number.isFinite(Number(Base.Orden))
           ? Number(Base.Orden)
@@ -4217,6 +4466,22 @@ function Resolver_Modelo_Planes_Periodo_IA(
         ) || "Activo",
         Hecha: Base.Hecha === true,
         Importado: Base.Importado === true,
+        Metadatos: Copiar_Objeto_IA(Base.Metadatos),
+        Habitos_Vinculos: Array.isArray(
+          Base.Habitos_Vinculos
+        )
+          ? Base.Habitos_Vinculos
+          : [],
+        Habitos_Vinculos_Hijos_Default: Array.isArray(
+          Base.Habitos_Vinculos_Hijos_Default
+        )
+          ? Base.Habitos_Vinculos_Hijos_Default
+          : [],
+        Eliminado_Local: Base.Eliminado_Local === true,
+        Creado_En: Normalizar_Texto(Base.Creado_En),
+        Actualizado_En: Normalizar_Texto(
+          Base.Actualizado_En
+        ),
         Orden: Number.isFinite(Number(Base.Orden))
           ? Number(Base.Orden)
           : Indice,
@@ -4281,6 +4546,17 @@ function Resolver_Modelo_Planes_Periodo_IA(
         Estado: Normalizar_Texto(
           Base.Estado || "Pendiente"
         ) || "Pendiente",
+        Metadatos: Copiar_Objeto_IA(Base.Metadatos),
+        Habitos_Vinculos: Array.isArray(
+          Base.Habitos_Vinculos
+        )
+          ? Base.Habitos_Vinculos
+          : [],
+        Eliminado_Local: Base.Eliminado_Local === true,
+        Creado_En: Normalizar_Texto(Base.Creado_En),
+        Actualizado_En: Normalizar_Texto(
+          Base.Actualizado_En
+        ),
         Orden: Number.isFinite(Number(Base.Orden))
           ? Number(Base.Orden)
           : Indice,
@@ -4312,9 +4588,12 @@ function Resolver_Modelo_Planes_Periodo_IA(
         Fuente: Normalizar_Texto(
           Base.Fuente || "Manual"
         ) || "Manual",
+        Modo: Normalizar_Texto(Base.Modo || "Cantidad"),
         Cantidad: Number(Base.Cantidad) || 0,
         Cantidad_Total:
           Number(Base.Cantidad_Total) || 0,
+        Base: Number(Base.Base) || 0,
+        Hasta: Number(Base.Hasta) || 0,
         Unidad: Normalizar_Texto(Base.Unidad),
         Fecha: Normalizar_Texto(Base.Fecha),
         Hora: Normalizar_Texto(Base.Hora),
@@ -4328,7 +4607,14 @@ function Resolver_Modelo_Planes_Periodo_IA(
         Origen_Id: Normalizar_Texto(
           Base.Origen_Id
         ),
+        Origen_Objetivo_Semanal_Id: Normalizar_Texto(
+          Base.Origen_Objetivo_Semanal_Id
+        ),
+        Origen_Subobjetivo_Semanal_Id: Normalizar_Texto(
+          Base.Origen_Subobjetivo_Semanal_Id
+        ),
         Automatico: Base.Automatico === true,
+        Metadatos: Copiar_Objeto_IA(Base.Metadatos),
         Distribucion: Array.isArray(
           Base.Distribucion
         )
@@ -4422,6 +4708,200 @@ function Construir_Ids_Periodos_Relevantes_IA(
       .forEach((Hijo) => Cola.push(Hijo));
   }
   return Resultado;
+}
+
+function Porcentaje_Planes_IA(
+  Progreso: number,
+  Target: number
+) {
+  if (Target <= 0) return null;
+  return Math.round((Progreso / Target) * 10000) / 100;
+}
+
+function Construir_Arbol_Planes_IA(
+  Objetivos: ReturnType<
+    typeof Resolver_Modelo_Planes_Periodo_IA
+  >["Objetivos"],
+  Subobjetivos: ReturnType<
+    typeof Resolver_Modelo_Planes_Periodo_IA
+  >["Subobjetivos"],
+  Partes: ReturnType<
+    typeof Resolver_Modelo_Planes_Periodo_IA
+  >["Partes"],
+  Avances: ReturnType<
+    typeof Resolver_Modelo_Planes_Periodo_IA
+  >["Avances"]
+) {
+  const Objetivos_Ids = new Set(
+    Objetivos.map((Objetivo) => Objetivo.Id)
+  );
+  const Ordenar = <T extends { Orden: number }>(
+    Items: T[]
+  ) => Items.slice().sort((A, B) => A.Orden - B.Orden);
+  const Familia_Subobjetivo = (Subobjetivo_Id: string) => {
+    const Ids = new Set([Subobjetivo_Id]);
+    let Cambio = true;
+    while (Cambio) {
+      Cambio = false;
+      Subobjetivos.forEach((Subobjetivo) => {
+        const Padre =
+          Subobjetivo.Subobjetivo_Padre_Id ||
+          Subobjetivo.Parent_Subobjetivo_Id || "";
+        if (!Ids.has(Padre) || Ids.has(Subobjetivo.Id)) {
+          return;
+        }
+        Ids.add(Subobjetivo.Id);
+        Cambio = true;
+      });
+    }
+    return Ids;
+  };
+  const Avances_De = (Filtros: {
+    Objetivo_Id?: string;
+    Subobjetivo_Id?: string;
+    Parte_Id?: string;
+  }) => Avances.filter((Avance) => {
+    if (
+      Filtros.Parte_Id &&
+      Avance.Parte_Id === Filtros.Parte_Id
+    ) {
+      return true;
+    }
+    if (
+      Filtros.Subobjetivo_Id &&
+      Avance.Subobjetivo_Id === Filtros.Subobjetivo_Id &&
+      !Avance.Parte_Id
+    ) {
+      return true;
+    }
+    return Boolean(
+      Filtros.Objetivo_Id &&
+        Avance.Objetivo_Id === Filtros.Objetivo_Id &&
+        !Avance.Subobjetivo_Id &&
+        !Avance.Parte_Id
+    );
+  });
+  const Estadisticas = (
+    Target: number,
+    Progreso: number,
+    Registros: typeof Avances,
+    Hijos: {
+      Subobjetivos?: number;
+      Partes?: number;
+    } = {}
+  ) => ({
+    Target,
+    Progreso,
+    Pendiente: Math.max(0, Target - Progreso),
+    Porcentaje: Porcentaje_Planes_IA(Progreso, Target),
+    Registros_Total: Registros.length,
+    Avance_Registrado: Registros.reduce(
+      (Total, Avance) => Total + Avance.Cantidad,
+      0
+    ),
+    Subobjetivos_Total: Hijos.Subobjetivos || 0,
+    Partes_Total: Hijos.Partes || 0,
+  });
+  const Construir_Parte = (Parte: typeof Partes[number]) => {
+    const Registros = Avances_De({ Parte_Id: Parte.Id });
+    return {
+      ...Parte,
+      Estadisticas: Estadisticas(
+        Parte.Aporte_Total,
+        Parte.Progreso_Total,
+        Registros
+      ),
+      Avances: Registros,
+    };
+  };
+  const Construir_Subobjetivo = (
+    Subobjetivo: typeof Subobjetivos[number]
+  ): Mapa => {
+    const Hijos = Ordenar(Subobjetivos.filter((Item) =>
+      Item.Subobjetivo_Padre_Id === Subobjetivo.Id ||
+      Item.Parent_Subobjetivo_Id === Subobjetivo.Id
+    )).map(Construir_Subobjetivo);
+    const Partes_Directas = Ordenar(Partes.filter((Parte) =>
+      Parte.Subobjetivo_Id === Subobjetivo.Id
+    )).map(Construir_Parte);
+    const Familia_Ids = Familia_Subobjetivo(Subobjetivo.Id);
+    const Partes_Familia = Partes.filter((Parte) =>
+      Familia_Ids.has(Parte.Subobjetivo_Id || "")
+    );
+    const Registros = Avances.filter((Avance) =>
+      Avance.Subobjetivo_Id === Subobjetivo.Id ||
+      Partes_Familia.some((Parte) => Parte.Id === Avance.Parte_Id)
+    );
+    return {
+      ...Subobjetivo,
+      Estadisticas: Estadisticas(
+        Subobjetivo.Target_Total,
+        Math.max(
+          Subobjetivo.Progreso_Manual,
+          Subobjetivo.Progreso_Avances
+        ),
+        Registros,
+        {
+          Subobjetivos: Hijos.length,
+          Partes: Partes_Directas.length,
+        }
+      ),
+      Subobjetivos_Hijos: Hijos,
+      Partes: Partes_Directas,
+      Avances: Avances_De({
+        Subobjetivo_Id: Subobjetivo.Id,
+      }),
+    };
+  };
+  const Construir_Objetivo = (
+    Objetivo: typeof Objetivos[number]
+  ): Mapa => {
+    const Hijos = Ordenar(Objetivos.filter((Item) =>
+      Item.Objetivo_Padre_Id === Objetivo.Id
+    )).map(Construir_Objetivo);
+    const Subobjetivos_Raiz = Ordenar(Subobjetivos.filter((Sub) =>
+      Sub.Objetivo_Id === Objetivo.Id &&
+      !Sub.Subobjetivo_Padre_Id &&
+      !Sub.Parent_Subobjetivo_Id
+    )).map(Construir_Subobjetivo);
+    const Subobjetivos_Objetivo = Subobjetivos.filter((Sub) =>
+      Sub.Objetivo_Id === Objetivo.Id
+    );
+    const Partes_Objetivo = Partes.filter((Parte) =>
+      Parte.Objetivo_Id === Objetivo.Id ||
+      Subobjetivos_Objetivo.some((Sub) =>
+        Sub.Id === Parte.Subobjetivo_Id
+      )
+    );
+    const Registros = Avances.filter((Avance) =>
+      Avance.Objetivo_Id === Objetivo.Id ||
+      Subobjetivos_Objetivo.some((Sub) =>
+        Sub.Id === Avance.Subobjetivo_Id
+      ) ||
+      Partes_Objetivo.some((Parte) =>
+        Parte.Id === Avance.Parte_Id
+      )
+    );
+    return {
+      ...Objetivo,
+      Estadisticas: Estadisticas(
+        Objetivo.Target_Actual || Objetivo.Target_Total,
+        Objetivo.Progreso_Total,
+        Registros,
+        {
+          Subobjetivos: Subobjetivos_Objetivo.length,
+          Partes: Partes_Objetivo.length,
+        }
+      ),
+      Objetivos_Hijos: Hijos,
+      Subobjetivos: Subobjetivos_Raiz,
+      Avances: Avances_De({ Objetivo_Id: Objetivo.Id }),
+    };
+  };
+  return Ordenar(Objetivos.filter((Objetivo) =>
+    !Objetivo.Objetivo_Padre_Id ||
+    !Objetivos_Ids.has(Objetivo.Objetivo_Padre_Id)
+  )).map(Construir_Objetivo);
 }
 
 function Responder_Tareas(
@@ -4642,6 +5122,12 @@ function Responder_Planes_Periodos(
     50,
     100
   );
+  const Incluir_Eliminados = ["1", "true", "si"]
+    .includes(
+      Normalizar_Texto(
+        Url.searchParams.get("incluir_eliminados")
+      ).toLowerCase()
+    );
 
   if (!Periodo_Id) {
     let Periodos = Modelo.Periodos.slice();
@@ -4669,8 +5155,29 @@ function Responder_Planes_Periodos(
             Modelo.Objetivos.filter(
               (Objetivo) =>
                 Objetivo.Periodo_Id ===
-                Periodo.Id
+                Periodo.Id &&
+                (Incluir_Eliminados ||
+                  !Objetivo.Eliminado_Local)
             ).length,
+          Subobjetivos_Total:
+            Modelo.Subobjetivos.filter((Subobjetivo) =>
+              (Incluir_Eliminados ||
+                !Subobjetivo.Eliminado_Local) &&
+              Modelo.Objetivos.some((Objetivo) =>
+                Objetivo.Periodo_Id === Periodo.Id &&
+                Objetivo.Id === Subobjetivo.Objetivo_Id
+              )
+            ).length,
+          Partes_Total: Modelo.Partes.filter((Parte) =>
+            (Incluir_Eliminados || !Parte.Eliminado_Local) &&
+            Modelo.Subobjetivos.some((Subobjetivo) =>
+              Subobjetivo.Id === Parte.Subobjetivo_Id &&
+              Modelo.Objetivos.some((Objetivo) =>
+                Objetivo.Periodo_Id === Periodo.Id &&
+                Objetivo.Id === Subobjetivo.Objetivo_Id
+              )
+            )
+          ).length,
         })),
     });
   }
@@ -4696,9 +5203,9 @@ function Responder_Planes_Periodos(
       Objetivo.Periodo_Id &&
       Periodos_Relevantes.has(
         Objetivo.Periodo_Id
-      )
-    )
-    .slice(0, Limite);
+      ) &&
+      (Incluir_Eliminados || !Objetivo.Eliminado_Local)
+    );
   const Objetivos_Ids = new Set(
     Objetivos.map((Objetivo) => Objetivo.Id)
   );
@@ -4707,9 +5214,10 @@ function Responder_Planes_Periodos(
       Subobjetivo.Objetivo_Id &&
       Objetivos_Ids.has(
         Subobjetivo.Objetivo_Id
-      )
-    )
-    .slice(0, Limite);
+      ) &&
+      (Incluir_Eliminados ||
+        !Subobjetivo.Eliminado_Local)
+    );
   const Subobjetivos_Ids = new Set(
     Subobjetivos.map((Subobjetivo) =>
       Subobjetivo.Id
@@ -4720,9 +5228,9 @@ function Responder_Planes_Periodos(
       Parte.Subobjetivo_Id &&
       Subobjetivos_Ids.has(
         Parte.Subobjetivo_Id
-      )
-    )
-    .slice(0, Limite);
+      ) &&
+      (Incluir_Eliminados || !Parte.Eliminado_Local)
+    );
   const Partes_Ids = new Set(
     Partes.map((Parte) => Parte.Id)
   );
@@ -4744,8 +5252,7 @@ function Responder_Planes_Periodos(
         .localeCompare(
           `${A.Fecha}|${A.Hora}|${A.Orden}`
         )
-    )
-    .slice(0, Limite);
+    );
 
   return Responder_Json({
     Ok: true,
@@ -4761,6 +5268,12 @@ function Responder_Planes_Periodos(
     Subobjetivos,
     Partes,
     Avances,
+    Arbol: Construir_Arbol_Planes_IA(
+      Objetivos,
+      Subobjetivos,
+      Partes,
+      Avances
+    ),
   });
 }
 
@@ -5073,9 +5586,6 @@ function Responder_Contexto(
       Baul: Construir_Resumen_Baul(
         Estado
       ),
-      Metas: Construir_Resumen_Metas(
-        Estado
-      ),
     },
   });
 }
@@ -5129,6 +5639,16 @@ const Rutas_B2: Record<string, {
     Accion: "reprogramar_tarea",
     Handler: B2_Reprogramar_Tarea,
   },
+  "/b2/tareas/editar": {
+    Scope: OAUTH_SCOPE_TAREAS,
+    Accion: "editar_tarea",
+    Handler: B2_Editar_Tarea,
+  },
+  "/b2/tareas/borrar": {
+    Scope: OAUTH_SCOPE_TAREAS,
+    Accion: "borrar_tarea",
+    Handler: B2_Borrar_Tarea,
+  },
   "/b2/habitos/crear": {
     Scope: OAUTH_SCOPE_HABITOS,
     Accion: "crear_habito",
@@ -5139,10 +5659,25 @@ const Rutas_B2: Record<string, {
     Accion: "registrar_habito",
     Handler: B2_Registrar_Habito,
   },
-  "/b2/metas/avance": {
+  "/b2/planes/objetivos": {
     Scope: OAUTH_SCOPE_METAS,
-    Accion: "registrar_avance_meta",
-    Handler: B2_Registrar_Avance_Meta,
+    Accion: "mutar_objetivo_plan",
+    Handler: B2_Mutar_Objetivo_Plan,
+  },
+  "/b2/planes/subobjetivos": {
+    Scope: OAUTH_SCOPE_METAS,
+    Accion: "mutar_subobjetivo_plan",
+    Handler: B2_Mutar_Subobjetivo_Plan,
+  },
+  "/b2/planes/partes": {
+    Scope: OAUTH_SCOPE_METAS,
+    Accion: "mutar_parte_plan",
+    Handler: B2_Mutar_Parte_Plan,
+  },
+  "/b2/planes/avances": {
+    Scope: OAUTH_SCOPE_METAS,
+    Accion: "mutar_avance_plan",
+    Handler: B2_Mutar_Avance_Plan,
   },
   "/b2/archivero/nota": {
     Scope: OAUTH_SCOPE_ARCHIVERO,
@@ -5417,6 +5952,9 @@ function B2_Crear_Tarea(
   };
   Tareas.push(Tarea);
   Asegurar_Cajon_Tareas_B2(Estado, Cajon);
+  if (Fecha && Hora) {
+    Planificar_Tarea_B2(Estado, Tarea);
+  }
   return {
     Respuesta: `Tarea creada: ${Nombre}.`,
     Resultado: { tarea_id: Tarea.Id },
@@ -5442,6 +5980,7 @@ function B2_Marcar_Tarea(
   Tarea.Estado = Estado_Nuevo;
   Tarea.Fecha_Actualizacion = Ahora;
   Tarea.Fecha_Completado = Hecha ? Ahora : "";
+  Sincronizar_Estado_Tarea_Vinculada_B2(Estado, Tarea);
   return {
     Respuesta: Hecha
       ? `Tarea marcada como hecha: ${Tarea.Nombre}.`
@@ -5463,12 +6002,6 @@ function B2_Reprogramar_Tarea(
   );
   if (Busqueda.Ok !== true) return Busqueda.Respuesta;
   const Tarea = Busqueda.Item;
-  if (Tarea_Esta_Vinculada_B2(Tarea)) {
-    return Error_Mutacion_B2(
-      "Esa tarea esta vinculada a agenda o planes. " +
-        "Cambiala desde Semaplan para no romper vinculos."
-    );
-  }
   const Sin_Horario = Leer_Boolean_B2(
     Payload,
     false,
@@ -5487,19 +6020,130 @@ function B2_Reprogramar_Tarea(
   if (!Sin_Horario && !Hora) {
     return Error_Mutacion_B2("Necesito una hora para reprogramar.");
   }
+  Desplanificar_Tarea_B2(Estado, Tarea);
   Tarea.Fecha = Sin_Horario ? "" : Fecha;
   Tarea.Hora = Hora;
-  Tarea.Planeada = false;
-  Tarea.Evento_Id = "";
-  Tarea.Abordaje_Id = "";
-  Tarea.Plan_Clave = "";
-  Tarea.Plan_Item_Id = "";
+  if (!Sin_Horario) {
+    Planificar_Tarea_B2(Estado, Tarea);
+  }
   Tarea.Fecha_Actualizacion = new Date().toISOString();
   return {
     Respuesta: Sin_Horario
       ? `Horario quitado de tarea: ${Tarea.Nombre}.`
       : `Tarea reprogramada: ${Tarea.Nombre} ${Fecha} ${Hora}.`,
     Resultado: { tarea_id: Tarea.Id, fecha: Tarea.Fecha, hora: Hora },
+  };
+}
+
+function B2_Editar_Tarea(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Tareas = Asegurar_Array_B2(Estado, "Tareas");
+  const Busqueda = Buscar_Item_B2(
+    Tareas,
+    Payload,
+    "tarea_id",
+    "Nombre"
+  );
+  if (Busqueda.Ok !== true) return Busqueda.Respuesta;
+  const Tarea = Busqueda.Item;
+  const Requiere_Reprogramar =
+    Tiene_Campo_B2(Payload, "fecha") ||
+    Tiene_Campo_B2(Payload, "hora") ||
+    Tiene_Campo_B2(Payload, "sin_horario");
+  if (Requiere_Reprogramar) {
+    const Reprogramacion = B2_Reprogramar_Tarea(Estado, {
+      ...Payload,
+      tarea_id: Tarea.Id,
+    });
+    if (Reprogramacion.Cambios === false) {
+      return Reprogramacion;
+    }
+  }
+
+  let Cambios = Requiere_Reprogramar;
+  if (Tiene_Campo_B2(Payload, "nuevo_nombre")) {
+    const Nombre = Leer_String_B2(Payload, "nuevo_nombre");
+    if (!Nombre) return Error_Mutacion_B2("El nombre no puede quedar vacio.");
+    Tarea.Nombre = Nombre;
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "emoji")) {
+    Tarea.Emoji = Leer_String_B2(Payload, "emoji") || "\u2022";
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "cajon")) {
+    const Cajon = Leer_String_B2(Payload, "cajon");
+    if (!Cajon) return Error_Mutacion_B2("El cajon no puede quedar vacio.");
+    Tarea.Cajon = Cajon;
+    Asegurar_Cajon_Tareas_B2(Estado, Cajon);
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "prioridad")) {
+    Tarea.Prioridad = Leer_String_B2(Payload, "prioridad") || "baja";
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "estado")) {
+    const Estado_Nuevo = Leer_String_B2(Payload, "estado").toLowerCase();
+    if (![
+      "pendiente",
+      "completada",
+      "pospuesta",
+      "cancelada",
+    ].includes(Estado_Nuevo)) {
+      return Error_Mutacion_B2("El estado de tarea no es valido.");
+    }
+    Tarea.Estado = Estado_Nuevo;
+    Tarea.Fecha_Completado = Estado_Nuevo === "completada"
+      ? new Date().toISOString()
+      : "";
+    if (Estado_Nuevo === "pospuesta") {
+      Desplanificar_Tarea_B2(Estado, Tarea);
+      Tarea.Fecha = "";
+      Tarea.Hora = "";
+    } else if (Estado_Nuevo === "cancelada") {
+      Desplanificar_Tarea_B2(Estado, Tarea);
+    } else {
+      Sincronizar_Estado_Tarea_Vinculada_B2(Estado, Tarea);
+    }
+    Cambios = true;
+  }
+  if (!Cambios) {
+    return Error_Mutacion_B2("No hay cambios para aplicar a la tarea.");
+  }
+  Sincronizar_Estado_Tarea_Vinculada_B2(Estado, Tarea);
+  Tarea.Fecha_Actualizacion = new Date().toISOString();
+  return {
+    Respuesta: `Tarea actualizada: ${Tarea.Nombre}.`,
+    Resultado: { tarea_id: Tarea.Id },
+  };
+}
+
+function B2_Borrar_Tarea(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  if (!Leer_Boolean_B2(Payload, false, "confirmar_eliminacion")) {
+    return Error_Mutacion_B2(
+      "El borrado requiere confirmar_eliminacion: true."
+    );
+  }
+  const Tareas = Asegurar_Array_B2(Estado, "Tareas");
+  const Busqueda = Buscar_Item_B2(
+    Tareas,
+    Payload,
+    "tarea_id",
+    "Nombre"
+  );
+  if (Busqueda.Ok !== true) return Busqueda.Respuesta;
+  const Tarea = Busqueda.Item;
+  Desplanificar_Tarea_B2(Estado, Tarea);
+  const Indice = Tareas.indexOf(Tarea);
+  if (Indice >= 0) Tareas.splice(Indice, 1);
+  return {
+    Respuesta: `Tarea eliminada: ${Tarea.Nombre}.`,
+    Resultado: { tarea_id: Tarea.Id },
   };
 }
 
@@ -5658,6 +6302,647 @@ function B2_Registrar_Avance_Meta(
   Estado.Planes_Periodo = Modelo;
   return {
     Respuesta: `Avance de meta registrado: ${Item.Nombre}.`,
+    Resultado: { avance_id: Id },
+  };
+}
+
+function Tiene_Campo_B2(Payload: Mapa, Campo: string) {
+  return Object.prototype.hasOwnProperty.call(Payload, Campo);
+}
+
+function Aplicar_Texto_Plan_B2(
+  Destino: Mapa,
+  Payload: Mapa,
+  Campo: string,
+  Campo_Destino = Campo
+) {
+  if (!Tiene_Campo_B2(Payload, Campo)) return false;
+  Destino[Campo_Destino] = String(Payload[Campo] || "").trim();
+  return true;
+}
+
+function Aplicar_Numero_Plan_B2(
+  Destino: Mapa,
+  Payload: Mapa,
+  Campo: string,
+  Campo_Destino = Campo
+) {
+  if (!Tiene_Campo_B2(Payload, Campo)) return false;
+  const Valor = Number(Payload[Campo]);
+  if (!Number.isFinite(Valor) || Valor < 0) return false;
+  Destino[Campo_Destino] = Valor;
+  return true;
+}
+
+function Aplicar_Fecha_Plan_B2(
+  Destino: Mapa,
+  Payload: Mapa,
+  Campo: string,
+  Campo_Destino = Campo
+) {
+  if (!Tiene_Campo_B2(Payload, Campo)) return false;
+  const Fecha = String(Payload[Campo] || "").trim();
+  if (Fecha && !Es_Fecha_ISO_Valida(Fecha)) return false;
+  Destino[Campo_Destino] = Fecha;
+  return true;
+}
+
+function Normalizar_Metadatos_Plan_B2(Valor: unknown): Mapa {
+  if (!Es_Mapa_B2(Valor)) return {};
+  const Resultado: Mapa = {};
+  Object.entries(Valor as Mapa).forEach(([Clave, Dato]) => {
+    const Nombre = String(Clave || "").trim();
+    if (!Nombre) return;
+    Resultado[Nombre] = String(Dato ?? "").trim();
+  });
+  return Resultado;
+}
+
+function Normalizar_Campos_Metadatos_Plan_B2(
+  Valor: unknown
+) {
+  if (!Array.isArray(Valor)) return [];
+  const Nombres = new Set<string>();
+  return Valor.flatMap((Item, Indice) => {
+    if (!Es_Mapa_B2(Item)) return [];
+    const Base = Item as Mapa;
+    const Nombre = String(
+      Base.nombre || Base.Nombre || ""
+    ).trim();
+    if (!Nombre) return [];
+    const Clave = Normalizar_Texto_Busqueda(Nombre);
+    if (Nombres.has(Clave)) return [];
+    Nombres.add(Clave);
+    return [{
+      Id: String(Base.id || Base.Id ||
+        `Meta_${Date.now()}_${Indice}`).trim(),
+      Nombre,
+      Tipo: ["Numerico", "numerico", "numero"]
+        .includes(String(Base.tipo || Base.Tipo || ""))
+        ? "Numerico"
+        : "String",
+    }];
+  });
+}
+
+function Obtener_Operacion_Plan_B2(Payload: Mapa) {
+  const Operacion = Leer_String_B2(Payload, "operacion")
+    .toLowerCase();
+  return ["crear", "editar", "borrar"].includes(Operacion)
+    ? Operacion
+    : "";
+}
+
+function Confirmar_Eliminacion_Plan_B2(Payload: Mapa) {
+  return Leer_Boolean_B2(
+    Payload,
+    false,
+    "confirmar_eliminacion"
+  );
+}
+
+function Obtener_Item_Plan_B2(
+  Items: Mapa,
+  Id: string,
+  Tipo: string
+): Mapa | null {
+  const Item = Items[Id];
+  if (!Es_Mapa_B2(Item)) return null;
+  return Item as Mapa;
+}
+
+function Actualizar_Marca_Plan_B2(Item: Mapa) {
+  Item.Actualizado_En = new Date().toISOString();
+}
+
+function B2_Mutar_Objetivo_Plan(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Operacion = Obtener_Operacion_Plan_B2(Payload);
+  if (!Operacion) return Error_Mutacion_B2("Operacion invalida.");
+  const Modelo = Obtener_Modelo_Planes_B2(Estado);
+  if (!Modelo) return Error_Mutacion_B2("No encontre Planes_Periodo.");
+  const Periodos = Modelo.Periodos as Mapa;
+  const Objetivos = Modelo.Objetivos as Mapa;
+  if (Operacion === "crear") {
+    const Periodo_Id = Leer_String_B2(Payload, "periodo_id");
+    const Nombre = Leer_String_B2(Payload, "nombre");
+    if (!Periodo_Id || !Obtener_Item_Plan_B2(Periodos, Periodo_Id, "Periodo")) {
+      return Error_Mutacion_B2("Necesito un periodo_id valido.");
+    }
+    if (!Nombre) return Error_Mutacion_B2("El objetivo necesita nombre.");
+    const Objetivo_Padre_Id = Leer_String_B2(
+      Payload,
+      "objetivo_padre_id"
+    );
+    if (
+      Objetivo_Padre_Id &&
+      !Obtener_Item_Plan_B2(Objetivos, Objetivo_Padre_Id, "Objetivo")
+    ) {
+      return Error_Mutacion_B2("objetivo_padre_id no existe.");
+    }
+    const Id = Crear_Id_B2("Plan_Obj");
+    const Ahora = new Date().toISOString();
+    Objetivos[Id] = {
+      Id,
+      Periodo_Id,
+      Objetivo_Padre_Id: Objetivo_Padre_Id || null,
+      Nombre,
+      Descripcion: Leer_String_B2(Payload, "descripcion"),
+      Emoji: Leer_String_B2(Payload, "emoji") || "\u2705",
+      Color: Leer_String_B2(Payload, "color"),
+      Target_Total: Math.max(0, Leer_Numero_B2(Payload, "target_total") || 0),
+      Target_Actual: Math.max(0, Leer_Numero_B2(Payload, "target_total") || 0),
+      Unidad: Leer_String_B2(Payload, "unidad") || "Horas",
+      Unidad_Custom: Leer_String_B2(Payload, "unidad_custom"),
+      Modo_Progreso: Leer_String_B2(Payload, "modo_progreso") || "Hibrido",
+      Modo_Avance: "Metrica",
+      Etiquetas_Ids: Leer_Array_String_B2(Payload, "etiquetas_ids"),
+      Tags: Leer_Array_String_B2(Payload, "tags"),
+      Metadatos_Campos: Normalizar_Campos_Metadatos_Plan_B2(
+        Payload.metadatos_campos
+      ),
+      Metadatos_Campos_Config: Tiene_Campo_B2(
+        Payload,
+        "metadatos_campos"
+      ),
+      Estado: "Activo",
+      Eliminado_Local: false,
+      Orden: Object.keys(Objetivos).length,
+      Creado_En: Ahora,
+      Actualizado_En: Ahora,
+    };
+    Estado.Planes_Periodo = Modelo;
+    return {
+      Respuesta: `Objetivo creado: ${Nombre}.`,
+      Resultado: { objetivo_id: Id },
+    };
+  }
+
+  const Id = Leer_String_B2(Payload, "objetivo_id");
+  const Objetivo = Obtener_Item_Plan_B2(Objetivos, Id, "Objetivo");
+  if (!Objetivo) return Error_Mutacion_B2("objetivo_id no existe.");
+  if (Operacion === "borrar") {
+    if (!Confirmar_Eliminacion_Plan_B2(Payload)) {
+      return Error_Mutacion_B2(
+        "El borrado requiere confirmar_eliminacion: true."
+      );
+    }
+    const Alcance = Leer_String_B2(
+      Payload,
+      "alcance_eliminacion"
+    ) || "solo";
+    const Afectados = new Set([Id]);
+    if (Alcance === "hijos" || Alcance === "todos") {
+      Object.values(Objetivos).forEach((Item) => {
+        if (!Es_Mapa_B2(Item)) return;
+        const Hijo = Item as Mapa;
+        if (String(Hijo.Objetivo_Padre_Id || "") === Id) {
+          Afectados.add(String(Hijo.Id || ""));
+        }
+      });
+    }
+    if (Alcance === "todos") {
+      let Cambio = true;
+      while (Cambio) {
+        Cambio = false;
+        Object.values(Objetivos).forEach((Item) => {
+          if (!Es_Mapa_B2(Item)) return;
+          const Hijo = Item as Mapa;
+          const Hijo_Id = String(Hijo.Id || "");
+          if (
+            Afectados.has(String(Hijo.Objetivo_Padre_Id || "")) &&
+            !Afectados.has(Hijo_Id)
+          ) {
+            Afectados.add(Hijo_Id);
+            Cambio = true;
+          }
+        });
+      }
+    }
+    Afectados.forEach((Objetivo_Id) => {
+      const Item = Obtener_Item_Plan_B2(Objetivos, Objetivo_Id, "Objetivo");
+      if (!Item) return;
+      Item.Eliminado_Local = true;
+      Actualizar_Marca_Plan_B2(Item);
+    });
+    Estado.Planes_Periodo = Modelo;
+    return {
+      Respuesta: "Objetivo archivado logicamente.",
+      Resultado: { objetivo_id: Id, afectados: Afectados.size },
+    };
+  }
+
+  let Cambios = false;
+  Cambios = Aplicar_Texto_Plan_B2(Objetivo, Payload, "nombre", "Nombre") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Objetivo, Payload, "descripcion", "Descripcion") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Objetivo, Payload, "emoji", "Emoji") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Objetivo, Payload, "color", "Color") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Objetivo, Payload, "unidad", "Unidad") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Objetivo, Payload, "unidad_custom", "Unidad_Custom") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Objetivo, Payload, "modo_progreso", "Modo_Progreso") || Cambios;
+  Cambios = Aplicar_Numero_Plan_B2(Objetivo, Payload, "target_total", "Target_Total") || Cambios;
+  if (Tiene_Campo_B2(Payload, "etiquetas_ids")) {
+    Objetivo.Etiquetas_Ids = Leer_Array_String_B2(Payload, "etiquetas_ids");
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "tags")) {
+    Objetivo.Tags = Leer_Array_String_B2(Payload, "tags");
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "metadatos_campos")) {
+    Objetivo.Metadatos_Campos = Normalizar_Campos_Metadatos_Plan_B2(
+      Payload.metadatos_campos
+    );
+    Objetivo.Metadatos_Campos_Config = true;
+    Cambios = true;
+  }
+  if (!Cambios || !String(Objetivo.Nombre || "").trim()) {
+    return Error_Mutacion_B2("No hay cambios validos para el objetivo.");
+  }
+  Actualizar_Marca_Plan_B2(Objetivo);
+  Estado.Planes_Periodo = Modelo;
+  return {
+    Respuesta: `Objetivo actualizado: ${Objetivo.Nombre}.`,
+    Resultado: { objetivo_id: Id },
+  };
+}
+
+function B2_Mutar_Subobjetivo_Plan(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Operacion = Obtener_Operacion_Plan_B2(Payload);
+  if (!Operacion) return Error_Mutacion_B2("Operacion invalida.");
+  const Modelo = Obtener_Modelo_Planes_B2(Estado);
+  if (!Modelo) return Error_Mutacion_B2("No encontre Planes_Periodo.");
+  const Objetivos = Modelo.Objetivos as Mapa;
+  const Subobjetivos = Modelo.Subobjetivos as Mapa;
+  if (Operacion === "crear") {
+    const Objetivo_Id = Leer_String_B2(Payload, "objetivo_id");
+    const Objetivo = Obtener_Item_Plan_B2(Objetivos, Objetivo_Id, "Objetivo");
+    const Texto = Leer_String_B2(Payload, "texto");
+    if (!Objetivo || Objetivo.Eliminado_Local === true) {
+      return Error_Mutacion_B2("Necesito un objetivo_id activo.");
+    }
+    if (!Texto) return Error_Mutacion_B2("El subobjetivo necesita texto.");
+    const Padre_Id = Leer_String_B2(Payload, "subobjetivo_padre_id");
+    const Padre = Padre_Id
+      ? Obtener_Item_Plan_B2(Subobjetivos, Padre_Id, "Subobjetivo")
+      : null;
+    if (Padre_Id && (!Padre || Padre.Objetivo_Id !== Objetivo_Id)) {
+      return Error_Mutacion_B2("subobjetivo_padre_id no corresponde al objetivo.");
+    }
+    const Id = Crear_Id_B2("Plan_Sub");
+    const Ahora = new Date().toISOString();
+    Subobjetivos[Id] = {
+      Id,
+      Objetivo_Id,
+      Parent_Subobjetivo_Id: Padre_Id || "",
+      Subobjetivo_Padre_Id: Padre_Id || "",
+      Emoji: Leer_String_B2(Payload, "emoji") || "\u2022",
+      Texto,
+      Target_Total: Math.max(0, Leer_Numero_B2(Payload, "target_total") || 0),
+      Aporte_Meta: Math.max(0, Leer_Numero_B2(Payload, "aporte_meta") || 0),
+      Unidad: Leer_String_B2(Payload, "unidad") ||
+        String(Objetivo.Unidad_Subobjetivos_Default || Objetivo.Unidad || "Horas"),
+      Unidad_Custom: Leer_String_B2(Payload, "unidad_custom"),
+      Fecha_Inicio: Leer_Fecha_B2(Payload, "fecha_inicio", "fecha_inicio", ""),
+      Fecha_Objetivo: Leer_Fecha_B2(Payload, "fecha_objetivo", "fecha_objetivo", ""),
+      Metadatos: Normalizar_Metadatos_Plan_B2(Payload.metadatos),
+      Estado: "Activo",
+      Hecha: false,
+      Eliminado_Local: false,
+      Orden: Object.keys(Subobjetivos).length,
+      Creado_En: Ahora,
+      Actualizado_En: Ahora,
+    };
+    Estado.Planes_Periodo = Modelo;
+    return {
+      Respuesta: `Subobjetivo creado: ${Texto}.`,
+      Resultado: { subobjetivo_id: Id, objetivo_id: Objetivo_Id },
+    };
+  }
+
+  const Id = Leer_String_B2(Payload, "subobjetivo_id");
+  const Subobjetivo = Obtener_Item_Plan_B2(Subobjetivos, Id, "Subobjetivo");
+  if (!Subobjetivo) return Error_Mutacion_B2("subobjetivo_id no existe.");
+  if (Operacion === "borrar") {
+    if (!Confirmar_Eliminacion_Plan_B2(Payload)) {
+      return Error_Mutacion_B2(
+        "El borrado requiere confirmar_eliminacion: true."
+      );
+    }
+    const Afectados = new Set([Id]);
+    let Cambio = true;
+    while (Cambio) {
+      Cambio = false;
+      Object.values(Subobjetivos).forEach((Item) => {
+        if (!Es_Mapa_B2(Item)) return;
+        const Hijo = Item as Mapa;
+        const Padre = String(
+          Hijo.Subobjetivo_Padre_Id ||
+            Hijo.Parent_Subobjetivo_Id || ""
+        );
+        const Hijo_Id = String(Hijo.Id || "");
+        if (Afectados.has(Padre) && !Afectados.has(Hijo_Id)) {
+          Afectados.add(Hijo_Id);
+          Cambio = true;
+        }
+      });
+    }
+    Afectados.forEach((Subobjetivo_Id) => {
+      const Item = Obtener_Item_Plan_B2(Subobjetivos, Subobjetivo_Id, "Subobjetivo");
+      if (!Item) return;
+      Item.Eliminado_Local = true;
+      Actualizar_Marca_Plan_B2(Item);
+    });
+    Estado.Planes_Periodo = Modelo;
+    return {
+      Respuesta: "Subobjetivo archivado logicamente.",
+      Resultado: { subobjetivo_id: Id, afectados: Afectados.size },
+    };
+  }
+
+  let Cambios = false;
+  Cambios = Aplicar_Texto_Plan_B2(Subobjetivo, Payload, "texto", "Texto") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Subobjetivo, Payload, "emoji", "Emoji") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Subobjetivo, Payload, "unidad", "Unidad") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Subobjetivo, Payload, "unidad_custom", "Unidad_Custom") || Cambios;
+  Cambios = Aplicar_Numero_Plan_B2(Subobjetivo, Payload, "target_total", "Target_Total") || Cambios;
+  Cambios = Aplicar_Numero_Plan_B2(Subobjetivo, Payload, "aporte_meta", "Aporte_Meta") || Cambios;
+  Cambios = Aplicar_Fecha_Plan_B2(Subobjetivo, Payload, "fecha_inicio", "Fecha_Inicio") || Cambios;
+  Cambios = Aplicar_Fecha_Plan_B2(Subobjetivo, Payload, "fecha_objetivo", "Fecha_Objetivo") || Cambios;
+  if (Tiene_Campo_B2(Payload, "metadatos")) {
+    Subobjetivo.Metadatos = Normalizar_Metadatos_Plan_B2(Payload.metadatos);
+    Cambios = true;
+  }
+  if (!Cambios || !String(Subobjetivo.Texto || "").trim()) {
+    return Error_Mutacion_B2("No hay cambios validos para el subobjetivo.");
+  }
+  Actualizar_Marca_Plan_B2(Subobjetivo);
+  Estado.Planes_Periodo = Modelo;
+  return {
+    Respuesta: `Subobjetivo actualizado: ${Subobjetivo.Texto}.`,
+    Resultado: { subobjetivo_id: Id },
+  };
+}
+
+function B2_Mutar_Parte_Plan(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Operacion = Obtener_Operacion_Plan_B2(Payload);
+  if (!Operacion) return Error_Mutacion_B2("Operacion invalida.");
+  const Modelo = Obtener_Modelo_Planes_B2(Estado);
+  if (!Modelo) return Error_Mutacion_B2("No encontre Planes_Periodo.");
+  const Subobjetivos = Modelo.Subobjetivos as Mapa;
+  const Partes = Modelo.Partes as Mapa;
+  const Avances = Modelo.Avances as Mapa;
+  if (Operacion === "crear") {
+    const Subobjetivo_Id = Leer_String_B2(Payload, "subobjetivo_id");
+    const Subobjetivo = Obtener_Item_Plan_B2(Subobjetivos, Subobjetivo_Id, "Subobjetivo");
+    const Nombre = Leer_String_B2(Payload, "nombre");
+    if (!Subobjetivo || Subobjetivo.Eliminado_Local === true) {
+      return Error_Mutacion_B2("Necesito un subobjetivo_id activo.");
+    }
+    if (!Nombre) return Error_Mutacion_B2("La parte necesita nombre.");
+    const Id = Crear_Id_B2("Plan_Parte");
+    const Ahora = new Date().toISOString();
+    Partes[Id] = {
+      Id,
+      Objetivo_Id: String(Subobjetivo.Objetivo_Id || ""),
+      Subobjetivo_Id,
+      Emoji: Leer_String_B2(Payload, "emoji") || "\u2022",
+      Nombre,
+      Aporte_Total: Math.max(0, Leer_Numero_B2(Payload, "aporte_total") || 0),
+      Unidad: Leer_String_B2(Payload, "unidad") || String(Subobjetivo.Unidad || ""),
+      Unidad_Custom: Leer_String_B2(Payload, "unidad_custom"),
+      Fecha_Inicio: Leer_Fecha_B2(Payload, "fecha_inicio", "fecha_inicio", ""),
+      Fecha_Objetivo: Leer_Fecha_B2(Payload, "fecha_objetivo", "fecha_objetivo", ""),
+      Metadatos: Normalizar_Metadatos_Plan_B2(Payload.metadatos),
+      Estado: "Pendiente",
+      Eliminado_Local: false,
+      Orden: Object.keys(Partes).length,
+      Creado_En: Ahora,
+      Actualizado_En: Ahora,
+    };
+    Estado.Planes_Periodo = Modelo;
+    return {
+      Respuesta: `Parte creada: ${Nombre}.`,
+      Resultado: { parte_id: Id, subobjetivo_id: Subobjetivo_Id },
+    };
+  }
+
+  const Id = Leer_String_B2(Payload, "parte_id");
+  const Parte = Obtener_Item_Plan_B2(Partes, Id, "Parte");
+  if (!Parte) return Error_Mutacion_B2("parte_id no existe.");
+  if (Operacion === "borrar") {
+    if (!Confirmar_Eliminacion_Plan_B2(Payload)) {
+      return Error_Mutacion_B2(
+        "El borrado requiere confirmar_eliminacion: true."
+      );
+    }
+    const Tiene_Avances = Object.values(Avances).some((Avance) =>
+      Es_Mapa_B2(Avance) &&
+      String((Avance as Mapa).Parte_Id || "") === Id
+    );
+    if (Tiene_Avances) {
+      Parte.Eliminado_Local = true;
+      Actualizar_Marca_Plan_B2(Parte);
+    } else {
+      delete Partes[Id];
+    }
+    Estado.Planes_Periodo = Modelo;
+    return {
+      Respuesta: Tiene_Avances
+        ? "Parte archivada para preservar sus registros."
+        : "Parte eliminada.",
+      Resultado: { parte_id: Id, archivada: Tiene_Avances },
+    };
+  }
+
+  let Cambios = false;
+  Cambios = Aplicar_Texto_Plan_B2(Parte, Payload, "nombre", "Nombre") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Parte, Payload, "emoji", "Emoji") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Parte, Payload, "unidad", "Unidad") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Parte, Payload, "unidad_custom", "Unidad_Custom") || Cambios;
+  Cambios = Aplicar_Numero_Plan_B2(Parte, Payload, "aporte_total", "Aporte_Total") || Cambios;
+  Cambios = Aplicar_Fecha_Plan_B2(Parte, Payload, "fecha_inicio", "Fecha_Inicio") || Cambios;
+  Cambios = Aplicar_Fecha_Plan_B2(Parte, Payload, "fecha_objetivo", "Fecha_Objetivo") || Cambios;
+  if (Tiene_Campo_B2(Payload, "metadatos")) {
+    Parte.Metadatos = Normalizar_Metadatos_Plan_B2(Payload.metadatos);
+    Cambios = true;
+  }
+  if (!Cambios || !String(Parte.Nombre || "").trim()) {
+    return Error_Mutacion_B2("No hay cambios validos para la parte.");
+  }
+  Actualizar_Marca_Plan_B2(Parte);
+  Estado.Planes_Periodo = Modelo;
+  return {
+    Respuesta: `Parte actualizada: ${Parte.Nombre}.`,
+    Resultado: { parte_id: Id },
+  };
+}
+
+function Resolver_Destino_Avance_Plan_B2(
+  Modelo: Mapa,
+  Payload: Mapa
+) {
+  const Objetivos = Modelo.Objetivos as Mapa;
+  const Subobjetivos = Modelo.Subobjetivos as Mapa;
+  const Partes = Modelo.Partes as Mapa;
+  const Parte_Id = Leer_String_B2(Payload, "parte_id");
+  if (Parte_Id) {
+    const Parte = Obtener_Item_Plan_B2(Partes, Parte_Id, "Parte");
+    if (!Parte || Parte.Eliminado_Local === true) return null;
+    const Subobjetivo = Obtener_Item_Plan_B2(
+      Subobjetivos,
+      String(Parte.Subobjetivo_Id || ""),
+      "Subobjetivo"
+    );
+    if (!Subobjetivo || Subobjetivo.Eliminado_Local === true) return null;
+    return {
+      Objetivo_Id: String(Parte.Objetivo_Id || Subobjetivo.Objetivo_Id || ""),
+      Subobjetivo_Id: String(Parte.Subobjetivo_Id || ""),
+      Parte_Id,
+      Unidad: String(Parte.Unidad_Custom || Parte.Unidad || ""),
+      Fuente: "Subobjetivo",
+    };
+  }
+  const Subobjetivo_Id = Leer_String_B2(Payload, "subobjetivo_id");
+  if (Subobjetivo_Id) {
+    const Subobjetivo = Obtener_Item_Plan_B2(
+      Subobjetivos,
+      Subobjetivo_Id,
+      "Subobjetivo"
+    );
+    if (!Subobjetivo || Subobjetivo.Eliminado_Local === true) return null;
+    return {
+      Objetivo_Id: String(Subobjetivo.Objetivo_Id || ""),
+      Subobjetivo_Id,
+      Parte_Id: "",
+      Unidad: String(Subobjetivo.Unidad_Custom || Subobjetivo.Unidad || ""),
+      Fuente: "Subobjetivo",
+    };
+  }
+  const Objetivo_Id = Leer_String_B2(Payload, "objetivo_id");
+  const Objetivo = Obtener_Item_Plan_B2(Objetivos, Objetivo_Id, "Objetivo");
+  if (!Objetivo || Objetivo.Eliminado_Local === true) return null;
+  return {
+    Objetivo_Id,
+    Subobjetivo_Id: "",
+    Parte_Id: "",
+    Unidad: String(Objetivo.Unidad_Custom || Objetivo.Unidad || ""),
+    Fuente: "Manual",
+  };
+}
+
+function B2_Mutar_Avance_Plan(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Operacion = Obtener_Operacion_Plan_B2(Payload);
+  if (!Operacion) return Error_Mutacion_B2("Operacion invalida.");
+  const Modelo = Obtener_Modelo_Planes_B2(Estado);
+  if (!Modelo) return Error_Mutacion_B2("No encontre Planes_Periodo.");
+  const Avances = Modelo.Avances as Mapa;
+  if (Operacion === "crear") {
+    const Destino = Resolver_Destino_Avance_Plan_B2(Modelo, Payload);
+    const Cantidad = Leer_Numero_B2(Payload, "cantidad") || 0;
+    if (!Destino) return Error_Mutacion_B2("El destino del avance no existe.");
+    if (Cantidad <= 0) {
+      return Error_Mutacion_B2("El avance necesita cantidad positiva.");
+    }
+    const Id = Crear_Id_B2("Plan_Avance");
+    const Fecha = Leer_Fecha_B2(
+      Payload,
+      "fecha",
+      "fecha",
+      Fecha_Argentina_B2()
+    );
+    const Hora = Leer_Hora_B2(
+      Payload,
+      "hora",
+      "hora",
+      Hora_Argentina_B2()
+    );
+    const Ahora = new Date().toISOString();
+    Avances[Id] = {
+      Id,
+      ...Destino,
+      Cantidad,
+      Cantidad_Total: Cantidad,
+      Unidad: Leer_String_B2(Payload, "unidad") || Destino.Unidad,
+      Fecha,
+      Hora,
+      Fecha_Hora: `${Fecha}T${Hora || "00:00"}`,
+      Nota: Leer_String_B2(Payload, "nota") || "ChatGPT",
+      Metadatos: Normalizar_Metadatos_Plan_B2(Payload.metadatos),
+      Origen_Tipo: "ChatGPT",
+      Origen_Id: Id,
+      Automatico: false,
+      Distribucion: [],
+      Orden: Object.keys(Avances).length,
+      Creado_En: Ahora,
+      Actualizado_En: Ahora,
+    };
+    Estado.Planes_Periodo = Modelo;
+    return {
+      Respuesta: "Avance registrado.",
+      Resultado: { avance_id: Id },
+    };
+  }
+
+  const Id = Leer_String_B2(Payload, "avance_id");
+  const Avance = Obtener_Item_Plan_B2(Avances, Id, "Avance");
+  if (!Avance) return Error_Mutacion_B2("avance_id no existe.");
+  if (Avance.Automatico === true) {
+    return Error_Mutacion_B2(
+      "Los avances automaticos son de solo lectura."
+    );
+  }
+  if (Operacion === "borrar") {
+    if (!Confirmar_Eliminacion_Plan_B2(Payload)) {
+      return Error_Mutacion_B2(
+        "El borrado requiere confirmar_eliminacion: true."
+      );
+    }
+    delete Avances[Id];
+    Estado.Planes_Periodo = Modelo;
+    return {
+      Respuesta: "Avance eliminado.",
+      Resultado: { avance_id: Id },
+    };
+  }
+
+  let Cambios = false;
+  Cambios = Aplicar_Numero_Plan_B2(Avance, Payload, "cantidad", "Cantidad") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Avance, Payload, "unidad", "Unidad") || Cambios;
+  Cambios = Aplicar_Texto_Plan_B2(Avance, Payload, "nota", "Nota") || Cambios;
+  Cambios = Aplicar_Fecha_Plan_B2(Avance, Payload, "fecha", "Fecha") || Cambios;
+  if (Tiene_Campo_B2(Payload, "hora")) {
+    const Hora = Leer_Hora_B2(Payload, "hora", "hora", "");
+    if (!Hora) return Error_Mutacion_B2("La hora no es valida.");
+    Avance.Hora = Hora;
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "metadatos")) {
+    Avance.Metadatos = Normalizar_Metadatos_Plan_B2(Payload.metadatos);
+    Cambios = true;
+  }
+  if (!Cambios || Number(Avance.Cantidad) <= 0) {
+    return Error_Mutacion_B2("No hay cambios validos para el avance.");
+  }
+  Avance.Cantidad_Total = Number(Avance.Cantidad);
+  Avance.Fecha_Hora = `${String(Avance.Fecha || "")}T${String(
+    Avance.Hora || "00:00"
+  )}`;
+  Actualizar_Marca_Plan_B2(Avance);
+  Estado.Planes_Periodo = Modelo;
+  return {
+    Respuesta: "Avance actualizado.",
     Resultado: { avance_id: Id },
   };
 }
@@ -6030,14 +7315,198 @@ function Asegurar_Cajon_Tareas_B2(
   Estado.Tareas_Cajones_Definidos = Array.from(new Set(Normalizados));
 }
 
-function Tarea_Esta_Vinculada_B2(Tarea: Mapa) {
-  return Boolean(
-    Tarea.Planeada ||
-    Tarea.Evento_Id ||
-    Tarea.Abordaje_Id ||
-    Tarea.Plan_Clave ||
-    Tarea.Plan_Item_Id
+function Obtener_Planes_Slot_B2(Estado: Mapa) {
+  if (!Es_Mapa_B2(Estado.Planes_Slot)) {
+    Estado.Planes_Slot = {};
+  }
+  return Estado.Planes_Slot as Mapa;
+}
+
+function Obtener_Paso_Slot_B2(Estado: Mapa) {
+  const Config = Es_Mapa_B2(Estado.Config_Extra)
+    ? Estado.Config_Extra as Mapa
+    : {};
+  const Duracion = Number(Config.Duracion_Default);
+  return [0.25, 0.5, 1].includes(Duracion)
+    ? Duracion
+    : 1;
+}
+
+function Hora_A_Numero_B2(Hora: string) {
+  const Match = /^(\d{2}):(\d{2})$/.exec(Hora);
+  if (!Match) return 0;
+  return Number(Match[1]) + Number(Match[2]) / 60;
+}
+
+function Formatear_Hora_Clave_B2(Hora: number) {
+  const Normalizada = Math.round(Hora * 100) / 100;
+  return String(Normalizada);
+}
+
+function Clave_Slot_Tarea_B2(
+  Estado: Mapa,
+  Fecha: string,
+  Hora: string
+) {
+  const Paso = Obtener_Paso_Slot_B2(Estado);
+  const Inicio = Math.floor(Hora_A_Numero_B2(Hora) / Paso) *
+    Paso;
+  return `${Fecha}|${Formatear_Hora_Clave_B2(Inicio)}`;
+}
+
+function Guardar_Items_Plan_Slot_B2(
+  Planes_Slot: Mapa,
+  Clave: string,
+  Items: Mapa[]
+) {
+  const Plan_Actual = Es_Mapa_B2(Planes_Slot[Clave])
+    ? Planes_Slot[Clave] as Mapa
+    : {};
+  const Nota = String(Plan_Actual.Nota || "").trim();
+  if (!Items.length && !Nota) {
+    delete Planes_Slot[Clave];
+    return;
+  }
+  Plan_Actual.Items = Items;
+  if (!Nota) {
+    delete Plan_Actual.Nota;
+  }
+  Planes_Slot[Clave] = Plan_Actual;
+}
+
+function Desplanificar_Tarea_B2(
+  Estado: Mapa,
+  Tarea: Mapa
+) {
+  const Tarea_Id = String(Tarea.Id || "");
+  const Planes_Slot = Obtener_Planes_Slot_B2(Estado);
+  Object.entries(Planes_Slot).forEach(([Clave, Plan_Raw]) => {
+    if (!Es_Mapa_B2(Plan_Raw)) return;
+    const Plan = Plan_Raw as Mapa;
+    if (!Array.isArray(Plan.Items)) return;
+    const Items = Plan.Items.filter((Item) => {
+      if (!Es_Mapa_B2(Item)) return true;
+      const Entrada = Item as Mapa;
+      return String(Entrada.Tarea_Id || "") !== Tarea_Id &&
+        String(Entrada.Id || "") !==
+          String(Tarea.Plan_Item_Id || "");
+    }) as Mapa[];
+    if (Items.length !== Plan.Items.length) {
+      Guardar_Items_Plan_Slot_B2(Planes_Slot, Clave, Items);
+    }
+  });
+
+  const Eventos = Asegurar_Array_B2(Estado, "Eventos");
+  for (let Indice = Eventos.length - 1; Indice >= 0; Indice--) {
+    const Evento = Eventos[Indice];
+    if (
+      String(Evento.Id || "") !== String(Tarea.Evento_Id || "") ||
+      !Array.isArray(Evento.Abordaje)
+    ) {
+      continue;
+    }
+    const Abordaje = Evento.Abordaje.filter((Item) => {
+      if (!Es_Mapa_B2(Item)) return true;
+      const Entrada = Item as Mapa;
+      return String(Entrada.Tarea_Id || "") !== Tarea_Id &&
+        String(Entrada.Id || "") !==
+          String(Tarea.Abordaje_Id || "");
+    });
+    if (Abordaje.length === 0 && Evento.Origen === "tarea") {
+      Eventos.splice(Indice, 1);
+    } else {
+      Evento.Abordaje = Abordaje;
+    }
+  }
+
+  Tarea.Planeada = false;
+  Tarea.Evento_Id = "";
+  Tarea.Abordaje_Id = "";
+  Tarea.Plan_Clave = "";
+  Tarea.Plan_Item_Id = "";
+}
+
+function Planificar_Tarea_B2(
+  Estado: Mapa,
+  Tarea: Mapa
+) {
+  const Fecha = String(Tarea.Fecha || "");
+  const Hora = String(Tarea.Hora || "");
+  if (!Fecha || !Hora) return false;
+  const Planes_Slot = Obtener_Planes_Slot_B2(Estado);
+  const Clave = Clave_Slot_Tarea_B2(Estado, Fecha, Hora);
+  const Plan = Es_Mapa_B2(Planes_Slot[Clave])
+    ? Planes_Slot[Clave] as Mapa
+    : {};
+  const Items = Array.isArray(Plan.Items)
+    ? Plan.Items.filter((Item) =>
+      !Es_Mapa_B2(Item) ||
+      String((Item as Mapa).Tarea_Id || "") !==
+        String(Tarea.Id || "")
+    ) as Mapa[]
+    : [];
+  const Item_Id = Crear_Id_B2("Plan_Slot_Item");
+  Items.push({
+    Id: Item_Id,
+    Emoji: String(Tarea.Emoji || "\u2022"),
+    Texto: String(Tarea.Nombre || ""),
+    Estado: Tarea.Estado === "completada"
+      ? "Realizado"
+      : "Planeado",
+    Tipo: "Texto",
+    Tarea_Id: String(Tarea.Id || ""),
+  });
+  Plan.Items = Items;
+  Planes_Slot[Clave] = Plan;
+  Tarea.Planeada = true;
+  Tarea.Evento_Id = "";
+  Tarea.Abordaje_Id = "";
+  Tarea.Plan_Clave = Clave;
+  Tarea.Plan_Item_Id = Item_Id;
+  return true;
+}
+
+function Sincronizar_Estado_Tarea_Vinculada_B2(
+  Estado: Mapa,
+  Tarea: Mapa
+) {
+  const Tarea_Id = String(Tarea.Id || "");
+  const Estado_Plan = Tarea.Estado === "completada"
+    ? "Realizado"
+    : "Planeado";
+  const Planes_Slot = Obtener_Planes_Slot_B2(Estado);
+  Object.values(Planes_Slot).forEach((Plan_Raw) => {
+    if (!Es_Mapa_B2(Plan_Raw)) return;
+    const Plan = Plan_Raw as Mapa;
+    if (!Array.isArray(Plan.Items)) return;
+    Plan.Items.forEach((Item) => {
+      if (!Es_Mapa_B2(Item)) return;
+      const Entrada = Item as Mapa;
+      if (String(Entrada.Tarea_Id || "") === Tarea_Id) {
+        Entrada.Estado = Estado_Plan;
+        Entrada.Texto = String(Tarea.Nombre || "");
+        Entrada.Emoji = String(Tarea.Emoji || "\u2022");
+      }
+    });
+  });
+  const Evento_Id = String(Tarea.Evento_Id || "");
+  if (!Evento_Id) return;
+  const Eventos = Asegurar_Array_B2(Estado, "Eventos");
+  const Evento = Eventos.find((Item) =>
+    String(Item.Id || "") === Evento_Id
   );
+  if (!Evento || !Array.isArray(Evento.Abordaje)) return;
+  Evento.Abordaje.forEach((Item) => {
+    if (!Es_Mapa_B2(Item)) return;
+    const Entrada = Item as Mapa;
+    if (String(Entrada.Tarea_Id || "") === Tarea_Id) {
+      Entrada.Estado = Tarea.Estado === "completada"
+        ? "Completado"
+        : "Pendiente";
+      Entrada.Texto = String(Tarea.Nombre || "");
+      Entrada.Emoji = String(Tarea.Emoji || "\u2022");
+    }
+  });
 }
 
 function Numero_Desde_Mapa_B2(
@@ -6074,6 +7543,13 @@ function Habito_Unidad_B2(Habito: Mapa) {
 function Obtener_Modelo_Planes_B2(Estado: Mapa) {
   if (!Es_Mapa_B2(Estado.Planes_Periodo)) return null;
   const Modelo = Estado.Planes_Periodo as Mapa;
+  if (!Es_Mapa_B2(Modelo.Periodos)) {
+    const Periodos_Legacy = Modelo.Version === 2
+      ? {}
+      : Clonar_B2(Modelo);
+    Modelo.Periodos = Periodos_Legacy;
+  }
+  Modelo.Version = 2;
   if (!Es_Mapa_B2(Modelo.Objetivos)) Modelo.Objetivos = {};
   if (!Es_Mapa_B2(Modelo.Subobjetivos)) Modelo.Subobjetivos = {};
   if (!Es_Mapa_B2(Modelo.Partes)) Modelo.Partes = {};
@@ -6748,7 +8224,6 @@ Deno.serve(async (Req) => {
     "/archivero",
     "/archivero/buscar",
     "/baul",
-    "/metas",
   ]);
 
   if (Rutas_Reservadas.has(Ruta)) {
@@ -6852,13 +8327,6 @@ Deno.serve(async (Req) => {
       );
     }
 
-    if (Ruta === "/metas") {
-      return Responder_Metas(
-        Estado.Estado,
-        Url
-      );
-    }
-
     // TODO: Fase posterior.
     // Agregar rate limit por token antes de abrir
     // la API en produccion.
@@ -6868,7 +8336,7 @@ Deno.serve(async (Req) => {
       "La fase actual expone /salud, " +
         "/agenda, /contexto, /tareas, /habitos, " +
         "/slots, /planes/semana, /planes/periodos, " +
-        "/archivero, /archivero/buscar, /baul, /metas, " +
+        "/archivero, /archivero/buscar y /baul, " +
         "/openapi.json " +
         "y lectura segura del estado."
     );

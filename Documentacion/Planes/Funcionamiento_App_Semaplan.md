@@ -26,13 +26,18 @@ estructuras persistidas o relaciones importantes entre modulos.
   Ya valida tokens/JWT/OAuth, puede leer `estado_usuario` con filtrado
   seguro y expone `/agenda`, `/contexto`, `/tareas`, `/habitos`,
   `/slots`, `/planes/semana`, `/planes/periodos`, `/archivero`,
-  `/archivero/buscar`, `/baul`, `/metas`, `/openapi.json`,
-  `/openapi-key.json`, `/oauth/authorize` y `/oauth/token` con vistas
-  compactas y contrato publico para IA. En B2 tambien expone
+  `/archivero/buscar`, `/baul`, `/openapi.json`, `/openapi-key.json`,
+  `/oauth/authorize` y `/oauth/token` con vistas compactas y contrato
+  publico para IA. El resumen legado `/metas` no se expone: la fuente
+  canonica de objetivos, subobjetivos, partes y avances es
+  `Planes_Periodo`. En B2 tambien expone
   `POST /b2/tareas/crear`,
   `/b2/tareas/marcar`, `/b2/tareas/reprogramar`,
+  `/b2/tareas/editar`, `/b2/tareas/borrar`,
   `/b2/habitos/crear`, `/b2/habitos/registrar`,
-  `/b2/metas/avance`, `/b2/archivero/nota` y `/b2/baul/item`.
+  `/b2/planes/objetivos`, `/b2/planes/subobjetivos`,
+  `/b2/planes/partes`, `/b2/planes/avances`,
+  `/b2/archivero/nota` y `/b2/baul/item`.
   Las mutaciones requieren scopes separados, usan control optimista de
   `version`, guardan mediante la RPC `aplicar_estado_usuario_b2` para
   evitar el merge preservador general de `estado_usuario` en este flujo
@@ -45,6 +50,15 @@ estructuras persistidas o relaciones importantes entre modulos.
   llamadas, usar `/openapi-key.json` con autenticacion `apiKey` por
   header `X-Semaplan-AI-Token`; el gateway valida ese token contra
   `tokens_ia_usuario` y conserva los mismos scopes B2.
+  `/planes/periodos` lista periodos de tipo `Anio`, `Semestre`,
+  `Trimestre` o `Mes`; al recibir `periodo_id` devuelve el arbol
+  completo con descripciones, metadatos, estadisticas y registros.
+  Las mutaciones del arbol usan IDs estables y el scope historico
+  `write_metas`, que ahora cubre Planes; los borrados requieren
+  `confirmar_eliminacion: true` y preservan historiales cuando hace
+  falta. Al reprogramar una tarea vinculada, el gateway la desvincula
+  de su slot o evento anterior y la planifica en el nuevo horario,
+  conservando la consistencia de agenda y planes.
 - `supabase/functions/semaplan-ai-mcp`: servidor MCP remoto por HTTP
   (streamable compatible) para ChatGPT Apps/Developer Mode. Expone
   `initialize`, `tools/list` y `tools/call` en el endpoint
