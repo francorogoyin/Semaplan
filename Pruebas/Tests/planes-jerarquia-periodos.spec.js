@@ -7772,12 +7772,32 @@ async ({ page }) => {
 
     const Modelo_Actual = Asegurar_Modelo_Planes();
     const Sub = Modelo_Actual.Subobjetivos[Sub_Id];
+    Modelo_Actual.Partes.parte_lectura_realizada =
+      Normalizar_Parte_Meta({
+        Id: "parte_lectura_realizada",
+        Objetivo_Id: Objetivo.Id,
+        Subobjetivo_Id: Sub_Id,
+        Nombre: "Parte realizada",
+        Aporte_Total: 1,
+        Unidad: "Personalizado",
+        Unidad_Custom: "p\u00E1ginas"
+      });
+    Modelo_Actual.Partes.parte_lectura_pendiente =
+      Normalizar_Parte_Meta({
+        Id: "parte_lectura_pendiente",
+        Objetivo_Id: Objetivo.Id,
+        Subobjetivo_Id: Sub_Id,
+        Nombre: "Parte pendiente",
+        Aporte_Total: 3,
+        Unidad: "Personalizado",
+        Unidad_Custom: "p\u00E1ginas"
+      });
     const Avance_1 = Normalizar_Avance_Plan({
       Id: "Av_Sub_1",
       Objetivo_Id: Objetivo.Id,
       Subobjetivo_Id: Sub_Id,
       Fuente: "Subobjetivo",
-      Cantidad: 3,
+      Cantidad: 2,
       Unidad: "p\u00E1ginas",
       Fecha: "2026-02-10",
       Hora: "09:00"
@@ -7792,10 +7812,23 @@ async ({ page }) => {
       Fecha: "2026-05-10",
       Hora: "09:00"
     });
+    const Avance_Parte = Normalizar_Avance_Plan({
+      Id: "Av_Parte_Realizada",
+      Objetivo_Id: Objetivo.Id,
+      Subobjetivo_Id: Sub_Id,
+      Parte_Id: "parte_lectura_realizada",
+      Fuente: "Subobjetivo",
+      Cantidad: 1,
+      Unidad: "p\u00E1ginas",
+      Fecha: "2026-03-10",
+      Hora: "09:00"
+    });
     Modelo_Actual.Avances[Avance_1.Id] = Avance_1;
     Modelo_Actual.Avances[Avance_2.Id] = Avance_2;
+    Modelo_Actual.Avances[Avance_Parte.Id] = Avance_Parte;
     Planes_Recalcular_Progreso_Subobjetivo(Sub, Modelo_Actual);
     Planes_Recalcular_Desde(Objetivo);
+    Planes_Subobjetivos_Filtro_Estado = "Todos";
 
     Abrir_Modal_Planes_Subobjetivos(
       Objetivo.Id,
@@ -7811,6 +7844,7 @@ async ({ page }) => {
   });
 
   expect(Resultado.Meta).toContain("7/10");
+  expect(Resultado.Meta).toContain("1/2 partes");
   expect(Resultado.Meta).toContain("p\u00E1ginas");
   expect(Resultado.Meta).not.toContain("2/10");
   expect(Resultado.Tiempo).toContain("3 h");
