@@ -224,7 +224,8 @@ function Obtener_Url_Base_Gateway(
 }
 
 function Construir_OpenAPI_Semaplan_IA(
-  Base_Url: string
+  Base_Url: string,
+  Modo_Auth: "oauth" | "api_key" = "oauth"
 ) {
   const Respuesta_200 = {
     description: "Respuesta exitosa.",
@@ -249,17 +250,25 @@ function Construir_OpenAPI_Semaplan_IA(
       },
     },
   };
+  const Es_Api_Key = Modo_Auth === "api_key";
+  const Nombre_Seguridad = Es_Api_Key
+    ? "SemaplanAIToken"
+    : "SemaplanAIOAuth";
   const Seguridad_Lectura = [
     {
-      SemaplanAIOAuth: [OAUTH_SCOPE_LECTURA],
+      [Nombre_Seguridad]: Es_Api_Key
+        ? []
+        : [OAUTH_SCOPE_LECTURA],
     },
   ];
   const Seguridad_Escritura = (Scope: string) => [
     {
-      SemaplanAIOAuth: [
-        OAUTH_SCOPE_LECTURA,
-        Scope,
-      ],
+      [Nombre_Seguridad]: Es_Api_Key
+        ? []
+        : [
+          OAUTH_SCOPE_LECTURA,
+          Scope,
+        ],
     },
   ];
   const Respuestas_B2 = {
@@ -352,32 +361,42 @@ function Construir_OpenAPI_Semaplan_IA(
           additionalProperties: true,
         },
       },
-      securitySchemes: {
-        SemaplanAIOAuth: {
-          type: "oauth2",
-          flows: {
-            authorizationCode: {
-              authorizationUrl:
-                `${Base_Url}/oauth/authorize`,
-              tokenUrl: `${Base_Url}/oauth/token`,
-              scopes: {
-                [OAUTH_SCOPE_LECTURA]:
-                  "Lectura de datos del usuario en Semaplan.",
-                [OAUTH_SCOPE_TAREAS]:
-                  "Crear, marcar y reprogramar tareas.",
-                [OAUTH_SCOPE_HABITOS]:
-                  "Crear habitos y registrar cumplimiento.",
-                [OAUTH_SCOPE_METAS]:
-                  "Registrar avances de metas.",
-                [OAUTH_SCOPE_ARCHIVERO]:
-                  "Crear notas en el Archivero.",
-                [OAUTH_SCOPE_BAUL]:
-                  "Crear items en el Baul.",
+      securitySchemes: Es_Api_Key
+        ? {
+          SemaplanAIToken: {
+            type: "apiKey",
+            in: "header",
+            name: "X-Semaplan-AI-Token",
+            description:
+              "Token personal de Semaplan AI con scopes B2.",
+          },
+        }
+        : {
+          SemaplanAIOAuth: {
+            type: "oauth2",
+            flows: {
+              authorizationCode: {
+                authorizationUrl:
+                  `${Base_Url}/oauth/authorize`,
+                tokenUrl: `${Base_Url}/oauth/token`,
+                scopes: {
+                  [OAUTH_SCOPE_LECTURA]:
+                    "Lectura de datos del usuario en Semaplan.",
+                  [OAUTH_SCOPE_TAREAS]:
+                    "Crear, marcar y reprogramar tareas.",
+                  [OAUTH_SCOPE_HABITOS]:
+                    "Crear habitos y registrar cumplimiento.",
+                  [OAUTH_SCOPE_METAS]:
+                    "Registrar avances de metas.",
+                  [OAUTH_SCOPE_ARCHIVERO]:
+                    "Crear notas en el Archivero.",
+                  [OAUTH_SCOPE_BAUL]:
+                    "Crear items en el Baul.",
+                },
               },
             },
           },
         },
-      },
     },
     paths: {
       "/salud": {
@@ -794,6 +813,16 @@ function Construir_OpenAPI_Semaplan_IA(
             "400": Respuesta_Error,
             "401": Respuesta_Error,
             "403": Respuesta_Error,
+          },
+        },
+      },
+      "/openapi-key.json": {
+        get: {
+          operationId: "semaplan_openapi_key",
+          summary:
+            "Obtener contrato OpenAPI con API key por header",
+          responses: {
+            "200": Respuesta_200,
           },
         },
       },
@@ -6628,6 +6657,18 @@ Deno.serve(async (Req) => {
     return Responder_Json(
       Construir_OpenAPI_Semaplan_IA(
         Obtener_Url_Base_Gateway(Req)
+      )
+    );
+  }
+
+  if (
+    Req.method === "GET" &&
+    Ruta === "/openapi-key.json"
+  ) {
+    return Responder_Json(
+      Construir_OpenAPI_Semaplan_IA(
+        Obtener_Url_Base_Gateway(Req),
+        "api_key"
       )
     );
   }

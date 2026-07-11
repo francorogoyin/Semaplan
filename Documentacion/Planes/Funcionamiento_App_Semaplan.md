@@ -27,8 +27,9 @@ estructuras persistidas o relaciones importantes entre modulos.
   seguro y expone `/agenda`, `/contexto`, `/tareas`, `/habitos`,
   `/slots`, `/planes/semana`, `/planes/periodos`, `/archivero`,
   `/archivero/buscar`, `/baul`, `/metas`, `/openapi.json`,
-  `/oauth/authorize` y `/oauth/token` con vistas compactas y contrato
-  publico para IA. En B2 tambien expone `POST /b2/tareas/crear`,
+  `/openapi-key.json`, `/oauth/authorize` y `/oauth/token` con vistas
+  compactas y contrato publico para IA. En B2 tambien expone
+  `POST /b2/tareas/crear`,
   `/b2/tareas/marcar`, `/b2/tareas/reprogramar`,
   `/b2/habitos/crear`, `/b2/habitos/registrar`,
   `/b2/metas/avance`, `/b2/archivero/nota` y `/b2/baul/item`.
@@ -40,7 +41,10 @@ estructuras persistidas o relaciones importantes entre modulos.
   El OpenAPI debe publicar siempre la URL publica de Edge Functions
   (`/functions/v1/semaplan-ai`), no la URL interna que Supabase entrega
   a `Req.url`, porque ChatGPT usa `servers[0].url` para llamar las
-  acciones.
+  acciones. Para ChatGPT Actions, si OAuth queda cacheado o no dispara
+  llamadas, usar `/openapi-key.json` con autenticacion `apiKey` por
+  header `X-Semaplan-AI-Token`; el gateway valida ese token contra
+  `tokens_ia_usuario` y conserva los mismos scopes B2.
 - `supabase/functions/semaplan-ai-mcp`: servidor MCP remoto por HTTP
   (streamable compatible) para ChatGPT Apps/Developer Mode. Expone
   `initialize`, `tools/list` y `tools/call` en el endpoint
