@@ -5277,6 +5277,76 @@ function Responder_Planes_Periodos(
   });
 }
 
+function Normalizar_Tipo_Periodo_Metas_Compatibilidad(
+  Valor: unknown
+) {
+  const Texto = Normalizar_Texto_Busqueda(Valor);
+  if (Texto === "anio" || Texto === "ano") return "Anio";
+  if (Texto === "semestre") return "Semestre";
+  if (Texto === "trimestre") return "Trimestre";
+  if (Texto === "mes") return "Mes";
+  return "";
+}
+
+function Resolver_Fecha_Metas_Compatibilidad(
+  Url: URL
+) {
+  const Fecha = Normalizar_Texto(
+    Url.searchParams.get("fecha")
+  );
+  return Es_Fecha_ISO_Valida(Fecha)
+    ? Fecha
+    : Fecha_Argentina_B2();
+}
+
+function Responder_Metas_Compatibilidad(
+  Estado: Record<string, unknown>,
+  Url: URL
+) {
+  const Url_Planes = new URL(Url.toString());
+  if (Url_Planes.searchParams.get("periodo_id")) {
+    return Responder_Planes_Periodos(
+      Estado,
+      Url_Planes
+    );
+  }
+
+  const Tipo =
+    Normalizar_Tipo_Periodo_Metas_Compatibilidad(
+      Url_Planes.searchParams.get("tipo") ||
+        Url_Planes.searchParams.get("periodo")
+    ) || "Trimestre";
+  const Fecha =
+    Resolver_Fecha_Metas_Compatibilidad(
+      Url_Planes
+    );
+  const Modelo =
+    Resolver_Modelo_Planes_Periodo_IA(Estado);
+  const Periodo = Modelo.Periodos.find((Item) =>
+    Item.Tipo === Tipo &&
+    Item.Inicio <= Fecha &&
+    Item.Fin >= Fecha
+  );
+
+  Url_Planes.searchParams.set("tipo", Tipo);
+  if (Periodo?.Id) {
+    Url_Planes.searchParams.set(
+      "periodo_id",
+      Periodo.Id
+    );
+  }
+
+  const Respuesta = Responder_Planes_Periodos(
+    Estado,
+    Url_Planes
+  );
+  Respuesta.headers.set(
+    "X-Semaplan-Deprecated-Route",
+    "/metas usa Planes_Periodo; preferir /planes/periodos."
+  );
+  return Respuesta;
+}
+
 function Responder_Archivero(
   Estado: Record<string, unknown>,
   Url: URL
@@ -8221,6 +8291,7 @@ Deno.serve(async (Req) => {
     "/slots",
     "/planes/semana",
     "/planes/periodos",
+    "/metas",
     "/archivero",
     "/archivero/buscar",
     "/baul",
@@ -8301,6 +8372,13 @@ Deno.serve(async (Req) => {
 
     if (Ruta === "/planes/periodos") {
       return Responder_Planes_Periodos(
+        Estado.Estado,
+        Url
+      );
+    }
+
+    if (Ruta === "/metas") {
+      return Responder_Metas_Compatibilidad(
         Estado.Estado,
         Url
       );

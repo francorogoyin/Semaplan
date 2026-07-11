@@ -6,6 +6,19 @@ Plantilla de registro de avance.
 
 Registros.
 
+- Fecha y hora: 2026-07-11 20:52:57.
+  Nota: Se agrego compatibilidad tecnica para `GET /metas` en
+  `semaplan-ai` sin volver a publicarlo como ruta principal del
+  OpenAPI. La ruta vieja ahora resuelve contra `Planes_Periodo` y, si
+  no recibe `periodo_id`, devuelve el arbol del periodo actual,
+  usando Trimestre por defecto o el tipo pedido entre Anio, Semestre,
+  Trimestre y Mes. Esto cubre Actions cacheadas que todavia llamen a
+  `/metas`, manteniendo `/planes/periodos` como contrato canonico. Se
+  desplego en produccion y se verifico que `/metas?tipo=Trimestre`
+  responda 200 con arbol de Planes, mientras el OpenAPI remoto sigue
+  sin publicar `/metas`.
+  Estado: Realizado.
+
 - Fecha y hora: 2026-07-11 20:46:38.
   Nota: Se desplegó `semaplan-ai` en producción y se verificó su
   OpenAPI remoto. El contrato conserva API Key mediante el header

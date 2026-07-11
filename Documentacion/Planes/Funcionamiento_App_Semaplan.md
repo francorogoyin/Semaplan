@@ -28,9 +28,11 @@ estructuras persistidas o relaciones importantes entre modulos.
   `/slots`, `/planes/semana`, `/planes/periodos`, `/archivero`,
   `/archivero/buscar`, `/baul`, `/openapi.json`, `/openapi-key.json`,
   `/oauth/authorize` y `/oauth/token` con vistas compactas y contrato
-  publico para IA. El resumen legado `/metas` no se expone: la fuente
-  canonica de objetivos, subobjetivos, partes y avances es
-  `Planes_Periodo`. En B2 tambien expone
+  publico para IA. El resumen legado `/metas` no se publica en el
+  OpenAPI y no es la fuente canonica; solo queda como alias tecnico de
+  compatibilidad para Actions cacheadas, resolviendo contra
+  `Planes_Periodo`. La fuente canonica de objetivos, subobjetivos,
+  partes y avances es `Planes_Periodo`. En B2 tambien expone
   `POST /b2/tareas/crear`,
   `/b2/tareas/marcar`, `/b2/tareas/reprogramar`,
   `/b2/tareas/editar`, `/b2/tareas/borrar`,
