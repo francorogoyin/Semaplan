@@ -1019,6 +1019,9 @@ Subestructuras centrales.
 - `Avances`
 - Cada avance puede guardar `Modo`, `Base` y `Hasta` para distinguir
   carga directa de `Avance hasta` sin perder la cantidad efectiva.
+- Los subobjetivos pueden tener `Aporte_Meta_Automatico`; cuando está
+  activo, el aporte a la meta se calcula desde sus avances propios y
+  solo se suma si la unidad del subobjetivo coincide con la del padre.
 - `UI`
 
 Funciones de entrada recomendadas.
