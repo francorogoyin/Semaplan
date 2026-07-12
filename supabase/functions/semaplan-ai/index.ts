@@ -802,6 +802,143 @@ function Construir_OpenAPI_Semaplan_IA(
           },
         },
       },
+      "/buscar": {
+        get: {
+          operationId: "semaplan_buscar_global",
+          summary: "Buscar en tareas, habitos, Planes, Archivero y Baul",
+          security: Seguridad_Lectura,
+          parameters: [
+            {
+              name: "q",
+              in: "query",
+              required: true,
+              schema: { type: "string", maxLength: 200 },
+            },
+            {
+              name: "limite",
+              in: "query",
+              schema: { type: "integer", minimum: 1, maximum: 100 },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+          },
+        },
+      },
+      "/resumen": {
+        get: {
+          operationId: "semaplan_resumen_operativo",
+          summary: "Resumir prioridades, agenda, tareas, habitos y Planes",
+          security: Seguridad_Lectura,
+          parameters: [
+            {
+              name: "periodo",
+              in: "query",
+              schema: {
+                type: "string",
+                enum: ["dia", "semana"],
+                default: "dia",
+              },
+            },
+            {
+              name: "fecha",
+              in: "query",
+              schema: { type: "string", format: "date" },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+          },
+        },
+      },
+      "/diagnostico/planes": {
+        get: {
+          operationId: "semaplan_diagnosticar_planes",
+          summary: "Detectar desvios, vencimientos y ramas incompletas de Planes",
+          security: Seguridad_Lectura,
+          parameters: [
+            {
+              name: "periodo_id",
+              in: "query",
+              schema: { type: "string" },
+            },
+            {
+              name: "fecha",
+              in: "query",
+              schema: { type: "string", format: "date" },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "400": Respuesta_Error,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+            "404": Respuesta_Error,
+          },
+        },
+      },
+      "/historial": {
+        get: {
+          operationId: "semaplan_historial_chat",
+          summary: "Leer cambios realizados por el chat y sus versiones",
+          security: Seguridad_Lectura,
+          parameters: [
+            {
+              name: "limite",
+              in: "query",
+              schema: { type: "integer", minimum: 1, maximum: 50 },
+            },
+          ],
+          responses: {
+            "200": Respuesta_200,
+            "401": Respuesta_Error,
+            "403": Respuesta_Error,
+          },
+        },
+      },
+      "/b2/tareas/lote": Post_B2(
+        "semaplan_b2_lote_tareas",
+        "Previsualizar y aplicar una operacion masiva sobre tareas",
+        OAUTH_SCOPE_TAREAS,
+        {
+          ...Schema_Base_B2,
+          required: ["operacion"],
+          properties: {
+            ...Schema_Base_B2.properties,
+            operacion: {
+              type: "string",
+              enum: ["marcar", "reprogramar", "borrar"],
+            },
+            tareas_ids: { type: "array", items: { type: "string" } },
+            busqueda: { type: "string" },
+            fecha: { type: "string", format: "date" },
+            fecha_relativa: { type: "string" },
+            hora: { type: "string" },
+            hecha: { type: "boolean" },
+            sin_horario: { type: "boolean" },
+            confirmar_aplicacion: { type: "boolean", default: false },
+          },
+        },
+      ),
+      "/b2/deshacer": Post_B2(
+        "semaplan_b2_deshacer",
+        "Deshacer la ultima mutacion del chat o una mutacion indicada",
+        OAUTH_SCOPE_TAREAS,
+        {
+          ...Schema_Base_B2,
+          properties: {
+            ...Schema_Base_B2.properties,
+            mutacion_id: { type: "string" },
+            confirmar_deshacer: { type: "boolean", default: false },
+          },
+        },
+      ),
       "/openapi-key.json": {
         get: {
           operationId: "semaplan_openapi_key",
@@ -823,6 +960,10 @@ function Construir_OpenAPI_Semaplan_IA(
             ...Schema_Base_B2.properties,
             nombre: { type: "string" },
             fecha: { type: "string", format: "date" },
+            fecha_relativa: {
+              type: "string",
+              description: "hoy, manana, pasado manana, proximo lunes o en N dias.",
+            },
             hora: {
               type: "string",
               pattern: "^([01]?\\d|2[0-3]):[0-5]\\d$",
@@ -860,6 +1001,10 @@ function Construir_OpenAPI_Semaplan_IA(
             busqueda: { type: "string" },
             nombre: { type: "string" },
             fecha: { type: "string", format: "date" },
+            fecha_relativa: {
+              type: "string",
+              description: "hoy, manana, pasado manana, proximo lunes o en N dias.",
+            },
             hora: {
               type: "string",
               pattern: "^([01]?\\d|2[0-3]):[0-5]\\d$",
@@ -893,6 +1038,10 @@ function Construir_OpenAPI_Semaplan_IA(
               ],
             },
             fecha: { type: "string", format: "date" },
+            fecha_relativa: {
+              type: "string",
+              description: "hoy, manana, pasado manana, proximo lunes o en N dias.",
+            },
             hora: {
               type: "string",
               pattern: "^([01]?\\d|2[0-3]):[0-5]\\d$",
@@ -5531,6 +5680,156 @@ function Responder_Baul(
   });
 }
 
+function Construir_Vinculos_Tarea_IA(
+  Tarea: Record<string, unknown>
+) {
+  const Vinculos: string[] = [];
+  if (Normalizar_Texto(Tarea.Evento_Id)) {
+    Vinculos.push("Evento de agenda");
+  }
+  if (Normalizar_Texto(Tarea.Abordaje_Id)) {
+    Vinculos.push("Abordaje de agenda");
+  }
+  if (Normalizar_Texto(Tarea.Plan_Clave)) {
+    Vinculos.push("Plan de slot");
+  }
+  if (Normalizar_Texto(Tarea.Plan_Item_Id)) {
+    Vinculos.push("Item de plan");
+  }
+  return Vinculos;
+}
+
+function Responder_Busqueda_Global(
+  Estado: Record<string, unknown>,
+  Url: URL
+) {
+  const Query = Normalizar_Texto(Url.searchParams.get("q"));
+  if (!Query) {
+    return Responder_Error(400, "Busqueda invalida", "El parametro q es obligatorio.");
+  }
+  const Texto = Normalizar_Texto_Busqueda(Query);
+  const Limite = Resolver_Limite(Url, 30, 100);
+  const Resultados: Mapa[] = [];
+  Construir_Tareas_Normalizadas_IA(Estado).forEach((Tarea) => {
+    if (Normalizar_Texto_Busqueda([Tarea.Nombre, Tarea.Cajon].join(" ")).includes(Texto)) {
+      Resultados.push({
+        Tipo: "Tarea",
+        Id: Tarea.Id,
+        Nombre: Tarea.Nombre,
+        Estado: Tarea.Estado,
+        Fecha: Tarea.Fecha || null,
+        Hora: Tarea.Hora || null,
+        Vinculos: Construir_Vinculos_Tarea_IA(Tarea),
+      });
+    }
+  });
+  Construir_Habitos_Normalizados_IA(Estado).forEach((Habito) => {
+    if (Normalizar_Texto_Busqueda(Habito.Nombre).includes(Texto)) {
+      Resultados.push({ Tipo: "Habito", Id: Habito.Id, Nombre: Habito.Nombre });
+    }
+  });
+  Construir_Baul_Normalizado_IA(Estado).forEach((Item) => {
+    if (Normalizar_Texto_Busqueda([Item.Nombre, Item.Descripcion, Item.Categoria].join(" ")).includes(Texto)) {
+      Resultados.push({ Tipo: "Baul", Id: Item.Id, Nombre: Item.Nombre, Estado: Item.Estado });
+    }
+  });
+  Construir_Notas_Archivero_IA(Estado).forEach((Nota) => {
+    if (Nota._Busqueda.includes(Texto)) {
+      Resultados.push({ Tipo: "Nota", Id: Nota.Id, Nombre: Nota.Titulo || Nota.Texto.slice(0, 100) });
+    }
+  });
+  const Modelo = Resolver_Modelo_Planes_Periodo_IA(Estado);
+  [
+    ...Modelo.Objetivos.map((Item) => ({ Tipo: "Objetivo", Item })),
+    ...Modelo.Subobjetivos.map((Item) => ({ Tipo: "Subobjetivo", Item })),
+    ...Modelo.Partes.map((Item) => ({ Tipo: "Parte", Item })),
+  ].forEach(({ Tipo, Item }) => {
+    const Base = Item as Mapa;
+    const Nombre = Normalizar_Texto(Base.Nombre || Base.Texto);
+    const Descripcion = Normalizar_Texto(Base.Descripcion);
+    if (!Base.Eliminado_Local && Normalizar_Texto_Busqueda(`${Nombre} ${Descripcion}`).includes(Texto)) {
+      Resultados.push({ Tipo, Id: Base.Id, Nombre, Periodo_Id: Base.Periodo_Id || null });
+    }
+  });
+  return Responder_Json({
+    Ok: true,
+    Query,
+    Resultados: Resultados.slice(0, Limite),
+    Total: Resultados.length,
+  });
+}
+
+function Responder_Resumen_Operativo(
+  Estado: Record<string, unknown>,
+  Url: URL
+) {
+  const Fecha = Resolver_Fecha_Referencia(Url);
+  if (!Fecha.Ok) return Responder_Error(Fecha.Status, Fecha.Error, Fecha.Detalle);
+  const Periodo = Normalizar_Texto(Url.searchParams.get("periodo")).toLowerCase() || "dia";
+  if (!["dia", "semana"].includes(Periodo)) {
+    return Responder_Error(400, "Periodo invalido", "periodo admite dia o semana.");
+  }
+  const Desde = Periodo === "semana"
+    ? Obtener_Lunes_ISO_Desde_Fecha(Fecha.Fecha) || Fecha.Fecha
+    : Fecha.Fecha;
+  const Hasta = Periodo === "semana"
+    ? Formatear_Fecha_ISO(Sumar_Dias(Parsear_Fecha_ISO(Desde)!, 6))
+    : Desde;
+  const Tareas = Construir_Tareas_Normalizadas_IA(Estado);
+  const Pendientes = Tareas.filter((Tarea) =>
+    Tarea.Estado === "pendiente" && Tarea.Fecha &&
+    Tarea.Fecha >= Desde && Tarea.Fecha <= Hasta
+  );
+  const Vencidas = Tareas.filter((Tarea) =>
+    Tarea.Estado === "pendiente" && Tarea.Fecha && Tarea.Fecha < Desde
+  );
+  return Responder_Json({
+    Ok: true,
+    Periodo: { Tipo: Periodo, Desde, Hasta },
+    Prioridades: Pendientes.slice(0, 12),
+    Tareas_Vencidas: Vencidas.slice(0, 12),
+    Agenda: Construir_Bloques_Agenda(Estado, Desde, Hasta),
+    Tareas: Construir_Resumen_Tareas(Estado, Desde, Hasta),
+    Habitos: Construir_Resumen_Habitos(Estado, Desde, Hasta),
+    Planes: Construir_Resumen_Modelo_Planes_IA(
+      Resolver_Modelo_Planes_Periodo_IA(Estado)
+    ),
+  });
+}
+
+function Responder_Diagnostico_Planes(
+  Estado: Record<string, unknown>,
+  Url: URL
+) {
+  const Modelo = Resolver_Modelo_Planes_Periodo_IA(Estado);
+  const Fecha = Resolver_Fecha_Referencia(Url);
+  if (!Fecha.Ok) return Responder_Error(Fecha.Status, Fecha.Error, Fecha.Detalle);
+  const Periodo_Id = Normalizar_Texto(Url.searchParams.get("periodo_id"));
+  const Periodo = Periodo_Id
+    ? Modelo.Periodos.find((Item) => Item.Id === Periodo_Id)
+    : Modelo.Periodos.find((Item) => Item.Inicio <= Fecha.Fecha && Item.Fin >= Fecha.Fecha);
+  if (!Periodo) return Responder_Error(404, "Periodo inexistente", "No encontre un periodo para diagnosticar.");
+  const Objetivos = Modelo.Objetivos.filter((Item) =>
+    Item.Periodo_Id === Periodo.Id && !Item.Eliminado_Local
+  );
+  const Subobjetivos = Modelo.Subobjetivos.filter((Item) => !Item.Eliminado_Local);
+  const Partes = Modelo.Partes.filter((Item) => !Item.Eliminado_Local);
+  const Avances = Modelo.Avances;
+  const Problemas: Mapa[] = [];
+  Objetivos.forEach((Objetivo) => {
+    const Hijos = Subobjetivos.filter((Item) => Item.Objetivo_Id === Objetivo.Id);
+    const Partes_Objetivo = Partes.filter((Item) => Item.Objetivo_Id === Objetivo.Id || Hijos.some((Sub) => Sub.Id === Item.Subobjetivo_Id));
+    const Registros = Avances.filter((Item) => Item.Objetivo_Id === Objetivo.Id || Hijos.some((Sub) => Sub.Id === Item.Subobjetivo_Id) || Partes_Objetivo.some((Parte) => Parte.Id === Item.Parte_Id));
+    if (!Hijos.length) Problemas.push({ Tipo: "Sin_Subobjetivos", Objetivo_Id: Objetivo.Id, Nombre: Objetivo.Nombre });
+    if (Hijos.length && !Partes_Objetivo.length) Problemas.push({ Tipo: "Sin_Partes", Objetivo_Id: Objetivo.Id, Nombre: Objetivo.Nombre });
+    if (!Registros.length) Problemas.push({ Tipo: "Sin_Avances", Objetivo_Id: Objetivo.Id, Nombre: Objetivo.Nombre });
+    if (Objetivo.Fecha_Objetivo && Objetivo.Fecha_Objetivo < Fecha.Fecha && Number(Objetivo.Progreso_Total || 0) < Number(Objetivo.Target_Total || 0)) {
+      Problemas.push({ Tipo: "Vencido", Objetivo_Id: Objetivo.Id, Nombre: Objetivo.Nombre });
+    }
+  });
+  return Responder_Json({ Ok: true, Periodo, Problemas, Objetivos_Total: Objetivos.length });
+}
+
 function Responder_Metas(
   Estado: Record<string, unknown>,
   Url: URL
@@ -5794,6 +6093,132 @@ async function Responder_B2(
   );
 }
 
+function Resolver_Tareas_Lote_B2(
+  Estado: Mapa,
+  Payload: Mapa
+) {
+  const Tareas = Asegurar_Array_B2(Estado, "Tareas");
+  const Ids = Leer_Array_String_B2(Payload, "tareas_ids", "Tareas_Ids");
+  if (Ids.length) {
+    const Encontradas = Ids.map((Id) => Tareas.find((Tarea) => String(Tarea.Id || "") === Id)).filter(Boolean) as Mapa[];
+    if (Encontradas.length !== Ids.length) return { Ok: false as const, Detalle: "Una o mas tareas_ids no existen." };
+    return { Ok: true as const, Tareas: Encontradas };
+  }
+  const Busqueda = Normalizar_Texto_Busqueda(Payload.busqueda || Payload.nombre);
+  if (!Busqueda) return { Ok: false as const, Detalle: "Indica tareas_ids o busqueda para el lote." };
+  const Encontradas = Tareas.filter((Tarea) => Normalizar_Texto_Busqueda(Tarea.Nombre).includes(Busqueda));
+  if (!Encontradas.length) return { Ok: false as const, Detalle: "No encontre tareas para la busqueda indicada." };
+  if (Encontradas.length > 50) return { Ok: false as const, Detalle: "La operacion masiva admite hasta 50 tareas." };
+  return { Ok: true as const, Tareas: Encontradas };
+}
+
+async function Responder_Lote_Tareas_B2(
+  Req: Request,
+  Auth: Extract<Auth_Resultado, { Ok: true }>
+) {
+  if (!Tiene_Scope(Auth.Scopes, OAUTH_SCOPE_TAREAS)) {
+    return Responder_Error(403, "Scope insuficiente", `La accion requiere ${OAUTH_SCOPE_TAREAS}.`);
+  }
+  const Payload = await Leer_Body_Json_B2(Req);
+  const Operacion = Leer_String_B2(Payload, "operacion").toLowerCase();
+  if (!["marcar", "reprogramar", "borrar"].includes(Operacion)) {
+    return Responder_Error(400, "Operacion invalida", "operacion admite marcar, reprogramar o borrar.");
+  }
+  const Fila = await Leer_Estado_Usuario_Completo_B2(Auth.Usuario_Id);
+  if (!Fila.Ok) return Responder_Error(Fila.Status, Fila.Error, Fila.Detalle);
+  const Seleccion = Resolver_Tareas_Lote_B2(Clonar_B2(Fila.Estado), Payload);
+  if (!Seleccion.Ok) return Responder_Error(400, "Seleccion invalida", Seleccion.Detalle);
+  const Vista_Previa = Seleccion.Tareas.map((Tarea) => ({
+    tarea_id: Tarea.Id,
+    nombre: Tarea.Nombre,
+    fecha: Tarea.Fecha || null,
+    hora: Tarea.Hora || null,
+    vinculos: Construir_Vinculos_Tarea_IA(Tarea),
+  }));
+  if (!Leer_Boolean_B2(Payload, false, "confirmar_aplicacion")) {
+    return Responder_Json({
+      Ok: true,
+      Previsualizacion: true,
+      Operacion,
+      Cantidad: Vista_Previa.length,
+      Tareas: Vista_Previa,
+      Instruccion: "Repeti la misma llamada con confirmar_aplicacion: true para aplicar el cambio.",
+    });
+  }
+  return await Mutar_Estado_B2(
+    Auth.Usuario_Id,
+    "lote_tareas",
+    OAUTH_SCOPE_TAREAS,
+    Payload,
+    (Estado) => {
+      const Seleccion_Actual = Resolver_Tareas_Lote_B2(Estado, Payload);
+      if (!Seleccion_Actual.Ok) return Error_Mutacion_B2(Seleccion_Actual.Detalle);
+      for (const Tarea of Seleccion_Actual.Tareas) {
+        const Base = { ...Payload, tarea_id: Tarea.Id, confirmar_eliminacion: true };
+        const Resultado = Operacion === "marcar"
+          ? B2_Marcar_Tarea(Estado, Base)
+          : Operacion === "reprogramar"
+          ? B2_Reprogramar_Tarea(Estado, Base)
+          : B2_Borrar_Tarea(Estado, Base);
+        if (Resultado.Cambios === false) return Resultado;
+      }
+      return {
+        Respuesta: `Operacion masiva aplicada sobre ${Seleccion_Actual.Tareas.length} tareas.`,
+        Resultado: { operacion: Operacion, tareas: Vista_Previa },
+      };
+    }
+  );
+}
+
+async function Responder_Deshacer_B2(
+  Req: Request,
+  Auth: Extract<Auth_Resultado, { Ok: true }>
+) {
+  const Payload = await Leer_Body_Json_B2(Req);
+  if (!Leer_Boolean_B2(Payload, false, "confirmar_deshacer")) {
+    return Responder_Error(400, "Confirmacion requerida", "El deshacer requiere confirmar_deshacer: true.");
+  }
+  const Supa = Crear_Supabase_Servicio();
+  const Mutacion_Id = Leer_String_B2(Payload, "mutacion_id");
+  let Consulta = Supa.from("ia_mutaciones_usuario")
+    .select("id, accion, scope, estado_antes")
+    .eq("usuario_id", Auth.Usuario_Id)
+    .eq("estado", "aplicado")
+    .order("creado_en", { ascending: false })
+    .limit(1);
+  if (Mutacion_Id) Consulta = Supa.from("ia_mutaciones_usuario")
+    .select("id, accion, scope, estado_antes")
+    .eq("usuario_id", Auth.Usuario_Id)
+    .eq("id", Mutacion_Id)
+    .eq("estado", "aplicado")
+    .limit(1);
+  const { data, error } = await Consulta.maybeSingle();
+  if (error || !data || !Es_Mapa_B2(data.estado_antes)) {
+    return Responder_Error(404, "Mutacion no reversible", "No encontre una mutacion aplicada con estado previo.");
+  }
+  if (!Tiene_Scope(Auth.Scopes, String(data.scope || ""))) {
+    return Responder_Error(403, "Scope insuficiente", "El token no puede deshacer esa mutacion.");
+  }
+  const Respuesta = await Mutar_Estado_B2(
+    Auth.Usuario_Id,
+    "deshacer",
+    String(data.scope),
+    Payload,
+    (Estado) => {
+      Object.keys(Estado).forEach((Clave) => delete Estado[Clave]);
+      Object.assign(Estado, Clonar_B2(data.estado_antes as Mapa));
+      return { Respuesta: `Se deshizo la mutacion ${data.accion}.`, Resultado: { mutacion_id: data.id } };
+    }
+  );
+  if (Respuesta.status < 300) {
+    await Supa.from("ia_mutaciones_usuario")
+      .update({ estado: "deshecho" })
+      .eq("id", data.id)
+      .eq("usuario_id", Auth.Usuario_Id);
+  }
+  return Respuesta;
+}
+
 async function Leer_Estado_Usuario_Completo_B2(
   Usuario_Id: string
 ): Promise<Estado_Completo_B2> {
@@ -5988,13 +6413,34 @@ async function Registrar_Mutacion_B2(
   }
 }
 
+async function Responder_Historial_Chat(
+  Usuario_Id: string,
+  Url: URL
+) {
+  try {
+    const Limite = Resolver_Limite(Url, 20, 50);
+    const Supa = Crear_Supabase_Servicio();
+    const { data, error } = await Supa
+      .from("ia_mutaciones_usuario")
+      .select("id, accion, scope, resultado, estado, version_antes, version_despues, creado_en")
+      .eq("usuario_id", Usuario_Id)
+      .order("creado_en", { ascending: false })
+      .limit(Limite);
+    if (error) throw error;
+    return Responder_Json({ Ok: true, Mutaciones: data || [] });
+  } catch (Error_General) {
+    console.error("Error leyendo historial del chat:", Error_General);
+    return Responder_Error(500, "Error interno", "No se pudo leer el historial del chat.");
+  }
+}
+
 function B2_Crear_Tarea(
   Estado: Mapa,
   Payload: Mapa
 ): Resultado_Mutacion_B2 {
   const Nombre = Leer_String_B2(Payload, "nombre", "Nombre");
   if (!Nombre) return Error_Mutacion_B2("La tarea necesita nombre.");
-  const Fecha = Leer_Fecha_B2(Payload, "fecha", "Fecha", "");
+  const Fecha = Resolver_Fecha_Relativa_B2(Payload, "");
   const Hora = Leer_Hora_B2(Payload, "hora", "Hora", "");
   const Cajon = Leer_String_B2(Payload, "cajon", "Cajon") ||
     "Inbox";
@@ -6078,12 +6524,13 @@ function B2_Reprogramar_Tarea(
     "sin_horario",
     "Sin_Horario"
   );
-  const Fecha = Leer_Fecha_B2(
+  const Fecha = Resolver_Fecha_Relativa_B2(
     Payload,
-    "fecha",
-    "Fecha",
     String(Tarea.Fecha || "") || Fecha_Argentina_B2()
   );
+  if (!Fecha) {
+    return Error_Mutacion_B2("La fecha o fecha_relativa no es valida.");
+  }
   const Hora = Sin_Horario
     ? ""
     : Leer_Hora_B2(Payload, "hora", "Hora", "");
@@ -7169,6 +7616,44 @@ function Hora_Argentina_B2() {
     Partes.map((Parte) => [Parte.type, Parte.value])
   );
   return `${Mapa_Partes.hour}:${Mapa_Partes.minute}`;
+}
+
+function Resolver_Fecha_Relativa_B2(
+  Payload: Mapa,
+  Fallback: string
+) {
+  const Expresion = Normalizar_Texto_Busqueda(
+    Payload.fecha_relativa || Payload.Fecha_Relativa
+  );
+  if (!Expresion) {
+    return Leer_Fecha_B2(Payload, "fecha", "Fecha", Fallback);
+  }
+  const Hoy = Fecha_Argentina_B2();
+  if (["hoy", "today"].includes(Expresion)) return Hoy;
+  if (["manana", "mañana", "tomorrow"].includes(Expresion)) {
+    return Fecha_Argentina_B2(1);
+  }
+  if (["pasado manana", "pasado mañana"].includes(Expresion)) {
+    return Fecha_Argentina_B2(2);
+  }
+  const En_Dias = Expresion.match(/^en (\d+) dias?$/);
+  if (En_Dias) return Fecha_Argentina_B2(Number(En_Dias[1]));
+  const Dias = new Map([
+    ["domingo", 0], ["lunes", 1], ["martes", 2],
+    ["miercoles", 3], ["miércoles", 3], ["jueves", 4],
+    ["viernes", 5], ["sabado", 6], ["sábado", 6],
+  ]);
+  const Coincidencia = Expresion.match(/^(?:proximo |pr[oó]ximo )?(domingo|lunes|martes|miercoles|miércoles|jueves|viernes|sabado|sábado)$/);
+  if (Coincidencia) {
+    const Base = Parsear_Fecha_ISO(Hoy)!;
+    const Dia = Dias.get(Coincidencia[1])!;
+    let Diferencia = (Dia - Base.getUTCDay() + 7) % 7;
+    if (Diferencia === 0 || Expresion.startsWith("proximo") || Expresion.startsWith("próximo")) {
+      Diferencia += 7;
+    }
+    return Formatear_Fecha_ISO(Sumar_Dias(Base, Diferencia));
+  }
+  return "";
 }
 
 function Asegurar_Array_B2(
@@ -8263,6 +8748,24 @@ Deno.serve(async (Req) => {
     return await Procesar_OAuth_Token(Req);
   }
 
+  if (
+    Req.method === "POST" &&
+    Ruta === "/b2/tareas/lote"
+  ) {
+    const Auth = await Validar_Request(Req);
+    if (!Auth.Ok) return Responder_Error(Auth.Status, Auth.Error, Auth.Detalle);
+    return await Responder_Lote_Tareas_B2(Req, Auth);
+  }
+
+  if (
+    Req.method === "POST" &&
+    Ruta === "/b2/deshacer"
+  ) {
+    const Auth = await Validar_Request(Req);
+    if (!Auth.Ok) return Responder_Error(Auth.Status, Auth.Error, Auth.Detalle);
+    return await Responder_Deshacer_B2(Req, Auth);
+  }
+
   const Ruta_B2 = Rutas_B2[Ruta];
   if (Ruta_B2) {
     if (Req.method !== "POST") {
@@ -8295,6 +8798,10 @@ Deno.serve(async (Req) => {
     "/archivero",
     "/archivero/buscar",
     "/baul",
+    "/buscar",
+    "/resumen",
+    "/diagnostico/planes",
+    "/historial",
   ]);
 
   if (Rutas_Reservadas.has(Ruta)) {
@@ -8405,6 +8912,34 @@ Deno.serve(async (Req) => {
       );
     }
 
+    if (Ruta === "/buscar") {
+      return Responder_Busqueda_Global(
+        Estado.Estado,
+        Url
+      );
+    }
+
+    if (Ruta === "/resumen") {
+      return Responder_Resumen_Operativo(
+        Estado.Estado,
+        Url
+      );
+    }
+
+    if (Ruta === "/diagnostico/planes") {
+      return Responder_Diagnostico_Planes(
+        Estado.Estado,
+        Url
+      );
+    }
+
+    if (Ruta === "/historial") {
+      return await Responder_Historial_Chat(
+        Auth.Usuario_Id,
+        Url
+      );
+    }
+
     // TODO: Fase posterior.
     // Agregar rate limit por token antes de abrir
     // la API en produccion.
@@ -8414,7 +8949,8 @@ Deno.serve(async (Req) => {
       "La fase actual expone /salud, " +
         "/agenda, /contexto, /tareas, /habitos, " +
         "/slots, /planes/semana, /planes/periodos, " +
-        "/archivero, /archivero/buscar y /baul, " +
+        "/archivero, /archivero/buscar, /baul, /buscar, " +
+        "/resumen, /diagnostico/planes y /historial, " +
         "/openapi.json " +
         "y lectura segura del estado."
     );

@@ -61,6 +61,17 @@ estructuras persistidas o relaciones importantes entre modulos.
   falta. Al reprogramar una tarea vinculada, el gateway la desvincula
   de su slot o evento anterior y la planifica en el nuevo horario,
   conservando la consistencia de agenda y planes.
+  Para la conversación también publica `/buscar` (búsqueda transversal),
+  `/resumen` (día o semana), `/diagnostico/planes` y `/historial`.
+  Las tareas incluyen sus vínculos operativos en esas vistas, para que
+  el chat explique el impacto antes de cambiar datos. `POST
+  /b2/tareas/lote` entrega primero una previsualización y solo aplica
+  al recibir `confirmar_aplicacion: true`; admite marcar, reprogramar y
+  borrar hasta 50 tareas de forma atómica. Las fechas de tareas pueden
+  usar `fecha_relativa` (`hoy`, `mañana`, `pasado mañana`, próximo día
+  de semana o `en N días`). `POST /b2/deshacer` repone el estado previo
+  de la última mutación del chat —o una indicada por ID— tras una
+  confirmación explícita y con el scope original.
 - `supabase/functions/semaplan-ai-mcp`: servidor MCP remoto por HTTP
   (streamable compatible) para ChatGPT Apps/Developer Mode. Expone
   `initialize`, `tools/list` y `tools/call` en el endpoint
