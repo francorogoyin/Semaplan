@@ -5106,7 +5106,13 @@ function Responder_Tareas(
           `${B.Fecha || "9999-12-31"}|${B.Hora || "99:99"}|${B.Nombre}`;
         return Clave_A.localeCompare(Clave_B);
       })
-      .slice(0, Limite);
+      .slice(0, Limite)
+      .map((Tarea) => ({
+        ...Tarea,
+        Vinculos: Construir_Vinculos_Tarea_IA(
+          Tarea as Mapa
+        ),
+      }));
 
   return Responder_Json({
     Ok: true,
