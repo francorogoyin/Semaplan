@@ -1061,6 +1061,15 @@ Relaciones importantes.
   click en el cuerpo de la descripcion sigue abriendo la edicion.
 - Los avances recalculan progreso y pueden afectar vistas, estados y
   metricas.
+- Los objetivos, subobjetivos y partes admiten valores metricos
+  opcionales. Un campo vacio conserva el valor como no definido, no como
+  cero: se pueden registrar avances sin limite conocido y esos avances
+  siguen sumando al progreso real de la meta. El aporte a la meta solo
+  se contabiliza cuando tiene un valor explicito. Si el aporte queda sin
+  definir, el avance real del hijo se suma a la meta padre solo cuando
+  ambas unidades son compatibles; no se inventan conversiones. Los
+  porcentajes, faltantes y limites se omiten mientras el objetivo siga
+  sin definir.
 
 ## Configuracion, backups e import/export
 
