@@ -1947,3 +1947,119 @@ async ({ page }) => {
   expect(resultado.estadosPartes).toEqual(["Pendiente", "Pendiente"]);
   expect(resultado.toastSegundos).toBe("30");
 });
+
+test("Editar registro permite reasignar el avance entre niveles",
+async ({ page }) => {
+  const errores = [];
+  page.on("pageerror", (error) => errores.push(error.message));
+
+  await Preparar(page);
+  const Resultado = await page.evaluate(async () => {
+    const Modelo = Asegurar_Modelo_Planes();
+    Modelo.Periodos.p2026 = Normalizar_Periodo_Plan({
+      Id: "p2026",
+      Tipo: "Anio",
+      Inicio: "2026-01-01",
+      Fin: "2026-12-31",
+      Orden: 0
+    });
+    Modelo.Objetivos.obj_escritura = Normalizar_Objetivo_Plan({
+      Id: "obj_escritura",
+      Periodo_Id: "p2026",
+      Nombre: "Escritura",
+      Target_Total: 100,
+      Unidad: "Personalizado",
+      Unidad_Custom: "palabras"
+    });
+    Modelo.Subobjetivos.sub_cuento = Normalizar_Subobjetivo_Plan({
+      Id: "sub_cuento",
+      Objetivo_Id: "obj_escritura",
+      Texto: "Cuento",
+      Target_Total: null,
+      Aporte_Meta: null,
+      Unidad: "Personalizado",
+      Unidad_Custom: "palabras"
+    });
+    Modelo.Avances.av_escritura = Normalizar_Avance_Plan({
+      Id: "av_escritura",
+      Objetivo_Id: "obj_escritura",
+      Fuente: "Manual",
+      Cantidad: 30,
+      Unidad: "palabras",
+      Fecha: "2026-04-01",
+      Hora: "10:00"
+    });
+    Modelo.Objetivos.obj_escritura.Progreso_Manual = 30;
+    Planes_Actualizar_Progreso(Modelo.Objetivos.obj_escritura);
+
+    const Dialogo_Original = Planes_Mostrar_Dialogo_Editar_Avance;
+    try {
+      Planes_Mostrar_Dialogo_Editar_Avance = async () => ({
+        Destino: "Subobjetivo|sub_cuento",
+        Modo: "Cantidad",
+        Valor: "30",
+        Base: 0,
+        Hasta_Final: false,
+        Fecha: "2026-04-01",
+        Hora: "10:00"
+      });
+      await Planes_Editar_Avance_Registro("av_escritura");
+      const Estado_Sub = Asegurar_Modelo_Planes();
+      const Tras_Subobjetivo = {
+        fuente: Estado_Sub.Avances.av_escritura.Fuente,
+        subobjetivo: Estado_Sub.Avances.av_escritura.Subobjetivo_Id,
+        manual: Estado_Sub.Objetivos.obj_escritura.Progreso_Manual,
+        progresoSub: Planes_Progreso_Total_Subobjetivo(
+          Estado_Sub.Subobjetivos.sub_cuento,
+          Estado_Sub
+        ),
+        progresoMeta: Estado_Sub.Objetivos.obj_escritura.Progreso_Total
+      };
+
+      Planes_Mostrar_Dialogo_Editar_Avance = async () => {
+        return {
+        Destino: "Objetivo|obj_escritura",
+        Modo: "Cantidad",
+        Valor: "30",
+        Base: 0,
+        Hasta_Final: false,
+        Fecha: "2026-04-01",
+        Hora: "10:00"
+        };
+      };
+      await Planes_Editar_Avance_Registro("av_escritura");
+      const Estado_Objetivo = Asegurar_Modelo_Planes();
+      return {
+        Tras_Subobjetivo,
+        Tras_Objetivo: {
+          fuente: Estado_Objetivo.Avances.av_escritura.Fuente,
+          subobjetivo: Estado_Objetivo.Avances.av_escritura.Subobjetivo_Id,
+          manual: Estado_Objetivo.Objetivos.obj_escritura.Progreso_Manual,
+          progresoSub: Planes_Progreso_Total_Subobjetivo(
+            Estado_Objetivo.Subobjetivos.sub_cuento,
+            Estado_Objetivo
+          ),
+          progresoMeta: Estado_Objetivo.Objetivos.obj_escritura.Progreso_Total
+        }
+      };
+    } finally {
+      Planes_Mostrar_Dialogo_Editar_Avance = Dialogo_Original;
+    }
+  });
+
+  expect(errores).toEqual([]);
+  expect(Resultado.Tras_Subobjetivo).toEqual({
+    fuente: "Subobjetivo",
+    subobjetivo: "sub_cuento",
+    manual: 0,
+    progresoSub: 30,
+    progresoMeta: 30
+  });
+  expect(Resultado.Tras_Objetivo).toEqual({
+    fuente: "Manual",
+    subobjetivo: "",
+    manual: 30,
+    progresoSub: 0,
+    progresoMeta: 30
+  });
+});

@@ -1061,6 +1061,12 @@ Relaciones importantes.
   click en el cuerpo de la descripcion sigue abriendo la edicion.
 - Los avances recalculan progreso y pueden afectar vistas, estados y
   metricas.
+- El registro historico de avances permite editar cantidad, modo, fecha,
+  hora y destino dentro de la misma familia de meta: objetivo, subobjetivo
+  o parte. Al reasignar, se actualizan fuente, unidad, progreso manual,
+  avances del hijo y progreso de la meta; el destino forma parte de la
+  comparacion de cambios para no descartar ediciones que solo cambian
+  "a quien" se adjudica el avance.
 - Los objetivos, subobjetivos y partes admiten valores metricos
   opcionales. Un campo vacio conserva el valor como no definido, no como
   cero: se pueden registrar avances sin limite conocido y esos avances
