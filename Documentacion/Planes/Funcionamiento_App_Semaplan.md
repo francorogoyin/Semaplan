@@ -1022,6 +1022,9 @@ Subestructuras centrales.
 - Los subobjetivos pueden tener `Aporte_Meta_Automatico`; cuando está
   activo, el aporte a la meta se calcula desde sus avances propios y
   solo se suma si la unidad del subobjetivo coincide con la del padre.
+  Ese aporte efectivo también se propaga al progreso realizado del
+  objetivo padre, incluso cuando el valor persistido del progreso estaba
+  desactualizado.
 - `UI`
 
 Funciones de entrada recomendadas.
