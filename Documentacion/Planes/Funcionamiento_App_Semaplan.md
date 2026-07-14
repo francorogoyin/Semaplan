@@ -491,6 +491,13 @@ Modelo basico de habito normalizado.
 - `Programacion`
 - `Meta`
 
+`Programacion` conserva compatibilidad con los hábitos viejos y puede
+usar un ciclo personalizado. En ese caso guarda `Tipo_Ciclo: "Ciclo"`,
+`Semanas_Ciclo`, `Dias_Ciclo` y `Fecha_Ancla`; cada posición del ciclo
+contiene los días aplicables de esa semana. La fecha de ancla define la
+primera posición y los días no aplicables no se muestran como pendientes,
+no rompen rachas y no reducen porcentajes.
+
 Funciones de entrada recomendadas.
 
 - `Normalizar_Habito()`
@@ -526,6 +533,13 @@ Relaciones importantes.
 - Cuando el panel de Habitos tiene filtros activos, debe exponer ese
   estado en chips visibles y ofrecer `Limpiar` en el mismo bloque para
   volver rapido al panel completo sin dejar filtros silenciosos.
+- La tarjeta expandida conserva Racha, Éxitos y Registro. Promedio y
+  Vínculos no se muestran; Estadísticas abre un modal con período,
+  agrupación por día/semana/mes, cumplimiento, total, racha y barras
+  adaptadas a hábitos de check o de cantidad.
+- Al cambiar la vista temporal de Hábitos o Tareas, la fecha de
+  navegación se restablece a la fecha actual para evitar quedar anclado
+  en un día viejo.
 
 ## Retos
 
