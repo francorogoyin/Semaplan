@@ -52,6 +52,10 @@ estructuras persistidas o relaciones importantes entre modulos.
   llamadas, usar `/openapi-key.json` con autenticacion `apiKey` por
   header `X-Semaplan-AI-Token`; el gateway valida ese token contra
   `tokens_ia_usuario` y conserva los mismos scopes B2.
+  Para respetar el máximo de 30 operaciones de ChatGPT Actions,
+  `/openapi-key.json` omite deliberadamente las rutas internas
+  `/salud`, `/openapi.json` y `/openapi-key.json`. El contrato conserva
+  todas las lecturas y mutaciones operativas de Semaplan.
   `/planes/periodos` lista periodos de tipo `Anio`, `Semestre`,
   `Trimestre` o `Mes`; al recibir `periodo_id` devuelve el arbol
   completo con descripciones, metadatos, estadisticas y registros.

@@ -224,7 +224,8 @@ function Obtener_Url_Base_Gateway(
 
 function Construir_OpenAPI_Semaplan_IA(
   Base_Url: string,
-  Modo_Auth: "oauth" | "api_key" = "oauth"
+  Modo_Auth: "oauth" | "api_key" = "oauth",
+  Incluir_Rutas_Internas = true
 ) {
   const Respuesta_200 = {
     description: "Respuesta exitosa.",
@@ -312,11 +313,11 @@ function Construir_OpenAPI_Semaplan_IA(
     additionalProperties: true,
   };
 
-  return {
+  const Contrato = {
     openapi: "3.1.0",
     info: {
       title: "Semaplan AI Gateway",
-      version: "2.1.0",
+      version: "2.1.1",
       description:
         "API para leer Semaplan y ejecutar acciones B2 desde ChatGPT.",
     },
@@ -1337,6 +1338,13 @@ function Construir_OpenAPI_Semaplan_IA(
       ),
     },
   };
+  if (!Incluir_Rutas_Internas) {
+    const Rutas = Contrato.paths as Record<string, unknown>;
+    delete Rutas["/salud"];
+    delete Rutas["/openapi.json"];
+    delete Rutas["/openapi-key.json"];
+  }
+  return Contrato;
 }
 
 function Crear_Supabase_Servicio() {
@@ -8862,7 +8870,8 @@ Deno.serve(async (Req) => {
     return Responder_Json(
       Construir_OpenAPI_Semaplan_IA(
         Obtener_Url_Base_Gateway(Req),
-        "api_key"
+        "api_key",
+        false
       )
     );
   }

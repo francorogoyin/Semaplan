@@ -1,10 +1,10 @@
 Instrucciones base para configurar Semaplan en ChatGPT.
 
-Modo recomendado para B2.
+Modo recomendado para GPT Actions.
 
-Usar un Custom GPT con GPT Actions y OAuth. Esta es la superficie
-adecuada para que ChatGPT pueda crear tareas, marcar hábitos,
-registrar avances, crear notas en Archivero y crear ítems en Baúl.
+Usar un Custom GPT con GPT Actions y API key por header. Esta es la
+superficie adecuada para que ChatGPT pueda leer y operar tareas,
+hábitos, Planes, Archivero y Baúl.
 
 La App MCP queda como B1 de lectura. Puede seguir usándose para
 consultas, pero no es la superficie recomendada para la B2 de
@@ -24,52 +24,36 @@ Base URL viva actual.
 
 Contrato OpenAPI para GPT Actions.
 
-1. Usar como contrato principal:
-   `Documentacion/Planes/OpenAPI_Semaplan_AI.yaml`.
-2. Si se quiere validar el contrato vivo en runtime, revisar:
-   `GET /openapi.json`.
+Usar este contrato vivo:
+
+`https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai/openapi-key.json`.
+
+El contrato declara exactamente 30 operaciones para respetar el límite
+de ChatGPT Actions. No usar `openapi.json` ni
+`Documentacion/Planes/OpenAPI_Semaplan_AI.yaml`, porque conservan el
+modo OAuth y rutas internas que no corresponden al GPT.
 
 Autenticación recomendada.
 
-Usar OAuth. No copiar tokens personales en el GPT.
+Usar API Key con header personalizado. No usar OAuth, Bearer, client
+ID ni client secret.
 
 Valores.
 
-- Authorization URL:
-  `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai/oauth/authorize`.
-- Token URL:
-  `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai/oauth/token`.
-- Scope B2 completo:
-  `read write_tasks write_habits write_metas write_archivero write_baul`.
-- Client ID:
-  `semaplan-chatgpt` o el valor configurado en secreto.
-- Client Secret:
-  el mismo valor guardado en `SEMAPLAN_AI_OAUTH_CLIENT_SECRET`.
+- Authentication: `API Key`.
+- Auth type: `Custom header`.
+- Header name: `X-Semaplan-AI-Token`.
+- API key: valor local de `SEMAPLAN_AI_CHATGPT_API_TOKEN`.
 
-Secrets requeridos en Supabase Functions.
-
-- `SEMAPLAN_AI_OAUTH_CLIENT_ID`.
-- `SEMAPLAN_AI_OAUTH_CLIENT_SECRET`.
-- `SEMAPLAN_AI_OAUTH_LOGIN_URL`.
-- Valor recomendado para `SEMAPLAN_AI_OAUTH_LOGIN_URL`:
-  `https://semaplan.com/login.html`.
-
-Flujo final para usuario en B2.
+Flujo final para el GPT.
 
 1. En ChatGPT, crear o editar el Custom GPT `Semaplan`.
 2. Pegar el contenido de `Prompt_GPT_Semaplan_AI.txt` en
    `Instructions`.
-3. En `Actions`, pegar el contrato
-   `OpenAPI_Semaplan_AI.yaml`.
-4. Configurar autenticación OAuth con las URLs y credenciales de
-   arriba.
-5. Usar el scope B2 completo o solo los scopes que se quieran habilitar
-   para ese GPT.
-6. Guardar el callback URL que muestre ChatGPT en la configuración
-   OAuth permitida de Semaplan, si el entorno lo exige.
-7. Al conectar, ChatGPT redirige a Semaplan, el usuario inicia sesión
-   si hace falta y confirma permisos.
-8. El GPT queda habilitado para leer y ejecutar acciones B2.
+3. En `Actions`, importar la URL del contrato vivo.
+4. Configurar la API key con el header de arriba.
+5. Guardar y probar una lectura de tareas antes de ejecutar una
+   mutación.
 
 Acciones de lectura disponibles.
 
@@ -90,32 +74,35 @@ Acciones B2 de escritura disponibles.
 - `semaplan_b2_crear_tarea`.
 - `semaplan_b2_marcar_tarea`.
 - `semaplan_b2_reprogramar_tarea`.
+- `semaplan_b2_editar_tarea`.
+- `semaplan_b2_borrar_tarea`.
+- `semaplan_b2_duplicar_tarea`.
+- `semaplan_b2_lote_tareas`.
+- `semaplan_b2_deshacer`.
 - `semaplan_b2_crear_habito`.
 - `semaplan_b2_registrar_habito`.
 - `semaplan_b2_registrar_avance_meta`.
 - `semaplan_b2_crear_nota_archivero`.
 - `semaplan_b2_crear_item_baul`.
 
-Alcance deliberadamente fuera de B2.
+Acciones que exigen confirmación explícita.
 
-- Borrar datos.
-- Ediciones masivas.
+- Borrar una tarea.
+- Aplicar una operación masiva.
+- Deshacer una mutación.
 - Cambios en Discoteca o Decoteca.
 - Cambios estructurales de agenda o planes vinculados.
 - Administración de tokens.
 
 Compatibilidad.
 
-- En ChatGPT Actions, usar OAuth y el OpenAPI de B2.
+- En ChatGPT Actions, usar API key por `X-Semaplan-AI-Token` y
+  `/openapi-key.json`.
 - En ChatGPT Apps o MCP remoto, mantener el uso B1 de lectura.
-- El modo API key por `X-Semaplan-AI-Token` se mantiene para pruebas o
-  scripts legacy fuera de Actions.
-- En modo OAuth, cada autorización crea un token interno del usuario
-  para auditar uso y revocar desde `Cuenta -> Integraciones IA`.
 
 Notas.
 
 - `GET /salud` sirve solo para chequeo técnico.
-- `GET /openapi.json` no expone datos del usuario y puede usarse como
-  referencia viva del contrato.
+- `GET /openapi-key.json` es el único contrato vivo para importar en
+  ChatGPT Actions.
 - La B2 registra mutaciones con idempotencia y auditoría en Supabase.
