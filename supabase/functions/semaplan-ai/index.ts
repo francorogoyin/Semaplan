@@ -971,6 +971,14 @@ function Construir_OpenAPI_Semaplan_IA(
             cajon: { type: "string" },
             prioridad: { type: "string" },
             emoji: { type: "string" },
+            descripcion: { type: "string" },
+            etiquetas: { type: "array", items: { type: "string" } },
+            fecha_limite: { type: "string", format: "date" },
+            repeticion: { type: "object" },
+            subtareas: { type: "array", items: { type: "object" } },
+            adjuntos: { type: "array", items: { type: "string" } },
+            dependencias_ids: { type: "array", items: { type: "string" } },
+            estimacion_minutos: { type: "number", minimum: 0 },
           },
         },
       ),
@@ -1028,6 +1036,18 @@ function Construir_OpenAPI_Semaplan_IA(
             emoji: { type: "string" },
             cajon: { type: "string" },
             prioridad: { type: "string" },
+            descripcion: { type: "string" },
+            etiquetas: { type: "array", items: { type: "string" } },
+            fecha_limite: { type: "string", format: "date" },
+            repeticion: { type: "object" },
+            subtareas: { type: "array", items: { type: "object" } },
+            adjuntos: { type: "array", items: { type: "string" } },
+            dependencias_ids: { type: "array", items: { type: "string" } },
+            estimacion_minutos: { type: "number", minimum: 0 },
+            tiempo_registrado_minutos: { type: "number", minimum: 0 },
+            motivo_posposicion: { type: "string" },
+            fecha_sugerida: { type: "string", format: "date" },
+            archivada: { type: "boolean" },
             estado: {
               type: "string",
               description:
@@ -1064,6 +1084,22 @@ function Construir_OpenAPI_Semaplan_IA(
             busqueda: { type: "string" },
             nombre: { type: "string" },
             confirmar_eliminacion: { type: "boolean" },
+          },
+        },
+      ),
+      "/b2/tareas/duplicar": Post_B2(
+        "semaplan_b2_duplicar_tarea",
+        "Duplicar una tarea conservando sus datos y dejando la copia pendiente",
+        OAUTH_SCOPE_TAREAS,
+        {
+          ...Schema_Base_B2,
+          properties: {
+            ...Schema_Base_B2.properties,
+            tarea_id: { type: "string" },
+            busqueda: { type: "string" },
+            nombre: { type: "string" },
+            nuevo_nombre: { type: "string" },
+            fecha: { type: "string", format: "date" },
           },
         },
       ),
@@ -3319,6 +3355,7 @@ function Construir_Tareas_Normalizadas_IA(
         Nombre: Normalizar_Texto(
           Base.Nombre || Base.Texto
         ),
+        Descripcion: Normalizar_Texto(Base.Descripcion || Base.Nota),
         Emoji: Normalizar_Texto(
           Base.Emoji || "\u2022"
         ),
@@ -3362,6 +3399,23 @@ function Construir_Tareas_Normalizadas_IA(
         Fecha_Completado: Normalizar_Texto(
           Base.Fecha_Completado
         ),
+        Fecha_Limite: Normalizar_Texto(Base.Fecha_Limite),
+        Etiquetas: Array.isArray(Base.Etiquetas)
+          ? Base.Etiquetas.map((Item) => Normalizar_Texto(Item)).filter(Boolean)
+          : [],
+        Repeticion: Es_Mapa_B2(Base.Repeticion)
+          ? Base.Repeticion : { Tipo: "ninguna" },
+        Subtareas: Array.isArray(Base.Subtareas) ? Base.Subtareas : [],
+        Adjuntos: Array.isArray(Base.Adjuntos) ? Base.Adjuntos : [],
+        Dependencias_Ids: Array.isArray(Base.Dependencias_Ids)
+          ? Base.Dependencias_Ids.map((Item) => Normalizar_Texto(Item)).filter(Boolean)
+          : [],
+        Estimacion_Minutos: Math.max(0, Number(Base.Estimacion_Minutos) || 0),
+        Tiempo_Registrado_Minutos: Math.max(0, Number(Base.Tiempo_Registrado_Minutos) || 0),
+        Motivo_Posposicion: Normalizar_Texto(Base.Motivo_Posposicion),
+        Fecha_Sugerida: Normalizar_Texto(Base.Fecha_Sugerida),
+        Archivada: Base.Archivada === true,
+        Historial: Array.isArray(Base.Historial) ? Base.Historial : [],
       };
     })
     .filter((Tarea) => Tarea.Nombre);
@@ -6026,6 +6080,11 @@ const Rutas_B2: Record<string, {
     Accion: "borrar_tarea",
     Handler: B2_Borrar_Tarea,
   },
+  "/b2/tareas/duplicar": {
+    Scope: OAUTH_SCOPE_TAREAS,
+    Accion: "duplicar_tarea",
+    Handler: B2_Duplicar_Tarea,
+  },
   "/b2/habitos/crear": {
     Scope: OAUTH_SCOPE_HABITOS,
     Accion: "crear_habito",
@@ -6459,9 +6518,22 @@ function B2_Crear_Tarea(
     Id: Crear_Id_B2("Tarea"),
     Emoji: Leer_String_B2(Payload, "emoji", "Emoji") || "\u2022",
     Nombre,
+    Descripcion: Leer_String_B2(Payload, "descripcion", "Descripcion"),
     Cajon,
     Prioridad:
       Leer_String_B2(Payload, "prioridad", "Prioridad") || "baja",
+    Etiquetas: Leer_Array_String_B2(Payload, "etiquetas", "Etiquetas"),
+    Fecha_Limite: Leer_Fecha_B2(Payload, "fecha_limite", "Fecha_Limite", ""),
+    Repeticion: Es_Mapa_B2(Payload.repeticion) ? Payload.repeticion : { Tipo: "ninguna" },
+    Subtareas: Array.isArray(Payload.subtareas) ? Payload.subtareas : [],
+    Adjuntos: Leer_Array_String_B2(Payload, "adjuntos", "Adjuntos"),
+    Dependencias_Ids: Leer_Array_String_B2(Payload, "dependencias_ids", "Dependencias_Ids"),
+    Estimacion_Minutos: Math.max(0, Leer_Numero_B2(Payload, "estimacion_minutos") || 0),
+    Tiempo_Registrado_Minutos: 0,
+    Motivo_Posposicion: "",
+    Fecha_Sugerida: "",
+    Archivada: false,
+    Historial: [{ Fecha: Ahora, Tipo: "creada", Detalle: "ChatGPT" }],
     Estado: "pendiente",
     Fecha,
     Hora,
@@ -6610,6 +6682,54 @@ function B2_Editar_Tarea(
     Tarea.Prioridad = Leer_String_B2(Payload, "prioridad") || "baja";
     Cambios = true;
   }
+  if (Tiene_Campo_B2(Payload, "descripcion")) {
+    Tarea.Descripcion = Leer_String_B2(Payload, "descripcion");
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "etiquetas")) {
+    Tarea.Etiquetas = Leer_Array_String_B2(Payload, "etiquetas");
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "fecha_limite")) {
+    Tarea.Fecha_Limite = Leer_Fecha_B2(Payload, "fecha_limite", "Fecha_Limite", "");
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "repeticion") && Es_Mapa_B2(Payload.repeticion)) {
+    Tarea.Repeticion = Payload.repeticion;
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "subtareas") && Array.isArray(Payload.subtareas)) {
+    Tarea.Subtareas = Payload.subtareas;
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "adjuntos")) {
+    Tarea.Adjuntos = Leer_Array_String_B2(Payload, "adjuntos");
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "dependencias_ids")) {
+    Tarea.Dependencias_Ids = Leer_Array_String_B2(Payload, "dependencias_ids");
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "estimacion_minutos")) {
+    Tarea.Estimacion_Minutos = Math.max(0, Leer_Numero_B2(Payload, "estimacion_minutos") || 0);
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "tiempo_registrado_minutos")) {
+    Tarea.Tiempo_Registrado_Minutos = Math.max(0, Leer_Numero_B2(Payload, "tiempo_registrado_minutos") || 0);
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "motivo_posposicion")) {
+    Tarea.Motivo_Posposicion = Leer_String_B2(Payload, "motivo_posposicion");
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "fecha_sugerida")) {
+    Tarea.Fecha_Sugerida = Leer_Fecha_B2(Payload, "fecha_sugerida", "Fecha_Sugerida", "");
+    Cambios = true;
+  }
+  if (Tiene_Campo_B2(Payload, "archivada")) {
+    Tarea.Archivada = Leer_Boolean_B2(Payload, false, "archivada");
+    Cambios = true;
+  }
   if (Tiene_Campo_B2(Payload, "estado")) {
     const Estado_Nuevo = Leer_String_B2(Payload, "estado").toLowerCase();
     if (![
@@ -6670,6 +6790,40 @@ function B2_Borrar_Tarea(
   return {
     Respuesta: `Tarea eliminada: ${Tarea.Nombre}.`,
     Resultado: { tarea_id: Tarea.Id },
+  };
+}
+
+function B2_Duplicar_Tarea(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Tareas = Asegurar_Array_B2(Estado, "Tareas");
+  const Busqueda = Buscar_Item_B2(Tareas, Payload, "tarea_id", "Nombre");
+  if (Busqueda.Ok !== true) return Busqueda.Respuesta;
+  const Original = Busqueda.Item;
+  const Id = Crear_Id_B2("Tarea");
+  const Copia = Clonar_B2(Original);
+  Copia.Id = Id;
+  Copia.Nombre = Leer_String_B2(Payload, "nuevo_nombre") ||
+    `${String(Original.Nombre || "Tarea")} (copia)`;
+  Copia.Estado = "pendiente";
+  Copia.Fecha_Completado = "";
+  Copia.Fecha = Leer_Fecha_B2(Payload, "fecha", "Fecha", String(Original.Fecha || ""));
+  Copia.Planeada = false;
+  Copia.Evento_Id = "";
+  Copia.Abordaje_Id = "";
+  Copia.Plan_Clave = "";
+  Copia.Plan_Item_Id = "";
+  Copia.Archivada = false;
+  Copia.Historial = [{
+    Fecha: new Date().toISOString(),
+    Tipo: "duplicada",
+    Detalle: `Origen: ${String(Original.Id || "")}`,
+  }];
+  Tareas.push(Copia);
+  return {
+    Respuesta: `Tarea duplicada: ${Copia.Nombre}.`,
+    Resultado: { tarea_id: Id, origen_tarea_id: Original.Id },
   };
 }
 

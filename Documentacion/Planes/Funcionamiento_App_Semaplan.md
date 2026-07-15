@@ -442,6 +442,9 @@ Modelo basico de tarea normalizada.
 - `Abordaje_Id`
 - `Plan_Clave`
 - `Plan_Item_Id`
+- `Descripcion`, `Etiquetas`, `Fecha_Limite` y `Repeticion`
+- `Subtareas`, `Adjuntos`, `Dependencias_Ids` y tiempos estimado/real
+- `Motivo_Posposicion`, `Fecha_Sugerida`, `Archivada` e `Historial`
 
 Funciones de entrada recomendadas.
 
@@ -471,6 +474,12 @@ Relaciones importantes.
   alimentado por `Tareas_Cajones_Definidos`, para que un cajon nuevo
   quede disponible enseguida como opcion visible y no dependa de
   sugerencias implicitas del navegador.
+- Las tareas archivadas se conservan con su historial y no se eliminan
+  por la accion habitual del modulo. Las dependencias pendientes marcan
+  la tarea como bloqueada e impiden completarla hasta resolverlas.
+- En la vista diaria, los habitos no programados siguen visibles con el
+  estado `No corresponde hoy`; no ofrecen registro rapido ni afectan la
+  racha o el cumplimiento.
 
 ## Habitos
 
