@@ -61,6 +61,10 @@ estructuras persistidas o relaciones importantes entre modulos.
   falta. Al reprogramar una tarea vinculada, el gateway la desvincula
   de su slot o evento anterior y la planifica en el nuevo horario,
   conservando la consistencia de agenda y planes.
+  La edición B2 se aplica a cualquier estado de tarea: pendiente,
+  completada, pospuesta o cancelada. Si no recibe `estado`, conserva el
+  valor existente y, por lo tanto, también conserva la fecha de
+  completado de una tarea hecha.
   Para la conversación también publica `/buscar` (búsqueda transversal),
   `/resumen` (día o semana), `/diagnostico/planes` y `/historial`.
   Las tareas incluyen sus vínculos operativos en esas vistas, para que

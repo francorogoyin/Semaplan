@@ -1015,7 +1015,7 @@ function Construir_OpenAPI_Semaplan_IA(
       ),
       "/b2/tareas/editar": Post_B2(
         "semaplan_b2_editar_tarea",
-        "Editar los datos completos de una tarea y sus vinculos",
+        "Editar cualquier tarea sin cambiar su estado salvo pedido expreso",
         OAUTH_SCOPE_TAREAS,
         {
           ...Schema_Base_B2,
@@ -1030,6 +1030,8 @@ function Construir_OpenAPI_Semaplan_IA(
             prioridad: { type: "string" },
             estado: {
               type: "string",
+              description:
+                "Omitir para conservar el estado actual, incluso si la tarea esta completada.",
               enum: [
                 "pendiente",
                 "completada",
@@ -6573,6 +6575,7 @@ function B2_Editar_Tarea(
   const Tarea = Busqueda.Item;
   const Requiere_Reprogramar =
     Tiene_Campo_B2(Payload, "fecha") ||
+    Tiene_Campo_B2(Payload, "fecha_relativa") ||
     Tiene_Campo_B2(Payload, "hora") ||
     Tiene_Campo_B2(Payload, "sin_horario");
   if (Requiere_Reprogramar) {
