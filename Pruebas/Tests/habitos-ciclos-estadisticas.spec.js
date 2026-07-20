@@ -219,3 +219,36 @@ test("incluye registros fuera del ciclo en las estadisticas", async ({ page }) =
     { clave: "2026-07-20", etiqueta: "20–26 jul", total: 34 }
   ]);
 });
+
+test("permite registrar un habito fuera de su programacion", async ({ page }) => {
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    const Habito = Normalizar_Habito({
+      Id: "Habito_Fuera_Programacion",
+      Nombre: "Lectura dominical",
+      Fecha_Inicio: "2026-07-13",
+      Programacion: { Tipo: "Dias", Dias: [0] },
+      Meta: { Modo: "Check", Cantidad: 1, Periodo: "Dia" }
+    });
+    Habitos = [Habito];
+    Habitos_Registros = [];
+    Habitos_Panel_Modo = "Dia";
+    const Fecha = "2026-07-19";
+    const Accion_Disponible = Habitos_Render_Accion_Rapida(
+      Habito,
+      Fecha
+    ).includes("data-habitos-registro-rapido");
+    Habitos_Registrar_Manual(Habito, 1, Fecha);
+    return {
+      accionDisponible: Accion_Disponible,
+      registrado: Habito_Tiene_Registro_En_Periodo(Habito, Fecha),
+      racha: Habitos_Calcular_Racha(Habito, "2026-07-20")
+    };
+  });
+
+  expect(Resultado).toEqual({
+    accionDisponible: true,
+    registrado: true,
+    racha: 0
+  });
+});
