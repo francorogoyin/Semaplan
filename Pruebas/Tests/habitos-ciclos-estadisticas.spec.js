@@ -238,17 +238,19 @@ test("permite registrar un habito fuera de su programacion", async ({ page }) =>
       Habito,
       Fecha
     ).includes("data-habitos-registro-rapido");
-    Habitos_Registrar_Manual(Habito, 1, Fecha);
+    Habitos_Registrar_Manual(Habito, 60, Fecha);
     return {
       accionDisponible: Accion_Disponible,
       registrado: Habito_Tiene_Registro_En_Periodo(Habito, Fecha),
-      racha: Habitos_Calcular_Racha(Habito, "2026-07-20")
+      cantidad: Habito_Progreso_Actual(Habito, Fecha),
+      racha: Habitos_Calcular_Racha(Habito, Fecha)
     };
   });
 
   expect(Resultado).toEqual({
     accionDisponible: true,
     registrado: true,
-    racha: 0
+    cantidad: 60,
+    racha: 1
   });
 });
