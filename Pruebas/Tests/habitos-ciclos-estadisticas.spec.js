@@ -254,3 +254,120 @@ test("permite registrar un habito fuera de su programacion", async ({ page }) =>
     racha: 1
   });
 });
+
+test("colorea las barras de estadisticas segun el tipo de habito", async ({
+  page
+}) => {
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    const Hoy = Habitos_Fecha_Hoy();
+    const Ayer = Formatear_Fecha_ISO(
+      Sumar_Dias(Parsear_Fecha_ISO(Hoy), -1)
+    );
+    const Anteayer = Formatear_Fecha_ISO(
+      Sumar_Dias(Parsear_Fecha_ISO(Hoy), -2)
+    );
+    const Clases = () => Array.from(document.querySelectorAll(
+      ".Habitos_Estadisticas_Columna"
+    )).map((Columna) => Columna.className);
+
+    const Cantidad = Normalizar_Habito({
+      Id: "Habito_Colores_Cantidad",
+      Nombre: "Lectura",
+      Meta: { Modo: "Cantidad", Cantidad: 60, Periodo: "Dia" }
+    });
+    Habitos = [Cantidad];
+    Habitos_Registros = [];
+    Habito_Registrar_Fuente({
+      Habito_Id: Cantidad.Id,
+      Fecha: Anteayer,
+      Cantidad: 60,
+      Fuente: "Manual",
+      Fuente_Id: "Cantidad_Completa"
+    });
+    Habito_Registrar_Fuente({
+      Habito_Id: Cantidad.Id,
+      Fecha: Ayer,
+      Cantidad: 30,
+      Fuente: "Manual",
+      Fuente_Id: "Cantidad_Parcial"
+    });
+    Abrir_Panel_Habitos();
+    Habitos_Abrir_Estadisticas(Cantidad.Id);
+    Habitos_Render_Estadisticas(Cantidad, 7, "Dia");
+    const Barras_Cantidad = Clases();
+
+    const Check = Normalizar_Habito({
+      Id: "Habito_Colores_Check",
+      Nombre: "Meditar",
+      Meta: { Modo: "Check", Cantidad: 1, Periodo: "Dia" }
+    });
+    Habitos = [Check];
+    Habitos_Registros = [];
+    Habitos_Registrar_Manual(Check, 1, Ayer);
+    Habitos_Render_Estadisticas(Check, 7, "Dia");
+    const Barras_Check = Clases();
+
+    const Tiempo = Normalizar_Habito({
+      Id: "Habito_Colores_Tiempo",
+      Nombre: "Caminar",
+      Meta: { Modo: "Tiempo", Cantidad: 60, Periodo: "Dia" }
+    });
+    Habitos = [Tiempo];
+    Habitos_Registros = [];
+    Habito_Registrar_Fuente({
+      Habito_Id: Tiempo.Id,
+      Fecha: Ayer,
+      Cantidad: 30,
+      Fuente: "Manual",
+      Fuente_Id: "Tiempo_Parcial"
+    });
+    Habitos_Render_Estadisticas(Tiempo, 7, "Dia");
+    const Barras_Tiempo = Clases();
+
+    const Evitar = Normalizar_Habito({
+      Id: "Habito_Colores_Evitar",
+      Nombre: "No fumar",
+      Tipo: "Evitar",
+      Meta: { Cantidad: 0, Periodo: "Dia" }
+    });
+    Habitos = [Evitar];
+    Habitos_Registros = [];
+    Habitos_Registrar_Manual(Evitar, 0, Ayer);
+    Habitos_Render_Estadisticas(Evitar, 7, "Dia");
+    return {
+      Barras_Cantidad,
+      Barras_Check,
+      Barras_Tiempo,
+      Barras_Evitar: Clases()
+    };
+  });
+
+  expect(Resultado.Barras_Cantidad.some((Clase) =>
+    Clase.includes("Naranja")
+  )).toBe(true);
+  expect(Resultado.Barras_Cantidad.some((Clase) =>
+    Clase.includes("Nula")
+  )).toBe(true);
+  expect(Resultado.Barras_Cantidad.some((Clase) =>
+    !Clase.includes("Naranja") && !Clase.includes("Nula")
+  )).toBe(true);
+  expect(Resultado.Barras_Check.some((Clase) =>
+    Clase.includes("Naranja")
+  )).toBe(false);
+  expect(Resultado.Barras_Check.some((Clase) =>
+    Clase.includes("Nula")
+  )).toBe(true);
+  expect(Resultado.Barras_Check.some((Clase) =>
+    !Clase.includes("Naranja") && !Clase.includes("Nula")
+  )).toBe(true);
+  expect(Resultado.Barras_Tiempo.some((Clase) =>
+    Clase.includes("Naranja")
+  )).toBe(true);
+  expect(Resultado.Barras_Evitar.some((Clase) =>
+    Clase.includes("Naranja")
+  )).toBe(false);
+  expect(Resultado.Barras_Evitar.some((Clase) =>
+    !Clase.includes("Naranja") && !Clase.includes("Nula")
+  )).toBe(true);
+});
