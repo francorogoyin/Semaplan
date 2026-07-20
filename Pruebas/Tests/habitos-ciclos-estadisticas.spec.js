@@ -297,6 +297,27 @@ test("colorea las barras de estadisticas segun el tipo de habito", async ({
     Habitos_Render_Estadisticas(Cantidad, 7, "Dia");
     const Barras_Cantidad = Clases();
 
+    const Cantidad_Fuera = Normalizar_Habito({
+      Id: "Habito_Colores_Cantidad_Fuera",
+      Nombre: "Lectura excepcional",
+      Meta: { Modo: "Cantidad", Cantidad: 60, Periodo: "Dia" },
+      Programacion: { Tipo: "Dias", Dias: [0] }
+    });
+    const Fecha_Fuera = Array.from({ length: 7 }, (_, Indice) =>
+      Formatear_Fecha_ISO(Sumar_Dias(Parsear_Fecha_ISO(Hoy), -Indice))
+    ).find((Fecha) => !Habito_Corresponde_En_Fecha(Cantidad_Fuera, Fecha));
+    Habitos = [Cantidad_Fuera];
+    Habitos_Registros = [];
+    Habito_Registrar_Fuente({
+      Habito_Id: Cantidad_Fuera.Id,
+      Fecha: Fecha_Fuera,
+      Cantidad: 30,
+      Fuente: "Manual",
+      Fuente_Id: "Cantidad_Excepcional_Parcial"
+    });
+    Habitos_Render_Estadisticas(Cantidad_Fuera, 7, "Dia");
+    const Barras_Cantidad_Fuera = Clases();
+
     const Check = Normalizar_Habito({
       Id: "Habito_Colores_Check",
       Nombre: "Meditar",
@@ -337,6 +358,7 @@ test("colorea las barras de estadisticas segun el tipo de habito", async ({
     Habitos_Render_Estadisticas(Evitar, 7, "Dia");
     return {
       Barras_Cantidad,
+      Barras_Cantidad_Fuera,
       Barras_Check,
       Barras_Tiempo,
       Barras_Evitar: Clases()
@@ -351,6 +373,9 @@ test("colorea las barras de estadisticas segun el tipo de habito", async ({
   )).toBe(true);
   expect(Resultado.Barras_Cantidad.some((Clase) =>
     !Clase.includes("Naranja") && !Clase.includes("Nula")
+  )).toBe(true);
+  expect(Resultado.Barras_Cantidad_Fuera.some((Clase) =>
+    Clase.includes("Naranja")
   )).toBe(true);
   expect(Resultado.Barras_Check.some((Clase) =>
     Clase.includes("Naranja")
