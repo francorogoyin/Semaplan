@@ -811,6 +811,7 @@ test(
     await page.fill("#Tareas_Fecha", "2026-04-15");
     await page.fill("#Tareas_Hora", "11:30");
     await page.click("#Tareas_Editor_Guardar");
+    await expect(page.locator("#Tareas_Overlay")).not.toHaveClass(/Activo/);
 
     await expect.poll(async () => {
       return await page.evaluate(() => {
