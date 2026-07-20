@@ -102,3 +102,120 @@ test("abre estadisticas y resetea fecha al cambiar vista", async ({ page }) => {
   const Fecha = await page.evaluate(() => Habitos_Panel_Fecha);
   expect(Fecha).toBe(await page.evaluate(() => Habitos_Fecha_Hoy()));
 });
+
+test("incluye registros fuera del ciclo en las estadisticas", async ({ page }) => {
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    const Habito = Normalizar_Habito({
+      Id: "Habito_Lectura_Alternada",
+      Nombre: "Lectura alternada",
+      Fecha_Inicio: "2026-07-13",
+      Meta: { Modo: "Cantidad", Cantidad: 60, Periodo: "Dia" },
+      Programacion: {
+        Tipo: "Libre",
+        Tipo_Ciclo: "Ciclo",
+        Semanas_Ciclo: 2,
+        Dias_Ciclo: [[0, 1, 4, 5], [2, 3]]
+      }
+    });
+    Habitos = [Habito];
+    Habitos_Registros = [];
+    [
+      ["2026-07-13", 66],
+      ["2026-07-14", 60],
+      ["2026-07-17", 61],
+      ["2026-07-18", 12],
+      ["2026-07-20", 34]
+    ].forEach(([Fecha, Cantidad], Indice) => {
+      Habito_Registrar_Fuente({
+        Habito_Id: Habito.Id,
+        Fecha,
+        Cantidad,
+        Fuente: "Manual",
+        Fuente_Id: `Manual_Lectura_${Indice}`
+      });
+    });
+    const Por_Dia = Habitos_Estadisticas_Rango(
+      Habito,
+      "2026-07-13",
+      "2026-07-20",
+      "Dia"
+    );
+    const Por_Semana = Habitos_Estadisticas_Rango(
+      Habito,
+      "2026-07-13",
+      "2026-07-20",
+      "Semana"
+    );
+    const Por_Dia_Validos = Habitos_Estadisticas_Rango(
+      Habito,
+      "2026-07-13",
+      "2026-07-20",
+      "Dia",
+      "Aplicables"
+    );
+    const Por_Dia_Con_Progreso = Habitos_Estadisticas_Rango(
+      Habito,
+      "2026-07-13",
+      "2026-07-20",
+      "Dia",
+      "Con_Progreso"
+    );
+    return {
+      dias: Por_Dia.map((Item) => ({
+        fecha: Item.Clave,
+        total: Item.Total,
+        aplicables: Item.Aplicables,
+        exitos: Item.Exitos
+      })),
+      diasValidos: Por_Dia_Validos.map((Item) => Item.Clave),
+      diasConProgreso: Por_Dia_Con_Progreso.map((Item) => Item.Clave),
+      semanas: Por_Semana.map((Item) => ({
+        clave: Item.Clave,
+        etiqueta: Item.Etiqueta,
+        total: Item.Total
+      }))
+    };
+  });
+
+  await page.evaluate(() => {
+    Habitos_Abrir_Estadisticas("Habito_Lectura_Alternada");
+  });
+  const Cobertura = page.locator(
+    "[data-habitos-estadisticas-cobertura]"
+  );
+  await expect(Cobertura).toHaveValue("Todos");
+  await expect(Cobertura.locator("option")).toHaveCount(3);
+  await Cobertura.selectOption("Aplicables");
+  await expect(Cobertura).toHaveValue("Aplicables");
+  await Cobertura.selectOption("Con_Progreso");
+  await expect(Cobertura).toHaveValue("Con_Progreso");
+
+  expect(Resultado.dias).toEqual([
+    { fecha: "2026-07-13", total: 66, aplicables: 1, exitos: 1 },
+    { fecha: "2026-07-14", total: 60, aplicables: 1, exitos: 1 },
+    { fecha: "2026-07-15", total: 0, aplicables: 0, exitos: 0 },
+    { fecha: "2026-07-16", total: 0, aplicables: 0, exitos: 0 },
+    { fecha: "2026-07-17", total: 61, aplicables: 1, exitos: 1 },
+    { fecha: "2026-07-18", total: 12, aplicables: 1, exitos: 0 },
+    { fecha: "2026-07-19", total: 0, aplicables: 0, exitos: 0 },
+    { fecha: "2026-07-20", total: 34, aplicables: 0, exitos: 0 }
+  ]);
+  expect(Resultado.diasValidos).toEqual([
+    "2026-07-13",
+    "2026-07-14",
+    "2026-07-17",
+    "2026-07-18"
+  ]);
+  expect(Resultado.diasConProgreso).toEqual([
+    "2026-07-13",
+    "2026-07-14",
+    "2026-07-17",
+    "2026-07-18",
+    "2026-07-20"
+  ]);
+  expect(Resultado.semanas).toEqual([
+    { clave: "2026-07-13", etiqueta: "13–19 jul", total: 199 },
+    { clave: "2026-07-20", etiqueta: "20–26 jul", total: 34 }
+  ]);
+});
