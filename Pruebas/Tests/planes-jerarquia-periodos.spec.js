@@ -416,13 +416,13 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Subobjetivo realizado muestra fecha final calculada y bloquea fechas",
+test("Subobjetivo realizado conserva final real y permite editar fechas planificadas",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
 
   await Preparar(page);
-  const Resultado = await page.evaluate(() => {
+  const Resultado = await page.evaluate(async () => {
     Abrir_Plan();
     const Modelo = Asegurar_Jerarquia_Planes();
     const Anio = Planes_Crear_Periodo(
@@ -488,6 +488,7 @@ async ({ page }) => {
       objetivoDisabled: Objetivo_Fecha.disabled,
       finalVisible: !Campo_Final.hidden,
       finalValor: Final.value,
+      finalDisabled: Final.disabled,
       formConFechaFinal: document
         .getElementById("Planes_Subobjetivo_Form")
         .classList.contains("Con_Fecha_Final"),
@@ -495,39 +496,55 @@ async ({ page }) => {
         Math.abs(Rect_Inicio.top - Rect_Objetivo.top) < 2 &&
         Math.abs(Rect_Inicio.top - Rect_Final.top) < 2
     };
-    Cerrar_Modal_Planes_Subobjetivo();
-    delete M.Avances.av_sub_fecha_final;
-    Planes_Recalcular_Progreso_Subobjetivo(Sub, M);
+    Inicio.value = "2026-03-15";
+    Objetivo_Fecha.value = "2026-06-15";
+    await Guardar_Modal_Planes_Subobjetivo();
+    const Editado = Asegurar_Modelo_Planes()
+      .Subobjetivos[Sub.Id];
     Abrir_Modal_Planes_Subobjetivo(Sub.Id);
-    const Abierto = {
+    const Reabierto = {
       inicioDisabled: Inicio.disabled,
       objetivoDisabled: Objetivo_Fecha.disabled,
       finalVisible: !Campo_Final.hidden,
       finalValor: Final.value,
-      fechaFinModelo: Sub.Fecha_Fin || "",
+      fechaFinModelo: Sub.Fecha_Fin,
       formConFechaFinal: document
         .getElementById("Planes_Subobjetivo_Form")
         .classList.contains("Con_Fecha_Final")
     };
-    return { Realizado, Abierto };
+    return {
+      Realizado,
+      Editado: {
+        inicio: Editado.Fecha_Inicio,
+        objetivo: Editado.Fecha_Objetivo,
+        final: Editado.Fecha_Fin
+      },
+      Reabierto
+    };
   });
 
   expect(Resultado).toEqual({
     Realizado: {
-      inicioDisabled: true,
-      objetivoDisabled: true,
+      inicioDisabled: false,
+      objetivoDisabled: false,
       finalVisible: true,
       finalValor: "2026-04-15",
+      finalDisabled: true,
       formConFechaFinal: true,
       fechasMismaLinea: true
     },
-    Abierto: {
+    Editado: {
+      inicio: "2026-03-15",
+      objetivo: "2026-06-15",
+      final: "2026-04-15"
+    },
+    Reabierto: {
       inicioDisabled: false,
       objetivoDisabled: false,
-      finalVisible: false,
-      finalValor: "",
-      fechaFinModelo: "",
-      formConFechaFinal: false
+      finalVisible: true,
+      finalValor: "2026-04-15",
+      fechaFinModelo: "2026-04-15",
+      formConFechaFinal: true
     }
   });
   expect(errores).toEqual([]);

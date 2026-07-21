@@ -445,13 +445,13 @@ async ({ page }) => {
   expect(errores).toEqual([]);
 });
 
-test("Parte realizada muestra fecha final calculada y bloquea fechas",
+test("Parte realizada conserva final real y permite editar fechas planificadas",
 async ({ page }) => {
   const errores = [];
   page.on("pageerror", (error) => errores.push(error.message));
 
   await Preparar(page);
-  const Resultado = await page.evaluate(() => {
+  const Resultado = await page.evaluate(async () => {
     Abrir_Plan();
     const Modelo = Asegurar_Jerarquia_Planes();
     const Anio = Planes_Crear_Periodo(
@@ -485,6 +485,11 @@ async ({ page }) => {
       Fecha_Objetivo: "2026-05-31"
     });
     M.Partes[Parte.Id] = Parte;
+    const Sub = M.Subobjetivos[Sub_Id];
+    Object.assign(Sub, {
+      Target_Total: 3,
+      Target_Suma_Componentes: true
+    });
     M.Avances.av_parte_fecha_final = Normalizar_Avance_Plan({
       Id: "av_parte_fecha_final",
       Objetivo_Id: Objetivo.Id,
@@ -523,6 +528,7 @@ async ({ page }) => {
       objetivoDisabled: Objetivo_Fecha.disabled,
       finalVisible: !Campo_Final.hidden,
       finalValor: Final.value,
+      finalDisabled: Final.disabled,
       formConFechaFinal: document
         .getElementById("Planes_Parte_Form")
         .classList.contains("Con_Fecha_Final"),
@@ -530,39 +536,52 @@ async ({ page }) => {
         Math.abs(Rect_Inicio.top - Rect_Objetivo.top) < 2 &&
         Math.abs(Rect_Inicio.top - Rect_Final.top) < 2
     };
+    Inicio.value = "2026-03-20";
+    Objetivo_Fecha.value = "2026-06-20";
+    await Guardar_Modal_Planes_Parte();
+    const Editado = {
+      inicio: M.Partes[Parte.Id].Fecha_Inicio,
+      objetivo: M.Partes[Parte.Id].Fecha_Objetivo,
+      final: M.Partes[Parte.Id].Fecha_Fin
+    };
     Cerrar_Modal_Planes_Parte();
-    delete M.Avances.av_parte_fecha_final;
-    Planes_Recalcular_Progreso_Parte(Parte, M);
     Abrir_Modal_Planes_Parte(Parte.Id);
-    const Abierta = {
+    const Reabierta = {
       inicioDisabled: Inicio.disabled,
       objetivoDisabled: Objetivo_Fecha.disabled,
       finalVisible: !Campo_Final.hidden,
       finalValor: Final.value,
-      fechaFinModelo: Parte.Fecha_Fin || "",
+      fechaFinModelo: Asegurar_Modelo_Planes()
+        .Partes[Parte.Id].Fecha_Fin || "",
       formConFechaFinal: document
         .getElementById("Planes_Parte_Form")
         .classList.contains("Con_Fecha_Final")
     };
-    return { Realizada, Abierta };
+    return { Realizada, Editado, Reabierta };
   });
 
   expect(Resultado).toEqual({
     Realizada: {
-      inicioDisabled: true,
-      objetivoDisabled: true,
+      inicioDisabled: false,
+      objetivoDisabled: false,
       finalVisible: true,
       finalValor: "2026-04-20",
+      finalDisabled: true,
       formConFechaFinal: true,
       fechasMismaLinea: true
     },
-    Abierta: {
+    Editado: {
+      inicio: "2026-03-20",
+      objetivo: "2026-06-20",
+      final: "2026-04-20"
+    },
+    Reabierta: {
       inicioDisabled: false,
       objetivoDisabled: false,
-      finalVisible: false,
-      finalValor: "",
-      fechaFinModelo: "",
-      formConFechaFinal: false
+      finalVisible: true,
+      finalValor: "2026-04-20",
+      fechaFinModelo: "2026-04-20",
+      formConFechaFinal: true
     }
   });
   expect(errores).toEqual([]);

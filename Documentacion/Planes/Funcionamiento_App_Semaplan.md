@@ -1098,6 +1098,10 @@ Relaciones importantes.
   click en el cuerpo de la descripcion sigue abriendo la edicion.
 - Los avances recalculan progreso y pueden afectar vistas, estados y
   metricas.
+- En los editores de Subobjetivos y Partes, `Fecha_Inicio` y
+  `Fecha_Objetivo` siguen siendo editables aunque el ítem ya esté
+  cumplido o realizado. `Fecha_Fin` conserva el cierre real y queda
+  bloqueada, calculada desde el último avance registrado.
 - El registro historico de avances permite editar cantidad, modo, fecha,
   hora y destino dentro de la misma familia de meta: objetivo, subobjetivo
   o parte. Al reasignar, se actualizan fuente, unidad, progreso manual,
