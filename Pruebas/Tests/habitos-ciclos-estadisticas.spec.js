@@ -439,7 +439,7 @@ test("proyecta el ritmo segun el periodo seleccionado", async ({ page }) => {
     const Proyeccion_30 = document.querySelector(
       "[data-habitos-estadisticas-proyeccion]"
     )?.textContent.trim();
-    Habitos_Render_Estadisticas(Habito, 90, "Dia");
+    Habitos_Render_Estadisticas(Habito, 90, "Semana");
     const Proyeccion_90 = document.querySelector(
       "[data-habitos-estadisticas-proyeccion]"
     )?.textContent.trim();
@@ -448,8 +448,8 @@ test("proyecta el ritmo segun el periodo seleccionado", async ({ page }) => {
 
   expect(Resultado).toEqual({
     Proyeccion_30:
-      "Con este ritmo, acumulás 60 páginas en los próximos 30 días.",
+      "Promedio: 2 páginas por día. Con este ritmo, acumulás 60 páginas en los próximos 30 días.",
     Proyeccion_90:
-      "Con este ritmo, acumulás 180 páginas en los próximos 90 días."
+      "Promedio: 14 páginas por semana. Con este ritmo, acumulás 180 páginas en los próximos 90 días."
   });
 });
