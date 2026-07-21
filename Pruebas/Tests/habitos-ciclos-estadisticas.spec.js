@@ -376,6 +376,9 @@ test("colorea las barras de estadisticas segun el tipo de habito", async ({
   )).toBe(true);
   expect(Resultado.Barras_Cantidad_Fuera.some((Clase) =>
     Clase.includes("Naranja")
+  )).toBe(false);
+  expect(Resultado.Barras_Cantidad_Fuera.some((Clase) =>
+    !Clase.includes("Naranja") && !Clase.includes("Nula")
   )).toBe(true);
   expect(Resultado.Barras_Check.some((Clase) =>
     Clase.includes("Naranja")
@@ -395,4 +398,58 @@ test("colorea las barras de estadisticas segun el tipo de habito", async ({
   expect(Resultado.Barras_Evitar.some((Clase) =>
     !Clase.includes("Naranja") && !Clase.includes("Nula")
   )).toBe(true);
+});
+
+test("proyecta el ritmo segun el periodo seleccionado", async ({ page }) => {
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    const Hoy = Parsear_Fecha_ISO(Habitos_Fecha_Hoy());
+    const Inicio = Formatear_Fecha_ISO(Sumar_Dias(Hoy, -29));
+    const Ayer = Formatear_Fecha_ISO(Sumar_Dias(Hoy, -1));
+    const Habito = Normalizar_Habito({
+      Id: "Habito_Proyeccion",
+      Nombre: "Leer",
+      Fecha_Inicio: Inicio,
+      Meta: {
+        Modo: "Cantidad",
+        Cantidad: 20,
+        Unidad: "páginas",
+        Periodo: "Dia"
+      }
+    });
+    Habitos = [Habito];
+    Habitos_Registros = [];
+    Habito_Registrar_Fuente({
+      Habito_Id: Habito.Id,
+      Fecha: Formatear_Fecha_ISO(Hoy),
+      Cantidad: 40,
+      Fuente: "Manual",
+      Fuente_Id: "Proyeccion_Hoy"
+    });
+    Habito_Registrar_Fuente({
+      Habito_Id: Habito.Id,
+      Fecha: Ayer,
+      Cantidad: 20,
+      Fuente: "Manual",
+      Fuente_Id: "Proyeccion_Ayer"
+    });
+    Abrir_Panel_Habitos();
+    Habitos_Abrir_Estadisticas(Habito.Id);
+    Habitos_Render_Estadisticas(Habito, 30, "Dia");
+    const Proyeccion_30 = document.querySelector(
+      "[data-habitos-estadisticas-proyeccion]"
+    )?.textContent.trim();
+    Habitos_Render_Estadisticas(Habito, 90, "Dia");
+    const Proyeccion_90 = document.querySelector(
+      "[data-habitos-estadisticas-proyeccion]"
+    )?.textContent.trim();
+    return { Proyeccion_30, Proyeccion_90 };
+  });
+
+  expect(Resultado).toEqual({
+    Proyeccion_30:
+      "Con este ritmo, acumulás 60 páginas en los próximos 30 días.",
+    Proyeccion_90:
+      "Con este ritmo, acumulás 180 páginas en los próximos 90 días."
+  });
 });
