@@ -548,11 +548,12 @@ Relaciones importantes.
   diarios, semanales o mensuales viejos. En quincena, la clave se sigue
   recalculando para sostener la migracion vigente.
 - Cada registro nuevo conserva `En_Programacion`, el estado de la
-  programación vigente al momento de registrarlo. Las estadísticas usan
-  esa marca aunque el hábito se edite después; los registros viejos que
-  no la tienen se evalúan con la programación actual. Así, un avance
-  histórico fuera de un día válido se mantiene visible y verde, pero no
-  suma meta, cumplimiento, promedio ni proyección.
+  programación vigente al momento de registrarlo como contexto
+  histórico. Las Estadísticas, en cambio, aplican la programación
+  actual de forma retroactiva a todo el rango consultado, incluso antes
+  de `Fecha_Inicio` o de una edición. Así, un avance fuera de un día
+  válido se mantiene visible y verde, pero no suma meta, cumplimiento,
+  promedio ni proyección.
 - Cuando el panel de Habitos tiene filtros activos, debe exponer ese
   estado en chips visibles y ofrecer `Limpiar` en el mismo bloque para
   volver rapido al panel completo sin dejar filtros silenciosos.
@@ -564,7 +565,9 @@ Relaciones importantes.
   rótulos y usa una pista transparente. En semana y mes, la meta y el
   progreso que determinan cumplimiento, color y promedio acumulan sólo
   los días válidos del hábito; los avances fuera de programación siguen
-  incluidos en el total mostrado.
+  incluidos en el total mostrado. Debajo de la leyenda de promedio y
+  proyección, una segunda línea resume el avance contra la meta total
+  del rango, con unidad y porcentaje.
 - Al cambiar la vista temporal de Hábitos o Tareas, la fecha de
   navegación se restablece a la fecha actual para evitar quedar anclado
   en un día viejo.

@@ -473,18 +473,143 @@ test("proyecta el ritmo segun el periodo seleccionado", async ({ page }) => {
     const Proyeccion_30 = document.querySelector(
       "[data-habitos-estadisticas-proyeccion]"
     )?.textContent.trim();
+    const Avance_30 = document.querySelector(
+      "[data-habitos-estadisticas-avance]"
+    )?.textContent.trim();
     Habitos_Render_Estadisticas(Habito, 90, "Semana");
     const Proyeccion_90 = document.querySelector(
       "[data-habitos-estadisticas-proyeccion]"
     )?.textContent.trim();
-    return { Proyeccion_30, Proyeccion_90 };
+    const Avance_90 = document.querySelector(
+      "[data-habitos-estadisticas-avance]"
+    )?.textContent.trim();
+    const Proyeccion_Baja = Habitos_Estadisticas_Proyeccion(
+      Habito,
+      Inicio,
+      Formatear_Fecha_ISO(Hoy),
+      30,
+      "Dia",
+      Array.from({ length: 30 }, (_, Indice) => ({
+        Aplicables: 1,
+        Total_Programado: Indice === 0 ? 5 : 0
+      }))
+    );
+    return {
+      Proyeccion_30,
+      Avance_30,
+      Proyeccion_90,
+      Avance_90,
+      Proyeccion_Baja
+    };
   });
 
   expect(Resultado).toEqual({
     Proyeccion_30:
       "Promedio: 2 páginas por día. Con este ritmo, acumulás 60 páginas en los próximos 30 días.",
+    Avance_30: "Avance: 60 de 600 páginas de meta (10%).",
     Proyeccion_90:
-      "Promedio: 12 páginas por semana. Con este ritmo, acumulás 180 páginas en los próximos 90 días."
+      "Promedio: 4 páginas por semana. Con este ritmo, acumulás 60 páginas en los próximos 90 días.",
+    Avance_90: "Avance: 60 de 1800 páginas de meta (3%).",
+    Proyeccion_Baja:
+      "Promedio: 0.2 páginas por día. Con este ritmo, acumulás 5 páginas en los próximos 30 días."
+  });
+});
+
+test("aplica la programacion de estadisticas a todo el historial", async ({
+  page
+}) => {
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    const Habito = Normalizar_Habito({
+      Id: "Habito_Retroactivo",
+      Nombre: "Leer",
+      Fecha_Inicio: "2026-07-20",
+      Programacion: { Tipo: "Dias", Dias: [0, 1, 2, 3, 4, 5] },
+      Meta: { Modo: "Cantidad", Cantidad: 60, Periodo: "Dia" }
+    });
+    Habitos = [Habito];
+    Habitos_Registros = [
+      Normalizar_Habito_Registro({
+        Habito_Id: Habito.Id,
+        Fecha: "2026-07-17",
+        Periodo_Clave: "2026-07-17",
+        Fuente: "Manual",
+        Fuente_Id: "Viernes_Anterior",
+        Cantidad: 5
+      }),
+      Normalizar_Habito_Registro({
+        Habito_Id: Habito.Id,
+        Fecha: "2026-07-19",
+        Periodo_Clave: "2026-07-19",
+        Fuente: "Manual",
+        Fuente_Id: "Domingo_Anterior",
+        Cantidad: 10
+      })
+    ];
+    const Dias = Habitos_Estadisticas_Rango(
+      Habito,
+      "2026-07-13",
+      "2026-07-19",
+      "Dia"
+    );
+    const Semana = Habitos_Estadisticas_Rango(
+      Habito,
+      "2026-07-13",
+      "2026-07-19",
+      "Semana"
+    )[0];
+    const Mes = Habitos_Estadisticas_Rango(
+      Habito,
+      "2026-07-13",
+      "2026-07-19",
+      "Mes"
+    )[0];
+    return {
+      lunes: Dias[0],
+      viernes: Dias[4],
+      domingo: Dias[6],
+      semana: {
+        meta: Semana.Meta,
+        total: Semana.Total,
+        totalProgramado: Semana.Total_Programado
+      },
+      mes: {
+        meta: Mes.Meta,
+        total: Mes.Total,
+        totalProgramado: Mes.Total_Programado
+      }
+    };
+  });
+
+  expect(Resultado.lunes).toMatchObject({
+    Clave: "2026-07-13",
+    Aplicables: 1,
+    Meta: 60,
+    Total: 0
+  });
+  expect(Resultado.viernes).toMatchObject({
+    Clave: "2026-07-17",
+    Aplicables: 1,
+    Meta: 60,
+    Total: 5,
+    Total_Programado: 5
+  });
+  expect(Resultado.domingo).toMatchObject({
+    Clave: "2026-07-19",
+    Aplicables: 0,
+    Meta: 0,
+    Total: 10,
+    Total_Programado: 0
+  });
+  expect(Resultado.semana).toEqual({
+    meta: 360,
+    total: 15,
+    totalProgramado: 5
+  });
+  expect(Resultado.mes).toEqual({
+    meta: 360,
+    total: 15,
+    totalProgramado: 5
   });
 });
 
