@@ -36,6 +36,7 @@ estructuras persistidas o relaciones importantes entre modulos.
   `POST /b2/tareas/crear`,
   `/b2/tareas/marcar`, `/b2/tareas/reprogramar`,
   `/b2/tareas/editar`, `/b2/tareas/borrar`,
+  `/b2/tareas/duplicar` y `/b2/lote`,
   `/b2/habitos/crear`, `/b2/habitos/registrar`,
   `/b2/planes/objetivos`, `/b2/planes/subobjetivos`,
   `/b2/planes/partes`, `/b2/planes/avances`,
@@ -72,13 +73,16 @@ estructuras persistidas o relaciones importantes entre modulos.
   Para la conversación también publica `/buscar` (búsqueda transversal),
   `/resumen` (día o semana), `/diagnostico/planes` y `/historial`.
   Las tareas incluyen sus vínculos operativos en esas vistas, para que
-  el chat explique el impacto antes de cambiar datos. `POST
-  /b2/tareas/lote` entrega primero una previsualización y solo aplica
-  al recibir `confirmar_aplicacion: true`; admite marcar, reprogramar y
-  borrar hasta 50 tareas de forma atómica. Las fechas de tareas pueden
-  usar `fecha_relativa` (`hoy`, `mañana`, `pasado mañana`, próximo día
-  de semana o `en N días`). `POST /b2/deshacer` repone el estado previo
-  de la última mutación del chat —o una indicada por ID— tras una
+  el chat explique el impacto antes de cambiar datos. `POST /b2/lote`
+  entrega primero una previsualización y solo aplica al recibir
+  `confirmar_aplicacion: true`; admite hasta 50 acciones B2 sobre
+  Tareas, Hábitos, Planes, Archivero y Baúl dentro de una transacción
+  atómica. Cada elemento de `operaciones` declara una acción B2 y su
+  payload original, por lo que el chat puede combinar módulos sin
+  encadenar llamadas individuales. Las fechas de tareas pueden usar
+  `fecha_relativa` (`hoy`, `mañana`, `pasado mañana`, próximo día de
+  semana o `en N días`). `POST /b2/deshacer` repone el estado previo de
+  la última mutación del chat —o una indicada por ID— tras una
   confirmación explícita y con el scope original.
 - `supabase/functions/semaplan-ai-mcp`: servidor MCP remoto por HTTP
   (streamable compatible) para ChatGPT Apps/Developer Mode. Expone

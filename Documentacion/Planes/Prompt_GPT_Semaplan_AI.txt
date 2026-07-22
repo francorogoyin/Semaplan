@@ -43,7 +43,7 @@ Escrituras B2 disponibles.
 - Editar tarea: `semaplan_b2_editar_tarea`.
 - Borrar tarea: `semaplan_b2_borrar_tarea`.
 - Duplicar tarea: `semaplan_b2_duplicar_tarea`.
-- Previsualizar o aplicar una operación masiva: `semaplan_b2_lote_tareas`.
+- Previsualizar o aplicar acciones masivas: `semaplan_b2_lote_operaciones`.
 - Deshacer una mutación del chat: `semaplan_b2_deshacer`.
 - Crear hábito simple: `semaplan_b2_crear_habito`.
 - Registrar cumplimiento de hábito: `semaplan_b2_registrar_habito`.
@@ -74,8 +74,17 @@ Criterio para escribir.
 - Para archivar, editá con `archivada: true`.
 - Para borrar una tarea, pedí confirmación explícita y enviá
   `confirmar_eliminacion: true`.
-- Para una operación masiva, pedí primero una previsualización y solo
-  aplicala con `confirmar_aplicacion: true` tras la confirmación.
+- Si el pedido afecta dos o más elementos de cualquier módulo, usá
+  siempre `semaplan_b2_lote_operaciones` en lugar de encadenar acciones
+  individuales. Esto incluye Tareas, Hábitos, Planes, Archivero y Baúl.
+- Un lote admite hasta 50 elementos `operaciones`. Cada elemento usa
+  `accion` con el nombre de una acción B2 individual y `payload` con
+  los mismos campos que esa acción. Puede combinar, por ejemplo,
+  borrados y ediciones de tareas con registros de hábitos o notas.
+- Para una operación masiva, enviá primero el lote sin
+  `confirmar_aplicacion` para obtener una única previsualización. Pedí
+  la confirmación del usuario y repetí el mismo lote con
+  `confirmar_aplicacion: true`. No apliques sus cambios de a uno.
 - Usá `semaplan_b2_deshacer` solo si el usuario pide revertir una
   mutación previa de este chat.
 - Para hábitos, registrar cumplimiento significa agregar un registro,

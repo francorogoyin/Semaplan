@@ -903,26 +903,51 @@ function Construir_OpenAPI_Semaplan_IA(
           },
         },
       },
-      "/b2/tareas/lote": Post_B2(
-        "semaplan_b2_lote_tareas",
-        "Previsualizar y aplicar una operacion masiva sobre tareas",
-        OAUTH_SCOPE_TAREAS,
+      "/b2/lote": Post_B2(
+        "semaplan_b2_lote_operaciones",
+        "Previsualizar y aplicar hasta 50 acciones combinadas de Semaplan",
+        OAUTH_SCOPE_LECTURA,
         {
           ...Schema_Base_B2,
-          required: ["operacion"],
+          required: ["operaciones"],
           properties: {
             ...Schema_Base_B2.properties,
-            operacion: {
-              type: "string",
-              enum: ["marcar", "reprogramar", "borrar"],
+            operaciones: {
+              type: "array",
+              minItems: 1,
+              maxItems: 50,
+              description:
+                "Acciones combinadas y atomicas sobre tareas, habitos, Planes, Archivero y Baul. Cada elemento usa accion y payload con los mismos campos de su accion individual.",
+              items: {
+                type: "object",
+                required: ["accion", "payload"],
+                properties: {
+                  accion: {
+                    type: "string",
+                    enum: [
+                      "crear_tarea",
+                      "marcar_tarea",
+                      "reprogramar_tarea",
+                      "editar_tarea",
+                      "borrar_tarea",
+                      "duplicar_tarea",
+                      "crear_habito",
+                      "registrar_habito",
+                      "mutar_objetivo_plan",
+                      "mutar_subobjetivo_plan",
+                      "mutar_parte_plan",
+                      "mutar_avance_plan",
+                      "crear_nota_archivero",
+                      "crear_item_baul",
+                    ],
+                  },
+                  payload: {
+                    type: "object",
+                    additionalProperties: true,
+                  },
+                },
+              },
             },
-            tareas_ids: { type: "array", items: { type: "string" } },
-            busqueda: { type: "string" },
-            fecha: { type: "string", format: "date" },
-            fecha_relativa: { type: "string" },
-            hora: { type: "string" },
-            hecha: { type: "boolean" },
-            sin_horario: { type: "boolean" },
             confirmar_aplicacion: { type: "boolean", default: false },
           },
         },
@@ -6173,8 +6198,16 @@ function Resolver_Tareas_Lote_B2(
   Payload: Mapa
 ) {
   const Tareas = Asegurar_Array_B2(Estado, "Tareas");
-  const Ids = Leer_Array_String_B2(Payload, "tareas_ids", "Tareas_Ids");
+  const Ids = [...new Set(
+    Leer_Array_String_B2(Payload, "tareas_ids", "Tareas_Ids")
+  )];
   if (Ids.length) {
+    if (Ids.length > 50) {
+      return {
+        Ok: false as const,
+        Detalle: "La operacion masiva admite hasta 50 tareas.",
+      };
+    }
     const Encontradas = Ids.map((Id) => Tareas.find((Tarea) => String(Tarea.Id || "") === Id)).filter(Boolean) as Mapa[];
     if (Encontradas.length !== Ids.length) return { Ok: false as const, Detalle: "Una o mas tareas_ids no existen." };
     return { Ok: true as const, Tareas: Encontradas };
@@ -6187,6 +6220,113 @@ function Resolver_Tareas_Lote_B2(
   return { Ok: true as const, Tareas: Encontradas };
 }
 
+function Resolver_Operaciones_Lote_Tareas_B2(Payload: Mapa) {
+  if (!("operaciones" in Payload)) {
+    return { Ok: true as const, Operaciones: [Payload] };
+  }
+  if (!Array.isArray(Payload.operaciones) || !Payload.operaciones.length) {
+    return {
+      Ok: false as const,
+      Detalle: "operaciones debe contener al menos un cambio.",
+    };
+  }
+  if (Payload.operaciones.length > 50) {
+    return {
+      Ok: false as const,
+      Detalle: "La operacion masiva admite hasta 50 cambios.",
+    };
+  }
+  const Operaciones: Mapa[] = [];
+  for (const [Indice, Item] of Payload.operaciones.entries()) {
+    if (!Es_Mapa_B2(Item)) {
+      return {
+        Ok: false as const,
+        Detalle: `El cambio ${Indice + 1} no es valido.`,
+      };
+    }
+    const Operacion = Leer_String_B2(Item, "operacion").toLowerCase();
+    if (!["marcar", "reprogramar", "editar", "borrar"].includes(Operacion)) {
+      return {
+        Ok: false as const,
+        Detalle:
+          `El cambio ${Indice + 1} debe usar marcar, reprogramar, editar o borrar.`,
+      };
+    }
+    const Tiene_Destino = Leer_Array_String_B2(
+      Item,
+      "tareas_ids",
+      "Tareas_Ids"
+    ).length || Leer_String_B2(Item, "busqueda", "nombre");
+    if (!Tiene_Destino) {
+      return {
+        Ok: false as const,
+        Detalle:
+          `El cambio ${Indice + 1} necesita tareas_ids o busqueda.`,
+      };
+    }
+    Operaciones.push({ ...Item, operacion: Operacion });
+  }
+  return { Ok: true as const, Operaciones };
+}
+
+function Construir_Plan_Lote_Tareas_B2(
+  Estado: Mapa,
+  Operaciones: Mapa[]
+) {
+  const Ids_Usados = new Set<string>();
+  const Pasos: Array<{
+    Operacion: string;
+    Payload: Mapa;
+    Tareas: Mapa[];
+  }> = [];
+  for (const [Indice, Payload] of Operaciones.entries()) {
+    const Seleccion = Resolver_Tareas_Lote_B2(Estado, Payload);
+    if (!Seleccion.Ok) {
+      return {
+        Ok: false as const,
+        Detalle: `El cambio ${Indice + 1} no es valido: ${Seleccion.Detalle}`,
+      };
+    }
+    for (const Tarea of Seleccion.Tareas) {
+      const Id = String(Tarea.Id || "");
+      if (Ids_Usados.has(Id)) {
+        return {
+          Ok: false as const,
+          Detalle:
+            `La tarea ${String(Tarea.Nombre || Id)} aparece en mas de un cambio.`,
+        };
+      }
+      Ids_Usados.add(Id);
+    }
+    if (Ids_Usados.size > 50) {
+      return {
+        Ok: false as const,
+        Detalle: "La operacion masiva admite hasta 50 tareas en total.",
+      };
+    }
+    Pasos.push({
+      Operacion: Leer_String_B2(Payload, "operacion").toLowerCase(),
+      Payload,
+      Tareas: Seleccion.Tareas,
+    });
+  }
+  return { Ok: true as const, Pasos };
+}
+
+function Construir_Vista_Previa_Lote_Tareas_B2(
+  Pasos: Array<{ Operacion: string; Tareas: Mapa[] }>
+) {
+  return Pasos.flatMap((Paso, Indice) => Paso.Tareas.map((Tarea) => ({
+    paso: Indice + 1,
+    operacion: Paso.Operacion,
+    tarea_id: Tarea.Id,
+    nombre: Tarea.Nombre,
+    fecha: Tarea.Fecha || null,
+    hora: Tarea.Hora || null,
+    vinculos: Construir_Vinculos_Tarea_IA(Tarea),
+  })));
+}
+
 async function Responder_Lote_Tareas_B2(
   Req: Request,
   Auth: Extract<Auth_Resultado, { Ok: true }>
@@ -6195,28 +6335,30 @@ async function Responder_Lote_Tareas_B2(
     return Responder_Error(403, "Scope insuficiente", `La accion requiere ${OAUTH_SCOPE_TAREAS}.`);
   }
   const Payload = await Leer_Body_Json_B2(Req);
-  const Operacion = Leer_String_B2(Payload, "operacion").toLowerCase();
-  if (!["marcar", "reprogramar", "borrar"].includes(Operacion)) {
-    return Responder_Error(400, "Operacion invalida", "operacion admite marcar, reprogramar o borrar.");
+  const Operaciones = Resolver_Operaciones_Lote_Tareas_B2(Payload);
+  if (!Operaciones.Ok) {
+    return Responder_Error(400, "Operacion invalida", Operaciones.Detalle);
   }
   const Fila = await Leer_Estado_Usuario_Completo_B2(Auth.Usuario_Id);
   if (!Fila.Ok) return Responder_Error(Fila.Status, Fila.Error, Fila.Detalle);
-  const Seleccion = Resolver_Tareas_Lote_B2(Clonar_B2(Fila.Estado), Payload);
-  if (!Seleccion.Ok) return Responder_Error(400, "Seleccion invalida", Seleccion.Detalle);
-  const Vista_Previa = Seleccion.Tareas.map((Tarea) => ({
-    tarea_id: Tarea.Id,
-    nombre: Tarea.Nombre,
-    fecha: Tarea.Fecha || null,
-    hora: Tarea.Hora || null,
-    vinculos: Construir_Vinculos_Tarea_IA(Tarea),
-  }));
+  const Plan = Construir_Plan_Lote_Tareas_B2(
+    Clonar_B2(Fila.Estado),
+    Operaciones.Operaciones
+  );
+  if (!Plan.Ok) return Responder_Error(400, "Seleccion invalida", Plan.Detalle);
+  const Vista_Previa = Construir_Vista_Previa_Lote_Tareas_B2(Plan.Pasos);
   if (!Leer_Boolean_B2(Payload, false, "confirmar_aplicacion")) {
     return Responder_Json({
       Ok: true,
       Previsualizacion: true,
-      Operacion,
+      Operacion: Plan.Pasos.length === 1 ? Plan.Pasos[0].Operacion : "mixta",
       Cantidad: Vista_Previa.length,
       Tareas: Vista_Previa,
+      Operaciones: Plan.Pasos.map((Paso, Indice) => ({
+        paso: Indice + 1,
+        operacion: Paso.Operacion,
+        cantidad: Paso.Tareas.length,
+      })),
       Instruccion: "Repeti la misma llamada con confirmar_aplicacion: true para aplicar el cambio.",
     });
   }
@@ -6226,20 +6368,195 @@ async function Responder_Lote_Tareas_B2(
     OAUTH_SCOPE_TAREAS,
     Payload,
     (Estado) => {
-      const Seleccion_Actual = Resolver_Tareas_Lote_B2(Estado, Payload);
-      if (!Seleccion_Actual.Ok) return Error_Mutacion_B2(Seleccion_Actual.Detalle);
-      for (const Tarea of Seleccion_Actual.Tareas) {
-        const Base = { ...Payload, tarea_id: Tarea.Id, confirmar_eliminacion: true };
-        const Resultado = Operacion === "marcar"
-          ? B2_Marcar_Tarea(Estado, Base)
-          : Operacion === "reprogramar"
-          ? B2_Reprogramar_Tarea(Estado, Base)
-          : B2_Borrar_Tarea(Estado, Base);
-        if (Resultado.Cambios === false) return Resultado;
+      const Plan_Actual = Construir_Plan_Lote_Tareas_B2(
+        Estado,
+        Operaciones.Operaciones
+      );
+      if (!Plan_Actual.Ok) return Error_Mutacion_B2(Plan_Actual.Detalle);
+      for (const Paso of Plan_Actual.Pasos) {
+        for (const Tarea of Paso.Tareas) {
+          const Base = {
+            ...Paso.Payload,
+            tarea_id: Tarea.Id,
+            confirmar_eliminacion: true,
+          };
+          const Resultado = Paso.Operacion === "marcar"
+            ? B2_Marcar_Tarea(Estado, Base)
+            : Paso.Operacion === "reprogramar"
+            ? B2_Reprogramar_Tarea(Estado, Base)
+            : Paso.Operacion === "editar"
+            ? B2_Editar_Tarea(Estado, Base)
+            : B2_Borrar_Tarea(Estado, Base);
+          if (Resultado.Cambios === false) return Resultado;
+        }
       }
       return {
-        Respuesta: `Operacion masiva aplicada sobre ${Seleccion_Actual.Tareas.length} tareas.`,
-        Resultado: { operacion: Operacion, tareas: Vista_Previa },
+        Respuesta: `Operacion masiva aplicada sobre ${Vista_Previa.length} tareas.`,
+        Resultado: {
+          operaciones: Plan_Actual.Pasos.map((Paso, Indice) => ({
+            paso: Indice + 1,
+            operacion: Paso.Operacion,
+            cantidad: Paso.Tareas.length,
+          })),
+          tareas: Vista_Previa,
+        },
+      };
+    }
+  );
+}
+
+type Operacion_General_Lote_B2 = {
+  Accion: string;
+  Payload: Mapa;
+  Config: typeof Rutas_B2[string];
+};
+
+function Resolver_Operaciones_Generales_Lote_B2(Payload: Mapa) {
+  if (!Array.isArray(Payload.operaciones) || !Payload.operaciones.length) {
+    return {
+      Ok: false as const,
+      Detalle: "operaciones debe contener al menos una accion.",
+    };
+  }
+  if (Payload.operaciones.length > 50) {
+    return {
+      Ok: false as const,
+      Detalle: "El lote admite hasta 50 acciones.",
+    };
+  }
+  const Configuraciones = Object.values(Rutas_B2);
+  const Operaciones: Operacion_General_Lote_B2[] = [];
+  for (const [Indice, Item] of Payload.operaciones.entries()) {
+    if (!Es_Mapa_B2(Item)) {
+      return {
+        Ok: false as const,
+        Detalle: `La accion ${Indice + 1} no es valida.`,
+      };
+    }
+    const Accion = Leer_String_B2(Item, "accion");
+    const Config = Configuraciones.find((Actual) =>
+      Actual.Accion === Accion
+    );
+    if (!Config) {
+      return {
+        Ok: false as const,
+        Detalle: `La accion ${Indice + 1} no esta disponible en el lote.`,
+      };
+    }
+    if (!Es_Mapa_B2(Item.payload)) {
+      return {
+        Ok: false as const,
+        Detalle: `La accion ${Indice + 1} necesita un payload valido.`,
+      };
+    }
+    Operaciones.push({ Accion, Payload: Item.payload, Config });
+  }
+  return { Ok: true as const, Operaciones };
+}
+
+function Ejecutar_Operaciones_Generales_Lote_B2(
+  Estado: Mapa,
+  Operaciones: Operacion_General_Lote_B2[]
+) {
+  const Resultados: Array<{
+    posicion: number;
+    accion: string;
+    respuesta: string;
+    resultado: Mapa;
+  }> = [];
+  for (const [Indice, Operacion] of Operaciones.entries()) {
+    const Resultado = Operacion.Config.Handler(Estado, {
+      ...Operacion.Payload,
+      confirmar_eliminacion: true,
+    });
+    if (Resultado.Cambios === false) {
+      return {
+        Ok: false as const,
+        Status: Resultado.Status || 400,
+        Error: Resultado.Error || "Cambio no aplicado",
+        Detalle: `La accion ${Indice + 1} no se pudo aplicar: ${Resultado.Respuesta}`,
+      };
+    }
+    Resultados.push({
+      posicion: Indice + 1,
+      accion: Operacion.Accion,
+      respuesta: Resultado.Respuesta,
+      resultado: Resultado.Resultado || {},
+    });
+  }
+  return { Ok: true as const, Resultados };
+}
+
+async function Responder_Lote_Operaciones_B2(
+  Req: Request,
+  Auth: Extract<Auth_Resultado, { Ok: true }>
+) {
+  const Payload = await Leer_Body_Json_B2(Req);
+  const Operaciones = Resolver_Operaciones_Generales_Lote_B2(Payload);
+  if (!Operaciones.Ok) {
+    return Responder_Error(400, "Lote invalido", Operaciones.Detalle);
+  }
+  for (const Operacion of Operaciones.Operaciones) {
+    if (!Tiene_Scope(Auth.Scopes, Operacion.Config.Scope)) {
+      return Responder_Error(
+        403,
+        "Scope insuficiente",
+        `La accion ${Operacion.Accion} requiere ${Operacion.Config.Scope}.`
+      );
+    }
+  }
+  const Fila = await Leer_Estado_Usuario_Completo_B2(Auth.Usuario_Id);
+  if (!Fila.Ok) return Responder_Error(Fila.Status, Fila.Error, Fila.Detalle);
+  const Vista_Previa = Ejecutar_Operaciones_Generales_Lote_B2(
+    Clonar_B2(Fila.Estado),
+    Operaciones.Operaciones
+  );
+  if (!Vista_Previa.Ok) {
+    return Responder_Error(
+      Vista_Previa.Status,
+      Vista_Previa.Error,
+      Vista_Previa.Detalle
+    );
+  }
+  if (!Leer_Boolean_B2(Payload, false, "confirmar_aplicacion")) {
+    return Responder_Json({
+      Ok: true,
+      Previsualizacion: true,
+      Cantidad: Vista_Previa.Resultados.length,
+      Operaciones: Vista_Previa.Resultados.map((Resultado) => ({
+        posicion: Resultado.posicion,
+        accion: Resultado.accion,
+        respuesta: Resultado.respuesta,
+      })),
+      Instruccion:
+        "Repeti el mismo lote con confirmar_aplicacion: true para aplicar todos los cambios.",
+    });
+  }
+  const Scopes = [...new Set(
+    Operaciones.Operaciones.map((Operacion) => Operacion.Config.Scope)
+  )].join(" ");
+  return await Mutar_Estado_B2(
+    Auth.Usuario_Id,
+    "lote_operaciones",
+    Scopes,
+    Payload,
+    (Estado) => {
+      const Aplicacion = Ejecutar_Operaciones_Generales_Lote_B2(
+        Estado,
+        Operaciones.Operaciones
+      );
+      if (!Aplicacion.Ok) {
+        return {
+          Cambios: false,
+          Status: Aplicacion.Status,
+          Error: Aplicacion.Error,
+          Respuesta: Aplicacion.Detalle,
+        };
+      }
+      return {
+        Respuesta:
+          `Lote aplicado con ${Aplicacion.Resultados.length} acciones.`,
+        Resultado: { operaciones: Aplicacion.Resultados },
       };
     }
   );
@@ -8927,6 +9244,15 @@ Deno.serve(async (Req) => {
     const Auth = await Validar_Request(Req);
     if (!Auth.Ok) return Responder_Error(Auth.Status, Auth.Error, Auth.Detalle);
     return await Responder_Lote_Tareas_B2(Req, Auth);
+  }
+
+  if (
+    Req.method === "POST" &&
+    Ruta === "/b2/lote"
+  ) {
+    const Auth = await Validar_Request(Req);
+    if (!Auth.Ok) return Responder_Error(Auth.Status, Auth.Error, Auth.Detalle);
+    return await Responder_Lote_Operaciones_B2(Req, Auth);
   }
 
   if (
