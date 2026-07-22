@@ -103,6 +103,112 @@ test("abre estadisticas y resetea fecha al cambiar vista", async ({ page }) => {
   expect(Fecha).toBe(await page.evaluate(() => Habitos_Fecha_Hoy()));
 });
 
+test("resuelve meses y la semana actual como periodos calendario", async ({
+  page
+}) => {
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    const Semana = Habitos_Estadisticas_Resolver_Periodo(
+      "Semana_Actual",
+      "2026-07-22"
+    );
+    const Mes_Actual = Habitos_Estadisticas_Resolver_Periodo(
+      "Mes:2026-07",
+      "2026-07-22"
+    );
+    const Mes_Historico = Habitos_Estadisticas_Resolver_Periodo(
+      "Mes:2026-03",
+      "2026-07-22"
+    );
+    return { Semana, Mes_Actual, Mes_Historico };
+  });
+
+  expect(Resultado).toEqual({
+    Semana: {
+      Clave: "Semana_Actual",
+      Inicio: "2026-07-20",
+      Fin: "2026-07-26",
+      Fin_Calculo: "2026-07-22",
+      Dias: 7
+    },
+    Mes_Actual: {
+      Clave: "Mes:2026-07",
+      Inicio: "2026-07-01",
+      Fin: "2026-07-31",
+      Fin_Calculo: "2026-07-22",
+      Dias: 31
+    },
+    Mes_Historico: {
+      Clave: "Mes:2026-03",
+      Inicio: "2026-03-01",
+      Fin: "2026-03-31",
+      Fin_Calculo: "2026-03-31",
+      Dias: 31
+    }
+  });
+});
+
+test("muestra la semana actual completa y promedia hasta hoy", async ({
+  page
+}) => {
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    const Hoy = Habitos_Fecha_Hoy();
+    const Rango = Habitos_Estadisticas_Resolver_Periodo(
+      "Semana_Actual",
+      Hoy
+    );
+    const Inicio = Parsear_Fecha_ISO(Rango.Inicio);
+    const Dias_Transcurridos = Math.round((
+      Parsear_Fecha_ISO(Hoy) - Inicio
+    ) / 86400000) + 1;
+    const Habito = Normalizar_Habito({
+      Id: "Habito_Semana_Actual",
+      Nombre: "Leer",
+      Meta: {
+        Modo: "Cantidad",
+        Cantidad: 10,
+        Unidad: "páginas",
+        Periodo: "Dia"
+      }
+    });
+    Habitos = [Habito];
+    Habitos_Registros = [Normalizar_Habito_Registro({
+      Habito_Id: Habito.Id,
+      Fecha: Hoy,
+      Periodo_Clave: Hoy,
+      Fuente: "Manual",
+      Fuente_Id: "Ritmo_Semana_Actual",
+      Cantidad: Dias_Transcurridos * 10
+    })];
+    Abrir_Panel_Habitos();
+    Habitos_Abrir_Estadisticas(Habito.Id);
+    Habitos_Render_Estadisticas(Habito, "Semana_Actual", "Dia");
+    return {
+      Periodo: document.querySelector(
+        "[data-habitos-estadisticas-dias]"
+      )?.value,
+      Barras: document.querySelectorAll(
+        ".Habitos_Estadisticas_Columna"
+      ).length,
+      Mes_Actual: Array.from(document.querySelectorAll(
+        "[data-habitos-estadisticas-dias] option"
+      )).some((Opcion) => Opcion.value === `Mes:${Hoy.slice(0, 7)}`),
+      Proyeccion: document.querySelector(
+        "[data-habitos-estadisticas-proyeccion]"
+      )?.textContent.trim()
+    };
+  });
+
+  expect(Resultado).toEqual({
+    Periodo: "Semana_Actual",
+    Barras: 7,
+    Mes_Actual: true,
+    Proyeccion:
+      "Promedio: 10 páginas por día. Con este ritmo, acumularías 3650 páginas en 1 año."
+  });
+});
+
 test("incluye registros fuera del ciclo en las estadisticas", async ({ page }) => {
   await Preparar(page);
   const Resultado = await page.evaluate(() => {

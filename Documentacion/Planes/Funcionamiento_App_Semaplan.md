@@ -568,7 +568,12 @@ Relaciones importantes.
   incluidos en el total mostrado. La leyenda informa el promedio del
   agrupamiento y proyecta ese ritmo a un año de 365 días. Debajo, una
   segunda línea de `Avance` compara todas las unidades realizadas del
-  rango contra la meta total programada, con unidad y porcentaje.
+  rango contra la meta total programada, con unidad y porcentaje. El
+  selector de período conserva rangos móviles y suma `Semana actual`
+  (lunes a domingo) y los últimos doce meses calendario. En la semana
+  actual y el mes actual, el gráfico conserva los días futuros como
+  barras nulas, mientras que promedio, proyección y racha se calculan
+  solamente hasta el día actual.
 - Al cambiar la vista temporal de Hábitos o Tareas, la fecha de
   navegación se restablece a la fecha actual para evitar quedar anclado
   en un día viejo.
