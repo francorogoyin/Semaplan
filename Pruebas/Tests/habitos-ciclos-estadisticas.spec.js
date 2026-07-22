@@ -147,6 +147,12 @@ test("incluye registros fuera del ciclo en las estadisticas", async ({ page }) =
       "2026-07-20",
       "Semana"
     );
+    const Por_Mes = Habitos_Estadisticas_Rango(
+      Habito,
+      "2026-07-13",
+      "2026-07-20",
+      "Mes"
+    );
     const Por_Dia_Validos = Habitos_Estadisticas_Rango(
       Habito,
       "2026-07-13",
@@ -173,7 +179,15 @@ test("incluye registros fuera del ciclo en las estadisticas", async ({ page }) =
       semanas: Por_Semana.map((Item) => ({
         clave: Item.Clave,
         etiqueta: Item.Etiqueta,
-        total: Item.Total
+        total: Item.Total,
+        meta: Item.Meta,
+        totalProgramado: Item.Total_Programado
+      })),
+      meses: Por_Mes.map((Item) => ({
+        clave: Item.Clave,
+        total: Item.Total,
+        meta: Item.Meta,
+        totalProgramado: Item.Total_Programado
       }))
     };
   });
@@ -215,8 +229,28 @@ test("incluye registros fuera del ciclo en las estadisticas", async ({ page }) =
     "2026-07-20"
   ]);
   expect(Resultado.semanas).toEqual([
-    { clave: "2026-07-13", etiqueta: "13–19 jul", total: 199 },
-    { clave: "2026-07-20", etiqueta: "20–26 jul", total: 34 }
+    {
+      clave: "2026-07-13",
+      etiqueta: "13–19 jul",
+      total: 199,
+      meta: 240,
+      totalProgramado: 199
+    },
+    {
+      clave: "2026-07-20",
+      etiqueta: "20–26 jul",
+      total: 34,
+      meta: 0,
+      totalProgramado: 0
+    }
+  ]);
+  expect(Resultado.meses).toEqual([
+    {
+      clave: "2026-07",
+      total: 233,
+      meta: 240,
+      totalProgramado: 199
+    }
   ]);
 });
 
@@ -450,11 +484,11 @@ test("proyecta el ritmo segun el periodo seleccionado", async ({ page }) => {
     Proyeccion_30:
       "Promedio: 2 páginas por día. Con este ritmo, acumulás 60 páginas en los próximos 30 días.",
     Proyeccion_90:
-      "Promedio: 14 páginas por semana. Con este ritmo, acumulás 180 páginas en los próximos 90 días."
+      "Promedio: 12 páginas por semana. Con este ritmo, acumulás 180 páginas en los próximos 90 días."
   });
 });
 
-test("conserva la programacion historica de los registros", async ({
+test("respeta los dias validos al reconstruir registros historicos", async ({
   page
 }) => {
   await Preparar(page);
@@ -486,6 +520,24 @@ test("conserva la programacion historica de los registros", async ({
         Fuente_Id: "Excepcional",
         Cantidad: 41,
         En_Programacion: false
+      }),
+      Normalizar_Habito_Registro({
+        Id: "Registro_Valido",
+        Habito_Id: Habito.Id,
+        Fecha: "2026-07-17",
+        Periodo_Clave: "2026-07-17",
+        Fuente: "Manual",
+        Fuente_Id: "Valido",
+        Cantidad: 5
+      }),
+      Normalizar_Habito_Registro({
+        Id: "Registro_Domingo",
+        Habito_Id: Habito.Id,
+        Fecha: "2026-07-19",
+        Periodo_Clave: "2026-07-19",
+        Fuente: "Manual",
+        Fuente_Id: "Domingo",
+        Cantidad: 10
       })
     ];
     return Habitos_Estadisticas_Rango(
@@ -498,6 +550,7 @@ test("conserva la programacion historica de los registros", async ({
       aplicables: Item.Aplicables,
       meta: Item.Meta,
       total: Item.Total,
+      totalProgramado: Item.Total_Programado,
       dia: Item.Subetiqueta
     }));
   });
@@ -505,15 +558,33 @@ test("conserva la programacion historica de los registros", async ({
   expect(Resultado[1]).toEqual({
     fecha: "2026-07-14",
     aplicables: 0,
-    meta: 60,
+    meta: 0,
     total: 41,
+    totalProgramado: 0,
     dia: "Martes"
   });
   expect(Resultado[2]).toEqual({
     fecha: "2026-07-15",
+    aplicables: 0,
+    meta: 0,
+    total: 5,
+    totalProgramado: 0,
+    dia: "Miércoles"
+  });
+  expect(Resultado[4]).toEqual({
+    fecha: "2026-07-17",
     aplicables: 1,
     meta: 60,
     total: 5,
-    dia: "Miércoles"
+    totalProgramado: 5,
+    dia: "Viernes"
+  });
+  expect(Resultado[6]).toEqual({
+    fecha: "2026-07-19",
+    aplicables: 0,
+    meta: 0,
+    total: 10,
+    totalProgramado: 0,
+    dia: "Domingo"
   });
 });

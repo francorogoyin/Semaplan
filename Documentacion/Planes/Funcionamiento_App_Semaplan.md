@@ -550,9 +550,9 @@ Relaciones importantes.
 - Cada registro nuevo conserva `En_Programacion`, el estado de la
   programación vigente al momento de registrarlo. Las estadísticas usan
   esa marca aunque el hábito se edite después; los registros viejos que
-  no la tienen se consideran programados cuando muestran un avance,
-  porque no existe información suficiente para reconstruir su calendario
-  original.
+  no la tienen se evalúan con la programación actual. Así, un avance
+  histórico fuera de un día válido se mantiene visible y verde, pero no
+  suma meta, cumplimiento, promedio ni proyección.
 - Cuando el panel de Habitos tiene filtros activos, debe exponer ese
   estado en chips visibles y ofrecer `Limpiar` en el mismo bloque para
   volver rapido al panel completo sin dejar filtros silenciosos.
@@ -561,7 +561,10 @@ Relaciones importantes.
   agrupación por día/semana/mes, cumplimiento, total, racha y barras
   adaptadas a hábitos de check o de cantidad. Al agrupar por día, cada
   fecha incluye debajo el día de la semana; el scroll se separa de esos
-  rótulos y usa una pista transparente.
+  rótulos y usa una pista transparente. En semana y mes, la meta y el
+  progreso que determinan cumplimiento, color y promedio acumulan sólo
+  los días válidos del hábito; los avances fuera de programación siguen
+  incluidos en el total mostrado.
 - Al cambiar la vista temporal de Hábitos o Tareas, la fecha de
   navegación se restablece a la fecha actual para evitar quedar anclado
   en un día viejo.
