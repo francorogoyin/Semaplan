@@ -453,3 +453,67 @@ test("proyecta el ritmo segun el periodo seleccionado", async ({ page }) => {
       "Promedio: 14 páginas por semana. Con este ritmo, acumulás 180 páginas en los próximos 90 días."
   });
 });
+
+test("conserva la programacion historica de los registros", async ({
+  page
+}) => {
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    const Habito = Normalizar_Habito({
+      Id: "Habito_Historial_Programacion",
+      Nombre: "Leer",
+      Fecha_Inicio: "2026-07-13",
+      Programacion: { Tipo: "Dias", Dias: [4] },
+      Meta: { Modo: "Cantidad", Cantidad: 60, Periodo: "Dia" }
+    });
+    Habitos = [Habito];
+    Habitos_Registros = [
+      Normalizar_Habito_Registro({
+        Id: "Registro_Legado",
+        Habito_Id: Habito.Id,
+        Fecha: "2026-07-15",
+        Periodo_Clave: "2026-07-15",
+        Fuente: "Manual",
+        Fuente_Id: "Legado",
+        Cantidad: 5
+      }),
+      Normalizar_Habito_Registro({
+        Id: "Registro_Excepcional",
+        Habito_Id: Habito.Id,
+        Fecha: "2026-07-14",
+        Periodo_Clave: "2026-07-14",
+        Fuente: "Manual",
+        Fuente_Id: "Excepcional",
+        Cantidad: 41,
+        En_Programacion: false
+      })
+    ];
+    return Habitos_Estadisticas_Rango(
+      Habito,
+      "2026-07-13",
+      "2026-07-19",
+      "Dia"
+    ).map((Item) => ({
+      fecha: Item.Clave,
+      aplicables: Item.Aplicables,
+      meta: Item.Meta,
+      total: Item.Total,
+      dia: Item.Subetiqueta
+    }));
+  });
+
+  expect(Resultado[1]).toEqual({
+    fecha: "2026-07-14",
+    aplicables: 0,
+    meta: 60,
+    total: 41,
+    dia: "Martes"
+  });
+  expect(Resultado[2]).toEqual({
+    fecha: "2026-07-15",
+    aplicables: 1,
+    meta: 60,
+    total: 5,
+    dia: "Miércoles"
+  });
+});

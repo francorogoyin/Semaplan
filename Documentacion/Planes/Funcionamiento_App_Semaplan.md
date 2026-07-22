@@ -547,13 +547,21 @@ Relaciones importantes.
   reconstruirse desde el habito y la fecha para no perder registros
   diarios, semanales o mensuales viejos. En quincena, la clave se sigue
   recalculando para sostener la migracion vigente.
+- Cada registro nuevo conserva `En_Programacion`, el estado de la
+  programación vigente al momento de registrarlo. Las estadísticas usan
+  esa marca aunque el hábito se edite después; los registros viejos que
+  no la tienen se consideran programados cuando muestran un avance,
+  porque no existe información suficiente para reconstruir su calendario
+  original.
 - Cuando el panel de Habitos tiene filtros activos, debe exponer ese
   estado en chips visibles y ofrecer `Limpiar` en el mismo bloque para
   volver rapido al panel completo sin dejar filtros silenciosos.
 - La tarjeta expandida conserva Racha, Éxitos y Registro. Promedio y
   Vínculos no se muestran; Estadísticas abre un modal con período,
   agrupación por día/semana/mes, cumplimiento, total, racha y barras
-  adaptadas a hábitos de check o de cantidad.
+  adaptadas a hábitos de check o de cantidad. Al agrupar por día, cada
+  fecha incluye debajo el día de la semana; el scroll se separa de esos
+  rótulos y usa una pista transparente.
 - Al cambiar la vista temporal de Hábitos o Tareas, la fecha de
   navegación se restablece a la fecha actual para evitar quedar anclado
   en un día viejo.
