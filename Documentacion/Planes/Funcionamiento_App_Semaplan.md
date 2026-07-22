@@ -565,9 +565,10 @@ Relaciones importantes.
   rótulos y usa una pista transparente. En semana y mes, la meta y el
   progreso que determinan cumplimiento, color y promedio acumulan sólo
   los días válidos del hábito; los avances fuera de programación siguen
-  incluidos en el total mostrado. Debajo de la leyenda de promedio y
-  proyección, una segunda línea resume el avance contra la meta total
-  del rango, con unidad y porcentaje.
+  incluidos en el total mostrado. La leyenda informa el promedio del
+  agrupamiento y proyecta ese ritmo a un año de 365 días. Debajo, una
+  segunda línea de `Avance` compara todas las unidades realizadas del
+  rango contra la meta total programada, con unidad y porcentaje.
 - Al cambiar la vista temporal de Hábitos o Tareas, la fecha de
   navegación se restablece a la fecha actual para evitar quedar anclado
   en un día viejo.

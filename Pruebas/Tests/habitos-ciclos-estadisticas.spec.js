@@ -494,25 +494,101 @@ test("proyecta el ritmo segun el periodo seleccionado", async ({ page }) => {
         Total_Programado: Indice === 0 ? 5 : 0
       }))
     );
+    const Habito_Parcial = Normalizar_Habito({
+      ...Habito,
+      Id: "Habito_Proyeccion_Parcial",
+      Programacion: { Tipo: "Dias", Dias: [4, 5] }
+    });
+    const Proyeccion_Calendario = Habitos_Estadisticas_Proyeccion(
+      Habito_Parcial,
+      Inicio,
+      Formatear_Fecha_ISO(Hoy),
+      7,
+      "Dia",
+      [
+        { Aplicables: 1, Total_Programado: 61 },
+        { Aplicables: 1, Total_Programado: 12 },
+        { Aplicables: 1, Total_Programado: 0 }
+      ]
+    );
     return {
       Proyeccion_30,
       Avance_30,
       Proyeccion_90,
       Avance_90,
-      Proyeccion_Baja
+      Proyeccion_Baja,
+      Proyeccion_Calendario
     };
   });
 
   expect(Resultado).toEqual({
     Proyeccion_30:
-      "Promedio: 2 páginas por día. Con este ritmo, acumulás 60 páginas en los próximos 30 días.",
+      "Promedio: 2 páginas por día. Con este ritmo, acumularías 730 páginas en 1 año.",
     Avance_30: "Avance: 60 de 600 páginas de meta (10%).",
     Proyeccion_90:
-      "Promedio: 4 páginas por semana. Con este ritmo, acumulás 60 páginas en los próximos 90 días.",
+      "Promedio: 4 páginas por semana. Con este ritmo, acumularías 243 páginas en 1 año.",
     Avance_90: "Avance: 60 de 1800 páginas de meta (3%).",
     Proyeccion_Baja:
-      "Promedio: 0.2 páginas por día. Con este ritmo, acumulás 5 páginas en los próximos 30 días."
+      "Promedio: 0.2 páginas por día. Con este ritmo, acumularías 61 páginas en 1 año.",
+    Proyeccion_Calendario:
+      "Promedio: 24 páginas por día. Con este ritmo, acumularías 8882 páginas en 1 año."
   });
+});
+
+test("muestra el avance total frente a la meta programada", async ({ page }) => {
+  await Preparar(page);
+  const Resultado = await page.evaluate(() => {
+    const Hoy = Parsear_Fecha_ISO(Habitos_Fecha_Hoy());
+    const Dias_Desde_Lunes = (Hoy.getDay() + 6) % 7;
+    const Lunes = Formatear_Fecha_ISO(Sumar_Dias(
+      Hoy,
+      -Dias_Desde_Lunes
+    ));
+    const Domingo = Formatear_Fecha_ISO(Sumar_Dias(
+      Parsear_Fecha_ISO(Lunes),
+      -1
+    ));
+    const Habito = Normalizar_Habito({
+      Id: "Habito_Avance_Total",
+      Nombre: "Leer",
+      Programacion: { Tipo: "Dias", Dias: [0] },
+      Meta: {
+        Modo: "Cantidad",
+        Cantidad: 60,
+        Unidad: "páginas",
+        Periodo: "Dia"
+      }
+    });
+    Habitos = [Habito];
+    Habitos_Registros = [
+      Normalizar_Habito_Registro({
+        Habito_Id: Habito.Id,
+        Fecha: Lunes,
+        Periodo_Clave: Lunes,
+        Fuente: "Manual",
+        Fuente_Id: "Avance_Programado",
+        Cantidad: 60
+      }),
+      Normalizar_Habito_Registro({
+        Habito_Id: Habito.Id,
+        Fecha: Domingo,
+        Periodo_Clave: Domingo,
+        Fuente: "Manual",
+        Fuente_Id: "Avance_Extra",
+        Cantidad: 40
+      })
+    ];
+    Abrir_Panel_Habitos();
+    Habitos_Abrir_Estadisticas(Habito.Id);
+    Habitos_Render_Estadisticas(Habito, 7, "Dia");
+    return document.querySelector(
+      "[data-habitos-estadisticas-avance]"
+    )?.textContent.trim();
+  });
+
+  expect(Resultado).toBe(
+    "Avance: 100 de 60 páginas de meta (167%)."
+  );
 });
 
 test("aplica la programacion de estadisticas a todo el historial", async ({
