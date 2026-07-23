@@ -527,6 +527,7 @@ Funciones de entrada recomendadas.
 - `Render_Modal_Habitos()`
 - `Render_Habitos_Panel()`
 - `Render_Habitos_Registro()`
+- `Render_Habitos_Notas()`
 - `Render_Modal_Habito_Editor()`
 - `Render_Habitos_Sidebar()`
 
@@ -561,6 +562,10 @@ Relaciones importantes.
 - Cuando el panel de Habitos tiene filtros activos, debe exponer ese
   estado en chips visibles y ofrecer `Limpiar` en el mismo bloque para
   volver rapido al panel completo sin dejar filtros silenciosos.
+- Cada registro de hábito puede conservar una `Nota` opcional asociada
+  a su fecha, cantidad y procedencia. El registro manual desde el panel
+  o la sidebar ofrece agregar esa nota sin obligarla; el visor de Notas
+  permite consultar y editar las notas históricas por hábito.
 - La tarjeta expandida conserva Racha, Éxitos y Registro. Promedio y
   Vínculos no se muestran; Estadísticas abre un modal con período,
   agrupación por día/semana/mes, cumplimiento, total, racha y barras
@@ -578,6 +583,9 @@ Relaciones importantes.
   actual y el mes actual, el gráfico conserva los días futuros como
   barras nulas, mientras que promedio, proyección y racha se calculan
   solamente hasta el día actual.
+- Cada barra del gráfico es interactiva. Al seleccionarla se abre un
+  detalle del día, semana o mes correspondiente que suma los registros
+  y los agrupa por origen vinculado, conservando notas y unidades.
 - Al cambiar la vista temporal de Hábitos o Tareas, la fecha de
   navegación se restablece a la fecha actual para evitar quedar anclado
   en un día viejo.
@@ -604,6 +612,7 @@ Modelo basico de reto normalizado.
 - `Duracion_Dias`
 - `Estado`
 - `Regla_Cumplimiento`
+- `Dias_Activos`
 - `Habito_Ids`
 - `Notas`
 - `Fecha_Cierre`
@@ -625,6 +634,11 @@ Relaciones importantes.
 - Un reto puede vincular muchos habitos mediante `Habito_Ids`.
 - `Regla_Cumplimiento` define si el dia cuenta cuando se cumplen todos
   los habitos vinculados o cualquiera de ellos.
+- `Dias_Activos` guarda los días recurrentes de la semana que computan.
+  Los días excluidos se muestran como no computables, no entran en el
+  porcentaje ni en la mejor racha y no se consideran fallos.
+- Los retos viejos sin `Dias_Activos` se normalizan con los siete dias
+  activos para conservar su comportamiento anterior.
 - Marcar, destildar o cancelar un habito refresca Retos si el modal
   esta abierto, porque el estado diario se deriva de los registros de
   habitos.
