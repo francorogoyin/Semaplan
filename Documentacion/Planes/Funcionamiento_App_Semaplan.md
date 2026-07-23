@@ -585,7 +585,10 @@ Relaciones importantes.
   solamente hasta el día actual.
 - Cada barra del gráfico es interactiva. Al seleccionarla se abre un
   detalle del día, semana o mes correspondiente que suma los registros
-  y los agrupa por origen vinculado, conservando notas y unidades.
+  y los agrupa por nombre visible de origen, aunque provengan de IDs
+  técnicos distintos. Cada grupo muestra el emoji del hábito y se puede
+  expandir para consultar los registros individuales con fecha, hora,
+  cantidad y nota cuando exista.
 - Al cambiar la vista temporal de Hábitos o Tareas, la fecha de
   navegación se restablece a la fecha actual para evitar quedar anclado
   en un día viejo.
