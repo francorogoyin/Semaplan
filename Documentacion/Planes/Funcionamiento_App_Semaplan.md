@@ -558,7 +558,9 @@ Relaciones importantes.
   registró. El estado y las estadísticas de una fecha con registros
   usan esa meta histórica; cambiar el valor del hábito no repinta ni
   recalcula retroactivamente los días anteriores. Los registros viejos
-  sin `Meta_Cantidad` mantienen compatibilidad y usan la meta actual.
+  sin `Meta_Cantidad` mantienen compatibilidad y usan la meta actual
+  hasta que el hábito se edita; al guardar una edición se completa ese
+  dato faltante con la meta anterior antes de aplicar la nueva.
   Las estadísticas siguen aplicando la programación actual de forma
   retroactiva al rango consultado: un avance fuera de un día válido se
   mantiene visible, pero no suma meta, cumplimiento, promedio ni
