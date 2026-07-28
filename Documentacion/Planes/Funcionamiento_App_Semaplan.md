@@ -554,11 +554,15 @@ Relaciones importantes.
   recalculando para sostener la migracion vigente.
 - Cada registro nuevo conserva `En_Programacion`, el estado de la
   programación vigente al momento de registrarlo como contexto
-  histórico. Las Estadísticas, en cambio, aplican la programación
-  actual de forma retroactiva a todo el rango consultado, incluso antes
-  de `Fecha_Inicio` o de una edición. Así, un avance fuera de un día
-  válido se mantiene visible y verde, pero no suma meta, cumplimiento,
-  promedio ni proyección.
+  histórico y `Meta_Cantidad`, la cantidad objetivo vigente cuando se
+  registró. El estado y las estadísticas de una fecha con registros
+  usan esa meta histórica; cambiar el valor del hábito no repinta ni
+  recalcula retroactivamente los días anteriores. Los registros viejos
+  sin `Meta_Cantidad` mantienen compatibilidad y usan la meta actual.
+  Las estadísticas siguen aplicando la programación actual de forma
+  retroactiva al rango consultado: un avance fuera de un día válido se
+  mantiene visible, pero no suma meta, cumplimiento, promedio ni
+  proyección.
 - Cuando el panel de Habitos tiene filtros activos, debe exponer ese
   estado en chips visibles y ofrecer `Limpiar` en el mismo bloque para
   volver rapido al panel completo sin dejar filtros silenciosos.
