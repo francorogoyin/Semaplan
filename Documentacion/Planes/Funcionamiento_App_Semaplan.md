@@ -553,15 +553,20 @@ Relaciones importantes.
   reconstruirse desde el habito y la fecha para no perder registros
   diarios, semanales o mensuales viejos. En quincena, la clave se sigue
   recalculando para sostener la migracion vigente.
-- `Meta_Historial` conserva rangos de vigencia con `Desde`, `Hasta` y
-  una copia de `Meta`. Al cambiar el valor o la configuración de un
-  hábito, se cierra el rango anterior y se abre uno nuevo desde la
-  fecha efectiva. El estado, el límite y las estadísticas resuelven la
-  meta correspondiente a cada fecha, incluso si ese día no tiene
-  registros. Cada registro nuevo también conserva `En_Programacion` y
-  `Meta_Cantidad` como contexto histórico de compatibilidad. Los
-  registros viejos sin `Meta_Cantidad` siguen cubiertos por
-  `Meta_Historial` después de normalizar el hábito.
+- `Meta_Historial` conserva cambios con `Desde` y una copia de `Meta`;
+  el final de cada período se deriva de la fecha del cambio siguiente y
+  no se persiste como `Hasta`. El estado, el límite y las estadísticas
+  resuelven la meta correspondiente a cada fecha, incluso si ese día no
+  tiene registros. Mientras no haya cambios, `Meta` es editable y aplica
+  a todas las fechas. Al modificarla por primera vez, la UI pregunta si
+  se aplica a todas las fechas o desde hoy en adelante; esta segunda
+  opción crea el período anterior y el nuevo cambio. Con cambios
+  existentes, `Meta` queda bloqueada y el apartado `Cambios` permite
+  editar la fecha y el valor de cada ítem o borrar cambios. Al borrar el
+  último cambio, `Meta` vuelve a ser editable. Cada registro nuevo
+  también conserva `En_Programacion` y `Meta_Cantidad` como contexto
+  histórico de compatibilidad. Los registros viejos sin `Meta_Cantidad`
+  siguen cubiertos por `Meta_Historial` después de normalizar el hábito.
   Las estadísticas siguen aplicando la programación actual de forma
   retroactiva al rango consultado: un avance fuera de un día válido se
   mantiene visible, pero no suma meta, cumplimiento, promedio ni
