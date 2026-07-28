@@ -511,6 +511,7 @@ Modelo basico de habito normalizado.
 - `Tipo`
 - `Programacion`
 - `Meta`
+- `Meta_Historial`
 
 `Programacion` conserva compatibilidad con los hábitos viejos y puede
 usar un ciclo personalizado. En ese caso guarda `Tipo_Ciclo: "Ciclo"`,
@@ -552,15 +553,15 @@ Relaciones importantes.
   reconstruirse desde el habito y la fecha para no perder registros
   diarios, semanales o mensuales viejos. En quincena, la clave se sigue
   recalculando para sostener la migracion vigente.
-- Cada registro nuevo conserva `En_Programacion`, el estado de la
-  programación vigente al momento de registrarlo como contexto
-  histórico y `Meta_Cantidad`, la cantidad objetivo vigente cuando se
-  registró. El estado y las estadísticas de una fecha con registros
-  usan esa meta histórica; cambiar el valor del hábito no repinta ni
-  recalcula retroactivamente los días anteriores. Los registros viejos
-  sin `Meta_Cantidad` mantienen compatibilidad y usan la meta actual
-  hasta que el hábito se edita; al guardar una edición se completa ese
-  dato faltante con la meta anterior antes de aplicar la nueva.
+- `Meta_Historial` conserva rangos de vigencia con `Desde`, `Hasta` y
+  una copia de `Meta`. Al cambiar el valor o la configuración de un
+  hábito, se cierra el rango anterior y se abre uno nuevo desde la
+  fecha efectiva. El estado, el límite y las estadísticas resuelven la
+  meta correspondiente a cada fecha, incluso si ese día no tiene
+  registros. Cada registro nuevo también conserva `En_Programacion` y
+  `Meta_Cantidad` como contexto histórico de compatibilidad. Los
+  registros viejos sin `Meta_Cantidad` siguen cubiertos por
+  `Meta_Historial` después de normalizar el hábito.
   Las estadísticas siguen aplicando la programación actual de forma
   retroactiva al rango consultado: un avance fuera de un día válido se
   mantiene visible, pero no suma meta, cumplimiento, promedio ni
