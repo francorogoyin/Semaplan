@@ -217,6 +217,13 @@ El flujo operativo base es este.
    de la app. Esto evita que mutaciones in-place posteriores de
    habitos, notas, slots, planes u otros modulos contaminen la referencia
    remota y queden invisibles para el diff de guardado.
+7.c Cada guardado de datos captura la revision local y el contenido que
+   efectivamente envio. El exito remoto solo limpia el pendiente y muestra
+   `Guardado` si ambos siguen coincidiendo con el estado local. Si hubo
+   otro cambio mientras la consulta estaba en curso, conserva el pendiente,
+   mantiene `Guardando` y programa el siguiente ciclo.
+7.d Los guardados de metadata operativa, como heartbeat o cortes de sesion,
+   no confirman ni limpian cambios de datos del usuario.
 8. Al iniciar una sesion logueada, la app lee remoto antes de entrar y
    registra una unica `Sesiones_Operativas` activa como lease
    exclusivo. Si detecta otra sesion reciente del mismo usuario,
@@ -263,10 +270,11 @@ El flujo operativo base es este.
 14.b Los reintentos automaticos de sync tienen tope. Si se alcanza el
    maximo de intentos consecutivos sin exito, la app deja de quedar en
    `Guardando` indefinido y pasa a `Error` hasta un reintento manual.
-14.c Si el backend responde timeout de consulta (`code 57014` /
-   `statement timeout`) durante un guardado, la app agota de inmediato
-   los reintentos automaticos y pasa a `Error` para evitar ciclos largos
-   en `Guardando`.
+14.c Cada lectura o escritura principal de sync tiene cancelacion local
+   a los 45 segundos. Tanto esa cancelacion como un timeout informado por
+   el backend (`code 57014` / `statement timeout`) conservan los datos
+   pendientes, permiten un ultimo reintento acotado y luego muestran
+   `Error`, evitando una consulta y un `Guardando` eternos.
 14.d Cuando hay muchos cambios acumulados, el sync versionado envia el
    estado en lotes por claves raiz para evitar timeouts por payload
    grande. Cada lote actualiza la misma fila con control de version y la
@@ -283,6 +291,9 @@ El flujo operativo base es este.
    hay un conflicto pendiente, interrumpe el cierre y muestra el
    conflicto para que el usuario lo resuelva antes de expulsar otras
    sesiones.
+17. Antes de salir, la app drena ciclos consecutivos de sync dentro de
+   un limite acotado. Un ciclo exitoso no habilita la salida si durante
+   ese mismo ciclo aparecio una revision local posterior.
 
 Funciones transversales importantes.
 
