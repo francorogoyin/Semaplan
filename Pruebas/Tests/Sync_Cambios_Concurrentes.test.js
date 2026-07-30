@@ -129,6 +129,54 @@ test("confirma solo la misma revision y muestra Guardado", () => {
   assert.equal(Eventos.Emisiones, 1);
 });
 
+test("el mismo estado con propiedades reordenadas queda Guardado", () => {
+  const Estado_Enviado = {
+    Eventos: [
+      { Id: "Evento_1", Titulo: "Reunion", Hora: "10:00" }
+    ],
+    Config: { Vista: "Semana", Tema: "Oscuro" }
+  };
+  const Estado_Local = {
+    Config: { Tema: "Oscuro", Vista: "Semana" },
+    Eventos: [
+      { Hora: "10:00", Titulo: "Reunion", Id: "Evento_1" }
+    ]
+  };
+  const { Contexto, Eventos } = Crear_Entorno({
+    Revision_Actual: 7,
+    Estado_Local
+  });
+  Contexto.Es_Objeto_Json = (Valor) => Boolean(
+    Valor &&
+    typeof Valor === "object" &&
+    !Array.isArray(Valor)
+  );
+  Contexto.Estado_Sin_Metadata_Operativa = (Estado) =>
+    Estado;
+  vm.runInContext(
+    Extraer_Funcion("Normalizar_Json_Para_Comparacion"),
+    Contexto
+  );
+  vm.runInContext(
+    Extraer_Funcion("Estados_Datos_Sync_Iguales"),
+    Contexto
+  );
+
+  const Resultado = Contexto.Backend_Registrar_Sync_Exitoso(
+    { version: 5 },
+    Estado_Enviado,
+    {
+      Confirmar_Datos_Locales: true,
+      Revision_Local: 7
+    }
+  );
+
+  assert.equal(Resultado.Hay_Cambio_Posterior, false);
+  assert.equal(Contexto.Sync_Local_Sucio, false);
+  assert.deepEqual(Eventos.Indicadores, ["Guardado"]);
+  assert.equal(Eventos.Programaciones, 0);
+});
+
 test("conserva pendiente una revision creada durante el envio", () => {
   const Estado_Enviado = {
     Habitos_Registros: [{ Id: "Registro_1" }]

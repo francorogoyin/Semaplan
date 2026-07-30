@@ -221,7 +221,9 @@ El flujo operativo base es este.
    efectivamente envio. El exito remoto solo limpia el pendiente y muestra
    `Guardado` si ambos siguen coincidiendo con el estado local. Si hubo
    otro cambio mientras la consulta estaba en curso, conserva el pendiente,
-   mantiene `Guardando` y programa el siguiente ciclo.
+   mantiene `Guardando` y programa el siguiente ciclo. La comparacion del
+   contenido normaliza el orden de las propiedades JSON, para que dos
+   estados equivalentes no generen reintentos ni un falso `Error`.
 7.d Los guardados de metadata operativa, como heartbeat o cortes de sesion,
    no confirman ni limpian cambios de datos del usuario.
 8. Al iniciar una sesion logueada, la app lee remoto antes de entrar y
