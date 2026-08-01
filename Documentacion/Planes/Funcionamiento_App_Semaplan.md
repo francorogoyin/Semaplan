@@ -202,16 +202,21 @@ El flujo operativo base es este.
    localStorage. Solo programa sync remoto si el estado de datos
    reales cambio respecto del cache anterior; cambios puramente
    operativos como sesiones o marcas de sync no ensucian remoto.
-6. `Backend_Sync_Programar()` sube cambios reales casi al toque, con
-   una demora minima para mantener un punto unico de ejecucion y sin
-   debounce largo.
+6. `Backend_Sync_Programar()` encola cambios reales casi al toque y
+   mantiene un unico ciclo de subida. La UI muestra `Pendiente` mientras
+   el cambio espera o se reintenta, y reserva `Guardando` para una
+   operacion remota que realmente sigue activa.
 6.b Las mutaciones visibles del calendario que crean, mueven,
    redimensionan, repiten, limpian, pegan o tildan bloques, y las que
    crean, borran, limpian o planifican slots muertos/vacios, usan
    `Guardar_Estado_Cambio_Critico()` para no quedar atadas al debounce
    normal y evitar perder los ultimos cambios al reloguear.
 7. `Backend_Sync_Ejecutar()` sube el estado a `estado_usuario`,
-   con manejo de versionado, conflictos y reintentos.
+   con escritura optimista versionada, conflictos y reintentos. La
+   escritura condicionada por `version` es la primera barrera contra
+   carreras; no hace una lectura remota redundante antes de cada subida.
+   Si la version no coincide, relee una vez para distinguir un cambio
+   operativo de un conflicto real y reintenta solo cuando corresponde.
 7.b Despues de un sync exitoso, la foto remota interna se guarda como
    clon JSON limpio, no como referencia compartida con los arrays vivos
    de la app. Esto evita que mutaciones in-place posteriores de
@@ -221,9 +226,11 @@ El flujo operativo base es este.
    efectivamente envio. El exito remoto solo limpia el pendiente y muestra
    `Guardado` si ambos siguen coincidiendo con el estado local. Si hubo
    otro cambio mientras la consulta estaba en curso, conserva el pendiente,
-   mantiene `Guardando` y programa el siguiente ciclo. La comparacion del
-   contenido normaliza el orden de las propiedades JSON, para que dos
-   estados equivalentes no generen reintentos ni un falso `Error`.
+   conserva el pendiente, muestra `Pendiente` y programa el siguiente
+   ciclo. `Guardando` aparece solo si la escritura supera un umbral corto.
+   La comparacion del contenido normaliza el orden de las propiedades
+   JSON, para que dos estados equivalentes no generen reintentos ni un
+   falso `Error`.
 7.d Los guardados de metadata operativa, como heartbeat o cortes de sesion,
    no confirman ni limpian cambios de datos del usuario.
 8. Al iniciar una sesion logueada, la app lee remoto antes de entrar y
@@ -255,20 +262,20 @@ El flujo operativo base es este.
 12. La metadata operativa de sesiones (`Sesiones_Operativas` y
    `Sesion_Global_Corte_Ms`) no se trata como cambio de datos del
    usuario. Si el remoto cambio solo por metadata operativa, no se muestra
-   conflicto ni toast de otro dispositivo. Antes de sobrescribir remoto,
-   `Backend_Sync_Ejecutar()` relee la fila: si cambiaron datos reales
-   con marca mas nueva abre conflicto; si el remoto no requiere
-   conflicto, refresca version y reintenta el guardado aunque el
-   `UPDATE` versionado haya perdido contra otra escritura reciente.
+   conflicto ni toast de otro dispositivo. `Backend_Sync_Ejecutar()`
+   intenta primero el `UPDATE` versionado; si esa escritura pierde una
+   carrera, relee la fila para decidir si refresca version y reintenta o
+   abre conflicto por datos reales mas nuevos.
 13. Fuera del heartbeat del lease exclusivo, no hay polling remoto
    permanente por defecto. La app revisa cambios remotos al volver al
    foco/visibilidad o por eventos locales de sync, sin marcar
    `Guardando` si no hay cambios propios.
 14. `Hay_Sync_Pendiente()` representa trabajo real pendiente
-   (timer, reintento o promesa en curso) y no solamente el texto
-   visible `Guardando`. Si la UI queda en `Guardando` sin tarea activa,
-   `Resolver_Sync_Guardando_Inactivo()` la normaliza a `Guardado`,
-   reintento o `Error` segun haya datos locales sucios o conflicto.
+   (timer, reintento, promesa o escritura en curso) y no solamente el
+   texto visible. Si la UI queda en `Pendiente` o `Guardando` sin tarea
+   activa, `Resolver_Sync_Guardando_Inactivo()` la normaliza a
+   `Guardado`, reintento o `Error` segun haya datos locales sucios o
+   conflicto.
 14.b Los reintentos automaticos de sync tienen tope. Si se alcanza el
    maximo de intentos consecutivos sin exito, la app deja de quedar en
    `Guardando` indefinido y pasa a `Error` hasta un reintento manual.
@@ -276,7 +283,9 @@ El flujo operativo base es este.
    a los 45 segundos. Tanto esa cancelacion como un timeout informado por
    el backend (`code 57014` / `statement timeout`) conservan los datos
    pendientes, permiten un ultimo reintento acotado y luego muestran
-   `Error`, evitando una consulta y un `Guardando` eternos.
+   `Error`. Tras un timeout no se hace una segunda lectura remota de
+   diagnostico, para evitar duplicar la espera y dejar la UI en
+   `Guardando` indefinidamente.
 14.d Cuando hay muchos cambios acumulados, el sync versionado envia el
    estado en lotes por claves raiz para evitar timeouts por payload
    grande. Cada lote actualiza la misma fila con control de version y la
@@ -306,7 +315,6 @@ Funciones transversales importantes.
 - `Guardar_Estado_Cambio_Critico()`
 - `Backend_Sync_Programar()`
 - `Backend_Sync_Ejecutar()`
-- `Backend_Verificar_Remoto_Antes_De_Sync()`
 - `Preparar_Sesion_Operativa_Entrada()`
 - `Backend_Registrar_Corte_Sesion_Global()`
 - `Backend_Forzar_Corte_Global_Desde_Local()`

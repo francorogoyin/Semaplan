@@ -203,7 +203,7 @@ test("conserva pendiente una revision creada durante el envio", () => {
 
   assert.equal(Resultado.Hay_Cambio_Posterior, true);
   assert.equal(Contexto.Sync_Local_Sucio, true);
-  assert.deepEqual(Eventos.Indicadores, ["Guardando"]);
+  assert.deepEqual(Eventos.Indicadores, ["Pendiente"]);
   assert.equal(Eventos.Programaciones, 1);
   assert.equal(Eventos.Emisiones, 0);
 });
@@ -231,7 +231,7 @@ test("detecta contenido posterior aunque la revision no cambie", () => {
 
   assert.equal(Resultado.Hay_Cambio_Posterior, true);
   assert.equal(Contexto.Sync_Local_Sucio, true);
-  assert.deepEqual(Eventos.Indicadores, ["Guardando"]);
+  assert.deepEqual(Eventos.Indicadores, ["Pendiente"]);
   assert.equal(Eventos.Programaciones, 1);
 });
 
@@ -293,6 +293,37 @@ test("reconoce timeouts de servidor y cancelacion cliente", () => {
   );
 });
 
+test("considera una promesa en curso como sync pendiente", () => {
+  const Contexto = {
+    Sync_Timer_Id: null,
+    Sync_Reintento_Timer_Id: null,
+    Sync_En_Curso: false,
+    Sync_Promesa_En_Curso: Promise.resolve(true)
+  };
+  vm.createContext(Contexto);
+  vm.runInContext(
+    Extraer_Funcion("Hay_Sync_Pendiente"),
+    Contexto
+  );
+
+  assert.equal(Contexto.Hay_Sync_Pendiente(), true);
+});
+
+test("el sync no hace una prelectura remota redundante", () => {
+  const Codigo_Sync = Extraer_Funcion(
+    "Backend_Sync_Ejecutar"
+  );
+
+  assert.doesNotMatch(
+    Codigo_Sync,
+    /Backend_Verificar_Remoto_Antes_De_Sync/
+  );
+  assert.match(
+    Codigo_Sync,
+    /Es_Conflicto_Sync/
+  );
+});
+
 test("el contrato cubre los modulos persistidos principales", () => {
   const Claves = [
     "Objetivos",
@@ -325,6 +356,18 @@ test("el contrato cubre los modulos persistidos principales", () => {
   assert.match(
     Codigo_Login,
     /const Sync_Timeout_Consulta_Ms = 45000;/
+  );
+  assert.equal(
+    (
+      Codigo_Login.match(/"sync\.pendiente":/g) || []
+    ).length,
+    3
+  );
+  assert.equal(
+    (
+      Codigo_Login.match(/"ayuda\.sync_pendiente_html":/g) || []
+    ).length,
+    3
   );
   assert.ok(
     (
