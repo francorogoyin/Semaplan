@@ -41,6 +41,11 @@ estructuras persistidas o relaciones importantes entre modulos.
   `/b2/planes/objetivos`, `/b2/planes/subobjetivos`,
   `/b2/planes/partes`, `/b2/planes/avances`,
   `/b2/archivero/nota` y `/b2/baul/item`.
+  Las acciones internas de Decoteca viven dentro de `/b2/lote` para no
+  aumentar el número de operaciones OpenAPI: crean, editan y borran
+  obras y tecas con `crear_obra_decoteca`, `editar_obra_decoteca`,
+  `borrar_obra_decoteca`, `crear_teca_decoteca`,
+  `editar_teca_decoteca` y `borrar_teca_decoteca`.
   Las mutaciones requieren scopes separados, usan control optimista de
   `version`, guardan mediante la RPC `aplicar_estado_usuario_b2` para
   evitar el merge preservador general de `estado_usuario` en este flujo
@@ -72,11 +77,16 @@ estructuras persistidas o relaciones importantes entre modulos.
   completado de una tarea hecha.
   Para la conversación también publica `/buscar` (búsqueda transversal),
   `/resumen` (día o semana), `/diagnostico/planes` y `/historial`.
+  `/buscar` incluye Decoteca: con `modulo=decoteca` busca una obra o
+  lista una teca y devuelve su ficha, metadatos, partes, datos de la
+  teca y registros de avance. Nunca expone `Portada_Data_Url` en la
+  lectura remota.
   Las tareas incluyen sus vínculos operativos en esas vistas, para que
   el chat explique el impacto antes de cambiar datos. `POST /b2/lote`
   entrega primero una previsualización y solo aplica al recibir
   `confirmar_aplicacion: true`; admite hasta 50 acciones B2 sobre
-  Tareas, Hábitos, Planes, Archivero y Baúl dentro de una transacción
+  Tareas, Hábitos, Planes, Archivero, Baúl y Decoteca dentro de una
+  transacción
   atómica. Cada elemento de `operaciones` declara una acción B2 y su
   payload original, por lo que el chat puede combinar módulos sin
   encadenar llamadas individuales. Las fechas de tareas pueden usar
@@ -84,6 +94,13 @@ estructuras persistidas o relaciones importantes entre modulos.
   semana o `en N días`). `POST /b2/deshacer` repone el estado previo de
   la última mutación del chat —o una indicada por ID— tras una
   confirmación explícita y con el scope original.
+  Decoteca usa el scope específico `write_decoteca`. Para no inutilizar
+  los tokens B2 emitidos antes de esta capacidad, el gateway acepta de
+  forma compatible `write_metas`; los tokens nuevos deben recibir
+  `read` y `write_decoteca`. Las carátulas que llega a guardar el GPT
+  son URL públicas directas: la búsqueda de fuentes se hace con Web
+  Search de ChatGPT y la Action no descarga ni persiste archivos de
+  imagen externos.
 - `supabase/functions/semaplan-ai-mcp`: servidor MCP remoto por HTTP
   (streamable compatible) para ChatGPT Apps/Developer Mode. Expone
   `initialize`, `tools/list` y `tools/call` en el endpoint

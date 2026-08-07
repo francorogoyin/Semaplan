@@ -71,6 +71,7 @@ const Claves_Estado_Seguras = new Set([
   "Semanas_Con_Defaults",
   "Esquema_Estado_Version",
   "Version_Programa_Actual",
+  "Decoteca",
 ]);
 
 const OAUTH_SCOPE_LECTURA = "read";
@@ -79,6 +80,7 @@ const OAUTH_SCOPE_HABITOS = "write_habits";
 const OAUTH_SCOPE_METAS = "write_metas";
 const OAUTH_SCOPE_ARCHIVERO = "write_archivero";
 const OAUTH_SCOPE_BAUL = "write_baul";
+const OAUTH_SCOPE_DECOTECA = "write_decoteca";
 const OAUTH_SCOPES_SOPORTADOS = new Set([
   OAUTH_SCOPE_LECTURA,
   OAUTH_SCOPE_TAREAS,
@@ -86,6 +88,7 @@ const OAUTH_SCOPES_SOPORTADOS = new Set([
   OAUTH_SCOPE_METAS,
   OAUTH_SCOPE_ARCHIVERO,
   OAUTH_SCOPE_BAUL,
+  OAUTH_SCOPE_DECOTECA,
 ]);
 const OAUTH_RESPONSE_TYPE_CODIGO = "code";
 const OAUTH_AUTH_CODE_EXPIRA_SEGUNDOS = 300;
@@ -317,7 +320,7 @@ function Construir_OpenAPI_Semaplan_IA(
     openapi: "3.1.0",
     info: {
       title: "Semaplan AI Gateway",
-      version: "2.1.1",
+      version: "2.2.0",
       description:
         "API para leer Semaplan y ejecutar acciones B2 desde ChatGPT.",
     },
@@ -392,6 +395,8 @@ function Construir_OpenAPI_Semaplan_IA(
                     "Crear notas en el Archivero.",
                   [OAUTH_SCOPE_BAUL]:
                     "Crear items en el Baul.",
+                  [OAUTH_SCOPE_DECOTECA]:
+                    "Crear, editar y borrar obras y tecas de Decoteca.",
                 },
               },
             },
@@ -806,14 +811,33 @@ function Construir_OpenAPI_Semaplan_IA(
       "/buscar": {
         get: {
           operationId: "semaplan_buscar_global",
-          summary: "Buscar en tareas, habitos, Planes, Archivero y Baul",
+          summary: "Buscar en tareas, habitos, Planes, Archivero, Baul y Decoteca",
           security: Seguridad_Lectura,
           parameters: [
             {
               name: "q",
               in: "query",
-              required: true,
+              description:
+                "Texto a buscar. Puede omitirse solo con modulo=decoteca para listar una teca.",
               schema: { type: "string", maxLength: 200 },
+            },
+            {
+              name: "modulo",
+              in: "query",
+              description:
+                "Usa decoteca para limitar la busqueda o listar una teca completa.",
+              schema: {
+                type: "string",
+                enum: ["todos", "decoteca"],
+                default: "todos",
+              },
+            },
+            {
+              name: "teca_id",
+              in: "query",
+              description:
+                "Teca de Decoteca: Biblioteca, Musicoteca, Videoteca, Ludoteca o un id personalizado.",
+              schema: { type: "string" },
             },
             {
               name: "limite",
@@ -917,7 +941,7 @@ function Construir_OpenAPI_Semaplan_IA(
               minItems: 1,
               maxItems: 50,
               description:
-                "Acciones combinadas y atomicas sobre tareas, habitos, Planes, Archivero y Baul. Cada elemento usa accion y payload con los mismos campos de su accion individual.",
+                "Acciones combinadas y atomicas sobre tareas, habitos, Planes, Archivero, Baul y Decoteca. Cada elemento usa accion y payload con los mismos campos de su accion individual.",
               items: {
                 type: "object",
                 required: ["accion", "payload"],
@@ -939,6 +963,12 @@ function Construir_OpenAPI_Semaplan_IA(
                       "mutar_avance_plan",
                       "crear_nota_archivero",
                       "crear_item_baul",
+                      "crear_obra_decoteca",
+                      "editar_obra_decoteca",
+                      "borrar_obra_decoteca",
+                      "crear_teca_decoteca",
+                      "editar_teca_decoteca",
+                      "borrar_teca_decoteca",
                     ],
                   },
                   payload: {
@@ -1447,10 +1477,29 @@ function Tiene_Scope(
   Scopes: unknown,
   Scope_Requerido: string
 ) {
-  return Array.isArray(Scopes) &&
-    Scopes.some((Scope) =>
-      String(Scope || "").trim() === Scope_Requerido
-    );
+  if (!Array.isArray(Scopes)) return false;
+  const Tiene = (Scope_Buscado: string) => Scopes.some((Scope) =>
+    String(Scope || "").trim() === Scope_Buscado
+  );
+  if (Scope_Requerido === OAUTH_SCOPE_DECOTECA) {
+    // Compatibilidad con los tokens B2 ya emitidos antes de que
+    // Decoteca tuviera un permiso independiente.
+    return Tiene(OAUTH_SCOPE_DECOTECA) || Tiene(OAUTH_SCOPE_METAS);
+  }
+  return Tiene(Scope_Requerido);
+}
+
+function Tiene_Scopes_B2(
+  Scopes: unknown,
+  Scopes_Requeridos: unknown
+) {
+  const Requeridos = String(Scopes_Requeridos || "")
+    .split(/\s+/)
+    .map((Scope) => Scope.trim())
+    .filter(Boolean);
+  return Requeridos.length > 0 && Requeridos.every((Scope) =>
+    Tiene_Scope(Scopes, Scope)
+  );
 }
 
 function Normalizar_Scopes_OAuth(
@@ -5799,13 +5848,27 @@ function Responder_Busqueda_Global(
   Url: URL
 ) {
   const Query = Normalizar_Texto(Url.searchParams.get("q"));
-  if (!Query) {
-    return Responder_Error(400, "Busqueda invalida", "El parametro q es obligatorio.");
+  const Modulo = Normalizar_Texto_Busqueda(
+    Url.searchParams.get("modulo") || "todos"
+  );
+  if (!['todos', 'decoteca'].includes(Modulo)) {
+    return Responder_Error(
+      400,
+      "Busqueda invalida",
+      "modulo admite todos o decoteca."
+    );
+  }
+  if (!Query && Modulo !== "decoteca") {
+    return Responder_Error(
+      400,
+      "Busqueda invalida",
+      "El parametro q es obligatorio salvo para listar Decoteca."
+    );
   }
   const Texto = Normalizar_Texto_Busqueda(Query);
   const Limite = Resolver_Limite(Url, 30, 100);
   const Resultados: Mapa[] = [];
-  Construir_Tareas_Normalizadas_IA(Estado).forEach((Tarea) => {
+  if (Modulo === "todos") Construir_Tareas_Normalizadas_IA(Estado).forEach((Tarea) => {
     if (Normalizar_Texto_Busqueda([Tarea.Nombre, Tarea.Cajon].join(" ")).includes(Texto)) {
       Resultados.push({
         Tipo: "Tarea",
@@ -5818,39 +5881,110 @@ function Responder_Busqueda_Global(
       });
     }
   });
-  Construir_Habitos_Normalizados_IA(Estado).forEach((Habito) => {
+  if (Modulo === "todos") Construir_Habitos_Normalizados_IA(Estado).forEach((Habito) => {
     if (Normalizar_Texto_Busqueda(Habito.Nombre).includes(Texto)) {
       Resultados.push({ Tipo: "Habito", Id: Habito.Id, Nombre: Habito.Nombre });
     }
   });
-  Construir_Baul_Normalizado_IA(Estado).forEach((Item) => {
+  if (Modulo === "todos") Construir_Baul_Normalizado_IA(Estado).forEach((Item) => {
     if (Normalizar_Texto_Busqueda([Item.Nombre, Item.Descripcion, Item.Categoria].join(" ")).includes(Texto)) {
       Resultados.push({ Tipo: "Baul", Id: Item.Id, Nombre: Item.Nombre, Estado: Item.Estado });
     }
   });
-  Construir_Notas_Archivero_IA(Estado).forEach((Nota) => {
+  if (Modulo === "todos") Construir_Notas_Archivero_IA(Estado).forEach((Nota) => {
     if (Nota._Busqueda.includes(Texto)) {
       Resultados.push({ Tipo: "Nota", Id: Nota.Id, Nombre: Nota.Titulo || Nota.Texto.slice(0, 100) });
     }
   });
-  const Modelo = Resolver_Modelo_Planes_Periodo_IA(Estado);
-  [
+  if (Modulo === "todos") {
+    const Modelo = Resolver_Modelo_Planes_Periodo_IA(Estado);
+    [
     ...Modelo.Objetivos.map((Item) => ({ Tipo: "Objetivo", Item })),
     ...Modelo.Subobjetivos.map((Item) => ({ Tipo: "Subobjetivo", Item })),
     ...Modelo.Partes.map((Item) => ({ Tipo: "Parte", Item })),
-  ].forEach(({ Tipo, Item }) => {
-    const Base = Item as Mapa;
-    const Nombre = Normalizar_Texto(Base.Nombre || Base.Texto);
-    const Descripcion = Normalizar_Texto(Base.Descripcion);
-    if (!Base.Eliminado_Local && Normalizar_Texto_Busqueda(`${Nombre} ${Descripcion}`).includes(Texto)) {
-      Resultados.push({ Tipo, Id: Base.Id, Nombre, Periodo_Id: Base.Periodo_Id || null });
-    }
-  });
+    ].forEach(({ Tipo, Item }) => {
+      const Base = Item as Mapa;
+      const Nombre = Normalizar_Texto(Base.Nombre || Base.Texto);
+      const Descripcion = Normalizar_Texto(Base.Descripcion);
+      if (!Base.Eliminado_Local && Normalizar_Texto_Busqueda(`${Nombre} ${Descripcion}`).includes(Texto)) {
+        Resultados.push({ Tipo, Id: Base.Id, Nombre, Periodo_Id: Base.Periodo_Id || null });
+      }
+    });
+  }
+  Construir_Resultados_Decoteca_Busqueda(Estado, Url, Texto).forEach(
+    (Resultado) => Resultados.push(Resultado)
+  );
   return Responder_Json({
     Ok: true,
     Query,
+    Modulo,
     Resultados: Resultados.slice(0, Limite),
     Total: Resultados.length,
+  });
+}
+
+function Construir_Resultados_Decoteca_Busqueda(
+  Estado: Record<string, unknown>,
+  Url: URL,
+  Texto: string
+) {
+  const Decoteca = Leer_Decoteca_B2(Estado as Mapa);
+  const Teca_Filtro = Normalizar_Teca_Id_Decoteca_B2(
+    Url.searchParams.get("teca_id") || ""
+  );
+  const Tecas_Por_Id = new Map(
+    Decoteca.Tecas.map((Teca) => [String(Teca.Id || ""), Teca])
+  );
+  const Avances_Por_Obra = new Map<string, Mapa[]>();
+  Decoteca.Avances.forEach((Avance) => {
+    const Obra_Id = String(Avance.Obra_Id || "").trim();
+    if (!Obra_Id) return;
+    const Lista = Avances_Por_Obra.get(Obra_Id) || [];
+    Lista.push({ ...Avance });
+    Avances_Por_Obra.set(Obra_Id, Lista);
+  });
+  return Decoteca.Obras.filter((Obra) => {
+    const Teca_Id = String(Obra.Teca_Id || "").trim();
+    if (Teca_Filtro && Teca_Id !== Teca_Filtro) return false;
+    const Metadatos = Array.isArray(Obra.Metadatos)
+      ? Obra.Metadatos.flat().join(" ")
+      : "";
+    const Partes = Array.isArray(Obra.Partes)
+      ? Obra.Partes.map((Parte) => {
+        const Base = Es_Mapa_B2(Parte) ? Parte : {};
+        return [Base.Titulo, Base.Tipo, Base.Metadatos].flat().join(" ");
+      }).join(" ")
+      : "";
+    const Teca = Tecas_Por_Id.get(Teca_Id) || {};
+    return !Texto || Normalizar_Texto_Busqueda([
+      Obra.Titulo,
+      Obra.Creador,
+      Obra.Anio,
+      Obra.Genero,
+      Obra.Subgenero,
+      Obra.Descripcion,
+      Teca.Nombre,
+      Metadatos,
+      Partes,
+    ].join(" ")).includes(Texto);
+  }).map((Obra) => {
+    const Copia_Obra = { ...Obra };
+    delete Copia_Obra.Portada_Data_Url;
+    delete Copia_Obra.Portada_Data;
+    delete Copia_Obra.Portada_Ruta_Local;
+    delete Copia_Obra.Portada_Ruta;
+    delete Copia_Obra.Portada_Metodo_Local;
+    const Teca_Id = String(Obra.Teca_Id || "").trim();
+    const Teca = Tecas_Por_Id.get(Teca_Id) || {};
+    return {
+      Tipo: "Obra_Decoteca",
+      Id: Obra.Id,
+      Teca_Id,
+      Teca: Teca.Nombre || Teca_Id,
+      Nombre: Obra.Titulo || "",
+      Obra: Copia_Obra,
+      Registros: Avances_Por_Obra.get(String(Obra.Id || "")) || [],
+    };
   });
 }
 
@@ -6157,6 +6291,36 @@ const Rutas_B2: Record<string, {
     Scope: OAUTH_SCOPE_BAUL,
     Accion: "crear_item_baul",
     Handler: B2_Crear_Item_Baul,
+  },
+  "/b2/decoteca/obra": {
+    Scope: OAUTH_SCOPE_DECOTECA,
+    Accion: "crear_obra_decoteca",
+    Handler: B2_Crear_Obra_Decoteca,
+  },
+  "/b2/decoteca/obra/editar": {
+    Scope: OAUTH_SCOPE_DECOTECA,
+    Accion: "editar_obra_decoteca",
+    Handler: B2_Editar_Obra_Decoteca,
+  },
+  "/b2/decoteca/obra/borrar": {
+    Scope: OAUTH_SCOPE_DECOTECA,
+    Accion: "borrar_obra_decoteca",
+    Handler: B2_Borrar_Obra_Decoteca,
+  },
+  "/b2/decoteca/teca": {
+    Scope: OAUTH_SCOPE_DECOTECA,
+    Accion: "crear_teca_decoteca",
+    Handler: B2_Crear_Teca_Decoteca,
+  },
+  "/b2/decoteca/teca/editar": {
+    Scope: OAUTH_SCOPE_DECOTECA,
+    Accion: "editar_teca_decoteca",
+    Handler: B2_Editar_Teca_Decoteca,
+  },
+  "/b2/decoteca/teca/borrar": {
+    Scope: OAUTH_SCOPE_DECOTECA,
+    Accion: "borrar_teca_decoteca",
+    Handler: B2_Borrar_Teca_Decoteca,
   },
 };
 
@@ -6588,7 +6752,7 @@ async function Responder_Deshacer_B2(
   if (error || !data || !Es_Mapa_B2(data.estado_antes)) {
     return Responder_Error(404, "Mutacion no reversible", "No encontre una mutacion aplicada con estado previo.");
   }
-  if (!Tiene_Scope(Auth.Scopes, String(data.scope || ""))) {
+  if (!Tiene_Scopes_B2(Auth.Scopes, data.scope)) {
     return Responder_Error(403, "Scope insuficiente", "El token no puede deshacer esa mutacion.");
   }
   const Respuesta = await Mutar_Estado_B2(
@@ -7311,8 +7475,10 @@ function B2_Registrar_Avance_Meta(
   };
 }
 
-function Tiene_Campo_B2(Payload: Mapa, Campo: string) {
-  return Object.prototype.hasOwnProperty.call(Payload, Campo);
+function Tiene_Campo_B2(Payload: Mapa, ...Campos: string[]) {
+  return Campos.some((Campo) =>
+    Object.prototype.hasOwnProperty.call(Payload, Campo)
+  );
 }
 
 function Aplicar_Texto_Plan_B2(
@@ -8039,6 +8205,696 @@ function B2_Crear_Item_Baul(
   return {
     Respuesta: `Item creado en Baul: ${Nombre}.`,
     Resultado: { baul_id: Item.Id },
+  };
+}
+
+function Decoteca_Tecas_Base_B2(): Mapa[] {
+  return [
+    {
+      Id: "Biblioteca",
+      Nombre: "Biblioteca",
+      Icono: "📚",
+      Color: "#2f7a55",
+      Sistema: true,
+      Unidad_Nombre: "libro",
+      Subunidad_Nombre: "capitulo",
+      Metrica: "paginas",
+      Orden: 0,
+    },
+    {
+      Id: "Musicoteca",
+      Nombre: "Musicoteca",
+      Icono: "🎵",
+      Color: "#6f5aa8",
+      Sistema: true,
+      Unidad_Nombre: "album",
+      Subunidad_Nombre: "cancion",
+      Metrica: "escuchas",
+      Orden: 1,
+    },
+    {
+      Id: "Videoteca",
+      Nombre: "Videoteca",
+      Icono: "🎥",
+      Color: "#a65f36",
+      Sistema: true,
+      Unidad_Nombre: "pelicula",
+      Subunidad_Nombre: "visionado",
+      Metrica: "visionados",
+      Orden: 2,
+    },
+    {
+      Id: "Ludoteca",
+      Nombre: "Ludoteca",
+      Icono: "🎮",
+      Color: "#426f94",
+      Sistema: true,
+      Unidad_Nombre: "juego",
+      Subunidad_Nombre: "sesion",
+      Metrica: "horas",
+      Orden: 3,
+    },
+  ];
+}
+
+function Leer_Decoteca_B2(Estado: Mapa) {
+  const Raiz = Es_Mapa_B2(Estado.Decoteca)
+    ? Estado.Decoteca as Mapa
+    : {};
+  const Tecas = Array.isArray(Raiz.Tecas)
+    ? Raiz.Tecas.filter(Es_Mapa_B2) as Mapa[]
+    : [];
+  const Obras = Array.isArray(Raiz.Obras)
+    ? Raiz.Obras.filter(Es_Mapa_B2) as Mapa[]
+    : [];
+  const Avances = Array.isArray(Raiz.Avances)
+    ? Raiz.Avances.filter(Es_Mapa_B2) as Mapa[]
+    : [];
+  if (!Tecas.length) Tecas.push(...Decoteca_Tecas_Base_B2());
+  Raiz.Inicializada = true;
+  Raiz.Tecas = Tecas;
+  Raiz.Obras = Obras;
+  Raiz.Avances = Avances;
+  Estado.Decoteca = Raiz;
+  return { Raiz, Tecas, Obras, Avances };
+}
+
+function Normalizar_Teca_Id_Decoteca_B2(Valor: unknown) {
+  const Original = Normalizar_Texto(Valor);
+  const Clave = Normalizar_Texto_Busqueda(Original);
+  const Alias: Record<string, string> = {
+    biblioteca: "Biblioteca",
+    libro: "Biblioteca",
+    libros: "Biblioteca",
+    musicoteca: "Musicoteca",
+    musica: "Musicoteca",
+    album: "Musicoteca",
+    videoteca: "Videoteca",
+    pelicula: "Videoteca",
+    peliculas: "Videoteca",
+    ludoteca: "Ludoteca",
+    juego: "Ludoteca",
+    juegos: "Ludoteca",
+  };
+  return Alias[Clave] || Original;
+}
+
+function Resolver_Teca_Decoteca_B2(
+  Tecas: Mapa[],
+  Valor: unknown,
+  Fallback = "Biblioteca"
+) {
+  const Id = Normalizar_Teca_Id_Decoteca_B2(Valor || Fallback);
+  const Teca = Tecas.find((Item) => String(Item.Id || "") === Id) ||
+    Tecas.find((Item) =>
+      Normalizar_Texto_Busqueda(Item.Nombre) ===
+        Normalizar_Texto_Busqueda(Id)
+    );
+  if (!Teca) {
+    return {
+      Ok: false as const,
+      Respuesta: Error_Mutacion_B2(
+        `No encontre la teca "${Id}". Usa su teca_id o crea una teca primero.`
+      ),
+    };
+  }
+  return { Ok: true as const, Teca };
+}
+
+function Valor_Campo_B2(Payload: Mapa, ...Claves: string[]) {
+  for (const Clave of Claves) {
+    if (Object.prototype.hasOwnProperty.call(Payload, Clave)) {
+      return Payload[Clave];
+    }
+  }
+  return undefined;
+}
+
+function Texto_Campo_B2(Payload: Mapa, ...Claves: string[]) {
+  const Valor = Valor_Campo_B2(Payload, ...Claves);
+  return Valor == null ? "" : String(Valor).trim();
+}
+
+function Normalizar_Estado_Decoteca_B2(Valor: unknown) {
+  const Clave = Normalizar_Texto_Busqueda(Valor);
+  if (["planeada", "pendiente", "pendientes"].includes(Clave)) {
+    return "Planeada";
+  }
+  if (["en curso", "encurso", "actual"].includes(Clave)) {
+    return "En_Curso";
+  }
+  if (["terminada", "terminado", "finalizada", "finalizado"].includes(Clave)) {
+    return "Terminada";
+  }
+  if (["abandonada", "abandonado", "pausada", "pausado"].includes(Clave)) {
+    return "Abandonada";
+  }
+  return "Planeada";
+}
+
+function Normalizar_Lista_Decoteca_B2(
+  Valor: unknown,
+  Estado: string
+) {
+  const Clave = Normalizar_Texto_Busqueda(Valor);
+  if (["biblioteca", "pendientes", "pendiente"].includes(Clave)) {
+    return "Biblioteca";
+  }
+  if (["pausadas", "pausada"].includes(Clave)) return "Pausadas";
+  if (["archivo", "archivadas", "archivada"].includes(Clave)) {
+    return "Archivo";
+  }
+  if (Estado === "Terminada") return "Archivo";
+  if (Estado === "Abandonada") return "Pausadas";
+  return "Biblioteca";
+}
+
+function Normalizar_Prioridad_Decoteca_B2(Valor: unknown) {
+  const Clave = Normalizar_Texto_Busqueda(Valor);
+  if (Clave === "alta") return "Alta";
+  if (Clave === "media") return "Media";
+  if (Clave === "baja") return "Baja";
+  return "Sin_Prioridad";
+}
+
+function Normalizar_Metadatos_Decoteca_B2(Valor: unknown) {
+  const Resultado: Array<[string, string]> = [];
+  const Agregar = (Clave_Raw: unknown, Valor_Raw: unknown) => {
+    const Clave = Normalizar_Texto(Clave_Raw);
+    const Dato = Normalizar_Texto(Valor_Raw);
+    if (Clave && Dato) Resultado.push([Clave, Dato]);
+  };
+  if (Es_Mapa_B2(Valor)) {
+    Object.entries(Valor).forEach(([Clave, Dato]) => Agregar(Clave, Dato));
+  } else if (Array.isArray(Valor)) {
+    Valor.forEach((Item) => {
+      if (Array.isArray(Item)) {
+        Agregar(Item[0], Item[1]);
+      } else if (Es_Mapa_B2(Item)) {
+        Agregar(Item.Clave || Item.clave, Item.Valor || Item.valor);
+      } else {
+        const [Clave, ...Resto] = String(Item || "").split(":");
+        Agregar(Clave, Resto.join(":"));
+      }
+    });
+  } else if (typeof Valor === "string") {
+    Valor.split(/\r?\n/).forEach((Linea) => {
+      const [Clave, ...Resto] = Linea.split(":");
+      Agregar(Clave, Resto.join(":"));
+    });
+  }
+  return Resultado;
+}
+
+function Normalizar_Partes_Decoteca_B2(
+  Valor: unknown,
+  Teca: Mapa
+) {
+  const Lista = Array.isArray(Valor)
+    ? Valor
+    : typeof Valor === "string"
+    ? Valor.split(/\r?\n/)
+    : [];
+  const Unidad_Default = Normalizar_Texto(Teca.Metrica) || "unidades";
+  return Lista.map((Item, Indice) => {
+    const Base: Mapa = Es_Mapa_B2(Item) ? Item : { titulo: Item };
+    const Titulo = Normalizar_Texto(
+      Base.titulo || Base.Titulo || Base.nombre || Base.Nombre
+    );
+    if (!Titulo) return null;
+    return {
+      Id: Normalizar_Texto(Base.id || Base.Id) ||
+        Crear_Id_B2("Dec_Parte"),
+      Titulo,
+      Tipo: Normalizar_Texto(Base.tipo || Base.Tipo) ||
+        Normalizar_Texto(Teca.Subunidad_Nombre) || "parte",
+      Orden: Math.max(1, Number(Base.orden || Base.Orden) || Indice + 1),
+      Unidad: Normalizar_Texto(Base.unidad || Base.Unidad) || Unidad_Default,
+      Cantidad_Total: Math.max(
+        0,
+        Number(Base.cantidad_total || Base.Cantidad_Total || Base.total) || 0
+      ),
+      Duracion_Segundos: Math.max(
+        0,
+        Number(Base.duracion_segundos || Base.Duracion_Segundos) || 0
+      ),
+      Pagina_Inicio: Math.max(
+        0,
+        Number(Base.pagina_inicio || Base.Pagina_Inicio) || 0
+      ),
+      Pagina_Fin: Math.max(
+        0,
+        Number(Base.pagina_fin || Base.Pagina_Fin) || 0
+      ),
+      Metadatos: Normalizar_Metadatos_Decoteca_B2(
+        Base.metadatos || Base.Metadatos
+      ),
+    };
+  }).filter(Boolean) as Mapa[];
+}
+
+function Es_Url_Portada_Decoteca_B2(Valor: unknown) {
+  try {
+    const Url = new URL(Normalizar_Texto(Valor));
+    return ["http:", "https:"].includes(Url.protocol);
+  } catch (_) {
+    return false;
+  }
+}
+
+function Construir_Datos_Teca_Decoteca_B2(
+  Payload: Mapa,
+  Existente: Mapa = {}
+) {
+  const Datos_Entrada = Es_Mapa_B2(
+    Valor_Campo_B2(Payload, "datos_teca", "Datos_Teca")
+  )
+    ? Valor_Campo_B2(Payload, "datos_teca", "Datos_Teca") as Mapa
+    : {};
+  const Total_Raw = Tiene_Campo_B2(
+    Payload,
+    "total_unidades",
+    "Total_Unidades"
+  )
+    ? Valor_Campo_B2(Payload, "total_unidades", "Total_Unidades")
+    : Datos_Entrada.Total_Unidades ?? Datos_Entrada.total_unidades;
+  const Unidad = Tiene_Campo_B2(Payload, "unidad", "Unidad")
+    ? Texto_Campo_B2(Payload, "unidad", "Unidad")
+    : Normalizar_Texto(Datos_Entrada.Unidad || Datos_Entrada.unidad) ||
+      Normalizar_Texto(Existente.Unidad);
+  const Fuente = Tiene_Campo_B2(Payload, "fuente_datos", "Fuente_Datos")
+    ? Texto_Campo_B2(Payload, "fuente_datos", "Fuente_Datos")
+    : Normalizar_Texto(Datos_Entrada.Fuente || Datos_Entrada.fuente) ||
+      Normalizar_Texto(Existente.Fuente);
+  return {
+    ...Existente,
+    ...Datos_Entrada,
+    Unidad,
+    Total_Unidades: Total_Raw == null || Total_Raw === ""
+      ? Math.max(0, Number(Existente.Total_Unidades) || 0)
+      : Math.max(0, Number(Total_Raw) || 0),
+    Fuente,
+  };
+}
+
+function B2_Crear_Obra_Decoteca(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Decoteca = Leer_Decoteca_B2(Estado);
+  const Teca_Resultado = Resolver_Teca_Decoteca_B2(
+    Decoteca.Tecas,
+    Valor_Campo_B2(Payload, "teca_id", "Teca_Id", "teca", "Teca")
+  );
+  if (!Teca_Resultado.Ok) return Teca_Resultado.Respuesta;
+  const Titulo = Texto_Campo_B2(Payload, "titulo", "Titulo");
+  if (!Titulo) return Error_Mutacion_B2("La obra necesita titulo.");
+  const Estado_Obra = Normalizar_Estado_Decoteca_B2(
+    Valor_Campo_B2(Payload, "estado", "Estado") || "Planeada"
+  );
+  const Portada_Url = Texto_Campo_B2(
+    Payload,
+    "portada_url",
+    "Portada_Url"
+  );
+  if (Portada_Url && !Es_Url_Portada_Decoteca_B2(Portada_Url)) {
+    return Error_Mutacion_B2(
+      "portada_url debe ser una URL publica http o https."
+    );
+  }
+  const Partes = Normalizar_Partes_Decoteca_B2(
+    Valor_Campo_B2(Payload, "partes", "Partes"),
+    Teca_Resultado.Teca
+  );
+  const Datos_Teca = Construir_Datos_Teca_Decoteca_B2(Payload, {});
+  const Obra: Mapa = {
+    Id: Crear_Id_B2("Dec_Obra"),
+    Orden: Decoteca.Obras.length + 1,
+    Teca_Id: Teca_Resultado.Teca.Id,
+    Titulo,
+    Creador: Texto_Campo_B2(Payload, "creador", "Creador"),
+    Anio: Texto_Campo_B2(Payload, "anio", "Anio"),
+    Formato: Texto_Campo_B2(Payload, "formato", "Formato") ||
+      Normalizar_Texto(Teca_Resultado.Teca.Unidad_Nombre) || "Obra",
+    Genero: Texto_Campo_B2(Payload, "genero", "Genero"),
+    Subgenero: Texto_Campo_B2(Payload, "subgenero", "Subgenero"),
+    Descripcion: Texto_Campo_B2(Payload, "descripcion", "Descripcion"),
+    Fecha_Inicio: Texto_Campo_B2(Payload, "fecha_inicio", "Fecha_Inicio"),
+    Fecha_Fin: Texto_Campo_B2(Payload, "fecha_fin", "Fecha_Fin"),
+    Estado: Estado_Obra,
+    Lista: Normalizar_Lista_Decoteca_B2(
+      Valor_Campo_B2(Payload, "lista", "Lista"),
+      Estado_Obra
+    ),
+    Prioridad: Normalizar_Prioridad_Decoteca_B2(
+      Valor_Campo_B2(Payload, "prioridad", "Prioridad")
+    ),
+    Motivo: Texto_Campo_B2(Payload, "motivo", "Motivo"),
+    Origen: Texto_Campo_B2(Payload, "origen", "Origen") || "ChatGPT",
+    Fecha_Ingreso: Texto_Campo_B2(
+      Payload,
+      "fecha_ingreso",
+      "Fecha_Ingreso"
+    ) || Fecha_Argentina_B2(),
+    Periodo: "Sin_Periodo",
+    Periodo_Label: "",
+    Progreso: 0,
+    Meta_Principal: Texto_Campo_B2(
+      Payload,
+      "meta_principal",
+      "Meta_Principal"
+    ),
+    Rating: Texto_Campo_B2(Payload, "rating", "Rating"),
+    Color: Normalizar_Texto(Teca_Resultado.Teca.Color),
+    Portada_Emoji: Texto_Campo_B2(
+      Payload,
+      "portada_emoji",
+      "Portada_Emoji"
+    ) || Normalizar_Texto(Teca_Resultado.Teca.Icono) || "📚",
+    Portada_Texto: Texto_Campo_B2(
+      Payload,
+      "portada_texto",
+      "Portada_Texto"
+    ) || Titulo,
+    Portada_Tipo: Portada_Url ? "Url" : "Emoji",
+    Portada_Url,
+    Portada_Data_Url: "",
+    Portada_Mime: "",
+    Portada_Nombre: "",
+    Portada_Tamano: 0,
+    Plan: "",
+    Subobjetivos: Partes.map((Parte) => String(Parte.Titulo || "")),
+    Partes,
+    Datos_Teca,
+    Metadatos: Normalizar_Metadatos_Decoteca_B2(
+      Valor_Campo_B2(Payload, "metadatos", "Metadatos")
+    ),
+  };
+  Decoteca.Obras.push(Obra);
+  return {
+    Respuesta: `Obra creada en ${Teca_Resultado.Teca.Nombre || Teca_Resultado.Teca.Id}: ${Titulo}.`,
+    Resultado: { obra_id: Obra.Id, teca_id: Obra.Teca_Id },
+  };
+}
+
+function Buscar_Obra_Decoteca_B2(
+  Decoteca: ReturnType<typeof Leer_Decoteca_B2>,
+  Payload: Mapa
+) {
+  const Teca_Id = Normalizar_Teca_Id_Decoteca_B2(
+    Valor_Campo_B2(Payload, "teca_id", "Teca_Id")
+  );
+  const Obras = Teca_Id
+    ? Decoteca.Obras.filter((Obra) => String(Obra.Teca_Id || "") === Teca_Id)
+    : Decoteca.Obras;
+  return Buscar_Item_B2(Obras, Payload, "obra_id", "Titulo");
+}
+
+function Aplicar_Cambios_Obra_Decoteca_B2(
+  Obra: Mapa,
+  Payload: Mapa,
+  Tecas: Mapa[]
+) {
+  const Resultado: Mapa = { ...Obra };
+  const Asignar_Texto = (Destino: string, ...Claves: string[]) => {
+    if (Tiene_Campo_B2(Payload, ...Claves)) {
+      Resultado[Destino] = Texto_Campo_B2(Payload, ...Claves);
+    }
+  };
+  const Teca_Campo = Tiene_Campo_B2(
+    Payload,
+    "teca_id",
+    "Teca_Id",
+    "teca",
+    "Teca"
+  );
+  if (Teca_Campo) {
+    const Teca = Resolver_Teca_Decoteca_B2(
+      Tecas,
+      Valor_Campo_B2(Payload, "teca_id", "Teca_Id", "teca", "Teca")
+    );
+    if (!Teca.Ok) return Teca.Respuesta;
+    Resultado.Teca_Id = Teca.Teca.Id;
+    if (!Resultado.Portada_Emoji) Resultado.Portada_Emoji = Teca.Teca.Icono;
+  }
+  Asignar_Texto("Titulo", "titulo", "Titulo");
+  if (!Normalizar_Texto(Resultado.Titulo)) {
+    return Error_Mutacion_B2("La obra necesita titulo.");
+  }
+  Asignar_Texto("Creador", "creador", "Creador");
+  Asignar_Texto("Anio", "anio", "Anio");
+  Asignar_Texto("Formato", "formato", "Formato");
+  Asignar_Texto("Genero", "genero", "Genero");
+  Asignar_Texto("Subgenero", "subgenero", "Subgenero");
+  Asignar_Texto("Descripcion", "descripcion", "Descripcion");
+  Asignar_Texto("Fecha_Inicio", "fecha_inicio", "Fecha_Inicio");
+  Asignar_Texto("Fecha_Fin", "fecha_fin", "Fecha_Fin");
+  Asignar_Texto("Motivo", "motivo", "Motivo");
+  Asignar_Texto("Origen", "origen", "Origen");
+  Asignar_Texto("Fecha_Ingreso", "fecha_ingreso", "Fecha_Ingreso");
+  Asignar_Texto("Meta_Principal", "meta_principal", "Meta_Principal");
+  Asignar_Texto("Rating", "rating", "Rating");
+  Asignar_Texto("Portada_Emoji", "portada_emoji", "Portada_Emoji");
+  Asignar_Texto("Portada_Texto", "portada_texto", "Portada_Texto");
+  if (Tiene_Campo_B2(Payload, "estado", "Estado")) {
+    Resultado.Estado = Normalizar_Estado_Decoteca_B2(
+      Valor_Campo_B2(Payload, "estado", "Estado")
+    );
+    if (!Tiene_Campo_B2(Payload, "lista", "Lista")) {
+      Resultado.Lista = Normalizar_Lista_Decoteca_B2(
+        Resultado.Lista,
+        String(Resultado.Estado)
+      );
+    }
+  }
+  if (Tiene_Campo_B2(Payload, "lista", "Lista")) {
+    Resultado.Lista = Normalizar_Lista_Decoteca_B2(
+      Valor_Campo_B2(Payload, "lista", "Lista"),
+      String(Resultado.Estado || "Planeada")
+    );
+  }
+  if (Tiene_Campo_B2(Payload, "prioridad", "Prioridad")) {
+    Resultado.Prioridad = Normalizar_Prioridad_Decoteca_B2(
+      Valor_Campo_B2(Payload, "prioridad", "Prioridad")
+    );
+  }
+  if (Tiene_Campo_B2(Payload, "metadatos", "Metadatos")) {
+    Resultado.Metadatos = Normalizar_Metadatos_Decoteca_B2(
+      Valor_Campo_B2(Payload, "metadatos", "Metadatos")
+    );
+  }
+  const Teca = Resolver_Teca_Decoteca_B2(Tecas, Resultado.Teca_Id);
+  if (!Teca.Ok) return Teca.Respuesta;
+  if (Tiene_Campo_B2(Payload, "partes", "Partes")) {
+    const Partes = Normalizar_Partes_Decoteca_B2(
+      Valor_Campo_B2(Payload, "partes", "Partes"),
+      Teca.Teca
+    );
+    Resultado.Partes = Partes;
+    Resultado.Subobjetivos = Partes.map((Parte) => String(Parte.Titulo || ""));
+  }
+  if (Tiene_Campo_B2(
+    Payload,
+    "datos_teca",
+    "Datos_Teca",
+    "total_unidades",
+    "Total_Unidades",
+    "unidad",
+    "Unidad",
+    "fuente_datos",
+    "Fuente_Datos"
+  )) {
+    Resultado.Datos_Teca = Construir_Datos_Teca_Decoteca_B2(
+      Payload,
+      Es_Mapa_B2(Resultado.Datos_Teca) ? Resultado.Datos_Teca : {}
+    );
+  }
+  if (Tiene_Campo_B2(Payload, "portada_url", "Portada_Url")) {
+    const Portada_Url = Texto_Campo_B2(
+      Payload,
+      "portada_url",
+      "Portada_Url"
+    );
+    if (Portada_Url && !Es_Url_Portada_Decoteca_B2(Portada_Url)) {
+      return Error_Mutacion_B2(
+        "portada_url debe ser una URL publica http o https."
+      );
+    }
+    Resultado.Portada_Tipo = Portada_Url ? "Url" : "Emoji";
+    Resultado.Portada_Url = Portada_Url;
+    Resultado.Portada_Data_Url = "";
+    Resultado.Portada_Mime = "";
+    Resultado.Portada_Nombre = "";
+    Resultado.Portada_Tamano = 0;
+  }
+  return { Respuesta: "", Resultado };
+}
+
+function B2_Editar_Obra_Decoteca(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Decoteca = Leer_Decoteca_B2(Estado);
+  const Busqueda = Buscar_Obra_Decoteca_B2(Decoteca, Payload);
+  if (!Busqueda.Ok) return Busqueda.Respuesta;
+  const Indice = Decoteca.Obras.findIndex((Obra) =>
+    String(Obra.Id || "") === String(Busqueda.Item.Id || "")
+  );
+  const Aplicacion = Aplicar_Cambios_Obra_Decoteca_B2(
+    Busqueda.Item,
+    Payload,
+    Decoteca.Tecas
+  );
+  if (Aplicacion.Cambios === false || !Aplicacion.Resultado) {
+    return Aplicacion.Cambios === false
+      ? Aplicacion
+      : Error_Mutacion_B2("No se pudo actualizar la obra.");
+  }
+  const Obra_Editada = Aplicacion.Resultado;
+  if (JSON.stringify(Busqueda.Item) === JSON.stringify(Obra_Editada)) {
+    return Error_Mutacion_B2("No hubo cambios en la obra.");
+  }
+  Decoteca.Obras[Indice] = Obra_Editada;
+  return {
+    Respuesta: `Obra actualizada: ${Obra_Editada.Titulo}.`,
+    Resultado: { obra_id: Obra_Editada.Id },
+  };
+}
+
+function B2_Borrar_Obra_Decoteca(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  if (!Leer_Boolean_B2(Payload, false, "confirmar_eliminacion")) {
+    return Error_Mutacion_B2(
+      "Confirma la eliminacion de la obra con confirmar_eliminacion: true."
+    );
+  }
+  const Decoteca = Leer_Decoteca_B2(Estado);
+  const Busqueda = Buscar_Obra_Decoteca_B2(Decoteca, Payload);
+  if (!Busqueda.Ok) return Busqueda.Respuesta;
+  const Obra_Id = String(Busqueda.Item.Id || "");
+  Decoteca.Obras.splice(Decoteca.Obras.findIndex((Obra) =>
+    String(Obra.Id || "") === Obra_Id
+  ), 1);
+  const Registros_Eliminados = Decoteca.Avances.filter((Avance) =>
+    String(Avance.Obra_Id || "") === Obra_Id
+  ).length;
+  Decoteca.Raiz.Avances = Decoteca.Avances.filter((Avance) =>
+    String(Avance.Obra_Id || "") !== Obra_Id
+  );
+  return {
+    Respuesta: `Obra eliminada: ${Busqueda.Item.Titulo}.`,
+    Resultado: { obra_id: Obra_Id, registros_eliminados: Registros_Eliminados },
+  };
+}
+
+function B2_Crear_Teca_Decoteca(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Decoteca = Leer_Decoteca_B2(Estado);
+  const Nombre = Texto_Campo_B2(Payload, "nombre", "Nombre");
+  if (!Nombre) return Error_Mutacion_B2("La teca necesita nombre.");
+  const Teca_Id = Texto_Campo_B2(Payload, "teca_id", "Teca_Id") ||
+    Crear_Id_B2("Dec_Teca");
+  if (Decoteca.Tecas.some((Teca) => String(Teca.Id || "") === Teca_Id)) {
+    return Error_Mutacion_B2("Ya existe una teca con ese teca_id.");
+  }
+  const Teca: Mapa = {
+    Id: Teca_Id,
+    Nombre,
+    Descripcion: Texto_Campo_B2(Payload, "descripcion", "Descripcion"),
+    Icono: Texto_Campo_B2(Payload, "icono", "Icono") || "📚",
+    Color: Texto_Campo_B2(Payload, "color", "Color") || "#2f7a55",
+    Unidad_Nombre: Texto_Campo_B2(
+      Payload,
+      "unidad_nombre",
+      "Unidad_Nombre"
+    ) || "obra",
+    Subunidad_Nombre: Texto_Campo_B2(
+      Payload,
+      "subunidad_nombre",
+      "Subunidad_Nombre"
+    ) || "parte",
+    Metrica: Texto_Campo_B2(Payload, "metrica", "Metrica") || "unidades",
+    Sistema: false,
+    Orden: Decoteca.Tecas.length,
+  };
+  Decoteca.Tecas.push(Teca);
+  return {
+    Respuesta: `Teca creada: ${Nombre}.`,
+    Resultado: { teca_id: Teca.Id },
+  };
+}
+
+function B2_Editar_Teca_Decoteca(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  const Decoteca = Leer_Decoteca_B2(Estado);
+  const Teca_Resultado = Resolver_Teca_Decoteca_B2(
+    Decoteca.Tecas,
+    Valor_Campo_B2(Payload, "teca_id", "Teca_Id", "teca", "Teca")
+  );
+  if (!Teca_Resultado.Ok) return Teca_Resultado.Respuesta;
+  const Teca = Teca_Resultado.Teca;
+  const Antes = JSON.stringify(Teca);
+  [
+    ["Nombre", "nombre", "Nombre"],
+    ["Descripcion", "descripcion", "Descripcion"],
+    ["Icono", "icono", "Icono"],
+    ["Color", "color", "Color"],
+    ["Unidad_Nombre", "unidad_nombre", "Unidad_Nombre"],
+    ["Subunidad_Nombre", "subunidad_nombre", "Subunidad_Nombre"],
+    ["Metrica", "metrica", "Metrica"],
+  ].forEach(([Destino, ...Claves]) => {
+    if (Tiene_Campo_B2(Payload, ...Claves)) {
+      Teca[Destino] = Texto_Campo_B2(Payload, ...Claves);
+    }
+  });
+  if (!Normalizar_Texto(Teca.Nombre) && !Normalizar_Texto(Teca.Nombre_Key)) {
+    return Error_Mutacion_B2("La teca necesita nombre.");
+  }
+  if (Antes === JSON.stringify(Teca)) {
+    return Error_Mutacion_B2("No hubo cambios en la teca.");
+  }
+  return {
+    Respuesta: `Teca actualizada: ${Teca.Nombre || Teca.Id}.`,
+    Resultado: { teca_id: Teca.Id },
+  };
+}
+
+function B2_Borrar_Teca_Decoteca(
+  Estado: Mapa,
+  Payload: Mapa
+): Resultado_Mutacion_B2 {
+  if (!Leer_Boolean_B2(Payload, false, "confirmar_eliminacion")) {
+    return Error_Mutacion_B2(
+      "Confirma la eliminacion de la teca con confirmar_eliminacion: true."
+    );
+  }
+  const Decoteca = Leer_Decoteca_B2(Estado);
+  const Teca_Resultado = Resolver_Teca_Decoteca_B2(
+    Decoteca.Tecas,
+    Valor_Campo_B2(Payload, "teca_id", "Teca_Id", "teca", "Teca")
+  );
+  if (!Teca_Resultado.Ok) return Teca_Resultado.Respuesta;
+  const Teca = Teca_Resultado.Teca;
+  if (Teca.Sistema === true) {
+    return Error_Mutacion_B2("No se pueden borrar las tecas del sistema.");
+  }
+  if (Decoteca.Obras.some((Obra) => String(Obra.Teca_Id || "") === String(Teca.Id || ""))) {
+    return Error_Mutacion_B2(
+      "La teca tiene obras. Reubicalas o borralas antes de eliminarla."
+    );
+  }
+  Decoteca.Raiz.Tecas = Decoteca.Tecas.filter((Item) =>
+    String(Item.Id || "") !== String(Teca.Id || "")
+  );
+  return {
+    Respuesta: `Teca eliminada: ${Teca.Nombre || Teca.Id}.`,
+    Resultado: { teca_id: Teca.Id },
   };
 }
 
