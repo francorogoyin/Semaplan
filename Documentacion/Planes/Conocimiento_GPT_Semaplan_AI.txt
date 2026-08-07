@@ -1,0 +1,105 @@
+Conocimiento operativo del GPT Semaplan.
+
+Este archivo se adjunta en Knowledge al Custom GPT Semaplan. Complementa
+las Instructions breves y describe campos de Actions, lotes y Decoteca.
+No contiene credenciales ni debe tratarse como una fuente de datos del
+usuario.
+
+Acciones de lectura.
+
+- `semaplan_contexto` brinda una vista compacta del sistema.
+- `semaplan_tareas`, `semaplan_habitos`, `semaplan_agenda` y
+  `semaplan_slots` sirven para la operación diaria.
+- `semaplan_plan_semana` y `semaplan_planes_periodos` son la fuente
+  canónica de Planes. No usar el alias legado de metas como fuente
+  principal.
+- `semaplan_buscar_global` busca transversalmente. Para Decoteca, usar
+  `modulo: "decoteca"`; `q` busca texto y, sin `q`, `teca_id` lista una
+  teca completa. Las obras devuelven su ficha, metadatos, partes, datos
+  de la teca y registros. Los datos locales de archivos de portada no
+  se exponen.
+
+Lotes B2.
+
+`semaplan_b2_lote_operaciones` admite hasta 50 operaciones atómicas.
+El cuerpo usa `operaciones`, donde cada elemento contiene `accion` y
+`payload`. Agregar una `idempotency_key` estable al cuerpo principal.
+
+Para dos o más cambios, llamar primero sin `confirmar_aplicacion`. La
+respuesta es una previsualización sin persistencia. Mostrar el resumen,
+pedir confirmación y repetir exactamente el mismo lote con
+`confirmar_aplicacion: true`. No aplicar los cambios uno por uno.
+
+Acciones disponibles dentro del lote.
+
+- Tareas: `crear_tarea`, `marcar_tarea`, `reprogramar_tarea`,
+  `editar_tarea`, `borrar_tarea` y `duplicar_tarea`.
+- Hábitos: `crear_habito` y `registrar_habito`.
+- Planes: `mutar_objetivo_plan`, `mutar_subobjetivo_plan`,
+  `mutar_parte_plan` y `mutar_avance_plan`.
+- Archivero y Baúl: `crear_nota_archivero` y `crear_item_baul`.
+- Decoteca: `crear_obra_decoteca`, `editar_obra_decoteca`,
+  `borrar_obra_decoteca`, `crear_teca_decoteca`,
+  `editar_teca_decoteca` y `borrar_teca_decoteca`.
+
+Tareas.
+
+Para editar una tarea se acepta su `tarea_id` o una búsqueda no ambigua.
+No enviar `estado` si no se pidió cambiarlo. Los campos disponibles son
+`nuevo_nombre`, `descripcion`, `etiquetas`, `fecha`, `hora`,
+`fecha_limite`, `repeticion`, `subtareas`, `adjuntos`,
+`dependencias_ids`, `estimacion_minutos`, `tiempo_registrado_minutos`,
+`prioridad`, `motivo_posposicion`, `fecha_sugerida` y `archivada`.
+Las prioridades son `urgente`, `alta`, `media` y `baja`. Las subtareas
+son objetos con `Texto` y `Hecha`. Para borrar, pedir confirmación y
+enviar `confirmar_eliminacion: true`.
+
+Decoteca: búsqueda e identidad.
+
+Antes de editar o borrar, consultar la obra y usar `obra_id`. Si hay
+varias obras o varias ediciones posibles, pedir autor, año, ISBN o la
+edición. “Decoteca de Libros” equivale a `teca_id: "Biblioteca"`.
+Las tecas de sistema son `Biblioteca`, `Musicoteca`, `Videoteca` y
+`Ludoteca`; no se borran. Una teca personalizada solo se borra vacía.
+
+Para crear una obra se requiere `titulo`. Usar `teca_id` y, cuando se
+conozcan, `creador`, `anio`, `formato`, `genero`, `subgenero`,
+`descripcion`, `estado`, `lista`, `prioridad`, `motivo`, `origen`,
+`fecha_ingreso`, `rating`, `metadatos`, `partes`, `datos_teca`,
+`portada_url`, `portada_texto` y `portada_emoji`.
+
+Estados de obra: `Planeada`, `En_Curso`, `Terminada` y `Abandonada`.
+Listas: `Biblioteca`, `Pausadas` y `Archivo`. Prioridades: `Alta`,
+`Media`, `Baja` y `Sin_Prioridad`. “Pendientes” significa
+`estado: "Planeada"` y `lista: "Biblioteca"`.
+
+Para editar una obra, enviar `obra_id` y solo los campos confirmados.
+Si se modifica `metadatos`, leer antes la obra y reenviar el conjunto
+completo, porque ese campo se reemplaza. Los metadatos admiten un objeto
+o pares `["Clave", "Valor"]`. `datos_teca` admite `Unidad`,
+`Total_Unidades` y `Fuente`. Cada parte admite título, cantidad total,
+páginas, duración y metadatos propios.
+
+Para borrar una obra, explicar que se eliminan también sus registros de
+avance. Pedir confirmación explícita. En un lote confirmado, el gateway
+aplica internamente la confirmación de cada borrado.
+
+Investigación y carátulas de Decoteca.
+
+Usar Web Search antes de crear una obra o corregir información externa.
+Priorizar, en este orden cuando sea posible: editorial o autor,
+biblioteca o universidad, Open Library y Wikidata. Distinguir siempre la
+obra de una edición concreta. No reemplazar el año, ISBN, traductor,
+editorial, páginas o carátula de una edición por los de otra.
+
+Guardar fuentes verificables dentro de `metadatos`, por ejemplo `Fuente
+de metadatos` y `Fuente de carátula`, con URL completa. Una carátula se
+guarda solo como `portada_url` directa, pública y estable con protocolo
+`http` o `https`. No usar imágenes generadas, miniaturas de buscadores,
+URLs temporarias ni datos base64. Si no hay una fuente confiable, no
+inventar ni reemplazar la carátula existente.
+
+Cuando el usuario pida “revisá y corregí”, comparar primero Semaplan
+con las fuentes. Si la obra y edición son únicas y los cambios están
+verificados, aplicar solo el diff y comunicarlo. Si existe ambigüedad,
+pedir precisión antes de tocar datos.
