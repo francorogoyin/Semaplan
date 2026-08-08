@@ -75,7 +75,7 @@ async function Arrancar_App() {
       Number(process.env.SEMAPLAN_DESKTOP_PORT) || 4173,
     Raiz_App: app.getAppPath(),
   });
-  Url_App = `${Servidor_Local.Url_Base}/index.html`;
+  Url_App = `${Servidor_Local.Url_Base}/login.html`;
   Crear_Ventana_Principal();
 }
 

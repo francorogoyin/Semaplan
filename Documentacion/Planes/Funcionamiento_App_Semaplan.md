@@ -20,6 +20,9 @@ estructuras persistidas o relaciones importantes entre modulos.
 - `index.html`: landing publica.
 - `Semaplan.html`: redireccion liviana a `login.html`.
 - `login.html`: aplicacion operativa principal.
+- `Aplicaciones/Desktop/Main_Process.js`: abre `login.html` directamente
+  en la aplicacion Electron. El portable estable se genera como
+  `Aplicaciones/Desktop/Dist_Desktop/Semaplan-Desktop.exe`.
 - `supabase/functions/semaplan-ai`: gateway de IA en produccion para
   consultas y mutaciones B2 acotadas sobre datos de Semaplan en
   `https://cprdnxkkhuuhdispubds.supabase.co/functions/v1/semaplan-ai`.
@@ -210,19 +213,29 @@ La carga local/restauracion pasa por `Cargar_Estado()` y luego por
 El flujo operativo base es este.
 
 1. `Inicializar_Supabase()` crea el cliente remoto.
-2. `Cargar_Estado()` intenta levantar cache local y luego el estado
-   remoto si hace falta.
+2. Al entrar, la app aisla el cache por usuario. Si hay una copia local
+   pendiente, la conserva hasta poder compararla con remoto; si la
+   consulta remota falla, no borra el pendiente ni reemplaza ese cache.
+   Sin pendiente local, carga remoto mediante
+   `Backend_Cargar_Estado_Remoto()`.
 3. `Normalizar_Estado()` deja todos los modulos en formato canonico.
 4. Los renders principales reconstruyen UI segun el estado ya
    normalizado.
-5. `Guardar_Estado()` serializa el estado completo y lo guarda en
-   localStorage. Solo programa sync remoto si el estado de datos
-   reales cambio respecto del cache anterior; cambios puramente
-   operativos como sesiones o marcas de sync no ensucian remoto.
-6. `Backend_Sync_Programar()` encola cambios reales casi al toque y
-   mantiene un unico ciclo de subida. La UI muestra `Pendiente` mientras
-   el cambio espera o se reintenta, y reserva `Guardando` para una
-   operacion remota que realmente sigue activa.
+5. `Guardar_Estado()` construye y serializa una sola vez el estado
+   completo. Antes de escribir el blob marca en memoria y en storage que
+   existe sync pendiente; luego `Persistir_Estado_Local_Seguro()` escribe
+   estado, usuario y marca pendiente, y verifica la lectura resultante.
+   Solo programa sync remoto si cambiaron datos reales. Las sesiones y
+   otras marcas operativas no ensucian datos del usuario.
+5.b Si falta cuota local, la persistencia reduce primero los backups
+   automaticos y luego los manuales mediante candidatos conservadores,
+   y reintenta la misma escritura. Si tampoco asi puede verificarla,
+   registra el error y muestra una unica advertencia de riesgo de perdida;
+   este es un fallo local excepcional, no un estado normal de sync.
+6. `Backend_Sync_Programar()` mantiene una sola cola silenciosa: usa un
+   debounce corto de 200 ms para cambios normales y prioridad inmediata
+   para cambios criticos. No hay indicador `Guardando`, `Pendiente` o
+   `Error`, ni reintento manual visible.
 6.b Las mutaciones visibles del calendario que crean, mueven,
    redimensionan, repiten, limpian, pegan o tildan bloques, y las que
    crean, borran, limpian o planifican slots muertos/vacios, usan
@@ -240,14 +253,11 @@ El flujo operativo base es este.
    habitos, notas, slots, planes u otros modulos contaminen la referencia
    remota y queden invisibles para el diff de guardado.
 7.c Cada guardado de datos captura la revision local y el contenido que
-   efectivamente envio. El exito remoto solo limpia el pendiente y muestra
-   `Guardado` si ambos siguen coincidiendo con el estado local. Si hubo
-   otro cambio mientras la consulta estaba en curso, conserva el pendiente,
-   conserva el pendiente, muestra `Pendiente` y programa el siguiente
-   ciclo. `Guardando` aparece solo si la escritura supera un umbral corto.
-   La comparacion del contenido normaliza el orden de las propiedades
-   JSON, para que dos estados equivalentes no generen reintentos ni un
-   falso `Error`.
+   efectivamente envio. El exito remoto limpia el pendiente solo si ambos
+   siguen coincidiendo con el estado local. Si aparece otro cambio durante
+   la consulta, conserva el pendiente y programa el siguiente ciclo. La
+   comparacion normaliza el orden de propiedades JSON para que estados
+   equivalentes no generen reintentos.
 7.d Los guardados de metadata operativa, como heartbeat o cortes de sesion,
    no confirman ni limpian cambios de datos del usuario.
 8. Al iniciar una sesion logueada, la app lee remoto antes de entrar y
@@ -265,17 +275,16 @@ El flujo operativo base es este.
    estado normal generado por `Construir_Estado_Completo()` y no debe
    contarse como cambio de datos del usuario.
 10. `Sync_Datos_Marca_Ms` marca cambios reales de datos generados por
-   `Guardar_Estado()`. La metadata de sesiones no actualiza esa marca.
+    `Guardar_Estado()`. La metadata de sesiones no actualiza esa marca.
 11. Si al iniciar hay cambios locales pendientes, la app no decide
-   conflicto por `actualizado_en` remoto solamente. Solo abre
-   conflicto si el estado remoto trae una marca de datos reales mas
-   nueva que la local. Si el cambio remoto fue operativo o no tiene
-   marca de datos mas nueva, el cache local pendiente se sincroniza.
-11.b Si al iniciar hay `sync` local pendiente sin
-   `Sync_Datos_Marca_Ms`, y la marca del pendiente local queda vieja
-   frente a `actualizado_en` remoto por mas de 1 segundo, se descarta
-   ese pendiente, se limpia el flag local y se recarga el estado
-   remoto para evitar quedar en `Guardando` con cache obsoleto.
+    conflicto por `actualizado_en` remoto solamente. Solo abre
+    conflicto si el estado remoto trae una marca de datos reales mas
+    nueva que la local. Si el cambio remoto fue operativo o no tiene
+    marca de datos mas nueva, el cache local pendiente se sincroniza.
+11.b Un pendiente local sin `Sync_Datos_Marca_Ms` tampoco se descarta por
+    antiguedad. Si no se puede demostrar igualdad o un conflicto real,
+    se conserva y se intenta sincronizar; la prioridad es no perder una
+    modificacion local por una heuristica temporal.
 12. La metadata operativa de sesiones (`Sesiones_Operativas` y
    `Sesion_Global_Corte_Ms`) no se trata como cambio de datos del
    usuario. Si el remoto cambio solo por metadata operativa, no se muestra
@@ -284,29 +293,25 @@ El flujo operativo base es este.
    carrera, relee la fila para decidir si refresca version y reintenta o
    abre conflicto por datos reales mas nuevos.
 13. Fuera del heartbeat del lease exclusivo, no hay polling remoto
-   permanente por defecto. La app revisa cambios remotos al volver al
-   foco/visibilidad o por eventos locales de sync, sin marcar
-   `Guardando` si no hay cambios propios.
+    permanente por defecto. La app revisa cambios remotos al volver al
+    foco/visibilidad o por eventos locales de sync. Cuando vuelve la
+    conexion, el evento `online` adelanta la cola local pendiente.
 14. `Hay_Sync_Pendiente()` representa trabajo real pendiente
-   (timer, reintento, promesa o escritura en curso) y no solamente el
-   texto visible. Si la UI queda en `Pendiente` o `Guardando` sin tarea
-   activa, `Resolver_Sync_Guardando_Inactivo()` la normaliza a
-   `Guardado`, reintento o `Error` segun haya datos locales sucios o
-   conflicto.
-14.b Los reintentos automaticos de sync tienen tope. Si se alcanza el
-   maximo de intentos consecutivos sin exito, la app deja de quedar en
-   `Guardando` indefinido y pasa a `Error` hasta un reintento manual.
-14.c Cada lectura o escritura principal de sync tiene cancelacion local
-   a los 45 segundos. Tanto esa cancelacion como un timeout informado por
-   el backend (`code 57014` / `statement timeout`) conservan los datos
-   pendientes, permiten un ultimo reintento acotado y luego muestran
-   `Error`. Tras un timeout no se hace una segunda lectura remota de
-   diagnostico, para evitar duplicar la espera y dejar la UI en
-   `Guardando` indefinidamente.
+    (timer, reintento, promesa o escritura en curso). Es una señal interna
+    y no un texto visible.
+14.b Los reintentos automaticos no tienen estado terminal: continúan
+    mientras existan datos locales sucios. El backoff satura en 5 minutos
+    con demoras de 2, 5, 15, 60 y 300 segundos, y se adelanta al volver
+    la conexion, el foco o la visibilidad.
+14.c Cada lectura o escritura principal tiene cancelacion local a los
+    45 segundos. Un timeout local o del backend conserva los datos
+    pendientes y entra en el mismo ciclo de reintento silencioso, sin una
+    segunda lectura diagnostica que duplique la espera.
 14.d Cuando hay muchos cambios acumulados, el sync versionado envia el
-   estado en lotes por claves raiz para evitar timeouts por payload
-   grande. Cada lote actualiza la misma fila con control de version y la
-   app confirma `Guardado` al terminar el ultimo lote.
+    estado en lotes por claves raiz para evitar timeouts por payload
+    grande. Cada lote actualiza la misma fila con control de version y el
+    pendiente se limpia solo al terminar el ultimo lote sin cambios
+    locales posteriores.
 15. `Cerrar sesion en todas` registra primero un corte global propio en
    el estado remoto. Si Supabase rechaza el `signOut` global, la app
    registra el error pero igualmente cierra la sesion local, porque el

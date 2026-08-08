@@ -59,6 +59,13 @@ aumenta la chance de aplicar una regla y olvidar la otra.
   configuracion y cualquier modal de edicion.
 - Una normalizacion invisible no cuenta como cambio real salvo que
   corrija persistencia necesaria o un dato efectivamente invalido.
+- Cada cambio real debe persistirse primero en el dispositivo y verificarse
+  por lectura antes de considerarse capturado. La sincronizacion remota es
+  silenciosa, automatica y no debe bloquear el trabajo normal.
+- No mostrar estados permanentes `Guardando`, `Pendiente` o `Error`. Una
+  falla remota conserva el pendiente y reintenta con backoff; solo una falla
+  local no recuperable justifica una advertencia visible por riesgo de
+  perdida de datos.
 
 ## Seleccion multiple
 
