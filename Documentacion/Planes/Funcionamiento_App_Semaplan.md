@@ -574,6 +574,24 @@ Relaciones importantes.
 
 - Los habitos pueden vincularse a objetivos, subobjetivos, partes,
   items de patron y slots.
+- Un objetivo de `Planes_Periodo` puede tener un vínculo operativo de
+  ritmo con `Rol: "Ritmo_Meta"`. Ese hábito no crea una segunda meta ni
+  una segunda fuente de progreso: define la acción, el período de
+  evaluación y los días válidos. Su cantidad se deriva dinámicamente de
+  la carga pendiente de la meta y se redistribuye entre las fechas que
+  `Habito_Corresponde_En_Fecha()` considera aplicables.
+- Cada hábito con rol `Ritmo_Meta` tiene una sola meta propietaria. Si
+  se reasocia, la app quita la asociación operativa anterior sin tocar
+  los demás vínculos ordinarios de esa meta.
+- El ritmo asociado admite programación semanal y ciclos de varias
+  semanas mediante `Semanas_Ciclo`, `Dias_Ciclo` y `Fecha_Ancla`. La
+  meta del hábito puede operar por día, semana, quincena o mes; el valor
+  actual se calcula sobre los días válidos restantes de ese período.
+- Los registros del hábito asociado se reconstruyen desde avances de
+  Planes con fuente `Plan_Objetivo_Ritmo`. Registrar desde la tarjeta o
+  la sidebar del hábito abre el avance de la meta y nunca agrega un
+  registro manual paralelo. Así, editar o borrar el avance en Planes
+  conserva una sola fuente de verdad.
 - Cambios en programacion o registros pueden alterar sidebar,
   indicadores, planes y enfoque diario.
 - El modal principal de Habitos se cierra con Escape igual que los
@@ -1174,6 +1192,29 @@ Relaciones importantes.
   pendiente junto a la original, sin avances ni fecha/hora de cierre, y
   recalcula targets cuando el subobjetivo suma componentes.
 - Objetivos, subobjetivos y partes pueden vincular habitos.
+- El detalle expandido separa el resultado principal de la carga de
+  trabajo. El resultado puede ser, por ejemplo, una obra terminada,
+  mientras la carga operativa usa la unidad uniforme de sus
+  subobjetivos. Esta relación es genérica y no presupone libros,
+  páginas ni otro dominio particular.
+- `Planes_Carga_Trabajo_Objetivo()` suma sólo métricas compatibles y
+  evita contar dos veces subobjetivos cuyo valor se deriva por suma de
+  componentes. Si faltan métricas muestra cobertura parcial como mínimo
+  conocido; si hay unidades distintas, no calcula una equivalencia
+  ficticia.
+- La `Pauta de hoy` usa el trabajo pendiente, el avance ya registrado en
+  la fecha y los días válidos hasta el fin de la meta. Informa cantidad
+  recomendada, días restantes, ritmo real de jornadas anteriores ya
+  cerradas y proyección; distingue día válido, descanso planificado,
+  meta pausada, carga completa y ausencia de fechas disponibles.
+- `Crear hábito asociado` abre el editor de Hábitos ya contextualizado.
+  El nombre de la acción sigue siendo editable y la programación puede
+  ser semanal, quincenal alternada o un ciclo más largo. Los campos de
+  cantidad y unidad quedan derivados de la meta para impedir que se
+  desincronicen.
+- El rol `Ritmo_Meta` forma parte del esquema de estado 7. Las versiones
+  cuyo máximo de esquema sea 6 no deben habilitarse para ese estado,
+  porque normalizan los vínculos sin conservar esa semántica.
 - El modal de registrar avance usa un selector visual en arbol: agrupa
   por anio, objetivo, subobjetivo y parte. Los nodos con boton `+`
   siguen siendo seleccionables; el boton solo abre o cierra la rama. Al
