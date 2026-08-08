@@ -267,10 +267,22 @@ El flujo operativo base es este.
 9. El lease operativo se renueva con heartbeat remoto liviano. Si el
    usuario elige cerrar las demas sesiones, la app escribe un corte en
    `Sesiones_Operativas`, conserva solo la sesion actual y las otras
-   quedan expulsadas cuando revisen remoto. Si una app se cierra o se
-   cae sin liberar el lease, la sesion vence por TTL. El heartbeat y los
-   cortes de sesion suben solo metadata operativa de sesion, no el blob
-   completo del usuario, para evitar timeouts en cuentas grandes.
+   quedan expulsadas cuando revisen remoto. El corte usa una generacion
+   unica aceptada por la instancia actual: no depende de que los relojes
+   de dos computadoras coincidan. Como segunda barrera, Supabase invalida
+   los tokens de renovacion de las demas sesiones sin cerrar la actual.
+   Para clientes 1.8.0, tambien conserva un corte horario mayor que el
+   inicio declarado por cualquier lease remoto, aunque el reloj de ese
+   dispositivo este adelantado.
+   Si una app se cierra o se cae sin liberar el lease, la sesion vence
+   por TTL. El heartbeat y los cortes de sesion suben solo metadata
+   operativa de sesion, no el blob completo del usuario, para evitar
+   timeouts en cuentas grandes.
+9.a Cada instancia web o Desktop revisa el corte operativo cada 5
+   segundos con una lectura liviana. Esta revision sigue activa cuando
+   Electron queda minimizado; el heartbeat de 30 segundos permanece como
+   respaldo. Al salir se detienen ambos temporizadores y se limpia la
+   identidad operativa local para que un ingreso posterior sea nuevo.
 9.b `Sesiones_Operativas` es metadata operativa: no forma parte del
    estado normal generado por `Construir_Estado_Completo()` y no debe
    contarse como cambio de datos del usuario.
@@ -292,9 +304,10 @@ El flujo operativo base es este.
    intenta primero el `UPDATE` versionado; si esa escritura pierde una
    carrera, relee la fila para decidir si refresca version y reintenta o
    abre conflicto por datos reales mas nuevos.
-13. Fuera del heartbeat del lease exclusivo, no hay polling remoto
-    permanente por defecto. La app revisa cambios remotos al volver al
-    foco/visibilidad o por eventos locales de sync. Cuando vuelve la
+13. El unico polling remoto permanente fuera del heartbeat es la lectura
+    liviana del corte de sesiones cada 5 segundos; no carga ni aplica el
+    estado normal del usuario. Los cambios de datos se revisan al volver
+    al foco/visibilidad o por eventos locales de sync. Cuando vuelve la
     conexion, el evento `online` adelanta la cola local pendiente.
 14. `Hay_Sync_Pendiente()` representa trabajo real pendiente
     (timer, reintento, promesa o escritura en curso). Es una señal interna
@@ -338,6 +351,8 @@ Funciones transversales importantes.
 - `Backend_Sync_Programar()`
 - `Backend_Sync_Ejecutar()`
 - `Preparar_Sesion_Operativa_Entrada()`
+- `Revisar_Corte_Sesion_Operativa_Remoto()`
+- `Invalidar_Otras_Sesiones_Auth()`
 - `Backend_Registrar_Corte_Sesion_Global()`
 - `Backend_Forzar_Corte_Global_Desde_Local()`
 - `Invocar_Edge_Con_Sesion()`

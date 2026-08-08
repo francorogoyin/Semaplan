@@ -67,6 +67,22 @@ aumenta la chance de aplicar una regla y olvidar la otra.
   local no recuperable justifica una advertencia visible por riesgo de
   perdida de datos.
 
+## Sesiones operativas
+
+- `Cerrar otras sesiones` debe conservar exclusivamente la instancia
+  que ejecuta la accion y expulsar las demas, tanto web como Desktop.
+- El corte principal debe identificarse con una generacion unica y no
+  depender de comparar el reloj local de dos dispositivos.
+- La sesion actual acepta la nueva generacion solo despues de que el
+  corte remoto se haya guardado. Las otras instancias deben detectarla
+  con una revision liviana en pocos segundos y cerrar su autenticacion
+  local.
+- La invalidacion de autenticacion debe usar alcance `others`: nunca
+  debe invalidar el token de renovacion de la sesion que ordeno el
+  cierre.
+- El heartbeat y la revision rapida son metadata operativa: no deben
+  confirmar, limpiar ni sobrescribir cambios de datos pendientes.
+
 ## Seleccion multiple
 
 Cuando una seleccion multiple muestra una barra de acciones en lote

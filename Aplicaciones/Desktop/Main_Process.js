@@ -50,6 +50,7 @@ function Crear_Ventana_Principal() {
     title: "Semaplan",
     width: 1440,
     webPreferences: {
+      backgroundThrottling: false,
       contextIsolation: true,
       nodeIntegration: false,
       preload: Path.join(__dirname, "Preload.js"),
