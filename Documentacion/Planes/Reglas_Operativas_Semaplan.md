@@ -157,6 +157,13 @@ fecha activa explícita prevalece sobre el patrón semanal, mensual o
 cíclico. Cambiar el calendario durante una jornada no modifica la pauta
 ya fijada y sólo afecta las próximas jornadas.
 
+En el editor de un hábito asociado, `Meta` es una salida derivada y debe
+recalcularse en el momento ante cualquier cambio de período, fecha de
+inicio, días semanales, rango, ciclo, días del mes o fechas excepcionales.
+Si hoy no es válido, el editor usa la primera fecha válida futura como
+referencia. Este cálculo de configuración es sólo una vista previa: no
+crea ni sobrescribe la pauta histórica ya fijada para la jornada.
+
 ## Lectura del progreso de una meta
 
 El detalle de una meta debe responder primero qué hacer hoy y después

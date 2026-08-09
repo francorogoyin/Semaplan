@@ -529,6 +529,239 @@ test("persiste la primera pauta calculada de una jornada activa", () => {
   assert.equal(Guardados, 1);
 });
 
+test("la vista previa recalcula sin tocar la pauta diaria fijada", () => {
+  const Registro = {
+    Pauta: 99,
+    Pendiente_Inicial: 100,
+    Dias_Activos_Restantes: 5
+  };
+  let Fijados = 0;
+  const Objetivo = { Id: "Meta" };
+  const Modelo = { Objetivos: { Meta: Objetivo } };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => Modelo,
+    Planes_Carga_Trabajo_Objetivo: () => ({
+      Calculable: true,
+      Total: 100,
+      Pendiente: 100,
+      Unidad: "paginas",
+      Unidad_Clave: "paginas",
+      Subobjetivos_Pendientes: 1
+    }),
+    Planes_Rango_Ritmo_Objetivo: () => ({
+      Inicio: Parsear_Fecha("2026-08-01"),
+      Fin: Parsear_Fecha("2026-08-10")
+    }),
+    Habitos_Fecha_Hoy: () => "2026-08-06",
+    Formatear_Fecha_ISO: Formatear_Fecha,
+    Parsear_Fecha_ISO: Parsear_Fecha,
+    Sumar_Dias,
+    Planes_Fechas_Validas_Ritmo: () => [
+      "2026-08-06",
+      "2026-08-07",
+      "2026-08-08",
+      "2026-08-09",
+      "2026-08-10"
+    ],
+    Planes_Registro_Ritmo_Diario: () => Registro,
+    Habito_Corresponde_En_Fecha: () => true,
+    Planes_Avances_Carga_Objetivo: () => 0,
+    Planes_Pendiente_Inicial_Ritmo: () => 100,
+    Planes_Vinculo_Ritmo_Habito: () => ({ Habito: { Id: "Habito" } }),
+    Planes_Fijar_Registro_Ritmo_Diario: () => {
+      Fijados += 1;
+      return Registro;
+    },
+    Planes_Ritmo_Real_Objetivo: () => ({
+      Cantidad: 0,
+      Dias: 0,
+      Tiene_Datos: false
+    }),
+    Planes_Proyectar_Fecha_Ritmo: () => ""
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Redondear_Cuota_Ritmo",
+    "Planes_Calcular_Ritmo_Meta"
+  ]);
+  const Previa = Contexto.Planes_Calcular_Ritmo_Meta(
+    Objetivo,
+    { Id: "Habito" },
+    "2026-08-06",
+    Modelo,
+    {
+      Vista_Previa: true,
+      Ignorar_Registro_Diario: true
+    }
+  );
+  assert.equal(Previa.Cuota_Diaria_Total, 20);
+  assert.equal(Previa.Pauta_Fijada, false);
+  assert.equal(Previa.Registro_Diario, null);
+  assert.equal(Fijados, 0);
+  const Operativa = Contexto.Planes_Calcular_Ritmo_Meta(
+    Objetivo,
+    { Id: "Habito" },
+    "2026-08-06",
+    Modelo
+  );
+  assert.equal(Operativa.Cuota_Diaria_Total, 99);
+  assert.equal(Operativa.Pauta_Fijada, true);
+});
+
+test("el editor usa la primera fecha válida futura para actualizar Meta", () => {
+  let Opciones_Recibidas = null;
+  let Fecha_Recibida = "";
+  const Info = {
+    Calculable: true,
+    Completa: false,
+    Es_Hoy_Valido: false,
+    Proxima_Fecha_Valida: "2026-08-10"
+  };
+  const Contexto = {
+    Habitos_Fecha_Hoy: () => "2026-08-09",
+    Planes_Calcular_Ritmo_Meta: (_O, _H, _F, _M, Opciones) => {
+      Opciones_Recibidas = Opciones;
+      return Info;
+    },
+    Planes_Cuota_Periodo_Ritmo_Meta: (_O, _H, Fecha) => {
+      Fecha_Recibida = Fecha;
+      return 41.25;
+    },
+    Planes_Redondear_Cuota_Ritmo: (Valor) => Valor
+  };
+  Cargar_Funciones(Contexto, ["Planes_Calcular_Meta_Editor_Ritmo"]);
+  const Resultado = Contexto.Planes_Calcular_Meta_Editor_Ritmo(
+    { Id: "Meta" },
+    { Id: "Habito" }
+  );
+  assert.equal(Opciones_Recibidas?.Vista_Previa, true);
+  assert.equal(Opciones_Recibidas?.Ignorar_Registro_Diario, true);
+  assert.equal(Fecha_Recibida, "2026-08-10");
+  assert.equal(Resultado.Fecha_Referencia, "2026-08-10");
+  assert.equal(Resultado.Cantidad, 41.25);
+});
+
+test("fecha de inicio y días activos cambian la cuota recomendada", () => {
+  const Objetivo = { Id: "Meta" };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => ({ Objetivos: { Meta: Objetivo } }),
+    Planes_Carga_Trabajo_Objetivo: () => ({
+      Calculable: true,
+      Total: 700,
+      Pendiente: 700,
+      Unidad: "paginas",
+      Unidad_Clave: "paginas",
+      Subobjetivos_Pendientes: 1
+    }),
+    Planes_Rango_Ritmo_Objetivo: () => ({
+      Inicio: Parsear_Fecha("2026-08-10"),
+      Fin: Parsear_Fecha("2026-08-23")
+    }),
+    Habitos_Fecha_Hoy: () => "2026-08-09",
+    Formatear_Fecha_ISO: Formatear_Fecha,
+    Parsear_Fecha_ISO: Parsear_Fecha,
+    Sumar_Dias,
+    Dias_Entre: (A, B) => Math.round((B - A) / 86400000),
+    Obtener_Lunes: (Fecha) => Sumar_Dias(
+      Fecha,
+      -((Fecha.getDay() + 6) % 7)
+    ),
+    Planes_Avances_Carga_Objetivo: () => 0,
+    Planes_Pendiente_Inicial_Ritmo: () => 700,
+    Planes_Vinculo_Ritmo_Habito: () => null,
+    Planes_Ritmo_Real_Objetivo: () => ({
+      Cantidad: 0,
+      Dias: 0,
+      Tiene_Datos: false
+    }),
+    Planes_Proyectar_Fecha_Ritmo: () => ""
+  };
+  Cargar_Funciones(Contexto, [
+    "Habito_Coincide_Con_Dia",
+    "Habito_Corresponde_En_Fecha",
+    "Planes_Fechas_Validas_Ritmo",
+    "Planes_Redondear_Cuota_Ritmo",
+    "Planes_Calcular_Ritmo_Meta"
+  ]);
+  const Habito = (Fecha_Inicio, Dias = []) => ({
+    Id: "Habito",
+    Fecha_Inicio,
+    Programacion: {
+      Patron_Dias: "Semanal",
+      Dias
+    }
+  });
+  const Desde_El_Diez = Contexto.Planes_Calcular_Ritmo_Meta(
+    Objetivo,
+    Habito("2026-08-10"),
+    "2026-08-09",
+    null,
+    {
+      Vista_Previa: true,
+      Ignorar_Registro_Diario: true
+    }
+  );
+  assert.equal(Desde_El_Diez.Dias_Validos_Restantes, 14);
+  assert.equal(Desde_El_Diez.Cuota_Diaria_Total, 50);
+  const Desde_El_Diecisiete = Contexto.Planes_Calcular_Ritmo_Meta(
+    Objetivo,
+    Habito("2026-08-17"),
+    "2026-08-09",
+    null,
+    {
+      Vista_Previa: true,
+      Ignorar_Registro_Diario: true
+    }
+  );
+  assert.equal(Desde_El_Diecisiete.Dias_Validos_Restantes, 7);
+  assert.equal(Desde_El_Diecisiete.Cuota_Diaria_Total, 100);
+  const Lunes_A_Sabado = Contexto.Planes_Calcular_Ritmo_Meta(
+    Objetivo,
+    Habito("2026-08-10", [0, 1, 2, 3, 4, 5]),
+    "2026-08-09",
+    null,
+    {
+      Vista_Previa: true,
+      Ignorar_Registro_Diario: true
+    }
+  );
+  assert.equal(Lunes_A_Sabado.Dias_Validos_Restantes, 12);
+  assert.equal(Lunes_A_Sabado.Cuota_Diaria_Total, 58.34);
+});
+
+test("todos los campos de días disparan el recálculo de Meta", () => {
+  const Contexto = {};
+  Cargar_Funciones(Contexto, ["Habito_Campo_Afecta_Ritmo_Meta"]);
+  const Campo = (Selector_Campo) => ({
+    matches: (Selectores) => Selectores.split(",")
+      .map((Selector) => Selector.trim())
+      .includes(Selector_Campo)
+  });
+  [
+    "#Habito_Dias_Modo",
+    "[data-habito-dia]",
+    "#Habito_Meta_Periodo",
+    "#Habito_Dia_Desde",
+    "#Habito_Dia_Hasta",
+    "#Habito_Fecha_Inicio",
+    "#Habito_Dias_Mes",
+    "#Habito_Ciclo_Semanas",
+    "#Habito_Ciclo_Dias_Total",
+    "#Habito_Ciclo_Dias_Activos",
+    "#Habito_Fechas_Activas",
+    "#Habito_Fechas_Inactivas"
+  ].forEach((Selector) => {
+    assert.equal(
+      Contexto.Habito_Campo_Afecta_Ritmo_Meta(Campo(Selector)),
+      true,
+      Selector
+    );
+  });
+  assert.equal(
+    Contexto.Habito_Campo_Afecta_Ritmo_Meta(Campo("#Habito_Nombre")),
+    false
+  );
+});
+
 test("el ritmo real no penaliza el día actual todavía abierto", () => {
   const Rangos = [];
   const Contexto = {

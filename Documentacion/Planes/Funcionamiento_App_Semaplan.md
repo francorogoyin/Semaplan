@@ -1268,7 +1268,13 @@ Relaciones importantes.
   El nombre de la acción sigue siendo editable y la programación puede
   ser semanal, por días del mes, por ciclo de días o por ciclo de
   semanas, con fechas activas o inactivas excepcionales. Los campos de
-  cantidad y unidad quedan derivados de la meta.
+  cantidad y unidad quedan derivados de la meta. La cantidad se
+  recalcula en vivo al cambiar el período o cualquier dato que altere
+  los días válidos, incluida la fecha de inicio. El cálculo de esa
+  cantidad ignora la fotografía histórica de hoy, pero nunca la
+  modifica; la franja superior sí conserva la pauta operativa fijada.
+  Si hoy no corresponde, la cantidad se deriva desde la primera fecha
+  válida futura.
 - El historial diario y los nuevos patrones de días forman parte del
   esquema de estado 8. Las versiones cuyo máximo de esquema sea 7 no
   deben habilitarse para ese estado, porque descartarían esos datos al
