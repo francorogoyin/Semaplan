@@ -1242,11 +1242,14 @@ Relaciones importantes.
   días activos. Las metas sin cuota, sin compromiso o con unidades
   mixtas muestran ausencia de cálculo en lugar de inventar un cero o
   una equivalencia.
-- `Planes_Carga_Trabajo_Objetivo()` suma sólo métricas compatibles y
-  evita contar dos veces subobjetivos cuyo valor se deriva por suma de
-  componentes. Si faltan métricas muestra cobertura parcial como mínimo
-  conocido; si hay unidades distintas, no calcula una equivalencia
-  ficticia.
+- `Planes_Carga_Trabajo_Objetivo()` construye un único inventario con
+  todos los subobjetivos medibles del compromiso. Cada uno aporta una
+  vez su target y su avance agregado; cuando el target deriva de sus
+  partes, usa ese total consolidado sin excluir el subobjetivo ni volver
+  a sumar las partes. Del mismo inventario salen total, realizado con
+  tope propio, pendiente y unidades de subobjetivos todavía sin avance.
+  Si faltan métricas muestra cobertura parcial como mínimo conocido; si
+  hay unidades distintas, no calcula una equivalencia ficticia.
 - La `Pauta de hoy` usa el pool pendiente de unidades y los días activos
   restantes hasta el fin de la meta. El pool suma los targets de los
   subobjetivos medidos y resta el avance de cada uno con tope propio, de

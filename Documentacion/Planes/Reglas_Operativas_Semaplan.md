@@ -171,6 +171,13 @@ contra la suma uniforme de unidades de esos subobjetivos. Si una métrica
 no es calculable, se informa su ausencia: no se muestra un cero falso ni
 se equiparan unidades distintas.
 
+El numerador y el denominador del trabajo operativo deben salir del
+mismo inventario de subobjetivos medibles. Un subobjetivo cuyo target se
+obtiene sumando sus partes se cuenta una vez con ese total consolidado y
+con el avance agregado de su familia: no se lo excluye ni se vuelven a
+sumar sus partes. La vista debe explicitar total, realizado, pendiente y
+la porción pendiente que pertenece a subobjetivos todavía sin avance.
+
 Cumplir un subobjetivo fuera del período previsto no cambia el período al
 que fue comprometido. `Fecha_Inicio` y `Fecha_Objetivo` expresan la
 decisión de planificación; `Fecha_Fin` expresa la ejecución real. Los

@@ -138,6 +138,93 @@ test("un exceso de un subobjetivo no compensa otro pendiente", () => {
   assert.equal(Totales.Faltantes, 90);
 });
 
+test("incluye la carga consolidada de subobjetivos sumados desde partes", () => {
+  const Subs = [
+    {
+      Id: "A",
+      Target_Total: 300,
+      Target_Suma_Componentes: true,
+      Unidad_Custom: "Paginas",
+      Progreso: 100
+    },
+    {
+      Id: "B",
+      Target_Total: 400,
+      Target_Suma_Componentes: true,
+      Unidad_Custom: "Paginas",
+      Progreso: 0
+    },
+    {
+      Id: "C",
+      Target_Total: 500,
+      Target_Suma_Componentes: false,
+      Unidad_Custom: "Paginas",
+      Progreso: 500
+    }
+  ];
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => ({ Objetivos: {} }),
+    Planes_Objetivo_Canonico_Contextual: (Objetivo) => Objetivo,
+    Planes_Subobjetivos_Contexto_Objetivo: () => ({ Items: Subs }),
+    Planes_Normalizar_Modo_Avance: () => "Con_Metrica",
+    Planes_Unidad_Label_Subobjetivo: () => "paginas",
+    Planes_Progreso_Total_Subobjetivo: (Sub) => Sub.Progreso,
+    Normalizar_Texto_Archivero: (Texto) => Texto.toLowerCase()
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Normalizar_Clave_Unidad_Ritmo",
+    "Planes_Carga_Trabajo_Objetivo"
+  ]);
+  const Resultado = Contexto.Planes_Carga_Trabajo_Objetivo({ Id: "Meta" });
+  assert.equal(Resultado.Calculable, true);
+  assert.equal(Resultado.Total, 1200);
+  assert.equal(Resultado.Realizado, 600);
+  assert.equal(Resultado.Pendiente, 600);
+  assert.equal(Resultado.Sin_Avance, 400);
+  assert.equal(Resultado.Pendiente_En_Curso, 200);
+  assert.equal(Resultado.Subobjetivos_Sin_Avance, 1);
+  assert.equal(Resultado.Items_Medidos, 3);
+});
+
+test("no duplica la carga de divisiones internas anidadas", () => {
+  const Padre = {
+    Id: "Libro",
+    Target_Total: 300,
+    Unidad_Custom: "Paginas",
+    Progreso: 120
+  };
+  const Division = {
+    Id: "Parte_Interna",
+    Target_Total: 100,
+    Unidad_Custom: "Paginas",
+    Progreso: 50
+  };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => ({ Objetivos: {} }),
+    Planes_Objetivo_Canonico_Contextual: (Objetivo) => Objetivo,
+    Planes_Subobjetivos_Contexto_Objetivo: () => ({
+      Items: [Padre, Division],
+      Items_Por_Id: new Map([
+        [Padre.Id, { Padre_Id: "" }],
+        [Division.Id, { Padre_Id: Padre.Id }]
+      ])
+    }),
+    Planes_Normalizar_Modo_Avance: () => "Con_Metrica",
+    Planes_Unidad_Label_Subobjetivo: () => "paginas",
+    Planes_Progreso_Total_Subobjetivo: (Sub) => Sub.Progreso,
+    Normalizar_Texto_Archivero: (Texto) => Texto.toLowerCase()
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Normalizar_Clave_Unidad_Ritmo",
+    "Planes_Carga_Trabajo_Objetivo"
+  ]);
+  const Resultado = Contexto.Planes_Carga_Trabajo_Objetivo({ Id: "Meta" });
+  assert.equal(Resultado.Total, 300);
+  assert.equal(Resultado.Realizado, 120);
+  assert.equal(Resultado.Pendiente, 180);
+  assert.equal(Resultado.Items_Medidos, 1);
+});
+
 test("respeta semanas alternadas dentro de un ciclo quincenal", () => {
   const Contexto = {
     Parsear_Fecha_ISO: Parsear_Fecha,
