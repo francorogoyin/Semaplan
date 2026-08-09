@@ -156,3 +156,23 @@ fecha inactiva explícita prevalece sobre una fecha activa explícita; una
 fecha activa explícita prevalece sobre el patrón semanal, mensual o
 cíclico. Cambiar el calendario durante una jornada no modifica la pauta
 ya fijada y sólo afecta las próximas jornadas.
+
+## Lectura del progreso de una meta
+
+El detalle de una meta debe responder primero qué hacer hoy y después
+explicar la situación sin mezclar escalas. La meta madre es contexto
+global; los tres indicadores principales son cuota esperada del período,
+compromiso explícito de subobjetivos y trabajo operativo acumulado.
+
+La cuota usa el resultado cumplido contra la parte proporcional de la
+meta asignada al período. El compromiso usa subobjetivos raíz cumplidos
+contra los cargados para ese período. El trabajo usa unidades realizadas
+contra la suma uniforme de unidades de esos subobjetivos. Si una métrica
+no es calculable, se informa su ausencia: no se muestra un cero falso ni
+se equiparan unidades distintas.
+
+Cumplir un subobjetivo fuera del período previsto no cambia el período al
+que fue comprometido. `Fecha_Inicio` y `Fecha_Objetivo` expresan la
+decisión de planificación; `Fecha_Fin` expresa la ejecución real. Los
+porcentajes pueden superar el 100 %, aunque la barra visual se limite al
+ancho disponible.

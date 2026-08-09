@@ -1220,6 +1220,28 @@ Relaciones importantes.
   mientras la carga operativa usa la unidad uniforme de sus
   subobjetivos. Esta relación es genérica y no presupone libros,
   páginas ni otro dominio particular.
+- Al expandir un objetivo, la primera información es la `Pauta de hoy`.
+  Debajo, el tablero de situación conserva el avance global de la meta
+  madre como contexto secundario y destaca tres porcentajes que no se
+  deben mezclar: `Cuota esperada` compara resultados cumplidos contra la
+  parte proporcional asignada al período; `Compromiso elegido` compara
+  subobjetivos cumplidos contra los subobjetivos cargados para ese
+  período; y `Trabajo operativo` compara unidades realizadas contra la
+  carga uniforme total de esos subobjetivos.
+- El compromiso cuenta resultados raíz, no sus divisiones internas. Un
+  subobjetivo cumplido conserva el período al que fue destinado según
+  `Fecha_Inicio` y `Fecha_Objetivo`, aunque `Fecha_Fin` demuestre que se
+  terminó antes o después. La fecha real registra conducta; no
+  reescribe la decisión de planificación.
+- Los porcentajes visibles pueden superar el 100 % para mostrar excesos
+  reales. Solo la longitud de la barra se limita al ancho disponible.
+  En cargas compuestas, el aporte de cada subobjetivo sí se topa por su
+  propia meta para que un exceso interno no oculte otro pendiente.
+- La lectura operativa resume cuántos subobjetivos y unidades quedan y
+  recuerda que la pauta diaria redistribuye ese pendiente entre los
+  días activos. Las metas sin cuota, sin compromiso o con unidades
+  mixtas muestran ausencia de cálculo en lugar de inventar un cero o
+  una equivalencia.
 - `Planes_Carga_Trabajo_Objetivo()` suma sólo métricas compatibles y
   evita contar dos veces subobjetivos cuyo valor se deriva por suma de
   componentes. Si faltan métricas muestra cobertura parcial como mínimo
