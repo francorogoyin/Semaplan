@@ -597,16 +597,19 @@ Relaciones importantes.
 - Un objetivo de `Planes_Periodo` puede tener un vínculo operativo de
   ritmo con `Rol: "Ritmo_Meta"`. Ese hábito no crea una segunda meta ni
   una segunda fuente de progreso: define la acción, el período de
-  evaluación y los días válidos. Su cantidad se deriva dinámicamente de
-  la carga pendiente de la meta y se redistribuye entre las fechas que
-  `Habito_Corresponde_En_Fecha()` considera aplicables.
+  evaluación y los días válidos. Al comenzar una jornada activa se fija
+  una pauta en `Ritmo_Diario_Historial`; el progreso del día cambia lo
+  que falta hoy, pero no reescribe esa pauta. La siguiente jornada
+  activa vuelve a distribuir el pool pendiente actualizado.
 - Cada hábito con rol `Ritmo_Meta` tiene una sola meta propietaria. Si
   se reasocia, la app quita la asociación operativa anterior sin tocar
   los demás vínculos ordinarios de esa meta.
-- El ritmo asociado admite programación semanal y ciclos de varias
-  semanas mediante `Semanas_Ciclo`, `Dias_Ciclo` y `Fecha_Ancla`. La
-  meta del hábito puede operar por día, semana, quincena o mes; el valor
-  actual se calcula sobre los días válidos restantes de ese período.
+- El ritmo asociado admite programación semanal, días puntuales del mes,
+  ciclos de días y ciclos de varias semanas. `Fechas_Activas` y
+  `Fechas_Inactivas` permiten excepciones puntuales; una exclusión tiene
+  prioridad sobre una inclusión y ambas tienen prioridad sobre el patrón
+  recurrente. La meta del hábito puede operar por día, semana, quincena
+  o mes; el valor actual se calcula sobre los días válidos restantes.
 - Los registros del hábito asociado se reconstruyen desde avances de
   Planes con fuente `Plan_Objetivo_Ritmo`. Registrar desde la tarjeta o
   la sidebar del hábito abre el avance de la meta y nunca agrega un
@@ -1222,19 +1225,29 @@ Relaciones importantes.
   componentes. Si faltan métricas muestra cobertura parcial como mínimo
   conocido; si hay unidades distintas, no calcula una equivalencia
   ficticia.
-- La `Pauta de hoy` usa el trabajo pendiente, el avance ya registrado en
-  la fecha y los días válidos hasta el fin de la meta. Informa cantidad
-  recomendada, días restantes, ritmo real de jornadas anteriores ya
-  cerradas y proyección; distingue día válido, descanso planificado,
-  meta pausada, carga completa y ausencia de fechas disponibles.
+- La `Pauta de hoy` usa el pool pendiente de unidades y los días activos
+  restantes hasta el fin de la meta. El pool suma los targets de los
+  subobjetivos medidos y resta el avance de cada uno con tope propio, de
+  modo que un exceso en un subobjetivo no compensa otro pendiente.
+- La primera evaluación de una jornada activa persiste una fotografía en
+  `Ritmo_Diario_Historial`: pauta, pendiente inicial, días activos usados,
+  unidad, total planificado y subobjetivos pendientes. La pauta queda
+  inmutable; el realizado se sigue leyendo de `Avances`, por lo que una
+  corrección histórica cambia el balance real sin alterar la consigna.
+  Déficits y adelantos se absorben al calcular la próxima jornada activa.
+- La tarjeta muestra pauta original, realizado hoy, faltante de hoy, pool
+  pendiente de unidades, subobjetivos pendientes y un historial diario
+  con pauta, realizado y balance. Distingue día válido, descanso
+  planificado, meta pausada, carga completa y ausencia de fechas.
 - `Crear hábito asociado` abre el editor de Hábitos ya contextualizado.
   El nombre de la acción sigue siendo editable y la programación puede
-  ser semanal, quincenal alternada o un ciclo más largo. Los campos de
-  cantidad y unidad quedan derivados de la meta para impedir que se
-  desincronicen.
-- El rol `Ritmo_Meta` forma parte del esquema de estado 7. Las versiones
-  cuyo máximo de esquema sea 6 no deben habilitarse para ese estado,
-  porque normalizan los vínculos sin conservar esa semántica.
+  ser semanal, por días del mes, por ciclo de días o por ciclo de
+  semanas, con fechas activas o inactivas excepcionales. Los campos de
+  cantidad y unidad quedan derivados de la meta.
+- El historial diario y los nuevos patrones de días forman parte del
+  esquema de estado 8. Las versiones cuyo máximo de esquema sea 7 no
+  deben habilitarse para ese estado, porque descartarían esos datos al
+  normalizar y volver a guardar.
 - El modal de registrar avance usa un selector visual en arbol: agrupa
   por anio, objetivo, subobjetivo y parte. Los nodos con boton `+`
   siguen siendo seleccionables; el boton solo abre o cierra la rama. Al

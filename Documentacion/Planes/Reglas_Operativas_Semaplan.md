@@ -136,3 +136,23 @@ La pestana Metas debe ser informativa: no modifica `Planes_Periodo`,
 no cierra periodos y no registra avances. Debe diferenciar el avance
 generado dentro del rango visible del acumulado total actual para no
 confundir una lectura historica con el estado global de la meta.
+
+## Pauta diaria de metas
+
+La pauta asociada a una meta se fija una sola vez al comenzar cada día
+activo. El avance registrado durante ese día puede reducir el faltante
+de hoy, pero nunca debe recalcular ni sobrescribir la pauta ya fijada.
+El próximo día activo se calcula con el pool pendiente actualizado, de
+modo que absorbe automáticamente tanto déficits como adelantos.
+
+El realizado histórico se deriva siempre de los avances de la meta. Una
+edición o eliminación de un avance pasado debe corregir el realizado y
+el balance de esa fecha, sin reescribir su pauta original. Los targets de
+subobjetivos se descuentan con tope individual: completar de más uno no
+puede ocultar el pendiente de otro.
+
+Las excepciones de calendario tienen prioridad sobre la recurrencia. Una
+fecha inactiva explícita prevalece sobre una fecha activa explícita; una
+fecha activa explícita prevalece sobre el patrón semanal, mensual o
+cíclico. Cambiar el calendario durante una jornada no modifica la pauta
+ya fijada y sólo afecta las próximas jornadas.
