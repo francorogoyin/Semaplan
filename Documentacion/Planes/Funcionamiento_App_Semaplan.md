@@ -1304,6 +1304,10 @@ Relaciones importantes.
   se reemplaza y se redistribuye según los días activos del nuevo hábito.
   Al eliminar el hábito se eliminan también sus registros de
   `Ritmo_Diario_Historial`.
+- Un hábito de ritmo cualitativo (`Check`) se sincroniza con cada avance
+  aunque el avance tenga una unidad distinta o el hábito no tenga métrica
+  cuantitativa propia. Los hábitos cuantitativos siguen exigiendo unidad
+  compatible antes de registrar el avance.
 - La tarjeta de pauta ampliada sólo se conserva mientras la meta todavía
   no tenga hábito, porque contiene la acción para crearlo. Una vez asentado
   el vínculo desaparecen de este detalle el realizado de hoy, el faltante,

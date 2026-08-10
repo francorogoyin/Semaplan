@@ -197,6 +197,10 @@ con una redistribución de vista previa. Al borrar el hábito, también se
 eliminan sus registros de `Ritmo_Diario_Historial`.
 Una pauta fijada con otro `Habito_Id` no es reutilizable: al crear o vincular
 un hábito nuevo se reemplaza por la cuota calculada con sus días activos.
+Al sincronizar avances, un hábito `Check` no depende de una unidad ni de una
+métrica cuantitativa propia: cada avance compatible con el objetivo registra
+una sesión. Los hábitos de cantidad o tiempo conservan la validación de
+unidad.
 
 Una vez asociado el hábito, el detalle de la meta no debe repetir una
 tarjeta ampliada con realizado, faltante, pool, días válidos, historial o

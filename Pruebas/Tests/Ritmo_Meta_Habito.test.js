@@ -1095,3 +1095,8 @@ test("reemplaza una pauta vieja al crear otro hábito", () => {
     "Habito_Nuevo"
   );
 });
+
+test("permite sincronizar un hábito cualitativo sin métrica propia", () => {
+  assert.match(Codigo_Login, /const Es_Check_Ritmo = Relacion\?\.Habito/);
+  assert.match(Codigo_Login, /Es_Check_Ritmo \|\|/);
+});
