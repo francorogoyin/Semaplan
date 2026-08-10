@@ -269,3 +269,39 @@ test("nombra el horizonte de la meta madre y no el período visible", () => {
     "Avance global"
   );
 });
+
+test("trabajo operativo no repite realizado ni una descripción vacía", () => {
+  assert.doesNotMatch(Codigo_Login, /planes\.trabajo_realizado/);
+  assert.doesNotMatch(Codigo_Login, /planes\.trabajo_operativo_desc/);
+  const Contexto = {
+    Escape_Html: (Valor) => String(Valor ?? ""),
+    Planes_Formatear_Porcentaje_Resumen: (Valor) => String(Valor),
+    Planes_Formatear_Numero_Texto: (Valor) => String(Valor),
+    Planes_Formatear_Numero: (Valor) => String(Valor),
+    t: (Clave, Datos) => Clave === "planes.progreso_de"
+      ? `${Datos.Realizado} de ${Datos.Total} ${Datos.Unidad}`
+      : Clave
+  };
+  Cargar_Funciones(Contexto, ["Planes_Render_Indicador_Progreso"]);
+  const Html = Contexto.Planes_Render_Indicador_Progreso({
+    Clave: "trabajo",
+    Clase: "Trabajo",
+    Etiqueta: "Trabajo operativo",
+    Descripcion: "",
+    Texto_Sin_Datos: "Sin datos",
+    Unidad: "páginas",
+    Metrica: {
+      Calculable: true,
+      Porcentaje: 50,
+      Barra: 50,
+      Realizado: 50,
+      Total: 100
+    },
+    Desglose: [
+      { Clase: "Pendiente", Texto: "Pendiente: 50 páginas" }
+    ]
+  });
+  assert.match(Html, /50 de 100 páginas/);
+  assert.match(Html, /Pendiente: 50 páginas/);
+  assert.doesNotMatch(Html, /Planes_Progreso_Descripcion/);
+});

@@ -1232,6 +1232,10 @@ Relaciones importantes.
   subobjetivos cumplidos contra los subobjetivos cargados para ese
   período; y `Trabajo operativo` compara unidades realizadas contra la
   carga uniforme total de esos subobjetivos.
+- `Trabajo operativo` muestra realizado sobre total en su cuenta principal.
+  Debajo sólo desglosa las unidades pendientes y las que pertenecen a
+  subobjetivos sin iniciar; no repite realizado ni muestra una descripción
+  genérica de las cargas.
 - El compromiso cuenta resultados raíz, no sus divisiones internas. Un
   subobjetivo cumplido conserva el período al que fue destinado según
   `Fecha_Inicio` y `Fecha_Objetivo`, aunque `Fecha_Fin` demuestre que se

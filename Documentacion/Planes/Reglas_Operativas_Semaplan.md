@@ -200,7 +200,10 @@ mismo inventario de subobjetivos medibles. Un subobjetivo cuyo target se
 obtiene sumando sus partes se cuenta una vez con ese total consolidado y
 con el avance agregado de su familia: no se lo excluye ni se vuelven a
 sumar sus partes. La vista debe explicitar total, realizado, pendiente y
-la porción pendiente que pertenece a subobjetivos todavía sin avance.
+la porción pendiente que pertenece a subobjetivos todavía sin avance. En
+`Trabajo operativo`, la cuenta principal ya expresa realizado sobre total:
+el desglose no debe repetir realizado ni agregar una explicación genérica;
+sólo conserva pendiente y sin iniciar.
 
 Cumplir un subobjetivo fuera del período previsto no cambia el período al
 que fue comprometido. `Fecha_Inicio` y `Fecha_Objetivo` expresan la
