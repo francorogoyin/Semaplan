@@ -1294,6 +1294,9 @@ Relaciones importantes.
   inmutable; el realizado se sigue leyendo de `Avances`, por lo que una
   corrección histórica cambia el balance real sin alterar la consigna.
   Déficits y adelantos se absorben al calcular la próxima jornada activa.
+- En el editor de un hábito de período diario, el campo `Meta` usa la
+  misma cuota diaria que la pauta visible de Metas. Los períodos semanal,
+  quincenal y mensual conservan su cálculo acumulado correspondiente.
 - La tarjeta de pauta ampliada sólo se conserva mientras la meta todavía
   no tenga hábito, porque contiene la acción para crearlo. Una vez asentado
   el vínculo desaparecen de este detalle el realizado de hoy, el faltante,

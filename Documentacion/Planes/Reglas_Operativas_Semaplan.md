@@ -165,6 +165,10 @@ Las cuotas diarias de unidades discretas se redondean hacia arriba a
 enteros para su uso operativo, sin alterar el pendiente real usado para
 la redistribución de jornadas posteriores.
 
+En un hábito configurado por día, el campo de meta y la pauta visible
+deben usar la misma cuota diaria; no se debe mostrar en el campo diario un
+acumulado de avances del período.
+
 El realizado histórico se deriva siempre de los avances de la meta. Una
 edición o eliminación de un avance pasado debe corregir el realizado y
 el balance de esa fecha, sin reescribir su pauta original. Los targets de

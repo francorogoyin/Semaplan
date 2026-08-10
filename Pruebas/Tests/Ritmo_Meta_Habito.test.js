@@ -758,6 +758,7 @@ test("el editor usa la primera fecha válida futura para actualizar Meta", () =>
   };
   const Contexto = {
     Habitos_Fecha_Hoy: () => "2026-08-09",
+    Habito_Periodo: () => "Semana",
     Planes_Calcular_Ritmo_Meta: (_O, _H, _F, _M, Opciones) => {
       Opciones_Recibidas = Opciones;
       return Info;
@@ -778,6 +779,30 @@ test("el editor usa la primera fecha válida futura para actualizar Meta", () =>
   assert.equal(Fecha_Recibida, "2026-08-10");
   assert.equal(Resultado.Fecha_Referencia, "2026-08-10");
   assert.equal(Resultado.Cantidad, 41.25);
+});
+
+test("el editor diario usa la misma cuota diaria que Metas", () => {
+  const Info = {
+    Calculable: true,
+    Completa: false,
+    Es_Hoy_Valido: true,
+    Cuota_Diaria_Total: 611.17
+  };
+  const Contexto = {
+    Habitos_Fecha_Hoy: () => "2026-08-10",
+    Habito_Periodo: () => "Dia",
+    Planes_Calcular_Ritmo_Meta: () => Info,
+    Planes_Cuota_Periodo_Ritmo_Meta: () => {
+      throw new Error("no debe calcular una cuota de período");
+    },
+    Planes_Redondear_Cuota_Ritmo: (Valor) => Valor
+  };
+  Cargar_Funciones(Contexto, ["Planes_Calcular_Meta_Editor_Ritmo"]);
+  const Resultado = Contexto.Planes_Calcular_Meta_Editor_Ritmo(
+    { Id: "Meta" },
+    { Id: "Habito" }
+  );
+  assert.equal(Resultado.Cantidad, 611.17);
 });
 
 test("fecha de inicio y días activos cambian la cuota recomendada", () => {
