@@ -32,22 +32,14 @@ CREATE POLICY "Estado propio: ver"
   FOR SELECT
   USING (auth.uid() = user_id);
 
--- Política: INSERT solo el estado propio.
+-- Las escrituras web pasan exclusivamente por la RPC
+-- aplicar_estado_usuario_web. Esto permite validar version de fila
+-- y version de cliente antes de tocar cualquier parte del estado.
 DROP POLICY IF EXISTS "Estado propio: insertar"
   ON public.estado_usuario;
-CREATE POLICY "Estado propio: insertar"
-  ON public.estado_usuario
-  FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
 
--- Política: UPDATE solo el estado propio.
 DROP POLICY IF EXISTS "Estado propio: actualizar"
   ON public.estado_usuario;
-CREATE POLICY "Estado propio: actualizar"
-  ON public.estado_usuario
-  FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
 
 -- Política: DELETE solo el estado propio.
 DROP POLICY IF EXISTS "Estado propio: borrar"
@@ -129,6 +121,123 @@ CREATE TRIGGER trigger_estado_preservar_claves
   FOR EACH ROW
   EXECUTE FUNCTION
     public.proteger_estado_usuario_claves_nuevas();
+
+CREATE OR REPLACE FUNCTION public.semaplan_version_codigo(
+  p_version text
+)
+RETURNS bigint
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+DECLARE
+  v_partes text[];
+BEGIN
+  v_partes := regexp_match(
+    COALESCE(p_version, ''),
+    '^([0-9]+)\.([0-9]+)\.([0-9]+)'
+  );
+  IF v_partes IS NULL THEN
+    RETURN 0;
+  END IF;
+  RETURN LEAST(v_partes[1]::bigint, 999999) * 1000000000000
+    + LEAST(v_partes[2]::bigint, 999999) * 1000000
+    + LEAST(v_partes[3]::bigint, 999999);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.aplicar_estado_usuario_web(
+  p_estado jsonb,
+  p_version_esperada integer,
+  p_cliente_version text
+)
+RETURNS TABLE(version integer, actualizado_en timestamptz)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+  v_usuario_id uuid;
+  v_estado_actual jsonb;
+  v_version_actual integer;
+  v_version_estado text;
+  v_version_nueva integer;
+  v_actualizado_en timestamptz;
+BEGIN
+  v_usuario_id := auth.uid();
+  IF v_usuario_id IS NULL THEN
+    RAISE EXCEPTION USING
+      ERRCODE = '42501',
+      MESSAGE = 'semaplan_sesion_requerida';
+  END IF;
+  IF p_estado IS NULL OR jsonb_typeof(p_estado) <> 'object' THEN
+    RAISE EXCEPTION USING
+      ERRCODE = '22023',
+      MESSAGE = 'semaplan_estado_invalido';
+  END IF;
+
+  SELECT eu.estado, eu.version
+  INTO v_estado_actual, v_version_actual
+  FROM public.estado_usuario eu
+  WHERE eu.user_id = v_usuario_id
+  FOR UPDATE;
+
+  IF v_version_actual IS NULL THEN
+    IF COALESCE(p_version_esperada, 0) <> 0 THEN
+      RETURN;
+    END IF;
+    INSERT INTO public.estado_usuario(user_id, estado)
+    VALUES (v_usuario_id, p_estado)
+    ON CONFLICT (user_id) DO NOTHING
+    RETURNING estado_usuario.version,
+      estado_usuario.actualizado_en
+    INTO v_version_nueva, v_actualizado_en;
+    IF v_version_nueva IS NULL THEN
+      RETURN;
+    END IF;
+    RETURN QUERY
+      SELECT v_version_nueva, v_actualizado_en;
+    RETURN;
+  END IF;
+
+  IF v_version_actual <> COALESCE(p_version_esperada, 0) THEN
+    RETURN;
+  END IF;
+
+  v_version_estado :=
+    v_estado_actual #>> '{Config_Extra,Version_Programa}';
+  IF public.semaplan_version_codigo(p_cliente_version) <
+     public.semaplan_version_codigo(v_version_estado) THEN
+    RAISE EXCEPTION USING
+      ERRCODE = 'P0001',
+      MESSAGE = 'semaplan_cliente_obsoleto',
+      DETAIL = 'Actualice Semaplan antes de guardar.';
+  END IF;
+
+  UPDATE public.estado_usuario eu
+  SET estado = public.jsonb_deep_merge_preserving_missing(
+        v_estado_actual,
+        p_estado
+      ),
+      version = eu.version + 1
+  WHERE eu.user_id = v_usuario_id
+    AND eu.version = v_version_actual
+  RETURNING eu.version, eu.actualizado_en
+  INTO v_version_nueva, v_actualizado_en;
+
+  IF v_version_nueva IS NULL THEN
+    RETURN;
+  END IF;
+  RETURN QUERY
+    SELECT v_version_nueva, v_actualizado_en;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION
+  public.aplicar_estado_usuario_web(jsonb, integer, text)
+  FROM public;
+GRANT EXECUTE ON FUNCTION
+  public.aplicar_estado_usuario_web(jsonb, integer, text)
+  TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.aplicar_estado_usuario_b2(
   p_usuario_id uuid,

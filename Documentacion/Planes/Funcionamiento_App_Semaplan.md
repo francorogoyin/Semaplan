@@ -241,25 +241,42 @@ El flujo operativo base es este.
    crean, borran, limpian o planifican slots muertos/vacios, usan
    `Guardar_Estado_Cambio_Critico()` para no quedar atadas al debounce
    normal y evitar perder los ultimos cambios al reloguear.
-7. `Backend_Sync_Ejecutar()` sube el estado a `estado_usuario`,
-   con escritura optimista versionada, conflictos y reintentos. La
-   escritura condicionada por `version` es la primera barrera contra
-   carreras; no hace una lectura remota redundante antes de cada subida.
-   Si la version no coincide, relee una vez para distinguir un cambio
-   operativo de un conflicto real y reintenta solo cuando corresponde.
-7.b Despues de un sync exitoso, la foto remota interna se guarda como
+7. `Backend_Sync_Ejecutar()` sube el estado a `estado_usuario` mediante
+   `aplicar_estado_usuario_web`, la unica RPC habilitada para escrituras del
+   frontend. La RPC exige la version remota esperada y la version del cliente,
+   y devuelve la nueva version confirmada. Las politicas RLS no permiten
+   `INSERT` ni `UPDATE` directos desde clientes web, por lo que una version
+   vieja no puede aplicar ni siquiera el primer lote de un snapshot obsoleto.
+   Esas versiones tambien quedan marcadas como `deprecated` y deshabilitadas
+   en el selector de Configuracion, aun si comparten el esquema de datos.
+7.a Cada dispositivo conserva en IndexedDB la ultima base remota confirmada.
+   Si una escritura pierde la carrera de version, el cliente relee remoto y
+   hace un rebase de tres vias entre base, estado local y estado remoto. Los
+   cambios independientes se combinan de forma recursiva; los arrays de
+   entidades con `Id` se combinan por entidad y los borrados solo se aplican
+   cuando la contraparte no edito esa misma entidad.
+7.b Al iniciar con un pendiente local, el mismo rebase se ejecuta antes de
+   renderizar. En conflictos sobre el mismo campo prevalece remoto para que un
+   cache viejo no degrade configuraciones nuevas. Si no existe base persistida,
+   se crea un backup de recuperacion y se adopta remoto sin inferir cambios.
+   Durante una sesion activa, un conflicto sobre el mismo campo conserva la
+   edicion local actual, pero nunca descarta altas o ediciones remotas vecinas.
+7.c Despues de un sync exitoso, la foto remota interna se guarda como
    clon JSON limpio, no como referencia compartida con los arrays vivos
    de la app. Esto evita que mutaciones in-place posteriores de
    habitos, notas, slots, planes u otros modulos contaminen la referencia
    remota y queden invisibles para el diff de guardado.
-7.c Cada guardado de datos captura la revision local y el contenido que
+7.d Cada guardado de datos captura la revision local y el contenido que
    efectivamente envio. El exito remoto limpia el pendiente solo si ambos
    siguen coincidiendo con el estado local. Si aparece otro cambio durante
    la consulta, conserva el pendiente y programa el siguiente ciclo. La
    comparacion normaliza el orden de propiedades JSON para que estados
    equivalentes no generen reintentos.
-7.d Los guardados de metadata operativa, como heartbeat o cortes de sesion,
+7.e Los guardados de metadata operativa, como heartbeat o cortes de sesion,
    no confirman ni limpian cambios de datos del usuario.
+7.f El `keepalive` de cierre usa la misma RPC. Solo limpia el pendiente si el
+   servidor devuelve una fila con version nueva; una respuesta vacia por
+   conflicto conserva el pendiente para el proximo arranque.
 8. Al iniciar una sesion logueada, la app lee remoto antes de entrar y
    registra una unica `Sesiones_Operativas` activa como lease
    exclusivo. Si detecta otra sesion reciente del mismo usuario,
@@ -288,22 +305,17 @@ El flujo operativo base es este.
    contarse como cambio de datos del usuario.
 10. `Sync_Datos_Marca_Ms` marca cambios reales de datos generados por
     `Guardar_Estado()`. La metadata de sesiones no actualiza esa marca.
-11. Si al iniciar hay cambios locales pendientes, la app no decide
-    conflicto por `actualizado_en` remoto solamente. Solo abre
-    conflicto si el estado remoto trae una marca de datos reales mas
-    nueva que la local. Si el cambio remoto fue operativo o no tiene
-    marca de datos mas nueva, el cache local pendiente se sincroniza.
-11.b Un pendiente local sin `Sync_Datos_Marca_Ms` tampoco se descarta por
-    antiguedad. Si no se puede demostrar igualdad o un conflicto real,
-    se conserva y se intenta sincronizar; la prioridad es no perder una
-    modificacion local por una heuristica temporal.
+11. La resolucion entre dispositivos no usa `Date.now()` ni compara relojes
+    locales para autorizar sobrescrituras. `version` define la carrera remota y
+    la base persistida define que cambio realmente hizo cada dispositivo.
+11.b Un pendiente legado sin base demostrable se guarda como backup de
+    recuperacion y no se sube automaticamente sobre un remoto existente.
 12. La metadata operativa de sesiones (`Sesiones_Operativas` y
    `Sesion_Global_Corte_Ms`) no se trata como cambio de datos del
    usuario. Si el remoto cambio solo por metadata operativa, no se muestra
-   conflicto ni toast de otro dispositivo. `Backend_Sync_Ejecutar()`
-   intenta primero el `UPDATE` versionado; si esa escritura pierde una
-   carrera, relee la fila para decidir si refresca version y reintenta o
-   abre conflicto por datos reales mas nuevos.
+   conflicto ni toast de otro dispositivo. Si la RPC versionada pierde una
+   carrera, `Backend_Sync_Ejecutar()` relee la fila, combina los cambios contra
+   la base confirmada y reintenta sobre la nueva version.
 13. El unico polling remoto permanente fuera del heartbeat es la lectura
     liviana del corte de sesiones cada 5 segundos; no carga ni aplica el
     estado normal del usuario. Los cambios de datos se revisan al volver

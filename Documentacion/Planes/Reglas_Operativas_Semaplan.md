@@ -62,6 +62,22 @@ aumenta la chance de aplicar una regla y olvidar la otra.
 - Cada cambio real debe persistirse primero en el dispositivo y verificarse
   por lectura antes de considerarse capturado. La sincronizacion remota es
   silenciosa, automatica y no debe bloquear el trabajo normal.
+- La nube es la fuente de verdad compartida entre dispositivos. Un cache local
+  pendiente solo puede aplicarse como diferencia respecto de la ultima base
+  remota confirmada; nunca como snapshot completo que reemplace a ciegas una
+  version remota mas nueva.
+- Los cambios concurrentes se combinan por modulo, objeto y entidad con `Id`.
+  Una alta, edicion o borrado local no puede descartar cambios independientes
+  hechos en otro dispositivo. Ante borrado y edicion simultaneos de la misma
+  entidad, se conserva la entidad editada para evitar perdida irreversible.
+- Si un dispositivo no tiene una base remota verificable, conserva un backup
+  de recuperacion de su pendiente y adopta la nube. No se permite que una copia
+  vieja infiera borrados ni degrade configuraciones actuales.
+- Toda escritura web debe pasar por la RPC versionada de estado. Los clientes
+  anteriores a la version que ya guardo el estado quedan sin permiso de
+  escritura para impedir que un frontend viejo degrade el snapshot.
+- El selector de Configuracion no debe habilitar releases obsoletos aunque
+  compartan el mismo esquema de datos con la version actual.
 - No mostrar estados permanentes `Guardando`, `Pendiente` o `Error`. Una
   falla remota conserva el pendiente y reintenta con backoff; solo una falla
   local no recuperable justifica una advertencia visible por riesgo de

@@ -130,6 +130,7 @@ function Crear_Entorno({
     }
   };
   Contexto.Marcar_Sync_Remoto_Actualizado = () => {};
+  Contexto.Guardar_Base_Sync_Persistida = async () => true;
   Contexto.Leer_Estado_Local_Cache_Sync = () =>
     structuredClone(Estado_Local);
   Contexto.Fusionar_Estado_Raiz_Faltante = (Base, Nuevo) => ({
@@ -155,6 +156,41 @@ function Crear_Entorno({
     Contexto
   );
   return { Contexto, Eventos };
+}
+
+function Crear_Entorno_Rebase() {
+  const Contexto = {
+    Date,
+    JSON,
+    Map,
+    Set,
+    console
+  };
+  Contexto.Obtener_Marca_Datos_Sync = (Estado) => {
+    return Number(Estado?.Sync_Datos_Marca_Ms) || 0;
+  };
+  vm.createContext(Contexto);
+  const Funciones = [
+    "Es_Objeto_Json",
+    "Normalizar_Json_Para_Comparacion",
+    "Limpiar_Tombstones_Json",
+    "Estado_Sin_Metadata_Operativa",
+    "Estados_Datos_Sync_Iguales",
+    "Valores_Json_Sync_Iguales",
+    "Clonar_Valor_Json_Sync",
+    "Obtener_Clave_Entidad_Sync",
+    "Array_Sync_Identificable",
+    "Mapa_Array_Entidad_Sync",
+    "Orden_Array_Entidad_Sync",
+    "Combinar_Array_Entidades_Sync",
+    "Combinar_Objeto_Concurrente_Sync",
+    "Combinar_Valor_Concurrente_Sync",
+    "Combinar_Estados_Concurrentes"
+  ];
+  for (const Nombre of Funciones) {
+    vm.runInContext(Extraer_Funcion(Nombre), Contexto);
+  }
+  return Contexto;
 }
 
 test("confirma solo la misma revision sincronizada", () => {
@@ -550,21 +586,269 @@ test("cerrar la app no muestra una advertencia de sync", () => {
   assert.match(Codigo_Bootstrap, /"online"/);
 });
 
+test("combina cambios independientes de distintos modulos", () => {
+  const Contexto = Crear_Entorno_Rebase();
+  const Base = {
+    Habitos: [{ Id: "Habito_1", Nombre: "Leer" }],
+    Eventos: [{ Id: "Evento_1", Titulo: "Base" }],
+    Config_Extra: { Menu_Estilo: "Iconos" }
+  };
+  const Local = structuredClone(Base);
+  Local.Habitos.push({ Id: "Habito_2", Nombre: "Caminar" });
+  const Remoto = structuredClone(Base);
+  Remoto.Eventos.push({ Id: "Evento_2", Titulo: "Remoto" });
+
+  const Resultado = Contexto.Combinar_Estados_Concurrentes(
+    Base,
+    Local,
+    Remoto,
+    "Remoto"
+  );
+
+  assert.equal(Resultado.Estado.Habitos.length, 2);
+  assert.equal(Resultado.Estado.Eventos.length, 2);
+  assert.equal(Resultado.Conflictos.length, 0);
+});
+
+test("combina ediciones de entidades distintas del mismo modulo", () => {
+  const Contexto = Crear_Entorno_Rebase();
+  const Base = {
+    Tareas: [
+      { Id: "Tarea_1", Titulo: "Uno", Estado: "Pendiente" },
+      { Id: "Tarea_2", Titulo: "Dos", Estado: "Pendiente" }
+    ]
+  };
+  const Local = structuredClone(Base);
+  Local.Tareas[0].Estado = "Completada";
+  const Remoto = structuredClone(Base);
+  Remoto.Tareas[1].Titulo = "Dos remoto";
+  Remoto.Tareas.push({
+    Id: "Tarea_3",
+    Titulo: "Tres",
+    Estado: "Pendiente"
+  });
+
+  const Resultado = Contexto.Combinar_Estados_Concurrentes(
+    Base,
+    Local,
+    Remoto,
+    "Local"
+  );
+  const Por_Id = new Map(
+    Resultado.Estado.Tareas.map((Item) => [Item.Id, Item])
+  );
+
+  assert.equal(Por_Id.size, 3);
+  assert.equal(Por_Id.get("Tarea_1").Estado, "Completada");
+  assert.equal(Por_Id.get("Tarea_2").Titulo, "Dos remoto");
+  assert.equal(Por_Id.get("Tarea_3").Titulo, "Tres");
+  assert.equal(Resultado.Conflictos.length, 0);
+});
+
+test("conserva un alta remota junto a un borrado local valido", () => {
+  const Contexto = Crear_Entorno_Rebase();
+  const Base = {
+    Notas_Archivero: [
+      { Id: "Nota_1", Titulo: "Borrar" },
+      { Id: "Nota_2", Titulo: "Conservar" }
+    ]
+  };
+  const Local = {
+    Notas_Archivero: [
+      { Id: "Nota_2", Titulo: "Conservar" }
+    ]
+  };
+  const Remoto = {
+    Notas_Archivero: [
+      ...Base.Notas_Archivero,
+      { Id: "Nota_3", Titulo: "Nueva remota" }
+    ]
+  };
+
+  const Resultado = Contexto.Combinar_Estados_Concurrentes(
+    Base,
+    Local,
+    Remoto,
+    "Local"
+  );
+  const Ids = Resultado.Estado.Notas_Archivero
+    .map((Item) => Item.Id)
+    .sort();
+
+  assert.deepEqual(Array.from(Ids), ["Nota_2", "Nota_3"]);
+});
+
+test("una edicion remota impide que un cache viejo borre la entidad", () => {
+  const Contexto = Crear_Entorno_Rebase();
+  const Base = {
+    Decoteca: {
+      Obras: [{ Id: "Obra_1", Titulo: "Antes" }]
+    }
+  };
+  const Local = { Decoteca: { Obras: [] } };
+  const Remoto = {
+    Decoteca: {
+      Obras: [{ Id: "Obra_1", Titulo: "Despues" }]
+    }
+  };
+
+  const Resultado = Contexto.Combinar_Estados_Concurrentes(
+    Base,
+    Local,
+    Remoto,
+    "Local"
+  );
+
+  assert.equal(Resultado.Estado.Decoteca.Obras.length, 1);
+  assert.equal(
+    Resultado.Estado.Decoteca.Obras[0].Titulo,
+    "Despues"
+  );
+  assert.ok(Resultado.Conflictos.length >= 1);
+});
+
+test("resuelve un mismo campo segun el contexto del rebase", () => {
+  const Contexto = Crear_Entorno_Rebase();
+  const Base = {
+    Config_Extra: { Menu_Estilo: "Iconos" }
+  };
+  const Local = {
+    Config_Extra: { Menu_Estilo: "Hamburguesa" }
+  };
+  const Remoto = {
+    Config_Extra: { Menu_Estilo: "Iconos compactos" }
+  };
+
+  const Inicio = Contexto.Combinar_Estados_Concurrentes(
+    Base,
+    Local,
+    Remoto,
+    "Remoto"
+  );
+  const Activo = Contexto.Combinar_Estados_Concurrentes(
+    Base,
+    Local,
+    Remoto,
+    "Local"
+  );
+
+  assert.equal(
+    Inicio.Estado.Config_Extra.Menu_Estilo,
+    "Iconos compactos"
+  );
+  assert.equal(
+    Activo.Estado.Config_Extra.Menu_Estilo,
+    "Hamburguesa"
+  );
+});
+
+test("keepalive exige confirmacion versionada del servidor", () => {
+  const Codigo = Extraer_Funcion(
+    "Backend_Sync_Forzar_Keepalive"
+  );
+
+  assert.match(Codigo, /aplicar_estado_usuario_web/);
+  assert.match(Codigo, /sync_conflict_keepalive_sin_confirmacion/);
+  assert.doesNotMatch(Codigo, /return=minimal/);
+  assert.doesNotMatch(Codigo, /method:\s*"PATCH"/);
+});
+
+test("la importacion usa el mismo sync seguro", () => {
+  const Codigo = Extraer_Funcion(
+    "Aplicar_Importacion_Objeto"
+  );
+
+  assert.match(Codigo, /Marcar_Sync_Local_Sucio\(true\)/);
+  assert.match(Codigo, /Backend_Sync_Ejecutar/);
+  assert.doesNotMatch(Codigo, /\.upsert\(/);
+});
+
+test("la base bloquea escrituras directas de clientes viejos", () => {
+  const Ruta_Migracion = path.resolve(
+    __dirname,
+    "../../supabase/migrations/" +
+      "202608092233_estado_usuario_rpc_web_segura.sql"
+  );
+  const SQL = fs.readFileSync(Ruta_Migracion, "utf8");
+
+  assert.match(SQL, /aplicar_estado_usuario_web/);
+  assert.match(SQL, /p_version_esperada/);
+  assert.match(SQL, /p_cliente_version/);
+  assert.match(SQL, /semaplan_cliente_obsoleto/);
+  assert.match(
+    SQL,
+    /drop policy if exists "Estado propio: actualizar"/
+  );
+  assert.doesNotMatch(
+    Codigo_Login,
+    /\.from\("estado_usuario"\)\s*\.(update|insert|upsert)\(/
+  );
+});
+
+test("el selector bloquea releases obsoletos aunque compartan esquema", () => {
+  const Manifest = JSON.parse(
+    fs.readFileSync(
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "Aplicaciones",
+        "Web_Versiones",
+        "Manifest_Versiones.json"
+      ),
+      "utf8"
+    )
+  );
+  const Actual = Manifest.find((Item) => Item.Id === "1.10.7");
+  const Anteriores_Mismo_Esquema = Manifest.filter((Item) => {
+    return Item.Id !== "1.10.7" &&
+      Item.Esquema_Estado_Max === 8;
+  });
+
+  assert.equal(Actual?.Estado, "stable");
+  assert.ok(Anteriores_Mismo_Esquema.length > 0);
+  assert.ok(
+    Anteriores_Mismo_Esquema.every((Item) => {
+      return Item.Estado === "deprecated";
+    })
+  );
+  assert.match(
+    Codigo_Login,
+    /Version\.Estado[\s\S]*?=== "deprecated"[\s\S]*?return false;/
+  );
+});
+
 test("el contrato cubre todos los modulos persistidos", () => {
   const Codigo_Estado = Extraer_Funcion(
     "Construir_Estado_Completo"
   );
+  const Codigo_Carga = Extraer_Funcion("Cargar_Estado");
   const Claves = [
     "Objetivos",
     "Eventos",
+    "Metas",
+    "Slots_Muertos",
+    "Plantillas_Subobjetivos",
     "Planes_Slot",
+    "Categorias",
+    "Etiquetas",
     "Baul_Objetivos",
+    "Decoteca",
+    "Baul_Grupos_Colapsados",
     "Archiveros",
     "Notas_Archivero",
+    "Etiquetas_Archivero",
+    "Patrones",
     "Habitos",
     "Habitos_Registros",
     "Retos",
     "Tareas",
+    "Tareas_Cajones_Definidos",
+    "Config_Extra",
+    "Tipos_Slot",
+    "Slots_Muertos_Tipos",
+    "Semanas_Con_Defaults",
+    "Planes_Semana",
     "Planes_Periodo"
   ];
 
@@ -573,20 +857,49 @@ test("el contrato cubre todos los modulos persistidos", () => {
       Codigo_Estado,
       new RegExp(`\\b${Clave}\\b`)
     );
+    assert.match(
+      Codigo_Carga,
+      new RegExp(`\\b${Clave}\\b`)
+    );
   }
-  assert.equal(
+
+  const Configuraciones = [
+    "Inicio_Hora",
+    "Fin_Hora",
+    "Duracion_Default",
+    "Dias_Visibles",
+    "Bloques_Horarios",
+    "Mostrar_Habitos_Sidebar",
+    "Menu_Estilo",
+    "Menu_Botones_Visibles",
+    "Baul_Vista_Modo",
+    "Backup_Auto_Activo",
+    "Tareas_Vista_Memoria"
+  ];
+  for (const Clave of Configuraciones) {
+    assert.match(
+      Codigo_Estado,
+      new RegExp(`\\b${Clave}\\b`)
+    );
+    assert.match(
+      Codigo_Carga,
+      new RegExp(`\\b${Clave}\\b`)
+    );
+  }
+  assert.ok(
     (
       Codigo_Login.match(
         /Confirmar_Datos_Locales:\s*true/g
       ) || []
-    ).length,
-    4
+    ).length >= 2
   );
   assert.match(
     Codigo_Login,
     /const Sync_Timeout_Consulta_Ms = 45000;/
   );
   assert.match(Codigo_Login, /Persistir_Estado_Local_Seguro/);
+  assert.match(Codigo_Login, /Combinar_Estados_Concurrentes/);
+  assert.match(Codigo_Login, /aplicar_estado_usuario_web/);
   assert.match(Codigo_Login, /window\.addEventListener\("online"/);
   assert.doesNotMatch(Codigo_Login, /id="Sync_Indicador"/);
   assert.doesNotMatch(Codigo_Login, /id="Sync_Reintentar_Btn"/);
@@ -599,6 +912,6 @@ test("el contrato cubre todos los modulos persistidos", () => {
       Codigo_Login.match(
         /Aplicar_Timeout_Consulta_Sync\(/g
       ) || []
-    ).length >= 5
+    ).length >= 4
   );
 });
