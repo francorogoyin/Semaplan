@@ -232,3 +232,40 @@ test("integra el estado sin repetir el encabezado explicativo", () => {
     /class="Planes_Progreso_Estado\$\{Estado_Clase\}"/
   );
 });
+
+test("nombra el horizonte de la meta madre y no el período visible", () => {
+  let Tipo_Base = "Anio";
+  const Etiquetas = {
+    "planes.horizonte_anual": "Anual",
+    "planes.horizonte_semestral": "Semestral",
+    "planes.horizonte_personalizado": "Personalizado",
+    "planes.avance_global": "Avance global"
+  };
+  const Contexto = {
+    Planes_Periodo_Base_Objetivo: () => ({ Tipo: Tipo_Base }),
+    t: (Clave) => Etiquetas[Clave] || Clave
+  };
+  Cargar_Funciones(Contexto, ["Planes_Horizonte_Objetivo_Label"]);
+  assert.equal(
+    Contexto.Planes_Horizonte_Objetivo_Label({
+      Periodo_Id: "Anio_2026",
+      __Periodo_Contexto_Id: "Trimestre_3"
+    }),
+    "Anual"
+  );
+  Tipo_Base = "Semestre";
+  assert.equal(
+    Contexto.Planes_Horizonte_Objetivo_Label({ Periodo_Id: "Semestre_1" }),
+    "Semestral"
+  );
+  Tipo_Base = "Custom";
+  assert.equal(
+    Contexto.Planes_Horizonte_Objetivo_Label({ Periodo_Id: "Propio" }),
+    "Personalizado"
+  );
+  Tipo_Base = "Desconocido";
+  assert.equal(
+    Contexto.Planes_Horizonte_Objetivo_Label({ Periodo_Id: "Raro" }),
+    "Avance global"
+  );
+});

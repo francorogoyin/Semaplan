@@ -183,6 +183,11 @@ El tablero no debe abrir con un encabezado que repita período, nombre de la
 sección o una explicación genérica. De esa franja sólo se conserva el estado
 efectivo de la meta, integrado junto a su identidad y avance global.
 
+La identidad de la meta madre debe nombrar su horizonte temporal real
+(`Anual`, `Semestral`, `Trimestral`, `Mensual`, etc.) en lugar de la etiqueta
+genérica `Avance global`. Ese horizonte sale del período base de la meta
+canónica y no del período hijo que se esté consultando.
+
 La cuota usa el resultado cumplido contra la parte proporcional de la
 meta asignada al período. El compromiso usa subobjetivos raíz cumplidos
 contra los cargados para ese período. El trabajo usa unidades realizadas

@@ -1224,7 +1224,9 @@ Relaciones importantes.
   pauta. Tampoco existe un encabezado redundante con el período, el título
   `Situación del objetivo` y una explicación genérica: sólo se conserva el
   estado efectivo, integrado junto a la identidad y el avance global de la
-  meta madre. El tablero destaca tres porcentajes que no se
+  meta madre. Junto a `Meta madre` se muestra la periodicidad de su período
+  base (`Anual`, `Semestral`, `Trimestral`, `Mensual` o `Personalizado`), no
+  la capa hija visible. El tablero destaca tres porcentajes que no se
   deben mezclar: `Cuota esperada` compara resultados cumplidos contra la
   parte proporcional asignada al período; `Compromiso elegido` compara
   subobjetivos cumplidos contra los subobjetivos cargados para ese
