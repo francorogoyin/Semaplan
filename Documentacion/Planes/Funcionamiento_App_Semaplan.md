@@ -1300,6 +1300,8 @@ Relaciones importantes.
 - La cuota visible del editor y la pauta grande usan la misma fuente:
   si la jornada actual ya tiene una pauta fijada, esa pauta prevalece;
   si no, se usa la redistribución calculada para la próxima jornada válida.
+  Al crear un hábito nuevo, una pauta de otro hábito no se considera válida:
+  se reemplaza y se redistribuye según los días activos del nuevo hábito.
   Al eliminar el hábito se eliminan también sus registros de
   `Ritmo_Diario_Historial`.
 - La tarjeta de pauta ampliada sólo se conserva mientras la meta todavía

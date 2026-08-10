@@ -1064,3 +1064,34 @@ test("un hábito de ritmo sólo puede pertenecer a una meta", () => {
   );
   assert.deepEqual(Recalculados, [["Meta_A", "Habito_1"]]);
 });
+
+test("reemplaza una pauta vieja al crear otro hábito", () => {
+  const Objetivo = {
+    Id: "Meta",
+    Ritmo_Diario_Historial: {
+      "2026-08-10": {
+        Fecha: "2026-08-10",
+        Habito_Id: "Habito_Viejo",
+        Pauta: 611
+      }
+    }
+  };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => ({ Objetivos: { Meta: Objetivo } }),
+    Planes_Objetivo_Canonico_Contextual: () => Objetivo,
+    Guardar_Estado: () => {}
+  };
+  Cargar_Funciones(Contexto, ["Planes_Fijar_Registro_Ritmo_Diario"]);
+  const Registro = Contexto.Planes_Fijar_Registro_Ritmo_Diario(
+    Objetivo,
+    { Id: "Habito_Nuevo" },
+    "2026-08-10",
+    { Pauta: 353, Unidad: "palabras" }
+  );
+  assert.equal(Registro.Habito_Id, "Habito_Nuevo");
+  assert.equal(Registro.Pauta, 353);
+  assert.equal(
+    Objetivo.Ritmo_Diario_Historial["2026-08-10"].Habito_Id,
+    "Habito_Nuevo"
+  );
+});
