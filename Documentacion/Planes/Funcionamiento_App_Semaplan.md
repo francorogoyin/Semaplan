@@ -1275,10 +1275,14 @@ Relaciones importantes.
   restantes hasta el fin de la meta. El pool suma los targets de los
   subobjetivos medidos y resta el avance de cada uno con tope propio, de
   modo que un exceso en un subobjetivo no compensa otro pendiente.
+  La cuota se redondea hacia arriba a unidades enteras para su uso diario.
   Si existen subobjetivos sin target individual pero la meta madre tiene
   una métrica global, el ritmo usa esa meta como fuente de palabras,
   páginas u otra unidad; esto no convierte esos subobjetivos en una
   carga operativa uniforme.
+- Los ciclos de semanas tienen como mínimo dos semanas. Los hábitos
+  guardados con una duración inválida de una semana se normalizan al
+  patrón quincenal que permite configurar sus dos filas de días.
 - Un subobjetivo sin target puede marcarse manualmente como realizado.
   El recálculo automático conserva ese estado y sólo lo deriva del avance
   numérico cuando existe un target mayor que cero.

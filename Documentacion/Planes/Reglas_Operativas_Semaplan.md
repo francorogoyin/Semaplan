@@ -161,6 +161,10 @@ de hoy, pero nunca debe recalcular ni sobrescribir la pauta ya fijada.
 El próximo día activo se calcula con el pool pendiente actualizado, de
 modo que absorbe automáticamente tanto déficits como adelantos.
 
+Las cuotas diarias de unidades discretas se redondean hacia arriba a
+enteros para su uso operativo, sin alterar el pendiente real usado para
+la redistribución de jornadas posteriores.
+
 El realizado histórico se deriva siempre de los avances de la meta. Una
 edición o eliminación de un avance pasado debe corregir el realizado y
 el balance de esa fecha, sin reescribir su pauta original. Los targets de

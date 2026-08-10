@@ -308,6 +308,44 @@ test("respeta semanas alternadas dentro de un ciclo quincenal", () => {
   );
 });
 
+test("corrige un ciclo de semanas legado de una sola semana", () => {
+  const Contexto = {
+    Parsear_Fecha_ISO: Parsear_Fecha,
+    Obtener_Lunes: (Fecha) => Sumar_Dias(
+      Fecha,
+      -((Fecha.getDay() + 6) % 7)
+    ),
+    Dias_Entre: (A, B) => Math.round((B - A) / 86400000),
+    Habito_Coincide_Con_Dia: () => false
+  };
+  Cargar_Funciones(Contexto, ["Habito_Corresponde_En_Fecha"]);
+  const Habito = {
+    Fecha_Inicio: "2026-08-03",
+    Programacion: {
+      Patron_Dias: "Ciclo_Semanas",
+      Semanas_Ciclo: 1,
+      Fecha_Ancla: "2026-08-03",
+      Dias_Ciclo: [[0], [1]]
+    }
+  };
+  assert.equal(
+    Contexto.Habito_Corresponde_En_Fecha(Habito, "2026-08-03"),
+    true
+  );
+  assert.equal(
+    Contexto.Habito_Corresponde_En_Fecha(Habito, "2026-08-04"),
+    false
+  );
+  assert.equal(
+    Contexto.Habito_Corresponde_En_Fecha(Habito, "2026-08-10"),
+    false
+  );
+  assert.equal(
+    Contexto.Habito_Corresponde_En_Fecha(Habito, "2026-08-11"),
+    true
+  );
+});
+
 test("admite días del mes, ciclos de días y excepciones puntuales", () => {
   const Contexto = {
     Parsear_Fecha_ISO: Parsear_Fecha,
@@ -503,7 +541,7 @@ test("fija la pauta de hoy y recalcula recién el día siguiente", () => {
     { Id: "Habito" },
     "2026-08-07"
   );
-  assert.equal(Dia_Siguiente.Cuota_Diaria_Total, 17.5);
+  assert.equal(Dia_Siguiente.Cuota_Diaria_Total, 18);
   assert.equal(Dia_Siguiente.Dias_Validos_Restantes, 4);
 });
 
@@ -770,7 +808,7 @@ test("fecha de inicio y días activos cambian la cuota recomendada", () => {
     }
   );
   assert.equal(Lunes_A_Sabado.Dias_Validos_Restantes, 12);
-  assert.equal(Lunes_A_Sabado.Cuota_Diaria_Total, 58.34);
+  assert.equal(Lunes_A_Sabado.Cuota_Diaria_Total, 59);
 });
 
 test("todos los campos de días disparan el recálculo de Meta", () => {
