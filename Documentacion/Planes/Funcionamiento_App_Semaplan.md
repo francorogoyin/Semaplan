@@ -1297,6 +1297,11 @@ Relaciones importantes.
 - En el editor de un hábito de período diario, el campo `Meta` usa la
   misma cuota diaria que la pauta visible de Metas. Los períodos semanal,
   quincenal y mensual conservan su cálculo acumulado correspondiente.
+- La cuota visible del editor y la pauta grande usan la misma fuente:
+  si la jornada actual ya tiene una pauta fijada, esa pauta prevalece;
+  si no, se usa la redistribución calculada para la próxima jornada válida.
+  Al eliminar el hábito se eliminan también sus registros de
+  `Ritmo_Diario_Historial`.
 - La tarjeta de pauta ampliada sólo se conserva mientras la meta todavía
   no tenga hábito, porque contiene la acción para crearlo. Una vez asentado
   el vínculo desaparecen de este detalle el realizado de hoy, el faltante,

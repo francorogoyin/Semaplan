@@ -388,3 +388,21 @@ test("trabajo operativo no repite realizado ni una descripción vacía", () => {
   assert.match(Html, /Pendiente: 50 páginas/);
   assert.doesNotMatch(Html, /Planes_Progreso_Descripcion/);
 });
+
+test("el editor comparte la cuota visible con la pauta del día", () => {
+  assert.match(Codigo_Login, /const Cuota_Visible = Info_Visible\.Calculable/);
+  assert.match(Codigo_Login, /Planes_Formatear_Numero\(Cuota_Visible\)/);
+  assert.match(
+    Codigo_Login,
+    /Planes_Formatear_Numero_Texto\(Cuota_Visible\)/
+  );
+});
+
+test("al borrar un hábito se eliminan sus pautas fijadas", () => {
+  assert.match(
+    Codigo_Login,
+    /Object\.values\(Modelo\.Objetivos \|\| \{\}\)\.forEach\(\(Objetivo\) =>/
+  );
+  assert.match(Codigo_Login, /Ritmo_Diario_Historial = Object\.fromEntries\(/);
+  assert.match(Codigo_Login, /Registro\?\.Habito_Id !== Habito_Id/);
+});

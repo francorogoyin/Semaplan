@@ -191,6 +191,10 @@ inicio, días semanales, rango, ciclo, días del mes o fechas excepcionales.
 Si hoy no es válido, el editor usa la primera fecha válida futura como
 referencia. Este cálculo de configuración es sólo una vista previa: no
 crea ni sobrescribe la pauta histórica ya fijada para la jornada.
+Cuando la jornada actual ya tiene una pauta fijada, la cuota visible del
+editor debe mostrar esa misma pauta; no se deben mezclar una pauta histórica
+con una redistribución de vista previa. Al borrar el hábito, también se
+eliminan sus registros de `Ritmo_Diario_Historial`.
 
 Una vez asociado el hábito, el detalle de la meta no debe repetir una
 tarjeta ampliada con realizado, faltante, pool, días válidos, historial o
