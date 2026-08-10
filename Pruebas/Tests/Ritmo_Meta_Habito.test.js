@@ -129,6 +129,63 @@ test("usa la meta principal para el ritmo cuando los cuentos no tienen target", 
   assert.equal(Resultado.Items_Medidos, 0);
 });
 
+test("usa el objetivo trimestral para el ritmo dentro de una meta semestral", () => {
+  const Madre = {
+    Id: "Musculacion_Semestre",
+    Target_Total: 80,
+    Unidad: "Sesiones"
+  };
+  const Trimestre = {
+    Id: "Musculacion_Trimestre",
+    Target_Total: 40,
+    Unidad: "Sesiones",
+    __Objetivo_Canonico_Id: Madre.Id
+  };
+  const Periodo = {
+    Id: "Trimestre",
+    Inicio: "2026-07-01",
+    Fin: "2026-09-30"
+  };
+  const Contexto = {
+    Objetivos: {
+      [Madre.Id]: Madre,
+      [Trimestre.Id]: Trimestre
+    },
+    Asegurar_Modelo_Planes: () => Contexto,
+    Planes_Carga_Trabajo_Objetivo: () => ({
+      Calculable: true,
+      Fuente: "Objetivo",
+      Total: 80,
+      Realizado: 2,
+      Pendiente: 78,
+      Unidad: "sesiones",
+      Unidad_Clave: "sesiones"
+    }),
+    Planes_Objetivo_Canonico_Contextual: () => Madre,
+    Planes_Normalizar_Modo_Avance: () => "Metrica",
+    Planes_Unidad_Label: () => "sesiones",
+    Planes_Subobjetivos_Contexto_Objetivo: () => ({
+      Items: [],
+      Items_Por_Id: new Map()
+    }),
+    Planes_Periodo_Contexto_Objetivo: () => Periodo,
+    Planes_Avance_Real_Objetivo_En_Periodo: () => 2,
+    Planes_Progreso_Total_Objetivo_Efectivo: () => 2,
+    Normalizar_Texto_Archivero: (Texto) => Texto.toLowerCase()
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Normalizar_Clave_Unidad_Ritmo",
+    "Planes_Carga_Ritmo_Objetivo"
+  ]);
+  const Resultado = Contexto.Planes_Carga_Ritmo_Objetivo(
+    Trimestre,
+    Contexto
+  );
+  assert.equal(Resultado.Total, 40);
+  assert.equal(Resultado.Realizado, 2);
+  assert.equal(Resultado.Pendiente, 38);
+});
+
 test("rechaza unidades mezcladas en vez de inventar una equivalencia", () => {
   const Subs = [
     { Id: "A", Target_Total: 10, Unidad_Custom: "Kilómetros" },

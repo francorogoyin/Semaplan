@@ -1276,6 +1276,8 @@ Relaciones importantes.
   subobjetivos medidos y resta el avance de cada uno con tope propio, de
   modo que un exceso en un subobjetivo no compensa otro pendiente.
   La cuota se redondea hacia arriba a unidades enteras para su uso diario.
+  Cuando se consulta un objetivo hijo, el ritmo usa su target y su período
+  contextual; la meta canónica sólo sigue aportando el contexto global.
   Si existen subobjetivos sin target individual pero la meta madre tiene
   una métrica global, el ritmo usa esa meta como fuente de palabras,
   páginas u otra unidad; esto no convierte esos subobjetivos en una

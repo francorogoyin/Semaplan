@@ -219,6 +219,10 @@ contra la suma uniforme de unidades de esos subobjetivos. Si una métrica
 no es calculable, se informa su ausencia: no se muestra un cero falso ni
 se equiparan unidades distintas.
 
+El ritmo de un objetivo hijo debe usar el target y el rango del período
+hijo consultado. El objetivo canónico superior conserva la lectura global,
+pero no puede reemplazar el denominador operativo del hijo.
+
 El numerador y el denominador del trabajo operativo deben salir del
 mismo inventario de subobjetivos medibles. Un subobjetivo cuyo target se
 obtiene sumando sus partes se cuenta una vez con ese total consolidado y
