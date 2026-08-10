@@ -1308,6 +1308,9 @@ Relaciones importantes.
   aunque el avance tenga una unidad distinta o el hábito no tenga métrica
   cuantitativa propia. Los hábitos cuantitativos siguen exigiendo unidad
   compatible antes de registrar el avance.
+- Para esa sincronización se usa la carga de ritmo de la meta, no la carga
+  operativa de sus subobjetivos: una meta global cuantificada sigue
+  sincronizando aunque sus subobjetivos sean cualitativos o no tengan target.
 - La tarjeta de pauta ampliada sólo se conserva mientras la meta todavía
   no tenga hábito, porque contiene la acción para crearlo. Una vez asentado
   el vínculo desaparecen de este detalle el realizado de hoy, el faltante,

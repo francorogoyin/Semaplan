@@ -201,6 +201,8 @@ Al sincronizar avances, un hábito `Check` no depende de una unidad ni de una
 métrica cuantitativa propia: cada avance compatible con el objetivo registra
 una sesión. Los hábitos de cantidad o tiempo conservan la validación de
 unidad.
+Para hábitos de ritmo, la validación cuantitativa se toma de la meta global
+del vínculo, incluso cuando los subobjetivos no tienen target individual.
 
 Una vez asociado el hábito, el detalle de la meta no debe repetir una
 tarjeta ampliada con realizado, faltante, pool, días válidos, historial o

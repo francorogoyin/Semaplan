@@ -1100,3 +1100,10 @@ test("permite sincronizar un hábito cualitativo sin métrica propia", () => {
   assert.match(Codigo_Login, /const Es_Check_Ritmo = Relacion\?\.Habito/);
   assert.match(Codigo_Login, /Es_Check_Ritmo \|\|/);
 });
+
+test("sincroniza metas globales aunque sus subobjetivos no tengan target", () => {
+  assert.match(
+    Codigo_Login,
+    /const Carga = Objetivo_Raiz\s+\? Planes_Carga_Ritmo_Objetivo\(/
+  );
+});
