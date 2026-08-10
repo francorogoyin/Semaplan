@@ -220,3 +220,15 @@ test("resume la cuota completa por día activo incluso en un descanso", () => {
     null
   );
 });
+
+test("integra el estado sin repetir el encabezado explicativo", () => {
+  assert.doesNotMatch(
+    Codigo_Login,
+    /<header class="Planes_Progreso_Encabezado"/
+  );
+  assert.match(Codigo_Login, /class="Planes_Meta_Madre_Identidad"/);
+  assert.match(
+    Codigo_Login,
+    /class="Planes_Progreso_Estado\$\{Estado_Clase\}"/
+  );
+});

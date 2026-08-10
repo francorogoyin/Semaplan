@@ -179,6 +179,10 @@ operativa; la meta madre es contexto global y los tres indicadores
 principales son cuota esperada del período, compromiso explícito de
 subobjetivos y trabajo operativo acumulado.
 
+El tablero no debe abrir con un encabezado que repita período, nombre de la
+sección o una explicación genérica. De esa franja sólo se conserva el estado
+efectivo de la meta, integrado junto a su identidad y avance global.
+
 La cuota usa el resultado cumplido contra la parte proporcional de la
 meta asignada al período. El compromiso usa subobjetivos raíz cumplidos
 contra los cargados para ese período. El trabajo usa unidades realizadas

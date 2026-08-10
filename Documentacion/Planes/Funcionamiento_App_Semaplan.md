@@ -1221,8 +1221,10 @@ Relaciones importantes.
   subobjetivos. Esta relación es genérica y no presupone libros,
   páginas ni otro dominio particular.
 - Al expandir un objetivo con hábito asociado no se repite una tarjeta de
-  pauta. El tablero de situación conserva el avance global de la meta
-  madre como contexto y destaca tres porcentajes que no se
+  pauta. Tampoco existe un encabezado redundante con el período, el título
+  `Situación del objetivo` y una explicación genérica: sólo se conserva el
+  estado efectivo, integrado junto a la identidad y el avance global de la
+  meta madre. El tablero destaca tres porcentajes que no se
   deben mezclar: `Cuota esperada` compara resultados cumplidos contra la
   parte proporcional asignada al período; `Compromiso elegido` compara
   subobjetivos cumplidos contra los subobjetivos cargados para ese
