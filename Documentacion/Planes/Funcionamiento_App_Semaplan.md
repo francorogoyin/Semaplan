@@ -1220,9 +1220,9 @@ Relaciones importantes.
   mientras la carga operativa usa la unidad uniforme de sus
   subobjetivos. Esta relación es genérica y no presupone libros,
   páginas ni otro dominio particular.
-- Al expandir un objetivo, la primera información es la `Pauta de hoy`.
-  Debajo, el tablero de situación conserva el avance global de la meta
-  madre como contexto secundario y destaca tres porcentajes que no se
+- Al expandir un objetivo con hábito asociado no se repite una tarjeta de
+  pauta. El tablero de situación conserva el avance global de la meta
+  madre como contexto y destaca tres porcentajes que no se
   deben mezclar: `Cuota esperada` compara resultados cumplidos contra la
   parte proporcional asignada al período; `Compromiso elegido` compara
   subobjetivos cumplidos contra los subobjetivos cargados para ese
@@ -1237,11 +1237,12 @@ Relaciones importantes.
   reales. Solo la longitud de la barra se limita al ancho disponible.
   En cargas compuestas, el aporte de cada subobjetivo sí se topa por su
   propia meta para que un exceso interno no oculte otro pendiente.
-- La lectura operativa resume cuántos subobjetivos y unidades quedan y
-  recuerda que la pauta diaria redistribuye ese pendiente entre los
-  días activos. Las metas sin cuota, sin compromiso o con unidades
-  mixtas muestran ausencia de cálculo en lugar de inventar un cero o
-  una equivalencia.
+- La lectura operativa resume cuántos subobjetivos y unidades quedan. Si
+  existe un hábito asociado, agrega únicamente la cuota completa vigente
+  por día activo; la cifra también se muestra en un día de descanso y no
+  se reemplaza por el faltante de hoy. Las metas sin cuota, sin compromiso
+  o con unidades mixtas muestran ausencia de cálculo en lugar de inventar
+  un cero o una equivalencia.
 - `Planes_Carga_Trabajo_Objetivo()` construye un único inventario con
   todos los subobjetivos medibles del compromiso. Cada uno aporta una
   vez su target y su avance agregado; cuando el target deriva de sus
@@ -1260,10 +1261,10 @@ Relaciones importantes.
   inmutable; el realizado se sigue leyendo de `Avances`, por lo que una
   corrección histórica cambia el balance real sin alterar la consigna.
   Déficits y adelantos se absorben al calcular la próxima jornada activa.
-- La tarjeta muestra pauta original, realizado hoy, faltante de hoy, pool
-  pendiente de unidades, subobjetivos pendientes y un historial diario
-  con pauta, realizado y balance. Distingue día válido, descanso
-  planificado, meta pausada, carga completa y ausencia de fechas.
+- La tarjeta de pauta ampliada sólo se conserva mientras la meta todavía
+  no tenga hábito, porque contiene la acción para crearlo. Una vez asentado
+  el vínculo desaparecen de este detalle el realizado de hoy, el faltante,
+  el pool, los días válidos, el historial y las acciones del hábito.
 - `Crear hábito asociado` abre el editor de Hábitos ya contextualizado.
   El nombre de la acción sigue siendo editable y la programación puede
   ser semanal, por días del mes, por ciclo de días o por ciclo de
@@ -1272,9 +1273,9 @@ Relaciones importantes.
   recalcula en vivo al cambiar el período o cualquier dato que altere
   los días válidos, incluida la fecha de inicio. El cálculo de esa
   cantidad ignora la fotografía histórica de hoy, pero nunca la
-  modifica; la franja superior sí conserva la pauta operativa fijada.
-  Si hoy no corresponde, la cantidad se deriva desde la primera fecha
-  válida futura.
+  modifica. La lectura operativa conserva la cuota completa fijada o
+  calculada por día activo. Si hoy no corresponde, la cantidad se deriva
+  desde la primera fecha válida futura.
 - El historial diario y los nuevos patrones de días forman parte del
   esquema de estado 8. Las versiones cuyo máximo de esquema sea 7 no
   deben habilitarse para ese estado, porque descartarían esos datos al

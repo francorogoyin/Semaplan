@@ -164,12 +164,20 @@ Si hoy no es válido, el editor usa la primera fecha válida futura como
 referencia. Este cálculo de configuración es sólo una vista previa: no
 crea ni sobrescribe la pauta histórica ya fijada para la jornada.
 
+Una vez asociado el hábito, el detalle de la meta no debe repetir una
+tarjeta ampliada con realizado, faltante, pool, días válidos, historial o
+acciones del hábito. La lectura operativa muestra sólo la cuota completa
+recomendada por día activo, aun cuando hoy sea un descanso; no debe usar el
+faltante de hoy ni convertir la meta del período en una cifra diaria. Si no
+existe hábito asociado, se conserva una vía clara para crearlo.
+
 ## Lectura del progreso de una meta
 
-El detalle de una meta debe responder primero qué hacer hoy y después
-explicar la situación sin mezclar escalas. La meta madre es contexto
-global; los tres indicadores principales son cuota esperada del período,
-compromiso explícito de subobjetivos y trabajo operativo acumulado.
+El detalle de una meta debe permitir decidir qué hacer sin mezclar escalas.
+La cuota por día activo se integra de manera compacta en la lectura
+operativa; la meta madre es contexto global y los tres indicadores
+principales son cuota esperada del período, compromiso explícito de
+subobjetivos y trabajo operativo acumulado.
 
 La cuota usa el resultado cumplido contra la parte proporcional de la
 meta asignada al período. El compromiso usa subobjetivos raíz cumplidos

@@ -177,3 +177,46 @@ test("la fecha real no reemplaza el período comprometido", () => {
   assert.equal(Resultado.Inicio, "2026-09-30");
   assert.equal(Resultado.Fin, "2026-09-30");
 });
+
+test("oculta la pauta ampliada cuando el hábito ya está asociado", () => {
+  const Contexto = {
+    Planes_Vinculo_Ritmo_Habito: () => ({
+      Habito: { Id: "Habito_Leer", Nombre: "Leer" }
+    })
+  };
+  Cargar_Funciones(Contexto, ["Planes_Render_Pauta_Hoy_Objetivo"]);
+  assert.equal(
+    Contexto.Planes_Render_Pauta_Hoy_Objetivo({ Id: "Meta" }),
+    ""
+  );
+});
+
+test("resume la cuota completa por día activo incluso en un descanso", () => {
+  const Contexto = {
+    Planes_Vinculo_Ritmo_Habito: () => ({
+      Habito: { Id: "Habito_Leer", Nombre: "Leer" }
+    }),
+    Planes_Calcular_Ritmo_Meta: () => ({
+      Calculable: true,
+      Completa: false,
+      Es_Hoy_Valido: false,
+      Cantidad_Hoy: 0,
+      Cuota_Diaria_Total: 204.55,
+      Dias_Validos_Restantes: 44,
+      Carga: { Unidad: "páginas" }
+    })
+  };
+  Cargar_Funciones(Contexto, ["Planes_Ritmo_Dia_Activo_Objetivo"]);
+  const Resultado = Contexto.Planes_Ritmo_Dia_Activo_Objetivo({
+    Id: "Meta"
+  });
+  assert.equal(Resultado.Cantidad, 204.55);
+  assert.equal(Resultado.Unidad, "páginas");
+  assert.equal(
+    Contexto.Planes_Ritmo_Dia_Activo_Objetivo({
+      Id: "Meta",
+      Pausado: true
+    }),
+    null
+  );
+});
