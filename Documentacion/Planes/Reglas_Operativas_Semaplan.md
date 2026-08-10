@@ -167,6 +167,10 @@ el balance de esa fecha, sin reescribir su pauta original. Los targets de
 subobjetivos se descuentan con tope individual: completar de más uno no
 puede ocultar el pendiente de otro.
 
+Un subobjetivo sin target numérico puede marcarse manualmente como
+realizado. Los recálculos automáticos conservan ese estado y sólo derivan
+`Hecha` desde avances cuando el subobjetivo tiene un target mayor que cero.
+
 Las excepciones de calendario tienen prioridad sobre la recurrencia. Una
 fecha inactiva explícita prevalece sobre una fecha activa explícita; una
 fecha activa explícita prevalece sobre el patrón semanal, mensual o

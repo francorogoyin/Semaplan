@@ -1279,6 +1279,9 @@ Relaciones importantes.
   una métrica global, el ritmo usa esa meta como fuente de palabras,
   páginas u otra unidad; esto no convierte esos subobjetivos en una
   carga operativa uniforme.
+- Un subobjetivo sin target puede marcarse manualmente como realizado.
+  El recálculo automático conserva ese estado y sólo lo deriva del avance
+  numérico cuando existe un target mayor que cero.
 - La primera evaluación de una jornada activa persiste una fotografía en
   `Ritmo_Diario_Historial`: pauta, pendiente inicial, días activos usados,
   unidad, total planificado y subobjetivos pendientes. La pauta queda

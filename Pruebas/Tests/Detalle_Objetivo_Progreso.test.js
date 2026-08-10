@@ -135,6 +135,89 @@ test("no cuenta como compromiso las divisiones internas anidadas", () => {
   assert.equal(Resultado.Compromiso.Porcentaje, 100);
 });
 
+test("usa el avance global en la cuota cuando los subobjetivos no tienen target", () => {
+  const Objetivo = {
+    Id: "Texturas",
+    Target_Total: 40000,
+    Progreso_Total: 21665
+  };
+  const Subs = Array.from({ length: 10 }, (_, Indice) => ({
+    Id: `Cuento_${Indice + 1}`,
+    Aporte_Meta: 1
+  }));
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => ({ Objetivos: { Texturas: Objetivo } }),
+    Planes_Objetivo_Canonico_Contextual: () => Objetivo,
+    Planes_Periodo_Contexto_Objetivo: () => ({ Id: "Trimestre" }),
+    Planes_Subobjetivos_Contexto_Objetivo: () => ({
+      Items: Subs,
+      Items_Por_Id: new Map(Subs.map((Sub) => [Sub.Id, {
+        Sub,
+        Padre_Id: ""
+      }]))
+    }),
+    Planes_Estado_Normalizado_Subobjetivo: () => "Activo",
+    Planes_Aporte_Cumplido_Para_Resumen: () => 0,
+    Planes_Avance_Real_Objetivo_En_Periodo: () => 0,
+    Planes_Progreso_Total_Objetivo_Efectivo: () => 21665,
+    Planes_Carga_Trabajo_Objetivo: () => ({ Calculable: false }),
+    Planes_Metrica_Progreso: (Realizado, Total) => ({
+      Porcentaje: Total > 0 ? (Realizado / Total) * 100 : 0
+    })
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Resumen_Progreso_Objetivo"
+  ]);
+  const Resultado = Contexto.Planes_Resumen_Progreso_Objetivo(Objetivo);
+  assert.equal(Resultado.Cuota.Porcentaje, 54.1625);
+});
+
+test("conserva realizado manual en subobjetivos sin target", () => {
+  const Sub = {
+    Id: "Cuento_1",
+    Target_Total: 0,
+    Hecha: true,
+    Estado: "Cumplido"
+  };
+  const Contexto = {
+    Planes_Total_Avances_Subobjetivo: () => 0,
+    Planes_Aplicar_Fecha_Final_Subobjetivo: () => {},
+    Planes_Sincronizar_Estado_Familia_Subobjetivo: () => {}
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Recalcular_Progreso_Subobjetivo"
+  ]);
+  Contexto.Planes_Recalcular_Progreso_Subobjetivo(Sub, {});
+  assert.equal(Sub.Hecha, true);
+  assert.equal(Sub.Estado, "Cumplido");
+});
+
+test("el sincronizador no desmarca familias cualitativas realizadas", () => {
+  const Sub = {
+    Id: "Cuento_1",
+    Hecha: true,
+    Estado: "Cumplido",
+    Fecha_Fin: "2026-08-10"
+  };
+  const Modelo = { Subobjetivos: { "Cuento_1": Sub } };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => Modelo,
+    Planes_Subobjetivos_Familia_Ids: () => new Set(["Cuento_1"]),
+    Planes_Total_Avances_Subobjetivo: () => 0,
+    Planes_Ultimo_Avance_Subobjetivo: () => null
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Sincronizar_Estado_Familia_Subobjetivo"
+  ]);
+  Contexto.Planes_Sincronizar_Estado_Familia_Subobjetivo(
+    "Cuento_1",
+    Modelo
+  );
+  assert.equal(Sub.Hecha, true);
+  assert.equal(Sub.Estado, "Cumplido");
+  assert.equal(Sub.Fecha_Fin, "2026-08-10");
+});
+
 test("muestra el exceso real y limita solamente la barra visual", () => {
   const Contexto = {};
   Cargar_Funciones(Contexto, ["Planes_Metrica_Progreso"]);
