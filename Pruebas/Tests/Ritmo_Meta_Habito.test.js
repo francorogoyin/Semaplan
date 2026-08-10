@@ -26,7 +26,11 @@ function Extraer_Funcion(Nombre) {
 
 function Cargar_Funciones(Contexto, Nombres) {
   vm.createContext(Contexto);
-  Nombres.forEach((Nombre) => {
+  const Funciones = Nombres.includes("Planes_Calcular_Ritmo_Meta") &&
+    !Nombres.includes("Planes_Carga_Ritmo_Objetivo")
+    ? ["Planes_Carga_Ritmo_Objetivo", ...Nombres]
+    : Nombres;
+  Funciones.forEach((Nombre) => {
     vm.runInContext(Extraer_Funcion(Nombre), Contexto);
   });
   return Contexto;
@@ -82,6 +86,47 @@ test("agrega una carga uniforme sin confundirla con la meta principal", () => {
   assert.equal(Resultado.Pendiente, 140);
   assert.equal(Resultado.Unidad, "páginas");
   assert.equal(Resultado.Cobertura_Completa, true);
+});
+
+test("usa la meta principal para el ritmo cuando los cuentos no tienen target", () => {
+  const Subs = Array.from({ length: 10 }, (_, Indice) => ({
+    Id: `Cuento_${Indice + 1}`
+  }));
+  const Objetivo = {
+    Id: "Texturas",
+    Target_Total: 40000,
+    Unidad: "Personalizado",
+    Unidad_Custom: "Palabras"
+  };
+  const Modelo = { Objetivos: { Texturas: Objetivo } };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => Modelo,
+    Planes_Objetivo_Canonico_Contextual: () => Objetivo,
+    Planes_Subobjetivos_Contexto_Objetivo: () => ({ Items: Subs }),
+    Planes_Normalizar_Modo_Avance: () => "Con_Metrica",
+    Planes_Progreso_Total_Objetivo_Efectivo: () => 21665,
+    Planes_Unidad_Label: () => "palabras",
+    Normalizar_Texto_Archivero: (Texto) => Texto.toLowerCase(),
+    Planes_Carga_Trabajo_Objetivo: () => ({
+      Calculable: false,
+      Motivo: "Sin_Metrica"
+    })
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Normalizar_Clave_Unidad_Ritmo",
+    "Planes_Carga_Ritmo_Objetivo"
+  ]);
+  const Resultado = Contexto.Planes_Carga_Ritmo_Objetivo(
+    Objetivo,
+    Modelo
+  );
+  assert.equal(Resultado.Calculable, true);
+  assert.equal(Resultado.Fuente, "Objetivo");
+  assert.equal(Resultado.Total, 40000);
+  assert.equal(Resultado.Realizado, 21665);
+  assert.equal(Resultado.Pendiente, 18335);
+  assert.equal(Resultado.Subobjetivos_Total, 10);
+  assert.equal(Resultado.Items_Medidos, 0);
 });
 
 test("rechaza unidades mezcladas en vez de inventar una equivalencia", () => {

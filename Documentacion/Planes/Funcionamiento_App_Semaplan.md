@@ -1275,6 +1275,10 @@ Relaciones importantes.
   restantes hasta el fin de la meta. El pool suma los targets de los
   subobjetivos medidos y resta el avance de cada uno con tope propio, de
   modo que un exceso en un subobjetivo no compensa otro pendiente.
+  Si existen subobjetivos sin target individual pero la meta madre tiene
+  una métrica global, el ritmo usa esa meta como fuente de palabras,
+  páginas u otra unidad; esto no convierte esos subobjetivos en una
+  carga operativa uniforme.
 - La primera evaluación de una jornada activa persiste una fotografía en
   `Ritmo_Diario_Historial`: pauta, pendiente inicial, días activos usados,
   unidad, total planificado y subobjetivos pendientes. La pauta queda
