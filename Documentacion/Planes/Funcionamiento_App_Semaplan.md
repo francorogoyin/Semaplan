@@ -1311,6 +1311,9 @@ Relaciones importantes.
 - Para esa sincronización se usa la carga de ritmo de la meta, no la carga
   operativa de sus subobjetivos: una meta global cuantificada sigue
   sincronizando aunque sus subobjetivos sean cualitativos o no tengan target.
+- Al cargar el estado, los registros de hábitos de ritmo se reconstruyen
+  desde los avances existentes; esto repara también avances guardados antes
+  de una corrección de sincronización.
 - La tarjeta de pauta ampliada sólo se conserva mientras la meta todavía
   no tenga hábito, porque contiene la acción para crearlo. Una vez asentado
   el vínculo desaparecen de este detalle el realizado de hoy, el faltante,

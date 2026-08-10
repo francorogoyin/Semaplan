@@ -1107,3 +1107,14 @@ test("sincroniza metas globales aunque sus subobjetivos no tengan target", () =>
     /const Carga = Objetivo_Raiz\s+\? Planes_Carga_Ritmo_Objetivo\(/
   );
 });
+
+test("repara al cargar los registros de ritmo desde avances existentes", () => {
+  assert.match(
+    Codigo_Login,
+    /function Planes_Reparar_Registros_Ritmo_Desde_Avances\(\)/
+  );
+  assert.match(
+    Codigo_Login,
+    /Normalizar_Estado\(\);\s+Planes_Reparar_Registros_Ritmo_Desde_Avances\(\);/
+  );
+});
