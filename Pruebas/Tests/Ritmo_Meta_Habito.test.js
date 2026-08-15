@@ -8,7 +8,17 @@ const Ruta_Login = path.resolve(__dirname, "../../login.html");
 const Codigo_Login = fs.readFileSync(Ruta_Login, "utf8");
 
 function Extraer_Funcion(Nombre) {
-  const Inicio = Codigo_Login.indexOf(`function ${Nombre}(`);
+  const Inicio_Sincronico = Codigo_Login.indexOf(
+    `function ${Nombre}(`
+  );
+  const Inicio_Async = Codigo_Login.indexOf(
+    `async function ${Nombre}(`
+  );
+  const Inicio = Inicio_Async >= 0 && (
+    Inicio_Sincronico < 0 || Inicio_Async < Inicio_Sincronico
+  )
+    ? Inicio_Async
+    : Inicio_Sincronico;
   assert.notEqual(Inicio, -1, `No se encontró la función ${Nombre}`);
   const Fin_Parametros = Codigo_Login.indexOf(") {", Inicio);
   assert.notEqual(Fin_Parametros, -1, `No se encontró el cuerpo de ${Nombre}`);
@@ -1126,6 +1136,70 @@ test("ofrece actualizar el vínculo desde las opciones del hábito", () => {
   );
   assert.match(Codigo_Login, /habito-actualizar-vinculo/);
   assert.match(Codigo_Login, /habitos\.actualizar_vinculo/);
+});
+
+test("confirma la redistribución futura sin contar el día de hoy", async () => {
+  let Mensaje = "";
+  let Confirmacion = false;
+  let Recalculos = 0;
+  const Objetivo = { Id: "Meta" };
+  const Habito = { Id: "Habito" };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => ({ Objetivos: { Meta: Objetivo } }),
+    Planes_Objetivo_Ritmo_Por_Habito: () => ({ Objetivo, Habito }),
+    Planes_Recalcular_Registros_Habito_Ritmo_Objetivo: () => {
+      Recalculos += 1;
+    },
+    Habitos_Fecha_Hoy: () => "2026-08-06",
+    Planes_Calcular_Ritmo_Meta: () => ({
+      Inicio: "2026-08-01",
+      Fin: "2026-08-10",
+      Rango: {
+        Inicio: Parsear_Fecha("2026-08-01"),
+        Fin: Parsear_Fecha("2026-08-10")
+      },
+      Carga: { Pendiente: 80, Unidad: "páginas" }
+    }),
+    Planes_Rango_Ritmo_Objetivo: () => null,
+    Parsear_Fecha_ISO: Parsear_Fecha,
+    Formatear_Fecha_ISO: Formatear_Fecha,
+    Sumar_Dias,
+    Planes_Fechas_Validas_Ritmo: () => [
+      "2026-08-07",
+      "2026-08-10"
+    ],
+    Planes_Redondear_Cuota_Ritmo: (Valor) => Math.ceil(Valor),
+    Planes_Formatear_Numero_Texto: (Valor) => String(Valor),
+    Formatear_Fecha_Corta_Meta: (Fecha) => Formatear_Fecha(Fecha),
+    Guardar_Estado_Cambio_Critico: () => {},
+    Render_Plan: () => {},
+    Render_Habitos_Sidebar: () => {},
+    Mostrar_Dialogo: (Valor) => {
+      Mensaje = Valor;
+      return Promise.resolve(Confirmacion);
+    },
+    Mostrar_Toast_Info: () => {},
+    t: (Clave, Params) => Clave ===
+      "habitos.vinculo_actualizar_confirm"
+      ? `${Params.pendientes}|${Params.dias}|${Params.pauta}|` +
+        `${Params.inicio}|${Params.fin}`
+      : Clave
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Actualizar_Vinculo_Habito_Ritmo"
+  ]);
+  assert.equal(
+    await Contexto.Planes_Actualizar_Vinculo_Habito_Ritmo("Habito"),
+    false
+  );
+  assert.equal(Recalculos, 0);
+  Confirmacion = true;
+  assert.equal(
+    await Contexto.Planes_Actualizar_Vinculo_Habito_Ritmo("Habito"),
+    true
+  );
+  assert.equal(Mensaje, "80|2|40|2026-08-01|2026-08-10");
+  assert.equal(Recalculos, 1);
 });
 
 test("no cuenta registros anteriores ni mezcla unidades", () => {

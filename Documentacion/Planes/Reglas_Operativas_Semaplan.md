@@ -206,7 +206,12 @@ del vínculo, incluso cuando los subobjetivos no tienen target individual.
 Al iniciar la aplicación, los registros derivados de hábitos de ritmo deben
 reconstruirse desde los avances persistidos para reparar estados históricos.
 El menú contextual de un hábito de ritmo debe ofrecer `Actualizar vínculo`
-como reparación manual equivalente, sin crear registros duplicados.
+como reparación manual equivalente, sin crear registros duplicados. La acción
+reconstruye el vínculo, informa la próxima pauta y conserva sin cambios la
+pauta ya fijada para hoy; la redistribución se aplica en el siguiente día
+activo. Antes de confirmar, muestra el pendiente total, el rango del período,
+la cantidad de fechas activas futuras —sin contar hoy— y la pauta redondeada
+resultante; cancelar no modifica registros.
 Los registros anteriores a la fecha de inicio no deben contar. Un cambio de
 unidad no debe convertir ni sumar magnitudes incompatibles: se conserva el
 registro histórico y se filtra del progreso actual hasta que la unidad vuelva

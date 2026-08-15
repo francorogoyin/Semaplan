@@ -1316,7 +1316,12 @@ Relaciones importantes.
   de una corrección de sincronización.
 - Las opciones de un hábito vinculado a una meta de ritmo incluyen
   `Actualizar vínculo`. Esa acción reconstruye sus registros desde los
-  avances persistidos, guarda el estado y refresca Metas y Hábitos.
+  avances persistidos, guarda el estado, refresca Metas y Hábitos e informa
+  la próxima pauta. La pauta del día actual permanece fijada; el nuevo
+  reparto se aplica al siguiente día activo. Antes de ejecutar la reparación,
+  un diálogo muestra los pendientes, el rango del objetivo, los días activos
+  futuros —sin contar hoy— y la cuota redondeada; cancelar deja el vínculo
+  intacto.
 - Los avances anteriores a `Fecha_Inicio` del hábito no cuentan para su
   progreso. Si cambia la unidad, los registros anteriores se conservan como
   historial pero no se mezclan con la unidad nueva; sólo los avances
