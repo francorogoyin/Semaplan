@@ -205,6 +205,8 @@ Para hábitos de ritmo, la validación cuantitativa se toma de la meta global
 del vínculo, incluso cuando los subobjetivos no tienen target individual.
 Al iniciar la aplicación, los registros derivados de hábitos de ritmo deben
 reconstruirse desde los avances persistidos para reparar estados históricos.
+El menú contextual de un hábito de ritmo debe ofrecer `Actualizar vínculo`
+como reparación manual equivalente, sin crear registros duplicados.
 
 Una vez asociado el hábito, el detalle de la meta no debe repetir una
 tarjeta ampliada con realizado, faltante, pool, días válidos, historial o

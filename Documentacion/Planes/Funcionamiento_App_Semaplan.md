@@ -1314,6 +1314,9 @@ Relaciones importantes.
 - Al cargar el estado, los registros de hábitos de ritmo se reconstruyen
   desde los avances existentes; esto repara también avances guardados antes
   de una corrección de sincronización.
+- Las opciones de un hábito vinculado a una meta de ritmo incluyen
+  `Actualizar vínculo`. Esa acción reconstruye sus registros desde los
+  avances persistidos, guarda el estado y refresca Metas y Hábitos.
 - La tarjeta de pauta ampliada sólo se conserva mientras la meta todavía
   no tenga hábito, porque contiene la acción para crearlo. Una vez asentado
   el vínculo desaparecen de este detalle el realizado de hoy, el faltante,

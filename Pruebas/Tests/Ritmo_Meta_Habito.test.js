@@ -1118,3 +1118,12 @@ test("repara al cargar los registros de ritmo desde avances existentes", () => {
     /Normalizar_Estado\(\);\s+Planes_Reparar_Registros_Ritmo_Desde_Avances\(\);/
   );
 });
+
+test("ofrece actualizar el vínculo desde las opciones del hábito", () => {
+  assert.match(
+    Codigo_Login,
+    /function Planes_Actualizar_Vinculo_Habito_Ritmo\(Habito_Id\)/
+  );
+  assert.match(Codigo_Login, /habito-actualizar-vinculo/);
+  assert.match(Codigo_Login, /habitos\.actualizar_vinculo/);
+});
