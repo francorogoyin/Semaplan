@@ -207,6 +207,10 @@ Al iniciar la aplicación, los registros derivados de hábitos de ritmo deben
 reconstruirse desde los avances persistidos para reparar estados históricos.
 El menú contextual de un hábito de ritmo debe ofrecer `Actualizar vínculo`
 como reparación manual equivalente, sin crear registros duplicados.
+Los registros anteriores a la fecha de inicio no deben contar. Un cambio de
+unidad no debe convertir ni sumar magnitudes incompatibles: se conserva el
+registro histórico y se filtra del progreso actual hasta que la unidad vuelva
+a ser compatible.
 
 Una vez asociado el hábito, el detalle de la meta no debe repetir una
 tarjeta ampliada con realizado, faltante, pool, días válidos, historial o

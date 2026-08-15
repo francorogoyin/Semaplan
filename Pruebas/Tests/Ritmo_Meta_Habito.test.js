@@ -1127,3 +1127,52 @@ test("ofrece actualizar el vínculo desde las opciones del hábito", () => {
   assert.match(Codigo_Login, /habito-actualizar-vinculo/);
   assert.match(Codigo_Login, /habitos\.actualizar_vinculo/);
 });
+
+test("no cuenta registros anteriores ni mezcla unidades", () => {
+  const Contexto = {
+    Habito_Modo_Visible: () => "Cantidad",
+    Habito_Unidad: () => "palabras",
+    Normalizar_Texto_Archivero: (Valor) =>
+      String(Valor || "").trim().toLowerCase()
+  };
+  Cargar_Funciones(Contexto, [
+    "Habito_Registro_Cuenta_Para_Progreso"
+  ]);
+  const Habito = {
+    Id: "Habito",
+    Fecha_Inicio: "2026-08-10"
+  };
+  assert.equal(
+    Contexto.Habito_Registro_Cuenta_Para_Progreso(
+      Habito,
+      { Fecha: "2026-08-09", Unidad: "palabras" },
+      "2026-08-15"
+    ),
+    false
+  );
+  assert.equal(
+    Contexto.Habito_Registro_Cuenta_Para_Progreso(
+      Habito,
+      { Fecha: "2026-08-15", Unidad: "páginas" },
+      "2026-08-15"
+    ),
+    false
+  );
+  assert.equal(
+    Contexto.Habito_Registro_Cuenta_Para_Progreso(
+      Habito,
+      { Fecha: "2026-08-15", Unidad: "palabras" },
+      "2026-08-15"
+    ),
+    true
+  );
+  Contexto.Habito_Modo_Visible = () => "Check";
+  assert.equal(
+    Contexto.Habito_Registro_Cuenta_Para_Progreso(
+      Habito,
+      { Fecha: "2026-08-15", Unidad: "páginas" },
+      "2026-08-15"
+    ),
+    true
+  );
+});

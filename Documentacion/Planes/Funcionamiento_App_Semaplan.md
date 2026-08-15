@@ -1317,6 +1317,10 @@ Relaciones importantes.
 - Las opciones de un hábito vinculado a una meta de ritmo incluyen
   `Actualizar vínculo`. Esa acción reconstruye sus registros desde los
   avances persistidos, guarda el estado y refresca Metas y Hábitos.
+- Los avances anteriores a `Fecha_Inicio` del hábito no cuentan para su
+  progreso. Si cambia la unidad, los registros anteriores se conservan como
+  historial pero no se mezclan con la unidad nueva; sólo los avances
+  compatibles alimentan el estado actual.
 - La tarjeta de pauta ampliada sólo se conserva mientras la meta todavía
   no tenga hábito, porque contiene la acción para crearlo. Una vez asentado
   el vínculo desaparecen de este detalle el realizado de hoy, el faltante,
