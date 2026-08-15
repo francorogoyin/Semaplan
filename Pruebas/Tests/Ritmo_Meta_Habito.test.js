@@ -815,6 +815,55 @@ test("el editor diario usa la misma cuota diaria que Metas", () => {
   assert.equal(Resultado.Cantidad, 611.17);
 });
 
+test("el indicador diario conserva la pauta cuando hay exceso", () => {
+  const Habito = {
+    Id: "Habito",
+    Meta: {
+      Modo: "Cantidad",
+      Cantidad: 1,
+      Unidad: "páginas",
+      Regla: "Al_Menos"
+    }
+  };
+  const Contexto = {
+    Habitos_Fecha_Hoy: () => "2026-08-15",
+    Habito_Clave_Periodo: () => "2026-08-15",
+    Habito_Periodo: () => "Dia",
+    Planes_Objetivo_Ritmo_Por_Habito: () => ({
+      Objetivo: { Id: "Meta" }
+    }),
+    Planes_Calcular_Ritmo_Meta: () => ({
+      Cuota_Diaria_Total: 50
+    }),
+    Planes_Cuota_Periodo_Ritmo_Meta: () => {
+      throw new Error("no debe usar la cuota acumulada");
+    },
+    Habito_Cancelado_En_Periodo: () => false,
+    Habito_Modo_Visible: () => "Cantidad",
+    Habito_Regla_Objetivo: () => "Al_Menos",
+    Habito_Unidad: () => "páginas",
+    Planes_Formatear_Numero: (Valor) => String(Valor),
+    t: (Clave) => Clave
+  };
+  Cargar_Funciones(Contexto, [
+    "Habito_Meta_En_Fecha",
+    "Planes_Cuota_Habito_Meta_En_Fecha",
+    "Habito_Objetivo_Total",
+    "Habito_Objetivo_Total_En_Fecha",
+    "Habito_Objetivo_Total_Contextual",
+    "Habito_Formatear_Progreso_Contextual"
+  ]);
+  assert.equal(
+    Contexto.Habito_Formatear_Progreso_Contextual(
+      Habito,
+      "2026-08-15",
+      "Dia",
+      55
+    ),
+    "55/50 páginas"
+  );
+});
+
 test("fecha de inicio y días activos cambian la cuota recomendada", () => {
   const Objetivo = { Id: "Meta" };
   const Contexto = {

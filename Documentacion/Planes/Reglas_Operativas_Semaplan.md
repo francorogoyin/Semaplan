@@ -168,6 +168,8 @@ la redistribución de jornadas posteriores.
 En un hábito configurado por día, el campo de meta y la pauta visible
 deben usar la misma cuota diaria; no se debe mostrar en el campo diario un
 acumulado de avances del período.
+El indicador conserva esa pauta como denominador aunque el realizado la
+supere: por ejemplo, muestra `55/50 páginas` y no `55/55 páginas`.
 
 El realizado histórico se deriva siempre de los avances de la meta. Una
 edición o eliminación de un avance pasado debe corregir el realizado y

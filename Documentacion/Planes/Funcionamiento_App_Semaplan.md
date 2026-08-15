@@ -613,6 +613,8 @@ Relaciones importantes.
   una pauta en `Ritmo_Diario_Historial`; el progreso del día cambia lo
   que falta hoy, pero no reescribe esa pauta. La siguiente jornada
   activa vuelve a distribuir el pool pendiente actualizado.
+- En un hábito diario de ritmo, el indicador conserva la pauta fijada
+  como denominador aunque el avance la supere: `55/50`, no `55/55`.
 - Cada hábito con rol `Ritmo_Meta` tiene una sola meta propietaria. Si
   se reasocia, la app quita la asociación operativa anterior sin tocar
   los demás vínculos ordinarios de esa meta.
