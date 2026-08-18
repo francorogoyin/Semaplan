@@ -157,6 +157,8 @@ Los modulos principales son estos.
 - Archivero para notas, etiquetas y adjuntos.
 - Baul como backlog de objetivos e ideas accionables.
 - Decoteca como archivo cultural persistido por tecas.
+- Nutrifit como calculador de comidas, base de alimentos, registro diario
+  y plan semanal opcional.
 - Metas resumidas por fuente.
 - Planes semanales.
 - Planes por periodos con objetivos, subobjetivos y partes.
@@ -180,6 +182,7 @@ Las claves centrales persistidas hoy son estas.
 - `Etiquetas`
 - `Baul_Objetivos`
 - `Decoteca`
+- `Nutrifit`
 - `Archiveros`
 - `Notas_Archivero`
 - `Etiquetas_Archivero`
@@ -697,6 +700,53 @@ Relaciones importantes.
 - Al cambiar la vista temporal de Hábitos o Tareas, la fecha de
   navegación se restablece a la fecha actual para evitar quedar anclado
   en un día viejo.
+
+## Nutrifit
+
+Nutrifit es un módulo de alimentación opcional, independiente de la
+agenda. No consulta Internet ni pretende reemplazar asesoramiento
+profesional: calcula únicamente a partir de la base local de alimentos.
+
+Estado actual.
+
+- El estado raíz `Nutrifit` contiene `Categorias`, `Alimentos`,
+  `Comidas`, `Planes_Semanales` y `Objetivos`.
+- La base inicial se carga vacía y se completa manualmente. Cada alimento
+  define una unidad base (`g`, `ml` o `unidad`), calorías y proteína por
+  esa unidad. Los valores aproximados exigen una fuente o referencia.
+- El calculador admite cantidades cero y decimales, pero rechaza valores
+  negativos, alimentos inexistentes y unidades incompatibles.
+- `Anotar en el registro` muestra una confirmación explícita antes de
+  guardar con la fecha de hoy. Las comidas guardadas conservan una
+  instantánea de sus ingredientes y no cambian si luego se edita la base.
+- El registro diario permite editar, reutilizar y borrar comidas. Al borrar
+  una comida se limpian sus referencias en los planes semanales.
+- El plan semanal es opcional y permite seleccionar hasta dos comidas por
+  día. Muestra calorías y proteína estimadas y separa el estado de cada
+  métrica en `Dentro`, `Debajo`, `Encima` o `Sin objetivo`; no diagnostica
+  déficit calórico.
+- La tabla de alimentos no incluye una columna de notas. La información
+  metodológica breve se conserva en la fuente del alimento y los avisos
+  visibles del módulo.
+- El botón `Nutrifit_Boton` y el modal `Nutrifit_Overlay` respetan la
+  visibilidad configurable del menú y las traducciones es/en/pt.
+- Desde la versión de frontend `1.11.0`, el esquema de estado es `9`.
+  Las versiones anteriores se mantienen fuera del selector si no soportan
+  esta estructura.
+
+Funciones principales.
+
+- `Nutrifit_Abrir()`
+- `Nutrifit_Cerrar()`
+- `Render_Nutrifit()`
+- `Nutrifit_Guardar_Alimento()`
+- `Nutrifit_Anotar_Calculo()`
+- `Nutrifit_Guardar_Objetivos()`
+- `Nutrifit_Actualizar_Plan_Dia()`
+- `Normalizar_Nutrifit()`
+
+`Nutrifit` entra en `Construir_Estado_Completo()`, `Cargar_Estado()`,
+`Normalizar_Estado()`, sync remoto e import/export como clave raíz.
 
 ## Retos
 

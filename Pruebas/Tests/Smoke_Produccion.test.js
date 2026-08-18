@@ -3,7 +3,7 @@ const crypto = require("node:crypto");
 const test = require("node:test");
 
 const Origen = "https://semaplan.com";
-const Version_Actual = "1.10.7";
+const Version_Actual = "1.11.0";
 
 async function Descargar_Texto(Ruta) {
   const Url = new URL(Ruta, Origen);
@@ -71,7 +71,7 @@ test("produccion bloquea releases obsoletos", async () => {
   });
   const Anteriores_Mismo_Esquema = Manifest.filter((Item) => {
     return Item.Id !== Version_Actual &&
-      Item.Esquema_Estado_Max === 8;
+      Item.Esquema_Estado_Max === 9;
   });
 
   assert.equal(Actual?.Estado, "stable");
