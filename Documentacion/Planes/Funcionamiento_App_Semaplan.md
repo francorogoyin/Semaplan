@@ -744,6 +744,10 @@ Estado actual.
 - Desde la versión de frontend `1.13.0`, el esquema de estado es `11`.
   Las versiones anteriores se mantienen fuera del selector si no soportan
   esta estructura.
+- Desde la versión de frontend `1.14.0`, el esquema de estado es `12`.
+  Esta versión incorpora la capa independiente de Semanas en Planes;
+  las versiones anteriores se mantienen fuera del selector para evitar
+  que interpreten esas semanas como períodos personalizados.
 
 Funciones principales.
 
@@ -1246,6 +1250,21 @@ Relaciones importantes.
 ## Planes por periodos
 
 Es el sistema jerarquico mas grande de la app.
+
+La capa `Semana` de Planes es independiente de la jerarquia de anos,
+semestres, trimestres y meses. Se consulta de lunes a domingo y no se
+crean semanas como hijas de otros periodos. La cuota semanal es una
+proyeccion informativa: se prorratea por dias calendario sobre los
+periodos que se superponen con la semana, sin asignar tareas a dias
+particulares.
+
+Cuando una familia de objetivos tiene una madre anual, semestral,
+trimestral o mensual, la cuota semanal usa siempre la madre de mayor
+escala disponible, en ese orden. Si la semana cruza dos periodos de la
+escala elegida, suma las porciones proporcionales de cada uno. Los
+subobjetivos no cambian la fuente de la cuota: sus propias fechas de
+inicio, objetivo y fin determinan qué trabajo y qué avances entran en
+el contexto semanal.
 
 Objeto central.
 

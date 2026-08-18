@@ -799,10 +799,10 @@ test("el selector bloquea releases obsoletos aunque compartan esquema", () => {
       "utf8"
     )
   );
-  const Actual = Manifest.find((Item) => Item.Id === "1.13.0");
+  const Actual = Manifest.find((Item) => Item.Id === "1.14.0");
   const Anteriores_Mismo_Esquema = Manifest.filter((Item) => {
-    return Item.Id !== "1.13.0" &&
-      Item.Esquema_Estado_Max === 10;
+    return Item.Id !== "1.14.0" &&
+      Item.Esquema_Estado_Max === 11;
   });
 
   assert.equal(Actual?.Estado, "stable");
