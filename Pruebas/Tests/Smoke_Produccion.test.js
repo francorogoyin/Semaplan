@@ -71,11 +71,11 @@ test("produccion bloquea releases obsoletos", async () => {
   });
   const Anteriores_Mismo_Esquema = Manifest.filter((Item) => {
     return Item.Id !== Version_Actual &&
-      Item.Esquema_Estado_Max === 9;
+      Item.Esquema_Estado_Max === 8;
   });
 
   assert.equal(Actual?.Estado, "stable");
-  assert.equal(Actual?.Archivo, "Semaplan_Version_1_10_7.html");
+  assert.equal(Actual?.Archivo, "Semaplan_Version_1_11_0.html");
   assert.ok(Anteriores_Mismo_Esquema.length > 0);
   assert.ok(
     Anteriores_Mismo_Esquema.every((Item) => {
