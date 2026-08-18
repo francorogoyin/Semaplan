@@ -141,3 +141,32 @@ test("Nutrifit rechaza unidades incompatibles, negativos y alimentos ausentes", 
   assert.equal(Resultado.Total_Calorias, 0);
   assert.equal(Resultado.Errores.length, 3);
 });
+
+test("Nutrifit conserva porción como unidad calculable", () => {
+  const Contexto = Crear_Entorno_Nutrifit();
+  assert.equal(Contexto.Nutrifit_Unidad("porción"), "porcion");
+  const Resultado = Contexto.Nutrifit_Calcular_Ingredientes(
+    [{
+      Id: "fila_porcion",
+      Alimento_Id: "faina",
+      Alimento_Nombre: "Fainá",
+      Cantidad: 1,
+      Unidad: "porcion"
+    }],
+    [{
+      Id: "faina",
+      Nombre: "Fainá",
+      Unidad_Base: "porcion",
+      Calorias_Base: 250,
+      Proteina_Base: 8,
+      Aproximado: false,
+      Fuente: ""
+    }],
+    Traducir
+  );
+
+  assert.equal(Resultado.Valido, true);
+  assert.equal(Resultado.Total_Calorias, 250);
+  assert.equal(Resultado.Total_Proteina, 8);
+  assert.equal(Resultado.Ingredientes[0].Unidad, "porcion");
+});

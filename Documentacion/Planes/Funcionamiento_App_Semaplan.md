@@ -712,7 +712,7 @@ Estado actual.
 - El estado raíz `Nutrifit` contiene `Categorias`, `Alimentos`,
   `Comidas`, `Planes_Semanales` y `Objetivos`.
 - La base inicial se carga vacía y se completa manualmente. Cada alimento
-  define una unidad base (`g`, `ml` o `unidad`), calorías y proteína por
+  define una unidad base (`g`, `ml`, `unidad` o `porción`), calorías y proteína por
   esa unidad. Los valores aproximados exigen una fuente o referencia.
 - El calculador admite cantidades cero y decimales, pero rechaza valores
   negativos, alimentos inexistentes y unidades incompatibles.
@@ -730,7 +730,7 @@ Estado actual.
   visibles del módulo.
 - El botón `Nutrifit_Boton` y el modal `Nutrifit_Overlay` respetan la
   visibilidad configurable del menú y las traducciones es/en/pt.
-- Desde la versión de frontend `1.11.0`, el esquema de estado es `9`.
+- Desde la versión de frontend `1.12.0`, el esquema de estado es `10`.
   Las versiones anteriores se mantienen fuera del selector si no soportan
   esta estructura.
 
