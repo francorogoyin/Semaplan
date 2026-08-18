@@ -709,28 +709,39 @@ profesional: calcula únicamente a partir de la base local de alimentos.
 
 Estado actual.
 
-- El estado raíz `Nutrifit` contiene `Categorias`, `Alimentos`,
-  `Comidas`, `Planes_Semanales` y `Objetivos`.
-- La base inicial se carga vacía y se completa manualmente. Cada alimento
-  define una unidad base (`g`, `ml`, `unidad` o `porción`), calorías y proteína por
-  esa unidad. Los valores aproximados exigen una fuente o referencia.
-- El calculador admite cantidades cero y decimales, pero rechaza valores
-  negativos, alimentos inexistentes y unidades incompatibles.
-- `Anotar en el registro` muestra una confirmación explícita antes de
-  guardar con la fecha de hoy. Las comidas guardadas conservan una
-  instantánea de sus ingredientes y no cambian si luego se edita la base.
-- El registro diario permite editar, reutilizar y borrar comidas. Al borrar
-  una comida se limpian sus referencias en los planes semanales.
-- El plan semanal es opcional y permite seleccionar hasta dos comidas por
-  día. Muestra calorías y proteína estimadas y separa el estado de cada
-  métrica en `Dentro`, `Debajo`, `Encima` o `Sin objetivo`; no diagnostica
-  déficit calórico.
-- La tabla de alimentos no incluye una columna de notas. La información
-  metodológica breve se conserva en la fuente del alimento y los avisos
-  visibles del módulo.
+- El estado raíz `Nutrifit` contiene `Categorias`, `Alimentos`, `Comidas`,
+  `Recetas`, `Planes_Semanales`, `Objetivos`, `Favoritos` y `Recientes`.
+- Cada alimento define una unidad base (`g`, `ml`, `unidad` o `porción`),
+  una cantidad de referencia, calorías, proteína y, opcionalmente,
+  carbohidratos, grasas, fibra, azúcares y sodio. También admite marca,
+  estado, descripción de porción, código de barras, fuente y medidas
+  domésticas configurables. Las comidas y recetas guardan instantáneas,
+  por lo que editar la base no altera el historial.
+- El calculador admite cantidades cero y decimales, conversiones entre g/kg
+  y ml/l, porciones, unidades y medidas domésticas. Rechaza valores
+  negativos, alimentos inexistentes y unidades incompatibles. La carga
+  rápida acepta líneas como `fideos 400 g` o `faina 1 porción`.
+- La base se puede importar desde texto CSV/TSV con previsualización,
+  conservar o actualizar alimentos existentes y exportar nuevamente a CSV.
+  El módulo no consulta Internet ni completa automáticamente datos sin una
+  fuente declarada.
+- `Anotar en el registro` muestra una confirmación explícita y permite
+  elegir fecha, momento del día, hora y nota. El registro permite editar,
+  reutilizar y borrar comidas, navegar por fecha, filtrar por rango,
+  copiar el día anterior y consultar totales, promedios y cantidad de días
+  registrados. Al borrar una comida se limpian sus referencias en los
+  planes semanales.
+- Las recetas permiten indicar rendimiento en porciones, calcular valores
+  por porción, reutilizar una receta en el calculador y borrarla.
+- El plan semanal es opcional y permite cinco momentos por día: desayuno,
+  almuerzo, merienda, cena y colación. Muestra calorías y proteína
+  estimadas y separa el estado de cada métrica en `Dentro`, `Debajo`,
+  `Encima` o `Sin objetivo`; no diagnostica déficit calórico.
+- La información metodológica breve se conserva en la fuente del alimento,
+  los metadatos y los avisos visibles del módulo.
 - El botón `Nutrifit_Boton` y el modal `Nutrifit_Overlay` respetan la
   visibilidad configurable del menú y las traducciones es/en/pt.
-- Desde la versión de frontend `1.12.0`, el esquema de estado es `10`.
+- Desde la versión de frontend `1.13.0`, el esquema de estado es `11`.
   Las versiones anteriores se mantienen fuera del selector si no soportan
   esta estructura.
 
@@ -741,6 +752,9 @@ Funciones principales.
 - `Render_Nutrifit()`
 - `Nutrifit_Guardar_Alimento()`
 - `Nutrifit_Anotar_Calculo()`
+- `Nutrifit_Guardar_Receta()`
+- `Nutrifit_Render_Registro()`
+- `Nutrifit_Importar_Guardar()`
 - `Nutrifit_Guardar_Objetivos()`
 - `Nutrifit_Actualizar_Plan_Dia()`
 - `Normalizar_Nutrifit()`

@@ -35,7 +35,17 @@ function Crear_Entorno_Nutrifit() {
     "Nutrifit_Texto",
     "Nutrifit_Clave_Texto",
     "Nutrifit_Numero_Entrada",
+    "Nutrifit_Numero",
+    "Nutrifit_Numero_Opcional",
+    "Nutrifit_Unidades_Entrada",
+    "Nutrifit_Unidad_Entrada",
     "Nutrifit_Unidad",
+    "Nutrifit_Base_Cantidad",
+    "Nutrifit_Base_Unidad",
+    "Nutrifit_Medida_Por_Id",
+    "Nutrifit_Factor_Unidad",
+    "Nutrifit_Convertir_Cantidad_A_Base",
+    "Nutrifit_Valores_Por_Ingrediente",
     "Nutrifit_Calcular_Ingredientes"
   ].forEach((Nombre) => {
     vm.runInContext(Extraer_Funcion(Nombre), Contexto);
@@ -169,4 +179,86 @@ test("Nutrifit conserva porción como unidad calculable", () => {
   assert.equal(Resultado.Total_Calorias, 250);
   assert.equal(Resultado.Total_Proteina, 8);
   assert.equal(Resultado.Ingredientes[0].Unidad, "porcion");
+});
+
+test("Nutrifit convierte referencias por 100 g y kilos", () => {
+  const Contexto = Crear_Entorno_Nutrifit();
+  const Alimento = {
+    Id: "avena",
+    Nombre: "Avena",
+    Unidad_Base: "g",
+    Base_Cantidad: 100,
+    Calorias_Base: 389,
+    Proteina_Base: 16.9,
+    Carbohidratos_Base: 66.3,
+    Grasas_Base: 6.9,
+    Fibra_Base: 10.6,
+    Azucares_Base: null,
+    Sodio_Base: null,
+    Medidas: [],
+    Aproximado: false,
+    Fuente: ""
+  };
+  const Resultado = Contexto.Nutrifit_Calcular_Ingredientes(
+    [{
+      Id: "fila_avena",
+      Alimento_Id: "avena",
+      Alimento_Nombre: "Avena",
+      Cantidad: 0.4,
+      Unidad: "kg"
+    }],
+    [Alimento],
+    Traducir
+  );
+
+  assert.equal(Resultado.Valido, true);
+  assert.equal(Resultado.Total_Calorias, 1556);
+  assert.equal(Resultado.Total_Proteina, 67.6);
+  assert.equal(Resultado.Total_Carbohidratos, 265.2);
+  assert.equal(Resultado.Total_Grasas, 27.6);
+  assert.equal(Resultado.Total_Fibra, 42.4);
+  assert.equal(
+    JSON.stringify(Array.from(Resultado.Nutrientes_Faltantes)),
+    JSON.stringify(["Azucares", "Sodio"])
+  );
+});
+
+test("Nutrifit convierte medidas domésticas propias del alimento", () => {
+  const Contexto = Crear_Entorno_Nutrifit();
+  const Alimento = {
+    Id: "aceite",
+    Nombre: "Aceite",
+    Unidad_Base: "g",
+    Base_Cantidad: 100,
+    Calorias_Base: 884,
+    Proteina_Base: 0,
+    Carbohidratos_Base: 0,
+    Grasas_Base: 100,
+    Fibra_Base: 0,
+    Azucares_Base: 0,
+    Sodio_Base: 0,
+    Medidas: [{
+      Id: "cda",
+      Nombre: "cucharada",
+      Cantidad: 15,
+      Unidad: "g"
+    }],
+    Aproximado: false,
+    Fuente: ""
+  };
+  const Resultado = Contexto.Nutrifit_Calcular_Ingredientes(
+    [{
+      Id: "fila_aceite",
+      Alimento_Id: "aceite",
+      Alimento_Nombre: "Aceite",
+      Cantidad: 2,
+      Unidad: "medida:cda"
+    }],
+    [Alimento],
+    Traducir
+  );
+
+  assert.equal(Resultado.Valido, true);
+  assert.equal(Resultado.Total_Calorias, 265.2);
+  assert.equal(Resultado.Total_Grasas, 30);
 });
