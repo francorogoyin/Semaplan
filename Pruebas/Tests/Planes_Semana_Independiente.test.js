@@ -144,6 +144,27 @@ test("usa siempre la madre de mayor escala disponible", () => {
   assert.equal(Resultado, 7);
 });
 
+test("nombra la semana sólo con su número ISO", () => {
+  const Contexto = {
+    t: () => "Semana",
+    Planes_Nombre_Mes_Largo: () => "",
+    Meses_Cortos: []
+  };
+  Cargar_Funciones(Contexto, [
+    "Parsear_Fecha_ISO",
+    "Planes_Numero_Semana_ISO",
+    "Planes_Titulo_Periodo_Mostrable"
+  ]);
+  assert.equal(
+    Contexto.Planes_Titulo_Periodo_Mostrable({
+      Tipo: "Semana",
+      Inicio: "2026-07-06",
+      Fin: "2026-07-12"
+    }),
+    "Semana 28"
+  );
+});
+
 test("no inventa trabajo operativo si no hay subobjetivos", () => {
   const Canonico = {
     Id: "Etica",

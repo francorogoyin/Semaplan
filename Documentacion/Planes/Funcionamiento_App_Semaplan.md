@@ -1329,6 +1329,9 @@ Relaciones importantes.
   subobjetivos cumplidos contra los subobjetivos cargados para ese
   período; y `Trabajo operativo` compara unidades realizadas contra la
   carga uniforme total de esos subobjetivos.
+- La fila colapsada usa el mismo resumen global que el detalle expandido
+  para su porcentaje, realizado y pendiente. No toma el `Target_Total` ni
+  el `Progreso_Total` crudos de una proyección semanal.
 - `Trabajo operativo` muestra realizado sobre total en su cuenta principal.
   Debajo sólo desglosa las unidades pendientes y las que pertenecen a
   subobjetivos sin iniciar; no repite realizado ni muestra una descripción

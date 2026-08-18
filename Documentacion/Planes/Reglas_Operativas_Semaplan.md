@@ -234,6 +234,11 @@ operativa; la meta madre es contexto global y los tres indicadores
 principales son cuota esperada del período, compromiso explícito de
 subobjetivos y trabajo operativo acumulado.
 
+La fila colapsada y el detalle expandido deben reutilizar la misma métrica
+global para su porcentaje y su cuenta principal. Una proyección semanal no
+puede reemplazar esos valores con sus campos crudos y producir dos lecturas
+distintas del mismo objetivo.
+
 El tablero no debe abrir con un encabezado que repita período, nombre de la
 sección o una explicación genérica. De esa franja sólo se conserva el estado
 efectivo de la meta, integrado junto a su identidad y avance global.

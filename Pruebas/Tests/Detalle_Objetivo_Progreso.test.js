@@ -406,3 +406,57 @@ test("al borrar un hábito se eliminan sus pautas fijadas", () => {
   assert.match(Codigo_Login, /Ritmo_Diario_Historial = Object\.fromEntries\(/);
   assert.match(Codigo_Login, /Registro\?\.Habito_Id !== Habito_Id/);
 });
+
+test("la fila colapsada usa la misma meta global que el detalle", () => {
+  const Contexto = {
+    Obtener_Locale_Actual: () => "es-AR",
+    Planes_Resumen_Progreso_Objetivo: () => ({
+      Canonico: {
+        Unidad: "Libros",
+        Target_Total: 40
+      },
+      Global: {
+        Calculable: true,
+        Total: 40,
+        Realizado: 27.57,
+        Pendiente: 12.43
+      }
+    }),
+    Planes_Periodo_Contexto_Objetivo: () => ({
+      Id: "Semana_28"
+    }),
+    Planes_Periodo_Cerrado: () => true,
+    Planes_Aportes_Planeados_Objetivo: () => 0,
+    Planes_Normalizar_Modo_Avance: () => "Metrica",
+    Planes_Unidad_Label: () => "libros",
+    Planes_Formatear_Numero_Texto: (Valor) =>
+      new Intl.NumberFormat("es-AR", {
+        maximumFractionDigits: 2
+      }).format(Number(Valor)),
+    t: (Clave, Datos) => {
+      if (Clave === "planes.meta_realizados") {
+        return `${Datos.Cantidad} realizados`;
+      }
+      if (Clave === "planes.meta_faltan") {
+        return `${Datos.Cantidad} faltan`;
+      }
+      return Clave;
+    }
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Items_Resumen_Tarjeta_Objetivo"
+  ]);
+  const Items = Contexto.Planes_Items_Resumen_Tarjeta_Objetivo({
+    Id: "Meta",
+    Target_Total: 2.82,
+    Progreso_Total: 0.57
+  });
+  assert.equal(
+    JSON.stringify(Items.map((Item) => Item.Texto)),
+    JSON.stringify([
+      "40 libros",
+      "27,57 realizados",
+      "12,43 faltan"
+    ])
+  );
+});
