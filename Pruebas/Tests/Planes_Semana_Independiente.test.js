@@ -143,3 +143,64 @@ test("usa siempre la madre de mayor escala disponible", () => {
   );
   assert.equal(Resultado, 7);
 });
+
+test("no inventa trabajo operativo si no hay subobjetivos", () => {
+  const Canonico = {
+    Id: "Etica",
+    Target_Total: 7
+  };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => ({ Objetivos: {} }),
+    Planes_Objetivo_Canonico_Contextual: () => Canonico,
+    Planes_Subobjetivos_Contexto_Objetivo: () => ({
+      Items: [],
+      Items_Por_Id: new Map()
+    })
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Carga_Trabajo_Objetivo"
+  ]);
+  const Resultado = Contexto.Planes_Carga_Trabajo_Objetivo(Canonico);
+  assert.equal(Resultado.Calculable, false);
+  assert.equal(Resultado.Motivo, "Sin_Metrica");
+});
+
+test("el ritmo de una semana usa su cuota proyectada", () => {
+  const Canonico = {
+    Id: "Etica",
+    Target_Total: 7
+  };
+  const Proyectado = {
+    Id: "Etica",
+    Target_Total: 0.88,
+    __Objetivo_Canonico_Id: "Etica",
+    __Plan_Proyectado: true
+  };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => ({}),
+    Planes_Carga_Trabajo_Objetivo: () => ({
+      Calculable: false,
+      Motivo: "Sin_Metrica"
+    }),
+    Planes_Objetivo_Canonico_Contextual: () => Canonico,
+    Planes_Normalizar_Modo_Avance: () => "Metrica",
+    Planes_Unidad_Label: () => "libros",
+    Planes_Normalizar_Clave_Unidad_Ritmo: (Unidad) => Unidad,
+    Planes_Subobjetivos_Contexto_Objetivo: () => ({
+      Items: [],
+      Items_Por_Id: new Map()
+    }),
+    Planes_Periodo_Contexto_Objetivo: () => ({ Id: "Semana" }),
+    Planes_Avance_Real_Objetivo_En_Periodo: () => 0.4,
+    Planes_Progreso_Total_Objetivo_Efectivo: () => 7
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Carga_Ritmo_Objetivo"
+  ]);
+  const Resultado = Contexto.Planes_Carga_Ritmo_Objetivo(
+    Proyectado
+  );
+  assert.equal(Resultado.Total, 0.88);
+  assert.equal(Resultado.Unidad, "libros");
+  assert.equal(Resultado.Realizado, 0.4);
+});
