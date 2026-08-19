@@ -1029,6 +1029,31 @@ test("fecha de inicio y días activos cambian la cuota recomendada", () => {
   assert.equal(Lunes_A_Sabado.Cuota_Diaria_Total, 59);
 });
 
+test("la lectura operativa toma la pauta y unidad del hábito vinculado", () => {
+  const Habito = { Id: "Habito_Etica" };
+  const Contexto = {
+    Planes_Vinculo_Ritmo_Habito: () => ({ Habito }),
+    Planes_Calcular_Ritmo_Meta: (_Objetivo, Recibido) => {
+      assert.equal(Recibido, Habito);
+      return {
+        Calculable: true,
+        Completa: false,
+        Dias_Validos_Restantes: 3,
+        Cuota_Diaria_Total: 32,
+        Carga: { Unidad: "páginas" }
+      };
+    }
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Ritmo_Dia_Activo_Objetivo"
+  ]);
+  const Resultado = Contexto.Planes_Ritmo_Dia_Activo_Objetivo({
+    Id: "Etica"
+  });
+  assert.equal(Resultado?.Cantidad, 32);
+  assert.equal(Resultado?.Unidad, "páginas");
+});
+
 test("todos los campos de días disparan el recálculo de Meta", () => {
   const Contexto = {};
   Cargar_Funciones(Contexto, ["Habito_Campo_Afecta_Ritmo_Meta"]);

@@ -234,10 +234,10 @@ operativa; la meta madre es contexto global y los tres indicadores
 principales son cuota esperada del período, compromiso explícito de
 subobjetivos y trabajo operativo acumulado.
 
-La fila colapsada y el detalle expandido deben reutilizar la misma métrica
-global para su porcentaje y su cuenta principal. Una proyección semanal no
-puede reemplazar esos valores con sus campos crudos y producir dos lecturas
-distintas del mismo objetivo.
+Dentro de una misma capa temporal, la fila colapsada y el detalle expandido
+deben reutilizar la misma métrica para su porcentaje y su cuenta principal.
+En Semana usan la cuota, los registros y el pendiente prorrateados; la meta
+madre expandida conserva el acumulado global como contexto.
 
 El tablero no debe abrir con un encabezado que repita período, nombre de la
 sección o una explicación genérica. De esa franja sólo se conserva el estado
@@ -268,6 +268,16 @@ la porción pendiente que pertenece a subobjetivos todavía sin avance. En
 `Trabajo operativo`, la cuenta principal ya expresa realizado sobre total:
 el desglose no debe repetir realizado ni agregar una explicación genérica;
 sólo conserva pendiente y sin iniciar.
+
+En la lectura semanal, un subobjetivo sin `Fecha_Inicio` ni
+`Fecha_Objetivo` usa el rango del objetivo padre sólo para compromiso y
+trabajo operativo. Su carga se reparte por los días de ese período madre y
+los avances se leen únicamente dentro de la semana. Esa regla no lo convierte
+en una meta sugerida ni usa `Fecha_Fin` como fecha de planificación.
+
+La cuota por día activo usa la programación, las excepciones y la unidad de
+la carga que resuelve el hábito vinculado. No puede heredar la unidad de la
+meta madre si la carga operativa está medida en otra, por ejemplo páginas.
 
 Cumplir un subobjetivo fuera del período previsto no cambia el período al
 que fue comprometido. `Fecha_Inicio` y `Fecha_Objetivo` expresan la

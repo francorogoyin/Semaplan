@@ -3,7 +3,7 @@ const crypto = require("node:crypto");
 const test = require("node:test");
 
 const Origen = "https://semaplan.com";
-const Version_Actual = "1.14.6";
+const Version_Actual = "1.14.7";
 
 async function Descargar_Texto(Ruta) {
   const Url = new URL(Ruta, Origen);

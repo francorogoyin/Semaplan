@@ -1263,15 +1263,18 @@ En el detalle semanal, la cuota muestra únicamente los avances fechados
 dentro de la semana. El compromiso y el trabajo operativo también se
 prorratean: cada subobjetivo aporta la proporción de su rango planeado
 que se superpone con la semana y sus páginas o unidades realizadas se
-toman de los registros de ese período.
+toman de los registros de ese período. Si no tiene `Fecha_Inicio` ni
+`Fecha_Objetivo`, para esta lectura usa el período madre como rango de
+reparto; no se trata a `Fecha_Fin` como planificación ni se lo incorpora a
+`Metas sugeridas`.
 
 Cuando una familia de objetivos tiene una madre anual, semestral,
 trimestral o mensual, la cuota semanal usa siempre la madre de mayor
 escala disponible, en ese orden. Si la semana cruza dos periodos de la
 escala elegida, suma las porciones proporcionales de cada uno. Los
-subobjetivos no cambian la fuente de la cuota: sus propias fechas de
-inicio, objetivo y fin determinan qué trabajo y qué avances entran en
-el contexto semanal.
+subobjetivos no cambian la fuente de la cuota: sus fechas planeadas, o el
+período madre cuando no existen, determinan el trabajo y los avances que
+entran en el contexto semanal.
 
 Objeto central.
 
@@ -1336,9 +1339,10 @@ Relaciones importantes.
   subobjetivos cumplidos contra los subobjetivos cargados para ese
   período; y `Trabajo operativo` compara unidades realizadas contra la
   carga uniforme total de esos subobjetivos.
-- La fila colapsada usa el mismo resumen global que el detalle expandido
-  para su porcentaje, realizado y pendiente. No toma el `Target_Total` ni
-  el `Progreso_Total` crudos de una proyección semanal.
+- En Semana, la fila colapsada usa la misma cuota prorrateada que el detalle
+  para porcentaje, realizado y pendiente; la meta madre expandida conserva
+  el resumen global. No toma el `Target_Total` ni el `Progreso_Total` crudos
+  de una proyección semanal.
 - `Trabajo operativo` muestra realizado sobre total en su cuenta principal.
   Debajo sólo desglosa las unidades pendientes y las que pertenecen a
   subobjetivos sin iniciar; no repite realizado ni muestra una descripción
@@ -1357,7 +1361,8 @@ Relaciones importantes.
   por día activo; la cifra también se muestra en un día de descanso y no
   se reemplaza por el faltante de hoy. Las metas sin cuota, sin compromiso
   o con unidades mixtas muestran ausencia de cálculo en lugar de inventar
-  un cero o una equivalencia.
+  un cero o una equivalencia. La cuota usa las fechas activas y excepciones
+  del hábito vinculado, junto con la unidad efectiva de su carga operativa.
 - `Planes_Carga_Trabajo_Objetivo()` construye un único inventario con
   todos los subobjetivos medibles del compromiso. Cada uno aporta una
   vez su target y su avance agregado; cuando el target deriva de sus
@@ -1365,7 +1370,9 @@ Relaciones importantes.
   a sumar las partes. Del mismo inventario salen total, realizado con
   tope propio, pendiente y unidades de subobjetivos todavía sin avance.
   Si faltan métricas muestra cobertura parcial como mínimo conocido; si
-  hay unidades distintas, no calcula una equivalencia ficticia.
+  hay unidades distintas, no calcula una equivalencia ficticia. En una semana,
+  los subobjetivos sin fechas planeadas se incluyen con el peso de su período
+  padre, en vez de desaparecer de ese inventario.
 - La `Pauta de hoy` usa el pool pendiente de unidades y los días activos
   restantes hasta el fin de la meta. El pool suma los targets de los
   subobjetivos medidos y resta el avance de cada uno con tope propio, de

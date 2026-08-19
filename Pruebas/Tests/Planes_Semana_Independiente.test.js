@@ -275,6 +275,45 @@ test("prorratea un subobjetivo por el rango que cruza la semana", () => {
   assert.equal(Resultado, 0.125);
 });
 
+test("incluye un subobjetivo sin fechas dentro de su período madre", () => {
+  const Sub = {
+    Id: "Sub_Sin_Fecha",
+    Objetivo_Id: "Etica"
+  };
+  const Objetivo = {
+    Id: "Etica",
+    Periodo_Id: "Trimestre"
+  };
+  const Periodo = {
+    Id: "Semana_34",
+    Tipo: "Semana",
+    Inicio: "2026-08-17",
+    Fin: "2026-08-23"
+  };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => ({
+      Objetivos: { Etica: Objetivo }
+    }),
+    Planes_Rango_Subobjetivo_Para_Prorateo: () => ({
+      Inicio: "2026-07-01",
+      Fin: "2026-09-30"
+    }),
+    Planes_Periodo_Solapa_Rango: (Actual, Rango) =>
+      Actual.Inicio <= Rango.Fin && Actual.Fin >= Rango.Inicio
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Subobjetivo_Visible_Contexto_Objetivo"
+  ]);
+  assert.equal(
+    Contexto.Planes_Subobjetivo_Visible_Contexto_Objetivo(
+      Sub,
+      { Id: "Etica_Semanal", __Objetivo_Canonico_Id: "Etica" },
+      Periodo
+    ),
+    true
+  );
+});
+
 test("vincula el subobjetivo cumplido con el registro que cruza la semana", () => {
   const Sub = {
     Id: "Sub",
