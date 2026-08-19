@@ -46,6 +46,41 @@ function Cargar_Funciones(Contexto, Nombres) {
   return Contexto;
 }
 
+test("resuelve el subobjetivo de un registro de ritmo de meta", () => {
+  const Avance = {
+    Id: "Plan_Avance",
+    Subobjetivo_Id: "Sub"
+  };
+  const Modelo = {
+    Avances: { Plan_Avance: Avance },
+    Subobjetivos: {
+      Sub: { Id: "Sub", Texto: "Leer Ética" }
+    }
+  };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => Modelo,
+    Habitos_Avance_Planes_De_Registro: () => Avance,
+    Habitos_Label_Fuente: () => "Origen no disponible"
+  };
+  Cargar_Funciones(Contexto, [
+    "Habitos_Resolver_Origen_Registro"
+  ]);
+  assert.equal(
+    Contexto.Habitos_Resolver_Origen_Registro({
+      Fuente: "Plan_Objetivo_Ritmo",
+      Fuente_Id: "Plan_Avance"
+    }),
+    "Leer Ética"
+  );
+});
+
+test("el tilde rápido de un hábito cuantitativo usa la cantidad restante", () => {
+  assert.ok(Codigo_Login.includes(
+    "Cantidad = Texto\n            ? Number(Texto)\n" +
+    "            : Habitos_Cantidad_Marcar_Realizado(Habito, Fecha);"
+  ));
+});
+
 function Parsear_Fecha(Valor) {
   const [Anio, Mes, Dia] = String(Valor).split("-").map(Number);
   return new Date(Anio, Mes - 1, Dia, 12, 0, 0, 0);
@@ -335,6 +370,48 @@ test("no duplica la carga de divisiones internas anidadas", () => {
   assert.equal(Resultado.Realizado, 120);
   assert.equal(Resultado.Pendiente, 180);
   assert.equal(Resultado.Items_Medidos, 1);
+});
+
+test("prorratea páginas y toma sólo los registros de la semana", () => {
+  const Sub = {
+    Id: "Sub",
+    Target_Total: 400,
+    Unidad: "Páginas",
+    Fecha_Inicio: "2026-08-01",
+    Fecha_Objetivo: "2026-09-25"
+  };
+  const Canonico = { Id: "Meta" };
+  const Periodo = {
+    Tipo: "Semana",
+    Inicio: "2026-08-17",
+    Fin: "2026-08-23"
+  };
+  const Modelo = { Objetivos: { Meta: Canonico } };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => Modelo,
+    Planes_Objetivo_Canonico_Contextual: () => Canonico,
+    Planes_Subobjetivos_Contexto_Objetivo: () => ({
+      Items: [Sub],
+      Items_Por_Id: new Map([[Sub.Id, { Sub, Padre_Id: "" }]])
+    }),
+    Planes_Periodo_Contexto_Objetivo: () => Periodo,
+    Planes_Peso_Subobjetivo_En_Periodo: () => 0.125,
+    Planes_Normalizar_Clave_Unidad_Ritmo: (Unidad) =>
+      Unidad.toLowerCase(),
+    Planes_Unidad_Label_Subobjetivo: () => "páginas",
+    Planes_Progreso_Total_Subobjetivo: () => 200,
+    Planes_Avances_Carga_Subobjetivo: () => 30
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Carga_Trabajo_Objetivo"
+  ]);
+  const Resultado = Contexto.Planes_Carga_Trabajo_Objetivo({
+    Id: "Meta",
+    __Plan_Proyectado: true
+  });
+  assert.equal(Resultado.Total, 50);
+  assert.equal(Resultado.Realizado, 30);
+  assert.equal(Resultado.Pendiente, 20);
 });
 
 test("respeta semanas alternadas dentro de un ciclo quincenal", () => {

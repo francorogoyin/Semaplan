@@ -225,3 +225,135 @@ test("el ritmo de una semana usa su cuota proyectada", () => {
   assert.equal(Resultado.Unidad, "libros");
   assert.equal(Resultado.Realizado, 0.4);
 });
+
+test("prorratea un subobjetivo por el rango que cruza la semana", () => {
+  const Modelo = {
+    Objetivos: {
+      Lectofilia: {
+        Id: "Lectofilia",
+        Periodo_Id: "Anual"
+      }
+    },
+    Periodos: {
+      Anual: {
+        Tipo: "Anio",
+        Inicio: "2026-01-01",
+        Fin: "2026-12-31"
+      }
+    }
+  };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => Modelo,
+    Planes_Normalizar_Fecha_Comparacion: (Fecha) => Fecha
+  };
+  Cargar_Funciones(Contexto, [
+    "Parsear_Fecha_ISO",
+    "Planes_Dias_Rango_Inclusive",
+    "Planes_Dias_Rango_Solapado",
+    "Planes_Rango_Item_Fechado",
+    "Planes_Rango_Planeado_Item",
+    "Planes_Fechas_Periodo_Objetivo",
+    "Planes_Periodo_De_Objetivo",
+    "Planes_Fechas_Objetivo_Por_Periodo",
+    "Planes_Rango_Objetivo",
+    "Planes_Rango_Subobjetivo_Para_Prorateo",
+    "Planes_Peso_Subobjetivo_En_Periodo"
+  ]);
+  const Resultado = Contexto.Planes_Peso_Subobjetivo_En_Periodo(
+    {
+      Id: "Sub",
+      Objetivo_Id: "Lectofilia",
+      Fecha_Inicio: "2026-08-01",
+      Fecha_Objetivo: "2026-09-25"
+    },
+    {
+      Tipo: "Semana",
+      Inicio: "2026-08-17",
+      Fin: "2026-08-23"
+    }
+  );
+  assert.equal(Resultado, 0.125);
+});
+
+test("vincula el subobjetivo cumplido con el registro que cruza la semana", () => {
+  const Sub = {
+    Id: "Sub",
+    Target_Total: 10,
+    Estado: "Activo"
+  };
+  const Modelo = {
+    Subobjetivos: { Sub },
+    Partes: {},
+    Avances: {
+      Antes: {
+        Id: "Antes",
+        Subobjetivo_Id: "Sub",
+        Cantidad: 6,
+        Fecha: "2026-08-10",
+        Fuente: "Subobjetivo"
+      },
+      Semana: {
+        Id: "Semana",
+        Subobjetivo_Id: "Sub",
+        Cantidad: 4,
+        Fecha: "2026-08-20",
+        Fuente: "Subobjetivo"
+      }
+    }
+  };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => Modelo,
+    Planes_Normalizar_Fecha_Comparacion: (Fecha) => Fecha
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Subobjetivo_Raiz_Id",
+    "Planes_Subobjetivos_Familia_Ids",
+    "Planes_Periodo_Contiene_Fecha",
+    "Planes_Fecha_Avance_Plan",
+    "Planes_Estado_Normalizado_Subobjetivo",
+    "Planes_Avances_Subobjetivo_Familia",
+    "Planes_Subobjetivo_Completado_En_Periodo"
+  ]);
+  assert.equal(
+    Contexto.Planes_Subobjetivo_Completado_En_Periodo(
+      Sub,
+      {
+        Inicio: "2026-08-17",
+        Fin: "2026-08-23"
+      }
+    ),
+    true
+  );
+  assert.equal(
+    Contexto.Planes_Subobjetivo_Completado_En_Periodo(
+      Sub,
+      {
+        Inicio: "2026-08-10",
+        Fin: "2026-08-16"
+      }
+    ),
+    false
+  );
+});
+
+test("mantiene el nombre Semana y el número ISO en los títulos antiguos", () => {
+  const Contexto = {
+    t: () => "Semana",
+    Meses_Cortos: []
+  };
+  Cargar_Funciones(Contexto, [
+    "Parsear_Fecha_ISO",
+    "Planes_Numero_Semana_ISO",
+    "Planes_Titulo_Tipo",
+    "Planes_Titulo_Periodo"
+  ]);
+  assert.equal(Contexto.Planes_Titulo_Tipo("Semana"), "Semana");
+  assert.equal(
+    Contexto.Planes_Titulo_Periodo(
+      "Semana",
+      "2026-07-06",
+      "2026-07-12"
+    ),
+    "Semana 28"
+  );
+});

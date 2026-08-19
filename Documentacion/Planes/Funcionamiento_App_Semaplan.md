@@ -559,8 +559,9 @@ Relaciones importantes.
   por la accion habitual del modulo. Las dependencias pendientes marcan
   la tarea como bloqueada e impiden completarla hasta resolverlas.
 - En la vista diaria, los habitos no programados siguen visibles con el
-  estado `No corresponde hoy`; no ofrecen registro rapido ni afectan la
-  racha o el cumplimiento.
+  estado `No corresponde hoy`; permiten un registro manual cuando el
+  usuario los realiza, pero ese registro queda fuera de la programacion
+  y no altera la racha ni el cumplimiento programado.
 
 ## Habitos
 
@@ -1257,6 +1258,12 @@ crean semanas como hijas de otros periodos. La cuota semanal es una
 proyeccion informativa: se prorratea por dias calendario sobre los
 periodos que se superponen con la semana, sin asignar tareas a dias
 particulares.
+
+En el detalle semanal, la cuota muestra únicamente los avances fechados
+dentro de la semana. El compromiso y el trabajo operativo también se
+prorratean: cada subobjetivo aporta la proporción de su rango planeado
+que se superpone con la semana y sus páginas o unidades realizadas se
+toman de los registros de ese período.
 
 Cuando una familia de objetivos tiene una madre anual, semestral,
 trimestral o mensual, la cuota semanal usa siempre la madre de mayor

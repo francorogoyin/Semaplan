@@ -98,6 +98,70 @@ test("separa meta global, cuota, compromiso y trabajo operativo", () => {
   assert.equal(Resultado.Trabajo.Pendiente, 9000);
 });
 
+test("la semana separa cuota y registros reales de la meta anual", () => {
+  const Canonico = {
+    Id: "Lectofilia",
+    Target_Total: 40
+  };
+  const Periodo = {
+    Id: "Semana_34",
+    Tipo: "Semana",
+    Inicio: "2026-08-17",
+    Fin: "2026-08-23"
+  };
+  const Sub = { Id: "Sub", Target_Total: 1 };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => ({
+      Objetivos: { Lectofilia: Canonico },
+      Periodos: { Semana_34: Periodo }
+    }),
+    Planes_Objetivo_Canonico_Contextual: () => Canonico,
+    Planes_Periodo_Contexto_Objetivo: () => Periodo,
+    Planes_Subobjetivos_Contexto_Objetivo: () => ({
+      Items: [Sub],
+      Items_Por_Id: new Map([[Sub.Id, { Sub, Padre_Id: "" }]])
+    }),
+    Planes_Target_Suma_Componentes_Activo: () => false,
+    Planes_Estado_Normalizado_Subobjetivo: () => "Activo",
+    Planes_Compromiso_Objetivo_En_Periodo: () => ({
+      Total: 1.25,
+      Realizado: 0.125,
+      Cumplidos: []
+    }),
+    Planes_Target_Contextual_Objetivo: () => 0.77,
+    Planes_Avance_Real_Objetivo_En_Periodo: () => 2,
+    Planes_Carga_Trabajo_Objetivo: () => ({
+      Calculable: true,
+      Total: 50,
+      Realizado: 12,
+      Pendiente: 38,
+      Unidad: "páginas"
+    }),
+    Planes_Progreso_Total_Objetivo_Efectivo: () => 27.57,
+    Planes_Metrica_Progreso: (Realizado, Total) => ({
+      Realizado,
+      Total,
+      Pendiente: Math.max(0, Total - Realizado),
+      Porcentaje: Total > 0 ? Realizado / Total * 100 : 0
+    })
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Resumen_Progreso_Objetivo"
+  ]);
+  const Resultado = Contexto.Planes_Resumen_Progreso_Objetivo({
+    Id: "Lectofilia",
+    __Objetivo_Canonico_Id: "Lectofilia",
+    __Periodo_Contexto_Id: "Semana_34",
+    __Plan_Proyectado: true,
+    Target_Total: 0.77
+  });
+  assert.equal(Resultado.Cuota.Realizado, 2);
+  assert.equal(Resultado.Cuota.Total, 0.77);
+  assert.equal(Resultado.Compromiso.Realizado, 0.125);
+  assert.equal(Resultado.Compromiso.Total, 1.25);
+  assert.equal(Resultado.Trabajo.Realizado, 12);
+});
+
 test("no cuenta como compromiso las divisiones internas anidadas", () => {
   const Raiz = { Id: "Resultado", Hecha: true, Aporte_Meta: 1 };
   const Parte = { Id: "Parte", Hecha: true, Aporte_Meta: 0 };
