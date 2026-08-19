@@ -75,7 +75,7 @@ test("produccion bloquea releases obsoletos", async () => {
   });
 
   assert.equal(Actual?.Estado, "stable");
-  assert.equal(Actual?.Archivo, "Semaplan_Version_1_14_6.html");
+  assert.equal(Actual?.Archivo, "Semaplan_Version_1_14_7.html");
   assert.ok(Anteriores_Mismo_Esquema.length > 0);
   assert.ok(
     Anteriores_Mismo_Esquema.every((Item) => {
