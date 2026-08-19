@@ -357,3 +357,29 @@ test("mantiene el nombre Semana y el número ISO en los títulos antiguos", () =
     "Semana 28"
   );
 });
+
+test("recupera una semana heredada antes de calcular la vista", () => {
+  const Contexto = {
+    Planes_Tipos: ["Anio", "Semestre", "Trimestre", "Mes", "Semana"],
+    Planes_Estados: ["Activo"],
+    Plan_Periodo_Id: () => "Periodo_Generado",
+    Planes_Titulo_Periodo: (Tipo, Inicio) =>
+      Tipo === "Semana" && Inicio === "2026-08-17"
+        ? "Semana 34"
+        : "Título inesperado"
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Normalizar_Tipo_Periodo",
+    "Normalizar_Periodo_Plan"
+  ]);
+  const Periodo = Contexto.Normalizar_Periodo_Plan({
+    Id: "33",
+    Tipo: "Week",
+    Inicio: "2026-08-17",
+    Fin: "2026-08-23",
+    Titulo: "Week of 2026-08-17"
+  });
+  assert.equal(Periodo.Id, "33");
+  assert.equal(Periodo.Tipo, "Semana");
+  assert.equal(Periodo.Titulo, "Semana 34");
+});
