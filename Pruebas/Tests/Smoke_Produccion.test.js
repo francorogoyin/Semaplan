@@ -3,7 +3,7 @@ const crypto = require("node:crypto");
 const test = require("node:test");
 
 const Origen = "https://semaplan.com";
-const Version_Actual = "1.14.2";
+const Version_Actual = "1.14.3";
 
 async function Descargar_Texto(Ruta) {
   const Url = new URL(Ruta, Origen);
@@ -71,11 +71,11 @@ test("produccion bloquea releases obsoletos", async () => {
   });
   const Anteriores_Mismo_Esquema = Manifest.filter((Item) => {
     return Item.Id !== Version_Actual &&
-      Item.Esquema_Estado_Max === 11;
+      Item.Esquema_Estado_Max === 12;
   });
 
   assert.equal(Actual?.Estado, "stable");
-  assert.equal(Actual?.Archivo, "Semaplan_Version_1_14_2.html");
+  assert.equal(Actual?.Archivo, "Semaplan_Version_1_14_3.html");
   assert.ok(Anteriores_Mismo_Esquema.length > 0);
   assert.ok(
     Anteriores_Mismo_Esquema.every((Item) => {
