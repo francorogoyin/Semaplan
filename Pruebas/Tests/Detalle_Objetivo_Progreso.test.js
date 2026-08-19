@@ -471,7 +471,7 @@ test("al borrar un hábito se eliminan sus pautas fijadas", () => {
   assert.match(Codigo_Login, /Registro\?\.Habito_Id !== Habito_Id/);
 });
 
-test("la fila colapsada usa la misma meta global que el detalle", () => {
+test("la fila colapsada usa la cuota semanal y no la meta anual", () => {
   const Contexto = {
     Obtener_Locale_Actual: () => "es-AR",
     Planes_Resumen_Progreso_Objetivo: () => ({
@@ -479,15 +479,26 @@ test("la fila colapsada usa la misma meta global que el detalle", () => {
         Unidad: "Libros",
         Target_Total: 40
       },
+      Periodo: {
+        Id: "Semana_28",
+        Tipo: "Semana"
+      },
       Global: {
         Calculable: true,
         Total: 40,
         Realizado: 27.57,
         Pendiente: 12.43
+      },
+      Cuota: {
+        Calculable: true,
+        Total: 0.77,
+        Realizado: 0,
+        Pendiente: 0.77
       }
     }),
     Planes_Periodo_Contexto_Objetivo: () => ({
-      Id: "Semana_28"
+      Id: "Semana_28",
+      Tipo: "Semana"
     }),
     Planes_Periodo_Cerrado: () => true,
     Planes_Aportes_Planeados_Objetivo: () => 0,
@@ -518,9 +529,9 @@ test("la fila colapsada usa la misma meta global que el detalle", () => {
   assert.equal(
     JSON.stringify(Items.map((Item) => Item.Texto)),
     JSON.stringify([
-      "40 libros",
-      "27,57 realizados",
-      "12,43 faltan"
+      "0,77 libros",
+      "0 realizados",
+      "0,77 faltan"
     ])
   );
 });
