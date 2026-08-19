@@ -383,3 +383,25 @@ test("recupera una semana heredada antes de calcular la vista", () => {
   assert.equal(Periodo.Tipo, "Semana");
   assert.equal(Periodo.Titulo, "Semana 34");
 });
+
+test("recupera una semana que ya había quedado como personalizada", () => {
+  const Contexto = {
+    Planes_Tipos: ["Anio", "Semestre", "Trimestre", "Mes", "Semana"],
+    Planes_Estados: ["Activo"],
+    Plan_Periodo_Id: () => "Periodo_Generado",
+    Planes_Titulo_Periodo: () => "Semana 34"
+  };
+  Cargar_Funciones(Contexto, [
+    "Planes_Normalizar_Tipo_Periodo",
+    "Normalizar_Periodo_Plan"
+  ]);
+  const Periodo = Contexto.Normalizar_Periodo_Plan({
+    Id: "33",
+    Tipo: "Custom",
+    Inicio: "2026-08-17",
+    Fin: "2026-08-23",
+    Titulo: "Week of 2026-08-17"
+  });
+  assert.equal(Periodo.Tipo, "Semana");
+  assert.equal(Periodo.Titulo, "Semana 34");
+});
