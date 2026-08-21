@@ -749,6 +749,10 @@ Estado actual.
   Esta versión incorpora la capa independiente de Semanas en Planes;
   las versiones anteriores se mantienen fuera del selector para evitar
   que interpreten esas semanas como períodos personalizados.
+- Desde la versión de frontend `1.15.0`, el esquema de estado es `13`.
+  Esta versión agrega el estado persistido de reprogramación de
+  subobjetivos y sus ramas de continuidad; las versiones anteriores se
+  mantienen fuera del selector para evitar que los muestren como activos.
 
 Funciones principales.
 
@@ -1317,6 +1321,21 @@ Relaciones importantes.
 - Un objetivo puede pertenecer a un periodo y a la vez colgar de otro
   objetivo padre.
 - Un subobjetivo puede tener partes.
+- Los subobjetivos admiten orden por métrica total, métrica realizada y
+  porcentaje realizado. Los subobjetivos reprogramados conservan su
+  historia, quedan en gris y no participan de cálculos ni listados por
+  defecto; el filtro `Reprogramados` permite revisarlos.
+- Reprogramar o trasladar el pendiente crea una rama equivalente en un
+  período posterior, incluso en otra capa temporal, con sólo la carga
+  restante. La rama original queda marcada como `Reprogramado`; al
+  reactivarla, sus avances se devuelven a la rama original y la copia
+  queda fuera de servicio.
+- La lectura de cada subobjetivo muestra la métrica restante junto con
+  las horas restantes cuando existe una unidad calculable. La lectura
+  operativa de un hábito asociado también informa cuántos días activos
+  quedan en su período.
+- El resumen semanal cuenta bloques programados y realizados. Los slots
+  muertos entran en el total programado, pero no se consideran realizados.
 - Los menus de subobjetivos y partes permiten duplicar. El duplicado de
   subobjetivo clona su rama y el duplicado de parte crea una copia
   pendiente junto a la original, sin avances ni fecha/hora de cierre, y
