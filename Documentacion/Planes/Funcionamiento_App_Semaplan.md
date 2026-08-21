@@ -203,7 +203,10 @@ Las claves centrales persistidas hoy son estas.
 - `Semanas_Con_Defaults`
 
 La Decoteca persiste en la clave raiz `Decoteca`. Su formato canonico
-tiene `Tecas`, `Obras` y `Avances`; `Normalizar_Decoteca()` completa
+tiene `Tecas`, `Obras`, `Listas_Personalizadas` y `Avances`.
+Las listas personales pertenecen a una teca, contienen IDs de obras y
+conservan un orden manual independiente; una misma obra puede estar en
+varias listas. `Normalizar_Decoteca()` completa
 las tecas de sistema, normaliza obras viejas que usen `Teca` en lugar
 de `Teca_Id`, migra partes simples a `Partes` estructuradas, y conserva
 estados vacios ya inicializados para import/export y sync.
@@ -914,8 +917,11 @@ angostas tipo caratula.
 
 Estado actual.
 
-- Modelo persistido en `Decoteca`, con `Tecas`, `Obras` y `Avances`.
-  Las obras pueden guardar `Partes` estructuradas, `Datos_Teca` y
+- Modelo persistido en `Decoteca`, con `Tecas`, `Obras`,
+  `Listas_Personalizadas` y `Avances`. Cada lista personal es propia de
+  una teca, admite varias obras y mantiene su orden sin afectar el orden
+  general de la teca. Las obras pueden guardar `Partes` estructuradas,
+  `Datos_Teca` y
   `Orden` manual persistido por teca para sostener reordenamiento
   propio sin perder filtros ni criterios alternativos.
 - Cada obra separa el ciclo de consumo (`Estado`: planeada, en curso,
@@ -1071,8 +1077,10 @@ Estado actual.
   acciones y cierra al clickear afuera, aplicar filtros o presionar
   Escape.
 - Decoteca tiene modo `Seleccionar` con barra de acciones masivas para
-  obras visibles: cambiar `Estado` o `Prioridad`, archivar y
-  borrar. Mientras ese modo esta activo, el click sobre una obra solo
+  obras visibles: cambiar `Estado` o `Prioridad`, agregar o quitar de una
+  lista personal, archivar y borrar. Al filtrar una lista personal y usar
+  orden manual, el arrastre reordena solo esa lista. Mientras ese modo esta
+  activo, el click sobre una obra solo
   alterna seleccion, el detalle no se abre y un click vacio fuera de la
   barra limpia la seleccion sin disparar modales ni menu contextual.
 - `Importacion masiva` abre un modal propio. Acepta texto tabular con

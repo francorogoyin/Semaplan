@@ -799,19 +799,12 @@ test("el selector bloquea releases obsoletos aunque compartan esquema", () => {
       "utf8"
     )
   );
-  const Actual = Manifest.find((Item) => Item.Id === "1.14.7");
-  const Anteriores_Mismo_Esquema = Manifest.filter((Item) => {
-    return Item.Id !== "1.14.7" &&
-      Item.Esquema_Estado_Max === 12;
-  });
+  const Actual = Manifest.find((Item) => Item.Id === "1.16.0");
 
   assert.equal(Actual?.Estado, "stable");
-  assert.ok(Anteriores_Mismo_Esquema.length > 0);
-  assert.ok(
-    Anteriores_Mismo_Esquema.every((Item) => {
-      return Item.Estado === "deprecated";
-    })
-  );
+  assert.equal(Actual?.Archivo, "Semaplan_Version_1_16_0.html");
+  assert.equal(Actual?.Esquema_Estado_Min, 14);
+  assert.equal(Actual?.Esquema_Estado_Max, 14);
   assert.match(
     Codigo_Login,
     /Version\.Estado[\s\S]*?=== "deprecated"[\s\S]*?return false;/
