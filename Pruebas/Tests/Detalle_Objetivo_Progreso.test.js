@@ -463,16 +463,24 @@ test("resume la cuota completa por día activo incluso en un descanso", () => {
   );
 });
 
-test("integra el estado sin repetir el encabezado explicativo", () => {
+test("elimina las franjas superior e inferior del tablero", () => {
+  const Inicio = Codigo_Login.indexOf(
+    "function Render_Planes_Detalle_Objetivo"
+  );
+  const Fin = Codigo_Login.indexOf(
+    "function Planes_Subobjetivo_Ritmo_Actual",
+    Inicio
+  );
+  const Fragmento = Codigo_Login.slice(Inicio, Fin);
   assert.doesNotMatch(
-    Codigo_Login,
-    /<header class="Planes_Progreso_Encabezado"/
+    Fragmento,
+    /class="Planes_Meta_Madre"/
   );
-  assert.match(Codigo_Login, /class="Planes_Meta_Madre_Identidad"/);
-  assert.match(
-    Codigo_Login,
-    /class="Planes_Progreso_Estado\$\{Estado_Clase\}"/
+  assert.doesNotMatch(
+    Fragmento,
+    /class="Planes_Lectura_Operativa"/
   );
+  assert.match(Fragmento, /class="Planes_Progreso_Indicadores"/);
 });
 
 test("ubica la acción de hábito debajo del tablero compacto", () => {

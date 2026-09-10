@@ -86029,35 +86029,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Render_Planes_Detalle_Objetivo(Objetivo) {
-        const Estado_Efectivo =
-          Planes_Estado_Efectivo_Objetivo(Objetivo);
-        const Estado_Label = Objetivo?.Pausado
-          ? t("planes.pausado")
-          : t(`planes.estado_${Estado_Efectivo.toLowerCase()}`);
-        const Estado_Clase =
-          Estado_Efectivo === "Activo"
-            ? " Planes_Dato_Valor_Activo"
-            : (
-              Estado_Efectivo === "Vencido"
-                ? " Planes_Dato_Valor_Atrasado"
-                : (
-                  Estado_Efectivo === "Saldado"
-                    ? " Planes_Dato_Valor_Saldado"
-                    : ""
-                )
-            );
         const Resumen = Planes_Resumen_Progreso_Objetivo(Objetivo);
         const Etiquetas = Planes_Etiquetas_Nombres(Objetivo);
-        const Unidad_Global = Planes_Unidad_Label(
-          Resumen.Canonico,
-          Resumen.Global.Total
-        );
         const Unidad_Cuota = Planes_Unidad_Label(
           Resumen.Canonico,
           Resumen.Cuota.Total
-        );
-        const Horizonte_Global = Planes_Horizonte_Objetivo_Label(
-          Resumen.Canonico
         );
         const Unidad_Compromiso = t("planes.subobjetivos")
           .toLocaleLowerCase(Obtener_Locale_Actual());
@@ -86073,29 +86049,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           );
           return `${Planes_Formatear_Numero_Texto(Valor)} ${Unidad}`;
         };
-        const Ritmo_Dia_Activo =
-          Planes_Ritmo_Dia_Activo_Objetivo(Objetivo);
-        const Ritmo_Dia_Activo_Html = Ritmo_Dia_Activo
-          ? `
-            <div class="Planes_Lectura_Operativa_Ritmo">
-              <span>${t("planes.ritmo_por_dia_activo")}</span>
-              <strong>${Escape_Html(
-                Planes_Formatear_Numero_Texto(
-                  Ritmo_Dia_Activo.Cantidad
-                )
-              )} ${Escape_Html(
-                Planes_Ajustar_Unidad_Por_Cantidad(
-                  Ritmo_Dia_Activo.Unidad,
-                  Ritmo_Dia_Activo.Cantidad
-                )
-              )}</strong>
-              <small>${Escape_Html(t(
-                "planes.ritmo_dias_activos_restantes",
-                { dias: Ritmo_Dia_Activo.Dias_Restantes }
-              ))}</small>
-            </div>
-          `
-          : "";
         const Desglose_Trabajo = Resumen.Trabajo.Calculable
           ? [
             {
@@ -86116,28 +86069,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             }
           ]
           : [];
-        const Global_Cuenta = Resumen.Global.Calculable
-          ? t("planes.progreso_de", {
-            Realizado: Planes_Formatear_Numero_Texto(
-              Resumen.Global.Realizado
-            ),
-            Total: Planes_Formatear_Numero_Texto(Resumen.Global.Total),
-            Unidad: Unidad_Global
-          })
-          : t("planes.sin_meta_global");
-        const Global_Porcentaje = Resumen.Global.Calculable
-          ? `${Planes_Formatear_Porcentaje_Resumen(
-            Resumen.Global.Porcentaje
-          )}%`
-          : "—";
-        const Tiempo_Aprox =
-          Planes_Estimar_Tiempo_Restante_Objetivo(Objetivo);
-        const Tiempo_Html = Tiempo_Aprox?.Tiene_Tiempo
-          ? Planes_Render_Tiempo_Aprox(
-            Tiempo_Aprox,
-            "planes.tiempo_restante_aprox"
-          )
-          : "";
         const Etiquetas_Html = Etiquetas.length
           ? `
             <div class="Planes_Objetivo_Detalle_Etiquetas">
@@ -86157,36 +86088,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           }">
             <section class="Planes_Progreso_Panel"
               aria-label="${Escape_Html(t("planes.situacion_objetivo"))}">
-              <div class="Planes_Meta_Madre" data-plan-progreso="global">
-                <div class="Planes_Meta_Madre_Identidad">
-                  <div class="Planes_Meta_Madre_Titulo">
-                    <strong>${Escape_Html(
-                      Resumen.Canonico.Nombre || ""
-                    )}</strong>
-                    <span>${t("planes.meta_madre")} · ${Escape_Html(
-                      Horizonte_Global
-                    )}</span>
-                  </div>
-                  <span class="Planes_Progreso_Estado${Estado_Clase}">
-                    ${Escape_Html(Estado_Label)}
-                  </span>
-                </div>
-                <div class="Planes_Progreso_Barra" role="progressbar"
-                  aria-label="${Escape_Html(t("planes.avance_global"))}"
-                  aria-valuemin="0" aria-valuemax="100"
-                  aria-valuenow="${Planes_Formatear_Numero(
-                    Resumen.Global.Barra
-                  )}"
-                  style="--Planes-Progreso: ${
-                    Resumen.Global.Barra.toFixed(2)
-                  }%">
-                  <span></span>
-                </div>
-                <div class="Planes_Meta_Madre_Dato">
-                  ${Escape_Html(Global_Cuenta)}
-                  <strong>${Escape_Html(Global_Porcentaje)}</strong>
-                </div>
-              </div>
               <div class="Planes_Progreso_Indicadores">
                 ${Planes_Render_Indicador_Progreso({
                   Clave: "cuota",
@@ -86216,23 +86117,6 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   Metrica: Resumen.Trabajo,
                   Desglose: Desglose_Trabajo
                 })}
-              </div>
-              <div class="Planes_Lectura_Operativa">
-                <span class="Planes_Lectura_Operativa_Icono"
-                  aria-hidden="true">→</span>
-                <div>
-                  <span class="Planes_Progreso_Eyebrow">
-                    ${t("planes.lectura_operativa")}
-                  </span>
-                  <strong>${Escape_Html(
-                    Planes_Texto_Pendiente_Resumen(Resumen)
-                  )}</strong>
-                  ${Ritmo_Dia_Activo_Html}
-                  <span>
-                    ${t("planes.pauta_redistribuye_pendiente")}
-                    ${Tiempo_Html ? ` · ${Tiempo_Html}` : ""}
-                  </span>
-                </div>
               </div>
             </section>
             ${Planes_Render_Pauta_Hoy_Objetivo(Objetivo)}
