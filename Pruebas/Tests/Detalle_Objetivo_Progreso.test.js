@@ -498,6 +498,21 @@ test("ubica la acción de hábito debajo del tablero compacto", () => {
   );
 });
 
+test("usa color en porcentajes sin repetir barras de progreso", () => {
+  assert.match(
+    Codigo_Login,
+    /Progreso sin barras: el color vive solo en el porcentaje/
+  );
+  assert.match(
+    Codigo_Login,
+    /\.Planes_Meta_Madre > \.Planes_Progreso_Barra,[\s\S]*?display: none;/
+  );
+  assert.match(
+    Codigo_Login,
+    /\.Planes_Progreso_Indicador\.Trabajo[\s\S]*?color: #a1664d;/
+  );
+});
+
 test("nombra el horizonte de la meta madre y no el período visible", () => {
   let Tipo_Base = "Anio";
   const Etiquetas = {
