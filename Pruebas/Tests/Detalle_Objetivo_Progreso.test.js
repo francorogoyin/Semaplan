@@ -475,6 +475,29 @@ test("integra el estado sin repetir el encabezado explicativo", () => {
   );
 });
 
+test("ubica la acción de hábito debajo del tablero compacto", () => {
+  const Inicio = Codigo_Login.indexOf(
+    "function Render_Planes_Detalle_Objetivo"
+  );
+  const Fin = Codigo_Login.indexOf(
+    "function Planes_Subobjetivo_Ritmo_Actual",
+    Inicio
+  );
+  const Fragmento = Codigo_Login.slice(Inicio, Fin);
+  const Posicion_Tablero = Fragmento.indexOf(
+    '<section class="Planes_Progreso_Panel"'
+  );
+  const Posicion_Pauta = Fragmento.indexOf(
+    "${Planes_Render_Pauta_Hoy_Objetivo(Objetivo)}"
+  );
+  assert.ok(Posicion_Tablero >= 0);
+  assert.ok(Posicion_Pauta > Posicion_Tablero);
+  assert.match(
+    Codigo_Login,
+    /Detalle de objetivo: lectura compacta y jerarquica/
+  );
+});
+
 test("nombra el horizonte de la meta madre y no el período visible", () => {
   let Tipo_Base = "Anio";
   const Etiquetas = {
