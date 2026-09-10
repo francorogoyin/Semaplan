@@ -386,6 +386,40 @@ test("la fecha real no reemplaza el período comprometido", () => {
   assert.equal(Resultado.Fin, "2026-09-30");
 });
 
+test("muestra pendiente y avance compacto antes de crear el hábito", () => {
+  const Contexto = {
+    Planes_Vinculo_Ritmo_Habito: () => null,
+    Planes_Carga_Ritmo_Objetivo: () => ({
+      Calculable: true,
+      Total: 8886,
+      Realizado: 5714,
+      Pendiente: 3172,
+      Unidad: "páginas"
+    }),
+    Planes_Cobertura_Ritmo_Texto: () => "",
+    Planes_Formatear_Porcentaje_Resumen: (Valor) =>
+      Number(Valor).toFixed(1).replace(".", ","),
+    Planes_Formatear_Numero_Texto: (Valor) =>
+      Number(Valor).toLocaleString("es-AR"),
+    Escape_Html: (Texto) => Texto,
+    t: (Clave, Datos = {}) => {
+      if (Clave === "planes.progreso_de") {
+        return `${Datos.Realizado} de ${Datos.Total} ${Datos.Unidad}`;
+      }
+      if (Clave === "planes.trabajo_pendiente") {
+        return `Pendiente: ${Datos.Cantidad}`;
+      }
+      return Clave;
+    }
+  };
+  Cargar_Funciones(Contexto, ["Planes_Render_Pauta_Hoy_Objetivo"]);
+  const Html = Contexto.Planes_Render_Pauta_Hoy_Objetivo({ Id: "Meta" });
+  assert.match(Html, /class="Planes_Pauta_Resumen"/);
+  assert.match(Html, />64,3%</);
+  assert.match(Html, />3\.172</);
+  assert.match(Html, /Planes_Pauta_Accion_Secundaria/);
+});
+
 test("oculta la pauta ampliada cuando el hábito ya está asociado", () => {
   const Contexto = {
     Planes_Vinculo_Ritmo_Habito: () => ({

@@ -7811,16 +7811,16 @@
       .Planes_Pauta_Hoy {
         position: relative;
         display: grid;
-        grid-template-columns: minmax(210px, 0.85fr) minmax(300px, 1.35fr);
-        gap: 22px;
+        grid-template-columns: minmax(205px, 0.9fr) minmax(240px, 1.1fr);
+        gap: 16px;
         overflow: hidden;
         border: 1px solid rgba(91, 112, 96, 0.22);
-        border-radius: 16px;
+        border-radius: 12px;
         background:
           radial-gradient(circle at 88% 10%, rgba(255, 255, 255, 0.9),
             transparent 38%),
           linear-gradient(135deg, #eef3ed 0%, #f7f3eb 100%);
-        padding: 20px;
+        padding: 14px 16px;
       }
 
       .Planes_Pauta_Hoy::before {
@@ -7852,9 +7852,9 @@
 
       .Planes_Pauta_Eyebrow {
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 5px;
         color: #59645b;
-        font-size: 11px;
+        font-size: 9px;
         font-weight: 800;
         letter-spacing: 0.09em;
         text-transform: uppercase;
@@ -7871,31 +7871,68 @@
 
       .Planes_Pauta_Cantidad strong {
         font-family: Georgia, "Times New Roman", serif;
-        font-size: clamp(36px, 5vw, 54px);
+        font-size: clamp(28px, 4vw, 38px);
         font-weight: 500;
         letter-spacing: -0.04em;
       }
 
       .Planes_Pauta_Cantidad span {
         color: #405748;
-        font-size: 15px;
+        font-size: 12px;
         font-weight: 700;
       }
 
+      .Planes_Pauta_Resumen {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 9px;
+        border-top: 1px solid rgba(66, 82, 70, 0.15);
+        padding-top: 8px;
+      }
+
+      .Planes_Pauta_Resumen_Item {
+        display: grid;
+        gap: 1px;
+        min-width: 0;
+      }
+
+      .Planes_Pauta_Resumen_Item span {
+        color: #747b75;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.055em;
+        text-transform: uppercase;
+      }
+
+      .Planes_Pauta_Resumen_Item strong {
+        color: #303832;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 19px;
+        font-weight: 500;
+        line-height: 1.1;
+      }
+
+      .Planes_Pauta_Resumen_Item small {
+        color: #687068;
+        font-size: 10px;
+        line-height: 1.35;
+      }
+
       .Planes_Pauta_Titulo {
-        margin: 2px 0 7px;
+        margin: 0 0 4px;
         color: #29322b;
         font-family: Georgia, "Times New Roman", serif;
-        font-size: 22px;
+        font-size: 16px;
         font-weight: 500;
-        line-height: 1.2;
+        line-height: 1.25;
       }
 
       .Planes_Pauta_Descripcion {
         margin: 0;
         color: #59625b;
-        font-size: 13px;
-        line-height: 1.55;
+        font-size: 11px;
+        line-height: 1.4;
       }
 
       .Planes_Pauta_Datos {
@@ -7935,7 +7972,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
-        margin-top: 15px;
+        margin-top: 9px;
       }
 
       .Planes_Pauta_Accion_Principal {
@@ -7948,6 +7985,23 @@
         border-color: #3e5e47;
         background: #3e5e47;
         color: #fff;
+      }
+
+      .Planes_Pauta_Accion_Secundaria {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: #405748;
+        font-size: 11px;
+        font-weight: 750;
+        padding: 3px 0;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      .Planes_Pauta_Accion_Secundaria:hover {
+        background: transparent;
+        color: #263d2e;
       }
 
       .Planes_Pauta_Cobertura {
@@ -8368,8 +8422,8 @@
       @media (max-width: 719px) {
         .Planes_Pauta_Hoy {
           grid-template-columns: 1fr;
-          gap: 14px;
-          padding: 17px;
+          gap: 10px;
+          padding: 14px;
         }
 
         .Planes_Pauta_Datos {
@@ -85217,6 +85271,34 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         let Proximo = "";
         let Acciones = "";
         let Eyebrow = t("planes.pauta_hoy");
+        let Resumen = "";
+        if (Carga.Calculable && Carga.Total > 0) {
+          const Porcentaje = (Carga.Realizado / Carga.Total) * 100;
+          Resumen = `
+            <div class="Planes_Pauta_Resumen">
+              <div class="Planes_Pauta_Resumen_Item">
+                <span>${t("planes.avance")}</span>
+                <strong>${Planes_Formatear_Porcentaje_Resumen(
+                  Porcentaje
+                )}%</strong>
+                <small>${t("planes.progreso_de", {
+                  Realizado: Planes_Formatear_Numero_Texto(Carga.Realizado),
+                  Total: Planes_Formatear_Numero_Texto(Carga.Total),
+                  Unidad: Carga.Unidad
+                })}</small>
+              </div>
+              <div class="Planes_Pauta_Resumen_Item">
+                <span>${t("planes.trabajo_pendiente", {
+                  Cantidad: ""
+                }).replace(/:\s*$/, "")}</span>
+                <strong>${Planes_Formatear_Numero_Texto(
+                  Carga.Pendiente
+                )}</strong>
+                <small>${Escape_Html(Carga.Unidad)}</small>
+              </div>
+            </div>
+          `;
+        }
         if (!Carga.Calculable) {
           Clase = "Sin_Metrica";
           Titulo = t("planes.ritmo_sin_metrica_titulo");
@@ -85241,7 +85323,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Titulo = t("planes.ritmo_sin_habito_titulo");
           Descripcion = t("planes.ritmo_sin_habito_desc");
           Acciones = `
-            <button class="Planes_Btn Planes_Pauta_Accion_Principal"
+            <button class="Planes_Btn Planes_Pauta_Accion_Secundaria"
               type="button" data-plan-accion="crear_habito_ritmo">
               ${t("planes.ritmo_crear_habito")}
             </button>
@@ -85361,6 +85443,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   : "—"}</strong>
                 <span>${Escape_Html(Unidad)}</span>
               </div>
+              ${Resumen}
               ${Proximo ? `
                 <p class="Planes_Pauta_Cobertura">
                   ${Escape_Html(Proximo)}
