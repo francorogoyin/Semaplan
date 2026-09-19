@@ -932,9 +932,20 @@ Estado actual.
   `Motivo`, `Origen` y `Fecha_Ingreso`; el `Rating` se elige desde una
   lista fija (`Pendiente` o valores de 0.5 a 5) para conservar criterio
   historico sin duplicar lista, estado y prioridad.
+- En Biblioteca, `Naturaleza` es el campo madre (`Ficción` o `No ficción`),
+  `Genero` identifica el tipo de obra (`Novela`, `Cuentos`, `Manual`,
+  `Diarios`, `Crónica`, `Relato`, `Ensayo` y otros valores genéricos) y
+  `Subgenero` conserva la disciplina o especificación, por ejemplo
+  `Antropología` o `Filosofía`. Los datos históricos que usaban `Genero`
+  como naturaleza se normalizan sin perder el subgénero.
 - `Lista` se conserva solo como compatibilidad interna para datos viejos
-  e importaciones legacy. Ya no forma parte de la UX visible de
-  filtros, detalle ni edicion de obra.
+  e importaciones legacy. Sigue disponible dentro del panel plegable de
+  filtros y listas, sin ocupar la barra principal.
+- La barra superior de filtros empieza compacta y se expande con
+  `Filtros y listas`. El panel muestra `Naturaleza`, `Género` y
+  `Subgénero`, además de los filtros operativos que tienen más de una
+  opción real en la teca activa; los campos sin capacidad efectiva de
+  filtrar se ocultan.
 - Alta y edicion de obras desde la ficha modal de detalle.
 - Vista unica `Catalogo` con caratulas verticales para todas las obras
   de la teca. Las obras planeadas o activas se distinguen por `Estado`,
@@ -998,8 +1009,8 @@ Estado actual.
   aplica como local. El autor y el titulo se toman de los campos
   explicitos del catalogo o del nombre de archivo con convencion
   `Autor. Titulo.ext`. Si el JSON trae `Genero`, ese valor reemplaza el
-  genero visible de la obra; si no, el genero principal se infiere desde
-  subgenero, ubicacion o carpeta.
+  tipo de obra visible y `Naturaleza` se infiere o conserva por separado;
+  si no, ambos valores se infieren desde subgenero, ubicacion o carpeta.
 - Ese catalogo local ahora tambien se intenta cargar automaticamente al
   iniciar Semaplan desde
   `Documentacion/Planes/Lecturas_Json/Decoteca_Catalogo_Estructura_Libros.json`.

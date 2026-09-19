@@ -16571,11 +16571,100 @@
       }
 
       .Decoteca_Barra_Superior {
-        display: flex;
-        gap: 10px;
-        align-items: flex-end;
-        flex-wrap: nowrap;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
         flex: 0 0 auto;
+      }
+
+      .Decoteca_Cabecera_Compacta {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+      }
+
+      .Decoteca_Cabecera_Resumen {
+        min-width: 0;
+        color: var(--Texto_Suave);
+        font-size: 11px;
+        line-height: 1.35;
+      }
+
+      .Decoteca_Cabecera_Resumen strong {
+        color: var(--Texto);
+        font-size: 13px;
+        font-weight: 850;
+      }
+
+      .Decoteca_Filtros_Toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 34px;
+        padding: 0 11px;
+        border: 1px solid rgba(143, 124, 98, 0.22);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.62);
+        color: var(--Texto);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 850;
+        white-space: nowrap;
+      }
+
+      .Decoteca_Filtros_Toggle:hover,
+      .Decoteca_Filtros_Toggle[aria-expanded="true"] {
+        border-color: color-mix(
+          in srgb,
+          var(--Acento) 38%,
+          transparent
+        );
+        background: var(--Acento_Suave);
+        color: var(--Acento);
+      }
+
+      .Decoteca_Filtros_Toggle.Activos {
+        border-color: color-mix(
+          in srgb,
+          var(--Acento) 38%,
+          transparent
+        );
+        color: var(--Acento);
+      }
+
+      .Decoteca_Filtros_Toggle::after {
+        content: "⌄";
+        font-size: 15px;
+        line-height: 1;
+        transform: translateY(-1px);
+        transition: transform 140ms ease;
+      }
+
+      .Decoteca_Filtros_Toggle[aria-expanded="true"]::after {
+        transform: rotate(180deg) translateY(-1px);
+      }
+
+      .Decoteca_Filtros_Panel {
+        display: grid;
+        grid-column: 1 / -1;
+        gap: 12px;
+        padding: 12px 13px 13px;
+        border: 1px solid rgba(143, 124, 98, 0.18);
+        border-radius: 14px;
+        background: rgba(246, 243, 238, 0.56);
+      }
+
+      .Decoteca_Filtros_Panel[hidden] {
+        display: none;
+      }
+
+      .Decoteca_Filtro_Campo[hidden] {
+        display: none;
       }
 
       .Decoteca_Periodo_Resumen {
@@ -16615,9 +16704,9 @@
         display: grid;
         grid-template-columns:
           minmax(150px, 1.25fr)
-          repeat(7, minmax(0, 0.72fr));
-        gap: 6px;
-        flex: 1 1 auto;
+          repeat(8, minmax(0, 0.72fr));
+        gap: 8px;
+        min-width: 0;
       }
 
       .Decoteca_Filtros .Campo {
@@ -20385,6 +20474,19 @@
         .Decoteca_Contenido {
           flex: 0 0 auto;
           min-height: auto;
+        }
+
+        .Decoteca_Cabecera_Compacta {
+          justify-content: space-between;
+        }
+
+        .Decoteca_Filtros_Toggle {
+          flex: 1 1 auto;
+          justify-content: center;
+        }
+
+        .Decoteca_Filtros_Panel {
+          padding: 11px;
         }
 
         .Decoteca_Libreria,
@@ -29349,22 +29451,39 @@
             aria-label="Tecas"
             data-i18n-aria="decoteca.tecas"></div>
 
-          <section class="Decoteca_Listas_Seccion"
-            aria-labelledby="Decoteca_Listas_Titulo">
-            <div class="Decoteca_Listas_Cabecera">
-              <span id="Decoteca_Listas_Titulo"
-                data-i18n="decoteca.listas">Listas</span>
-              <button class="Decoteca_Lista_Nueva_Btn"
-                id="Decoteca_Listas_Nueva"
-                type="button"
-                data-i18n="decoteca.lista_nueva">Nueva lista</button>
-            </div>
-            <div class="Decoteca_Listas_Fila" id="Decoteca_Listas"
-              role="group"
-              aria-labelledby="Decoteca_Listas_Titulo"></div>
-          </section>
-
           <div class="Decoteca_Barra_Superior">
+            <div class="Decoteca_Cabecera_Compacta">
+              <button class="Decoteca_Filtros_Toggle"
+                id="Decoteca_Filtros_Toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="Decoteca_Filtros_Panel"
+                data-i18n="decoteca.filtros">Filtros y listas</button>
+              <span class="Decoteca_Cabecera_Resumen"
+                id="Decoteca_Filtros_Resumen"
+                aria-live="polite"></span>
+            </div>
+            <div class="Decoteca_Filtros_Panel"
+              id="Decoteca_Filtros_Panel"
+              hidden>
+              <section class="Decoteca_Listas_Seccion"
+                aria-labelledby="Decoteca_Listas_Titulo">
+                <div class="Decoteca_Listas_Cabecera">
+                  <span id="Decoteca_Listas_Titulo"
+                    data-i18n="decoteca.listas">Listas</span>
+                  <button class="Decoteca_Lista_Nueva_Btn"
+                    id="Decoteca_Listas_Nueva"
+                    type="button"
+                    data-i18n="decoteca.lista_nueva">
+                    Nueva lista
+                  </button>
+                </div>
+                <div class="Decoteca_Listas_Fila"
+                  id="Decoteca_Listas"
+                  role="group"
+                  aria-labelledby="Decoteca_Listas_Titulo"></div>
+              </section>
+
             <div class="Decoteca_Filtros">
               <div class="Campo">
                 <label for="Decoteca_Buscar_Input"
@@ -29374,7 +29493,8 @@
                   data-i18n-ph="decoteca.buscar_ph"
                   placeholder="Título, autor, artista o director">
               </div>
-              <div class="Campo">
+              <div class="Campo Decoteca_Filtro_Campo"
+                id="Decoteca_Filtro_Estado_Campo">
                 <label for="Decoteca_Filtro_Estado"
                   data-i18n="decoteca.estado">Estado</label>
                 <select id="Decoteca_Filtro_Estado">
@@ -29390,12 +29510,14 @@
                     data-i18n="decoteca.estado_abandonada">Abandonada</option>
                 </select>
               </div>
-              <div class="Campo">
+              <div class="Campo Decoteca_Filtro_Campo"
+                id="Decoteca_Filtro_Lista_Campo">
                 <label for="Decoteca_Filtro_Lista"
                   data-i18n="decoteca.lista_personal">Lista</label>
                 <select id="Decoteca_Filtro_Lista"></select>
               </div>
-              <div class="Campo">
+              <div class="Campo Decoteca_Filtro_Campo"
+                id="Decoteca_Filtro_Periodo_Campo">
                 <label for="Decoteca_Filtro_Periodo"
                   data-i18n="decoteca.periodo">Período</label>
                 <select id="Decoteca_Filtro_Periodo"></select>
@@ -29417,27 +29539,44 @@
                     data-i18n-aria="decoteca.periodo_hasta">
                 </div>
               </div>
-              <div class="Campo">
+              <div class="Campo Decoteca_Filtro_Campo"
+                id="Decoteca_Filtro_Criterio_Campo">
                 <label for="Decoteca_Filtro_Periodo_Criterio"
                   data-i18n="decoteca.periodo_criterio">Criterio</label>
                 <select id="Decoteca_Filtro_Periodo_Criterio"></select>
               </div>
-              <div class="Campo">
+              <div class="Campo Decoteca_Filtro_Campo"
+                id="Decoteca_Filtro_Naturaleza_Campo">
+                <label for="Decoteca_Filtro_Naturaleza"
+                  data-i18n="decoteca.naturaleza">Naturaleza</label>
+                <select id="Decoteca_Filtro_Naturaleza"></select>
+              </div>
+              <div class="Campo Decoteca_Filtro_Campo"
+                id="Decoteca_Filtro_Genero_Campo">
                 <label for="Decoteca_Filtro_Formato"
                   id="Decoteca_Filtro_Formato_Label"
                   data-i18n="decoteca.genero">G&eacute;nero</label>
                 <select id="Decoteca_Filtro_Formato"></select>
               </div>
-              <div class="Campo">
+              <div class="Campo Decoteca_Filtro_Campo"
+                id="Decoteca_Filtro_Subgenero_Campo">
+                <label for="Decoteca_Filtro_Subgenero"
+                  data-i18n="decoteca.subgenero">Subg&eacute;nero</label>
+                <select id="Decoteca_Filtro_Subgenero"></select>
+              </div>
+              <div class="Campo Decoteca_Filtro_Campo"
+                id="Decoteca_Ordenar_Por_Campo">
                 <label for="Decoteca_Ordenar_Por"
                   data-i18n="decoteca.ordenar_por">Ordenar por</label>
                 <select id="Decoteca_Ordenar_Por"></select>
               </div>
-              <div class="Campo">
+              <div class="Campo Decoteca_Filtro_Campo"
+                id="Decoteca_Orden_Direccion_Campo">
                 <label for="Decoteca_Orden_Direccion"
                   data-i18n="decoteca.orden_direccion">Direcci&oacute;n</label>
                 <select id="Decoteca_Orden_Direccion"></select>
               </div>
+            </div>
             </div>
 
             <div class="Decoteca_Acciones_Superiores">
@@ -33292,6 +33431,10 @@
           "decoteca.tecas": "Tecas",
           "decoteca.nueva_teca": "+ Teca",
           "decoteca.buscar": "Buscar",
+          "decoteca.filtros": "Filtros y listas",
+          "decoteca.filtros_resumen":
+            "Búsqueda y filtros disponibles",
+          "decoteca.filtros_activos": "{n} filtros activos",
           "decoteca.buscar_ph": "Título, autor, artista o director",
           "decoteca.estado": "Estado",
           "decoteca.todos": "Todos",
@@ -33387,8 +33530,24 @@
           "decoteca.orden_asc": "Ascendente",
           "decoteca.orden_desc": "Descendente",
           "decoteca.formato": "Formato",
+          "decoteca.naturaleza": "Naturaleza",
+          "decoteca.naturaleza_ficcion": "Ficción",
+          "decoteca.naturaleza_no_ficcion": "No ficción",
           "decoteca.genero": "G\u00e9nero",
           "decoteca.subgenero": "Subg\u00e9nero",
+          "decoteca.genero_novela": "Novela",
+          "decoteca.genero_cuentos": "Cuentos",
+          "decoteca.genero_manual": "Manual",
+          "decoteca.genero_diarios": "Diarios",
+          "decoteca.genero_cronica": "Crónica",
+          "decoteca.genero_relato": "Relato",
+          "decoteca.genero_ensayo": "Ensayo",
+          "decoteca.genero_poesia": "Poesía",
+          "decoteca.genero_teatro": "Teatro",
+          "decoteca.genero_biografia": "Biografía",
+          "decoteca.genero_tratado": "Tratado",
+          "decoteca.genero_correspondencia": "Correspondencia",
+          "decoteca.genero_otro": "Otro",
           "decoteca.fecha_inicio": "Fecha inicial",
           "decoteca.fecha_fin": "Fecha final",
           "decoteca.unidad": "Unidad",
@@ -38695,6 +38854,9 @@
           "decoteca.tecas": "Collections",
           "decoteca.nueva_teca": "+ Collection",
           "decoteca.buscar": "Search",
+          "decoteca.filtros": "Filters and lists",
+          "decoteca.filtros_resumen": "Search and available filters",
+          "decoteca.filtros_activos": "{n} active filters",
           "decoteca.buscar_ph": "Title, author, artist or director",
           "decoteca.estado": "Status",
           "decoteca.todos": "All",
@@ -38790,8 +38952,24 @@
           "decoteca.orden_asc": "Ascending",
           "decoteca.orden_desc": "Descending",
           "decoteca.formato": "Format",
+          "decoteca.naturaleza": "Nature",
+          "decoteca.naturaleza_ficcion": "Fiction",
+          "decoteca.naturaleza_no_ficcion": "Non-fiction",
           "decoteca.genero": "Genre",
           "decoteca.subgenero": "Subgenre",
+          "decoteca.genero_novela": "Novel",
+          "decoteca.genero_cuentos": "Short stories",
+          "decoteca.genero_manual": "Manual",
+          "decoteca.genero_diarios": "Diaries",
+          "decoteca.genero_cronica": "Chronicle",
+          "decoteca.genero_relato": "Narrative",
+          "decoteca.genero_ensayo": "Essay",
+          "decoteca.genero_poesia": "Poetry",
+          "decoteca.genero_teatro": "Theatre",
+          "decoteca.genero_biografia": "Biography",
+          "decoteca.genero_tratado": "Treatise",
+          "decoteca.genero_correspondencia": "Correspondence",
+          "decoteca.genero_otro": "Other",
           "decoteca.fecha_inicio": "Start date",
           "decoteca.fecha_fin": "End date",
           "decoteca.unidad": "Unit",
@@ -44009,6 +44187,9 @@
           "decoteca.tecas": "Tecas",
           "decoteca.nueva_teca": "+ Teca",
           "decoteca.buscar": "Buscar",
+          "decoteca.filtros": "Filtros e listas",
+          "decoteca.filtros_resumen": "Busca e filtros disponíveis",
+          "decoteca.filtros_activos": "{n} filtros ativos",
           "decoteca.buscar_ph": "Titulo, autor, artista ou diretor",
           "decoteca.estado": "Estado",
           "decoteca.todos": "Todos",
@@ -44104,8 +44285,24 @@
           "decoteca.orden_asc": "Ascendente",
           "decoteca.orden_desc": "Descendente",
           "decoteca.formato": "Formato",
+          "decoteca.naturaleza": "Natureza",
+          "decoteca.naturaleza_ficcion": "Ficção",
+          "decoteca.naturaleza_no_ficcion": "Não ficção",
           "decoteca.genero": "Genero",
           "decoteca.subgenero": "Subgenero",
+          "decoteca.genero_novela": "Romance",
+          "decoteca.genero_cuentos": "Contos",
+          "decoteca.genero_manual": "Manual",
+          "decoteca.genero_diarios": "Diários",
+          "decoteca.genero_cronica": "Crônica",
+          "decoteca.genero_relato": "Relato",
+          "decoteca.genero_ensayo": "Ensaio",
+          "decoteca.genero_poesia": "Poesia",
+          "decoteca.genero_teatro": "Teatro",
+          "decoteca.genero_biografia": "Biografia",
+          "decoteca.genero_tratado": "Tratado",
+          "decoteca.genero_correspondencia": "Correspondência",
+          "decoteca.genero_otro": "Outro",
           "decoteca.fecha_inicio": "Data inicial",
           "decoteca.fecha_fin": "Data final",
           "decoteca.unidad": "Unidade",
@@ -54465,10 +54662,13 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       let Decoteca_Filtro_Periodo_Desde = "";
       let Decoteca_Filtro_Periodo_Hasta = "";
       let Decoteca_Filtro_Periodo_Criterio = "Rango";
+      let Decoteca_Filtro_Naturaleza = "Todos";
       let Decoteca_Filtro_Formato = "Todos";
+      let Decoteca_Filtro_Subgenero = "Todos";
       let Decoteca_Ordenar_Por = "Manual";
       let Decoteca_Orden_Direccion = "Asc";
       let Decoteca_Vista = "Catalogo";
+      let Decoteca_Filtros_Abiertos = false;
       let Decoteca_Acciones_Menu_Abierto = false;
       let Decoteca_Editor_Modo = "Detalle";
       let Decoteca_Editor_Id = "";
@@ -55400,12 +55600,46 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         );
         const Metadatos = Decoteca_Normalizar_Metadatos(Obra.Metadatos);
         const Formato = String(Obra.Formato || "").trim() || "Obra";
-        const Genero = String(
+        const Genero_Raw = String(
           Obra.Genero ||
           Decoteca_Meta_Por_Clave(Metadatos, ["Genero", "G\u00e9nero"]) ||
           Decoteca_Genero_Legacy(Teca_Id, Formato) ||
           ""
         ).trim();
+        const Subgenero = String(
+          Obra.Subgenero ||
+          Obra.Subgenero_Label ||
+          Decoteca_Meta_Por_Clave(Metadatos, [
+            "Subgenero",
+            "Subg\u00e9nero"
+          ]) ||
+          ""
+        ).trim();
+        const Naturaleza_Raw = String(
+          Obra.Naturaleza ||
+          Decoteca_Meta_Por_Clave(Metadatos, [
+            "Naturaleza",
+            "Nature",
+            "Ficci\u00f3n/No ficci\u00f3n"
+          ]) ||
+          ""
+        ).trim();
+        const Es_Biblioteca = Teca_Id === "Biblioteca";
+        const Naturaleza = Es_Biblioteca
+          ? Decoteca_Naturaleza_Biblioteca({
+              Naturaleza: Naturaleza_Raw,
+              Genero: Genero_Raw,
+              Subgenero,
+              Titulo
+            })
+          : Naturaleza_Raw;
+        const Genero = Es_Biblioteca
+          ? Decoteca_Genero_Libro_Normalizado(
+              Genero_Raw,
+              Subgenero,
+              Titulo
+            )
+          : Genero_Raw;
         const Estado = Decoteca_Normalizar_Estado_Obra(Obra.Estado);
         return {
           Id: Id_Base || Crear_Id_Decoteca_Obra(),
@@ -55417,16 +55651,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Creador: String(Obra.Creador || "").trim(),
           Anio: String(Obra.Anio || "").trim(),
           Formato,
+          Naturaleza,
           Genero,
-          Subgenero: String(
-            Obra.Subgenero ||
-            Obra.Subgenero_Label ||
-            Decoteca_Meta_Por_Clave(Metadatos, [
-              "Subgenero",
-              "Subg\u00e9nero"
-            ]) ||
-            ""
-          ).trim(),
+          Subgenero,
           Descripcion: String(
             Obra.Descripcion ||
             Obra.Sinopsis ||
@@ -57443,6 +57670,110 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         return "No ficci\u00f3n";
       }
 
+      function Decoteca_Naturaleza_Libro(...Valores) {
+        const Normalizado = Decoteca_Normalizar_Texto_Local(
+          Valores.filter(Boolean).join(" ")
+        );
+        if (!Normalizado) return "No ficci\u00f3n";
+        const Ficcion = [
+          "ficcion",
+          "novela",
+          "novelas",
+          "cuento",
+          "cuentos",
+          "poesia",
+          "teatro",
+          "narrativa",
+          "fiction",
+          "novel",
+          "short stories",
+          "poetry",
+          "drama",
+          "fantasia",
+          "ciencia ficcion",
+          "science fiction",
+          "terror",
+          "horror",
+          "policial"
+        ];
+        return Ficcion.some((Item) => Normalizado.includes(Item))
+          ? "Ficci\u00f3n"
+          : "No ficci\u00f3n";
+      }
+
+      function Decoteca_Genero_Libro_Desde_Texto(Valor, Titulo = "") {
+        const Texto = Decoteca_Normalizar_Texto_Local(
+          [Valor, Titulo].filter(Boolean).join(" ")
+        );
+        if (!Texto) return "Ensayo";
+        const Reglas = [
+          ["Novela", ["novela", "novel"]],
+          ["Cuentos", ["cuento", "short stories"]],
+          ["Diarios", ["diario", "journal"]],
+          ["Cr\u00f3nica", ["cronica", "chronicle"]],
+          ["Manual", ["manual", "guia", "introduccion", "curso"]],
+          ["Poes\u00eda", ["poesia", "poetry"]],
+          ["Teatro", ["teatro", "drama"]],
+          ["Biograf\u00eda", ["biografia", "biography"]],
+          ["Relato", ["relato", "memoria", "memorias", "testimonio"]]
+        ];
+        const Regla = Reglas.find(([, Claves]) =>
+          Claves.some((Clave) => Texto.includes(Clave))
+        );
+        return Regla?.[0] || "Ensayo";
+      }
+
+      function Decoteca_Genero_Libro_Normalizado(Genero, Subgenero, Titulo) {
+        const Valor = String(Genero || "").trim();
+        const Normalizado = Decoteca_Normalizar_Texto_Local(Valor);
+        if (
+          !Normalizado ||
+          [
+            "ficcion",
+            "no ficcion",
+            "fiction",
+            "non fiction",
+            "libro",
+            "obra"
+          ].includes(Normalizado)
+        ) {
+          return Decoteca_Genero_Libro_Desde_Texto(Subgenero, Titulo);
+        }
+        const Canonicos = [
+          ["Novela", ["novela", "novel"]],
+          ["Cuentos", ["cuento", "short stories"]],
+          ["Diarios", ["diario", "journal"]],
+          ["Cr\u00f3nica", ["cronica", "chronicle"]],
+          ["Manual", ["manual", "guia", "introduccion", "curso"]],
+          ["Poes\u00eda", ["poesia", "poetry"]],
+          ["Teatro", ["teatro", "drama"]],
+          ["Biograf\u00eda", ["biografia", "biography"]],
+          ["Relato", ["relato", "memoria", "memorias", "testimonio"]],
+          ["Ensayo", ["ensayo", "essay"]]
+        ];
+        return Canonicos.find(([, Claves]) =>
+          Claves.some((Clave) => Normalizado.includes(Clave))
+        )?.[0] || Valor;
+      }
+
+      function Decoteca_Naturaleza_Biblioteca(Obra) {
+        const Valor = String(Obra?.Naturaleza || "").trim();
+        const Normalizado = Decoteca_Normalizar_Texto_Local(Valor);
+        if (Normalizado === "ficcion" || Normalizado === "fiction") {
+          return "Ficci\u00f3n";
+        }
+        if (
+          ["no ficcion", "non fiction", "nonfiction"].includes(Normalizado)
+        ) {
+          return "No ficci\u00f3n";
+        }
+        return Decoteca_Naturaleza_Libro(
+          Obra?.Genero,
+          Obra?.Subgenero,
+          Obra?.Titulo
+        );
+      }
+
       function Decoteca_Puntaje_Titulo_Local(Libro, Titulo) {
         const Archivo = Decoteca_Autor_Titulo_Archivo_Local(Libro);
         const Objetivo = Decoteca_Clave_Titulo_Local(Titulo);
@@ -57590,8 +57921,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Libro) return null;
         const Archivo = Decoteca_Autor_Titulo_Archivo_Local(Libro);
         const Subgenero = Decoteca_Subgenero_Local_Libro(Libro);
-        const Genero = String(Libro?.Genero || "").trim() ||
-          Decoteca_Genero_Principal_Libro(Subgenero);
+        const Genero = Decoteca_Genero_Libro_Normalizado(
+          Libro?.Genero,
+          Subgenero,
+          Titulo
+        );
+        const Naturaleza = Decoteca_Naturaleza_Libro(
+          Libro?.Genero,
+          Subgenero,
+          Titulo
+        );
         const Total = Decoteca_Total_Paginas_Local(Libro);
         const Partes = Decoteca_Partes_Desde_Estructura_Local(Libro);
         const Portada = Decoteca_Portada_Local_Libro(Libro);
@@ -57606,6 +57945,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Creador: Autor_Local,
           Anio: String(Libro?.Anio || "").trim(),
           Formato: "Libro",
+          Naturaleza,
           Genero,
           Subgenero,
           Descripcion: String(
@@ -57634,6 +57974,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             ["Autor", Autor_Local],
             ["A\u00f1o", String(Libro?.Anio || "").trim()],
             ["P\u00e1ginas", Total ? String(Total) : ""],
+            ["Naturaleza", Naturaleza],
             ["G\u00e9nero", Genero],
             ["Subg\u00e9nero", Subgenero],
             ["Fuente", Fuente]
@@ -57954,7 +58295,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Decoteca_Formatear_Autores(Autor, 2);
         const Anio = Wiki?.Anio || Open?.Anio || "";
         const Subgenero = Wiki?.Genero || Lectu?.Genero || Open?.Genero || "";
-        const Genero = Decoteca_Genero_Principal_Libro(Subgenero);
+        const Naturaleza = Decoteca_Naturaleza_Libro(Subgenero, Titulo);
+        const Genero = Decoteca_Genero_Libro_Normalizado(
+          "",
+          Subgenero,
+          Titulo
+        );
         const Descripcion =
           Lectu?.Descripcion || Wiki?.Descripcion || Open?.Descripcion || "";
         const Portada_Url =
@@ -57978,6 +58324,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ["Autor", Autor_Normalizado],
           ["A\u00f1o", Anio],
           ["P\u00e1ginas", Paginas ? String(Paginas) : ""],
+          ["Naturaleza", Naturaleza],
           ["G\u00e9nero", Genero],
           ["Subg\u00e9nero", Subgenero],
           ["Descripci\u00f3n", Descripcion],
@@ -57988,6 +58335,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Creador: Autor_Normalizado,
           Anio,
           Formato: "Libro",
+          Naturaleza,
           Genero,
           Subgenero,
           Descripcion,
@@ -58019,20 +58367,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Decoteca_Genero_Principal_Biblioteca(Obra) {
-        const Genero_Actual = String(Obra?.Genero || "").trim();
-        if (
-          Genero_Actual === "Ficci\u00f3n" ||
-          Genero_Actual === "No ficci\u00f3n"
-        ) {
-          return Genero_Actual;
-        }
-        const Fuente = String(
-          Obra?.Subgenero ||
-          Genero_Actual ||
-          Obra?.Formato ||
-          ""
-        ).trim();
-        return Decoteca_Genero_Principal_Libro(Fuente);
+        return Decoteca_Naturaleza_Biblioteca(Obra);
       }
 
       async function Decoteca_Migrar_Catalogo_Estructura_Local_Biblioteca() {
@@ -58059,17 +58394,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               }
             );
           }
-          const Genero_Principal =
+          const Naturaleza =
             Decoteca_Genero_Principal_Biblioteca(Resultado);
           if (
-            Genero_Principal &&
-            Genero_Principal !== Resultado.Genero
+            Naturaleza &&
+            Naturaleza !== Resultado.Naturaleza
           ) {
             Resultado = Decoteca_Aplicar_Metadatos_A_Obra(
               Resultado,
               {
                 Reemplazar_Campos: false,
-                Genero: Genero_Principal
+                Naturaleza
               }
             );
           }
@@ -58410,6 +58745,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Titulo: Valor_Dato("Titulo", Obra.Titulo),
           Creador: Valor_Dato("Creador", Obra.Creador),
           Anio: Valor_Dato("Anio", Obra.Anio || ""),
+          Naturaleza: Valor_Dato(
+            "Naturaleza",
+            Obra.Naturaleza || ""
+          ),
           Genero: Valor_Dato("Genero", Obra.Genero || ""),
           Subgenero: Valor_Dato("Subgenero", Obra.Subgenero || ""),
           Descripcion: Valor_Dato("Descripcion", Obra.Descripcion || ""),
@@ -58480,6 +58819,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Decoteca_Set_Valor_Form("Decoteca_Form_Titulo", Obra.Titulo);
         Decoteca_Set_Valor_Form("Decoteca_Form_Creador", Obra.Creador);
         Decoteca_Set_Valor_Form("Decoteca_Form_Anio", Obra.Anio);
+        Decoteca_Set_Valor_Form(
+          "Decoteca_Form_Naturaleza",
+          Obra.Naturaleza
+        );
         Decoteca_Set_Valor_Form("Decoteca_Form_Genero", Obra.Genero);
         Decoteca_Set_Valor_Form("Decoteca_Form_Subgenero", Obra.Subgenero);
         Decoteca_Set_Valor_Form(
@@ -58917,8 +59260,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Decoteca_El("Decoteca_Filtro_Periodo_Criterio")?.value ||
             Decoteca_Filtro_Periodo_Criterio
           );
+        Decoteca_Filtro_Naturaleza =
+          Decoteca_El("Decoteca_Filtro_Naturaleza")?.value || "Todos";
         Decoteca_Filtro_Formato =
           Decoteca_El("Decoteca_Filtro_Formato")?.value || "Todos";
+        Decoteca_Filtro_Subgenero =
+          Decoteca_El("Decoteca_Filtro_Subgenero")?.value || "Todos";
         Decoteca_Ordenar_Por = Decoteca_Normalizar_Ordenar_Por(
           Decoteca_El("Decoteca_Ordenar_Por")?.value ||
           Decoteca_Ordenar_Por
@@ -59695,10 +60042,22 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ) {
             return false;
           }
+          if (
+            Decoteca_Filtro_Naturaleza !== "Todos" &&
+            Obra.Naturaleza !== Decoteca_Filtro_Naturaleza
+          ) {
+            return false;
+          }
           const Genero = Obra.Genero || Obra.Formato;
           if (
             Decoteca_Filtro_Formato !== "Todos" &&
             Genero !== Decoteca_Filtro_Formato
+          ) {
+            return false;
+          }
+          if (
+            Decoteca_Filtro_Subgenero !== "Todos" &&
+            Obra.Subgenero !== Decoteca_Filtro_Subgenero
           ) {
             return false;
           }
@@ -59709,6 +60068,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
               Obra.Titulo,
               Obra.Creador,
               Obra.Anio,
+              Obra.Naturaleza,
               Obra.Genero,
               Obra.Subgenero,
               Obra.Descripcion,
@@ -59853,8 +60213,45 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
       }
 
+      function Decoteca_Filtros_Activos() {
+        return [
+          Decoteca_Busqueda.trim(),
+          Decoteca_Filtro_Estado !== "Todos" ? "1" : "",
+          Decoteca_Filtro_Lista !== "Todas" ? "1" : "",
+          Decoteca_Filtro_Periodo !== "Todos" ? "1" : "",
+          Decoteca_Filtro_Naturaleza !== "Todos" ? "1" : "",
+          Decoteca_Filtro_Formato !== "Todos" ? "1" : "",
+          Decoteca_Filtro_Subgenero !== "Todos" ? "1" : ""
+        ].filter(Boolean).length;
+      }
+
+      function Decoteca_Actualizar_Filtros_Panel_UI() {
+        const Panel = Decoteca_El("Decoteca_Filtros_Panel");
+        const Toggle = Decoteca_El("Decoteca_Filtros_Toggle");
+        const Resumen = Decoteca_El("Decoteca_Filtros_Resumen");
+        const Activos = Decoteca_Filtros_Activos();
+        if (Panel) Panel.hidden = !Decoteca_Filtros_Abiertos;
+        if (Toggle) {
+          Toggle.setAttribute(
+            "aria-expanded",
+            Decoteca_Filtros_Abiertos ? "true" : "false"
+          );
+          Toggle.classList.toggle("Activos", Activos > 0);
+        }
+        if (Resumen) {
+          Resumen.innerHTML = Activos
+            ? `<strong>${Escape_Html(t(
+                "decoteca.filtros_activos",
+                { n: Activos }
+              ))}</strong>`
+            : Escape_Html(t("decoteca.filtros_resumen"));
+        }
+      }
+
       function Decoteca_Render_Filtros() {
         const Select = Decoteca_El("Decoteca_Filtro_Formato");
+        const Select_Naturaleza = Decoteca_El("Decoteca_Filtro_Naturaleza");
+        const Select_Subgenero = Decoteca_El("Decoteca_Filtro_Subgenero");
         const Select_Lista = Decoteca_El("Decoteca_Filtro_Lista");
         const Select_Periodo = Decoteca_El("Decoteca_Filtro_Periodo");
         const Select_Criterio = Decoteca_El(
@@ -59881,6 +60278,15 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             .map((Obra) => Obra.Genero || Obra.Formato)
             .filter(Boolean))
         ).sort((A, B) => A.localeCompare(B));
+        const Naturalezas = Array.from(
+          new Set(Obras_Teca.map((Obra) => Obra.Naturaleza).filter(Boolean))
+        ).sort((A, B) => A.localeCompare(B));
+        const Subgeneros = Array.from(
+          new Set(Obras_Teca.map((Obra) => Obra.Subgenero).filter(Boolean))
+        ).sort((A, B) => A.localeCompare(B));
+        const Estados = Array.from(
+          new Set(Obras_Teca.map((Obra) => Obra.Estado).filter(Boolean))
+        );
         const Periodos = new Map();
         Obras_Teca.forEach((Obra) => {
           Decoteca_Periodos_De_Obra(
@@ -59912,6 +60318,18 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ) {
           Decoteca_Filtro_Formato = "Todos";
         }
+        if (
+          Decoteca_Filtro_Naturaleza !== "Todos" &&
+          !Naturalezas.includes(Decoteca_Filtro_Naturaleza)
+        ) {
+          Decoteca_Filtro_Naturaleza = "Todos";
+        }
+        if (
+          Decoteca_Filtro_Subgenero !== "Todos" &&
+          !Subgeneros.includes(Decoteca_Filtro_Subgenero)
+        ) {
+          Decoteca_Filtro_Subgenero = "Todos";
+        }
         Decoteca_Ordenar_Por = Decoteca_Normalizar_Ordenar_Por(
           Decoteca_Ordenar_Por
         );
@@ -59930,6 +60348,17 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             `).join("")}
           `;
           Select_Lista.value = Decoteca_Filtro_Lista;
+        }
+        if (Select_Naturaleza) {
+          Select_Naturaleza.innerHTML = `
+            <option value="Todos">${Escape_Html(t("decoteca.todos"))}</option>
+            ${Naturalezas.map((Naturaleza) => `
+              <option value="${Escape_Html(Naturaleza)}">
+                ${Escape_Html(Naturaleza)}
+              </option>
+            `).join("")}
+          `;
+          Select_Naturaleza.value = Decoteca_Filtro_Naturaleza;
         }
         if (Select_Periodo) {
           Select_Periodo.innerHTML = `
@@ -59986,6 +60415,40 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           `).join("")}
         `;
         Select.value = Decoteca_Filtro_Formato;
+        if (Select_Subgenero) {
+          Select_Subgenero.innerHTML = `
+            <option value="Todos">${Escape_Html(t("decoteca.todos"))}</option>
+            ${Subgeneros.map((Subgenero) => `
+              <option value="${Escape_Html(Subgenero)}">
+                ${Escape_Html(Subgenero)}
+              </option>
+            `).join("")}
+          `;
+          Select_Subgenero.value = Decoteca_Filtro_Subgenero;
+        }
+        const Visibilidad_Filtros = {
+          Decoteca_Filtro_Estado_Campo: Estados.length > 1,
+          Decoteca_Filtro_Lista_Campo: Listas.length > 0,
+          Decoteca_Filtro_Periodo_Campo: Periodos.size > 0,
+          Decoteca_Filtro_Criterio_Campo: Periodos.size > 0,
+          Decoteca_Filtro_Naturaleza_Campo: Naturalezas.length > 1,
+          Decoteca_Filtro_Genero_Campo: Generos.length > 1,
+          Decoteca_Filtro_Subgenero_Campo: Subgeneros.length > 1,
+          Decoteca_Ordenar_Por_Campo: true,
+          Decoteca_Orden_Direccion_Campo: true
+        };
+        Object.entries(Visibilidad_Filtros).forEach(([Id, Visible]) => {
+          const Campo = Decoteca_El(Id);
+          if (Campo) Campo.hidden = !Visible;
+        });
+        const Campo_Personalizado = Decoteca_El(
+          "Decoteca_Filtro_Periodo_Personalizado"
+        );
+        if (Campo_Personalizado) {
+          Campo_Personalizado.hidden =
+            Decoteca_Filtro_Periodo !== "Personalizado" ||
+            !Visibilidad_Filtros.Decoteca_Filtro_Periodo_Campo;
+        }
         if (Select_Orden) {
           Select_Orden.innerHTML = Decoteca_Opciones_Orden()
             .map(([Valor, Label]) => `
@@ -60006,6 +60469,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         }
         Decoteca_Actualizar_Estado_Orden_UI();
         Decoteca_Actualizar_Menu_Acciones_UI();
+        Decoteca_Actualizar_Filtros_Panel_UI();
       }
 
       function Decoteca_Emoji_Estado(Estado) {
@@ -60137,6 +60601,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         const Repeticiones = Decoteca_Repeticiones_Obra(Obra);
         return [
           Obra.Anio ? `${t("decoteca.campo_anio")}: ${Obra.Anio}` : "",
+          Obra.Naturaleza
+            ? `${t("decoteca.naturaleza")}: ${Obra.Naturaleza}`
+            : "",
           Obra.Genero ? `${t("decoteca.genero")}: ${Obra.Genero}` : "",
           Obra.Subgenero
             ? `${t("decoteca.subgenero")}: ${Obra.Subgenero}`
@@ -60982,6 +61449,12 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           ],
           anio: ["anio", "ano", "year"],
           formato: ["formato", "tipo"],
+          naturaleza: [
+            "naturaleza",
+            "nature",
+            "ficcionnoficcion",
+            "fictionnonfiction"
+          ],
           genero: ["genero", "genre"],
           subgenero: ["subgenero", "subgenre"],
           descripcion: [
@@ -61197,6 +61670,10 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             Decoteca_Importacion_Valor_Objeto(Objeto, "formato") ||
             Objeto.Formato ||
             "",
+          naturaleza:
+            Decoteca_Importacion_Valor_Objeto(Objeto, "naturaleza") ||
+            Objeto.Naturaleza ||
+            "",
           genero:
             Decoteca_Importacion_Valor_Objeto(Objeto, "genero") ||
             Objeto.Genero ||
@@ -61312,6 +61789,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
             String(Datos.formato || "").trim() ||
             Teca.Unidad_Nombre ||
             "Obra",
+          Naturaleza: Datos.naturaleza,
           Genero: Datos.genero,
           Subgenero: Datos.subgenero,
           Descripcion: Datos.descripcion,
@@ -61891,6 +62369,36 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         ];
       }
 
+      function Decoteca_Opciones_Naturaleza() {
+        return [
+          ["Ficci\u00f3n", t("decoteca.naturaleza_ficcion")],
+          ["No ficci\u00f3n", t("decoteca.naturaleza_no_ficcion")]
+        ];
+      }
+
+      function Decoteca_Opciones_Genero_Libro(Actual = "") {
+        const Opciones = [
+          ["Novela", t("decoteca.genero_novela")],
+          ["Cuentos", t("decoteca.genero_cuentos")],
+          ["Manual", t("decoteca.genero_manual")],
+          ["Diarios", t("decoteca.genero_diarios")],
+          ["Cr\u00f3nica", t("decoteca.genero_cronica")],
+          ["Relato", t("decoteca.genero_relato")],
+          ["Ensayo", t("decoteca.genero_ensayo")],
+          ["Poes\u00eda", t("decoteca.genero_poesia")],
+          ["Teatro", t("decoteca.genero_teatro")],
+          ["Biograf\u00eda", t("decoteca.genero_biografia")],
+          ["Tratado", t("decoteca.genero_tratado")],
+          ["Correspondencia", t("decoteca.genero_correspondencia")],
+          ["Otro", t("decoteca.genero_otro")]
+        ];
+        const Valor = String(Actual || "").trim();
+        if (Valor && !Opciones.some(([Clave]) => Clave === Valor)) {
+          Opciones.unshift([Valor, Valor]);
+        }
+        return Opciones;
+      }
+
       function Decoteca_Render_Editor_Obra(Obra = null) {
         const Teca = Decoteca_Teca_Por_Id(
           Obra?.Teca_Id || Decoteca_Teca_Activa
@@ -61902,6 +62410,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Creador: "",
           Anio: "",
           Formato: "",
+          Naturaleza: "No ficci\u00f3n",
           Genero: "",
           Subgenero: "",
           Descripcion: "",
@@ -61995,11 +62504,26 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
                   t("decoteca.campo_anio"),
                   Valor.Anio
                 )}
-                ${Decoteca_Input(
-                  "Decoteca_Form_Genero",
-                  t("decoteca.genero"),
-                  Valor.Genero
-                )}
+                ${Teca.Id === "Biblioteca"
+                  ? Decoteca_Select(
+                    "Decoteca_Form_Naturaleza",
+                    t("decoteca.naturaleza"),
+                    Valor.Naturaleza || "No ficci\u00f3n",
+                    Decoteca_Opciones_Naturaleza()
+                  )
+                  : ""}
+                ${Teca.Id === "Biblioteca"
+                  ? Decoteca_Select(
+                    "Decoteca_Form_Genero",
+                    t("decoteca.genero"),
+                    Valor.Genero,
+                    Decoteca_Opciones_Genero_Libro(Valor.Genero)
+                  )
+                  : Decoteca_Input(
+                    "Decoteca_Form_Genero",
+                    t("decoteca.genero"),
+                    Valor.Genero
+                  )}
                 ${Decoteca_Input(
                   "Decoteca_Form_Subgenero",
                   t("decoteca.subgenero"),
@@ -64065,6 +64589,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
 
       function Decoteca_Render_Desde_Filtro() {
         Decoteca_Leer_Filtros();
+        Decoteca_Actualizar_Filtros_Panel_UI();
         Decoteca_Cerrar_Menu_Acciones();
         Decoteca_Actualizar_Estado_Orden_UI();
         Decoteca_Render_Listas();
@@ -64189,6 +64714,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         Decoteca_Editor_Id = "";
         Decoteca_Avance_Editor_Id = "";
         Decoteca_Seleccion_Id = "";
+        Decoteca_Filtros_Abiertos = Decoteca_Filtros_Activos() > 0;
         document.getElementById("Decoteca_Avance_Overlay")
           ?.classList.remove("Activo");
         document.getElementById("Decoteca_Registro_Overlay")
@@ -64219,10 +64745,16 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         if (!Decoteca_Tecas().some((Teca) => Teca.Id === Teca_Id)) return;
         Decoteca_Teca_Activa = Teca_Id;
         Decoteca_Limpiar_Seleccion_Multiple();
+        Decoteca_Filtro_Naturaleza = "Todos";
         Decoteca_Filtro_Formato = "Todos";
+        Decoteca_Filtro_Subgenero = "Todos";
         Decoteca_Filtro_Lista = "Todas";
+        const Filtro_Naturaleza = Decoteca_El("Decoteca_Filtro_Naturaleza");
         const Filtro_Formato = Decoteca_El("Decoteca_Filtro_Formato");
+        const Filtro_Subgenero = Decoteca_El("Decoteca_Filtro_Subgenero");
+        if (Filtro_Naturaleza) Filtro_Naturaleza.value = "Todos";
         if (Filtro_Formato) Filtro_Formato.value = "Todos";
+        if (Filtro_Subgenero) Filtro_Subgenero.value = "Todos";
         Decoteca_Editor_Modo = "Detalle";
         Decoteca_Editor_Id = "";
         Decoteca_Avance_Editor_Id = "";
@@ -64369,6 +64901,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Creador: Decoteca_Valor_Form("Decoteca_Form_Creador"),
           Anio: Decoteca_Valor_Form("Decoteca_Form_Anio"),
           Formato: Existente?.Formato || Teca.Unidad_Nombre || "Obra",
+          Naturaleza: Decoteca_Valor_Form("Decoteca_Form_Naturaleza") ||
+            Existente?.Naturaleza ||
+            "",
           Genero: Decoteca_Valor_Form("Decoteca_Form_Genero"),
           Subgenero: Decoteca_Valor_Form("Decoteca_Form_Subgenero"),
           Descripcion: Decoteca_Valor_Form("Decoteca_Form_Descripcion"),
@@ -144431,6 +144966,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       El_Decoteca_Boton?.addEventListener("click", Abrir_Decoteca);
       document.getElementById("Decoteca_Cerrar")
         ?.addEventListener("click", Cerrar_Decoteca);
+      document.getElementById("Decoteca_Filtros_Toggle")
+        ?.addEventListener("click", () => {
+          Decoteca_Filtros_Abiertos = !Decoteca_Filtros_Abiertos;
+          Decoteca_Actualizar_Filtros_Panel_UI();
+        });
       document.getElementById("Decoteca_Avance_Cerrar")
         ?.addEventListener("click", Decoteca_Cerrar_Avance);
       document.getElementById("Decoteca_Avance_Cancelar")
@@ -145118,7 +145658,9 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
         "Decoteca_Filtro_Lista",
         "Decoteca_Filtro_Periodo",
         "Decoteca_Filtro_Periodo_Criterio",
+        "Decoteca_Filtro_Naturaleza",
         "Decoteca_Filtro_Formato",
+        "Decoteca_Filtro_Subgenero",
         "Decoteca_Ordenar_Por",
         "Decoteca_Orden_Direccion"
       ].forEach((Id) => {
