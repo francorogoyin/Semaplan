@@ -57641,33 +57641,7 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       }
 
       function Decoteca_Genero_Principal_Libro(Subgenero) {
-        const Normalizado = Decoteca_Normalizar_Texto_Local(Subgenero);
-        if (!Normalizado) return "";
-        const Ficcion = [
-          "ficcion",
-          "novela",
-          "novelas",
-          "cuento",
-          "cuentos",
-          "poesia",
-          "teatro",
-          "narrativa",
-          "fiction",
-          "novel",
-          "short stories",
-          "poetry",
-          "drama",
-          "fantasia",
-          "ciencia ficcion",
-          "science fiction",
-          "terror",
-          "horror",
-          "policial"
-        ];
-        if (Ficcion.some((Item) => Normalizado.includes(Item))) {
-          return "Ficci\u00f3n";
-        }
-        return "No ficci\u00f3n";
+        return Decoteca_Naturaleza_Libro(Subgenero);
       }
 
       function Decoteca_Naturaleza_Libro(...Valores) {
@@ -57675,6 +57649,11 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
           Valores.filter(Boolean).join(" ")
         );
         if (!Normalizado) return "No ficci\u00f3n";
+        if (
+          ["no ficcion", "non fiction", "nonfiction"].includes(Normalizado)
+        ) {
+          return "No ficci\u00f3n";
+        }
         const Ficcion = [
           "ficcion",
           "novela",
