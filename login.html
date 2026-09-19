@@ -57738,6 +57738,29 @@ const El_Baul_Nuevo_Titulo = document.getElementById(
       function Decoteca_Naturaleza_Biblioteca(Obra) {
         const Valor = String(Obra?.Naturaleza || "").trim();
         const Normalizado = Decoteca_Normalizar_Texto_Local(Valor);
+        const Genero = Decoteca_Normalizar_Texto_Local(Obra?.Genero);
+        const Tipos_Ficcion = [
+          "novela",
+          "novelas",
+          "cuento",
+          "cuentos",
+          "poesia",
+          "teatro",
+          "relato",
+          "narrativa"
+        ];
+        const Tipos_No_Ficcion = [
+          "manual",
+          "diario",
+          "diarios",
+          "cronica",
+          "biografia",
+          "tratado",
+          "correspondencia",
+          "ensayo"
+        ];
+        if (Tipos_Ficcion.includes(Genero)) return "Ficci\u00f3n";
+        if (Tipos_No_Ficcion.includes(Genero)) return "No ficci\u00f3n";
         if (Normalizado === "ficcion" || Normalizado === "fiction") {
           return "Ficci\u00f3n";
         }
