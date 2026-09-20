@@ -432,6 +432,16 @@ Notas operativas.
 - La pestana Metas del resumen es de solo lectura y cruza el rango
   seleccionado contra `Planes_Periodo`, mostrando avance dentro del
   rango y acumulado actual de objetivos, subobjetivos y partes.
+- La pestana Evolucion del resumen es de solo lectura y permite elegir
+  una meta para ver su avance acumulado, el ritmo esperado del rango,
+  los dias con movimiento y los subobjetivos o partes que avanzaron.
+  No suma unidades heterogeneas entre metas: el panorama general cuenta
+  metas movidas y alcanzadas, mientras el grafico trabaja una meta por
+  vez con su propia unidad.
+- La linea esperada de Evolucion distribuye el target contextual del
+  rango seleccionado; los puntos realizados reutilizan el mismo calculo
+  de `Calcular_Datos_Metas_Resumen` en cortes sucesivos, sin crear datos
+  persistidos ni alterar avances, sync o historial.
 - En Resumen > Metas las tarjetas son compactas y expandibles. La barra
   y el porcentaje usan unidades avanzadas del rango contra el valor
   objetivo contextual de ese periodo; el detalle muestra primero
