@@ -101,3 +101,32 @@ test("editar sin cambiar destino conserva la asociación del registro", () => {
     "La distribución solo se reinicia al cambiar el destino"
   );
 });
+
+test("editar un registro refresca Partes si ese modal sigue abierto", () => {
+  const Funcion_Refresco = Extraer_Funcion(
+    "Planes_Refrescar_Modal_Partes_Si_Abierto"
+  );
+  const Funcion_Recalculo = Extraer_Funcion(
+    "Planes_Recalcular_Avance_Subobjetivo"
+  );
+  const Overlay = {
+    classList: { contains: (Clase) => Clase === "Activo" }
+  };
+  let Renderizados = 0;
+  const Contexto = {
+    document: {
+      getElementById: (Id) =>
+        Id === "Planes_Partes_Overlay" ? Overlay : null
+    },
+    Render_Modal_Planes_Partes: () => { Renderizados += 1; }
+  };
+  vm.createContext(Contexto);
+  vm.runInContext(Funcion_Refresco, Contexto);
+
+  assert.equal(Contexto.Planes_Refrescar_Modal_Partes_Si_Abierto(), true);
+  assert.equal(Renderizados, 1);
+  assert.match(
+    Funcion_Recalculo,
+    /Render_Modal_Planes_Registro\([\s\S]*?\);\s*\n\s*Planes_Refrescar_Modal_Partes_Si_Abierto\(\);/
+  );
+});
