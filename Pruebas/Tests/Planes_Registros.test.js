@@ -80,3 +80,24 @@ test("reemplaza el registro editado en el modelo antes de recalcularlo", () => {
     "2026-07-26T10:30"
   );
 });
+
+test("editar sin cambiar destino conserva la asociación del registro", () => {
+  const Funcion = Extraer_Funcion("Planes_Editar_Avance_Registro");
+  const Inicio_Cambios = Funcion.indexOf("const Cambios_Avance = {");
+  const Inicio_Reemplazo = Funcion.indexOf(
+    "const Avance_Actualizado = Planes_Reemplazar_Avance_Registro"
+  );
+  assert.notEqual(Inicio_Cambios, -1);
+  assert.notEqual(Inicio_Reemplazo, -1);
+
+  const Bloque_Cambios = Funcion.slice(Inicio_Cambios, Inicio_Reemplazo);
+  assert.match(Bloque_Cambios, /if \(Cambio_Destino\) \{/);
+  assert.match(Bloque_Cambios, /Distribucion: \[\]/);
+  assert.match(Bloque_Cambios, /Parte_Id:/);
+  assert.match(Bloque_Cambios, /Cantidad,/);
+  assert.ok(
+    Bloque_Cambios.indexOf("if (Cambio_Destino) {") <
+      Bloque_Cambios.indexOf("Distribucion: []"),
+    "La distribución solo se reinicia al cambiar el destino"
+  );
+});
