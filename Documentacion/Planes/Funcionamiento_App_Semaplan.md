@@ -1524,6 +1524,9 @@ Relaciones importantes.
 - Al editar o borrar un avance desde Registro, si el modal de Partes sigue
   abierto debajo, se vuelve a renderizar desde el modelo ya recalculado para
   actualizar de inmediato cantidad, estado y color de cada parte afectada.
+  El modal conserva además el subobjetivo que estaba mostrando y consolida el
+  último refresco cuando se encadenan varias ediciones, para evitar que una
+  vista anterior vuelva a dejar números o colores desactualizados.
 - En los editores de Subobjetivos y Partes, `Fecha_Inicio` y
   `Fecha_Objetivo` siguen siendo editables aunque el ítem ya esté
   cumplido o realizado. `Fecha_Fin` conserva el cierre real y queda

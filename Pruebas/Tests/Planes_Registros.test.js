@@ -102,7 +102,7 @@ test("editar sin cambiar destino conserva la asociación del registro", () => {
   );
 });
 
-test("editar un registro refresca Partes si ese modal sigue abierto", () => {
+test("editar un registro refresca Partes si ese modal sigue abierto", async () => {
   const Funcion_Refresco = Extraer_Funcion(
     "Planes_Refrescar_Modal_Partes_Si_Abierto"
   );
@@ -110,7 +110,46 @@ test("editar un registro refresca Partes si ese modal sigue abierto", () => {
     "Planes_Recalcular_Avance_Subobjetivo"
   );
   const Overlay = {
-    classList: { contains: (Clase) => Clase === "Activo" }
+    classList: { contains: (Clase) => Clase === "Activo" },
+    dataset: { subobjetivoId: "karamazov" }
+  };
+  let Renderizados = 0;
+  let Menus_Cerrados = 0;
+  const Contexto = {
+    document: {
+      getElementById: (Id) =>
+        Id === "Planes_Partes_Overlay" ? Overlay : null
+    },
+    Asegurar_Modelo_Planes: () => ({
+      Subobjetivos: { karamazov: { Id: "karamazov" } }
+    }),
+    Planes_Partes_Subobjetivo_Id: null,
+    Planes_Partes_Refresco_Secuencia: 0,
+    Planes_Cerrar_Menus_Parte: () => { Menus_Cerrados += 1; },
+    Render_Modal_Planes_Partes: () => { Renderizados += 1; }
+  };
+  vm.createContext(Contexto);
+  vm.runInContext(Funcion_Refresco, Contexto);
+
+  assert.equal(Contexto.Planes_Refrescar_Modal_Partes_Si_Abierto(), true);
+  await Promise.resolve();
+  assert.equal(Contexto.Planes_Partes_Subobjetivo_Id, "karamazov");
+  assert.equal(Overlay.dataset.subobjetivoId, "karamazov");
+  assert.equal(Renderizados, 2);
+  assert.equal(Menus_Cerrados, 2);
+  assert.match(
+    Funcion_Recalculo,
+    /Render_Modal_Planes_Registro\([\s\S]*?\);\s*\n\s*Planes_Refrescar_Modal_Partes_Si_Abierto\(\);/
+  );
+});
+
+test("refrescos consecutivos conservan el último contexto de Partes", async () => {
+  const Funcion = Extraer_Funcion(
+    "Planes_Refrescar_Modal_Partes_Si_Abierto"
+  );
+  const Overlay = {
+    classList: { contains: (Clase) => Clase === "Activo" },
+    dataset: { subobjetivoId: "karamazov" }
   };
   let Renderizados = 0;
   const Contexto = {
@@ -118,15 +157,21 @@ test("editar un registro refresca Partes si ese modal sigue abierto", () => {
       getElementById: (Id) =>
         Id === "Planes_Partes_Overlay" ? Overlay : null
     },
+    Asegurar_Modelo_Planes: () => ({
+      Subobjetivos: { karamazov: { Id: "karamazov" } }
+    }),
+    Planes_Partes_Subobjetivo_Id: null,
+    Planes_Partes_Refresco_Secuencia: 0,
+    Planes_Cerrar_Menus_Parte: () => {},
     Render_Modal_Planes_Partes: () => { Renderizados += 1; }
   };
   vm.createContext(Contexto);
-  vm.runInContext(Funcion_Refresco, Contexto);
+  vm.runInContext(Funcion, Contexto);
 
-  assert.equal(Contexto.Planes_Refrescar_Modal_Partes_Si_Abierto(), true);
-  assert.equal(Renderizados, 1);
-  assert.match(
-    Funcion_Recalculo,
-    /Render_Modal_Planes_Registro\([\s\S]*?\);\s*\n\s*Planes_Refrescar_Modal_Partes_Si_Abierto\(\);/
-  );
+  Contexto.Planes_Refrescar_Modal_Partes_Si_Abierto();
+  Contexto.Planes_Refrescar_Modal_Partes_Si_Abierto();
+  await Promise.resolve();
+
+  assert.equal(Contexto.Planes_Partes_Subobjetivo_Id, "karamazov");
+  assert.equal(Renderizados, 3);
 });
