@@ -8,8 +8,18 @@ const Ruta_Login = path.resolve(__dirname, "../../login.html");
 const Codigo_Login = fs.readFileSync(Ruta_Login, "utf8");
 
 function Extraer_Funcion(Nombre) {
-  const Inicio = Codigo_Login.indexOf(`function ${Nombre}(`);
-  assert.notEqual(Inicio, -1, `No se encontró la función ${Nombre}`);
+  const Inicio_Funcion = Codigo_Login.indexOf(`function ${Nombre}(`);
+  assert.notEqual(
+    Inicio_Funcion,
+    -1,
+    `No se encontró la función ${Nombre}`
+  );
+  const Inicio = Codigo_Login.slice(
+    Math.max(0, Inicio_Funcion - 6),
+    Inicio_Funcion
+  ) === "async "
+    ? Inicio_Funcion - 6
+    : Inicio_Funcion;
   const Fin_Parametros = Codigo_Login.indexOf(") {", Inicio);
   assert.notEqual(Fin_Parametros, -1);
   let Profundidad = 0;
@@ -28,14 +38,30 @@ function Crear_Contexto() {
     Planes_Normalizar_Fecha_Comparacion: (Fecha) =>
       /^\d{4}-\d{2}-\d{2}$/.test(String(Fecha || ""))
         ? String(Fecha)
-        : ""
+        : "",
+    Planes_Periodos_Destino_Misma_Capa: () => [],
+    Planes_Crear_Periodos_Capa_Visibles: () => [],
+    Planes_Cantidad_Subperiodos: () => 1,
+    Planes_Crear_Periodo_Por_Capa: (Tipo, Anio) => ({
+      Id: `${Tipo}_${Anio}`,
+      Tipo,
+      Inicio: `${Anio}-01-01`,
+      Fin: `${Anio}-12-31`
+    }),
+    Asegurar_Modelo_Planes: () => ({
+      UI: { Anio_Desde: 2027, Anio_Hasta: 2027 }
+    }),
+    Mostrar_Toast_Error: () => {},
+    t: (Clave) => Clave
   };
   vm.createContext(Contexto);
   [
     "Planes_Periodos_Destino_Agrupados",
     "Planes_Periodo_Destino_Elegido",
     "Planes_Periodo_Destino_Es_Posterior",
-    "Planes_Fecha_Limite_Reprogramacion"
+    "Planes_Periodo_Destino_Es_Admisible",
+    "Planes_Fecha_Limite_Reprogramacion",
+    "Planes_Elegir_Periodo_Destino"
   ].forEach((Nombre) => {
     vm.runInContext(Extraer_Funcion(Nombre), Contexto);
   });
@@ -124,4 +150,53 @@ test("reprograma después del vencimiento propio del subobjetivo", () => {
     ),
     true
   );
+});
+
+test("Reprogramar admite destinos anteriores sin relajar Trasladar", () => {
+  const Contexto = Crear_Contexto();
+  const Periodo_Anterior = { Inicio: "2026-01-05" };
+
+  assert.equal(
+    Contexto.Planes_Periodo_Destino_Es_Admisible(
+      Periodo_Anterior,
+      "2026-12-31"
+    ),
+    false
+  );
+  assert.equal(
+    Contexto.Planes_Periodo_Destino_Es_Admisible(
+      Periodo_Anterior,
+      "2026-12-31",
+      true
+    ),
+    true
+  );
+});
+
+test("Reprogramar genera el año anterior aunque no esté visible", async () => {
+  const Contexto = Crear_Contexto();
+  let Periodos_Mostrados = [];
+  Contexto.Planes_Mostrar_Dialogo_Periodo_Destino = async (
+    _Mensaje,
+    Periodos
+  ) => {
+    Periodos_Mostrados = Periodos;
+    return Periodos[0]?.Id || "";
+  };
+
+  const Destino = await Contexto.Planes_Elegir_Periodo_Destino(
+    { Id: "Anio_2027", Tipo: "Anio", Inicio: "2027-01-01" },
+    "Elegí destino",
+    null,
+    true,
+    {
+      Fecha_Limite: "2027-12-31",
+      Permitir_Anterior: true
+    }
+  );
+
+  assert.ok(Periodos_Mostrados.some((Periodo) =>
+    Periodo.Inicio === "2026-01-01"
+  ));
+  assert.equal(Destino?.Inicio, "2026-01-01");
 });

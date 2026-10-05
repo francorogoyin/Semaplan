@@ -1354,16 +1354,17 @@ Relaciones importantes.
   porcentaje realizado. Los subobjetivos reprogramados conservan su
   historia, quedan en gris y no participan de cálculos ni listados por
   defecto; el filtro `Reprogramados` permite revisarlos.
-- Reprogramar o trasladar el pendiente crea una rama equivalente en un
-  período posterior, incluso en otra capa temporal, con sólo la carga
-  restante. La rama original queda marcada como `Reprogramado`; al
-  reactivarla, sus avances se devuelven a la rama original y la copia
-  queda fuera de servicio.
-- El límite de ese período posterior es el vencimiento propio del
-  subobjetivo (`Fecha_Objetivo` y, en su ausencia, `Fecha_Inicio`). Si
-  no tiene fecha propia, se usa el final de su período madre. Así, un
-  libro planificado para octubre-diciembre no puede reprogramarse por
-  defecto a una semana anterior del mismo año.
+- Reprogramar o trasladar el pendiente crea una rama equivalente con
+  sólo la carga restante. La rama original queda marcada como
+  `Reprogramado`; al reactivarla, sus avances se devuelven a la rama
+  original y la copia queda fuera de servicio.
+- `Trasladar pendiente` conserva la regla prospectiva: el destino debe
+  comenzar después del vencimiento propio del subobjetivo
+  (`Fecha_Objetivo` y, en su ausencia, `Fecha_Inicio`). Si no tiene
+  fecha propia, se usa el final de su período madre. `Reprogramar`, en
+  cambio, también admite períodos anteriores —incluso en otra capa— y
+  genera como mínimo el año calendario previo al origen, además del
+  rango visible configurado.
 - El destino de reprogramación se elige en un árbol transitorio por año,
   capa y período. Las ramas se expanden o contraen con `+` y `-`; el
   período elegido se conserva desde esa lista, incluso si fue generado
