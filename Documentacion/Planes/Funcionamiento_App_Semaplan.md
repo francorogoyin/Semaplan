@@ -1344,6 +1344,8 @@ Funciones de entrada recomendadas.
 - `Render_Modal_Planes_Subobjetivos()`
 - `Render_Modal_Planes_Partes()`
 - `Render_Modal_Planes_Registro()`
+- `Planes_Navegar_Subobjetivos_Periodo()`
+- `Planes_Navegar_Subobjetivos_Capa()`
 
 Relaciones importantes.
 
@@ -1369,6 +1371,14 @@ Relaciones importantes.
   capa y período. Las ramas se expanden o contraen con `+` y `-`; el
   período elegido se conserva desde esa lista, incluso si fue generado
   para ofrecer un horizonte futuro y todavía no existía en el modelo.
+- El modal de Subobjetivos muestra siempre su período explícito. Sus
+  flechas izquierda y derecha recorren períodos vecinos de la misma capa;
+  las flechas arriba y abajo abren el período equivalente de la capa mayor
+  o menor disponible. La navegación sincroniza el contexto del Plan que
+  queda debajo, no guarda datos y limpia sólo la selección múltiple del
+  modal para no operar sobre ítems de otro período. Los filtros se
+  conservan; los atajos no actúan mientras se escribe ni cuando hay un
+  submodal por encima.
 - La lectura de cada subobjetivo muestra la métrica restante junto con
   las horas restantes cuando existe una unidad calculable. La lectura
   operativa de un hábito asociado también informa cuántos días activos
