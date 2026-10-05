@@ -1,9 +1,17 @@
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
+const fs = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
 
 const Origen = "https://semaplan.com";
-const Version_Actual = "1.16.6";
+const Paquete = JSON.parse(fs.readFileSync(
+  path.resolve(__dirname, "../../package.json"),
+  "utf8"
+));
+const Version_Actual = Paquete.version;
+const Archivo_Release_Actual =
+  `Semaplan_Version_${Version_Actual.replaceAll(".", "_")}.html`;
 
 async function Descargar_Texto(Ruta) {
   const Url = new URL(Ruta, Origen);
@@ -41,9 +49,7 @@ function Normalizar_Respuesta_Cloudflare(Texto) {
 test("produccion sirve el frontend y release actuales", async () => {
   const [Login, Release] = await Promise.all([
     Descargar_Texto("/login.html"),
-    Descargar_Texto(
-      `/Semaplan_Version_${Version_Actual.replaceAll(".", "_")}.html`
-    )
+    Descargar_Texto(`/${Archivo_Release_Actual}`)
   ]);
 
   assert.match(
@@ -70,7 +76,7 @@ test("produccion bloquea releases obsoletos", async () => {
     return Item.Id === Version_Actual;
   });
   assert.equal(Actual?.Estado, "stable");
-  assert.equal(Actual?.Archivo, "Semaplan_Version_1_16_6.html");
+  assert.equal(Actual?.Archivo, Archivo_Release_Actual);
   assert.equal(Actual?.Esquema_Estado_Min, 14);
   assert.equal(Actual?.Esquema_Estado_Max, 14);
 });
