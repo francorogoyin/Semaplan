@@ -1369,14 +1369,18 @@ Relaciones importantes.
   cambio, también admite períodos anteriores —incluso en otra capa— y
   genera como mínimo el año calendario previo al origen, además del
   rango visible configurado.
-- Al reprogramar desde el modal de Subobjetivos, la vista se traslada al
-  período exacto elegido. Sólo se reutiliza un objetivo homónimo cuando
-  pertenece a ese mismo período; un objetivo de una capa hija no puede
-  desviar silenciosamente la copia a otro destino.
+- Al reprogramar desde el modal de Subobjetivos, la vista permanece en el
+  período y objetivo de origen para poder transferir más elementos. La copia
+  se crea en el destino exacto elegido y el original sale de la vista de
+  abiertos. Sólo se reutiliza un objetivo homónimo cuando pertenece a ese
+  mismo período; un objetivo de una capa hija no puede desviar
+  silenciosamente la copia a otro destino.
 - El destino de reprogramación se elige en un árbol transitorio por año,
-  capa y período. Las ramas se expanden o contraen con `+` y `-`; el
-  período elegido se conserva desde esa lista, incluso si fue generado
-  para ofrecer un horizonte futuro y todavía no existía en el modelo.
+  capa y período. Al reprogramar se preselecciona el período equivalente
+  anterior más cercano; el rótulo del año selecciona directamente su período
+  anual y `+` o `-` sólo despliega las capas internas. El período elegido se
+  conserva desde esa lista, incluso si fue generado para ofrecer un horizonte
+  futuro y todavía no existía en el modelo.
 - El modal de Subobjetivos muestra siempre su período explícito. Sus
   navegación no muestra botones: funciona sólo con las flechas del teclado.
   Izquierda y derecha recorren el período cronológico inmediato de la misma

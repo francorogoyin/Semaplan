@@ -58,6 +58,7 @@ function Crear_Contexto() {
   [
     "Planes_Periodos_Destino_Agrupados",
     "Planes_Periodo_Destino_Elegido",
+    "Planes_Periodo_Destino_Predeterminado",
     "Planes_Periodo_Destino_Es_Posterior",
     "Planes_Periodo_Destino_Es_Admisible",
     "Planes_Fecha_Limite_Reprogramacion",
@@ -66,41 +67,6 @@ function Crear_Contexto() {
     vm.runInContext(Extraer_Funcion(Nombre), Contexto);
   });
   return Contexto;
-}
-
-function Crear_Contexto_Enfoque_Destino() {
-  const Activados = [];
-  const Contextos_Aplicados = [];
-  const Periodos = {
-    Anio_2026: { Id: "Anio_2026", Tipo: "Anio" },
-    Mes_2026_11: { Id: "Mes_2026_11", Tipo: "Mes" }
-  };
-  const Overlay = {
-    classList: { contains: (Clase) => Clase === "Activo" }
-  };
-  const Contexto = {
-    Planes_Subobjetivos_Objetivo_Id: "Objetivo_2027",
-    Planes_Subobjetivos_Periodo_Contexto_Id: "Anio_2027",
-    Planes_Subobjetivos_Modal_Seleccion: new Set(["Sub_2027"]),
-    Asegurar_Modelo_Planes: () => ({ Periodos }),
-    document: {
-      getElementById: (Id) => Id === "Planes_Subobjetivos_Overlay"
-        ? Overlay
-        : null
-    },
-    Planes_Activar_Periodo_Desde_Coleccion: (Periodo) => {
-      Activados.push(Periodo.Id);
-    },
-    Planes_Aplicar_Contexto_Modal_Periodo: (Overlay_Id, Periodo_Id) => {
-      Contextos_Aplicados.push([Overlay_Id, Periodo_Id]);
-    }
-  };
-  vm.createContext(Contexto);
-  vm.runInContext(
-    Extraer_Funcion("Planes_Enfocar_Destino_Reprogramado"),
-    Contexto
-  );
-  return { Activados, Contexto, Contextos_Aplicados, Periodos };
 }
 
 function Crear_Contexto_Destino_Exacto() {
@@ -276,6 +242,130 @@ function Crear_Contexto_Clonado_Completo() {
   return { Contexto, Modelo };
 }
 
+function Crear_Contexto_Madame_Bovary() {
+  const Partes = {};
+  for (let Indice = 0; Indice < 36; Indice += 1) {
+    const Id = `Madame_Parte_${Indice + 1}`;
+    Partes[Id] = {
+      Id,
+      Objetivo_Id: "Lectofilia_2027",
+      Subobjetivo_Id: "Madame_Bovary_2027",
+      Aporte_Total: Indice === 35 ? 2 : 8,
+      Estado: "Pendiente",
+      Eliminado_Local: false
+    };
+  }
+  const Modelo = {
+    Subobjetivos: {
+      Madame_Bovary_2027: {
+        Id: "Madame_Bovary_2027",
+        Nombre: "Madame Bovary",
+        Objetivo_Id: "Lectofilia_2027",
+        Subobjetivo_Padre_Id: "",
+        Target_Total: 282,
+        Aporte_Meta: 1,
+        Estado: "Activo",
+        Hecha: false,
+        Eliminado_Local: false
+      }
+    },
+    Partes
+  };
+  let Parte_Siguiente = 0;
+  const Contexto = {
+    Crear_Id_Subobjetivo_Plan: () => "Madame_Bovary_2026",
+    Planes_Progreso_Total_Subobjetivo: () => 0,
+    Planes_Subobjetivos_De_Objetivo: (Objetivo_Id) =>
+      Object.values(Modelo.Subobjetivos)
+        .filter((Sub) => Sub.Objetivo_Id === Objetivo_Id),
+    Normalizar_Subobjetivo_Plan: (Sub) => ({ ...Sub }),
+    Planes_Partes_De_Subobjetivo: (Sub_Id) =>
+      Object.values(Modelo.Partes)
+        .filter((Parte) => Parte.Subobjetivo_Id === Sub_Id),
+    Planes_Progreso_Total_Parte: () => 0,
+    Crear_Id_Parte_Meta: () => {
+      Parte_Siguiente += 1;
+      return `Madame_Parte_2026_${Parte_Siguiente}`;
+    },
+    Normalizar_Parte_Meta: (Parte) => ({ ...Parte }),
+    Planes_Subobjetivos_Hijos: () => []
+  };
+  vm.createContext(Contexto);
+  [
+    "Planes_Clonar_Rama_Reprogramada",
+    "Planes_Marcar_Copias_Reprogramadas"
+  ].forEach((Nombre) => {
+    vm.runInContext(Extraer_Funcion(Nombre), Contexto);
+  });
+  return { Contexto, Modelo };
+}
+
+function Crear_Contexto_Reprogramacion_Sin_Salto() {
+  const Modelo = {
+    Periodos: {
+      Anio_2027: { Id: "Anio_2027", Tipo: "Anio" },
+      Anio_2026: { Id: "Anio_2026", Tipo: "Anio" }
+    },
+    Objetivos: {
+      Lectofilia_2027: {
+        Id: "Lectofilia_2027",
+        Periodo_Id: "Anio_2027"
+      },
+      Lectofilia_2026: {
+        Id: "Lectofilia_2026",
+        Periodo_Id: "Anio_2026"
+      }
+    },
+    Subobjetivos: {
+      Madame_Bovary_2027: {
+        Id: "Madame_Bovary_2027",
+        Objetivo_Id: "Lectofilia_2027",
+        Subobjetivo_Padre_Id: "",
+        Hecha: false,
+        Eliminado_Local: false
+      }
+    }
+  };
+  let Renderizados = 0;
+  const Contexto = {
+    Planes_Subobjetivos_Objetivo_Id: "Lectofilia_2027",
+    Planes_Subobjetivos_Periodo_Contexto_Id: "Anio_2027",
+    Planes_Subobjetivos_Modal_Seleccion: new Set(["Madame_Bovary_2027"]),
+    Asegurar_Modelo_Planes: () => Modelo,
+    Planes_Subobjetivo_Reprogramado: () => false,
+    Mostrar_Toast_Error: () => {},
+    t: (Clave) => Clave,
+    Planes_Fecha_Limite_Reprogramacion: () => "2027-12-31",
+    Planes_Elegir_Periodo_Destino: async () => Modelo.Periodos.Anio_2026,
+    Capturar_Snapshot_Undo: () => ({}),
+    Planes_Objetivo_Duplicado_En_Periodo: () =>
+      Modelo.Objetivos.Lectofilia_2026,
+    Planes_Clonar_Rama_Reprogramada: (
+      Sub,
+      _Objetivo_Destino_Id,
+      _Padre_Destino_Id,
+      _Modelo,
+      Mapa,
+      Raices
+    ) => {
+      Mapa.set(Sub.Id, "Madame_Bovary_2026");
+      Raices.push({ Id: "Madame_Bovary_2026" });
+    },
+    Planes_Marcar_Copias_Reprogramadas: (Mapa) => Mapa.size,
+    Planes_Actualizar_Progreso: () => {},
+    Guardar_Estado: () => {},
+    Mostrar_Toast_Undo: () => {},
+    Render_Plan: () => { Renderizados += 1; },
+    Render_Modal_Planes_Subobjetivos: () => { Renderizados += 1; }
+  };
+  vm.createContext(Contexto);
+  vm.runInContext(
+    Extraer_Funcion("Planes_Reprogramar_Subobjetivos_A_Periodo"),
+    Contexto
+  );
+  return { Contexto, Leer_Renderizados: () => Renderizados };
+}
+
 test("agrupa los destinos por año y después por capa", () => {
   const Contexto = Crear_Contexto();
   const Agrupados = Contexto.Planes_Periodos_Destino_Agrupados([
@@ -384,12 +474,15 @@ test("Reprogramar admite destinos anteriores sin relajar Trasladar", () => {
 test("Reprogramar genera el año anterior aunque no esté visible", async () => {
   const Contexto = Crear_Contexto();
   let Periodos_Mostrados = [];
+  let Predeterminado = "";
   Contexto.Planes_Mostrar_Dialogo_Periodo_Destino = async (
     _Mensaje,
-    Periodos
+    Periodos,
+    Valor_Predeterminado
   ) => {
     Periodos_Mostrados = Periodos;
-    return Periodos[0]?.Id || "";
+    Predeterminado = Valor_Predeterminado;
+    return Valor_Predeterminado;
   };
 
   const Destino = await Contexto.Planes_Elegir_Periodo_Destino(
@@ -406,37 +499,25 @@ test("Reprogramar genera el año anterior aunque no esté visible", async () => 
   assert.ok(Periodos_Mostrados.some((Periodo) =>
     Periodo.Inicio === "2026-01-01"
   ));
+  assert.equal(Predeterminado, "Anio_2026");
   assert.equal(Destino?.Inicio, "2026-01-01");
 });
 
-test("al reprogramar enfoca el período real de la copia anterior", () => {
-  const {
-    Activados,
-    Contexto,
-    Contextos_Aplicados,
-    Periodos
-  } = Crear_Contexto_Enfoque_Destino();
-
-  const Enfoco = Contexto.Planes_Enfocar_Destino_Reprogramado(
-    { Id: "Objetivo_2026", Periodo_Id: "Mes_2026_11" },
-    Periodos.Anio_2026
+test("preselecciona el período anterior equivalente más cercano", () => {
+  const Contexto = Crear_Contexto();
+  const Destino = Contexto.Planes_Periodo_Destino_Predeterminado(
+    [
+      { Id: "Anio_2025", Tipo: "Anio", Inicio: "2025-01-01" },
+      { Id: "Mes_2026_10", Tipo: "Mes", Inicio: "2026-10-01" },
+      { Id: "Anio_2026", Tipo: "Anio", Inicio: "2026-01-01" },
+      { Id: "Anio_2028", Tipo: "Anio", Inicio: "2028-01-01" }
+    ],
+    { Id: "Anio_2027", Tipo: "Anio", Inicio: "2027-01-01" },
+    null,
+    true
   );
 
-  assert.equal(Enfoco, true);
-  assert.equal(
-    Contexto.Planes_Subobjetivos_Objetivo_Id,
-    "Objetivo_2026"
-  );
-  assert.equal(
-    Contexto.Planes_Subobjetivos_Periodo_Contexto_Id,
-    "Mes_2026_11"
-  );
-  assert.equal(Contexto.Planes_Subobjetivos_Modal_Seleccion.size, 0);
-  assert.deepEqual(Activados, ["Mes_2026_11"]);
-  assert.deepEqual(Contextos_Aplicados, [[
-    "Planes_Subobjetivos_Overlay",
-    "Mes_2026_11"
-  ]]);
+  assert.equal(Destino?.Id, "Anio_2026");
 });
 
 test("reutiliza sólo el objetivo del período exacto elegido", () => {
@@ -536,4 +617,62 @@ test("clona y vincula una rama completa hacia atrás", () => {
     Modelo.Subobjetivos.Fuente_Hijo.Reprogramado_A_Subobjetivo_Id,
     "Copia_Hijo"
   );
+});
+
+test("Madame Bovary conserva sus 282 páginas y 36 partes", () => {
+  const { Contexto, Modelo } = Crear_Contexto_Madame_Bovary();
+  const Mapa = new Map();
+  const Raices_Creadas = [];
+
+  Contexto.Planes_Clonar_Rama_Reprogramada(
+    Modelo.Subobjetivos.Madame_Bovary_2027,
+    "Lectofilia_2026",
+    "",
+    Modelo,
+    Mapa,
+    Raices_Creadas
+  );
+  Contexto.Planes_Marcar_Copias_Reprogramadas(
+    Mapa,
+    "Lectofilia_2026",
+    Modelo,
+    "2026-10-06T03:00:00.000Z"
+  );
+  const Partes_Copiadas = Object.values(Modelo.Partes)
+    .filter((Parte) => Parte.Subobjetivo_Id === "Madame_Bovary_2026");
+
+  assert.equal(Raices_Creadas[0]?.Target_Total, 282);
+  assert.equal(Partes_Copiadas.length, 36);
+  assert.equal(
+    Partes_Copiadas.reduce(
+      (Total, Parte) => Total + Number(Parte.Aporte_Total || 0),
+      0
+    ),
+    282
+  );
+  assert.equal(
+    Modelo.Subobjetivos.Madame_Bovary_2027
+      .Reprogramado_A_Subobjetivo_Id,
+    "Madame_Bovary_2026"
+  );
+});
+
+test("reprogramar conserva abierto el período de origen", async () => {
+  const { Contexto, Leer_Renderizados } =
+    Crear_Contexto_Reprogramacion_Sin_Salto();
+
+  await Contexto.Planes_Reprogramar_Subobjetivos_A_Periodo([
+    "Madame_Bovary_2027"
+  ]);
+
+  assert.equal(
+    Contexto.Planes_Subobjetivos_Objetivo_Id,
+    "Lectofilia_2027"
+  );
+  assert.equal(
+    Contexto.Planes_Subobjetivos_Periodo_Contexto_Id,
+    "Anio_2027"
+  );
+  assert.equal(Contexto.Planes_Subobjetivos_Modal_Seleccion.size, 0);
+  assert.equal(Leer_Renderizados(), 2);
 });
