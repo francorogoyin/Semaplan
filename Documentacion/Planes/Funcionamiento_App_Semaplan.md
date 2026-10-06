@@ -1359,7 +1359,9 @@ Relaciones importantes.
 - Reprogramar o trasladar el pendiente crea una rama equivalente con
   sólo la carga restante. La rama original queda marcada como
   `Reprogramado`; al reactivarla, sus avances se devuelven a la rama
-  original y la copia queda fuera de servicio.
+  original y la copia queda fuera de servicio. Cada fuente se vincula
+  con su copia exacta, incluidos los descendientes efectivamente
+  clonados; reactivar una raíz alcanza también a toda su rama.
 - `Trasladar pendiente` conserva la regla prospectiva: el destino debe
   comenzar después del vencimiento propio del subobjetivo
   (`Fecha_Objetivo` y, en su ausencia, `Fecha_Inicio`). Si no tiene
@@ -1368,23 +1370,24 @@ Relaciones importantes.
   genera como mínimo el año calendario previo al origen, además del
   rango visible configurado.
 - Al reprogramar desde el modal de Subobjetivos, la vista se traslada al
-  período efectivo de la copia creada o reutilizada. Si el objetivo de
-  destino vive dentro de una capa hija del período elegido, se muestra esa
-  capa hija para que el resultado no quede oculto detrás del origen.
+  período exacto elegido. Sólo se reutiliza un objetivo homónimo cuando
+  pertenece a ese mismo período; un objetivo de una capa hija no puede
+  desviar silenciosamente la copia a otro destino.
 - El destino de reprogramación se elige en un árbol transitorio por año,
   capa y período. Las ramas se expanden o contraen con `+` y `-`; el
   período elegido se conserva desde esa lista, incluso si fue generado
   para ofrecer un horizonte futuro y todavía no existía en el modelo.
 - El modal de Subobjetivos muestra siempre su período explícito. Sus
-  flechas izquierda y derecha recorren el siguiente período de la misma
-  capa que tenga subobjetivos visibles; las flechas arriba y abajo abren el
-  período equivalente de la capa mayor o menor disponible sólo si también
-  tiene contenido visible. Así no se llega a listas vacías y los controles
-  sin destino útil quedan deshabilitados. La navegación sincroniza el
-  contexto del Plan que queda debajo, no guarda datos y limpia sólo la
-  selección múltiple del modal para no operar sobre ítems de otro período.
-  Los filtros se conservan; los atajos no actúan mientras se escribe ni
-  cuando hay un submodal por encima. Un subobjetivo sin fechas propias se
+  navegación no muestra botones: funciona sólo con las flechas del teclado.
+  Izquierda y derecha recorren el período cronológico inmediato de la misma
+  capa, aunque esté vacío, y crean el período vecino cuando todavía no
+  existe. Esto permite cruzar de diciembre a enero y amplía el rango anual
+  visible para conservar el nuevo contexto. Arriba y abajo abren el período
+  equivalente de la capa mayor o menor sólo cuando allí hay contenido y
+  conservan el año del período de origen. La navegación sincroniza el Plan
+  que queda debajo, no guarda datos y limpia sólo la selección múltiple del
+  modal. Los filtros se conservan; los atajos no actúan mientras se escribe
+  ni cuando hay un submodal por encima. Un subobjetivo sin fechas propias se
   muestra además en las capas padre que contienen el período de su objetivo.
 - La lectura de cada subobjetivo muestra la métrica restante junto con
   las horas restantes cuando existe una unidad calculable. La lectura

@@ -42,6 +42,10 @@ function Crear_Contexto(Opciones = {}) {
       Id: "Trimestre_2026_4", Tipo: "Trimestre",
       Inicio: "2026-10-01", Fin: "2026-12-31"
     },
+    Trimestre_2027_1: {
+      Id: "Trimestre_2027_1", Tipo: "Trimestre",
+      Inicio: "2027-01-01", Fin: "2027-03-31"
+    },
     Mes_2026_09: {
       Id: "Mes_2026_09", Tipo: "Mes",
       Inicio: "2026-09-01", Fin: "2026-09-30"
@@ -57,6 +61,10 @@ function Crear_Contexto(Opciones = {}) {
     Mes_2026_12: {
       Id: "Mes_2026_12", Tipo: "Mes",
       Inicio: "2026-12-01", Fin: "2026-12-31"
+    },
+    Mes_2027_01: {
+      Id: "Mes_2027_01", Tipo: "Mes",
+      Inicio: "2027-01-01", Fin: "2027-01-31"
     },
     Semana_2026_40: {
       Id: "Semana_2026_40", Tipo: "Semana",
@@ -87,6 +95,18 @@ function Crear_Contexto(Opciones = {}) {
     Planes_Crear_Periodos_Capa_Visibles: (Tipo) => Object.values(
       Periodos
     ).filter((Periodo) => Periodo.Tipo === Tipo),
+    Parsear_Fecha_ISO: (Fecha) =>
+      new Date(`${Fecha}T00:00:00`),
+    Planes_Subperiodo_De_Periodo: (Periodo) =>
+      Number(Periodo.Inicio.slice(5, 7)),
+    Planes_Cantidad_Subperiodos: (Tipo) => Tipo === "Mes" ? 12 : 1,
+    Planes_Crear_Periodo_Por_Capa: (Tipo, Anio, Subperiodo) => {
+      const Mes = String(Subperiodo).padStart(2, "0");
+      return Object.values(Periodos).find((Periodo) =>
+        Periodo.Tipo === Tipo &&
+        Periodo.Inicio.startsWith(`${Anio}-${Mes}`)
+      ) || null;
+    },
     Planes_Objetivo_Para_Periodo: (Objetivo, Periodo) => ({
       ...Objetivo,
       Periodo_Id: Periodo.Id
@@ -129,7 +149,7 @@ function Crear_Contexto(Opciones = {}) {
     "Planes_Periodo_Equivalente_En_Capa",
     "Planes_Periodo_Subobjetivos_Actual",
     "Planes_Subobjetivos_Mostrables_En_Periodo",
-    "Planes_Periodo_Vecino_Con_Subobjetivos",
+    "Planes_Periodo_Adyacente",
     "Planes_Periodo_Capa_Con_Subobjetivos",
     "Planes_Activar_Periodo_Subobjetivos",
     "Planes_Navegar_Subobjetivos_Periodo",
@@ -138,6 +158,28 @@ function Crear_Contexto(Opciones = {}) {
     vm.runInContext(Extraer_Funcion(Nombre), Contexto);
   });
   return { Contexto, Periodos, Activados };
+}
+
+function Crear_Contexto_Activacion() {
+  const Modelo = {
+    UI: {
+      Anio_Desde: 2026,
+      Anio_Hasta: 2026,
+      Anio_Activo: 2026
+    }
+  };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => Modelo,
+    Planes_Subperiodo_De_Periodo: () => 1,
+    Render_Planes_Controles: () => {},
+    Render_Planes_Contenido: () => {}
+  };
+  vm.createContext(Contexto);
+  vm.runInContext(
+    Extraer_Funcion("Planes_Activar_Periodo_Desde_Coleccion"),
+    Contexto
+  );
+  return { Contexto, Modelo };
 }
 
 function Crear_Contexto_Visibilidad() {
@@ -167,6 +209,17 @@ function Crear_Contexto_Visibilidad() {
   );
   return { Contexto, Periodo_Trimestre };
 }
+
+test("el modal no muestra botones de navegación por flechas", () => {
+  [
+    "Planes_Subobjetivos_Periodo_Anterior",
+    "Planes_Subobjetivos_Capa_Superior",
+    "Planes_Subobjetivos_Capa_Inferior",
+    "Planes_Subobjetivos_Periodo_Siguiente"
+  ].forEach((Id) => {
+    assert.equal(Codigo_Login.includes(`id="${Id}"`), false);
+  });
+});
 
 test("encuentra la capa vecina que contiene al período abierto", () => {
   const { Contexto, Periodos } = Crear_Contexto();
@@ -210,7 +263,7 @@ test("la flecha vertical conserva el objetivo y cambia de capa", () => {
   assert.deepEqual(Activados, ["Trimestre_2026_4"]);
 });
 
-test("saltea períodos laterales sin subobjetivos visibles", () => {
+test("la navegación lateral no saltea un período vacío", () => {
   const { Contexto, Activados } = Crear_Contexto({
     Periodos_Con_Contenido: ["Mes_2026_10", "Mes_2026_12"]
   });
@@ -218,9 +271,49 @@ test("saltea períodos laterales sin subobjetivos visibles", () => {
   assert.equal(Contexto.Planes_Navegar_Subobjetivos_Periodo(1), true);
   assert.equal(
     Contexto.Planes_Subobjetivos_Periodo_Contexto_Id,
-    "Mes_2026_12"
+    "Mes_2026_11"
   );
-  assert.deepEqual(Activados, ["Mes_2026_12"]);
+  assert.deepEqual(Activados, ["Mes_2026_11"]);
+});
+
+test("diciembre navega a enero del año siguiente", () => {
+  const { Contexto, Periodos, Activados } = Crear_Contexto();
+  Contexto.Planes_Subobjetivos_Periodo_Contexto_Id = "Mes_2026_12";
+  Contexto.Planes_Periodo_Activo = () => Periodos.Mes_2026_12;
+
+  assert.equal(Contexto.Planes_Navegar_Subobjetivos_Periodo(1), true);
+  assert.equal(
+    Contexto.Planes_Subobjetivos_Periodo_Contexto_Id,
+    "Mes_2027_01"
+  );
+  assert.deepEqual(Activados, ["Mes_2027_01"]);
+});
+
+test("cambiar de capa conserva el año del período", () => {
+  const { Contexto, Periodos } = Crear_Contexto();
+
+  assert.equal(
+    Contexto.Planes_Periodo_Equivalente_En_Capa(
+      Periodos.Mes_2027_01,
+      -1
+    )?.Id,
+    "Trimestre_2027_1"
+  );
+});
+
+test("activar enero amplía el rango visible al año siguiente", () => {
+  const { Contexto, Modelo } = Crear_Contexto_Activacion();
+
+  Contexto.Planes_Activar_Periodo_Desde_Coleccion({
+    Id: "Mes_2027_01",
+    Tipo: "Mes",
+    Inicio: "2027-01-01"
+  });
+
+  assert.equal(Modelo.UI.Anio_Desde, 2026);
+  assert.equal(Modelo.UI.Anio_Hasta, 2027);
+  assert.equal(Modelo.UI.Anio_Activo, 2027);
+  assert.equal(Modelo.UI.Periodo_Activo_Id, "Mes_2027_01");
 });
 
 test("los subobjetivos sin fechas siguen visibles en una capa padre", () => {

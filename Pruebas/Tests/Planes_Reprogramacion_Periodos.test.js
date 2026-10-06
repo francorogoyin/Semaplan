@@ -103,6 +103,179 @@ function Crear_Contexto_Enfoque_Destino() {
   return { Activados, Contexto, Contextos_Aplicados, Periodos };
 }
 
+function Crear_Contexto_Destino_Exacto() {
+  const Periodos = {
+    Anio_2026: {
+      Id: "Anio_2026", Tipo: "Anio",
+      Inicio: "2026-01-01", Fin: "2026-12-31"
+    },
+    Mes_2026_11: {
+      Id: "Mes_2026_11", Tipo: "Mes",
+      Inicio: "2026-11-01", Fin: "2026-11-30"
+    }
+  };
+  const Modelo = {
+    Periodos,
+    Objetivos: {
+      Objetivo_Origen: {
+        Id: "Objetivo_Origen",
+        Nombre: "Lectofilia",
+        Emoji: "📚",
+        Periodo_Id: "Anio_2027"
+      },
+      Objetivo_Anual: {
+        Id: "Objetivo_Anual",
+        Nombre: "Lectofilia",
+        Emoji: "📚",
+        Periodo_Id: "Anio_2026"
+      },
+      Objetivo_Mensual: {
+        Id: "Objetivo_Mensual",
+        Nombre: "Lectofilia",
+        Emoji: "📚",
+        Periodo_Id: "Mes_2026_11"
+      }
+    }
+  };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => Modelo,
+    Normalizar_Texto_Meta_Objetivo: (Texto) =>
+      String(Texto || "").trim().toLowerCase()
+  };
+  vm.createContext(Contexto);
+  [
+    "Planes_Periodos_Equivalentes",
+    "Planes_Firma_Objetivo_Duplicado",
+    "Planes_Objetivo_Duplicado_En_Periodo"
+  ].forEach((Nombre) => {
+    vm.runInContext(Extraer_Funcion(Nombre), Contexto);
+  });
+  return { Contexto, Modelo, Periodos };
+}
+
+function Crear_Contexto_Marca_Reprogramacion() {
+  const Modelo = {
+    Subobjetivos: {
+      Fuente_Raiz: {
+        Id: "Fuente_Raiz",
+        Objetivo_Id: "Objetivo_Origen",
+        Estado: "Activo"
+      },
+      Fuente_Hijo: {
+        Id: "Fuente_Hijo",
+        Objetivo_Id: "Objetivo_Origen",
+        Estado: "Activo"
+      },
+      Fuente_No_Clonada: {
+        Id: "Fuente_No_Clonada",
+        Objetivo_Id: "Objetivo_Origen",
+        Estado: "Cumplido",
+        Hecha: true
+      },
+      Copia_Raiz: {
+        Id: "Copia_Raiz",
+        Objetivo_Id: "Objetivo_Destino"
+      },
+      Copia_Hijo: {
+        Id: "Copia_Hijo",
+        Objetivo_Id: "Objetivo_Destino"
+      }
+    }
+  };
+  const Contexto = {};
+  vm.createContext(Contexto);
+  vm.runInContext(
+    Extraer_Funcion("Planes_Marcar_Copias_Reprogramadas"),
+    Contexto
+  );
+  return { Contexto, Modelo };
+}
+
+function Crear_Contexto_Familia_Estructural() {
+  const Modelo = {
+    Subobjetivos: {
+      Raiz: {
+        Id: "Raiz",
+        Subobjetivo_Padre_Id: ""
+      },
+      Hijo: {
+        Id: "Hijo",
+        Subobjetivo_Padre_Id: "Raiz"
+      },
+      Nieto: {
+        Id: "Nieto",
+        Subobjetivo_Padre_Id: "Hijo"
+      },
+      Ajeno: {
+        Id: "Ajeno",
+        Subobjetivo_Padre_Id: ""
+      }
+    }
+  };
+  const Contexto = {};
+  vm.createContext(Contexto);
+  [
+    "Planes_Subobjetivo_Raiz_Id",
+    "Planes_Subobjetivos_Familia_Ids",
+    "Planes_Subobjetivos_Familia_Con_Hijos_Ids"
+  ].forEach((Nombre) => {
+    vm.runInContext(Extraer_Funcion(Nombre), Contexto);
+  });
+  return { Contexto, Modelo };
+}
+
+function Crear_Contexto_Clonado_Completo() {
+  const Modelo = {
+    Subobjetivos: {
+      Fuente_Raiz: {
+        Id: "Fuente_Raiz",
+        Objetivo_Id: "Objetivo_Origen",
+        Subobjetivo_Padre_Id: "",
+        Target_Total: 10,
+        Progreso_Prueba: 2,
+        Estado: "Activo"
+      },
+      Fuente_Hijo: {
+        Id: "Fuente_Hijo",
+        Objetivo_Id: "Objetivo_Origen",
+        Subobjetivo_Padre_Id: "Fuente_Raiz",
+        Target_Total: 5,
+        Progreso_Prueba: 1,
+        Estado: "Activo"
+      }
+    },
+    Partes: {}
+  };
+  const Ids = ["Copia_Raiz", "Copia_Hijo"];
+  const Contexto = {
+    Crear_Id_Subobjetivo_Plan: () => Ids.shift(),
+    Planes_Progreso_Total_Subobjetivo: (Sub) =>
+      Sub.Progreso_Prueba || 0,
+    Planes_Subobjetivos_De_Objetivo: (Objetivo_Id) =>
+      Object.values(Modelo.Subobjetivos)
+        .filter((Sub) => Sub.Objetivo_Id === Objetivo_Id),
+    Normalizar_Subobjetivo_Plan: (Sub) => ({ ...Sub }),
+    Planes_Partes_De_Subobjetivo: () => [],
+    Planes_Progreso_Total_Parte: () => 0,
+    Crear_Id_Parte_Meta: () => "",
+    Normalizar_Parte_Meta: (Parte) => ({ ...Parte }),
+    Planes_Subobjetivos_Hijos: (Sub_Id) =>
+      Object.values(Modelo.Subobjetivos)
+        .filter((Sub) =>
+          Sub.Objetivo_Id === "Objetivo_Origen" &&
+          Sub.Subobjetivo_Padre_Id === Sub_Id
+        )
+  };
+  vm.createContext(Contexto);
+  [
+    "Planes_Clonar_Rama_Reprogramada",
+    "Planes_Marcar_Copias_Reprogramadas"
+  ].forEach((Nombre) => {
+    vm.runInContext(Extraer_Funcion(Nombre), Contexto);
+  });
+  return { Contexto, Modelo };
+}
+
 test("agrupa los destinos por año y después por capa", () => {
   const Contexto = Crear_Contexto();
   const Agrupados = Contexto.Planes_Periodos_Destino_Agrupados([
@@ -264,4 +437,103 @@ test("al reprogramar enfoca el período real de la copia anterior", () => {
     "Planes_Subobjetivos_Overlay",
     "Mes_2026_11"
   ]]);
+});
+
+test("reutiliza sólo el objetivo del período exacto elegido", () => {
+  const { Contexto, Modelo, Periodos } =
+    Crear_Contexto_Destino_Exacto();
+
+  const Destino = Contexto.Planes_Objetivo_Duplicado_En_Periodo(
+    Modelo.Objetivos.Objetivo_Origen,
+    Periodos.Anio_2026,
+    Modelo
+  );
+
+  assert.equal(Destino?.Id, "Objetivo_Anual");
+  Modelo.Objetivos.Objetivo_Anual.Eliminado_Local = true;
+  assert.equal(
+    Contexto.Planes_Objetivo_Duplicado_En_Periodo(
+      Modelo.Objetivos.Objetivo_Origen,
+      Periodos.Anio_2026,
+      Modelo
+    ),
+    null
+  );
+});
+
+test("marca cada fuente con su copia exacta y no toca las omitidas", () => {
+  const { Contexto, Modelo } = Crear_Contexto_Marca_Reprogramacion();
+  const Mapa = new Map([
+    ["Fuente_Raiz", "Copia_Raiz"],
+    ["Fuente_Hijo", "Copia_Hijo"]
+  ]);
+
+  const Marcados = Contexto.Planes_Marcar_Copias_Reprogramadas(
+    Mapa,
+    "Objetivo_Destino",
+    Modelo,
+    "2026-10-06T03:00:00.000Z"
+  );
+
+  assert.equal(Marcados, 2);
+  assert.equal(
+    Modelo.Subobjetivos.Fuente_Raiz.Reprogramado_A_Subobjetivo_Id,
+    "Copia_Raiz"
+  );
+  assert.equal(
+    Modelo.Subobjetivos.Fuente_Hijo.Reprogramado_A_Subobjetivo_Id,
+    "Copia_Hijo"
+  );
+  assert.equal(
+    Modelo.Subobjetivos.Fuente_No_Clonada.Reprogramado,
+    undefined
+  );
+});
+
+test("reactivar una raíz alcanza también a todos sus hijos", () => {
+  const { Contexto, Modelo } = Crear_Contexto_Familia_Estructural();
+
+  const Familia = Contexto.Planes_Subobjetivos_Familia_Con_Hijos_Ids(
+    "Raiz",
+    Modelo
+  );
+
+  assert.deepEqual(
+    [...Familia].sort(),
+    ["Hijo", "Nieto", "Raiz"]
+  );
+});
+
+test("clona y vincula una rama completa hacia atrás", () => {
+  const { Contexto, Modelo } = Crear_Contexto_Clonado_Completo();
+  const Mapa = new Map();
+  const Raices_Creadas = [];
+
+  Contexto.Planes_Clonar_Rama_Reprogramada(
+    Modelo.Subobjetivos.Fuente_Raiz,
+    "Objetivo_Destino",
+    "",
+    Modelo,
+    Mapa,
+    Raices_Creadas
+  );
+  const Marcados = Contexto.Planes_Marcar_Copias_Reprogramadas(
+    Mapa,
+    "Objetivo_Destino",
+    Modelo,
+    "2026-10-06T03:00:00.000Z"
+  );
+
+  assert.equal(Raices_Creadas[0]?.Id, "Copia_Raiz");
+  assert.equal(
+    Modelo.Subobjetivos.Copia_Hijo.Subobjetivo_Padre_Id,
+    "Copia_Raiz"
+  );
+  assert.equal(Modelo.Subobjetivos.Copia_Raiz.Target_Total, 8);
+  assert.equal(Modelo.Subobjetivos.Copia_Hijo.Target_Total, 4);
+  assert.equal(Marcados, 2);
+  assert.equal(
+    Modelo.Subobjetivos.Fuente_Hijo.Reprogramado_A_Subobjetivo_Id,
+    "Copia_Hijo"
+  );
 });
