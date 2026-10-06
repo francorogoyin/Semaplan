@@ -32,7 +32,7 @@ function Contiene(Periodo, Fecha) {
   return Fecha >= Periodo.Inicio && Fecha <= Periodo.Fin;
 }
 
-function Crear_Contexto() {
+function Crear_Contexto(Opciones = {}) {
   const Periodos = {
     Anio_2026: {
       Id: "Anio_2026", Tipo: "Anio",
@@ -54,11 +54,18 @@ function Crear_Contexto() {
       Id: "Mes_2026_11", Tipo: "Mes",
       Inicio: "2026-11-01", Fin: "2026-11-30"
     },
+    Mes_2026_12: {
+      Id: "Mes_2026_12", Tipo: "Mes",
+      Inicio: "2026-12-01", Fin: "2026-12-31"
+    },
     Semana_2026_40: {
       Id: "Semana_2026_40", Tipo: "Semana",
       Inicio: "2026-10-05", Fin: "2026-10-11"
     }
   };
+  const Periodos_Con_Contenido = new Set(
+    Opciones.Periodos_Con_Contenido || Object.keys(Periodos)
+  );
   const Activados = [];
   const Contexto = {
     Planes_Subobjetivos_Objetivo_Id: "Objetivo_Lectofilia",
@@ -66,7 +73,10 @@ function Crear_Contexto() {
     Planes_Subobjetivos_Modal_Seleccion: new Set(["Sub_1"]),
     Asegurar_Modelo_Planes: () => ({
       Objetivos: {
-        Objetivo_Lectofilia: { Periodo_Id: "Anio_2026" }
+        Objetivo_Lectofilia: {
+          Id: "Objetivo_Lectofilia",
+          Periodo_Id: "Anio_2026"
+        }
       },
       Periodos
     }),
@@ -77,6 +87,22 @@ function Crear_Contexto() {
     Planes_Crear_Periodos_Capa_Visibles: (Tipo) => Object.values(
       Periodos
     ).filter((Periodo) => Periodo.Tipo === Tipo),
+    Planes_Objetivo_Para_Periodo: (Objetivo, Periodo) => ({
+      ...Objetivo,
+      Periodo_Id: Periodo.Id
+    }),
+    Planes_Subobjetivos_Contexto_Objetivo: (Objetivo) => {
+      const Tiene_Contenido = Periodos_Con_Contenido.has(
+        Objetivo.Periodo_Id
+      );
+      const Info = { Sub: { Id: "Sub_1" } };
+      return {
+        Hijos_Por_Padre: new Map([
+          ["", Tiene_Contenido ? [Info] : []]
+        ])
+      };
+    },
+    Planes_Subobjetivo_Rama_Visible_Contexto: () => true,
     Formatear_Fecha_ISO: () => "2026-10-05",
     Planes_Periodo_Contiene_Fecha: Contiene,
     Planes_Periodo_Contiene_Periodo: (Padre, Hijo) =>
@@ -102,6 +128,9 @@ function Crear_Contexto() {
   [
     "Planes_Periodo_Equivalente_En_Capa",
     "Planes_Periodo_Subobjetivos_Actual",
+    "Planes_Subobjetivos_Mostrables_En_Periodo",
+    "Planes_Periodo_Vecino_Con_Subobjetivos",
+    "Planes_Periodo_Capa_Con_Subobjetivos",
     "Planes_Activar_Periodo_Subobjetivos",
     "Planes_Navegar_Subobjetivos_Periodo",
     "Planes_Navegar_Subobjetivos_Capa"
@@ -109,6 +138,34 @@ function Crear_Contexto() {
     vm.runInContext(Extraer_Funcion(Nombre), Contexto);
   });
   return { Contexto, Periodos, Activados };
+}
+
+function Crear_Contexto_Visibilidad() {
+  const Periodo_Mes = { Id: "Mes_2026_11", Tipo: "Mes" };
+  const Periodo_Trimestre = {
+    Id: "Trimestre_2026_4",
+    Tipo: "Trimestre"
+  };
+  const Contexto = {
+    Asegurar_Modelo_Planes: () => ({
+      Objetivos: {
+        Objetivo_Lectofilia: { Periodo_Id: Periodo_Mes.Id }
+      },
+      Periodos: {
+        [Periodo_Mes.Id]: Periodo_Mes,
+        [Periodo_Trimestre.Id]: Periodo_Trimestre
+      }
+    }),
+    Planes_Rango_Subobjetivo_Para_Prorateo: () => null,
+    Planes_Periodo_Contiene_Periodo: (Padre, Hijo) =>
+      Padre.Id === Periodo_Trimestre.Id && Hijo?.Id === Periodo_Mes.Id
+  };
+  vm.createContext(Contexto);
+  vm.runInContext(
+    Extraer_Funcion("Planes_Subobjetivo_Visible_Contexto_Objetivo"),
+    Contexto
+  );
+  return { Contexto, Periodo_Trimestre };
 }
 
 test("encuentra la capa vecina que contiene al período abierto", () => {
@@ -151,4 +208,30 @@ test("la flecha vertical conserva el objetivo y cambia de capa", () => {
     "Trimestre_2026_4"
   );
   assert.deepEqual(Activados, ["Trimestre_2026_4"]);
+});
+
+test("saltea períodos laterales sin subobjetivos visibles", () => {
+  const { Contexto, Activados } = Crear_Contexto({
+    Periodos_Con_Contenido: ["Mes_2026_10", "Mes_2026_12"]
+  });
+
+  assert.equal(Contexto.Planes_Navegar_Subobjetivos_Periodo(1), true);
+  assert.equal(
+    Contexto.Planes_Subobjetivos_Periodo_Contexto_Id,
+    "Mes_2026_12"
+  );
+  assert.deepEqual(Activados, ["Mes_2026_12"]);
+});
+
+test("los subobjetivos sin fechas siguen visibles en una capa padre", () => {
+  const { Contexto, Periodo_Trimestre } = Crear_Contexto_Visibilidad();
+
+  assert.equal(
+    Contexto.Planes_Subobjetivo_Visible_Contexto_Objetivo(
+      { Objetivo_Id: "Objetivo_Lectofilia" },
+      {},
+      Periodo_Trimestre
+    ),
+    true
+  );
 });
