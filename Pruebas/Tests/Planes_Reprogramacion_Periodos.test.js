@@ -68,6 +68,41 @@ function Crear_Contexto() {
   return Contexto;
 }
 
+function Crear_Contexto_Enfoque_Destino() {
+  const Activados = [];
+  const Contextos_Aplicados = [];
+  const Periodos = {
+    Anio_2026: { Id: "Anio_2026", Tipo: "Anio" },
+    Mes_2026_11: { Id: "Mes_2026_11", Tipo: "Mes" }
+  };
+  const Overlay = {
+    classList: { contains: (Clase) => Clase === "Activo" }
+  };
+  const Contexto = {
+    Planes_Subobjetivos_Objetivo_Id: "Objetivo_2027",
+    Planes_Subobjetivos_Periodo_Contexto_Id: "Anio_2027",
+    Planes_Subobjetivos_Modal_Seleccion: new Set(["Sub_2027"]),
+    Asegurar_Modelo_Planes: () => ({ Periodos }),
+    document: {
+      getElementById: (Id) => Id === "Planes_Subobjetivos_Overlay"
+        ? Overlay
+        : null
+    },
+    Planes_Activar_Periodo_Desde_Coleccion: (Periodo) => {
+      Activados.push(Periodo.Id);
+    },
+    Planes_Aplicar_Contexto_Modal_Periodo: (Overlay_Id, Periodo_Id) => {
+      Contextos_Aplicados.push([Overlay_Id, Periodo_Id]);
+    }
+  };
+  vm.createContext(Contexto);
+  vm.runInContext(
+    Extraer_Funcion("Planes_Enfocar_Destino_Reprogramado"),
+    Contexto
+  );
+  return { Activados, Contexto, Contextos_Aplicados, Periodos };
+}
+
 test("agrupa los destinos por año y después por capa", () => {
   const Contexto = Crear_Contexto();
   const Agrupados = Contexto.Planes_Periodos_Destino_Agrupados([
@@ -199,4 +234,34 @@ test("Reprogramar genera el año anterior aunque no esté visible", async () => 
     Periodo.Inicio === "2026-01-01"
   ));
   assert.equal(Destino?.Inicio, "2026-01-01");
+});
+
+test("al reprogramar enfoca el período real de la copia anterior", () => {
+  const {
+    Activados,
+    Contexto,
+    Contextos_Aplicados,
+    Periodos
+  } = Crear_Contexto_Enfoque_Destino();
+
+  const Enfoco = Contexto.Planes_Enfocar_Destino_Reprogramado(
+    { Id: "Objetivo_2026", Periodo_Id: "Mes_2026_11" },
+    Periodos.Anio_2026
+  );
+
+  assert.equal(Enfoco, true);
+  assert.equal(
+    Contexto.Planes_Subobjetivos_Objetivo_Id,
+    "Objetivo_2026"
+  );
+  assert.equal(
+    Contexto.Planes_Subobjetivos_Periodo_Contexto_Id,
+    "Mes_2026_11"
+  );
+  assert.equal(Contexto.Planes_Subobjetivos_Modal_Seleccion.size, 0);
+  assert.deepEqual(Activados, ["Mes_2026_11"]);
+  assert.deepEqual(Contextos_Aplicados, [[
+    "Planes_Subobjetivos_Overlay",
+    "Mes_2026_11"
+  ]]);
 });

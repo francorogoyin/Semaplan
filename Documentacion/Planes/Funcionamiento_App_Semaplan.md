@@ -1367,6 +1367,10 @@ Relaciones importantes.
   cambio, también admite períodos anteriores —incluso en otra capa— y
   genera como mínimo el año calendario previo al origen, además del
   rango visible configurado.
+- Al reprogramar desde el modal de Subobjetivos, la vista se traslada al
+  período efectivo de la copia creada o reutilizada. Si el objetivo de
+  destino vive dentro de una capa hija del período elegido, se muestra esa
+  capa hija para que el resultado no quede oculto detrás del origen.
 - El destino de reprogramación se elige en un árbol transitorio por año,
   capa y período. Las ramas se expanden o contraen con `+` y `-`; el
   período elegido se conserva desde esa lista, incluso si fue generado
