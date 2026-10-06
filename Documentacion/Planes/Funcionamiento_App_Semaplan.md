@@ -1371,10 +1371,17 @@ Relaciones importantes.
   rango visible configurado.
 - Al reprogramar desde el modal de Subobjetivos, la vista permanece en el
   período y objetivo de origen para poder transferir más elementos. La copia
-  se crea en el destino exacto elegido y el original sale de la vista de
-  abiertos. Sólo se reutiliza un objetivo homónimo cuando pertenece a ese
-  mismo período; un objetivo de una capa hija no puede desviar
-  silenciosamente la copia a otro destino.
+  se ubica en el destino exacto elegido y el original sale de la vista de
+  abiertos. Si una meta raíz homónima ya es visible en ese destino, se
+  reutiliza su objetivo canónico aunque pertenezca a una capa temporal mayor;
+  esto incluye la propia meta anual cuando el movimiento ocurre entre sus
+  subperíodos. Las fechas del subobjetivo y sus partes conservan el período
+  elegido. Así, reprogramar hacia un mes no crea otra copia de una meta anual
+  ya visible.
+  Si no queda pendiente clonable, la operación se cancela antes de crear la
+  meta destino. Al normalizar el estado también se descartan únicamente los
+  contenedores vacíos que hayan quedado identificados como productos de una
+  reprogramación fallida, sin afectar metas vacías creadas manualmente.
 - El destino de reprogramación se elige en un árbol transitorio por año,
   capa y período. Al reprogramar se preselecciona el período equivalente
   anterior más cercano; el rótulo del año selecciona directamente su período
